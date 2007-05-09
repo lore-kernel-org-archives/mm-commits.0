@@ -1,801 +1,435 @@
 From: akpm@linux-foundation.org
-Subject: - add-tsi108-ethernet-device-driver-support-tidy.patch removed from -mm tree
-Date: Wed, 09 May 2007 15:25:14 -0700
-Message-ID: <200705092225.l49MPEal004220@shell0.pdx.osdl.net>
+Subject: - add-support-for-vectored-and-async-i-o-to-all-simple-filesystems.patch removed from -mm tree
+Date: Wed, 09 May 2007 15:25:11 -0700
+Message-ID: <200705092225.l49MPBxq004217@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38103 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759049AbXEIWZT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:25:19 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l49MPGbF009928
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 9 May 2007 15:25:17 -0700
+	by vger.kernel.org with ESMTP id S1759158AbXEIWZX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:25:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-tsi108-ethernet-device-driver-support tidy
+     Add support for vectored and async I/O to all simple filesystems
 has been removed from the -mm tree.  Its filename was
-     add-tsi108-ethernet-device-driver-support-tidy.patch
+     add-support-for-vectored-and-async-i-o-to-all-simple-filesystems.patch
 
 This patch was dropped because I'm cleaning old stuff out of my patches directory
 
 ------------------------------------------------------
-Subject: add-tsi108-ethernet-device-driver-support tidy
-From: Andrew Morton <akpm@osdl.org>
-
-- Nuke the typedef
-
-- Reduce exorbitant inlining.
-
-- possible bug: tsi108_open() does request_irq() as its first operation. 
-  The IRQ handler can run immediately.  Is it ready for that?
-
-- Use setup_irq().
-
-- Unneeded casts of void*
-
-- alloc_etherdev() already zeroes the memory.
-
-- why are tsi108_prv_data.regs and .phyregs volatile?  They shouldn't be.
-
-- What's this?
-
-	data->regs = (u32)ioremap(einfo->regs, 0x400);	/*FIX ME */
-	data->phyregs = (u32)ioremap(einfo->phyregs, 0x400); 	/*FIX ME */
-
-- Use DEFINE_SPINLOCK()
-
-- Use free_netdev(), not kfree() (Is this right?)
-
-- Use mod_timer()
-
-- tsi108_init_phy() has a 10-millisecond busywait in it, seemingly
-  needlessly.  Convert to msleep().
-
-- tsi108_init_phy() has multiple potentially infinite wait loops.  Add
-  timeouts.
-
-- Random coding-style cleanups.
+Subject: Add support for vectored and async I/O to all simple filesystems
+From: Christoph Hellwig <hch@lst.de>
 
 
+Every filesystem using generic_file_read/generic_file_write directly can
+easily support vectored and async (well at least the API, it's not async quite
+yet in mainline) I/O.  This patch adds the proper vectors to all filesystems
+and switches them to do_sync_read/do_sync_write.  This we we can get rid of
+plain generic_file_read/generic_file_write soon and remove one of the many
+variants of those functions.  Long term I plan to unify aio and vectored
+support into a single operation so we can cut down filemap.c to a sane set of
+these routines.
 
-
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- drivers/net/tsi108_eth.c |  295 ++++++++++++++++++-------------------
- 1 file changed, 145 insertions(+), 150 deletions(-)
+ drivers/char/raw.c      |    2 +-
+ fs/adfs/file.c          |    9 +++++++--
+ fs/bfs/file.c           |    8 ++++++--
+ fs/block_dev.c          |    2 +-
+ fs/ext2/file.c          |    4 ++--
+ fs/fuse/file.c          |    8 ++++++--
+ fs/hfs/inode.c          |    8 ++++++--
+ fs/hfsplus/inode.c      |    8 ++++++--
+ fs/hostfs/hostfs_kern.c |    4 ++--
+ fs/jffs/inode-v23.c     |    8 ++++++--
+ fs/jffs2/file.c         |    8 ++++++--
+ fs/jfs/file.c           |    4 ++--
+ fs/minix/file.c         |    8 ++++++--
+ fs/ntfs/file.c          |    2 +-
+ fs/qnx4/file.c          |    8 ++++++--
+ fs/ramfs/file-mmu.c     |    8 ++++++--
+ fs/read_write.c         |    4 +++-
+ fs/reiserfs/file.c      |   12 ++++--------
+ fs/sysv/file.c          |    8 ++++++--
+ fs/ufs/file.c           |    8 ++++++--
+ ramfs/inode.c           |    0 
+ 21 files changed, 89 insertions(+), 42 deletions(-)
 
-diff -puN drivers/net/tsi108_eth.c~add-tsi108-ethernet-device-driver-support-tidy drivers/net/tsi108_eth.c
---- a/drivers/net/tsi108_eth.c~add-tsi108-ethernet-device-driver-support-tidy
-+++ a/drivers/net/tsi108_eth.c
-@@ -44,15 +44,16 @@
- #include <linux/crc32.h>
- #include <linux/mii.h>
- #include <linux/device.h>
--#include <asm/system.h>
--#include <asm/io.h>
- #include <linux/pci.h>
- #include <linux/rtnetlink.h>
- #include <linux/timer.h>
- #include <linux/platform_device.h>
+diff -puN drivers/char/raw.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems drivers/char/raw.c
+--- devel/drivers/char/raw.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/drivers/char/raw.c	2005-12-12 01:19:09.000000000 -0800
+@@ -262,7 +262,7 @@ static ssize_t raw_file_aio_write(struct
  
-+#include <asm/system.h>
-+#include <asm/io.h>
- #include <asm/tsi108_irq.h>
- #include <asm/tsi108.h>
+ 
+ static struct file_operations raw_fops = {
+-	.read	=	generic_file_read,
++	.read	=	do_sync_read,
+ 	.aio_read = 	generic_file_aio_read,
+ 	.write	=	raw_file_write,
+ 	.aio_write = 	raw_file_aio_write,
+diff -puN fs/adfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/adfs/file.c
+--- devel/fs/adfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/adfs/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -31,11 +31,16 @@
+ 
+ struct file_operations adfs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= file_fsync,
+-	.write		= generic_file_write,
+ 	.sendfile	= generic_file_sendfile,
 +
- #include "tsi108_eth.h"
+ };
  
- #undef DEBUG
-@@ -85,7 +86,7 @@ typedef struct sk_buff sk_buff;
- static int tsi108_init_one(struct platform_device *pdev);
- static int tsi108_ether_remove(struct platform_device *pdev);
+ struct inode_operations adfs_file_inode_operations = {
+diff -puN fs/bfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/bfs/file.c
+--- devel/fs/bfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/bfs/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -19,8 +19,12 @@
  
--typedef struct {
-+struct tsi108_prv_data {
- 	volatile u32 regs;	/* Base of normal regs */
- 	volatile u32 phyregs;	/* Base of register bank used for PHY access */
- 	int phy;		/* Index of PHY for this interface */
-@@ -154,7 +155,7 @@ typedef struct {
- 	unsigned long tx_pause_drop;	/* Add to tx_aborted_errors */
- 
- 	unsigned long mc_hash[16];
--} tsi108_prv_data;
-+};
- 
- /* Structure for a device driver */
- 
-@@ -168,9 +169,9 @@ static struct platform_driver tsi_eth_dr
- 
- static void tsi108_timed_checker(unsigned long dev_ptr);
- 
--static void dump_eth_one(net_device * dev)
-+static void dump_eth_one(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	printk("Dumping %s...\n", dev->name);
- 	printk("intstat %x intmask %x phy_ok %d"
-@@ -198,9 +199,9 @@ static void dump_eth_one(net_device * de
-  * interfaces, so this can't be made interface-specific.
+ struct file_operations bfs_file_operations = {
+ 	.llseek 	= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.sendfile	= generic_file_sendfile,
+ };
+diff -puN fs/block_dev.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/block_dev.c
+--- devel/fs/block_dev.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/block_dev.c	2005-12-12 01:19:09.000000000 -0800
+@@ -796,7 +796,7 @@ struct file_operations def_blk_fops = {
+ 	.open		= blkdev_open,
+ 	.release	= blkdev_close,
+ 	.llseek		= block_llseek,
+-	.read		= generic_file_read,
++	.read		= do_sync_read,
+ 	.write		= blkdev_file_write,
+   	.aio_read	= generic_file_aio_read,
+   	.aio_write	= blkdev_file_aio_write, 
+diff -puN fs/ext2/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/ext2/file.c
+--- devel/fs/ext2/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/ext2/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -41,8 +41,8 @@ static int ext2_release_file (struct ino
   */
+ struct file_operations ext2_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
+ 	.aio_read	= generic_file_aio_read,
+ 	.aio_write	= generic_file_aio_write,
+ 	.ioctl		= ext2_ioctl,
+diff -puN fs/fuse/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/fuse/file.c
+--- devel/fs/fuse/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/fuse/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -560,8 +560,12 @@ static int fuse_set_page_dirty(struct pa
  
--static spinlock_t phy_lock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(phy_lock);
+ static struct file_operations fuse_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= fuse_file_mmap,
+ 	.open		= fuse_open,
+ 	.flush		= fuse_flush,
+diff -puN fs/hfs/inode.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/hfs/inode.c
+--- devel/fs/hfs/inode.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/hfs/inode.c	2005-12-12 01:19:09.000000000 -0800
+@@ -615,8 +615,12 @@ int hfs_inode_setattr(struct dentry *den
  
--static inline u16 tsi108_read_mii(tsi108_prv_data * data, int reg, int *status)
-+static u16 tsi108_read_mii(struct tsi108_prv_data *data, int reg, int *status)
+ static struct file_operations hfs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.sendfile	= generic_file_sendfile,
+ 	.fsync		= file_fsync,
+diff -puN fs/hfsplus/inode.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/hfsplus/inode.c
+--- devel/fs/hfsplus/inode.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/hfsplus/inode.c	2005-12-12 01:19:09.000000000 -0800
+@@ -301,8 +301,12 @@ static struct inode_operations hfsplus_f
+ 
+ static struct file_operations hfsplus_file_operations = {
+ 	.llseek 	= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.sendfile	= generic_file_sendfile,
+ 	.fsync		= file_fsync,
+diff -puN fs/hostfs/hostfs_kern.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/hostfs/hostfs_kern.c
+--- devel/fs/hostfs/hostfs_kern.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/hostfs/hostfs_kern.c	2005-12-12 01:19:09.000000000 -0800
+@@ -386,13 +386,13 @@ int hostfs_fsync(struct file *file, stru
+ 
+ static struct file_operations hostfs_file_fops = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
++	.read		= do_sync_read,
+ 	.sendfile	= generic_file_sendfile,
+ 	.aio_read	= generic_file_aio_read,
+ 	.aio_write	= generic_file_aio_write,
+ 	.readv		= generic_file_readv,
+ 	.writev		= generic_file_writev,
+-	.write		= generic_file_write,
++	.write		= do_sync_write,
+ 	.mmap		= generic_file_mmap,
+ 	.open		= hostfs_file_open,
+ 	.release	= NULL,
+diff -puN fs/jffs2/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/jffs2/file.c
+--- devel/fs/jffs2/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/jffs2/file.c	2005-12-12 01:19:33.000000000 -0800
+@@ -42,8 +42,12 @@ struct file_operations jffs2_file_operat
  {
- 	int i;
- 	u16 ret;
-@@ -235,7 +236,7 @@ static inline u16 tsi108_read_mii(tsi108
- 	return ret;
+ 	.llseek =	generic_file_llseek,
+ 	.open =		generic_file_open,
+-	.read =		generic_file_read,
+-	.write =	generic_file_write,
++	.read =		do_sync_read,
++	.write =	do_sync_write,
++	.readv =	generic_file_readv,
++	.writev =	generic_file_writev,
++	.aio_read =	generic_file_aio_read,
++	.aio_write =	generic_file_aio_write,
+ 	.mmap =		generic_file_readonly_mmap,
+ 	.fsync =	jffs2_fsync,
+ 	.sendfile =	generic_file_sendfile
+diff -puN fs/jffs/inode-v23.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/jffs/inode-v23.c
+--- devel/fs/jffs/inode-v23.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/jffs/inode-v23.c	2005-12-12 01:19:09.000000000 -0800
+@@ -1633,8 +1633,12 @@ static struct file_operations jffs_file_
+ {
+ 	.open		= generic_file_open,
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.ioctl		= jffs_ioctl,
+ 	.mmap		= generic_file_readonly_mmap,
+ 	.fsync		= jffs_fsync,
+diff -puN fs/jfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/jfs/file.c
+--- devel/fs/jfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/jfs/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -103,8 +103,8 @@ struct inode_operations jfs_file_inode_o
+ struct file_operations jfs_file_operations = {
+ 	.open		= jfs_open,
+ 	.llseek		= generic_file_llseek,
+-	.write		= generic_file_write,
+-	.read		= generic_file_read,
++	.write		= do_sync_write,
++	.read		= do_sync_read,
+ 	.aio_read	= generic_file_aio_read,
+ 	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+diff -puN fs/minix/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/minix/file.c
+--- devel/fs/minix/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/minix/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -17,8 +17,12 @@ int minix_sync_file(struct file *, struc
+ 
+ struct file_operations minix_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= minix_sync_file,
+ 	.sendfile	= generic_file_sendfile,
+diff -puN fs/ntfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/ntfs/file.c
+--- devel/fs/ntfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/ntfs/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -2306,7 +2306,7 @@ static int ntfs_file_fsync(struct file *
+ 
+ struct file_operations ntfs_file_ops = {
+ 	.llseek		= generic_file_llseek,	 /* Seek inside file. */
+-	.read		= generic_file_read,	 /* Read from file. */
++	.read		= do_sync_read,		 /* Read from file. */
+ 	.aio_read	= generic_file_aio_read, /* Async read from file. */
+ 	.readv		= generic_file_readv,	 /* Read from file. */
+ #ifdef NTFS_RW
+diff -puN fs/qnx4/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/qnx4/file.c
+--- devel/fs/qnx4/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/qnx4/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -25,11 +25,15 @@
+ struct file_operations qnx4_file_operations =
+ {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
++	.read		= do_sync_read,
++	.readv		= generic_file_readv,
++	.aio_read	= generic_file_aio_read,
+ 	.mmap		= generic_file_mmap,
+ 	.sendfile	= generic_file_sendfile,
+ #ifdef CONFIG_QNX4FS_RW
+-	.write		= generic_file_write,
++	.write		= do_sync_write,
++	.writev		= generic_file_writev,
++	.aio_write	= generic_file_aio_write,
+ 	.fsync		= qnx4_sync_file,
+ #endif
+ };
+diff -puN fs/ramfs/inode.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/ramfs/inode.c
+diff -puN fs/read_write.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/read_write.c
+--- devel/fs/read_write.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/read_write.c	2005-12-12 01:19:09.000000000 -0800
+@@ -20,7 +20,9 @@
+ 
+ struct file_operations generic_ro_fops = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
++	.read		= do_sync_read,
++	.readv		= generic_file_readv,
++	.aio_read	= generic_file_aio_read,
+ 	.mmap		= generic_file_readonly_mmap,
+ 	.sendfile	= generic_file_sendfile,
+ };
+diff -puN fs/reiserfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/reiserfs/file.c
+--- devel/fs/reiserfs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/reiserfs/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -1541,22 +1541,18 @@ static ssize_t reiserfs_file_write(struc
+ 	return res;
  }
  
--static inline void tsi108_write_mii(tsi108_prv_data * data, int reg, u16 val)
-+static void tsi108_write_mii(struct tsi108_prv_data *data, int reg, u16 val)
- {
- 	TSI108_ETH_WRITE_PHYREG(TSI108_MAC_MII_ADDR,
- 				(data->phy << TSI108_MAC_MII_ADDR_PHY) |
-@@ -247,7 +248,8 @@ static inline void tsi108_write_mii(tsi1
- 	       TSI108_MAC_MII_IND_BUSY) ;
- }
- 
--static inline void tsi108_write_tbi(tsi108_prv_data * data, int reg, u16 val)
-+static inline void tsi108_write_tbi(struct tsi108_prv_data *data,
-+					int reg, u16 val)
- {
- 
- 	TSI108_ETH_WRITE_REG(TSI108_MAC_MII_ADDR,
-@@ -261,9 +263,9 @@ static inline void tsi108_write_tbi(tsi1
- 	       TSI108_MAC_MII_IND_BUSY) ;
- }
- 
--static void tsi108_check_phy(net_device * dev)
-+static void tsi108_check_phy(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u16 sumstat;
- 	u32 mac_cfg2_reg, portctrl_reg;
- 	u32 fdx_flag = 0, reg_update = 0;
-@@ -291,79 +293,76 @@ static void tsi108_check_phy(net_device 
- 		goto out;
- 	}
- 
--	{
--		mac_cfg2_reg = TSI108_ETH_READ_REG(TSI108_MAC_CFG2);
--		portctrl_reg = TSI108_ETH_READ_REG(TSI108_EC_PORTCTRL);
+-static ssize_t reiserfs_aio_write(struct kiocb *iocb, const char __user * buf,
+-				  size_t count, loff_t pos)
+-{
+-	return generic_file_aio_write(iocb, buf, count, pos);
+-}
 -
--		sumstat = tsi108_read_mii(data, PHY_SUM_STAT, NULL);
--
--		switch (sumstat & PHY_SUM_STAT_SPEED_MASK) {
--		case PHY_SUM_STAT_1000T_FD:
--			fdx_flag++;
--		case PHY_SUM_STAT_1000T_HD:
--			if (data->speed != 1000) {
--				mac_cfg2_reg &= ~TSI108_MAC_CFG2_IFACE_MASK;
--				mac_cfg2_reg |= TSI108_MAC_CFG2_GIG;
--				portctrl_reg &= ~TSI108_EC_PORTCTRL_NOGIG;
--				data->speed = 1000;
--				reg_update++;
--			}
--			break;
--		case PHY_SUM_STAT_100TX_FD:
--			fdx_flag++;
--		case PHY_SUM_STAT_100TX_HD:
--			if (data->speed != 100) {
--				mac_cfg2_reg &= ~TSI108_MAC_CFG2_IFACE_MASK;
--				mac_cfg2_reg |= TSI108_MAC_CFG2_NOGIG;
--				portctrl_reg |= TSI108_EC_PORTCTRL_NOGIG;
--				data->speed = 100;
--				reg_update++;
--			}
--			break;
-+	mac_cfg2_reg = TSI108_ETH_READ_REG(TSI108_MAC_CFG2);
-+	portctrl_reg = TSI108_ETH_READ_REG(TSI108_EC_PORTCTRL);
+ struct file_operations reiserfs_file_operations = {
+-	.read = generic_file_read,
++	.read = do_sync_read,
+ 	.write = reiserfs_file_write,
++	.readv = generic_file_readv,
++	.writev = generic_file_writev,
+ 	.ioctl = reiserfs_ioctl,
+ 	.mmap = generic_file_mmap,
+ 	.release = reiserfs_file_release,
+ 	.fsync = reiserfs_sync_file,
+ 	.sendfile = generic_file_sendfile,
+ 	.aio_read = generic_file_aio_read,
+-	.aio_write = reiserfs_aio_write,
++	.aio_write = generic_file_aio_write,
+ };
  
--		case PHY_SUM_STAT_10T_FD:
--			fdx_flag++;
--		case PHY_SUM_STAT_10T_HD:
--			if (data->speed != 10) {
--				mac_cfg2_reg &= ~TSI108_MAC_CFG2_IFACE_MASK;
--				mac_cfg2_reg |= TSI108_MAC_CFG2_NOGIG;
--				portctrl_reg |= TSI108_EC_PORTCTRL_NOGIG;
--				data->speed = 10;
--				reg_update++;
--			}
--			break;
-+	sumstat = tsi108_read_mii(data, PHY_SUM_STAT, NULL);
- 
--		default:
--			if (net_ratelimit())
--				printk(KERN_ERR "PHY reported invalid speed,"
--				       KERN_ERR " summary status %x\n",
--				       sumstat);
--			goto out;
-+	switch (sumstat & PHY_SUM_STAT_SPEED_MASK) {
-+	case PHY_SUM_STAT_1000T_FD:
-+		fdx_flag++;
-+	case PHY_SUM_STAT_1000T_HD:
-+		if (data->speed != 1000) {
-+			mac_cfg2_reg &= ~TSI108_MAC_CFG2_IFACE_MASK;
-+			mac_cfg2_reg |= TSI108_MAC_CFG2_GIG;
-+			portctrl_reg &= ~TSI108_EC_PORTCTRL_NOGIG;
-+			data->speed = 1000;
-+			reg_update++;
- 		}
-+		break;
-+	case PHY_SUM_STAT_100TX_FD:
-+		fdx_flag++;
-+	case PHY_SUM_STAT_100TX_HD:
-+		if (data->speed != 100) {
-+			mac_cfg2_reg &= ~TSI108_MAC_CFG2_IFACE_MASK;
-+			mac_cfg2_reg |= TSI108_MAC_CFG2_NOGIG;
-+			portctrl_reg |= TSI108_EC_PORTCTRL_NOGIG;
-+			data->speed = 100;
-+			reg_update++;
-+		}
-+		break;
- 
--		if (fdx_flag || (sumstat & PHY_SUM_STAT_FULLDUPLEX)) {
--			if (data->duplex != 2) {
--				mac_cfg2_reg |= TSI108_MAC_CFG2_FULLDUPLEX;
--				portctrl_reg &= ~TSI108_EC_PORTCTRL_HALFDUPLEX;
--				data->duplex = 2;
--				reg_update++;
--			}
--		} else {
--			if (data->duplex != 1) {
--				mac_cfg2_reg &= ~TSI108_MAC_CFG2_FULLDUPLEX;
--				portctrl_reg |= TSI108_EC_PORTCTRL_HALFDUPLEX;
--				data->duplex = 1;
--				reg_update++;
--			}
-+	case PHY_SUM_STAT_10T_FD:
-+		fdx_flag++;
-+	case PHY_SUM_STAT_10T_HD:
-+		if (data->speed != 10) {
-+			mac_cfg2_reg &= ~TSI108_MAC_CFG2_IFACE_MASK;
-+			mac_cfg2_reg |= TSI108_MAC_CFG2_NOGIG;
-+			portctrl_reg |= TSI108_EC_PORTCTRL_NOGIG;
-+			data->speed = 10;
-+			reg_update++;
- 		}
-+		break;
- 
--		if (reg_update) {
--			TSI108_ETH_WRITE_REG(TSI108_MAC_CFG2, mac_cfg2_reg);
--			mb();
--			TSI108_ETH_WRITE_REG(TSI108_EC_PORTCTRL, portctrl_reg);
--			mb();
-+	default:
-+		if (net_ratelimit())
-+			printk(KERN_ERR "PHY reported invalid speed,"
-+			       KERN_ERR " summary status %x\n",
-+			       sumstat);
-+		goto out;
-+	}
-+
-+	if (fdx_flag || (sumstat & PHY_SUM_STAT_FULLDUPLEX)) {
-+		if (data->duplex != 2) {
-+			mac_cfg2_reg |= TSI108_MAC_CFG2_FULLDUPLEX;
-+			portctrl_reg &= ~TSI108_EC_PORTCTRL_HALFDUPLEX;
-+			data->duplex = 2;
-+			reg_update++;
- 		}
-+	} else {
-+		if (data->duplex != 1) {
-+			mac_cfg2_reg &= ~TSI108_MAC_CFG2_FULLDUPLEX;
-+			portctrl_reg |= TSI108_EC_PORTCTRL_HALFDUPLEX;
-+			data->duplex = 1;
-+			reg_update++;
-+		}
-+	}
- 
-+	if (reg_update) {
-+		TSI108_ETH_WRITE_REG(TSI108_MAC_CFG2, mac_cfg2_reg);
-+		mb();
-+		TSI108_ETH_WRITE_REG(TSI108_EC_PORTCTRL, portctrl_reg);
-+		mb();
- 	}
- 
- 	if (data->link_up == 0) {
-@@ -397,9 +396,9 @@ tsi108_stat_carry_one(int carry, int car
- 		*upper += carry_shift;
- }
- 
--static void tsi108_stat_carry(net_device * dev)
-+static void tsi108_stat_carry(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 carry1, carry2;
- 
- 	spin_lock_irq(&data->misclock);
-@@ -477,7 +476,7 @@ static void tsi108_stat_carry(net_device
-  * data->misclock must be held.
+ struct inode_operations reiserfs_file_inode_operations = {
+diff -puN fs/sysv/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/sysv/file.c
+--- devel/fs/sysv/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/sysv/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -21,8 +21,12 @@
   */
- static inline unsigned long
--tsi108_read_stat(tsi108_prv_data * data, int reg, int carry_bit,
-+tsi108_read_stat(struct tsi108_prv_data * data, int reg, int carry_bit,
- 		 int carry_shift, unsigned long *upper)
- {
- 	int carryreg;
-@@ -509,11 +508,11 @@ tsi108_read_stat(tsi108_prv_data * data,
- 	return val;
- }
- 
--static struct net_device_stats *tsi108_get_stats(net_device * dev)
-+static struct net_device_stats *tsi108_get_stats(net_device *dev)
- {
- 	unsigned long excol;
- 
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	spin_lock_irq(&data->misclock);
- 
- 	data->tmpstats.rx_packets =
-@@ -619,7 +618,7 @@ static struct net_device_stats *tsi108_g
- 	return &data->tmpstats;
- }
- 
--static void tsi108_restart_rx(tsi108_prv_data * data, net_device * dev)
-+static void tsi108_restart_rx(struct tsi108_prv_data * data, net_device *dev)
- {
- 	TSI108_ETH_WRITE_REG(TSI108_EC_RXQ_PTRHIGH,
- 			     TSI108_EC_RXQ_PTRHIGH_VALID);
-@@ -629,7 +628,7 @@ static void tsi108_restart_rx(tsi108_prv
- 			     | TSI108_EC_RXCTRL_QUEUE0);
- }
- 
--static void tsi108_restart_tx(tsi108_prv_data * data)
-+static void tsi108_restart_tx(struct tsi108_prv_data * data)
- {
- 	TSI108_ETH_WRITE_REG(TSI108_EC_TXQ_PTRHIGH,
- 			     TSI108_EC_TXQ_PTRHIGH_VALID);
-@@ -642,9 +641,9 @@ static void tsi108_restart_tx(tsi108_prv
- /* txlock must be held by caller, with IRQs disabled, and
-  * with permission to re-enable them when the lock is dropped.
-  */
--static void tsi108_check_for_completed_tx(net_device * dev)
-+static void tsi108_check_for_completed_tx(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	int tx;
- 	struct sk_buff *skb;
- 	int release = 0;
-@@ -671,16 +670,15 @@ static void tsi108_check_for_completed_t
- 	}
- 
- 	if (release) {
--
- 		if (netif_queue_stopped(dev)
- 		    && is_valid_ether_addr(dev->dev_addr) && data->link_up)
- 			netif_wake_queue(dev);
- 	}
- }
- 
--static int tsi108_send_packet(sk_buff * skb, net_device * dev)
-+static int tsi108_send_packet(sk_buff * skb, net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	int frags = skb_shinfo(skb)->nr_frags + 1;
- 	int i;
- #ifdef FIXME_SG_CSUM_NOT_TESTED	/* FIXME: Not supported now. */
-@@ -735,8 +733,7 @@ static int tsi108_send_packet(sk_buff * 
- 		 */
- 
- 		if ((tx % TSI108_TX_INT_FREQ == 0) &&
--		    ((TSI108_TXRING_LEN - data->txfree) >= TSI108_TX_INT_FREQ)
--		    )
-+		    ((TSI108_TXRING_LEN - data->txfree) >= TSI108_TX_INT_FREQ))
- 			misc = TSI108_TX_INT;
- 
- 		data->txskbs[tx] = skb;
-@@ -787,9 +784,9 @@ static int tsi108_send_packet(sk_buff * 
- 	return 0;
- }
- 
--static int tsi108_check_for_completed_rx(net_device * dev, int budget)
-+static int tsi108_check_for_completed_rx(net_device *dev, int budget)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	int done = 0;
- 
- 	while (data->rxfree && done != budget) {
-@@ -838,9 +835,9 @@ static int tsi108_check_for_completed_rx
- 	return done;
- }
- 
--static int tsi108_refill_rx(net_device * dev, int budget)
-+static int tsi108_refill_rx(net_device *dev, int budget)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	int done = 0;
- 
- 	while (data->rxfree != TSI108_RXRING_LEN && done != budget) {
-@@ -851,7 +848,7 @@ static int tsi108_refill_rx(net_device *
- 		if (!skb)
- 			break;
- 
--		skb_reserve(skb, 2);	/* Align the data on a 4-byte boundary. */
-+		skb_reserve(skb, 2); /* Align the data on a 4-byte boundary. */
- 
- 		data->rxring[rx].buf0 = virt_to_phys(skb->data);
- 
-@@ -878,9 +875,9 @@ static int tsi108_refill_rx(net_device *
- 	return done;
- }
- 
--static int tsi108_poll(net_device * dev, int *budget)
-+static int tsi108_poll(net_device *dev, int *budget)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 estat = TSI108_ETH_READ_REG(TSI108_EC_RXESTAT);
- 	u32 intstat = TSI108_ETH_READ_REG(TSI108_EC_INTSTAT);
- 	int total_budget = min(*budget, dev->quota);
-@@ -959,9 +956,9 @@ static int tsi108_poll(net_device * dev,
- 	return 1;
- }
- 
--static void tsi108_rx_int(net_device * dev)
-+static void tsi108_rx_int(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	/* A race could cause dev to already be scheduled, so it's not an
- 	 * error if that happens (and interrupts shouldn't be re-masked,
-@@ -1025,9 +1022,9 @@ static void tsi108_rx_int(net_device * d
-  * This is called once per second (by default) from the thread.
-  */
- 
--static void tsi108_check_rxring(net_device * dev)
-+static void tsi108_check_rxring(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	/* A poll is scheduled, as opposed to caling tsi108_refill_rx
- 	 * directly, so as to keep the receive path single-threaded
-@@ -1038,9 +1035,9 @@ static void tsi108_check_rxring(net_devi
- 		tsi108_rx_int(dev);
- }
- 
--static void tsi108_tx_int(net_device * dev)
-+static void tsi108_tx_int(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 estat = TSI108_ETH_READ_REG(TSI108_EC_TXESTAT);
- 
- 	mb();
-@@ -1064,9 +1061,9 @@ static void tsi108_tx_int(net_device * d
- 	}
- }
- 
--static irqreturn_t tsi108_irq_one(net_device * dev)
-+static irqreturn_t tsi108_irq_one(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 stat = TSI108_ETH_READ_REG(TSI108_EC_INTSTAT);
- 
- 	if (!(stat & TSI108_INT_ANY))
-@@ -1101,12 +1098,12 @@ static irqreturn_t tsi108_irq(int irq, v
- 	if ((IRQ_TSI108_GIGE0 != irq) && (IRQ_TSI108_GIGE1 != irq))
- 		return IRQ_NONE;	/* Not our interrupt */
- 
--	return tsi108_irq_one((struct net_device *)dev_id);
-+	return tsi108_irq_one(dev_id);
- }
- 
--static void tsi108_stop_ethernet(net_device * dev)
-+static void tsi108_stop_ethernet(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	/* Disable all TX and RX queues ... */
- 	TSI108_ETH_WRITE_REG(TSI108_EC_TXCTRL, 0);
-@@ -1120,7 +1117,7 @@ static void tsi108_stop_ethernet(net_dev
- 	       TSI108_EC_RXSTAT_ACTIVE) ;
- }
- 
--static void tsi108_reset_ether(tsi108_prv_data * data)
-+static void tsi108_reset_ether(struct tsi108_prv_data * data)
- {
- 	TSI108_ETH_WRITE_REG(TSI108_MAC_CFG1, TSI108_MAC_CFG1_SOFTRST);
- 	udelay(100);
-@@ -1158,10 +1155,9 @@ static void tsi108_reset_ether(tsi108_pr
- 			     TSI108_MAC_MII_MGMT_CLK);
- }
- 
--static int tsi108_get_mac(net_device * dev)
-+static int tsi108_get_mac(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
--
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 word1 = TSI108_ETH_READ_REG(TSI108_MAC_ADDR1);
- 	u32 word2 = TSI108_ETH_READ_REG(TSI108_MAC_ADDR2);
- 
-@@ -1203,9 +1199,9 @@ static int tsi108_get_mac(net_device * d
- 	return 0;
- }
- 
--static int tsi108_set_mac(net_device * dev, void *addr)
-+static int tsi108_set_mac(net_device *dev, void *addr)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 word1, word2;
- 	int i;
- 
-@@ -1235,9 +1231,9 @@ static int tsi108_set_mac(net_device * d
- }
- 
- /* Protected by dev->xmit_lock. */
--static void tsi108_set_rx_mode(net_device * dev)
-+static void tsi108_set_rx_mode(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 rxcfg = TSI108_ETH_READ_REG(TSI108_EC_RXCFG);
- 
- 	if (dev->flags & IFF_PROMISC) {
-@@ -1294,9 +1290,9 @@ static void tsi108_set_rx_mode(net_devic
- 	TSI108_ETH_WRITE_REG(TSI108_EC_RXCFG, rxcfg);
- }
- 
--static void tsi108_init_phy(net_device * dev)
-+static void tsi108_init_phy(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	u32 i = 0;
- 	u16 phyVal = 0;
- 
-@@ -1304,7 +1300,8 @@ static void tsi108_init_phy(net_device *
- 
- 	tsi108_write_mii(data, PHY_CTRL, PHY_CTRL_RESET);
- 	mb();
--	while (tsi108_read_mii(data, PHY_CTRL, NULL) & PHY_CTRL_RESET) ;
-+	while (tsi108_read_mii(data, PHY_CTRL, NULL) & PHY_CTRL_RESET)
-+		;
- 
- #if (TSI108_PHY_TYPE == PHY_BCM54XX)	/* Broadcom BCM54xx PHY */
- 	tsi108_write_mii(data, 0x09, 0x0300);
-@@ -1317,7 +1314,8 @@ static void tsi108_init_phy(net_device *
- 			 PHY_CTRL,
- 			 PHY_CTRL_AUTONEG_EN | PHY_CTRL_AUTONEG_START);
- 	mb();
--	while (tsi108_read_mii(data, PHY_CTRL, NULL) & PHY_CTRL_AUTONEG_START) ;
-+	while (tsi108_read_mii(data, PHY_CTRL, NULL) & PHY_CTRL_AUTONEG_START)
-+		;
- 
- 	/* Set G/MII mode and receive clock select in TBI control #2.  The
- 	 * second port won't work if this isn't done, even though we don't
-@@ -1338,7 +1336,9 @@ static void tsi108_init_phy(net_device *
- 			data->link_up = 0;
- 			break;
- 		}
--		mdelay(10);
-+		spin_unlock_irq(&phy_lock);
-+		msleep(10);
-+		spin_lock_irq(&phy_lock);
- 	}
- 
- 	printk(KERN_DEBUG "PHY_STAT reg contains %08x\n", phyVal);
-@@ -1348,7 +1348,7 @@ static void tsi108_init_phy(net_device *
- 
- static void tsi108_kill_phy(struct net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	spin_lock_irq(&phy_lock);
- 	tsi108_write_mii(data, PHY_CTRL, PHY_CTRL_POWERDOWN);
-@@ -1359,7 +1359,7 @@ static void tsi108_kill_phy(struct net_d
- static int tsi108_open(struct net_device *dev)
- {
- 	int i;
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	unsigned int rxring_size = TSI108_RXRING_LEN * sizeof(rx_desc);
- 	unsigned int txring_size = TSI108_TXRING_LEN * sizeof(tx_desc);
- 
-@@ -1447,11 +1447,8 @@ static int tsi108_open(struct net_device
- 	TSI108_ETH_WRITE_REG(TSI108_EC_TXQ_PTRLOW, data->txdma);
- 	tsi108_init_phy(dev);
- 
--	init_timer(&data->timer);
--	data->timer.expires = jiffies + 1;
--	data->timer.data = (unsigned long)dev;
--	data->timer.function = &tsi108_timed_checker;	/* timer handler */
--	add_timer(&data->timer);
-+	setup_timer(&data->timer, tsi108_timed_checker, (unsigned long)dev);
-+	mod_timer(&data->timer, jiffies + 1);
- 
- 	tsi108_restart_rx(data, dev);
- 
-@@ -1470,9 +1467,9 @@ static int tsi108_open(struct net_device
- 	return 0;
- }
- 
--static int tsi108_close(net_device * dev)
-+static int tsi108_close(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	netif_stop_queue(dev);
- 
-@@ -1521,9 +1518,9 @@ static int tsi108_close(net_device * dev
- 	return 0;
- }
- 
--static void tsi108_init_mac(net_device * dev)
-+static void tsi108_init_mac(net_device *dev)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	TSI108_ETH_WRITE_REG(TSI108_MAC_CFG2, TSI108_MAC_CFG2_DFLT_PREAMBLE |
- 			     TSI108_MAC_CFG2_PADCRC);
-@@ -1562,31 +1559,31 @@ static void tsi108_init_mac(net_device *
- 	TSI108_ETH_WRITE_REG(TSI108_EC_TXQ_CFG, TSI108_EC_TXQ_CFG_DESC_INT |
- 			     TSI108_EC_TXQ_CFG_EOQ_OWN_INT |
- 			     TSI108_EC_TXQ_CFG_WSWP | (TSI108_PBM_PORT <<
--						       TSI108_EC_TXQ_CFG_SFNPORT));
-+						TSI108_EC_TXQ_CFG_SFNPORT));
- 
- 	TSI108_ETH_WRITE_REG(TSI108_EC_RXQ_CFG, TSI108_EC_RXQ_CFG_DESC_INT |
- 			     TSI108_EC_RXQ_CFG_EOQ_OWN_INT |
- 			     TSI108_EC_RXQ_CFG_WSWP | (TSI108_PBM_PORT <<
--						       TSI108_EC_RXQ_CFG_SFNPORT));
-+						TSI108_EC_RXQ_CFG_SFNPORT));
- 
- 	TSI108_ETH_WRITE_REG(TSI108_EC_TXQ_BUFCFG,
- 			     TSI108_EC_TXQ_BUFCFG_BURST256 |
- 			     TSI108_EC_TXQ_BUFCFG_BSWP | (TSI108_PBM_PORT <<
--							  TSI108_EC_TXQ_BUFCFG_SFNPORT));
-+						TSI108_EC_TXQ_BUFCFG_SFNPORT));
- 
- 	TSI108_ETH_WRITE_REG(TSI108_EC_RXQ_BUFCFG,
- 			     TSI108_EC_RXQ_BUFCFG_BURST256 |
- 			     TSI108_EC_RXQ_BUFCFG_BSWP | (TSI108_PBM_PORT <<
--							  TSI108_EC_RXQ_BUFCFG_SFNPORT));
-+						TSI108_EC_RXQ_BUFCFG_SFNPORT));
- 
- 	TSI108_ETH_WRITE_REG(TSI108_EC_INTMASK, ~0);
- }
- 
--static int tsi108_ioctl(net_device * dev, struct ifreq *rq, int cmd)
-+static int tsi108_ioctl(net_device *dev, struct ifreq *rq, int cmd)
- {
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 	struct mii_ioctl_data *mii_data =
--	    (struct mii_ioctl_data *)&rq->ifr_data;
-+			(struct mii_ioctl_data *)&rq->ifr_data;
- 	int ret;
- 
- 	switch (cmd) {
-@@ -1613,11 +1610,11 @@ static int
- tsi108_init_one(struct platform_device *pdev)
- {
- 	struct net_device *dev = NULL;
--	tsi108_prv_data *data = NULL;
-+	struct tsi108_prv_data *data = NULL;
- 	hw_info *einfo;
- 	int ret;
- 
--	einfo = ( hw_info *) pdev->dev.platform_data;
-+	einfo = pdev->dev.platform_data;
- 
- 	if (NULL == einfo) {
- 		printk(KERN_ERR "tsi-eth %d: Missing additional data!\n",
-@@ -1627,7 +1624,7 @@ tsi108_init_one(struct platform_device *
- 
- 	/* Create an ethernet device instance */
- 
--	dev = alloc_etherdev(sizeof(tsi108_prv_data));
-+	dev = alloc_etherdev(sizeof(struct tsi108_prv_data));
- 	if (!dev) {
- 		printk("tsi108_eth: Could not allocate a device structure\n");
- 		return -ENOMEM;
-@@ -1635,7 +1632,6 @@ tsi108_init_one(struct platform_device *
- 
- 	printk("tsi108_eth%d: probe...\n", pdev->id);
- 	data = netdev_priv(dev);
--	memset(data, 0, sizeof(tsi108_prv_data));
- 
- 	DBG("tsi108_eth%d: regs:phyresgs:phy:irq_num=0x%x:0x%x:0x%x:0x%x\n",
- 			pdev->id, einfo->regs, einfo->phyregs,
-@@ -1653,7 +1649,7 @@ tsi108_init_one(struct platform_device *
- 	dev->get_stats = tsi108_get_stats;
- 	dev->poll = tsi108_poll;
- 	dev->do_ioctl = tsi108_ioctl;
--	dev->weight = 64;	/* 64 is more suitable for GigE interface - klai */
-+	dev->weight = 64;  /* 64 is more suitable for GigE interface - klai */
- 
- 	/* Apparently, the Linux networking code won't use scatter-gather
- 	 * if the hardware doesn't do checksums.  However, it's faster
-@@ -1683,7 +1679,7 @@ tsi108_init_one(struct platform_device *
- 	tsi108_init_mac(dev);
- 	ret = register_netdev(dev);
- 	if (ret < 0) {
--		kfree(dev);
-+		free_netdev(dev);
- 		return ret;
- 	}
- 
-@@ -1708,12 +1704,11 @@ tsi108_init_one(struct platform_device *
- static void tsi108_timed_checker(unsigned long dev_ptr)
- {
- 	struct net_device *dev = (struct net_device *)dev_ptr;
--	tsi108_prv_data *data = netdev_priv(dev);
-+	struct tsi108_prv_data *data = netdev_priv(dev);
- 
- 	tsi108_check_phy(dev);
- 	tsi108_check_rxring(dev);
--	data->timer.expires = jiffies + CHECK_PHY_INTERVAL;
--	add_timer(&data->timer);
-+	mod_timer(&data->timer, jiffies + CHECK_PHY_INTERVAL);
- }
- 
- static int tsi108_ether_init(void)
-@@ -1731,7 +1726,7 @@ static int tsi108_ether_init(void)
- static int tsi108_ether_remove(struct platform_device *pdev)
- {
- 	struct net_device *dev = platform_get_drvdata(pdev);
--	tsi108_prv_data *priv = netdev_priv(dev);
-+	struct tsi108_prv_data *priv = netdev_priv(dev);
- 
- 	unregister_netdev(dev);
- 	tsi108_stop_ethernet(dev);
+ struct file_operations sysv_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= sysv_sync_file,
+ 	.sendfile	= generic_file_sendfile,
+diff -puN fs/ufs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/ufs/file.c
+--- devel/fs/ufs/file.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/ufs/file.c	2005-12-12 01:19:09.000000000 -0800
+@@ -43,8 +43,12 @@
+  
+ struct file_operations ufs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.open           = generic_file_open,
+ 	.sendfile	= generic_file_sendfile,
+diff -puN fs/ramfs/file-mmu.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems fs/ramfs/file-mmu.c
+--- devel/fs/ramfs/file-mmu.c~add-support-for-vectored-and-async-i-o-to-all-simple-filesystems	2005-12-12 01:19:09.000000000 -0800
++++ devel-akpm/fs/ramfs/file-mmu.c	2005-12-12 01:19:09.000000000 -0800
+@@ -44,8 +44,12 @@ struct address_space_operations ramfs_ao
+ };
+ 
+ struct file_operations ramfs_file_operations = {
+-	.read		= generic_file_read,
+-	.write		= generic_file_write,
++	.read		= do_sync_read,
++	.write		= do_sync_write,
++	.readv		= generic_file_readv,
++	.writev		= generic_file_writev,
++	.aio_read	= generic_file_aio_read,
++	.aio_write	= generic_file_aio_write,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= simple_sync_file,
+ 	.sendfile	= generic_file_sendfile,
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-git-ieee1394.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-lumpy-reclaim-v4.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-page-writeback-acounting-out-of-macros.patch
-ext2-reservations.patch
-mm-implement-swap-prefetching.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-acpi_format_exception-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
