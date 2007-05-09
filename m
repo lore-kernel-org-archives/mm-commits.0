@@ -1,84 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - fix-kevents-childs-priority-greediness.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:48:31 -0700
-Message-ID: <200705090248.l492mV3D009120@shell0.pdx.osdl.net>
+Subject: - fix-sscanf-%n-match-at-end-of-input-string.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:40 -0700
+Message-ID: <200705090247.l492le0Z009001@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54702 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967076AbXEICtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:21 -0400
+	by vger.kernel.org with ESMTP id S967154AbXEICtX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, chrisw@sous-sol.org, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix kevent's childs priority greediness
+     fix sscanf %n match at end of input string
 has been removed from the -mm tree.  Its filename was
-     fix-kevents-childs-priority-greediness.patch
+     fix-sscanf-%n-match-at-end-of-input-string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix kevent's childs priority greediness
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: fix sscanf %n match at end of input string
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Fix kevent's childs priority greediness.  Such tasks were always scheduled
-at nice level -5 and, at that time, udev stole us the CPU time with -5.
+I was playing with some code that sometimes got a string where a %n
+match should have been done where the input string ended, for example
+like this:
 
-Already posted at http://lkml.org/lkml/2005/1/10/85
+  sscanf("abc123", "abc%d%n", &a, &n);  /* doesn't work */
+  sscanf("abc123a", "abc%d%n", &a, &n); /* works */
 
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Chris Wright <chrisw@sous-sol.org>
+However, the scanf function in the kernel doesn't convert the %n in that
+case because it has already matched the complete input after %d and just
+completely stops matching then. This patch fixes that.
+
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/vsprintf.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness kernel/kmod.c
---- a/kernel/kmod.c~fix-kevents-childs-priority-greediness
-+++ a/kernel/kmod.c
-@@ -165,6 +165,12 @@ static int ____call_usermodehelper(void 
- 	/* We can run anywhere, unlike our parent keventd(). */
- 	set_cpus_allowed(current, CPU_MASK_ALL);
- 
-+	/*
-+	 * Our parent is keventd, which runs with elevated scheduling priority.
-+	 * Avoid propagating that into the userspace child.
-+	 */
-+	set_user_nice(current, 0);
+diff -puN lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string lib/vsprintf.c
+--- a/lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string
++++ a/lib/vsprintf.c
+@@ -825,6 +825,17 @@ int vsscanf(const char * buf, const char
+ 			break;
+ 		str = next;
+ 	}
 +
- 	retval = -EPERM;
- 	if (current->fs->root)
- 		retval = kernel_execve(sub_info->path,
++	/*
++	 * Now we've come all the way through so either the input string or the
++	 * format ended. In the former case, there can be a %n at the current
++	 * position in the format that needs to be filled.
++	 */
++	if (*fmt == '%' && *(fmt + 1) == 'n') {
++		int *p = (int *)va_arg(args, int *);
++		*p = str - buf;
++	}
++
+ 	return num;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-git-dvb.patch
-git-watchdog.patch
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-libata.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-ide.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-phy.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-netdev.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
+git-alsa.patch
+power-management-remove-some-useless-code-from-arm.patch
+git-wireless.patch
+pm-separate-hibernation-code-from-suspend-code.patch
+swsusp-use-reasonable-default-for-hibernation_mode.patch
