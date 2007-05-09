@@ -1,245 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - uml-make-hostfs_setattr-support-operations-on-unlinked-open-files.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:43 -0700
-Message-ID: <200705090243.l492hhjn008505@shell0.pdx.osdl.net>
+Subject: - mm-shrink-parent-dentries-when-shrinking-slab.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:44:10 -0700
+Message-ID: <200705090244.l492iAFF008554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41138 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970023AbXEICns (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:48 -0400
+	by vger.kernel.org with ESMTP id S970080AbXEICoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: albertito@gmail.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: make hostfs_setattr() support operations on unlinked open files
+     mm: shrink parent dentries when shrinking slab
 has been removed from the -mm tree.  Its filename was
-     uml-make-hostfs_setattr-support-operations-on-unlinked-open-files.patch
+     mm-shrink-parent-dentries-when-shrinking-slab.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: make hostfs_setattr() support operations on unlinked open files
-From: Alberto Bertogli <albertito@gmail.com>
+Subject: mm: shrink parent dentries when shrinking slab
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch allows hostfs_setattr() to work on unlinked open files by calling
-set_attr() (the userspace part) with the inode's fd.
+Teach the dentry slab shrinker to aggressively shrink parent dentries when
+shrinking the dentry cache.
 
-Without this, applications that depend on doing attribute changes to unlinked
-open files will fail.
+This is done to attempt to improve the situation where the dentry slab cache
+gets a lot of internal fragmentation due to pages containing directory
+dentries.  It is expected that this change will cause some of those dentries
+to be reaped earlier, and with less scanning.
 
-It works by using the fd versions instead of the path ones (for example
-fchmod() instead of chmod(), fchown() instead of chown()) when an fd is
-available.
+Needs careful testing.
 
-Signed-off-by: Alberto Bertogli <albertito@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs.h      |    4 -
- fs/hostfs/hostfs_kern.c |    6 +-
- fs/hostfs/hostfs_user.c |  106 ++++++++++++++++++++++++--------------
- 3 files changed, 73 insertions(+), 43 deletions(-)
+ fs/dcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hostfs/hostfs.h~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files fs/hostfs/hostfs.h
---- a/fs/hostfs/hostfs.h~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files
-+++ a/fs/hostfs/hostfs.h
-@@ -55,7 +55,7 @@ extern int stat_file(const char *path, u
- 		     int *mode_out, int *nlink_out, int *uid_out, int *gid_out,
- 		     unsigned long long *size_out, struct timespec *atime_out,
- 		     struct timespec *mtime_out, struct timespec *ctime_out,
--		     int *blksize_out, unsigned long long *blocks_out);
-+		     int *blksize_out, unsigned long long *blocks_out, int fd);
- extern int access_file(char *path, int r, int w, int x);
- extern int open_file(char *path, int r, int w, int append);
- extern int file_type(const char *path, int *maj, int *min);
-@@ -71,7 +71,7 @@ extern int lseek_file(int fd, long long 
- extern int fsync_file(int fd, int datasync);
- extern int file_create(char *name, int ur, int uw, int ux, int gr,
- 		       int gw, int gx, int or, int ow, int ox);
--extern int set_attr(const char *file, struct hostfs_iattr *attrs);
-+extern int set_attr(const char *file, struct hostfs_iattr *attrs, int fd);
- extern int make_symlink(const char *from, const char *to);
- extern int unlink_file(const char *file);
- extern int do_mkdir(const char *file, int mode);
-diff -puN fs/hostfs/hostfs_kern.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -147,7 +147,7 @@ static int read_name(struct inode *ino, 
- 
- 	err = stat_file(name, &i_ino, &i_mode, &i_nlink, &ino->i_uid,
- 			&ino->i_gid, &i_size, &ino->i_atime, &ino->i_mtime,
--			&ino->i_ctime, &i_blksize, &i_blocks);
-+			&ino->i_ctime, &i_blksize, &i_blocks, -1);
- 	if(err)
- 		return(err);
- 
-@@ -820,6 +820,8 @@ int hostfs_setattr(struct dentry *dentry
- 	char *name;
- 	int err;
- 
-+	int fd = HOSTFS_I(dentry->d_inode)->fd;
-+
- 	err = inode_change_ok(dentry->d_inode, attr);
- 	if (err)
- 		return err;
-@@ -864,7 +866,7 @@ int hostfs_setattr(struct dentry *dentry
+diff -puN fs/dcache.c~mm-shrink-parent-dentries-when-shrinking-slab fs/dcache.c
+--- a/fs/dcache.c~mm-shrink-parent-dentries-when-shrinking-slab
++++ a/fs/dcache.c
+@@ -879,7 +879,7 @@ static int shrink_dcache_memory(int nr, 
+ 	if (nr) {
+ 		if (!(gfp_mask & __GFP_FS))
+ 			return -1;
+-		prune_dcache(nr, NULL, 0);
++		prune_dcache(nr, NULL, 1);
  	}
- 	name = dentry_name(dentry, 0);
- 	if(name == NULL) return(-ENOMEM);
--	err = set_attr(name, &attrs);
-+	err = set_attr(name, &attrs, fd);
- 	kfree(name);
- 	if(err)
- 		return(err);
-diff -puN fs/hostfs/hostfs_user.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files fs/hostfs/hostfs_user.c
---- a/fs/hostfs/hostfs_user.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files
-+++ a/fs/hostfs/hostfs_user.c
-@@ -21,12 +21,16 @@ int stat_file(const char *path, unsigned
- 	      int *nlink_out, int *uid_out, int *gid_out,
- 	      unsigned long long *size_out, struct timespec *atime_out,
- 	      struct timespec *mtime_out, struct timespec *ctime_out,
--	      int *blksize_out, unsigned long long *blocks_out)
-+	      int *blksize_out, unsigned long long *blocks_out, int fd)
- {
- 	struct stat64 buf;
- 
--	if(lstat64(path, &buf) < 0)
-+	if(fd >= 0) {
-+		if (fstat64(fd, &buf) < 0)
-+			return(-errno);
-+	} else if(lstat64(path, &buf) < 0) {
- 		return(-errno);
-+	}
- 
- 	if(inode_out != NULL) *inode_out = buf.st_ino;
- 	if(mode_out != NULL) *mode_out = buf.st_mode;
-@@ -202,58 +206,82 @@ int file_create(char *name, int ur, int 
- 	return(fd);
+ 	return (dentry_stat.nr_unused / 100) * sysctl_vfs_cache_pressure;
  }
- 
--int set_attr(const char *file, struct hostfs_iattr *attrs)
-+int set_attr(const char *file, struct hostfs_iattr *attrs, int fd)
- {
--	struct utimbuf buf;
-+	struct timeval times[2];
-+	struct timespec atime_ts, mtime_ts;
- 	int err, ma;
- 
--	if(attrs->ia_valid & HOSTFS_ATTR_MODE){
--		if(chmod(file, attrs->ia_mode) != 0) return(-errno);
--	}
--	if(attrs->ia_valid & HOSTFS_ATTR_UID){
--		if(chown(file, attrs->ia_uid, -1)) return(-errno);
-+	if (attrs->ia_valid & HOSTFS_ATTR_MODE) {
-+		if (fd >= 0) {
-+			if (fchmod(fd, attrs->ia_mode) != 0)
-+				return (-errno);
-+		} else if (chmod(file, attrs->ia_mode) != 0) {
-+			return (-errno);
-+		}
- 	}
--	if(attrs->ia_valid & HOSTFS_ATTR_GID){
--		if(chown(file, -1, attrs->ia_gid)) return(-errno);
-+	if (attrs->ia_valid & HOSTFS_ATTR_UID) {
-+		if (fd >= 0) {
-+			if (fchown(fd, attrs->ia_uid, -1))
-+				return (-errno);
-+		} else if(chown(file, attrs->ia_uid, -1)) {
-+			return (-errno);
-+		}
- 	}
--	if(attrs->ia_valid & HOSTFS_ATTR_SIZE){
--		if(truncate(file, attrs->ia_size)) return(-errno);
-+	if (attrs->ia_valid & HOSTFS_ATTR_GID) {
-+		if (fd >= 0) {
-+			if (fchown(fd, -1, attrs->ia_gid))
-+				return (-errno);
-+		} else if (chown(file, -1, attrs->ia_gid)) {
-+			return (-errno);
-+		}
- 	}
--	ma = HOSTFS_ATTR_ATIME_SET | HOSTFS_ATTR_MTIME_SET;
--	if((attrs->ia_valid & ma) == ma){
--		buf.actime = attrs->ia_atime.tv_sec;
--		buf.modtime = attrs->ia_mtime.tv_sec;
--		if(utime(file, &buf) != 0) return(-errno);
-+	if (attrs->ia_valid & HOSTFS_ATTR_SIZE) {
-+		if (fd >= 0) {
-+			if (ftruncate(fd, attrs->ia_size))
-+				return (-errno);
-+		} else if (truncate(file, attrs->ia_size)) {
-+			return (-errno);
-+		}
- 	}
--	else {
--		struct timespec ts;
- 
--		if(attrs->ia_valid & HOSTFS_ATTR_ATIME_SET){
--			err = stat_file(file, NULL, NULL, NULL, NULL, NULL,
--					NULL, NULL, &ts, NULL, NULL, NULL);
--			if(err != 0)
--				return(err);
--			buf.actime = attrs->ia_atime.tv_sec;
--			buf.modtime = ts.tv_sec;
--			if(utime(file, &buf) != 0)
--				return(-errno);
-+	/* Update accessed and/or modified time, in two parts: first set
-+	 * times according to the changes to perform, and then call futimes()
-+	 * or utimes() to apply them. */
-+	ma = (HOSTFS_ATTR_ATIME_SET | HOSTFS_ATTR_MTIME_SET);
-+	if (attrs->ia_valid & ma) {
-+		err = stat_file(file, NULL, NULL, NULL, NULL, NULL, NULL,
-+				&atime_ts, &mtime_ts, NULL, NULL, NULL, fd);
-+		if (err != 0)
-+			return err;
-+
-+		times[0].tv_sec = atime_ts.tv_sec;
-+		times[0].tv_usec = atime_ts.tv_nsec * 1000;
-+		times[1].tv_sec = mtime_ts.tv_sec;
-+		times[1].tv_usec = mtime_ts.tv_nsec * 1000;
-+
-+		if (attrs->ia_valid & HOSTFS_ATTR_ATIME_SET) {
-+			times[0].tv_sec = attrs->ia_atime.tv_sec;
-+			times[0].tv_usec = attrs->ia_atime.tv_nsec * 1000;
- 		}
--		if(attrs->ia_valid & HOSTFS_ATTR_MTIME_SET){
--			err = stat_file(file, NULL, NULL, NULL, NULL, NULL,
--					NULL, &ts, NULL, NULL, NULL, NULL);
--			if(err != 0)
--				return(err);
--			buf.actime = ts.tv_sec;
--			buf.modtime = attrs->ia_mtime.tv_sec;
--			if(utime(file, &buf) != 0)
--				return(-errno);
-+		if (attrs->ia_valid & HOSTFS_ATTR_MTIME_SET) {
-+			times[1].tv_sec = attrs->ia_mtime.tv_sec;
-+			times[1].tv_usec = attrs->ia_mtime.tv_nsec * 1000;
-+		}
-+
-+		if (fd >= 0) {
-+			if (futimes(fd, times) != 0)
-+				return (-errno);
-+		} else if (utimes(file, times) != 0) {
-+			return (-errno);
- 		}
- 	}
-+
- 	if(attrs->ia_valid & HOSTFS_ATTR_CTIME) ;
- 	if(attrs->ia_valid & (HOSTFS_ATTR_ATIME | HOSTFS_ATTR_MTIME)){
- 		err = stat_file(file, NULL, NULL, NULL, NULL, NULL, NULL,
- 				&attrs->ia_atime, &attrs->ia_mtime, NULL,
--				NULL, NULL);
-+				NULL, NULL, fd);
- 		if(err != 0) return(err);
- 	}
- 	return(0);
 _
 
-Patches currently in -mm which might be from albertito@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
