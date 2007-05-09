@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - sched-align-rq-to-cacheline-boundary.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:46 -0700
-Message-ID: <200705090253.l492rktY009732@shell0.pdx.osdl.net>
+Subject: - rcutorture-use-array_size-macro-when-appropriate.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:53:49 -0700
+Message-ID: <200705090253.l492rnfF009737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41598 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032238AbXEICxz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:55 -0400
+	by vger.kernel.org with ESMTP id S1032231AbXEICxx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, kiran@scalex86.org, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: align rq to cacheline boundary
+     rcutorture: Use ARRAY_SIZE macro when appropriate
 has been removed from the -mm tree.  Its filename was
-     sched-align-rq-to-cacheline-boundary.patch
+     rcutorture-use-array_size-macro-when-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: align rq to cacheline boundary
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: rcutorture: Use ARRAY_SIZE macro when appropriate
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Align the per cpu runqueue to the cacheline boundary.  This will minimize
-the number of cachelines touched during remote wakeup.
+Use ARRAY_SIZE macro already defined in kernel.h
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Ravikiran G Thirumalai <kiran@scalex86.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
+ kernel/rcutorture.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-align-rq-to-cacheline-boundary kernel/sched.c
---- a/kernel/sched.c~sched-align-rq-to-cacheline-boundary
-+++ a/kernel/sched.c
-@@ -304,7 +304,7 @@ struct rq {
- 	struct lock_class_key rq_lock_key;
- };
+diff -puN kernel/rcutorture.c~rcutorture-use-array_size-macro-when-appropriate kernel/rcutorture.c
+--- a/kernel/rcutorture.c~rcutorture-use-array_size-macro-when-appropriate
++++ a/kernel/rcutorture.c
+@@ -899,7 +899,7 @@ rcu_torture_init(void)
+ 	/* Set up the freelist. */
  
--static DEFINE_PER_CPU(struct rq, runqueues);
-+static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
- 
- static inline int cpu_of(struct rq *rq)
- {
+ 	INIT_LIST_HEAD(&rcu_torture_freelist);
+-	for (i = 0; i < sizeof(rcu_tortures) / sizeof(rcu_tortures[0]); i++) {
++	for (i = 0; i < ARRAY_SIZE(rcu_tortures); i++) {
+ 		rcu_tortures[i].rtort_mbtest = 0;
+ 		list_add_tail(&rcu_tortures[i].rtort_free,
+ 			      &rcu_torture_freelist);
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-git-ia64.patch
+git-kvm.patch
+git-e1000.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
