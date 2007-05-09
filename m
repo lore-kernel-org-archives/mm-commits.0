@@ -1,109 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-update-vr41xx-alarm-handling.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:54:22 -0700
-Message-ID: <200705090254.l492sM94009799@shell0.pdx.osdl.net>
+Subject: - rtc-update-to-class-device-removal-patches.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:54:18 -0700
+Message-ID: <200705090254.l492sI5l009789@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59689 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032289AbXEICyf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:54:35 -0400
+	by vger.kernel.org with ESMTP id S1032281AbXEICyb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:54:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: update vr41xx alarm handling
+     rtc: update to class device removal patches
 has been removed from the -mm tree.  Its filename was
-     rtc-update-vr41xx-alarm-handling.patch
+     rtc-update-to-class-device-removal-patches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc: update vr41xx alarm handling
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: rtc: update to class device removal patches
+From: David Brownell <david-b@pacbell.net>
 
-- vr41xx_rtc_read_alarm() reports alarm enabled.
-- vr41xx_rtc_set_alarm() sets alarm disable/enable by rtc_wkalrm.enabled.
+Fix a goof in the revised classdev support for RTCs: make sure the /dev
+node info is ready before the device is registered, not after.  Otherwise
+the /sys/class/rtc/rtcN/dev attribute won't be created and then udev won't
+have the information it needs to create the /dev/rtcN node.
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |   28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ drivers/rtc/class.c    |    2 ++
+ drivers/rtc/rtc-core.h |    5 +++++
+ drivers/rtc/rtc-dev.c  |    5 ++++-
+ 3 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-update-vr41xx-alarm-handling drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-update-vr41xx-alarm-handling
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -97,6 +97,7 @@ static DEFINE_SPINLOCK(rtc_lock);
- static char rtc_name[] = "RTC";
- static unsigned long periodic_frequency;
- static unsigned long periodic_count;
-+static unsigned int alarm_enabled;
+diff -puN drivers/rtc/class.c~rtc-update-to-class-device-removal-patches drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-update-to-class-device-removal-patches
++++ a/drivers/rtc/class.c
+@@ -156,6 +156,8 @@ struct rtc_device *rtc_device_register(c
+ 	strlcpy(rtc->name, name, RTC_DEVICE_NAME_SIZE);
+ 	snprintf(rtc->dev.bus_id, BUS_ID_SIZE, "rtc%d", id);
  
- struct resource rtc_resource[2] = {
- 	{	.name	= rtc_name,
-@@ -188,6 +189,7 @@ static int vr41xx_rtc_read_alarm(struct 
- 	low = rtc1_read(ECMPLREG);
- 	mid = rtc1_read(ECMPMREG);
- 	high = rtc1_read(ECMPHREG);
-+	wkalrm->enabled = alarm_enabled;
- 
- 	spin_unlock_irq(&rtc_lock);
- 
-@@ -206,10 +208,18 @@ static int vr41xx_rtc_set_alarm(struct d
- 
- 	spin_lock_irq(&rtc_lock);
- 
-+	if (alarm_enabled)
-+		disable_irq(ELAPSEDTIME_IRQ);
++	rtc_dev_prepare(rtc);
 +
- 	rtc1_write(ECMPLREG, (uint16_t)(alarm_sec << 15));
- 	rtc1_write(ECMPMREG, (uint16_t)(alarm_sec >> 1));
- 	rtc1_write(ECMPHREG, (uint16_t)(alarm_sec >> 17));
+ 	err = device_register(&rtc->dev);
+ 	if (err)
+ 		goto exit_kfree;
+diff -puN drivers/rtc/rtc-core.h~rtc-update-to-class-device-removal-patches drivers/rtc/rtc-core.h
+--- a/drivers/rtc/rtc-core.h~rtc-update-to-class-device-removal-patches
++++ a/drivers/rtc/rtc-core.h
+@@ -2,6 +2,7 @@
  
-+	if (wkalrm->enabled)
-+		enable_irq(ELAPSEDTIME_IRQ);
-+
-+	alarm_enabled = wkalrm->enabled;
-+
- 	spin_unlock_irq(&rtc_lock);
+ extern void __init rtc_dev_init(void);
+ extern void __exit rtc_dev_exit(void);
++extern void rtc_dev_prepare(struct rtc_device *rtc);
+ extern void rtc_dev_add_device(struct rtc_device *rtc);
+ extern void rtc_dev_del_device(struct rtc_device *rtc);
  
- 	return 0;
-@@ -221,10 +231,24 @@ static int vr41xx_rtc_ioctl(struct devic
+@@ -15,6 +16,10 @@ static inline void rtc_dev_exit(void)
+ {
+ }
  
- 	switch (cmd) {
- 	case RTC_AIE_ON:
--		enable_irq(ELAPSEDTIME_IRQ);
-+		spin_lock_irq(&rtc_lock);
++static inline void rtc_dev_prepare(struct rtc_device *rtc)
++{
++}
 +
-+		if (!alarm_enabled) {
-+			enable_irq(ELAPSEDTIME_IRQ);
-+			alarm_enabled = 1;
-+		}
-+
-+		spin_unlock_irq(&rtc_lock);
- 		break;
- 	case RTC_AIE_OFF:
--		disable_irq(ELAPSEDTIME_IRQ);
-+		spin_lock_irq(&rtc_lock);
-+
-+		if (alarm_enabled) {
-+			disable_irq(ELAPSEDTIME_IRQ);
-+			alarm_enabled = 0;
-+		}
-+
-+		spin_unlock_irq(&rtc_lock);
- 		break;
- 	case RTC_PIE_ON:
- 		enable_irq(RTCLONG1_IRQ);
+ static inline void rtc_dev_add_device(struct rtc_device *rtc)
+ {
+ }
+diff -puN drivers/rtc/rtc-dev.c~rtc-update-to-class-device-removal-patches drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-update-to-class-device-removal-patches
++++ a/drivers/rtc/rtc-dev.c
+@@ -396,7 +396,7 @@ static const struct file_operations rtc_
+ 
+ /* insertion/removal hooks */
+ 
+-void rtc_dev_add_device(struct rtc_device *rtc)
++void rtc_dev_prepare(struct rtc_device *rtc)
+ {
+ 	if (!rtc_devt)
+ 		return;
+@@ -418,7 +418,10 @@ void rtc_dev_add_device(struct rtc_devic
+ 
+ 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
+ 	rtc->char_dev.owner = rtc->owner;
++}
+ 
++void rtc_dev_add_device(struct rtc_device *rtc)
++{
+ 	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
+ 		printk(KERN_WARNING "%s: failed to add char device %d:%d\n",
+ 			rtc->name, MAJOR(rtc_devt), rtc->id);
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-mips.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
+atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
