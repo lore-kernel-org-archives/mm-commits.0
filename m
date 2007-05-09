@@ -1,332 +1,347 @@
 From: akpm@linux-foundation.org
-Subject: - udf-use-sector_t-and-loff_t-for-file-offsets.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:55:56 -0700
-Message-ID: <200705090255.l492tuLa009986@shell0.pdx.osdl.net>
+Subject: - local_t-x86_64-extension.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:55:33 -0700
+Message-ID: <200705090255.l492tXZb009941@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50385 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032381AbXEIC4G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:56:06 -0400
+	by vger.kernel.org with ESMTP id S1753972AbXEIC4J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, hch@infradead.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ak@muc.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: use sector_t and loff_t for file offsets
+     local_t: x86_64 extension
 has been removed from the -mm tree.  Its filename was
-     udf-use-sector_t-and-loff_t-for-file-offsets.patch
+     local_t-x86_64-extension.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: udf: use sector_t and loff_t for file offsets
-From: Jan Kara <jack@suse.cz>
+Subject: local_t: x86_64 extension
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use sector_t and loff_t for file offsets in UDF filesystem.  Otherwise an
-overflow may occur for long files.  Also make inode_bmap() return offset in
-the extent in number of blocks instead of number of bytes - for most
-callers this is more convenient.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/dir.c       |    4 ++--
- fs/udf/directory.c |    2 +-
- fs/udf/inode.c     |   28 +++++++++++++++-------------
- fs/udf/namei.c     |   12 ++++++------
- fs/udf/truncate.c  |   21 +++++++++++----------
- fs/udf/udfdecl.h   |    6 +++---
- 6 files changed, 38 insertions(+), 35 deletions(-)
+ include/asm-x86_64/local.h  |  198 ++++++++++++++++++++++++++++------
+ include/asm-x86_64/system.h |   36 ++++++
+ 2 files changed, 202 insertions(+), 32 deletions(-)
 
-diff -puN fs/udf/dir.c~udf-use-sector_t-and-loff_t-for-file-offsets fs/udf/dir.c
---- a/fs/udf/dir.c~udf-use-sector_t-and-loff_t-for-file-offsets
-+++ a/fs/udf/dir.c
-@@ -113,7 +113,8 @@ do_udf_readdir(struct inode * dir, struc
- 	loff_t size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
- 	struct buffer_head * bh = NULL, * tmp, * bha[16];
- 	kernel_lb_addr bloc, eloc;
--	uint32_t extoffset, elen, offset;
-+	uint32_t extoffset, elen;
-+	sector_t offset;
- 	int i, num;
- 	unsigned int dt_type;
+diff -puN include/asm-x86_64/local.h~local_t-x86_64-extension include/asm-x86_64/local.h
+--- a/include/asm-x86_64/local.h~local_t-x86_64-extension
++++ a/include/asm-x86_64/local.h
+@@ -2,49 +2,183 @@
+ #define _ARCH_X8664_LOCAL_H
  
-@@ -129,7 +130,6 @@ do_udf_readdir(struct inode * dir, struc
- 	else if (inode_bmap(dir, nf_pos >> (dir->i_sb->s_blocksize_bits - 2),
- 		&bloc, &extoffset, &eloc, &elen, &offset, &bh) == (EXT_RECORDED_ALLOCATED >> 30))
- 	{
--		offset >>= dir->i_sb->s_blocksize_bits;
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen)
- 		{
-diff -puN fs/udf/directory.c~udf-use-sector_t-and-loff_t-for-file-offsets fs/udf/directory.c
---- a/fs/udf/directory.c~udf-use-sector_t-and-loff_t-for-file-offsets
-+++ a/fs/udf/directory.c
-@@ -77,7 +77,7 @@ udf_fileident_read(struct inode *dir, lo
- 	struct fileIdentDesc *cfi,
- 	kernel_lb_addr *bloc, uint32_t *extoffset, 
- 	kernel_lb_addr *eloc, uint32_t *elen,
--	uint32_t *offset, struct buffer_head **bh)
-+	sector_t *offset, struct buffer_head **bh)
+ #include <linux/percpu.h>
++#include <asm/atomic.h>
+ 
+ typedef struct
  {
- 	struct fileIdentDesc *fi;
- 	int i, num, block;
-diff -puN fs/udf/inode.c~udf-use-sector_t-and-loff_t-for-file-offsets fs/udf/inode.c
---- a/fs/udf/inode.c~udf-use-sector_t-and-loff_t-for-file-offsets
-+++ a/fs/udf/inode.c
-@@ -49,7 +49,7 @@ MODULE_LICENSE("GPL");
- static mode_t udf_convert_permissions(struct fileEntry *);
- static int udf_update_inode(struct inode *, int);
- static void udf_fill_inode(struct inode *, struct buffer_head *);
--static struct buffer_head *inode_getblk(struct inode *, long, int *,
-+static struct buffer_head *inode_getblk(struct inode *, sector_t, int *,
- 	long *, int *);
- static int8_t udf_insert_aext(struct inode *, kernel_lb_addr, int,
- 	kernel_lb_addr, uint32_t, struct buffer_head *);
-@@ -354,7 +354,7 @@ udf_getblk(struct inode *inode, long blo
- 	return NULL;
+-	volatile long counter;
++	atomic_long_t a;
+ } local_t;
+ 
+-#define LOCAL_INIT(i)	{ (i) }
++#define LOCAL_INIT(i)	{ ATOMIC_LONG_INIT(i) }
+ 
+-#define local_read(v)	((v)->counter)
+-#define local_set(v,i)	(((v)->counter) = (i))
++#define local_read(l)	atomic_long_read(&(l)->a)
++#define local_set(l,i)	atomic_long_set(&(l)->a, (i))
+ 
+-static inline void local_inc(local_t *v)
++static inline void local_inc(local_t *l)
+ {
+ 	__asm__ __volatile__(
+ 		"incq %0"
+-		:"=m" (v->counter)
+-		:"m" (v->counter));
++		:"=m" (l->a.counter)
++		:"m" (l->a.counter));
  }
  
--static struct buffer_head * inode_getblk(struct inode * inode, long block,
-+static struct buffer_head * inode_getblk(struct inode * inode, sector_t block,
- 	int *err, long *phys, int *new)
+-static inline void local_dec(local_t *v)
++static inline void local_dec(local_t *l)
  {
- 	struct buffer_head *pbh = NULL, *cbh = NULL, *nbh = NULL, *result = NULL;
-@@ -364,14 +364,15 @@ static struct buffer_head * inode_getblk
- 	uint32_t elen = 0;
- 	kernel_lb_addr eloc, pbloc, cbloc, nbloc;
- 	int c = 1;
--	uint64_t lbcount = 0, b_off = 0;
--	uint32_t newblocknum, newblock, offset = 0;
-+	loff_t lbcount = 0, b_off = 0;
-+	uint32_t newblocknum, newblock;
-+	sector_t offset = 0;
- 	int8_t etype;
- 	int goal = 0, pgoal = UDF_I_LOCATION(inode).logicalBlockNum;
- 	char lastblock = 0;
- 
- 	pextoffset = cextoffset = nextoffset = udf_file_entry_alloc_offset(inode);
--	b_off = (uint64_t)block << inode->i_sb->s_blocksize_bits;
-+	b_off = (loff_t)block << inode->i_sb->s_blocksize_bits;
- 	pbloc = cbloc = nbloc = UDF_I_LOCATION(inode);
- 
- 	/* find the extent which contains the block we are looking for.
-@@ -1948,10 +1949,10 @@ int8_t udf_delete_aext(struct inode *ino
- 	return (elen >> 30);
+ 	__asm__ __volatile__(
+ 		"decq %0"
+-		:"=m" (v->counter)
+-		:"m" (v->counter));
++		:"=m" (l->a.counter)
++		:"m" (l->a.counter));
  }
  
--int8_t inode_bmap(struct inode *inode, int block, kernel_lb_addr *bloc, uint32_t *extoffset,
--	kernel_lb_addr *eloc, uint32_t *elen, uint32_t *offset, struct buffer_head **bh)
-+int8_t inode_bmap(struct inode *inode, sector_t block, kernel_lb_addr *bloc, uint32_t *extoffset,
-+	kernel_lb_addr *eloc, uint32_t *elen, sector_t *offset, struct buffer_head **bh)
+-static inline void local_add(long i, local_t *v)
++static inline void local_add(long i, local_t *l)
  {
--	uint64_t lbcount = 0, bcount = (uint64_t)block << inode->i_sb->s_blocksize_bits;
-+	loff_t lbcount = 0, bcount = (loff_t)block << inode->i_sb->s_blocksize_bits;
- 	int8_t etype;
- 
- 	if (block < 0)
-@@ -1968,29 +1969,30 @@ int8_t inode_bmap(struct inode *inode, i
- 	{
- 		if ((etype = udf_next_aext(inode, bloc, extoffset, eloc, elen, bh, 1)) == -1)
- 		{
--			*offset = bcount - lbcount;
-+			*offset = (bcount - lbcount) >> inode->i_sb->s_blocksize_bits;
- 			UDF_I_LENEXTENTS(inode) = lbcount;
- 			return -1;
- 		}
- 		lbcount += *elen;
- 	} while (lbcount <= bcount);
- 
--	*offset = bcount + *elen - lbcount;
-+	*offset = (bcount + *elen - lbcount) >> inode->i_sb->s_blocksize_bits;
- 
- 	return etype;
+ 	__asm__ __volatile__(
+ 		"addq %1,%0"
+-		:"=m" (v->counter)
+-		:"ir" (i), "m" (v->counter));
++		:"=m" (l->a.counter)
++		:"ir" (i), "m" (l->a.counter));
  }
  
--long udf_block_map(struct inode *inode, long block)
-+long udf_block_map(struct inode *inode, sector_t block)
+-static inline void local_sub(long i, local_t *v)
++static inline void local_sub(long i, local_t *l)
  {
- 	kernel_lb_addr eloc, bloc;
--	uint32_t offset, extoffset, elen;
-+	uint32_t extoffset, elen;
-+	sector_t offset;
- 	struct buffer_head *bh = NULL;
- 	int ret;
+ 	__asm__ __volatile__(
+ 		"subq %1,%0"
+-		:"=m" (v->counter)
+-		:"ir" (i), "m" (v->counter));
++		:"=m" (l->a.counter)
++		:"ir" (i), "m" (l->a.counter));
+ }
  
- 	lock_kernel();
++/**
++ * local_sub_and_test - subtract value from variable and test result
++ * @i: integer value to subtract
++ * @l: pointer to type local_t
++ *
++ * Atomically subtracts @i from @l and returns
++ * true if the result is zero, or false for all
++ * other cases.
++ */
++static __inline__ int local_sub_and_test(long i, local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"subq %2,%0; sete %1"
++		:"=m" (l->a.counter), "=qm" (c)
++		:"ir" (i), "m" (l->a.counter) : "memory");
++	return c;
++}
++
++/**
++ * local_dec_and_test - decrement and test
++ * @l: pointer to type local_t
++ *
++ * Atomically decrements @l by 1 and
++ * returns true if the result is 0, or false for all other
++ * cases.
++ */
++static __inline__ int local_dec_and_test(local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"decq %0; sete %1"
++		:"=m" (l->a.counter), "=qm" (c)
++		:"m" (l->a.counter) : "memory");
++	return c != 0;
++}
++
++/**
++ * local_inc_and_test - increment and test
++ * @l: pointer to type local_t
++ *
++ * Atomically increments @l by 1
++ * and returns true if the result is zero, or false for all
++ * other cases.
++ */
++static __inline__ int local_inc_and_test(local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"incq %0; sete %1"
++		:"=m" (l->a.counter), "=qm" (c)
++		:"m" (l->a.counter) : "memory");
++	return c != 0;
++}
++
++/**
++ * local_add_negative - add and test if negative
++ * @i: integer value to add
++ * @l: pointer to type local_t
++ *
++ * Atomically adds @i to @l and returns true
++ * if the result is negative, or false when
++ * result is greater than or equal to zero.
++ */
++static __inline__ int local_add_negative(long i, local_t *l)
++{
++	unsigned char c;
++
++	__asm__ __volatile__(
++		"addq %2,%0; sets %1"
++		:"=m" (l->a.counter), "=qm" (c)
++		:"ir" (i), "m" (l->a.counter) : "memory");
++	return c;
++}
++
++/**
++ * local_add_return - add and return
++ * @i: integer value to add
++ * @l: pointer to type local_t
++ *
++ * Atomically adds @i to @l and returns @i + @l
++ */
++static __inline__ long local_add_return(long i, local_t *l)
++{
++	long __i = i;
++	__asm__ __volatile__(
++		"xaddq %0, %1;"
++		:"+r" (i), "+m" (l->a.counter)
++		: : "memory");
++	return i + __i;
++}
++
++static __inline__ long local_sub_return(long i, local_t *l)
++{
++	return local_add_return(-i,l);
++}
++
++#define local_inc_return(l)  (local_add_return(1,l))
++#define local_dec_return(l)  (local_sub_return(1,l))
++
++#define local_cmpxchg(l, o, n) \
++	(cmpxchg_local(&((l)->a.counter), (o), (n)))
++/* Always has a lock prefix */
++#define local_xchg(l, n) (xchg(&((l)->a.counter), (n)))
++
++/**
++ * atomic_up_add_unless - add unless the number is a given value
++ * @l: pointer of type local_t
++ * @a: the amount to add to l...
++ * @u: ...unless l is equal to u.
++ *
++ * Atomically adds @a to @l, so long as it was not @u.
++ * Returns non-zero if @l was not @u, and zero otherwise.
++ */
++#define local_add_unless(l, a, u)				\
++({								\
++	long c, old;						\
++	c = local_read(l);					\
++	for (;;) {						\
++		if (unlikely(c == (u)))				\
++			break;					\
++		old = local_cmpxchg((l), c, c + (a));	\
++		if (likely(old == c))				\
++			break;					\
++		c = old;					\
++	}							\
++	c != (u);						\
++})
++#define local_inc_not_zero(l) local_add_unless((l), 1, 0)
++
+ /* On x86-64 these are better than the atomic variants on SMP kernels
+    because they dont use a lock prefix. */
+ #define __local_inc(l)		local_inc(l)
+@@ -62,27 +196,27 @@ static inline void local_sub(long i, loc
  
- 	if (inode_bmap(inode, block, &bloc, &extoffset, &eloc, &elen, &offset, &bh) == (EXT_RECORDED_ALLOCATED >> 30))
--		ret = udf_get_lb_pblock(inode->i_sb, eloc, offset >> inode->i_sb->s_blocksize_bits);
-+		ret = udf_get_lb_pblock(inode->i_sb, eloc, offset);
- 	else
- 		ret = 0;
+ /* Need to disable preemption for the cpu local counters otherwise we could
+    still access a variable of a previous CPU in a non atomic way. */
+-#define cpu_local_wrap_v(v)	 	\
++#define cpu_local_wrap_v(l)	 	\
+ 	({ local_t res__;		\
+ 	   preempt_disable(); 		\
+-	   res__ = (v);			\
++	   res__ = (l);			\
+ 	   preempt_enable();		\
+ 	   res__; })
+-#define cpu_local_wrap(v)		\
++#define cpu_local_wrap(l)		\
+ 	({ preempt_disable();		\
+-	   v;				\
++	   l;				\
+ 	   preempt_enable(); })		\
  
-diff -puN fs/udf/namei.c~udf-use-sector_t-and-loff_t-for-file-offsets fs/udf/namei.c
---- a/fs/udf/namei.c~udf-use-sector_t-and-loff_t-for-file-offsets
-+++ a/fs/udf/namei.c
-@@ -156,7 +156,8 @@ udf_find_entry(struct inode *dir, struct
- 	uint16_t liu;
- 	loff_t size;
- 	kernel_lb_addr bloc, eloc;
--	uint32_t extoffset, elen, offset;
-+	uint32_t extoffset, elen;
-+	sector_t offset;
- 	struct buffer_head *bh = NULL;
+-#define cpu_local_read(v)    cpu_local_wrap_v(local_read(&__get_cpu_var(v)))
+-#define cpu_local_set(v, i)  cpu_local_wrap(local_set(&__get_cpu_var(v), (i)))
+-#define cpu_local_inc(v)     cpu_local_wrap(local_inc(&__get_cpu_var(v)))
+-#define cpu_local_dec(v)     cpu_local_wrap(local_dec(&__get_cpu_var(v)))
+-#define cpu_local_add(i, v)  cpu_local_wrap(local_add((i), &__get_cpu_var(v)))
+-#define cpu_local_sub(i, v)  cpu_local_wrap(local_sub((i), &__get_cpu_var(v)))
+-
+-#define __cpu_local_inc(v)	cpu_local_inc(v)
+-#define __cpu_local_dec(v)	cpu_local_dec(v)
+-#define __cpu_local_add(i, v)	cpu_local_add((i), (v))
+-#define __cpu_local_sub(i, v)	cpu_local_sub((i), (v))
++#define cpu_local_read(l)    cpu_local_wrap_v(local_read(&__get_cpu_var(l)))
++#define cpu_local_set(l, i)  cpu_local_wrap(local_set(&__get_cpu_var(l), (i)))
++#define cpu_local_inc(l)     cpu_local_wrap(local_inc(&__get_cpu_var(l)))
++#define cpu_local_dec(l)     cpu_local_wrap(local_dec(&__get_cpu_var(l)))
++#define cpu_local_add(i, l)  cpu_local_wrap(local_add((i), &__get_cpu_var(l)))
++#define cpu_local_sub(i, l)  cpu_local_wrap(local_sub((i), &__get_cpu_var(l)))
++
++#define __cpu_local_inc(l)	cpu_local_inc(l)
++#define __cpu_local_dec(l)	cpu_local_dec(l)
++#define __cpu_local_add(i, l)	cpu_local_add((i), (l))
++#define __cpu_local_sub(i, l)	cpu_local_sub((i), (l))
  
- 	size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
-@@ -168,7 +169,6 @@ udf_find_entry(struct inode *dir, struct
- 	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
- 		&bloc, &extoffset, &eloc, &elen, &offset, &bh) == (EXT_RECORDED_ALLOCATED >> 30))
- 	{
--		offset >>= dir->i_sb->s_blocksize_bits;
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen)
- 		{
-@@ -354,7 +354,8 @@ udf_add_entry(struct inode *dir, struct 
- 	uint16_t liu;
- 	int block;
- 	kernel_lb_addr bloc, eloc;
--	uint32_t extoffset, elen, offset;
-+	uint32_t extoffset, elen;
-+	sector_t offset;
- 	struct buffer_head *bh = NULL;
+-#endif /* _ARCH_I386_LOCAL_H */
++#endif /* _ARCH_X8664_LOCAL_H */
+diff -puN include/asm-x86_64/system.h~local_t-x86_64-extension include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~local_t-x86_64-extension
++++ a/include/asm-x86_64/system.h
+@@ -214,9 +214,45 @@ static inline unsigned long __cmpxchg(vo
+ 	return old;
+ }
  
- 	sb = dir->i_sb;
-@@ -386,7 +387,6 @@ udf_add_entry(struct inode *dir, struct 
- 	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
- 		&bloc, &extoffset, &eloc, &elen, &offset, &bh) == (EXT_RECORDED_ALLOCATED >> 30))
- 	{
--		offset >>= dir->i_sb->s_blocksize_bits;
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen)
- 		{
-@@ -782,7 +782,8 @@ static int empty_dir(struct inode *dir)
- 	loff_t size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
- 	int block;
- 	kernel_lb_addr bloc, eloc;
--	uint32_t extoffset, elen, offset;
-+	uint32_t extoffset, elen;
-+	sector_t offset;
- 	struct buffer_head *bh = NULL;
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++			unsigned long old, unsigned long new, int size)
++{
++	unsigned long prev;
++	switch (size) {
++	case 1:
++		__asm__ __volatile__("cmpxchgb %b1,%2"
++				     : "=a"(prev)
++				     : "q"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	case 2:
++		__asm__ __volatile__("cmpxchgw %w1,%2"
++				     : "=a"(prev)
++				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	case 4:
++		__asm__ __volatile__("cmpxchgl %k1,%2"
++				     : "=a"(prev)
++				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	case 8:
++		__asm__ __volatile__("cmpxchgq %1,%2"
++				     : "=a"(prev)
++				     : "r"(new), "m"(*__xg(ptr)), "0"(old)
++				     : "memory");
++		return prev;
++	}
++	return old;
++}
++
+ #define cmpxchg(ptr,o,n)\
+ 	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
+ 					(unsigned long)(n),sizeof(*(ptr))))
++#define cmpxchg_local(ptr,o,n)\
++	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
++					(unsigned long)(n),sizeof(*(ptr))))
  
- 	f_pos = (udf_ext0_offset(dir) >> 2);
-@@ -794,7 +795,6 @@ static int empty_dir(struct inode *dir)
- 	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
- 		&bloc, &extoffset, &eloc, &elen, &offset, &bh) == (EXT_RECORDED_ALLOCATED >> 30))
- 	{
--		offset >>= dir->i_sb->s_blocksize_bits;
- 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
- 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen)
- 		{
-diff -puN fs/udf/truncate.c~udf-use-sector_t-and-loff_t-for-file-offsets fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-use-sector_t-and-loff_t-for-file-offsets
-+++ a/fs/udf/truncate.c
-@@ -125,9 +125,10 @@ void udf_discard_prealloc(struct inode *
- void udf_truncate_extents(struct inode * inode)
- {
- 	kernel_lb_addr bloc, eloc, neloc = { 0, 0 };
--	uint32_t extoffset, elen, offset, nelen = 0, lelen = 0, lenalloc;
-+	uint32_t extoffset, elen, nelen = 0, lelen = 0, lenalloc;
- 	int8_t etype;
--	int first_block = inode->i_size >> inode->i_sb->s_blocksize_bits;
-+	sector_t first_block = inode->i_size >> inode->i_sb->s_blocksize_bits, offset;
-+	loff_t byte_offset;
- 	struct buffer_head *bh = NULL;
- 	int adsize;
- 
-@@ -139,14 +140,14 @@ void udf_truncate_extents(struct inode *
- 		adsize = 0;
- 
- 	etype = inode_bmap(inode, first_block, &bloc, &extoffset, &eloc, &elen, &offset, &bh);
--	offset += (inode->i_size & (inode->i_sb->s_blocksize - 1));
-+	byte_offset = (offset << inode->i_sb->s_blocksize_bits) + (inode->i_size & (inode->i_sb->s_blocksize-1));
- 	if (etype != -1)
- 	{
- 		extoffset -= adsize;
--		extent_trunc(inode, bloc, extoffset, eloc, etype, elen, bh, offset);
-+		extent_trunc(inode, bloc, extoffset, eloc, etype, elen, bh, byte_offset);
- 		extoffset += adsize;
- 
--		if (offset)
-+		if (byte_offset)
- 			lenalloc = extoffset;
- 		else
- 			lenalloc = extoffset - adsize;
-@@ -237,7 +238,7 @@ void udf_truncate_extents(struct inode *
- 	}
- 	else if (inode->i_size)
- 	{
--		if (offset)
-+		if (byte_offset)
- 		{
- 			/*
- 			 *  OK, there is not extent covering inode->i_size and
-@@ -248,7 +249,7 @@ void udf_truncate_extents(struct inode *
- 			    (bh && extoffset == sizeof(struct allocExtDesc))) {
- 				/* File has no extents at all! */
- 				memset(&eloc, 0x00, sizeof(kernel_lb_addr));
--				elen = EXT_NOT_RECORDED_NOT_ALLOCATED | offset;
-+				elen = EXT_NOT_RECORDED_NOT_ALLOCATED | byte_offset;
- 				udf_add_aext(inode, &bloc, &extoffset, eloc, elen, &bh, 1);
- 			}
- 			else {
-@@ -257,7 +258,7 @@ void udf_truncate_extents(struct inode *
- 				if (etype == (EXT_NOT_RECORDED_NOT_ALLOCATED >> 30))
- 				{
- 					extoffset -= adsize;
--					elen = EXT_NOT_RECORDED_NOT_ALLOCATED | (elen + offset);
-+					elen = EXT_NOT_RECORDED_NOT_ALLOCATED | (elen + byte_offset);
- 					udf_write_aext(inode, bloc, &extoffset, eloc, elen, bh, 0);
- 				}
- 				else if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30))
-@@ -265,7 +266,7 @@ void udf_truncate_extents(struct inode *
- 					kernel_lb_addr neloc = { 0, 0 };
- 					extoffset -= adsize;
- 					nelen = EXT_NOT_RECORDED_NOT_ALLOCATED |
--						((elen + offset + inode->i_sb->s_blocksize - 1) &
-+						((elen + byte_offset + inode->i_sb->s_blocksize - 1) &
- 						~(inode->i_sb->s_blocksize - 1));
- 					udf_write_aext(inode, bloc, &extoffset, neloc, nelen, bh, 1);
- 					udf_add_aext(inode, &bloc, &extoffset, eloc, (etype << 30) | elen, &bh, 1);
-@@ -281,7 +282,7 @@ void udf_truncate_extents(struct inode *
- 						udf_write_aext(inode, bloc, &extoffset, eloc, elen, bh, 1);
- 					}
- 					memset(&eloc, 0x00, sizeof(kernel_lb_addr));
--					elen = EXT_NOT_RECORDED_NOT_ALLOCATED | offset;
-+					elen = EXT_NOT_RECORDED_NOT_ALLOCATED | byte_offset;
- 					udf_add_aext(inode, &bloc, &extoffset, eloc, elen, &bh, 1);
- 				}
- 			}
-diff -puN fs/udf/udfdecl.h~udf-use-sector_t-and-loff_t-for-file-offsets fs/udf/udfdecl.h
---- a/fs/udf/udfdecl.h~udf-use-sector_t-and-loff_t-for-file-offsets
-+++ a/fs/udf/udfdecl.h
-@@ -98,8 +98,8 @@ extern void udf_read_inode(struct inode 
- extern void udf_delete_inode(struct inode *);
- extern void udf_clear_inode(struct inode *);
- extern int udf_write_inode(struct inode *, int);
--extern long udf_block_map(struct inode *, long);
--extern int8_t inode_bmap(struct inode *, int, kernel_lb_addr *, uint32_t *, kernel_lb_addr *, uint32_t *, uint32_t *, struct buffer_head **);
-+extern long udf_block_map(struct inode *, sector_t);
-+extern int8_t inode_bmap(struct inode *, sector_t, kernel_lb_addr *, uint32_t *, kernel_lb_addr *, uint32_t *, sector_t *, struct buffer_head **);
- extern int8_t udf_add_aext(struct inode *, kernel_lb_addr *, int *, kernel_lb_addr, uint32_t, struct buffer_head **, int);
- extern int8_t udf_write_aext(struct inode *, kernel_lb_addr, int *, kernel_lb_addr, uint32_t, struct buffer_head *, int);
- extern int8_t udf_delete_aext(struct inode *, kernel_lb_addr, int, kernel_lb_addr, uint32_t, struct buffer_head *);
-@@ -151,7 +151,7 @@ extern int udf_new_block(struct super_bl
- extern int udf_fsync_file(struct file *, struct dentry *, int);
- 
- /* directory.c */
--extern struct fileIdentDesc * udf_fileident_read(struct inode *, loff_t *, struct udf_fileident_bh *, struct fileIdentDesc *, kernel_lb_addr *, uint32_t *, kernel_lb_addr *, uint32_t *, uint32_t *, struct buffer_head **);
-+extern struct fileIdentDesc * udf_fileident_read(struct inode *, loff_t *, struct udf_fileident_bh *, struct fileIdentDesc *, kernel_lb_addr *, uint32_t *, kernel_lb_addr *, uint32_t *, sector_t *, struct buffer_head **);
- extern struct fileIdentDesc * udf_get_fileident(void * buffer, int bufsize, int * offset);
- extern long_ad * udf_get_filelongad(uint8_t *, int, int *, int);
- extern short_ad * udf_get_fileshortad(uint8_t *, int, int *, int);
+ #ifdef CONFIG_SMP
+ #define smp_mb()	mb()
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-ext4-copy-i_flags-to-inode-flags-on-write.patch
+git-avr32.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
