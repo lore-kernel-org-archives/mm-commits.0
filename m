@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-ima-integrity_measure-support-fix-2.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:01:04 -0700
-Message-ID: <200705091001.l49A14gq020684@shell0.pdx.osdl.net>
+Subject: - integrity-ima-integrity_measure-support-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:01:02 -0700
+Message-ID: <200705091001.l49A121g020681@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56173 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754927AbXEIKB0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:01:26 -0400
+	by vger.kernel.org with ESMTP id S1755095AbXEIKBY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity-ima-integrity_measure-support-fix-2
+     integrity-ima-integrity_measure-support-fix
 has been removed from the -mm tree.  Its filename was
-     integrity-ima-integrity_measure-support-fix-2.patch
+     integrity-ima-integrity_measure-support-fix.patch
 
 This patch was dropped because it was folded into integrity-ima-integrity_measure-support.patch
 
 ------------------------------------------------------
-Subject: integrity-ima-integrity_measure-support-fix-2
+Subject: integrity-ima-integrity_measure-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix ia64 buid:
-
-ima_fs_cleanup: discarded in section `.exit.text' from security/built-in.o
+security/evm/evm_main.c: In function 'evm_verify_xattr':
+security/evm/evm_main.c:165: warning: format '%d' expects type 'int', but argument 5 has type 'ssize_t'
+security/evm/evm_main.c: In function 'init_evm':
+security/evm/evm_main.c:903: warning: control may reach end of non-void function 'evm_ima_init' being inlined
 
 Cc: Kylene Hall <kjhall@us.ibm.com>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
@@ -34,21 +35,34 @@ Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/evm/ima/ima_fs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ security/evm/evm_integrity.h |    1 +
+ security/evm/evm_main.c      |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima_fs.c
---- a/security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-fix-2
-+++ a/security/evm/ima/ima_fs.c
-@@ -269,7 +269,7 @@ out:
- 	return -1;
+diff -puN security/evm/evm_main.c~integrity-ima-integrity_measure-support-fix security/evm/evm_main.c
+--- a/security/evm/evm_main.c~integrity-ima-integrity_measure-support-fix
++++ a/security/evm/evm_main.c
+@@ -162,7 +162,8 @@ ssize_t evm_verify_xattr(struct dentry *
+ 				__FUNCTION__, fname, xattr_name);
+ 		}
+ 	} else
+-		dprintk(EVM_XATTR, "%s: %s(%s) rc = %d no extended attribute\n",
++		dprintk(EVM_XATTR, "%s: %s(%s) rc = %zd no extended "
++			"attribute\n",
+ 			__FUNCTION__, fname, xattr_name, error);
+ 	kfree(xattr_value);
+ 	return error;
+diff -puN security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-fix security/evm/evm_integrity.h
+--- a/security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-fix
++++ a/security/evm/evm_integrity.h
+@@ -13,6 +13,7 @@ static inline int evm_ima_init(void)
+ {
+ 	if (evm_enable_ima)
+ 		return ima_init();
++	return 0;
  }
  
--void __exit ima_fs_cleanup(void)
-+void ima_fs_cleanup(void)
- {
- 	securityfs_remove(violations);
- 	securityfs_remove(runtime_measurements_count);
+ static inline void evm_ima_measure(const unsigned char *name, int hash_len,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +137,7 @@ reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 integrity-new-hooks.patch
 integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
+integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
