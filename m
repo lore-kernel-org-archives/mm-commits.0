@@ -1,132 +1,557 @@
 From: akpm@linux-foundation.org
-Subject: - cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:25 -0700
-Message-ID: <200705090252.l492qPjP009568@shell0.pdx.osdl.net>
+Subject: - driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:51:57 -0700
+Message-ID: <200705090251.l492pvGA009520@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55375 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969177AbXEICwe (ORCPT
+	by vger.kernel.org with ESMTP id S969342AbXEICwe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, clameter@engr.sgi.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: mreimer@vpop.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpusets: allow empty {cpus,mems}_allowed to be set for unpopulated cpuset
+     Driver for the Maxim DS1WM, a 1-wire bus master ASIC core
 has been removed from the -mm tree.  Its filename was
-     cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpusets: allow empty {cpus,mems}_allowed to be set for unpopulated cpuset
-From: David Rientjes <rientjes@google.com>
+Subject: Driver for the Maxim DS1WM, a 1-wire bus master ASIC core
 
-You currently cannot remove all cpus or mems from cpus_allowed or
-mems_allowed of a cpuset.  We now allow both if there are no attached
-tasks.
+Cc: Matt Reimer <mreimer@vpop.net>
 
-Acked-by: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Signed-off-by: Paul Menage <menage@google.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+[akpm@linux-foundation.org: kconfig update]
+Signed-off-by: Matt Reimer <mreimer@vpop.net>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+ drivers/w1/masters/Kconfig  |    8 
+ drivers/w1/masters/Makefile |    2 
+ drivers/w1/masters/ds1wm.c  |  468 ++++++++++++++++++++++++++++++++++
+ include/linux/ds1wm.h       |   11 
+ 4 files changed, 488 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpusets-allow-empty-cpusmems_allowed-to-be-set-for kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-allow-empty-cpusmems_allowed-to-be-set-for
-+++ a/kernel/cpuset.c
-@@ -821,11 +821,22 @@ static int update_cpumask(struct cpuset 
- 		return -EACCES;
+diff -puN drivers/w1/masters/Kconfig~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core drivers/w1/masters/Kconfig
+--- a/drivers/w1/masters/Kconfig~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core
++++ a/drivers/w1/masters/Kconfig
+@@ -35,5 +35,13 @@ config W1_MASTER_DS2482
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds2482.
  
- 	trialcs = *cs;
--	retval = cpulist_parse(buf, trialcs.cpus_allowed);
--	if (retval < 0)
--		return retval;
++config W1_MASTER_DS1WM
++	tristate "Maxim DS1WM 1-wire busmaster"
++	depends on W1 && ARM
++	help
++	  Say Y here to enable the DS1WM 1-wire driver, such as that
++	  in HP iPAQ devices like h5xxx, h2200, and ASIC3-based like
++	  hx4700.
 +
-+	/*
-+	 * We allow a cpuset's cpus_allowed to be empty; if it has attached
-+	 * tasks, we'll catch it later when we validate the change and return
-+	 * -ENOSPC.
-+	 */
-+	if (!buf[0] || (buf[0] == '\n' && !buf[1])) {
-+		cpus_clear(trialcs.cpus_allowed);
-+	} else {
-+		retval = cpulist_parse(buf, trialcs.cpus_allowed);
-+		if (retval < 0)
-+			return retval;
-+	}
- 	cpus_and(trialcs.cpus_allowed, trialcs.cpus_allowed, cpu_online_map);
--	if (cpus_empty(trialcs.cpus_allowed))
-+	/* cpus_allowed cannot be empty for a cpuset with attached tasks. */
-+	if (atomic_read(&cs->count) && cpus_empty(trialcs.cpus_allowed))
- 		return -ENOSPC;
- 	retval = validate_change(cs, &trialcs);
- 	if (retval < 0)
-@@ -918,16 +929,27 @@ static int update_nodemask(struct cpuset
- 		return -EACCES;
+ endmenu
  
- 	trialcs = *cs;
--	retval = nodelist_parse(buf, trialcs.mems_allowed);
--	if (retval < 0)
--		goto done;
+diff -puN drivers/w1/masters/Makefile~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core drivers/w1/masters/Makefile
+--- a/drivers/w1/masters/Makefile~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core
++++ a/drivers/w1/masters/Makefile
+@@ -5,4 +5,4 @@
+ obj-$(CONFIG_W1_MASTER_MATROX)		+= matrox_w1.o
+ obj-$(CONFIG_W1_MASTER_DS2490)		+= ds2490.o
+ obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
+-
++obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
+diff -puN /dev/null drivers/w1/masters/ds1wm.c
+--- /dev/null
++++ a/drivers/w1/masters/ds1wm.c
+@@ -0,0 +1,468 @@
++/*
++ * 1-wire busmaster driver for DS1WM and ASICs with embedded DS1WMs
++ * such as HP iPAQs (including h5xxx, h2200, and devices with ASIC3
++ * like hx4700).
++ *
++ * Copyright (c) 2004-2005, Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>
++ * Copyright (c) 2004-2007, Matt Reimer <mreimer@vpop.net>
++ *
++ * Use consistent with the GNU GPL is permitted,
++ * provided that this copyright notice is
++ * preserved in its entirety in all copies and derived works.
++ */
 +
-+	/*
-+	 * We allow a cpuset's mems_allowed to be empty; if it has attached
-+	 * tasks, we'll catch it later when we validate the change and return
-+	 * -ENOSPC.
-+	 */
-+	if (!buf[0] || (buf[0] == '\n' && !buf[1])) {
-+		nodes_clear(trialcs.mems_allowed);
-+	} else {
-+		retval = nodelist_parse(buf, trialcs.mems_allowed);
-+		if (retval < 0)
-+			goto done;
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/pm.h>
++#include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/ds1wm.h>
++
++#include <asm/io.h>
++
++#include "../w1.h"
++#include "../w1_int.h"
++
++
++#define DS1WM_CMD	0x00	/* R/W 4 bits command */
++#define DS1WM_DATA	0x01	/* R/W 8 bits, transmit/receive buffer */
++#define DS1WM_INT	0x02	/* R/W interrupt status */
++#define DS1WM_INT_EN	0x03	/* R/W interrupt enable */
++#define DS1WM_CLKDIV	0x04	/* R/W 5 bits of divisor and pre-scale */
++
++#define DS1WM_CMD_1W_RESET  (1 << 0)	/* force reset on 1-wire bus */
++#define DS1WM_CMD_SRA	    (1 << 1)	/* enable Search ROM accelerator mode */
++#define DS1WM_CMD_DQ_OUTPUT (1 << 2)	/* write only - forces bus low */
++#define DS1WM_CMD_DQ_INPUT  (1 << 3)	/* read only - reflects state of bus */
++#define DS1WM_CMD_RST	    (1 << 5)	/* software reset */
++#define DS1WM_CMD_OD	    (1 << 7)	/* overdrive */
++
++#define DS1WM_INT_PD	    (1 << 0)	/* presence detect */
++#define DS1WM_INT_PDR	    (1 << 1)	/* presence detect result */
++#define DS1WM_INT_TBE	    (1 << 2)	/* tx buffer empty */
++#define DS1WM_INT_TSRE	    (1 << 3)	/* tx shift register empty */
++#define DS1WM_INT_RBF	    (1 << 4)	/* rx buffer full */
++#define DS1WM_INT_RSRF	    (1 << 5)	/* rx shift register full */
++
++#define DS1WM_INTEN_EPD	    (1 << 0)	/* enable presence detect int */
++#define DS1WM_INTEN_IAS	    (1 << 1)	/* INTR active state */
++#define DS1WM_INTEN_ETBE    (1 << 2)	/* enable tx buffer empty int */
++#define DS1WM_INTEN_ETMT    (1 << 3)	/* enable tx shift register empty int */
++#define DS1WM_INTEN_ERBF    (1 << 4)	/* enable rx buffer full int */
++#define DS1WM_INTEN_ERSRF   (1 << 5)	/* enable rx shift register full int */
++#define DS1WM_INTEN_DQO	    (1 << 6)	/* enable direct bus driving ops */
++
++
++#define DS1WM_TIMEOUT (HZ * 5)
++
++static struct {
++	unsigned long freq;
++	unsigned long divisor;
++} freq[] = {
++	{ 4000000, 0x8 },
++	{ 5000000, 0x2 },
++	{ 6000000, 0x5 },
++	{ 7000000, 0x3 },
++	{ 8000000, 0xc },
++	{ 10000000, 0x6 },
++	{ 12000000, 0x9 },
++	{ 14000000, 0x7 },
++	{ 16000000, 0x10 },
++	{ 20000000, 0xa },
++	{ 24000000, 0xd },
++	{ 28000000, 0xb },
++	{ 32000000, 0x14 },
++	{ 40000000, 0xe },
++	{ 48000000, 0x11 },
++	{ 56000000, 0xf },
++	{ 64000000, 0x18 },
++	{ 80000000, 0x12 },
++	{ 96000000, 0x15 },
++	{ 112000000, 0x13 },
++	{ 128000000, 0x1c },
++};
++
++struct ds1wm_data {
++	void		*map;
++	int		bus_shift; /* # of shifts to calc register offsets */
++	struct platform_device *pdev;
++	struct ds1wm_platform_data *pdata;
++	int		irq;
++	int		active_high;
++	struct clk	*clk;
++	int		slave_present;
++	void		*reset_complete;
++	void		*read_complete;
++	void		*write_complete;
++	u8		read_byte; /* last byte received */
++};
++
++static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data, u32 reg,
++					u8 val)
++{
++        __raw_writeb(val, ds1wm_data->map + (reg << ds1wm_data->bus_shift));
++}
++
++static inline u8 ds1wm_read_register(struct ds1wm_data *ds1wm_data, u32 reg)
++{
++        return __raw_readb(ds1wm_data->map + (reg << ds1wm_data->bus_shift));
++}
++
++
++static irqreturn_t ds1wm_isr(int isr, void *data)
++{
++	struct ds1wm_data *ds1wm_data = data;
++	u8 intr = ds1wm_read_register(ds1wm_data, DS1WM_INT);
++
++	ds1wm_data->slave_present = (intr & DS1WM_INT_PDR) ? 0 : 1;
++
++	if ((intr & DS1WM_INT_PD) && ds1wm_data->reset_complete)
++		complete(ds1wm_data->reset_complete);
++
++	if ((intr & DS1WM_INT_TSRE) && ds1wm_data->write_complete)
++		complete(ds1wm_data->write_complete);
++
++	if (intr & DS1WM_INT_RBF) {
++		ds1wm_data->read_byte = ds1wm_read_register(ds1wm_data,
++							    DS1WM_DATA);
++		if (ds1wm_data->read_complete)
++			complete(ds1wm_data->read_complete);
 +	}
- 	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed, node_online_map);
- 	oldmem = cs->mems_allowed;
- 	if (nodes_equal(oldmem, trialcs.mems_allowed)) {
- 		retval = 0;		/* Too easy - nothing to do */
- 		goto done;
- 	}
--	if (nodes_empty(trialcs.mems_allowed)) {
-+	/* mems_allowed cannot be empty for a cpuset with attached tasks. */
-+	if (atomic_read(&cs->count) && nodes_empty(trialcs.mems_allowed)) {
- 		retval = -ENOSPC;
- 		goto done;
- 	}
++
++	return IRQ_HANDLED;
++}
++
++static int ds1wm_reset(struct ds1wm_data *ds1wm_data)
++{
++	unsigned long timeleft;
++	DECLARE_COMPLETION_ONSTACK(reset_done);
++
++	ds1wm_data->reset_complete = &reset_done;
++
++	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN, DS1WM_INTEN_EPD |
++		(ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0));
++
++	ds1wm_write_register(ds1wm_data, DS1WM_CMD, DS1WM_CMD_1W_RESET);
++
++	timeleft = wait_for_completion_timeout(&reset_done, DS1WM_TIMEOUT);
++	ds1wm_data->reset_complete = NULL;
++	if (!timeleft) {
++                dev_dbg(&ds1wm_data->pdev->dev, "reset failed\n");
++                return 1;
++	}
++
++	/* Wait for the end of the reset. According to the specs, the time
++	 * from when the interrupt is asserted to the end of the reset is:
++	 *     tRSTH  - tPDH  - tPDL - tPDI
++	 *     625 us - 60 us - 240 us - 100 ns = 324.9 us
++	 *
++	 * We'll wait a bit longer just to be sure.
++	 */
++	udelay(500);
++
++	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
++		DS1WM_INTEN_ERBF | DS1WM_INTEN_ETMT | DS1WM_INTEN_EPD |
++		(ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0));
++
++	if (!ds1wm_data->slave_present) {
++                dev_dbg(&ds1wm_data->pdev->dev, "reset: no devices found\n");
++                return 1;
++        }
++
++        return 0;
++}
++
++static int ds1wm_write(struct ds1wm_data *ds1wm_data, u8 data)
++{
++	DECLARE_COMPLETION_ONSTACK(write_done);
++	ds1wm_data->write_complete = &write_done;
++
++	ds1wm_write_register(ds1wm_data, DS1WM_DATA, data);
++
++	wait_for_completion_timeout(&write_done, DS1WM_TIMEOUT);
++	ds1wm_data->write_complete = NULL;
++
++	return 0;
++}
++
++static int ds1wm_read(struct ds1wm_data *ds1wm_data, unsigned char write_data)
++{
++	DECLARE_COMPLETION_ONSTACK(read_done);
++	ds1wm_data->read_complete = &read_done;
++
++	ds1wm_write(ds1wm_data, write_data);
++	wait_for_completion_timeout(&read_done, DS1WM_TIMEOUT);
++	ds1wm_data->read_complete = NULL;
++
++	return ds1wm_data->read_byte;
++}
++
++static int ds1wm_find_divisor(int gclk)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(freq); i++)
++		if (gclk <= freq[i].freq)
++			return freq[i].divisor;
++
++	return 0;
++}
++
++static void ds1wm_up(struct ds1wm_data *ds1wm_data)
++{
++	int gclk, divisor;
++
++	if (ds1wm_data->pdata->enable)
++		ds1wm_data->pdata->enable(ds1wm_data->pdev);
++
++	gclk = clk_get_rate(ds1wm_data->clk);
++	clk_enable(ds1wm_data->clk);
++	divisor = ds1wm_find_divisor(gclk);
++	if (divisor == 0) {
++		dev_err(&ds1wm_data->pdev->dev,
++			"no suitable divisor for %dHz clock\n", gclk);
++		return;
++	}
++	ds1wm_write_register(ds1wm_data, DS1WM_CLKDIV, divisor);
++
++	/* Let the w1 clock stabilize. */
++	msleep(1);
++
++	ds1wm_reset(ds1wm_data);
++}
++
++static void ds1wm_down(struct ds1wm_data *ds1wm_data)
++{
++	ds1wm_reset(ds1wm_data);
++
++	/* Disable interrupts. */
++	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
++			     ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0);
++
++	if (ds1wm_data->pdata->disable)
++		ds1wm_data->pdata->disable(ds1wm_data->pdev);
++
++	clk_disable(ds1wm_data->clk);
++}
++
++/* --------------------------------------------------------------------- */
++/* w1 methods */
++
++static u8 ds1wm_read_byte(void *data)
++{
++	struct ds1wm_data *ds1wm_data = data;
++
++	return ds1wm_read(ds1wm_data, 0xff);
++}
++
++static void ds1wm_write_byte(void *data, u8 byte)
++{
++	struct ds1wm_data *ds1wm_data = data;
++
++	ds1wm_write(ds1wm_data, byte);
++}
++
++static u8 ds1wm_reset_bus(void *data)
++{
++	struct ds1wm_data *ds1wm_data = data;
++
++	ds1wm_reset(ds1wm_data);
++
++	return 0;
++}
++
++static void ds1wm_search(void *data, u8 search_type,
++			 w1_slave_found_callback slave_found)
++{
++	struct ds1wm_data *ds1wm_data = data;
++	int i;
++	unsigned long long rom_id;
++
++	/* XXX We need to iterate for multiple devices per the DS1WM docs.
++	 * See http://www.maxim-ic.com/appnotes.cfm/appnote_number/120. */
++	if (ds1wm_reset(ds1wm_data))
++		return;
++
++	ds1wm_write(ds1wm_data, search_type);
++	ds1wm_write_register(ds1wm_data, DS1WM_CMD, DS1WM_CMD_SRA);
++
++	for (rom_id = 0, i = 0; i < 16; i++) {
++
++		unsigned char resp, r, d;
++
++		resp = ds1wm_read(ds1wm_data, 0x00);
++
++		r = ((resp & 0x02) >> 1) |
++		    ((resp & 0x08) >> 2) |
++		    ((resp & 0x20) >> 3) |
++		    ((resp & 0x80) >> 4);
++
++		d = ((resp & 0x01) >> 0) |
++		    ((resp & 0x04) >> 1) |
++		    ((resp & 0x10) >> 2) |
++		    ((resp & 0x40) >> 3);
++
++		rom_id |= (unsigned long long) r << (i * 4);
++
++	}
++	dev_dbg(&ds1wm_data->pdev->dev, "found 0x%08llX", rom_id);
++
++	ds1wm_write_register(ds1wm_data, DS1WM_CMD, ~DS1WM_CMD_SRA);
++	ds1wm_reset(ds1wm_data);
++
++	slave_found(ds1wm_data, rom_id);
++}
++
++/* --------------------------------------------------------------------- */
++
++static struct w1_bus_master ds1wm_master = {
++	.read_byte  = ds1wm_read_byte,
++	.write_byte = ds1wm_write_byte,
++	.reset_bus  = ds1wm_reset_bus,
++	.search	    = ds1wm_search,
++};
++
++static int ds1wm_probe(struct platform_device *pdev)
++{
++	struct ds1wm_data *ds1wm_data;
++	struct ds1wm_platform_data *plat;
++	struct resource *res;
++	int ret;
++
++	if (!pdev)
++		return -ENODEV;
++
++	ds1wm_data = kzalloc(sizeof (*ds1wm_data), GFP_KERNEL);
++	if (!ds1wm_data)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, ds1wm_data);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		ret = -ENXIO;
++		goto err0;
++	}
++	ds1wm_data->map = ioremap(res->start, res->end - res->start + 1);
++	if (!ds1wm_data->map) {
++		ret = -ENOMEM;
++		goto err0;
++	}
++	plat = pdev->dev.platform_data;
++	ds1wm_data->bus_shift = plat->bus_shift;
++	ds1wm_data->pdev = pdev;
++	ds1wm_data->pdata = plat;
++
++	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (!res) {
++		ret = -ENXIO;
++		goto err1;
++	}
++	ds1wm_data->irq = res->start;
++	ds1wm_data->active_high = (res->flags & IORESOURCE_IRQ_HIGHEDGE) ?
++		1 : 0;
++
++	set_irq_type(ds1wm_data->irq, ds1wm_data->active_high ?
++			IRQ_TYPE_EDGE_RISING : IRQ_TYPE_EDGE_FALLING);
++
++	ret = request_irq(ds1wm_data->irq, ds1wm_isr, IRQF_DISABLED,
++			  "ds1wm", ds1wm_data);
++	if (ret)
++		goto err1;
++
++	ds1wm_data->clk = clk_get(&pdev->dev, "ds1wm");
++	if (!ds1wm_data->clk) {
++		ret = -ENOENT;
++		goto err2;
++	}
++
++	ds1wm_up(ds1wm_data);
++
++	ds1wm_master.data = (void *)ds1wm_data;
++
++	ret = w1_add_master_device(&ds1wm_master);
++	if (ret)
++		goto err3;
++
++	return 0;
++
++err3:
++	ds1wm_down(ds1wm_data);
++	clk_put(ds1wm_data->clk);
++err2:
++	free_irq(ds1wm_data->irq, ds1wm_data);
++err1:
++	iounmap(ds1wm_data->map);
++err0:
++	kfree(ds1wm_data);
++
++	return ret;
++}
++
++#ifdef CONFIG_PM
++static int ds1wm_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct ds1wm_data *ds1wm_data = platform_get_drvdata(pdev);
++
++	ds1wm_down(ds1wm_data);
++
++	return 0;
++}
++
++static int ds1wm_resume(struct platform_device *pdev)
++{
++	struct ds1wm_data *ds1wm_data = platform_get_drvdata(pdev);
++
++	ds1wm_up(ds1wm_data);
++
++	return 0;
++}
++#else
++#define ds1wm_suspend NULL
++#define ds1wm_resume NULL
++#endif
++
++static int ds1wm_remove(struct platform_device *pdev)
++{
++	struct ds1wm_data *ds1wm_data = platform_get_drvdata(pdev);
++
++	w1_remove_master_device(&ds1wm_master);
++	ds1wm_down(ds1wm_data);
++	clk_put(ds1wm_data->clk);
++	free_irq(ds1wm_data->irq, ds1wm_data);
++	iounmap(ds1wm_data->map);
++	kfree(ds1wm_data);
++
++	return 0;
++}
++
++static struct platform_driver ds1wm_driver = {
++	.driver   = {
++		.name = "ds1wm",
++	},
++	.probe    = ds1wm_probe,
++	.remove   = ds1wm_remove,
++	.suspend  = ds1wm_suspend,
++	.resume   = ds1wm_resume
++};
++
++static int __init ds1wm_init(void)
++{
++	printk("DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko\n");
++	return platform_driver_register(&ds1wm_driver);
++}
++
++static void __exit ds1wm_exit(void)
++{
++	platform_driver_unregister(&ds1wm_driver);
++}
++
++module_init(ds1wm_init);
++module_exit(ds1wm_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>, "
++	      "Matt Reimer <mreimer@vpop.net>");
++MODULE_DESCRIPTION("DS1WM w1 busmaster driver");
+diff -puN /dev/null include/linux/ds1wm.h
+--- /dev/null
++++ a/include/linux/ds1wm.h
+@@ -0,0 +1,11 @@
++/* platform data for the DS1WM driver */
++
++struct ds1wm_platform_data {
++	int bus_shift;	    /* number of shifts needed to calculate the
++			     * offset between DS1WM registers;
++			     * e.g. on h5xxx and h2200 this is 2
++			     * (registers aligned to 4-byte boundaries),
++			     * while on hx4700 this is 1 */
++	void (*enable)(struct platform_device *pdev);
++	void (*disable)(struct platform_device *pdev);
++};
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from mreimer@vpop.net are
 
 origin.patch
-smaps-only-define-clear_refs-for-config_mmu.patch
-git-alsa.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-i386-pci-type-may-be-unused.patch
-sh-dma-use-__maybe_unused.patch
-scsi-fix-ambiguous-gdthtable-definition.patch
-frv-gdb-use-__maybe_unused.patch
-i386-voyager-use-__maybe_unused.patch
-mips-excite-use-__maybe_unused.patch
-mips-tlbex-use-__maybe_unused.patch
-powerpc-ps3-use-__maybe_unused.patch
-i386-mmzone-use-__maybe_unused.patch
