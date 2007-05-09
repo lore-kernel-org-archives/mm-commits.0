@@ -1,142 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - enlarge-console-name.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:47:07 -0700
-Message-ID: <200705090247.l492l7ea008934@shell0.pdx.osdl.net>
+Subject: - tty-simplify-calling-of-put_pid.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:13 -0700
+Message-ID: <200705090247.l492lDba008947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33326 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934465AbXEICrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:16 -0400
+	by vger.kernel.org with ESMTP id S969092AbXEICrR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kraxel@redhat.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     enlarge console.name
+     tty: simplify calling of put_pid.
 has been removed from the -mm tree.  Its filename was
-     enlarge-console-name.patch
+     tty-simplify-calling-of-put_pid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: enlarge console.name
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tty: simplify calling of put_pid.
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-console.name[] is eight chars, but so is "earlyvga".  So when we try to print
-console->name when using earlyvga it runs off the end of the string.
+This patch should contain no functional changes.
 
-Make it bigger.
+At some point I got confused and thought put_pid could not be called while a
+spin lock was held.  While it may be nice to avoid that to reduce lock hold
+times put_pid can be safely called while we hold a spin lock.
 
-Diagnosed-by: Gerd Hoffmann <kraxel@redhat.com>
+This patch removes all of the complications from the code introduced by my
+misunderstanding, making the code a little more readable.
 
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/console.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/char/tty_io.c |   23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/console.h~enlarge-console-name include/linux/console.h
---- a/include/linux/console.h~enlarge-console-name
-+++ a/include/linux/console.h
-@@ -92,9 +92,8 @@ void give_up_console(const struct consw 
- #define CON_BOOT	(8)
- #define CON_ANYTIME	(16) /* Safe to call when cpu is offline */
+diff -puN drivers/char/tty_io.c~tty-simplify-calling-of-put_pid drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-simplify-calling-of-put_pid
++++ a/drivers/char/tty_io.c
+@@ -153,8 +153,7 @@ int tty_ioctl(struct inode * inode, stru
+ 	      unsigned int cmd, unsigned long arg);
+ static int tty_fasync(int fd, struct file * filp, int on);
+ static void release_tty(struct tty_struct *tty, int idx);
+-static struct pid *__proc_set_tty(struct task_struct *tsk,
+-				struct tty_struct *tty);
++static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
  
--struct console
--{
--	char	name[8];
-+struct console {
-+	char	name[16];
- 	void	(*write)(struct console *, const char *, unsigned);
- 	int	(*read)(struct console *, char *, unsigned);
- 	struct tty_driver *(*device)(struct console *, int *);
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+@@ -1532,10 +1531,9 @@ void disassociate_ctty(int on_exit)
+ 	}
+ 
+ 	spin_lock_irq(&current->sighand->siglock);
+-	tty_pgrp = current->signal->tty_old_pgrp;
++	put_pid(current->signal->tty_old_pgrp);
+ 	current->signal->tty_old_pgrp = NULL;
+ 	spin_unlock_irq(&current->sighand->siglock);
+-	put_pid(tty_pgrp);
+ 
+ 	mutex_lock(&tty_mutex);
+ 	/* It is possible that do_tty_hangup has free'd this tty */
+@@ -2506,7 +2504,6 @@ static int tty_open(struct inode * inode
+ 	int index;
+ 	dev_t device = inode->i_rdev;
+ 	unsigned short saved_flags = filp->f_flags;
+-	struct pid *old_pgrp;
+ 
+ 	nonseekable_open(inode, filp);
+ 	
+@@ -2600,17 +2597,15 @@ got_driver:
+ 		goto retry_open;
+ 	}
+ 
+-	old_pgrp = NULL;
+ 	mutex_lock(&tty_mutex);
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	if (!noctty &&
+ 	    current->signal->leader &&
+ 	    !current->signal->tty &&
+ 	    tty->session == NULL)
+-		old_pgrp = __proc_set_tty(current, tty);
++		__proc_set_tty(current, tty);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	mutex_unlock(&tty_mutex);
+-	put_pid(old_pgrp);
+ 	return 0;
+ }
+ 
+@@ -3835,9 +3830,8 @@ void proc_clear_tty(struct task_struct *
+ 	spin_unlock_irq(&p->sighand->siglock);
+ }
+ 
+-static struct pid *__proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
++static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
+ {
+-	struct pid *old_pgrp;
+ 	if (tty) {
+ 		/* We should not have a session or pgrp to here but.... */
+ 		put_pid(tty->session);
+@@ -3845,21 +3839,16 @@ static struct pid *__proc_set_tty(struct
+ 		tty->session = get_pid(task_session(tsk));
+ 		tty->pgrp = get_pid(task_pgrp(tsk));
+ 	}
+-	old_pgrp = tsk->signal->tty_old_pgrp;
++	put_pid(tsk->signal->tty_old_pgrp);
+ 	tsk->signal->tty = tty;
+ 	tsk->signal->tty_old_pgrp = NULL;
+-	return old_pgrp;
+ }
+ 
+ void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
+ {
+-	struct pid *old_pgrp;
+-
+ 	spin_lock_irq(&tsk->sighand->siglock);
+-	old_pgrp = __proc_set_tty(tsk, tty);
++	__proc_set_tty(tsk, tty);
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+-
+-	put_pid(old_pgrp);
+ }
+ 
+ struct tty_struct *get_current_tty(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-battery-fix.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
+iop13xx-msi-support-rev6.patch
+dvb_en_50221-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+i386-irq-kill-irq-compression.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
 kthread-dont-depend-on-work-queues-take-2.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
+change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+remvoe-kthread_bind-call-from-_cpu_down.patch
+nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
