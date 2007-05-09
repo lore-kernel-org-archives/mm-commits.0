@@ -1,87 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-use-zero_user_page.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:53:52 -0700
-Message-ID: <200705092153.l49LrqHf003118@shell0.pdx.osdl.net>
+Subject: - s390-fix-subsystem-removal-fallout.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:55:18 -0700
+Message-ID: <200705092155.l49LtIxq003258@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57330 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580AbXEIWI0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:08:26 -0400
+	by vger.kernel.org with ESMTP id S1758874AbXEIWI2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nate.diller@gmail.com, mm-commits@vger.kernel.org
+To: cornelia.huck@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: use zero_user_page
+     s390: fix subsystem removal fallout
 has been removed from the -mm tree.  Its filename was
-     ext3-use-zero_user_page.patch
+     s390-fix-subsystem-removal-fallout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: use zero_user_page
-From: Nate Diller <nate.diller@gmail.com>
+Subject: s390: fix subsystem removal fallout
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-Use zero_user_page() instead of open-coding it.
+This patch fixes compilation on s390 in the current driver tree. It
+should probably be merged into
+remove-struct-subsystem-as-it-is-no-longer-needed.patch.
 
-Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ arch/s390/hypfs/inode.c |    2 +-
+ arch/s390/kernel/ipl.c  |   26 +++++++++++++-------------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-use-zero_user_page fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-use-zero_user_page
-+++ a/fs/ext3/inode.c
-@@ -1767,7 +1767,6 @@ static int ext3_block_truncate_page(hand
- 	struct inode *inode = mapping->host;
- 	struct buffer_head *bh;
- 	int err = 0;
--	void *kaddr;
- 
- 	blocksize = inode->i_sb->s_blocksize;
- 	length = blocksize - (offset & (blocksize - 1));
-@@ -1779,10 +1778,7 @@ static int ext3_block_truncate_page(hand
- 	 */
- 	if (!page_has_buffers(page) && test_opt(inode->i_sb, NOBH) &&
- 	     ext3_should_writeback_data(inode) && PageUptodate(page)) {
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr + offset, 0, length);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, offset, length, KM_USER0);
- 		set_page_dirty(page);
- 		goto unlock;
+diff -puN arch/s390/hypfs/inode.c~s390-fix-subsystem-removal-fallout arch/s390/hypfs/inode.c
+--- a/arch/s390/hypfs/inode.c~s390-fix-subsystem-removal-fallout
++++ a/arch/s390/hypfs/inode.c
+@@ -477,7 +477,7 @@ static int __init hypfs_init(void)
+ 			goto fail_diag;
+ 		}
  	}
-@@ -1835,11 +1831,7 @@ static int ext3_block_truncate_page(hand
- 			goto unlock;
+-	kset_set_kset_s(&s390_subsys, hypervisor_subsys);
++	kobj_set_kset_s(&s390_subsys, hypervisor_subsys);
+ 	rc = subsystem_register(&s390_subsys);
+ 	if (rc)
+ 		goto fail_sysfs;
+diff -puN arch/s390/kernel/ipl.c~s390-fix-subsystem-removal-fallout arch/s390/kernel/ipl.c
+--- a/arch/s390/kernel/ipl.c~s390-fix-subsystem-removal-fallout
++++ a/arch/s390/kernel/ipl.c
+@@ -814,23 +814,23 @@ static int __init ipl_register_fcp_files
+ {
+ 	int rc;
+ 
+-	rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++	rc = sysfs_create_group(&ipl_subsys.kobj,
+ 				&ipl_fcp_attr_group);
+ 	if (rc)
+ 		goto out;
+-	rc = sysfs_create_bin_file(&ipl_subsys.kset.kobj,
++	rc = sysfs_create_bin_file(&ipl_subsys.kobj,
+ 				   &ipl_parameter_attr);
+ 	if (rc)
+ 		goto out_ipl_parm;
+-	rc = sysfs_create_bin_file(&ipl_subsys.kset.kobj,
++	rc = sysfs_create_bin_file(&ipl_subsys.kobj,
+ 				   &ipl_scp_data_attr);
+ 	if (!rc)
+ 		goto out;
+ 
+-	sysfs_remove_bin_file(&ipl_subsys.kset.kobj, &ipl_parameter_attr);
++	sysfs_remove_bin_file(&ipl_subsys.kobj, &ipl_parameter_attr);
+ 
+ out_ipl_parm:
+-	sysfs_remove_group(&ipl_subsys.kset.kobj, &ipl_fcp_attr_group);
++	sysfs_remove_group(&ipl_subsys.kobj, &ipl_fcp_attr_group);
+ out:
+ 	return rc;
+ }
+@@ -844,7 +844,7 @@ static int __init ipl_init(void)
+ 		return rc;
+ 	switch (ipl_info.type) {
+ 	case IPL_TYPE_CCW:
+-		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++		rc = sysfs_create_group(&ipl_subsys.kobj,
+ 					&ipl_ccw_attr_group);
+ 		break;
+ 	case IPL_TYPE_FCP:
+@@ -852,11 +852,11 @@ static int __init ipl_init(void)
+ 		rc = ipl_register_fcp_files();
+ 		break;
+ 	case IPL_TYPE_NSS:
+-		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++		rc = sysfs_create_group(&ipl_subsys.kobj,
+ 					&ipl_nss_attr_group);
+ 		break;
+ 	default:
+-		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++		rc = sysfs_create_group(&ipl_subsys.kobj,
+ 					&ipl_unknown_attr_group);
+ 		break;
  	}
+@@ -883,7 +883,7 @@ static int __init reipl_nss_init(void)
  
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, length);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
--
-+	zero_user_page(page, offset, length, KM_USER0);
- 	BUFFER_TRACE(bh, "zeroed end of block");
- 
- 	err = 0;
+ 	if (!MACHINE_IS_VM)
+ 		return 0;
+-	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_nss_attr_group);
++	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_nss_attr_group);
+ 	if (rc)
+ 		return rc;
+ 	strncpy(reipl_nss_name, kernel_nss_name, NSS_NAME_SIZE + 1);
+@@ -898,7 +898,7 @@ static int __init reipl_ccw_init(void)
+ 	reipl_block_ccw = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!reipl_block_ccw)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_ccw_attr_group);
++	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_ccw_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)reipl_block_ccw);
+ 		return rc;
+@@ -936,7 +936,7 @@ static int __init reipl_fcp_init(void)
+ 	reipl_block_fcp = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!reipl_block_fcp)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_fcp_attr_group);
++	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_fcp_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)reipl_block_fcp);
+ 		return rc;
+@@ -988,7 +988,7 @@ static int __init dump_ccw_init(void)
+ 	dump_block_ccw = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!dump_block_ccw)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&dump_subsys.kset.kobj, &dump_ccw_attr_group);
++	rc = sysfs_create_group(&dump_subsys.kobj, &dump_ccw_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)dump_block_ccw);
+ 		return rc;
+@@ -1012,7 +1012,7 @@ static int __init dump_fcp_init(void)
+ 	dump_block_fcp = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!dump_block_fcp)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&dump_subsys.kset.kobj, &dump_fcp_attr_group);
++	rc = sysfs_create_group(&dump_subsys.kobj, &dump_fcp_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)dump_block_fcp);
+ 		return rc;
 _
 
-Patches currently in -mm which might be from nate.diller@gmail.com are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
 origin.patch
-cifs-use-simple_prepare_write-to-zero-page-data.patch
-ext4-use-simple_prepare_write-to-zero-page-data.patch
-ecryptfs-use-zero_user_page.patch
-ext4-use-zero_user_page.patch
-gfs2-use-zero_user_page.patch
-nfs-use-zero_user_page.patch
-ntfs-use-zero_user_page.patch
-ocfs2-use-zero_user_page.patch
-xfs-use-zero_user_page.patch
-reiser4.patch
-reiser4-use-zero_user_page.patch
+git-s390.patch
+partitions-check-the-return-value-of-kobject_add-etc.patch
