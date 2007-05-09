@@ -1,98 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - sleep-during-spinlock-in-tpm-driver.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:51:38 -0700
-Message-ID: <200705090251.l492pcDI009482@shell0.pdx.osdl.net>
+Subject: - fat_dont-use_free_clusters-for-fat32.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:51:28 -0700
+Message-ID: <200705090251.l492pSNQ009460@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58929 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032178AbXEICvm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:42 -0400
+	by vger.kernel.org with ESMTP id S1032189AbXEICvp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pwarudkar@aol.com, parag.warudkar@gmail.com, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, juergen127@kreuzholzen.de, schwab@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: fix sleep-in-spinlock
+     fat: don't use free_clusters for fat32
 has been removed from the -mm tree.  Its filename was
-     sleep-during-spinlock-in-tpm-driver.patch
+     fat_dont-use_free_clusters-for-fat32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tpm: fix sleep-in-spinlock
-From: Parag Warudkar <pwarudkar@aol.com>
+Subject: fat: don't use free_clusters for fat32
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-flush_scheduled_work() can sleep, and we're calling it under spinlock.
+It seems that the recent Windows changed specification, and it's
+undocumented.  Windows doesn't update ->free_clusters correctly.
 
-AFAICS, moving flush_scheduled_work before spin_lock() should not cause any
-problems.
+This patch doesn't use ->free_clusters by default.  (instead, add "usefree"
+for forcing to use it)
 
-Reason being - The only thing that can race against tpm_release is tpm_open
-(tpm_release is called when last reference to the file is closed and only
-thing that can happen after that is tpm_open??) and tpm_open acquires
-driver_lock and more over it bails out with EBUSY if chip->num_opens is
-greater than 0.
-
-I also moved chip->num_pending-- to after deleting timer and setting data
-pending as it looks more correct for the paranoid although it probably doesn't
-matter as it is guarded by driver_lock.  None the less this change should not
-cause problems.
-
-While I was at it I noticed a missing NULL check in tpm_register_hardware
-which is fixed with this patch as well.
-
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Juergen Beisert <juergen127@kreuzholzen.de>
+Cc: Andreas Schwab <schwab@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ Documentation/filesystems/vfat.txt |    7 +++++++
+ fs/fat/inode.c                     |   14 +++++++++++---
+ include/linux/msdos_fs.h           |    3 ++-
+ 3 files changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~sleep-during-spinlock-in-tpm-driver drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~sleep-during-spinlock-in-tpm-driver
-+++ a/drivers/char/tpm/tpm.c
-@@ -942,12 +942,12 @@ int tpm_release(struct inode *inode, str
- {
- 	struct tpm_chip *chip = file->private_data;
- 
-+	flush_scheduled_work();
- 	spin_lock(&driver_lock);
- 	file->private_data = NULL;
--	chip->num_opens--;
- 	del_singleshot_timer_sync(&chip->user_read_timer);
--	flush_scheduled_work();
- 	atomic_set(&chip->data_pending, 0);
-+	chip->num_opens--;
- 	put_device(chip->dev);
- 	kfree(chip->data_buffer);
- 	spin_unlock(&driver_lock);
-@@ -1097,8 +1097,13 @@ struct tpm_chip *tpm_register_hardware(s
- 
- 	/* Driver specific per-device data */
- 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
--	if (chip == NULL)
-+	devname = kmalloc(DEVNAME_SIZE, GFP_KERNEL);
+diff -puN Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32 Documentation/filesystems/vfat.txt
+--- a/Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32
++++ a/Documentation/filesystems/vfat.txt
+@@ -57,6 +57,13 @@ nonumtail=<bool> -- When creating 8.3 al
+                  currently exist in the directory, 'longfile.txt' will
+                  be the short alias instead of 'longfi~1.txt'. 
+                   
++usefree       -- Use the "free clusters" value stored on FSINFO. It'll
++                 be used to determine number of free clusters without
++                 scanning disk. But it's not used by default, because
++                 recent Windows don't update it correctly in some
++                 case. If you are sure the "free clusters" on FSINFO is
++                 correct, by this option you can avoid scanning disk.
 +
-+	if (chip == NULL || devname == NULL) {
-+		kfree(chip);
-+		kfree(devname);
- 		return NULL;
-+	}
+ quiet         -- Stops printing certain warning messages.
  
- 	init_MUTEX(&chip->buffer_mutex);
- 	init_MUTEX(&chip->tpm_mutex);
-@@ -1124,7 +1129,6 @@ struct tpm_chip *tpm_register_hardware(s
+ check=s|r|n   -- Case sensitivity checking setting.
+diff -puN fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32 fs/fat/inode.c
+--- a/fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32
++++ a/fs/fat/inode.c
+@@ -825,6 +825,8 @@ static int fat_show_options(struct seq_f
+ 	}
+ 	if (opts->name_check != 'n')
+ 		seq_printf(m, ",check=%c", opts->name_check);
++	if (opts->usefree)
++		seq_puts(m, ",usefree");
+ 	if (opts->quiet)
+ 		seq_puts(m, ",quiet");
+ 	if (opts->showexec)
+@@ -850,7 +852,7 @@ static int fat_show_options(struct seq_f
  
- 	set_bit(chip->dev_num, dev_mask);
+ enum {
+ 	Opt_check_n, Opt_check_r, Opt_check_s, Opt_uid, Opt_gid,
+-	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_nocase,
++	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_usefree, Opt_nocase,
+ 	Opt_quiet, Opt_showexec, Opt_debug, Opt_immutable,
+ 	Opt_dots, Opt_nodots,
+ 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
+@@ -872,6 +874,7 @@ static match_table_t fat_tokens = {
+ 	{Opt_dmask, "dmask=%o"},
+ 	{Opt_fmask, "fmask=%o"},
+ 	{Opt_codepage, "codepage=%u"},
++	{Opt_usefree, "usefree"},
+ 	{Opt_nocase, "nocase"},
+ 	{Opt_quiet, "quiet"},
+ 	{Opt_showexec, "showexec"},
+@@ -951,7 +954,7 @@ static int parse_options(char *options, 
+ 	opts->quiet = opts->showexec = opts->sys_immutable = opts->dotsOK =  0;
+ 	opts->utf8 = opts->unicode_xlate = 0;
+ 	opts->numtail = 1;
+-	opts->nocase = 0;
++	opts->usefree = opts->nocase = 0;
+ 	*debug = 0;
  
--	devname = kmalloc(DEVNAME_SIZE, GFP_KERNEL);
- 	scnprintf(devname, DEVNAME_SIZE, "%s%d", "tpm", chip->dev_num);
- 	chip->vendor.miscdev.name = devname;
+ 	if (!options)
+@@ -979,6 +982,9 @@ static int parse_options(char *options, 
+ 		case Opt_check_n:
+ 			opts->name_check = 'n';
+ 			break;
++		case Opt_usefree:
++			opts->usefree = 1;
++			break;
+ 		case Opt_nocase:
+ 			if (!is_vfat)
+ 				opts->nocase = 1;
+@@ -1304,7 +1310,9 @@ int fat_fill_super(struct super_block *s
+ 			       le32_to_cpu(fsinfo->signature2),
+ 			       sbi->fsinfo_sector);
+ 		} else {
+-			sbi->free_clusters = le32_to_cpu(fsinfo->free_clusters);
++			if (sbi->options.usefree)
++				sbi->free_clusters =
++					le32_to_cpu(fsinfo->free_clusters);
+ 			sbi->prev_free = le32_to_cpu(fsinfo->next_cluster);
+ 		}
  
+diff -puN include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32 include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32
++++ a/include/linux/msdos_fs.h
+@@ -205,7 +205,8 @@ struct fat_mount_options {
+ 		 numtail:1,       /* Does first alias have a numeric '~1' type tail? */
+ 		 atari:1,         /* Use Atari GEMDOS variation of MS-DOS fs */
+ 		 flush:1,	  /* write things quickly */
+-		 nocase:1;	  /* Does this need case conversion? 0=need case conversion*/
++		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
++		 usefree:1;	  /* Use free_clusters for FAT32 */
+ };
+ 
+ #define FAT_HASH_BITS	8
 _
 
-Patches currently in -mm which might be from pwarudkar@aol.com are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 origin.patch
