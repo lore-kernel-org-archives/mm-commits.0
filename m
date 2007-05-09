@@ -1,110 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-remove-useless-fileds-from-cyclades_card.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:57:30 -0700
-Message-ID: <200705090257.l492vUPn010199@shell0.pdx.osdl.net>
+Subject: - char-cyclades-remove-sleep_on.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:58:18 -0700
+Message-ID: <200705090258.l492wIKs010275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35559 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032786AbXEIC5d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:57:33 -0400
+	by vger.kernel.org with ESMTP id S1032430AbXEIC6V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, remove useless fileds from cyclades_card
+     Char: cyclades, remove sleep_on
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-remove-useless-fileds-from-cyclades_card.patch
+     char-cyclades-remove-sleep_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: cyclades, remove useless fileds from cyclades_card
+Subject: Char: cyclades, remove sleep_on
 From: Jiri Slaby <jirislaby@gmail.com>
 
-pde, ctl_phys and base_phys are useless -- they are never used.
+convert to wait_* and completion
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c  |    9 ---------
- include/linux/cyclades.h |    3 ---
- 2 files changed, 12 deletions(-)
+ drivers/char/cyclades.c  |   45 +++++++++++++------------------------
+ include/linux/cyclades.h |    2 -
+ 2 files changed, 17 insertions(+), 30 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-remove-useless-fileds-from-cyclades_card drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-remove-useless-fileds-from-cyclades_card
+diff -puN drivers/char/cyclades.c~char-cyclades-remove-sleep_on drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-remove-sleep_on
 +++ a/drivers/char/cyclades.c
-@@ -4914,15 +4914,12 @@ static int __devinit cy_init_Ze(unsigned
- #endif				/* CONFIG_CYZ_INTR */
+@@ -947,7 +947,7 @@ do_softint(struct work_struct *work)
+ 	tty_wakeup(tty);
+ #ifdef Z_WAKE
+ 	if (test_and_clear_bit(Cy_EVENT_SHUTDOWN_WAKEUP, &info->event))
+-		wake_up_interruptible(&info->shutdown_wait);
++		complete(&info->shutdown_wait);
+ #endif
+ } /* do_softint */
  
- 	/* set cy_card */
--	cy_card[j].base_phys = cy_pci_phys2;
--	cy_card[j].ctl_phys = cy_pci_phys0;
- 	cy_card[j].base_addr = cy_pci_addr2;
- 	cy_card[j].ctl_addr = cy_pci_addr0;
- 	cy_card[j].irq = (int)cy_pci_irq;
- 	cy_card[j].bus_index = 1;
- 	cy_card[j].first_line = cy_next_channel;
- 	cy_card[j].num_chips = -1;
--	cy_card[j].pdev = pdev;
- 	cy_init_card(&cy_card[j], j);
- 	pci_set_drvdata(pdev, &cy_card[j]);
+@@ -2324,9 +2324,8 @@ block_til_ready(struct tty_struct *tty, 
+ 	 * until it's done, and then try again.
+ 	 */
+ 	if (tty_hung_up_p(filp) || (info->flags & ASYNC_CLOSING)) {
+-		if (info->flags & ASYNC_CLOSING) {
+-			interruptible_sleep_on(&info->close_wait);
+-		}
++		wait_event_interruptible(info->close_wait,
++				!(info->flags & ASYNC_CLOSING));
+ 		return (info->flags & ASYNC_HUP_NOTIFY) ? -EAGAIN: -ERESTARTSYS;
+ 	}
  
-@@ -5066,15 +5063,12 @@ static int __devinit cy_pci_probe(struct
+@@ -2597,8 +2596,8 @@ static int cy_open(struct tty_struct *tt
+ 	 * If the port is the middle of closing, bail out now
+ 	 */
+ 	if (tty_hung_up_p(filp) || (info->flags & ASYNC_CLOSING)) {
+-		if (info->flags & ASYNC_CLOSING)
+-			interruptible_sleep_on(&info->close_wait);
++		wait_event_interruptible(info->close_wait,
++				!(info->flags & ASYNC_CLOSING));
+ 		return (info->flags & ASYNC_HUP_NOTIFY) ? -EAGAIN: -ERESTARTSYS;
+ 	}
+ 
+@@ -2805,7 +2804,7 @@ static void cy_close(struct tty_struct *
+ 					"ttyC%d was %x\n", info->line, retval);
+ 			}
+ 			CY_UNLOCK(info, flags);
+-			interruptible_sleep_on(&info->shutdown_wait);
++			wait_for_completion_interruptible(&info->shutdown_wait);
+ 			CY_LOCK(info, flags);
  		}
+ #endif
+@@ -4091,32 +4090,20 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 	case TIOCMIWAIT:
+ 		CY_LOCK(info, flags);
+ 		/* note the counters on entry */
+-		cprev = info->icount;
++		cnow = info->icount;
+ 		CY_UNLOCK(info, flags);
+-		while (1) {
+-			interruptible_sleep_on(&info->delta_msr_wait);
+-			/* see if a signal did it */
+-			if (signal_pending(current)) {
+-				return -ERESTARTSYS;
+-			}
+-
++		ret_val = wait_event_interruptible(info->delta_msr_wait, ({
++			cprev = cnow;
+ 			CY_LOCK(info, flags);
+ 			cnow = info->icount;	/* atomic copy */
+ 			CY_UNLOCK(info, flags);
  
- 		/* set cy_card */
--		cy_card[j].base_phys = (ulong) cy_pci_phys2;
--		cy_card[j].ctl_phys = (ulong) cy_pci_phys0;
- 		cy_card[j].base_addr = cy_pci_addr2;
- 		cy_card[j].ctl_addr = cy_pci_addr0;
- 		cy_card[j].irq = (int)cy_pci_irq;
- 		cy_card[j].bus_index = 1;
- 		cy_card[j].first_line = cy_next_channel;
- 		cy_card[j].num_chips = cy_pci_nchan / 4;
--		cy_card[j].pdev = pdev;
- 		cy_init_card(&cy_card[j], j);
- 		pci_set_drvdata(pdev, &cy_card[j]);
+-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
+-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts) {
+-				return -EIO;	/* no change => error */
+-			}
+-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
+-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
+-			    ((arg & TIOCM_CD) && (cnow.dcd != cprev.dcd)) ||
+-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
+-				return 0;
+-			}
+-			cprev = cnow;
+-		}
+-		/* NOTREACHED */
++			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
++			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
++			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
++			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
++		}));
++		break;
  
-@@ -5253,15 +5247,12 @@ static int __devinit cy_pci_probe(struct
- #endif				/* CONFIG_CYZ_INTR */
+ 		/*
+ 		 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
+@@ -4534,7 +4521,7 @@ static void __devinit cy_init_card(struc
+ 		INIT_WORK(&info->tqueue, do_softint);
+ 		init_waitqueue_head(&info->open_wait);
+ 		init_waitqueue_head(&info->close_wait);
+-		init_waitqueue_head(&info->shutdown_wait);
++		init_completion(&info->shutdown_wait);
+ 		init_waitqueue_head(&info->delta_msr_wait);
  
- 		/* set cy_card */
--		cy_card[j].base_phys = cy_pci_phys2;
--		cy_card[j].ctl_phys = cy_pci_phys0;
- 		cy_card[j].base_addr = cy_pci_addr2;
- 		cy_card[j].ctl_addr = cy_pci_addr0;
- 		cy_card[j].irq = (int)cy_pci_irq;
- 		cy_card[j].bus_index = 1;
- 		cy_card[j].first_line = cy_next_channel;
- 		cy_card[j].num_chips = -1;
--		cy_card[j].pdev = pdev;
- 		cy_init_card(&cy_card[j], j);
- 		pci_set_drvdata(pdev, &cy_card[j]);
- 
-diff -puN include/linux/cyclades.h~char-cyclades-remove-useless-fileds-from-cyclades_card include/linux/cyclades.h
---- a/include/linux/cyclades.h~char-cyclades-remove-useless-fileds-from-cyclades_card
+ 		if (IS_CYC_Z(*cinfo)) {
+diff -puN include/linux/cyclades.h~char-cyclades-remove-sleep_on include/linux/cyclades.h
+--- a/include/linux/cyclades.h~char-cyclades-remove-sleep_on
 +++ a/include/linux/cyclades.h
-@@ -509,8 +509,6 @@ struct ZFW_CTRL {
- 
- /* Per card data structure */
- struct cyclades_card {
--    unsigned long base_phys;
--    unsigned long ctl_phys;
-     void __iomem *base_addr;
-     void __iomem *ctl_addr;
-     int irq;
-@@ -519,7 +517,6 @@ struct cyclades_card {
-     int nports;		/* Number of ports in the card */
-     int bus_index;	/* address shift - 0 for ISA, 1 for PCI */
-     int	intr_enabled;	/* FW Interrupt flag - 0 disabled, 1 enabled */
--    struct pci_dev *pdev;
-     spinlock_t card_lock;
+@@ -588,7 +588,7 @@ struct cyclades_port {
+ 	struct work_struct	tqueue;
+ 	wait_queue_head_t       open_wait;
+ 	wait_queue_head_t       close_wait;
+-	wait_queue_head_t       shutdown_wait;
++	struct completion       shutdown_wait;
+ 	wait_queue_head_t       delta_msr_wait;
+ 	int throttle;
  };
- 
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
