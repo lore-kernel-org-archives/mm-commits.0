@@ -1,498 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: + dm-delay-target.patch added to -mm tree
-Date: Tue, 08 May 2007 17:55:16 -0700
-Message-ID: <200705090055.l490tG4g006440@shell0.pdx.osdl.net>
+Subject: - filesystem-disk-errors-at-boot-time-caused-by-probe.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:34:23 -0700
+Message-ID: <200705090234.l492YNY5008068@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40894 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032649AbXEIAzd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:33 -0400
+	by vger.kernel.org with ESMTP id S934331AbXEICf3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:35:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mauelshagen@redhat.com, agk@redhat.com, mbroz@redhat.com
+To: linux@tjworld.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm: delay target
-has been added to the -mm tree.  Its filename is
-     dm-delay-target.patch
+     filesystem: Disk Errors at boot-time caused by probe of partitions
+has been removed from the -mm tree.  Its filename was
+     filesystem-disk-errors-at-boot-time-caused-by-probe.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: dm: delay target
-From: Heinz Mauelshagen <mauelshagen@redhat.com>
+Subject: filesystem: Disk Errors at boot-time caused by probe of partitions
+From: TJ <linux@tjworld.net>
 
-New device-mapper target that can delay I/O (for testing).  Reads can be
-separated from writes, redirected to different underlying devices and delayed
-by differing amounts of time.
+This rare but critical bug has the potential to cause a hardware failure on
+disk drives by allowing the system to repeatedly attempt to seek to sectors
+beyond the end of the physical disk, causing sustained 'head banging'.
 
-Signed-off-by: Heinz Mauelshagen <mauelshagen@redhat.com>
-Signed-off-by: Milan Broz <mbroz@redhat.com>
-Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+The bug particularly affects dmraid-managed RAID 1 stripes of the type
+hde+hdf where the first physical disk hde contains a standard partition
+table which relates to the larger logical disk represented by hde+hdf.
+
+The essence is that probing of physical disks that are part of a larger
+logical disk should be prevented because those disks will be managed by a
+driver that loads later in the boot sequence.  This patch doesn't prevent
+probing of disks with 'sane' partition table entries.
+
+At boot-time when drives are being probed the disks are scanned for
+partition tables by fs/partitions/check.c:check_partition() which makes
+calls to all registered partition-types.
+
+In the case of the commonly used "msdos" partition-type used for Linux,
+BSD, Solaris, MS-DOS, extended and others, the checking is done in
+
+fs/partitions/msdos.c:msdos_partition().
+
+The partition table is only checked for validity based on the 'magic bytes'
+55AA in the boot sector.  The sector values in the partition table are
+copied without any checks to ensure they are within the bounds of the disk
+device.
+
+As a result, block devices are created based on the partition structures
+and then various file-systems are given the task of scanning the partition
+to determine if it is one they will manage.
+
+This scanning, in a partition that has sector numbers outside the bounds of
+the device, causes the errors.
+
+
+
+
+I'm not sure if this bug will affect mdraid RAID-1 stripes, or other software
+RAID configurations.
+
+The bug was discovered on a RAID 1+0 array consisting of 4x60GB drives on a
+Promise FastTrak PDC20271 2-channel IDE controller (hde+hdf mirrored to hdg+hdh)
+with logical block addressing (LBA).
+
+There are 3 prolonged periods of disk-probing each lasting about 20 seconds
+during which the 'head banging' is quite scary. The first two occur during the
+kernel boot, and the last will occur when a GUI environment such as Gnome
+initialises.
+
+In the system where this bug appeared this caused thousands of disk-read errors
+during boot (which overflowed dmesg log), and 'head bangs' the drive(s) so hard
+that sometimes the system has to be powered off for a considerable time before
+the disk(s) will re-initialise.
+
+[akpm@osdl.org: cleanups]
+[bunk@stusta.de: make function static]
+Signed-off-by: TJ <linux@tjworld.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/device-mapper/delay.txt |   26 +
- drivers/md/Kconfig                    |    9 
- drivers/md/Makefile                   |    1 
- drivers/md/dm-delay.c                 |  383 ++++++++++++++++++++++++
- 4 files changed, 419 insertions(+)
+ fs/partitions/msdos.c |  109 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 108 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/device-mapper/delay.txt
---- /dev/null
-+++ a/Documentation/device-mapper/delay.txt
-@@ -0,0 +1,26 @@
-+dm-delay
-+========
+diff -puN fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~filesystem-disk-errors-at-boot-time-caused-by-probe
++++ a/fs/partitions/msdos.c
+@@ -409,7 +409,101 @@ static struct {
+ 	{NEW_SOLARIS_X86_PARTITION, parse_solaris_x86},
+ 	{0, NULL},
+ };
+- 
 +
-+Device-Mapper's "delay" target delays reads and/or writes
-+and maps them to different devices.
-+
-+Parameters:
-+    <device> <offset> <delay> [<write_device> <write_offset> <write_delay>]
-+
-+With separate write parameters, the first set is only used for reads.
-+Delays are specified in milliseconds.
-+
-+Example scripts
-+===============
-+[[
-+#!/bin/sh
-+# Create device delaying rw operation for 500ms
-+echo "0 `blockdev --getsize $1` delay $1 0 500" | dmsetup create delayed
-+]]
-+
-+[[
-+#!/bin/sh
-+# Create device delaying only write operation for 500ms and
-+# splitting reads and writes to different devices $1 $2
-+echo "0 `blockdev --getsize $1` delay $1 0 0 $2 0 500" | dmsetup create delayed
-+]]
-diff -puN drivers/md/Kconfig~dm-delay-target drivers/md/Kconfig
---- a/drivers/md/Kconfig~dm-delay-target
-+++ a/drivers/md/Kconfig
-@@ -262,6 +262,15 @@ config DM_MULTIPATH_EMC
- 	---help---
- 	  Multipath support for EMC CX/AX series hardware.
- 
-+config DM_DELAY
-+	tristate "I/O delaying target (EXPERIMENTAL)"
-+	depends on BLK_DEV_DM && EXPERIMENTAL
-+	---help---
-+	A target that delays reads and/or writes and can send
-+	them to different devices.  Useful for testing.
-+
-+	If unsure, say N.
-+
- endmenu
- 
- endif
-diff -puN drivers/md/Makefile~dm-delay-target drivers/md/Makefile
---- a/drivers/md/Makefile~dm-delay-target
-+++ a/drivers/md/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_MD_FAULTY)		+= faulty.o
- obj-$(CONFIG_BLK_DEV_MD)	+= md-mod.o
- obj-$(CONFIG_BLK_DEV_DM)	+= dm-mod.o
- obj-$(CONFIG_DM_CRYPT)		+= dm-crypt.o
-+obj-$(CONFIG_DM_DELAY)		+= dm-delay.o
- obj-$(CONFIG_DM_MULTIPATH)	+= dm-multipath.o dm-round-robin.o
- obj-$(CONFIG_DM_MULTIPATH_EMC)	+= dm-emc.o
- obj-$(CONFIG_DM_SNAPSHOT)	+= dm-snapshot.o
-diff -puN /dev/null drivers/md/dm-delay.c
---- /dev/null
-+++ a/drivers/md/dm-delay.c
-@@ -0,0 +1,383 @@
 +/*
-+ * Copyright (C) 2005-2007 Red Hat GmbH
++ * Check that *all* sector offsets are valid before actually building the
++ * partition structure.
 + *
-+ * A target that delays reads and/or writes and can send
-+ * them to different devices.
++ * This prevents physical damage to disks and boot-time problems caused by an
++ * apparently valid partition table causing attempts to read sectors beyond the
++ * end of the physical disk.
 + *
-+ * This file is released under the GPL.
++ * This is especially important where this is the first physical disk in a
++ * striped RAID array and the partition table contains sector offsets into the
++ * larger logical disk (beyond the end of this physical disk).
++ *
++ * The RAID module will correctly manage the disks.
++ *
++ * The function is re-entrant so it can call itself to check extended
++ * partitions.
++ *
++ * returns -1 if insane values found; 0 otherwise.
++ *
++ * Copyright 31 January 2007, TJ <linux@tjworld.net>
 + */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/blkdev.h>
-+#include <linux/bio.h>
-+#include <linux/slab.h>
-+
-+#include "dm.h"
-+#include "dm-bio-list.h"
-+
-+#define DM_MSG_PREFIX "delay"
-+
-+struct delay_c {
-+	struct timer_list delay_timer;
-+	struct semaphore timer_lock;
-+	struct work_struct flush_expired_bios;
-+	struct list_head delayed_bios;
-+	atomic_t may_delay;
-+	mempool_t *delayed_pool;
-+
-+	struct dm_dev *dev_read;
-+	sector_t start_read;
-+	unsigned read_delay;
-+	unsigned reads;
-+
-+	struct dm_dev *dev_write;
-+	sector_t start_write;
-+	unsigned write_delay;
-+	unsigned writes;
-+};
-+
-+struct delay_info {
-+	struct delay_c *context;
-+	struct list_head list;
-+	struct bio *bio;
-+	unsigned long expires;
-+};
-+
-+static DEFINE_MUTEX(delayed_bios_lock);
-+
-+static struct workqueue_struct *kdelayd_wq;
-+static struct kmem_cache *delayed_cache;
-+
-+static void handle_delayed_timer(unsigned long data)
++static int check_sane_values(struct partition *p, struct block_device *bdev)
 +{
-+	struct delay_c *dc = (struct delay_c *)data;
++	unsigned char *data;
++	struct partition *ext;
++	Sector sect;
++	int slot;
++	int sector_size = bdev_hardsect_size(bdev) / 512;
++	int ret = 0; /* default is to report ok */
 +
-+	queue_work(kdelayd_wq, &dc->flush_expired_bios);
-+}
++	/* don't return early; allow all partition entries to be checked */
++	for (slot = 1; slot <= 4; slot++, p++) {
++		int insane = 0;	/* track sanity within each table entry */
 +
-+static void queue_timeout(struct delay_c *dc, unsigned long expires)
-+{
-+	down(&dc->timer_lock);
++		if (NR_SECTS(p) == 0)
++			continue;	/* ignore zero-sized entries */
 +
-+	if (!timer_pending(&dc->delay_timer) || expires < dc->delay_timer.expires)
-+		mod_timer(&dc->delay_timer, expires);
-+
-+	up(&dc->timer_lock);
-+}
-+
-+static void flush_bios(struct bio *bio)
-+{
-+	struct bio *n;
-+
-+	while (bio) {
-+		n = bio->bi_next;
-+		bio->bi_next = NULL;
-+		generic_make_request(bio);
-+		bio = n;
-+	}
-+}
-+
-+static struct bio *flush_delayed_bios(struct delay_c *dc, int flush_all)
-+{
-+	struct delay_info *delayed, *next;
-+	unsigned long next_expires = 0;
-+	int start_timer = 0;
-+	BIO_LIST(flush_bios);
-+
-+	mutex_lock(&delayed_bios_lock);
-+	list_for_each_entry_safe(delayed, next, &dc->delayed_bios, list) {
-+		if (flush_all || time_after_eq(jiffies, delayed->expires)) {
-+			list_del(&delayed->list);
-+			bio_list_add(&flush_bios, delayed->bio);
-+			if ((bio_data_dir(delayed->bio) == WRITE))
-+				delayed->context->writes--;
-+			else
-+				delayed->context->reads--;
-+			mempool_free(delayed, dc->delayed_pool);
-+			continue;
++		if (START_SECT(p) > bdev->bd_disk->capacity-1) {
++			/* invalid - beyond end of disk */
++			insane |= 1;	/* bit-0 flags insane start */
 +		}
-+
-+		if (!start_timer) {
-+			start_timer = 1;
-+			next_expires = delayed->expires;
-+		} else
-+			next_expires = min(next_expires, delayed->expires);
++		if (START_SECT(p)+NR_SECTS(p)-1 > bdev->bd_disk->capacity-1) {
++			/* invalid - beyond end of disk */
++			insane |= 2;	/* bit-1 flags insane end */
++		}
++		if (!insane && is_extended_partition(p)) {
++			/* check the extended partition */
++			data = read_dev_sector(bdev, START_SECT(p)*sector_size,
++					&sect);	/* fetch sector from cache */
++			if (data) {
++				if (msdos_magic_present(data + 510)) {
++					/* check for signature */
++					ext = (struct partition *)(data+0x1be);
++					/* recursive call */
++					ret = check_sane_values(ext, bdev);
++					if (ret == -1) { /* insanity found */
++						/*
++						 * bit-2 flags insane extended
++						 * partition contents
++						 */
++						insane |= 4;
++					}
++				}
++				/* release sector to cache */
++				put_dev_sector(sect);
++			} else {
++				/* failed to read sector from cache */
++				ret = -1;
++			}
++		}
++		if (insane) { /* insanity found; report it */
++			ret = -1; /* error code */
++			printk("\n"); /* start error report on a fresh line */
++			if (insane & 1)
++				printk(" partition %d: start (sector %d) beyond"
++					" end of disk (sector %Lu)\n",
++					slot, START_SECT(p),
++					(unsigned long long)
++						bdev->bd_disk->capacity - 1);
++			if (insane & 2)
++				printk(" partition %d: end (sector %d) beyond "
++					"end of disk (sector %Lu)\n",
++					slot,
++					START_SECT(p)+NR_SECTS(p)-1,
++					(unsigned long long)
++						bdev->bd_disk->capacity - 1);
++			if (insane & 4)
++				printk(" partition %d: insane extended "
++					"contents\n", slot);
++		}
 +	}
-+
-+	mutex_unlock(&delayed_bios_lock);
-+
-+	if (start_timer)
-+		queue_timeout(dc, next_expires);
-+
-+	return bio_list_get(&flush_bios);
++	return ret;
 +}
 +
-+static void flush_expired_bios(struct work_struct *work)
-+{
-+	struct delay_c *dc;
-+
-+	dc = container_of(work, struct delay_c, flush_expired_bios);
-+	flush_bios(flush_delayed_bios(dc, 0));
-+}
-+
-+/*
-+ * Mapping parameters:
-+ *    <device> <offset> <delay> [<write_device> <write_offset> <write_delay>]
-+ *
-+ * With separate write parameters, the first set is only used for reads.
-+ * Delays are specified in milliseconds.
-+ */
-+static int delay_ctr(struct dm_target *ti, unsigned int argc, char **argv)
-+{
-+	struct delay_c *dc;
-+	unsigned long long tmpll;
-+
-+	if (argc != 3 && argc != 6) {
-+		ti->error = "requires exactly 3 or 6 arguments";
-+		return -EINVAL;
+ int msdos_partition(struct parsed_partitions *state, struct block_device *bdev)
+ {
+ 	int sector_size = bdev_hardsect_size(bdev) / 512;
+@@ -459,6 +553,19 @@ int msdos_partition(struct parsed_partit
+ 	p = (struct partition *) (data + 0x1be);
+ 
+ 	/*
++	 * Check that *all* sector offsets are valid before actually building
++	 * the partition structure.  Do it now rather than inside the loop that
++	 * builds the partition entries to avoid having to unwind an unknown
++	 * number of put_partition() calls in this loop and in the (possible)
++	 * calls to parse_extended()
++	 * Added by TJ <linux@tjworld.net>, 31 January 2007.
++	 */
++	if (check_sane_values(p, bdev) == -1) {
++		put_dev_sector(sect); /* release to cache */
++		return -1; /* report invalid partition table */
 +	}
 +
-+	dc = kmalloc(sizeof(*dc), GFP_KERNEL);
-+	if (!dc) {
-+		ti->error = "Cannot allocate context";
-+		return -ENOMEM;
-+	}
-+
-+	dc->reads = dc->writes = 0;
-+
-+	if (sscanf(argv[1], "%llu", &tmpll) != 1) {
-+		ti->error = "Invalid device sector";
-+		goto bad;
-+	}
-+	dc->start_read = tmpll;
-+
-+	if (sscanf(argv[2], "%u", &dc->read_delay) != 1) {
-+		ti->error = "Invalid delay";
-+		goto bad;
-+	}
-+
-+	if (dm_get_device(ti, argv[0], dc->start_read, ti->len,
-+			  dm_table_get_mode(ti->table), &dc->dev_read)) {
-+		ti->error = "Device lookup failed";
-+		goto bad;
-+	}
-+
-+	if (argc == 3) {
-+		dc->dev_write = NULL;
-+		goto out;
-+	}
-+
-+	if (sscanf(argv[4], "%llu", &tmpll) != 1) {
-+		ti->error = "Invalid write device sector";
-+		goto bad;
-+	}
-+	dc->start_write = tmpll;
-+
-+	if (sscanf(argv[5], "%u", &dc->write_delay) != 1) {
-+		ti->error = "Invalid write delay";
-+		goto bad;
-+	}
-+
-+	if (dm_get_device(ti, argv[3], dc->start_write, ti->len,
-+			  dm_table_get_mode(ti->table), &dc->dev_write)) {
-+		ti->error = "Write device lookup failed";
-+		dm_put_device(ti, dc->dev_read);
-+		goto bad;
-+	}
-+
-+out:
-+	dc->delayed_pool = mempool_create_slab_pool(128, delayed_cache);
-+	if (!dc->delayed_pool) {
-+		DMERR("Couldn't create delayed bio pool.");
-+		goto bad;
-+	}
-+
-+	init_timer(&dc->delay_timer);
-+	dc->delay_timer.function = handle_delayed_timer;
-+	dc->delay_timer.data = (unsigned long)dc;
-+
-+	INIT_WORK(&dc->flush_expired_bios, flush_expired_bios);
-+	INIT_LIST_HEAD(&dc->delayed_bios);
-+	init_MUTEX(&dc->timer_lock);
-+	atomic_set(&dc->may_delay, 1);
-+
-+	ti->private = dc;
-+	return 0;
-+
-+bad:
-+	kfree(dc);
-+	return -EINVAL;
-+}
-+
-+static void delay_dtr(struct dm_target *ti)
-+{
-+	struct delay_c *dc = ti->private;
-+
-+	flush_workqueue(kdelayd_wq);
-+
-+	dm_put_device(ti, dc->dev_read);
-+
-+	if (dc->dev_write)
-+		dm_put_device(ti, dc->dev_write);
-+
-+	mempool_destroy(dc->delayed_pool);
-+	kfree(dc);
-+}
-+
-+static int delay_bio(struct delay_c *dc, int delay, struct bio *bio)
-+{
-+	struct delay_info *delayed;
-+	unsigned long expires = 0;
-+
-+	if (!delay || !atomic_read(&dc->may_delay))
-+		return 1;
-+
-+	delayed = mempool_alloc(dc->delayed_pool, GFP_NOIO);
-+
-+	delayed->context = dc;
-+	delayed->bio = bio;
-+	delayed->expires = expires = jiffies + (delay * HZ / 1000);
-+
-+	mutex_lock(&delayed_bios_lock);
-+
-+	if (bio_data_dir(bio) == WRITE)
-+		dc->writes++;
-+	else
-+		dc->reads++;
-+
-+	list_add_tail(&delayed->list, &dc->delayed_bios);
-+
-+	mutex_unlock(&delayed_bios_lock);
-+
-+	queue_timeout(dc, expires);
-+
-+	return 0;
-+}
-+
-+static void delay_presuspend(struct dm_target *ti)
-+{
-+	struct delay_c *dc = ti->private;
-+
-+	atomic_set(&dc->may_delay, 0);
-+	del_timer_sync(&dc->delay_timer);
-+	flush_bios(flush_delayed_bios(dc, 1));
-+}
-+
-+static void delay_resume(struct dm_target *ti)
-+{
-+	struct delay_c *dc = ti->private;
-+
-+	atomic_set(&dc->may_delay, 1);
-+}
-+
-+static int delay_map(struct dm_target *ti, struct bio *bio,
-+		     union map_info *map_context)
-+{
-+	struct delay_c *dc = ti->private;
-+
-+	if ((bio_data_dir(bio) == WRITE) && (dc->dev_write)) {
-+		bio->bi_bdev = dc->dev_write->bdev;
-+		bio->bi_sector = dc->start_write +
-+				 (bio->bi_sector - ti->begin);
-+
-+		return delay_bio(dc, dc->write_delay, bio);
-+	}
-+
-+	bio->bi_bdev = dc->dev_read->bdev;
-+	bio->bi_sector = dc->start_read +
-+			 (bio->bi_sector - ti->begin);
-+
-+	return delay_bio(dc, dc->read_delay, bio);
-+}
-+
-+static int delay_status(struct dm_target *ti, status_type_t type,
-+			char *result, unsigned maxlen)
-+{
-+	struct delay_c *dc = ti->private;
-+	int sz = 0;
-+
-+	switch (type) {
-+	case STATUSTYPE_INFO:
-+		DMEMIT("%u %u", dc->reads, dc->writes);
-+		break;
-+
-+	case STATUSTYPE_TABLE:
-+		DMEMIT("%s %llu %u", dc->dev_read->name,
-+		       (unsigned long long) dc->start_read,
-+		       dc->read_delay);
-+		if (dc->dev_write)
-+			DMEMIT("%s %llu %u", dc->dev_write->name,
-+			       (unsigned long long) dc->start_write,
-+			       dc->write_delay);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct target_type delay_target = {
-+	.name	     = "delay",
-+	.version     = {1, 0, 2},
-+	.module      = THIS_MODULE,
-+	.ctr	     = delay_ctr,
-+	.dtr	     = delay_dtr,
-+	.map	     = delay_map,
-+	.presuspend  = delay_presuspend,
-+	.resume	     = delay_resume,
-+	.status	     = delay_status,
-+};
-+
-+static int __init dm_delay_init(void)
-+{
-+	int r = -ENOMEM;
-+
-+	kdelayd_wq = create_workqueue("kdelayd");
-+	if (!kdelayd_wq) {
-+		DMERR("Couldn't start kdelayd");
-+		goto bad_queue;
-+	}
-+
-+	delayed_cache = kmem_cache_create("dm-delay",
-+					  sizeof(struct delay_info),
-+					  __alignof__(struct delay_info),
-+					  0, NULL, NULL);
-+	if (!delayed_cache) {
-+		DMERR("Couldn't create delayed bio cache.");
-+		goto bad_memcache;
-+	}
-+
-+	r = dm_register_target(&delay_target);
-+	if (r < 0) {
-+		DMERR("register failed %d", r);
-+		goto bad_register;
-+	}
-+
-+	return 0;
-+
-+bad_register:
-+	kmem_cache_destroy(delayed_cache);
-+bad_memcache:
-+	destroy_workqueue(kdelayd_wq);
-+bad_queue:
-+	return r;
-+}
-+
-+static void __exit dm_delay_exit(void)
-+{
-+	int r = dm_unregister_target(&delay_target);
-+
-+	if (r < 0)
-+		DMERR("unregister failed %d", r);
-+
-+	kmem_cache_destroy(delayed_cache);
-+	destroy_workqueue(kdelayd_wq);
-+}
-+
-+/* Module hooks */
-+module_init(dm_delay_init);
-+module_exit(dm_delay_exit);
-+
-+MODULE_DESCRIPTION(DM_NAME " delay target");
-+MODULE_AUTHOR("Heinz Mauelshagen <mauelshagen@redhat.com>");
-+MODULE_LICENSE("GPL");
++	/*
+ 	 * Look for partitions in two passes:
+ 	 * First find the primary and DOS-type extended partitions.
+ 	 * On the second pass look inside *BSD, Unixware and Solaris partitions.
 _
 
-Patches currently in -mm which might be from mauelshagen@redhat.com are
+Patches currently in -mm which might be from linux@tjworld.net are
 
-dm-delay-target.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
