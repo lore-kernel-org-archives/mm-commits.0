@@ -1,97 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - crypto-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:42:53 -0700
-Message-ID: <200705090842.l498grle018241@shell0.pdx.osdl.net>
+Subject: - revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:42:51 -0700
+Message-ID: <200705090842.l498gpGt018238@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42909 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752004AbXEIIna (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:43:30 -0400
+	by vger.kernel.org with ESMTP id S1752994AbXEIInd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:43:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, kernel@kolivas.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Re: 2.6.21-mm1+hotfix -- Slab corruption -- Last user: [<c01b0cfa>](cryptomgr_probe+0x6c/0x9a)
+     revert 'sched: redundant reschedule when set_user_nice() boosts a prio of a task from the "expired" array'
 has been removed from the -mm tree.  Its filename was
-     crypto-fix.patch
+     revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Subject: Re: 2.6.21-mm1+hotfix -- Slab corruption -- Last user: [<c01b0cfa>](cryptomgr_probe+0x6c/0x9a)
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: revert 'sched: redundant reschedule when set_user_nice() boosts a prio of a task from the "expired" array'
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Mon, May 07, 2007 at 11:57:28AM -0700, Miles Lane wrote:
-> [  118.442018] ieee80211_crypt: registered algorithm 'WEP'
-> [  118.514572] ADDRCONF(NETDEV_CHANGE): eth1: link becomes ready
-> [  118.514664] Slab corruption: size-256 start=c6aabe98, len=256
-> [  118.514672] Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
-> [  118.514676] Last user: [<c01b0cfa>](cryptomgr_probe+0x6c/0x9a)
-> [  118.514692] 000: 10 55 ac c6 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
-> [  118.514715] Prev obj: start=c6aabd80, len=256
-> [  118.514721] Redzone: 0xd84156c5635688c0/0xd84156c5635688c0.
-> [  118.514725] Last user: [<c01afd85>](crypto_alloc_instance+0x1d/0xc0)
-> [  118.514734] 000: e0 71 39 c0 80 6e 39 c0 88 bd aa c6 88 bd aa c6
-> [  118.514753] 010: 04 00 00 00 01 00 00 00 04 00 00 00 00 00 00 00
+Con says:
 
-Oops.  Does this patch fix the problem for you?
+This is no good, sorry. The one I saw originally was with the staircase
+deadline cpu scheduler in situ and was different.
 
-Thanks,
---
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
---
-index 6958ea8..e5fb7cc 100644
+  #define TASK_PREEMPTS_CURR(p, rq) \
+     ((p)->prio < (rq)->curr->prio)
+     (((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
 
+This will fail to wake up a runqueue for a task that has been migrated to the
+expired array of a runqueue which is otherwise idle which can happen with smp
+balancing,
+
+Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/cryptomgr.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ kernel/sched.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN crypto/cryptomgr.c~crypto-fix crypto/cryptomgr.c
---- a/crypto/cryptomgr.c~crypto-fix
-+++ a/crypto/cryptomgr.c
-@@ -24,8 +24,6 @@
- #include "internal.h"
+diff -puN kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array kernel/sched.c
+--- a/kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
++++ a/kernel/sched.c
+@@ -169,7 +169,7 @@ unsigned long long __attribute__((weak))
+ 		(MAX_BONUS / 2 + DELTA((p)) + 1) / MAX_BONUS - 1))
  
- struct cryptomgr_param {
--	struct task_struct *thread;
--
- 	struct rtattr *tb[CRYPTOA_MAX];
+ #define TASK_PREEMPTS_CURR(p, rq) \
+-	(((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
++	((p)->prio < (rq)->curr->prio)
  
- 	struct {
-@@ -81,6 +79,7 @@ err:
+ #define SCALE_PRIO(x, prio) \
+ 	max(x * (MAX_PRIO - prio) / (MAX_USER_PRIO / 2), MIN_TIMESLICE)
+@@ -4076,13 +4076,13 @@ void rt_mutex_setprio(struct task_struct
+ 	struct prio_array *array;
+ 	unsigned long flags;
+ 	struct rq *rq;
+-	int delta;
++	int oldprio;
  
- static int cryptomgr_schedule_probe(struct crypto_larval *larval)
- {
-+	struct task_struct *thread;
- 	struct cryptomgr_param *param;
- 	const char *name = larval->alg.cra_name;
- 	const char *p;
-@@ -130,8 +129,8 @@ static int cryptomgr_schedule_probe(stru
+ 	BUG_ON(prio < 0 || prio > MAX_PRIO);
  
- 	memcpy(param->larval.name, larval->alg.cra_name, CRYPTO_MAX_ALG_NAME);
+ 	rq = task_rq_lock(p, &flags);
  
--	param->thread = kthread_run(cryptomgr_probe, param, "cryptomgr");
--	if (IS_ERR(param->thread))
-+	thread = kthread_run(cryptomgr_probe, param, "cryptomgr");
-+	if (IS_ERR(thread))
- 		goto err_free_param;
- 
- 	return NOTIFY_STOP;
+-	delta = prio - p->prio;
++	oldprio = p->prio;
+ 	array = p->array;
+ 	if (array)
+ 		dequeue_task(p, array);
+@@ -4098,11 +4098,13 @@ void rt_mutex_setprio(struct task_struct
+ 		enqueue_task(p, array);
+ 		/*
+ 		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or if our priority became higher
+-		 * than the current's.
++		 * our priority decreased, or if we are not currently running on
++		 * this runqueue and our priority is higher than the current's
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(delta > 0 && task_running(rq, p)))
++		if (task_running(rq, p)) {
++			if (p->prio > oldprio)
++				resched_task(rq->curr);
++		} else if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+ 	}
+ 	task_rq_unlock(rq, &flags);
+@@ -4150,12 +4152,10 @@ void set_user_nice(struct task_struct *p
+ 		enqueue_task(p, array);
+ 		inc_raw_weighted_load(rq, p);
+ 		/*
+-		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or if our priority became higher
+-		 * than the current's.
++		 * If the task increased its priority or is running and
++		 * lowered its priority, then reschedule its CPU:
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(delta > 0 && task_running(rq, p)))
++		if (delta < 0 || (delta > 0 && task_running(rq, p)))
+ 			resched_task(rq->curr);
+ 	}
+ out_unlock:
+@@ -4382,11 +4382,13 @@ recheck:
+ 		__activate_task(p, rq);
+ 		/*
+ 		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or our priority became higher
+-		 * than the current's.
++		 * our priority decreased, or if we are not currently running on
++		 * this runqueue and our priority is higher than the current's
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(task_running(rq, p) && p->prio > oldprio))
++		if (task_running(rq, p)) {
++			if (p->prio > oldprio)
++				resched_task(rq->curr);
++		} else if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+ 	}
+ 	__task_rq_unlock(rq);
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-net.patch
-link_watch-eliminate-potential-delay-on-wrap-around.patch
-link_watch-always-schedule-urgent-events.patch
+slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
 git-wireless.patch
-use-menuconfig-objects-crypto.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+afs-implement-basic-file-write-support-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
