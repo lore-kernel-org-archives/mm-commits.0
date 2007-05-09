@@ -1,137 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - rename-thread_info-to-stack-fix-2.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:05:13 -0700
-Message-ID: <200705090905.l4995DGk018736@shell0.pdx.osdl.net>
+Subject: - vt8623fb-fix-compile-warnings.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:06:33 -0700
+Message-ID: <200705090906.l4996XDS018754@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53645 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754342AbXEIJFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:05:22 -0400
+	by vger.kernel.org with ESMTP id S1754560AbXEIJHG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:07:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename-thread_info-to-stack-fix 2
+     vt8623fb: fix compile warnings
 has been removed from the -mm tree.  Its filename was
-     rename-thread_info-to-stack-fix-2.patch
+     vt8623fb-fix-compile-warnings.patch
 
-This patch was dropped because it was folded into rename-thread_info-to-stack.patch
+This patch was dropped because it was folded into vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
 
 ------------------------------------------------------
-Subject: rename-thread_info-to-stack-fix 2
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: vt8623fb: fix compile warnings
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The two changes to asm-offsets.c belong to second rename patch and the
-rest is for the first wrapper patch.
+- use memset_io()
+- check for return value of pci_enable_device()
+- fix for CONFIG_PM=n
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/ptrace.c    |    6 +++---
- include/asm-alpha/thread_info.h  |    8 ++++----
- include/asm-blackfin/processor.h |    6 +++---
- include/asm-blackfin/system.h    |    4 ++--
- 4 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/video/vt8623fb.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN arch/blackfin/kernel/ptrace.c~rename-thread_info-to-stack-fix-2 arch/blackfin/kernel/ptrace.c
---- a/arch/blackfin/kernel/ptrace.c~rename-thread_info-to-stack-fix-2
-+++ a/arch/blackfin/kernel/ptrace.c
-@@ -73,7 +73,7 @@
- static inline struct pt_regs *get_user_regs(struct task_struct *task)
- {
- 	return (struct pt_regs *)
--	    ((unsigned long)task->thread_info +
-+	    ((unsigned long)task_stack_page(task) +
- 	     (THREAD_SIZE - sizeof(struct pt_regs)));
+diff -puN drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings
++++ a/drivers/video/vt8623fb.c
+@@ -497,7 +497,7 @@ static int vt8623fb_set_par(struct fb_in
+ 			 (info->var.vmode & FB_VMODE_DOUBLE) ? 2 : 1, 1,
+ 			 1, info->node);
+ 
+-	memset((u8*)info->screen_base, 0x00, screen_size);
++	memset_io(info->screen_base, 0x00, screen_size);
+ 
+ 	/* Device and screen back on */
+ 	svga_wcrt_mask(0x17, 0x80, 0x80);
+@@ -804,6 +804,7 @@ static void __devexit vt8623_pci_remove(
  }
  
-@@ -99,7 +99,7 @@ static inline long get_reg(struct task_s
- 	unsigned char *reg_ptr;
  
- 	struct pt_regs *regs =
--	    (struct pt_regs *)((unsigned long)task->thread_info +
-+	    (struct pt_regs *)((unsigned long)task_stack_page(task) +
- 			       (THREAD_SIZE - sizeof(struct pt_regs)));
- 	reg_ptr = (char *)regs;
++#ifdef CONFIG_PM
+ /* PCI suspend */
  
-@@ -125,7 +125,7 @@ put_reg(struct task_struct *task, int re
- 	char * reg_ptr;
+ static int vt8623_pci_suspend(struct pci_dev* dev, pm_message_t state)
+@@ -855,18 +856,25 @@ static int vt8623_pci_resume(struct pci_
  
- 	struct pt_regs *regs =
--	    (struct pt_regs *)((unsigned long)task->thread_info +
-+	    (struct pt_regs *)((unsigned long)task_stack_page(task) +
- 			       (THREAD_SIZE - sizeof(struct pt_regs)));
- 	reg_ptr = (char *)regs;
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+-	pci_enable_device(dev);
++
++	if (pci_enable_device(dev))
++		goto fail;
++
+ 	pci_set_master(dev);
  
-diff -puN include/asm-alpha/thread_info.h~rename-thread_info-to-stack-fix-2 include/asm-alpha/thread_info.h
---- a/include/asm-alpha/thread_info.h~rename-thread_info-to-stack-fix-2
-+++ a/include/asm-alpha/thread_info.h
-@@ -97,7 +97,7 @@ register struct thread_info *__current_t
- 				 1 << TIF_UAC_SIGBUS)
+ 	vt8623fb_set_par(info);
+ 	fb_set_suspend(info, 0);
  
- #define SET_UNALIGN_CTL(task,value)	({				     \
--	(task)->thread_info->flags = (((task)->thread_info->flags &	     \
-+	task_thread_info(task)->flags = ((task_thread_info(task)->flags &    \
- 		~ALPHA_UAC_MASK)					     \
- 		| (((value) << ALPHA_UAC_SHIFT)       & (1<<TIF_UAC_NOPRINT))\
- 		| (((value) << (ALPHA_UAC_SHIFT + 1)) & (1<<TIF_UAC_SIGBUS)) \
-@@ -105,11 +105,11 @@ register struct thread_info *__current_t
- 	0; })
+ 	mutex_unlock(&(par->open_lock));
++fail:
+ 	release_console_sem();
  
- #define GET_UNALIGN_CTL(task,value)	({				\
--	put_user(((task)->thread_info->flags & (1 << TIF_UAC_NOPRINT))	\
-+	put_user((task_thread_info(task)->flags & (1 << TIF_UAC_NOPRINT))\
- 		  >> ALPHA_UAC_SHIFT					\
--		 | ((task)->thread_info->flags & (1 << TIF_UAC_SIGBUS))	\
-+		 | (task_thread_info(task)->flags & (1 << TIF_UAC_SIGBUS))\
- 		 >> (ALPHA_UAC_SHIFT + 1)				\
--		 | ((task)->thread_info->flags & (1 << TIF_UAC_NOFIX))	\
-+		 | (task_thread_info(task)->flags & (1 << TIF_UAC_NOFIX))\
- 		 >> (ALPHA_UAC_SHIFT - 1),				\
- 		 (int __user *)(value));				\
- 	})
-diff -puN include/asm-blackfin/processor.h~rename-thread_info-to-stack-fix-2 include/asm-blackfin/processor.h
---- a/include/asm-blackfin/processor.h~rename-thread_info-to-stack-fix-2
-+++ a/include/asm-blackfin/processor.h
-@@ -58,10 +58,10 @@ do {									\
- 	(_regs)->pc = (_pc);						\
- 	if (current->mm)						\
- 		(_regs)->p5 = current->mm->start_data;			\
--	current->thread_info->l1_task_info.stack_start			\
-+	task_thread_info(current)->l1_task_info.stack_start		\
- 		= (void *)current->mm->context.stack_start;		\
--	current->thread_info->l1_task_info.lowest_sp = (void *)(_usp);	       	\
--	memcpy(L1_SCRATCH_TASK_INFO, &current->thread_info->l1_task_info,	\
-+	task_thread_info(current)->l1_task_info.lowest_sp = (void *)(_usp); \
-+	memcpy(L1_SCRATCH_TASK_INFO, &task_thread_info(current)->l1_task_info, \
- 		sizeof(*L1_SCRATCH_TASK_INFO));				\
- 	wrusp(_usp);							\
- } while(0)
-diff -puN include/asm-blackfin/system.h~rename-thread_info-to-stack-fix-2 include/asm-blackfin/system.h
---- a/include/asm-blackfin/system.h~rename-thread_info-to-stack-fix-2
-+++ a/include/asm-blackfin/system.h
-@@ -239,9 +239,9 @@ asmlinkage struct task_struct *resume(st
+ 	return 0;
+ }
+-
++#else
++#define vt8623_pci_suspend NULL
++#define vt8623_pci_resume NULL
++#endif /* CONFIG_PM */
  
- #define switch_to(prev,next,last) \
- do {    \
--	memcpy (&prev->thread_info->l1_task_info, L1_SCRATCH_TASK_INFO, \
-+	memcpy (&task_thread_info(prev)->l1_task_info, L1_SCRATCH_TASK_INFO, \
- 		sizeof *L1_SCRATCH_TASK_INFO); \
--	memcpy (L1_SCRATCH_TASK_INFO, &next->thread_info->l1_task_info, \
-+	memcpy (L1_SCRATCH_TASK_INFO, &task_thread_info(next)->l1_task_info, \
- 		sizeof *L1_SCRATCH_TASK_INFO); \
- 	(last) = resume (prev, next);   \
- } while (0)
+ /* List of boards that we are trying to support */
+ 
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-allow-arch-to-initialize-arch-field-of-the-module-structure.patch
-wrap-access-to-thread_info.patch
-rename-thread_info-to-stack.patch
-rename-thread_info-to-stack-fix-2.patch
+vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+vt8623fb-fix-compile-warnings.patch
+vt8623fb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+arkfb-fix-compiler-warnings.patch
+arkfb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
