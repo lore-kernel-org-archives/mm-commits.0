@@ -1,60 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - irq-add-__must_check-to-request_irq.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:24 -0700
-Message-ID: <200705090245.l492jOuI008736@shell0.pdx.osdl.net>
+Subject: - module-use-krealloc.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:14 -0700
+Message-ID: <200705090245.l492jEgH008718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59562 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968787AbXEICp1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:27 -0400
+	by vger.kernel.org with ESMTP id S968787AbXEICpW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IRQ: add __must_check to request_irq
+     module: use krealloc
 has been removed from the -mm tree.  Its filename was
-     irq-add-__must_check-to-request_irq.patch
+     module-use-krealloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IRQ: add __must_check to request_irq
-From: Monakhov Dmitriy <dmonakhov@openvz.org>
+Subject: module: use krealloc
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-This could help to find buggy drivers where request_irq return value wasn't
-checked.  There's just no reason to ignore errors which can and do occur. 
-Anyone who got warning during compilation have to realise what it is't
-realy safe code.
+This converts an open-coded krealloc() to use the shiny new API.
 
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/module.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/interrupt.h~irq-add-__must_check-to-request_irq include/linux/interrupt.h
---- a/include/linux/interrupt.h~irq-add-__must_check-to-request_irq
-+++ a/include/linux/interrupt.h
-@@ -83,11 +83,11 @@ struct irqaction {
- };
+diff -puN kernel/module.c~module-use-krealloc kernel/module.c
+--- a/kernel/module.c~module-use-krealloc
++++ a/kernel/module.c
+@@ -310,14 +310,14 @@ static int split_block(unsigned int i, u
+ {
+ 	/* Reallocation required? */
+ 	if (pcpu_num_used + 1 > pcpu_num_allocated) {
+-		int *new = kmalloc(sizeof(new[0]) * pcpu_num_allocated*2,
+-				   GFP_KERNEL);
++		int *new;
++
++		new = krealloc(pcpu_size, sizeof(new[0])*pcpu_num_allocated*2,
++			       GFP_KERNEL);
+ 		if (!new)
+ 			return 0;
  
- extern irqreturn_t no_action(int cpl, void *dev_id);
--extern int request_irq(unsigned int, irq_handler_t handler,
-+extern int __must_check request_irq(unsigned int, irq_handler_t handler,
- 		       unsigned long, const char *, void *);
- extern void free_irq(unsigned int, void *);
+-		memcpy(new, pcpu_size, sizeof(new[0])*pcpu_num_allocated);
+ 		pcpu_num_allocated *= 2;
+-		kfree(pcpu_size);
+ 		pcpu_size = new;
+ 	}
  
--extern int devm_request_irq(struct device *dev, unsigned int irq,
-+extern int __must_check devm_request_irq(struct device *dev, unsigned int irq,
- 			    irq_handler_t handler, unsigned long irqflags,
- 			    const char *devname, void *dev_id);
- extern void devm_free_irq(struct device *dev, unsigned int irq, void *dev_id);
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
+krealloc-fix-kerneldoc-comments.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+swsusp-use-reasonable-default-for-hibernation_mode.patch
+slab-use-cpu_lock_.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-core-code-break-cow-for-private-mappings.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+revoke-core-code-break-cow-fixes.patch
+revoke-core-code-mapping-revocation.patch
+revoke-core-code-only-fput-unused-files.patch
+revoke-core-code-rename-to-can_revoke_filevma.patch
+revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
+revoke-core-code-do_revoke-error-handling.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+slab-leaks3-default-y.patch
