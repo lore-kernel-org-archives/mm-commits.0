@@ -1,112 +1,381 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:54:16 -0700
-Message-ID: <200705090254.l492sGuU009785@shell0.pdx.osdl.net>
+Subject: - rtc-kconfig-cleanup.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:54:20 -0700
+Message-ID: <200705090254.l492sKf6009794@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37305 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032263AbXEICyZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:54:25 -0400
+	by vger.kernel.org with ESMTP id S1032248AbXEICy1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:54:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTC: replace some newly-introduced macros with inlines
+     RTC Kconfig cleanup
 has been removed from the -mm tree.  Its filename was
-     rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+     rtc-kconfig-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTC: replace some newly-introduced macros with inlines
-From: David Brownell <david-b@pacbell.net>
+Subject: RTC Kconfig cleanup
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-core.h |   46 +++++++++++++++++++++++++++++----------
- 1 file changed, 35 insertions(+), 11 deletions(-)
+ drivers/rtc/Kconfig |  250 +++++++++++++++++++++---------------------
+ 1 file changed, 130 insertions(+), 120 deletions(-)
 
-diff -puN drivers/rtc/rtc-core.h~rtc-simplified-rtc-sysfs-attribute-handling-tidy drivers/rtc/rtc-core.h
---- a/drivers/rtc/rtc-core.h~rtc-simplified-rtc-sysfs-attribute-handling-tidy
-+++ a/drivers/rtc/rtc-core.h
-@@ -7,22 +7,38 @@ extern void rtc_dev_del_device(struct rt
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-cleanup drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-cleanup
++++ a/drivers/rtc/Kconfig
+@@ -102,44 +102,26 @@ config RTC_INTF_DEV_UIE_EMUL
+ 	  driver does not expose RTC_UIE ioctls.  Those requests generate
+ 	  once-per-second update interrupts, used for synchronization.
  
- #else
+-comment "RTC drivers"
++config RTC_DRV_TEST
++	tristate "Test driver/device"
+ 	depends on RTC_CLASS
+-
+-# this 'CMOS' RTC driver is arch dependent because <asm-generic/rtc.h>
+-# requires <asm/mc146818rtc.h> defining CMOS_READ/CMOS_WRITE, and a
+-# global rtc_lock ... it's not yet just another platform_device.
+-
+-config RTC_DRV_CMOS
+-	tristate "PC-style 'CMOS' real time clock"
+-	depends on RTC_CLASS && (X86 || ALPHA || ARM26 || ARM \
+-		|| M32R || ATARI || POWERPC)
+-	help
+-	  Say "yes" here to get direct support for the real time clock
+-	  found in every PC or ACPI-based system, and some other boards.
+-	  Specifically the original MC146818, compatibles like those in
+-	  PC south bridges, the DS12887 or M48T86, some multifunction
+-	  or LPC bus chips, and so on.
+-
+-	  Your system will need to define the platform device used by
+-	  this driver, otherwise it won't be accessible.  This means
+-	  you can safely enable this driver if you don't know whether
+-	  or not your board has this kind of hardware.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-cmos.
+-
+-config RTC_DRV_X1205
+-	tristate "Xicor/Intersil X1205"
+-	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Xicor/Intersil X1205 RTC chip.
++	  RTC test driver. It's a software RTC which can be
++	  used to test the RTC subsystem APIs. It gets
++	  the time from the system clock.
++	  You want this driver only if you are doing development
++	  on the RTC subsystem. Please read the source code
++	  for further details.
  
--#define rtc_dev_init()		do{}while(0)
--#define rtc_dev_exit()		do{}while(0)
--#define rtc_dev_add_device(r)	do{}while(0)
--#define rtc_dev_del_device(r)	do{}while(0)
-+static inline void rtc_dev_init(void)
-+{
-+}
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-x1205.
++	  will be called rtc-test.
 +
-+static inline void rtc_dev_exit(void)
-+{
-+}
++comment "I2C RTC drivers"
++	depends on RTC_CLASS
+ 
+ config RTC_DRV_DS1307
+-	tristate "Dallas/Maxim DS1307 and similar I2C RTC chips"
++	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00"
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for various compatible RTC
+@@ -156,53 +138,55 @@ config RTC_DRV_DS1307
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1307.
+ 
+-config RTC_DRV_DS1553
+-	tristate "Dallas DS1553"
+-	depends on RTC_CLASS
++config RTC_DRV_DS1672
++	tristate "Dallas/Maxim DS1672"
++	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas DS1553 timekeeping chip.
++	  Dallas/Maxim DS1672 timekeeping chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1553.
++	  will be called rtc-ds1672.
+ 
+-config RTC_DRV_ISL1208
+-	tristate "Intersil 1208"
++config RTC_DRV_MAX6900
++	tristate "Maxim 6900"
+ 	depends on RTC_CLASS && I2C
+ 	help
+-	  If you say yes here you get support for the
+-	  Intersil 1208 RTC chip.
++	  If you say yes here you will get support for the
++	  Maxim MAX6900 I2C RTC chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-isl1208.
++	  will be called rtc-max6900.
+ 
+-config RTC_DRV_DS1672
+-	tristate "Dallas/Maxim DS1672"
++config RTC_DRV_RS5C372
++	tristate "Ricoh RS5C372A/B"
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas/Maxim DS1672 timekeeping chip.
++	  Ricoh RS5C372A and RS5C372B RTC chips.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1672.
++	  will be called rtc-rs5c372.
+ 
+-config RTC_DRV_DS1742
+-	tristate "Dallas DS1742/1743"
+-	depends on RTC_CLASS
++config RTC_DRV_ISL1208
++	tristate "Intersil 1208"
++	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas DS1742/1743 timekeeping chip.
++	  Intersil 1208 RTC chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1742.
++	  will be called rtc-isl1208.
+ 
+-config RTC_DRV_OMAP
+-	tristate "TI OMAP1"
+-	depends on RTC_CLASS && ( \
+-		ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 )
++config RTC_DRV_X1205
++	tristate "Xicor/Intersil X1205"
++	depends on RTC_CLASS && I2C
+ 	help
+-	  Say "yes" here to support the real time clock on TI OMAP1 chips.
+-	  This driver can also be built as a module called rtc-omap.
++	  If you say yes here you get support for the
++	  Xicor/Intersil X1205 RTC chip.
 +
-+static inline void rtc_dev_add_device(struct rtc_device *rtc)
-+{
-+}
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-x1205.
+ 
+ config RTC_DRV_PCF8563
+ 	tristate "Philips PCF8563/Epson RTC8564"
+@@ -217,16 +201,20 @@ config RTC_DRV_PCF8563
+ 
+ config RTC_DRV_PCF8583
+ 	tristate "Philips PCF8583"
+-	depends on RTC_CLASS && I2C && ARCH_RPC
++	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the Philips PCF8583
+-	  RTC chip found on Acorn RiscPCs.  This driver supports the
++	  RTC chip found on Acorn RiscPCs. This driver supports the
+ 	  platform specific method of retrieving the current year from
+-	  the RTC's SRAM.
++	  the RTC's SRAM. It will work on other platforms with the same
++	  chip, but the year will probably have to be tweaked.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf8583.
+ 
++comment "SPI RTC drivers"
++	depends on RTC_CLASS
 +
-+static inline void rtc_dev_del_device(struct rtc_device *rtc)
-+{
-+}
+ config RTC_DRV_RS5C348
+ 	tristate "Ricoh RS5C348A/B"
+ 	depends on RTC_CLASS && SPI
+@@ -237,15 +225,92 @@ config RTC_DRV_RS5C348
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-rs5c348.
  
- #endif
- 
- #ifdef CONFIG_RTC_INTF_PROC
- 
--void rtc_proc_add_device(struct rtc_device *rtc);
--void rtc_proc_del_device(struct rtc_device *rtc);
-+extern void rtc_proc_add_device(struct rtc_device *rtc);
-+extern void rtc_proc_del_device(struct rtc_device *rtc);
- 
- #else
- 
--#define rtc_proc_add_device(r)	do{}while(0)
--#define rtc_proc_del_device(r)	do{}while(0)
-+static inline void rtc_proc_add_device(struct rtc_device *rtc)
-+{
-+}
+-config RTC_DRV_RS5C372
+-	tristate "Ricoh RS5C372A/B"
+-	depends on RTC_CLASS && I2C
++config RTC_DRV_MAX6902
++	tristate "Maxim 6902"
++	depends on RTC_CLASS && SPI
++	help
++	  If you say yes here you will get support for the
++	  Maxim MAX6902 SPI RTC chip.
 +
-+static inline void rtc_proc_del_device(struct rtc_device *rtc)
-+{
-+}
- 
- #endif
- 
-@@ -34,8 +50,16 @@ extern void rtc_sysfs_del_device(struct 
- 
- #else
- 
--#define rtc_sysfs_init(c)	do{}while(0)
--#define rtc_sysfs_add_device(r)	do{}while(0)
--#define rtc_sysfs_del_device(r)	do{}while(0)
-+static inline void rtc_sysfs_init(struct class *rtc)
-+{
-+}
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-max6902.
 +
-+static inline void rtc_sysfs_add_device(struct rtc_device *rtc)
-+{
-+}
++comment "Platform RTC drivers"
++	depends on RTC_CLASS
 +
-+static inline void rtc_sysfs_del_device(struct rtc_device *rtc)
-+{
-+}
++# this 'CMOS' RTC driver is arch dependent because <asm-generic/rtc.h>
++# requires <asm/mc146818rtc.h> defining CMOS_READ/CMOS_WRITE, and a
++# global rtc_lock ... it's not yet just another platform_device.
++
++config RTC_DRV_CMOS
++	tristate "PC-style 'CMOS'"
++	depends on RTC_CLASS && (X86 || ALPHA || ARM26 || ARM \
++		|| M32R || ATARI || POWERPC)
++	help
++	  Say "yes" here to get direct support for the real time clock
++	  found in every PC or ACPI-based system, and some other boards.
++	  Specifically the original MC146818, compatibles like those in
++	  PC south bridges, the DS12887 or M48T86, some multifunction
++	  or LPC bus chips, and so on.
++
++	  Your system will need to define the platform device used by
++	  this driver, otherwise it won't be accessible.  This means
++	  you can safely enable this driver if you don't know whether
++	  or not your board has this kind of hardware.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-cmos.
++
++config RTC_DRV_DS1553
++	tristate "Dallas DS1553"
++	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+-	  Ricoh RS5C372A and RS5C372B RTC chips.
++	  Dallas DS1553 timekeeping chip.
  
- #endif
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-rs5c372.
++	  will be called rtc-ds1553.
++
++config RTC_DRV_DS1742
++	tristate "Dallas DS1742/1743"
++	depends on RTC_CLASS
++	help
++	  If you say yes here you get support for the
++	  Dallas DS1742/1743 timekeeping chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-ds1742.
++
++config RTC_DRV_M48T86
++	tristate "ST M48T86/Dallas DS12887"
++	depends on RTC_CLASS
++	help
++	  If you say Y here you will get support for the
++	  ST M48T86 and Dallas DS12887 RTC chips.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-m48t86.
++
++config RTC_DRV_V3020
++	tristate "EM Microelectronic V3020"
++	depends on RTC_CLASS
++	help
++	  If you say yes here you will get support for the
++	  EM Microelectronic v3020 RTC chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-v3020.
++
++comment "on-CPU RTC drivers"
++	depends on RTC_CLASS
++
++config RTC_DRV_OMAP
++	tristate "TI OMAP1"
++	depends on RTC_CLASS && ( \
++		ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 )
++	help
++	  Say "yes" here to support the real time clock on TI OMAP1 chips.
++	  This driver can also be built as a module called rtc-omap.
+ 
+ config RTC_DRV_S3C
+ 	tristate "Samsung S3C series SoC RTC"
+@@ -263,16 +328,6 @@ config RTC_DRV_S3C
+ 	  This driver can also be build as a module. If so, the module
+ 	  will be called rtc-s3c.
+ 
+-config RTC_DRV_M48T86
+-	tristate "ST M48T86/Dallas DS12887"
+-	depends on RTC_CLASS
+-	help
+-	  If you say Y here you will get support for the
+-	  ST M48T86 and Dallas DS12887 RTC chips.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-m48t86.
+-
+ config RTC_DRV_EP93XX
+ 	tristate "Cirrus Logic EP93XX"
+ 	depends on RTC_CLASS && ARCH_EP93XX
+@@ -318,7 +373,7 @@ config RTC_DRV_PL031
+ 	depends on RTC_CLASS && ARM_AMBA
+ 	help
+ 	  If you say Y here you will get access to ARM AMBA
+-	  PrimeCell PL031 UART found on certain ARM SOCs.
++	  PrimeCell PL031 RTC found on certain ARM SOCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rtc-pl031.
+@@ -329,51 +384,6 @@ config RTC_DRV_AT91RM9200
+ 	help
+ 	  Driver for the Atmel AT91RM9200's internal RTC (Realtime Clock).
+ 
+-config RTC_DRV_TEST
+-	tristate "Test driver/device"
+-	depends on RTC_CLASS
+-	help
+-	  If you say yes here you get support for the
+-	  RTC test driver. It's a software RTC which can be
+-	  used to test the RTC subsystem APIs. It gets
+-	  the time from the system clock.
+-	  You want this driver only if you are doing development
+-	  on the RTC subsystem. Please read the source code
+-	  for further details.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-test.
+-
+-config RTC_DRV_MAX6900
+-	tristate "Maxim 6900"
+-	depends on RTC_CLASS && I2C
+-	help
+-	  If you say yes here you will get support for the
+-	  Maxim MAX6900 I2C RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-max6900.
+-
+-config RTC_DRV_MAX6902
+-	tristate "Maxim 6902"
+-	depends on RTC_CLASS && SPI
+-	help
+-	  If you say yes here you will get support for the
+-	  Maxim MAX6902 spi RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-max6902.
+-
+-config RTC_DRV_V3020
+-	tristate "EM Microelectronic V3020"
+-	depends on RTC_CLASS
+-	help
+-	  If you say yes here you will get support for the
+-	  EM Microelectronic v3020 RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-v3020.
+-
+ config RTC_DRV_BFIN
+ 	tristate "Blackfin On-Chip RTC"
+ 	depends on RTC_CLASS && BFIN
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
-atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
