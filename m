@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm-allow-offline-devices.patch added to -mm tree
-Date: Tue, 08 May 2007 17:54:48 -0700
-Message-ID: <200705090054.l490smZr006377@shell0.pdx.osdl.net>
+Subject: + dm-io-delay-dec_count.patch added to -mm tree
+Date: Tue, 08 May 2007 17:54:56 -0700
+Message-ID: <200705090054.l490suHa006397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33735 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968397AbXEIAzA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:00 -0400
+	by vger.kernel.org with ESMTP id S968399AbXEIAzF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andmike@us.ibm.com, agk@redhat.com
+Cc: hjm@redhat.com, agk@redhat.com, mbroz@redhat.com
 
 
 The patch titled
-     dm: allow offline devices
+     dm io: delay dec_count
 has been added to the -mm tree.  Its filename is
-     dm-allow-offline-devices.patch
+     dm-io-delay-dec_count.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm: allow offline devices
-From: Mike Anderson <andmike@us.ibm.com>
+Subject: dm io: delay dec_count
+From: Heinz Mauelshagen <hjm@redhat.com>
 
-Allow check_device_area to succeed if a device has an i_size of zero.  This
-addresses an issue seen on DASD devices setting up a multipath table for paths
-in online and offline state.
+Delay decrementing the 'struct io' reference count until after the bio has
+been freed so that a bio destructor function may reference it.  Required by a
+later patch.
 
-Signed-off-by: Mike Anderson <andmike@us.ibm.com>
+Signed-off-by: Heinz Mauelshagen <hjm@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-table.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/md/dm-io.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/dm-table.c~dm-allow-offline-devices drivers/md/dm-table.c
---- a/drivers/md/dm-table.c~dm-allow-offline-devices
-+++ a/drivers/md/dm-table.c
-@@ -425,13 +425,15 @@ static void close_dev(struct dm_dev *d, 
- }
+diff -puN drivers/md/dm-io.c~dm-io-delay-dec_count drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~dm-io-delay-dec_count
++++ a/drivers/md/dm-io.c
+@@ -126,7 +126,8 @@ static void dec_count(struct io *io, uns
  
- /*
-- * If possible (ie. blk_size[major] is set), this checks an area
-- * of a destination device is valid.
-+ * If possible, this checks an area of a destination device is valid.
-  */
- static int check_device_area(struct dm_dev *dd, sector_t start, sector_t len)
+ static int endio(struct bio *bio, unsigned int done, int error)
  {
--	sector_t dev_size;
--	dev_size = dd->bdev->bd_inode->i_size >> SECTOR_SHIFT;
-+	sector_t dev_size = dd->bdev->bd_inode->i_size >> SECTOR_SHIFT;
+-	struct io *io = (struct io *) bio->bi_private;
++	struct io *io;
++	unsigned region;
+ 
+ 	/* keep going until we've finished */
+ 	if (bio->bi_size)
+@@ -135,10 +136,17 @@ static int endio(struct bio *bio, unsign
+ 	if (error && bio_data_dir(bio) == READ)
+ 		zero_fill_bio(bio);
+ 
+-	dec_count(io, bio_get_region(bio), error);
++	/*
++	 * The bio destructor in bio_put() may use the io object.
++	 */
++	io = bio->bi_private;
++	region = bio_get_region(bio);
 +
-+	if (!dev_size)
-+		return 1;
+ 	bio->bi_max_vecs++;
+ 	bio_put(bio);
+ 
++	dec_count(io, region, error);
 +
- 	return ((start < dev_size) && (len <= (dev_size - start)));
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from andmike@us.ibm.com are
+Patches currently in -mm which might be from hjm@redhat.com are
 
-dm-allow-offline-devices.patch
+dm-io-delay-dec_count.patch
+dm-io-prepare-for-new-interface.patch
+dm-io-new-interface.patch
+dm-kcopyd-update-dm-io-interface.patch
+dm-exception-store-update-dm-io-interface.patch
+dm-bio-list-helpers.patch
