@@ -1,49 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - rework-compat_sys_io_submit.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:04:55 -0700
-Message-ID: <200705091004.l49A4tNR020795@shell0.pdx.osdl.net>
+Subject: - make-good_sigevent-non-static-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:05:07 -0700
+Message-ID: <200705091005.l49A57QY020815@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39800 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755935AbXEIKGC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:06:02 -0400
+	by vger.kernel.org with ESMTP id S1756121AbXEIKGQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sebastien.dugue@bull.net, bcrl@linux.intel.com, bharata@in.ibm.com, hch@infradead.org, jean-pierre.dion@bull.net, oleg@tv-sign.ru, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: rework compat_sys_io_submit
+     make-good_sigevent-non-static fix
 has been removed from the -mm tree.  Its filename was
-     rework-compat_sys_io_submit.patch
+     make-good_sigevent-non-static-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: aio: rework compat_sys_io_submit
+Subject: make-good_sigevent-non-static fix
 =46rom: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
 
-Cleanup compat_sys_io_submit by duplicating some of the native syscall =
-logic
-in the compat layer and directly calling io_submit_one() instead of foo=
-ling
-the syscall into thinking it is called from a native 64-bit caller.
+  Could you replace make-good_sigevent-non-static.patch with this
+patch, as it fixes some problems reported by Oleg Nesterov.
 
-  This eliminates:
+  Oleg, chime in if you still see something I missed.
 
-  - the overhead of copying the nr iocb pointers on the userspace stack
+  Hopefully I will have gotten it right this time.
 
-  - the PAGE_SIZE/(sizeof(void *)) limit on the number of iocbs that
-    can be submitted.
+  Sorry for the hassle.
 
-This is also needed for the completion notification patch to avoid havi=
-ng to
-rewrite each iocb on the caller stack for io_submit_one() to find the
-sigevents.
+  S=E9bastien.
+
+
+                Make good_sigevent() non-static and rename it
+
+  Move good_sigevent() from posix-timers.c to signal.c where it belongs=
+,
+clean it up, rename it to sigevent_find_task() to better describe what =
+the
+function does and make it non-static so that it can be used by other
+ subsystems.
 
 Signed-off-by: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
 Cc: Bharata B Rao <bharata@in.ibm.com>
@@ -54,91 +57,46 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Cc: Benjamin LaHaise <bcrl@linux.intel.com>
 Cc: Jean Pierre Dion <jean-pierre.dion@bull.net>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |   61 +++++++++++++++++++++++++++-----------------------
- 1 files changed, 34 insertions(+), 27 deletions(-)
+ kernel/signal.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN fs/compat.c~rework-compat_sys_io_submit fs/compat.c
---- a/fs/compat.c~rework-compat_sys_io_submit
-+++ a/fs/compat.c
-@@ -644,40 +644,47 @@ out:
- 	return ret;
- }
-=20
--static inline long
--copy_iocb(long nr, u32 __user *ptr32, struct iocb __user * __user *ptr=
-64)
--{
--	compat_uptr_t uptr;
--	int i;
--
--	for (i =3D 0; i < nr; ++i) {
--		if (get_user(uptr, ptr32 + i))
--			return -EFAULT;
--		if (put_user(compat_ptr(uptr), ptr64 + i))
--			return -EFAULT;
--	}
--	return 0;
--}
--
--#define MAX_AIO_SUBMITS 	(PAGE_SIZE/sizeof(struct iocb *))
--
- asmlinkage long
- compat_sys_io_submit(aio_context_t ctx_id, int nr, u32 __user *iocb)
+diff -puN kernel/signal.c~make-good_sigevent-non-static-fix kernel/sign=
+al.c
+--- a/kernel/signal.c~make-good_sigevent-non-static-fix
++++ a/kernel/signal.c
+@@ -1097,18 +1097,22 @@ int group_send_sig_info(int sig, struct=20
+  */
+ struct task_struct * sigevent_find_task(sigevent_t * event)
  {
--	struct iocb __user * __user *iocb64;=20
--	long ret;
-+	struct kioctx *ctx;
-+	long ret =3D 0;
-+	int i;
+-	struct task_struct *task =3D NULL;
++	struct task_struct *task =3D current->group_leader;
 =20
- 	if (unlikely(nr < 0))
- 		return -EINVAL;
-=20
--	if (nr > MAX_AIO_SUBMITS)
--		nr =3D MAX_AIO_SUBMITS;
--=09
--	iocb64 =3D compat_alloc_user_space(nr * sizeof(*iocb64));
--	ret =3D copy_iocb(nr, iocb, iocb64);
--	if (!ret)
--		ret =3D sys_io_submit(ctx_id, nr, iocb64);
--	return ret;
-+	if (unlikely(!access_ok(VERIFY_READ, iocb, (nr * sizeof(u32)))))
-+		return -EFAULT;
-+
-+	ctx =3D lookup_ioctx(ctx_id);
-+	if (unlikely(!ctx))
-+		return -EINVAL;
-+
-+	for (i=3D0; i<nr; i++) {
-+		compat_uptr_t uptr;
-+		struct iocb __user *user_iocb;
-+		struct iocb tmp;
-+
-+		if (unlikely(get_user(uptr, iocb + i))) {
-+			ret =3D -EFAULT;
-+			break;
-+		}
-+
-+		user_iocb =3D compat_ptr(uptr);
-+
-+		if (unlikely(copy_from_user(&tmp, user_iocb, sizeof(tmp)))) {
-+			ret =3D -EFAULT;
-+			break;
-+		}
-+
-+		ret =3D io_submit_one(ctx, user_iocb, &tmp);
-+		if (ret)
-+			break;
+-	if (event->sigev_signo <=3D 0 || event->sigev_signo > SIGRTMAX)
+-		return NULL;
++	if ((event->sigev_notify & ~SIGEV_THREAD_ID) !=3D SIGEV_NONE) {
++		if (event->sigev_signo <=3D 0 || event->sigev_signo > SIGRTMAX)
++			return NULL;
 +	}
 +
-+	put_ioctx(ctx);
-+	return i ? i: ret;
- }
++	if (event->sigev_notify & SIGEV_THREAD_ID) {
++		if ((event->sigev_notify & ~SIGEV_THREAD_ID) !=3D SIGEV_SIGNAL)
++			return NULL;
 =20
- struct compat_ncp_mount_data {
+-	if ((event->sigev_notify & SIGEV_THREAD_ID ) =3D=3D SIGEV_THREAD_ID) =
+{
+ 		task =3D find_task_by_pid(event->sigev_notify_thread_id);
+=20
+ 		if (!task || task->tgid !=3D current->tgid)
+ 			task =3D NULL;
+-	} else if (event->sigev_notify =3D=3D SIGEV_SIGNAL)
+-		task =3D current->group_leader;
++	}
+=20
+ 	return task;
+ }
 _
 
 Patches currently in -mm which might be from sebastien.dugue@bull.net a=
@@ -147,10 +105,6 @@ re
 origin.patch
 futex-priority-based-wakeup.patch
 make-futex_wait-use-an-hrtimer-for-timeout.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
 make-good_sigevent-non-static-fix.patch
 make-__sigqueue_free-and.patch
 aio-completion-signal-notification.patch
