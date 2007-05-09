@@ -1,334 +1,299 @@
 From: akpm@linux-foundation.org
-Subject: - fix-vfat-compat-ioctls-on-64-bit-systems.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:02 -0700
-Message-ID: <200705090252.l492q2p3009530@shell0.pdx.osdl.net>
+Subject: - drivers-isdn-hardware-eicon-remove-unused-header-files.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:53:19 -0700
+Message-ID: <200705090253.l492rJPb009679@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54496 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032008AbXEICx2 (ORCPT
+	by vger.kernel.org with ESMTP id S1032097AbXEICx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, bartoldeman@users.sourceforge.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: armin@melware.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: fix VFAT compat ioctls on 64-bit systems
+     drivers/isdn/hardware/eicon/: remove unused header files
 has been removed from the -mm tree.  Its filename was
-     fix-vfat-compat-ioctls-on-64-bit-systems.patch
+     drivers-isdn-hardware-eicon-remove-unused-header-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fat: fix VFAT compat ioctls on 64-bit systems
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: drivers/isdn/hardware/eicon/: remove unused header files
+From: Armin Schindler <armin@melware.de>
 
-If you compile and run the below test case in an msdos or vfat directory on
-an x86-64 system with -m32 you'll get garbage in the kernel_dirent struct
-followed by a SIGSEGV.
+As pointed out by Robert P.  J.  Day, here is a patch to remove unused
+header files from Eicon/Dialogic ISDN driver.
 
-The patch fixes this.
-
-Reported and initial fix by Bart Oldeman
-
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <dirent.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-struct kernel_dirent {
-         long            d_ino;
-         long		d_off;
-         unsigned short  d_reclen;
-         char            d_name[256]; /* We must not include limits.h! */
-};
-#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])
-#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])
-
-int main(void)
-{
-         int fd = open(".", O_RDONLY);
-         struct kernel_dirent de[2];
-
-         while (1) {
-                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);
-                 if (i == -1) break;
-                 if (de[0].d_reclen == 0) break;
-                 printf("SFN: reclen=%2d off=%d ino=%d, %-12s",
- 		       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);
- 		if (de[1].d_reclen)
- 		  printf("\tLFN: reclen=%2d off=%d ino=%d, %s",
- 		    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);
- 		printf("\n");
-         }
-         return 0;
-}
-
-Signed-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: <stable@kernel.org>
+Signed-off-by: Armin Schindler <armin@melware.de>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |  199 ++++++++++++++++++++++++-------------------------
- 1 file changed, 100 insertions(+), 99 deletions(-)
+ drivers/isdn/hardware/eicon/dbgioctl.h |  198 -----------------------
+ drivers/isdn/hardware/eicon/main_if.h  |   50 -----
+ 2 files changed, 248 deletions(-)
 
-diff -puN fs/fat/dir.c~fix-vfat-compat-ioctls-on-64-bit-systems fs/fat/dir.c
---- a/fs/fat/dir.c~fix-vfat-compat-ioctls-on-64-bit-systems
-+++ a/fs/fat/dir.c
-@@ -422,7 +422,7 @@ EODir:
- EXPORT_SYMBOL_GPL(fat_search_long);
- 
- struct fat_ioctl_filldir_callback {
--	struct dirent __user *dirent;
-+	void __user *dirent;
- 	int result;
- 	/* for dir ioctl */
- 	const char *longname;
-@@ -647,62 +647,85 @@ static int fat_readdir(struct file *filp
- 	return __fat_readdir(inode, filp, dirent, filldir, 0, 0);
- }
- 
--static int fat_ioctl_filldir(void *__buf, const char *name, int name_len,
--			     loff_t offset, u64 ino, unsigned int d_type)
-+#define FAT_IOCTL_FILLDIR_FUNC(func, dirent_type)			   \
-+static int func(void *__buf, const char *name, int name_len,		   \
-+			     loff_t offset, u64 ino, unsigned int d_type)  \
-+{									   \
-+	struct fat_ioctl_filldir_callback *buf = __buf;			   \
-+	struct dirent_type __user *d1 = buf->dirent;			   \
-+	struct dirent_type __user *d2 = d1 + 1;				   \
-+									   \
-+	if (buf->result)						   \
-+		return -EINVAL;						   \
-+	buf->result++;							   \
-+									   \
-+	if (name != NULL) {						   \
-+		/* dirent has only short name */			   \
-+		if (name_len >= sizeof(d1->d_name))			   \
-+			name_len = sizeof(d1->d_name) - 1;		   \
-+									   \
-+		if (put_user(0, d2->d_name)			||	   \
-+		    put_user(0, &d2->d_reclen)			||	   \
-+		    copy_to_user(d1->d_name, name, name_len)	||	   \
-+		    put_user(0, d1->d_name + name_len)		||	   \
-+		    put_user(name_len, &d1->d_reclen))			   \
-+			goto efault;					   \
-+	} else {							   \
-+		/* dirent has short and long name */			   \
-+		const char *longname = buf->longname;			   \
-+		int long_len = buf->long_len;				   \
-+		const char *shortname = buf->shortname;			   \
-+		int short_len = buf->short_len;				   \
-+									   \
-+		if (long_len >= sizeof(d1->d_name))			   \
-+			long_len = sizeof(d1->d_name) - 1;		   \
-+		if (short_len >= sizeof(d1->d_name))			   \
-+			short_len = sizeof(d1->d_name) - 1;		   \
-+									   \
-+		if (copy_to_user(d2->d_name, longname, long_len)	|| \
-+		    put_user(0, d2->d_name + long_len)			|| \
-+		    put_user(long_len, &d2->d_reclen)			|| \
-+		    put_user(ino, &d2->d_ino)				|| \
-+		    put_user(offset, &d2->d_off)			|| \
-+		    copy_to_user(d1->d_name, shortname, short_len)	|| \
-+		    put_user(0, d1->d_name + short_len)			|| \
-+		    put_user(short_len, &d1->d_reclen))			   \
-+			goto efault;					   \
-+	}								   \
-+	return 0;							   \
-+efault:									   \
-+	buf->result = -EFAULT;						   \
-+	return -EFAULT;							   \
-+}
-+
-+FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, dirent)
-+
-+static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
-+			     void __user *dirent, filldir_t filldir,
-+			     int short_only, int both)
- {
--	struct fat_ioctl_filldir_callback *buf = __buf;
--	struct dirent __user *d1 = buf->dirent;
--	struct dirent __user *d2 = d1 + 1;
+diff -puN drivers/isdn/hardware/eicon/dbgioctl.h~drivers-isdn-hardware-eicon-remove-unused-header-files /dev/null
+--- a/drivers/isdn/hardware/eicon/dbgioctl.h
++++ /dev/null
+@@ -1,198 +0,0 @@
 -
--	if (buf->result)
--		return -EINVAL;
--	buf->result++;
+-/*
+- *
+-  Copyright (c) Eicon Technology Corporation, 2000.
+- *
+-  This source file is supplied for the use with Eicon
+-  Technology Corporation's range of DIVA Server Adapters.
+- *
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 2, or (at your option)
+-  any later version.
+- *
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
+-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-  See the GNU General Public License for more details.
+- *
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-/*------------------------------------------------------------------*/
+-/* file: dbgioctl.h                                                 */
+-/*------------------------------------------------------------------*/
 -
--	if (name != NULL) {
--		/* dirent has only short name */
--		if (name_len >= sizeof(d1->d_name))
--			name_len = sizeof(d1->d_name) - 1;
+-#if !defined(__DBGIOCTL_H__)
 -
--		if (put_user(0, d2->d_name)			||
--		    put_user(0, &d2->d_reclen)			||
--		    copy_to_user(d1->d_name, name, name_len)	||
--		    put_user(0, d1->d_name + name_len)		||
--		    put_user(name_len, &d1->d_reclen))
--			goto efault;
--	} else {
--		/* dirent has short and long name */
--		const char *longname = buf->longname;
--		int long_len = buf->long_len;
--		const char *shortname = buf->shortname;
--		int short_len = buf->short_len;
+-#define __DBGIOCTL_H__
 -
--		if (long_len >= sizeof(d1->d_name))
--			long_len = sizeof(d1->d_name) - 1;
--		if (short_len >= sizeof(d1->d_name))
--			short_len = sizeof(d1->d_name) - 1;
+-#ifdef NOT_YET_NEEDED
+-/*
+- * The requested operation is passed in arg0 of DbgIoctlArgs,
+- * additional arguments (if any) in arg1, arg2 and arg3.
+- */
 -
--		if (copy_to_user(d2->d_name, longname, long_len)	||
--		    put_user(0, d2->d_name + long_len)			||
--		    put_user(long_len, &d2->d_reclen)			||
--		    put_user(ino, &d2->d_ino)				||
--		    put_user(offset, &d2->d_off)			||
--		    copy_to_user(d1->d_name, shortname, short_len)	||
--		    put_user(0, d1->d_name + short_len)			||
--		    put_user(short_len, &d1->d_reclen))
--			goto efault;
-+	struct fat_ioctl_filldir_callback buf;
-+	int ret;
-+
-+	buf.dirent = dirent;
-+	buf.result = 0;
-+	mutex_lock(&inode->i_mutex);
-+	ret = -ENOENT;
-+	if (!IS_DEADDIR(inode)) {
-+		ret = __fat_readdir(inode, filp, &buf, filldir,
-+				    short_only, both);
- 	}
--	return 0;
--efault:
--	buf->result = -EFAULT;
--	return -EFAULT;
-+	mutex_unlock(&inode->i_mutex);
-+	if (ret >= 0)
-+		ret = buf.result;
-+	return ret;
- }
- 
--static int fat_dir_ioctl(struct inode * inode, struct file * filp,
--		  unsigned int cmd, unsigned long arg)
-+static int fat_dir_ioctl(struct inode *inode, struct file *filp,
-+			 unsigned int cmd, unsigned long arg)
- {
--	struct fat_ioctl_filldir_callback buf;
--	struct dirent __user *d1;
--	int ret, short_only, both;
-+	struct dirent __user *d1 = (struct dirent __user *)arg;
-+	int short_only, both;
- 
- 	switch (cmd) {
- 	case VFAT_IOCTL_READDIR_SHORT:
-@@ -717,7 +740,6 @@ static int fat_dir_ioctl(struct inode * 
- 		return fat_generic_ioctl(inode, filp, cmd, arg);
- 	}
- 
--	d1 = (struct dirent __user *)arg;
- 	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct dirent[2])))
- 		return -EFAULT;
- 	/*
-@@ -728,69 +750,48 @@ static int fat_dir_ioctl(struct inode * 
- 	if (put_user(0, &d1->d_reclen))
- 		return -EFAULT;
- 
--	buf.dirent = d1;
--	buf.result = 0;
--	mutex_lock(&inode->i_mutex);
--	ret = -ENOENT;
--	if (!IS_DEADDIR(inode)) {
--		ret = __fat_readdir(inode, filp, &buf, fat_ioctl_filldir,
--				    short_only, both);
--	}
--	mutex_unlock(&inode->i_mutex);
--	if (ret >= 0)
--		ret = buf.result;
--	return ret;
-+	return fat_ioctl_readdir(inode, filp, d1, fat_ioctl_filldir,
-+				 short_only, both);
- }
- 
- #ifdef CONFIG_COMPAT
- #define	VFAT_IOCTL_READDIR_BOTH32	_IOR('r', 1, struct compat_dirent[2])
- #define	VFAT_IOCTL_READDIR_SHORT32	_IOR('r', 2, struct compat_dirent[2])
- 
--static long fat_compat_put_dirent32(struct dirent *d,
--				    struct compat_dirent __user *d32)
--{
--        if (!access_ok(VERIFY_WRITE, d32, sizeof(struct compat_dirent)))
--                return -EFAULT;
-+FAT_IOCTL_FILLDIR_FUNC(fat_compat_ioctl_filldir, compat_dirent)
- 
--        __put_user(d->d_ino, &d32->d_ino);
--        __put_user(d->d_off, &d32->d_off);
--        __put_user(d->d_reclen, &d32->d_reclen);
--        if (__copy_to_user(d32->d_name, d->d_name, d->d_reclen))
--		return -EFAULT;
+-typedef struct
+-{	ULONG	arg0 ;
+-	ULONG	arg1 ;
+-	ULONG	arg2 ;
+-	ULONG	arg3 ;
+-} DbgIoctlArgs ;
 -
--        return 0;
--}
+-#define	DBG_COPY_LOGS	0	/* copy debugs to user until buffer full	*/
+-							/* arg1: size threshold						*/
+-							/* arg2: timeout in milliseconds			*/
 -
--static long fat_compat_dir_ioctl(struct file *file, unsigned cmd,
-+static long fat_compat_dir_ioctl(struct file *filp, unsigned cmd,
- 				 unsigned long arg)
- {
--	struct compat_dirent __user *p = compat_ptr(arg);
--	int ret;
--	mm_segment_t oldfs = get_fs();
--	struct dirent d[2];
-+	struct inode *inode = filp->f_path.dentry->d_inode;
-+	struct compat_dirent __user *d1 = compat_ptr(arg);
-+	int short_only, both;
- 
- 	switch (cmd) {
--	case VFAT_IOCTL_READDIR_BOTH32:
--		cmd = VFAT_IOCTL_READDIR_BOTH;
--		break;
- 	case VFAT_IOCTL_READDIR_SHORT32:
--		cmd = VFAT_IOCTL_READDIR_SHORT;
-+		short_only = 1;
-+		both = 0;
-+		break;
-+	case VFAT_IOCTL_READDIR_BOTH32:
-+		short_only = 0;
-+		both = 1;
- 		break;
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
- 
--	set_fs(KERNEL_DS);
--	lock_kernel();
--	ret = fat_dir_ioctl(file->f_path.dentry->d_inode, file,
--			    cmd, (unsigned long) &d);
--	unlock_kernel();
--	set_fs(oldfs);
--	if (ret >= 0) {
--		ret |= fat_compat_put_dirent32(&d[0], p);
--		ret |= fat_compat_put_dirent32(&d[1], p + 1);
--	}
--	return ret;
-+	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct compat_dirent[2])))
-+		return -EFAULT;
-+	/*
-+	 * Yes, we don't need this put_user() absolutely. However old
-+	 * code didn't return the right value. So, app use this value,
-+	 * in order to check whether it is EOF.
-+	 */
-+	if (put_user(0, &d1->d_reclen))
-+		return -EFAULT;
-+
-+	return fat_ioctl_readdir(inode, filp, d1, fat_compat_ioctl_filldir,
-+				 short_only, both);
- }
- #endif /* CONFIG_COMPAT */
- 
+-#define DBG_FLUSH_LOGS	1	/* flush pending debugs to user buffer		*/
+-							/* arg1: internal driver id					*/
+-
+-#define DBG_LIST_DRVS	2	/* return the list of registered drivers	*/
+-
+-#define	DBG_GET_MASK	3	/* get current debug mask of driver			*/
+-							/* arg1: internal driver id					*/
+-
+-#define	DBG_SET_MASK	4	/* set/change debug mask of driver			*/
+-							/* arg1: internal driver id					*/
+-							/* arg2: new debug mask						*/
+-
+-#define	DBG_GET_BUFSIZE	5	/* get current buffer size of driver		*/
+-							/* arg1: internal driver id					*/
+-							/* arg2: new debug mask						*/
+-
+-#define	DBG_SET_BUFSIZE	6	/* set new buffer size of driver			*/
+-							/* arg1: new buffer size					*/
+-
+-/*
+- *	common internal debug message structure
+- */
+-
+-typedef struct
+-{	unsigned short id ;		/* virtual driver id                  */
+-	unsigned short type ;	/* special message type               */
+-	unsigned long  seq ;	/* sequence number of message         */
+-	unsigned long  size ;	/* size of message in bytes           */
+-	unsigned long  next ;	/* offset to next buffered message    */
+-	LARGE_INTEGER  NTtime ;	/* 100 ns  since 1.1.1601             */
+-	unsigned char  data[4] ;/* message data                       */
+-} OldDbgMessage ;
+-
+-typedef struct
+-{	LARGE_INTEGER  NTtime ;	/* 100 ns  since 1.1.1601             */
+-	unsigned short size ;	/* size of message in bytes           */
+-	unsigned short ffff ;	/* always 0xffff to indicate new msg  */
+-	unsigned short id ;		/* virtual driver id                  */
+-	unsigned short type ;	/* special message type               */
+-	unsigned long  seq ;	/* sequence number of message         */
+-	unsigned char  data[4] ;/* message data                       */
+-} DbgMessage ;
+-
+-#endif
+-
+-#define DRV_ID_UNKNOWN		0x0C	/* for messages via prtComp() */
+-
+-#define	MSG_PROC_FLAG		0x80
+-#define	MSG_PROC_NO_GET(x)	(((x) & MSG_PROC_FLAG) ? (((x) >> 4) & 7) : -1)
+-#define	MSG_PROC_NO_SET(x)	(MSG_PROC_FLAG | (((x) & 7) << 4))
+-
+-#define MSG_TYPE_DRV_ID		0x0001
+-#define MSG_TYPE_FLAGS		0x0002
+-#define MSG_TYPE_STRING		0x0003
+-#define MSG_TYPE_BINARY		0x0004
+-
+-#define MSG_HEAD_SIZE	((unsigned long)&(((DbgMessage *)0)->data[0]))
+-#define MSG_ALIGN(len)	(((unsigned long)(len) + MSG_HEAD_SIZE + 3) & ~3)
+-#define MSG_SIZE(pMsg)	MSG_ALIGN((pMsg)->size)
+-#define MSG_NEXT(pMsg)	((DbgMessage *)( ((char *)(pMsg)) + MSG_SIZE(pMsg) ))
+-
+-#define OLD_MSG_HEAD_SIZE	((unsigned long)&(((OldDbgMessage *)0)->data[0]))
+-#define OLD_MSG_ALIGN(len)	(((unsigned long)(len)+OLD_MSG_HEAD_SIZE+3) & ~3)
+-
+-/*
+- * manifest constants
+- */
+-
+-#define MSG_FRAME_MAX_SIZE	2150		/* maximum size of B1 frame	 */
+-#define MSG_TEXT_MAX_SIZE	1024		/* maximum size of msg text	 */
+-#define MSG_MAX_SIZE		MSG_ALIGN(MSG_FRAME_MAX_SIZE)
+-#define DBG_MIN_BUFFER_SIZE	0x00008000	/* minimal total buffer size  32 KB */
+-#define DBG_DEF_BUFFER_SIZE	0x00020000	/* default total buffer size 128 KB */
+-#define DBG_MAX_BUFFER_SIZE	0x00400000	/* maximal total buffer size   4 MB */
+-
+-#define DBGDRV_NAME		"Diehl_DIMAINT"
+-#define UNIDBG_DRIVER	L"\\Device\\Diehl_DIMAINT" /* UNICODE name for kernel */
+-#define DEBUG_DRIVER	"\\\\.\\" DBGDRV_NAME  /* traditional string for apps */
+-#define DBGVXD_NAME		"DIMAINT"
+-#define DEBUG_VXD		"\\\\.\\" DBGVXD_NAME  /* traditional string for apps */
+-
+-/*
+- *	Special IDI interface debug construction
+- */
+-
+-#define	DBG_IDI_SIG_REQ		(unsigned long)0xF479C402
+-#define	DBG_IDI_SIG_IND		(unsigned long)0xF479C403
+-#define	DBG_IDI_NL_REQ		(unsigned long)0xF479C404
+-#define	DBG_IDI_NL_IND		(unsigned long)0xF479C405
+-
+-typedef struct
+-{	unsigned long  magic_type ;
+-	unsigned short data_len ;
+-	unsigned char  layer_ID ;
+-	unsigned char  entity_ID ;
+-	unsigned char  request ;
+-	unsigned char  ret_code ;
+-	unsigned char  indication ;
+-	unsigned char  complete ;
+-	unsigned char  data[4] ;
+-} DbgIdiAct, *DbgIdiAction ;
+-
+-/*
+- * We want to use the same IOCTL codes in Win95 and WinNT.
+- * The official constructor for IOCTL codes is the CTL_CODE macro
+- * from <winoctl.h> (<devioctl.h> in WinNT DDK environment).
+- * The problem here is that we don't know how to get <winioctl.h>
+- * working in a Win95 DDK environment!
+- */
+-
+-# ifdef CTL_CODE	/*{*/
+-
+-/* Assert that we have the same idea of the CTL_CODE macro.	*/
+-
+-#define CTL_CODE( DeviceType, Function, Method, Access ) (                 \
+-    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
+-)
+-
+-# else	/* !CTL_CODE */ /*}{*/
+-
+-/* Use the definitions stolen from <winioctl.h>.  */
+-
+-#define CTL_CODE( DeviceType, Function, Method, Access ) (                 \
+-    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
+-)
+-
+-#define METHOD_BUFFERED                 0
+-#define METHOD_IN_DIRECT                1
+-#define METHOD_OUT_DIRECT               2
+-#define METHOD_NEITHER                  3
+-
+-#define FILE_ANY_ACCESS                 0
+-#define FILE_READ_ACCESS          ( 0x0001 )    // file & pipe
+-#define FILE_WRITE_ACCESS         ( 0x0002 )    // file & pipe
+-
+-# endif	/* CTL_CODE */ /*}*/
+-
+-/*
+- * Now we can define WinNT/Win95 DeviceIoControl codes.
+- *
+- * These codes are defined in di_defs.h too, a possible mismatch will be
+- * detected when the dbgtool is compiled.
+- */
+-
+-#define IOCTL_DRIVER_LNK \
+-	CTL_CODE(0x8001U,0x701,METHOD_OUT_DIRECT,FILE_ANY_ACCESS)
+-#define IOCTL_DRIVER_DBG \
+-	CTL_CODE(0x8001U,0x702,METHOD_OUT_DIRECT,FILE_ANY_ACCESS)
+-
+-#endif /* __DBGIOCTL_H__ */
+diff -puN drivers/isdn/hardware/eicon/main_if.h~drivers-isdn-hardware-eicon-remove-unused-header-files /dev/null
+--- a/drivers/isdn/hardware/eicon/main_if.h
++++ /dev/null
+@@ -1,50 +0,0 @@
+-/*
+- *
+-  Copyright (c) Eicon Technology Corporation, 2000.
+- *
+-  This source file is supplied for the use with Eicon
+-  Technology Corporation's range of DIVA Server Adapters.
+- *
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 2, or (at your option)
+-  any later version.
+- *
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
+-  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+-  See the GNU General Public License for more details.
+- *
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-/*------------------------------------------------------------------*/
+-/* file: main_if.h                                                  */
+-/*------------------------------------------------------------------*/
+-# ifndef MAIN_IF___H
+-# define MAIN_IF___H
+-
+-# include "debug_if.h"
+-
+-void  DI_lock (void) ;
+-void  DI_unlock (void) ;
+-
+-#ifdef NOT_YET_NEEDED
+-void  DI_nttime (LARGE_INTEGER *NTtime) ;
+-void  DI_ntlcltime(LARGE_INTEGER *NTtime, LARGE_INTEGER *lclNTtime) ;
+-void  DI_nttimefields(LARGE_INTEGER *NTtime, TIME_FIELDS *TimeFields);
+-unsigned long  DI_wintime(LARGE_INTEGER *NTtime) ;
+-
+-unsigned short  DiInsertProcessorNumber (int type) ;
+-void DiProcessEventLog (unsigned short id, unsigned long msgID, va_list ap);
+-
+-void  StartIoctlTimer (void (*Handler)(void), unsigned long msec) ;
+-void  StopIoctlTimer (void) ;
+-void  UnpendIoctl (DbgRequest *pDbgReq) ;
+-#endif
+-
+-void add_to_q(int, char* , unsigned int);
+-# endif /* MAIN_IF___H */
+-
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from armin@melware.de are
 
 origin.patch
