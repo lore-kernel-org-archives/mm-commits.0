@@ -1,72 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - vfb-use-sys-instead-of-cfb-drawing-functions.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:21 -0700
-Message-ID: <200705090301.l4931LcR010681@shell0.pdx.osdl.net>
+Subject: - arcfb-kill-sparse-warning.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:02 -0700
+Message-ID: <200705090301.l49312Cq010640@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33699 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033194AbXEIDBZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:25 -0400
+	by vger.kernel.org with ESMTP id S1032933AbXEIDBE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfb: use sys instead of cfb drawing functions
+     arcfb: kill sparse warning
 has been removed from the -mm tree.  Its filename was
-     vfb-use-sys-instead-of-cfb-drawing-functions.patch
+     arcfb-kill-sparse-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vfb: use sys instead of cfb drawing functions
+Subject: arcfb: kill sparse warning
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Since vfb's framebuffer is vmalloc'ed, use the sys_* drawing functions
-instead of cfb_*.
+The framebuffer memory is allocated from system RAM (vmalloc'ed). Add __force
+annotations.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    6 +++---
- drivers/video/vfb.c   |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/arcfb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/Kconfig~vfb-use-sys-instead-of-cfb-drawing-functions drivers/video/Kconfig
---- a/drivers/video/Kconfig~vfb-use-sys-instead-of-cfb-drawing-functions
-+++ a/drivers/video/Kconfig
-@@ -1733,9 +1733,9 @@ config FB_PS3_DEFAULT_SIZE_M
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
- 	depends on FB
--	select FB_CFB_FILLRECT
--	select FB_CFB_COPYAREA
--	select FB_CFB_IMAGEBLIT
-+	select FB_SYS_FILLRECT
-+	select FB_SYS_COPYAREA
-+	select FB_SYS_IMAGEBLIT
- 	---help---
- 	  This is a `virtual' frame buffer device. It operates on a chunk of
- 	  unswappable kernel memory instead of on the memory of a graphics
-diff -puN drivers/video/vfb.c~vfb-use-sys-instead-of-cfb-drawing-functions drivers/video/vfb.c
---- a/drivers/video/vfb.c~vfb-use-sys-instead-of-cfb-drawing-functions
-+++ a/drivers/video/vfb.c
-@@ -88,9 +88,9 @@ static struct fb_ops vfb_ops = {
- 	.fb_set_par	= vfb_set_par,
- 	.fb_setcolreg	= vfb_setcolreg,
- 	.fb_pan_display	= vfb_pan_display,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
-+	.fb_fillrect	= sys_fillrect,
-+	.fb_copyarea	= sys_copyarea,
-+	.fb_imageblit	= sys_imageblit,
- 	.fb_mmap	= vfb_mmap,
- };
+diff -puN drivers/video/arcfb.c~arcfb-kill-sparse-warning drivers/video/arcfb.c
+--- a/drivers/video/arcfb.c~arcfb-kill-sparse-warning
++++ a/drivers/video/arcfb.c
+@@ -262,7 +262,8 @@ static void arcfb_lcd_update_page(struct
+ 	ks108_set_yaddr(par, chipindex, upper/8);
  
+ 	linesize = par->info->var.xres/8;
+-	src = par->info->screen_base + (left/8) + (upper * linesize);
++	src = (unsigned char __force *) par->info->screen_base + (left/8) +
++		(upper * linesize);
+ 	ks108_set_xaddr(par, chipindex, left);
+ 
+ 	bitmask=1;
+@@ -477,7 +478,7 @@ static ssize_t arcfb_write(struct file *
+ 	if (count) {
+ 		char *base_addr;
+ 
+-		base_addr = info->screen_base;
++		base_addr = (char __force *)info->screen_base;
+ 		count -= copy_from_user(base_addr + p, buf, count);
+ 		*ppos += count;
+ 		err = -EFAULT;
+@@ -603,7 +604,7 @@ static int arcfb_remove(struct platform_
+ 
+ 	if (info) {
+ 		unregister_framebuffer(info);
+-		vfree(info->screen_base);
++		vfree((void __force *)info->screen_base);
+ 		framebuffer_release(info);
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
