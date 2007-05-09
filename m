@@ -1,178 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: - layered-parport-code-uses-parport-dev.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:47:54 -0700
-Message-ID: <200705090247.l492lsZH009032@shell0.pdx.osdl.net>
+Subject: - add-support-for-deferrable-timers-respun.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:57 -0700
+Message-ID: <200705090247.l492lvG6009037@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57423 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934870AbXEICsT (ORCPT
+	by vger.kernel.org with ESMTP id S934873AbXEICsT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     layered parport code uses parport->dev
+     Add support for deferrable timers
 has been removed from the -mm tree.  Its filename was
-     layered-parport-code-uses-parport-dev.patch
+     add-support-for-deferrable-timers-respun.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: layered parport code uses parport->dev
-From: David Brownell <david-b@pacbell.net>
+Subject: Add support for deferrable timers
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Update some of the layered parport_driver code to use parport->dev:
+Introduce a new flag for timers - deferrable: Timers that work normally
+when system is busy.  But, will not cause CPU to come out of idle (just to
+service this timer), when CPU is idle.  Instead, this timer will be
+serviced when CPU eventually wakes up with a subsequent non-deferrable
+timer.
 
-	- i2c-parport (parent of i2c_adapter)
-	- spi_butterfly (parent of spi_master, allowing cruft removal)
-	- lp (creating class_device)
-	- ppdev (parent of parportN device)
-	- tipar (creating class_device)
+The main advantage of this is to avoid unnecessary timer interrupts when
+CPU is idle.  If the routine currently called by a timer can wait until
+next event without any issues, this new timer can be used to setup timer
+event for that routine.  This, with dynticks, allows CPUs to be lazy,
+allowing them to stay in idle for extended period of time by reducing
+unnecesary wakeup and thereby reducing the power consumption.
 
-There are still drivers that should be updated, like some of the input
-drivers; but they won't be any worse off than they are today.
+This patch:
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Builds this new timer on top of existing timer infrastructure.  It uses
+last bit in 'base' pointer of timer_list structure to store this deferrable
+timer flag.  __next_timer_interrupt() function skips over these deferrable
+timers when CPU looks for next timer event for which it has to wake up.
+
+This is exported by a new interface init_timer_deferrable() that can be
+called in place of regular init_timer().
+
+[akpm@linux-foundation.org: Privatise a #define]
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lp.c                |    2 +-
- drivers/char/ppdev.c             |    2 +-
- drivers/char/tipar.c             |    2 +-
- drivers/i2c/busses/i2c-parport.c |    1 +
- drivers/spi/spi_butterfly.c      |   21 ++++-----------------
- 5 files changed, 8 insertions(+), 20 deletions(-)
+ include/linux/timer.h |    1 
+ kernel/timer.c        |   65 +++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 58 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/lp.c~layered-parport-code-uses-parport-dev drivers/char/lp.c
---- a/drivers/char/lp.c~layered-parport-code-uses-parport-dev
-+++ a/drivers/char/lp.c
-@@ -803,7 +803,7 @@ static int lp_register(int nr, struct pa
- 	if (reset)
- 		lp_reset(nr);
+diff -puN include/linux/timer.h~add-support-for-deferrable-timers-respun include/linux/timer.h
+--- a/include/linux/timer.h~add-support-for-deferrable-timers-respun
++++ a/include/linux/timer.h
+@@ -37,6 +37,7 @@ extern struct tvec_t_base_s boot_tvec_ba
+ 		TIMER_INITIALIZER(_function, _expires, _data)
  
--	class_device_create(lp_class, NULL, MKDEV(LP_MAJOR, nr), NULL,
-+	class_device_create(lp_class, NULL, MKDEV(LP_MAJOR, nr), port->dev,
- 				"lp%d", nr);
+ void fastcall init_timer(struct timer_list * timer);
++void fastcall init_timer_deferrable(struct timer_list *timer);
  
- 	printk(KERN_INFO "lp%d: using %s (%s).\n", nr, port->name, 
-diff -puN drivers/char/ppdev.c~layered-parport-code-uses-parport-dev drivers/char/ppdev.c
---- a/drivers/char/ppdev.c~layered-parport-code-uses-parport-dev
-+++ a/drivers/char/ppdev.c
-@@ -752,7 +752,7 @@ static const struct file_operations pp_f
+ static inline void setup_timer(struct timer_list * timer,
+ 				void (*function)(unsigned long),
+diff -puN kernel/timer.c~add-support-for-deferrable-timers-respun kernel/timer.c
+--- a/kernel/timer.c~add-support-for-deferrable-timers-respun
++++ a/kernel/timer.c
+@@ -74,7 +74,7 @@ struct tvec_t_base_s {
+ 	tvec_t tv3;
+ 	tvec_t tv4;
+ 	tvec_t tv5;
+-} ____cacheline_aligned_in_smp;
++} ____cacheline_aligned;
  
- static void pp_attach(struct parport *port)
- {
--	device_create(ppdev_class, NULL, MKDEV(PP_MAJOR, port->number),
-+	device_create(ppdev_class, port->dev, MKDEV(PP_MAJOR, port->number),
- 			"parport%d", port->number);
+ typedef struct tvec_t_base_s tvec_base_t;
+ 
+@@ -82,6 +82,37 @@ tvec_base_t boot_tvec_bases;
+ EXPORT_SYMBOL(boot_tvec_bases);
+ static DEFINE_PER_CPU(tvec_base_t *, tvec_bases) = &boot_tvec_bases;
+ 
++/*
++ * Note that all tvec_bases is 2 byte aligned and lower bit of
++ * base in timer_list is guaranteed to be zero. Use the LSB for
++ * the new flag to indicate whether the timer is deferrable
++ */
++#define TBASE_DEFERRABLE_FLAG		(0x1)
++
++/* Functions below help us manage 'deferrable' flag */
++static inline unsigned int tbase_get_deferrable(tvec_base_t *base)
++{
++	return ((unsigned int)(unsigned long)base & TBASE_DEFERRABLE_FLAG);
++}
++
++static inline tvec_base_t *tbase_get_base(tvec_base_t *base)
++{
++	return ((tvec_base_t *)((unsigned long)base & ~TBASE_DEFERRABLE_FLAG));
++}
++
++static inline void timer_set_deferrable(struct timer_list *timer)
++{
++	timer->base = ((tvec_base_t *)((unsigned long)(timer->base) |
++	                               TBASE_DEFERRABLE_FLAG));
++}
++
++static inline void
++timer_set_base(struct timer_list *timer, tvec_base_t *new_base)
++{
++	timer->base = (tvec_base_t *)((unsigned long)(new_base) |
++	                              tbase_get_deferrable(timer->base));
++}
++
+ /**
+  * __round_jiffies - function to round jiffies to a full second
+  * @j: the time in (absolute) jiffies that should be rounded
+@@ -295,6 +326,13 @@ void fastcall init_timer(struct timer_li
  }
+ EXPORT_SYMBOL(init_timer);
  
-diff -puN drivers/char/tipar.c~layered-parport-code-uses-parport-dev drivers/char/tipar.c
---- a/drivers/char/tipar.c~layered-parport-code-uses-parport-dev
-+++ a/drivers/char/tipar.c
-@@ -442,7 +442,7 @@ tipar_register(int nr, struct parport *p
++void fastcall init_timer_deferrable(struct timer_list *timer)
++{
++	init_timer(timer);
++	timer_set_deferrable(timer);
++}
++EXPORT_SYMBOL(init_timer_deferrable);
++
+ static inline void detach_timer(struct timer_list *timer,
+ 				int clear_pending)
+ {
+@@ -325,10 +363,11 @@ static tvec_base_t *lock_timer_base(stru
+ 	tvec_base_t *base;
+ 
+ 	for (;;) {
+-		base = timer->base;
++		tvec_base_t *prelock_base = timer->base;
++		base = tbase_get_base(prelock_base);
+ 		if (likely(base != NULL)) {
+ 			spin_lock_irqsave(&base->lock, *flags);
+-			if (likely(base == timer->base))
++			if (likely(prelock_base == timer->base))
+ 				return base;
+ 			/* The timer has migrated to another CPU */
+ 			spin_unlock_irqrestore(&base->lock, *flags);
+@@ -365,11 +404,11 @@ int __mod_timer(struct timer_list *timer
+ 		 */
+ 		if (likely(base->running_timer != timer)) {
+ 			/* See the comment in lock_timer_base() */
+-			timer->base = NULL;
++			timer_set_base(timer, NULL);
+ 			spin_unlock(&base->lock);
+ 			base = new_base;
+ 			spin_lock(&base->lock);
+-			timer->base = base;
++			timer_set_base(timer, base);
+ 		}
  	}
  
- 	class_device_create(tipar_class, NULL, MKDEV(TIPAR_MAJOR,
--			TIPAR_MINOR + nr), NULL, "par%d", nr);
-+			TIPAR_MINOR + nr), port->dev, "par%d", nr);
- 
- 	/* Display informations */
- 	pr_info("tipar%d: using %s (%s)\n", nr, port->name, (port->irq ==
-diff -puN drivers/i2c/busses/i2c-parport.c~layered-parport-code-uses-parport-dev drivers/i2c/busses/i2c-parport.c
---- a/drivers/i2c/busses/i2c-parport.c~layered-parport-code-uses-parport-dev
-+++ a/drivers/i2c/busses/i2c-parport.c
-@@ -175,6 +175,7 @@ static void i2c_parport_attach (struct p
- 	}
- 	adapter->algo_data.data = port;
- 	adapter->adapter.algo_data = &adapter->algo_data;
-+	adapter->adapter.dev.parent = port->physport->dev;
- 
- 	if (parport_claim_or_block(adapter->pdev) < 0) {
- 		printk(KERN_ERR "i2c-parport: Could not claim parallel port\n");
-diff -puN drivers/spi/spi_butterfly.c~layered-parport-code-uses-parport-dev drivers/spi/spi_butterfly.c
---- a/drivers/spi/spi_butterfly.c~layered-parport-code-uses-parport-dev
-+++ a/drivers/spi/spi_butterfly.c
-@@ -20,7 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/delay.h>
--#include <linux/platform_device.h>
-+#include <linux/device.h>
- #include <linux/parport.h>
- 
- #include <linux/sched.h>
-@@ -237,24 +237,16 @@ static void butterfly_attach(struct parp
- 	int			status;
- 	struct butterfly	*pp;
- 	struct spi_master	*master;
--	struct platform_device	*pdev;
-+	struct device		*dev = p->physport->dev;
- 
--	if (butterfly)
-+	if (butterfly || !dev)
- 		return;
- 
- 	/* REVISIT:  this just _assumes_ a butterfly is there ... no probe,
- 	 * and no way to be selective about what it binds to.
+@@ -397,7 +436,7 @@ void add_timer_on(struct timer_list *tim
+ 	timer_stats_timer_set_start_info(timer);
+   	BUG_ON(timer_pending(timer) || !timer->function);
+ 	spin_lock_irqsave(&base->lock, flags);
+-	timer->base = base;
++	timer_set_base(timer, base);
+ 	internal_add_timer(base, timer);
+ 	spin_unlock_irqrestore(&base->lock, flags);
+ }
+@@ -550,7 +589,7 @@ static int cascade(tvec_base_t *base, tv
+ 	 * don't have to detach them individually.
  	 */
+ 	list_for_each_entry_safe(timer, tmp, &tv_list, entry) {
+-		BUG_ON(timer->base != base);
++		BUG_ON(tbase_get_base(timer->base) != base);
+ 		internal_add_timer(base, timer);
+ 	}
  
--	/* FIXME where should master->cdev.dev come from?
--	 * e.g. /sys/bus/pnp0/00:0b, some PCI thing, etc
--	 * setting up a platform device like this is an ugly kluge...
--	 */
--	pdev = platform_device_register_simple("butterfly", -1, NULL, 0);
--	if (IS_ERR(pdev))
--		return;
--
--	master = spi_alloc_master(&pdev->dev, sizeof *pp);
-+	master = spi_alloc_master(dev, sizeof *pp);
- 	if (!master) {
- 		status = -ENOMEM;
- 		goto done;
-@@ -366,14 +358,12 @@ clean1:
- clean0:
- 	(void) spi_master_put(pp->bitbang.master);
- done:
--	platform_device_unregister(pdev);
- 	pr_debug("%s: butterfly probe, fail %d\n", p->name, status);
+@@ -636,6 +675,9 @@ static unsigned long __next_timer_interr
+ 	index = slot = timer_jiffies & TVR_MASK;
+ 	do {
+ 		list_for_each_entry(nte, base->tv1.vec + slot, entry) {
++ 			if (tbase_get_deferrable(nte->base))
++ 				continue;
++
+ 			found = 1;
+ 			expires = nte->expires;
+ 			/* Look at the cascade bucket(s)? */
+@@ -1617,6 +1659,13 @@ static int __devinit init_timers_cpu(int
+ 						cpu_to_node(cpu));
+ 			if (!base)
+ 				return -ENOMEM;
++
++			/* Make sure that tvec_base is 2 byte aligned */
++			if (tbase_get_deferrable(base)) {
++				WARN_ON(1);
++				kfree(base);
++				return -ENOMEM;
++			}
+ 			memset(base, 0, sizeof(*base));
+ 			per_cpu(tvec_bases, cpu) = base;
+ 		} else {
+@@ -1658,7 +1707,7 @@ static void migrate_timer_list(tvec_base
+ 	while (!list_empty(head)) {
+ 		timer = list_entry(head->next, struct timer_list, entry);
+ 		detach_timer(timer, 0);
+-		timer->base = new_base;
++		timer_set_base(timer, new_base);
+ 		internal_add_timer(new_base, timer);
+ 	}
  }
- 
- static void butterfly_detach(struct parport *p)
- {
- 	struct butterfly	*pp;
--	struct platform_device	*pdev;
- 	int			status;
- 
- 	/* FIXME this global is ugly ... but, how to quickly get from
-@@ -386,7 +376,6 @@ static void butterfly_detach(struct parp
- 	butterfly = NULL;
- 
- 	/* stop() unregisters child devices too */
--	pdev = to_platform_device(pp->bitbang.master->cdev.dev);
- 	status = spi_bitbang_stop(&pp->bitbang);
- 
- 	/* turn off VCC */
-@@ -397,8 +386,6 @@ static void butterfly_detach(struct parp
- 	parport_unregister_device(pp->pd);
- 
- 	(void) spi_master_put(pp->bitbang.master);
--
--	platform_device_unregister(pdev);
- }
- 
- static struct parport_driver butterfly_driver = {
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
-atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
+git-acpi.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
