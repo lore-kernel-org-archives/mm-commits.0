@@ -1,318 +1,494 @@
 From: akpm@linux-foundation.org
-Subject: - dm-io-remove-old-interface.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:49:06 -0700
-Message-ID: <200705092149.l49Ln66L002665@shell0.pdx.osdl.net>
+Subject: - dm-delay-target.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:49:10 -0700
+Message-ID: <200705092149.l49LnAOQ002673@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52393 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758761AbXEIVtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:49:42 -0400
+	by vger.kernel.org with ESMTP id S1758862AbXEIVtj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:49:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mbroz@redhat.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: mauelshagen@redhat.com, agk@redhat.com, mbroz@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm io: remove old interface
+     dm: delay target
 has been removed from the -mm tree.  Its filename was
-     dm-io-remove-old-interface.patch
+     dm-delay-target.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm io: remove old interface
-From: Milan Broz <mbroz@redhat.com>
+Subject: dm: delay target
+From: Heinz Mauelshagen <mauelshagen@redhat.com>
 
-Remove old dm-io interface.
+New device-mapper target that can delay I/O (for testing).  Reads can be
+separated from writes, redirected to different underlying devices and delayed
+by differing amounts of time.
 
+Signed-off-by: Heinz Mauelshagen <mauelshagen@redhat.com>
 Signed-off-by: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-io.c |  131 +------------------------------------------
- drivers/md/dm-io.h |   51 ----------------
- 2 files changed, 7 insertions(+), 175 deletions(-)
+ Documentation/device-mapper/delay.txt |   26 +
+ drivers/md/Kconfig                    |    9 
+ drivers/md/Makefile                   |    1 
+ drivers/md/dm-delay.c                 |  383 ++++++++++++++++++++++++
+ 4 files changed, 419 insertions(+)
 
-diff -puN drivers/md/dm-io.c~dm-io-remove-old-interface drivers/md/dm-io.c
---- a/drivers/md/dm-io.c~dm-io-remove-old-interface
-+++ a/drivers/md/dm-io.c
-@@ -13,8 +13,6 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
+diff -puN /dev/null Documentation/device-mapper/delay.txt
+--- /dev/null
++++ a/Documentation/device-mapper/delay.txt
+@@ -0,0 +1,26 @@
++dm-delay
++========
++
++Device-Mapper's "delay" target delays reads and/or writes
++and maps them to different devices.
++
++Parameters:
++    <device> <offset> <delay> [<write_device> <write_offset> <write_delay>]
++
++With separate write parameters, the first set is only used for reads.
++Delays are specified in milliseconds.
++
++Example scripts
++===============
++[[
++#!/bin/sh
++# Create device delaying rw operation for 500ms
++echo "0 `blockdev --getsize $1` delay $1 0 500" | dmsetup create delayed
++]]
++
++[[
++#!/bin/sh
++# Create device delaying only write operation for 500ms and
++# splitting reads and writes to different devices $1 $2
++echo "0 `blockdev --getsize $1` delay $1 0 0 $2 0 500" | dmsetup create delayed
++]]
+diff -puN drivers/md/Kconfig~dm-delay-target drivers/md/Kconfig
+--- a/drivers/md/Kconfig~dm-delay-target
++++ a/drivers/md/Kconfig
+@@ -262,6 +262,15 @@ config DM_MULTIPATH_EMC
+ 	---help---
+ 	  Multipath support for EMC CX/AX series hardware.
  
--static struct bio_set *_bios;
--
- struct dm_io_client {
- 	mempool_t *pool;
- 	struct bio_set *bios;
-@@ -35,74 +33,12 @@ struct io {
-  * io.  Since async io is likely to be the majority of io we'll
-  * have the same number of io contexts as bios! (FIXME: must reduce this).
-  */
--static unsigned _num_ios;
--static mempool_t *_io_pool;
--
--/*
-- * Temporary functions to allow old and new interfaces to co-exist.
-- */
--static struct bio_set *bios(struct dm_io_client *client)
--{
--	return client ? client->bios : _bios;
--}
--
--static mempool_t *io_pool(struct dm_io_client *client)
--{
--	return client ? client->pool : _io_pool;
--}
++config DM_DELAY
++	tristate "I/O delaying target (EXPERIMENTAL)"
++	depends on BLK_DEV_DM && EXPERIMENTAL
++	---help---
++	A target that delays reads and/or writes and can send
++	them to different devices.  Useful for testing.
++
++	If unsure, say N.
++
+ endmenu
  
- static unsigned int pages_to_ios(unsigned int pages)
- {
- 	return 4 * pages;	/* too many ? */
- }
- 
--static int resize_pool(unsigned int new_ios)
--{
--	int r = 0;
--
--	if (_io_pool) {
--		if (new_ios == 0) {
--			/* free off the pool */
--			mempool_destroy(_io_pool);
--			_io_pool = NULL;
--			bioset_free(_bios);
--
--		} else {
--			/* resize the pool */
--			r = mempool_resize(_io_pool, new_ios, GFP_KERNEL);
--		}
--
--	} else {
--		/* create new pool */
--		_io_pool = mempool_create_kmalloc_pool(new_ios,
--						       sizeof(struct io));
--		if (!_io_pool)
--			return -ENOMEM;
--
--		_bios = bioset_create(16, 16);
--		if (!_bios) {
--			mempool_destroy(_io_pool);
--			_io_pool = NULL;
--			return -ENOMEM;
--		}
--	}
--
--	if (!r)
--		_num_ios = new_ios;
--
--	return r;
--}
--
--int dm_io_get(unsigned int num_pages)
--{
--	return resize_pool(_num_ios + pages_to_ios(num_pages));
--}
--
--void dm_io_put(unsigned int num_pages)
--{
--	resize_pool(_num_ios - pages_to_ios(num_pages));
--}
--
- /*
-  * Create a client with mempool and bioset.
-  */
-@@ -182,7 +118,7 @@ static void dec_count(struct io *io, uns
- 			io_notify_fn fn = io->callback;
- 			void *context = io->context;
- 
--			mempool_free(io, io_pool(io->client));
-+			mempool_free(io, io->client->pool);
- 			fn(r, context);
- 		}
- 	}
-@@ -310,7 +246,7 @@ static void dm_bio_destructor(struct bio
- {
- 	struct io *io = bio->bi_private;
- 
--	bio_free(bio, bios(io->client));
-+	bio_free(bio, io->client->bios);
- }
- 
- /*
-@@ -358,7 +294,7 @@ static void do_region(int rw, unsigned i
- 		 * to hide it from bio_add_page().
- 		 */
- 		num_bvecs = (remaining / (PAGE_SIZE >> SECTOR_SHIFT)) + 2;
--		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, bios(io->client));
-+		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, io->client->bios);
- 		bio->bi_sector = where->sector + (where->count - remaining);
- 		bio->bi_bdev = where->bdev;
- 		bio->bi_end_io = endio;
-@@ -462,7 +398,7 @@ static int async_io(struct dm_io_client 
- 		return -EIO;
- 	}
- 
--	io = mempool_alloc(io_pool(client), GFP_NOIO);
-+	io = mempool_alloc(client->pool, GFP_NOIO);
- 	io->error = 0;
- 	atomic_set(&io->count, 1); /* see dispatch_io() */
- 	io->sleeper = NULL;
-@@ -474,56 +410,6 @@ static int async_io(struct dm_io_client 
- 	return 0;
- }
- 
--int dm_io_sync(unsigned int num_regions, struct io_region *where, int rw,
--	       struct page_list *pl, unsigned int offset,
--	       unsigned long *error_bits)
--{
--	struct dpages dp;
--	list_dp_init(&dp, pl, offset);
--	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
--}
--
--int dm_io_sync_bvec(unsigned int num_regions, struct io_region *where, int rw,
--		    struct bio_vec *bvec, unsigned long *error_bits)
--{
--	struct dpages dp;
--	bvec_dp_init(&dp, bvec);
--	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
--}
--
--int dm_io_sync_vm(unsigned int num_regions, struct io_region *where, int rw,
--		  void *data, unsigned long *error_bits)
--{
--	struct dpages dp;
--	vm_dp_init(&dp, data);
--	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
--}
--
--int dm_io_async(unsigned int num_regions, struct io_region *where, int rw,
--		struct page_list *pl, unsigned int offset,
--		io_notify_fn fn, void *context)
--{
--	struct dpages dp;
--	list_dp_init(&dp, pl, offset);
--	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
--}
--
--int dm_io_async_bvec(unsigned int num_regions, struct io_region *where, int rw,
--		     struct bio_vec *bvec, io_notify_fn fn, void *context)
--{
--	struct dpages dp;
--	bvec_dp_init(&dp, bvec);
--	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
--}
--
--int dm_io_async_vm(unsigned int num_regions, struct io_region *where, int rw,
--		   void *data, io_notify_fn fn, void *context)
--{
--	struct dpages dp;
--	vm_dp_init(&dp, data);
--	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
--}
--
- static int dp_init(struct dm_io_request *io_req, struct dpages *dp)
- {
- 	/* Set up dpages based on memory type */
-@@ -572,12 +458,3 @@ int dm_io(struct dm_io_request *io_req, 
- 			&dp, io_req->notify.fn, io_req->notify.context);
- }
- EXPORT_SYMBOL(dm_io);
--
--EXPORT_SYMBOL(dm_io_get);
--EXPORT_SYMBOL(dm_io_put);
--EXPORT_SYMBOL(dm_io_sync);
--EXPORT_SYMBOL(dm_io_async);
--EXPORT_SYMBOL(dm_io_sync_bvec);
--EXPORT_SYMBOL(dm_io_async_bvec);
--EXPORT_SYMBOL(dm_io_sync_vm);
--EXPORT_SYMBOL(dm_io_async_vm);
-diff -puN drivers/md/dm-io.h~dm-io-remove-old-interface drivers/md/dm-io.h
---- a/drivers/md/dm-io.h~dm-io-remove-old-interface
-+++ a/drivers/md/dm-io.h
-@@ -12,7 +12,7 @@
- struct io_region {
- 	struct block_device *bdev;
- 	sector_t sector;
--	sector_t count;
-+	sector_t count;		/* If this is zero the region is ignored. */
- };
- 
- struct page_list {
-@@ -20,10 +20,6 @@ struct page_list {
- 	struct page *page;
- };
- 
--/*
-- * 'error' is a bitset, with each bit indicating whether an error
-- * occurred doing io to the corresponding region.
-- */
- typedef void (*io_notify_fn)(unsigned long error, void *context);
- 
- enum dm_io_mem_type {
-@@ -63,16 +59,6 @@ struct dm_io_request {
- };
- 
- /*
-- * Before anyone uses the IO interface they should call
-- * dm_io_get(), specifying roughly how many pages they are
-- * expecting to perform io on concurrently.
-- *
-- * This function may block.
-- */
--int dm_io_get(unsigned int num_pages);
--void dm_io_put(unsigned int num_pages);
--
--/*
-  * For async io calls, users can alternatively use the dm_io() function below
-  * and dm_io_client_create() to create private mempools for the client.
-  *
-@@ -83,40 +69,9 @@ int dm_io_client_resize(unsigned num_pag
- void dm_io_client_destroy(struct dm_io_client *client);
- 
- /*
-- * Synchronous IO.
-- *
-- * Please ensure that the rw flag in the next two functions is
-- * either READ or WRITE, ie. we don't take READA.  Any
-- * regions with a zero count field will be ignored.
-- */
--int dm_io_sync(unsigned int num_regions, struct io_region *where, int rw,
--	       struct page_list *pl, unsigned int offset,
--	       unsigned long *error_bits);
--
--int dm_io_sync_bvec(unsigned int num_regions, struct io_region *where, int rw,
--		    struct bio_vec *bvec, unsigned long *error_bits);
--
--int dm_io_sync_vm(unsigned int num_regions, struct io_region *where, int rw,
--		  void *data, unsigned long *error_bits);
--
--/*
-- * Aynchronous IO.
-- *
-- * The 'where' array may be safely allocated on the stack since
-- * the function takes a copy.
-- */
--int dm_io_async(unsigned int num_regions, struct io_region *where, int rw,
--		struct page_list *pl, unsigned int offset,
--		io_notify_fn fn, void *context);
--
--int dm_io_async_bvec(unsigned int num_regions, struct io_region *where, int rw,
--		     struct bio_vec *bvec, io_notify_fn fn, void *context);
--
--int dm_io_async_vm(unsigned int num_regions, struct io_region *where, int rw,
--		   void *data, io_notify_fn fn, void *context);
--
--/*
-  * IO interface using private per-client pools.
-+ * Each bit in the optional 'sync_error_bits' bitset indicates whether an
-+ * error occurred doing io to the corresponding region.
-  */
- int dm_io(struct dm_io_request *io_req, unsigned num_regions,
- 	  struct io_region *region, unsigned long *sync_error_bits);
+ endif
+diff -puN drivers/md/Makefile~dm-delay-target drivers/md/Makefile
+--- a/drivers/md/Makefile~dm-delay-target
++++ a/drivers/md/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_MD_FAULTY)		+= faulty.o
+ obj-$(CONFIG_BLK_DEV_MD)	+= md-mod.o
+ obj-$(CONFIG_BLK_DEV_DM)	+= dm-mod.o
+ obj-$(CONFIG_DM_CRYPT)		+= dm-crypt.o
++obj-$(CONFIG_DM_DELAY)		+= dm-delay.o
+ obj-$(CONFIG_DM_MULTIPATH)	+= dm-multipath.o dm-round-robin.o
+ obj-$(CONFIG_DM_MULTIPATH_EMC)	+= dm-emc.o
+ obj-$(CONFIG_DM_SNAPSHOT)	+= dm-snapshot.o
+diff -puN /dev/null drivers/md/dm-delay.c
+--- /dev/null
++++ a/drivers/md/dm-delay.c
+@@ -0,0 +1,383 @@
++/*
++ * Copyright (C) 2005-2007 Red Hat GmbH
++ *
++ * A target that delays reads and/or writes and can send
++ * them to different devices.
++ *
++ * This file is released under the GPL.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/blkdev.h>
++#include <linux/bio.h>
++#include <linux/slab.h>
++
++#include "dm.h"
++#include "dm-bio-list.h"
++
++#define DM_MSG_PREFIX "delay"
++
++struct delay_c {
++	struct timer_list delay_timer;
++	struct semaphore timer_lock;
++	struct work_struct flush_expired_bios;
++	struct list_head delayed_bios;
++	atomic_t may_delay;
++	mempool_t *delayed_pool;
++
++	struct dm_dev *dev_read;
++	sector_t start_read;
++	unsigned read_delay;
++	unsigned reads;
++
++	struct dm_dev *dev_write;
++	sector_t start_write;
++	unsigned write_delay;
++	unsigned writes;
++};
++
++struct delay_info {
++	struct delay_c *context;
++	struct list_head list;
++	struct bio *bio;
++	unsigned long expires;
++};
++
++static DEFINE_MUTEX(delayed_bios_lock);
++
++static struct workqueue_struct *kdelayd_wq;
++static struct kmem_cache *delayed_cache;
++
++static void handle_delayed_timer(unsigned long data)
++{
++	struct delay_c *dc = (struct delay_c *)data;
++
++	queue_work(kdelayd_wq, &dc->flush_expired_bios);
++}
++
++static void queue_timeout(struct delay_c *dc, unsigned long expires)
++{
++	down(&dc->timer_lock);
++
++	if (!timer_pending(&dc->delay_timer) || expires < dc->delay_timer.expires)
++		mod_timer(&dc->delay_timer, expires);
++
++	up(&dc->timer_lock);
++}
++
++static void flush_bios(struct bio *bio)
++{
++	struct bio *n;
++
++	while (bio) {
++		n = bio->bi_next;
++		bio->bi_next = NULL;
++		generic_make_request(bio);
++		bio = n;
++	}
++}
++
++static struct bio *flush_delayed_bios(struct delay_c *dc, int flush_all)
++{
++	struct delay_info *delayed, *next;
++	unsigned long next_expires = 0;
++	int start_timer = 0;
++	BIO_LIST(flush_bios);
++
++	mutex_lock(&delayed_bios_lock);
++	list_for_each_entry_safe(delayed, next, &dc->delayed_bios, list) {
++		if (flush_all || time_after_eq(jiffies, delayed->expires)) {
++			list_del(&delayed->list);
++			bio_list_add(&flush_bios, delayed->bio);
++			if ((bio_data_dir(delayed->bio) == WRITE))
++				delayed->context->writes--;
++			else
++				delayed->context->reads--;
++			mempool_free(delayed, dc->delayed_pool);
++			continue;
++		}
++
++		if (!start_timer) {
++			start_timer = 1;
++			next_expires = delayed->expires;
++		} else
++			next_expires = min(next_expires, delayed->expires);
++	}
++
++	mutex_unlock(&delayed_bios_lock);
++
++	if (start_timer)
++		queue_timeout(dc, next_expires);
++
++	return bio_list_get(&flush_bios);
++}
++
++static void flush_expired_bios(struct work_struct *work)
++{
++	struct delay_c *dc;
++
++	dc = container_of(work, struct delay_c, flush_expired_bios);
++	flush_bios(flush_delayed_bios(dc, 0));
++}
++
++/*
++ * Mapping parameters:
++ *    <device> <offset> <delay> [<write_device> <write_offset> <write_delay>]
++ *
++ * With separate write parameters, the first set is only used for reads.
++ * Delays are specified in milliseconds.
++ */
++static int delay_ctr(struct dm_target *ti, unsigned int argc, char **argv)
++{
++	struct delay_c *dc;
++	unsigned long long tmpll;
++
++	if (argc != 3 && argc != 6) {
++		ti->error = "requires exactly 3 or 6 arguments";
++		return -EINVAL;
++	}
++
++	dc = kmalloc(sizeof(*dc), GFP_KERNEL);
++	if (!dc) {
++		ti->error = "Cannot allocate context";
++		return -ENOMEM;
++	}
++
++	dc->reads = dc->writes = 0;
++
++	if (sscanf(argv[1], "%llu", &tmpll) != 1) {
++		ti->error = "Invalid device sector";
++		goto bad;
++	}
++	dc->start_read = tmpll;
++
++	if (sscanf(argv[2], "%u", &dc->read_delay) != 1) {
++		ti->error = "Invalid delay";
++		goto bad;
++	}
++
++	if (dm_get_device(ti, argv[0], dc->start_read, ti->len,
++			  dm_table_get_mode(ti->table), &dc->dev_read)) {
++		ti->error = "Device lookup failed";
++		goto bad;
++	}
++
++	if (argc == 3) {
++		dc->dev_write = NULL;
++		goto out;
++	}
++
++	if (sscanf(argv[4], "%llu", &tmpll) != 1) {
++		ti->error = "Invalid write device sector";
++		goto bad;
++	}
++	dc->start_write = tmpll;
++
++	if (sscanf(argv[5], "%u", &dc->write_delay) != 1) {
++		ti->error = "Invalid write delay";
++		goto bad;
++	}
++
++	if (dm_get_device(ti, argv[3], dc->start_write, ti->len,
++			  dm_table_get_mode(ti->table), &dc->dev_write)) {
++		ti->error = "Write device lookup failed";
++		dm_put_device(ti, dc->dev_read);
++		goto bad;
++	}
++
++out:
++	dc->delayed_pool = mempool_create_slab_pool(128, delayed_cache);
++	if (!dc->delayed_pool) {
++		DMERR("Couldn't create delayed bio pool.");
++		goto bad;
++	}
++
++	init_timer(&dc->delay_timer);
++	dc->delay_timer.function = handle_delayed_timer;
++	dc->delay_timer.data = (unsigned long)dc;
++
++	INIT_WORK(&dc->flush_expired_bios, flush_expired_bios);
++	INIT_LIST_HEAD(&dc->delayed_bios);
++	init_MUTEX(&dc->timer_lock);
++	atomic_set(&dc->may_delay, 1);
++
++	ti->private = dc;
++	return 0;
++
++bad:
++	kfree(dc);
++	return -EINVAL;
++}
++
++static void delay_dtr(struct dm_target *ti)
++{
++	struct delay_c *dc = ti->private;
++
++	flush_workqueue(kdelayd_wq);
++
++	dm_put_device(ti, dc->dev_read);
++
++	if (dc->dev_write)
++		dm_put_device(ti, dc->dev_write);
++
++	mempool_destroy(dc->delayed_pool);
++	kfree(dc);
++}
++
++static int delay_bio(struct delay_c *dc, int delay, struct bio *bio)
++{
++	struct delay_info *delayed;
++	unsigned long expires = 0;
++
++	if (!delay || !atomic_read(&dc->may_delay))
++		return 1;
++
++	delayed = mempool_alloc(dc->delayed_pool, GFP_NOIO);
++
++	delayed->context = dc;
++	delayed->bio = bio;
++	delayed->expires = expires = jiffies + (delay * HZ / 1000);
++
++	mutex_lock(&delayed_bios_lock);
++
++	if (bio_data_dir(bio) == WRITE)
++		dc->writes++;
++	else
++		dc->reads++;
++
++	list_add_tail(&delayed->list, &dc->delayed_bios);
++
++	mutex_unlock(&delayed_bios_lock);
++
++	queue_timeout(dc, expires);
++
++	return 0;
++}
++
++static void delay_presuspend(struct dm_target *ti)
++{
++	struct delay_c *dc = ti->private;
++
++	atomic_set(&dc->may_delay, 0);
++	del_timer_sync(&dc->delay_timer);
++	flush_bios(flush_delayed_bios(dc, 1));
++}
++
++static void delay_resume(struct dm_target *ti)
++{
++	struct delay_c *dc = ti->private;
++
++	atomic_set(&dc->may_delay, 1);
++}
++
++static int delay_map(struct dm_target *ti, struct bio *bio,
++		     union map_info *map_context)
++{
++	struct delay_c *dc = ti->private;
++
++	if ((bio_data_dir(bio) == WRITE) && (dc->dev_write)) {
++		bio->bi_bdev = dc->dev_write->bdev;
++		bio->bi_sector = dc->start_write +
++				 (bio->bi_sector - ti->begin);
++
++		return delay_bio(dc, dc->write_delay, bio);
++	}
++
++	bio->bi_bdev = dc->dev_read->bdev;
++	bio->bi_sector = dc->start_read +
++			 (bio->bi_sector - ti->begin);
++
++	return delay_bio(dc, dc->read_delay, bio);
++}
++
++static int delay_status(struct dm_target *ti, status_type_t type,
++			char *result, unsigned maxlen)
++{
++	struct delay_c *dc = ti->private;
++	int sz = 0;
++
++	switch (type) {
++	case STATUSTYPE_INFO:
++		DMEMIT("%u %u", dc->reads, dc->writes);
++		break;
++
++	case STATUSTYPE_TABLE:
++		DMEMIT("%s %llu %u", dc->dev_read->name,
++		       (unsigned long long) dc->start_read,
++		       dc->read_delay);
++		if (dc->dev_write)
++			DMEMIT("%s %llu %u", dc->dev_write->name,
++			       (unsigned long long) dc->start_write,
++			       dc->write_delay);
++		break;
++	}
++
++	return 0;
++}
++
++static struct target_type delay_target = {
++	.name	     = "delay",
++	.version     = {1, 0, 2},
++	.module      = THIS_MODULE,
++	.ctr	     = delay_ctr,
++	.dtr	     = delay_dtr,
++	.map	     = delay_map,
++	.presuspend  = delay_presuspend,
++	.resume	     = delay_resume,
++	.status	     = delay_status,
++};
++
++static int __init dm_delay_init(void)
++{
++	int r = -ENOMEM;
++
++	kdelayd_wq = create_workqueue("kdelayd");
++	if (!kdelayd_wq) {
++		DMERR("Couldn't start kdelayd");
++		goto bad_queue;
++	}
++
++	delayed_cache = kmem_cache_create("dm-delay",
++					  sizeof(struct delay_info),
++					  __alignof__(struct delay_info),
++					  0, NULL, NULL);
++	if (!delayed_cache) {
++		DMERR("Couldn't create delayed bio cache.");
++		goto bad_memcache;
++	}
++
++	r = dm_register_target(&delay_target);
++	if (r < 0) {
++		DMERR("register failed %d", r);
++		goto bad_register;
++	}
++
++	return 0;
++
++bad_register:
++	kmem_cache_destroy(delayed_cache);
++bad_memcache:
++	destroy_workqueue(kdelayd_wq);
++bad_queue:
++	return r;
++}
++
++static void __exit dm_delay_exit(void)
++{
++	int r = dm_unregister_target(&delay_target);
++
++	if (r < 0)
++		DMERR("unregister failed %d", r);
++
++	kmem_cache_destroy(delayed_cache);
++	destroy_workqueue(kdelayd_wq);
++}
++
++/* Module hooks */
++module_init(dm_delay_init);
++module_exit(dm_delay_exit);
++
++MODULE_DESCRIPTION(DM_NAME " delay target");
++MODULE_AUTHOR("Heinz Mauelshagen <mauelshagen@redhat.com>");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from mbroz@redhat.com are
+Patches currently in -mm which might be from mauelshagen@redhat.com are
 
 origin.patch
