@@ -1,212 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-remove-useless-casts.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:56:37 -0700
-Message-ID: <200705090256.l492ubmm010077@shell0.pdx.osdl.net>
+Subject: - char-cyclades-init-ze-immediately.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:57:01 -0700
+Message-ID: <200705090257.l492v1GV010125@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47874 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032578AbXEIC4l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:56:41 -0400
+	by vger.kernel.org with ESMTP id S1032679AbXEIC5E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, remove useless casts
+     Char: cyclades, init Ze immediately
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-remove-useless-casts.patch
+     char-cyclades-init-ze-immediately.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: cyclades, remove useless casts
+Subject: Char: cyclades, init Ze immediately
 From: Jiri Slaby <jirislaby@gmail.com>
 
-cyclades, remove useless casts
+There will be no other choice after introducing pci probing anyway.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/char/cyclades.c |   59 +++++---------------------------------
+ 1 file changed, 8 insertions(+), 51 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-remove-useless-casts drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-remove-useless-casts
+diff -puN drivers/char/cyclades.c~char-cyclades-init-ze-immediately drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-init-ze-immediately
 +++ a/drivers/char/cyclades.c
-@@ -2636,7 +2636,7 @@ static int cy_open(struct tty_struct *tt
-  */
- static void cy_wait_until_sent(struct tty_struct *tty, int timeout)
+@@ -4714,12 +4714,14 @@ static void plx_init(void __iomem * addr
+ static int __devinit cy_init_Ze(unsigned long cy_pci_phys0,
+ 		unsigned long cy_pci_phys2,
+ 		struct RUNTIME_9060 __iomem *cy_pci_addr0,
+-		void __iomem *cy_pci_addr2, int cy_pci_irq,
+-		struct pci_dev *pdev)
++		int cy_pci_irq, struct pci_dev *pdev)
  {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	void __iomem *base_addr;
- 	int card, chip, channel, index;
- 	unsigned long orig_jiffies;
-@@ -2713,7 +2713,7 @@ static void cy_wait_until_sent(struct tt
-  */
- static void cy_close(struct tty_struct *tty, struct file *filp)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
++	void __iomem *cy_pci_addr2;
+ 	unsigned int j;
+ 	unsigned short cy_pci_nchan;
  
- #ifdef CY_DEBUG_OTHER
-@@ -2858,7 +2858,7 @@ static void cy_close(struct tty_struct *
-  */
- static int cy_write(struct tty_struct *tty, const unsigned char *buf, int count)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 	int c, ret = 0;
++	cy_pci_addr2 = pci_iomap(pdev, 2, CyPCI_Ze_win);
++
+ 	readl(&cy_pci_addr0->mail_box_0);
+ #ifdef CY_PCI_DEBUG
+ 	printk("Cyclades-Z/PCI: relocate winaddr=0x%lx ctladdr=0x%lx\n",
+@@ -4816,11 +4818,6 @@ static int __init cy_detect_pci(void)
+ 	unsigned short i, j, cy_pci_nchan, plx_ver;
+ 	unsigned short device_id, dev_index = 0;
+ 	__u32 mailbox;
+-	__u32 ZeIndex = 0;
+-	void __iomem *Ze_addr0[NR_CARDS], *Ze_addr2[NR_CARDS];
+-	__u32 Ze_phys0[NR_CARDS], Ze_phys2[NR_CARDS];
+-	unsigned char Ze_irq[NR_CARDS];
+-	struct pci_dev *Ze_pdev[NR_CARDS];
+ 	int retval;
  
-@@ -2909,7 +2909,7 @@ static int cy_write(struct tty_struct *t
-  */
- static void cy_put_char(struct tty_struct *tty, unsigned char ch)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
+ 	for (i = 0; i < NR_CARDS; i++) {
+@@ -5042,24 +5039,10 @@ static int __init cy_detect_pci(void)
+ 			}
  
- #ifdef CY_DEBUG_IO
-@@ -2942,7 +2942,7 @@ static void cy_put_char(struct tty_struc
-  */
- static void cy_flush_chars(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
+ 			if (mailbox == ZE_V1) {
+-				cy_pci_addr2 = pci_iomap(pdev, 2, CyPCI_Ze_win);
+-				if (ZeIndex == NR_CARDS) {
+-					printk("Cyclades-Ze/PCI found at "
+-						"0x%lx but no more cards can "
+-						"be used.\nChange NR_CARDS in "
+-						"cyclades.c and recompile "
+-						"kernel.\n",
+-						(ulong)cy_pci_phys2);
+-				} else {
+-					Ze_phys0[ZeIndex] = cy_pci_phys0;
+-					Ze_phys2[ZeIndex] = cy_pci_phys2;
+-					Ze_addr0[ZeIndex] = cy_pci_addr0;
+-					Ze_addr2[ZeIndex] = cy_pci_addr2;
+-					Ze_irq[ZeIndex] = cy_pci_irq;
+-					Ze_pdev[ZeIndex] = pdev;
+-					ZeIndex++;
+-				}
+-				i--;
++				retval = cy_init_Ze(cy_pci_phys0, cy_pci_phys2,
++						cy_pci_addr0, cy_pci_irq, pdev);
++				if (retval < 0)
++					i--;
+ 				continue;
+ 			} else {
+ 				cy_pci_addr2 = pci_iomap(pdev, 2, CyPCI_Zwin);
+@@ -5168,32 +5151,6 @@ static int __init cy_detect_pci(void)
+ 		}
+ 	}
  
- #ifdef CY_DEBUG_IO
- 	printk("cyc:cy_flush_chars ttyC%d\n", info->line);	/* */
-@@ -2966,7 +2966,7 @@ static void cy_flush_chars(struct tty_st
-  */
- static int cy_write_room(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int ret;
- 
- #ifdef CY_DEBUG_IO
-@@ -2983,7 +2983,7 @@ static int cy_write_room(struct tty_stru
- 
- static int cy_chars_in_buffer(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, channel;
- 
- 	if (serial_paranoia_check(info, tty->name, "cy_chars_in_buffer"))
-@@ -3572,7 +3572,7 @@ static int get_lsr_info(struct cyclades_
- 
- static int cy_tiocmget(struct tty_struct *tty, struct file *file)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, chip, channel, index;
- 	void __iomem *base_addr;
- 	unsigned long flags;
-@@ -3646,7 +3646,7 @@ static int
- cy_tiocmset(struct tty_struct *tty, struct file *file,
- 		unsigned int set, unsigned int clear)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, chip, channel, index;
- 	void __iomem *base_addr;
- 	unsigned long flags;
-@@ -3797,7 +3797,7 @@ cy_tiocmset(struct tty_struct *tty, stru
-  */
- static void cy_break(struct tty_struct *tty, int break_state)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 
- 	if (serial_paranoia_check(info, tty->name, "cy_break"))
-@@ -3997,7 +3997,7 @@ static int
- cy_ioctl(struct tty_struct *tty, struct file *file,
- 	 unsigned int cmd, unsigned long arg)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	struct cyclades_icount cprev, cnow;	/* kernel counter temps */
- 	struct serial_icounter_struct __user *p_cuser;	/* user space */
- 	int ret_val = 0;
-@@ -4190,7 +4190,7 @@ cy_ioctl(struct tty_struct *tty, struct 
-  */
- static void cy_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 
- #ifdef CY_DEBUG_OTHER
- 	printk("cyc:cy_set_termios ttyC%d\n", info->line);
-@@ -4225,7 +4225,7 @@ static void cy_set_termios(struct tty_st
- */
- static void cy_send_xchar(struct tty_struct *tty, char ch)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, channel;
- 
- 	if (serial_paranoia_check(info, tty->name, "cy_send_xchar"))
-@@ -4255,7 +4255,7 @@ static void cy_send_xchar(struct tty_str
-  */
- static void cy_throttle(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 	void __iomem *base_addr;
- 	int card, chip, channel, index;
-@@ -4313,7 +4313,7 @@ static void cy_throttle(struct tty_struc
-  */
- static void cy_unthrottle(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 	void __iomem *base_addr;
- 	int card, chip, channel, index;
-@@ -4369,7 +4369,7 @@ static void cy_unthrottle(struct tty_str
- static void cy_stop(struct tty_struct *tty)
- {
- 	struct cyclades_card *cinfo;
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	void __iomem *base_addr;
- 	int chip, channel, index;
- 	unsigned long flags;
-@@ -4404,7 +4404,7 @@ static void cy_stop(struct tty_struct *t
- static void cy_start(struct tty_struct *tty)
- {
- 	struct cyclades_card *cinfo;
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	void __iomem *base_addr;
- 	int chip, channel, index;
- 	unsigned long flags;
-@@ -4437,7 +4437,7 @@ static void cy_start(struct tty_struct *
- 
- static void cy_flush_buffer(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, channel, retval;
- 	unsigned long flags;
- 
-@@ -4474,7 +4474,7 @@ static void cy_flush_buffer(struct tty_s
-  */
- static void cy_hangup(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 
- #ifdef CY_DEBUG_OTHER
- 	printk("cyc:cy_hangup ttyC%d\n", info->line);	/* */
+-	for (; ZeIndex != 0 && i < NR_CARDS; i++) {
+-		cy_pci_phys0 = Ze_phys0[0];
+-		cy_pci_phys2 = Ze_phys2[0];
+-		cy_pci_addr0 = Ze_addr0[0];
+-		cy_pci_addr2 = Ze_addr2[0];
+-		cy_pci_irq = Ze_irq[0];
+-		pdev = Ze_pdev[0];
+-		for (j = 0; j < ZeIndex - 1; j++) {
+-			Ze_phys0[j] = Ze_phys0[j + 1];
+-			Ze_phys2[j] = Ze_phys2[j + 1];
+-			Ze_addr0[j] = Ze_addr0[j + 1];
+-			Ze_addr2[j] = Ze_addr2[j + 1];
+-			Ze_irq[j] = Ze_irq[j + 1];
+-			Ze_pdev[j] = Ze_pdev[j + 1];
+-		}
+-		ZeIndex--;
+-		retval = cy_init_Ze(cy_pci_phys0, cy_pci_phys2, cy_pci_addr0,
+-					cy_pci_addr2, cy_pci_irq, pdev);
+-		if (retval < 0)
+-			return i;
+-	}
+-	if (ZeIndex != 0) {
+-		printk("Cyclades-Ze/PCI found at 0x%x but no more cards can be "
+-			"used.\nChange NR_CARDS in cyclades.c and recompile "
+-			"kernel.\n", (unsigned int)Ze_phys2[0]);
+-	}
+ 	return i;
+ #else
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
