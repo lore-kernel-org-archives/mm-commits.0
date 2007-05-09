@@ -1,499 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: - atl1-use-dev_printk-macros.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:22 -0700
-Message-ID: <200705090243.l492hMRR008458@shell0.pdx.osdl.net>
+Subject: - fix-section-mismatch-of-memory-hotplug-related-code.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:43:35 -0700
+Message-ID: <200705090243.l492hZQa008490@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53531 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969975AbXEICnh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:37 -0400
+	by vger.kernel.org with ESMTP id S970007AbXEICnk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jacliburn@bellsouth.net, csnook@redhat.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atl1: use dev_printk macros
+     Fix section mismatch of memory hotplug related code.
 has been removed from the -mm tree.  Its filename was
-     atl1-use-dev_printk-macros.patch
+     fix-section-mismatch-of-memory-hotplug-related-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atl1: use dev_printk macros
-From: Jay Cliburn <jacliburn@bellsouth.net>
+Subject: Fix section mismatch of memory hotplug related code.
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Use dev_printk macros for PCI related errors, warnings, debug and info console
-messages.
+This is to fix many section mismatches of code related to memory hotplug.
+I checked compile with memory hotplug on/off on ia64 and x86-64 box.
 
-Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
-Acked-by: Chris Snook <csnook@redhat.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_ethtool.c |   19 ++----
- drivers/net/atl1/atl1_hw.c      |   22 +++----
- drivers/net/atl1/atl1_main.c    |   83 +++++++++++++-----------------
- drivers/net/atl1/atl1_param.c   |   31 +++++------
- 4 files changed, 68 insertions(+), 87 deletions(-)
+ arch/ia64/mm/discontig.c |    2 ++
+ arch/x86_64/mm/init.c    |    6 +++---
+ drivers/acpi/numa.c      |    4 ++--
+ mm/page_alloc.c          |   26 +++++++++++++-------------
+ mm/sparse.c              |   10 ++++++----
+ 5 files changed, 26 insertions(+), 22 deletions(-)
 
-diff -puN drivers/net/atl1/atl1_ethtool.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_ethtool.c
---- a/drivers/net/atl1/atl1_ethtool.c~atl1-use-dev_printk-macros
-+++ a/drivers/net/atl1/atl1_ethtool.c
-@@ -156,8 +156,7 @@ static int atl1_set_settings(struct net_
- 	u16 old_media_type = hw->media_type;
+diff -puN arch/ia64/mm/discontig.c~fix-section-mismatch-of-memory-hotplug-related-code arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~fix-section-mismatch-of-memory-hotplug-related-code
++++ a/arch/ia64/mm/discontig.c
+@@ -693,6 +693,7 @@ void __init paging_init(void)
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
+ }
  
- 	if (netif_running(adapter->netdev)) {
--		printk(KERN_DEBUG "%s: ethtool shutting down adapter\n",
--			atl1_driver_name);
-+		dev_dbg(&adapter->pdev->dev, "ethtool shutting down adapter\n");
- 		atl1_down(adapter);
- 	}
- 
-@@ -166,9 +165,8 @@ static int atl1_set_settings(struct net_
- 	else {
- 		if (ecmd->speed == SPEED_1000) {
- 			if (ecmd->duplex != DUPLEX_FULL) {
--				printk(KERN_WARNING
--				       "%s: can't force to 1000M half duplex\n",
--					atl1_driver_name);
-+				dev_warn(&adapter->pdev->dev,
-+					"can't force to 1000M half duplex\n");
- 				ret_val = -EINVAL;
- 				goto exit_sset;
- 			}
-@@ -206,9 +204,8 @@ static int atl1_set_settings(struct net_
- 	}
- 	if (atl1_phy_setup_autoneg_adv(hw)) {
- 		ret_val = -EINVAL;
--		printk(KERN_WARNING
--			"%s: invalid ethtool speed/duplex setting\n",
--			atl1_driver_name);
-+		dev_warn(&adapter->pdev->dev,
-+			"invalid ethtool speed/duplex setting\n");
- 		goto exit_sset;
- 	}
- 	if (hw->media_type == MEDIA_TYPE_AUTO_SENSOR ||
-@@ -239,12 +236,10 @@ exit_sset:
- 		hw->media_type = old_media_type;
- 
- 	if (netif_running(adapter->netdev)) {
--		printk(KERN_DEBUG "%s: ethtool starting adapter\n",
--			atl1_driver_name);
-+		dev_dbg(&adapter->pdev->dev, "ethtool starting adapter\n");
- 		atl1_up(adapter);
- 	} else if (!ret_val) {
--		printk(KERN_DEBUG "%s: ethtool resetting adapter\n",
--			atl1_driver_name);
-+		dev_dbg(&adapter->pdev->dev, "ethtool resetting adapter\n");
- 		atl1_reset(adapter);
- 	}
- 	return ret_val;
-diff -puN drivers/net/atl1/atl1_hw.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_hw.c
---- a/drivers/net/atl1/atl1_hw.c~atl1-use-dev_printk-macros
-+++ a/drivers/net/atl1/atl1_hw.c
-@@ -38,6 +38,7 @@
-  */
- s32 atl1_reset_hw(struct atl1_hw *hw)
++#ifdef CONFIG_MEMORY_HOTPLUG
+ pg_data_t *arch_alloc_nodedata(int nid)
  {
-+	struct pci_dev *pdev = hw->back->pdev;
- 	u32 icr;
+ 	unsigned long size = compute_pernodesize(nid);
+@@ -710,3 +711,4 @@ void arch_refresh_nodedata(int update_no
+ 	pgdat_list[update_node] = update_pgdat;
+ 	scatter_node_data();
+ }
++#endif
+diff -puN arch/x86_64/mm/init.c~fix-section-mismatch-of-memory-hotplug-related-code arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~fix-section-mismatch-of-memory-hotplug-related-code
++++ a/arch/x86_64/mm/init.c
+@@ -172,7 +172,7 @@ __set_fixmap (enum fixed_addresses idx, 
+ 	set_pte_phys(address, phys, prot);
+ }
+ 
+-unsigned long __initdata table_start, table_end; 
++unsigned long __meminitdata table_start, table_end;
+ 
+ static __meminit void *alloc_low_page(unsigned long *phys)
+ { 
+@@ -204,7 +204,7 @@ static __meminit void unmap_low_page(voi
+ } 
+ 
+ /* Must run before zap_low_mappings */
+-__init void *early_ioremap(unsigned long addr, unsigned long size)
++__meminit void *early_ioremap(unsigned long addr, unsigned long size)
+ {
+ 	unsigned long vaddr;
+ 	pmd_t *pmd, *last_pmd;
+@@ -233,7 +233,7 @@ __init void *early_ioremap(unsigned long
+ }
+ 
+ /* To avoid virtual aliases later */
+-__init void early_iounmap(void *addr, unsigned long size)
++__meminit void early_iounmap(void *addr, unsigned long size)
+ {
+ 	unsigned long vaddr;
+ 	pmd_t *pmd;
+diff -puN drivers/acpi/numa.c~fix-section-mismatch-of-memory-hotplug-related-code drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~fix-section-mismatch-of-memory-hotplug-related-code
++++ a/drivers/acpi/numa.c
+@@ -228,7 +228,7 @@ int __init acpi_numa_init(void)
+ 	return 0;
+ }
+ 
+-int acpi_get_pxm(acpi_handle h)
++int __meminit acpi_get_pxm(acpi_handle h)
+ {
+ 	unsigned long pxm;
+ 	acpi_status status;
+@@ -246,7 +246,7 @@ int acpi_get_pxm(acpi_handle h)
+ }
+ EXPORT_SYMBOL(acpi_get_pxm);
+ 
+-int acpi_get_node(acpi_handle *handle)
++int __meminit acpi_get_node(acpi_handle *handle)
+ {
+ 	int pxm, node = -1;
+ 
+diff -puN mm/page_alloc.c~fix-section-mismatch-of-memory-hotplug-related-code mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-section-mismatch-of-memory-hotplug-related-code
++++ a/mm/page_alloc.c
+@@ -103,7 +103,7 @@ int min_free_kbytes = 1024;
+ 
+ unsigned long __meminitdata nr_kernel_pages;
+ unsigned long __meminitdata nr_all_pages;
+-static unsigned long __initdata dma_reserve;
++static unsigned long __meminitdata dma_reserve;
+ 
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
+   /*
+@@ -126,10 +126,10 @@ static unsigned long __initdata dma_rese
+     #endif
+   #endif
+ 
+-  struct node_active_region __initdata early_node_map[MAX_ACTIVE_REGIONS];
+-  int __initdata nr_nodemap_entries;
+-  unsigned long __initdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
+-  unsigned long __initdata arch_zone_highest_possible_pfn[MAX_NR_ZONES];
++  struct node_active_region __meminitdata early_node_map[MAX_ACTIVE_REGIONS];
++  int __meminitdata nr_nodemap_entries;
++  unsigned long __meminitdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
++  unsigned long __meminitdata arch_zone_highest_possible_pfn[MAX_NR_ZONES];
+ #ifdef CONFIG_MEMORY_HOTPLUG_RESERVE
+   unsigned long __initdata node_boundary_start_pfn[MAX_NUMNODES];
+   unsigned long __initdata node_boundary_end_pfn[MAX_NUMNODES];
+@@ -2267,7 +2267,7 @@ __meminit int init_currently_empty_zone(
+  * Basic iterator support. Return the first range of PFNs for a node
+  * Note: nid == MAX_NUMNODES returns first region regardless of node
+  */
+-static int __init first_active_region_index_in_nid(int nid)
++static int __meminit first_active_region_index_in_nid(int nid)
+ {
  	int i;
  
-@@ -74,7 +75,7 @@ s32 atl1_reset_hw(struct atl1_hw *hw)
- 	}
- 
- 	if (icr) {
--		printk (KERN_DEBUG "icr = %x\n", icr); 
-+		dev_dbg(&pdev->dev, "ICR = 0x%x\n", icr);
- 		return icr;
- 	}
- 
-@@ -437,6 +438,7 @@ s32 atl1_phy_enter_power_saving(struct a
+@@ -2282,7 +2282,7 @@ static int __init first_active_region_in
+  * Basic iterator support. Return the next active range of PFNs for a node
+  * Note: nid == MAX_NUMNODES returns next region regardles of node
   */
- static s32 atl1_phy_reset(struct atl1_hw *hw)
+-static int __init next_active_region_index_in_nid(int index, int nid)
++static int __meminit next_active_region_index_in_nid(int index, int nid)
  {
-+	struct pci_dev *pdev = hw->back->pdev;
- 	s32 ret_val;
- 	u16 phy_data;
- 
-@@ -468,8 +470,7 @@ static s32 atl1_phy_reset(struct atl1_hw
- 		u32 val;
- 		int i;
- 		/* pcie serdes link may be down! */
--		printk(KERN_DEBUG "%s: autoneg caused pcie phy link down\n", 
--			atl1_driver_name);
-+		dev_dbg(&pdev->dev, "pcie phy link down\n");
- 
- 		for (i = 0; i < 25; i++) {
- 			msleep(1);
-@@ -479,9 +480,7 @@ static s32 atl1_phy_reset(struct atl1_hw
- 		}
- 
- 		if ((val & (MDIO_START | MDIO_BUSY)) != 0) {
--			printk(KERN_WARNING 
--				"%s: pcie link down at least for 25ms\n", 
--				atl1_driver_name);
-+			dev_warn(&pdev->dev, "pcie link down at least 25ms\n");
- 			return ret_val;
- 		}
- 	}
-@@ -571,6 +570,7 @@ s32 atl1_phy_setup_autoneg_adv(struct at
+ 	for (index = index + 1; index < nr_nodemap_entries; index++)
+ 		if (nid == MAX_NUMNODES || early_node_map[index].nid == nid)
+@@ -2435,7 +2435,7 @@ static void __init account_node_boundary
+  * with no available memory, a warning is printed and the start and end
+  * PFNs will be 0.
   */
- static s32 atl1_setup_link(struct atl1_hw *hw)
+-void __init get_pfn_range_for_nid(unsigned int nid,
++void __meminit get_pfn_range_for_nid(unsigned int nid,
+ 			unsigned long *start_pfn, unsigned long *end_pfn)
  {
-+	struct pci_dev *pdev = hw->back->pdev;
- 	s32 ret_val;
- 
- 	/*
-@@ -581,15 +581,13 @@ static s32 atl1_setup_link(struct atl1_h
- 	 */
- 	ret_val = atl1_phy_setup_autoneg_adv(hw);
- 	if (ret_val) {
--		printk(KERN_DEBUG "%s: error setting up autonegotiation\n", 
--			atl1_driver_name);
-+		dev_dbg(&pdev->dev, "error setting up autonegotiation\n");
- 		return ret_val;
- 	}
- 	/* SW.Reset , En-Auto-Neg if needed */
- 	ret_val = atl1_phy_reset(hw);
- 	if (ret_val) {
--		printk(KERN_DEBUG "%s: error resetting the phy\n", 
--			atl1_driver_name);
-+		dev_dbg(&pdev->dev, "error resetting phy\n");
- 		return ret_val;
- 	}
- 	hw->phy_configured = true;
-@@ -669,6 +667,7 @@ s32 atl1_init_hw(struct atl1_hw *hw)
+ 	int i;
+@@ -2460,7 +2460,7 @@ void __init get_pfn_range_for_nid(unsign
+  * Return the number of pages a zone spans in a node, including holes
+  * present_pages = zone_spanned_pages_in_node() - zone_absent_pages_in_node()
   */
- s32 atl1_get_speed_and_duplex(struct atl1_hw *hw, u16 *speed, u16 *duplex)
+-unsigned long __init zone_spanned_pages_in_node(int nid,
++unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *ignored)
  {
-+	struct pci_dev *pdev = hw->back->pdev;
- 	s32 ret_val;
- 	u16 phy_data;
- 
-@@ -691,8 +690,7 @@ s32 atl1_get_speed_and_duplex(struct atl
- 		*speed = SPEED_10;
- 		break;
- 	default:
--		printk(KERN_DEBUG "%s: error getting speed\n", 
--			atl1_driver_name);
-+		dev_dbg(&pdev->dev, "error getting speed\n");
- 		return ATL1_ERR_PHY_SPEED;
- 		break;
- 	}
-diff -puN drivers/net/atl1/atl1_main.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_main.c
---- a/drivers/net/atl1/atl1_main.c~atl1-use-dev_printk-macros
-+++ a/drivers/net/atl1/atl1_main.c
-@@ -188,8 +188,7 @@ s32 atl1_setup_ring_resources(struct atl
- 	size = sizeof(struct atl1_buffer) * (tpd_ring->count + rfd_ring->count);
- 	tpd_ring->buffer_info = kzalloc(size, GFP_KERNEL);
- 	if (unlikely(!tpd_ring->buffer_info)) {
--		printk(KERN_WARNING "%s: kzalloc failed , size = D%d\n",
--			atl1_driver_name, size);
-+		dev_err(&pdev->dev, "kzalloc failed , size = D%d\n", size);
- 		goto err_nomem;
- 	}
- 	rfd_ring->buffer_info =
-@@ -207,9 +206,7 @@ s32 atl1_setup_ring_resources(struct atl
- 	ring_header->desc = pci_alloc_consistent(pdev, ring_header->size,
- 						&ring_header->dma);
- 	if (unlikely(!ring_header->desc)) {
--		printk(KERN_WARNING
--			"%s: pci_alloc_consistent failed, size = D%d\n",
--			atl1_driver_name, size);
-+		dev_err(&pdev->dev, "pci_alloc_consistent failed\n");
- 		goto err_nomem;
- 	}
- 
-@@ -373,8 +370,7 @@ static void atl1_rx_checksum(struct atl1
- 		if (rrd->err_flg & (ERR_FLAG_CRC | ERR_FLAG_TRUNC |
- 					ERR_FLAG_CODE | ERR_FLAG_OV)) {
- 			adapter->hw_csum_err++;
--			printk(KERN_DEBUG "%s: rx checksum error\n",
--				atl1_driver_name);
-+			dev_dbg(&adapter->pdev->dev, "rx checksum error\n");
- 			return;
- 		}
- 	}
-@@ -393,8 +389,9 @@ static void atl1_rx_checksum(struct atl1
- 	}
- 
- 	/* IPv4, but hardware thinks its checksum is wrong */
--	printk(KERN_DEBUG "%s: hw csum wrong pkt_flag:%x, err_flag:%x\n",
--		atl1_driver_name, rrd->pkt_flg, rrd->err_flg);
-+	dev_dbg(&adapter->pdev->dev,
-+		"hw csum wrong, pkt_flag:%x, err_flag:%x\n",
-+		rrd->pkt_flg, rrd->err_flg);
- 	skb->ip_summed = CHECKSUM_COMPLETE;
- 	skb->csum = htons(rrd->xsz.xsum_sz.rx_chksum);
- 	adapter->hw_csum_err++;
-@@ -507,14 +504,13 @@ chk_rrd:
- 			/* rrd seems to be bad */
- 			if (unlikely(i-- > 0)) {
- 				/* rrd may not be DMAed completely */
--				printk(KERN_DEBUG
--					"%s: RRD may not be DMAed completely\n",
--					atl1_driver_name);
-+				dev_dbg(&adapter->pdev->dev,
-+					"incomplete RRD DMA transfer\n");
- 				udelay(1);
- 				goto chk_rrd;
- 			}
- 			/* bad rrd */
--			printk(KERN_DEBUG "%s: bad RRD\n", atl1_driver_name);
-+			dev_dbg(&adapter->pdev->dev, "bad RRD\n");
- 			/* see if update RFD index */
- 			if (rrd->num_buf > 1) {
- 				u16 num_buf;
-@@ -685,8 +681,8 @@ static void atl1_check_for_link(struct a
- 	/* notify upper layer link down ASAP */
- 	if (!(phy_data & BMSR_LSTATUS)) {	/* Link Down */
- 		if (netif_carrier_ok(netdev)) {	/* old link state: Up */
--			printk(KERN_INFO "%s: %s link is down\n",
--			       atl1_driver_name, netdev->name);
-+			dev_info(&adapter->pdev->dev, "%s link is down\n",
-+				netdev->name);
- 			adapter->link_speed = SPEED_0;
- 			netif_carrier_off(netdev);
- 			netif_stop_queue(netdev);
-@@ -731,8 +727,8 @@ static irqreturn_t atl1_intr(int irq, vo
- 
- 		/* check if PCIE PHY Link down */
- 		if (status & ISR_PHY_LINKDOWN) {
--			printk(KERN_DEBUG "%s: pcie phy link down %x\n",
--				atl1_driver_name, status);
-+			dev_dbg(&adapter->pdev->dev, "pcie phy link down %x\n",
-+				status);
- 			if (netif_running(adapter->netdev)) {	/* reset MAC */
- 				iowrite32(0, adapter->hw.hw_addr + REG_IMR);
- 				schedule_work(&adapter->pcie_dma_to_rst_task);
-@@ -742,9 +738,9 @@ static irqreturn_t atl1_intr(int irq, vo
- 
- 		/* check if DMA read/write error ? */
- 		if (status & (ISR_DMAR_TO_RST | ISR_DMAW_TO_RST)) {
--			printk(KERN_DEBUG
--				"%s: pcie DMA r/w error (status = 0x%x)\n",
--				atl1_driver_name, status);
-+			dev_dbg(&adapter->pdev->dev,
-+				"pcie DMA r/w error (status = 0x%x)\n",
-+				status);
- 			iowrite32(0, adapter->hw.hw_addr + REG_IMR);
- 			schedule_work(&adapter->pcie_dma_to_rst_task);
- 			return IRQ_HANDLED;
-@@ -762,14 +758,13 @@ static irqreturn_t atl1_intr(int irq, vo
- 
- 		/* rx exception */
- 		if (unlikely(status & (ISR_RXF_OV | ISR_RFD_UNRUN |
-+			ISR_RRD_OV | ISR_HOST_RFD_UNRUN |
-+			ISR_HOST_RRD_OV | ISR_CMB_RX))) {
-+			if (status & (ISR_RXF_OV | ISR_RFD_UNRUN |
- 				ISR_RRD_OV | ISR_HOST_RFD_UNRUN |
--				ISR_HOST_RRD_OV | ISR_CMB_RX))) {
--			if (status &
--			    (ISR_RXF_OV | ISR_RFD_UNRUN | ISR_RRD_OV |
--			     ISR_HOST_RFD_UNRUN | ISR_HOST_RRD_OV))
--				printk(KERN_INFO
--					"%s: rx exception: status = 0x%x\n",
--					atl1_driver_name, status);
-+				ISR_HOST_RRD_OV))
-+				dev_dbg(&adapter->pdev->dev,
-+					"rx exception, ISR = 0x%x\n", status);
- 			atl1_intr_rx(adapter);
- 		}
- 
-@@ -874,8 +869,7 @@ static u32 atl1_check_link(struct atl1_a
- 	atl1_read_phy_reg(hw, MII_BMSR, &phy_data);
- 	if (!(phy_data & BMSR_LSTATUS)) {	/* link down */
- 		if (netif_carrier_ok(netdev)) {	/* old link state: Up */
--			printk(KERN_INFO "%s: link is down\n",
--				atl1_driver_name);
-+			dev_info(&adapter->pdev->dev, "link is down\n");
- 			adapter->link_speed = SPEED_0;
- 			netif_carrier_off(netdev);
- 			netif_stop_queue(netdev);
-@@ -918,11 +912,11 @@ static u32 atl1_check_link(struct atl1_a
- 			adapter->link_speed = speed;
- 			adapter->link_duplex = duplex;
- 			atl1_setup_mac_ctrl(adapter);
--			printk(KERN_INFO "%s: %s link is up %d Mbps %s\n",
--			       atl1_driver_name, netdev->name,
--			       adapter->link_speed,
--			       adapter->link_duplex ==
--			       FULL_DUPLEX ? "full duplex" : "half duplex");
-+			dev_info(&adapter->pdev->dev,
-+				"%s link is up %d Mbps %s\n",
-+				netdev->name, adapter->link_speed,
-+				adapter->link_duplex == FULL_DUPLEX ?
-+				"full duplex" : "half duplex");
- 		}
- 		if (!netif_carrier_ok(netdev)) {	/* Link down -> Up */
- 			netif_carrier_on(netdev);
-@@ -1330,8 +1324,8 @@ static int atl1_tx_csum(struct atl1_adap
- 		cso = skb_transport_offset(skb);
- 		css = cso + skb->csum_offset;
- 		if (unlikely(cso & 0x1)) {
--			printk(KERN_DEBUG "%s: payload offset != even number\n",
--				atl1_driver_name);
-+			dev_dbg(&adapter->pdev->dev,
-+				"payload offset not an even number\n");
- 			return -1;
- 		}
- 		csum->csumpl |= (cso & CSUM_PARAM_PLOADOFFSET_MASK) <<
-@@ -1579,7 +1573,7 @@ static int atl1_xmit_frame(struct sk_buf
- 	if (!spin_trylock(&adapter->lock)) {
- 		/* Can't get lock - tell upper layer to requeue */
- 		local_irq_restore(flags);
--		printk(KERN_DEBUG "%s: TX locked\n", atl1_driver_name);
-+		dev_dbg(&adapter->pdev->dev, "tx locked\n");
- 		return NETDEV_TX_LOCKED;
- 	}
- 
-@@ -1587,7 +1581,7 @@ static int atl1_xmit_frame(struct sk_buf
- 		/* not enough descriptors */
- 		netif_stop_queue(netdev);
- 		spin_unlock_irqrestore(&adapter->lock, flags);
--		printk(KERN_DEBUG "%s: TX busy\n", atl1_driver_name);
-+		dev_dbg(&adapter->pdev->dev, "tx busy\n");
- 		return NETDEV_TX_BUSY;
- 	}
- 
-@@ -1841,8 +1835,7 @@ static int atl1_change_mtu(struct net_de
- 
- 	if ((max_frame < MINIMUM_ETHERNET_FRAME_SIZE) ||
- 	    (max_frame > MAX_JUMBO_FRAME_SIZE)) {
--		printk(KERN_WARNING "%s: invalid MTU setting\n",
--			atl1_driver_name);
-+		dev_warn(&adapter->pdev->dev, "invalid MTU setting\n");
- 		return -EINVAL;
- 	}
- 
-@@ -2136,9 +2129,7 @@ static int __devinit atl1_probe(struct p
- 	if (err) {
- 		err = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
- 		if (err) {
--			printk(KERN_DEBUG
--				"%s: no usable DMA configuration, aborting\n",
--				atl1_driver_name);
-+			dev_err(&pdev->dev, "no usable DMA configuration\n");
- 			goto err_dma;
- 		}
- 		pci_using_64 = false;
-@@ -2175,7 +2166,9 @@ static int __devinit atl1_probe(struct p
- 		goto err_pci_iomap;
- 	}
- 	/* get device revision number */
--	adapter->hw.dev_rev = ioread16(adapter->hw.hw_addr + (REG_MASTER_CTRL + 2));
-+	adapter->hw.dev_rev = ioread16(adapter->hw.hw_addr +
-+					(REG_MASTER_CTRL + 2));
-+	dev_info(&pdev->dev, "version %s\n", DRIVER_VERSION);
- 
- 	/* set default ring resource counts */
- 	adapter->rfd_ring.count = adapter->rrd_ring.count = ATL1_DEFAULT_RFD;
-@@ -2466,8 +2459,6 @@ static void __exit atl1_exit_module(void
+@@ -2488,7 +2488,7 @@ unsigned long __init zone_spanned_pages_
+  * Return the number of holes in a range on a node. If nid is MAX_NUMNODES,
+  * then all holes in the requested range will be accounted for.
   */
- static int __init atl1_init_module(void)
+-unsigned long __init __absent_pages_in_range(int nid,
++unsigned long __meminit __absent_pages_in_range(int nid,
+ 				unsigned long range_start_pfn,
+ 				unsigned long range_end_pfn)
  {
--	printk(KERN_INFO "%s - version %s\n", atl1_driver_string, DRIVER_VERSION);
--	printk(KERN_INFO "%s\n", atl1_copyright);
- 	return pci_register_driver(&atl1_driver);
+@@ -2548,7 +2548,7 @@ unsigned long __init absent_pages_in_ran
  }
  
-diff -puN drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_param.c
---- a/drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros
-+++ a/drivers/net/atl1/atl1_param.c
-@@ -94,7 +94,7 @@ struct atl1_option {
- 	} arg;
- };
- 
--static int __devinit atl1_validate_option(int *value, struct atl1_option *opt)
-+static int __devinit atl1_validate_option(int *value, struct atl1_option *opt, struct pci_dev *pdev)
+ /* Return the number of page frames in holes in a zone on a node */
+-unsigned long __init zone_absent_pages_in_node(int nid,
++unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *ignored)
  {
- 	if (*value == OPTION_UNSET) {
- 		*value = opt->def;
-@@ -105,19 +105,17 @@ static int __devinit atl1_validate_optio
- 	case enable_option:
- 		switch (*value) {
- 		case OPTION_ENABLED:
--			printk(KERN_INFO "%s: %s Enabled\n", atl1_driver_name,
--				opt->name);
-+			dev_info(&pdev->dev, "%s enabled\n", opt->name);
- 			return 0;
- 		case OPTION_DISABLED:
--			printk(KERN_INFO "%s: %s Disabled\n", atl1_driver_name,
--				opt->name);
-+			dev_info(&pdev->dev, "%s disabled\n", opt->name);
- 			return 0;
- 		}
- 		break;
- 	case range_option:
- 		if (*value >= opt->arg.r.min && *value <= opt->arg.r.max) {
--			printk(KERN_INFO "%s: %s set to %i\n",
--				atl1_driver_name, opt->name, *value);
-+			dev_info(&pdev->dev, "%s set to %i\n", opt->name,
-+				*value);
- 			return 0;
- 		}
- 		break;
-@@ -129,8 +127,8 @@ static int __devinit atl1_validate_optio
- 				ent = &opt->arg.l.p[i];
- 				if (*value == ent->i) {
- 					if (ent->str[0] != '\0')
--						printk(KERN_INFO "%s: %s\n",
--						       atl1_driver_name, ent->str);
-+						dev_info(&pdev->dev, "%s\n",
-+							ent->str);
- 					return 0;
- 				}
- 			}
-@@ -141,8 +139,8 @@ static int __devinit atl1_validate_optio
- 		break;
- 	}
+@@ -2584,7 +2584,7 @@ static inline unsigned long zone_absent_
  
--	printk(KERN_INFO "%s: invalid %s specified (%i) %s\n",
--	       atl1_driver_name, opt->name, *value, opt->err);
-+	dev_info(&pdev->dev, "invalid %s specified (%i) %s\n",
-+		opt->name, *value, opt->err);
- 	*value = opt->def;
- 	return -1;
+ #endif
+ 
+-static void __init calculate_node_totalpages(struct pglist_data *pgdat,
++static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
+ 		unsigned long *zones_size, unsigned long *zholes_size)
+ {
+ 	unsigned long realtotalpages, totalpages = 0;
+@@ -2692,7 +2692,7 @@ static void __meminit free_area_init_cor
+ 	}
  }
-@@ -158,12 +156,11 @@ static int __devinit atl1_validate_optio
-  */
- void __devinit atl1_check_options(struct atl1_adapter *adapter)
+ 
+-static void __init alloc_node_mem_map(struct pglist_data *pgdat)
++static void __meminit alloc_node_mem_map(struct pglist_data *pgdat)
  {
-+	struct pci_dev *pdev = adapter->pdev;
- 	int bd = adapter->bd_number;
- 	if (bd >= ATL1_MAX_NIC) {
--		printk(KERN_NOTICE "%s: warning: no configuration for board #%i\n",
--			atl1_driver_name, bd);
--		printk(KERN_NOTICE "%s: using defaults for all values\n",
--			atl1_driver_name);
-+		dev_notice(&pdev->dev, "no configuration for board#%i\n", bd);
-+		dev_notice(&pdev->dev, "using defaults for all values\n");
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+diff -puN mm/sparse.c~fix-section-mismatch-of-memory-hotplug-related-code mm/sparse.c
+--- a/mm/sparse.c~fix-section-mismatch-of-memory-hotplug-related-code
++++ a/mm/sparse.c
+@@ -61,7 +61,7 @@ static struct mem_section *sparse_index_
+ 	return section;
+ }
+ 
+-static int sparse_index_init(unsigned long section_nr, int nid)
++static int __meminit sparse_index_init(unsigned long section_nr, int nid)
+ {
+ 	static DEFINE_SPINLOCK(index_init_lock);
+ 	unsigned long root = SECTION_NR_TO_ROOT(section_nr);
+@@ -138,7 +138,7 @@ static inline int sparse_early_nid(struc
+ }
+ 
+ /* Record a memory area against a node. */
+-void memory_present(int nid, unsigned long start, unsigned long end)
++void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
+ 	unsigned long pfn;
+ 
+@@ -197,7 +197,7 @@ struct page *sparse_decode_mem_map(unsig
+ 	return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum);
+ }
+ 
+-static int sparse_init_one_section(struct mem_section *ms,
++static int __meminit sparse_init_one_section(struct mem_section *ms,
+ 		unsigned long pnum, struct page *mem_map)
+ {
+ 	if (!valid_section(ms))
+@@ -209,7 +209,7 @@ static int sparse_init_one_section(struc
+ 	return 1;
+ }
+ 
+-static struct page *sparse_early_mem_map_alloc(unsigned long pnum)
++static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
+ {
+ 	struct page *map;
+ 	struct mem_section *ms = __nr_to_section(pnum);
+@@ -288,6 +288,7 @@ void __init sparse_init(void)
  	}
- 	{			/* Interrupt Moderate Timer */
- 		struct atl1_option opt = {
-@@ -178,7 +175,7 @@ void __devinit atl1_check_options(struct
- 		int val;
- 		if (num_int_mod_timer > bd) {
- 			val = int_mod_timer[bd];
--			atl1_validate_option(&val, &opt);
-+			atl1_validate_option(&val, &opt, pdev);
- 			adapter->imt = (u16) val;
- 		} else
- 			adapter->imt = (u16) (opt.def);
-@@ -198,7 +195,7 @@ void __devinit atl1_check_options(struct
- 		int val;
- 		if (num_flash_vendor > bd) {
- 			val = flash_vendor[bd];
--			atl1_validate_option(&val, &opt);
-+			atl1_validate_option(&val, &opt, pdev);
- 			adapter->hw.flash_vendor = (u8) val;
- 		} else
- 			adapter->hw.flash_vendor = (u8) (opt.def);
+ }
+ 
++#ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+  * returns the number of sections whose mem_maps were properly
+  * set.  If this is <=0, then that means that the passed-in
+@@ -327,3 +328,4 @@ out:
+ 		__kfree_section_memmap(memmap, nr_pages);
+ 	return ret;
+ }
++#endif
 _
 
-Patches currently in -mm which might be from jacliburn@bellsouth.net are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
+fix-unnecesary-meminit.patch
+move-free-pages-between-lists-on-steal.patch
+create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2.patch
+handle-kernelcore=-generic.patch
