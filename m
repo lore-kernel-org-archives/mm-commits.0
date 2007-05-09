@@ -1,176 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - fsaio-filesystem-aio-read.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:04:50 -0700
-Message-ID: <200705091004.l49A4ofI020788@shell0.pdx.osdl.net>
+Subject: - rework-compat_sys_io_submit.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:04:55 -0700
+Message-ID: <200705091004.l49A4tNR020795@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57207 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755075AbXEIKFa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:05:30 -0400
+	by vger.kernel.org with ESMTP id S1755935AbXEIKGC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:06:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suparna@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: sebastien.dugue@bull.net, bcrl@linux.intel.com, bharata@in.ibm.com, hch@infradead.org, jean-pierre.dion@bull.net, oleg@tv-sign.ru, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: filesystem aio read
+     aio: rework compat_sys_io_submit
 has been removed from the -mm tree.  Its filename was
-     fsaio-filesystem-aio-read.patch
+     rework-compat_sys_io_submit.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fsaio: filesystem aio read
-From: Suparna Bhattacharya <suparna@in.ibm.com>
+Subject: aio: rework compat_sys_io_submit
+=46rom: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
 
-Converts the wait for page to become uptodate (lock page)
-after readahead/readpage (in do_generic_mapping_read) to a retry
-exit, to make buffered filesystem AIO reads actually synchronous.
+Cleanup compat_sys_io_submit by duplicating some of the native syscall =
+logic
+in the compat layer and directly calling io_submit_one() instead of foo=
+ling
+the syscall into thinking it is called from a native 64-bit caller.
 
-The patch avoids exclusive wakeups with AIO, a problem originally
-spotted by Chris Mason, though the reasoning for why it is an
-issue is now much clearer (see explanation in the comment below
-in aio.c), and the solution is perhaps slightly simpler.
+  This eliminates:
 
-Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+  - the overhead of copying the nr iocb pointers on the userspace stack
+
+  - the PAGE_SIZE/(sizeof(void *)) limit on the number of iocbs that
+    can be submitted.
+
+This is also needed for the completion notification patch to avoid havi=
+ng to
+rewrite each iocb on the caller stack for io_submit_one() to find the
+sigevents.
+
+Signed-off-by: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
+Cc: Bharata B Rao <bharata@in.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Benjamin LaHaise <bcrl@linux.intel.com>
+Cc: Jean Pierre Dion <jean-pierre.dion@bull.net>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/aio.c              |   11 ++++++++++-
- include/linux/aio.h   |    5 +++++
- include/linux/sched.h |   10 ++++++++++
- mm/filemap.c          |   18 +++++++++++++++---
- 4 files changed, 40 insertions(+), 4 deletions(-)
+ fs/compat.c |   61 +++++++++++++++++++++++++++-----------------------
+ 1 files changed, 34 insertions(+), 27 deletions(-)
 
-diff -puN fs/aio.c~fsaio-filesystem-aio-read fs/aio.c
---- a/fs/aio.c~fsaio-filesystem-aio-read
-+++ a/fs/aio.c
-@@ -1525,7 +1525,16 @@ static int aio_wake_function(wait_queue_
- 
- 	list_del_init(&wait->task_list);
- 	kick_iocb(iocb);
--	return 1;
-+	/*
-+	 * Avoid exclusive wakeups with retries since an exclusive wakeup
-+	 * may involve implicit expectations of waking up the next waiter
-+	 * and there is no guarantee that the retry will take a path that
-+	 * would do so. For example if a page has become up-to-date, then
-+	 * a retried read may end up straightaway performing a copyout
-+	 * and not go through a lock_page - unlock_page that would have
-+	 * passed the baton to the next waiter.
-+	 */
-+	return 0;
+diff -puN fs/compat.c~rework-compat_sys_io_submit fs/compat.c
+--- a/fs/compat.c~rework-compat_sys_io_submit
++++ a/fs/compat.c
+@@ -644,40 +644,47 @@ out:
+ 	return ret;
  }
- 
- int fastcall io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
-diff -puN include/linux/aio.h~fsaio-filesystem-aio-read include/linux/aio.h
---- a/include/linux/aio.h~fsaio-filesystem-aio-read
-+++ a/include/linux/aio.h
-@@ -34,21 +34,26 @@ struct kioctx;
- /* #define KIF_LOCKED		0 */
- #define KIF_KICKED		1
- #define KIF_CANCELLED		2
-+#define KIF_RESTARTED		3
- 
- #define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
-+#define kiocbTryRestart(iocb)	test_and_set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbSetRestarted(iocb)	set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbClearRestarted(iocb)	clear_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- #define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
- #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
- #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+#define kiocbIsRestarted(iocb)	test_bit(KIF_RESTARTED, &(iocb)->ki_flags)
- 
- /* is there a better place to document function pointer methods? */
- /**
-diff -puN include/linux/sched.h~fsaio-filesystem-aio-read include/linux/sched.h
---- a/include/linux/sched.h~fsaio-filesystem-aio-read
-+++ a/include/linux/sched.h
-@@ -1283,6 +1283,16 @@ extern void switch_uid(struct user_struc
- 
- #include <asm/current.h>
- 
-+/* Are we in the context of a restarted AIO ? */
-+static inline int aio_restarted(void)
-+{
-+	wait_queue_t *wait = current->io_wait;
+=20
+-static inline long
+-copy_iocb(long nr, u32 __user *ptr32, struct iocb __user * __user *ptr=
+64)
+-{
+-	compat_uptr_t uptr;
+-	int i;
+-
+-	for (i =3D 0; i < nr; ++i) {
+-		if (get_user(uptr, ptr32 + i))
+-			return -EFAULT;
+-		if (put_user(compat_ptr(uptr), ptr64 + i))
+-			return -EFAULT;
+-	}
+-	return 0;
+-}
+-
+-#define MAX_AIO_SUBMITS 	(PAGE_SIZE/sizeof(struct iocb *))
+-
+ asmlinkage long
+ compat_sys_io_submit(aio_context_t ctx_id, int nr, u32 __user *iocb)
+ {
+-	struct iocb __user * __user *iocb64;=20
+-	long ret;
++	struct kioctx *ctx;
++	long ret =3D 0;
++	int i;
+=20
+ 	if (unlikely(nr < 0))
+ 		return -EINVAL;
+=20
+-	if (nr > MAX_AIO_SUBMITS)
+-		nr =3D MAX_AIO_SUBMITS;
+-=09
+-	iocb64 =3D compat_alloc_user_space(nr * sizeof(*iocb64));
+-	ret =3D copy_iocb(nr, iocb, iocb64);
+-	if (!ret)
+-		ret =3D sys_io_submit(ctx_id, nr, iocb64);
+-	return ret;
++	if (unlikely(!access_ok(VERIFY_READ, iocb, (nr * sizeof(u32)))))
++		return -EFAULT;
 +
-+	if (!is_sync_wait(wait) && kiocbTryRestart(io_wait_to_kiocb(wait)))
-+		return 1;
-+	return 0;
-+}
++	ctx =3D lookup_ioctx(ctx_id);
++	if (unlikely(!ctx))
++		return -EINVAL;
 +
- extern void do_timer(unsigned long ticks);
- 
- extern int FASTCALL(wake_up_state(struct task_struct * tsk, unsigned int state));
-diff -puN mm/filemap.c~fsaio-filesystem-aio-read mm/filemap.c
---- a/mm/filemap.c~fsaio-filesystem-aio-read
-+++ a/mm/filemap.c
-@@ -846,6 +846,9 @@ void do_generic_mapping_read(struct addr
- 	if (!isize)
- 		goto out;
- 
-+	if (unlikely(aio_restarted()))
-+		next_index = last_index; /* Avoid repeat readahead */
++	for (i=3D0; i<nr; i++) {
++		compat_uptr_t uptr;
++		struct iocb __user *user_iocb;
++		struct iocb tmp;
 +
- 	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
- 	for (;;) {
- 		struct page *page;
-@@ -915,7 +918,10 @@ page_ok:
- 
- page_not_up_to_date:
- 		/* Get exclusive access to the page ... */
--		lock_page(page);
++		if (unlikely(get_user(uptr, iocb + i))) {
++			ret =3D -EFAULT;
++			break;
++		}
 +
-+		error = lock_page_async(page, current->io_wait);
-+		if (error)
-+			goto readpage_error;
- 
- 		/* Did it get truncated before we got the lock? */
- 		if (!page->mapping) {
-@@ -943,7 +949,9 @@ readpage:
- 		}
- 
- 		if (!PageUptodate(page)) {
--			lock_page(page);
-+			error = lock_page_async(page, current->io_wait);
-+			if (error)
-+				goto readpage_error;
- 			if (!PageUptodate(page)) {
- 				if (page->mapping == NULL) {
- 					/*
-@@ -989,7 +997,11 @@ readpage:
- 		goto page_ok;
- 
- readpage_error:
--		/* UHHUH! A synchronous read error occurred. Report it */
-+		/* We don't have uptodate data in the page yet */
-+		/* Could be due to an error or because we need to
-+		 * retry when we get an async i/o notification.
-+		 * Report the reason.
-+		 */
- 		desc->error = error;
- 		page_cache_release(page);
- 		goto out;
++		user_iocb =3D compat_ptr(uptr);
++
++		if (unlikely(copy_from_user(&tmp, user_iocb, sizeof(tmp)))) {
++			ret =3D -EFAULT;
++			break;
++		}
++
++		ret =3D io_submit_one(ctx, user_iocb, &tmp);
++		if (ret)
++			break;
++	}
++
++	put_ioctx(ctx);
++	return i ? i: ret;
+ }
+=20
+ struct compat_ncp_mount_data {
 _
 
-Patches currently in -mm which might be from suparna@in.ibm.com are
+Patches currently in -mm which might be from sebastien.dugue@bull.net a=
+re
 
-aio-is-unlikely.patch
-fsaio-filesystem-aio-read.patch
-fsaio-aio-o_sync-filesystem-write.patch
+origin.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
 rework-compat_sys_io_submit.patch
 fix-aioh-includes.patch
 fix-access_ok-checks.patch
