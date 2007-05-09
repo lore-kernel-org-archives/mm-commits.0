@@ -1,52 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - i810fb-fix-incorrect-frequency-mask.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:08 -0700
-Message-ID: <200705090301.l49318wF010653@shell0.pdx.osdl.net>
+Subject: - vt-add-documentation-for-new-boot-sysfs-options.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:10 -0700
+Message-ID: <200705090301.l4931ALb010658@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55667 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033015AbXEIDBL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:11 -0400
+	by vger.kernel.org with ESMTP id S1033025AbXEIDBN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i810fb: fix incorrect frequency mask
+     vt: add documentation for new boot/sysfs options
 has been removed from the -mm tree.  Its filename was
-     i810fb-fix-incorrect-frequency-mask.patch
+     vt-add-documentation-for-new-boot-sysfs-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i810fb: fix incorrect frequency mask
+Subject: vt: add documentation for new boot/sysfs options
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Fix a long-standing bug.  The mask used to detect a 100Mhz or 133Mhz chipset
-is incorrect. (The only side effect of this bug is that it will choose an
-incorrect watermark).
+Add description to Documentation/kernel-parameters.txt on new options
+default_blue, default_grn, default_red, and default_utf8.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/i810/i810.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/video/i810/i810.h~i810fb-fix-incorrect-frequency-mask drivers/video/i810/i810.h
---- a/drivers/video/i810/i810.h~i810fb-fix-incorrect-frequency-mask
-+++ a/drivers/video/i810/i810.h
-@@ -133,7 +133,7 @@
- /* Masks (AND ops) and OR's */
- #define FB_START_MASK               (0x3f << (32 - 6))
- #define MMIO_ADDR_MASK              (0x1FFF << (32 - 13))
--#define FREQ_MASK                   0x1EF
-+#define FREQ_MASK                   (1 << 4)
- #define SCR_OFF                     0x20
- #define DRAM_ON                     0x08            
- #define DRAM_OFF                    0xE7
+diff -puN Documentation/kernel-parameters.txt~vt-add-documentation-for-new-boot-sysfs-options Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~vt-add-documentation-for-new-boot-sysfs-options
++++ a/Documentation/kernel-parameters.txt
+@@ -496,6 +496,30 @@ and is between 256 and 4096 characters. 
+ 			Format: <area>[,<node>]
+ 			See also Documentation/networking/decnet.txt.
+ 
++	default_blu=	[VT]
++			Format: <blue0>,<blue1>,<blue2>,...,<blue15>
++			Change the default blue palette of the console.
++			This is a 16-member array composed of values
++			ranging from 0-255.
++
++	default_grn=	[VT]
++			Format: <green0>,<green1>,<green2>,...,<green15>
++			Change the default green palette of the console.
++			This is a 16-member array composed of values
++			ranging from 0-255.
++
++	default_red=	[VT]
++			Format: <red0>,<red1>,<red2>,...,<red15>
++			Change the default red palette of the console.
++			This is a 16-member array composed of values
++			ranging from 0-255.
++
++	default_utf8=   [VT]
++			Format=<0|1>
++			Set system-wide default UTF-8 mode for all tty's.
++			Default is 0 and by setting to 1, it enables UTF-8
++			mode for all newly opened or allocated terminals.
++
+ 	dhash_entries=	[KNL]
+ 			Set number of hash buckets for dentry cache.
+ 
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
