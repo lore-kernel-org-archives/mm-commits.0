@@ -1,119 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - dm-log-fault-detection.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:46 -0700
-Message-ID: <200705092148.l49Lmkqu002625@shell0.pdx.osdl.net>
+Subject: - krealloc-fix-kerneldoc-comments.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:18 -0700
+Message-ID: <200705092148.l49LmICP002574@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56580 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759366AbXEIVsy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:54 -0400
+	by vger.kernel.org with ESMTP id S1759352AbXEIVsv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbrassow@redhat.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, clameter@sgi.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm log: fault detection
+     krealloc: fix kerneldoc comments
 has been removed from the -mm tree.  Its filename was
-     dm-log-fault-detection.patch
+     krealloc-fix-kerneldoc-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm log: fault detection
-From: Jonathan E Brassow <jbrassow@redhat.com>
+Subject: krealloc: fix kerneldoc comments
+From: Pekka J Enberg <penberg@cs.helsinki.fi>
 
-This patch gives the disk logging code the ability to store the fact that an
-error occured on the log device.  In addition, an event is raised when an
-error is encountered during I/O to the log device.
+No "blank" (or "*") line is allowed between the function name and lines for
+it parameter(s).
 
-Signed-off-by: Jonathan E Brassow <jbrassow@redhat.com>
-Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log.c |   30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ mm/slab.c |    1 -
+ mm/slub.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/md/dm-log.c~dm-log-fault-detection drivers/md/dm-log.c
---- a/drivers/md/dm-log.c~dm-log-fault-detection
-+++ a/drivers/md/dm-log.c
-@@ -152,6 +152,7 @@ struct log_c {
- 	/*
- 	 * Disk log fields
- 	 */
-+	int log_dev_failed;
- 	struct dm_dev *log_dev;
- 	struct log_header header;
+diff -puN mm/slab.c~krealloc-fix-kerneldoc-comments mm/slab.c
+--- a/mm/slab.c~krealloc-fix-kerneldoc-comments
++++ a/mm/slab.c
+@@ -3742,7 +3742,6 @@ EXPORT_SYMBOL(__kmalloc);
  
-@@ -315,6 +316,7 @@ static int create_log_context(struct dir
- 		lc->disk_header = NULL;
- 	} else {
- 		lc->log_dev = dev;
-+		lc->log_dev_failed = 0;
- 		lc->header_location.bdev = lc->log_dev->bdev;
- 		lc->header_location.sector = 0;
+ /**
+  * krealloc - reallocate memory. The contents will remain unchanged.
+- *
+  * @p: object to reallocate memory for.
+  * @new_size: how many bytes of memory are required.
+  * @flags: the type of memory to allocate.
+diff -puN mm/slub.c~krealloc-fix-kerneldoc-comments mm/slub.c
+--- a/mm/slub.c~krealloc-fix-kerneldoc-comments
++++ a/mm/slub.c
+@@ -2286,7 +2286,6 @@ EXPORT_SYMBOL(kmem_cache_shrink);
  
-@@ -437,6 +439,15 @@ static int count_bits32(uint32_t *addr, 
- 	return count;
- }
- 
-+static void fail_log_device(struct log_c *lc)
-+{
-+	if (lc->log_dev_failed)
-+		return;
-+
-+	lc->log_dev_failed = 1;
-+	dm_table_event(lc->ti->table);
-+}
-+
- static int disk_resume(struct dirty_log *log)
- {
- 	int r;
-@@ -446,8 +457,12 @@ static int disk_resume(struct dirty_log 
- 
- 	/* read the disk header */
- 	r = read_header(lc);
--	if (r)
-+	if (r) {
-+		DMWARN("%s: Failed to read header on mirror log device",
-+		       lc->log_dev->name);
-+		fail_log_device(lc);
- 		return r;
-+	}
- 
- 	/* set or clear any new bits -- device has grown */
- 	if (lc->sync == NOSYNC)
-@@ -472,7 +487,14 @@ static int disk_resume(struct dirty_log 
- 	lc->header.nr_regions = lc->region_count;
- 
- 	/* write the new header */
--	return write_header(lc);
-+	r = write_header(lc);
-+	if (r) {
-+		DMWARN("%s: Failed to write header on mirror log device",
-+		       lc->log_dev->name);
-+		fail_log_device(lc);
-+	}
-+
-+	return r;
- }
- 
- static uint32_t core_get_region_size(struct dirty_log *log)
-@@ -516,7 +538,9 @@ static int disk_flush(struct dirty_log *
- 		return 0;
- 
- 	r = write_header(lc);
--	if (!r)
-+	if (r)
-+		fail_log_device(lc);
-+	else
- 		lc->touched = 0;
- 
- 	return r;
+ /**
+  * krealloc - reallocate memory. The contents will remain unchanged.
+- *
+  * @p: object to reallocate memory for.
+  * @new_size: how many bytes of memory are required.
+  * @flags: the type of memory to allocate.
 _
 
-Patches currently in -mm which might be from jbrassow@redhat.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+slab-leaks3-default-y.patch
