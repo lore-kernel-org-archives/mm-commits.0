@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:04:38 -0700
-Message-ID: <200705091004.l49A4c6r020767@shell0.pdx.osdl.net>
+Subject: - fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:04:36 -0700
+Message-ID: <200705091004.l49A4a39020764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53684 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754896AbXEIKEw (ORCPT
+	by vger.kernel.org with ESMTP id S1754934AbXEIKEw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:04:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,70 +14,101 @@ To: suparna@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: add a default io wait bit field in task struct
+     fsaio: interfaces to initialize and to test a wait bit key
 has been removed from the -mm tree.  Its filename was
-     fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
+     fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fsaio: add a default io wait bit field in task struct
+Subject: fsaio: interfaces to initialize and to test a wait bit key
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Allocates space for the default io wait queue entry (actually a wait bit
-entry) in the task struct.  Doing so simplifies the patches for AIO wait page
-allowing for cleaner and more efficient implementation, at the cost of 28
-additional bytes in task struct vs allocation on demand on-stack.
+init_wait_bit_key() initializes the key field in an already allocated wait bit
+structure, useful for async wait bit support.  Also separate out the wait bit
+test to a common routine which can be used by different kinds of wakeup
+callbacks.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/sched.h |   11 +++++++----
- kernel/fork.c         |    3 ++-
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ include/linux/wait.h |   26 ++++++++++++++++++++++++++
+ kernel/wait.c        |   11 ++---------
+ 2 files changed, 28 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/sched.h~fsaio-add-a-default-io-wait-bit-field-in-task-struct include/linux/sched.h
---- a/include/linux/sched.h~fsaio-add-a-default-io-wait-bit-field-in-task-struct
-+++ a/include/linux/sched.h
-@@ -1003,11 +1003,14 @@ struct task_struct {
+diff -puN include/linux/wait.h~fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key include/linux/wait.h
+--- a/include/linux/wait.h~fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key
++++ a/include/linux/wait.h
+@@ -108,6 +108,17 @@ static inline int waitqueue_active(wait_
+ 	return !list_empty(&q->task_list);
+ }
  
- 	unsigned long ptrace_message;
- 	siginfo_t *last_siginfo; /* For ptrace use.  */
++static inline int test_wait_bit_key(wait_queue_t *wait,
++				struct wait_bit_key *key)
++{
++	struct wait_bit_queue *wait_bit
++		= container_of(wait, struct wait_bit_queue, wait);
 +
-+/* Space for default IO wait bit entry used for synchronous IO waits */
-+	struct wait_bit_queue __wait;
++	return (wait_bit->key.flags == key->flags &&
++			wait_bit->key.bit_nr == key->bit_nr &&
++			!test_bit(key->bit_nr, key->flags));
++}
++
  /*
-- * current io wait handle: wait queue entry to use for io waits
-- * If this thread is processing aio, this points at the waitqueue
-- * inside the currently handled kiocb. It may be NULL (i.e. default
-- * to a stack based synchronous wait) if its doing sync IO.
-+ * Current IO wait handle: wait queue entry to use for IO waits
-+ * If this thread is processing AIO, this points at the waitqueue
-+ * inside the currently handled kiocb. Otherwise, points to the
-+ * default IO wait field (i.e &__wait.wait above).
-  */
- 	wait_queue_t *io_wait;
- #ifdef CONFIG_TASK_XACCT
-diff -puN kernel/fork.c~fsaio-add-a-default-io-wait-bit-field-in-task-struct kernel/fork.c
---- a/kernel/fork.c~fsaio-add-a-default-io-wait-bit-field-in-task-struct
-+++ a/kernel/fork.c
-@@ -1056,7 +1056,8 @@ static struct task_struct *copy_process(
- 	do_posix_clock_monotonic_gettime(&p->start_time);
- 	p->security = NULL;
- 	p->io_context = NULL;
--	p->io_wait = NULL;
-+	init_wait_bit_task(&p->__wait, p);
-+	p->io_wait = &p->__wait.wait;
- 	p->audit_context = NULL;
- 	cpuset_fork(p);
- #ifdef CONFIG_NUMA
+  * Used to distinguish between sync and async io wait context:
+  * sync i/o typically specifies a NULL wait queue entry or a wait
+@@ -416,6 +427,21 @@ int wake_bit_function(wait_queue_t *wait
+ 		INIT_LIST_HEAD(&(wait)->task_list);			\
+ 	} while (0)
+ 
++static inline void init_wait_bit_key(struct wait_bit_queue *waitbit,
++					void *word, int bit)
++{
++	waitbit->key.flags = word;
++	waitbit->key.bit_nr = bit;
++}
++
++static inline void init_wait_bit_task(struct wait_bit_queue *waitbit,
++					struct task_struct *tsk)
++{
++	waitbit->wait.private = tsk;
++	waitbit->wait.func = wake_bit_function;
++	INIT_LIST_HEAD(&waitbit->wait.task_list);
++}
++
+ /**
+  * wait_on_bit - wait for a bit to be cleared
+  * @word: the word being waited on, a kernel virtual address
+diff -puN kernel/wait.c~fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key kernel/wait.c
+--- a/kernel/wait.c~fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key
++++ a/kernel/wait.c
+@@ -139,16 +139,9 @@ EXPORT_SYMBOL(autoremove_wake_function);
+ 
+ int wake_bit_function(wait_queue_t *wait, unsigned mode, int sync, void *arg)
+ {
+-	struct wait_bit_key *key = arg;
+-	struct wait_bit_queue *wait_bit
+-		= container_of(wait, struct wait_bit_queue, wait);
+-
+-	if (wait_bit->key.flags != key->flags ||
+-			wait_bit->key.bit_nr != key->bit_nr ||
+-			test_bit(key->bit_nr, key->flags))
++	if (!test_wait_bit_key(wait, arg))
+ 		return 0;
+-	else
+-		return autoremove_wake_function(wait, mode, sync, key);
++	return autoremove_wake_function(wait, mode, sync, arg);
+ }
+ EXPORT_SYMBOL(wake_bit_function);
+ 
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
 
 aio-is-unlikely.patch
+fsaio-interfaces-to-initialize-and-to-test-a-wait-bit-key.patch
 fsaio-add-a-default-io-wait-bit-field-in-task-struct.patch
 fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio.patch
 fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
