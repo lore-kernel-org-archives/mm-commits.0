@@ -1,78 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:53:03 -0700
-Message-ID: <200705092153.l49Lr3g1003044@shell0.pdx.osdl.net>
+Subject: - allow-arch-to-initialize-arch-field-of-the-module-structure.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:54:16 -0700
+Message-ID: <200705092154.l49LsGtR003157@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39056 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759000AbXEIVyj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:39 -0400
+	by vger.kernel.org with ESMTP id S1759319AbXEIVyo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: avoid use of unitialised variables on error path when nfs exports
+     Allow arch to initialize arch field of the module structure
 has been removed from the -mm tree.  Its filename was
-     knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports.patch
+     allow-arch-to-initialize-arch-field-of-the-module-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: avoid use of unitialised variables on error path when nfs exports
-From: NeilBrown <neilb@suse.de>
+Subject: Allow arch to initialize arch field of the module structure
+From: Roman Zippel <zippel@linux-m68k.org>
 
-We need to zero various parts of 'exp' before any 'goto out', otherwise when
-we go to free the contents...  we die.
+This will later allow an arch to add module specific information via linker
+generated tables instead of poking directly in the module object structure.
 
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/module.h |    3 +++
+ scripts/mod/modpost.c  |    1 +
+ 2 files changed, 4 insertions(+)
 
-diff -puN fs/nfsd/export.c~knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports
-+++ a/fs/nfsd/export.c
-@@ -469,6 +469,13 @@ static int svc_export_parse(struct cache
- 	nd.dentry = NULL;
- 	exp.ex_path = NULL;
+diff -puN include/linux/module.h~allow-arch-to-initialize-arch-field-of-the-module-structure include/linux/module.h
+--- a/include/linux/module.h~allow-arch-to-initialize-arch-field-of-the-module-structure
++++ a/include/linux/module.h
+@@ -356,6 +356,9 @@ struct module
+ 	   keeping pointers to this stuff */
+ 	char *args;
+ };
++#ifndef MODULE_ARCH_INIT
++#define MODULE_ARCH_INIT {}
++#endif
  
-+	/* fs locations */
-+	exp.ex_fslocs.locations = NULL;
-+	exp.ex_fslocs.locations_count = 0;
-+	exp.ex_fslocs.migrated = 0;
-+
-+	exp.ex_uuid = NULL;
-+
- 	if (mesg[mlen-1] != '\n')
- 		return -EINVAL;
- 	mesg[mlen-1] = 0;
-@@ -509,13 +516,6 @@ static int svc_export_parse(struct cache
- 	if (exp.h.expiry_time == 0)
- 		goto out;
+ /* FIXME: It'd be nice to isolate modules during init, too, so they
+    aren't used before they (may) fail.  But presently too much code
+diff -puN scripts/mod/modpost.c~allow-arch-to-initialize-arch-field-of-the-module-structure scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~allow-arch-to-initialize-arch-field-of-the-module-structure
++++ a/scripts/mod/modpost.c
+@@ -1343,6 +1343,7 @@ static void add_header(struct buffer *b,
+ 		buf_printf(b, "#ifdef CONFIG_MODULE_UNLOAD\n"
+ 			      " .exit = cleanup_module,\n"
+ 			      "#endif\n");
++	buf_printf(b, " .arch = MODULE_ARCH_INIT,\n");
+ 	buf_printf(b, "};\n");
+ }
  
--	/* fs locations */
--	exp.ex_fslocs.locations = NULL;
--	exp.ex_fslocs.locations_count = 0;
--	exp.ex_fslocs.migrated = 0;
--
--	exp.ex_uuid = NULL;
--
- 	/* flags */
- 	err = get_int(&mesg, &an_int);
- 	if (err == -ENOENT)
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 origin.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-introduce-freezer-flags-rev-2.patch
-git-md-accel.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
