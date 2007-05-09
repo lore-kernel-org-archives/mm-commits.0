@@ -1,131 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - frame-buffer-geforce-7300-gt.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:54:48 -0700
-Message-ID: <200705092154.l49LsmQD003200@shell0.pdx.osdl.net>
+Subject: - workqueue-make-init_workqueues-__init.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:53 -0700
+Message-ID: <200705092151.l49Lpr6w002932@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46726 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759102AbXEIWJZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:25 -0400
+	by vger.kernel.org with ESMTP id S1758995AbXEIWJU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michal.k.k.piotrowski@gmail.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frame buffer: geforce 7300 gt
+     workqueue: make init_workqueues() __init
 has been removed from the -mm tree.  Its filename was
-     frame-buffer-geforce-7300-gt.patch
+     workqueue-make-init_workqueues-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: frame buffer: geforce 7300 gt
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: workqueue: make init_workqueues() __init
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-My geforce isn't supported by nvidia frame buffer.
+The only caller of init_workqueues() is do_basic_setup().
 
-/sbin/lspci
-01:00.0 VGA compatible controller: nVidia Corporation Unknown device 02e2 (rev a2)
-
-/usr/sbin/fbset -i
-
-mode "1024x768-60"
-    # D: 65.003 MHz, H: 48.365 kHz, V: 60.006 Hz
-    geometry 1024 768 1024 32767 8
-    timings 15384 160 24 29 3 136 6
-    accel true
-    rgba 8/0,8/0,8/0,0/0
-endmode
-
-Frame buffer device information:
-    Name        : NV2e
-    Address     : 0xe0000000
-    Size        : 134217728
-    Type        : PACKED PIXELS
-    Visual      : PSEUDOCOLOR
-    XPanStep    : 8
-    YPanStep    : 1
-    YWrapStep   : 0
-    LineLength  : 1024
-    MMIO Address: 0xf6000000
-    MMIO Size   : 16777216
-    Accelerator : Unknown (46)
-
-Here is a patch for this problem.
-
-Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_hw.c  |    7 +++++--
- drivers/video/nvidia/nvidia.c |    1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/workqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/nvidia/nv_hw.c~frame-buffer-geforce-7300-gt drivers/video/nvidia/nv_hw.c
---- a/drivers/video/nvidia/nv_hw.c~frame-buffer-geforce-7300-gt
-+++ a/drivers/video/nvidia/nv_hw.c
-@@ -149,8 +149,7 @@ static void nvGetClocks(struct nvidia_pa
- 		pll = NV_RD32(par->PMC, 0x4024);
- 		M = pll & 0xFF;
- 		N = (pll >> 8) & 0xFF;
--		if (((par->Chipset & 0xfff0) == 0x0290) ||
--				((par->Chipset & 0xfff0) == 0x0390)) {
-+		if (((par->Chipset & 0xfff0) == 0x0290) || ((par->Chipset & 0xfff0) == 0x0390) || ((par->Chipset & 0xfff0) == 0x02E0)) {
- 			MB = 1;
- 			NB = 1;
- 		} else {
-@@ -963,6 +962,7 @@ void NVLoadStateExt(struct nvidia_par *p
+diff -puN kernel/workqueue.c~workqueue-make-init_workqueues-__init kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-make-init_workqueues-__init
++++ a/kernel/workqueue.c
+@@ -823,7 +823,7 @@ static int __devinit workqueue_cpu_callb
+ 	return NOTIFY_OK;
+ }
  
- 		if (((par->Chipset & 0xfff0) == 0x0090) ||
- 		    ((par->Chipset & 0xfff0) == 0x01D0) ||
-+		    ((par->Chipset & 0xfff0) == 0x02E0) ||
- 		    ((par->Chipset & 0xfff0) == 0x0290))
- 			regions = 15;
- 		for(i = 0; i < regions; i++) {
-@@ -1275,6 +1275,7 @@ void NVLoadStateExt(struct nvidia_par *p
- 						0x00100000);
- 					break;
- 				case 0x0090:
-+				case 0x02E0:
- 				case 0x0290:
- 					NV_WR32(par->PRAMDAC, 0x0608,
- 						NV_RD32(par->PRAMDAC, 0x0608) |
-@@ -1352,6 +1353,7 @@ void NVLoadStateExt(struct nvidia_par *p
- 			} else {
- 				if (((par->Chipset & 0xfff0) == 0x0090) ||
- 				    ((par->Chipset & 0xfff0) == 0x01D0) ||
-+				    ((par->Chipset & 0xfff0) == 0x02E0) ||
- 				    ((par->Chipset & 0xfff0) == 0x0290)) {
- 					for (i = 0; i < 60; i++) {
- 						NV_WR32(par->PGRAPH,
-@@ -1403,6 +1405,7 @@ void NVLoadStateExt(struct nvidia_par *p
- 				} else {
- 					if ((par->Chipset & 0xfff0) == 0x0090 ||
- 					    (par->Chipset & 0xfff0) == 0x01D0 ||
-+					    (par->Chipset & 0xfff0) == 0x02E0 ||
- 					    (par->Chipset & 0xfff0) == 0x0290) {
- 						NV_WR32(par->PGRAPH, 0x0DF0,
- 							NV_RD32(par->PFB, 0x0200));
-diff -puN drivers/video/nvidia/nvidia.c~frame-buffer-geforce-7300-gt drivers/video/nvidia/nvidia.c
---- a/drivers/video/nvidia/nvidia.c~frame-buffer-geforce-7300-gt
-+++ a/drivers/video/nvidia/nvidia.c
-@@ -1243,6 +1243,7 @@ static u32 __devinit nvidia_get_arch(str
- 	case 0x0140:		/* GeForce 6600 */
- 	case 0x0160:		/* GeForce 6200 */
- 	case 0x01D0:		/* GeForce 7200, 7300, 7400 */
-+	case 0x02E0:		/* GeForce 7300 GT */
- 	case 0x0090:		/* GeForce 7800 */
- 	case 0x0210:		/* GeForce 6800 */
- 	case 0x0220:		/* GeForce 6200 */
+-void init_workqueues(void)
++void __init init_workqueues(void)
+ {
+ 	cpu_populated_map = cpu_online_map;
+ 	singlethread_cpu = first_cpu(cpu_possible_map);
 _
 
-Patches currently in -mm which might be from michal.k.k.piotrowski@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-i386-irq-kill-irq-compression.patch
-xfs-fix-unmount-race.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-reiser4.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
