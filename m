@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm-raid1-one-kmirrord-per-mirror.patch added to -mm tree
-Date: Tue, 08 May 2007 17:54:31 -0700
-Message-ID: <200705090054.l490sVWA006352@shell0.pdx.osdl.net>
+Subject: + dm-io-prepare-for-new-interface.patch added to -mm tree
+Date: Tue, 08 May 2007 17:54:58 -0700
+Message-ID: <200705090054.l490swdZ006401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35136 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966650AbXEIAy6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:54:58 -0400
+	by vger.kernel.org with ESMTP id S966745AbXEIAzI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: smolinski@de.ibm.com, agk@redhat.com, oleg@tv-sign.ru
+Cc: hjm@redhat.com, agk@redhat.com, mbroz@redhat.com
 
 
 The patch titled
-     dm raid1: one kmirrord per mirror
+     dm io: prepare for new interface
 has been added to the -mm tree.  Its filename is
-     dm-raid1-one-kmirrord-per-mirror.patch
+     dm-io-prepare-for-new-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,229 +25,222 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm raid1: one kmirrord per mirror
-From: Holger Smolinski <smolinski@de.ibm.com>
+Subject: dm io: prepare for new interface
+From: Heinz Mauelshagen <hjm@redhat.com>
 
-This patch replaces the single instance of kmirrord by one instance per mirror
-set.  This change is required to avoid a deadlock in kmirrord when the
-persistent dirty log of a mirror itself resides on a mirror.  The single
-instance of kmirrord then issues a sync write to the dirty log in write_bits
-which gets deferred to kmirrord itself later in the call chain.  But kmirrord
-never does the deferred work because it is still waiting for the sync
-write_bits.
+Introduce struct dm_io_client to prepare for per-client mempools and bio_sets.
 
-_mirror_sets is removed as it no longer needed, and we always flush the
-workqueue before destroying it to ensure all work is complete before
-destroying it.
+Temporary functions bios() and io_pool() choose between the per-client
+structures and the global ones so the old and new interfaces can co-exist.
 
-Signed-off-by: Holger Smolinski <smolinski@de.ibm.com>
+Make error_bits optional.
+
+Signed-off-by: Heinz Mauelshagen <hjm@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-raid1.c |   81 +++++++++++++---------------------------
- 1 files changed, 27 insertions(+), 54 deletions(-)
+ drivers/md/dm-io.c |   61 +++++++++++++++++++++++++++++++------------
+ 1 files changed, 44 insertions(+), 17 deletions(-)
 
-diff -puN drivers/md/dm-raid1.c~dm-raid1-one-kmirrord-per-mirror drivers/md/dm-raid1.c
---- a/drivers/md/dm-raid1.c~dm-raid1-one-kmirrord-per-mirror
-+++ a/drivers/md/dm-raid1.c
-@@ -22,15 +22,8 @@
- 
- #define DM_MSG_PREFIX "raid1"
- 
--static struct workqueue_struct *_kmirrord_wq;
--static struct work_struct _kmirrord_work;
- static DECLARE_WAIT_QUEUE_HEAD(_kmirrord_recovery_stopped);
- 
--static inline void wake(void)
--{
--	queue_work(_kmirrord_wq, &_kmirrord_work);
--}
--
- /*-----------------------------------------------------------------
-  * Region hash
+diff -puN drivers/md/dm-io.c~dm-io-prepare-for-new-interface drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~dm-io-prepare-for-new-interface
++++ a/drivers/md/dm-io.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (C) 2003 Sistina Software
++ * Copyright (C) 2006 Red Hat GmbH
   *
-@@ -136,6 +129,9 @@ struct mirror_set {
+  * This file is released under the GPL.
+  */
+@@ -14,11 +15,17 @@
  
- 	struct mirror *default_mirror;	/* Default mirror */
+ static struct bio_set *_bios;
  
-+	struct workqueue_struct *kmirrord_wq;
-+	struct work_struct kmirrord_work;
++struct dm_io_client {
++	mempool_t *pool;
++	struct bio_set *bios;
++};
 +
- 	unsigned int nr_mirrors;
- 	struct mirror mirror[0];
+ /* FIXME: can we shrink this ? */
+ struct io {
+ 	unsigned long error;
+ 	atomic_t count;
+ 	struct task_struct *sleeper;
++	struct dm_io_client *client;
+ 	io_notify_fn callback;
+ 	void *context;
  };
-@@ -153,6 +149,11 @@ static inline sector_t region_to_sector(
- 	return region << rh->region_shift;
- }
+@@ -26,12 +33,24 @@ struct io {
+ /*
+  * io contexts are only dynamically allocated for asynchronous
+  * io.  Since async io is likely to be the majority of io we'll
+- * have the same number of io contexts as buffer heads ! (FIXME:
+- * must reduce this).
++ * have the same number of io contexts as bios! (FIXME: must reduce this).
+  */
+ static unsigned _num_ios;
+ static mempool_t *_io_pool;
  
-+static void wake(struct mirror_set *ms)
++/*
++ * Temporary functions to allow old and new interfaces to co-exist.
++ */
++static struct bio_set *bios(struct dm_io_client *client)
 +{
-+	queue_work(ms->kmirrord_wq, &ms->kmirrord_work);
++	return client ? client->bios : _bios;
 +}
 +
- /* FIXME move this */
- static void queue_bio(struct mirror_set *ms, struct bio *bio, int rw);
- 
-@@ -471,7 +472,7 @@ static void rh_dec(struct region_hash *r
- 	spin_unlock_irqrestore(&rh->region_lock, flags);
- 
- 	if (should_wake)
--		wake();
-+		wake(rh->ms);
- }
- 
- /*
-@@ -558,7 +559,7 @@ static void rh_recovery_end(struct regio
- 	list_add(&reg->list, &reg->rh->recovered_regions);
- 	spin_unlock_irq(&rh->region_lock);
- 
--	wake();
-+	wake(rh->ms);
- }
- 
- static void rh_flush(struct region_hash *rh)
-@@ -592,7 +593,7 @@ static void rh_start_recovery(struct reg
- 	for (i = 0; i < MAX_RECOVERY; i++)
- 		up(&rh->recovery_count);
- 
--	wake();
-+	wake(rh->ms);
- }
- 
- /*
-@@ -870,11 +871,10 @@ static void do_writes(struct mirror_set 
- /*-----------------------------------------------------------------
-  * kmirrord
-  *---------------------------------------------------------------*/
--static LIST_HEAD(_mirror_sets);
--static DECLARE_RWSEM(_mirror_sets_lock);
--
--static void do_mirror(struct mirror_set *ms)
-+static void do_mirror(struct work_struct *work)
- {
-+	struct mirror_set *ms =container_of(work, struct mirror_set,
-+					    kmirrord_work);
- 	struct bio_list reads, writes;
- 
- 	spin_lock(&ms->lock);
-@@ -890,16 +890,6 @@ static void do_mirror(struct mirror_set 
- 	do_writes(ms, &writes);
- }
- 
--static void do_work(struct work_struct *ignored)
--{
--	struct mirror_set *ms;
--
--	down_read(&_mirror_sets_lock);
--	list_for_each_entry (ms, &_mirror_sets, list)
--		do_mirror(ms);
--	up_read(&_mirror_sets_lock);
--}
--
- /*-----------------------------------------------------------------
-  * Target functions
-  *---------------------------------------------------------------*/
-@@ -978,23 +968,6 @@ static int get_mirror(struct mirror_set 
- 	return 0;
- }
- 
--static int add_mirror_set(struct mirror_set *ms)
--{
--	down_write(&_mirror_sets_lock);
--	list_add_tail(&ms->list, &_mirror_sets);
--	up_write(&_mirror_sets_lock);
--	wake();
--
--	return 0;
--}
--
--static void del_mirror_set(struct mirror_set *ms)
--{
--	down_write(&_mirror_sets_lock);
--	list_del(&ms->list);
--	up_write(&_mirror_sets_lock);
--}
--
- /*
-  * Create dirty log: log_type #log_params <log_params>
-  */
-@@ -1096,13 +1069,22 @@ static int mirror_ctr(struct dm_target *
- 	ti->private = ms;
-  	ti->split_io = ms->rh.region_size;
- 
-+	ms->kmirrord_wq = create_singlethread_workqueue("kmirrord");
-+	if (!ms->kmirrord_wq) {
-+		DMERR("couldn't start kmirrord");
-+		free_context(ms, ti, m);
-+		return -ENOMEM;
-+	}
-+	INIT_WORK(&ms->kmirrord_work, do_mirror);
++static mempool_t *io_pool(struct dm_io_client *client)
++{
++	return client ? client->pool : _io_pool;
++}
 +
- 	r = kcopyd_client_create(DM_IO_PAGES, &ms->kcopyd_client);
- 	if (r) {
-+		destroy_workqueue(ms->kmirrord_wq);
- 		free_context(ms, ti, ms->nr_mirrors);
- 		return r;
- 	}
- 
--	add_mirror_set(ms);
-+	wake(ms);
- 	return 0;
- }
- 
-@@ -1110,8 +1092,9 @@ static void mirror_dtr(struct dm_target 
+ static unsigned int pages_to_ios(unsigned int pages)
  {
- 	struct mirror_set *ms = (struct mirror_set *) ti->private;
+ 	return 4 * pages;	/* too many ? */
+@@ -118,7 +137,7 @@ static void dec_count(struct io *io, uns
+ 			io_notify_fn fn = io->callback;
+ 			void *context = io->context;
  
--	del_mirror_set(ms);
-+	flush_workqueue(ms->kmirrord_wq);
- 	kcopyd_client_destroy(ms->kcopyd_client);
-+	destroy_workqueue(ms->kmirrord_wq);
- 	free_context(ms, ti, ms->nr_mirrors);
+-			mempool_free(io, _io_pool);
++			mempool_free(io, io_pool(io->client));
+ 			fn(r, context);
+ 		}
+ 	}
+@@ -241,7 +260,9 @@ static void vm_dp_init(struct dpages *dp
+ 
+ static void dm_bio_destructor(struct bio *bio)
+ {
+-	bio_free(bio, _bios);
++	struct io *io = bio->bi_private;
++
++	bio_free(bio, bios(io->client));
  }
  
-@@ -1127,7 +1110,7 @@ static void queue_bio(struct mirror_set 
- 	spin_unlock(&ms->lock);
- 
- 	if (should_wake)
--		wake();
-+		wake(ms);
+ /*-----------------------------------------------------------------
+@@ -264,7 +285,7 @@ static void do_region(int rw, unsigned i
+ 		 * to hide it from bio_add_page().
+ 		 */
+ 		num_bvecs = (remaining / (PAGE_SIZE >> SECTOR_SHIFT)) + 2;
+-		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, _bios);
++		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, bios(io->client));
+ 		bio->bi_sector = where->sector + (where->count - remaining);
+ 		bio->bi_bdev = where->bdev;
+ 		bio->bi_end_io = endio;
+@@ -319,8 +340,9 @@ static void dispatch_io(int rw, unsigned
+ 	dec_count(io, 0, 0);
  }
  
- /*
-@@ -1270,20 +1253,11 @@ static int __init dm_mirror_init(void)
- 	if (r)
- 		return r;
+-static int sync_io(unsigned int num_regions, struct io_region *where,
+-	    int rw, struct dpages *dp, unsigned long *error_bits)
++static int sync_io(struct dm_io_client *client, unsigned int num_regions,
++		   struct io_region *where, int rw, struct dpages *dp,
++		   unsigned long *error_bits)
+ {
+ 	struct io io;
  
--	_kmirrord_wq = create_singlethread_workqueue("kmirrord");
--	if (!_kmirrord_wq) {
--		DMERR("couldn't start kmirrord");
--		dm_dirty_log_exit();
--		return r;
--	}
--	INIT_WORK(&_kmirrord_work, do_work);
--
- 	r = dm_register_target(&mirror_target);
- 	if (r < 0) {
- 		DMERR("%s: Failed to register mirror target",
- 		      mirror_target.name);
- 		dm_dirty_log_exit();
--		destroy_workqueue(_kmirrord_wq);
+@@ -332,6 +354,7 @@ static int sync_io(unsigned int num_regi
+ 	io.error = 0;
+ 	atomic_set(&io.count, 1); /* see dispatch_io() */
+ 	io.sleeper = current;
++	io.client = client;
+ 
+ 	dispatch_io(rw, num_regions, where, dp, &io, 1);
+ 
+@@ -348,12 +371,15 @@ static int sync_io(unsigned int num_regi
+ 	if (atomic_read(&io.count))
+ 		return -EINTR;
+ 
+-	*error_bits = io.error;
++	if (error_bits)
++		*error_bits = io.error;
++
+ 	return io.error ? -EIO : 0;
+ }
+ 
+-static int async_io(unsigned int num_regions, struct io_region *where, int rw,
+-	     struct dpages *dp, io_notify_fn fn, void *context)
++static int async_io(struct dm_io_client *client, unsigned int num_regions,
++		    struct io_region *where, int rw, struct dpages *dp,
++		    io_notify_fn fn, void *context)
+ {
+ 	struct io *io;
+ 
+@@ -363,10 +389,11 @@ static int async_io(unsigned int num_reg
+ 		return -EIO;
  	}
  
- 	return r;
-@@ -1297,7 +1271,6 @@ static void __exit dm_mirror_exit(void)
- 	if (r < 0)
- 		DMERR("%s: unregister failed %d", mirror_target.name, r);
+-	io = mempool_alloc(_io_pool, GFP_NOIO);
++	io = mempool_alloc(io_pool(client), GFP_NOIO);
+ 	io->error = 0;
+ 	atomic_set(&io->count, 1); /* see dispatch_io() */
+ 	io->sleeper = NULL;
++	io->client = client;
+ 	io->callback = fn;
+ 	io->context = context;
  
--	destroy_workqueue(_kmirrord_wq);
- 	dm_dirty_log_exit();
+@@ -380,7 +407,7 @@ int dm_io_sync(unsigned int num_regions,
+ {
+ 	struct dpages dp;
+ 	list_dp_init(&dp, pl, offset);
+-	return sync_io(num_regions, where, rw, &dp, error_bits);
++	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
  }
  
+ int dm_io_sync_bvec(unsigned int num_regions, struct io_region *where, int rw,
+@@ -388,7 +415,7 @@ int dm_io_sync_bvec(unsigned int num_reg
+ {
+ 	struct dpages dp;
+ 	bvec_dp_init(&dp, bvec);
+-	return sync_io(num_regions, where, rw, &dp, error_bits);
++	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
+ }
+ 
+ int dm_io_sync_vm(unsigned int num_regions, struct io_region *where, int rw,
+@@ -396,7 +423,7 @@ int dm_io_sync_vm(unsigned int num_regio
+ {
+ 	struct dpages dp;
+ 	vm_dp_init(&dp, data);
+-	return sync_io(num_regions, where, rw, &dp, error_bits);
++	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
+ }
+ 
+ int dm_io_async(unsigned int num_regions, struct io_region *where, int rw,
+@@ -405,7 +432,7 @@ int dm_io_async(unsigned int num_regions
+ {
+ 	struct dpages dp;
+ 	list_dp_init(&dp, pl, offset);
+-	return async_io(num_regions, where, rw, &dp, fn, context);
++	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
+ }
+ 
+ int dm_io_async_bvec(unsigned int num_regions, struct io_region *where, int rw,
+@@ -413,7 +440,7 @@ int dm_io_async_bvec(unsigned int num_re
+ {
+ 	struct dpages dp;
+ 	bvec_dp_init(&dp, bvec);
+-	return async_io(num_regions, where, rw, &dp, fn, context);
++	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
+ }
+ 
+ int dm_io_async_vm(unsigned int num_regions, struct io_region *where, int rw,
+@@ -421,7 +448,7 @@ int dm_io_async_vm(unsigned int num_regi
+ {
+ 	struct dpages dp;
+ 	vm_dp_init(&dp, data);
+-	return async_io(num_regions, where, rw, &dp, fn, context);
++	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
+ }
+ 
+ EXPORT_SYMBOL(dm_io_get);
 _
 
-Patches currently in -mm which might be from smolinski@de.ibm.com are
+Patches currently in -mm which might be from hjm@redhat.com are
 
-dm-raid1-one-kmirrord-per-mirror.patch
+dm-io-delay-dec_count.patch
+dm-io-prepare-for-new-interface.patch
+dm-io-new-interface.patch
+dm-kcopyd-update-dm-io-interface.patch
+dm-exception-store-update-dm-io-interface.patch
+dm-bio-list-helpers.patch
