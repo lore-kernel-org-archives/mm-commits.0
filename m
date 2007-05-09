@@ -1,93 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-remove-superflous-sb-==-null-checks.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:05 -0700
-Message-ID: <200705090246.l492k5j5008812@shell0.pdx.osdl.net>
+Subject: - kconfig-centralize-the-selection-of-semaphore-debugging.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:19 -0700
+Message-ID: <200705090245.l492jJvf008727@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59401 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031745AbXEICqP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:15 -0400
+	by vger.kernel.org with ESMTP id S1031630AbXEICqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, dhowells@redhat.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: remove superflous sb == NULL checks
+     kconfig: centralize the selection of semaphore debugging in lib/Kconfig.debug
 has been removed from the -mm tree.  Its filename was
-     vfs-remove-superflous-sb-==-null-checks.patch
+     kconfig-centralize-the-selection-of-semaphore-debugging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vfs: remove superflous sb == NULL checks
-From: Christoph Hellwig <hch@lst.de>
+Subject: kconfig: centralize the selection of semaphore debugging in lib/Kconfig.debug
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-inode->i_sb is always set, not need to check for it.
+Remove the Kconfig selection of semaphore debugging from the ALPHA and FRV
+Kconfig files, and centralize it in lib/Kconfig.debug.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+There doesn't seem to be much point in letting individual architectures
+independently define the same Kconfig option when it can just as easily be
+put in a single Kconfig file and made dependent on a subset of
+architectures.  that way, at least the option shows up in the same relative
+location in the menu each time.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    4 ++--
- fs/ioctl.c |    2 --
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/alpha/Kconfig.debug    |    8 --------
+ arch/frv/kernel/semaphore.c |    2 +-
+ include/asm-frv/semaphore.h |   14 ++++++--------
+ lib/Kconfig.debug           |   10 ++++++++++
+ 4 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN fs/inode.c~vfs-remove-superflous-sb-==-null-checks fs/inode.c
---- a/fs/inode.c~vfs-remove-superflous-sb-==-null-checks
-+++ a/fs/inode.c
-@@ -250,7 +250,7 @@ void clear_inode(struct inode *inode)
- 	BUG_ON(inode->i_state & I_CLEAR);
- 	wait_on_inode(inode);
- 	DQUOT_DROP(inode);
--	if (inode->i_sb && inode->i_sb->s_op->clear_inode)
-+	if (inode->i_sb->s_op->clear_inode)
- 		inode->i_sb->s_op->clear_inode(inode);
- 	if (S_ISBLK(inode->i_mode) && inode->i_bdev)
- 		bd_forget(inode);
-@@ -1040,7 +1040,7 @@ static void generic_forget_inode(struct 
- 		if (!(inode->i_state & (I_DIRTY|I_LOCK)))
- 			list_move(&inode->i_list, &inode_unused);
- 		inodes_stat.nr_unused++;
--		if (!sb || (sb->s_flags & MS_ACTIVE)) {
-+		if (sb->s_flags & MS_ACTIVE) {
- 			spin_unlock(&inode_lock);
- 			return;
- 		}
-diff -puN fs/ioctl.c~vfs-remove-superflous-sb-==-null-checks fs/ioctl.c
---- a/fs/ioctl.c~vfs-remove-superflous-sb-==-null-checks
-+++ a/fs/ioctl.c
-@@ -67,8 +67,6 @@ static int file_ioctl(struct file *filp,
- 			return put_user(res, p);
- 		}
- 		case FIGETBSZ:
--			if (inode->i_sb == NULL)
--				return -EBADF;
- 			return put_user(inode->i_sb->s_blocksize, p);
- 		case FIONREAD:
- 			return put_user(i_size_read(inode) - filp->f_pos, p);
+diff -puN arch/alpha/Kconfig.debug~kconfig-centralize-the-selection-of-semaphore-debugging arch/alpha/Kconfig.debug
+--- a/arch/alpha/Kconfig.debug~kconfig-centralize-the-selection-of-semaphore-debugging
++++ a/arch/alpha/Kconfig.debug
+@@ -16,14 +16,6 @@ config DEBUG_RWLOCK
+ 	  too many attempts.  If you suspect a rwlock problem or a kernel
+ 	  hacker asks for this option then say Y.  Otherwise say N.
+ 
+-config DEBUG_SEMAPHORE
+-	bool "Semaphore debugging"
+-	depends on DEBUG_KERNEL
+-	help
+-	  If you say Y here then semaphore processing will issue lots of
+-	  verbose debugging messages.  If you suspect a semaphore problem or a
+-	  kernel hacker asks for this option then say Y.  Otherwise say N.
+-
+ config ALPHA_LEGACY_START_ADDRESS
+ 	bool "Legacy kernel start address"
+ 	depends on ALPHA_GENERIC
+diff -puN arch/frv/kernel/semaphore.c~kconfig-centralize-the-selection-of-semaphore-debugging arch/frv/kernel/semaphore.c
+--- a/arch/frv/kernel/semaphore.c~kconfig-centralize-the-selection-of-semaphore-debugging
++++ a/arch/frv/kernel/semaphore.c
+@@ -19,7 +19,7 @@ struct sem_waiter {
+ 	struct task_struct	*task;
+ };
+ 
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ void semtrace(struct semaphore *sem, const char *str)
+ {
+ 	if (sem->debug)
+diff -puN include/asm-frv/semaphore.h~kconfig-centralize-the-selection-of-semaphore-debugging include/asm-frv/semaphore.h
+--- a/include/asm-frv/semaphore.h~kconfig-centralize-the-selection-of-semaphore-debugging
++++ a/include/asm-frv/semaphore.h
+@@ -20,8 +20,6 @@
+ #include <linux/spinlock.h>
+ #include <linux/rwsem.h>
+ 
+-#define SEMAPHORE_DEBUG		0
+-
+ /*
+  * the semaphore definition
+  * - if counter is >0 then there are tokens available on the semaphore for down to collect
+@@ -32,12 +30,12 @@ struct semaphore {
+ 	unsigned		counter;
+ 	spinlock_t		wait_lock;
+ 	struct list_head	wait_list;
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ 	unsigned		__magic;
+ #endif
+ };
+ 
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ # define __SEM_DEBUG_INIT(name) , (long)&(name).__magic
+ #else
+ # define __SEM_DEBUG_INIT(name)
+@@ -76,7 +74,7 @@ static inline void down(struct semaphore
+ {
+ 	unsigned long flags;
+ 
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ 	CHECK_MAGIC(sem->__magic);
+ #endif
+ 
+@@ -95,7 +93,7 @@ static inline int down_interruptible(str
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ 	CHECK_MAGIC(sem->__magic);
+ #endif
+ 
+@@ -119,7 +117,7 @@ static inline int down_trylock(struct se
+ 	unsigned long flags;
+ 	int success = 0;
+ 
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ 	CHECK_MAGIC(sem->__magic);
+ #endif
+ 
+@@ -136,7 +134,7 @@ static inline void up(struct semaphore *
+ {
+ 	unsigned long flags;
+ 
+-#if SEMAPHORE_DEBUG
++#ifdef CONFIG_DEBUG_SEMAPHORE
+ 	CHECK_MAGIC(sem->__magic);
+ #endif
+ 
+diff -puN lib/Kconfig.debug~kconfig-centralize-the-selection-of-semaphore-debugging lib/Kconfig.debug
+--- a/lib/Kconfig.debug~kconfig-centralize-the-selection-of-semaphore-debugging
++++ a/lib/Kconfig.debug
+@@ -201,6 +201,16 @@ config DEBUG_MUTEXES
+ 	 This feature allows mutex semantics violations to be detected and
+ 	 reported.
+ 
++config DEBUG_SEMAPHORE
++	bool "Semaphore debugging"
++	depends on DEBUG_KERNEL
++	depends on ALPHA || FRV
++	default n
++	help
++	  If you say Y here then semaphore processing will issue lots of
++	  verbose debugging messages.  If you suspect a semaphore problem or a
++	  kernel hacker asks for this option then say Y.  Otherwise say N.
++
+ config DEBUG_LOCK_ALLOC
+ 	bool "Lock debugging: detect incorrect freeing of live locks"
+ 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
-git-scsi-misc.patch
-knfsd-trivial-makefile-cleanup.patch
-aio-is-unlikely.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
+git-avr32.patch
+git-dvb.patch
+git-ieee1394.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
