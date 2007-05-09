@@ -1,68 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - worker_thread-fix-racy-try_to_freeze-usage.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:12 -0700
-Message-ID: <200705092152.l49LqCJC002978@shell0.pdx.osdl.net>
+Subject: - zap_other_threads-remove-unneeded-exit_signal-change.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:15 -0700
+Message-ID: <200705092152.l49LqFJv002981@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53171 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758862AbXEIVwe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:34 -0400
+	by vger.kernel.org with ESMTP id S1759000AbXEIVwh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     worker_thread: fix racy try_to_freeze() usage
+     zap_other_threads: remove unneeded ->exit_signal change
 has been removed from the -mm tree.  Its filename was
-     worker_thread-fix-racy-try_to_freeze-usage.patch
+     zap_other_threads-remove-unneeded-exit_signal-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: worker_thread: fix racy try_to_freeze() usage
+Subject: zap_other_threads: remove unneeded ->exit_signal change
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-worker_thread() can miss freeze_process()->signal_wake_up() if it happens
-between try_to_freeze() and prepare_to_wait().  We should check freezing()
-before entering schedule().
-
-This race was introduced by me in
-
-	[PATCH 1/1] workqueue: don't migrate pending works from the dead CPU
-
-Looks like mm/vmscan.c:kswapd() has the same race.
+We already depend on fact that all sub-threads have ->exit_signal == -1, no
+need to set it in zap_other_threads().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/signal.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN kernel/workqueue.c~worker_thread-fix-racy-try_to_freeze-usage kernel/workqueue.c
---- a/kernel/workqueue.c~worker_thread-fix-racy-try_to_freeze-usage
-+++ a/kernel/workqueue.c
-@@ -308,14 +308,14 @@ static int worker_thread(void *__cwq)
- 	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
+diff -puN kernel/signal.c~zap_other_threads-remove-unneeded-exit_signal-change kernel/signal.c
+--- a/kernel/signal.c~zap_other_threads-remove-unneeded-exit_signal-change
++++ a/kernel/signal.c
+@@ -913,17 +913,6 @@ void zap_other_threads(struct task_struc
+ 		if (t->exit_state)
+ 			continue;
  
- 	for (;;) {
--		if (cwq->wq->freezeable)
--			try_to_freeze();
+-		/*
+-		 * We don't want to notify the parent, since we are
+-		 * killed as part of a thread group due to another
+-		 * thread doing an execve() or similar. So set the
+-		 * exit signal to -1 to allow immediate reaping of
+-		 * the process.  But don't detach the thread group
+-		 * leader.
+-		 */
+-		if (t != p->group_leader)
+-			t->exit_signal = -1;
 -
- 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
--		if (!cwq->should_stop && list_empty(&cwq->worklist))
-+		if (!freezing(current) && !cwq->should_stop
-+		    && list_empty(&cwq->worklist))
- 			schedule();
- 		finish_wait(&cwq->more_work, &wait);
- 
-+		try_to_freeze();
-+
- 		if (cwq_should_stop(cwq))
- 			break;
- 
+ 		/* SIGKILL will be handled before any pending SIGSTOP */
+ 		sigaddset(&t->pending.signal, SIGKILL);
+ 		signal_wake_up(t, 1);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
