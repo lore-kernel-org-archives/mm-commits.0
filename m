@@ -1,83 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - fix-race-between-proc_readdir-and-remove_proc_entry.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:01 -0700
-Message-ID: <200705090246.l492k1mn008803@shell0.pdx.osdl.net>
+Subject: - proc-remove-pathetic-deleted-warn_on.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:46:03 -0700
+Message-ID: <200705090246.l492k3B8008807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60562 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968823AbXEICqk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:40 -0400
+	by vger.kernel.org with ESMTP id S969092AbXEICql (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, adobriyan@sw.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix race between proc_readdir and remove_proc_entry
+     proc: remove pathetic ->deleted WARN_ON
 has been removed from the -mm tree.  Its filename was
-     fix-race-between-proc_readdir-and-remove_proc_entry.patch
+     proc-remove-pathetic-deleted-warn_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix race between proc_readdir and remove_proc_entry
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: proc: remove pathetic ->deleted WARN_ON
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Fix the following race:
+WARN_ON(de && de->deleted); is sooo unreliable. Why?
 
-proc_readdir				remove_proc_entry
-============				=================
-
+proc_lookup				remove_proc_entry
+===========				=================
+lock_kernel();
 spin_lock(&proc_subdir_lock);
-[choose PDE to start filldir from]
+[find proc entry]
 spin_unlock(&proc_subdir_lock);
 					spin_lock(&proc_subdir_lock);
-					[find PDE]
-					[free PDE, refcount is 0]
-					spin_unlock(&proc_subdir_lock);
-		    /* boom */
-if (filldir(dirent, de->name, ...
+					[find proc entry]
 
-[de_put on error path --adobriyan]
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+proc_get_inode
+==============
+WARN_ON(de && de->deleted);			...
+
+					if (!atomic_read(&de->count))
+						free_proc_entry(de);
+					else
+						de->deleted = 1;
+
+So, if you have some strange oops [1], and doesn't see this WARN_ON it means
+nothing.
+
+[1] try_module_get() of module which doesn't exist, two lines below
+    should suffice, or not?
+
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ fs/proc/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/proc/generic.c~fix-race-between-proc_readdir-and-remove_proc_entry fs/proc/generic.c
---- a/fs/proc/generic.c~fix-race-between-proc_readdir-and-remove_proc_entry
-+++ a/fs/proc/generic.c
-@@ -478,14 +478,21 @@ int proc_readdir(struct file * filp,
- 			}
+diff -puN fs/proc/inode.c~proc-remove-pathetic-deleted-warn_on fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-remove-pathetic-deleted-warn_on
++++ a/fs/proc/inode.c
+@@ -146,8 +146,6 @@ struct inode *proc_get_inode(struct supe
+ {
+ 	struct inode * inode;
  
- 			do {
-+				struct proc_dir_entry *next;
-+
- 				/* filldir passes info to user space */
-+				de_get(de);
- 				spin_unlock(&proc_subdir_lock);
- 				if (filldir(dirent, de->name, de->namelen, filp->f_pos,
--					    de->low_ino, de->mode >> 12) < 0)
-+					    de->low_ino, de->mode >> 12) < 0) {
-+					de_put(de);
- 					goto out;
-+				}
- 				spin_lock(&proc_subdir_lock);
- 				filp->f_pos++;
--				de = de->next;
-+				next = de->next;
-+				de_put(de);
-+				de = next;
- 			} while (de);
- 			spin_unlock(&proc_subdir_lock);
- 	}
+-	WARN_ON(de && de->deleted);
+-
+ 	if (de != NULL && !try_module_get(de->owner))
+ 		goto out_mod;
+ 
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
+2621-rc5-mm3-fix-e1000-compilation.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
