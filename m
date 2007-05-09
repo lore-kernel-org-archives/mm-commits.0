@@ -1,137 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - fat_dont-use_free_clusters-for-fat32.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:51:28 -0700
-Message-ID: <200705090251.l492pSNQ009460@shell0.pdx.osdl.net>
+Subject: - jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:51:02 -0700
+Message-ID: <200705090251.l492p27f009415__22890.4583411806$1178679116$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42571 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032189AbXEICvp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:45 -0400
+	by vger.kernel.org with ESMTP id S1032183AbXEICvt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, juergen127@kreuzholzen.de, schwab@suse.de, mm-commits@vger.kernel.org
+To: xemul@sw.ru, hch@lst.de, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: don't use free_clusters for fat32
+     jbd: check for error returned by kthread_create on creating journal thread
 has been removed from the -mm tree.  Its filename was
-     fat_dont-use_free_clusters-for-fat32.patch
+     jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fat: don't use free_clusters for fat32
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: jbd: check for error returned by kthread_create on creating journal thread
+From: Pavel Emelianov <xemul@sw.ru>
 
-It seems that the recent Windows changed specification, and it's
-undocumented.  Windows doesn't update ->free_clusters correctly.
+If the thread failed to create the subsequent wait_event will hang forever.
 
-This patch doesn't use ->free_clusters by default.  (instead, add "usefree"
-for forcing to use it)
+This is likely to happen if kernel hits max_threads limit.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Juergen Beisert <juergen127@kreuzholzen.de>
-Cc: Andreas Schwab <schwab@suse.de>
+Will be critical for virtualization systems that limit the number of tasks
+and kernel memory usage within the container.
+
+(akpm: JBD should be converted fully to the kthread API: kthread_should_stop()
+and kthread_stop()).
+
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |    7 +++++++
- fs/fat/inode.c                     |   14 +++++++++++---
- include/linux/msdos_fs.h           |    3 ++-
- 3 files changed, 20 insertions(+), 4 deletions(-)
+ fs/jbd/journal.c  |   13 +++++++++----
+ fs/jbd2/journal.c |   13 +++++++++----
+ 2 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32 Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32
-+++ a/Documentation/filesystems/vfat.txt
-@@ -57,6 +57,13 @@ nonumtail=<bool> -- When creating 8.3 al
-                  currently exist in the directory, 'longfile.txt' will
-                  be the short alias instead of 'longfi~1.txt'. 
-                   
-+usefree       -- Use the "free clusters" value stored on FSINFO. It'll
-+                 be used to determine number of free clusters without
-+                 scanning disk. But it's not used by default, because
-+                 recent Windows don't update it correctly in some
-+                 case. If you are sure the "free clusters" on FSINFO is
-+                 correct, by this option you can avoid scanning disk.
+diff -puN fs/jbd/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread
++++ a/fs/jbd/journal.c
+@@ -210,10 +210,16 @@ end_loop:
+ 	return 0;
+ }
+ 
+-static void journal_start_thread(journal_t *journal)
++static int journal_start_thread(journal_t *journal)
+ {
+-	kthread_run(kjournald, journal, "kjournald");
++	struct task_struct *t;
 +
- quiet         -- Stops printing certain warning messages.
++	t = kthread_run(kjournald, journal, "kjournald");
++	if (IS_ERR(t))
++		return PTR_ERR(t);
++
+ 	wait_event(journal->j_wait_done_commit, journal->j_task != 0);
++	return 0;
+ }
  
- check=s|r|n   -- Case sensitivity checking setting.
-diff -puN fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32 fs/fat/inode.c
---- a/fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32
-+++ a/fs/fat/inode.c
-@@ -825,6 +825,8 @@ static int fat_show_options(struct seq_f
- 	}
- 	if (opts->name_check != 'n')
- 		seq_printf(m, ",check=%c", opts->name_check);
-+	if (opts->usefree)
-+		seq_puts(m, ",usefree");
- 	if (opts->quiet)
- 		seq_puts(m, ",quiet");
- 	if (opts->showexec)
-@@ -850,7 +852,7 @@ static int fat_show_options(struct seq_f
+ static void journal_kill_thread(journal_t *journal)
+@@ -839,8 +845,7 @@ static int journal_reset(journal_t *jour
  
- enum {
- 	Opt_check_n, Opt_check_r, Opt_check_s, Opt_uid, Opt_gid,
--	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_nocase,
-+	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_usefree, Opt_nocase,
- 	Opt_quiet, Opt_showexec, Opt_debug, Opt_immutable,
- 	Opt_dots, Opt_nodots,
- 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
-@@ -872,6 +874,7 @@ static match_table_t fat_tokens = {
- 	{Opt_dmask, "dmask=%o"},
- 	{Opt_fmask, "fmask=%o"},
- 	{Opt_codepage, "codepage=%u"},
-+	{Opt_usefree, "usefree"},
- 	{Opt_nocase, "nocase"},
- 	{Opt_quiet, "quiet"},
- 	{Opt_showexec, "showexec"},
-@@ -951,7 +954,7 @@ static int parse_options(char *options, 
- 	opts->quiet = opts->showexec = opts->sys_immutable = opts->dotsOK =  0;
- 	opts->utf8 = opts->unicode_xlate = 0;
- 	opts->numtail = 1;
--	opts->nocase = 0;
-+	opts->usefree = opts->nocase = 0;
- 	*debug = 0;
+ 	/* Add the dynamic fields and write it to disk. */
+ 	journal_update_superblock(journal, 1);
+-	journal_start_thread(journal);
+-	return 0;
++	return journal_start_thread(journal);
+ }
  
- 	if (!options)
-@@ -979,6 +982,9 @@ static int parse_options(char *options, 
- 		case Opt_check_n:
- 			opts->name_check = 'n';
- 			break;
-+		case Opt_usefree:
-+			opts->usefree = 1;
-+			break;
- 		case Opt_nocase:
- 			if (!is_vfat)
- 				opts->nocase = 1;
-@@ -1304,7 +1310,9 @@ int fat_fill_super(struct super_block *s
- 			       le32_to_cpu(fsinfo->signature2),
- 			       sbi->fsinfo_sector);
- 		} else {
--			sbi->free_clusters = le32_to_cpu(fsinfo->free_clusters);
-+			if (sbi->options.usefree)
-+				sbi->free_clusters =
-+					le32_to_cpu(fsinfo->free_clusters);
- 			sbi->prev_free = le32_to_cpu(fsinfo->next_cluster);
- 		}
+ /**
+diff -puN fs/jbd2/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread
++++ a/fs/jbd2/journal.c
+@@ -210,10 +210,16 @@ end_loop:
+ 	return 0;
+ }
  
-diff -puN include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32 include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32
-+++ a/include/linux/msdos_fs.h
-@@ -205,7 +205,8 @@ struct fat_mount_options {
- 		 numtail:1,       /* Does first alias have a numeric '~1' type tail? */
- 		 atari:1,         /* Use Atari GEMDOS variation of MS-DOS fs */
- 		 flush:1,	  /* write things quickly */
--		 nocase:1;	  /* Does this need case conversion? 0=need case conversion*/
-+		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
-+		 usefree:1;	  /* Use free_clusters for FAT32 */
- };
+-static void jbd2_journal_start_thread(journal_t *journal)
++static int jbd2_journal_start_thread(journal_t *journal)
+ {
+-	kthread_run(kjournald2, journal, "kjournald2");
++	struct task_struct *t;
++
++	t = kthread_run(kjournald2, journal, "kjournald2");
++	if (IS_ERR(t))
++		return PTR_ERR(t);
++
+ 	wait_event(journal->j_wait_done_commit, journal->j_task != 0);
++	return 0;
+ }
  
- #define FAT_HASH_BITS	8
+ static void journal_kill_thread(journal_t *journal)
+@@ -839,8 +845,7 @@ static int journal_reset(journal_t *jour
+ 
+ 	/* Add the dynamic fields and write it to disk. */
+ 	jbd2_journal_update_superblock(journal, 1);
+-	jbd2_journal_start_thread(journal);
+-	return 0;
++	return jbd2_journal_start_thread(journal);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from xemul@sw.ru are
 
 origin.patch
