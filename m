@@ -1,276 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: - get_futex_key-get_key_refs-and-drop_key_refs.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:59 -0700
-Message-ID: <200705090246.l492kxgQ008919@shell0.pdx.osdl.net>
+Subject: - vfs-delay-the-dentry-name-generation-on-sockets-and.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:46:34 -0700
+Message-ID: <200705090246.l492kYcP008877@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60904 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934468AbXEICrH (ORCPT
+	by vger.kernel.org with ESMTP id S934472AbXEICrH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, hch@infradead.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: get_futex_key, get_key_refs and drop_key_refs
+     VFS: delay the dentry name generation on sockets and pipes
 has been removed from the -mm tree.  Its filename was
-     get_futex_key-get_key_refs-and-drop_key_refs.patch
+     vfs-delay-the-dentry-name-generation-on-sockets-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: futex: get_futex_key, get_key_refs and drop_key_refs
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: VFS: delay the dentry name generation on sockets and pipes
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-lguest uses the convenient futex infrastructure for inter-domain I/O, so
-expose get_futex_key, get_key_refs (renamed get_futex_key_refs) and
-drop_key_refs (renamed drop_futex_key_refs).  Also means we need to expose the
-union that these use.
+1) Introduces a new method in 'struct dentry_operations'.  This method
+   called d_dname() might be called from d_path() to build a pathname for
+   special filesystems.  It is called without locks.
 
-No code changes.
+   Future patches (if we succeed in having one common dentry for all
+   pipes/sockets) may need to change prototype of this method, but we now
+   use : char *d_dname(struct dentry *dentry, char *buffer, int buflen);
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+2) Adds a dynamic_dname() helper function that eases d_dname() implementations
+
+3) Defines d_dname method for sockets : No more sprintf() at socket
+   creation.  This is delayed up to the moment someone does an access to
+   /proc/pid/fd/...
+
+4) Defines d_dname method for pipes : No more sprintf() at pipe
+   creation.  This is delayed up to the moment someone does an access to
+   /proc/pid/fd/...
+
+A benchmark consisting of 1.000.000 calls to pipe()/close()/close() gives a
+*nice* speedup on my Pentium(M) 1.6 Ghz :
+
+3.090 s instead of 3.450 s
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |   29 +++++++++++++++++++++++
- kernel/futex.c        |   50 +++++++++++-----------------------------
- 2 files changed, 43 insertions(+), 36 deletions(-)
+ Documentation/filesystems/Locking |    2 +
+ Documentation/filesystems/vfs.txt |   23 +++++++++++++++++++-
+ fs/dcache.c                       |   31 ++++++++++++++++++++++++++++
+ fs/pipe.c                         |   18 ++++++++++------
+ include/linux/dcache.h            |    6 +++++
+ net/socket.c                      |   20 +++++++++++-------
+ 6 files changed, 86 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/futex.h~get_futex_key-get_key_refs-and-drop_key_refs include/linux/futex.h
---- a/include/linux/futex.h~get_futex_key-get_key_refs-and-drop_key_refs
-+++ a/include/linux/futex.h
-@@ -100,6 +100,35 @@ long do_futex(u32 __user *uaddr, int op,
- extern int
- handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi);
+diff -puN Documentation/filesystems/Locking~vfs-delay-the-dentry-name-generation-on-sockets-and Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~vfs-delay-the-dentry-name-generation-on-sockets-and
++++ a/Documentation/filesystems/Locking
+@@ -15,6 +15,7 @@ prototypes:
+ 	int (*d_delete)(struct dentry *);
+ 	void (*d_release)(struct dentry *);
+ 	void (*d_iput)(struct dentry *, struct inode *);
++	char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
+ 
+ locking rules:
+ 	none have BKL
+@@ -25,6 +26,7 @@ d_compare:	no		yes		no		no 
+ d_delete:	yes		no		yes		no
+ d_release:	no		no		no		yes
+ d_iput:		no		no		no		yes
++d_dname:	no		no		no		no
+ 
+ --------------------------- inode_operations --------------------------- 
+ prototypes:
+diff -puN Documentation/filesystems/vfs.txt~vfs-delay-the-dentry-name-generation-on-sockets-and Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~vfs-delay-the-dentry-name-generation-on-sockets-and
++++ a/Documentation/filesystems/vfs.txt
+@@ -827,7 +827,7 @@ This describes how a filesystem can over
+ operations. Dentries and the dcache are the domain of the VFS and the
+ individual filesystem implementations. Device drivers have no business
+ here. These methods may be set to NULL, as they are either optional or
+-the VFS uses a default. As of kernel 2.6.13, the following members are
++the VFS uses a default. As of kernel 2.6.22, the following members are
+ defined:
+ 
+ struct dentry_operations {
+@@ -837,6 +837,7 @@ struct dentry_operations {
+ 	int (*d_delete)(struct dentry *);
+ 	void (*d_release)(struct dentry *);
+ 	void (*d_iput)(struct dentry *, struct inode *);
++	char *(*d_dname)(struct dentry *, char *, int);
+ };
+ 
+   d_revalidate: called when the VFS needs to revalidate a dentry. This
+@@ -859,6 +860,26 @@ struct dentry_operations {
+ 	VFS calls iput(). If you define this method, you must call
+ 	iput() yourself
+ 
++  d_dname: called when the pathname of a dentry should be generated.
++	Usefull for some pseudo filesystems (sockfs, pipefs, ...) to delay
++	pathname generation. (Instead of doing it when dentry is created,
++	its done only when the path is needed.). Real filesystems probably
++	dont want to use it, because their dentries are present in global
++	dcache hash, so their hash should be an invariant. As no lock is
++	held, d_dname() should not try to modify the dentry itself, unless
++	appropriate SMP safety is used. CAUTION : d_path() logic is quite
++	tricky. The correct way to return for example "Hello" is to put it
++	at the end of the buffer, and returns a pointer to the first char.
++	dynamic_dname() helper function is provided to take care of this.
++
++Example :
++
++static char *pipefs_dname(struct dentry *dent, char *buffer, int buflen)
++{
++	return dynamic_dname(dentry, buffer, buflen, "pipe:[%lu]",
++				dentry->d_inode->i_ino);
++}
++
+ Each dentry has a pointer to its parent dentry, as well as a hash list
+ of child dentries. Child dentries are basically like files in a
+ directory.
+diff -puN fs/dcache.c~vfs-delay-the-dentry-name-generation-on-sockets-and fs/dcache.c
+--- a/fs/dcache.c~vfs-delay-the-dentry-name-generation-on-sockets-and
++++ a/fs/dcache.c
+@@ -1853,6 +1853,16 @@ char * d_path(struct dentry *dentry, str
+ 	struct vfsmount *rootmnt;
+ 	struct dentry *root;
+ 
++	/*
++	 * We have various synthetic filesystems that never get mounted.  On
++	 * these filesystems dentries are never used for lookup purposes, and
++	 * thus don't need to be hashed.  They also don't need a name until a
++	 * user wants to identify the object in /proc/pid/fd/.  The little hack
++	 * below allows us to generate a name for these objects on demand:
++	 */
++	if (dentry->d_op && dentry->d_op->d_dname)
++		return dentry->d_op->d_dname(dentry, buf, buflen);
++
+ 	read_lock(&current->fs->lock);
+ 	rootmnt = mntget(current->fs->rootmnt);
+ 	root = dget(current->fs->root);
+@@ -1866,6 +1876,27 @@ char * d_path(struct dentry *dentry, str
+ }
+ 
+ /*
++ * Helper function for dentry_operations.d_dname() members
++ */
++char *dynamic_dname(struct dentry *dentry, char *buffer, int buflen,
++			const char *fmt, ...)
++{
++	va_list args;
++	char temp[64];
++	int sz;
++
++	va_start(args, fmt);
++	sz = vsnprintf(temp, sizeof(temp), fmt, args) + 1;
++	va_end(args);
++
++	if (sz > sizeof(temp) || sz > buflen)
++		return ERR_PTR(-ENAMETOOLONG);
++
++	buffer += buflen - sz;
++	return memcpy(buffer, temp, sz);
++}
++
++/*
+  * NOTE! The user-level library version returns a
+  * character pointer. The kernel system call just
+  * returns the length of the buffer filled (which
+diff -puN fs/pipe.c~vfs-delay-the-dentry-name-generation-on-sockets-and fs/pipe.c
+--- a/fs/pipe.c~vfs-delay-the-dentry-name-generation-on-sockets-and
++++ a/fs/pipe.c
+@@ -841,8 +841,18 @@ static int pipefs_delete_dentry(struct d
+ 	return 0;
+ }
  
 +/*
-+ * Futexes are matched on equal values of this key.
-+ * The key type depends on whether it's a shared or private mapping.
-+ * Don't rearrange members without looking at hash_futex().
-+ *
-+ * offset is aligned to a multiple of sizeof(u32) (== 4) by definition.
-+ * We set bit 0 to indicate if it's an inode-based key.
++ * pipefs_dname() is called from d_path().
 + */
-+union futex_key {
-+	struct {
-+		unsigned long pgoff;
-+		struct inode *inode;
-+		int offset;
-+	} shared;
-+	struct {
-+		unsigned long address;
-+		struct mm_struct *mm;
-+		int offset;
-+	} private;
-+	struct {
-+		unsigned long word;
-+		void *ptr;
-+		int offset;
-+	} both;
-+};
-+int get_futex_key(u32 __user *uaddr, union futex_key *key);
-+void get_futex_key_refs(union futex_key *key);
-+void drop_futex_key_refs(union futex_key *key);
++static char *pipefs_dname(struct dentry *dentry, char *buffer, int buflen)
++{
++	return dynamic_dname(dentry, buffer, buflen, "pipe:[%lu]",
++				dentry->d_inode->i_ino);
++}
 +
- #ifdef CONFIG_FUTEX
- extern void exit_robust_list(struct task_struct *curr);
- extern void exit_pi_state_list(struct task_struct *curr);
-diff -puN kernel/futex.c~get_futex_key-get_key_refs-and-drop_key_refs kernel/futex.c
---- a/kernel/futex.c~get_futex_key-get_key_refs-and-drop_key_refs
-+++ a/kernel/futex.c
-@@ -48,6 +48,7 @@
- #include <linux/pagemap.h>
- #include <linux/syscalls.h>
- #include <linux/signal.h>
-+#include <linux/module.h>
- #include <asm/futex.h>
+ static struct dentry_operations pipefs_dentry_operations = {
+ 	.d_delete	= pipefs_delete_dentry,
++	.d_dname	= pipefs_dname,
+ };
  
- #include "rtmutex_common.h"
-@@ -55,32 +56,6 @@
- #define FUTEX_HASHBITS (CONFIG_BASE_SMALL ? 4 : 8)
+ static struct inode * get_pipe_inode(void)
+@@ -888,8 +898,7 @@ struct file *create_write_pipe(void)
+ 	struct inode *inode;
+ 	struct file *f;
+ 	struct dentry *dentry;
+-	char name[32];
+-	struct qstr this;
++	struct qstr name = { .name = "" };
+ 
+ 	f = get_empty_filp();
+ 	if (!f)
+@@ -899,11 +908,8 @@ struct file *create_write_pipe(void)
+ 	if (!inode)
+ 		goto err_file;
+ 
+-	this.len = sprintf(name, "[%lu]", inode->i_ino);
+-	this.name = name;
+-	this.hash = 0;
+ 	err = -ENOMEM;
+-	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &this);
++	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &name);
+ 	if (!dentry)
+ 		goto err_inode;
+ 
+diff -puN include/linux/dcache.h~vfs-delay-the-dentry-name-generation-on-sockets-and include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-delay-the-dentry-name-generation-on-sockets-and
++++ a/include/linux/dcache.h
+@@ -133,6 +133,7 @@ struct dentry_operations {
+ 	int (*d_delete)(struct dentry *);
+ 	void (*d_release)(struct dentry *);
+ 	void (*d_iput)(struct dentry *, struct inode *);
++	char *(*d_dname)(struct dentry *, char *, int);
+ };
+ 
+ /* the dentry parameter passed to d_hash and d_compare is the parent
+@@ -293,6 +294,11 @@ extern struct dentry * d_hash_and_lookup
+ /* validate "insecure" dentry pointer */
+ extern int d_validate(struct dentry *, struct dentry *);
+ 
++/*
++ * helper function for dentry_operations.d_dname() members
++ */
++extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
++
+ extern char * d_path(struct dentry *, struct vfsmount *, char *, int);
+   
+ /* Allocation counts.. */
+diff -puN net/socket.c~vfs-delay-the-dentry-name-generation-on-sockets-and net/socket.c
+--- a/net/socket.c~vfs-delay-the-dentry-name-generation-on-sockets-and
++++ a/net/socket.c
+@@ -313,8 +313,19 @@ static int sockfs_delete_dentry(struct d
+ 	dentry->d_flags |= DCACHE_UNHASHED;
+ 	return 0;
+ }
++
++/*
++ * sockfs_dname() is called from d_path().
++ */
++static char *sockfs_dname(struct dentry *dentry, char *buffer, int buflen)
++{
++	return dynamic_dname(dentry, buffer, buflen, "socket:[%lu]",
++				dentry->d_inode->i_ino);
++}
++
+ static struct dentry_operations sockfs_dentry_operations = {
+ 	.d_delete = sockfs_delete_dentry,
++	.d_dname  = sockfs_dname,
+ };
  
  /*
-- * Futexes are matched on equal values of this key.
-- * The key type depends on whether it's a shared or private mapping.
-- * Don't rearrange members without looking at hash_futex().
-- *
-- * offset is aligned to a multiple of sizeof(u32) (== 4) by definition.
-- * We set bit 0 to indicate if it's an inode-based key.
-- */
--union futex_key {
--	struct {
--		unsigned long pgoff;
--		struct inode *inode;
--		int offset;
--	} shared;
--	struct {
--		unsigned long address;
--		struct mm_struct *mm;
--		int offset;
--	} private;
--	struct {
--		unsigned long word;
--		void *ptr;
--		int offset;
--	} both;
--};
+@@ -354,14 +365,9 @@ static int sock_alloc_fd(struct file **f
+ 
+ static int sock_attach_fd(struct socket *sock, struct file *file)
+ {
+-	struct qstr this;
+-	char name[32];
 -
--/*
-  * Priority Inheritance state:
-  */
- struct futex_pi_state {
-@@ -175,7 +150,7 @@ static inline int match_futex(union fute
-  *
-  * Should be called with &current->mm->mmap_sem but NOT any spinlocks.
-  */
--static int get_futex_key(u32 __user *uaddr, union futex_key *key)
-+int get_futex_key(u32 __user *uaddr, union futex_key *key)
- {
- 	unsigned long address = (unsigned long)uaddr;
- 	struct mm_struct *mm = current->mm;
-@@ -246,6 +221,7 @@ static int get_futex_key(u32 __user *uad
- 	}
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(get_futex_key);
+-	this.len = sprintf(name, "[%lu]", SOCK_INODE(sock)->i_ino);
+-	this.name = name;
+-	this.hash = 0;
++	struct qstr name = { .name = "" };
  
- /*
-  * Take a reference to the resource addressed by a key.
-@@ -254,7 +230,7 @@ static int get_futex_key(u32 __user *uad
-  * NOTE: mmap_sem MUST be held between get_futex_key() and calling this
-  * function, if it is called at all.  mmap_sem keeps key->shared.inode valid.
-  */
--static inline void get_key_refs(union futex_key *key)
-+inline void get_futex_key_refs(union futex_key *key)
- {
- 	if (key->both.ptr != 0) {
- 		if (key->both.offset & 1)
-@@ -263,12 +239,13 @@ static inline void get_key_refs(union fu
- 			atomic_inc(&key->private.mm->mm_count);
- 	}
- }
-+EXPORT_SYMBOL_GPL(get_futex_key_refs);
+-	file->f_path.dentry = d_alloc(sock_mnt->mnt_sb->s_root, &this);
++	file->f_path.dentry = d_alloc(sock_mnt->mnt_sb->s_root, &name);
+ 	if (unlikely(!file->f_path.dentry))
+ 		return -ENOMEM;
  
- /*
-  * Drop a reference to the resource addressed by a key.
-  * The hash bucket spinlock must not be held.
-  */
--static void drop_key_refs(union futex_key *key)
-+void drop_futex_key_refs(union futex_key *key)
- {
- 	if (key->both.ptr != 0) {
- 		if (key->both.offset & 1)
-@@ -277,6 +254,7 @@ static void drop_key_refs(union futex_ke
- 			mmdrop(key->private.mm);
- 	}
- }
-+EXPORT_SYMBOL_GPL(drop_futex_key_refs);
- 
- static inline int get_futex_value_locked(u32 *dest, u32 __user *from)
- {
-@@ -873,7 +851,7 @@ static int futex_requeue(u32 __user *uad
- 				this->lock_ptr = &hb2->lock;
- 			}
- 			this->key = key2;
--			get_key_refs(&key2);
-+			get_futex_key_refs(&key2);
- 			drop_count++;
- 
- 			if (ret - nr_wake >= nr_requeue)
-@@ -886,9 +864,9 @@ out_unlock:
- 	if (hb1 != hb2)
- 		spin_unlock(&hb2->lock);
- 
--	/* drop_key_refs() must be called outside the spinlocks. */
-+	/* drop_futex_key_refs() must be called outside the spinlocks. */
- 	while (--drop_count >= 0)
--		drop_key_refs(&key1);
-+		drop_futex_key_refs(&key1);
- 
- out:
- 	up_read(&current->mm->mmap_sem);
-@@ -906,7 +884,7 @@ queue_lock(struct futex_q *q, int fd, st
- 
- 	init_waitqueue_head(&q->waiters);
- 
--	get_key_refs(&q->key);
-+	get_futex_key_refs(&q->key);
- 	hb = hash_futex(&q->key);
- 	q->lock_ptr = &hb->lock;
- 
-@@ -925,7 +903,7 @@ static inline void
- queue_unlock(struct futex_q *q, struct futex_hash_bucket *hb)
- {
- 	spin_unlock(&hb->lock);
--	drop_key_refs(&q->key);
-+	drop_futex_key_refs(&q->key);
- }
- 
- /*
-@@ -980,7 +958,7 @@ static int unqueue_me(struct futex_q *q)
- 		ret = 1;
- 	}
- 
--	drop_key_refs(&q->key);
-+	drop_futex_key_refs(&q->key);
- 	return ret;
- }
- 
-@@ -999,7 +977,7 @@ static void unqueue_me_pi(struct futex_q
- 
- 	spin_unlock(&hb->lock);
- 
--	drop_key_refs(&q->key);
-+	drop_futex_key_refs(&q->key);
- }
- 
- static int futex_wait(u32 __user *uaddr, u32 val, unsigned long time)
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-xfs-clean-up-shrinker-games.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+splice-and-readahead-interaction.patch
 futex-new-private-futexes.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update.patch
-lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
-lguest-the-guest-code-handle-new-paravirt-lazy-mode-fix-userspace.patch
-lguest-the-guest-code-dont-use-paravirt_probe-its-dying.patch
-lguest-the-host-code.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
-lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
-lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
-lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
-lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
-lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch.patch
-lguest-the-net-driver-two-net-bugfixes.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
-lguest-documentation-and-example-updates.patch
-lguest-the-documentation-example-launcher-dont-use-paravirt_probe-its-dying-doc.patch
-lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch
-lguest-two-net-bugfixes-doc.patch
 lguest-the-host-code-vs-futex-new-private-futexes.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
