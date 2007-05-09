@@ -1,155 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - slub-introduce-debugslabpage.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:05 -0700
-Message-ID: <200705092148.l49Lm51T002542@shell0.pdx.osdl.net>
+Subject: - slub-move-resiliency-check-into-sysfs-section.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:03 -0700
+Message-ID: <200705092148.l49Lm3dr002539@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60628 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756499AbXEIVsI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:08 -0400
+	by vger.kernel.org with ESMTP id S1756734AbXEIVsG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: introduce DebugSlab(page)
+     SLUB: move resiliency check into SYSFS section
 has been removed from the -mm tree.  Its filename was
-     slub-introduce-debugslabpage.patch
+     slub-move-resiliency-check-into-sysfs-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: introduce DebugSlab(page)
+Subject: SLUB: move resiliency check into SYSFS section
 From: Christoph Lameter <clameter@sgi.com>
 
-This replaces the PageError() checking.  DebugSlab is clearer and allows for
-future changes to the page bit used.  We also need it to support
-CONFIG_SLUB_DEBUG.
+Move the resiliency check into the SYSFS section after validate_slab that is
+used by the resiliency check.  This will avoid a forward declaration.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   40 ++++++++++++++++++++++++++++------------
- 1 file changed, 28 insertions(+), 12 deletions(-)
+ mm/slub.c |  112 +++++++++++++++++++++++++---------------------------
+ 1 file changed, 55 insertions(+), 57 deletions(-)
 
-diff -puN mm/slub.c~slub-introduce-debugslabpage mm/slub.c
---- a/mm/slub.c~slub-introduce-debugslabpage
+diff -puN mm/slub.c~slub-move-resiliency-check-into-sysfs-section mm/slub.c
+--- a/mm/slub.c~slub-move-resiliency-check-into-sysfs-section
 +++ a/mm/slub.c
-@@ -87,6 +87,21 @@
-  * 			the fast path.
-  */
+@@ -2512,63 +2512,6 @@ static int __init cpucache_init(void)
+ __initcall(cpucache_init);
+ #endif
  
-+static inline int SlabDebug(struct page *page)
+-#ifdef SLUB_RESILIENCY_TEST
+-static unsigned long validate_slab_cache(struct kmem_cache *s);
+-
+-static void resiliency_test(void)
+-{
+-	u8 *p;
+-
+-	printk(KERN_ERR "SLUB resiliency testing\n");
+-	printk(KERN_ERR "-----------------------\n");
+-	printk(KERN_ERR "A. Corruption after allocation\n");
+-
+-	p = kzalloc(16, GFP_KERNEL);
+-	p[16] = 0x12;
+-	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
+-			" 0x12->0x%p\n\n", p + 16);
+-
+-	validate_slab_cache(kmalloc_caches + 4);
+-
+-	/* Hmmm... The next two are dangerous */
+-	p = kzalloc(32, GFP_KERNEL);
+-	p[32 + sizeof(void *)] = 0x34;
+-	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
+-		 	" 0x34 -> -0x%p\n", p);
+-	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
+-
+-	validate_slab_cache(kmalloc_caches + 5);
+-	p = kzalloc(64, GFP_KERNEL);
+-	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
+-	*p = 0x56;
+-	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
+-									p);
+-	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
+-	validate_slab_cache(kmalloc_caches + 6);
+-
+-	printk(KERN_ERR "\nB. Corruption after free\n");
+-	p = kzalloc(128, GFP_KERNEL);
+-	kfree(p);
+-	*p = 0x78;
+-	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches + 7);
+-
+-	p = kzalloc(256, GFP_KERNEL);
+-	kfree(p);
+-	p[50] = 0x9a;
+-	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches + 8);
+-
+-	p = kzalloc(512, GFP_KERNEL);
+-	kfree(p);
+-	p[512] = 0xab;
+-	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
+-	validate_slab_cache(kmalloc_caches + 9);
+-}
+-#else
+-static void resiliency_test(void) {};
+-#endif
+-
+ void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
+ {
+ 	struct kmem_cache *s = get_slab(size, gfpflags);
+@@ -2685,6 +2628,61 @@ static unsigned long validate_slab_cache
+ 	return count;
+ }
+ 
++#ifdef SLUB_RESILIENCY_TEST
++static void resiliency_test(void)
 +{
-+	return PageError(page);
-+}
++	u8 *p;
 +
-+static inline void SetSlabDebug(struct page *page)
-+{
-+	SetPageError(page);
-+}
++	printk(KERN_ERR "SLUB resiliency testing\n");
++	printk(KERN_ERR "-----------------------\n");
++	printk(KERN_ERR "A. Corruption after allocation\n");
 +
-+static inline void ClearSlabDebug(struct page *page)
-+{
-+	ClearPageError(page);
++	p = kzalloc(16, GFP_KERNEL);
++	p[16] = 0x12;
++	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
++			" 0x12->0x%p\n\n", p + 16);
++
++	validate_slab_cache(kmalloc_caches + 4);
++
++	/* Hmmm... The next two are dangerous */
++	p = kzalloc(32, GFP_KERNEL);
++	p[32 + sizeof(void *)] = 0x34;
++	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
++		 	" 0x34 -> -0x%p\n", p);
++	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
++
++	validate_slab_cache(kmalloc_caches + 5);
++	p = kzalloc(64, GFP_KERNEL);
++	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
++	*p = 0x56;
++	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
++									p);
++	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
++	validate_slab_cache(kmalloc_caches + 6);
++
++	printk(KERN_ERR "\nB. Corruption after free\n");
++	p = kzalloc(128, GFP_KERNEL);
++	kfree(p);
++	*p = 0x78;
++	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
++	validate_slab_cache(kmalloc_caches + 7);
++
++	p = kzalloc(256, GFP_KERNEL);
++	kfree(p);
++	p[50] = 0x9a;
++	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
++	validate_slab_cache(kmalloc_caches + 8);
++
++	p = kzalloc(512, GFP_KERNEL);
++	kfree(p);
++	p[512] = 0xab;
++	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
++	validate_slab_cache(kmalloc_caches + 9);
 +}
++#else
++static void resiliency_test(void) {};
++#endif
 +
  /*
-  * Issues still to be resolved:
-  *
-@@ -823,7 +838,7 @@ static struct page *allocate_slab(struct
- static void setup_object(struct kmem_cache *s, struct page *page,
- 				void *object)
- {
--	if (PageError(page)) {
-+	if (SlabDebug(page)) {
- 		init_object(s, object, 0);
- 		init_tracking(s, object);
- 	}
-@@ -858,7 +873,7 @@ static struct page *new_slab(struct kmem
- 	page->flags |= 1 << PG_slab;
- 	if (s->flags & (SLAB_DEBUG_FREE | SLAB_RED_ZONE | SLAB_POISON |
- 			SLAB_STORE_USER | SLAB_TRACE))
--		page->flags |= 1 << PG_error;
-+		SetSlabDebug(page);
- 
- 	start = page_address(page);
- 	end = start + s->objects * s->size;
-@@ -887,7 +902,7 @@ static void __free_slab(struct kmem_cach
- {
- 	int pages = 1 << s->order;
- 
--	if (unlikely(PageError(page) || s->dtor)) {
-+	if (unlikely(SlabDebug(page) || s->dtor)) {
- 		void *p;
- 
- 		slab_pad_check(s, page);
-@@ -934,7 +949,8 @@ static void discard_slab(struct kmem_cac
- 
- 	atomic_long_dec(&n->nr_slabs);
- 	reset_page_mapcount(page);
--	page->flags &= ~(1 << PG_slab | 1 << PG_error);
-+	ClearSlabDebug(page);
-+	__ClearPageSlab(page);
- 	free_slab(s, page);
- }
- 
-@@ -1109,7 +1125,7 @@ static void putback_slab(struct kmem_cac
- 
- 		if (page->freelist)
- 			add_partial(n, page);
--		else if (PageError(page) && (s->flags & SLAB_STORE_USER))
-+		else if (SlabDebug(page) && (s->flags & SLAB_STORE_USER))
- 			add_full(n, page);
- 		slab_unlock(page);
- 
-@@ -1193,7 +1209,7 @@ static void flush_all(struct kmem_cache 
-  * per cpu array in the kmem_cache struct.
-  *
-  * Fastpath is not possible if we need to get a new slab or have
-- * debugging enabled (which means all slabs are marked with PageError)
-+ * debugging enabled (which means all slabs are marked with SlabDebug)
-  */
- static void *slab_alloc(struct kmem_cache *s,
- 				gfp_t gfpflags, int node, void *addr)
-@@ -1216,7 +1232,7 @@ redo:
- 	object = page->freelist;
- 	if (unlikely(!object))
- 		goto another_slab;
--	if (unlikely(PageError(page)))
-+	if (unlikely(SlabDebug(page)))
- 		goto debug;
- 
- have_object:
-@@ -1314,7 +1330,7 @@ static void slab_free(struct kmem_cache 
- 	local_irq_save(flags);
- 	slab_lock(page);
- 
--	if (unlikely(PageError(page)))
-+	if (unlikely(SlabDebug(page)))
- 		goto debug;
- checks_ok:
- 	prior = object[page->offset] = page->freelist;
-@@ -2571,12 +2587,12 @@ static void validate_slab_slab(struct km
- 			s->name, page);
- 
- 	if (s->flags & DEBUG_DEFAULT_FLAGS) {
--		if (!PageError(page))
--			printk(KERN_ERR "SLUB %s: PageError not set "
-+		if (!SlabDebug(page))
-+			printk(KERN_ERR "SLUB %s: SlabDebug not set "
- 				"on slab 0x%p\n", s->name, page);
- 	} else {
--		if (PageError(page))
--			printk(KERN_ERR "SLUB %s: PageError set on "
-+		if (SlabDebug(page))
-+			printk(KERN_ERR "SLUB %s: SlabDebug set on "
- 				"slab 0x%p\n", s->name, page);
- 	}
- }
+  * Generate lists of code addresses where slabcache objects are allocated
+  * and freed.
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
