@@ -1,52 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - x86-serial-convert-legacy-com-ports-to-platform-devices.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:56:53 -0700
-Message-ID: <200705090256.l492ur16010107@shell0.pdx.osdl.net>
+Subject: - pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:56:40 -0700
+Message-ID: <200705090256.l492uexC010083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39583 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970208AbXEIC65 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:58:57 -0400
+	by vger.kernel.org with ESMTP id S970216AbXEIC6t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:58:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86, serial: convert legacy COM ports to platform devices
+     PNP: notice whether we have PNP devices (PNPBIOS or PNPACPI)
 has been removed from the -mm tree.  Its filename was
-     x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+     pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86, serial: convert legacy COM ports to platform devices
+Subject: PNP: notice whether we have PNP devices (PNPBIOS or PNPACPI)
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Make x86 COM ports into platform devices and don't probe for them
-if we have PNP.
+This series converts i386 and x86_64 legacy serial ports to be platform
+devices and prevents probing for them if we have PNP.
 
-This prevents double discovery, where a device was found both by
-the legacy probe and by 8250_pnp, e.g.,
+This prevents double discovery, where a device was found both by the legacy
+probe and by 8250_pnp.
 
-    serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-    00:02: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+This also prevents the serial driver from claiming IRDA devices (unless they
+have a UART PNP ID).  The serial legacy probe sometimes assumed the wrong IRQ,
+so the user had to use "setserial" to fix it.
 
-This also means IRDA devices without a UART PNP ID will no longer be
-claimed by the serial driver, which might require changes in IRDA
-drivers and administration.
+Removing the need for setserial to make IRDA devices work seems good, but it
+does break some things.  In particular, you may need to keep setserial from
+poking legacy UART stuff back in by doing something like "dpkg-reconfigure
+setserial" with the "kernel" option.  Otherwise, the setserial-discovered
+"UART" will claim resources and prevent the IRDA driver from loading.
 
-In addition to this patch, you may need to configure a setserial init
-script, e.g., /etc/init.d/setserial, so it doesn't poke legacy UART
-stuff back in.  On Debian, "dpkg-reconfigure setserial" with the "kernel"
-option does this.
 
-To force the old legacy probe behavior even when we have PNPBIOS or
-ACPI, load the new legacy_serial module (or build 8250 static) with
-the "legacy_serial.force" option.
 
-[akpm@linux-foundation.org: fix makefiles]
+This patch:
+
+If we can discover devices using PNP, we can skip some legacy probes.  This
+flag ("pnp_platform_devices") indicates that PNPBIOS or PNPACPI is enabled and
+should tell us about builtin devices.
+
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Keith Owens <kaos@ocs.com.au>
 Cc: Len Brown <lenb@kernel.org>
@@ -60,207 +61,71 @@ Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +
- arch/i386/kernel/Makefile           |    1 
- arch/i386/kernel/legacy_serial.c    |   67 ++++++++++++++++++++++++++
- arch/x86_64/kernel/Makefile         |    2 
- drivers/serial/Kconfig              |   14 +++--
- include/asm-i386/serial.h           |   16 ------
- include/asm-x86_64/serial.h         |   16 ------
- 7 files changed, 84 insertions(+), 37 deletions(-)
+ drivers/pnp/core.c         |    8 ++++++++
+ drivers/pnp/pnpacpi/core.c |    1 +
+ drivers/pnp/pnpbios/core.c |    1 +
+ include/linux/pnp.h        |    2 ++
+ 4 files changed, 12 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~x86-serial-convert-legacy-com-ports-to-platform-devices Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/Documentation/kernel-parameters.txt
-@@ -816,6 +816,11 @@ and is between 256 and 4096 characters. 
- 	lasi=		[HW,SCSI] PARISC LASI driver for the 53c700 chip
- 			Format: addr:<io>,irq:<irq>
+diff -puN drivers/pnp/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/core.c
+--- a/drivers/pnp/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
++++ a/drivers/pnp/core.c
+@@ -23,6 +23,14 @@ static LIST_HEAD(pnp_protocols);
+ LIST_HEAD(pnp_global);
+ DEFINE_SPINLOCK(pnp_lock);
  
-+	legacy_serial.force [HW,IA-32,X86-64]
-+			Probe for COM ports at legacy addresses even
-+			if PNPBIOS or ACPI should describe them.  This
-+			is for working around firmware defects.
-+
- 	llsc*=		[IA64] See function print_params() in
- 			arch/ia64/sn/kernel/llsc4.c.
- 
-diff -puN arch/i386/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/arch/i386/kernel/Makefile
-@@ -34,6 +34,7 @@ obj-y				+= sysenter.o vsyscall.o
- obj-$(CONFIG_ACPI_SRAT) 	+= srat.o
- obj-$(CONFIG_EFI) 		+= efi.o efi_stub.o
- obj-$(CONFIG_DOUBLEFAULT) 	+= doublefault.o
-+obj-$(CONFIG_SERIAL_8250)	+= legacy_serial.o
- obj-$(CONFIG_VM86)		+= vm86.o
- obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
- obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
-diff -puN /dev/null arch/i386/kernel/legacy_serial.c
---- /dev/null
-+++ a/arch/i386/kernel/legacy_serial.c
-@@ -0,0 +1,67 @@
 +/*
-+ * Legacy COM port devices for x86 platforms without PNPBIOS or ACPI.
-+ * Data taken from include/asm-i386/serial.h.
-+ *
-+ * (c) Copyright 2007 Hewlett-Packard Development Company, L.P.
-+ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * ACPI or PNPBIOS should tell us about all platform devices, so we can
++ * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
++ * devices, not built-in things like COM ports.
 + */
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/pnp.h>
-+#include <linux/serial_8250.h>
++int pnp_platform_devices;
++EXPORT_SYMBOL(pnp_platform_devices);
 +
-+/* Standard COM flags (except for COM4, because of the 8514 problem) */
-+#ifdef CONFIG_SERIAL_DETECT_IRQ
-+#define COM_FLAGS (UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_AUTO_IRQ)
-+#define COM4_FLAGS (UPF_BOOT_AUTOCONF | UPF_AUTO_IRQ)
-+#else
-+#define COM_FLAGS (UPF_BOOT_AUTOCONF | UPF_SKIP_TEST)
-+#define COM4_FLAGS UPF_BOOT_AUTOCONF
-+#endif
-+
-+#define PORT(_base,_irq,_flags)				\
-+	{						\
-+		.iobase		= _base,		\
-+		.irq		= _irq,			\
-+		.uartclk	= 1843200,		\
-+		.iotype		= UPIO_PORT,		\
-+		.flags		= _flags,		\
-+	}
-+
-+static struct plat_serial8250_port x86_com_data[] = {
-+	PORT(0x3F8, 4, COM_FLAGS),
-+	PORT(0x2F8, 3, COM_FLAGS),
-+	PORT(0x3E8, 4, COM_FLAGS),
-+	PORT(0x2E8, 3, COM4_FLAGS),
-+	{ },
-+};
-+
-+static struct platform_device x86_com_device = {
-+	.name			= "serial8250",
-+	.id			= PLAT8250_DEV_PLATFORM,
-+	.dev			= {
-+		.platform_data	= x86_com_data,
-+	},
-+};
-+
-+static int force_legacy_probe;
-+module_param_named(force, force_legacy_probe, bool, 0);
-+MODULE_PARM_DESC(force, "Force legacy serial port probe");
-+
-+static int __init serial8250_x86_com_init(void)
-+{
-+	if (pnp_platform_devices && !force_legacy_probe)
-+		return -ENODEV;
-+
-+	return platform_device_register(&x86_com_device);
-+}
-+
-+module_init(serial8250_x86_com_init);
-+
-+MODULE_AUTHOR("Bjorn Helgaas");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Generic 8250/16x50 legacy probe module");
-diff -puN arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices arch/x86_64/kernel/Makefile
---- a/arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/arch/x86_64/kernel/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_EARLY_PRINTK)	+= early_prin
- obj-$(CONFIG_IOMMU)		+= pci-gart.o aperture.o
- obj-$(CONFIG_CALGARY_IOMMU)	+= pci-calgary.o tce.o
- obj-$(CONFIG_SWIOTLB)		+= pci-swiotlb.o
-+obj-$(CONFIG_SERIAL_8250)	+= legacy_serial.o
- obj-$(CONFIG_KPROBES)		+= kprobes.o
- obj-$(CONFIG_X86_PM_TIMER)	+= pmtimer.o
- obj-$(CONFIG_X86_VSMP)		+= vsmp.o
-@@ -49,6 +50,7 @@ CFLAGS_vsyscall.o		:= $(PROFILING) -g0
+ void *pnp_alloc(long size)
+ {
+ 	void *result;
+diff -puN drivers/pnp/pnpacpi/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -285,6 +285,7 @@ static int __init pnpacpi_init(void)
+ 	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
+ 	pnp_info("PnP ACPI: found %d devices", num);
+ 	unregister_acpi_bus_type(&acpi_pnp_bus);
++	pnp_platform_devices = 1;
+ 	return 0;
+ }
+ subsys_initcall(pnpacpi_init);
+diff -puN drivers/pnp/pnpbios/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
++++ a/drivers/pnp/pnpbios/core.c
+@@ -570,6 +570,7 @@ static int __init pnpbios_init(void)
+ 	/* scan for pnpbios devices */
+ 	build_devlist();
  
- therm_throt-y                   += ../../i386/kernel/cpu/mcheck/therm_throt.o
- bootflag-y			+= ../../i386/kernel/bootflag.o
-+legacy_serial-y			+= ../../i386/kernel/legacy_serial.o
- cpuid-$(subst m,y,$(CONFIG_X86_CPUID))  += ../../i386/kernel/cpuid.o
- topology-y                     += ../../i386/kernel/topology.o
- microcode-$(subst m,y,$(CONFIG_MICROCODE))  += ../../i386/kernel/microcode.o
-diff -puN drivers/serial/Kconfig~x86-serial-convert-legacy-com-ports-to-platform-devices drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/drivers/serial/Kconfig
-@@ -73,17 +73,21 @@ config SERIAL_8250_PCI
- 	depends on SERIAL_8250 && PCI
- 	default SERIAL_8250
- 	help
--	  This builds standard PCI serial support. You may be able to
--	  disable this feature if you only need legacy serial support.
--	  Saves about 9K.
-+	  Say Y here if you have PCI serial ports.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called 8250_pci.
++	pnp_platform_devices = 1;
+ 	return 0;
+ }
  
- config SERIAL_8250_PNP
- 	tristate "8250/16550 PNP device support" if EMBEDDED
- 	depends on SERIAL_8250 && PNP
- 	default SERIAL_8250
- 	help
--	  This builds standard PNP serial support. You may be able to
--	  disable this feature if you only need legacy serial support.
-+	  Say Y here if you have serial ports described by PNPBIOS or ACPI.
-+	  These are typically ports built into the system board.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called 8250_pnp.
+diff -puN include/linux/pnp.h~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
++++ a/include/linux/pnp.h
+@@ -364,6 +364,7 @@ int pnp_add_device(struct pnp_dev *dev);
+ int pnp_device_attach(struct pnp_dev *pnp_dev);
+ void pnp_device_detach(struct pnp_dev *pnp_dev);
+ extern struct list_head pnp_global;
++extern int pnp_platform_devices;
  
- config SERIAL_8250_HP300
- 	tristate
-diff -puN include/asm-i386/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices include/asm-i386/serial.h
---- a/include/asm-i386/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/include/asm-i386/serial.h
-@@ -11,19 +11,3 @@
-  * megabits/second; but this requires the faster clock.
-  */
- #define BASE_BAUD ( 1843200 / 16 )
--
--/* Standard COM flags (except for COM4, because of the 8514 problem) */
--#ifdef CONFIG_SERIAL_DETECT_IRQ
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST | ASYNC_AUTO_IRQ)
--#define STD_COM4_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_AUTO_IRQ)
--#else
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST)
--#define STD_COM4_FLAGS ASYNC_BOOT_AUTOCONF
--#endif
--
--#define SERIAL_PORT_DFNS			\
--	/* UART CLK   PORT IRQ     FLAGS        */			\
--	{ 0, BASE_BAUD, 0x3F8, 4, STD_COM_FLAGS },	/* ttyS0 */	\
--	{ 0, BASE_BAUD, 0x2F8, 3, STD_COM_FLAGS },	/* ttyS1 */	\
--	{ 0, BASE_BAUD, 0x3E8, 4, STD_COM_FLAGS },	/* ttyS2 */	\
--	{ 0, BASE_BAUD, 0x2E8, 3, STD_COM4_FLAGS },	/* ttyS3 */
-diff -puN include/asm-x86_64/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices include/asm-x86_64/serial.h
---- a/include/asm-x86_64/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/include/asm-x86_64/serial.h
-@@ -11,19 +11,3 @@
-  * megabits/second; but this requires the faster clock.
-  */
- #define BASE_BAUD ( 1843200 / 16 )
--
--/* Standard COM flags (except for COM4, because of the 8514 problem) */
--#ifdef CONFIG_SERIAL_DETECT_IRQ
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST | ASYNC_AUTO_IRQ)
--#define STD_COM4_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_AUTO_IRQ)
--#else
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST)
--#define STD_COM4_FLAGS ASYNC_BOOT_AUTOCONF
--#endif
--
--#define SERIAL_PORT_DFNS			\
--	/* UART CLK   PORT IRQ     FLAGS        */			\
--	{ 0, BASE_BAUD, 0x3F8, 4, STD_COM_FLAGS },	/* ttyS0 */	\
--	{ 0, BASE_BAUD, 0x2F8, 3, STD_COM_FLAGS },	/* ttyS1 */	\
--	{ 0, BASE_BAUD, 0x3E8, 4, STD_COM_FLAGS },	/* ttyS2 */	\
--	{ 0, BASE_BAUD, 0x2E8, 3, STD_COM4_FLAGS },	/* ttyS3 */
+ /* multidevice card support */
+ int pnp_add_card(struct pnp_card *card);
+@@ -411,6 +412,7 @@ static inline int pnp_init_device(struct
+ static inline int pnp_add_device(struct pnp_dev *dev) { return -ENODEV; }
+ static inline int pnp_device_attach(struct pnp_dev *pnp_dev) { return -ENODEV; }
+ static inline void pnp_device_detach(struct pnp_dev *pnp_dev) { ; }
++#define pnp_platform_devices 0
+ 
+ /* multidevice card support */
+ static inline int pnp_add_card(struct pnp_card *card) { return -ENODEV; }
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
