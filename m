@@ -1,240 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - fsaio-aio-o_sync-filesystem-write.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:04:52 -0700
-Message-ID: <200705091004.l49A4qJC020791@shell0.pdx.osdl.net>
+Subject: - fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:04:44 -0700
+Message-ID: <200705091004.l49A4iav020777@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34225 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755834AbXEIKFg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:05:36 -0400
+	by vger.kernel.org with ESMTP id S1755090AbXEIKFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:05:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suparna@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tilman@imap.cc, suparna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: AIO O_SYNC filesystem write
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix sparse fix
 has been removed from the -mm tree.  Its filename was
-     fsaio-aio-o_sync-filesystem-write.patch
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fsaio: AIO O_SYNC filesystem write
-From: Suparna Bhattacharya <suparna@in.ibm.com>
+Subject: fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix sparse fix
+From: Tilman Schmidt <tilman@imap.cc>
 
-AIO support for O_SYNC buffered writes, built over O_SYNC-speedup.  It uses
-the tagged radix tree lookups to writeout just the pages pertaining to this
-request, and retries instead of blocking for writeback to complete on the same
-range.  All the writeout is issued at the time of io submission, and there is
-a check to make sure that retries skip over straight to the
-wait_on_page_writeback_range.
-
-Limitations: Extending file writes or hole overwrites with O_SYNC may still
-block because we have yet to convert generic_osync_inode to be asynchronous. 
-For non O_SYNC writes, writeout happens in the background and so typically
-appears async to the caller except for memory throttling and non-block aligned
-writes involving read-modify-write.
-
-Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/fs.h |   13 ++++++++-
- mm/filemap.c       |   59 +++++++++++++++++++++++++++++--------------
- 2 files changed, 52 insertions(+), 20 deletions(-)
+ include/linux/aio.h |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/fs.h~fsaio-aio-o_sync-filesystem-write include/linux/fs.h
---- a/include/linux/fs.h~fsaio-aio-o_sync-filesystem-write
-+++ a/include/linux/fs.h
-@@ -281,6 +281,7 @@ extern int dir_notify_enable;
- #include <linux/prio_tree.h>
- #include <linux/init.h>
- #include <linux/pid.h>
-+#include <linux/sched.h>
- #include <linux/mutex.h>
+diff -puN include/linux/aio.h~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix include/linux/aio.h
+--- a/include/linux/aio.h~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix
++++ a/include/linux/aio.h
+@@ -237,9 +237,14 @@ do {									\
+ 	}								\
+ } while (0)
  
- #include <asm/atomic.h>
-@@ -1597,8 +1598,16 @@ extern int filemap_fdatawait(struct addr
- extern int filemap_write_and_wait(struct address_space *mapping);
- extern int filemap_write_and_wait_range(struct address_space *mapping,
- 				        loff_t lstart, loff_t lend);
--extern int wait_on_page_writeback_range(struct address_space *mapping,
--				pgoff_t start, pgoff_t end);
-+extern int __wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, wait_queue_t *wait);
-+
-+static inline int wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end)
+-#define io_wait_to_kiocb(io_wait) container_of(container_of(io_wait,	\
+-	struct wait_bit_queue, wait), struct kiocb, ki_wait)
++static inline struct kiocb *io_wait_to_kiocb(wait_queue_t *io_wait)
 +{
-+	return __wait_on_page_writeback_range(mapping, start, end,
-+		&current->__wait.wait);
++	struct wait_bit_queue *wbqptr;
+ 
++	wbqptr = container_of(io_wait, struct wait_bit_queue, wait);
++	return container_of(wbqptr, struct kiocb, ki_wait);
 +}
 +
- extern int __filemap_fdatawrite_range(struct address_space *mapping,
- 				loff_t start, loff_t end, int sync_mode);
+ #include <linux/aio_abi.h>
  
-diff -puN mm/filemap.c~fsaio-aio-o_sync-filesystem-write mm/filemap.c
---- a/mm/filemap.c~fsaio-aio-o_sync-filesystem-write
-+++ a/mm/filemap.c
-@@ -209,10 +209,11 @@ EXPORT_SYMBOL(filemap_flush);
-  * @end:	ending page index
-  *
-  * Wait for writeback to complete against pages indexed by start->end
-- * inclusive
-+ * inclusive. In AIO context, this may queue an async notification
-+ * and retry callback and return, instead of blocking the caller.
-  */
--int wait_on_page_writeback_range(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
-+int __wait_on_page_writeback_range(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, wait_queue_t *wait)
- {
- 	struct pagevec pvec;
- 	int nr_pages;
-@@ -224,20 +225,20 @@ int wait_on_page_writeback_range(struct 
- 
- 	pagevec_init(&pvec, 0);
- 	index = start;
--	while ((index <= end) &&
-+	while (!ret && (index <= end) &&
- 			(nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
- 			PAGECACHE_TAG_WRITEBACK,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1)) != 0) {
- 		unsigned i;
- 
--		for (i = 0; i < nr_pages; i++) {
-+		for (i = 0; !ret && (i < nr_pages); i++) {
- 			struct page *page = pvec.pages[i];
- 
- 			/* until radix tree lookup accepts end_index */
- 			if (page->index > end)
- 				continue;
- 
--			wait_on_page_writeback(page);
-+			ret = __wait_on_page_writeback(page, wait);
- 			if (PageError(page))
- 				ret = -EIO;
- 		}
-@@ -273,18 +274,26 @@ int sync_page_range(struct inode *inode,
- {
- 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
- 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
--	int ret;
-+	int ret = 0;
- 
- 	if (!mapping_cap_writeback_dirty(mapping) || !count)
- 		return 0;
-+	/* Already issued writeouts for this iocb ? */
-+	if (unlikely(aio_restarted())) {
-+		goto do_wait; /* just need to check if done */
-+	}
- 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
--	if (ret == 0) {
-+
-+	if (ret >= 0) {
- 		mutex_lock(&inode->i_mutex);
- 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
- 		mutex_unlock(&inode->i_mutex);
- 	}
--	if (ret == 0)
--		ret = wait_on_page_writeback_range(mapping, start, end);
-+do_wait:
-+	if (ret >= 0) {
-+		ret = __wait_on_page_writeback_range(mapping, start, end,
-+			current->io_wait);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(sync_page_range);
-@@ -305,15 +314,22 @@ int sync_page_range_nolock(struct inode 
- {
- 	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
- 	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
--	int ret;
-+	int ret = 0;
- 
- 	if (!mapping_cap_writeback_dirty(mapping) || !count)
- 		return 0;
-+	/* Already issued writeouts for this iocb ? */
-+	if (unlikely(aio_restarted())) {
-+		goto do_wait; /* just need to check if done */
-+	}
- 	ret = filemap_fdatawrite_range(mapping, pos, pos + count - 1);
--	if (ret == 0)
-+	if (ret >= 0)
- 		ret = generic_osync_inode(inode, mapping, OSYNC_METADATA);
--	if (ret == 0)
--		ret = wait_on_page_writeback_range(mapping, start, end);
-+do_wait:
-+	if (ret >= 0) {
-+		ret = __wait_on_page_writeback_range(mapping, start, end,
-+			current->io_wait);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(sync_page_range_nolock);
-@@ -2190,7 +2206,7 @@ zero_length_segment:
- 	 */
- 	if (likely(status >= 0)) {
- 		if (unlikely((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
--			if (!a_ops->writepage || !is_sync_kiocb(iocb))
-+			if (!a_ops->writepage)
- 				status = generic_osync_inode(inode, mapping,
- 						OSYNC_METADATA|OSYNC_DATA);
- 		}
-@@ -2242,7 +2258,10 @@ __generic_file_aio_write_nolock(struct k
- 		ocount -= iv->iov_len;	/* This segment is no good */
- 		break;
- 	}
--
-+	if (unlikely(aio_restarted())) {
-+		/* nothing to transfer, may just need to sync data */
-+		return ocount;
-+	}
- 	count = ocount;
- 	pos = *ppos;
- 
-@@ -2342,8 +2361,10 @@ ssize_t generic_file_aio_write_nolock(st
- 		ssize_t err;
- 
- 		err = sync_page_range_nolock(inode, mapping, pos, ret);
--		if (err < 0)
-+		if (err < 0) {
- 			ret = err;
-+			iocb->ki_pos = pos;
-+		}
- 	}
- 	return ret;
- }
-@@ -2368,8 +2389,10 @@ ssize_t generic_file_aio_write(struct ki
- 		ssize_t err;
- 
- 		err = sync_page_range(inode, mapping, pos, ret);
--		if (err < 0)
-+		if (err < 0) {
- 			ret = err;
-+			iocb->ki_pos = pos;
-+		}
- 	}
- 	return ret;
- }
+ static inline struct kiocb *list_kiocb(struct list_head *h)
 _
 
-Patches currently in -mm which might be from suparna@in.ibm.com are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-aio-is-unlikely.patch
-fsaio-aio-o_sync-filesystem-write.patch
-rework-compat_sys_io_submit.patch
-fix-aioh-includes.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
+origin.patch
+remove-obsolete-label-from-isdn4linux-v3.patch
+fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix-sparse-fix.patch
