@@ -1,85 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - kallsyms-cleanup-use-seq_release_private-where-appropriate.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:32 -0700
-Message-ID: <200705090249.l492nWC0009233@shell0.pdx.osdl.net>
+Subject: - cciss-reformat-error-handling.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:49:36 -0700
+Message-ID: <200705090249.l492naUh009242@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41424 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969568AbXEICtg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:36 -0400
+	by vger.kernel.org with ESMTP id S969615AbXEICtv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mp3@de.ibm.com, mm-commits@vger.kernel.org
+To: mikem@beardog.cca.cpqcorp.net, James.Bottomley@steeleye.com, jens.axboe@oracle.com, mike.miller@hp.com, steve.cameron@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kallsyms: cleanup: use seq_release_private() where appropriate
+     cciss: reformat error handling
 has been removed from the -mm tree.  Its filename was
-     kallsyms-cleanup-use-seq_release_private-where-appropriate.patch
+     cciss-reformat-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kallsyms: cleanup: use seq_release_private() where appropriate
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: cciss: reformat error handling
+From: "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>
 
-We can save some lines of code by using seq_release_private().
+Reformat some error handling code to reduce line lengths a bit.
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
+Signed-off-by: Stephen M. Cameron <steve.cameron@hp.com>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ drivers/block/cciss.c |  176 ++++++++++++++++++++--------------------
+ 1 file changed, 90 insertions(+), 86 deletions(-)
 
-diff -puN kernel/kallsyms.c~kallsyms-cleanup-use-seq_release_private-where-appropriate kernel/kallsyms.c
---- a/kernel/kallsyms.c~kallsyms-cleanup-use-seq_release_private-where-appropriate
-+++ a/kernel/kallsyms.c
-@@ -470,18 +470,11 @@ static int kallsyms_open(struct inode *i
- 	return ret;
- }
+diff -puN drivers/block/cciss.c~cciss-reformat-error-handling drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-reformat-error-handling
++++ a/drivers/block/cciss.c
+@@ -2349,95 +2349,99 @@ static inline void complete_command(ctlr
+ 	if (timeout)
+ 		status = 0;
  
--static int kallsyms_release(struct inode *inode, struct file *file)
--{
--	struct seq_file *m = (struct seq_file *)file->private_data;
--	kfree(m->private);
--	return seq_release(inode, file);
--}
+-	if (cmd->err_info->CommandStatus != 0) {	/* an error has occurred */
+-		switch (cmd->err_info->CommandStatus) {
+-			unsigned char sense_key;
+-		case CMD_TARGET_STATUS:
+-			status = 0;
 -
- static const struct file_operations kallsyms_operations = {
- 	.open = kallsyms_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
--	.release = kallsyms_release,
-+	.release = seq_release_private,
- };
- 
- static int __init kallsyms_init(void)
+-			if (cmd->err_info->ScsiStatus == 0x02) {
+-				printk(KERN_WARNING "cciss: cmd %p "
+-				       "has CHECK CONDITION "
+-				       " byte 2 = 0x%x\n", cmd,
+-				       cmd->err_info->SenseInfo[2]
+-				    );
+-				/* check the sense key */
+-				sense_key = 0xf & cmd->err_info->SenseInfo[2];
+-				/* no status or recovered error */
+-				if ((sense_key == 0x0) || (sense_key == 0x1)) {
+-					status = 1;
+-				}
+-			} else {
+-				printk(KERN_WARNING "cciss: cmd %p "
+-				       "has SCSI Status 0x%x\n",
+-				       cmd, cmd->err_info->ScsiStatus);
++	if (cmd->err_info->CommandStatus == 0)	/* no error has occurred */
++		goto after_error_processing;
++
++	switch (cmd->err_info->CommandStatus) {
++		unsigned char sense_key;
++	case CMD_TARGET_STATUS:
++		status = 0;
++
++		if (cmd->err_info->ScsiStatus == 0x02) {
++			printk(KERN_WARNING "cciss: cmd %p "
++			       "has CHECK CONDITION "
++			       " byte 2 = 0x%x\n", cmd,
++			       cmd->err_info->SenseInfo[2]
++			    );
++			/* check the sense key */
++			sense_key = 0xf & cmd->err_info->SenseInfo[2];
++			/* no status or recovered error */
++			if ((sense_key == 0x0) || (sense_key == 0x1)) {
++				status = 1;
+ 			}
+-			break;
+-		case CMD_DATA_UNDERRUN:
+-			printk(KERN_WARNING "cciss: cmd %p has"
+-			       " completed with data underrun "
+-			       "reported\n", cmd);
+-			break;
+-		case CMD_DATA_OVERRUN:
+-			printk(KERN_WARNING "cciss: cmd %p has"
+-			       " completed with data overrun "
+-			       "reported\n", cmd);
+-			break;
+-		case CMD_INVALID:
+-			printk(KERN_WARNING "cciss: cmd %p is "
+-			       "reported invalid\n", cmd);
+-			status = 0;
+-			break;
+-		case CMD_PROTOCOL_ERR:
+-			printk(KERN_WARNING "cciss: cmd %p has "
+-			       "protocol error \n", cmd);
+-			status = 0;
+-			break;
+-		case CMD_HARDWARE_ERR:
+-			printk(KERN_WARNING "cciss: cmd %p had "
+-			       " hardware error\n", cmd);
+-			status = 0;
+-			break;
+-		case CMD_CONNECTION_LOST:
+-			printk(KERN_WARNING "cciss: cmd %p had "
+-			       "connection lost\n", cmd);
+-			status = 0;
+-			break;
+-		case CMD_ABORTED:
+-			printk(KERN_WARNING "cciss: cmd %p was "
+-			       "aborted\n", cmd);
+-			status = 0;
+-			break;
+-		case CMD_ABORT_FAILED:
+-			printk(KERN_WARNING "cciss: cmd %p reports "
+-			       "abort failed\n", cmd);
+-			status = 0;
+-			break;
+-		case CMD_UNSOLICITED_ABORT:
+-			printk(KERN_WARNING "cciss%d: unsolicited "
+-			       "abort %p\n", h->ctlr, cmd);
+-			if (cmd->retry_count < MAX_CMD_RETRIES) {
+-				retry_cmd = 1;
+-				printk(KERN_WARNING
+-				       "cciss%d: retrying %p\n", h->ctlr, cmd);
+-				cmd->retry_count++;
+-			} else
+-				printk(KERN_WARNING
+-				       "cciss%d: %p retried too "
+-				       "many times\n", h->ctlr, cmd);
+-			status = 0;
+-			break;
+-		case CMD_TIMEOUT:
+-			printk(KERN_WARNING "cciss: cmd %p timedout\n", cmd);
+-			status = 0;
+-			break;
+-		default:
+-			printk(KERN_WARNING "cciss: cmd %p returned "
+-			       "unknown status %x\n", cmd,
+-			       cmd->err_info->CommandStatus);
+-			status = 0;
++		} else {
++			printk(KERN_WARNING "cciss: cmd %p "
++			       "has SCSI Status 0x%x\n",
++			       cmd, cmd->err_info->ScsiStatus);
+ 		}
++		break;
++	case CMD_DATA_UNDERRUN:
++		printk(KERN_WARNING "cciss: cmd %p has"
++		       " completed with data underrun "
++		       "reported\n", cmd);
++		break;
++	case CMD_DATA_OVERRUN:
++		printk(KERN_WARNING "cciss: cmd %p has"
++		       " completed with data overrun "
++		       "reported\n", cmd);
++		break;
++	case CMD_INVALID:
++		printk(KERN_WARNING "cciss: cmd %p is "
++		       "reported invalid\n", cmd);
++		status = 0;
++		break;
++	case CMD_PROTOCOL_ERR:
++		printk(KERN_WARNING "cciss: cmd %p has "
++		       "protocol error \n", cmd);
++		status = 0;
++		break;
++	case CMD_HARDWARE_ERR:
++		printk(KERN_WARNING "cciss: cmd %p had "
++		       " hardware error\n", cmd);
++		status = 0;
++		break;
++	case CMD_CONNECTION_LOST:
++		printk(KERN_WARNING "cciss: cmd %p had "
++		       "connection lost\n", cmd);
++		status = 0;
++		break;
++	case CMD_ABORTED:
++		printk(KERN_WARNING "cciss: cmd %p was "
++		       "aborted\n", cmd);
++		status = 0;
++		break;
++	case CMD_ABORT_FAILED:
++		printk(KERN_WARNING "cciss: cmd %p reports "
++		       "abort failed\n", cmd);
++		status = 0;
++		break;
++	case CMD_UNSOLICITED_ABORT:
++		printk(KERN_WARNING "cciss%d: unsolicited "
++		       "abort %p\n", h->ctlr, cmd);
++		if (cmd->retry_count < MAX_CMD_RETRIES) {
++			retry_cmd = 1;
++			printk(KERN_WARNING
++			       "cciss%d: retrying %p\n", h->ctlr, cmd);
++			cmd->retry_count++;
++		} else
++			printk(KERN_WARNING
++			       "cciss%d: %p retried too "
++			       "many times\n", h->ctlr, cmd);
++		status = 0;
++		break;
++	case CMD_TIMEOUT:
++		printk(KERN_WARNING "cciss: cmd %p timedout\n", cmd);
++		status = 0;
++		break;
++	default:
++		printk(KERN_WARNING "cciss: cmd %p returned "
++		       "unknown status %x\n", cmd,
++		       cmd->err_info->CommandStatus);
++		status = 0;
+ 	}
++
++after_error_processing:
++
+ 	/* We need to return this command */
+ 	if (retry_cmd) {
+ 		resend_cciss_cmd(h, cmd);
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from mikem@beardog.cca.cpqcorp.net are
 
 origin.patch
-md-cleanup-use-seq_release_private-where-appropriate.patch
-statistics-infrastructure-prerequisite-list.patch
-statistics-infrastructure-prerequisite-parser.patch
-statistics-infrastructure-prerequisite-parser-fix.patch
-add-for_each_substring-and-match_substring.patch
-statistics-infrastructure-prerequisite-timestamp.patch
-statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
-statistics-infrastructure-documentation.patch
-statistics-infrastructure.patch
-statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation.patch
-statistics-infrastructure-fix-parsing-of-statistics-type-attribute.patch
-statistics-infrastructure-simplify-statistics-debugfs-write-function.patch
-statistics-infrastructure-simplify-statistics-debugfs-read-functions.patch
-statistics-infrastructure-fix-string-termination.patch
-statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch
-statistics-infrastructure-fix-cpu-hot-unplug-related-memory-leak.patch
-statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup.patch
-statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels.patch
-statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-keys.patch
-statistics-infrastructure-statistics-fix-sorted-list.patch
-statistics-infrastructure-exploitation-zfcp.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
