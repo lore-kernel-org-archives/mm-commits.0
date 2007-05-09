@@ -1,138 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - s3fb-updates.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:02:37 -0700
-Message-ID: <200705090302.l4932b3p010858@shell0.pdx.osdl.net>
+Subject: - s3fb-implement-fb_get_caps.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:02:11 -0700
+Message-ID: <200705090302.l4932BtP010801@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52410 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032991AbXEIDCn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:43 -0400
+	by vger.kernel.org with ESMTP id S1033225AbXEIDCO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: santiago@crfreenet.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3fb: updates
+     s3fb: implement fb_get_caps
 has been removed from the -mm tree.  Its filename was
-     s3fb-updates.patch
+     s3fb-implement-fb_get_caps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3fb: updates
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: s3fb: implement fb_get_caps
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Move s3fb_get_tilemax to svgalib.c as svga_get_tilemax, because it reports
-limitation of other code from svgalib (svga_settile, svga_tilecopy, ...)
+Implement fb_get_caps().  This will allow the driver to tell upper layer that
+it can only support 256 8x16 bitmaps when in tileblitting mode
+(var->bits_per_pixel == 0);
 
-Limit font width to 8 pixels in 4 bpp mode.
-
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3fb.c    |   15 ++++++---------
- drivers/video/svgalib.c |    6 ++++++
- include/linux/svga.h    |    1 +
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/video/s3fb.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN drivers/video/s3fb.c~s3fb-updates drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~s3fb-updates
+diff -puN drivers/video/s3fb.c~s3fb-implement-fb_get_caps drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-implement-fb_get_caps
 +++ a/drivers/video/s3fb.c
-@@ -183,18 +183,13 @@ static void s3fb_settile_fast(struct fb_
- 	}
+@@ -799,6 +799,23 @@ static int s3fb_pan_display(struct fb_va
+ 	return 0;
  }
  
--static int s3fb_get_tilemax(struct fb_info *info)
--{
--	return 256;
--}
--
- static struct fb_tile_ops s3fb_tile_ops = {
- 	.fb_settile	= svga_settile,
- 	.fb_tilecopy	= svga_tilecopy,
- 	.fb_tilefill    = svga_tilefill,
- 	.fb_tileblit    = svga_tileblit,
- 	.fb_tilecursor  = svga_tilecursor,
--	.fb_get_tilemax = s3fb_get_tilemax,
-+	.fb_get_tilemax = svga_get_tilemax,
- };
- 
- static struct fb_tile_ops s3fb_fast_tile_ops = {
-@@ -203,7 +198,7 @@ static struct fb_tile_ops s3fb_fast_tile
- 	.fb_tilefill    = svga_tilefill,
- 	.fb_tileblit    = svga_tileblit,
- 	.fb_tilecursor  = svga_tilecursor,
--	.fb_get_tilemax = s3fb_get_tilemax,
-+	.fb_get_tilemax = svga_get_tilemax,
- };
- 
- 
-@@ -459,9 +454,10 @@ static int s3fb_set_par(struct fb_info *
- 		info->flags &= ~FBINFO_MISC_TILEBLITTING;
- 		info->tileops = NULL;
- 
--		/* supports blit rectangles of any dimension */
--		info->pixmap.blit_x = ~(u32)0;
-+		/* in 4bpp supports 8p wide tiles only, any tiles otherwise */
-+		info->pixmap.blit_x = (bpp == 4) ? (1 << (8 - 1)) : (~(u32)0);
- 		info->pixmap.blit_y = ~(u32)0;
++/* Get capabilities of accelerator based on the mode */
 +
- 		offset_value = (info->var.xres_virtual * bpp) / 64;
- 		screen_size = info->var.yres_virtual * info->fix.line_length;
- 	} else {
-@@ -470,6 +466,7 @@ static int s3fb_set_par(struct fb_info *
- 
- 		info->flags |= FBINFO_MISC_TILEBLITTING;
- 		info->tileops = fasttext ? &s3fb_fast_tile_ops : &s3fb_tile_ops;
-+
- 		/* supports 8x16 tiles only */
- 		info->pixmap.blit_x = 1 << (8 - 1);
- 		info->pixmap.blit_y = 1 << (16 - 1);
-diff -puN drivers/video/svgalib.c~s3fb-updates drivers/video/svgalib.c
---- a/drivers/video/svgalib.c~s3fb-updates
-+++ a/drivers/video/svgalib.c
-@@ -342,6 +342,11 @@ void svga_tilecursor(struct fb_info *inf
- 	vga_wcrt(NULL, 0x0A, cs); /* set cursor start and enable it */
- }
- 
-+int svga_get_tilemax(struct fb_info *info)
++static void s3fb_get_caps(struct fb_info *info, struct fb_blit_caps *caps,
++			  struct fb_var_screeninfo *var)
 +{
-+	return 256;
++	if (var->bits_per_pixel == 0) {
++		/* can only support 256 8x16 bitmap */
++		caps->x = 1 << (8 - 1);
++		caps->y = 1 << (16 - 1);
++		caps->len = 256;
++	} else {
++		caps->x = ~(u32)0;
++		caps->y = ~(u32)0;
++		caps->len = ~(u32)0;
++	}
 +}
 +
- 
  /* ------------------------------------------------------------------------- */
  
-@@ -623,6 +628,7 @@ EXPORT_SYMBOL(svga_tilecopy);
- EXPORT_SYMBOL(svga_tilefill);
- EXPORT_SYMBOL(svga_tileblit);
- EXPORT_SYMBOL(svga_tilecursor);
-+EXPORT_SYMBOL(svga_get_tilemax);
+ /* Frame buffer operations */
+@@ -815,6 +832,7 @@ static struct fb_ops s3fb_ops = {
+ 	.fb_fillrect	= s3fb_fillrect,
+ 	.fb_copyarea	= cfb_copyarea,
+ 	.fb_imageblit	= s3fb_imageblit,
++	.fb_get_caps    = s3fb_get_caps,
+ };
  
- EXPORT_SYMBOL(svga_compute_pll);
- EXPORT_SYMBOL(svga_check_timings);
-diff -puN include/linux/svga.h~s3fb-updates include/linux/svga.h
---- a/include/linux/svga.h~s3fb-updates
-+++ a/include/linux/svga.h
-@@ -112,6 +112,7 @@ void svga_tilecopy(struct fb_info *info,
- void svga_tilefill(struct fb_info *info, struct fb_tilerect *rect);
- void svga_tileblit(struct fb_info *info, struct fb_tileblit *blit);
- void svga_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor);
-+int svga_get_tilemax(struct fb_info *info);
- 
- int svga_compute_pll(const struct svga_pll *pll, u32 f_wanted, u16 *m, u16 *n, u16 *r, int node);
- int svga_check_timings(const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, int node);
+ /* ------------------------------------------------------------------------- */
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
 vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+vt8623fb-fix-compile-warnings.patch
 vt8623fb-fix-compile-error-if-config_mtrr=n.patch
 arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+arkfb-fix-compiler-warnings.patch
 arkfb-fix-compile-error-if-config_mtrr=n.patch
 arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
