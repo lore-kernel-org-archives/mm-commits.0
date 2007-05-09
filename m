@@ -1,65 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-treats-down_write_trylock-like-regular-down_write.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:17 -0700
-Message-ID: <200705090249.l492nHVU009206@shell0.pdx.osdl.net>
+Subject: - add-keyboard-blink-driver.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:50:02 -0700
+Message-ID: <200705090250.l492o2pX009302@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44503 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969826AbXEICuE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:50:04 -0400
+	by vger.kernel.org with ESMTP id S969816AbXEICuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:50:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@sw.ru, a.p.zijlstra@chello.nl, arjan@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: ak@novell.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Lockdep treats down_write_trylock like regular down_write
+     Add keyboard blink driver
 has been removed from the -mm tree.  Its filename was
-     lockdep-treats-down_write_trylock-like-regular-down_write.patch
+     add-keyboard-blink-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Lockdep treats down_write_trylock like regular down_write
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: Add keyboard blink driver
+From: Andi Kleen <ak@novell.com>
 
-This causes constructions like
+Simple driver that blinks the keyboard LEDs when loaded.  Useful for
+checking that the kernel is still alive or for crashdumping
 
-down_write(&mm1->mmap_sem);
-if (down_write_trylock(&mm2->mmap_sem)) {
-       ...
-       up_write(&mm2->mmap_sem);
-}
-up_write(&mm1->mmap_sem);
-
-generate a lockdep warning about circular locking dependence.
-
-Call rwsem_acquire() with trylock set to 1.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rwsem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/Kconfig  |    9 +++++++++
+ drivers/misc/Makefile |    1 +
+ drivers/misc/blink.c  |   27 +++++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+)
 
-diff -puN kernel/rwsem.c~lockdep-treats-down_write_trylock-like-regular-down_write kernel/rwsem.c
---- a/kernel/rwsem.c~lockdep-treats-down_write_trylock-like-regular-down_write
-+++ a/kernel/rwsem.c
-@@ -60,7 +60,7 @@ int down_write_trylock(struct rw_semapho
- 	int ret = __down_write_trylock(sem);
+diff -puN drivers/misc/Kconfig~add-keyboard-blink-driver drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~add-keyboard-blink-driver
++++ a/drivers/misc/Kconfig
+@@ -178,4 +178,13 @@ config THINKPAD_ACPI_BAY
  
- 	if (ret == 1)
--		rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
-+		rwsem_acquire(&sem->dep_map, 0, 1, _RET_IP_);
- 	return ret;
- }
+ 	  If you are not sure, say Y here.
  
++config BLINK
++	tristate "Keyboard blink driver"
++	help
++	  Driver that when loaded will blink the keyboard LEDs continuously.
++	  This is useful for debugging and for kernels that cannot necessarily
++	  output something to the screen like kexec kernels to give the user
++	  a visual indication that the kernel is doing something.
++
++
+ endmenu
+diff -puN drivers/misc/Makefile~add-keyboard-blink-driver drivers/misc/Makefile
+--- a/drivers/misc/Makefile~add-keyboard-blink-driver
++++ a/drivers/misc/Makefile
+@@ -7,6 +7,7 @@ obj-$(CONFIG_IBM_ASM)		+= ibmasm/
+ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
+ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+ obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
++obj-$(CONFIG_BLINK)		+= blink.o
+ obj-$(CONFIG_LKDTM)		+= lkdtm.o
+ obj-$(CONFIG_TIFM_CORE)       	+= tifm_core.o
+ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7xx1.o
+diff -puN /dev/null drivers/misc/blink.c
+--- /dev/null
++++ a/drivers/misc/blink.c
+@@ -0,0 +1,27 @@
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/timer.h>
++#include <linux/jiffies.h>
++
++static void do_blink(unsigned long data);
++
++static DEFINE_TIMER(blink_timer, do_blink, 0 ,0);
++
++static void do_blink(unsigned long data)
++{
++	static long count;
++	if (panic_blink)
++		panic_blink(count++);
++	blink_timer.expires = jiffies + msecs_to_jiffies(1);
++	add_timer(&blink_timer);
++}
++
++static int blink_init(void)
++{
++	printk(KERN_INFO "Enabling keyboard blinking\n");
++	do_blink(0);
++	return 0;
++}
++
++module_init(blink_init);
++
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from ak@novell.com are
 
 origin.patch
