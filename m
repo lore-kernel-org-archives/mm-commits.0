@@ -1,62 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - hide-spinlock-in-linux-quotah-behind-__kernel__.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:34 -0700
-Message-ID: <200705090252.l492qYXr009584@shell0.pdx.osdl.net>
+Subject: - invalid-return-value-of-execve-resulting-in-oopses.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:40 -0700
+Message-ID: <200705090252.l492qehB009597@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40583 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969967AbXEICwn (ORCPT
+	by vger.kernel.org with ESMTP id S969996AbXEICwn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dwmw2@infradead.org, jack@ucw.cz, mm-commits@vger.kernel.org
+To: alexey@openvz.org, dev@openvz.org, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hide spinlock in linux/quota.h behind __KERNEL__
+     Invalid return value of execve() resulting in oopses
 has been removed from the -mm tree.  Its filename was
-     hide-spinlock-in-linux-quotah-behind-__kernel__.patch
+     invalid-return-value-of-execve-resulting-in-oopses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hide spinlock in linux/quota.h behind __KERNEL__
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: Invalid return value of execve() resulting in oopses
+From: Alexey Kuznetsov <alexey@openvz.org>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Jan Kara <jack@ucw.cz>
-Cc: David Woodhouse <dwmw2@infradead.org>
+When elf loader fails to map executable (due to memory shortage or because
+binary is malformed), it can return 0.  Normally, this is invisible because
+process is killed with SIGKILL and it never returns to user space.
+
+But if exec() is called from kernel thread (hotplug, whatever)
+consequences are more interesting and vary depending on architecture.
+
+i386.   Nothing especially interesting, execve() just returns
+        with "success"  :-)
+
+x86_64. Fake zero frame is used on way to caller, RSP/RIP are loaded
+        with zeros, ergo... double fault.
+
+ia64.   Similar to i386, but r32...r95 are corrupted. Sometimes it
+        oopses due to return to zero PC, sometimes it sees NaT in
+        rXX and oopses due to NaT consumption.
+
+Signed-off-by: Alexey Kuznetsov <alexey@openvz.org>
+Signed-off-by: Kirill Korotaev <dev@openvz.org>
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quota.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/quota.h~hide-spinlock-in-linux-quotah-behind-__kernel__ include/linux/quota.h
---- a/include/linux/quota.h~hide-spinlock-in-linux-quotah-behind-__kernel__
-+++ a/include/linux/quota.h
-@@ -44,8 +44,6 @@
- typedef __kernel_uid32_t qid_t; /* Type in which we store ids in memory */
- typedef __u64 qsize_t;          /* Type in which we store sizes */
+diff -puN fs/binfmt_elf.c~invalid-return-value-of-execve-resulting-in-oopses fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~invalid-return-value-of-execve-resulting-in-oopses
++++ a/fs/binfmt_elf.c
+@@ -871,6 +871,8 @@ static int load_elf_binary(struct linux_
+ 				elf_prot, elf_flags);
+ 		if (BAD_ADDR(error)) {
+ 			send_sig(SIGKILL, current, 0);
++			retval = IS_ERR((void *)error) ?
++				PTR_ERR((void*)error) : -EINVAL;
+ 			goto out_free_dentry;
+ 		}
  
--extern spinlock_t dq_data_lock;
--
- /* Size of blocks in which are counted size limits */
- #define QUOTABLOCK_BITS 10
- #define QUOTABLOCK_SIZE (1 << QUOTABLOCK_BITS)
-@@ -139,6 +137,8 @@ struct if_dqinfo {
- #include <linux/dqblk_v1.h>
- #include <linux/dqblk_v2.h>
+@@ -900,6 +902,7 @@ static int load_elf_binary(struct linux_
+ 		    TASK_SIZE - elf_ppnt->p_memsz < k) {
+ 			/* set_brk can never work. Avoid overflows. */
+ 			send_sig(SIGKILL, current, 0);
++			retval = -EINVAL;
+ 			goto out_free_dentry;
+ 		}
  
-+extern spinlock_t dq_data_lock;
-+
- /* Maximal numbers of writes for quota operation (insert/delete/update)
-  * (over VFS all formats) */
- #define DQUOT_INIT_ALLOC max(V1_INIT_ALLOC, V2_INIT_ALLOC)
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from alexey@openvz.org are
 
 origin.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
