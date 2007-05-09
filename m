@@ -1,106 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-introduce-workqueue_struct-singlethread.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:51 -0700
-Message-ID: <200705092151.l49LppgW002929@shell0.pdx.osdl.net>
+Subject: - fbdev-add-support-for-avr32.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:54:46 -0700
+Message-ID: <200705092154.l49LskHe003194@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57072 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759409AbXEIWJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:21 -0400
+	by vger.kernel.org with ESMTP id S1759106AbXEIWJZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mingo@elte.hu, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: introduce workqueue_struct->singlethread
+     fbdev: add support for AVR32
 has been removed from the -mm tree.  Its filename was
-     workqueue-introduce-workqueue_struct-singlethread.patch
+     fbdev-add-support-for-avr32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: workqueue: introduce workqueue_struct->singlethread
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: fbdev: add support for AVR32
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Add explicit workqueue_struct->singlethread flag.  This lessens .text a
-little, but most importantly this allows us to manipulate wq->list without
-changine the meaning of is_single_threaded().
+Provide framebuffer page protection flags and definitions of
+fb_readl/fb_writel for AVR32.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/video/fbmem.c |    4 ++++
+ include/linux/fb.h    |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~workqueue-introduce-workqueue_struct-singlethread kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-introduce-workqueue_struct-singlethread
-+++ a/kernel/workqueue.c
-@@ -58,8 +58,9 @@ struct cpu_workqueue_struct {
-  */
- struct workqueue_struct {
- 	struct cpu_workqueue_struct *cpu_wq;
-+	struct list_head list;
- 	const char *name;
--	struct list_head list; 	/* Empty if single thread */
-+	int singlethread;
- 	int freezeable;		/* Freeze threads during suspend */
- };
+diff -puN drivers/video/fbmem.c~fbdev-add-support-for-avr32 drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-add-support-for-avr32
++++ a/drivers/video/fbmem.c
+@@ -1236,6 +1236,10 @@ fb_mmap(struct file *file, struct vm_are
+ 	pgprot_val(vma->vm_page_prot) |= _PAGE_NO_CACHE;
+ #elif defined(__arm__) || defined(__sh__) || defined(__m32r__)
+ 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
++#elif defined(__avr32__)
++	vma->vm_page_prot = __pgprot((pgprot_val(vma->vm_page_prot)
++				      & ~_PAGE_CACHABLE)
++				     | (_PAGE_BUFFER | _PAGE_DIRTY));
+ #elif defined(__ia64__)
+ 	if (efi_range_is_wc(vma->vm_start, vma->vm_end - vma->vm_start))
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+diff -puN include/linux/fb.h~fbdev-add-support-for-avr32 include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-add-support-for-avr32
++++ a/include/linux/fb.h
+@@ -868,7 +868,7 @@ struct fb_info {
+ #define fb_writeq sbus_writeq
+ #define fb_memset sbus_memset_io
  
-@@ -76,7 +77,7 @@ static cpumask_t cpu_populated_map __rea
- /* If it's single threaded, it isn't in the list of workqueues. */
- static inline int is_single_threaded(struct workqueue_struct *wq)
- {
--	return list_empty(&wq->list);
-+	return wq->singlethread;
- }
+-#elif defined(__i386__) || defined(__alpha__) || defined(__x86_64__) || defined(__hppa__) || (defined(__sh__) && !defined(__SH5__)) || defined(__powerpc__)
++#elif defined(__i386__) || defined(__alpha__) || defined(__x86_64__) || defined(__hppa__) || (defined(__sh__) && !defined(__SH5__)) || defined(__powerpc__) || defined(__avr32__)
  
- static const cpumask_t *wq_cpu_map(struct workqueue_struct *wq)
-@@ -401,7 +402,7 @@ static void flush_cpu_workqueue(struct c
- void fastcall flush_workqueue(struct workqueue_struct *wq)
- {
- 	const cpumask_t *cpu_map = wq_cpu_map(wq);
--	int cpu
-+	int cpu;
- 
- 	might_sleep();
- 	for_each_cpu_mask(cpu, *cpu_map)
-@@ -694,10 +695,11 @@ struct workqueue_struct *__create_workqu
- 	}
- 
- 	wq->name = name;
-+	wq->singlethread = singlethread;
- 	wq->freezeable = freezeable;
-+	INIT_LIST_HEAD(&wq->list);
- 
- 	if (singlethread) {
--		INIT_LIST_HEAD(&wq->list);
- 		cwq = init_cpu_workqueue(wq, singlethread_cpu);
- 		err = create_workqueue_thread(cwq, singlethread_cpu);
- 	} else {
+ #define fb_readb __raw_readb
+ #define fb_readw __raw_readw
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
+git-avr32.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
