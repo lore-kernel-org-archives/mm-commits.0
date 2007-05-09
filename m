@@ -1,350 +1,440 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-kretprobes-simplifcations.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:54:49 -0700
-Message-ID: <200705090254.l492snJA009846@shell0.pdx.osdl.net>
+Subject: - kprobes-the-on-off-knob-thru-debugfs-updated.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:54:51 -0700
+Message-ID: <200705090254.l492spQq009854@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57605 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032298AbXEICzG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:06 -0400
+	by vger.kernel.org with ESMTP id S1032291AbXEICzE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: ananth@in.ibm.com, cornelia.huck@de.ibm.com, srinivasa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: kretprobes simplifications
+     Kprobes: The ON/OFF knob thru debugfs
 has been removed from the -mm tree.  Its filename was
-     kprobes-kretprobes-simplifcations.patch
+     kprobes-the-on-off-knob-thru-debugfs-updated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kprobes: kretprobes simplifications
-From: Christoph Hellwig <hch@lst.de>
+Subject: Kprobes: The ON/OFF knob thru debugfs
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
- - consolidate duplicate code in all arch_prepare_kretprobe instances
-   into common code
- - replace various odd helpers that use hlist_for_each_entry to get
-   the first elemenet of a list with either a hlist_for_each_entry_save
-   or an opencoded access to the first element in the caller
- - inline add_rp_inst into it's only remaining caller
- - use kretprobe_inst_table_head instead of opencoding it
+This patch provides a debugfs knob to turn kprobes on/off
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+o A new file /debug/kprobes/enabled indicates if kprobes is enabled or
+  not (default enabled)
+o Echoing 0 to this file will disarm all installed probes
+o Any new probe registration when disabled will register the probe but
+  not arm it. A message will be printed out in such a case.
+o When a value 1 is echoed to the file, all probes (including ones
+  registered in the intervening period) will be enabled
+o Unregistration will happen irrespective of whether probes are globally
+  enabled or not.
+o Update Documentation/kprobes.txt to reflect these changes. While there
+  also update the doc to make it current.
+
+We are also looking at providing sysrq key support to tie to the disabling
+feature provided by this patch.
+
+[akpm@linux-foundation.org: Use bool like a bool!]
+[akpm@linux-foundation.org: add printk facility levels]
+[cornelia.huck@de.ibm.com: Add the missing arch_trampoline_kprobe() for s390]
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Signed-off-by: Srinivasa DS <srinivasa@in.ibm.com>
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/kprobes.c    |   17 ++------
- arch/ia64/kernel/kprobes.c    |   18 ++-------
- arch/powerpc/kernel/kprobes.c |   17 ++------
- arch/s390/kernel/kprobes.c    |   18 ++-------
- arch/x86_64/kernel/kprobes.c  |   17 ++------
- include/linux/kprobes.h       |    5 +-
- kernel/kprobes.c              |   64 ++++++++++----------------------
- 7 files changed, 43 insertions(+), 113 deletions(-)
+ Documentation/kprobes.txt     |   34 ++++++
+ arch/i386/kernel/kprobes.c    |    5 +
+ arch/ia64/kernel/kprobes.c    |    9 +
+ arch/powerpc/kernel/kprobes.c |    8 +
+ arch/s390/kernel/kprobes.c    |    7 +
+ arch/x86_64/kernel/kprobes.c  |    8 +
+ include/linux/kprobes.h       |    5 +
+ kernel/kprobes.c              |  156 ++++++++++++++++++++++++++++++--
+ 8 files changed, 222 insertions(+), 10 deletions(-)
 
-diff -puN arch/i386/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/i386/kernel/kprobes.c
---- a/arch/i386/kernel/kprobes.c~kprobes-kretprobes-simplifcations
+diff -puN Documentation/kprobes.txt~kprobes-the-on-off-knob-thru-debugfs-updated Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~kprobes-the-on-off-knob-thru-debugfs-updated
++++ a/Documentation/kprobes.txt
+@@ -14,6 +14,7 @@ CONTENTS
+ 8. Kprobes Example
+ 9. Jprobes Example
+ 10. Kretprobes Example
++Appendix A: The kprobes debugfs interface
+ 
+ 1. Concepts: Kprobes, Jprobes, Return Probes
+ 
+@@ -349,9 +350,12 @@ for instrumentation and error reporting.
+ 
+ If the number of times a function is called does not match the number
+ of times it returns, registering a return probe on that function may
+-produce undesirable results.  We have the do_exit() case covered.
+-do_execve() and do_fork() are not an issue.  We're unaware of other
+-specific cases where this could be a problem.
++produce undesirable results. In such a case, a line:
++kretprobe BUG!: Processing kretprobe d000000000041aa8 @ c00000000004f48c
++gets printed. With this information, one will be able to correlate the
++exact instance of the kretprobe that caused the problem. We have the
++do_exit() case covered. do_execve() and do_fork() are not an issue.
++We're unaware of other specific cases where this could be a problem.
+ 
+ If, upon entry to or exit from a function, the CPU is running on
+ a stack other than that of the current task, registering a return
+@@ -614,3 +618,27 @@ http://www-106.ibm.com/developerworks/li
+ http://www.redhat.com/magazine/005mar05/features/kprobes/
+ http://www-users.cs.umn.edu/~boutcher/kprobes/
+ http://www.linuxsymposium.org/2006/linuxsymposium_procv2.pdf (pages 101-115)
++
++
++Appendix A: The kprobes debugfs interface
++
++With recent kernels (> 2.6.20) the list of registered kprobes is visible
++under the /debug/kprobes/ directory (assuming debugfs is mounted at /debug).
++
++/debug/kprobes/list: Lists all registered probes on the system
++
++c015d71a  k  vfs_read+0x0
++c011a316  j  do_fork+0x0
++c03dedc5  r  tcp_v4_rcv+0x0
++
++The first column provides the kernel address where the probe is inserted.
++The second column identifies the type of probe (k - kprobe, r - kretprobe
++and j - jprobe), while the third column specifies the symbol+offset of
++the probe. If the probed function belongs to a module, the module name
++is also specified.
++
++/debug/kprobes/enabled: Turn kprobes ON/OFF
++
++Provides a knob to globally turn registered kprobes ON or OFF. By default,
++all kprobes are enabled. By echoing "0" to this file, all registered probes
++will be disarmed, till such time a "1" is echoed to this file.
+diff -puN arch/i386/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated
 +++ a/arch/i386/kernel/kprobes.c
-@@ -226,24 +226,15 @@ static void __kprobes prepare_singlestep
+@@ -743,6 +743,11 @@ int __kprobes longjmp_break_handler(stru
+ 	return 0;
  }
  
- /* Called with kretprobe_lock held */
--void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
-+void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 				      struct pt_regs *regs)
++int __kprobes arch_trampoline_kprobe(struct kprobe *p)
++{
++	return 0;
++}
++
+ int __init arch_init_kprobes(void)
  {
- 	unsigned long *sara = (unsigned long *)&regs->esp;
- 
--	struct kretprobe_instance *ri;
-+	ri->ret_addr = (kprobe_opcode_t *) *sara;
- 
--	if ((ri = get_free_rp_inst(rp)) != NULL) {
--		ri->rp = rp;
--		ri->task = current;
--		ri->ret_addr = (kprobe_opcode_t *) *sara;
--
--		/* Replace the return addr with trampoline addr */
--		*sara = (unsigned long) &kretprobe_trampoline;
--		add_rp_inst(ri);
--	} else {
--		rp->nmissed++;
--	}
-+	/* Replace the return addr with trampoline addr */
-+	*sara = (unsigned long) &kretprobe_trampoline;
- }
- 
- /*
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-kretprobes-simplifcations
+ 	return 0;
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated
 +++ a/arch/ia64/kernel/kprobes.c
-@@ -465,23 +465,13 @@ int __kprobes trampoline_probe_handler(s
+@@ -1012,3 +1012,12 @@ int __init arch_init_kprobes(void)
+ 		(kprobe_opcode_t *)((struct fnptr *)kretprobe_trampoline)->ip;
+ 	return register_kprobe(&trampoline_p);
  }
- 
- /* Called with kretprobe_lock held */
--void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
-+void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 				      struct pt_regs *regs)
- {
--	struct kretprobe_instance *ri;
-+	ri->ret_addr = (kprobe_opcode_t *)regs->b0;
- 
--	if ((ri = get_free_rp_inst(rp)) != NULL) {
--		ri->rp = rp;
--		ri->task = current;
--		ri->ret_addr = (kprobe_opcode_t *)regs->b0;
--
--		/* Replace the return addr with trampoline addr */
--		regs->b0 = ((struct fnptr *)kretprobe_trampoline)->ip;
--
--		add_rp_inst(ri);
--	} else {
--		rp->nmissed++;
--	}
-+	/* Replace the return addr with trampoline addr */
-+	regs->b0 = ((struct fnptr *)kretprobe_trampoline)->ip;
- }
- 
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
-diff -puN arch/powerpc/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/powerpc/kernel/kprobes.c
---- a/arch/powerpc/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++
++int __kprobes arch_trampoline_kprobe(struct kprobe *p)
++{
++	if (p->addr ==
++		(kprobe_opcode_t *)((struct fnptr *)kretprobe_trampoline)->ip)
++		return 1;
++
++	return 0;
++}
+diff -puN arch/powerpc/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated
 +++ a/arch/powerpc/kernel/kprobes.c
-@@ -126,22 +126,13 @@ static void __kprobes set_current_kprobe
- }
- 
- /* Called with kretprobe_lock held */
--void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
-+void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 				      struct pt_regs *regs)
+@@ -550,3 +550,11 @@ int __init arch_init_kprobes(void)
  {
--	struct kretprobe_instance *ri;
-+	ri->ret_addr = (kprobe_opcode_t *)regs->link;
- 
--	if ((ri = get_free_rp_inst(rp)) != NULL) {
--		ri->rp = rp;
--		ri->task = current;
--		ri->ret_addr = (kprobe_opcode_t *)regs->link;
--
--		/* Replace the return addr with trampoline addr */
--		regs->link = (unsigned long)kretprobe_trampoline;
--		add_rp_inst(ri);
--	} else {
--		rp->nmissed++;
--	}
-+	/* Replace the return addr with trampoline addr */
-+	regs->link = (unsigned long)kretprobe_trampoline;
+ 	return register_kprobe(&trampoline_p);
  }
- 
- static int __kprobes kprobe_handler(struct pt_regs *regs)
-diff -puN arch/s390/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/s390/kernel/kprobes.c
---- a/arch/s390/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++
++int __kprobes arch_trampoline_kprobe(struct kprobe *p)
++{
++	if (p->addr == (kprobe_opcode_t *)&kretprobe_trampoline)
++		return 1;
++
++	return 0;
++}
+diff -puN arch/s390/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated arch/s390/kernel/kprobes.c
+--- a/arch/s390/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated
 +++ a/arch/s390/kernel/kprobes.c
-@@ -271,23 +271,13 @@ static void __kprobes set_current_kprobe
- }
- 
- /* Called with kretprobe_lock held */
--void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
-+void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 					struct pt_regs *regs)
+@@ -661,3 +661,10 @@ int __init arch_init_kprobes(void)
  {
--	struct kretprobe_instance *ri;
-+	ri->ret_addr = (kprobe_opcode_t *) regs->gprs[14];
- 
--	if ((ri = get_free_rp_inst(rp)) != NULL) {
--		ri->rp = rp;
--		ri->task = current;
--		ri->ret_addr = (kprobe_opcode_t *) regs->gprs[14];
--
--		/* Replace the return addr with trampoline addr */
--		regs->gprs[14] = (unsigned long)&kretprobe_trampoline;
--
--		add_rp_inst(ri);
--	} else {
--		rp->nmissed++;
--	}
-+	/* Replace the return addr with trampoline addr */
-+	regs->gprs[14] = (unsigned long)&kretprobe_trampoline;
+ 	return register_kprobe(&trampoline_p);
  }
- 
- static int __kprobes kprobe_handler(struct pt_regs *regs)
-diff -puN arch/x86_64/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/x86_64/kernel/kprobes.c
---- a/arch/x86_64/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++
++int __kprobes arch_trampoline_kprobe(struct kprobe *p)
++{
++	if (p->addr == (kprobe_opcode_t *) & kretprobe_trampoline)
++		return 1;
++	return 0;
++}
+diff -puN arch/x86_64/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated
 +++ a/arch/x86_64/kernel/kprobes.c
-@@ -266,23 +266,14 @@ static void __kprobes prepare_singlestep
- }
- 
- /* Called with kretprobe_lock held */
--void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
-+void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 				      struct pt_regs *regs)
+@@ -743,3 +743,11 @@ int __init arch_init_kprobes(void)
  {
- 	unsigned long *sara = (unsigned long *)regs->rsp;
--	struct kretprobe_instance *ri;
- 
--	if ((ri = get_free_rp_inst(rp)) != NULL) {
--		ri->rp = rp;
--		ri->task = current;
--		ri->ret_addr = (kprobe_opcode_t *) *sara;
--
--		/* Replace the return addr with trampoline addr */
--		*sara = (unsigned long) &kretprobe_trampoline;
--		add_rp_inst(ri);
--	} else {
--		rp->nmissed++;
--	}
-+	ri->ret_addr = (kprobe_opcode_t *) *sara;
-+	/* Replace the return addr with trampoline addr */
-+	*sara = (unsigned long) &kretprobe_trampoline;
+ 	return register_kprobe(&trampoline_p);
  }
- 
- int __kprobes kprobe_handler(struct pt_regs *regs)
-diff -puN include/linux/kprobes.h~kprobes-kretprobes-simplifcations include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-kretprobes-simplifcations
++
++int __kprobes arch_trampoline_kprobe(struct kprobe *p)
++{
++	if (p->addr == (kprobe_opcode_t *)&kretprobe_trampoline)
++		return 1;
++
++	return 0;
++}
+diff -puN include/linux/kprobes.h~kprobes-the-on-off-knob-thru-debugfs-updated include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-the-on-off-knob-thru-debugfs-updated
 +++ a/include/linux/kprobes.h
-@@ -123,7 +123,8 @@ DECLARE_PER_CPU(struct kprobe *, current
- DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
+@@ -125,11 +125,16 @@ DECLARE_PER_CPU(struct kprobe_ctlblk, kp
  #ifdef ARCH_SUPPORTS_KRETPROBES
--extern void arch_prepare_kretprobe(struct kretprobe *rp, struct pt_regs *regs);
-+extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
-+				   struct pt_regs *regs);
+ extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
+ 				   struct pt_regs *regs);
++extern int arch_trampoline_kprobe(struct kprobe *p);
  #else /* ARCH_SUPPORTS_KRETPROBES */
  static inline void arch_prepare_kretprobe(struct kretprobe *rp,
  					struct pt_regs *regs)
-@@ -209,8 +210,6 @@ void jprobe_return(void);
- int register_kretprobe(struct kretprobe *rp);
- void unregister_kretprobe(struct kretprobe *rp);
- 
--struct kretprobe_instance *get_free_rp_inst(struct kretprobe *rp);
--void add_rp_inst(struct kretprobe_instance *ri);
- void kprobe_flush_task(struct task_struct *tk);
- void recycle_rp_inst(struct kretprobe_instance *ri, struct hlist_head *head);
- #else /* CONFIG_KPROBES */
-diff -puN kernel/kprobes.c~kprobes-kretprobes-simplifcations kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-kretprobes-simplifcations
-+++ a/kernel/kprobes.c
-@@ -358,46 +358,6 @@ void __kprobes kprobes_inc_nmissed_count
+ {
  }
- 
- /* Called with kretprobe_lock held */
--struct kretprobe_instance __kprobes *get_free_rp_inst(struct kretprobe *rp)
--{
--	struct hlist_node *node;
--	struct kretprobe_instance *ri;
--	hlist_for_each_entry(ri, node, &rp->free_instances, uflist)
--		return ri;
--	return NULL;
--}
--
--/* Called with kretprobe_lock held */
--static struct kretprobe_instance __kprobes *get_used_rp_inst(struct kretprobe
--							      *rp)
--{
--	struct hlist_node *node;
--	struct kretprobe_instance *ri;
--	hlist_for_each_entry(ri, node, &rp->used_instances, uflist)
--		return ri;
--	return NULL;
--}
--
--/* Called with kretprobe_lock held */
--void __kprobes add_rp_inst(struct kretprobe_instance *ri)
--{
--	/*
--	 * Remove rp inst off the free list -
--	 * Add it back when probed function returns
--	 */
--	hlist_del(&ri->uflist);
--
--	/* Add rp inst onto table */
--	INIT_HLIST_NODE(&ri->hlist);
--	hlist_add_head(&ri->hlist,
--			&kretprobe_inst_table[hash_ptr(ri->task, KPROBE_HASH_BITS)]);
--
--	/* Also add this rp inst to the used list. */
--	INIT_HLIST_NODE(&ri->uflist);
--	hlist_add_head(&ri->uflist, &ri->rp->used_instances);
--}
--
--/* Called with kretprobe_lock held */
- void __kprobes recycle_rp_inst(struct kretprobe_instance *ri,
- 				struct hlist_head *head)
- {
-@@ -450,7 +410,9 @@ void __kprobes kprobe_flush_task(struct 
- static inline void free_rp_inst(struct kretprobe *rp)
- {
- 	struct kretprobe_instance *ri;
--	while ((ri = get_free_rp_inst(rp)) != NULL) {
-+	struct hlist_node *pos, *next;
++static inline int arch_trampoline_kprobe(struct kprobe *p)
++{
++	return 0;
++}
+ #endif /* ARCH_SUPPORTS_KRETPROBES */
+ /*
+  * Function-return probe -
+diff -puN kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated
++++ a/kernel/kprobes.c
+@@ -43,9 +43,11 @@
+ #include <linux/seq_file.h>
+ #include <linux/debugfs.h>
+ #include <linux/kdebug.h>
 +
-+	hlist_for_each_entry_safe(ri, pos, next, &rp->free_instances, uflist) {
- 		hlist_del(&ri->uflist);
- 		kfree(ri);
+ #include <asm-generic/sections.h>
+ #include <asm/cacheflush.h>
+ #include <asm/errno.h>
++#include <asm/uaccess.h>
+ 
+ #define KPROBE_HASH_BITS 6
+ #define KPROBE_TABLE_SIZE (1 << KPROBE_HASH_BITS)
+@@ -64,6 +66,9 @@ static struct hlist_head kprobe_table[KP
+ static struct hlist_head kretprobe_inst_table[KPROBE_TABLE_SIZE];
+ static atomic_t kprobe_count;
+ 
++/* NOTE: change this value only with kprobe_mutex held */
++static bool kprobe_enabled;
++
+ DEFINE_MUTEX(kprobe_mutex);		/* Protects kprobe_table */
+ DEFINE_SPINLOCK(kretprobe_lock);	/* Protects kretprobe_inst_table */
+ static DEFINE_PER_CPU(struct kprobe *, kprobe_instance) = NULL;
+@@ -564,12 +569,13 @@ static int __kprobes __register_kprobe(s
+ 	hlist_add_head_rcu(&p->hlist,
+ 		       &kprobe_table[hash_ptr(p->addr, KPROBE_HASH_BITS)]);
+ 
+-	if (atomic_add_return(1, &kprobe_count) == \
++	if (kprobe_enabled) {
++		if (atomic_add_return(1, &kprobe_count) == \
+ 				(ARCH_INACTIVE_KPROBE_COUNT + 1))
+-		register_page_fault_notifier(&kprobe_page_fault_nb);
+-
+-	arch_arm_kprobe(p);
++			register_page_fault_notifier(&kprobe_page_fault_nb);
+ 
++		arch_arm_kprobe(p);
++	}
+ out:
+ 	mutex_unlock(&kprobe_mutex);
+ 
+@@ -607,8 +613,13 @@ valid_p:
+ 	if (old_p == p ||
+ 	    (old_p->pre_handler == aggr_pre_handler &&
+ 	     p->list.next == &old_p->list && p->list.prev == &old_p->list)) {
+-		/* Only probe on the hash list */
+-		arch_disarm_kprobe(p);
++		/*
++		 * Only probe on the hash list. Disarm only if kprobes are
++		 * enabled - otherwise, the breakpoint would already have
++		 * been removed. We save on flushing icache.
++		 */
++		if (kprobe_enabled)
++			arch_disarm_kprobe(p);
+ 		hlist_del_rcu(&old_p->hlist);
+ 		cleanup_p = 1;
+ 	} else {
+@@ -797,6 +808,9 @@ static int __init init_kprobes(void)
  	}
-@@ -732,7 +694,21 @@ static int __kprobes pre_handler_kretpro
+ 	atomic_set(&kprobe_count, 0);
  
- 	/*TODO: consider to only swap the RA after the last pre_handler fired */
- 	spin_lock_irqsave(&kretprobe_lock, flags);
--	arch_prepare_kretprobe(rp, regs);
-+	if (!hlist_empty(&rp->free_instances)) {
-+		struct kretprobe_instance *ri;
++	/* By default, kprobes are enabled */
++	kprobe_enabled = true;
 +
-+		ri = hlist_entry(rp->free_instances.first,
-+				 struct kretprobe_instance, uflist);
-+		ri->rp = rp;
-+		ri->task = current;
-+		arch_prepare_kretprobe(ri, regs);
+ 	err = arch_init_kprobes();
+ 	if (!err)
+ 		err = register_die_notifier(&kprobe_exceptions_nb);
+@@ -806,7 +820,7 @@ static int __init init_kprobes(void)
+ 
+ #ifdef CONFIG_DEBUG_FS
+ static void __kprobes report_probe(struct seq_file *pi, struct kprobe *p,
+-               const char *sym, int offset,char *modname)
++		const char *sym, int offset,char *modname)
+ {
+ 	char *kprobe_type;
+ 
+@@ -885,9 +899,130 @@ static struct file_operations debugfs_kp
+ 	.release        = seq_release,
+ };
+ 
++static void __kprobes enable_all_kprobes(void)
++{
++	struct hlist_head *head;
++	struct hlist_node *node;
++	struct kprobe *p;
++	unsigned int i;
 +
-+		/* XXX(hch): why is there no hlist_move_head? */
-+		hlist_del(&ri->uflist);
-+		hlist_add_head(&ri->uflist, &ri->rp->used_instances);
-+		hlist_add_head(&ri->hlist, kretprobe_inst_table_head(ri->task));
-+	} else
-+		rp->nmissed++;
- 	spin_unlock_irqrestore(&kretprobe_lock, flags);
++	mutex_lock(&kprobe_mutex);
++
++	/* If kprobes are already enabled, just return */
++	if (kprobe_enabled)
++		goto already_enabled;
++
++	/*
++	 * Re-register the page fault notifier only if there are any
++	 * active probes at the time of enabling kprobes globally
++	 */
++	if (atomic_read(&kprobe_count) > ARCH_INACTIVE_KPROBE_COUNT)
++		register_page_fault_notifier(&kprobe_page_fault_nb);
++
++	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
++		head = &kprobe_table[i];
++		hlist_for_each_entry_rcu(p, node, head, hlist)
++			arch_arm_kprobe(p);
++	}
++
++	kprobe_enabled = true;
++	printk(KERN_INFO "Kprobes globally enabled\n");
++
++already_enabled:
++	mutex_unlock(&kprobe_mutex);
++	return;
++}
++
++static void __kprobes disable_all_kprobes(void)
++{
++	struct hlist_head *head;
++	struct hlist_node *node;
++	struct kprobe *p;
++	unsigned int i;
++
++	mutex_lock(&kprobe_mutex);
++
++	/* If kprobes are already disabled, just return */
++	if (!kprobe_enabled)
++		goto already_disabled;
++
++	kprobe_enabled = false;
++	printk(KERN_INFO "Kprobes globally disabled\n");
++	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
++		head = &kprobe_table[i];
++		hlist_for_each_entry_rcu(p, node, head, hlist) {
++			if (!arch_trampoline_kprobe(p))
++				arch_disarm_kprobe(p);
++		}
++	}
++
++	mutex_unlock(&kprobe_mutex);
++	/* Allow all currently running kprobes to complete */
++	synchronize_sched();
++
++	mutex_lock(&kprobe_mutex);
++	/* Unconditionally unregister the page_fault notifier */
++	unregister_page_fault_notifier(&kprobe_page_fault_nb);
++
++already_disabled:
++	mutex_unlock(&kprobe_mutex);
++	return;
++}
++
++/*
++ * XXX: The debugfs bool file interface doesn't allow for callbacks
++ * when the bool state is switched. We can reuse that facility when
++ * available
++ */
++static ssize_t read_enabled_file_bool(struct file *file,
++	       char __user *user_buf, size_t count, loff_t *ppos)
++{
++	char buf[3];
++
++	if (kprobe_enabled)
++		buf[0] = '1';
++	else
++		buf[0] = '0';
++	buf[1] = '\n';
++	buf[2] = 0x00;
++	return simple_read_from_buffer(user_buf, count, ppos, buf, 2);
++}
++
++static ssize_t write_enabled_file_bool(struct file *file,
++	       const char __user *user_buf, size_t count, loff_t *ppos)
++{
++	char buf[32];
++	int buf_size;
++
++	buf_size = min(count, (sizeof(buf)-1));
++	if (copy_from_user(buf, user_buf, buf_size))
++		return -EFAULT;
++
++	switch (buf[0]) {
++	case 'y':
++	case 'Y':
++	case '1':
++		enable_all_kprobes();
++		break;
++	case 'n':
++	case 'N':
++	case '0':
++		disable_all_kprobes();
++		break;
++	}
++
++	return count;
++}
++
++static struct file_operations fops_kp = {
++	.read =         read_enabled_file_bool,
++	.write =        write_enabled_file_bool,
++};
++
+ static int __kprobes debugfs_kprobe_init(void)
+ {
+ 	struct dentry *dir, *file;
++	unsigned int value = 1;
+ 
+ 	dir = debugfs_create_dir("kprobes", NULL);
+ 	if (!dir)
+@@ -900,6 +1035,13 @@ static int __kprobes debugfs_kprobe_init
+ 		return -ENOMEM;
+ 	}
+ 
++	file = debugfs_create_file("enabled", 0600, dir,
++					&value, &fops_kp);
++	if (!file) {
++		debugfs_remove(dir);
++		return -ENOMEM;
++	}
++
  	return 0;
  }
-@@ -795,11 +771,13 @@ void __kprobes unregister_kretprobe(stru
- {
- 	unsigned long flags;
- 	struct kretprobe_instance *ri;
-+	struct hlist_node *pos, *next;
  
- 	unregister_kprobe(&rp->kp);
-+
- 	/* No race here */
- 	spin_lock_irqsave(&kretprobe_lock, flags);
--	while ((ri = get_used_rp_inst(rp)) != NULL) {
-+	hlist_for_each_entry_safe(ri, pos, next, &rp->used_instances, uflist) {
- 		ri->rp = NULL;
- 		hlist_del(&ri->uflist);
- 	}
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from ananth@in.ibm.com are
 
 origin.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
-git-scsi-misc.patch
-knfsd-trivial-makefile-cleanup.patch
-aio-is-unlikely.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
