@@ -1,135 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - add-touch_all_softlockup_watchdogs.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:48:16 -0700
-Message-ID: <200705090248.l492mGjf009084@shell0.pdx.osdl.net>
+Subject: - kdump-kexec-calculate-note-size-at-compile-time.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:48:29 -0700
+Message-ID: <200705090248.l492mTR2009116@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49682 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934777AbXEICsa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:48:30 -0400
+	by vger.kernel.org with ESMTP id S934575AbXEICsn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:48:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, clalance@redhat.com, jeremy@xensource.com, mingo@elte.hu, prarit@redhat.com, ricklind@us.ibm.com, mm-commits@vger.kernel.org
+To: horms@verge.net.au, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add touch_all_softlockup_watchdogs()
+     kdump/kexec: calculate note size at compile time
 has been removed from the -mm tree.  Its filename was
-     add-touch_all_softlockup_watchdogs.patch
+     kdump-kexec-calculate-note-size-at-compile-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add touch_all_softlockup_watchdogs()
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: kdump/kexec: calculate note size at compile time
+From: Simon Horman <horms@verge.net.au>
 
-Add touch_all_softlockup_watchdogs() to allow the softlockup watchdog
-timers on all cpus to be updated.  This is used to prevent sysrq-t from
-generating a spurious watchdog message when generating lots of output.
+Currently the size of the per-cpu region reserved to save crash notes is
+set by the per-architecture value MAX_NOTE_BYTES.  Which in turn is
+currently set to 1024 on all supported architectures.
 
-Softlockup watchdogs use sched_clock() as its timebase, which is inherently
-per-cpu (at least, when it is measuring unstolen time).  Because of this,
-it isn't possible for one CPU to directly update the other CPU's timers,
-but it is possible to tell the other CPUs to do update themselves
-appropriately.
+While testing ia64 I recently discovered that this value is in fact too
+small.  The particular setup I was using actually needs 1172 bytes.  This
+lead to very tedious failure mode where the tail of one elf note would
+overwrite the head of another if they ended up being alocated sequentially
+by kmalloc, which was often the case.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Acked-by: Chris Lalancette <clalance@redhat.com>
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+It seems to me that a far better approach is to caclculate the size that
+the area needs to be.  This patch does just that.
+
+If a simpler stop-gap patch for ia64 to be squeezed into 2.6.21(.X) is
+needed then this should be as easy as making MAX_NOTE_BYTES larger in
+arch/asm-ia64/kexec.h.  Perhaps 2048 would be a good choice.  However, I
+think that the approach in this patch is a much more robust idea.
+
+Acked-by:  Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ++++
- kernel/sched.c        |    2 ++
- kernel/softlockup.c   |   15 +++++++++++++--
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/crash.c    |    2 +-
+ include/asm-arm/kexec.h     |    2 --
+ include/asm-i386/kexec.h    |    2 --
+ include/asm-ia64/kexec.h    |    2 --
+ include/asm-mips/kexec.h    |    2 --
+ include/asm-powerpc/kexec.h |    2 --
+ include/asm-s390/kexec.h    |    2 --
+ include/asm-sh/kexec.h      |    2 --
+ include/asm-x86_64/kexec.h  |    2 --
+ include/linux/kexec.h       |   17 ++++++++++++++++-
+ kernel/kexec.c              |    4 ++--
+ 11 files changed, 19 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/sched.h~add-touch_all_softlockup_watchdogs include/linux/sched.h
---- a/include/linux/sched.h~add-touch_all_softlockup_watchdogs
-+++ a/include/linux/sched.h
-@@ -226,6 +226,7 @@ extern void scheduler_tick(void);
- extern void softlockup_tick(void);
- extern void spawn_softlockup_task(void);
- extern void touch_softlockup_watchdog(void);
-+extern void touch_all_softlockup_watchdogs(void);
- #else
- static inline void softlockup_tick(void)
- {
-@@ -236,6 +237,9 @@ static inline void spawn_softlockup_task
- static inline void touch_softlockup_watchdog(void)
- {
+diff -puN arch/ia64/kernel/crash.c~kdump-kexec-calculate-note-size-at-compile-time arch/ia64/kernel/crash.c
+--- a/arch/ia64/kernel/crash.c~kdump-kexec-calculate-note-size-at-compile-time
++++ a/arch/ia64/kernel/crash.c
+@@ -74,7 +74,7 @@ crash_save_this_cpu(void)
+ 	buf = (u64 *) per_cpu_ptr(crash_notes, cpu);
+ 	if (!buf)
+ 		return;
+-	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, prstatus,
++	buf = append_elf_note(buf, KEXEC_CORE_NOTE_NAME, NT_PRSTATUS, prstatus,
+ 			sizeof(*prstatus));
+ 	final_note(buf);
  }
-+static inline void touch_all_softlockup_watchdogs(void)
-+{
-+}
+diff -puN include/asm-arm/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-arm/kexec.h
+--- a/include/asm-arm/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-arm/kexec.h
+@@ -16,8 +16,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ struct kimage;
+ /* Provide a dummy definition to avoid build failures. */
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+diff -puN include/asm-i386/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-i386/kexec.h
+--- a/include/asm-i386/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-i386/kexec.h
+@@ -45,8 +45,6 @@
+ /* We can also handle crash dumps from 64 bit kernel. */
+ #define vmcore_elf_check_arch_cross(x) ((x)->e_machine == EM_X86_64)
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /* CPU does not save ss and esp on stack if execution is already
+  * running in kernel mode at the time of NMI occurrence. This code
+  * fixes it.
+diff -puN include/asm-ia64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-ia64/kexec.h
+--- a/include/asm-ia64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-ia64/kexec.h
+@@ -14,8 +14,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_IA_64
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ #define kexec_flush_icache_page(page) do { \
+                 unsigned long page_addr = (unsigned long)page_address(page); \
+                 flush_icache_range(page_addr, page_addr + PAGE_SIZE); \
+diff -puN include/asm-mips/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-mips/kexec.h
+--- a/include/asm-mips/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-mips/kexec.h
+@@ -21,8 +21,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_MIPS
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 				    struct pt_regs *oldregs)
+ {
+diff -puN include/asm-powerpc/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-powerpc/kexec.h
+--- a/include/asm-powerpc/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-powerpc/kexec.h
+@@ -108,8 +108,6 @@ static inline void crash_setup_regs(stru
+ 					struct pt_regs *oldregs) { }
+ #endif /* !__powerpc64 __ */
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ extern void kexec_smp_wait(void);	/* get and clear naca physid, wait for
+ 					  master to copy new code to 0 */
+ extern int crashing_cpu;
+diff -puN include/asm-s390/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-s390/kexec.h
+--- a/include/asm-s390/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-s390/kexec.h
+@@ -34,8 +34,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_S390
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /* Provide a dummy definition to avoid build failures. */
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 					struct pt_regs *oldregs) { }
+diff -puN include/asm-sh/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-sh/kexec.h
+--- a/include/asm-sh/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-sh/kexec.h
+@@ -26,8 +26,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_SH
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 				    struct pt_regs *oldregs)
+ {
+diff -puN include/asm-x86_64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-x86_64/kexec.h
+--- a/include/asm-x86_64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-x86_64/kexec.h
+@@ -48,8 +48,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_X86_64
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /*
+  * Saving the registers of the cpu on which panic occured in
+  * crash_kexec to save a valid sp. The registers of other cpus
+diff -puN include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/linux/kexec.h
+@@ -7,6 +7,8 @@
+ #include <linux/linkage.h>
+ #include <linux/compat.h>
+ #include <linux/ioport.h>
++#include <linux/elfcore.h>
++#include <linux/elf.h>
+ #include <asm/kexec.h>
+ 
+ /* Verify architecture specific macros are defined */
+@@ -31,6 +33,19 @@
+ #error KEXEC_ARCH not defined
  #endif
  
- 
-diff -puN kernel/sched.c~add-touch_all_softlockup_watchdogs kernel/sched.c
---- a/kernel/sched.c~add-touch_all_softlockup_watchdogs
-+++ a/kernel/sched.c
-@@ -4750,6 +4750,8 @@ void show_state_filter(unsigned long sta
- 			show_task(p);
- 	} while_each_thread(g, p);
- 
-+	touch_all_softlockup_watchdogs();
-+
- 	read_unlock(&tasklist_lock);
- 	/*
- 	 * Only show locks if all tasks are dumped:
-diff -puN kernel/softlockup.c~add-touch_all_softlockup_watchdogs kernel/softlockup.c
---- a/kernel/softlockup.c~add-touch_all_softlockup_watchdogs
-+++ a/kernel/softlockup.c
-@@ -50,6 +50,16 @@ void touch_softlockup_watchdog(void)
- }
- EXPORT_SYMBOL(touch_softlockup_watchdog);
- 
-+void touch_all_softlockup_watchdogs(void)
-+{
-+	int cpu;
-+
-+	/* Cause each CPU to re-update its timestamp rather than complain */
-+	for_each_online_cpu(cpu)
-+		per_cpu(touch_timestamp, cpu) = 0;
-+}
-+EXPORT_SYMBOL(touch_all_softlockup_watchdogs);
++#define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
++#define KEXEC_CORE_NOTE_NAME "CORE"
++#define KEXEC_CORE_NOTE_NAME_BYTES ALIGN(sizeof(KEXEC_CORE_NOTE_NAME), 4)
++#define KEXEC_CORE_NOTE_DESC_BYTES ALIGN(sizeof(struct elf_prstatus), 4)
++/*
++ * The per-cpu notes area is a list of notes terminated by a "NULL"
++ * note header.  For kdump, the code in vmcore.c runs in the context
++ * of the second kernel to combine them into one note.
++ */
++#define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) +		\
++			    KEXEC_CORE_NOTE_NAME_BYTES +		\
++			    KEXEC_CORE_NOTE_DESC_BYTES )
 +
  /*
-  * This callback runs from the timer interrupt, and checks
-  * whether the watchdog thread has hung or not:
-@@ -61,9 +71,10 @@ void softlockup_tick(void)
- 	unsigned long print_timestamp;
- 	unsigned long now;
+  * This structure is used to hold the arguments that are used when loading
+  * kernel binaries.
+@@ -136,7 +151,7 @@ extern struct kimage *kexec_crash_image;
+ /* Location of a reserved region to hold the crash kernel.
+  */
+ extern struct resource crashk_res;
+-typedef u32 note_buf_t[MAX_NOTE_BYTES/4];
++typedef u32 note_buf_t[KEXEC_NOTE_BYTES/4];
+ extern note_buf_t *crash_notes;
  
--	/* watchdog task hasn't updated timestamp yet */
--	if (touch_timestamp == 0)
-+	if (touch_timestamp == 0) {
-+		touch_softlockup_watchdog();
- 		return;
-+	}
  
- 	print_timestamp = per_cpu(print_timestamp, this_cpu);
+diff -puN kernel/kexec.c~kdump-kexec-calculate-note-size-at-compile-time kernel/kexec.c
+--- a/kernel/kexec.c~kdump-kexec-calculate-note-size-at-compile-time
++++ a/kernel/kexec.c
+@@ -1118,8 +1118,8 @@ void crash_save_cpu(struct pt_regs *regs
+ 	memset(&prstatus, 0, sizeof(prstatus));
+ 	prstatus.pr_pid = current->pid;
+ 	elf_core_copy_regs(&prstatus.pr_reg, regs);
+-	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, &prstatus,
+-				sizeof(prstatus));
++	buf = append_elf_note(buf, KEXEC_CORE_NOTE_NAME, NT_PRSTATUS,
++		      	      &prstatus, sizeof(prstatus));
+ 	final_note(buf);
+ }
  
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from horms@verge.net.au are
 
 origin.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+git-ia64.patch
+use-menuconfig-objects-ipvs.patch
