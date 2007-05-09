@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-dont-save-interrupts-in-run_workqueue.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:45 -0700
-Message-ID: <200705092151.l49Lpjse002918@shell0.pdx.osdl.net>
+Subject: - workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:47 -0700
+Message-ID: <200705092151.l49LplB8002921@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38284 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758609AbXEIVwH (ORCPT
+	by vger.kernel.org with ESMTP id S1758761AbXEIVwH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,85 +14,49 @@ To: oleg@tv-sign.ru, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: don't save interrupts in run_workqueue()
+     workqueue: make cancel_rearming_delayed_workqueue() work on idle dwork
 has been removed from the -mm tree.  Its filename was
-     workqueue-dont-save-interrupts-in-run_workqueue.patch
+     workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: workqueue: don't save interrupts in run_workqueue()
+Subject: workqueue: make cancel_rearming_delayed_workqueue() work on idle dwork
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-work->func() may sleep, it's a bug to call run_workqueue() with irqs disabled.
+cancel_rearming_delayed_workqueue(dwork) will hang forever if dwork was not
+scheduled, because in that case cancel_delayed_work()->del_timer_sync() never
+returns true.
+
+I don't know if there are any callers which may have problems, but this is not
+so convenient, and the fix is very simple.
+
+Q: looks like we don't need "struct workqueue_struct *wq" parameter.  If the
+timer was aborted successfully, get_wq_data() == wq.  Is it worth to add the
+new function?
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ kernel/workqueue.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-dont-save-interrupts-in-run_workqueue
+diff -puN kernel/workqueue.c~workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork
 +++ a/kernel/workqueue.c
-@@ -227,13 +227,7 @@ EXPORT_SYMBOL_GPL(queue_delayed_work_on)
- 
- static void run_workqueue(struct cpu_workqueue_struct *cwq)
+@@ -569,6 +569,10 @@ EXPORT_SYMBOL(flush_work_keventd);
+ void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
+ 				       struct delayed_work *dwork)
  {
--	unsigned long flags;
--
--	/*
--	 * Keep taking off work from the queue until
--	 * done.
--	 */
--	spin_lock_irqsave(&cwq->lock, flags);
-+	spin_lock_irq(&cwq->lock);
- 	cwq->run_depth++;
- 	if (cwq->run_depth > 3) {
- 		/* morton gets to eat his hat */
-@@ -248,7 +242,7 @@ static void run_workqueue(struct cpu_wor
- 
- 		cwq->current_work = work;
- 		list_del_init(cwq->worklist.next);
--		spin_unlock_irqrestore(&cwq->lock, flags);
-+		spin_unlock_irq(&cwq->lock);
- 
- 		BUG_ON(get_wq_data(work) != cwq);
- 		if (!test_bit(WORK_STRUCT_NOAUTOREL, work_data_bits(work)))
-@@ -266,11 +260,11 @@ static void run_workqueue(struct cpu_wor
- 			dump_stack();
- 		}
- 
--		spin_lock_irqsave(&cwq->lock, flags);
-+		spin_lock_irq(&cwq->lock);
- 		cwq->current_work = NULL;
- 	}
- 	cwq->run_depth--;
--	spin_unlock_irqrestore(&cwq->lock, flags);
-+	spin_unlock_irq(&cwq->lock);
++	/* Was it ever queued ? */
++	if (!get_wq_data(&dwork->work))
++		return;
++
+ 	while (!cancel_delayed_work(dwork))
+ 		flush_workqueue(wq);
  }
- 
- /*
-@@ -399,6 +393,8 @@ static void flush_cpu_workqueue(struct c
-  */
- void fastcall flush_workqueue(struct workqueue_struct *wq)
- {
-+	might_sleep();
-+
- 	if (is_single_threaded(wq))
- 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
- 	else {
-@@ -445,6 +441,8 @@ void flush_work(struct workqueue_struct 
- {
- 	struct cpu_workqueue_struct *cwq;
- 
-+	might_sleep();
-+
- 	cwq = get_wq_data(work);
- 	/* Was it ever queued ? */
- 	if (!cwq)
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
