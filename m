@@ -1,176 +1,329 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-codingstyle-cleanups.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:54:47 -0700
-Message-ID: <200705090254.l492slqS009841@shell0.pdx.osdl.net>
+Subject: - kprobes-kretprobes-simplifcations.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:54:49 -0700
+Message-ID: <200705090254.l492snJA009846@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50779 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032289AbXEICzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:03 -0400
+	by vger.kernel.org with ESMTP id S1032298AbXEICzG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: codingstyle cleanups
+     kprobes: kretprobes simplifications
 has been removed from the -mm tree.  Its filename was
-     kprobes-codingstyle-cleanups.patch
+     kprobes-kretprobes-simplifcations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kprobes: codingstyle cleanups
+Subject: kprobes: kretprobes simplifications
 From: Christoph Hellwig <hch@lst.de>
 
-Remove superflous braces and fix indentation aswell as comments.
+ - consolidate duplicate code in all arch_prepare_kretprobe instances
+   into common code
+ - replace various odd helpers that use hlist_for_each_entry to get
+   the first elemenet of a list with either a hlist_for_each_entry_save
+   or an opencoded access to the first element in the caller
+ - inline add_rp_inst into it's only remaining caller
+ - use kretprobe_inst_table_head instead of opencoding it
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   55 ++++++++++++++++++++++++---------------------
- 1 file changed, 30 insertions(+), 25 deletions(-)
+ arch/i386/kernel/kprobes.c    |   17 ++------
+ arch/ia64/kernel/kprobes.c    |   18 ++-------
+ arch/powerpc/kernel/kprobes.c |   17 ++------
+ arch/s390/kernel/kprobes.c    |   18 ++-------
+ arch/x86_64/kernel/kprobes.c  |   17 ++------
+ include/linux/kprobes.h       |    5 +-
+ kernel/kprobes.c              |   64 ++++++++++----------------------
+ 7 files changed, 43 insertions(+), 113 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-codingstyle-cleanups kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-codingstyle-cleanups
-+++ a/kernel/kprobes.c
-@@ -133,7 +133,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	struct kprobe_insn_page *kip;
- 	struct hlist_node *pos;
- 
--      retry:
-+ retry:
- 	hlist_for_each_entry(kip, pos, &kprobe_insn_pages, hlist) {
- 		if (kip->nused < INSNS_PER_PAGE) {
- 			int i;
-@@ -155,9 +155,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	}
- 	/* All out of space.  Need to allocate a new page. Use slot 0. */
- 	kip = kmalloc(sizeof(struct kprobe_insn_page), GFP_KERNEL);
--	if (!kip) {
-+	if (!kip)
- 		return NULL;
--	}
- 
- 	/*
- 	 * Use module_alloc so this page is within +/- 2GB of where the
-@@ -246,9 +245,9 @@ void __kprobes free_insn_slot(kprobe_opc
- 			break;
- 		}
- 	}
--	if (dirty && (++kprobe_garbage_slots > INSNS_PER_PAGE)) {
-+
-+	if (dirty && ++kprobe_garbage_slots > INSNS_PER_PAGE)
- 		collect_garbage_slots();
--	}
- }
- #endif
- 
-@@ -314,7 +313,6 @@ static void __kprobes aggr_post_handler(
- 			reset_kprobe_instance();
- 		}
- 	}
--	return;
+diff -puN arch/i386/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++++ a/arch/i386/kernel/kprobes.c
+@@ -226,24 +226,15 @@ static void __kprobes prepare_singlestep
  }
  
- static int __kprobes aggr_fault_handler(struct kprobe *p, struct pt_regs *regs,
-@@ -533,8 +531,8 @@ static int __kprobes register_aggr_kprob
- 
- static int __kprobes in_kprobes_functions(unsigned long addr)
+ /* Called with kretprobe_lock held */
+-void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
++void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
+ 				      struct pt_regs *regs)
  {
--	if (addr >= (unsigned long)__kprobes_text_start
--		&& addr < (unsigned long)__kprobes_text_end)
-+	if (addr >= (unsigned long)__kprobes_text_start &&
-+	    addr < (unsigned long)__kprobes_text_end)
- 		return -EINVAL;
+ 	unsigned long *sara = (unsigned long *)&regs->esp;
+ 
+-	struct kretprobe_instance *ri;
++	ri->ret_addr = (kprobe_opcode_t *) *sara;
+ 
+-	if ((ri = get_free_rp_inst(rp)) != NULL) {
+-		ri->rp = rp;
+-		ri->task = current;
+-		ri->ret_addr = (kprobe_opcode_t *) *sara;
+-
+-		/* Replace the return addr with trampoline addr */
+-		*sara = (unsigned long) &kretprobe_trampoline;
+-		add_rp_inst(ri);
+-	} else {
+-		rp->nmissed++;
+-	}
++	/* Replace the return addr with trampoline addr */
++	*sara = (unsigned long) &kretprobe_trampoline;
+ }
+ 
+ /*
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++++ a/arch/ia64/kernel/kprobes.c
+@@ -465,23 +465,13 @@ int __kprobes trampoline_probe_handler(s
+ }
+ 
+ /* Called with kretprobe_lock held */
+-void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
++void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
+ 				      struct pt_regs *regs)
+ {
+-	struct kretprobe_instance *ri;
++	ri->ret_addr = (kprobe_opcode_t *)regs->b0;
+ 
+-	if ((ri = get_free_rp_inst(rp)) != NULL) {
+-		ri->rp = rp;
+-		ri->task = current;
+-		ri->ret_addr = (kprobe_opcode_t *)regs->b0;
+-
+-		/* Replace the return addr with trampoline addr */
+-		regs->b0 = ((struct fnptr *)kretprobe_trampoline)->ip;
+-
+-		add_rp_inst(ri);
+-	} else {
+-		rp->nmissed++;
+-	}
++	/* Replace the return addr with trampoline addr */
++	regs->b0 = ((struct fnptr *)kretprobe_trampoline)->ip;
+ }
+ 
+ int __kprobes arch_prepare_kprobe(struct kprobe *p)
+diff -puN arch/powerpc/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -126,22 +126,13 @@ static void __kprobes set_current_kprobe
+ }
+ 
+ /* Called with kretprobe_lock held */
+-void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
++void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
+ 				      struct pt_regs *regs)
+ {
+-	struct kretprobe_instance *ri;
++	ri->ret_addr = (kprobe_opcode_t *)regs->link;
+ 
+-	if ((ri = get_free_rp_inst(rp)) != NULL) {
+-		ri->rp = rp;
+-		ri->task = current;
+-		ri->ret_addr = (kprobe_opcode_t *)regs->link;
+-
+-		/* Replace the return addr with trampoline addr */
+-		regs->link = (unsigned long)kretprobe_trampoline;
+-		add_rp_inst(ri);
+-	} else {
+-		rp->nmissed++;
+-	}
++	/* Replace the return addr with trampoline addr */
++	regs->link = (unsigned long)kretprobe_trampoline;
+ }
+ 
+ static int __kprobes kprobe_handler(struct pt_regs *regs)
+diff -puN arch/s390/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/s390/kernel/kprobes.c
+--- a/arch/s390/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++++ a/arch/s390/kernel/kprobes.c
+@@ -271,23 +271,13 @@ static void __kprobes set_current_kprobe
+ }
+ 
+ /* Called with kretprobe_lock held */
+-void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
++void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
+ 					struct pt_regs *regs)
+ {
+-	struct kretprobe_instance *ri;
++	ri->ret_addr = (kprobe_opcode_t *) regs->gprs[14];
+ 
+-	if ((ri = get_free_rp_inst(rp)) != NULL) {
+-		ri->rp = rp;
+-		ri->task = current;
+-		ri->ret_addr = (kprobe_opcode_t *) regs->gprs[14];
+-
+-		/* Replace the return addr with trampoline addr */
+-		regs->gprs[14] = (unsigned long)&kretprobe_trampoline;
+-
+-		add_rp_inst(ri);
+-	} else {
+-		rp->nmissed++;
+-	}
++	/* Replace the return addr with trampoline addr */
++	regs->gprs[14] = (unsigned long)&kretprobe_trampoline;
+ }
+ 
+ static int __kprobes kprobe_handler(struct pt_regs *regs)
+diff -puN arch/x86_64/kernel/kprobes.c~kprobes-kretprobes-simplifcations arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++++ a/arch/x86_64/kernel/kprobes.c
+@@ -266,23 +266,14 @@ static void __kprobes prepare_singlestep
+ }
+ 
+ /* Called with kretprobe_lock held */
+-void __kprobes arch_prepare_kretprobe(struct kretprobe *rp,
++void __kprobes arch_prepare_kretprobe(struct kretprobe_instance *ri,
+ 				      struct pt_regs *regs)
+ {
+ 	unsigned long *sara = (unsigned long *)regs->rsp;
+-	struct kretprobe_instance *ri;
+ 
+-	if ((ri = get_free_rp_inst(rp)) != NULL) {
+-		ri->rp = rp;
+-		ri->task = current;
+-		ri->ret_addr = (kprobe_opcode_t *) *sara;
+-
+-		/* Replace the return addr with trampoline addr */
+-		*sara = (unsigned long) &kretprobe_trampoline;
+-		add_rp_inst(ri);
+-	} else {
+-		rp->nmissed++;
+-	}
++	ri->ret_addr = (kprobe_opcode_t *) *sara;
++	/* Replace the return addr with trampoline addr */
++	*sara = (unsigned long) &kretprobe_trampoline;
+ }
+ 
+ int __kprobes kprobe_handler(struct pt_regs *regs)
+diff -puN include/linux/kprobes.h~kprobes-kretprobes-simplifcations include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-kretprobes-simplifcations
++++ a/include/linux/kprobes.h
+@@ -123,7 +123,8 @@ DECLARE_PER_CPU(struct kprobe *, current
+ DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
+ 
+ #ifdef ARCH_SUPPORTS_KRETPROBES
+-extern void arch_prepare_kretprobe(struct kretprobe *rp, struct pt_regs *regs);
++extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
++				   struct pt_regs *regs);
+ #else /* ARCH_SUPPORTS_KRETPROBES */
+ static inline void arch_prepare_kretprobe(struct kretprobe *rp,
+ 					struct pt_regs *regs)
+@@ -209,8 +210,6 @@ void jprobe_return(void);
+ int register_kretprobe(struct kretprobe *rp);
+ void unregister_kretprobe(struct kretprobe *rp);
+ 
+-struct kretprobe_instance *get_free_rp_inst(struct kretprobe *rp);
+-void add_rp_inst(struct kretprobe_instance *ri);
+ void kprobe_flush_task(struct task_struct *tk);
+ void recycle_rp_inst(struct kretprobe_instance *ri, struct hlist_head *head);
+ #else /* CONFIG_KPROBES */
+diff -puN kernel/kprobes.c~kprobes-kretprobes-simplifcations kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-kretprobes-simplifcations
++++ a/kernel/kprobes.c
+@@ -358,46 +358,6 @@ void __kprobes kprobes_inc_nmissed_count
+ }
+ 
+ /* Called with kretprobe_lock held */
+-struct kretprobe_instance __kprobes *get_free_rp_inst(struct kretprobe *rp)
+-{
+-	struct hlist_node *node;
+-	struct kretprobe_instance *ri;
+-	hlist_for_each_entry(ri, node, &rp->free_instances, uflist)
+-		return ri;
+-	return NULL;
+-}
+-
+-/* Called with kretprobe_lock held */
+-static struct kretprobe_instance __kprobes *get_used_rp_inst(struct kretprobe
+-							      *rp)
+-{
+-	struct hlist_node *node;
+-	struct kretprobe_instance *ri;
+-	hlist_for_each_entry(ri, node, &rp->used_instances, uflist)
+-		return ri;
+-	return NULL;
+-}
+-
+-/* Called with kretprobe_lock held */
+-void __kprobes add_rp_inst(struct kretprobe_instance *ri)
+-{
+-	/*
+-	 * Remove rp inst off the free list -
+-	 * Add it back when probed function returns
+-	 */
+-	hlist_del(&ri->uflist);
+-
+-	/* Add rp inst onto table */
+-	INIT_HLIST_NODE(&ri->hlist);
+-	hlist_add_head(&ri->hlist,
+-			&kretprobe_inst_table[hash_ptr(ri->task, KPROBE_HASH_BITS)]);
+-
+-	/* Also add this rp inst to the used list. */
+-	INIT_HLIST_NODE(&ri->uflist);
+-	hlist_add_head(&ri->uflist, &ri->rp->used_instances);
+-}
+-
+-/* Called with kretprobe_lock held */
+ void __kprobes recycle_rp_inst(struct kretprobe_instance *ri,
+ 				struct hlist_head *head)
+ {
+@@ -450,7 +410,9 @@ void __kprobes kprobe_flush_task(struct 
+ static inline void free_rp_inst(struct kretprobe *rp)
+ {
+ 	struct kretprobe_instance *ri;
+-	while ((ri = get_free_rp_inst(rp)) != NULL) {
++	struct hlist_node *pos, *next;
++
++	hlist_for_each_entry_safe(ri, pos, next, &rp->free_instances, uflist) {
+ 		hlist_del(&ri->uflist);
+ 		kfree(ri);
+ 	}
+@@ -732,7 +694,21 @@ static int __kprobes pre_handler_kretpro
+ 
+ 	/*TODO: consider to only swap the RA after the last pre_handler fired */
+ 	spin_lock_irqsave(&kretprobe_lock, flags);
+-	arch_prepare_kretprobe(rp, regs);
++	if (!hlist_empty(&rp->free_instances)) {
++		struct kretprobe_instance *ri;
++
++		ri = hlist_entry(rp->free_instances.first,
++				 struct kretprobe_instance, uflist);
++		ri->rp = rp;
++		ri->task = current;
++		arch_prepare_kretprobe(ri, regs);
++
++		/* XXX(hch): why is there no hlist_move_head? */
++		hlist_del(&ri->uflist);
++		hlist_add_head(&ri->uflist, &ri->rp->used_instances);
++		hlist_add_head(&ri->hlist, kretprobe_inst_table_head(ri->task));
++	} else
++		rp->nmissed++;
+ 	spin_unlock_irqrestore(&kretprobe_lock, flags);
  	return 0;
  }
-@@ -561,19 +559,24 @@ static int __kprobes __register_kprobe(s
- 		return -EINVAL;
- 	p->addr = (kprobe_opcode_t *)(((char *)p->addr)+ p->offset);
- 
--	if ((!kernel_text_address((unsigned long) p->addr)) ||
--		in_kprobes_functions((unsigned long) p->addr))
-+	if (!kernel_text_address((unsigned long) p->addr) ||
-+	    in_kprobes_functions((unsigned long) p->addr))
- 		return -EINVAL;
- 
- 	p->mod_refcounted = 0;
--	/* Check are we probing a module */
--	if ((probed_mod = module_text_address((unsigned long) p->addr))) {
-+
-+	/*
-+	 * Check if are we probing a module.
-+	 */
-+	probed_mod = module_text_address((unsigned long) p->addr);
-+	if (probed_mod) {
- 		struct module *calling_mod = module_text_address(called_from);
--		/* We must allow modules to probe themself and
--		 * in this case avoid incrementing the module refcount,
--		 * so as to allow unloading of self probing modules.
-+		/*
-+		 * We must allow modules to probe themself and in this case
-+		 * avoid incrementing the module refcount, so as to allow
-+		 * unloading of self probing modules.
- 		 */
--		if (calling_mod && (calling_mod != probed_mod)) {
-+		if (calling_mod && calling_mod != probed_mod) {
- 			if (unlikely(!try_module_get(probed_mod)))
- 				return -EINVAL;
- 			p->mod_refcounted = 1;
-@@ -591,7 +594,8 @@ static int __kprobes __register_kprobe(s
- 		goto out;
- 	}
- 
--	if ((ret = arch_prepare_kprobe(p)) != 0)
-+	ret = arch_prepare_kprobe(p);
-+	if (ret)
- 		goto out;
- 
- 	INIT_HLIST_NODE(&p->hlist);
-@@ -614,8 +618,7 @@ out:
- 
- int __kprobes register_kprobe(struct kprobe *p)
+@@ -795,11 +771,13 @@ void __kprobes unregister_kretprobe(stru
  {
--	return __register_kprobe(p,
--		(unsigned long)__builtin_return_address(0));
-+	return __register_kprobe(p, (unsigned long)__builtin_return_address(0));
- }
+ 	unsigned long flags;
+ 	struct kretprobe_instance *ri;
++	struct hlist_node *pos, *next;
  
- void __kprobes unregister_kprobe(struct kprobe *p)
-@@ -639,9 +642,9 @@ void __kprobes unregister_kprobe(struct 
- 		return;
+ 	unregister_kprobe(&rp->kp);
++
+ 	/* No race here */
+ 	spin_lock_irqsave(&kretprobe_lock, flags);
+-	while ((ri = get_used_rp_inst(rp)) != NULL) {
++	hlist_for_each_entry_safe(ri, pos, next, &rp->used_instances, uflist) {
+ 		ri->rp = NULL;
+ 		hlist_del(&ri->uflist);
  	}
- valid_p:
--	if ((old_p == p) || ((old_p->pre_handler == aggr_pre_handler) &&
--		(p->list.next == &old_p->list) &&
--		(p->list.prev == &old_p->list))) {
-+	if (old_p == p ||
-+	    (old_p->pre_handler == aggr_pre_handler &&
-+	     p->list.next == &old_p->list && p->list.prev == &old_p->list)) {
- 		/* Only probe on the hash list */
- 		arch_disarm_kprobe(p);
- 		hlist_del_rcu(&old_p->hlist);
-@@ -654,9 +657,11 @@ valid_p:
- 	mutex_unlock(&kprobe_mutex);
- 
- 	synchronize_sched();
--	if (p->mod_refcounted &&
--	    (mod = module_text_address((unsigned long)p->addr)))
--		module_put(mod);
-+	if (p->mod_refcounted) {
-+		mod = module_text_address((unsigned long)p->addr);
-+		if (mod)
-+			module_put(mod);
-+	}
- 
- 	if (cleanup_p) {
- 		if (p != old_p) {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
