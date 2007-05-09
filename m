@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + disable-slub-on-powerpc.patch added to -mm tree
-Date: Tue, 08 May 2007 16:35:20 -0700
-Message-ID: <200705082335.l48NZKXE004886@shell0.pdx.osdl.net>
+Subject: + afs-export-a-couple-of-core-functions-for-afs-write.patch added to -mm tree
+Date: Tue, 08 May 2007 17:00:59 -0700
+Message-ID: <200705090000.l4900xdb005374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43855 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969704AbXEHXf3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 19:35:29 -0400
+	by vger.kernel.org with ESMTP id S1031997AbXEIABJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:01:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     Disable SLUB on powerpc
+     AFS: export a couple of core functions for AFS write support
 has been added to the -mm tree.  Its filename is
-     disable-slub-on-powerpc.patch
+     afs-export-a-couple-of-core-functions-for-afs-write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Disable SLUB on powerpc
-From: Christoph Lameter <clameter@sgi.com>
+Subject: AFS: export a couple of core functions for AFS write support
+From: David Howells <dhowells@redhat.com>
 
-Disable SLUB on powerpc since the Kconfig comparison does not work
-reliably.
+Export a couple of core functions for AFS write support to use:
 
-Work is in progress to fix the powerpc issues with page struct
-modifications.  So I hope that this patch will only be necessary for a
-short time.
+	find_get_pages_contig()
+	find_get_pages_tag()
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    1 -
- 1 files changed, 1 deletion(-)
+ mm/filemap.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~disable-slub-on-powerpc arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~disable-slub-on-powerpc
-+++ a/arch/powerpc/Kconfig
-@@ -131,7 +131,6 @@ config SYS_SUPPORTS_APM_EMULATION
- config ARCH_USES_SLAB_PAGE_STRUCT
- 	bool
- 	default y
--	depends on SPLIT_PTLOCK_CPUS <= NR_CPUS
+diff -puN mm/filemap.c~afs-export-a-couple-of-core-functions-for-afs-write mm/filemap.c
+--- a/mm/filemap.c~afs-export-a-couple-of-core-functions-for-afs-write
++++ a/mm/filemap.c
+@@ -751,6 +751,7 @@ unsigned find_get_pages_contig(struct ad
+ 	read_unlock_irq(&mapping->tree_lock);
+ 	return i;
+ }
++EXPORT_SYMBOL(find_get_pages_contig);
  
- config DEFAULT_UIMAGE
- 	bool
+ /**
+  * find_get_pages_tag - find and return pages that match @tag
+@@ -779,6 +780,7 @@ unsigned find_get_pages_tag(struct addre
+ 	read_unlock_irq(&mapping->tree_lock);
+ 	return ret;
+ }
++EXPORT_SYMBOL(find_get_pages_tag);
+ 
+ /**
+  * grab_cache_page_nowait - returns locked page at given index in given cache
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-slub-add-support-for-dynamic-cacheline-size-determination.patch
-slub-add-support-for-dynamic-cacheline-size-determination-fix.patch
-slub-after-object-padding-only-needed-for-redzoning.patch
-slub-slabinfo-upgrade.patch
-slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
-slub-clean-up-krealloc.patch
-slub-clean-up-krealloc-fix.patch
-slub-get-rid-of-finish_bootstrap.patch
-slub-update-comments.patch
-slub-add-macros-for-scanning-objects-in-a-slab.patch
-slub-move-resiliency-check-into-sysfs-section.patch
-slub-introduce-debugslabpage.patch
-slub-consolidate-trace-code.patch
-slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch
-slub-add-config_slub_debug.patch
-slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output.patch
-slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix.patch
-slub-rework-slab-order-determination.patch
-krealloc-fix-kerneldoc-comments.patch
-fix-spellings-of-slab-allocator-section-in-init-kconfig.patch
+use-slab_panic-flag-cleanup.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+smaps-only-define-clear_refs-for-config_mmu.patch
+frv-miscellaneous-fixes.patch
 frv-replace-pgd-management-via-slabs-through-quicklists.patch
-disable-slub-on-powerpc.patch
-slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-reduce-antifrag-max-order.patch
-slub-i386-support.patch
-remove-constructor-from-buffer_head.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-vmstat-use-our-own-timer-events-fix.patch
-make-vm-statistics-update-interval-configurable.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-move-remote-node-draining-out-of-slab-allocators.patch
-md-remove-the-slash-from-the-name-of-a-kmem_cache-used-by-raid5.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+afs-export-a-couple-of-core-functions-for-afs-write.patch
+afs-afs-fixups.patch
+afs-implement-basic-file-write-support.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+workqueue-kill-noautorel-works.patch
+introduce-freezer-flags-rev-2.patch
+make-cancel_rearming_delayed_work-reliable.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+frv-gdb-use-__maybe_unused.patch
+mutex-subsystem-synchro-test-module.patch
