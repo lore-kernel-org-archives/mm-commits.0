@@ -1,170 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - eliminate-lock_cpu_hotplug-in-kernel-schedc.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:27 -0700
-Message-ID: <200705092151.l49LpRBC002879@shell0.pdx.osdl.net>
+Subject: - tg3-use-flush_keventd_work.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:09 -0700
+Message-ID: <200705092151.l49Lp9GU002857@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47155 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35790 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758532AbXEIVvy (ORCPT
+	by vger.kernel.org with ESMTP id S1758629AbXEIVvy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:51:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ego@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, dhowells@redhat.com, jeff@garzik.org, macro@linux-mips.org, mchan@broadcom.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Eliminate lock_cpu_hotplug in kernel/schedc
+     tg3: use flush_work_keventd()
 has been removed from the -mm tree.  Its filename was
-     eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+     tg3-use-flush_keventd_work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Eliminate lock_cpu_hotplug in kernel/schedc
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: tg3: use flush_work_keventd()
+From: Andrew Morton <akpm@osdl.org>
 
-Eliminate lock_cpu_hotplug from kernel/sched.c and use sched_hotcpu_mutex
-instead to postpone a hotplug event.
+Convert tg3 over to flush_work_keventd().  Remove nasty now-unneeded deadlock
+avoidance logic.
 
-In the migration_call hotcpu callback function, take sched_hotcpu_mutex
-while handling the event CPU_LOCK_ACQUIRE and release it while handling
-CPU_LOCK_RELEASE event.
+(akpm: bypassed maintainers, sorry.  There are other patches which depend on
+this)
 
-[akpm@linux-foundation.org: fix deadlock]
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Michael Chan <mchan@broadcom.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ drivers/net/tg3.c |   11 +----------
+ drivers/net/tg3.h |    2 +-
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN kernel/sched.c~eliminate-lock_cpu_hotplug-in-kernel-schedc kernel/sched.c
---- a/kernel/sched.c~eliminate-lock_cpu_hotplug-in-kernel-schedc
-+++ a/kernel/sched.c
-@@ -305,6 +305,7 @@ struct rq {
- };
+diff -puN drivers/net/tg3.c~tg3-use-flush_keventd_work drivers/net/tg3.c
+--- a/drivers/net/tg3.c~tg3-use-flush_keventd_work
++++ a/drivers/net/tg3.c
+@@ -3716,10 +3716,8 @@ static void tg3_reset_task(struct work_s
+ 	unsigned int restart_timer;
  
- static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
-+static DEFINE_MUTEX(sched_hotcpu_mutex);
+ 	tg3_full_lock(tp, 0);
+-	tp->tg3_flags |= TG3_FLAG_IN_RESET_TASK;
  
- static inline int cpu_of(struct rq *rq)
- {
-@@ -4520,13 +4521,13 @@ long sched_setaffinity(pid_t pid, cpumas
- 	struct task_struct *p;
- 	int retval;
- 
--	lock_cpu_hotplug();
-+	mutex_lock(&sched_hotcpu_mutex);
- 	read_lock(&tasklist_lock);
- 
- 	p = find_process_by_pid(pid);
- 	if (!p) {
- 		read_unlock(&tasklist_lock);
--		unlock_cpu_hotplug();
-+		mutex_unlock(&sched_hotcpu_mutex);
- 		return -ESRCH;
+ 	if (!netif_running(tp->dev)) {
+-		tp->tg3_flags &= ~TG3_FLAG_IN_RESET_TASK;
+ 		tg3_full_unlock(tp);
+ 		return;
  	}
+@@ -3750,8 +3748,6 @@ static void tg3_reset_task(struct work_s
+ 		mod_timer(&tp->timer, jiffies + 1);
  
-@@ -4553,7 +4554,7 @@ long sched_setaffinity(pid_t pid, cpumas
- 
- out_unlock:
- 	put_task_struct(p);
--	unlock_cpu_hotplug();
-+	mutex_unlock(&sched_hotcpu_mutex);
- 	return retval;
+ out:
+-	tp->tg3_flags &= ~TG3_FLAG_IN_RESET_TASK;
+-
+ 	tg3_full_unlock(tp);
  }
  
-@@ -4610,7 +4611,7 @@ long sched_getaffinity(pid_t pid, cpumas
- 	struct task_struct *p;
- 	int retval;
+@@ -7390,12 +7386,7 @@ static int tg3_close(struct net_device *
+ {
+ 	struct tg3 *tp = netdev_priv(dev);
  
--	lock_cpu_hotplug();
-+	mutex_lock(&sched_hotcpu_mutex);
- 	read_lock(&tasklist_lock);
+-	/* Calling flush_scheduled_work() may deadlock because
+-	 * linkwatch_event() may be on the workqueue and it will try to get
+-	 * the rtnl_lock which we are holding.
+-	 */
+-	while (tp->tg3_flags & TG3_FLAG_IN_RESET_TASK)
+-		msleep(1);
++	flush_work_keventd(&tp->reset_task);
  
- 	retval = -ESRCH;
-@@ -4626,7 +4627,7 @@ long sched_getaffinity(pid_t pid, cpumas
+ 	netif_stop_queue(dev);
  
- out_unlock:
- 	read_unlock(&tasklist_lock);
--	unlock_cpu_hotplug();
-+	mutex_unlock(&sched_hotcpu_mutex);
- 	if (retval)
- 		return retval;
- 
-@@ -5388,6 +5389,10 @@ migration_call(struct notifier_block *nf
- 	struct rq *rq;
- 
- 	switch (action) {
-+	case CPU_LOCK_ACQUIRE:
-+		mutex_lock(&sched_hotcpu_mutex);
-+		break;
+diff -puN drivers/net/tg3.h~tg3-use-flush_keventd_work drivers/net/tg3.h
+--- a/drivers/net/tg3.h~tg3-use-flush_keventd_work
++++ a/drivers/net/tg3.h
+@@ -2228,7 +2228,7 @@ struct tg3 {
+ #define TG3_FLAG_JUMBO_RING_ENABLE	0x00800000
+ #define TG3_FLAG_10_100_ONLY		0x01000000
+ #define TG3_FLAG_PAUSE_AUTONEG		0x02000000
+-#define TG3_FLAG_IN_RESET_TASK		0x04000000
 +
- 	case CPU_UP_PREPARE:
- 		p = kthread_create(migration_thread, hcpu, "migration/%d",cpu);
- 		if (IS_ERR(p))
-@@ -5433,7 +5438,7 @@ migration_call(struct notifier_block *nf
- 		BUG_ON(rq->nr_running != 0);
- 
- 		/* No need to migrate the tasks: it was best-effort if
--		 * they didn't do lock_cpu_hotplug().  Just wake up
-+		 * they didn't take sched_hotcpu_mutex.  Just wake up
- 		 * the requestors. */
- 		spin_lock_irq(&rq->lock);
- 		while (!list_empty(&rq->migration_queue)) {
-@@ -5447,6 +5452,9 @@ migration_call(struct notifier_block *nf
- 		spin_unlock_irq(&rq->lock);
- 		break;
- #endif
-+	case CPU_LOCK_RELEASE:
-+		mutex_unlock(&sched_hotcpu_mutex);
-+		break;
- 	}
- 	return NOTIFY_OK;
- }
-@@ -6822,10 +6830,10 @@ int arch_reinit_sched_domains(void)
- {
- 	int err;
- 
--	lock_cpu_hotplug();
-+	mutex_lock(&sched_hotcpu_mutex);
- 	detach_destroy_domains(&cpu_online_map);
- 	err = arch_init_sched_domains(&cpu_online_map);
--	unlock_cpu_hotplug();
-+	mutex_unlock(&sched_hotcpu_mutex);
- 
- 	return err;
- }
-@@ -6930,12 +6938,12 @@ void __init sched_init_smp(void)
- {
- 	cpumask_t non_isolated_cpus;
- 
--	lock_cpu_hotplug();
-+	mutex_lock(&sched_hotcpu_mutex);
- 	arch_init_sched_domains(&cpu_online_map);
- 	cpus_andnot(non_isolated_cpus, cpu_possible_map, cpu_isolated_map);
- 	if (cpus_empty(non_isolated_cpus))
- 		cpu_set(smp_processor_id(), non_isolated_cpus);
--	unlock_cpu_hotplug();
-+	mutex_unlock(&sched_hotcpu_mutex);
- 	/* XXX: Theoretical race here - CPU may be hotplugged now */
- 	hotcpu_notifier(update_sched_domains, 0);
- 
+ #define TG3_FLAG_40BIT_DMA_BUG		0x08000000
+ #define TG3_FLAG_BROKEN_CHECKSUMS	0x10000000
+ #define TG3_FLAG_SUPPORT_MSI		0x20000000
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
+git-ieee1394.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+lumpy-reclaim-v4.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+move-page-writeback-acounting-out-of-macros.patch
+ext2-reservations.patch
+mm-implement-swap-prefetching.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
