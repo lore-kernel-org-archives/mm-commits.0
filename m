@@ -1,304 +1,1637 @@
 From: akpm@linux-foundation.org
-Subject: - parport-dev-driver-model-support.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:47:50 -0700
-Message-ID: <200705090247.l492loI7009023@shell0.pdx.osdl.net>
+Subject: - move-die-notifier-handling-to-common-code.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:23 -0700
+Message-ID: <200705090247.l492lNE3008968@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39447 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032101AbXEICsD (ORCPT
+	by vger.kernel.org with ESMTP id S1032099AbXEICsD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:48:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: hch@lst.de, bryan.wu@analog.com, linux-arch@vger.kernel.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport->dev driver model support
+     move die notifier handling to common code
 has been removed from the -mm tree.  Its filename was
-     parport-dev-driver-model-support.patch
+     move-die-notifier-handling-to-common-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: parport->dev driver model support
-From: David Brownell <david-b@pacbell.net>
+Subject: move die notifier handling to common code
+From: Christoph Hellwig <hch@lst.de>
 
-Currently a parport_driver can't get a handle on the device node for the
-underlying parport (PNPACPI, PCI, etc).  That prevents correct placement of
-sysfs child nodes, which can affect things like power management.
+This patch moves the die notifier handling to common code.  Previous
+various architectures had exactly the same code for it.  Note that the new
+code is compiled unconditionally, this should be understood as an appel to
+the other architecture maintainer to implement support for it aswell (aka
+sprinkling a notify_die or two in the proper place)
 
-This patch adds a field to "struct parport" pointing to that device node, and
-updates non-legacy port drivers to initialize that device pointer.  That field
-replaces the analagous PCI-only support in parport_pc.
+arm had a notifiy_die that did something totally different, I renamed it to
+arm_notify_die as part of the patch and made it static to the file it's
+declared and used at.  avr32 used to pass slightly less information through
+this interface and I brought it into line with the other architectures.
 
-[akpm@linux-foundation.org: fix powerpc build]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+[akpm@linux-foundation.org: build fix]
+[akpm@linux-foundation.org: fix vmalloc_sync_all bustage]
+[bryan.wu@analog.com: fix vmalloc_sync_all in nommu]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_cs.c     |    2 -
- drivers/parport/parport_mfc3.c   |    1 
- drivers/parport/parport_pc.c     |   31 +++++++++++++++--------------
- drivers/parport/parport_serial.c |    2 -
- drivers/parport/parport_sunbpp.c |    1 
- drivers/parport/share.c          |    5 ++++
- include/asm-powerpc/parport.h    |    5 ----
- include/linux/parport.h          |    8 +++++--
- include/linux/parport_pc.h       |    3 --
- 9 files changed, 33 insertions(+), 25 deletions(-)
+ arch/arm/kernel/traps.c            |   14 ++++-----
+ arch/arm/mm/fault.c                |    2 -
+ arch/avr32/kernel/kprobes.c        |    2 -
+ arch/avr32/kernel/ptrace.c         |    4 +-
+ arch/avr32/kernel/traps.c          |   14 ---------
+ arch/avr32/mm/fault.c              |    2 -
+ arch/i386/kernel/crash.c           |    2 -
+ arch/i386/kernel/kprobes.c         |    2 -
+ arch/i386/kernel/nmi.c             |    2 -
+ arch/i386/kernel/traps.c           |   16 -----------
+ arch/i386/mm/fault.c               |    3 +-
+ arch/i386/oprofile/nmi_int.c       |    2 -
+ arch/i386/oprofile/nmi_timer_int.c |    3 --
+ arch/ia64/kernel/crash.c           |    2 -
+ arch/ia64/kernel/kprobes.c         |    2 -
+ arch/ia64/kernel/mca.c             |    2 -
+ arch/ia64/kernel/process.c         |    2 -
+ arch/ia64/kernel/traps.c           |   18 ------------
+ arch/ia64/mm/fault.c               |    2 -
+ arch/ia64/sn/kernel/xpc_main.c     |    4 +-
+ arch/powerpc/kernel/kprobes.c      |    2 -
+ arch/powerpc/kernel/traps.c        |   16 -----------
+ arch/powerpc/mm/fault.c            |    2 -
+ arch/s390/kernel/kprobes.c         |    2 -
+ arch/s390/kernel/traps.c           |   16 -----------
+ arch/s390/mm/fault.c               |    2 -
+ arch/sparc/kernel/head.S           |    2 -
+ arch/sparc/kernel/setup.c          |    2 -
+ arch/sparc/kernel/traps.c          |    2 -
+ arch/sparc/mm/fault.c              |    2 -
+ arch/sparc/mm/srmmu.c              |    2 -
+ arch/sparc64/kernel/kprobes.c      |    2 -
+ arch/sparc64/kernel/traps.c        |   15 ----------
+ arch/sparc64/mm/fault.c            |    2 -
+ arch/x86_64/kernel/crash.c         |    2 -
+ arch/x86_64/kernel/kprobes.c       |    2 -
+ arch/x86_64/kernel/mce.c           |    2 -
+ arch/x86_64/kernel/nmi.c           |    2 -
+ arch/x86_64/kernel/pci-gart.c      |    2 -
+ arch/x86_64/kernel/process.c       |    2 -
+ arch/x86_64/kernel/reboot.c        |    2 -
+ arch/x86_64/kernel/smpboot.c       |    2 -
+ arch/x86_64/kernel/traps.c         |   18 ------------
+ arch/x86_64/mm/fault.c             |    3 +-
+ drivers/char/ipmi/ipmi_watchdog.c  |    1 
+ include/asm-alpha/kdebug.h         |    1 
+ include/asm-arm/kdebug.h           |    1 
+ include/asm-arm/system.h           |    2 -
+ include/asm-arm26/kdebug.h         |    1 
+ include/asm-avr32/kdebug.h         |   25 +----------------
+ include/asm-cris/kdebug.h          |    1 
+ include/asm-frv/kdebug.h           |    1 
+ include/asm-generic/kdebug.h       |    8 +++++
+ include/asm-h8300/kdebug.h         |    1 
+ include/asm-i386/kdebug.h          |   24 -----------------
+ include/asm-i386/pgtable.h         |    2 -
+ include/asm-ia64/kdebug.h          |   27 -------------------
+ include/asm-m32r/kdebug.h          |    1 
+ include/asm-m68k/kdebug.h          |    1 
+ include/asm-m68knommu/kdebug.h     |    1 
+ include/asm-mips/kdebug.h          |    1 
+ include/asm-parisc/kdebug.h        |    1 
+ include/asm-powerpc/kdebug.h       |   18 ------------
+ include/asm-ppc/kdebug.h           |    1 
+ include/asm-s390/kdebug.h          |   30 ---------------------
+ include/asm-sh/kdebug.h            |    1 
+ include/asm-sh64/kdebug.h          |    1 
+ include/asm-sparc/kdebug.h         |    4 ++
+ include/asm-sparc64/kdebug.h       |   23 ----------------
+ include/asm-um/kdebug.h            |    1 
+ include/asm-v850/kdebug.h          |    1 
+ include/asm-x86_64/kdebug.h        |   24 -----------------
+ include/asm-x86_64/pgtable.h       |    1 
+ include/asm-xtensa/kdebug.h        |    1 
+ include/linux/kdebug.h             |   20 ++++++++++++++
+ include/linux/vmalloc.h            |    1 
+ kernel/Makefile                    |    2 -
+ kernel/die_notifier.c              |   38 +++++++++++++++++++++++++++
+ kernel/kprobes.c                   |    2 -
+ mm/nommu.c                         |    8 +++++
+ mm/vmalloc.c                       |    7 ++++
+ 81 files changed, 162 insertions(+), 328 deletions(-)
 
-diff -puN drivers/parport/parport_cs.c~parport-dev-driver-model-support drivers/parport/parport_cs.c
---- a/drivers/parport/parport_cs.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_cs.c
-@@ -201,7 +201,7 @@ static int parport_config(struct pcmcia_
+diff -puN arch/arm/kernel/traps.c~move-die-notifier-handling-to-common-code arch/arm/kernel/traps.c
+--- a/arch/arm/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/arm/kernel/traps.c
+@@ -245,8 +245,8 @@ NORET_TYPE void die(const char *str, str
+ 	do_exit(SIGSEGV);
+ }
  
-     p = parport_pc_probe_port(link->io.BasePort1, link->io.BasePort2,
- 			      link->irq.AssignedIRQ, PARPORT_DMA_NONE,
--			      NULL);
-+			      &link->dev);
-     if (p == NULL) {
- 	printk(KERN_NOTICE "parport_cs: parport_pc_probe_port() at "
- 	       "0x%3x, irq %u failed\n", link->io.BasePort1,
-diff -puN drivers/parport/parport_mfc3.c~parport-dev-driver-model-support drivers/parport/parport_mfc3.c
---- a/drivers/parport/parport_mfc3.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_mfc3.c
-@@ -356,6 +356,7 @@ static int __init parport_mfc3_init(void
- 				if (request_irq(IRQ_AMIGA_PORTS, mfc3_interrupt, IRQF_SHARED, p->name, &pp_mfc3_ops))
- 					goto out_irq;
- 		}
-+		p->dev = &z->dev;
- 
- 		this_port[pias++] = p;
- 		printk(KERN_INFO "%s: Multiface III port using irq\n", p->name);
-diff -puN drivers/parport/parport_pc.c~parport-dev-driver-model-support drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_pc.c
-@@ -620,6 +620,7 @@ static size_t parport_pc_fifo_write_bloc
- 	unsigned long dmaflag;
- 	size_t left = length;
- 	const struct parport_pc_private *priv = port->physport->private_data;
-+	struct device *dev = port->physport->dev;
- 	dma_addr_t dma_addr, dma_handle;
- 	size_t maxlen = 0x10000; /* max 64k per DMA transfer */
- 	unsigned long start = (unsigned long) buf;
-@@ -631,8 +632,8 @@ dump_parport_state ("enter fifo_write_bl
- 		if ((start ^ end) & ~0xffffUL)
- 			maxlen = 0x10000 - (start & 0xffff);
- 
--		dma_addr = dma_handle = pci_map_single(priv->dev, (void *)buf, length,
--						       PCI_DMA_TODEVICE);
-+		dma_addr = dma_handle = dma_map_single(dev, (void *)buf, length,
-+						       DMA_TO_DEVICE);
-         } else {
- 		/* above 16 MB we use a bounce buffer as ISA-DMA is not possible */
- 		maxlen   = PAGE_SIZE;          /* sizeof(priv->dma_buf) */
-@@ -728,9 +729,9 @@ dump_parport_state ("enter fifo_write_bl
- 
- 	/* Turn off DMA mode */
- 	frob_econtrol (port, 1<<3, 0);
--	
-+
- 	if (dma_handle)
--		pci_unmap_single(priv->dev, dma_handle, length, PCI_DMA_TODEVICE);
-+		dma_unmap_single(dev, dma_handle, length, DMA_TO_DEVICE);
- 
- dump_parport_state ("leave fifo_write_block_dma", port);
- 	return length - left;
-@@ -2146,7 +2147,7 @@ static DEFINE_SPINLOCK(ports_lock);
- struct parport *parport_pc_probe_port (unsigned long int base,
- 				       unsigned long int base_hi,
- 				       int irq, int dma,
--				       struct pci_dev *dev)
-+				       struct device *dev)
+-void notify_die(const char *str, struct pt_regs *regs, struct siginfo *info,
+-		unsigned long err, unsigned long trap)
++void arm_notify_die(const char *str, struct pt_regs *regs,
++		struct siginfo *info, unsigned long err, unsigned long trap)
  {
- 	struct parport_pc_private *priv;
- 	struct parport_operations *ops;
-@@ -2180,9 +2181,10 @@ struct parport *parport_pc_probe_port (u
- 	priv->fifo_depth = 0;
- 	priv->dma_buf = NULL;
- 	priv->dma_handle = 0;
--	priv->dev = dev;
- 	INIT_LIST_HEAD(&priv->list);
- 	priv->port = p;
-+
-+	p->dev = dev;
- 	p->base_hi = base_hi;
- 	p->modes = PARPORT_MODE_PCSPP | PARPORT_MODE_SAFEININT;
- 	p->private_data = priv;
-@@ -2305,9 +2307,10 @@ struct parport *parport_pc_probe_port (u
- 				p->dma = PARPORT_DMA_NONE;
- 			} else {
- 				priv->dma_buf =
--				  pci_alloc_consistent(priv->dev,
-+				  dma_alloc_coherent(dev,
- 						       PAGE_SIZE,
--						       &priv->dma_handle);
-+						       &priv->dma_handle,
-+						       GFP_KERNEL);
- 				if (! priv->dma_buf) {
- 					printk (KERN_WARNING "%s: "
- 						"cannot get buffer for DMA, "
-@@ -2383,7 +2386,7 @@ void parport_pc_unregister_port (struct 
- 		release_region(p->base_hi, 3);
- #if defined(CONFIG_PARPORT_PC_FIFO) && defined(HAS_DMA)
- 	if (priv->dma_buf)
--		pci_free_consistent(priv->dev, PAGE_SIZE,
-+		dma_free_coherent(p->physport->dev, PAGE_SIZE,
- 				    priv->dma_buf,
- 				    priv->dma_handle);
- #endif
-@@ -2489,7 +2492,7 @@ static int __devinit sio_ite_8872_probe 
- 	 */
- 	release_resource(base_res);
- 	if (parport_pc_probe_port (ite8872_lpt, ite8872_lpthi,
--				   irq, PARPORT_DMA_NONE, NULL)) {
-+				   irq, PARPORT_DMA_NONE, &pdev->dev)) {
- 		printk (KERN_INFO
- 			"parport_pc: ITE 8872 parallel port: io=0x%X",
- 			ite8872_lpt);
-@@ -2672,7 +2675,7 @@ static int __devinit sio_via_probe (stru
+ 	if (user_mode(regs)) {
+ 		current->thread.error_code = err;
+@@ -330,7 +330,7 @@ asmlinkage void __exception do_undefinst
+ 	info.si_code  = ILL_ILLOPC;
+ 	info.si_addr  = pc;
+ 
+-	notify_die("Oops - undefined instruction", regs, &info, 0, 6);
++	arm_notify_die("Oops - undefined instruction", regs, &info, 0, 6);
+ }
+ 
+ asmlinkage void do_unexp_fiq (struct pt_regs *regs)
+@@ -384,7 +384,7 @@ static int bad_syscall(int n, struct pt_
+ 	info.si_addr  = (void __user *)instruction_pointer(regs) -
+ 			 (thumb_mode(regs) ? 2 : 4);
+ 
+-	notify_die("Oops - bad syscall", regs, &info, n, 0);
++	arm_notify_die("Oops - bad syscall", regs, &info, n, 0);
+ 
+ 	return regs->ARM_r0;
+ }
+@@ -428,7 +428,7 @@ asmlinkage int arm_syscall(int no, struc
+ 		info.si_code  = SEGV_MAPERR;
+ 		info.si_addr  = NULL;
+ 
+-		notify_die("branch through zero", regs, &info, 0, 0);
++		arm_notify_die("branch through zero", regs, &info, 0, 0);
+ 		return 0;
+ 
+ 	case NR(breakpoint): /* SWI BREAK_POINT */
+@@ -564,7 +564,7 @@ asmlinkage int arm_syscall(int no, struc
+ 	info.si_addr  = (void __user *)instruction_pointer(regs) -
+ 			 (thumb_mode(regs) ? 2 : 4);
+ 
+-	notify_die("Oops - bad syscall(2)", regs, &info, no, 0);
++	arm_notify_die("Oops - bad syscall(2)", regs, &info, no, 0);
+ 	return 0;
+ }
+ 
+@@ -638,7 +638,7 @@ baddataabort(int code, unsigned long ins
+ 	info.si_code  = ILL_ILLOPC;
+ 	info.si_addr  = (void __user *)addr;
+ 
+-	notify_die("unknown data abort code", regs, &info, instr, 0);
++	arm_notify_die("unknown data abort code", regs, &info, instr, 0);
+ }
+ 
+ void __attribute__((noreturn)) __bug(const char *file, int line)
+diff -puN arch/arm/mm/fault.c~move-die-notifier-handling-to-common-code arch/arm/mm/fault.c
+--- a/arch/arm/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/arm/mm/fault.c
+@@ -453,7 +453,7 @@ do_DataAbort(unsigned long addr, unsigne
+ 	info.si_errno = 0;
+ 	info.si_code  = inf->code;
+ 	info.si_addr  = (void __user *)addr;
+-	notify_die("", regs, &info, fsr, 0);
++	arm_notify_die("", regs, &info, fsr, 0);
+ }
+ 
+ asmlinkage void __exception
+diff -puN arch/avr32/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/avr32/kernel/kprobes.c
+--- a/arch/avr32/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/avr32/kernel/kprobes.c
+@@ -15,7 +15,7 @@
+ #include <linux/ptrace.h>
+ 
+ #include <asm/cacheflush.h>
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ #include <asm/ocd.h>
+ 
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe);
+diff -puN arch/avr32/kernel/ptrace.c~move-die-notifier-handling-to-common-code arch/avr32/kernel/ptrace.c
+--- a/arch/avr32/kernel/ptrace.c~move-die-notifier-handling-to-common-code
++++ a/arch/avr32/kernel/ptrace.c
+@@ -21,7 +21,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/ocd.h>
+ #include <asm/mmu_context.h>
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ 
+ static struct pt_regs *get_user_regs(struct task_struct *tsk)
+ {
+@@ -300,7 +300,7 @@ asmlinkage void do_debug_priv(struct pt_
+ 	else
+ 		die_val = DIE_BREAKPOINT;
+ 
+-	if (notify_die(die_val, regs, 0, SIGTRAP) == NOTIFY_STOP)
++	if (notify_die(die_val, "ptrace", regs, 0, 0, SIGTRAP) == NOTIFY_STOP)
+ 		return;
+ 
+ 	if (likely(ds & DS_SSS)) {
+diff -puN arch/avr32/kernel/traps.c~move-die-notifier-handling-to-common-code arch/avr32/kernel/traps.c
+--- a/arch/avr32/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/avr32/kernel/traps.c
+@@ -20,20 +20,6 @@
+ #include <asm/sysreg.h>
+ #include <asm/traps.h>
+ 
+-ATOMIC_NOTIFIER_HEAD(avr32_die_chain);
+-
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&avr32_die_chain, nb);
+-}
+-EXPORT_SYMBOL(register_die_notifier);
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&avr32_die_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_die_notifier);
+-
+ static DEFINE_SPINLOCK(die_lock);
+ 
+ void NORET_TYPE die(const char *str, struct pt_regs *regs, long err)
+diff -puN arch/avr32/mm/fault.c~move-die-notifier-handling-to-common-code arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/avr32/mm/fault.c
+@@ -13,7 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/pagemap.h>
+ 
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ #include <asm/mmu_context.h>
+ #include <asm/sysreg.h>
+ #include <asm/tlb.h>
+diff -puN arch/i386/kernel/crash.c~move-die-notifier-handling-to-common-code arch/i386/kernel/crash.c
+--- a/arch/i386/kernel/crash.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/kernel/crash.c
+@@ -22,7 +22,7 @@
+ #include <asm/nmi.h>
+ #include <asm/hw_irq.h>
+ #include <asm/apic.h>
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ #include <asm/smp.h>
+ 
+ #include <mach_ipi.h>
+diff -puN arch/i386/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/kernel/kprobes.c
+@@ -31,8 +31,8 @@
+ #include <linux/kprobes.h>
+ #include <linux/ptrace.h>
+ #include <linux/preempt.h>
++#include <linux/kdebug.h>
+ #include <asm/cacheflush.h>
+-#include <asm/kdebug.h>
+ #include <asm/desc.h>
+ #include <asm/uaccess.h>
+ 
+diff -puN arch/i386/kernel/nmi.c~move-die-notifier-handling-to-common-code arch/i386/kernel/nmi.c
+--- a/arch/i386/kernel/nmi.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/kernel/nmi.c
+@@ -23,10 +23,10 @@
+ #include <linux/kprobes.h>
+ #include <linux/cpumask.h>
+ #include <linux/kernel_stat.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/smp.h>
+ #include <asm/nmi.h>
+-#include <asm/kdebug.h>
+ 
+ #include "mach_traps.h"
+ 
+diff -puN arch/i386/kernel/traps.c~move-die-notifier-handling-to-common-code arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/kernel/traps.c
+@@ -52,7 +52,7 @@
+ #include <asm/unwind.h>
+ #include <asm/smp.h>
+ #include <asm/arch_hooks.h>
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ #include <asm/stacktrace.h>
+ 
+ #include <linux/module.h>
+@@ -95,20 +95,6 @@ asmlinkage void machine_check(void);
+ 
+ int kstack_depth_to_print = 24;
+ static unsigned int code_bytes = 64;
+-ATOMIC_NOTIFIER_HEAD(i386die_chain);
+-
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	vmalloc_sync_all();
+-	return atomic_notifier_chain_register(&i386die_chain, nb);
+-}
+-EXPORT_SYMBOL(register_die_notifier); /* used modular by kdb */
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&i386die_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_die_notifier); /* used modular by kdb */
+ 
+ static inline int valid_stack_ptr(struct thread_info *tinfo, void *p)
+ {
+diff -puN arch/i386/mm/fault.c~move-die-notifier-handling-to-common-code arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/mm/fault.c
+@@ -21,13 +21,14 @@
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/highmem.h>
+ #include <linux/bootmem.h>		/* for max_low_pfn */
++#include <linux/vmalloc.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/system.h>
+ #include <asm/desc.h>
+-#include <asm/kdebug.h>
+ #include <asm/segment.h>
+ 
+ extern void die(const char *,struct pt_regs *,long);
+diff -puN arch/i386/oprofile/nmi_int.c~move-die-notifier-handling-to-common-code arch/i386/oprofile/nmi_int.c
+--- a/arch/i386/oprofile/nmi_int.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/oprofile/nmi_int.c
+@@ -14,10 +14,10 @@
+ #include <linux/sysdev.h>
+ #include <linux/slab.h>
+ #include <linux/moduleparam.h>
++#include <linux/kdebug.h>
+ #include <asm/nmi.h>
+ #include <asm/msr.h>
+ #include <asm/apic.h>
+-#include <asm/kdebug.h>
+  
+ #include "op_counter.h"
+ #include "op_x86_model.h"
+diff -puN arch/i386/oprofile/nmi_timer_int.c~move-die-notifier-handling-to-common-code arch/i386/oprofile/nmi_timer_int.c
+--- a/arch/i386/oprofile/nmi_timer_int.c~move-die-notifier-handling-to-common-code
++++ a/arch/i386/oprofile/nmi_timer_int.c
+@@ -12,12 +12,11 @@
+ #include <linux/errno.h>
+ #include <linux/oprofile.h>
+ #include <linux/rcupdate.h>
+-
++#include <linux/kdebug.h>
+ 
+ #include <asm/nmi.h>
+ #include <asm/apic.h>
+ #include <asm/ptrace.h>
+-#include <asm/kdebug.h>
+  
+ static int profile_timer_exceptions_notify(struct notifier_block *self,
+ 					   unsigned long val, void *data)
+diff -puN arch/ia64/kernel/crash.c~move-die-notifier-handling-to-common-code arch/ia64/kernel/crash.c
+--- a/arch/ia64/kernel/crash.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/kernel/crash.c
+@@ -16,8 +16,8 @@
+ #include <linux/elfcore.h>
+ #include <linux/sysctl.h>
+ #include <linux/init.h>
++#include <linux/kdebug.h>
+ 
+-#include <asm/kdebug.h>
+ #include <asm/mca.h>
+ 
+ int kdump_status[NR_CPUS];
+diff -puN arch/ia64/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/kernel/kprobes.c
+@@ -29,9 +29,9 @@
+ #include <linux/slab.h>
+ #include <linux/preempt.h>
+ #include <linux/moduleloader.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/pgtable.h>
+-#include <asm/kdebug.h>
+ #include <asm/sections.h>
+ #include <asm/uaccess.h>
+ 
+diff -puN arch/ia64/kernel/mca.c~move-die-notifier-handling-to-common-code arch/ia64/kernel/mca.c
+--- a/arch/ia64/kernel/mca.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/kernel/mca.c
+@@ -72,9 +72,9 @@
+ #include <linux/smp.h>
+ #include <linux/workqueue.h>
+ #include <linux/cpumask.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/delay.h>
+-#include <asm/kdebug.h>
+ #include <asm/machvec.h>
+ #include <asm/meminit.h>
+ #include <asm/page.h>
+diff -puN arch/ia64/kernel/process.c~move-die-notifier-handling-to-common-code arch/ia64/kernel/process.c
+--- a/arch/ia64/kernel/process.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/kernel/process.c
+@@ -27,13 +27,13 @@
+ #include <linux/efi.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/cpu.h>
+ #include <asm/delay.h>
+ #include <asm/elf.h>
+ #include <asm/ia32.h>
+ #include <asm/irq.h>
+-#include <asm/kdebug.h>
+ #include <asm/kexec.h>
+ #include <asm/pgalloc.h>
+ #include <asm/processor.h>
+diff -puN arch/ia64/kernel/traps.c~move-die-notifier-handling-to-common-code arch/ia64/kernel/traps.c
+--- a/arch/ia64/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/kernel/traps.c
+@@ -16,33 +16,17 @@
+ #include <linux/hardirq.h>
+ #include <linux/kprobes.h>
+ #include <linux/delay.h>		/* for ssleep() */
++#include <linux/kdebug.h>
+ 
+ #include <asm/fpswa.h>
+ #include <asm/ia32.h>
+ #include <asm/intrinsics.h>
+ #include <asm/processor.h>
+ #include <asm/uaccess.h>
+-#include <asm/kdebug.h>
+ 
+ fpswa_interface_t *fpswa_interface;
+ EXPORT_SYMBOL(fpswa_interface);
+ 
+-ATOMIC_NOTIFIER_HEAD(ia64die_chain);
+-
+-int
+-register_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&ia64die_chain, nb);
+-}
+-EXPORT_SYMBOL_GPL(register_die_notifier);
+-
+-int
+-unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&ia64die_chain, nb);
+-}
+-EXPORT_SYMBOL_GPL(unregister_die_notifier);
+-
+ void __init
+ trap_init (void)
+ {
+diff -puN arch/ia64/mm/fault.c~move-die-notifier-handling-to-common-code arch/ia64/mm/fault.c
+--- a/arch/ia64/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/mm/fault.c
+@@ -10,12 +10,12 @@
+ #include <linux/smp_lock.h>
+ #include <linux/interrupt.h>
+ #include <linux/kprobes.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
+-#include <asm/kdebug.h>
+ 
+ extern void die (char *, struct pt_regs *, long);
+ 
+diff -puN arch/ia64/sn/kernel/xpc_main.c~move-die-notifier-handling-to-common-code arch/ia64/sn/kernel/xpc_main.c
+--- a/arch/ia64/sn/kernel/xpc_main.c~move-die-notifier-handling-to-common-code
++++ a/arch/ia64/sn/kernel/xpc_main.c
+@@ -55,9 +55,9 @@
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+ #include <linux/completion.h>
++#include <linux/kdebug.h>
+ #include <asm/sn/intr.h>
+ #include <asm/sn/sn_sal.h>
+-#include <asm/kdebug.h>
+ #include <asm/uaccess.h>
+ #include <asm/sn/xpc.h>
+ 
+@@ -1332,7 +1332,7 @@ xpc_init(void)
+ 		dev_warn(xpc_part, "can't register reboot notifier\n");
  	}
  
- 	/* finally, do the probe with values obtained */
--	if (parport_pc_probe_port (port1, port2, irq, dma, NULL)) {
-+	if (parport_pc_probe_port (port1, port2, irq, dma, &pdev->dev)) {
- 		printk (KERN_INFO
- 			"parport_pc: VIA parallel port: io=0x%X", port1);
- 		if (irq != PARPORT_IRQ_NONE)
-@@ -2970,7 +2973,7 @@ static int parport_pc_pci_probe (struct 
- 			parport_pc_pci_tbl[i + last_sio].device, io_lo, io_hi);
- 		data->ports[count] =
- 			parport_pc_probe_port (io_lo, io_hi, PARPORT_IRQ_NONE,
--					       PARPORT_DMA_NONE, dev);
-+					       PARPORT_DMA_NONE, &dev->dev);
- 		if (data->ports[count])
- 			count++;
- 	}
-@@ -3077,8 +3080,8 @@ static int parport_pc_pnp_probe(struct p
- 	} else
- 		dma = PARPORT_DMA_NONE;
+-	/* add ourselves to the die_notifier list (i.e., ia64die_chain) */
++	/* add ourselves to the die_notifier list */
+ 	ret = register_die_notifier(&xpc_die_notifier);
+ 	if (ret != 0) {
+ 		dev_warn(xpc_part, "can't register die notifier\n");
+diff -puN arch/powerpc/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -30,8 +30,8 @@
+ #include <linux/ptrace.h>
+ #include <linux/preempt.h>
+ #include <linux/module.h>
++#include <linux/kdebug.h>
+ #include <asm/cacheflush.h>
+-#include <asm/kdebug.h>
+ #include <asm/sstep.h>
+ #include <asm/uaccess.h>
  
--	printk(KERN_INFO "parport: PnPBIOS parport detected.\n");
--	if (!(pdata = parport_pc_probe_port (io_lo, io_hi, irq, dma, NULL)))
-+	dev_info(&dev->dev, "reported by %s\n", dev->protocol->name);
-+	if (!(pdata = parport_pc_probe_port (io_lo, io_hi, irq, dma, &dev->dev)))
- 		return -ENODEV;
+diff -puN arch/powerpc/kernel/traps.c~move-die-notifier-handling-to-common-code arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/powerpc/kernel/traps.c
+@@ -33,8 +33,8 @@
+ #include <linux/kexec.h>
+ #include <linux/backlight.h>
+ #include <linux/bug.h>
++#include <linux/kdebug.h>
  
- 	pnp_set_drvdata(dev,pdata);
-diff -puN drivers/parport/parport_serial.c~parport-dev-driver-model-support drivers/parport/parport_serial.c
---- a/drivers/parport/parport_serial.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_serial.c
-@@ -305,7 +305,7 @@ static int __devinit parport_register (s
- 		dev_dbg(&dev->dev, "PCI parallel port detected: I/O at "
- 			"%#lx(%#lx)\n", io_lo, io_hi);
- 		port = parport_pc_probe_port (io_lo, io_hi, PARPORT_IRQ_NONE,
--					      PARPORT_DMA_NONE, dev);
-+					      PARPORT_DMA_NONE, &dev->dev);
- 		if (port) {
- 			priv->port[priv->num_par++] = port;
- 			success = 1;
-diff -puN drivers/parport/parport_sunbpp.c~parport-dev-driver-model-support drivers/parport/parport_sunbpp.c
---- a/drivers/parport/parport_sunbpp.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_sunbpp.c
-@@ -322,6 +322,7 @@ static int __devinit init_one_port(struc
- 		goto out_free_ops;
- 
- 	p->size = size;
-+	p->dev = &sdev->ofdev.dev;
- 
- 	if ((err = request_irq(p->irq, parport_sunbpp_interrupt,
- 			       IRQF_SHARED, p->name, p)) != 0) {
-diff -puN drivers/parport/share.c~parport-dev-driver-model-support drivers/parport/share.c
---- a/drivers/parport/share.c~parport-dev-driver-model-support
-+++ a/drivers/parport/share.c
-@@ -365,6 +365,11 @@ void parport_announce_port (struct parpo
- 	parport_daisy_init(port);
+-#include <asm/kdebug.h>
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+@@ -72,20 +72,6 @@ EXPORT_SYMBOL(__debugger_dabr_match);
+ EXPORT_SYMBOL(__debugger_fault_handler);
  #endif
  
-+	if (!port->dev)
-+		printk(KERN_WARNING "%s: fix this legacy "
-+				"no-device port driver!\n",
-+				port->name);
-+
- 	parport_proc_register(port);
- 	mutex_lock(&registration_lock);
- 	spin_lock_irq(&parportlist_lock);
-diff -puN include/asm-powerpc/parport.h~parport-dev-driver-model-support include/asm-powerpc/parport.h
---- a/include/asm-powerpc/parport.h~parport-dev-driver-model-support
-+++ a/include/asm-powerpc/parport.h
-@@ -12,11 +12,6 @@
+-ATOMIC_NOTIFIER_HEAD(powerpc_die_chain);
+-
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&powerpc_die_chain, nb);
+-}
+-EXPORT_SYMBOL(register_die_notifier);
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&powerpc_die_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_die_notifier);
+-
+ /*
+  * Trap & Exception support
+  */
+diff -puN arch/powerpc/mm/fault.c~move-die-notifier-handling-to-common-code arch/powerpc/mm/fault.c
+--- a/arch/powerpc/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/powerpc/mm/fault.c
+@@ -28,6 +28,7 @@
+ #include <linux/highmem.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
++#include <linux/kdebug.h>
  
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+@@ -36,7 +37,6 @@
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
+ #include <asm/tlbflush.h>
+-#include <asm/kdebug.h>
+ #include <asm/siginfo.h>
+ 
+ #ifdef CONFIG_KPROBES
+diff -puN arch/s390/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/s390/kernel/kprobes.c
+--- a/arch/s390/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/s390/kernel/kprobes.c
+@@ -24,8 +24,8 @@
+ #include <linux/ptrace.h>
+ #include <linux/preempt.h>
+ #include <linux/stop_machine.h>
++#include <linux/kdebug.h>
+ #include <asm/cacheflush.h>
+-#include <asm/kdebug.h>
+ #include <asm/sections.h>
+ #include <asm/uaccess.h>
+ #include <linux/module.h>
+diff -puN arch/s390/kernel/traps.c~move-die-notifier-handling-to-common-code arch/s390/kernel/traps.c
+--- a/arch/s390/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/s390/kernel/traps.c
+@@ -27,6 +27,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
++#include <linux/kdebug.h>
+ #include <linux/kallsyms.h>
+ #include <linux/reboot.h>
+ #include <linux/kprobes.h>
+@@ -40,7 +41,6 @@
+ #include <asm/s390_ext.h>
+ #include <asm/lowcore.h>
+ #include <asm/debug.h>
+-#include <asm/kdebug.h>
+ 
+ /* Called from entry.S only */
+ extern void handle_per_exception(struct pt_regs *regs);
+@@ -70,20 +70,6 @@ static int kstack_depth_to_print = 12;
+ static int kstack_depth_to_print = 20;
+ #endif /* CONFIG_64BIT */
+ 
+-ATOMIC_NOTIFIER_HEAD(s390die_chain);
+-
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&s390die_chain, nb);
+-}
+-EXPORT_SYMBOL(register_die_notifier);
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&s390die_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_die_notifier);
+-
+ /*
+  * For show_trace we have tree different stack to consider:
+  *   - the panic stack which is used if the kernel stack has overflown
+diff -puN arch/s390/mm/fault.c~move-die-notifier-handling-to-common-code arch/s390/mm/fault.c
+--- a/arch/s390/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/s390/mm/fault.c
+@@ -20,6 +20,7 @@
+ #include <linux/mman.h>
+ #include <linux/mm.h>
+ #include <linux/smp.h>
++#include <linux/kdebug.h>
+ #include <linux/smp_lock.h>
+ #include <linux/init.h>
+ #include <linux/console.h>
+@@ -30,7 +31,6 @@
+ 
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+-#include <asm/kdebug.h>
+ #include <asm/s390_ext.h>
+ 
+ #ifndef CONFIG_64BIT
+diff -puN arch/sparc/kernel/head.S~move-die-notifier-handling-to-common-code arch/sparc/kernel/head.S
+--- a/arch/sparc/kernel/head.S~move-die-notifier-handling-to-common-code
++++ a/arch/sparc/kernel/head.S
+@@ -19,7 +19,7 @@
+ #include <asm/ptrace.h>
+ #include <asm/psr.h>
+ #include <asm/page.h>
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ #include <asm/winmacro.h>
+ #include <asm/thread_info.h>	/* TI_UWINMASK */
+ #include <asm/errno.h>
+diff -puN arch/sparc/kernel/setup.c~move-die-notifier-handling-to-common-code arch/sparc/kernel/setup.c
+--- a/arch/sparc/kernel/setup.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc/kernel/setup.c
+@@ -31,6 +31,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/root_dev.h>
+ #include <linux/cpu.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -40,7 +41,6 @@
+ #include <asm/pgtable.h>
+ #include <asm/traps.h>
+ #include <asm/vaddrs.h>
+-#include <asm/kdebug.h>
+ #include <asm/mbus.h>
+ #include <asm/idprom.h>
+ #include <asm/machines.h>
+diff -puN arch/sparc/kernel/traps.c~move-die-notifier-handling-to-common-code arch/sparc/kernel/traps.c
+--- a/arch/sparc/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc/kernel/traps.c
+@@ -15,6 +15,7 @@
+ #include <linux/signal.h>
+ #include <linux/smp.h>
+ #include <linux/smp_lock.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/delay.h>
+ #include <asm/system.h>
+@@ -22,7 +23,6 @@
+ #include <asm/oplib.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+-#include <asm/kdebug.h>
+ #include <asm/unistd.h>
+ #include <asm/traps.h>
+ 
+diff -puN arch/sparc/mm/fault.c~move-die-notifier-handling-to-common-code arch/sparc/mm/fault.c
+--- a/arch/sparc/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc/mm/fault.c
+@@ -21,6 +21,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/system.h>
+ #include <asm/page.h>
+@@ -30,7 +31,6 @@
+ #include <asm/oplib.h>
+ #include <asm/smp.h>
+ #include <asm/traps.h>
+-#include <asm/kdebug.h>
+ #include <asm/uaccess.h>
+ 
+ extern int prom_node_root;
+diff -puN arch/sparc/mm/srmmu.c~move-die-notifier-handling-to-common-code arch/sparc/mm/srmmu.c
+--- a/arch/sparc/mm/srmmu.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc/mm/srmmu.c
+@@ -18,13 +18,13 @@
+ #include <linux/bootmem.h>
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/bitext.h>
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+-#include <asm/kdebug.h>
+ #include <asm/vaddrs.h>
+ #include <asm/traps.h>
+ #include <asm/smp.h>
+diff -puN arch/sparc64/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/sparc64/kernel/kprobes.c
+--- a/arch/sparc64/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc64/kernel/kprobes.c
+@@ -6,7 +6,7 @@
+ #include <linux/kernel.h>
+ #include <linux/kprobes.h>
+ #include <linux/module.h>
+-#include <asm/kdebug.h>
++#include <linux/kdebug.h>
+ #include <asm/signal.h>
+ #include <asm/cacheflush.h>
+ #include <asm/uaccess.h>
+diff -puN arch/sparc64/kernel/traps.c~move-die-notifier-handling-to-common-code arch/sparc64/kernel/traps.c
+--- a/arch/sparc64/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc64/kernel/traps.c
+@@ -18,6 +18,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/mm.h>
+ #include <linux/init.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/delay.h>
+ #include <asm/system.h>
+@@ -36,26 +37,12 @@
+ #include <asm/psrcompat.h>
+ #include <asm/processor.h>
+ #include <asm/timer.h>
+-#include <asm/kdebug.h>
+ #include <asm/head.h>
+ #ifdef CONFIG_KMOD
+ #include <linux/kmod.h>
+ #endif
  #include <asm/prom.h>
  
--extern struct parport *parport_pc_probe_port (unsigned long int base,
--                                              unsigned long int base_hi,
--                                              int irq, int dma,
--                                              struct pci_dev *dev);
+-ATOMIC_NOTIFIER_HEAD(sparc64die_chain);
 -
- static int __devinit parport_pc_find_nonpci_ports (int autoirq, int autodma)
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_register(&sparc64die_chain, nb);
+-}
+-EXPORT_SYMBOL(register_die_notifier);
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&sparc64die_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_die_notifier);
+ 
+ /* When an irrecoverable trap occurs at tl > 0, the trap entry
+  * code logs the trap state registers at every level in the trap
+diff -puN arch/sparc64/mm/fault.c~move-die-notifier-handling-to-common-code arch/sparc64/mm/fault.c
+--- a/arch/sparc64/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/sparc64/mm/fault.c
+@@ -20,6 +20,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kprobes.h>
+ #include <linux/kallsyms.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+@@ -29,7 +30,6 @@
+ #include <asm/asi.h>
+ #include <asm/lsu.h>
+ #include <asm/sections.h>
+-#include <asm/kdebug.h>
+ #include <asm/mmu_context.h>
+ 
+ #ifdef CONFIG_KPROBES
+diff -puN arch/x86_64/kernel/crash.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/crash.c
+--- a/arch/x86_64/kernel/crash.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/crash.c
+@@ -17,13 +17,13 @@
+ #include <linux/delay.h>
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/processor.h>
+ #include <asm/hardirq.h>
+ #include <asm/nmi.h>
+ #include <asm/hw_irq.h>
+ #include <asm/mach_apic.h>
+-#include <asm/kdebug.h>
+ 
+ /* This keeps a track of which one is crashing cpu. */
+ static int crashing_cpu;
+diff -puN arch/x86_64/kernel/kprobes.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/kprobes.c
+@@ -37,10 +37,10 @@
+ #include <linux/slab.h>
+ #include <linux/preempt.h>
+ #include <linux/module.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/pgtable.h>
+-#include <asm/kdebug.h>
+ #include <asm/uaccess.h>
+ 
+ void jprobe_return_end(void);
+diff -puN arch/x86_64/kernel/mce.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/mce.c
+@@ -20,10 +20,10 @@
+ #include <linux/percpu.h>
+ #include <linux/ctype.h>
+ #include <linux/kmod.h>
++#include <linux/kdebug.h>
+ #include <asm/processor.h> 
+ #include <asm/msr.h>
+ #include <asm/mce.h>
+-#include <asm/kdebug.h>
+ #include <asm/uaccess.h>
+ #include <asm/smp.h>
+ 
+diff -puN arch/x86_64/kernel/nmi.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/nmi.c
+@@ -21,11 +21,11 @@
+ #include <linux/sysctl.h>
+ #include <linux/kprobes.h>
+ #include <linux/cpumask.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/smp.h>
+ #include <asm/nmi.h>
+ #include <asm/proto.h>
+-#include <asm/kdebug.h>
+ #include <asm/mce.h>
+ 
+ int unknown_nmi_panic;
+diff -puN arch/x86_64/kernel/pci-gart.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -22,13 +22,13 @@
+ #include <linux/topology.h>
+ #include <linux/interrupt.h>
+ #include <linux/bitops.h>
++#include <linux/kdebug.h>
+ #include <asm/atomic.h>
+ #include <asm/io.h>
+ #include <asm/mtrr.h>
+ #include <asm/pgtable.h>
+ #include <asm/proto.h>
+ #include <asm/cacheflush.h>
+-#include <asm/kdebug.h>
+ #include <asm/swiotlb.h>
+ #include <asm/dma.h>
+ #include <asm/k8.h>
+diff -puN arch/x86_64/kernel/process.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/process.c
+@@ -36,6 +36,7 @@
+ #include <linux/random.h>
+ #include <linux/notifier.h>
+ #include <linux/kprobes.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -46,7 +47,6 @@
+ #include <asm/mmu_context.h>
+ #include <asm/pda.h>
+ #include <asm/prctl.h>
+-#include <asm/kdebug.h>
+ #include <asm/desc.h>
+ #include <asm/proto.h>
+ #include <asm/ia32.h>
+diff -puN arch/x86_64/kernel/reboot.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/reboot.c
+--- a/arch/x86_64/kernel/reboot.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/reboot.c
+@@ -7,8 +7,8 @@
+ #include <linux/ctype.h>
+ #include <linux/string.h>
+ #include <linux/pm.h>
++#include <linux/kdebug.h>
+ #include <asm/io.h>
+-#include <asm/kdebug.h>
+ #include <asm/delay.h>
+ #include <asm/hw_irq.h>
+ #include <asm/system.h>
+diff -puN arch/x86_64/kernel/smpboot.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -49,11 +49,11 @@
+ #include <linux/delay.h>
+ #include <linux/mc146818rtc.h>
+ #include <linux/smp.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/mtrr.h>
+ #include <asm/pgalloc.h>
+ #include <asm/desc.h>
+-#include <asm/kdebug.h>
+ #include <asm/tlbflush.h>
+ #include <asm/proto.h>
+ #include <asm/nmi.h>
+diff -puN arch/x86_64/kernel/traps.c~move-die-notifier-handling-to-common-code arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/kernel/traps.c
+@@ -32,6 +32,7 @@
+ #include <linux/unwind.h>
+ #include <linux/uaccess.h>
+ #include <linux/bug.h>
++#include <linux/kdebug.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -39,7 +40,6 @@
+ #include <asm/debugreg.h>
+ #include <asm/desc.h>
+ #include <asm/i387.h>
+-#include <asm/kdebug.h>
+ #include <asm/processor.h>
+ #include <asm/unwind.h>
+ #include <asm/smp.h>
+@@ -71,22 +71,6 @@ asmlinkage void alignment_check(void);
+ asmlinkage void machine_check(void);
+ asmlinkage void spurious_interrupt_bug(void);
+ 
+-ATOMIC_NOTIFIER_HEAD(die_chain);
+-EXPORT_SYMBOL(die_chain);
+-
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	vmalloc_sync_all();
+-	return atomic_notifier_chain_register(&die_chain, nb);
+-}
+-EXPORT_SYMBOL(register_die_notifier); /* used modular by kdb */
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&die_chain, nb);
+-}
+-EXPORT_SYMBOL(unregister_die_notifier); /* used modular by kdb */
+-
+ static inline void conditional_sti(struct pt_regs *regs)
  {
- 	struct device_node *np;
-diff -puN include/linux/parport.h~parport-dev-driver-model-support include/linux/parport.h
---- a/include/linux/parport.h~parport-dev-driver-model-support
-+++ a/include/linux/parport.h
-@@ -279,6 +279,10 @@ struct parport {
- 	int dma;
- 	int muxport;		/* which muxport (if any) this is */
- 	int portnum;		/* which physical parallel port (not mux) */
-+	struct device *dev;	/* Physical device associated with IO/DMA.
-+				 * This may unfortulately be null if the
-+				 * port has a legacy driver.
-+				 */
+ 	if (regs->eflags & X86_EFLAGS_IF)
+diff -puN arch/x86_64/mm/fault.c~move-die-notifier-handling-to-common-code arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~move-die-notifier-handling-to-common-code
++++ a/arch/x86_64/mm/fault.c
+@@ -21,16 +21,17 @@
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/compiler.h>
++#include <linux/vmalloc.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
++#include <linux/kdebug.h>
  
- 	struct parport *physport;
- 				/* If this is a non-default mux
-@@ -289,7 +293,7 @@ struct parport {
- 				   following structure members are
- 				   meaningless: devices, cad, muxsel,
- 				   waithead, waittail, flags, pdir,
--				   ieee1284, *_lock.
-+				   dev, ieee1284, *_lock.
+ #include <asm/system.h>
+ #include <asm/pgalloc.h>
+ #include <asm/smp.h>
+ #include <asm/tlbflush.h>
+ #include <asm/proto.h>
+-#include <asm/kdebug.h>
+ #include <asm-generic/sections.h>
  
- 				   It this is a default mux parport, or
- 				   there is no mux involved, this points to
-@@ -302,7 +306,7 @@ struct parport {
+ /* Page fault error code bits */
+diff -puN drivers/char/ipmi/ipmi_watchdog.c~move-die-notifier-handling-to-common-code drivers/char/ipmi/ipmi_watchdog.c
+--- a/drivers/char/ipmi/ipmi_watchdog.c~move-die-notifier-handling-to-common-code
++++ a/drivers/char/ipmi/ipmi_watchdog.c
+@@ -39,6 +39,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/init.h>
+ #include <linux/completion.h>
++#include <linux/kdebug.h>
+ #include <linux/rwsem.h>
+ #include <linux/errno.h>
+ #include <asm/uaccess.h>
+diff -puN /dev/null include/asm-alpha/kdebug.h
+--- /dev/null
++++ a/include/asm-alpha/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-arm/kdebug.h
+--- /dev/null
++++ a/include/asm-arm/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-arm/system.h~move-die-notifier-handling-to-common-code include/asm-arm/system.h
+--- a/include/asm-arm/system.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-arm/system.h
+@@ -93,7 +93,7 @@ void die(const char *msg, struct pt_regs
+ 		__attribute__((noreturn));
  
- 	struct pardevice *waithead;
- 	struct pardevice *waittail;
--	
-+
- 	struct list_head list;
- 	unsigned int flags;
+ struct siginfo;
+-void notify_die(const char *str, struct pt_regs *regs, struct siginfo *info,
++void arm_notify_die(const char *str, struct pt_regs *regs, struct siginfo *info,
+ 		unsigned long err, unsigned long trap);
  
-diff -puN include/linux/parport_pc.h~parport-dev-driver-model-support include/linux/parport_pc.h
---- a/include/linux/parport_pc.h~parport-dev-driver-model-support
-+++ a/include/linux/parport_pc.h
-@@ -38,7 +38,6 @@ struct parport_pc_private {
- 	/* buffer suitable for DMA, if DMA enabled */
- 	char *dma_buf;
- 	dma_addr_t dma_handle;
--	struct pci_dev *dev;
- 	struct list_head list;
- 	struct parport *port;
+ void hook_fault_code(int nr, int (*fn)(unsigned long, unsigned int,
+diff -puN /dev/null include/asm-arm26/kdebug.h
+--- /dev/null
++++ a/include/asm-arm26/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-avr32/kdebug.h~move-die-notifier-handling-to-common-code include/asm-avr32/kdebug.h
+--- a/include/asm-avr32/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-avr32/kdebug.h
+@@ -3,19 +3,6 @@
+ 
+ #include <linux/notifier.h>
+ 
+-struct pt_regs;
+-
+-struct die_args {
+-	struct pt_regs *regs;
+-	int trapnr;
+-};
+-
+-int register_die_notifier(struct notifier_block *nb);
+-int unregister_die_notifier(struct notifier_block *nb);
+-int register_page_fault_notifier(struct notifier_block *nb);
+-int unregister_page_fault_notifier(struct notifier_block *nb);
+-extern struct atomic_notifier_head avr32_die_chain;
+-
+ /* Grossly misnamed. */
+ enum die_val {
+ 	DIE_FAULT,
+@@ -24,15 +11,7 @@ enum die_val {
+ 	DIE_PAGE_FAULT,
  };
-@@ -232,7 +231,7 @@ extern int parport_pc_claim_resources(st
- extern struct parport *parport_pc_probe_port (unsigned long base,
- 					      unsigned long base_hi,
- 					      int irq, int dma,
--					      struct pci_dev *dev);
-+					      struct device *dev);
- extern void parport_pc_unregister_port (struct parport *p);
+ 
+-static inline int notify_die(enum die_val val, struct pt_regs *regs,
+-			     int trap, int sig)
+-{
+-	struct die_args args = {
+-		.regs = regs,
+-		.trapnr = trap,
+-	};
+-
+-	return atomic_notifier_call_chain(&avr32_die_chain, val, &args);
+-}
++int register_page_fault_notifier(struct notifier_block *nb);
++int unregister_page_fault_notifier(struct notifier_block *nb);
+ 
+ #endif /* __ASM_AVR32_KDEBUG_H */
+diff -puN /dev/null include/asm-cris/kdebug.h
+--- /dev/null
++++ a/include/asm-cris/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-frv/kdebug.h
+--- /dev/null
++++ a/include/asm-frv/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-generic/kdebug.h
+--- /dev/null
++++ a/include/asm-generic/kdebug.h
+@@ -0,0 +1,8 @@
++#ifndef _ASM_GENERIC_KDEBUG_H
++#define _ASM_GENERIC_KDEBUG_H
++
++enum die_val {
++	DIE_UNUSED,
++};
++
++#endif /* _ASM_GENERIC_KDEBUG_H */
+diff -puN /dev/null include/asm-h8300/kdebug.h
+--- /dev/null
++++ a/include/asm-h8300/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-i386/kdebug.h~move-die-notifier-handling-to-common-code include/asm-i386/kdebug.h
+--- a/include/asm-i386/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-i386/kdebug.h
+@@ -9,19 +9,8 @@
+ 
+ struct pt_regs;
+ 
+-struct die_args {
+-	struct pt_regs *regs;
+-	const char *str;
+-	long err;
+-	int trapnr;
+-	int signr;
+-};
+-
+-extern int register_die_notifier(struct notifier_block *);
+-extern int unregister_die_notifier(struct notifier_block *);
+ extern int register_page_fault_notifier(struct notifier_block *);
+ extern int unregister_page_fault_notifier(struct notifier_block *);
+-extern struct atomic_notifier_head i386die_chain;
+ 
+ 
+ /* Grossly misnamed. */
+@@ -42,17 +31,4 @@ enum die_val {
+ 	DIE_PAGE_FAULT,
+ };
+ 
+-static inline int notify_die(enum die_val val, const char *str,
+-			struct pt_regs *regs, long err, int trap, int sig)
+-{
+-	struct die_args args = {
+-		.regs = regs,
+-		.str = str,
+-		.err = err,
+-		.trapnr = trap,
+-		.signr = sig
+-	};
+-	return atomic_notifier_call_chain(&i386die_chain, val, &args);
+-}
+-
+ #endif
+diff -puN include/asm-i386/pgtable.h~move-die-notifier-handling-to-common-code include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-i386/pgtable.h
+@@ -243,8 +243,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ static inline pte_t pte_mkwrite(pte_t pte)	{ (pte).pte_low |= _PAGE_RW; return pte; }
+ static inline pte_t pte_mkhuge(pte_t pte)	{ (pte).pte_low |= _PAGE_PSE; return pte; }
+ 
+-extern void vmalloc_sync_all(void);
+-
+ #ifdef CONFIG_X86_PAE
+ # include <asm/pgtable-3level.h>
+ #else
+diff -puN include/asm-ia64/kdebug.h~move-die-notifier-handling-to-common-code include/asm-ia64/kdebug.h
+--- a/include/asm-ia64/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-ia64/kdebug.h
+@@ -28,21 +28,8 @@
+  */
+ #include <linux/notifier.h>
+ 
+-struct pt_regs;
+-
+-struct die_args {
+-	struct pt_regs *regs;
+-	const char *str;
+-	long err;
+-	int trapnr;
+-	int signr;
+-};
+-
+-extern int register_die_notifier(struct notifier_block *);
+-extern int unregister_die_notifier(struct notifier_block *);
+ extern int register_page_fault_notifier(struct notifier_block *);
+ extern int unregister_page_fault_notifier(struct notifier_block *);
+-extern struct atomic_notifier_head ia64die_chain;
+ 
+ enum die_val {
+ 	DIE_BREAK = 1,
+@@ -74,18 +61,4 @@ enum die_val {
+ 	DIE_KDUMP_LEAVE,
+ };
+ 
+-static inline int notify_die(enum die_val val, char *str, struct pt_regs *regs,
+-			     long err, int trap, int sig)
+-{
+-	struct die_args args = {
+-		.regs   = regs,
+-		.str    = str,
+-		.err    = err,
+-		.trapnr = trap,
+-		.signr  = sig
+-	};
+-
+-	return atomic_notifier_call_chain(&ia64die_chain, val, &args);
+-}
+-
+ #endif
+diff -puN /dev/null include/asm-m32r/kdebug.h
+--- /dev/null
++++ a/include/asm-m32r/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-m68k/kdebug.h
+--- /dev/null
++++ a/include/asm-m68k/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-m68knommu/kdebug.h
+--- /dev/null
++++ a/include/asm-m68knommu/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-mips/kdebug.h
+--- /dev/null
++++ a/include/asm-mips/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-parisc/kdebug.h
+--- /dev/null
++++ a/include/asm-parisc/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-powerpc/kdebug.h~move-die-notifier-handling-to-common-code include/asm-powerpc/kdebug.h
+--- a/include/asm-powerpc/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-powerpc/kdebug.h
+@@ -6,18 +6,6 @@
+ 
+ #include <linux/notifier.h>
+ 
+-struct pt_regs;
+-
+-struct die_args {
+-	struct pt_regs *regs;
+-	const char *str;
+-	long err;
+-	int trapnr;
+-	int signr;
+-};
+-
+-extern int register_die_notifier(struct notifier_block *);
+-extern int unregister_die_notifier(struct notifier_block *);
+ extern int register_page_fault_notifier(struct notifier_block *);
+ extern int unregister_page_fault_notifier(struct notifier_block *);
+ extern struct atomic_notifier_head powerpc_die_chain;
+@@ -32,11 +20,5 @@ enum die_val {
+ 	DIE_PAGE_FAULT,
+ };
+ 
+-static inline int notify_die(enum die_val val,char *str,struct pt_regs *regs,long err,int trap, int sig)
+-{
+-	struct die_args args = { .regs=regs, .str=str, .err=err, .trapnr=trap,.signr=sig };
+-	return atomic_notifier_call_chain(&powerpc_die_chain, val, &args);
+-}
+-
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_KDEBUG_H */
+diff -puN /dev/null include/asm-ppc/kdebug.h
+--- /dev/null
++++ a/include/asm-ppc/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-s390/kdebug.h~move-die-notifier-handling-to-common-code include/asm-s390/kdebug.h
+--- a/include/asm-s390/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-s390/kdebug.h
+@@ -8,21 +8,6 @@
+ 
+ struct pt_regs;
+ 
+-struct die_args {
+-	struct pt_regs *regs;
+-	const char *str;
+-	long err;
+-	int trapnr;
+-	int signr;
+-};
+-
+-/* Note - you should never unregister because that can race with NMIs.
+- * If you really want to do it first unregister - then synchronize_sched
+- *  - then free.
+- */
+-extern int register_die_notifier(struct notifier_block *);
+-extern int unregister_die_notifier(struct notifier_block *);
+-
+ /*
+  * These are only here because kprobes.c wants them to implement a
+  * blatant layering violation. Will hopefully go away soon once all
+@@ -37,8 +22,6 @@ static inline int unregister_page_fault_
+ 	return 0;
+ }
+ 
+-extern struct atomic_notifier_head s390die_chain;
+-
+ enum die_val {
+ 	DIE_OOPS = 1,
+ 	DIE_BPT,
+@@ -54,19 +37,6 @@ enum die_val {
+ 	DIE_NMI_IPI,
+ };
+ 
+-static inline int notify_die(enum die_val val, const char *str,
+-			struct pt_regs *regs, long err, int trap, int sig)
+-{
+-	struct die_args args = {
+-		.regs = regs,
+-		.str = str,
+-		.err = err,
+-		.trapnr = trap,
+-		.signr = sig
+-	};
+-	return atomic_notifier_call_chain(&s390die_chain, val, &args);
+-}
+-
+ extern void die(const char *, struct pt_regs *, long);
  
  #endif
+diff -puN include/asm-sh/kdebug.h~move-die-notifier-handling-to-common-code include/asm-sh/kdebug.h
+--- a/include/asm-sh/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-sh/kdebug.h
+@@ -2,6 +2,7 @@
+ #define __ASM_SH_KDEBUG_H
+ 
+ #include <linux/notifier.h>
++#include <asm-generic/kdebug.h>
+ 
+ struct pt_regs;
+ 
+diff -puN /dev/null include/asm-sh64/kdebug.h
+--- /dev/null
++++ a/include/asm-sh64/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-sparc/kdebug.h~move-die-notifier-handling-to-common-code include/asm-sparc/kdebug.h
+--- a/include/asm-sparc/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-sparc/kdebug.h
+@@ -66,4 +66,8 @@ static inline void sp_enter_debugger(voi
+ #define KDEBUG_DUNNO2_OFF   0x8
+ #define KDEBUG_TEACH_OFF    0xc
+ 
++enum die_val {
++	DIE_UNUSED,
++};
++
+ #endif /* !(_SPARC_KDEBUG_H) */
+diff -puN include/asm-sparc64/kdebug.h~move-die-notifier-handling-to-common-code include/asm-sparc64/kdebug.h
+--- a/include/asm-sparc64/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-sparc64/kdebug.h
+@@ -7,19 +7,8 @@
+ 
+ struct pt_regs;
+ 
+-struct die_args {
+-	struct pt_regs *regs;
+-	const char *str;
+-	long err;
+-	int trapnr;
+-	int signr;
+-};
+-
+-extern int register_die_notifier(struct notifier_block *);
+-extern int unregister_die_notifier(struct notifier_block *);
+ extern int register_page_fault_notifier(struct notifier_block *);
+ extern int unregister_page_fault_notifier(struct notifier_block *);
+-extern struct atomic_notifier_head sparc64die_chain;
+ 
+ extern void bad_trap(struct pt_regs *, long);
+ 
+@@ -36,16 +25,4 @@ enum die_val {
+ 	DIE_PAGE_FAULT,
+ };
+ 
+-static inline int notify_die(enum die_val val,char *str, struct pt_regs *regs,
+-			     long err, int trap, int sig)
+-{
+-	struct die_args args = { .regs		= regs,
+-				 .str		= str,
+-				 .err		= err,
+-				 .trapnr	= trap,
+-				 .signr		= sig };
+-
+-	return atomic_notifier_call_chain(&sparc64die_chain, val, &args);
+-}
+-
+ #endif
+diff -puN /dev/null include/asm-um/kdebug.h
+--- /dev/null
++++ a/include/asm-um/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/asm-v850/kdebug.h
+--- /dev/null
++++ a/include/asm-v850/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN include/asm-x86_64/kdebug.h~move-die-notifier-handling-to-common-code include/asm-x86_64/kdebug.h
+--- a/include/asm-x86_64/kdebug.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-x86_64/kdebug.h
+@@ -5,19 +5,8 @@
+ 
+ struct pt_regs;
+ 
+-struct die_args {
+-	struct pt_regs *regs;
+-	const char *str;
+-	long err;
+-	int trapnr;
+-	int signr;
+-};
+-
+-extern int register_die_notifier(struct notifier_block *);
+-extern int unregister_die_notifier(struct notifier_block *);
+ extern int register_page_fault_notifier(struct notifier_block *);
+ extern int unregister_page_fault_notifier(struct notifier_block *);
+-extern struct atomic_notifier_head die_chain;
+ 
+ /* Grossly misnamed. */
+ enum die_val {
+@@ -37,19 +26,6 @@ enum die_val {
+ 	DIE_PAGE_FAULT,
+ };
+ 
+-static inline int notify_die(enum die_val val, const char *str,
+-			struct pt_regs *regs, long err, int trap, int sig)
+-{
+-	struct die_args args = {
+-		.regs = regs,
+-		.str = str,
+-		.err = err,
+-		.trapnr = trap,
+-		.signr = sig
+-	};
+-	return atomic_notifier_call_chain(&die_chain, val, &args);
+-} 
+-
+ extern void printk_address(unsigned long address);
+ extern void die(const char *,struct pt_regs *,long);
+ extern void __die(const char *,struct pt_regs *,long);
+diff -puN include/asm-x86_64/pgtable.h~move-die-notifier-handling-to-common-code include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~move-die-notifier-handling-to-common-code
++++ a/include/asm-x86_64/pgtable.h
+@@ -411,7 +411,6 @@ static inline pte_t pte_modify(pte_t pte
+ 
+ extern spinlock_t pgd_lock;
+ extern struct list_head pgd_list;
+-void vmalloc_sync_all(void);
+ 
+ extern int kern_addr_valid(unsigned long addr); 
+ 
+diff -puN /dev/null include/asm-xtensa/kdebug.h
+--- /dev/null
++++ a/include/asm-xtensa/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
+diff -puN /dev/null include/linux/kdebug.h
+--- /dev/null
++++ a/include/linux/kdebug.h
+@@ -0,0 +1,20 @@
++#ifndef _LINUX_KDEBUG_H
++#define _LINUX_KDEBUG_H
++
++#include <asm/kdebug.h>
++
++struct die_args {
++	struct pt_regs *regs;
++	const char *str;
++	long err;
++	int trapnr;
++	int signr;
++};
++
++int register_die_notifier(struct notifier_block *nb);
++int unregister_die_notifier(struct notifier_block *nb);
++
++int notify_die(enum die_val val, const char *str,
++	       struct pt_regs *regs, long err, int trap, int sig);
++
++#endif /* _LINUX_KDEBUG_H */
+diff -puN include/linux/vmalloc.h~move-die-notifier-handling-to-common-code include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~move-die-notifier-handling-to-common-code
++++ a/include/linux/vmalloc.h
+@@ -53,6 +53,7 @@ extern void vunmap(void *addr);
+ 
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
++void vmalloc_sync_all(void);
+  
+ /*
+  *	Lowlevel-APIs (not for driver use!)
+diff -puN kernel/Makefile~move-die-notifier-handling-to-common-code kernel/Makefile
+--- a/kernel/Makefile~move-die-notifier-handling-to-common-code
++++ a/kernel/Makefile
+@@ -8,7 +8,7 @@ obj-y     = sched.o fork.o exec_domain.o
+ 	    signal.o sys.o kmod.o workqueue.o pid.o \
+ 	    rcupdate.o extable.o params.o posix-timers.o \
+ 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
+-	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o
++	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o
+ 
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+ obj-y += time/
+diff -puN /dev/null kernel/die_notifier.c
+--- /dev/null
++++ a/kernel/die_notifier.c
+@@ -0,0 +1,38 @@
++
++#include <linux/module.h>
++#include <linux/notifier.h>
++#include <linux/vmalloc.h>
++#include <linux/kdebug.h>
++
++
++static ATOMIC_NOTIFIER_HEAD(die_chain);
++
++int notify_die(enum die_val val, const char *str,
++	       struct pt_regs *regs, long err, int trap, int sig)
++{
++	struct die_args args = {
++		.regs		= regs,
++		.str		= str,
++		.err		= err,
++		.trapnr		= trap,
++		.signr		= sig,
++
++	};
++
++	return atomic_notifier_call_chain(&die_chain, val, &args);
++}
++
++int register_die_notifier(struct notifier_block *nb)
++{
++	vmalloc_sync_all();
++	return atomic_notifier_chain_register(&die_chain, nb);
++}
++EXPORT_SYMBOL_GPL(register_die_notifier);
++
++int unregister_die_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&die_chain, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_die_notifier);
++
++
+diff -puN kernel/kprobes.c~move-die-notifier-handling-to-common-code kernel/kprobes.c
+--- a/kernel/kprobes.c~move-die-notifier-handling-to-common-code
++++ a/kernel/kprobes.c
+@@ -42,10 +42,10 @@
+ #include <linux/freezer.h>
+ #include <linux/seq_file.h>
+ #include <linux/debugfs.h>
++#include <linux/kdebug.h>
+ #include <asm-generic/sections.h>
+ #include <asm/cacheflush.h>
+ #include <asm/errno.h>
+-#include <asm/kdebug.h>
+ 
+ #define KPROBE_HASH_BITS 6
+ #define KPROBE_TABLE_SIZE (1 << KPROBE_HASH_BITS)
+diff -puN mm/nommu.c~move-die-notifier-handling-to-common-code mm/nommu.c
+--- a/mm/nommu.c~move-die-notifier-handling-to-common-code
++++ a/mm/nommu.c
+@@ -262,6 +262,14 @@ void vunmap(void *addr)
+ }
+ 
+ /*
++ * Implement a stub for vmalloc_sync_all() if the architecture chose not to
++ * have one.
++ */
++void  __attribute__((weak)) vmalloc_sync_all(void)
++{
++}
++
++/*
+  *  sys_brk() for the most part doesn't need the global kernel
+  *  lock, except when an application is doing something nasty
+  *  like trying to un-brk an area that has already been mapped
+diff -puN mm/vmalloc.c~move-die-notifier-handling-to-common-code mm/vmalloc.c
+--- a/mm/vmalloc.c~move-die-notifier-handling-to-common-code
++++ a/mm/vmalloc.c
+@@ -755,3 +755,10 @@ out_einval_locked:
+ }
+ EXPORT_SYMBOL(remap_vmalloc_range);
+ 
++/*
++ * Implement a stub for vmalloc_sync_all() if the architecture chose not to
++ * have one.
++ */
++void  __attribute__((weak)) vmalloc_sync_all(void)
++{
++}
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
-atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+git-scsi-misc.patch
+knfsd-trivial-makefile-cleanup.patch
+aio-is-unlikely.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
