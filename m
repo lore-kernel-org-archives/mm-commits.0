@@ -1,66 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - dm-allow-offline-devices.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:44 -0700
-Message-ID: <200705092148.l49Lmiot002622@shell0.pdx.osdl.net>
+Subject: - dm-crypt-fix-call-to-clone_init.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:31 -0700
+Message-ID: <200705092148.l49LmVKP002599@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53472 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759360AbXEIVsy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:54 -0400
+	by vger.kernel.org with ESMTP id S1754348AbXEIVso (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andmike@us.ibm.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: olaf.kirch@oracle.com, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm: allow offline devices
+     dm crypt: fix call to clone_init
 has been removed from the -mm tree.  Its filename was
-     dm-allow-offline-devices.patch
+     dm-crypt-fix-call-to-clone_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm: allow offline devices
-From: Mike Anderson <andmike@us.ibm.com>
+Subject: dm crypt: fix call to clone_init
+From: Olaf Kirch <olaf.kirch@oracle.com>
 
-Allow check_device_area to succeed if a device has an i_size of zero.  This
-addresses an issue seen on DASD devices setting up a multipath table for paths
-in online and offline state.
+Call clone_init early
 
-Signed-off-by: Mike Anderson <andmike@us.ibm.com>
+We need to call clone_init as early as possible - at least before call
+bio_put(clone) in any error path.  Otherwise, the destructor will try to
+dereference bi_private, which may still be NULL.
+
+Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-table.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/md/dm-crypt.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/dm-table.c~dm-allow-offline-devices drivers/md/dm-table.c
---- a/drivers/md/dm-table.c~dm-allow-offline-devices
-+++ a/drivers/md/dm-table.c
-@@ -425,13 +425,15 @@ static void close_dev(struct dm_dev *d, 
- }
+diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-call-to-clone_init drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-fix-call-to-clone_init
++++ a/drivers/md/dm-crypt.c
+@@ -107,6 +107,8 @@ struct crypt_config {
  
+ static struct kmem_cache *_crypt_io_pool;
+ 
++static void clone_init(struct crypt_io *, struct bio *);
++
  /*
-- * If possible (ie. blk_size[major] is set), this checks an area
-- * of a destination device is valid.
-+ * If possible, this checks an area of a destination device is valid.
+  * Different IV generation algorithms:
+  *
+@@ -379,9 +381,10 @@ static int crypt_convert(struct crypt_co
+  * May return a smaller bio when running out of pages
   */
- static int check_device_area(struct dm_dev *dd, sector_t start, sector_t len)
+ static struct bio *
+-crypt_alloc_buffer(struct crypt_config *cc, unsigned int size,
++crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
+                    struct bio *base_bio, unsigned int *bio_vec_idx)
  {
--	sector_t dev_size;
--	dev_size = dd->bdev->bd_inode->i_size >> SECTOR_SHIFT;
-+	sector_t dev_size = dd->bdev->bd_inode->i_size >> SECTOR_SHIFT;
-+
-+	if (!dev_size)
-+		return 1;
-+
- 	return ((start < dev_size) && (len <= (dev_size - start)));
++	struct crypt_config *cc = io->target->private;
+ 	struct bio *clone;
+ 	unsigned int nr_iovecs = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
+@@ -396,7 +399,7 @@ crypt_alloc_buffer(struct crypt_config *
+ 	if (!clone)
+ 		return NULL;
+ 
+-	clone->bi_destructor = dm_crypt_bio_destructor;
++	clone_init(io, clone);
+ 
+ 	/* if the last bio was not complete, continue where that one ended */
+ 	clone->bi_idx = *bio_vec_idx;
+@@ -562,6 +565,7 @@ static void clone_init(struct crypt_io *
+ 	clone->bi_end_io  = crypt_endio;
+ 	clone->bi_bdev    = cc->dev->bdev;
+ 	clone->bi_rw      = io->base_bio->bi_rw;
++	clone->bi_destructor = dm_crypt_bio_destructor;
  }
  
+ static void process_read(struct crypt_io *io)
+@@ -585,7 +589,6 @@ static void process_read(struct crypt_io
+ 	}
+ 
+ 	clone_init(io, clone);
+-	clone->bi_destructor = dm_crypt_bio_destructor;
+ 	clone->bi_idx = 0;
+ 	clone->bi_vcnt = bio_segments(base_bio);
+ 	clone->bi_size = base_bio->bi_size;
+@@ -615,7 +618,7 @@ static void process_write(struct crypt_i
+ 	 * so repeat the whole process until all the data can be handled.
+ 	 */
+ 	while (remaining) {
+-		clone = crypt_alloc_buffer(cc, base_bio->bi_size,
++		clone = crypt_alloc_buffer(io, base_bio->bi_size,
+ 					   io->first_clone, &bvec_idx);
+ 		if (unlikely(!clone)) {
+ 			dec_pending(io, -ENOMEM);
+@@ -631,7 +634,6 @@ static void process_write(struct crypt_i
+ 			return;
+ 		}
+ 
+-		clone_init(io, clone);
+ 		clone->bi_sector = cc->start + sector;
+ 
+ 		if (!io->first_clone) {
 _
 
-Patches currently in -mm which might be from andmike@us.ibm.com are
+Patches currently in -mm which might be from olaf.kirch@oracle.com are
 
 origin.patch
