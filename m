@@ -1,99 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - pm2fb-removal-of-pm2fb_par-fields.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:02:51 -0700
-Message-ID: <200705090302.l4932ppH010891@shell0.pdx.osdl.net>
+Subject: - vga16fb-actually-support-widths-in-multiples-of-8.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:02:47 -0700
+Message-ID: <200705090302.l4932l8k010879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53616 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033329AbXEIDCx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:53 -0400
+	by vger.kernel.org with ESMTP id S1032804AbXEIDCv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm2fb: removal of pm2fb_par fields
+     vga16fb: actually support widths in multiples of 8
 has been removed from the -mm tree.  Its filename was
-     pm2fb-removal-of-pm2fb_par-fields.patch
+     vga16fb-actually-support-widths-in-multiples-of-8.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm2fb: removal of pm2fb_par fields
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: vga16fb: actually support widths in multiples of 8
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-This patch removes two redundant fields in the pm2fb_par structure.
+vga16fb does not just support 8-pixel wide rectangles, but rectangles with
+widths in multiples of 8.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ drivers/video/vga16fb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-removal-of-pm2fb_par-fields drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-removal-of-pm2fb_par-fields
-+++ a/drivers/video/pm2fb.c
-@@ -81,8 +81,6 @@ static int lowvsync;
- struct pm2fb_par
- {
- 	pm2type_t	type;		/* Board type */
--	u32		fb_size;	/* framebuffer memory size */
--	unsigned char	__iomem *v_fb;  /* virtual address of frame buffer */
- 	unsigned char	__iomem *v_regs;/* virtual address of p_regs */
- 	u32 	   	memclock;	/* memclock */
- 	u32		video;		/* video flags before blanking */
-@@ -1293,20 +1291,19 @@ static int __devinit pm2fb_probe(struct 
- 	/* Now work out how big lfb is going to be. */
- 	switch(default_par->mem_config & PM2F_MEM_CONFIG_RAM_MASK) {
- 	case PM2F_MEM_BANKS_1:
--		default_par->fb_size=0x200000;
-+		pm2fb_fix.smem_len=0x200000;
- 		break;
- 	case PM2F_MEM_BANKS_2:
--		default_par->fb_size=0x400000;
-+		pm2fb_fix.smem_len=0x400000;
- 		break;
- 	case PM2F_MEM_BANKS_3:
--		default_par->fb_size=0x600000;
-+		pm2fb_fix.smem_len=0x600000;
- 		break;
- 	case PM2F_MEM_BANKS_4:
--		default_par->fb_size=0x800000;
-+		pm2fb_fix.smem_len=0x800000;
- 		break;
- 	}
- 	pm2fb_fix.smem_start = pci_resource_start(pdev, 1);
--	pm2fb_fix.smem_len = default_par->fb_size;
+diff -puN drivers/video/vga16fb.c~vga16fb-actually-support-widths-in-multiples-of-8 drivers/video/vga16fb.c
+--- a/drivers/video/vga16fb.c~vga16fb-actually-support-widths-in-multiples-of-8
++++ a/drivers/video/vga16fb.c
+@@ -1378,8 +1378,8 @@ static int __init vga16fb_probe(struct p
+ 	info->fbops = &vga16fb_ops;
+ 	info->var = vga16fb_defined;
+ 	info->fix = vga16fb_fix;
+-	/* supports 8-pixel wide blit rectangles only */
+-	info->pixmap.blit_x = 1 << (8 - 1);
++	/* supports rectangles with widths of multiples of 8 */
++	info->pixmap.blit_x = 1 << 7 | 1 << 15 | 1 << 23 | 1 << 31;
+ 	info->flags = FBINFO_FLAG_DEFAULT |
+ 		FBINFO_HWACCEL_YPAN;
  
- 	/* Linear frame buffer - request region and map it. */
- 	if ( !request_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len,
-@@ -1314,9 +1311,9 @@ static int __devinit pm2fb_probe(struct 
- 		printk(KERN_WARNING "pm2fb: Can't reserve smem.\n");
- 		goto err_exit_mmio;
- 	}
--	info->screen_base = default_par->v_fb =
-+	info->screen_base =
- 		ioremap_nocache(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
--	if ( !default_par->v_fb ) {
-+	if ( !info->screen_base ) {
- 		printk(KERN_WARNING "pm2fb: Can't ioremap smem area.\n");
- 		release_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
- 		goto err_exit_mmio;
-@@ -1344,7 +1341,7 @@ static int __devinit pm2fb_probe(struct 
- 		goto err_exit_both;
- 
- 	printk(KERN_INFO "fb%d: %s frame buffer device, memory = %dK.\n",
--	       info->node, info->fix.id, default_par->fb_size / 1024);
-+	       info->node, info->fix.id, pm2fb_fix.smem_len / 1024);
- 
- 	/*
- 	 * Our driver data
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
+vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+vt8623fb-fix-compile-warnings.patch
+vt8623fb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+arkfb-fix-compiler-warnings.patch
+arkfb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
