@@ -1,192 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-vs-futex-new-private-futexes.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:45:26 -0700
-Message-ID: <200705090945.l499jQpx020290@shell0.pdx.osdl.net>
+Subject: - revoke-core-code-misc-fixes.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:55:37 -0700
+Message-ID: <200705090955.l499tbke020512@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50674 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755674AbXEIJqO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:46:14 -0400
+	by vger.kernel.org with ESMTP id S1757188AbXEIJzo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:55:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dada1@cosmosbay.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest-the-host-code-vs-futex-new-private-futexes
+     revoke: misc fixes
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-vs-futex-new-private-futexes.patch
+     revoke-core-code-misc-fixes.patch
 
-This patch was dropped because it was folded into lguest-the-host-code.patch
+This patch was dropped because it was folded into revoke-core-code.patch
 
 ------------------------------------------------------
-Subject: lguest-the-host-code-vs-futex-new-private-futexes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revoke: misc fixes
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+This is a rollup patch of the following fixes to address some of Andrew's
+review comments:
+
+  - Fix return value type of system calls to long
+  - Add comment for vma->vm_flag barrier
+  - No need for GFP_NOFS for inode allocation, use GFP_KERNEL instead
+  - Remove unnecessary line break before EXPORT_SYMBOL
+
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/io.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+ fs/revoke.c              |    9 +++++----
+ include/linux/syscalls.h |    4 ++--
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/lguest/io.c~lguest-the-host-code-vs-futex-new-private-futexes drivers/lguest/io.c
---- a/drivers/lguest/io.c~lguest-the-host-code-vs-futex-new-private-futexes
-+++ a/drivers/lguest/io.c
-@@ -102,13 +102,14 @@ int bind_dma(struct lguest *lg,
- 	unsigned int i;
- 	int ret = 0;
- 	union futex_key key;
-+	struct rw_semaphore *fshared = &current->mm->mmap_sem;
+diff -puN fs/revoke.c~revoke-core-code-misc-fixes fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-misc-fixes
++++ a/fs/revoke.c
+@@ -167,7 +167,9 @@ static int revoke_vma(struct vm_area_str
+ 	end_addr = vma->vm_end;
  
- 	if (interrupt >= LGUEST_IRQS)
- 		return 0;
- 
- 	mutex_lock(&lguest_lock);
--	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
-+	down_read(fshared);
-+	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
- 		kill_guest(lg, "bad dma key %#lx", ukey);
- 		goto unlock;
- 	}
-@@ -134,7 +135,7 @@ int bind_dma(struct lguest *lg,
- 	}
- 	drop_futex_key_refs(&key);
- unlock:
-- 	up_read(&current->mm->mmap_sem);
-+ 	up_read(fshared);
- 	mutex_unlock(&lguest_lock);
- 	return ret;
+ 	/*
+- 	 * Not holding ->mmap_sem here.
++ 	 * Not holding ->mmap_sem here but we must watch out for page
++ 	 * faults and after the shared mappings have been taken down
++ 	 * and sys_mmap() trying to remap the revoked range.
+ 	 */
+ 	vma->vm_flags |= VM_REVOKED;
+ 	smp_mb();
+@@ -455,7 +457,7 @@ static int do_revoke(struct inode *inode
+ 	return err;
  }
-@@ -307,11 +308,12 @@ void send_dma(struct lguest *lg, unsigne
+ 
+-asmlinkage int sys_revokeat(int dfd, const char __user * filename)
++asmlinkage long sys_revokeat(int dfd, const char __user * filename)
  {
- 	union futex_key key;
- 	int empty = 0;
-+	struct rw_semaphore *fshared = &current->mm->mmap_sem;
- 
- again:
- 	mutex_lock(&lguest_lock);
--	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
-+	down_read(fshared);
-+	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
- 		kill_guest(lg, "bad sending DMA key");
- 		goto unlock;
- 	}
-@@ -342,7 +344,7 @@ again:
- 		lg->pending_key = ukey;
- 	}
- unlock:
--	up_read(&current->mm->mmap_sem);
-+	up_read(fshared);
- 	mutex_unlock(&lguest_lock);
+ 	struct nameidata nd;
+ 	int err;
+@@ -499,7 +501,6 @@ int generic_file_revoke(struct file *fil
+   out:
+ 	return err;
  }
+-
+ EXPORT_SYMBOL(generic_file_revoke);
  
-@@ -382,10 +384,11 @@ unsigned long get_dma_buffer(struct lgue
- 	unsigned long ret = 0;
- 	union futex_key key;
- 	struct lguest_dma_info *i;
-+	struct rw_semaphore *fshared = &current->mm->mmap_sem;
+ /*
+@@ -510,7 +511,7 @@ static struct inode *revokefs_alloc_inod
+ {
+ 	struct revokefs_inode_info *info;
  
- 	mutex_lock(&lguest_lock);
--	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
-+	down_read(fshared);
-+	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
- 		kill_guest(lg, "bad registered DMA buffer");
- 		goto unlock;
- 	}
-@@ -405,7 +408,7 @@ unsigned long get_dma_buffer(struct lgue
- 		}
- 	}
- unlock:
--	up_read(&current->mm->mmap_sem);
-+	up_read(fshared);
- 	mutex_unlock(&lguest_lock);
- 	return ret;
- }
+-	info = kmem_cache_alloc(revokefs_inode_cache, GFP_NOFS);
++	info = kmem_cache_alloc(revokefs_inode_cache, GFP_KERNEL);
+ 	if (!info)
+ 		return NULL;
+ 
+diff -puN include/linux/syscalls.h~revoke-core-code-misc-fixes include/linux/syscalls.h
+--- a/include/linux/syscalls.h~revoke-core-code-misc-fixes
++++ a/include/linux/syscalls.h
+@@ -609,7 +609,7 @@ asmlinkage long sys_eventfd(unsigned int
+ 
+ int kernel_execve(const char *filename, char *const argv[], char *const envp[]);
+ 
+-asmlinkage int sys_revokeat(int dfd, const char __user *filename);
+-asmlinkage int sys_frevoke(unsigned int fd);
++asmlinkage long sys_revokeat(int dfd, const char __user *filename);
++asmlinkage long sys_frevoke(unsigned int fd);
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
-mmc-build-fix.patch
-slub-add-support-for-dynamic-cacheline-size-determination.patch
-swsusp-clean-up-print.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-nbd-check-the-return-value-of-sysfs_create_file.patch
-mutex_lock_interruptible-add-__must_check.patch
-afs-implement-basic-file-write-support.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-fs-convert-core-functions-to-zero_user_page.patch
-rename-thread_info-to-stack.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ia64-sa_interrupt-is-deprecated.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-battery-fix.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
+krealloc-fix-kerneldoc-comments.patch
+slab-use-cpu_lock_.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-core-code-break-cow-for-private-mappings.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+revoke-core-code-break-cow-fixes.patch
+revoke-core-code-mapping-revocation.patch
+revoke-core-code-only-fput-unused-files.patch
+revoke-core-code-rename-to-can_revoke_filevma.patch
+revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
+revoke-core-code-do_revoke-error-handling.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
 revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-ntfs-use-zero_user_page.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+slab-leaks3-default-y.patch
