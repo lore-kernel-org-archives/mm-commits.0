@@ -1,128 +1,334 @@
 From: akpm@linux-foundation.org
-Subject: - make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:16 -0700
-Message-ID: <200705090253.l492rGUK009674@shell0.pdx.osdl.net>
+Subject: - fix-vfat-compat-ioctls-on-64-bit-systems.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:02 -0700
+Message-ID: <200705090252.l492q2p3009530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54215 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032083AbXEICx2 (ORCPT
+	by vger.kernel.org with ESMTP id S1032008AbXEICx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, bartoldeman@users.sourceforge.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/isdn/capi/capiutil.c:cdebbuf_alloc() static
+     fat: fix VFAT compat ioctls on 64-bit systems
 has been removed from the -mm tree.  Its filename was
-     make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+     fix-vfat-compat-ioctls-on-64-bit-systems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make drivers/isdn/capi/capiutil.c:cdebbuf_alloc() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fat: fix VFAT compat ioctls on 64-bit systems
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Karsten Keil <kkeil@suse.de>
+If you compile and run the below test case in an msdos or vfat directory on
+an x86-64 system with -m32 you'll get garbage in the kernel_dirent struct
+followed by a SIGSEGV.
+
+The patch fixes this.
+
+Reported and initial fix by Bart Oldeman
+
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+struct kernel_dirent {
+         long            d_ino;
+         long		d_off;
+         unsigned short  d_reclen;
+         char            d_name[256]; /* We must not include limits.h! */
+};
+#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])
+#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])
+
+int main(void)
+{
+         int fd = open(".", O_RDONLY);
+         struct kernel_dirent de[2];
+
+         while (1) {
+                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);
+                 if (i == -1) break;
+                 if (de[0].d_reclen == 0) break;
+                 printf("SFN: reclen=%2d off=%d ino=%d, %-12s",
+ 		       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);
+ 		if (de[1].d_reclen)
+ 		  printf("\tLFN: reclen=%2d off=%d ino=%d, %s",
+ 		    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);
+ 		printf("\n");
+         }
+         return 0;
+}
+
+Signed-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capiutil.c  |    8 +-------
- include/linux/isdn/capiutil.h |    1 -
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ fs/fat/dir.c |  199 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 100 insertions(+), 99 deletions(-)
 
-diff -puN drivers/isdn/capi/capiutil.c~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static drivers/isdn/capi/capiutil.c
---- a/drivers/isdn/capi/capiutil.c~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static
-+++ a/drivers/isdn/capi/capiutil.c
-@@ -855,7 +855,7 @@ static _cdebbuf *g_debbuf;
- static u_long g_debbuf_lock;
- static _cmsg *g_cmsg;
+diff -puN fs/fat/dir.c~fix-vfat-compat-ioctls-on-64-bit-systems fs/fat/dir.c
+--- a/fs/fat/dir.c~fix-vfat-compat-ioctls-on-64-bit-systems
++++ a/fs/fat/dir.c
+@@ -422,7 +422,7 @@ EODir:
+ EXPORT_SYMBOL_GPL(fat_search_long);
  
--_cdebbuf *cdebbuf_alloc(void)
-+static _cdebbuf *cdebbuf_alloc(void)
- {
- 	_cdebbuf *cdb;
- 
-@@ -989,11 +989,6 @@ _cdebbuf *capi_cmsg2str(_cmsg * cmsg)
- 	return &g_debbuf;
+ struct fat_ioctl_filldir_callback {
+-	struct dirent __user *dirent;
++	void __user *dirent;
+ 	int result;
+ 	/* for dir ioctl */
+ 	const char *longname;
+@@ -647,62 +647,85 @@ static int fat_readdir(struct file *filp
+ 	return __fat_readdir(inode, filp, dirent, filldir, 0, 0);
  }
  
--_cdebbuf *cdebbuf_alloc(void)
+-static int fat_ioctl_filldir(void *__buf, const char *name, int name_len,
+-			     loff_t offset, u64 ino, unsigned int d_type)
++#define FAT_IOCTL_FILLDIR_FUNC(func, dirent_type)			   \
++static int func(void *__buf, const char *name, int name_len,		   \
++			     loff_t offset, u64 ino, unsigned int d_type)  \
++{									   \
++	struct fat_ioctl_filldir_callback *buf = __buf;			   \
++	struct dirent_type __user *d1 = buf->dirent;			   \
++	struct dirent_type __user *d2 = d1 + 1;				   \
++									   \
++	if (buf->result)						   \
++		return -EINVAL;						   \
++	buf->result++;							   \
++									   \
++	if (name != NULL) {						   \
++		/* dirent has only short name */			   \
++		if (name_len >= sizeof(d1->d_name))			   \
++			name_len = sizeof(d1->d_name) - 1;		   \
++									   \
++		if (put_user(0, d2->d_name)			||	   \
++		    put_user(0, &d2->d_reclen)			||	   \
++		    copy_to_user(d1->d_name, name, name_len)	||	   \
++		    put_user(0, d1->d_name + name_len)		||	   \
++		    put_user(name_len, &d1->d_reclen))			   \
++			goto efault;					   \
++	} else {							   \
++		/* dirent has short and long name */			   \
++		const char *longname = buf->longname;			   \
++		int long_len = buf->long_len;				   \
++		const char *shortname = buf->shortname;			   \
++		int short_len = buf->short_len;				   \
++									   \
++		if (long_len >= sizeof(d1->d_name))			   \
++			long_len = sizeof(d1->d_name) - 1;		   \
++		if (short_len >= sizeof(d1->d_name))			   \
++			short_len = sizeof(d1->d_name) - 1;		   \
++									   \
++		if (copy_to_user(d2->d_name, longname, long_len)	|| \
++		    put_user(0, d2->d_name + long_len)			|| \
++		    put_user(long_len, &d2->d_reclen)			|| \
++		    put_user(ino, &d2->d_ino)				|| \
++		    put_user(offset, &d2->d_off)			|| \
++		    copy_to_user(d1->d_name, shortname, short_len)	|| \
++		    put_user(0, d1->d_name + short_len)			|| \
++		    put_user(short_len, &d1->d_reclen))			   \
++			goto efault;					   \
++	}								   \
++	return 0;							   \
++efault:									   \
++	buf->result = -EFAULT;						   \
++	return -EFAULT;							   \
++}
++
++FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, dirent)
++
++static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
++			     void __user *dirent, filldir_t filldir,
++			     int short_only, int both)
+ {
+-	struct fat_ioctl_filldir_callback *buf = __buf;
+-	struct dirent __user *d1 = buf->dirent;
+-	struct dirent __user *d2 = d1 + 1;
+-
+-	if (buf->result)
+-		return -EINVAL;
+-	buf->result++;
+-
+-	if (name != NULL) {
+-		/* dirent has only short name */
+-		if (name_len >= sizeof(d1->d_name))
+-			name_len = sizeof(d1->d_name) - 1;
+-
+-		if (put_user(0, d2->d_name)			||
+-		    put_user(0, &d2->d_reclen)			||
+-		    copy_to_user(d1->d_name, name, name_len)	||
+-		    put_user(0, d1->d_name + name_len)		||
+-		    put_user(name_len, &d1->d_reclen))
+-			goto efault;
+-	} else {
+-		/* dirent has short and long name */
+-		const char *longname = buf->longname;
+-		int long_len = buf->long_len;
+-		const char *shortname = buf->shortname;
+-		int short_len = buf->short_len;
+-
+-		if (long_len >= sizeof(d1->d_name))
+-			long_len = sizeof(d1->d_name) - 1;
+-		if (short_len >= sizeof(d1->d_name))
+-			short_len = sizeof(d1->d_name) - 1;
+-
+-		if (copy_to_user(d2->d_name, longname, long_len)	||
+-		    put_user(0, d2->d_name + long_len)			||
+-		    put_user(long_len, &d2->d_reclen)			||
+-		    put_user(ino, &d2->d_ino)				||
+-		    put_user(offset, &d2->d_off)			||
+-		    copy_to_user(d1->d_name, shortname, short_len)	||
+-		    put_user(0, d1->d_name + short_len)			||
+-		    put_user(short_len, &d1->d_reclen))
+-			goto efault;
++	struct fat_ioctl_filldir_callback buf;
++	int ret;
++
++	buf.dirent = dirent;
++	buf.result = 0;
++	mutex_lock(&inode->i_mutex);
++	ret = -ENOENT;
++	if (!IS_DEADDIR(inode)) {
++		ret = __fat_readdir(inode, filp, &buf, filldir,
++				    short_only, both);
+ 	}
+-	return 0;
+-efault:
+-	buf->result = -EFAULT;
+-	return -EFAULT;
++	mutex_unlock(&inode->i_mutex);
++	if (ret >= 0)
++		ret = buf.result;
++	return ret;
+ }
+ 
+-static int fat_dir_ioctl(struct inode * inode, struct file * filp,
+-		  unsigned int cmd, unsigned long arg)
++static int fat_dir_ioctl(struct inode *inode, struct file *filp,
++			 unsigned int cmd, unsigned long arg)
+ {
+-	struct fat_ioctl_filldir_callback buf;
+-	struct dirent __user *d1;
+-	int ret, short_only, both;
++	struct dirent __user *d1 = (struct dirent __user *)arg;
++	int short_only, both;
+ 
+ 	switch (cmd) {
+ 	case VFAT_IOCTL_READDIR_SHORT:
+@@ -717,7 +740,6 @@ static int fat_dir_ioctl(struct inode * 
+ 		return fat_generic_ioctl(inode, filp, cmd, arg);
+ 	}
+ 
+-	d1 = (struct dirent __user *)arg;
+ 	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct dirent[2])))
+ 		return -EFAULT;
+ 	/*
+@@ -728,69 +750,48 @@ static int fat_dir_ioctl(struct inode * 
+ 	if (put_user(0, &d1->d_reclen))
+ 		return -EFAULT;
+ 
+-	buf.dirent = d1;
+-	buf.result = 0;
+-	mutex_lock(&inode->i_mutex);
+-	ret = -ENOENT;
+-	if (!IS_DEADDIR(inode)) {
+-		ret = __fat_readdir(inode, filp, &buf, fat_ioctl_filldir,
+-				    short_only, both);
+-	}
+-	mutex_unlock(&inode->i_mutex);
+-	if (ret >= 0)
+-		ret = buf.result;
+-	return ret;
++	return fat_ioctl_readdir(inode, filp, d1, fat_ioctl_filldir,
++				 short_only, both);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+ #define	VFAT_IOCTL_READDIR_BOTH32	_IOR('r', 1, struct compat_dirent[2])
+ #define	VFAT_IOCTL_READDIR_SHORT32	_IOR('r', 2, struct compat_dirent[2])
+ 
+-static long fat_compat_put_dirent32(struct dirent *d,
+-				    struct compat_dirent __user *d32)
 -{
--	return &g_debbuf;
+-        if (!access_ok(VERIFY_WRITE, d32, sizeof(struct compat_dirent)))
+-                return -EFAULT;
++FAT_IOCTL_FILLDIR_FUNC(fat_compat_ioctl_filldir, compat_dirent)
+ 
+-        __put_user(d->d_ino, &d32->d_ino);
+-        __put_user(d->d_off, &d32->d_off);
+-        __put_user(d->d_reclen, &d32->d_reclen);
+-        if (__copy_to_user(d32->d_name, d->d_name, d->d_reclen))
+-		return -EFAULT;
+-
+-        return 0;
 -}
 -
- void cdebbuf_free(_cdebbuf *cdb)
+-static long fat_compat_dir_ioctl(struct file *file, unsigned cmd,
++static long fat_compat_dir_ioctl(struct file *filp, unsigned cmd,
+ 				 unsigned long arg)
  {
+-	struct compat_dirent __user *p = compat_ptr(arg);
+-	int ret;
+-	mm_segment_t oldfs = get_fs();
+-	struct dirent d[2];
++	struct inode *inode = filp->f_path.dentry->d_inode;
++	struct compat_dirent __user *d1 = compat_ptr(arg);
++	int short_only, both;
+ 
+ 	switch (cmd) {
+-	case VFAT_IOCTL_READDIR_BOTH32:
+-		cmd = VFAT_IOCTL_READDIR_BOTH;
+-		break;
+ 	case VFAT_IOCTL_READDIR_SHORT32:
+-		cmd = VFAT_IOCTL_READDIR_SHORT;
++		short_only = 1;
++		both = 0;
++		break;
++	case VFAT_IOCTL_READDIR_BOTH32:
++		short_only = 0;
++		both = 1;
+ 		break;
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+ 
+-	set_fs(KERNEL_DS);
+-	lock_kernel();
+-	ret = fat_dir_ioctl(file->f_path.dentry->d_inode, file,
+-			    cmd, (unsigned long) &d);
+-	unlock_kernel();
+-	set_fs(oldfs);
+-	if (ret >= 0) {
+-		ret |= fat_compat_put_dirent32(&d[0], p);
+-		ret |= fat_compat_put_dirent32(&d[1], p + 1);
+-	}
+-	return ret;
++	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct compat_dirent[2])))
++		return -EFAULT;
++	/*
++	 * Yes, we don't need this put_user() absolutely. However old
++	 * code didn't return the right value. So, app use this value,
++	 * in order to check whether it is EOF.
++	 */
++	if (put_user(0, &d1->d_reclen))
++		return -EFAULT;
++
++	return fat_ioctl_readdir(inode, filp, d1, fat_compat_ioctl_filldir,
++				 short_only, both);
  }
-@@ -1009,7 +1004,6 @@ void __exit cdebug_exit(void)
+ #endif /* CONFIG_COMPAT */
  
- #endif
- 
--EXPORT_SYMBOL(cdebbuf_alloc);
- EXPORT_SYMBOL(cdebbuf_free);
- EXPORT_SYMBOL(capi_cmsg2message);
- EXPORT_SYMBOL(capi_message2cmsg);
-diff -puN include/linux/isdn/capiutil.h~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static include/linux/isdn/capiutil.h
---- a/include/linux/isdn/capiutil.h~make-drivers-isdn-capi-capiutilccdebbuf_alloc-static
-+++ a/include/linux/isdn/capiutil.h
-@@ -187,7 +187,6 @@ typedef struct {
- #define	CDEBUG_SIZE	1024
- #define	CDEBUG_GSIZE	4096
- 
--_cdebbuf *cdebbuf_alloc(void);
- void cdebbuf_free(_cdebbuf *cdb);
- int cdebug_init(void);
- void cdebug_exit(void);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-git-dvb.patch
-git-ieee1394.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-unexport-pci_proc_attach_device.patch
-ext2-reservations.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
