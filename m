@@ -1,78 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - proc-remove-pathetic-deleted-warn_on.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:03 -0700
-Message-ID: <200705090246.l492k3B8008807@shell0.pdx.osdl.net>
+Subject: - optimize-timespec_trunc.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:44 -0700
+Message-ID: <200705090245.l492jiDI008771@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40926 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969092AbXEICql (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:41 -0400
+	by vger.kernel.org with ESMTP id S1031793AbXEICqi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: remove pathetic ->deleted WARN_ON
+     Optimize timespec_trunc()
 has been removed from the -mm tree.  Its filename was
-     proc-remove-pathetic-deleted-warn_on.patch
+     optimize-timespec_trunc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proc: remove pathetic ->deleted WARN_ON
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: Optimize timespec_trunc()
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-WARN_ON(de && de->deleted); is sooo unreliable. Why?
+The first thing done by timespec_trunc() is :
 
-proc_lookup				remove_proc_entry
-===========				=================
-lock_kernel();
-spin_lock(&proc_subdir_lock);
-[find proc entry]
-spin_unlock(&proc_subdir_lock);
-					spin_lock(&proc_subdir_lock);
-					[find proc entry]
+  if (gran <= jiffies_to_usecs(1) * 1000)
 
-proc_get_inode
-==============
-WARN_ON(de && de->deleted);			...
+This should really be a test against a constant known at compile time.
 
-					if (!atomic_read(&de->count))
-						free_proc_entry(de);
-					else
-						de->deleted = 1;
+Alas, it isnt. jiffies_to_usec() was unilined so C compiler emits a function
+call and a multiply to compute : a CONSTANT.
 
-So, if you have some strange oops [1], and doesn't see this WARN_ON it means
-nothing.
+mov    $0x1,%edi
+mov    %rbx,0xffffffffffffffe8(%rbp)
+mov    %r12,0xfffffffffffffff0(%rbp)
+mov    %edx,%ebx
+mov    %rsi,0xffffffffffffffc8(%rbp)
+mov    %rsi,%r12
+callq  ffffffff80232010 <jiffies_to_usecs>
+imul   $0x3e8,%eax,%eax
+cmp    %ebx,%eax
 
-[1] try_module_get() of module which doesn't exist, two lines below
-    should suffice, or not?
+This patch reorders kernel/time.c a bit so that jiffies_to_usecs() is defined
+before timespec_trunc() so that compiler now generates :
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+cmp    $0x3d0900,%edx  (HZ=250 on my machine)
+
+This gives a better code (timespec_trunc() becoming a leaf function), and
+shorter kernel size as well.
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/time.c |   60 ++++++++++++++++++++++++------------------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
-diff -puN fs/proc/inode.c~proc-remove-pathetic-deleted-warn_on fs/proc/inode.c
---- a/fs/proc/inode.c~proc-remove-pathetic-deleted-warn_on
-+++ a/fs/proc/inode.c
-@@ -146,8 +146,6 @@ struct inode *proc_get_inode(struct supe
- {
- 	struct inode * inode;
+diff -puN kernel/time.c~optimize-timespec_trunc kernel/time.c
+--- a/kernel/time.c~optimize-timespec_trunc
++++ a/kernel/time.c
+@@ -247,6 +247,36 @@ struct timespec current_fs_time(struct s
+ }
+ EXPORT_SYMBOL(current_fs_time);
  
--	WARN_ON(de && de->deleted);
++/*
++ * Convert jiffies to milliseconds and back.
++ *
++ * Avoid unnecessary multiplications/divisions in the
++ * two most common HZ cases:
++ */
++unsigned int inline jiffies_to_msecs(const unsigned long j)
++{
++#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
++	return (MSEC_PER_SEC / HZ) * j;
++#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
++	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
++#else
++	return (j * MSEC_PER_SEC) / HZ;
++#endif
++}
++EXPORT_SYMBOL(jiffies_to_msecs);
++
++unsigned int inline jiffies_to_usecs(const unsigned long j)
++{
++#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
++	return (USEC_PER_SEC / HZ) * j;
++#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
++	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
++#else
++	return (j * USEC_PER_SEC) / HZ;
++#endif
++}
++EXPORT_SYMBOL(jiffies_to_usecs);
++
+ /**
+  * timespec_trunc - Truncate timespec to a granularity
+  * @t: Timespec
+@@ -473,36 +503,6 @@ struct timeval ns_to_timeval(const s64 n
+ EXPORT_SYMBOL(ns_to_timeval);
+ 
+ /*
+- * Convert jiffies to milliseconds and back.
+- *
+- * Avoid unnecessary multiplications/divisions in the
+- * two most common HZ cases:
+- */
+-unsigned int jiffies_to_msecs(const unsigned long j)
+-{
+-#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
+-	return (MSEC_PER_SEC / HZ) * j;
+-#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
+-	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
+-#else
+-	return (j * MSEC_PER_SEC) / HZ;
+-#endif
+-}
+-EXPORT_SYMBOL(jiffies_to_msecs);
 -
- 	if (de != NULL && !try_module_get(de->owner))
- 		goto out_mod;
- 
+-unsigned int jiffies_to_usecs(const unsigned long j)
+-{
+-#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
+-	return (USEC_PER_SEC / HZ) * j;
+-#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
+-	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
+-#else
+-	return (j * USEC_PER_SEC) / HZ;
+-#endif
+-}
+-EXPORT_SYMBOL(jiffies_to_usecs);
+-
+-/*
+  * When we convert to jiffies then we interpret incoming values
+  * the following way:
+  *
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-2621-rc5-mm3-fix-e1000-compilation.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+splice-and-readahead-interaction.patch
+futex-new-private-futexes.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
