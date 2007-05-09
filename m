@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch added to -mm tree
-Date: Wed, 09 May 2007 16:26:44 -0700
-Message-ID: <200705092326.l49NQiHY005635@shell0.pdx.osdl.net>
+Subject: + add-support-for-xilinx-systemace-compactflash-interface.patch added to -mm tree
+Date: Wed, 09 May 2007 16:28:00 -0700
+Message-ID: <200705092328.l49NS0YK005651@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43665 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756665AbXEIX0s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 19:26:48 -0400
+	by vger.kernel.org with ESMTP id S1756962AbXEIX2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 19:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: grant.likely@secretlab.ca
+Cc: grant.likely@secretlab.ca, axboe@kernel.dk, jwilliams@itee.uq.edu.au, sr@denx.de
 
 
 The patch titled
-     i2c: add driver for Dallas DS1682 elapsed time recorder
+     Add support for Xilinx SystemACE CompactFlash interface
 has been added to the -mm tree.  Its filename is
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+     add-support-for-xilinx-systemace-compactflash-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,419 +25,1222 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c: add driver for Dallas DS1682 elapsed time recorder
+Subject: Add support for Xilinx SystemACE CompactFlash interface
 From: Grant Likely <grant.likely@secretlab.ca>
 
+Tested on Xilinx Virtex ppc405, Katmai 440SPe, and Microblaze
+
 Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: Stefan Roese <sr@denx.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John William <jwilliams@itee.uq.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/Kconfig  |   10 
- drivers/i2c/chips/Makefile |    1 
- drivers/i2c/chips/ds1682.c |  363 +++++++++++++++++++++++++++++++++++
- 3 files changed, 374 insertions(+)
+ drivers/block/Kconfig   |    6 
+ drivers/block/Makefile  |    1 
+ drivers/block/xsysace.c | 1166 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1173 insertions(+)
 
-diff -puN drivers/i2c/chips/Kconfig~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder
-+++ a/drivers/i2c/chips/Kconfig
-@@ -24,6 +24,16 @@ config SENSORS_DS1374
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ds1374.
+diff -puN drivers/block/Kconfig~add-support-for-xilinx-systemace-compactflash-interface drivers/block/Kconfig
+--- a/drivers/block/Kconfig~add-support-for-xilinx-systemace-compactflash-interface
++++ a/drivers/block/Kconfig
+@@ -453,6 +453,12 @@ config ATA_OVER_ETH
+ 	This driver provides Support for ATA over Ethernet block
+ 	devices like the Coraid EtherDrive (R) Storage Blade.
  
-+config SENSORS_DS1682
-+	tristate "Maxim/Dallas DS1682 Total Elapsed Time Recorder with Alarm"
-+	depends on I2C && EXPERIMENTAL
++config XILINX_SYSACE
++	tristate "Xilinx SystemACE support"
++	depends on 4xx
 +	help
-+	  If you say yes here you get support for Dallas Semiconductor
-+	  DS1682 Total Elapsed Time Recorder
++	  Include support for the Xilinx SystemACE CompactFlash interface
 +
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called ds1682.
-+
- config SENSORS_EEPROM
- 	tristate "EEPROM reader"
- 	depends on EXPERIMENTAL
-diff -puN drivers/i2c/chips/Makefile~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder drivers/i2c/chips/Makefile
---- a/drivers/i2c/chips/Makefile~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder
-+++ a/drivers/i2c/chips/Makefile
-@@ -4,6 +4,7 @@
+ endmenu
  
- obj-$(CONFIG_SENSORS_DS1337)	+= ds1337.o
- obj-$(CONFIG_SENSORS_DS1374)	+= ds1374.o
-+obj-$(CONFIG_SENSORS_DS1682)	+= ds1682.o
- obj-$(CONFIG_SENSORS_EEPROM)	+= eeprom.o
- obj-$(CONFIG_SENSORS_MAX6875)	+= max6875.o
- obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
-diff -puN /dev/null drivers/i2c/chips/ds1682.c
+ endif
+diff -puN drivers/block/Makefile~add-support-for-xilinx-systemace-compactflash-interface drivers/block/Makefile
+--- a/drivers/block/Makefile~add-support-for-xilinx-systemace-compactflash-interface
++++ a/drivers/block/Makefile
+@@ -28,4 +28,5 @@ obj-$(CONFIG_BLK_DEV_CRYPTOLOOP) += cryp
+ obj-$(CONFIG_VIODASD)		+= viodasd.o
+ obj-$(CONFIG_BLK_DEV_SX8)	+= sx8.o
+ obj-$(CONFIG_BLK_DEV_UB)	+= ub.o
++obj-$(CONFIG_XILINX_SYSACE)	+= xsysace.o
+ 
+diff -puN /dev/null drivers/block/xsysace.c
 --- /dev/null
-+++ a/drivers/i2c/chips/ds1682.c
-@@ -0,0 +1,363 @@
++++ a/drivers/block/xsysace.c
+@@ -0,0 +1,1166 @@
 +/*
-+ * Dallas Semiconductor DS1682 Elapsed Time Recorder device driver
++ * Xilinx SystemACE device driver
 + *
-+ * Written by: Grant Likely <grant.likely@secretlab.ca>
++ * Copyright 2007 Secret Lab Technologies Ltd.
 + *
-+ * Copyright (C) 2007 Secret Lab Technologies Ltd.
-+ * Copyright (C) 2005 James Chapman <jchapman@katalix.com>
-+ * Copyright (C) 2000 Russell King
-+ *
-+ * Derived from ds1337 real time clock device driver
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published
++ * by the Free Software Foundation.
 + */
 +
 +/*
-+ * The DS1682 elapsed timer recorder is a simple device that implements
-+ * one elapsed time counters, one event counter, an alarm signal and 10
-+ * bytes of general purpose EEPROM.
++ * The SystemACE chip is designed to configure FPGAs by loading an FPGA
++ * bitstream from a file on a CF card and squirting it into FPGAs connected
++ * to the SystemACE JTAG chain.  It also has the advantage of providing an
++ * MPU interface which can be used to control the FPGA configuration process
++ * and to use the attached CF card for general purpose storage.
 + *
-+ * This driver provides access to the DS1682 counters and user data via
-+ * the sysfs.  The following attributes are added to the device node:
-+ *     elapsed_time (u32): Total elapsed event time in 1/4s resolution
-+ *     alarm_time (u32): When elapsed time exceeds the value in alarm_time,
-+ *                       then the alarm pin is asserted.
-+ *     event_count (u16): number of times the event pin has gone low.
-+ *     user_data (u8[10]): general purpose EEPROM
++ * This driver is a block device driver for the SystemACE.
 + *
-+ * Counter registers and user data are both read/write unless the device
-+ * has been write protected.  This driver does not support turning on write
-+ * protection.  Once write protection is turned on, it is impossible to
-+ * turn off so I have left the feature out of this driver to avoid
-+ * accidental enabling, but it is trivial to add write protect support.
++ * Initialization:
++ *    The driver registers itself as a platform_device driver at module
++ *    load time.  The platform bus will take care of calling the
++ *    ace_probe() method for all SystemACE instances in the system.  Any
++ *    number of SystemACE instances are supported.  ace_probe() calls
++ *    ace_setup() which initialized all data structures, reads the CF
++ *    id structure and registers the device.
 + *
++ * Processing:
++ *    Just about all of the heavy lifting in this driver is performed by
++ *    a Finite State Machine (FSM).  The driver needs to wait on a number
++ *    of events; some raised by interrupts, some which need to be polled
++ *    for.  Describing all of the behaviour in a FSM seems to be the
++ *    easiest way to keep the complexity low and make it easy to
++ *    understand what the driver is doing.  If the block ops or the
++ *    request function need to interact with the hardware, then they
++ *    simply need to flag the request and kick of FSM processing.
++ *
++ *    The FSM itself is atomic-safe code which can be run from any
++ *    context.  The general process flow is:
++ *    1. obtain the ace->lock spinlock.
++ *    2. loop on ace_fsm_dostate() until the ace->fsm_continue flag is
++ *       cleared.
++ *    3. release the lock.
++ *
++ *    Individual states do not sleep in any way.  If a condition needs to
++ *    be waited for then the state much clear the fsm_continue flag and
++ *    either schedule the FSM to be run again at a later time, or expect
++ *    an interrupt to call the FSM when the desired condition is met.
++ *
++ *    In normal operation, the FSM is processed at interrupt context
++ *    either when the driver's tasklet is scheduled, or when an irq is
++ *    raised by the hardware.  The tasklet can be scheduled at any time.
++ *    The request method in particular schedules the tasklet when a new
++ *    request has been indicated by the block layer.  Once started, the
++ *    FSM proceeds as far as it can processing the request until it
++ *    needs on a hardware event.  At this point, it must yield execution.
++ *
++ *    A state has two options when yielding execution:
++ *    1. ace_fsm_yield()
++ *       - Call if need to poll for event.
++ *       - clears the fsm_continue flag to exit the processing loop
++ *       - reschedules the tasklet to run again as soon as possible
++ *    2. ace_fsm_yieldirq()
++ *       - Call if an irq is expected from the HW
++ *       - clears the fsm_continue flag to exit the processing loop
++ *       - does not reschedule the tasklet so the FSM will not be processed
++ *         again until an irq is received.
++ *    After calling a yield function, the state must return control back
++ *    to the FSM main loop.
++ *
++ *    Additionally, the driver maintains a kernel timer which can process
++ *    the FSM.  If the FSM gets stalled, typically due to a missed
++ *    interrupt, then the kernel timer will expire and the driver can
++ *    continue where it left off.
++ *
++ * To Do:
++ *    - Add FPGA configuration control interface.
++ *    - Request major number from lanana
 + */
 +
-+#define DEBUG
++#undef DEBUG
 +
-+#include <linux/device.h>
 +#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/string.h>
-+#include <linux/bcd.h>
-+#include <linux/list.h>
-+#include <linux/sysfs.h>
 +#include <linux/ctype.h>
-+
-+/* Device registers */
-+#define DS1682_ADDR			0x6B
-+
-+#define DS1682_REG_CONFIG		0x00
-+#define DS1682_REG_ALARM		0x01
-+#define DS1682_REG_ELAPSED		0x05
-+#define DS1682_REG_EVT_CNTR		0x09
-+#define DS1682_REG_USER_DATA		0x0b
-+#define DS1682_REG_RESET		0x1d
-+#define DS1682_REG_WRITE_DISABLE	0x1e
-+#define DS1682_REG_WRITE_MEM_DISABLE	0x1f
-+
-+/*
-+ * Probing class
-+ */
-+static unsigned short normal_i2c[] = { DS1682_ADDR, I2C_CLIENT_END };
-+
-+I2C_CLIENT_INSMOD;
-+
-+/*
-+ * Low level chip access functions
-+ */
-+static int ds1682_read(struct i2c_client *client, int reg, void *buf, int len)
-+{
-+	u8 *bytes = buf;
-+	int val;
-+
-+	while (len--) {
-+		val = i2c_smbus_read_byte_data(client, reg++);
-+		if (val < 0)
-+			return -EIO;
-+		*bytes++ = val;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Generic counter attributes
-+ */
-+static int ds1682_attr_to_reg(struct device_attribute *attr, int *regsize);
-+
-+static ssize_t ds1682_show(struct device *dev,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	u32 val = 0;
-+	int reg;
-+	int regsize;
-+
-+	dev_dbg(dev, "ds1682_show() called for %s\n", attr->attr.name);
-+
-+	/* Get the register address */
-+	reg = ds1682_attr_to_reg(attr, &regsize);
-+	if (reg < 0)
-+		return -EIO;
-+
-+	/* Read the register */
-+	if (ds1682_read(to_i2c_client(dev), reg, &val, regsize))
-+		return -EIO;
-+
-+	/* Format the output string and return # of bytes */
-+	return sprintf(buf, "0x%.2x\n", le32_to_cpu(val));
-+}
-+
-+static ssize_t ds1682_store(struct device *dev,
-+			    struct device_attribute *attr, const char *buf,
-+			    size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int reg;
-+	int regsize;
-+	char *endp;
-+	u32 val;
-+	int rc;
-+
-+	/* Sanitize the input */
-+	reg = ds1682_attr_to_reg(attr, &regsize);
-+
-+	if ((reg < 0) || (count >= 16) || (buf[count] != '\0')) {
-+		dev_dbg(dev, "insane input; reg=0x%i count=%i%s\n",
-+			reg, count, buf[count] == '\0' ? " unterminated" : "");
-+		return -EIO;
-+	}
-+
-+	/* Decode input */
-+	val = simple_strtoul(buf, &endp, 0);
-+	if (buf == endp) {
-+		dev_dbg(dev, "input string not a number\n");
-+		return -EIO;
-+	}
-+
-+	/* write out the value */
-+	val = cpu_to_le32(val);
-+	rc = i2c_smbus_write_i2c_block_data(client, reg, regsize, (void *)&val);
-+	if (rc < 0) {
-+		dev_err(dev, "register write failed; reg=0x%x, size=%i\n",
-+			reg, regsize);
-+		return -EIO;
-+	}
-+
-+	return count;
-+}
-+
-+/*
-+ * Simple register attributes
-+ */
-+DEVICE_ATTR(config, S_IRUGO, ds1682_show, NULL);
-+DEVICE_ATTR(elapsed_time, S_IRUGO | S_IWUSR, ds1682_show, ds1682_store);
-+DEVICE_ATTR(alarm_time, S_IRUGO | S_IWUSR, ds1682_show, ds1682_store);
-+DEVICE_ATTR(event_count, S_IRUGO | S_IWUSR, ds1682_show, ds1682_store);
-+
-+/* Get register size and address from device_attribute structure.  This
-+ * function must come after the DEVICE_ATTR() lines as it depends on the
-+ * device_attribute lines being declared */
-+static int ds1682_attr_to_reg(struct device_attribute *attr, int *regsize)
-+{
-+	if (attr == &dev_attr_elapsed_time) {
-+		*regsize = 4;
-+		return DS1682_REG_ELAPSED;
-+	}
-+
-+	if (attr == &dev_attr_alarm_time) {
-+		*regsize = 4;
-+		return DS1682_REG_ALARM;
-+	}
-+
-+	if (attr == &dev_attr_event_count) {
-+		*regsize = 2;
-+		return DS1682_REG_EVT_CNTR;
-+	}
-+
-+	if (attr == &dev_attr_config) {
-+		*regsize = 1;
-+		return DS1682_REG_CONFIG;
-+	}
-+
-+	pr_debug("Cannot find registers for device_attribute %p\n", attr);
-+	return -ENODEV;
-+}
-+
-+/*
-+ * User data attribute
-+ */
-+static ssize_t ds1682_user_data_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	char *end = buf;
-+	u8 val[10];
-+	int i;
-+
-+	if (ds1682_read(to_i2c_client(dev), DS1682_REG_USER_DATA, &val, 10))
-+		return -EIO;
-+
-+	for (i = 0; i < 10; i++)
-+		end += sprintf(end, "%.2x ", val[i]);
-+
-+	*(end - 1) = '\n';	/* Eliminate trailing space */
-+	return end - buf;
-+}
-+
-+static ssize_t ds1682_user_data_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t count)
-+{
-+	u8 data[10];
-+	char *endp;
-+	int bytecount = 0;
-+
-+	/* Check input for sanity */
-+	if ((count >= 80) || (buf[count] != '\0')) {
-+		dev_dbg(dev, "insane input; count=%i%s\n",
-+			count, buf[count] == '\0' ? " unterminated" : "");
-+		return -EIO;
-+	}
-+
-+	/* Parse the data */
-+	while (bytecount < 10) {
-+		while (isspace(*buf))
-+			buf++;
-+
-+		data[bytecount] = simple_strtoul(buf, &endp, 16);
-+		if (endp == buf)	/* make sure it's a real data value */
-+			break;
-+
-+		buf = endp;
-+		bytecount++;
-+	}
-+	while (isspace(*endp))
-+		endp++;
-+
-+	/* Abort on invalid data */
-+	if ((bytecount == 0) || (*endp != '\0')) {
-+		dev_dbg(dev, "invalid input *buf=\"%s\" *endp=\"%s\"\n",
-+			buf, endp);
-+		return -EIO;
-+	}
-+
-+	/* Write out to the device */
-+	if (i2c_smbus_write_i2c_block_data(to_i2c_client(dev),
-+					   DS1682_REG_USER_DATA, bytecount,
-+					   data) < 0)
-+		return -EIO;
-+	return count;
-+}
-+
-+DEVICE_ATTR(user_data, S_IRUGO | S_IWUSR, ds1682_user_data_show,
-+	    ds1682_user_data_store);
-+
-+/*
-+ * Called when a device is found at the ds1682 address
-+ */
-+static struct i2c_driver ds1682_driver;
-+static int ds1682_detect(struct i2c_adapter *adapter, int address, int kind)
-+{
-+	struct i2c_client *new_client;
-+	int err = 0;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-+				     I2C_FUNC_I2C))
-+		goto exit;
-+
-+	if (!(new_client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	new_client->addr = address;
-+	new_client->adapter = adapter;
-+	new_client->driver = &ds1682_driver;
-+	new_client->flags = 0;
-+
-+	/* Note: Ignoring 'kind' value as the ds1682 uses a fixed address */
-+
-+	/* We can fill in the remaining client fields */
-+	strlcpy(new_client->name, "ds1682", I2C_NAME_SIZE);
-+
-+	/* Tell the I2C layer a new client has arrived */
-+	if ((err = i2c_attach_client(new_client)))
-+		goto exit_free;
-+
-+	if (device_create_file(&new_client->dev, &dev_attr_config))
-+		goto exit_attr_config;
-+	if (device_create_file(&new_client->dev, &dev_attr_elapsed_time))
-+		goto exit_attr_elapsed;
-+	if (device_create_file(&new_client->dev, &dev_attr_alarm_time))
-+		goto exit_attr_alarm;
-+	if (device_create_file(&new_client->dev, &dev_attr_event_count))
-+		goto exit_attr_event;
-+	if (device_create_file(&new_client->dev, &dev_attr_user_data))
-+		goto exit_attr_userdata;
-+
-+	return 0;
-+
-+      exit_attr_userdata:
-+	device_remove_file(&new_client->dev, &dev_attr_event_count);
-+      exit_attr_event:
-+	device_remove_file(&new_client->dev, &dev_attr_alarm_time);
-+      exit_attr_alarm:
-+	device_remove_file(&new_client->dev, &dev_attr_elapsed_time);
-+      exit_attr_elapsed:
-+	device_remove_file(&new_client->dev, &dev_attr_config);
-+      exit_attr_config:
-+	i2c_detach_client(new_client);
-+      exit_free:
-+	kfree(new_client);
-+      exit:
-+	return err;
-+}
-+
-+static int ds1682_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	return i2c_probe(adapter, &addr_data, ds1682_detect);
-+}
-+
-+static int ds1682_detach_client(struct i2c_client *client)
-+{
-+	int err;
-+	device_remove_file(&client->dev, &dev_attr_user_data);
-+	device_remove_file(&client->dev, &dev_attr_event_count);
-+	device_remove_file(&client->dev, &dev_attr_alarm_time);
-+	device_remove_file(&client->dev, &dev_attr_elapsed_time);
-+	device_remove_file(&client->dev, &dev_attr_config);
-+
-+	if ((err = i2c_detach_client(client)))
-+		return err;
-+
-+	kfree(client);
-+	return 0;
-+}
-+
-+static struct i2c_driver ds1682_driver = {
-+	.driver = {
-+		   .name = "ds1682",
-+		   },
-+	.attach_adapter = ds1682_attach_adapter,
-+	.detach_client = ds1682_detach_client,
-+};
-+
-+static int __init ds1682_init(void)
-+{
-+	return i2c_add_driver(&ds1682_driver);
-+}
-+
-+static void __exit ds1682_exit(void)
-+{
-+	i2c_del_driver(&ds1682_driver);
-+}
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/slab.h>
++#include <linux/blkdev.h>
++#include <linux/hdreg.h>
++#include <linux/platform_device.h>
 +
 +MODULE_AUTHOR("Grant Likely <grant.likely@secretlab.ca>");
-+MODULE_DESCRIPTION("DS1682 Elapsed Time Indicator driver");
++MODULE_DESCRIPTION("Xilinx SystemACE device driver");
 +MODULE_LICENSE("GPL");
 +
-+module_init(ds1682_init);
-+module_exit(ds1682_exit);
++/* SystemACE register definitions */
++#define ACE_BUSMODE (0x00)
++
++#define ACE_STATUS (0x04)
++#define ACE_STATUS_CFGLOCK      (0x00000001)
++#define ACE_STATUS_MPULOCK      (0x00000002)
++#define ACE_STATUS_CFGERROR     (0x00000004)	/* config controller error */
++#define ACE_STATUS_CFCERROR     (0x00000008)	/* CF controller error */
++#define ACE_STATUS_CFDETECT     (0x00000010)
++#define ACE_STATUS_DATABUFRDY   (0x00000020)
++#define ACE_STATUS_DATABUFMODE  (0x00000040)
++#define ACE_STATUS_CFGDONE      (0x00000080)
++#define ACE_STATUS_RDYFORCFCMD  (0x00000100)
++#define ACE_STATUS_CFGMODEPIN   (0x00000200)
++#define ACE_STATUS_CFGADDR_MASK (0x0000e000)
++#define ACE_STATUS_CFBSY        (0x00020000)
++#define ACE_STATUS_CFRDY        (0x00040000)
++#define ACE_STATUS_CFDWF        (0x00080000)
++#define ACE_STATUS_CFDSC        (0x00100000)
++#define ACE_STATUS_CFDRQ        (0x00200000)
++#define ACE_STATUS_CFCORR       (0x00400000)
++#define ACE_STATUS_CFERR        (0x00800000)
++
++#define ACE_ERROR (0x08)
++#define ACE_CFGLBA (0x0c)
++#define ACE_MPULBA (0x10)
++
++#define ACE_SECCNTCMD (0x14)
++#define ACE_SECCNTCMD_RESET      (0x0100)
++#define ACE_SECCNTCMD_IDENTIFY   (0x0200)
++#define ACE_SECCNTCMD_READ_DATA  (0x0300)
++#define ACE_SECCNTCMD_WRITE_DATA (0x0400)
++#define ACE_SECCNTCMD_ABORT      (0x0600)
++
++#define ACE_VERSION (0x16)
++#define ACE_VERSION_REVISION_MASK (0x00FF)
++#define ACE_VERSION_MINOR_MASK    (0x0F00)
++#define ACE_VERSION_MAJOR_MASK    (0xF000)
++
++#define ACE_CTRL (0x18)
++#define ACE_CTRL_FORCELOCKREQ   (0x0001)
++#define ACE_CTRL_LOCKREQ        (0x0002)
++#define ACE_CTRL_FORCECFGADDR   (0x0004)
++#define ACE_CTRL_FORCECFGMODE   (0x0008)
++#define ACE_CTRL_CFGMODE        (0x0010)
++#define ACE_CTRL_CFGSTART       (0x0020)
++#define ACE_CTRL_CFGSEL         (0x0040)
++#define ACE_CTRL_CFGRESET       (0x0080)
++#define ACE_CTRL_DATABUFRDYIRQ  (0x0100)
++#define ACE_CTRL_ERRORIRQ       (0x0200)
++#define ACE_CTRL_CFGDONEIRQ     (0x0400)
++#define ACE_CTRL_RESETIRQ       (0x0800)
++#define ACE_CTRL_CFGPROG        (0x1000)
++#define ACE_CTRL_CFGADDR_MASK   (0xe000)
++
++#define ACE_FATSTAT (0x1c)
++
++#define ACE_NUM_MINORS 16
++#define ACE_SECTOR_SIZE (512)
++#define ACE_FIFO_SIZE (32)
++#define ACE_BUF_PER_SECTOR (ACE_SECTOR_SIZE / ACE_FIFO_SIZE)
++
++struct ace_reg_ops;
++
++struct ace_device {
++	/* driver state data */
++	int id;
++	int media_change;
++	int users;
++	struct list_head list;
++
++	/* finite state machine data */
++	struct tasklet_struct fsm_tasklet;
++	uint fsm_task;		/* Current activity (ACE_TASK_*) */
++	uint fsm_state;		/* Current state (ACE_FSM_STATE_*) */
++	uint fsm_continue_flag;	/* cleared to exit FSM mainloop */
++	uint fsm_iter_num;
++	struct timer_list stall_timer;
++
++	/* Transfer state/result, use for both id and block request */
++	struct request *req;	/* request being processed */
++	void *data_ptr;		/* pointer to I/O buffer */
++	int data_count;		/* number of buffers remaining */
++	int data_result;	/* Result of transfer; 0 := success */
++
++	int id_req_count;	/* count of id requests */
++	int id_result;
++	struct completion id_completion;	/* used when id req finishes */
++	int in_irq;
++
++	/* Details of hardware device */
++	unsigned long physaddr;
++	void *baseaddr;
++	int irq;
++	int bus_width;		/* 0 := 8 bit; 1 := 16 bit */
++	struct ace_reg_ops *reg_ops;
++	int lock_count;
++
++	/* Block device data structures */
++	spinlock_t lock;
++	struct device *dev;
++	struct request_queue *queue;
++	struct gendisk *gd;
++
++	/* Inserted CF card parameters */
++	struct hd_driveid cf_id;
++};
++
++static int ace_major;
++
++/* ---------------------------------------------------------------------
++ * Low level register access
++ */
++
++struct ace_reg_ops {
++	u16(*in) (struct ace_device * ace, int reg);
++	void (*out) (struct ace_device * ace, int reg, u16 val);
++	void (*datain) (struct ace_device * ace);
++	void (*dataout) (struct ace_device * ace);
++};
++
++/* 8 Bit bus width */
++static u16 ace_in_8(struct ace_device *ace, int reg)
++{
++	void *r = ace->baseaddr + reg;
++	return in_8(r) | (in_8(r + 1) << 8);
++}
++
++static void ace_out_8(struct ace_device *ace, int reg, u16 val)
++{
++	void *r = ace->baseaddr + reg;
++	out_8(r, val);
++	out_8(r + 1, val >> 8);
++}
++
++static void ace_datain_8(struct ace_device *ace)
++{
++	void *r = ace->baseaddr + 0x40;
++	u8 *dst = ace->data_ptr;
++	int i = ACE_FIFO_SIZE;
++	while (i--)
++		*dst++ = in_8(r++);
++	ace->data_ptr = dst;
++}
++
++static void ace_dataout_8(struct ace_device *ace)
++{
++	void *r = ace->baseaddr + 0x40;
++	u8 *src = ace->data_ptr;
++	int i = ACE_FIFO_SIZE;
++	while (i--)
++		out_8(r++, *src++);
++	ace->data_ptr = src;
++}
++
++static struct ace_reg_ops ace_reg_8_ops = {
++	.in = ace_in_8,
++	.out = ace_out_8,
++	.datain = ace_datain_8,
++	.dataout = ace_dataout_8,
++};
++
++/* 16 bit big endian bus attachment */
++static u16 ace_in_be16(struct ace_device *ace, int reg)
++{
++	return in_be16(ace->baseaddr + reg);
++}
++
++static void ace_out_be16(struct ace_device *ace, int reg, u16 val)
++{
++	out_be16(ace->baseaddr + reg, val);
++}
++
++static void ace_datain_be16(struct ace_device *ace)
++{
++	int i = ACE_FIFO_SIZE / 2;
++	u16 *dst = ace->data_ptr;
++	while (i--)
++		*dst++ = in_le16(ace->baseaddr + 0x40);
++	ace->data_ptr = dst;
++}
++
++static void ace_dataout_be16(struct ace_device *ace)
++{
++	int i = ACE_FIFO_SIZE / 2;
++	u16 *src = ace->data_ptr;
++	while (i--)
++		out_le16(ace->baseaddr + 0x40, *src++);
++	ace->data_ptr = src;
++}
++
++/* 16 bit little endian bus attachment */
++static u16 ace_in_le16(struct ace_device *ace, int reg)
++{
++	return in_le16(ace->baseaddr + reg);
++}
++
++static void ace_out_le16(struct ace_device *ace, int reg, u16 val)
++{
++	out_le16(ace->baseaddr + reg, val);
++}
++
++static void ace_datain_le16(struct ace_device *ace)
++{
++	int i = ACE_FIFO_SIZE / 2;
++	u16 *dst = ace->data_ptr;
++	while (i--)
++		*dst++ = in_be16(ace->baseaddr + 0x40);
++	ace->data_ptr = dst;
++}
++
++static void ace_dataout_le16(struct ace_device *ace)
++{
++	int i = ACE_FIFO_SIZE / 2;
++	u16 *src = ace->data_ptr;
++	while (i--)
++		out_be16(ace->baseaddr + 0x40, *src++);
++	ace->data_ptr = src;
++}
++
++static struct ace_reg_ops ace_reg_be16_ops = {
++	.in = ace_in_be16,
++	.out = ace_out_be16,
++	.datain = ace_datain_be16,
++	.dataout = ace_dataout_be16,
++};
++
++static struct ace_reg_ops ace_reg_le16_ops = {
++	.in = ace_in_le16,
++	.out = ace_out_le16,
++	.datain = ace_datain_le16,
++	.dataout = ace_dataout_le16,
++};
++
++static inline u16 ace_in(struct ace_device *ace, int reg)
++{
++	return ace->reg_ops->in(ace, reg);
++}
++
++static inline u32 ace_in32(struct ace_device *ace, int reg)
++{
++	return ace_in(ace, reg) | (ace_in(ace, reg + 2) << 16);
++}
++
++static inline void ace_out(struct ace_device *ace, int reg, u16 val)
++{
++	ace->reg_ops->out(ace, reg, val);
++}
++
++static inline void ace_out32(struct ace_device *ace, int reg, u32 val)
++{
++	ace_out(ace, reg, val);
++	ace_out(ace, reg + 2, val >> 16);
++}
++
++/* ---------------------------------------------------------------------
++ * Debug support functions
++ */
++
++#if defined(DEBUG)
++static void ace_dump_mem(void *base, int len)
++{
++	const char *ptr = base;
++	int i, j;
++
++	for (i = 0; i < len; i += 16) {
++		printk(KERN_INFO "%.8x:", i);
++		for (j = 0; j < 16; j++) {
++			if (!(j % 4))
++				printk(" ");
++			printk("%.2x", ptr[i + j]);
++		}
++		printk(" ");
++		for (j = 0; j < 16; j++)
++			printk("%c", isprint(ptr[i + j]) ? ptr[i + j] : '.');
++		printk("\n");
++	}
++}
++#else
++static inline void ace_dump_mem(void *base, int len)
++{
++}
++#endif
++
++static void ace_dump_regs(struct ace_device *ace)
++{
++	dev_info(ace->dev, "    ctrl:  %.8x  seccnt/cmd: %.4x      ver:%.4x\n"
++		 "    status:%.8x  mpu_lba:%.8x  busmode:%4x\n"
++		 "    error: %.8x  cfg_lba:%.8x  fatstat:%.4x\n",
++		 ace_in32(ace, ACE_CTRL),
++		 ace_in(ace, ACE_SECCNTCMD),
++		 ace_in(ace, ACE_VERSION),
++		 ace_in32(ace, ACE_STATUS),
++		 ace_in32(ace, ACE_MPULBA),
++		 ace_in(ace, ACE_BUSMODE),
++		 ace_in32(ace, ACE_ERROR),
++		 ace_in32(ace, ACE_CFGLBA), ace_in(ace, ACE_FATSTAT));
++}
++
++void ace_fix_driveid(struct hd_driveid *id)
++{
++#if defined(__BIG_ENDIAN)
++	u16 *buf = (void *)id;
++	int i;
++
++	/* All half words have wrong byte order; swap the bytes */
++	for (i = 0; i < sizeof(struct hd_driveid); i += 2, buf++)
++		*buf = le16_to_cpu(*buf);
++
++	/* Some of the data values are 32bit; swap the half words  */
++	id->lba_capacity = ((id->lba_capacity >> 16) & 0x0000FFFF) |
++	    ((id->lba_capacity << 16) & 0xFFFF0000);
++	id->spg = ((id->spg >> 16) & 0x0000FFFF) |
++	    ((id->spg << 16) & 0xFFFF0000);
++#endif
++}
++
++/* ---------------------------------------------------------------------
++ * Finite State Machine (FSM) implementation
++ */
++
++/* FSM tasks; used to direct state transitions */
++#define ACE_TASK_IDLE      0
++#define ACE_TASK_IDENTIFY  1
++#define ACE_TASK_READ      2
++#define ACE_TASK_WRITE     3
++#define ACE_FSM_NUM_TASKS  4
++
++/* FSM state definitions */
++#define ACE_FSM_STATE_IDLE               0
++#define ACE_FSM_STATE_REQ_LOCK           1
++#define ACE_FSM_STATE_WAIT_LOCK          2
++#define ACE_FSM_STATE_WAIT_CFREADY       3
++#define ACE_FSM_STATE_IDENTIFY_PREPARE   4
++#define ACE_FSM_STATE_IDENTIFY_TRANSFER  5
++#define ACE_FSM_STATE_IDENTIFY_COMPLETE  6
++#define ACE_FSM_STATE_REQ_PREPARE        7
++#define ACE_FSM_STATE_REQ_TRANSFER       8
++#define ACE_FSM_STATE_REQ_COMPLETE       9
++#define ACE_FSM_STATE_ERROR             10
++#define ACE_FSM_NUM_STATES              11
++
++/* Set flag to exit FSM loop and reschedule tasklet */
++static inline void ace_fsm_yield(struct ace_device *ace)
++{
++	dev_dbg(ace->dev, "ace_fsm_yield()\n");
++	tasklet_schedule(&ace->fsm_tasklet);
++	ace->fsm_continue_flag = 0;
++}
++
++/* Set flag to exit FSM loop and wait for IRQ to reschedule tasklet */
++static inline void ace_fsm_yieldirq(struct ace_device *ace)
++{
++	dev_dbg(ace->dev, "ace_fsm_yieldirq()\n");
++
++	if (ace->irq == NO_IRQ)
++		/* No IRQ assigned, so need to poll */
++		tasklet_schedule(&ace->fsm_tasklet);
++	ace->fsm_continue_flag = 0;
++}
++
++/* Get the next read/write request; ending requests that we don't handle */
++struct request *ace_get_next_request(request_queue_t * q)
++{
++	struct request *req;
++
++	while ((req = elv_next_request(q)) != NULL) {
++		if (blk_fs_request(req))
++			break;
++		end_request(req, 0);
++	}
++	return req;
++}
++
++static void ace_fsm_dostate(struct ace_device *ace)
++{
++	struct request *req;
++	u32 status;
++	u16 val;
++	int count;
++	int i;
++
++#if defined(DEBUG)
++	dev_dbg(ace->dev, "fsm_state=%i, id_req_count=%i\n",
++		ace->fsm_state, ace->id_req_count);
++#endif
++
++	switch (ace->fsm_state) {
++	case ACE_FSM_STATE_IDLE:
++		/* See if there is anything to do */
++		if (ace->id_req_count || ace_get_next_request(ace->queue)) {
++			ace->fsm_iter_num++;
++			ace->fsm_state = ACE_FSM_STATE_REQ_LOCK;
++			mod_timer(&ace->stall_timer, jiffies + HZ);
++			if (!timer_pending(&ace->stall_timer))
++				add_timer(&ace->stall_timer);
++			break;
++		}
++		del_timer(&ace->stall_timer);
++		ace->fsm_continue_flag = 0;
++		break;
++
++	case ACE_FSM_STATE_REQ_LOCK:
++		if (ace_in(ace, ACE_STATUS) & ACE_STATUS_MPULOCK) {
++			/* Already have the lock, jump to next state */
++			ace->fsm_state = ACE_FSM_STATE_WAIT_CFREADY;
++			break;
++		}
++
++		/* Request the lock */
++		val = ace_in(ace, ACE_CTRL);
++		ace_out(ace, ACE_CTRL, val | ACE_CTRL_LOCKREQ);
++		ace->fsm_state = ACE_FSM_STATE_WAIT_LOCK;
++		break;
++
++	case ACE_FSM_STATE_WAIT_LOCK:
++		if (ace_in(ace, ACE_STATUS) & ACE_STATUS_MPULOCK) {
++			/* got the lock; move to next state */
++			ace->fsm_state = ACE_FSM_STATE_WAIT_CFREADY;
++			break;
++		}
++
++		/* wait a bit for the lock */
++		ace_fsm_yield(ace);
++		break;
++
++	case ACE_FSM_STATE_WAIT_CFREADY:
++		status = ace_in32(ace, ACE_STATUS);
++		if (!(status & ACE_STATUS_RDYFORCFCMD) ||
++		    (status & ACE_STATUS_CFBSY)) {
++			/* CF card isn't ready; it needs to be polled */
++			ace_fsm_yield(ace);
++			break;
++		}
++
++		/* Device is ready for command; determine what to do next */
++		if (ace->id_req_count)
++			ace->fsm_state = ACE_FSM_STATE_IDENTIFY_PREPARE;
++		else
++			ace->fsm_state = ACE_FSM_STATE_REQ_PREPARE;
++		break;
++
++	case ACE_FSM_STATE_IDENTIFY_PREPARE:
++		/* Send identify command */
++		ace->fsm_task = ACE_TASK_IDENTIFY;
++		ace->data_ptr = &ace->cf_id;
++		ace->data_count = ACE_BUF_PER_SECTOR;
++		ace_out(ace, ACE_SECCNTCMD, ACE_SECCNTCMD_IDENTIFY);
++
++		/* As per datasheet, put config controller in reset */
++		val = ace_in(ace, ACE_CTRL);
++		ace_out(ace, ACE_CTRL, val | ACE_CTRL_CFGRESET);
++
++		/* irq handler takes over from this point; wait for the
++		 * transfer to complete */
++		ace->fsm_state = ACE_FSM_STATE_IDENTIFY_TRANSFER;
++		ace_fsm_yieldirq(ace);
++		break;
++
++	case ACE_FSM_STATE_IDENTIFY_TRANSFER:
++		/* Check that the sysace is ready to receive data */
++		status = ace_in32(ace, ACE_STATUS);
++		if (status & ACE_STATUS_CFBSY) {
++			dev_dbg(ace->dev, "CFBSY set; t=%i iter=%i dc=%i\n",
++				ace->fsm_task, ace->fsm_iter_num,
++				ace->data_count);
++			ace_fsm_yield(ace);
++			break;
++		}
++		if (!(status & ACE_STATUS_DATABUFRDY)) {
++			ace_fsm_yield(ace);
++			break;
++		}
++
++		/* Transfer the next buffer */
++		ace->reg_ops->datain(ace);
++		ace->data_count--;
++
++		/* If there are still buffers to be transfers; jump out here */
++		if (ace->data_count != 0) {
++			ace_fsm_yieldirq(ace);
++			break;
++		}
++
++		/* transfer finished; kick state machine */
++		dev_dbg(ace->dev, "identify finished\n");
++		ace->fsm_state = ACE_FSM_STATE_IDENTIFY_COMPLETE;
++		break;
++
++	case ACE_FSM_STATE_IDENTIFY_COMPLETE:
++		ace_fix_driveid(&ace->cf_id);
++		ace_dump_mem(&ace->cf_id, 512);	/* Debug: Dump out disk ID */
++
++		if (ace->data_result) {
++			/* Error occured, disable the disk */
++			ace->media_change = 1;
++			set_capacity(ace->gd, 0);
++			dev_err(ace->dev, "error fetching CF id (%i)\n",
++				ace->data_result);
++		} else {
++			ace->media_change = 0;
++
++			/* Record disk parameters */
++			set_capacity(ace->gd, ace->cf_id.lba_capacity);
++			dev_info(ace->dev, "capacity: %i sectors\n",
++				 ace->cf_id.lba_capacity);
++		}
++
++		/* We're done, drop to IDLE state and notify waiters */
++		ace->fsm_state = ACE_FSM_STATE_IDLE;
++		ace->id_result = ace->data_result;
++		while (ace->id_req_count) {
++			complete(&ace->id_completion);
++			ace->id_req_count--;
++		}
++		break;
++
++	case ACE_FSM_STATE_REQ_PREPARE:
++		req = ace_get_next_request(ace->queue);
++		if (!req) {
++			ace->fsm_state = ACE_FSM_STATE_IDLE;
++			break;
++		}
++
++		/* Okay, it's a data request, set it up for transfer */
++		dev_dbg(ace->dev,
++			"request: sec=%lx hcnt=%lx, ccnt=%x, dir=%i\n",
++			req->sector, req->hard_nr_sectors,
++			req->current_nr_sectors, rq_data_dir(req));
++
++		ace->req = req;
++		ace->data_ptr = req->buffer;
++		ace->data_count = req->current_nr_sectors * ACE_BUF_PER_SECTOR;
++		ace_out32(ace, ACE_MPULBA, req->sector & 0x0FFFFFFF);
++
++		count = req->hard_nr_sectors;
++		if (rq_data_dir(req)) {
++			/* Kick off write request */
++			dev_dbg(ace->dev, "write data\n");
++			ace->fsm_task = ACE_TASK_WRITE;
++			ace_out(ace, ACE_SECCNTCMD,
++				count | ACE_SECCNTCMD_WRITE_DATA);
++		} else {
++			/* Kick off read request */
++			dev_dbg(ace->dev, "read data\n");
++			ace->fsm_task = ACE_TASK_READ;
++			ace_out(ace, ACE_SECCNTCMD,
++				count | ACE_SECCNTCMD_READ_DATA);
++		}
++
++		/* As per datasheet, put config controller in reset */
++		val = ace_in(ace, ACE_CTRL);
++		ace_out(ace, ACE_CTRL, val | ACE_CTRL_CFGRESET);
++
++		/* Move to the transfer state.  The systemace will raise
++		 * an interrupt once there is something to do
++		 */
++		ace->fsm_state = ACE_FSM_STATE_REQ_TRANSFER;
++		if (ace->fsm_task == ACE_TASK_READ)
++			ace_fsm_yieldirq(ace);	/* wait for data ready */
++		break;
++
++	case ACE_FSM_STATE_REQ_TRANSFER:
++		/* Check that the sysace is ready to receive data */
++		status = ace_in32(ace, ACE_STATUS);
++		if (status & ACE_STATUS_CFBSY) {
++			dev_dbg(ace->dev,
++				"CFBSY set; t=%i iter=%i c=%i dc=%i irq=%i\n",
++				ace->fsm_task, ace->fsm_iter_num,
++				ace->req->current_nr_sectors * 16,
++				ace->data_count, ace->in_irq);
++			ace_fsm_yield(ace);	/* need to poll CFBSY bit */
++			break;
++		}
++		if (!(status & ACE_STATUS_DATABUFRDY)) {
++			dev_dbg(ace->dev,
++				"DATABUF not set; t=%i iter=%i c=%i dc=%i irq=%i\n",
++				ace->fsm_task, ace->fsm_iter_num,
++				ace->req->current_nr_sectors * 16,
++				ace->data_count, ace->in_irq);
++			ace_fsm_yieldirq(ace);
++			break;
++		}
++
++		/* Transfer the next buffer */
++		i = 16;
++		if (ace->fsm_task == ACE_TASK_WRITE)
++			ace->reg_ops->dataout(ace);
++		else
++			ace->reg_ops->datain(ace);
++		ace->data_count--;
++
++		/* If there are still buffers to be transfers; jump out here */
++		if (ace->data_count != 0) {
++			ace_fsm_yieldirq(ace);
++			break;
++		}
++
++		/* bio finished; is there another one? */
++		i = ace->req->current_nr_sectors;
++		if (end_that_request_first(ace->req, 1, i)) {
++			/* dev_dbg(ace->dev, "next block; h=%li c=%i\n",
++			 *      ace->req->hard_nr_sectors,
++			 *      ace->req->current_nr_sectors);
++			 */
++			ace->data_ptr = ace->req->buffer;
++			ace->data_count = ace->req->current_nr_sectors * 16;
++			ace_fsm_yieldirq(ace);
++			break;
++		}
++
++		ace->fsm_state = ACE_FSM_STATE_REQ_COMPLETE;
++		break;
++
++	case ACE_FSM_STATE_REQ_COMPLETE:
++		/* Complete the block request */
++		blkdev_dequeue_request(ace->req);
++		end_that_request_last(ace->req, 1);
++		ace->req = NULL;
++
++		/* Finished request; go to idle state */
++		ace->fsm_state = ACE_FSM_STATE_IDLE;
++		break;
++
++	default:
++		ace->fsm_state = ACE_FSM_STATE_IDLE;
++		break;
++	}
++}
++
++static void ace_fsm_tasklet(unsigned long data)
++{
++	struct ace_device *ace = (void *)data;
++	unsigned long flags;
++
++	spin_lock_irqsave(&ace->lock, flags);
++
++	/* Loop over state machine until told to stop */
++	ace->fsm_continue_flag = 1;
++	while (ace->fsm_continue_flag)
++		ace_fsm_dostate(ace);
++
++	spin_unlock_irqrestore(&ace->lock, flags);
++}
++
++static void ace_stall_timer(unsigned long data)
++{
++	struct ace_device *ace = (void *)data;
++	unsigned long flags;
++
++	dev_warn(ace->dev,
++		 "kicking stalled fsm; state=%i task=%i iter=%i dc=%i\n",
++		 ace->fsm_state, ace->fsm_task, ace->fsm_iter_num,
++		 ace->data_count);
++	spin_lock_irqsave(&ace->lock, flags);
++
++	/* Rearm the stall timer *before* entering FSM (which may then
++	 * delete the timer) */
++	mod_timer(&ace->stall_timer, jiffies + HZ);
++
++	/* Loop over state machine until told to stop */
++	ace->fsm_continue_flag = 1;
++	while (ace->fsm_continue_flag)
++		ace_fsm_dostate(ace);
++
++	spin_unlock_irqrestore(&ace->lock, flags);
++}
++
++/* ---------------------------------------------------------------------
++ * Interrupt handling routines
++ */
++static int ace_interrupt_checkstate(struct ace_device *ace)
++{
++	u32 sreg = ace_in32(ace, ACE_STATUS);
++	u16 creg = ace_in(ace, ACE_CTRL);
++
++	/* Check for error occurance */
++	if ((sreg & (ACE_STATUS_CFGERROR | ACE_STATUS_CFCERROR)) &&
++	    (creg & ACE_CTRL_ERRORIRQ)) {
++		dev_err(ace->dev, "transfer failure\n");
++		ace_dump_regs(ace);
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static irqreturn_t ace_interrupt(int irq, void *dev_id)
++{
++	u16 creg;
++	struct ace_device *ace = dev_id;
++
++	/* be safe and get the lock */
++	spin_lock(&ace->lock);
++	ace->in_irq = 1;
++
++	/* clear the interrupt */
++	creg = ace_in(ace, ACE_CTRL);
++	ace_out(ace, ACE_CTRL, creg | ACE_CTRL_RESETIRQ);
++	ace_out(ace, ACE_CTRL, creg);
++
++	/* check for IO failures */
++	if (ace_interrupt_checkstate(ace))
++		ace->data_result = -EIO;
++
++	if (ace->fsm_task == 0) {
++		dev_err(ace->dev,
++			"spurious irq; stat=%.8x ctrl=%.8x cmd=%.4x\n",
++			ace_in32(ace, ACE_STATUS), ace_in32(ace, ACE_CTRL),
++			ace_in(ace, ACE_SECCNTCMD));
++		dev_err(ace->dev, "fsm_task=%i fsm_state=%i data_count=%i\n",
++			ace->fsm_task, ace->fsm_state, ace->data_count);
++	}
++
++	/* Loop over state machine until told to stop */
++	ace->fsm_continue_flag = 1;
++	while (ace->fsm_continue_flag)
++		ace_fsm_dostate(ace);
++
++	/* done with interrupt; drop the lock */
++	ace->in_irq = 0;
++	spin_unlock(&ace->lock);
++
++	return IRQ_HANDLED;
++}
++
++/* ---------------------------------------------------------------------
++ * Block ops
++ */
++static void ace_request(request_queue_t * q)
++{
++	struct request *req;
++	struct ace_device *ace;
++
++	req = ace_get_next_request(q);
++
++	if (req) {
++		ace = req->rq_disk->private_data;
++		tasklet_schedule(&ace->fsm_tasklet);
++	}
++}
++
++static int ace_media_changed(struct gendisk *gd)
++{
++	struct ace_device *ace = gd->private_data;
++	dev_dbg(ace->dev, "ace_media_changed(): %i\n", ace->media_change);
++
++	return ace->media_change;
++}
++
++static int ace_revalidate_disk(struct gendisk *gd)
++{
++	struct ace_device *ace = gd->private_data;
++	unsigned long flags;
++
++	dev_dbg(ace->dev, "ace_revalidate_disk()\n");
++
++	if (ace->media_change) {
++		dev_dbg(ace->dev, "requesting cf id and scheduling tasklet\n");
++
++		spin_lock_irqsave(&ace->lock, flags);
++		ace->id_req_count++;
++		spin_unlock_irqrestore(&ace->lock, flags);
++
++		tasklet_schedule(&ace->fsm_tasklet);
++		wait_for_completion(&ace->id_completion);
++	}
++
++	dev_dbg(ace->dev, "revalidate complete\n");
++	return ace->id_result;
++}
++
++static int ace_open(struct inode *inode, struct file *filp)
++{
++	struct ace_device *ace = inode->i_bdev->bd_disk->private_data;
++	unsigned long flags;
++
++	dev_dbg(ace->dev, "ace_open() users=%i\n", ace->users + 1);
++
++	filp->private_data = ace;
++	spin_lock_irqsave(&ace->lock, flags);
++	ace->users++;
++	spin_unlock_irqrestore(&ace->lock, flags);
++
++	check_disk_change(inode->i_bdev);
++	return 0;
++}
++
++static int ace_release(struct inode *inode, struct file *filp)
++{
++	struct ace_device *ace = inode->i_bdev->bd_disk->private_data;
++	unsigned long flags;
++	u16 val;
++
++	dev_dbg(ace->dev, "ace_release() users=%i\n", ace->users - 1);
++
++	spin_lock_irqsave(&ace->lock, flags);
++	ace->users--;
++	if (ace->users == 0) {
++		val = ace_in(ace, ACE_CTRL);
++		ace_out(ace, ACE_CTRL, val & ~ACE_CTRL_LOCKREQ);
++	}
++	spin_unlock_irqrestore(&ace->lock, flags);
++	return 0;
++}
++
++static int ace_ioctl(struct inode *inode, struct file *filp,
++		     unsigned int cmd, unsigned long arg)
++{
++	struct ace_device *ace = inode->i_bdev->bd_disk->private_data;
++	struct hd_geometry __user *geo = (struct hd_geometry __user *)arg;
++	struct hd_geometry g;
++	dev_dbg(ace->dev, "ace_ioctl()\n");
++
++	switch (cmd) {
++	case HDIO_GETGEO:
++		g.heads = ace->cf_id.heads;
++		g.sectors = ace->cf_id.sectors;
++		g.cylinders = ace->cf_id.cyls;
++		g.start = 0;
++		return copy_to_user(geo, &g, sizeof(g)) ? -EFAULT : 0;
++
++	default:
++		return -ENOTTY;
++	}
++	return -ENOTTY;
++}
++
++static struct block_device_operations ace_fops = {
++	.owner = THIS_MODULE,
++	.open = ace_open,
++	.release = ace_release,
++	.media_changed = ace_media_changed,
++	.revalidate_disk = ace_revalidate_disk,
++	.ioctl = ace_ioctl,
++};
++
++/* --------------------------------------------------------------------
++ * SystemACE device setup/teardown code
++ */
++static int __devinit ace_setup(struct ace_device *ace)
++{
++	u16 version;
++	u16 val;
++
++	int rc;
++
++	spin_lock_init(&ace->lock);
++	init_completion(&ace->id_completion);
++
++	/*
++	 * Map the device
++	 */
++	ace->baseaddr = ioremap(ace->physaddr, 0x80);
++	if (!ace->baseaddr)
++		goto err_ioremap;
++
++	if (ace->irq != NO_IRQ) {
++		rc = request_irq(ace->irq, ace_interrupt, 0, "systemace", ace);
++		if (rc) {
++			/* Failure - fall back to polled mode */
++			dev_err(ace->dev, "request_irq failed\n");
++			ace->irq = NO_IRQ;
++		}
++	}
++
++	/*
++	 * Initialize the state machine tasklet and stall timer
++	 */
++	tasklet_init(&ace->fsm_tasklet, ace_fsm_tasklet, (unsigned long)ace);
++	setup_timer(&ace->stall_timer, ace_stall_timer, (unsigned long)ace);
++
++	/*
++	 * Initialize the request queue
++	 */
++	ace->queue = blk_init_queue(ace_request, &ace->lock);
++	if (ace->queue == NULL)
++		goto err_blk_initq;
++	blk_queue_hardsect_size(ace->queue, 512);
++
++	/*
++	 * Allocate and initialize GD structure
++	 */
++	ace->gd = alloc_disk(ACE_NUM_MINORS);
++	if (!ace->gd)
++		goto err_alloc_disk;
++
++	ace->gd->major = ace_major;
++	ace->gd->first_minor = ace->id * ACE_NUM_MINORS;
++	ace->gd->fops = &ace_fops;
++	ace->gd->queue = ace->queue;
++	ace->gd->private_data = ace;
++	snprintf(ace->gd->disk_name, 32, "xs%c", ace->id + 'a');
++
++	/* set bus width */
++	if (ace->bus_width == 1) {
++		/* 0x0101 should work regardless of endianess */
++		ace_out_le16(ace, ACE_BUSMODE, 0x0101);
++
++		/* read it back to determine endianess */
++		if (ace_in_le16(ace, ACE_BUSMODE) == 0x0001)
++			ace->reg_ops = &ace_reg_le16_ops;
++		else
++			ace->reg_ops = &ace_reg_be16_ops;
++	} else {
++		ace_out_8(ace, ACE_BUSMODE, 0x00);
++		ace->reg_ops = &ace_reg_8_ops;
++	}
++
++	/* Make sure version register is sane */
++	version = ace_in(ace, ACE_VERSION);
++	if ((version == 0) || (version == 0xFFFF))
++		goto err_read;
++
++	/* Put sysace in a sane state by clearing most control reg bits */
++	ace_out(ace, ACE_CTRL, ACE_CTRL_FORCECFGMODE |
++		ACE_CTRL_DATABUFRDYIRQ | ACE_CTRL_ERRORIRQ);
++
++	/* Enable interrupts */
++	val = ace_in(ace, ACE_CTRL);
++	val |= ACE_CTRL_DATABUFRDYIRQ | ACE_CTRL_ERRORIRQ;
++	ace_out(ace, ACE_CTRL, val);
++
++	/* Print the identification */
++	dev_info(ace->dev, "Xilinx SystemACE revision %i.%i.%i\n",
++		 (version >> 12) & 0xf, (version >> 8) & 0x0f, version & 0xff);
++	dev_dbg(ace->dev, "physaddr 0x%lx, mapped to 0x%p, irq=%i\n",
++		ace->physaddr, ace->baseaddr, ace->irq);
++
++	ace->media_change = 1;
++	ace_revalidate_disk(ace->gd);
++
++	/* Make the sysace device 'live' */
++	add_disk(ace->gd);
++
++	return 0;
++
++      err_read:
++	put_disk(ace->gd);
++      err_alloc_disk:
++	blk_cleanup_queue(ace->queue);
++      err_blk_initq:
++	iounmap(ace->baseaddr);
++	if (ace->irq != NO_IRQ)
++		free_irq(ace->irq, ace);
++      err_ioremap:
++	printk(KERN_INFO "xsysace: error initializing device at 0x%lx\n",
++	       ace->physaddr);
++	return -ENOMEM;
++}
++
++static void __devexit ace_teardown(struct ace_device *ace)
++{
++	if (ace->gd) {
++		del_gendisk(ace->gd);
++		put_disk(ace->gd);
++	}
++
++	if (ace->queue)
++		blk_cleanup_queue(ace->queue);
++
++	tasklet_kill(&ace->fsm_tasklet);
++
++	if (ace->irq != NO_IRQ)
++		free_irq(ace->irq, ace);
++
++	iounmap(ace->baseaddr);
++}
++
++/* ---------------------------------------------------------------------
++ * Platform Bus Support
++ */
++
++static int __devinit ace_probe(struct device *device)
++{
++	struct platform_device *dev = to_platform_device(device);
++	struct ace_device *ace;
++	int i;
++
++	dev_dbg(device, "ace_probe(%p)\n", device);
++
++	/*
++	 * Allocate the ace device structure
++	 */
++	ace = kzalloc(sizeof(struct ace_device), GFP_KERNEL);
++	if (!ace)
++		goto err_alloc;
++
++	ace->dev = device;
++	ace->id = dev->id;
++	ace->irq = NO_IRQ;
++
++	for (i = 0; i < dev->num_resources; i++) {
++		if (dev->resource[i].flags & IORESOURCE_MEM)
++			ace->physaddr = dev->resource[i].start;
++		if (dev->resource[i].flags & IORESOURCE_IRQ)
++			ace->irq = dev->resource[i].start;
++	}
++
++	/* FIXME: Should get bus_width from the platform_device struct */
++	ace->bus_width = 1;
++
++	dev_set_drvdata(&dev->dev, ace);
++
++	/* Call the bus-independant setup code */
++	if (ace_setup(ace) != 0)
++		goto err_setup;
++
++	return 0;
++
++      err_setup:
++	dev_set_drvdata(&dev->dev, NULL);
++	kfree(ace);
++      err_alloc:
++	printk(KERN_ERR "xsysace: could not initialize device\n");
++	return -ENOMEM;
++}
++
++/*
++ * Platform bus remove() method
++ */
++static int __devexit ace_remove(struct device *device)
++{
++	struct ace_device *ace = dev_get_drvdata(device);
++
++	dev_dbg(device, "ace_remove(%p)\n", device);
++
++	if (ace) {
++		ace_teardown(ace);
++		kfree(ace);
++	}
++
++	return 0;
++}
++
++static struct device_driver ace_driver = {
++	.name = "xsysace",
++	.bus = &platform_bus_type,
++	.probe = ace_probe,
++	.remove = __devexit_p(ace_remove),
++};
++
++/* ---------------------------------------------------------------------
++ * Module init/exit routines
++ */
++static int __init ace_init(void)
++{
++	ace_major = register_blkdev(ace_major, "xsysace");
++	if (ace_major <= 0) {
++		printk(KERN_WARNING "xsysace: register_blkdev() failed\n");
++		return ace_major;
++	}
++
++	pr_debug("Registering Xilinx SystemACE driver, major=%i\n", ace_major);
++	return driver_register(&ace_driver);
++}
++
++static void __exit ace_exit(void)
++{
++	pr_debug("Unregistering Xilinx SystemACE driver\n");
++	driver_unregister(&ace_driver);
++	if (unregister_blkdev(ace_major, "xsysace"))
++		printk(KERN_WARNING "systemace unregister_blkdev(%i) failed\n",
++		       ace_major);
++}
++
++module_init(ace_init);
++module_exit(ace_exit);
 _
 
 Patches currently in -mm which might be from grant.likely@secretlab.ca are
 
 origin.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+add-support-for-xilinx-systemace-compactflash-interface.patch
