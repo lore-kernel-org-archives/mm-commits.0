@@ -1,58 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2.patch removed from -mm tree
-Date: Wed, 09 May 2007 15:00:57 -0700
-Message-ID: <200705092200.l49M0v4H003428@shell0.pdx.osdl.net>
+Subject: - ext3-use-zero_user_page.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:53:52 -0700
+Message-ID: <200705092153.l49LrqHf003118@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36596 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809AbXEIWBB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:01:01 -0400
+	by vger.kernel.org with ESMTP id S1756580AbXEIWI0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:08:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nate.diller@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix section mismatch of memory hotplug related code.
+     ext3: use zero_user_page
 has been removed from the -mm tree.  Its filename was
-     create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2.patch
+     ext3-use-zero_user_page.patch
 
-This patch was dropped because it was folded into create-the-zone_movable-zone.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix section mismatch of memory hotplug related code.
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: ext3: use zero_user_page
+From: Nate Diller <nate.diller@gmail.com>
 
-This is to fix many section mismatches of code related to memory hotplug.
-I checked compile with memory hotplug on/off on ia64 and x86-64 box.
+Use zero_user_page() instead of open-coding it.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Nate Diller <nate.diller@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/inode.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2 mm/page_alloc.c
---- a/mm/page_alloc.c~create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2
-+++ a/mm/page_alloc.c
-@@ -2818,7 +2818,7 @@ void __init find_usable_zone_for_movable
-  * highest usable zone for ZONE_MOVABLE. This preserves the assumption that
-  * zones within a node are in order of monotonic increases memory addresses
-  */
--void __init adjust_zone_range_for_zone_movable(int nid,
-+void __meminit adjust_zone_range_for_zone_movable(int nid,
- 					unsigned long zone_type,
- 					unsigned long node_start_pfn,
- 					unsigned long node_end_pfn,
+diff -puN fs/ext3/inode.c~ext3-use-zero_user_page fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-use-zero_user_page
++++ a/fs/ext3/inode.c
+@@ -1767,7 +1767,6 @@ static int ext3_block_truncate_page(hand
+ 	struct inode *inode = mapping->host;
+ 	struct buffer_head *bh;
+ 	int err = 0;
+-	void *kaddr;
+ 
+ 	blocksize = inode->i_sb->s_blocksize;
+ 	length = blocksize - (offset & (blocksize - 1));
+@@ -1779,10 +1778,7 @@ static int ext3_block_truncate_page(hand
+ 	 */
+ 	if (!page_has_buffers(page) && test_opt(inode->i_sb, NOBH) &&
+ 	     ext3_should_writeback_data(inode) && PageUptodate(page)) {
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		memset(kaddr + offset, 0, length);
+-		flush_dcache_page(page);
+-		kunmap_atomic(kaddr, KM_USER0);
++		zero_user_page(page, offset, length, KM_USER0);
+ 		set_page_dirty(page);
+ 		goto unlock;
+ 	}
+@@ -1835,11 +1831,7 @@ static int ext3_block_truncate_page(hand
+ 			goto unlock;
+ 	}
+ 
+-	kaddr = kmap_atomic(page, KM_USER0);
+-	memset(kaddr + offset, 0, length);
+-	flush_dcache_page(page);
+-	kunmap_atomic(kaddr, KM_USER0);
+-
++	zero_user_page(page, offset, length, KM_USER0);
+ 	BUFFER_TRACE(bh, "zeroed end of block");
+ 
+ 	err = 0;
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from nate.diller@gmail.com are
 
 origin.patch
-early_pfn_to_nid-needs-to-be-__meminit.patch
-move-free-pages-between-lists-on-steal.patch
-create-the-zone_movable-zone.patch
-create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2.patch
-handle-kernelcore=-generic.patch
+cifs-use-simple_prepare_write-to-zero-page-data.patch
+ext4-use-simple_prepare_write-to-zero-page-data.patch
+ecryptfs-use-zero_user_page.patch
+ext4-use-zero_user_page.patch
+gfs2-use-zero_user_page.patch
+nfs-use-zero_user_page.patch
+ntfs-use-zero_user_page.patch
+ocfs2-use-zero_user_page.patch
+xfs-use-zero_user_page.patch
+reiser4.patch
+reiser4-use-zero_user_page.patch
