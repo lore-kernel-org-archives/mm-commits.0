@@ -1,120 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:03 -0700
-Message-ID: <200705092152.l49Lq3sO002961@shell0.pdx.osdl.net>
+Subject: - unify-queue_delayed_work-and-queue_delayed_work_on.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:59 -0700
+Message-ID: <200705092151.l49LpxPA002949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33481 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758849AbXEIVw0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:26 -0400
+	by vger.kernel.org with ESMTP id S1758876AbXEIVwa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make cancel_rearming_delayed_work() work on any workqueue, not just keventd_wq
+     unify queue_delayed_work() and queue_delayed_work_on()
 has been removed from the -mm tree.  Its filename was
-     make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+     unify-queue_delayed_work-and-queue_delayed_work_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make cancel_rearming_delayed_work() work on any workqueue, not just keventd_wq
+Subject: unify queue_delayed_work() and queue_delayed_work_on()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-cancel_rearming_delayed_workqueue(wq, dwork) doesn't need the first
-parameter.  We don't hang on un-queued dwork any longer, and work->data
-doesn't change its type.  This means we can always figure out "wq" from
-dwork when it is needed.
+Change queue_delayed_work() to use queue_delayed_work_on() to avoid the code
+duplication (saves 133 bytes).
 
-Remove this parameter, and rename the function to
-cancel_rearming_delayed_work().  Re-create an inline "obsolete"
-cancel_rearming_delayed_workqueue(wq) which just calls
-cancel_rearming_delayed_work().
+Q: queue_delayed_work() enqueues &dwork->work directly when delay == 0, why?
 
+[jirislaby@gmail.com: oops fix]
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/workqueue.h |   13 ++++++++++---
- kernel/workqueue.c        |   27 +++++++++------------------
- 2 files changed, 19 insertions(+), 21 deletions(-)
+ kernel/workqueue.c |   32 ++++++++++----------------------
+ 1 file changed, 10 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/workqueue.h~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq include/linux/workqueue.h
---- a/include/linux/workqueue.h~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq
-+++ a/include/linux/workqueue.h
-@@ -191,9 +191,6 @@ extern int current_is_keventd(void);
- extern int keventd_up(void);
- 
- extern void init_workqueues(void);
--void cancel_rearming_delayed_work(struct delayed_work *work);
--void cancel_rearming_delayed_workqueue(struct workqueue_struct *,
--				       struct delayed_work *);
- int execute_in_process_context(work_func_t fn, struct execute_work *);
- 
- /*
-@@ -212,4 +209,14 @@ static inline int cancel_delayed_work(st
- 	return ret;
- }
- 
-+extern void cancel_rearming_delayed_work(struct delayed_work *work);
-+
-+/* Obsolete. use cancel_rearming_delayed_work() */
-+static inline
-+void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
-+					struct delayed_work *work)
-+{
-+	cancel_rearming_delayed_work(work);
-+}
-+
- #endif
-diff -puN kernel/workqueue.c~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq kernel/workqueue.c
---- a/kernel/workqueue.c~make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq
+diff -puN kernel/workqueue.c~unify-queue_delayed_work-and-queue_delayed_work_on kernel/workqueue.c
+--- a/kernel/workqueue.c~unify-queue_delayed_work-and-queue_delayed_work_on
 +++ a/kernel/workqueue.c
-@@ -555,32 +555,23 @@ void flush_work_keventd(struct work_stru
- EXPORT_SYMBOL(flush_work_keventd);
- 
- /**
-- * cancel_rearming_delayed_workqueue - kill off a delayed work whose handler rearms the delayed work.
-- * @wq:   the controlling workqueue structure
-+ * cancel_rearming_delayed_work - kill off a delayed work whose handler rearms the delayed work.
-  * @dwork: the delayed work struct
-  *
-  * Note that the work callback function may still be running on return from
-  * cancel_delayed_work(). Run flush_workqueue() or flush_work() to wait on it.
-  */
--void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
--				       struct delayed_work *dwork)
-+void cancel_rearming_delayed_work(struct delayed_work *dwork)
+@@ -180,28 +180,11 @@ void delayed_work_timer_fn(unsigned long
+ int fastcall queue_delayed_work(struct workqueue_struct *wq,
+ 			struct delayed_work *dwork, unsigned long delay)
  {
--	/* Was it ever queued ? */
--	if (!get_wq_data(&dwork->work))
--		return;
-+	struct cpu_workqueue_struct *cwq = get_wq_data(&dwork->work);
+-	int ret = 0;
+-	struct timer_list *timer = &dwork->timer;
+-	struct work_struct *work = &dwork->work;
+-
+-	timer_stats_timer_set_start_info(timer);
++	timer_stats_timer_set_start_info(&dwork->timer);
+ 	if (delay == 0)
+-		return queue_work(wq, work);
+-
+-	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
+-		BUG_ON(timer_pending(timer));
+-		BUG_ON(!list_empty(&work->entry));
++		return queue_work(wq, &dwork->work);
  
--	while (!cancel_delayed_work(dwork))
--		flush_workqueue(wq);
--}
--EXPORT_SYMBOL(cancel_rearming_delayed_workqueue);
-+	/* Was it ever queued ? */
-+	if (cwq != NULL) {
-+		struct workqueue_struct *wq = cwq->wq;
- 
--/**
-- * cancel_rearming_delayed_work - kill off a delayed keventd work whose handler rearms the delayed work.
-- * @dwork: the delayed work struct
-- */
--void cancel_rearming_delayed_work(struct delayed_work *dwork)
--{
--	cancel_rearming_delayed_workqueue(keventd_wq, dwork);
-+		while (!cancel_delayed_work(dwork))
-+			flush_workqueue(wq);
-+	}
+-		/* This stores cwq for the moment, for the timer_fn */
+-		set_wq_data(work,
+-			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
+-		timer->expires = jiffies + delay;
+-		timer->data = (unsigned long)dwork;
+-		timer->function = delayed_work_timer_fn;
+-		add_timer(timer);
+-		ret = 1;
+-	}
+-	return ret;
++	return queue_delayed_work_on(-1, wq, dwork, delay);
  }
- EXPORT_SYMBOL(cancel_rearming_delayed_work);
+ EXPORT_SYMBOL_GPL(queue_delayed_work);
  
+@@ -227,11 +210,16 @@ int queue_delayed_work_on(int cpu, struc
+ 
+ 		/* This stores cwq for the moment, for the timer_fn */
+ 		set_wq_data(work,
+-			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
++			per_cpu_ptr(wq->cpu_wq, wq->singlethread ?
++				singlethread_cpu : raw_smp_processor_id()));
+ 		timer->expires = jiffies + delay;
+ 		timer->data = (unsigned long)dwork;
+ 		timer->function = delayed_work_timer_fn;
+-		add_timer_on(timer, cpu);
++
++		if (unlikely(cpu >= 0))
++			add_timer_on(timer, cpu);
++		else
++			add_timer(timer);
+ 		ret = 1;
+ 	}
+ 	return ret;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
