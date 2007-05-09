@@ -1,65 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - ipvs-flush-defense_work-before-module-unload.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:05 -0700
-Message-ID: <200705092152.l49Lq5ia002964@shell0.pdx.osdl.net>
+Subject: - workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:55 -0700
+Message-ID: <200705092151.l49LptV8002937@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56843 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758761AbXEIVwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:25 -0400
+	by vger.kernel.org with ESMTP id S1758854AbXEIVw0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, davem@davemloft.net, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ego@in.ibm.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipvs: flush defense_work before module unload
+     workqueues: shift kthread_bind() from CPU_UP_PREPARE to CPU_ONLINE
 has been removed from the -mm tree.  Its filename was
-     ipvs-flush-defense_work-before-module-unload.patch
+     workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipvs: flush defense_work before module unload
+Subject: workqueues: shift kthread_bind() from CPU_UP_PREPARE to CPU_ONLINE
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-net/ipv4/ipvs/ip_vs_core.c
+CPU_UP_PREPARE binds cwq->thread to the new CPU.  So CPU_UP_CANCELED tries to
+wake up the task which is bound to the failed CPU.
 
-	module_exit
-	    ip_vs_cleanup
-		ip_vs_control_cleanup
-		    cancel_rearming_delayed_work
-	// done
-
-This is unsafe.  The module may be unloaded and the memory may be freed
-while defense_work's handler is still running/preempted.
-
-Do flush_work(&defense_work.work) after cancel_rearming_delayed_work().
-
-Alternatively, we could add flush_work() to cancel_rearming_delayed_work(),
-but note that we can't change cancel_delayed_work() in the same manner
-because it may be called from atomic context.
+With this patch we don't bind cwq->thread until CPU becomes online.  The first
+wake_up() after kthread_create() is a bit special, make a simple helper for
+that.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ipvs/ip_vs_ctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/workqueue.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN net/ipv4/ipvs/ip_vs_ctl.c~ipvs-flush-defense_work-before-module-unload net/ipv4/ipvs/ip_vs_ctl.c
---- a/net/ipv4/ipvs/ip_vs_ctl.c~ipvs-flush-defense_work-before-module-unload
-+++ a/net/ipv4/ipvs/ip_vs_ctl.c
-@@ -2387,6 +2387,7 @@ void ip_vs_control_cleanup(void)
- 	EnterFunction(2);
- 	ip_vs_trash_cleanup();
- 	cancel_rearming_delayed_work(&defense_work);
-+	flush_work_keventd(&defense_work.work);
- 	ip_vs_kill_estimator(&ip_vs_stats);
- 	unregister_sysctl_table(sysctl_header);
- 	proc_net_remove("ip_vs_stats");
+diff -puN kernel/workqueue.c~workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online
++++ a/kernel/workqueue.c
+@@ -668,15 +668,21 @@ static int create_workqueue_thread(struc
+ 
+ 	cwq->thread = p;
+ 	cwq->should_stop = 0;
+-	if (!is_single_threaded(wq))
+-		kthread_bind(p, cpu);
+-
+-	if (is_single_threaded(wq) || cpu_online(cpu))
+-		wake_up_process(p);
+ 
+ 	return 0;
+ }
+ 
++static void start_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
++{
++	struct task_struct *p = cwq->thread;
++
++	if (p != NULL) {
++		if (cpu >= 0)
++			kthread_bind(p, cpu);
++		wake_up_process(p);
++	}
++}
++
+ struct workqueue_struct *__create_workqueue(const char *name,
+ 					    int singlethread, int freezeable)
+ {
+@@ -702,6 +708,7 @@ struct workqueue_struct *__create_workqu
+ 	if (singlethread) {
+ 		cwq = init_cpu_workqueue(wq, singlethread_cpu);
+ 		err = create_workqueue_thread(cwq, singlethread_cpu);
++		start_workqueue_thread(cwq, -1);
+ 	} else {
+ 		mutex_lock(&workqueue_mutex);
+ 		list_add(&wq->list, &workqueues);
+@@ -711,6 +718,7 @@ struct workqueue_struct *__create_workqu
+ 			if (err || !cpu_online(cpu))
+ 				continue;
+ 			err = create_workqueue_thread(cwq, cpu);
++			start_workqueue_thread(cwq, cpu);
+ 		}
+ 		mutex_unlock(&workqueue_mutex);
+ 	}
+@@ -808,12 +816,11 @@ static int __devinit workqueue_cpu_callb
+ 			return NOTIFY_BAD;
+ 
+ 		case CPU_ONLINE:
+-			wake_up_process(cwq->thread);
++			start_workqueue_thread(cwq, cpu);
+ 			break;
+ 
+ 		case CPU_UP_CANCELED:
+-			if (cwq->thread)
+-				wake_up_process(cwq->thread);
++			start_workqueue_thread(cwq, -1);
+ 		case CPU_DEAD:
+ 			cleanup_workqueue_thread(cwq, cpu);
+ 			break;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
