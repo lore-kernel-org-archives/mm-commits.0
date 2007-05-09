@@ -1,354 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - slub-add-config_slub_debug.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:11 -0700
-Message-ID: <200705092148.l49LmBJj002560@shell0.pdx.osdl.net>
+Subject: - slub-rework-slab-order-determination.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:16 -0700
+Message-ID: <200705092148.l49LmGms002571@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45958 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50468 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756787AbXEIVsP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:15 -0400
+	by vger.kernel.org with ESMTP id S1757412AbXEIVsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: add CONFIG_SLUB_DEBUG
+     SLUB: rework slab order determination
 has been removed from the -mm tree.  Its filename was
-     slub-add-config_slub_debug.patch
+     slub-rework-slab-order-determination.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: add CONFIG_SLUB_DEBUG
+Subject: SLUB: rework slab order determination
 From: Christoph Lameter <clameter@sgi.com>
 
-CONFIG_SLUB_DEBUG can be used to switch off the debugging and sysfs components
-of SLUB.  Thus SLUB will be able to replace SLOB.  SLUB can arrange objects in
-a denser way than SLOB and the code size should be minimal without debugging
-and sysfs support.
+In some cases SLUB is creating uselessly slabs that are larger than
+slub_max_order. Also the layout of some of the slabs was not satisfactory.
 
-Note that CONFIG_SLUB_DEBUG is materially different from CONFIG_SLAB_DEBUG. 
-CONFIG_SLAB_DEBUG is used to enable slab debugging in SLAB.  SLUB enables
-debugging via a boot parameter.  SLUB debug code should always be present.
-
-CONFIG_SLUB_DEBUG can be modified in the embedded config section.
+Go to an iterarive approach.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    9 ++
- mm/slub.c    |  189 +++++++++++++++++++++++++++++--------------------
- 2 files changed, 123 insertions(+), 75 deletions(-)
+ mm/slub.c |   66 ++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 52 insertions(+), 14 deletions(-)
 
-diff -puN init/Kconfig~slub-add-config_slub_debug init/Kconfig
---- a/init/Kconfig~slub-add-config_slub_debug
-+++ a/init/Kconfig
-@@ -504,6 +504,15 @@ config VM_EVENT_COUNTERS
- 	  on EMBEDDED systems.  /proc/vmstat will only show page counts
- 	  if VM event counters are disabled.
- 
-+config SLUB_DEBUG
-+	default y
-+	bool "Enable SLUB debugging support" if EMBEDDED
-+	help
-+	  SLUB has extensive debug support features. Disabling these can
-+	  result in significant savings in code size. This also disables
-+	  SLUB sysfs support. /sys/slab will not exist and there will be
-+	  no support for cache validation etc.
-+
- choice
- 	prompt "Choose SLAB allocator"
- 	default SLAB
-diff -puN mm/slub.c~slub-add-config_slub_debug mm/slub.c
---- a/mm/slub.c~slub-add-config_slub_debug
+diff -puN mm/slub.c~slub-rework-slab-order-determination mm/slub.c
+--- a/mm/slub.c~slub-rework-slab-order-determination
 +++ a/mm/slub.c
-@@ -89,17 +89,25 @@
- 
- static inline int SlabDebug(struct page *page)
- {
-+#ifdef CONFIG_SLUB_DEBUG
- 	return PageError(page);
-+#else
-+	return 0;
-+#endif
- }
- 
- static inline void SetSlabDebug(struct page *page)
- {
-+#ifdef CONFIG_SLUB_DEBUG
- 	SetPageError(page);
-+#endif
- }
- 
- static inline void ClearSlabDebug(struct page *page)
- {
-+#ifdef CONFIG_SLUB_DEBUG
- 	ClearPageError(page);
-+#endif
- }
- 
- /*
-@@ -207,7 +215,7 @@ struct track {
- 
- enum track_item { TRACK_ALLOC, TRACK_FREE };
- 
--#ifdef CONFIG_SYSFS
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
- static int sysfs_slab_add(struct kmem_cache *);
- static int sysfs_slab_alias(struct kmem_cache *, const char *);
- static void sysfs_slab_remove(struct kmem_cache *);
-@@ -284,6 +292,14 @@ static inline int slab_index(void *p, st
- 	return (p - addr) / s->size;
- }
- 
-+#ifdef CONFIG_SLUB_DEBUG
-+/*
-+ * Debug settings:
-+ */
-+static int slub_debug;
-+
-+static char *slub_debug_slabs;
-+
- /*
-  * Object debugging
+@@ -1577,37 +1577,75 @@ static int slub_nomerge;
+  * requested a higher mininum order then we start with that one instead of
+  * the smallest order which will fit the object.
   */
-@@ -821,6 +837,97 @@ static void trace(struct kmem_cache *s, 
+-static int calculate_order(int size)
++static inline int slab_order(int size, int min_objects,
++				int max_order, int fract_leftover)
+ {
+ 	int order;
+ 	int rem;
+ 
+-	for (order = max(slub_min_order, fls(size - 1) - PAGE_SHIFT);
+-			order < MAX_ORDER; order++) {
+-		unsigned long slab_size = PAGE_SIZE << order;
++	for (order = max(slub_min_order,
++				fls(min_objects * size - 1) - PAGE_SHIFT);
++			order <= max_order; order++) {
+ 
+-		if (order < slub_max_order &&
+-				slab_size < slub_min_objects * size)
+-			continue;
++		unsigned long slab_size = PAGE_SIZE << order;
+ 
+-		if (slab_size < size)
++		if (slab_size < min_objects * size)
+ 			continue;
+ 
+-		if (order >= slub_max_order)
+-			break;
+-
+ 		rem = slab_size % size;
+ 
+-		if (rem <= slab_size / 8)
++		if (rem <= slab_size / fract_leftover)
+ 			break;
+ 
  	}
+-	if (order >= MAX_ORDER)
+-		return -E2BIG;
+ 
+ 	return order;
  }
  
-+static int __init setup_slub_debug(char *str)
++static inline int calculate_order(int size)
 +{
-+	if (!str || *str != '=')
-+		slub_debug = DEBUG_DEFAULT_FLAGS;
-+	else {
-+		str++;
-+		if (*str == 0 || *str == ',')
-+			slub_debug = DEBUG_DEFAULT_FLAGS;
-+		else
-+		for( ;*str && *str != ','; str++)
-+			switch (*str) {
-+			case 'f' : case 'F' :
-+				slub_debug |= SLAB_DEBUG_FREE;
-+				break;
-+			case 'z' : case 'Z' :
-+				slub_debug |= SLAB_RED_ZONE;
-+				break;
-+			case 'p' : case 'P' :
-+				slub_debug |= SLAB_POISON;
-+				break;
-+			case 'u' : case 'U' :
-+				slub_debug |= SLAB_STORE_USER;
-+				break;
-+			case 't' : case 'T' :
-+				slub_debug |= SLAB_TRACE;
-+				break;
-+			default:
-+				printk(KERN_ERR "slub_debug option '%c' "
-+					"unknown. skipped\n",*str);
-+			}
-+	}
++	int order;
++	int min_objects;
++	int fraction;
 +
-+	if (*str == ',')
-+		slub_debug_slabs = str + 1;
-+	return 1;
-+}
-+
-+__setup("slub_debug", setup_slub_debug);
-+
-+static void kmem_cache_open_debug_check(struct kmem_cache *s)
-+{
 +	/*
-+	 * The page->offset field is only 16 bit wide. This is an offset
-+	 * in units of words from the beginning of an object. If the slab
-+	 * size is bigger then we cannot move the free pointer behind the
-+	 * object anymore.
++	 * Attempt to find best configuration for a slab. This
++	 * works by first attempting to generate a layout with
++	 * the best configuration and backing off gradually.
 +	 *
-+	 * On 32 bit platforms the limit is 256k. On 64bit platforms
-+	 * the limit is 512k.
-+	 *
-+	 * Debugging or ctor/dtors may create a need to move the free
-+	 * pointer. Fail if this happens.
++	 * First we reduce the acceptable waste in a slab. Then
++	 * we reduce the minimum objects required in a slab.
 +	 */
-+	if (s->size >= 65535 * sizeof(void *)) {
-+		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
-+				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
-+		BUG_ON(s->ctor || s->dtor);
++	min_objects = slub_min_objects;
++	while (min_objects > 1) {
++		fraction = 8;
++		while (fraction >= 4) {
++			order = slab_order(size, min_objects,
++						slub_max_order, fraction);
++			if (order <= slub_max_order)
++				return order;
++			fraction /= 2;
++		}
++		min_objects /= 2;
 +	}
-+	else
-+		/*
-+		 * Enable debugging if selected on the kernel commandline.
-+		 */
-+		if (slub_debug && (!slub_debug_slabs ||
-+		    strncmp(slub_debug_slabs, s->name,
-+		    	strlen(slub_debug_slabs)) == 0))
-+				s->flags |= slub_debug;
++
++	/*
++	 * We were unable to place multiple objects in a slab. Now
++	 * lets see if we can place a single object there.
++	 */
++	order = slab_order(size, 1, slub_max_order, 1);
++	if (order <= slub_max_order)
++		return order;
++
++	/*
++	 * Doh this slab cannot be placed using slub_max_order.
++	 */
++	order = slab_order(size, 1, MAX_ORDER, 1);
++	if (order <= MAX_ORDER)
++		return order;
++	return -ENOSYS;
 +}
-+#else
 +
-+static inline int alloc_object_checks(struct kmem_cache *s,
-+		struct page *page, void *object) { return 0; }
-+
-+static inline int free_object_checks(struct kmem_cache *s,
-+		struct page *page, void *object) { return 0; }
-+
-+static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
-+static inline void remove_full(struct kmem_cache *s, struct page *page) {}
-+static inline void trace(struct kmem_cache *s, struct page *page,
-+			void *object, int alloc) {}
-+static inline void init_object(struct kmem_cache *s,
-+			void *object, int active) {}
-+static inline void init_tracking(struct kmem_cache *s, void *object) {}
-+static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
-+			{ return 1; }
-+static inline int check_object(struct kmem_cache *s, struct page *page,
-+			void *object, int active) { return 1; }
-+static inline void set_track(struct kmem_cache *s, void *object,
-+			enum track_item alloc, void *addr) {}
-+static inline void kmem_cache_open_debug_check(struct kmem_cache *s) {}
-+#define slub_debug 0
-+#endif
  /*
-  * Slab allocation and freeing
+  * Figure out what the alignment of the objects will be.
   */
-@@ -1446,13 +1553,6 @@ static int slub_min_objects = DEFAULT_MI
- static int slub_nomerge;
- 
- /*
-- * Debug settings:
-- */
--static int slub_debug;
--
--static char *slub_debug_slabs;
--
--/*
-  * Calculate the order of allocation given an slab object size.
-  *
-  * The order of allocation has significant impact on performance and other
-@@ -1660,6 +1760,7 @@ static int calculate_sizes(struct kmem_c
- 	 */
- 	size = ALIGN(size, sizeof(void *));
- 
-+#ifdef CONFIG_SLUB_DEBUG
- 	/*
- 	 * If we are Redzoning then check if there is some space between the
- 	 * end of the object and the free pointer. If not then add an
-@@ -1667,6 +1768,7 @@ static int calculate_sizes(struct kmem_c
- 	 */
- 	if ((flags & SLAB_RED_ZONE) && size == s->objsize)
- 		size += sizeof(void *);
-+#endif
- 
- 	/*
- 	 * With that we have determined the number of bytes in actual use
-@@ -1674,6 +1776,7 @@ static int calculate_sizes(struct kmem_c
- 	 */
- 	s->inuse = size;
- 
-+#ifdef CONFIG_SLUB_DEBUG
- 	if (((flags & (SLAB_DESTROY_BY_RCU | SLAB_POISON)) ||
- 		s->ctor || s->dtor)) {
- 		/*
-@@ -1704,6 +1807,7 @@ static int calculate_sizes(struct kmem_c
- 		 * of the object.
- 		 */
- 		size += sizeof(void *);
-+#endif
- 
- 	/*
- 	 * Determine the alignment based on various parameters that the
-@@ -1753,32 +1857,7 @@ static int kmem_cache_open(struct kmem_c
- 	s->objsize = size;
- 	s->flags = flags;
- 	s->align = align;
--
--	/*
--	 * The page->offset field is only 16 bit wide. This is an offset
--	 * in units of words from the beginning of an object. If the slab
--	 * size is bigger then we cannot move the free pointer behind the
--	 * object anymore.
--	 *
--	 * On 32 bit platforms the limit is 256k. On 64bit platforms
--	 * the limit is 512k.
--	 *
--	 * Debugging or ctor/dtors may create a need to move the free
--	 * pointer. Fail if this happens.
--	 */
--	if (s->size >= 65535 * sizeof(void *)) {
--		BUG_ON(flags & (SLAB_RED_ZONE | SLAB_POISON |
--				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
--		BUG_ON(ctor || dtor);
--	}
--	else
--		/*
--		 * Enable debugging if selected on the kernel commandline.
--		 */
--		if (slub_debug && (!slub_debug_slabs ||
--		    strncmp(slub_debug_slabs, name,
--		    	strlen(slub_debug_slabs)) == 0))
--				s->flags |= slub_debug;
-+	kmem_cache_open_debug_check(s);
- 
- 	if (!calculate_sizes(s))
- 		goto error;
-@@ -1949,45 +2028,6 @@ static int __init setup_slub_nomerge(cha
- 
- __setup("slub_nomerge", setup_slub_nomerge);
- 
--static int __init setup_slub_debug(char *str)
--{
--	if (!str || *str != '=')
--		slub_debug = DEBUG_DEFAULT_FLAGS;
--	else {
--		str++;
--		if (*str == 0 || *str == ',')
--			slub_debug = DEBUG_DEFAULT_FLAGS;
--		else
--		for( ;*str && *str != ','; str++)
--			switch (*str) {
--			case 'f' : case 'F' :
--				slub_debug |= SLAB_DEBUG_FREE;
--				break;
--			case 'z' : case 'Z' :
--				slub_debug |= SLAB_RED_ZONE;
--				break;
--			case 'p' : case 'P' :
--				slub_debug |= SLAB_POISON;
--				break;
--			case 'u' : case 'U' :
--				slub_debug |= SLAB_STORE_USER;
--				break;
--			case 't' : case 'T' :
--				slub_debug |= SLAB_TRACE;
--				break;
--			default:
--				printk(KERN_ERR "slub_debug option '%c' "
--					"unknown. skipped\n",*str);
--			}
--	}
--
--	if (*str == ',')
--		slub_debug_slabs = str + 1;
--	return 1;
--}
--
--__setup("slub_debug", setup_slub_debug);
--
- static struct kmem_cache *create_kmalloc_cache(struct kmem_cache *s,
- 		const char *name, int size, gfp_t gfp_flags)
- {
-@@ -2554,8 +2594,7 @@ void *__kmalloc_node_track_caller(size_t
- 	return slab_alloc(s, gfpflags, node, caller);
- }
- 
--#ifdef CONFIG_SYSFS
--
-+#if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
- static int validate_slab(struct kmem_cache *s, struct page *page)
- {
- 	void *p;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
