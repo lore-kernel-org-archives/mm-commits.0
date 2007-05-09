@@ -1,79 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-spinlock-initializer-cleanup.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:29 -0700
-Message-ID: <200705090253.l492rTGb009704@shell0.pdx.osdl.net>
+Subject: - sched-fix-idle-load-balancing-in-softirqd-context.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:53:31 -0700
+Message-ID: <200705090253.l492rVaR009709@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43987 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032229AbXEICxg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:36 -0400
+	by vger.kernel.org with ESMTP id S1032062AbXEICxk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: suresh.b.siddha@intel.com, mingo@elte.hu, nickpiggin@yahoo.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ISDN: Spinlock initializer cleanup
+     sched: fix idle load balancing in softirqd context
 has been removed from the -mm tree.  Its filename was
-     isdn-spinlock-initializer-cleanup.patch
+     sched-fix-idle-load-balancing-in-softirqd-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ISDN: Spinlock initializer cleanup
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: sched: fix idle load balancing in softirqd context
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Periodic load balancing in recent kernels happen in the softirq.  In
+certain -rt configurations, these softirqs are handled in softirqd context.
+ And hence the check for idle processor was always returning busy (as
+nr_running > 1).
+
+This patch captures the idle information at the tick and passes this info
+to softirq context through an element 'idle_at_tick' in rq.
+
+[kernel@kolivas.org: Fix reverse idle at tick logic]
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/boardergo.c   |    2 +-
- drivers/isdn/isdnloop/isdnloop.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/hysdn/boardergo.c~isdn-spinlock-initializer-cleanup drivers/isdn/hysdn/boardergo.c
---- a/drivers/isdn/hysdn/boardergo.c~isdn-spinlock-initializer-cleanup
-+++ a/drivers/isdn/hysdn/boardergo.c
-@@ -443,7 +443,7 @@ ergo_inithardware(hysdn_card * card)
- 	card->waitpofready = ergo_waitpofready;
- 	card->set_errlog_state = ergo_set_errlog_state;
- 	INIT_WORK(&card->irq_queue, ergo_irq_bh);
--	card->hysdn_lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&card->hysdn_lock);
+diff -puN kernel/sched.c~sched-fix-idle-load-balancing-in-softirqd-context kernel/sched.c
+--- a/kernel/sched.c~sched-fix-idle-load-balancing-in-softirqd-context
++++ a/kernel/sched.c
+@@ -223,6 +223,7 @@ struct rq {
+ 	unsigned long raw_weighted_load;
+ #ifdef CONFIG_SMP
+ 	unsigned long cpu_load[3];
++	unsigned char idle_at_tick;
+ #endif
+ 	unsigned long long nr_switches;
  
- 	return (0);
- }				/* ergo_inithardware */
-diff -puN drivers/isdn/isdnloop/isdnloop.c~isdn-spinlock-initializer-cleanup drivers/isdn/isdnloop/isdnloop.c
---- a/drivers/isdn/isdnloop/isdnloop.c~isdn-spinlock-initializer-cleanup
-+++ a/drivers/isdn/isdnloop/isdnloop.c
-@@ -1462,7 +1462,7 @@ isdnloop_initcard(char *id)
- 		skb_queue_head_init(&card->bqueue[i]);
- 	}
- 	skb_queue_head_init(&card->dqueue);
--	card->isdnloop_lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&card->isdnloop_lock);
- 	card->next = cards;
- 	cards = card;
- 	if (!register_isdn(&card->interface)) {
+@@ -2943,12 +2944,7 @@ static void run_rebalance_domains(struct
+ 	struct rq *this_rq = cpu_rq(this_cpu);
+ 	unsigned long interval;
+ 	struct sched_domain *sd;
+-	/*
+-	 * We are idle if there are no processes running. This
+-	 * is valid even if we are the idle process (SMT).
+-	 */
+-	enum idle_type idle = !this_rq->nr_running ?
+-				SCHED_IDLE : NOT_IDLE;
++	enum idle_type idle = this_rq->idle_at_tick ? SCHED_IDLE : NOT_IDLE;
+ 	/* Earliest time when we have to call run_rebalance_domains again */
+ 	unsigned long next_balance = jiffies + 60*HZ;
+ 
+@@ -3218,14 +3214,16 @@ void scheduler_tick(void)
+ 	unsigned long long now = sched_clock();
+ 	struct task_struct *p = current;
+ 	int cpu = smp_processor_id();
++	int idle_at_tick = idle_cpu(cpu);
+ 	struct rq *rq = cpu_rq(cpu);
+ 
+ 	update_cpu_clock(p, rq, now);
+ 
+-	if (p != rq->idle)
++	if (!idle_at_tick)
+ 		task_running_tick(rq, p);
+ #ifdef CONFIG_SMP
+ 	update_load(rq);
++	rq->idle_at_tick = idle_at_tick;
+ 	if (time_after_eq(jiffies, rq->next_balance))
+ 		raise_softirq(SCHED_SOFTIRQ);
+ #endif
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
 origin.patch
-arm-spinlock-initializer-cleanup.patch
-git-avr32.patch
-drm-spinlock-initializer-cleanup.patch
-git-dvb.patch
-git-ieee1394.patch
-git-mtd.patch
-s390-spinlock-initializer-cleanup.patch
-fix-printk-format-warnings-in-timer_listc.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-declare-struct-ktime.patch
-timer-parenthesis-fix-in-tbase_get_deferrable-etc.patch
-clocksource-fix-resume-logic.patch
-clockevents-fix-resume-logic-updated-version.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
+git-ia64.patch
