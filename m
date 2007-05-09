@@ -1,567 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: - epoll-optimizations-and-cleanups.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:52 -0700
-Message-ID: <200705090245.l492jqPq008785@shell0.pdx.osdl.net>
+Subject: - add-filesystem-subtype-support.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:57 -0700
+Message-ID: <200705090245.l492jvw9008794@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59037 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031576AbXEICp6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:58 -0400
+	by vger.kernel.org with ESMTP id S1031576AbXEICqD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     epoll: optimizations and cleanups
+     add filesystem subtype support
 has been removed from the -mm tree.  Its filename was
-     epoll-optimizations-and-cleanups.patch
+     add-filesystem-subtype-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: epoll: optimizations and cleanups
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: add filesystem subtype support
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Epoll is doing multiple passes over the ready set at the moment, because of
-the constraints over the f_op->poll() call.  Looking at the code again, I
-noticed that we already hold the epoll semaphore in read, and this
-(together with other locking conditions that hold while doing an
-epoll_wait()) can lead to a smarter way [1] to "ship" events to userspace
-(in a single pass).
+There's a slight problem with filesystem type representation in fuse
+based filesystems.
 
-This is a stress application that can be used to test the new code.  It
-spwans multiple thread and call epoll_wait() and epoll_ctl() from many
-threads.  Stress tested on my dual Opteron 254 w/out any problems.
+From the kernel's view, there are just two filesystem types: fuse and
+fuseblk.  From the user's view there are lots of different filesystem
+types.  The user is not even much concerned if the filesystem is fuse based
+or not.  So there's a conflict of interest in how this should be
+represented in fstab, mtab and /proc/mounts.
 
-http://www.xmailserver.org/totalmess.c
+The current scheme is to encode the real filesystem type in the mount
+source.  So an sshfs mount looks like this:
 
-This is not a benchmark, just something that tries to stress and exploit
-possible problems with the new code.
-Also, I made a stupid micro-benchmark:
+  sshfs#user@server:/   /mnt/server    fuse   rw,nosuid,nodev,...
 
-http://www.xmailserver.org/epwbench.c
+This url-ish syntax works OK for sshfs and similar filesystems.  However
+for block device based filesystems (ntfs-3g, zfs) it doesn't work, since
+the kernel expects the mount source to be a real device name.
 
-[1] Considering that epoll must be thread-safe, there are five ways we can
-    be hit during an epoll_wait() transfer loop (ep_send_events()):
+A possibly better scheme would be to encode the real type in the type
+field as "type.subtype".  So fuse mounts would look like this:
 
-    1) The epoll fd going away and calling ep_free
-       This just can't happen, since we did an fget() in sys_epoll_wait
+  /dev/hda1       /mnt/windows   fuseblk.ntfs-3g   rw,...
+  user@server:/   /mnt/server    fuse.sshfs        rw,nosuid,nodev,...
 
-    2) An epoll_ctl(EPOLL_CTL_DEL)
-       This can't happen because epoll_ctl() gets ep->sem in write, and
-       we're holding it in read during ep_send_events()
+This patch adds the necessary code to the kernel so that this can be
+correctly displayed in /proc/mounts.
 
-    3) An fd stored inside the epoll fd going away
-       This can't happen because in eventpoll_release_file() we get
-       ep->sem in write, and we're holding it in read during
-       ep_send_events()
-
-    4) Another epoll_wait() happening on another thread
-       They both can be inside ep_send_events() at the same time, we get
-       (splice) the ready-list under the spinlock, so each one will get
-       its own ready list. Note that an fd cannot be at the same time
-       inside more than one ready list, because ep_poll_callback() will
-       not re-queue it if it sees it already linked:
-
-       if (ep_is_linked(&epi->rdllink))
-                goto is_linked;
-
-       Another case that can happen, is two concurrent epoll_wait(),
-       coming in with a userspace event buffer of size, say, ten.
-       Suppose there are 50 event ready in the list. The first
-       epoll_wait() will "steal" the whole list, while the second, seeing
-       no events, will go to sleep. But at the end of ep_send_events() in
-       the first epoll_wait(), we will re-inject surplus ready fds, and we
-       will trigger the proper wake_up to the second epoll_wait().
-
-    5) ep_poll_callback() hitting us asyncronously
-       This is the tricky part. As I said above, the ep_is_linked() test
-       done inside ep_poll_callback(), will guarantee us that until the
-       item will result linked to a list, ep_poll_callback() will not try
-       to re-queue it again (read, write data on any of its members). When
-       we do a list_del() in ep_send_events(), the item will still satisfy
-       the ep_is_linked() test (whatever data is written in prev/next,
-       it'll never be its own pointer), so ep_poll_callback() will still
-       leave us alone. It's only after the eventual smp_mb()+INIT_LIST_HEAD(&epi->rdllink)
-       that it'll become visible to ep_poll_callback(), but at the point
-       we're already past it.
-
-[akpm@osdl.org: 80 cols]
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |  235 +++++++++++++++++------------------------------
- 1 file changed, 87 insertions(+), 148 deletions(-)
+ fs/filesystems.c   |   21 +++++++++++++++------
+ fs/fuse/inode.c    |    2 ++
+ fs/namespace.c     |    4 ++++
+ fs/super.c         |   27 +++++++++++++++++++++++++++
+ include/linux/fs.h |    7 +++++++
+ 5 files changed, 55 insertions(+), 6 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-optimizations-and-cleanups fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-optimizations-and-cleanups
-+++ a/fs/eventpoll.c
-@@ -185,7 +185,7 @@ struct eppoll_entry {
+diff -puN fs/filesystems.c~add-filesystem-subtype-support fs/filesystems.c
+--- a/fs/filesystems.c~add-filesystem-subtype-support
++++ a/fs/filesystems.c
+@@ -41,11 +41,12 @@ void put_filesystem(struct file_system_t
+ 	module_put(fs->owner);
+ }
  
- /*
-  * Each file descriptor added to the eventpoll interface will
-- * have an entry of this type linked to the hash.
-+ * have an entry of this type linked to the "rbr" RB tree.
-  */
- struct epitem {
- 	/* RB-Tree node used to link this structure to the eventpoll rb-tree */
-@@ -217,15 +217,6 @@ struct epitem {
+-static struct file_system_type **find_filesystem(const char *name)
++static struct file_system_type **find_filesystem(const char *name, unsigned len)
+ {
+ 	struct file_system_type **p;
+ 	for (p=&file_systems; *p; p=&(*p)->next)
+-		if (strcmp((*p)->name,name) == 0)
++		if (strlen((*p)->name) == len &&
++		    strncmp((*p)->name, name, len) == 0)
+ 			break;
+ 	return p;
+ }
+@@ -68,11 +69,12 @@ int register_filesystem(struct file_syst
+ 	int res = 0;
+ 	struct file_system_type ** p;
  
- 	/* List header used to link this item to the "struct file" items list */
- 	struct list_head fllink;
--
--	/* List header used to link the item to the transfer list */
--	struct list_head txlink;
--
--	/*
--	 * This is used during the collection/transfer of events to userspace
--	 * to pin items empty events set.
--	 */
--	unsigned int revents;
++	BUG_ON(strchr(fs->name, '.'));
+ 	if (fs->next)
+ 		return -EBUSY;
+ 	INIT_LIST_HEAD(&fs->fs_supers);
+ 	write_lock(&file_systems_lock);
+-	p = find_filesystem(fs->name);
++	p = find_filesystem(fs->name, strlen(fs->name));
+ 	if (*p)
+ 		res = -EBUSY;
+ 	else
+@@ -215,19 +217,26 @@ int get_filesystem_list(char * buf)
+ struct file_system_type *get_fs_type(const char *name)
+ {
+ 	struct file_system_type *fs;
++	const char *dot = strchr(name, '.');
++	unsigned len = dot ? dot - name : strlen(name);
+ 
+ 	read_lock(&file_systems_lock);
+-	fs = *(find_filesystem(name));
++	fs = *(find_filesystem(name, len));
+ 	if (fs && !try_module_get(fs->owner))
+ 		fs = NULL;
+ 	read_unlock(&file_systems_lock);
+-	if (!fs && (request_module("%s", name) == 0)) {
++	if (!fs && (request_module("%.*s", len, name) == 0)) {
+ 		read_lock(&file_systems_lock);
+-		fs = *(find_filesystem(name));
++		fs = *(find_filesystem(name, len));
+ 		if (fs && !try_module_get(fs->owner))
+ 			fs = NULL;
+ 		read_unlock(&file_systems_lock);
+ 	}
++
++	if (dot && fs && !(fs->fs_flags & FS_HAS_SUBTYPE)) {
++		put_filesystem(fs);
++		fs = NULL;
++	}
+ 	return fs;
+ }
+ 
+diff -puN fs/fuse/inode.c~add-filesystem-subtype-support fs/fuse/inode.c
+--- a/fs/fuse/inode.c~add-filesystem-subtype-support
++++ a/fs/fuse/inode.c
+@@ -636,6 +636,7 @@ static int fuse_get_sb(struct file_syste
+ static struct file_system_type fuse_fs_type = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "fuse",
++	.fs_flags	= FS_HAS_SUBTYPE,
+ 	.get_sb		= fuse_get_sb,
+ 	.kill_sb	= kill_anon_super,
+ };
+@@ -652,6 +653,7 @@ static int fuse_get_sb_blk(struct file_s
+ static struct file_system_type fuseblk_fs_type = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "fuseblk",
++	.fs_flags	= FS_HAS_SUBTYPE,
+ 	.get_sb		= fuse_get_sb_blk,
+ 	.kill_sb	= kill_block_super,
+ 	.fs_flags	= FS_REQUIRES_DEV,
+diff -puN fs/namespace.c~add-filesystem-subtype-support fs/namespace.c
+--- a/fs/namespace.c~add-filesystem-subtype-support
++++ a/fs/namespace.c
+@@ -377,6 +377,10 @@ static int show_vfsmnt(struct seq_file *
+ 	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
+ 	seq_putc(m, ' ');
+ 	mangle(m, mnt->mnt_sb->s_type->name);
++	if (mnt->mnt_sb->s_subtype && mnt->mnt_sb->s_subtype[0]) {
++		seq_putc(m, '.');
++		mangle(m, mnt->mnt_sb->s_subtype);
++	}
+ 	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
+ 	for (fs_infop = fs_info; fs_infop->flag; fs_infop++) {
+ 		if (mnt->mnt_sb->s_flags & fs_infop->flag)
+diff -puN fs/super.c~add-filesystem-subtype-support fs/super.c
+--- a/fs/super.c~add-filesystem-subtype-support
++++ a/fs/super.c
+@@ -107,6 +107,7 @@ out:
+ static inline void destroy_super(struct super_block *s)
+ {
+ 	security_sb_free(s);
++	kfree(s->s_subtype);
+ 	kfree(s);
+ }
+ 
+@@ -907,6 +908,29 @@ out:
+ 
+ EXPORT_SYMBOL_GPL(vfs_kern_mount);
+ 
++static struct vfsmount *fs_set_subtype(struct vfsmount *mnt, const char *fstype)
++{
++	int err;
++	const char *subtype = strchr(fstype, '.');
++	if (subtype) {
++		subtype++;
++		err = -EINVAL;
++		if (!subtype[0])
++			goto err;
++	} else
++		subtype = "";
++
++	mnt->mnt_sb->s_subtype = kstrdup(subtype, GFP_KERNEL);
++	err = -ENOMEM;
++	if (!mnt->mnt_sb->s_subtype)
++		goto err;
++	return mnt;
++
++ err:
++	mntput(mnt);
++	return ERR_PTR(err);
++}
++
+ struct vfsmount *
+ do_kern_mount(const char *fstype, int flags, const char *name, void *data)
+ {
+@@ -915,6 +939,9 @@ do_kern_mount(const char *fstype, int fl
+ 	if (!type)
+ 		return ERR_PTR(-ENODEV);
+ 	mnt = vfs_kern_mount(type, flags, name, data);
++	if (!IS_ERR(mnt) && (type->fs_flags & FS_HAS_SUBTYPE) &&
++	    !mnt->mnt_sb->s_subtype)
++		mnt = fs_set_subtype(mnt, fstype);
+ 	put_filesystem(type);
+ 	return mnt;
+ }
+diff -puN include/linux/fs.h~add-filesystem-subtype-support include/linux/fs.h
+--- a/include/linux/fs.h~add-filesystem-subtype-support
++++ a/include/linux/fs.h
+@@ -92,6 +92,7 @@ extern int dir_notify_enable;
+ /* public flags for file_system_type */
+ #define FS_REQUIRES_DEV 1 
+ #define FS_BINARY_MOUNTDATA 2
++#define FS_HAS_SUBTYPE 4
+ #define FS_REVAL_DOT	16384	/* Check the paths ".", ".." for staleness */
+ #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move()
+ 					 * during rename() internally.
+@@ -961,6 +962,12 @@ struct super_block {
+ 	/* Granularity of c/m/atime in ns.
+ 	   Cannot be worse than a second */
+ 	u32		   s_time_gran;
++
++	/*
++	 * Filesystem subtype.  If non-empty the filesystem type field
++	 * in /proc/mounts will be "type.subtype"
++	 */
++	char *s_subtype;
  };
  
- /* Wrapper struct used by poll queueing */
-@@ -258,11 +249,8 @@ static int ep_remove(struct eventpoll *e
- static int ep_poll_callback(wait_queue_t *wait, unsigned mode, int sync, void *key);
- static int ep_eventpoll_close(struct inode *inode, struct file *file);
- static unsigned int ep_eventpoll_poll(struct file *file, poll_table *wait);
--static int ep_collect_ready_items(struct eventpoll *ep,
--				  struct list_head *txlist, int maxevents);
- static int ep_send_events(struct eventpoll *ep, struct list_head *txlist,
--			  struct epoll_event __user *events);
--static void ep_reinject_items(struct eventpoll *ep, struct list_head *txlist);
-+			  struct epoll_event __user *events, int maxevents);
- static int ep_events_transfer(struct eventpoll *ep,
- 			      struct epoll_event __user *events,
- 			      int maxevents);
-@@ -355,17 +343,6 @@ static inline int ep_rb_linked(struct rb
- 	return rb_parent(n) != n;
- }
- 
--/*
-- * Remove the item from the list and perform its initialization.
-- * This is useful for us because we can test if the item is linked
-- * using "ep_is_linked(p)".
-- */
--static inline void ep_list_del(struct list_head *p)
--{
--	list_del(p);
--	INIT_LIST_HEAD(p);
--}
--
- /* Tells us if the item is currently linked */
- static inline int ep_is_linked(struct list_head *p)
- {
-@@ -385,7 +362,7 @@ static inline struct epitem * ep_item_fr
- }
- 
- /* Tells if the epoll_ctl(2) operation needs an event copy from userspace */
--static inline int ep_op_hash_event(int op)
-+static inline int ep_op_has_event(int op)
- {
- 	return op != EPOLL_CTL_DEL;
- }
-@@ -480,7 +457,7 @@ void eventpoll_release_file(struct file 
- 		epi = list_entry(lsthead->next, struct epitem, fllink);
- 
- 		ep = epi->ep;
--		ep_list_del(&epi->fllink);
-+		list_del_init(&epi->fllink);
- 		down_write(&ep->sem);
- 		ep_remove(ep, epi);
- 		up_write(&ep->sem);
-@@ -557,7 +534,7 @@ sys_epoll_ctl(int epfd, int op, int fd, 
- 		     current, epfd, op, fd, event));
- 
- 	error = -EFAULT;
--	if (ep_op_hash_event(op) &&
-+	if (ep_op_has_event(op) &&
- 	    copy_from_user(&epds, event, sizeof(struct epoll_event)))
- 		goto eexit_1;
- 
-@@ -594,7 +571,7 @@ sys_epoll_ctl(int epfd, int op, int fd, 
- 
- 	down_write(&ep->sem);
- 
--	/* Try to lookup the file inside our hash table */
-+	/* Try to lookup the file inside our RB tree */
- 	epi = ep_find(ep, tfile, fd);
- 
- 	error = -EINVAL;
-@@ -876,7 +853,7 @@ static void ep_free(struct eventpoll *ep
- 	}
- 
- 	/*
--	 * Walks through the whole hash by freeing each "struct epitem". At this
-+	 * Walks through the whole tree by freeing each "struct epitem". At this
- 	 * point we are sure no poll callbacks will be lingering around, and also by
- 	 * write-holding "sem" we can be sure that no file cleanup code will hit
- 	 * us during this operation. So we can avoid the lock on "ep->lock".
-@@ -891,7 +868,7 @@ static void ep_free(struct eventpoll *ep
- 
- 
- /*
-- * Search the file inside the eventpoll hash. It add usage count to
-+ * Search the file inside the eventpoll tree. It add usage count to
-  * the returned item, so the caller must call ep_release_epitem()
-  * after finished using the "struct epitem".
-  */
-@@ -1011,7 +988,6 @@ static int ep_insert(struct eventpoll *e
- 	ep_rb_initnode(&epi->rbn);
- 	INIT_LIST_HEAD(&epi->rdllink);
- 	INIT_LIST_HEAD(&epi->fllink);
--	INIT_LIST_HEAD(&epi->txlink);
- 	INIT_LIST_HEAD(&epi->pwqlist);
- 	epi->ep = ep;
- 	ep_set_ffd(&epi->ffd, tfile, fd);
-@@ -1080,7 +1056,7 @@ eexit_2:
- 	 */
- 	write_lock_irqsave(&ep->lock, flags);
- 	if (ep_is_linked(&epi->rdllink))
--		ep_list_del(&epi->rdllink);
-+		list_del_init(&epi->rdllink);
- 	write_unlock_irqrestore(&ep->lock, flags);
- 
- 	kmem_cache_free(epi_cache, epi);
-@@ -1119,7 +1095,7 @@ static int ep_modify(struct eventpoll *e
- 	epi->event.data = event->data;
- 
- 	/*
--	 * If the item is not linked to the hash it means that it's on its
-+	 * If the item is not linked to the RB tree it means that it's on its
- 	 * way toward the removal. Do nothing in this case.
- 	 */
- 	if (ep_rb_linked(&epi->rbn)) {
-@@ -1170,7 +1146,7 @@ static void ep_unregister_pollwait(struc
- 		while (!list_empty(lsthead)) {
- 			pwq = list_entry(lsthead->next, struct eppoll_entry, llink);
- 
--			ep_list_del(&pwq->llink);
-+			list_del_init(&pwq->llink);
- 			remove_wait_queue(pwq->whead, &pwq->wait);
- 			kmem_cache_free(pwq_cache, pwq);
- 		}
-@@ -1213,7 +1189,7 @@ static int ep_unlink(struct eventpoll *e
- 	 * we want to remove it from this list to avoid stale events.
- 	 */
- 	if (ep_is_linked(&epi->rdllink))
--		ep_list_del(&epi->rdllink);
-+		list_del_init(&epi->rdllink);
- 
- 	error = 0;
- eexit_1:
-@@ -1226,7 +1202,7 @@ eexit_1:
- 
- 
- /*
-- * Removes a "struct epitem" from the eventpoll hash and deallocates
-+ * Removes a "struct epitem" from the eventpoll RB tree and deallocates
-  * all the associated resources.
-  */
- static int ep_remove(struct eventpoll *ep, struct epitem *epi)
-@@ -1248,13 +1224,13 @@ static int ep_remove(struct eventpoll *e
- 	/* Remove the current item from the list of epoll hooks */
- 	spin_lock(&file->f_ep_lock);
- 	if (ep_is_linked(&epi->fllink))
--		ep_list_del(&epi->fllink);
-+		list_del_init(&epi->fllink);
- 	spin_unlock(&file->f_ep_lock);
- 
- 	/* We need to acquire the write IRQ lock before calling ep_unlink() */
- 	write_lock_irqsave(&ep->lock, flags);
- 
--	/* Really unlink the item from the hash */
-+	/* Really unlink the item from the RB tree */
- 	error = ep_unlink(ep, epi);
- 
- 	write_unlock_irqrestore(&ep->lock, flags);
-@@ -1362,71 +1338,30 @@ static unsigned int ep_eventpoll_poll(st
- 
- 
- /*
-- * Since we have to release the lock during the __copy_to_user() operation and
-- * during the f_op->poll() call, we try to collect the maximum number of items
-- * by reducing the irqlock/irqunlock switching rate.
-- */
--static int ep_collect_ready_items(struct eventpoll *ep, struct list_head *txlist, int maxevents)
--{
--	int nepi;
--	unsigned long flags;
--	struct list_head *lsthead = &ep->rdllist, *lnk;
--	struct epitem *epi;
--
--	write_lock_irqsave(&ep->lock, flags);
--
--	for (nepi = 0, lnk = lsthead->next; lnk != lsthead && nepi < maxevents;) {
--		epi = list_entry(lnk, struct epitem, rdllink);
--
--		lnk = lnk->next;
--
--		/* If this file is already in the ready list we exit soon */
--		if (!ep_is_linked(&epi->txlink)) {
--			/*
--			 * This is initialized in this way so that the default
--			 * behaviour of the reinjecting code will be to push back
--			 * the item inside the ready list.
--			 */
--			epi->revents = epi->event.events;
--
--			/* Link the ready item into the transfer list */
--			list_add(&epi->txlink, txlist);
--			nepi++;
--
--			/*
--			 * Unlink the item from the ready list.
--			 */
--			ep_list_del(&epi->rdllink);
--		}
--	}
--
--	write_unlock_irqrestore(&ep->lock, flags);
--
--	return nepi;
--}
--
--
--/*
-  * This function is called without holding the "ep->lock" since the call to
-  * __copy_to_user() might sleep, and also f_op->poll() might reenable the IRQ
-  * because of the way poll() is traditionally implemented in Linux.
-  */
- static int ep_send_events(struct eventpoll *ep, struct list_head *txlist,
--			  struct epoll_event __user *events)
-+			  struct epoll_event __user *events, int maxevents)
- {
--	int eventcnt = 0;
-+	int eventcnt, error = -EFAULT, pwake = 0;
- 	unsigned int revents;
--	struct list_head *lnk;
-+	unsigned long flags;
- 	struct epitem *epi;
-+	struct list_head injlist;
-+
-+	INIT_LIST_HEAD(&injlist);
- 
- 	/*
- 	 * We can loop without lock because this is a task private list.
--	 * The test done during the collection loop will guarantee us that
--	 * another task will not try to collect this file. Also, items
--	 * cannot vanish during the loop because we are holding "sem".
--	 */
--	list_for_each(lnk, txlist) {
--		epi = list_entry(lnk, struct epitem, txlink);
-+	 * We just splice'd out the ep->rdllist in ep_collect_ready_items().
-+	 * Items cannot vanish during the loop because we are holding "sem" in
-+	 * read.
-+	 */
-+	for (eventcnt = 0; !list_empty(txlist) && eventcnt < maxevents;) {
-+		epi = list_entry(txlist->next, struct epitem, rdllink);
-+		prefetch(epi->rdllink.next);
- 
- 		/*
- 		 * Get the ready file event set. We can safely use the file
-@@ -1434,64 +1369,65 @@ static int ep_send_events(struct eventpo
- 		 * guarantee that both the file and the item will not vanish.
- 		 */
- 		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
-+		revents &= epi->event.events;
- 
- 		/*
--		 * Set the return event set for the current file descriptor.
--		 * Note that only the task task was successfully able to link
--		 * the item to its "txlist" will write this field.
-+		 * Is the event mask intersect the caller-requested one,
-+		 * deliver the event to userspace. Again, we are holding
-+		 * "sem" in read, so no operations coming from userspace
-+		 * can change the item.
- 		 */
--		epi->revents = revents & epi->event.events;
--
--		if (epi->revents) {
--			if (__put_user(epi->revents,
-+		if (revents) {
-+			if (__put_user(revents,
- 				       &events[eventcnt].events) ||
- 			    __put_user(epi->event.data,
- 				       &events[eventcnt].data))
--				return -EFAULT;
-+				goto errxit;
- 			if (epi->event.events & EPOLLONESHOT)
- 				epi->event.events &= EP_PRIVATE_BITS;
- 			eventcnt++;
- 		}
--	}
--	return eventcnt;
--}
--
--
--/*
-- * Walk through the transfer list we collected with ep_collect_ready_items()
-- * and, if 1) the item is still "alive" 2) its event set is not empty 3) it's
-- * not already linked, links it to the ready list. Same as above, we are holding
-- * "sem" so items cannot vanish underneath our nose.
-- */
--static void ep_reinject_items(struct eventpoll *ep, struct list_head *txlist)
--{
--	int ricnt = 0, pwake = 0;
--	unsigned long flags;
--	struct epitem *epi;
--
--	write_lock_irqsave(&ep->lock, flags);
--
--	while (!list_empty(txlist)) {
--		epi = list_entry(txlist->next, struct epitem, txlink);
--
--		/* Unlink the current item from the transfer list */
--		ep_list_del(&epi->txlink);
- 
- 		/*
--		 * If the item is no more linked to the interest set, we don't
--		 * have to push it inside the ready list because the following
--		 * ep_release_epitem() is going to drop it. Also, if the current
--		 * item is set to have an Edge Triggered behaviour, we don't have
--		 * to push it back either.
-+		 * This is tricky. We are holding the "sem" in read, and this
-+		 * means that the operations that can change the "linked" status
-+		 * of the epoll item (epi->rbn and epi->rdllink), cannot touch
-+		 * them.  Also, since we are "linked" from a epi->rdllink POV
-+		 * (the item is linked to our transmission list we just
-+		 * spliced), the ep_poll_callback() cannot touch us either,
-+		 * because of the check present in there. Another parallel
-+		 * epoll_wait() will not get the same result set, since we
-+		 * spliced the ready list before.  Note that list_del() still
-+		 * shows the item as linked to the test in ep_poll_callback().
- 		 */
--		if (ep_rb_linked(&epi->rbn) && !(epi->event.events & EPOLLET) &&
--		    (epi->revents & epi->event.events) && !ep_is_linked(&epi->rdllink)) {
--			list_add_tail(&epi->rdllink, &ep->rdllist);
--			ricnt++;
-+		list_del(&epi->rdllink);
-+		if (!(epi->event.events & EPOLLET) &&
-+				(revents & epi->event.events))
-+			list_add_tail(&epi->rdllink, &injlist);
-+		else {
-+			/*
-+			 * Be sure the item is totally detached before re-init
-+			 * the list_head. After INIT_LIST_HEAD() is committed,
-+			 * the ep_poll_callback() can requeue the item again,
-+			 * but we don't care since we are already past it.
-+			 */
-+			smp_mb();
-+			INIT_LIST_HEAD(&epi->rdllink);
- 		}
- 	}
-+	error = 0;
- 
--	if (ricnt) {
-+	errxit:
-+
-+	/*
-+	 * If the re-injection list or the txlist are not empty, re-splice
-+	 * them to the ready list and do proper wakeups.
-+	 */
-+	if (!list_empty(&injlist) || !list_empty(txlist)) {
-+		write_lock_irqsave(&ep->lock, flags);
-+
-+		list_splice(txlist, &ep->rdllist);
-+		list_splice(&injlist, &ep->rdllist);
- 		/*
- 		 * Wake up ( if active ) both the eventpoll wait list and the ->poll()
- 		 * wait list.
-@@ -1501,13 +1437,15 @@ static void ep_reinject_items(struct eve
- 					 TASK_INTERRUPTIBLE);
- 		if (waitqueue_active(&ep->poll_wait))
- 			pwake++;
--	}
- 
--	write_unlock_irqrestore(&ep->lock, flags);
-+		write_unlock_irqrestore(&ep->lock, flags);
-+	}
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
- 		ep_poll_safewake(&psw, &ep->poll_wait);
-+
-+	return eventcnt == 0 ? error: eventcnt;
- }
- 
- 
-@@ -1517,7 +1455,8 @@ static void ep_reinject_items(struct eve
- static int ep_events_transfer(struct eventpoll *ep,
- 			      struct epoll_event __user *events, int maxevents)
- {
--	int eventcnt = 0;
-+	int eventcnt;
-+	unsigned long flags;
- 	struct list_head txlist;
- 
- 	INIT_LIST_HEAD(&txlist);
-@@ -1528,14 +1467,17 @@ static int ep_events_transfer(struct eve
- 	 */
- 	down_read(&ep->sem);
- 
--	/* Collect/extract ready items */
--	if (ep_collect_ready_items(ep, &txlist, maxevents) > 0) {
--		/* Build result set in userspace */
--		eventcnt = ep_send_events(ep, &txlist, events);
-+	/*
-+	 * Steal the ready list, and re-init the original one to the
-+	 * empty list.
-+	 */
-+	write_lock_irqsave(&ep->lock, flags);
-+	list_splice(&ep->rdllist, &txlist);
-+	INIT_LIST_HEAD(&ep->rdllist);
-+	write_unlock_irqrestore(&ep->lock, flags);
- 
--		/* Reinject ready items into the ready list */
--		ep_reinject_items(ep, &txlist);
--	}
-+	/* Build result set in userspace */
-+	eventcnt = ep_send_events(ep, &txlist, events, maxevents);
- 
- 	up_read(&ep->sem);
- 
-@@ -1612,14 +1554,12 @@ retry:
- 	return res;
- }
- 
--
- static int eventpollfs_delete_dentry(struct dentry *dentry)
- {
- 
- 	return 1;
- }
- 
--
- static struct inode *ep_eventpoll_inode(void)
- {
- 	int error = -ENOMEM;
-@@ -1647,7 +1587,6 @@ eexit_1:
- 	return ERR_PTR(error);
- }
- 
--
- static int
- eventpollfs_get_sb(struct file_system_type *fs_type, int flags,
- 		   const char *dev_name, void *data, struct vfsmount *mnt)
+ extern struct timespec current_fs_time(struct super_block *sb);
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-signal-timer-event-fds-v9-anonymous-inode-source.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-signalfd-wire-up-x86-arches.patch
-signal-timer-event-fds-v9-signalfd-compat-code.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-timerfd-wire-up-x86-arches.patch
-signal-timer-event-fds-v9-timerfd-compat-code.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-signal-timer-event-eventfd-wire-up-x86-arches.patch
-signal-timer-event-fds-v9-kaio-eventfd-support-example.patch
-epoll-use-anonymous-inodes.patch
-epoll-cleanups-epoll-no-module.patch
-epoll-cleanups-epoll-remove-static-pre-declarations-and-akpm-ize-the-code.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+uml-turn-build-warnings-into-comments.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
