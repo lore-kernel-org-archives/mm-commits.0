@@ -1,134 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - slub-rework-slab-order-determination.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:16 -0700
-Message-ID: <200705092148.l49LmGms002571@shell0.pdx.osdl.net>
+Subject: - disable-slub-on-powerpc.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:24 -0700
+Message-ID: <200705092148.l49LmO3Y002586@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50468 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757412AbXEIVsT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:19 -0400
+	by vger.kernel.org with ESMTP id S1759037AbXEIVsb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: rework slab order determination
+     Disable SLUB on powerpc
 has been removed from the -mm tree.  Its filename was
-     slub-rework-slab-order-determination.patch
+     disable-slub-on-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: rework slab order determination
+Subject: Disable SLUB on powerpc
 From: Christoph Lameter <clameter@sgi.com>
 
-In some cases SLUB is creating uselessly slabs that are larger than
-slub_max_order. Also the layout of some of the slabs was not satisfactory.
+Disable SLUB on powerpc since the Kconfig comparison does not work
+reliably.
 
-Go to an iterarive approach.
+Work is in progress to fix the powerpc issues with page struct
+modifications.  So I hope that this patch will only be necessary for a
+short time.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   66 ++++++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 52 insertions(+), 14 deletions(-)
+ arch/powerpc/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/slub.c~slub-rework-slab-order-determination mm/slub.c
---- a/mm/slub.c~slub-rework-slab-order-determination
-+++ a/mm/slub.c
-@@ -1577,37 +1577,75 @@ static int slub_nomerge;
-  * requested a higher mininum order then we start with that one instead of
-  * the smallest order which will fit the object.
-  */
--static int calculate_order(int size)
-+static inline int slab_order(int size, int min_objects,
-+				int max_order, int fract_leftover)
- {
- 	int order;
- 	int rem;
+diff -puN arch/powerpc/Kconfig~disable-slub-on-powerpc arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~disable-slub-on-powerpc
++++ a/arch/powerpc/Kconfig
+@@ -131,7 +131,6 @@ config SYS_SUPPORTS_APM_EMULATION
+ config ARCH_USES_SLAB_PAGE_STRUCT
+ 	bool
+ 	default y
+-	depends on SPLIT_PTLOCK_CPUS <= NR_CPUS
  
--	for (order = max(slub_min_order, fls(size - 1) - PAGE_SHIFT);
--			order < MAX_ORDER; order++) {
--		unsigned long slab_size = PAGE_SIZE << order;
-+	for (order = max(slub_min_order,
-+				fls(min_objects * size - 1) - PAGE_SHIFT);
-+			order <= max_order; order++) {
- 
--		if (order < slub_max_order &&
--				slab_size < slub_min_objects * size)
--			continue;
-+		unsigned long slab_size = PAGE_SIZE << order;
- 
--		if (slab_size < size)
-+		if (slab_size < min_objects * size)
- 			continue;
- 
--		if (order >= slub_max_order)
--			break;
--
- 		rem = slab_size % size;
- 
--		if (rem <= slab_size / 8)
-+		if (rem <= slab_size / fract_leftover)
- 			break;
- 
- 	}
--	if (order >= MAX_ORDER)
--		return -E2BIG;
- 
- 	return order;
- }
- 
-+static inline int calculate_order(int size)
-+{
-+	int order;
-+	int min_objects;
-+	int fraction;
-+
-+	/*
-+	 * Attempt to find best configuration for a slab. This
-+	 * works by first attempting to generate a layout with
-+	 * the best configuration and backing off gradually.
-+	 *
-+	 * First we reduce the acceptable waste in a slab. Then
-+	 * we reduce the minimum objects required in a slab.
-+	 */
-+	min_objects = slub_min_objects;
-+	while (min_objects > 1) {
-+		fraction = 8;
-+		while (fraction >= 4) {
-+			order = slab_order(size, min_objects,
-+						slub_max_order, fraction);
-+			if (order <= slub_max_order)
-+				return order;
-+			fraction /= 2;
-+		}
-+		min_objects /= 2;
-+	}
-+
-+	/*
-+	 * We were unable to place multiple objects in a slab. Now
-+	 * lets see if we can place a single object there.
-+	 */
-+	order = slab_order(size, 1, slub_max_order, 1);
-+	if (order <= slub_max_order)
-+		return order;
-+
-+	/*
-+	 * Doh this slab cannot be placed using slub_max_order.
-+	 */
-+	order = slab_order(size, 1, MAX_ORDER, 1);
-+	if (order <= MAX_ORDER)
-+		return order;
-+	return -ENOSYS;
-+}
-+
- /*
-  * Figure out what the alignment of the objects will be.
-  */
+ config DEFAULT_UIMAGE
+ 	bool
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
