@@ -1,76 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-at91-supports-new-style-i2c-drivers.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:55:11 -0700
-Message-ID: <200705092155.l49LtBBb003245@shell0.pdx.osdl.net>
+Subject: - scx200-use-mutex-instead-of-semaphore.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:55:08 -0700
+Message-ID: <200705092155.l49Lt8bi003242@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53085 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759343AbXEIVzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:55:43 -0400
+	by vger.kernel.org with ESMTP id S1758848AbXEIVzq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:55:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, jim.cromie@gmail.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c-at91 supports new-style i2c drivers
+     scx200: use mutex instead of semaphore
 has been removed from the -mm tree.  Its filename was
-     i2c-at91-supports-new-style-i2c-drivers.patch
+     scx200-use-mutex-instead-of-semaphore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i2c-at91 supports new-style i2c drivers
-From: David Brownell <david-b@pacbell.net>
+Subject: scx200: use mutex instead of semaphore
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Make i2c-at91 register as i2c adapter zero (none of these chips seem to
-have more than one TWI controllers) to let it kick in any board-specific
-device declarations; also make it hotplug/coldplug.
+The scx200 driver use a semaphore as mutex.  Use the mutex API instead of the
+(binary) semaphore.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com
+Cc: Jim Cromie <jim.cromie@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-at91.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/scx200_acb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers drivers/i2c/busses/i2c-at91.c
---- a/drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers
-+++ a/drivers/i2c/busses/i2c-at91.c
-@@ -226,13 +226,14 @@ static int __devinit at91_i2c_probe(stru
- 	adapter->algo = &at91_algorithm;
- 	adapter->class = I2C_CLASS_HWMON;
- 	adapter->dev.parent = &pdev->dev;
-+	/* adapter->id == 0 ... only one TWI controller for now */
+diff -puN drivers/i2c/busses/scx200_acb.c~scx200-use-mutex-instead-of-semaphore drivers/i2c/busses/scx200_acb.c
+--- a/drivers/i2c/busses/scx200_acb.c~scx200-use-mutex-instead-of-semaphore
++++ a/drivers/i2c/busses/scx200_acb.c
+@@ -388,7 +388,7 @@ static const struct i2c_algorithm scx200
+ };
  
- 	platform_set_drvdata(pdev, adapter);
+ static struct scx200_acb_iface *scx200_acb_list;
+-static DECLARE_MUTEX(scx200_acb_list_mutex);
++static DEFINE_MUTEX(scx200_acb_list_mutex);
  
- 	clk_enable(twi_clk);		/* enable peripheral clock */
- 	at91_twi_hwinit();		/* initialize TWI controller */
+ static __init int scx200_acb_probe(struct scx200_acb_iface *iface)
+ {
+@@ -472,10 +472,10 @@ static int __init scx200_acb_create(stru
+ 		return -ENODEV;
+ 	}
  
--	rc = i2c_add_adapter(adapter);
-+	rc = i2c_add_numbered_adapter(adapter);
- 	if (rc) {
- 		dev_err(&pdev->dev, "Adapter %s registration failed\n",
- 				adapter->name);
-@@ -295,6 +296,9 @@ static int at91_i2c_resume(struct platfo
- #define at91_i2c_resume		NULL
- #endif
+-	down(&scx200_acb_list_mutex);
++	mutex_lock(&scx200_acb_list_mutex);
+ 	iface->next = scx200_acb_list;
+ 	scx200_acb_list = iface;
+-	up(&scx200_acb_list_mutex);
++	mutex_unlock(&scx200_acb_list_mutex);
  
-+/* work with "modprobe at91_i2c" from hotplugging or coldplugging */
-+MODULE_ALIAS("at91_i2c");
-+
- static struct platform_driver at91_i2c_driver = {
- 	.probe		= at91_i2c_probe,
- 	.remove		= __devexit_p(at91_i2c_remove),
+ 	return 0;
+ }
+@@ -633,10 +633,10 @@ static void __exit scx200_acb_cleanup(vo
+ {
+ 	struct scx200_acb_iface *iface;
+ 
+-	down(&scx200_acb_list_mutex);
++	mutex_lock(&scx200_acb_list_mutex);
+ 	while ((iface = scx200_acb_list) != NULL) {
+ 		scx200_acb_list = iface->next;
+-		up(&scx200_acb_list_mutex);
++		mutex_unlock(&scx200_acb_list_mutex);
+ 
+ 		i2c_del_adapter(&iface->adapter);
+ 
+@@ -648,9 +648,9 @@ static void __exit scx200_acb_cleanup(vo
+ 			release_region(iface->base, 8);
+ 
+ 		kfree(iface);
+-		down(&scx200_acb_list_mutex);
++		mutex_lock(&scx200_acb_list_mutex);
+ 	}
+-	up(&scx200_acb_list_mutex);
++	mutex_unlock(&scx200_acb_list_mutex);
+ }
+ 
+ module_init(scx200_acb_init);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-leds-gpio-handles-timer-unsafe-gpios.patch
-mpc52xx-psc-spi-master-driver-update.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+power-management-use-mutexes-instead-of-semaphores.patch
+sysdev-use-mutex-instead-of-semaphore.patch
+git-dvb.patch
+use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+use-mutex-instead-of-semaphore-in-berkshire-usb-pc-watchdog-driver.patch
+git-watchdog.patch
