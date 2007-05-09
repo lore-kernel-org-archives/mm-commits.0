@@ -1,62 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - pasemi-hardware-rng-driver-tidy.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:50:07 -0700
-Message-ID: <200705090850.l498o7Av018432@shell0.pdx.osdl.net>
+Subject: - mutex_lock_interruptible-add-__must_check-must-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:51:11 -0700
+Message-ID: <200705090851.l498pBxd018452@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32780 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbXEIIux (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:50:53 -0400
+	by vger.kernel.org with ESMTP id S1753805AbXEIIvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:51:13 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l498pBm9004238
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 9 May 2007 01:51:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, egor@pasemi.com, galak@gate.crashing.org, mb@bu3sch.de, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pasemi-hardware-rng-driver-tidy
+     mutex_lock_interruptible-add-__must_check-must-fix
 has been removed from the -mm tree.  Its filename was
-     pasemi-hardware-rng-driver-tidy.patch
+     mutex_lock_interruptible-add-__must_check-must-fix.patch
 
-This patch was dropped because it was folded into pasemi-hardware-rng-driver.patch
+This patch was dropped because it was folded into mutex_lock_interruptible-add-__must_check.patch
 
 ------------------------------------------------------
-Subject: pasemi-hardware-rng-driver-tidy
+Subject: mutex_lock_interruptible-add-__must_check-must-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Egor Martovetsky <egor@pasemi.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/pasemi-rng.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/mutex.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/hw_random/pasemi-rng.c~pasemi-hardware-rng-driver-tidy drivers/char/hw_random/pasemi-rng.c
---- a/drivers/char/hw_random/pasemi-rng.c~pasemi-hardware-rng-driver-tidy
-+++ a/drivers/char/hw_random/pasemi-rng.c
-@@ -125,16 +125,14 @@ static int __devexit rng_remove(struct o
- 	return 0;
- }
+diff -puN include/linux/mutex.h~mutex_lock_interruptible-add-__must_check-must-fix include/linux/mutex.h
+--- a/include/linux/mutex.h~mutex_lock_interruptible-add-__must_check-must-fix
++++ a/include/linux/mutex.h
+@@ -121,11 +121,10 @@ static inline int fastcall mutex_is_lock
+  * Also see Documentation/mutex-design.txt.
+  */
+ extern void fastcall mutex_lock(struct mutex *lock);
+-extern int fastcall mutex_lock_interruptible(struct mutex *lock);
++extern int __must_check fastcall mutex_lock_interruptible(struct mutex *lock);
  
--static struct of_device_id rng_match[] =
--{
-+static struct of_device_id rng_match[] = {
- 	{
- 		.compatible      = "1682m-rng",
- 	},
- 	{},
- };
- 
--static struct of_platform_driver rng_driver =
--{
-+static struct of_platform_driver rng_driver = {
- 	.name		= "pasemi-rng",
- 	.match_table	= rng_match,
- 	.probe		= rng_probe,
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+-extern void __must_check mutex_lock_nested(struct mutex *lock,
+-					unsigned int subclass);
++extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
+ extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
+ 					unsigned int subclass);
+ #else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,9 +59,7 @@ origin.patch
 slub-add-support-for-dynamic-cacheline-size-determination.patch
 swsusp-clean-up-print.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-pasemi-hardware-rng-driver.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+nbd-check-the-return-value-of-sysfs_create_file.patch
 mutex_lock_interruptible-add-__must_check.patch
 mutex_lock_interruptible-add-__must_check-must-fix.patch
 afs-implement-basic-file-write-support-fix.patch
