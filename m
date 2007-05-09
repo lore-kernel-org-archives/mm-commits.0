@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sata_promise-fix-another-error-decode-regression.patch added to -mm tree
-Date: Wed, 09 May 2007 13:42:47 -0700
-Message-ID: <200705092042.l49Kgl97000560@shell0.pdx.osdl.net>
+Subject: + add-support-for-reading-stdin-with-gen_init_cpio.patch added to -mm tree
+Date: Wed, 09 May 2007 13:43:52 -0700
+Message-ID: <200705092043.l49KhqMb000598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52288 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755779AbXEIUnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 16:43:35 -0400
+	by vger.kernel.org with ESMTP id S1755888AbXEIUn7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 16:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se, htejun@gmail.com, jeff@garzik.org
+Cc: vapier@gentoo.org, sam@ravnborg.org
 
 
 The patch titled
-     sata_promise: fix another error decode regression
+     add support for reading stdin with gen_init_cpio
 has been added to the -mm tree.  Its filename is
-     sata_promise-fix-another-error-decode-regression.patch
+     add-support-for-reading-stdin-with-gen_init_cpio.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_promise: fix another error decode regression
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: add support for reading stdin with gen_init_cpio
+From: Mike Frysinger <vapier@gentoo.org>
 
-The sata_promise error decode update changed pdc_host_intr() to return and
-not complete the qc after detecting an error.  Unfortunately not completing
-the qc:s causes them to always time out on error, which is wrong and has
-nasty side-effects.
+Treat an argument of "-" as meaning "read stdin for cpio files" so
+gen_init_cpio can be piped into.
 
-This patch updates pdc_error_intr() to call ata_port_abort(), similar to
-ahci and sata_sil24.  Doing this is important as it makes EH see the
-original error and not a bogus timeout.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_promise.c |    4 +++-
+ usr/gen_init_cpio.c |    4 +++-
  1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-fix-another-error-decode-regression drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-fix-another-error-decode-regression
-+++ a/drivers/ata/sata_promise.c
-@@ -45,7 +45,7 @@
- #include "sata_promise.h"
+diff -puN usr/gen_init_cpio.c~add-support-for-reading-stdin-with-gen_init_cpio usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~add-support-for-reading-stdin-with-gen_init_cpio
++++ a/usr/gen_init_cpio.c
+@@ -498,7 +498,9 @@ int main (int argc, char *argv[])
+ 		exit(1);
+ 	}
  
- #define DRV_NAME	"sata_promise"
--#define DRV_VERSION	"2.05"
-+#define DRV_VERSION	"2.06"
- 
- 
- enum {
-@@ -653,6 +653,8 @@ static void pdc_error_intr(struct ata_po
- 	qc->err_mask |= ac_err_mask;
- 
- 	pdc_reset_port(ap);
-+
-+	ata_port_abort(ap);
- }
- 
- static inline unsigned int pdc_host_intr( struct ata_port *ap,
+-	if (! (cpio_list = fopen(argv[1], "r"))) {
++	if (!strcmp(argv[1], "-"))
++		cpio_list = stdin;
++	else if (! (cpio_list = fopen(argv[1], "r"))) {
+ 		fprintf(stderr, "ERROR: unable to open '%s': %s\n\n",
+ 			argv[1], strerror(errno));
+ 		usage(argv[0]);
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-ata-sata_promise-do-not-freeze-ports.patch
-sata_promise-fix-another-error-decode-regression.patch
+add-support-for-reading-stdin-with-gen_init_cpio.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
