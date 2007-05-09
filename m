@@ -1,110 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-fb_do_show_logo-updates.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:59:50 -0700
-Message-ID: <200705090259.l492xowx010460@shell0.pdx.osdl.net>
+Subject: - s3fb-fix-pci-must_checks.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:00:16 -0700
+Message-ID: <200705090300.l4930GnO010541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39095 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032786AbXEIDAX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:23 -0400
+	by vger.kernel.org with ESMTP id S1032785AbXEIDAW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, geoffrey.levand@am.sony.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: fb_do_show_logo() updates
+     s3fb: fix PCI must_checks
 has been removed from the -mm tree.  Its filename was
-     fbdev-fb_do_show_logo-updates.patch
+     s3fb-fix-pci-must_checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: fb_do_show_logo() updates
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: s3fb: fix PCI must_checks
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-fb_do_show_logo() updates:
-  - Use width and height of the passed image instead of the global variable
-    fb_logo
-  - Explicitly pass the number of logos to draw
+drivers/video/s3fb.c:1078: warning: ignoring return value of 'pci_enable_device', declared with attribute warn_unused_result
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Signed-off-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Acked-By: James Simmons <jsimmons@infradead.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |   34 +++++++++++++++-------------------
- 1 file changed, 15 insertions(+), 19 deletions(-)
+ drivers/video/s3fb.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-fb_do_show_logo-updates drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-fb_do_show_logo-updates
-+++ a/drivers/video/fbmem.c
-@@ -376,37 +376,33 @@ static void fb_rotate_logo(struct fb_inf
- }
- 
- static void fb_do_show_logo(struct fb_info *info, struct fb_image *image,
--			    int rotate)
-+			    int rotate, unsigned int num)
+diff -puN drivers/video/s3fb.c~s3fb-fix-pci-must_checks drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-fix-pci-must_checks
++++ a/drivers/video/s3fb.c
+@@ -1061,6 +1061,7 @@ static int s3_pci_resume(struct pci_dev*
  {
--	int x;
-+	unsigned int x;
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct s3fb_info *par = info->par;
++	int err;
  
- 	if (rotate == FB_ROTATE_UR) {
--		for (x = 0; x < num_online_cpus() &&
--			     x * (fb_logo.logo->width + 8) <=
--			     info->var.xres - fb_logo.logo->width; x++) {
-+		for (x = 0;
-+		     x < num && image->dx + image->width <= info->var.xres;
-+		     x++) {
- 			info->fbops->fb_imageblit(info, image);
--			image->dx += fb_logo.logo->width + 8;
-+			image->dx += image->width + 8;
- 		}
- 	} else if (rotate == FB_ROTATE_UD) {
--		for (x = 0; x < num_online_cpus() &&
--			     x * (fb_logo.logo->width + 8) <=
--			     info->var.xres - fb_logo.logo->width; x++) {
-+		for (x = 0; x < num && image->dx >= 0; x++) {
- 			info->fbops->fb_imageblit(info, image);
--			image->dx -= fb_logo.logo->width + 8;
-+			image->dx -= image->width + 8;
- 		}
- 	} else if (rotate == FB_ROTATE_CW) {
--		for (x = 0; x < num_online_cpus() &&
--			     x * (fb_logo.logo->width + 8) <=
--			     info->var.yres - fb_logo.logo->width; x++) {
-+		for (x = 0;
-+		     x < num && image->dy + image->height <= info->var.yres;
-+		     x++) {
- 			info->fbops->fb_imageblit(info, image);
--			image->dy += fb_logo.logo->width + 8;
-+			image->dy += image->height + 8;
- 		}
- 	} else if (rotate == FB_ROTATE_CCW) {
--		for (x = 0; x < num_online_cpus() &&
--			     x * (fb_logo.logo->width + 8) <=
--			     info->var.yres - fb_logo.logo->width; x++) {
-+		for (x = 0; x < num && image->dy >= 0; x++) {
- 			info->fbops->fb_imageblit(info, image);
--			image->dy -= fb_logo.logo->width + 8;
-+			image->dy -= image->height + 8;
- 		}
- 	}
- }
-@@ -532,7 +528,7 @@ int fb_show_logo(struct fb_info *info, i
- 			fb_rotate_logo(info, logo_rotate, &image, rotate);
- 	}
+ 	dev_info(&(dev->dev), "resume\n");
  
--	fb_do_show_logo(info, &image, rotate);
-+	fb_do_show_logo(info, &image, rotate, num_online_cpus());
+@@ -1075,7 +1076,13 @@ static int s3_pci_resume(struct pci_dev*
  
- 	kfree(palette);
- 	if (saved_pseudo_palette != NULL)
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+-	pci_enable_device(dev);
++	err = pci_enable_device(dev);
++	if (err) {
++		mutex_unlock(&(par->open_lock));
++		release_console_sem();
++		dev_err(&(dev->dev), "error %d enabling device for resume\n", err);
++		return err;
++	}
+ 	pci_set_master(dev);
+ 
+ 	s3fb_set_par(info);
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+krealloc-fix-kerneldoc-comments.patch
+git-acpi.patch
+git-ieee1394.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+lib-hexdump.patch
+lib-hexdump-fix.patch
+lib-hexdump-update-on-feedback.patch
+doc-what-a-patch-series-is.patch
+kernel-doc-small-kernel-doc-optimization.patch
+profile-likely-unlikely-macros.patch
