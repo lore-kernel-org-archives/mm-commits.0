@@ -1,28 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-use-hlist_for_each_entry.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:54:45 -0700
-Message-ID: <200705090254.l492sjAF009836@shell0.pdx.osdl.net>
+Subject: - kprobes-codingstyle-cleanups.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:54:47 -0700
+Message-ID: <200705090254.l492slqS009841@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48956 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032282AbXEICzB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:01 -0400
+	by vger.kernel.org with ESMTP id S1032289AbXEICzD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: use hlist_for_each_entry
+     kprobes: codingstyle cleanups
 has been removed from the -mm tree.  Its filename was
-     kprobes-use-hlist_for_each_entry.patch
+     kprobes-codingstyle-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kprobes: use hlist_for_each_entry
+Subject: kprobes: codingstyle cleanups
 From: Christoph Hellwig <hch@lst.de>
+
+Remove superflous braces and fix indentation aswell as comments.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
@@ -31,43 +33,144 @@ Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ kernel/kprobes.c |   55 ++++++++++++++++++++++++---------------------
+ 1 file changed, 30 insertions(+), 25 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-use-hlist_for_each_entry kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-use-hlist_for_each_entry
+diff -puN kernel/kprobes.c~kprobes-codingstyle-cleanups kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-codingstyle-cleanups
 +++ a/kernel/kprobes.c
-@@ -134,8 +134,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
- 	struct hlist_node *pos;
- 
-       retry:
--	hlist_for_each(pos, &kprobe_insn_pages) {
--		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
-+	hlist_for_each_entry(kip, pos, &kprobe_insn_pages, hlist) {
- 		if (kip->nused < INSNS_PER_PAGE) {
- 			int i;
- 			for (i = 0; i < INSNS_PER_PAGE; i++) {
-@@ -214,9 +213,8 @@ static int __kprobes collect_garbage_slo
- 	if (check_safety() != 0)
- 		return -EAGAIN;
- 
--	hlist_for_each_safe(pos, next, &kprobe_insn_pages) {
-+	hlist_for_each_entry_safe(kip, pos, next, &kprobe_insn_pages, hlist) {
- 		int i;
--		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
- 		if (kip->ngarbage == 0)
- 			continue;
- 		kip->ngarbage = 0;	/* we will collect all garbages */
-@@ -235,8 +233,7 @@ void __kprobes free_insn_slot(kprobe_opc
+@@ -133,7 +133,7 @@ kprobe_opcode_t __kprobes *get_insn_slot
  	struct kprobe_insn_page *kip;
  	struct hlist_node *pos;
  
--	hlist_for_each(pos, &kprobe_insn_pages) {
--		kip = hlist_entry(pos, struct kprobe_insn_page, hlist);
-+	hlist_for_each_entry(kip, pos, &kprobe_insn_pages, hlist) {
- 		if (kip->insns <= slot &&
- 		    slot < kip->insns + (INSNS_PER_PAGE * MAX_INSN_SIZE)) {
- 			int i = (slot - kip->insns) / MAX_INSN_SIZE;
+-      retry:
++ retry:
+ 	hlist_for_each_entry(kip, pos, &kprobe_insn_pages, hlist) {
+ 		if (kip->nused < INSNS_PER_PAGE) {
+ 			int i;
+@@ -155,9 +155,8 @@ kprobe_opcode_t __kprobes *get_insn_slot
+ 	}
+ 	/* All out of space.  Need to allocate a new page. Use slot 0. */
+ 	kip = kmalloc(sizeof(struct kprobe_insn_page), GFP_KERNEL);
+-	if (!kip) {
++	if (!kip)
+ 		return NULL;
+-	}
+ 
+ 	/*
+ 	 * Use module_alloc so this page is within +/- 2GB of where the
+@@ -246,9 +245,9 @@ void __kprobes free_insn_slot(kprobe_opc
+ 			break;
+ 		}
+ 	}
+-	if (dirty && (++kprobe_garbage_slots > INSNS_PER_PAGE)) {
++
++	if (dirty && ++kprobe_garbage_slots > INSNS_PER_PAGE)
+ 		collect_garbage_slots();
+-	}
+ }
+ #endif
+ 
+@@ -314,7 +313,6 @@ static void __kprobes aggr_post_handler(
+ 			reset_kprobe_instance();
+ 		}
+ 	}
+-	return;
+ }
+ 
+ static int __kprobes aggr_fault_handler(struct kprobe *p, struct pt_regs *regs,
+@@ -533,8 +531,8 @@ static int __kprobes register_aggr_kprob
+ 
+ static int __kprobes in_kprobes_functions(unsigned long addr)
+ {
+-	if (addr >= (unsigned long)__kprobes_text_start
+-		&& addr < (unsigned long)__kprobes_text_end)
++	if (addr >= (unsigned long)__kprobes_text_start &&
++	    addr < (unsigned long)__kprobes_text_end)
+ 		return -EINVAL;
+ 	return 0;
+ }
+@@ -561,19 +559,24 @@ static int __kprobes __register_kprobe(s
+ 		return -EINVAL;
+ 	p->addr = (kprobe_opcode_t *)(((char *)p->addr)+ p->offset);
+ 
+-	if ((!kernel_text_address((unsigned long) p->addr)) ||
+-		in_kprobes_functions((unsigned long) p->addr))
++	if (!kernel_text_address((unsigned long) p->addr) ||
++	    in_kprobes_functions((unsigned long) p->addr))
+ 		return -EINVAL;
+ 
+ 	p->mod_refcounted = 0;
+-	/* Check are we probing a module */
+-	if ((probed_mod = module_text_address((unsigned long) p->addr))) {
++
++	/*
++	 * Check if are we probing a module.
++	 */
++	probed_mod = module_text_address((unsigned long) p->addr);
++	if (probed_mod) {
+ 		struct module *calling_mod = module_text_address(called_from);
+-		/* We must allow modules to probe themself and
+-		 * in this case avoid incrementing the module refcount,
+-		 * so as to allow unloading of self probing modules.
++		/*
++		 * We must allow modules to probe themself and in this case
++		 * avoid incrementing the module refcount, so as to allow
++		 * unloading of self probing modules.
+ 		 */
+-		if (calling_mod && (calling_mod != probed_mod)) {
++		if (calling_mod && calling_mod != probed_mod) {
+ 			if (unlikely(!try_module_get(probed_mod)))
+ 				return -EINVAL;
+ 			p->mod_refcounted = 1;
+@@ -591,7 +594,8 @@ static int __kprobes __register_kprobe(s
+ 		goto out;
+ 	}
+ 
+-	if ((ret = arch_prepare_kprobe(p)) != 0)
++	ret = arch_prepare_kprobe(p);
++	if (ret)
+ 		goto out;
+ 
+ 	INIT_HLIST_NODE(&p->hlist);
+@@ -614,8 +618,7 @@ out:
+ 
+ int __kprobes register_kprobe(struct kprobe *p)
+ {
+-	return __register_kprobe(p,
+-		(unsigned long)__builtin_return_address(0));
++	return __register_kprobe(p, (unsigned long)__builtin_return_address(0));
+ }
+ 
+ void __kprobes unregister_kprobe(struct kprobe *p)
+@@ -639,9 +642,9 @@ void __kprobes unregister_kprobe(struct 
+ 		return;
+ 	}
+ valid_p:
+-	if ((old_p == p) || ((old_p->pre_handler == aggr_pre_handler) &&
+-		(p->list.next == &old_p->list) &&
+-		(p->list.prev == &old_p->list))) {
++	if (old_p == p ||
++	    (old_p->pre_handler == aggr_pre_handler &&
++	     p->list.next == &old_p->list && p->list.prev == &old_p->list)) {
+ 		/* Only probe on the hash list */
+ 		arch_disarm_kprobe(p);
+ 		hlist_del_rcu(&old_p->hlist);
+@@ -654,9 +657,11 @@ valid_p:
+ 	mutex_unlock(&kprobe_mutex);
+ 
+ 	synchronize_sched();
+-	if (p->mod_refcounted &&
+-	    (mod = module_text_address((unsigned long)p->addr)))
+-		module_put(mod);
++	if (p->mod_refcounted) {
++		mod = module_text_address((unsigned long)p->addr);
++		if (mod)
++			module_put(mod);
++	}
+ 
+ 	if (cleanup_p) {
+ 		if (p != old_p) {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
