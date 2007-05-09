@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-fix-crash-in-rpc_malloc.patch added to -mm tree
-Date: Wed, 09 May 2007 00:14:05 -0700
-Message-ID: <200705090714.l497E5PF016803@shell0.pdx.osdl.net>
+Subject: + link_watch-always-schedule-urgent-events.patch added to -mm tree
+Date: Wed, 09 May 2007 00:22:26 -0700
+Message-ID: <200705090722.l497MQgm016912@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46470 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755506AbXEIHOR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 03:14:17 -0400
+	by vger.kernel.org with ESMTP id S967959AbXEIHXE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 03:23:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, davem@davemloft.net, trond.myklebust@fys.uio.no
+Cc: herbert@gondor.apana.org.au
 
 
 The patch titled
-     sunrpc: fix crash in rpc_malloc()
+     link_watch: Always schedule urgent events
 has been added to the -mm tree.  Its filename is
-     sunrpc-fix-crash-in-rpc_malloc.patch
+     link_watch-always-schedule-urgent-events.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sunrpc: fix crash in rpc_malloc()
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: link_watch: Always schedule urgent events
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-While the comment says:
- * To prevent rpciod from hanging, this allocator never sleeps,
- * returning NULL if the request cannot be serviced immediately.
+Urgent events may be delayed if we already have a non-urgent event queued
+for that device.  This patch changes this by making sure that an urgent
+event is always looked at immediately.
 
-The function does not actually check for NULL pointers being returned.
+I've replaced the LW_RUNNING flag by LW_URGENT since whether work is
+scheduled is already kept track by the work queue system.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+The only complication is that we have to provide some exclusion for the
+setting linkwatch_nextevent which is available in the actual work function.
+
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sched.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ net/core/link_watch.c |   60 +++++++++++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 19 deletions(-)
 
-diff -puN net/sunrpc/sched.c~sunrpc-fix-crash-in-rpc_malloc net/sunrpc/sched.c
---- a/net/sunrpc/sched.c~sunrpc-fix-crash-in-rpc_malloc
-+++ a/net/sunrpc/sched.c
-@@ -762,6 +762,10 @@ void *rpc_malloc(struct rpc_task *task, 
- 		buf = mempool_alloc(rpc_buffer_mempool, gfp);
- 	else
- 		buf = kmalloc(size, gfp);
+diff -puN net/core/link_watch.c~link_watch-always-schedule-urgent-events net/core/link_watch.c
+--- a/net/core/link_watch.c~link_watch-always-schedule-urgent-events
++++ a/net/core/link_watch.c
+@@ -26,7 +26,7 @@
+ 
+ 
+ enum lw_bits {
+-	LW_RUNNING = 0,
++	LW_URGENT = 0,
+ };
+ 
+ static unsigned long linkwatch_flags;
+@@ -95,18 +95,41 @@ static void linkwatch_add_event(struct n
+ }
+ 
+ 
+-static void linkwatch_schedule_work(unsigned long delay)
++static void linkwatch_schedule_work(int urgent)
+ {
+-	if (test_and_set_bit(LW_RUNNING, &linkwatch_flags))
++	unsigned long delay = linkwatch_nextevent - jiffies;
 +
-+	if (!buf)
-+		return NULL;
++	if (test_bit(LW_URGENT, &linkwatch_flags))
+ 		return;
+ 
+-	/* If we wrap around we'll delay it by at most HZ. */
+-	if (delay > HZ) {
+-		linkwatch_nextevent = jiffies;
++	/* Minimise down-time: drop delay for up event. */
++	if (urgent) {
++		if (test_and_set_bit(LW_URGENT, &linkwatch_flags))
++			return;
+ 		delay = 0;
+ 	}
+ 
+-	schedule_delayed_work(&linkwatch_work, delay);
++	/* If we wrap around we'll delay it by at most HZ. */
++	if (delay > HZ)
++		delay = 0;
 +
- 	*buf = size;
- 	dprintk("RPC: %5u allocated buffer of size %zu at %p\n",
- 			task->tk_pid, size, buf);
++	/*
++	 * This is true if we've scheduled it immeditately or if we don't
++	 * need an immediate execution and it's already pending.
++	 */
++	if (schedule_delayed_work(&linkwatch_work, delay) == !delay)
++		return;
++
++	/* Don't bother if there is nothing urgent. */
++	if (!test_bit(LW_URGENT, &linkwatch_flags))
++		return;
++
++	/* It's already running which is good enough. */
++	if (!cancel_delayed_work(&linkwatch_work))
++		return;
++
++	/* Otherwise we reschedule it again for immediate exection. */
++	schedule_delayed_work(&linkwatch_work, 0);
+ }
+ 
+ 
+@@ -123,7 +146,11 @@ static void __linkwatch_run_queue(int ur
+ 	 */
+ 	if (!urgent_only)
+ 		linkwatch_nextevent = jiffies + HZ;
+-	clear_bit(LW_RUNNING, &linkwatch_flags);
++	/* Limit wrap-around effect on delay. */
++	else if (time_after(linkwatch_nextevent, jiffies + HZ))
++		linkwatch_nextevent = jiffies;
++
++	clear_bit(LW_URGENT, &linkwatch_flags);
+ 
+ 	spin_lock_irq(&lweventlist_lock);
+ 	next = lweventlist;
+@@ -166,7 +193,7 @@ static void __linkwatch_run_queue(int ur
+ 	}
+ 
+ 	if (lweventlist)
+-		linkwatch_schedule_work(linkwatch_nextevent - jiffies);
++		linkwatch_schedule_work(0);
+ }
+ 
+ 
+@@ -187,21 +214,16 @@ static void linkwatch_event(struct work_
+ 
+ void linkwatch_fire_event(struct net_device *dev)
+ {
+-	if (!test_and_set_bit(__LINK_STATE_LINKWATCH_PENDING, &dev->state)) {
+-		unsigned long delay;
++	int urgent = linkwatch_urgent_event(dev);
+ 
++	if (!test_and_set_bit(__LINK_STATE_LINKWATCH_PENDING, &dev->state)) {
+ 		dev_hold(dev);
+ 
+ 		linkwatch_add_event(dev);
++	} else if (!urgent)
++		return;
+ 
+-		delay = linkwatch_nextevent - jiffies;
+-
+-		/* Minimise down-time: drop delay for up event. */
+-		if (linkwatch_urgent_event(dev))
+-			delay = 0;
+-
+-		linkwatch_schedule_work(delay);
+-	}
++	linkwatch_schedule_work(urgent);
+ }
+ 
+ EXPORT_SYMBOL(linkwatch_fire_event);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
 origin.patch
-sunrpc-fix-crash-in-rpc_malloc.patch
-lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-lumpy-reclaim-v4.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-uml-turn-on-scsi-support.patch
+git-net.patch
+link_watch-eliminate-potential-delay-on-wrap-around.patch
+link_watch-always-schedule-urgent-events.patch
+git-wireless.patch
+crypto-fix.patch
+use-menuconfig-objects-crypto.patch
