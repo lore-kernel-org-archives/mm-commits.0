@@ -1,57 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - dm-raid1-switch-rh_in_sync-to-blocking-in-do_reads.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:49:14 -0700
-Message-ID: <200705092149.l49LnE1n002682@shell0.pdx.osdl.net>
+Subject: - dm-crypt-disable-barriers.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:29 -0700
+Message-ID: <200705092148.l49LmT01002593@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49491 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758396AbXEIVtW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:49:22 -0400
+	by vger.kernel.org with ESMTP id S1759360AbXEIVs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbrassow@redhat.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: mbroz@redhat.com, agk@redhat.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm raid1: switch rh_in_sync to blocking in do_reads
+     dm crypt: disable barriers
 has been removed from the -mm tree.  Its filename was
-     dm-raid1-switch-rh_in_sync-to-blocking-in-do_reads.patch
+     dm-crypt-disable-barriers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm raid1: switch rh_in_sync to blocking in do_reads
-From: Jonathan Brassow <jbrassow@redhat.com>
+Subject: dm crypt: disable barriers
+From: Milan Broz <mbroz@redhat.com>
 
-The call to rh_in_sync() in do_reads() should be allowed to block.  It is in
-the mirror worker thread which already permits blocking operations.  This will
-be needed to support clustered mirroring which will perform network
-operations.
+Disable barriers in dm-crypt because of current workqueue processing can
+reorder requests.
 
-Signed-off-by: Jonathan Brassow <jbrassow@redhat.com>
+This must be addresed later but for now disabling barriers is needed to
+prevent data corruption.
+
+Signed-off-by: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
-
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-raid1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/dm-crypt.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/md/dm-raid1.c~dm-raid1-switch-rh_in_sync-to-blocking-in-do_reads drivers/md/dm-raid1.c
---- a/drivers/md/dm-raid1.c~dm-raid1-switch-rh_in_sync-to-blocking-in-do_reads
-+++ a/drivers/md/dm-raid1.c
-@@ -741,7 +741,7 @@ static void do_reads(struct mirror_set *
- 		/*
- 		 * We can only read balance if the region is in sync.
- 		 */
--		if (rh_in_sync(&ms->rh, region, 0))
-+		if (rh_in_sync(&ms->rh, region, 1))
- 			m = choose_mirror(ms, bio->bi_sector);
- 		else
- 			m = ms->default_mirror;
+diff -puN drivers/md/dm-crypt.c~dm-crypt-disable-barriers drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-disable-barriers
++++ a/drivers/md/dm-crypt.c
+@@ -954,6 +954,9 @@ static int crypt_map(struct dm_target *t
+ 	struct crypt_config *cc = ti->private;
+ 	struct crypt_io *io;
+ 
++	if (bio_barrier(bio))
++		return -EOPNOTSUPP;
++
+ 	io = mempool_alloc(cc->io_pool, GFP_NOIO);
+ 	io->target = ti;
+ 	io->base_bio = bio;
 _
 
-Patches currently in -mm which might be from jbrassow@redhat.com are
+Patches currently in -mm which might be from mbroz@redhat.com are
 
 origin.patch
