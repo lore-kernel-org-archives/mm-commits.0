@@ -1,58 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - applesmc-use-the-address-as-platform-device-id.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:42:46 -0700
-Message-ID: <200705090842.l498gkFx018230@shell0.pdx.osdl.net>
+Subject: - crypto-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:42:53 -0700
+Message-ID: <200705090842.l498grle018241@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59488 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754326AbXEIInG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:43:06 -0400
+	by vger.kernel.org with ESMTP id S1752004AbXEIIna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:43:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, nicolas@boichat.ch, mm-commits@vger.kernel.org
+To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     applesmc: Use the address as platform device ID
+     Subject: Re: 2.6.21-mm1+hotfix -- Slab corruption -- Last user: [<c01b0cfa>](cryptomgr_probe+0x6c/0x9a)
 has been removed from the -mm tree.  Its filename was
-     applesmc-use-the-address-as-platform-device-id.patch
+     crypto-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: applesmc: Use the address as platform device ID
-From: Jean Delvare <khali@linux-fr.org>
+Subject: Subject: Re: 2.6.21-mm1+hotfix -- Slab corruption -- Last user: [<c01b0cfa>](cryptomgr_probe+0x6c/0x9a)
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-Let the applesmc device export its address to userspace.  libsensors needs
-this to recognize the device and give it a unique ID.
+On Mon, May 07, 2007 at 11:57:28AM -0700, Miles Lane wrote:
+> [  118.442018] ieee80211_crypt: registered algorithm 'WEP'
+> [  118.514572] ADDRCONF(NETDEV_CHANGE): eth1: link becomes ready
+> [  118.514664] Slab corruption: size-256 start=c6aabe98, len=256
+> [  118.514672] Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> [  118.514676] Last user: [<c01b0cfa>](cryptomgr_probe+0x6c/0x9a)
+> [  118.514692] 000: 10 55 ac c6 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
+> [  118.514715] Prev obj: start=c6aabd80, len=256
+> [  118.514721] Redzone: 0xd84156c5635688c0/0xd84156c5635688c0.
+> [  118.514725] Last user: [<c01afd85>](crypto_alloc_instance+0x1d/0xc0)
+> [  118.514734] 000: e0 71 39 c0 80 6e 39 c0 88 bd aa c6 88 bd aa c6
+> [  118.514753] 010: 04 00 00 00 01 00 00 00 04 00 00 00 00 00 00 00
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
+Oops.  Does this patch fix the problem for you?
+
+Thanks,
+--
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+--
+index 6958ea8..e5fb7cc 100644
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ crypto/cryptomgr.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~applesmc-use-the-address-as-platform-device-id drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~applesmc-use-the-address-as-platform-device-id
-+++ a/drivers/hwmon/applesmc.c
-@@ -1190,7 +1190,8 @@ static int __init applesmc_init(void)
- 	if (ret)
- 		goto out_region;
+diff -puN crypto/cryptomgr.c~crypto-fix crypto/cryptomgr.c
+--- a/crypto/cryptomgr.c~crypto-fix
++++ a/crypto/cryptomgr.c
+@@ -24,8 +24,6 @@
+ #include "internal.h"
  
--	pdev = platform_device_register_simple("applesmc", -1, NULL, 0);
-+	pdev = platform_device_register_simple("applesmc", APPLESMC_DATA_PORT,
-+					       NULL, 0);
- 	if (IS_ERR(pdev)) {
- 		ret = PTR_ERR(pdev);
- 		goto out_driver;
+ struct cryptomgr_param {
+-	struct task_struct *thread;
+-
+ 	struct rtattr *tb[CRYPTOA_MAX];
+ 
+ 	struct {
+@@ -81,6 +79,7 @@ err:
+ 
+ static int cryptomgr_schedule_probe(struct crypto_larval *larval)
+ {
++	struct task_struct *thread;
+ 	struct cryptomgr_param *param;
+ 	const char *name = larval->alg.cra_name;
+ 	const char *p;
+@@ -130,8 +129,8 @@ static int cryptomgr_schedule_probe(stru
+ 
+ 	memcpy(param->larval.name, larval->alg.cra_name, CRYPTO_MAX_ALG_NAME);
+ 
+-	param->thread = kthread_run(cryptomgr_probe, param, "cryptomgr");
+-	if (IS_ERR(param->thread))
++	thread = kthread_run(cryptomgr_probe, param, "cryptomgr");
++	if (IS_ERR(thread))
+ 		goto err_free_param;
+ 
+ 	return NOTIFY_STOP;
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
 origin.patch
-git-alsa.patch
-git-dvb.patch
-scx200-use-mutex-instead-of-semaphore.patch
+git-net.patch
+link_watch-eliminate-potential-delay-on-wrap-around.patch
+link_watch-always-schedule-urgent-events.patch
+git-wireless.patch
+use-menuconfig-objects-crypto.patch
