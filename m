@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-write_trylock_irqsave.patch added to -mm tree
-Date: Wed, 09 May 2007 18:50:16 -0700
-Message-ID: <200705100150.l4A1oG0E009311@shell0.pdx.osdl.net>
+Subject: + use-write_trylock_irqsave-in-ptrace_attach.patch added to -mm tree
+Date: Wed, 09 May 2007 18:53:01 -0700
+Message-ID: <200705100153.l4A1r1QV009369@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42045 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752573AbXEJBuf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 21:50:35 -0400
+	by vger.kernel.org with ESMTP id S1753077AbXEJBxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 21:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: sripathik@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru
 
 
 The patch titled
-     Introduce write_trylock_irqsave
+     Use write_trylock_irqsave in ptrace_attach
 has been added to the -mm tree.  Its filename is
-     introduce-write_trylock_irqsave.patch
+     use-write_trylock_irqsave-in-ptrace_attach.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,17 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Introduce write_trylock_irqsave
+Subject: Use write_trylock_irqsave in ptrace_attach
 From: Sripathi Kodi <sripathik@in.ibm.com>
 
-I am trying to fix the BUG I mentioned here:
-http://lkml.org/lkml/2007/04/20/41. I noticed that an elegant way to solve
-this problem is to have a write_trylock_irqsave helper function. Since we
-don't have this now, the code in ptrace_attach  implements it using
-local_irq_disable and write_trylock. I wish to add write_trylock_irqsave to
-mainline kernel and then fix the -rt specific problem using this.
-
-The patch below adds write_trylock_irqsave function.
+This patch makes ptrace_attach use write_trylock_irqsave().
 
 Signed-off-by: Sripathi Kodi <sripathik@in.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -43,71 +36,40 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock.h         |    2 ++
- include/linux/spinlock_api_smp.h |    1 +
- include/linux/spinlock_api_up.h  |    2 ++
- kernel/spinlock.c                |   14 ++++++++++++++
- 4 files changed, 19 insertions(+)
+ kernel/ptrace.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/spinlock.h~introduce-write_trylock_irqsave include/linux/spinlock.h
---- a/include/linux/spinlock.h~introduce-write_trylock_irqsave
-+++ a/include/linux/spinlock.h
-@@ -171,6 +171,8 @@ do {								\
- #define spin_trylock(lock)		__cond_lock(lock, _spin_trylock(lock))
- #define read_trylock(lock)		__cond_lock(lock, _read_trylock(lock))
- #define write_trylock(lock)		__cond_lock(lock, _write_trylock(lock))
-+#define write_trylock_irqsave(lock, flags) \
-+		__cond_lock(lock, _write_trylock_irqsave(lock, flags))
+diff -puN kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach kernel/ptrace.c
+--- a/kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach
++++ a/kernel/ptrace.c
+@@ -160,6 +160,7 @@ int ptrace_may_attach(struct task_struct
+ int ptrace_attach(struct task_struct *task)
+ {
+ 	int retval;
++	unsigned long flags = 0;
  
- #define spin_lock(lock)			_spin_lock(lock)
+ 	retval = -EPERM;
+ 	if (task->pid <= 1)
+@@ -178,9 +179,7 @@ repeat:
+ 	 * cpu's that may have task_lock).
+ 	 */
+ 	task_lock(task);
+-	local_irq_disable();
+-	if (!write_trylock(&tasklist_lock)) {
+-		local_irq_enable();
++	if (!write_trylock_irqsave(&tasklist_lock, flags)) {
+ 		task_unlock(task);
+ 		do {
+ 			cpu_relax();
+@@ -208,7 +207,7 @@ repeat:
+ 	force_sig_specific(SIGSTOP, task);
  
-diff -puN include/linux/spinlock_api_smp.h~introduce-write_trylock_irqsave include/linux/spinlock_api_smp.h
---- a/include/linux/spinlock_api_smp.h~introduce-write_trylock_irqsave
-+++ a/include/linux/spinlock_api_smp.h
-@@ -41,6 +41,7 @@ unsigned long __lockfunc _write_lock_irq
- int __lockfunc _spin_trylock(spinlock_t *lock);
- int __lockfunc _read_trylock(rwlock_t *lock);
- int __lockfunc _write_trylock(rwlock_t *lock);
-+int __lockfunc _write_trylock_irqsave(rwlock_t *lock, unsigned long flags);
- int __lockfunc _spin_trylock_bh(spinlock_t *lock);
- void __lockfunc _spin_unlock(spinlock_t *lock)		__releases(lock);
- void __lockfunc _read_unlock(rwlock_t *lock)		__releases(lock);
-diff -puN include/linux/spinlock_api_up.h~introduce-write_trylock_irqsave include/linux/spinlock_api_up.h
---- a/include/linux/spinlock_api_up.h~introduce-write_trylock_irqsave
-+++ a/include/linux/spinlock_api_up.h
-@@ -64,6 +64,8 @@
- #define _spin_trylock(lock)			({ __LOCK(lock); 1; })
- #define _read_trylock(lock)			({ __LOCK(lock); 1; })
- #define _write_trylock(lock)			({ __LOCK(lock); 1; })
-+#define _write_trylock_irqsave(lock, flags) \
-+				({ __LOCK_IRQSAVE(lock, flags); 1; })
- #define _spin_trylock_bh(lock)			({ __LOCK_BH(lock); 1; })
- #define _spin_unlock(lock)			__UNLOCK(lock)
- #define _read_unlock(lock)			__UNLOCK(lock)
-diff -puN kernel/spinlock.c~introduce-write_trylock_irqsave kernel/spinlock.c
---- a/kernel/spinlock.c~introduce-write_trylock_irqsave
-+++ a/kernel/spinlock.c
-@@ -60,6 +60,20 @@ int __lockfunc _write_trylock(rwlock_t *
- }
- EXPORT_SYMBOL(_write_trylock);
- 
-+int __lockfunc _write_trylock_irqsave(rwlock_t *lock, unsigned long flags)
-+{
-+	int ret;
-+
-+	local_irq_save(flags);
-+	ret = _write_trylock(lock);
-+	if (ret)
-+		return ret;
-+
-+	local_irq_restore(flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL(_write_trylock_irqsave);
-+
- /*
-  * If lockdep is enabled then we use the non-preemption spin-ops
-  * even on CONFIG_PREEMPT, because lockdep assumes that interrupts are
+ bad:
+-	write_unlock_irq(&tasklist_lock);
++	write_unlock_irqrestore(&tasklist_lock, flags);
+ 	task_unlock(task);
+ out:
+ 	return retval;
 _
 
 Patches currently in -mm which might be from sripathik@in.ibm.com are
