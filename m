@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-saa7134-add-support-for-10moons-tm300-card.patch added to -mm tree
-Date: Wed, 09 May 2007 22:19:02 -0700
-Message-ID: <200705100519.l4A5J2WI012864@shell0.pdx.osdl.net>
+Subject: + v4l-saa7134-enable-ir-remote-for-10moons-tm300-card.patch added to -mm tree
+Date: Wed, 09 May 2007 22:19:04 -0700
+Message-ID: <200705100519.l4A5J44b012867@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51788 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754540AbXEJFTX (ORCPT
+	by vger.kernel.org with ESMTP id S1754585AbXEJFTZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:19:23 -0400
+	Thu, 10 May 2007 01:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wankai@sjtu.org, mchehab@infradead.org
 
 
 The patch titled
-     v4l: saa7134: add support for 10moons TM300 card
+     v4l: saa7134: enable ir-remote for 10moons TM300 card
 has been added to the -mm tree.  Its filename is
-     v4l-saa7134-add-support-for-10moons-tm300-card.patch
+     v4l-saa7134-enable-ir-remote-for-10moons-tm300-card.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: v4l: saa7134: add support for 10moons TM300 card
+Subject: v4l: saa7134: enable ir-remote for 10moons TM300 card
 From: Tony Wan <wankai@sjtu.org>
 
-Support the 10moons TM300 TV card (so called TV Master 3), which is a 10moons
-saa7130 based board.  Here not include features for the IR-remote.
-
-It has been tested using TVTIME.  The card was auto-detected and all the input
-sources worked correct with sound.
+Enable the IR-remote of the 10moons TM300 card and add the key-codes for it's
+remote.  But to enable all the keys, "IR_KEYTAB_SIZE", the size of code tables
+should be at least 256.  It has been tested using lirc.  All the key codes are
+accepted.
 
 Signed-off-by: Tony Wan <wankai@sjtu.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/saa7134-cards.c |   38 ++++++++++++++++++
- drivers/media/video/saa7134/saa7134.h       |    1 
- 2 files changed, 39 insertions(+)
+ drivers/media/common/ir-keymaps.c           |   71 ++++++++++++++++++
+ drivers/media/video/saa7134/saa7134-cards.c |    1 
+ drivers/media/video/saa7134/saa7134-input.c |    6 +
+ include/media/ir-common.h                   |    1 
+ 4 files changed, 79 insertions(+)
 
-diff -puN drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-add-support-for-10moons-tm300-card drivers/media/video/saa7134/saa7134-cards.c
---- a/drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-add-support-for-10moons-tm300-card
-+++ a/drivers/media/video/saa7134/saa7134-cards.c
-@@ -3502,6 +3502,38 @@ struct saa7134_board saa7134_boards[] = 
- 			.amux = TV,
- 		},
- 	},
-+	[SAA7134_BOARD_10MOONSTVMASTER3] = {
-+		/* Tony Wan <aloha_cn@hotmail.com> */
-+		.name           = "10MOONS TM300 TV Card",
-+		.audio_clock    = 0x00200000,
-+		.tuner_type     = TUNER_LG_PAL_NEW_TAPC,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.gpiomask       = 0x7000,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = LINE2,
-+			.gpio = 0x0000,
-+			.tv   = 1,
-+		},{
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE1,
-+			.gpio = 0x2000,
-+		},{
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE1,
-+			.gpio = 0x2000,
-+		}},
-+		.mute = {
-+			.name = name_mute,
-+			.amux = LINE2,
-+			.gpio = 0x3000,
-+		},
-+	},
+diff -puN drivers/media/common/ir-keymaps.c~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card drivers/media/common/ir-keymaps.c
+--- a/drivers/media/common/ir-keymaps.c~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card
++++ a/drivers/media/common/ir-keymaps.c
+@@ -1783,3 +1783,74 @@ IR_KEYTAB_TYPE ir_codes_tt_1500[IR_KEYTA
  };
  
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -4219,6 +4251,12 @@ struct pci_device_id saa7134_pci_tbl[] =
- 		.subdevice    = 0x2003, /* OEM cardbus */
- 		.driver_data  = SAA7134_BOARD_SABRENT_TV_PCB05,
- 	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
-+		.subvendor    = PCI_VENDOR_ID_PHILIPS,
-+		.subdevice    = 0x2304,
-+		.driver_data  = SAA7134_BOARD_10MOONSTVMASTER3,
-+	},{
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-diff -puN drivers/media/video/saa7134/saa7134.h~v4l-saa7134-add-support-for-10moons-tm300-card drivers/media/video/saa7134/saa7134.h
---- a/drivers/media/video/saa7134/saa7134.h~v4l-saa7134-add-support-for-10moons-tm300-card
-+++ a/drivers/media/video/saa7134/saa7134.h
-@@ -238,6 +238,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_ECS_TVP3XP_4CB6  113
- #define SAA7134_BOARD_KWORLD_DVBT_210 114
- #define SAA7134_BOARD_SABRENT_TV_PCB05     115
-+#define SAA7134_BOARD_10MOONSTVMASTER3     116
+ EXPORT_SYMBOL_GPL(ir_codes_tt_1500);
++
++/* 10MOONS TM300 */
++IR_KEYTAB_TYPE ir_codes_10moonstm3[IR_KEYTAB_SIZE] = {
++	[ 0x10 ] = KEY_POWER,           // Power
++	[ 0x0d ] = KEY_MUTE,            // Mute
++	[ 0x1e ] = KEY_TUNER,           // Cable
++	[ 0x00 ] = KEY_VIDEO,           // Composite / S-Video
++	[ 0x01 ] = KEY_RADIO,           // Music
++	[ 0x02 ] = KEY_TEXT,            // Photo
++
++	[ 0x1f ] = KEY_1,
++	[ 0x03 ] = KEY_2,
++	[ 0x04 ] = KEY_3,
++	[ 0x05 ] = KEY_4,
++	[ 0x1c ] = KEY_5,
++	[ 0x06 ] = KEY_6,
++	[ 0x07 ] = KEY_7,
++	[ 0x08 ] = KEY_8,
++	[ 0x1d ] = KEY_9,
++	[ 0x09 ] = KEY_SELECT,          // 2 digit select (-/--)
++	[ 0x0a ] = KEY_0,
++	[ 0x0b ] = KEY_AGAIN,           // Recall
++
++	[ 0x14 ] = KEY_F1,              // Begin
++	[ 0x15 ] = KEY_F2,              // End
++
++	[ 0x16 ] = KEY_CHANNELUP,       // CH+
++	[ 0x12 ] = KEY_CHANNELDOWN,     // CH-
++	[ 0x0c ] = KEY_VOLUMEUP,        // VOL+
++	[ 0x17 ] = KEY_VOLUMEDOWN,      // VOL-
++	[ 0x18 ] = KEY_OK,              // OK
++
++	[ 0x0e ] = KEY_EXIT,            // Exit
++	[ 0x13 ] = KEY_COMPUTER,        // Desktop
++	[ 0x11 ] = KEY_TAB,             // TAB
++	[ 0x19 ] = KEY_CYCLEWINDOWS,    // Switch task
++
++	[ 0x1a ] = KEY_MENU,            // Menu
++	[ 0x1b ] = KEY_ZOOM,            // Fullscreen
++#if IR_KEYTAB_SIZE>=256
++	[ 0x84 ] = KEY_ARCHIVE,         // Time shifting
++	[ 0x80 ] = KEY_SWITCHVIDEOMODE, // Selcect source
++
++	[ 0x9a ] = KEY_RECORD,          // Record
++	[ 0x82 ] = KEY_PLAY,            // Play/Pause
++	[ 0x85 ] = KEY_STOP,            // Stop
++	[ 0x83 ] = KEY_CAMERA,          // Snapshot
++
++	[ 0x88 ] = KEY_BACK,            // Backward <<
++	[ 0x8a ] = KEY_FORWARD,         // Forward >>
++	[ 0x89 ] = KEY_PREVIOUS,        // Back |<<
++	[ 0x8b ] = KEY_NEXT,            // End >>|
++
++	[ 0x8c ] = KEY_PROGRAM,         // Multi-view
++	[ 0x8d ] = KEY_AUDIO,           // Audio Tracks
++	[ 0x8e ] = KEY_SOUND,           // Sound
++	[ 0x8f ] = KEY_SUBTITLE,        // Subtitles
++
++	[ 0x90 ] = KEY_TIME,            // Set timer
++	[ 0x91 ] = KEY_CHANNEL,         // Stereo
++	[ 0x92 ] = KEY_LANGUAGE,        // Language
++	[ 0x93 ] = KEY_TEXT,            // Text
++
++	[ 0x99 ] = KEY_RED,             // RED
++	[ 0x81 ] = KEY_GREEN,           // GREEN
++	[ 0x87 ] = KEY_YELLOW,          // YELLOW
++	[ 0x97 ] = KEY_BLUE,            // BLUE
++#endif /* IR_KEYTAB_SIZE>=256 */
++};
++
++EXPORT_SYMBOL_GPL(ir_codes_10moonstm3);
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -4368,6 +4368,7 @@ int saa7134_board_init1(struct saa7134_d
+ 	case SAA7134_BOARD_AVERMEDIA_A16AR:
+ 	case SAA7134_BOARD_ENCORE_ENLTV:
+ 	case SAA7134_BOARD_ENCORE_ENLTV_FM:
++	case SAA7134_BOARD_10MOONSTVMASTER3:
+ 		dev->has_remote = SAA7134_REMOTE_GPIO;
+ 		break;
+ 	case SAA7134_BOARD_FLYDVBS_LR300:
+diff -puN drivers/media/video/saa7134/saa7134-input.c~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card drivers/media/video/saa7134/saa7134-input.c
+--- a/drivers/media/video/saa7134/saa7134-input.c~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card
++++ a/drivers/media/video/saa7134/saa7134-input.c
+@@ -333,6 +333,12 @@ int saa7134_input_init1(struct saa7134_d
+ 		mask_keyup   = 0x040000;
+ 		polling      = 50; // ms
+ 		break;
++	case SAA7134_BOARD_10MOONSTVMASTER3:
++		ir_codes     = ir_codes_10moonstm3;
++		mask_keycode = 0x7f80000;
++		mask_keyup   = 0x8000000;
++		polling      = 50; //ms
++		break;
+ 	}
+ 	if (NULL == ir_codes) {
+ 		printk("%s: Oops: IR config error [card=%d]\n",
+diff -puN include/media/ir-common.h~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card include/media/ir-common.h
+--- a/include/media/ir-common.h~v4l-saa7134-enable-ir-remote-for-10moons-tm300-card
++++ a/include/media/ir-common.h
+@@ -140,6 +140,7 @@ extern IR_KEYTAB_TYPE ir_codes_budget_ci
+ extern IR_KEYTAB_TYPE ir_codes_asus_pc39[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_encore_enltv[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_tt_1500[IR_KEYTAB_SIZE];
++extern IR_KEYTAB_TYPE ir_codes_10moonstm3[IR_KEYTAB_SIZE];
  
- #define SAA7134_MAXBOARDS 8
- #define SAA7134_INPUT_MAX 8
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from wankai@sjtu.org are
