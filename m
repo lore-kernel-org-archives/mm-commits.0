@@ -1,59 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - markers-add-instrumentation-markers-menus-to-avr32.patch removed from -mm tree
-Date: Wed, 09 May 2007 20:37:35 -0700
-Message-ID: <200705100337.l4A3bZtO011148@shell0.pdx.osdl.net>
+Subject: - markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch removed from -mm tree
+Date: Wed, 09 May 2007 20:40:29 -0700
+Message-ID: <200705100340.l4A3eTK5011196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57422 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753903AbXEJDhu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:37:50 -0400
+	by vger.kernel.org with ESMTP id S1753205AbXEJDla (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ink@jurassic.park.msu.ru, rth@twiddle.net, spyro@f2s.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: add instrumentation/markers menus to avr32
+     markers: alpha and avr32 supportAdd alpha marker.h, add arm26 marker.h
 has been removed from the -mm tree.  Its filename was
-     markers-add-instrumentation-markers-menus-to-avr32.patch
+     markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: markers: add instrumentation/markers menus to avr32
+Subject: markers: alpha and avr32 supportAdd alpha marker.h, add arm26 marker.h
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
+use the new MF_* bitmask for asm-generic/marker.h.  Document
+asm-generic/marker.h.
+
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/Kconfig.debug |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/asm-alpha/marker.h   |   13 +++++++++++++
+ include/asm-arm26/marker.h   |   13 +++++++++++++
+ include/asm-generic/marker.h |   11 +++++++++--
+ 3 files changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN arch/avr32/Kconfig.debug~markers-add-instrumentation-markers-menus-to-avr32 arch/avr32/Kconfig.debug
---- a/arch/avr32/Kconfig.debug~markers-add-instrumentation-markers-menus-to-avr32
-+++ a/arch/avr32/Kconfig.debug
-@@ -6,6 +6,9 @@ config TRACE_IRQFLAGS_SUPPORT
- 
- source "lib/Kconfig.debug"
- 
-+menu "Instrumentation Support"
-+	depends on EXPERIMENTAL
+diff -puN /dev/null include/asm-alpha/marker.h
+--- /dev/null
++++ a/include/asm-alpha/marker.h
+@@ -0,0 +1,13 @@
++/*
++ * marker.h
++ *
++ * Code markup for dynamic and static tracing. Architecture specific
++ * optimisations.
++ *
++ * No optimisation implemented.
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ */
 +
- config KPROBES
- 	bool "Kprobes"
- 	depends on DEBUG_KERNEL
-@@ -17,4 +20,8 @@ config KPROBES
-           for kernel debugging, non-intrusive instrumentation and testing.
-           If in doubt, say "N".
++#include <asm-generic/marker.h>
+diff -puN /dev/null include/asm-arm26/marker.h
+--- /dev/null
++++ a/include/asm-arm26/marker.h
+@@ -0,0 +1,13 @@
++/*
++ * marker.h
++ *
++ * Code markup for dynamic and static tracing. Architecture specific
++ * optimisations.
++ *
++ * No optimisation implemented.
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ */
++
++#include <asm-generic/marker.h>
+diff -puN include/asm-generic/marker.h~markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh include/asm-generic/marker.h
+--- a/include/asm-generic/marker.h~markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh
++++ a/include/asm-generic/marker.h
+@@ -13,11 +13,18 @@
+  * "used" attribute to fix a gcc 4.1.x bug.
+  */
  
-+source "kernel/Kconfig.marker"
+-#define _MF_DEFAULT			(_MF_LOCKDEP | _MF_PRINTK)
++/* Default flags, used by trace_mark() */
++#define MF_DEFAULT			(MF_LOCKDEP | MF_PRINTK)
+ 
++/* Fallback on the generic markers, since no optimized version is available */
+ #define MARK_OPTIMIZED			MARK_GENERIC
+ #define _MARK				MARK_GENERIC
+-#define trace_mark(format, args...)	_trace_mark(_MF_DEFAULT, format, ## args)
 +
-+endmenu
++/* Marker with default behavior */
++#define trace_mark(format, args...)	_trace_mark(MF_DEFAULT, format, ## args)
 +
- endmenu
++/* Architecture dependant marker information, used internally for marker
++ * activation. */
+ 
+ #define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET \
+ 		MARK_GENERIC_ENABLE_IMMEDIATE_OFFSET
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -70,8 +113,8 @@ linux-kernel-markers-powerpc-optimization.patch
 linux-kernel-markers-powerpc-optimization-update.patch
 linux-kernel-markers-i386-optimization.patch
 linux-kernel-markers-i386-optimization-update.patch
-markers-add-instrumentation-markers-menus-to-avr32.patch
 linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-non-optimized-architectures-update.patch
 markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
 linux-kernel-markers-documentation.patch
 markers-define-the-linker-macro-extra_rwdata.patch
