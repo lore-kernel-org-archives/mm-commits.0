@@ -1,444 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-non-optimized-architectures.patch removed from -mm tree
-Date: Thu, 10 May 2007 15:32:24 -0700
-Message-ID: <200705102232.l4AMWOjc032617@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-powerpc-optimization-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 15:32:18 -0700
+Message-ID: <200705102232.l4AMWI4d032607@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54398 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759150AbXEJWcb (ORCPT
+	by vger.kernel.org with ESMTP id S1758310AbXEJWc1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 18:32:31 -0400
+	Thu, 10 May 2007 18:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Linux Kernel Markers: non optimized architectures
+     linux-kernel-markers-powerpc-optimization-fix
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-non-optimized-architectures.patch
+     linux-kernel-markers-powerpc-optimization-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers: non optimized architectures
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: linux-kernel-markers-powerpc-optimization-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch also includes marker code for non optimized architectures.
+- Standardise comment layout
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+- Ficks speling.
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/marker.h       |   13 +++++++++++++
- include/asm-cris/marker.h      |   13 +++++++++++++
- include/asm-frv/marker.h       |   13 +++++++++++++
- include/asm-generic/marker.h   |   30 ++++++++++++++++++++++++++++++
- include/asm-h8300/marker.h     |   13 +++++++++++++
- include/asm-ia64/marker.h      |   13 +++++++++++++
- include/asm-m32r/marker.h      |   13 +++++++++++++
- include/asm-m68k/marker.h      |   13 +++++++++++++
- include/asm-m68knommu/marker.h |   13 +++++++++++++
- include/asm-mips/marker.h      |   13 +++++++++++++
- include/asm-parisc/marker.h    |   13 +++++++++++++
- include/asm-ppc/marker.h       |   13 +++++++++++++
- include/asm-s390/marker.h      |   13 +++++++++++++
- include/asm-sh/marker.h        |   13 +++++++++++++
- include/asm-sh64/marker.h      |   13 +++++++++++++
- include/asm-sparc/marker.h     |   13 +++++++++++++
- include/asm-sparc64/marker.h   |   13 +++++++++++++
- include/asm-um/marker.h        |   13 +++++++++++++
- include/asm-v850/marker.h      |   13 +++++++++++++
- include/asm-x86_64/marker.h    |   13 +++++++++++++
- include/asm-xtensa/marker.h    |   13 +++++++++++++
- 21 files changed, 290 insertions(+)
+ include/asm-powerpc/marker.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null include/asm-arm/marker.h
---- /dev/null
-+++ a/include/asm-arm/marker.h
-@@ -0,0 +1,13 @@
+diff -puN include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-fix include/asm-powerpc/marker.h
+--- a/include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-fix
++++ a/include/asm-powerpc/marker.h
+@@ -67,11 +67,15 @@ do { \
+ /* Marker with default behavior */
+ #define trace_mark(format, args...) _trace_mark(MF_DEFAULT, format, ## args)
+ 
+-/* Architecture dependant marker information, used internally for marker
+- * activation. */
 +/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
++ * Architecture dependent marker information, used internally for marker
++ * activation
 + */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-cris/marker.h
---- /dev/null
-+++ a/include/asm-cris/marker.h
-@@ -0,0 +1,13 @@
+ 
+-/* Offset of the immediate value from the start of the addi instruction (result
+- * of the li mnemonic), in bytes. */
 +/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
++ * Offset of the immediate value from the start of the addi instruction (result
++ * of the li mnemonic), in bytes
 + */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-frv/marker.h
---- /dev/null
-+++ a/include/asm-frv/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-generic/marker.h
---- /dev/null
-+++ a/include/asm-generic/marker.h
-@@ -0,0 +1,30 @@
-+#ifndef _ASM_GENERIC_MARKER_H
-+#define _ASM_GENERIC_MARKER_H
-+
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Generic header.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ *
-+ * Note : the empty asm volatile with read constraint is used here instead of a
-+ * "used" attribute to fix a gcc 4.1.x bug.
-+ */
-+
-+#define _MF_DEFAULT			(_MF_LOCKDEP | _MF_PRINTK)
-+
-+#define MARK_OPTIMIZED			MARK_GENERIC
-+#define _MARK				MARK_GENERIC
-+#define trace_mark(format, args...)	_trace_mark(_MF_DEFAULT, format, ## args)
-+
-+#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET \
-+		MARK_GENERIC_ENABLE_IMMEDIATE_OFFSET
-+#define MARK_OPTIMIZED_ENABLE_TYPE	MARK_GENERIC_ENABLE_TYPE
-+/* Dereference enable as lvalue from a pointer to its instruction */
-+#define MARK_OPTIMIZED_ENABLE		MARK_GENERIC_ENABLE
-+
-+#define marker_optimized_set_enable marker_generic_set_enable
-+
-+#endif /* _ASM_GENERIC_MARKER_H */
-diff -puN /dev/null include/asm-h8300/marker.h
---- /dev/null
-+++ a/include/asm-h8300/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-ia64/marker.h
---- /dev/null
-+++ a/include/asm-ia64/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-m32r/marker.h
---- /dev/null
-+++ a/include/asm-m32r/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-m68k/marker.h
---- /dev/null
-+++ a/include/asm-m68k/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-m68knommu/marker.h
---- /dev/null
-+++ a/include/asm-m68knommu/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-mips/marker.h
---- /dev/null
-+++ a/include/asm-mips/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-parisc/marker.h
---- /dev/null
-+++ a/include/asm-parisc/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-ppc/marker.h
---- /dev/null
-+++ a/include/asm-ppc/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-s390/marker.h
---- /dev/null
-+++ a/include/asm-s390/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-sh/marker.h
---- /dev/null
-+++ a/include/asm-sh/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-sh64/marker.h
---- /dev/null
-+++ a/include/asm-sh64/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-sparc/marker.h
---- /dev/null
-+++ a/include/asm-sparc/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-sparc64/marker.h
---- /dev/null
-+++ a/include/asm-sparc64/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-um/marker.h
---- /dev/null
-+++ a/include/asm-um/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-v850/marker.h
---- /dev/null
-+++ a/include/asm-v850/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-x86_64/marker.h
---- /dev/null
-+++ a/include/asm-x86_64/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
-diff -puN /dev/null include/asm-xtensa/marker.h
---- /dev/null
-+++ a/include/asm-xtensa/marker.h
-@@ -0,0 +1,13 @@
-+/*
-+ * marker.h
-+ *
-+ * Code markup for dynamic and static tracing. Architecture specific
-+ * optimisations.
-+ *
-+ * No optimisation implemented.
-+ *
-+ * This file is released under the GPLv2.
-+ * See the file COPYING for more details.
-+ */
-+
-+#include <asm-generic/marker.h>
+ #define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET 2
+ #define MARK_OPTIMIZED_ENABLE_TYPE short
+ /* Dereference enable as lvalue from a pointer to its instruction */
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-avr32.patch
-powerpc-promc-remove-undef-printk.patch
-linux-kernel-markers-non-optimized-architectures.patch
-linux-kernel-markers-non-optimized-architectures-update.patch
-linux-kernel-markers-documentation.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
+xfs-clean-up-shrinker-games.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+lib-hexdump.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+synclink_gt-add-compat_ioctl-fix.patch
+stop_machine-now-uses-hard_irq_disable-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-powerpc-optimization-fix.patch
+linux-kernel-markers-i386-optimization.patch
 linux-kernel-markers-documentation-update.patch
-markers-define-the-linker-macro-extra_rwdata.patch
-markers-use-extra_rwdata-in-architectures.patch
-port-of-blktrace-to-the-linux-kernel-markers.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+pm3fb-preliminary-24-to-26-port-fix.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
