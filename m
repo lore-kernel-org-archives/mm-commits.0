@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-expose-an-to-user-space.patch added to -mm tree
-Date: Wed, 09 May 2007 22:12:25 -0700
-Message-ID: <200705100512.l4A5CPrK012733@shell0.pdx.osdl.net>
+Subject: + libata-expose-an-to-user-space.patch added to -mm tree
+Date: Wed, 09 May 2007 22:12:26 -0700
+Message-ID: <200705100512.l4A5CQF2012736@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54113 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755471AbXEJFMd (ORCPT
+	by vger.kernel.org with ESMTP id S1755412AbXEJFMe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:12:33 -0400
+	Thu, 10 May 2007 01:12:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kristen.c.accardi@intel.com
 
 
 The patch titled
-     scsi: expose AN to user space
+     libata: expose AN to user space
 has been added to the -mm tree.  Its filename is
-     scsi-expose-an-to-user-space.patch
+     libata-expose-an-to-user-space.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: expose AN to user space
+Subject: libata: expose AN to user space
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Get media change notification capability from disk and pass this information
-to genhd by setting appropriate flag.
+If Asynchronous Notification of media change events is supported, pass that
+information up to the SCSI layer.
 
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.c          |    3 +++
- drivers/scsi/sr.c          |    2 ++
- include/scsi/scsi_device.h |    2 +-
- 3 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/ata/libata-scsi.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/scsi/sd.c~scsi-expose-an-to-user-space drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-expose-an-to-user-space
-+++ a/drivers/scsi/sd.c
-@@ -1668,6 +1668,9 @@ static int sd_probe(struct device *dev)
- 	if (sdp->removable)
- 		gd->flags |= GENHD_FL_REMOVABLE;
+diff -puN drivers/ata/libata-scsi.c~libata-expose-an-to-user-space drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata-expose-an-to-user-space
++++ a/drivers/ata/libata-scsi.c
+@@ -899,6 +899,9 @@ static void ata_scsi_dev_config(struct s
+ 		blk_queue_max_hw_segments(q, q->max_hw_segments - 1);
+ 	}
  
-+	if (sdp->media_change_notify)
-+		gd->flags |= GENHD_FL_MEDIA_CHANGE_NOTIFY;
++	if (dev->flags & ATA_DFLAG_AN)
++		sdev->media_change_notify = 1;
 +
- 	dev_set_drvdata(dev, sdkp);
- 	add_disk(gd);
+ 	if (dev->flags & ATA_DFLAG_NCQ) {
+ 		int depth;
  
-diff -puN drivers/scsi/sr.c~scsi-expose-an-to-user-space drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-expose-an-to-user-space
-+++ a/drivers/scsi/sr.c
-@@ -603,6 +603,8 @@ static int sr_probe(struct device *dev)
- 
- 	dev_set_drvdata(dev, cd);
- 	disk->flags |= GENHD_FL_REMOVABLE;
-+	if (sdev->media_change_notify)
-+		disk->flags |= GENHD_FL_MEDIA_CHANGE_NOTIFY;
- 	add_disk(disk);
- 
- 	sdev_printk(KERN_DEBUG, sdev,
-diff -puN include/scsi/scsi_device.h~scsi-expose-an-to-user-space include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~scsi-expose-an-to-user-space
-+++ a/include/scsi/scsi_device.h
-@@ -126,7 +126,7 @@ struct scsi_device {
- 	unsigned fix_capacity:1;	/* READ_CAPACITY is too high by 1 */
- 	unsigned guess_capacity:1;	/* READ_CAPACITY might be too high by 1 */
- 	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
--
-+	unsigned media_change_notify:1; /* dev supports async media notify */
- 	unsigned int device_blocked;	/* Device returned QUEUE_FULL. */
- 
- 	unsigned int max_device_blocked; /* what device_blocked counts down from  */
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
