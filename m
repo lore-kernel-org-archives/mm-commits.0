@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ii-auxdisplay.patch added to -mm tree
-Date: Wed, 09 May 2007 23:17:43 -0700
-Message-ID: <200705100617.l4A6HhHX013839@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-ii-module-menu.patch added to -mm tree
+Date: Wed, 09 May 2007 23:17:50 -0700
+Message-ID: <200705100617.l4A6HoN6013851@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51050 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755179AbXEJGSG (ORCPT
+	by vger.kernel.org with ESMTP id S1755225AbXEJGSH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 02:18:06 -0400
+	Thu, 10 May 2007 02:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, maxextreme@gmail.com
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     Use menuconfig objects II - auxdisplay
+     Use menuconfig objects II - module menu
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ii-auxdisplay.patch
+     use-menuconfig-objects-ii-module-menu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - auxdisplay
+Subject: Use menuconfig objects II - module menu
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
-so that the user can disable all the options in that menu at once
-instead of having to disable each option separately.
+Change menuconfig objects from "menu, config" into "menuconfig" so that the
+user can disable the whole feature without entering its menu first.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/auxdisplay/Kconfig |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ init/Kconfig |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/auxdisplay/Kconfig~use-menuconfig-objects-ii-auxdisplay drivers/auxdisplay/Kconfig
---- a/drivers/auxdisplay/Kconfig~use-menuconfig-objects-ii-auxdisplay
-+++ a/drivers/auxdisplay/Kconfig
-@@ -5,7 +5,11 @@
- # Auxiliary display drivers configuration.
- #
+diff -puN init/Kconfig~use-menuconfig-objects-ii-module-menu init/Kconfig
+--- a/init/Kconfig~use-menuconfig-objects-ii-module-menu
++++ a/init/Kconfig
+@@ -602,9 +602,7 @@ config BASE_SMALL
+ 	default 0 if BASE_FULL
+ 	default 1 if !BASE_FULL
  
--menu "Auxiliary Display support"
-+menuconfig AUXDISPLAY
-+	bool "Auxiliary Display support"
-+	default y
-+
-+if AUXDISPLAY
- 
- config KS0108
- 	tristate "KS0108 LCD Controller"
-@@ -106,4 +110,5 @@ config CFAG12864B_RATE
- 
- 	  If you compile this as a module, you can still override this
- 	  value using the module parameters.
+-menu "Loadable module support"
+-
+-config MODULES
++menuconfig MODULES
+ 	bool "Enable loadable module support"
+ 	help
+ 	  Kernel modules are small pieces of compiled code which can
+@@ -684,6 +682,5 @@ config STOP_MACHINE
+ 	depends on (SMP && MODULE_UNLOAD) || HOTPLUG_CPU
+ 	help
+ 	  Need stop_machine() primitive.
 -endmenu
-+
-+endif # AUXDISPLAY
+ 
+ source "block/Kconfig"
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
