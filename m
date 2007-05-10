@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-task_protections.patch added to -mm tree
-Date: Wed, 09 May 2007 21:07:56 -0700
-Message-ID: <200705100407.l4A47uJa011600@shell0.pdx.osdl.net>
+Subject: + uml-tidy-irq-code.patch added to -mm tree
+Date: Wed, 09 May 2007 21:08:00 -0700
+Message-ID: <200705100408.l4A480Xf011606@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52701 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757150AbXEJEIB (ORCPT
+	by vger.kernel.org with ESMTP id S1754949AbXEJEIE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 00:08:01 -0400
+	Thu, 10 May 2007 00:08:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: remove task_protections
+     uml: tidy IRQ code
 has been added to the -mm tree.  Its filename is
-     uml-remove-task_protections.patch
+     uml-tidy-irq-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,125 +26,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: remove task_protections
+Subject: uml: tidy IRQ code
 From: Jeff Dike <jdike@addtoit.com>
 
-Replaced task_protections with stack_protections since they do the same
-thing, and task_protections was misnamed anyway.
-
-This needs THREAD_SIZE, so that's imported via common-offsets.h
-
-Also tidied up the code in the vicinity.
+Some tidying of the irq code before introducing irq stacks.  Mostly
+style fixes, but the timer handler calls the timer code directly
+rather than going through the generic sig_handler_common_skas.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/common-offsets.h |    2 ++
- arch/um/include/os.h             |    1 -
- arch/um/kernel/tt/exec_kern.c    |    2 +-
- arch/um/kernel/tt/process_kern.c |    2 +-
- arch/um/kernel/um_arch.c         |    2 +-
- arch/um/os-Linux/util.c          |   23 +++--------------------
- 6 files changed, 8 insertions(+), 24 deletions(-)
+ arch/um/kernel/init_task.c      |   11 -----------
+ arch/um/kernel/irq.c            |    4 ++--
+ arch/um/os-Linux/signal.c       |   10 +++++++---
+ arch/um/os-Linux/skas/process.c |    6 ++++--
+ 4 files changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN arch/um/include/common-offsets.h~uml-remove-task_protections arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-remove-task_protections
-+++ a/arch/um/include/common-offsets.h
-@@ -28,3 +28,5 @@ DEFINE(UM_NR_CPUS, NR_CPUS);
- 
- /* For crypto assembler code. */
- DEFINE(crypto_tfm_ctx_offset, offsetof(struct crypto_tfm, __crt_ctx));
-+
-+DEFINE(UM_THREAD_SIZE, THREAD_SIZE);
-diff -puN arch/um/include/os.h~uml-remove-task_protections arch/um/include/os.h
---- a/arch/um/include/os.h~uml-remove-task_protections
-+++ a/arch/um/include/os.h
-@@ -272,7 +272,6 @@ extern void do_longjmp(void *p, int val)
- 
- /* util.c */
- extern void stack_protections(unsigned long address);
--extern void task_protections(unsigned long address);
- extern int raw(int fd);
- extern void setup_machinename(char *machine_out);
- extern void setup_hostinfo(char *buf, int len);
-diff -puN arch/um/kernel/tt/exec_kern.c~uml-remove-task_protections arch/um/kernel/tt/exec_kern.c
---- a/arch/um/kernel/tt/exec_kern.c~uml-remove-task_protections
-+++ a/arch/um/kernel/tt/exec_kern.c
-@@ -57,7 +57,7 @@ void flush_thread_tt(void)
- 	enable_timer();
- 	free_page(stack);
- 	protect_memory(uml_reserved, high_physmem - uml_reserved, 1, 1, 0, 1);
--	task_protections((unsigned long) current_thread);
-+	stack_protections((unsigned long) current_thread);
- 	force_flush_all();
- 	unblock_signals();
- }
-diff -puN arch/um/kernel/tt/process_kern.c~uml-remove-task_protections arch/um/kernel/tt/process_kern.c
---- a/arch/um/kernel/tt/process_kern.c~uml-remove-task_protections
-+++ a/arch/um/kernel/tt/process_kern.c
-@@ -209,7 +209,7 @@ void finish_fork_handler(int sig)
- 	if(current->mm != current->parent->mm)
- 		protect_memory(uml_reserved, high_physmem - uml_reserved, 1, 
- 			       1, 0, 1);
--	task_protections((unsigned long) current_thread);
-+	stack_protections((unsigned long) current_thread);
- 
- 	free_page(current->thread.temp_stack);
- 	local_irq_disable();
-diff -puN arch/um/kernel/um_arch.c~uml-remove-task_protections arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-remove-task_protections
-+++ a/arch/um/kernel/um_arch.c
-@@ -459,7 +459,7 @@ int __init linux_main(int argc, char **a
- 
- 	uml_postsetup();
- 
--	task_protections((unsigned long) &init_thread_info);
-+	stack_protections((unsigned long) &init_thread_info);
- 	os_flush_stdout();
- 
- 	return CHOOSE_MODE(start_uml_tt(), start_uml_skas());
-diff -puN arch/um/os-Linux/util.c~uml-remove-task_protections arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~uml-remove-task_protections
-+++ a/arch/um/os-Linux/util.c
-@@ -33,25 +33,8 @@
- 
- void stack_protections(unsigned long address)
+diff -puN arch/um/kernel/init_task.c~uml-tidy-irq-code arch/um/kernel/init_task.c
+--- a/arch/um/kernel/init_task.c~uml-tidy-irq-code
++++ a/arch/um/kernel/init_task.c
+@@ -46,14 +46,3 @@ void unprotect_stack(unsigned long stack
  {
--	int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+ 	os_protect_memory((void *) stack, THREAD_SIZE, 1, 1, 0);
+ }
 -
--	if(mprotect((void *) address, UM_KERN_PAGE_SIZE, prot) < 0)
--		panic("protecting stack failed, errno = %d", errno);
--}
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/irq.c~uml-tidy-irq-code arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-tidy-irq-code
++++ a/arch/um/kernel/irq.c
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
+  * Licensed under the GPL
+  * Derived (i.e. mostly copied) from arch/i386/kernel/irq.c:
+@@ -53,7 +53,7 @@ int show_interrupts(struct seq_file *p, 
+ 	if (i < NR_IRQS) {
+ 		spin_lock_irqsave(&irq_desc[i].lock, flags);
+ 		action = irq_desc[i].action;
+-		if (!action) 
++		if (!action)
+ 			goto skip;
+ 		seq_printf(p, "%3d: ",i);
+ #ifndef CONFIG_SMP
+diff -puN arch/um/os-Linux/signal.c~uml-tidy-irq-code arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-tidy-irq-code
++++ a/arch/um/os-Linux/signal.c
+@@ -61,15 +61,19 @@ void sig_handler(int sig, struct sigcont
+ 
+ static void real_alarm_handler(int sig, struct sigcontext *sc)
+ {
++	union uml_pt_regs regs;
++
+ 	if(sig == SIGALRM)
+ 		switch_timers(0);
+ 
+-	CHOOSE_MODE_PROC(sig_handler_common_tt, sig_handler_common_skas,
+-			 sig, sc);
++	if(sc != NULL)
++		copy_sc(&regs, sc);
++	regs.skas.is_user = 0;
++	unblock_signals();
++	timer_handler(sig, &regs);
+ 
+ 	if(sig == SIGALRM)
+ 		switch_timers(1);
 -
--void task_protections(unsigned long address)
--{
--	unsigned long guard = address + UM_KERN_PAGE_SIZE;
--	unsigned long stack = guard + UM_KERN_PAGE_SIZE;
--	int prot = 0, pages;
--
--#ifdef notdef
--	if(mprotect((void *) stack, UM_KERN_PAGE_SIZE, prot) < 0)
--		panic("protecting guard page failed, errno = %d", errno);
--#endif
--	pages = (1 << UML_CONFIG_KERNEL_STACK_ORDER) - 2;
--	prot = PROT_READ | PROT_WRITE | PROT_EXEC;
--	if(mprotect((void *) stack, pages * UM_KERN_PAGE_SIZE, prot) < 0)
-+	if(mprotect((void *) address, UM_THREAD_SIZE,
-+		    PROT_READ | PROT_WRITE | PROT_EXEC) < 0)
- 		panic("protecting stack failed, errno = %d", errno);
  }
  
-@@ -72,7 +55,7 @@ int raw(int fd)
+ void alarm_handler(int sig, struct sigcontext *sc)
+diff -puN arch/um/os-Linux/skas/process.c~uml-tidy-irq-code arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-tidy-irq-code
++++ a/arch/um/os-Linux/skas/process.c
+@@ -288,7 +288,8 @@ int start_userspace(unsigned long stub_s
+ void userspace(union uml_pt_regs *regs)
+ {
+ 	int err, status, op, pid = userspace_pid[0];
+-	int local_using_sysemu; /*To prevent races if using_sysemu changes under us.*/
++	/* To prevent races if using_sysemu changes under us.*/
++	int local_using_sysemu;
  
- 	/* XXX tcsetattr could have applied only some changes
- 	 * (and cfmakeraw() is a set of changes) */
--	return(0);
-+	return 0;
- }
+ 	while(1){
+ 		restore_registers(pid, regs);
+@@ -296,7 +297,8 @@ void userspace(union uml_pt_regs *regs)
+ 		/* Now we set local_using_sysemu to be used for one loop */
+ 		local_using_sysemu = get_using_sysemu();
  
- void setup_machinename(char *machine_out)
+-		op = SELECT_PTRACE_OPERATION(local_using_sysemu, singlestepping(NULL));
++		op = SELECT_PTRACE_OPERATION(local_using_sysemu,
++					     singlestepping(NULL));
+ 
+ 		err = ptrace(op, pid, 0, 0);
+ 		if(err)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
