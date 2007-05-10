@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch added to -mm tree
-Date: Wed, 09 May 2007 22:23:47 -0700
-Message-ID: <200705100523.l4A5Nl9S012952@shell0.pdx.osdl.net>
+Subject: + m32r-fix-tme_handler-to-check-_page_present-bit.patch added to -mm tree
+Date: Wed, 09 May 2007 22:23:49 -0700
+Message-ID: <200705100523.l4A5NnHp012959@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41438 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755328AbXEJFYD (ORCPT
+	by vger.kernel.org with ESMTP id S1755401AbXEJFYE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:24:03 -0400
+	Thu, 10 May 2007 01:24:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hitoshiy@linux-m32r.org, takata.hirokazu@renesas.com, takata@linux-m32r.org
+Cc: takata@linux-m32r.org, hitoshiy@linux-m32r.org
 
 
 The patch titled
-     m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix
+     m32r: fix tme_handler to check _PAGE_PRESENT bit
 has been added to the -mm tree.  Its filename is
-     m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
+     m32r-fix-tme_handler-to-check-_page_present-bit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: m32r: fix tme_handler to check _PAGE_PRESENT bit
+From: Hirokazu Takata <takata@linux-m32r.org>
 
-Cc: Hirokazu Takata <takata.hirokazu@renesas.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
+Fix the tlb-miss handler (tme_handler) to check _PAGE_PRESENT bit
+in order to handle file-mapped or swapped-out pages correctly.
+
+This patch is required to fix unexpected page errors for m32r.
+
+Signed-off-by: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/system.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/m32r/mm/mmu.S |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix include/asm-m32r/system.h
---- a/include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix
-+++ a/include/asm-m32r/system.h
-@@ -21,8 +21,8 @@
-  * `next' and `prev' should be struct task_struct, but it isn't always defined
-  */
+diff -puN arch/m32r/mm/mmu.S~m32r-fix-tme_handler-to-check-_page_present-bit arch/m32r/mm/mmu.S
+--- a/arch/m32r/mm/mmu.S~m32r-fix-tme_handler-to-check-_page_present-bit
++++ a/arch/m32r/mm/mmu.S
+@@ -163,7 +163,8 @@ ENTRY(tme_handler)
  
--#if defined(CONFIG_FRAME_POINTER)
--    || !defined(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER)
-+#if defined(CONFIG_FRAME_POINTER) || \
-+	!defined(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER)
- #define M32R_PUSH_FP "	push fp\n"
- #define M32R_POP_FP  "	pop  fp\n"
+ 	; pte_data = (unsigned long)pte_val(*pte);
+ 	ld	r2, @r3			; r2: pte data
+-	or3	r2, r2, #2		; _PAGE_PRESENT(=2)
++	and3	r3, r2, #2		; _PAGE_PRESENT(=2) check
++	beqz	r3, 3f
+ 
+ 	.fillinsn
+ 5:
+@@ -264,11 +265,8 @@ ENTRY(tme_handler)
+ ;
+ 	and3	r1, r1, #0xeff
+ 	ldi	r4, #611		; _KERNPG_TABLE(=611)
+-	beq	r1, r4, 4f		; !pmd_bad(*pmd) ?
+-	.fillinsn
+-3:
+-	ldi	r1, #0			; r1: pte_data = 0
+-	bra	5f
++	bne	r1, r4, 3f		; !pmd_bad(*pmd) ?
++
+ 	.fillinsn
+ 4:
+ 	; pte = pte_offset(pmd, address);
+@@ -282,8 +280,10 @@ ENTRY(tme_handler)
+ 	add	r4, r3			; r4: pte
+ 	; pte_data = (unsigned long)pte_val(*pte);
+ 	ld	r1, @r4			; r1: pte_data
+-	.fillinsn
++	and3	r3, r1, #2		; _PAGE_PRESENT(=2) check
++	beqz	r3, 3f
+ 
++	.fillinsn
+ ;; set tlb
+ ; r0: address, r1: pte_data, r2: entry
+ ; r3,r4: (free)
+@@ -295,8 +295,7 @@ ENTRY(tme_handler)
+ 	and3	r4, r4, #(MMU_CONTEXT_ASID_MASK)
+ 	or	r3, r4
+ 	st	r3, @r2
+-	or3	r4, r1, #2		; _PAGE_PRESENT(=2)
+-	st	r4, @(4,r2)		; set_tlb_data(entry, pte_data);
++	st	r1, @(4,r2)		; set_tlb_data(entry, pte_data);
+ 
+ 	ld	r4, @sp+
+ 	ld	r3, @sp+
+@@ -306,6 +305,11 @@ ENTRY(tme_handler)
+ 	ld	sp, @sp+
+ 	rte
+ 
++	.fillinsn
++3:
++	ldi	r1, #2			; r1: pte_data = 0 | _PAGE_PRESENT(=2)
++	bra	5b
++
  #else
+ #error unknown isa configuration
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from takata@linux-m32r.org are
 
 origin.patch
-revert-md-improve-partition-detection-in-md-array.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ia64-sa_interrupt-is-deprecated.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
-x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
+m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch
 m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-upper-32-bits.patch
-lib-hexdump.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-synclink_gt-add-compat_ioctl-fix.patch
-tty-add-compat_ioctl.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
-linux-kernel-markers-powerpc-optimization-fix.patch
-linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-documentation-update.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-ntfs-use-zero_user_page.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
+m32r-fix-tme_handler-to-check-_page_present-bit.patch
+m32r-fix-pte_to_pgoff.patch
