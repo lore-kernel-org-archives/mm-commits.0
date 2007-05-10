@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-improve-the-is_mddev_idle-test.patch added to -mm tree
-Date: Thu, 10 May 2007 00:32:34 -0700
-Message-ID: <200705100732.l4A7WY22015128@shell0.pdx.osdl.net>
+Subject: + md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem.patch added to -mm tree
+Date: Thu, 10 May 2007 00:31:27 -0700
+Message-ID: <200705100731.l4A7VRlW015105@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49382 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756542AbXEJHcj (ORCPT
+	by vger.kernel.org with ESMTP id S1759562AbXEJHcw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 03:32:39 -0400
+	Thu, 10 May 2007 03:32:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     md: improve the is_mddev_idle test
+     md: avoid a possibility that a read error can wrongly propagate through md/raid1 to a filesystem.
 has been added to the -mm tree.  Its filename is
-     md-improve-the-is_mddev_idle-test.patch
+     md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: improve the is_mddev_idle test
+Subject: md: avoid a possibility that a read error can wrongly propagate through md/raid1 to a filesystem.
 From: NeilBrown <neilb@suse.de>
 
-During a 'resync' or similar activity, md checks if the devices in the
-array are otherwise active and winds back resync activity when they are. 
-This test in done in is_mddev_idle, and it is somewhat fragile - it
-sometimes thinks there is non-sync io when there isn't.
+When a raid1 has only one working drive, we want read error to propagate up
+to the filesystem as there is no point failing the last drive in an array.
 
-The test compares the total sectors of io (disk_stat_read) with the sectors
-of resync io (disk->sync_io).  This has problems because total sectors gets
-updated when a request completes, while resync io gets updated when the
-request is submitted.  The time difference can cause large differenced
-between the two which do not actually imply non-resync activity.  The test
-currently allows for some fuzz (+/- 4096) but there are some cases when it
-is not enough.
+Currently the code perform this check is racy.  If a write and a read a
+both submitted to a device on a 2-drive raid1, and the write fails followed
+by the read failing, the read will see that there is only one working drive
+and will pass the failure up, even though the one working drive is actually
+the *other* one.
 
-The test currently looks for any (non-fuzz) difference, either positive or
-negative.  This clearly is not needed.  Any non-sync activity will cause
-the total sectors to grow faster than the sync_io count (never slower) so
-we only need to look for a positive differences.
-
-If we do this then the amount of in-flight sync io will never cause the
-appearance of non-sync IO.  Once enough non-sync IO to worry about starts
-happening, resync will be slowed down and the measurements will thus be
-more precise (as there is less in-flight) and control of resync will still
-be suitably responsive.
+So, tighten up the locking.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid1.c |   33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN drivers/md/md.c~md-improve-the-is_mddev_idle-test drivers/md/md.c
---- a/drivers/md/md.c~md-improve-the-is_mddev_idle-test
-+++ a/drivers/md/md.c
-@@ -5105,7 +5105,7 @@ static int is_mddev_idle(mddev_t *mddev)
- 		 *
- 		 * Note: the following is an unsigned comparison.
+diff -puN drivers/md/raid1.c~md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem
++++ a/drivers/md/raid1.c
+@@ -271,21 +271,25 @@ static int raid1_end_read_request(struct
+ 	 */
+ 	update_head_pos(mirror, r1_bio);
+ 
+-	if (uptodate || (conf->raid_disks - conf->mddev->degraded) <= 1) {
+-		/*
+-		 * Set R1BIO_Uptodate in our master bio, so that
+-		 * we will return a good error code for to the higher
+-		 * levels even if IO on some other mirrored buffer fails.
+-		 *
+-		 * The 'master' represents the composite IO operation to
+-		 * user-side. So if something waits for IO, then it will
+-		 * wait for the 'master' bio.
++	if (uptodate)
++		set_bit(R1BIO_Uptodate, &r1_bio->state);
++	else {
++		/* If all other devices have failed, we want to return
++		 * the error upwards rather than fail the last device.
++		 * Here we redefine "uptodate" to mean "Don't want to retry"
  		 */
--		if ((curr_events - rdev->last_events + 4096) > 8192) {
-+		if ((long)curr_events - (long)rdev->last_events > 4096) {
- 			rdev->last_events = curr_events;
- 			idle = 0;
- 		}
+-		if (uptodate)
+-			set_bit(R1BIO_Uptodate, &r1_bio->state);
++		unsigned long flags;
++		spin_lock_irqsave(&conf->device_lock, flags);
++		if (r1_bio->mddev->degraded == conf->raid_disks ||
++		    (r1_bio->mddev->degraded == conf->raid_disks-1 &&
++		     !test_bit(Faulty, &conf->mirrors[mirror].rdev->flags)))
++			uptodate = 1;
++		spin_unlock_irqrestore(&conf->device_lock, flags);
++	}
+ 
++	if (uptodate)
+ 		raid_end_bio_io(r1_bio);
+-	} else {
++	else {
+ 		/*
+ 		 * oops, read error:
+ 		 */
+@@ -992,13 +996,14 @@ static void error(mddev_t *mddev, mdk_rd
+ 		unsigned long flags;
+ 		spin_lock_irqsave(&conf->device_lock, flags);
+ 		mddev->degraded++;
++		set_bit(Faulty, &rdev->flags);
+ 		spin_unlock_irqrestore(&conf->device_lock, flags);
+ 		/*
+ 		 * if recovery is running, make sure it aborts.
+ 		 */
+ 		set_bit(MD_RECOVERY_ERR, &mddev->recovery);
+-	}
+-	set_bit(Faulty, &rdev->flags);
++	} else
++		set_bit(Faulty, &rdev->flags);
+ 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+ 	printk(KERN_ALERT "raid1: Disk failure on %s, disabling device. \n"
+ 		"	Operation continuing on %d devices\n",
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
@@ -83,6 +117,5 @@ nlmclnt_recovery-dont-use-clone_sighand.patch
 git-md-accel.patch
 freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
 introduce-freezer-flags-rev-2.patch
-md-improve-the-is_mddev_idle-test.patch
 use-menuconfig-objects-ii-md.patch
 md-dm-reduce-stack-usage-with-stacked-block-devices.patch
