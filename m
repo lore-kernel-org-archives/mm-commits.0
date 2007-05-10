@@ -1,144 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - afs-write-support-fixes-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 03:13:26 -0700
-Message-ID: <200705101013.l4AADQtY017934@shell0.pdx.osdl.net>
+Subject: - uml-monitor-stack-usage.patch removed from -mm tree
+Date: Thu, 10 May 2007 11:25:55 -0700
+Message-ID: <200705101825.l4AIPtOE027134@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52078 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751580AbXEJKif (ORCPT
+	by vger.kernel.org with ESMTP id S1751044AbXEJS0A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 06:38:35 -0400
+	Thu, 10 May 2007 14:26:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     afs-write-support-fixes-fix
+     uml: monitor stack usage
 has been removed from the -mm tree.  Its filename was
-     afs-write-support-fixes-fix.patch
+     uml-monitor-stack-usage.patch
 
-This patch was dropped because it was folded into afs-write-support-fixes.patch
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: afs-write-support-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: monitor stack usage
+From: Jeff Dike <jdike@addtoit.com>
 
-fs/afs/fsclient.c: In function 'afs_fs_fetch_data64':
-fs/afs/fsclient.c:450: warning: right shift count >= width of type
-fs/afs/fsclient.c:450: warning: right shift count >= width of type
-fs/afs/fsclient.c:450: warning: right shift count >= width of type
-fs/afs/fsclient.c:450: warning: right shift count >= width of type
-fs/afs/fsclient.c:450: warning: right shift count >= width of type
-fs/afs/fsclient.c:450: warning: right shift count >= width of type
-fs/afs/fsclient.c: In function 'afs_fs_fetch_data':
-fs/afs/fsclient.c:471: warning: right shift count >= width of type
-fs/afs/fsclient.c:471: warning: right shift count >= width of type
+In preparation for reducing stack size, add a mechanism to see how much of a
+kernel stack is used.  This fills a new stack with 0x6b on allocation and sees
+where the lowest non-0x6b byte is on process exit.  It keeps track of the
+lowest value and logs values as they get lower.
 
-Cc: David Howells <dhowells@redhat.com>
+The lowest values I've seen so far are ~1250 bytes remaining on i386 (with
+order 0 stacks) and ~2650 on x86_64 (order 1).
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/fsclient.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/um/Kconfig.debug        |    8 +++++++
+ arch/um/defconfig            |    1 
+ arch/um/kernel/process.c     |   35 +++++++++++++++++++++++++++++++++
+ include/asm-um/thread_info.h |   16 +++++++++++++++
+ 4 files changed, 60 insertions(+)
 
-diff -puN fs/afs/fsclient.c~afs-write-support-fixes-fix fs/afs/fsclient.c
---- a/fs/afs/fsclient.c~afs-write-support-fixes-fix
-+++ a/fs/afs/fsclient.c
-@@ -447,7 +447,7 @@ static int afs_fs_fetch_data64(struct af
- 	bp[1] = htonl(vnode->fid.vid);
- 	bp[2] = htonl(vnode->fid.vnode);
- 	bp[3] = htonl(vnode->fid.unique);
--	bp[4] = htonl(offset >> 32);
-+	bp[4] = htonl(upper_32_bits(offset));
- 	bp[5] = htonl((u32) offset);
- 	bp[6] = 0;
- 	bp[7] = htonl((u32) length);
-@@ -468,7 +468,7 @@ int afs_fs_fetch_data(struct afs_server 
- 	struct afs_call *call;
- 	__be32 *bp;
+diff -puN arch/um/Kconfig.debug~uml-monitor-stack-usage arch/um/Kconfig.debug
+--- a/arch/um/Kconfig.debug~uml-monitor-stack-usage
++++ a/arch/um/Kconfig.debug
+@@ -47,4 +47,12 @@ config GCOV
+         If you're involved in UML kernel development and want to use gcov,
+         say Y.  If you're unsure, say N.
  
--	if (offset >> 32 || (offset + length) >> 32)
-+	if (upper_32_bits(offset) || upper_32_bits(offset + length))
- 		return afs_fs_fetch_data64(server, key, vnode, offset, length,
- 					   buffer, wait_mode);
++config STACK_USAGE
++	bool "Track kernel stack usage"
++	default N
++	help
++	Track the maximum kernel stack usage - this will look at each
++	kernel stack at process exit and log it if it's the deepest
++	stack seen so far.
++
+ endmenu
+diff -puN arch/um/defconfig~uml-monitor-stack-usage arch/um/defconfig
+--- a/arch/um/defconfig~uml-monitor-stack-usage
++++ a/arch/um/defconfig
+@@ -527,3 +527,4 @@ CONFIG_FORCED_INLINING=y
+ # CONFIG_RCU_TORTURE_TEST is not set
+ # CONFIG_GPROF is not set
+ # CONFIG_GCOV is not set
++# CONFIG_STACK_USAGE is not set
+diff -puN arch/um/kernel/process.c~uml-monitor-stack-usage arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-monitor-stack-usage
++++ a/arch/um/kernel/process.c
+@@ -427,3 +427,38 @@ unsigned long arch_align_stack(unsigned 
+ 	return sp & ~0xf;
+ }
+ #endif
++
++#ifdef CONFIG_STACK_USAGE
++
++static int lowest_to_date = THREAD_SIZE;
++
++void mark_stack(struct thread_info *stack)
++{
++	if(stack == NULL)
++		return;
++
++	memset(stack, 0x6b, THREAD_SIZE);
++}
++
++void check_stack_usage(struct thread_info *s)
++{
++	unsigned int *stack;
++	unsigned int *p, *end;
++	int left;
++
++	stack = (unsigned int *) (s + 1);
++	end = (unsigned int *) ((unsigned long) stack + THREAD_SIZE);
++	for(p = stack; p < end; p++){
++		if(*p != 0x6b6b6b6b){
++			left = (p - stack);
++			if(left < lowest_to_date){
++				printk("Greatest stack depth - %d bytes left\n",
++				       left * sizeof(*p));
++				lowest_to_date = left;
++			}
++			return;
++		}
++	}
++}
++
++#endif
+diff -puN include/asm-um/thread_info.h~uml-monitor-stack-usage include/asm-um/thread_info.h
+--- a/include/asm-um/thread_info.h~uml-monitor-stack-usage
++++ a/include/asm-um/thread_info.h
+@@ -52,6 +52,20 @@ static inline struct thread_info *curren
+ 	return ti;
+ }
  
++#ifdef CONFIG_STACK_USAGE
++
++extern void mark_stack(struct thread_info *stack);
++extern void check_stack_usage(struct thread_info *stack);
++
++#define alloc_thread_info(tsk) \
++	({ struct thread_info *stack = kmalloc(THREAD_SIZE, GFP_KERNEL); \
++	   mark_stack(stack); \
++	   stack; \
++	 })
++#define free_thread_info(ti) ({ check_stack_usage(ti) ; kfree(ti); })
++
++#else
++
+ /* thread information allocation */
+ #define alloc_thread_info(tsk) \
+ 	((struct thread_info *) kmalloc(THREAD_SIZE, GFP_KERNEL))
+@@ -59,6 +73,8 @@ static inline struct thread_info *curren
+ 
+ #endif
+ 
++#endif
++
+ #define PREEMPT_ACTIVE		0x10000000
+ 
+ #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-upper-32-bits.patch
-afs-write-support-fixes.patch
-afs-write-support-fixes-fix.patch
-revert-md-improve-partition-detection-in-md-array.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
-git-hid-fixup.patch
-git-ia64-sa_interrupt-is-deprecated.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
-x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
-xfs-clean-up-shrinker-games.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-lib-hexdump.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-synclink_gt-add-compat_ioctl-fix.patch
-stop_machine-now-uses-hard_irq_disable-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-tty-add-compat_ioctl.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
-linux-kernel-markers-architecture-independant-code-update-fix.patch
-linux-kernel-markers-powerpc-optimization-fix.patch
-linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-documentation-update.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-ntfs-use-zero_user_page.patch
-pm3fb-preliminary-24-to-26-port-fix.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
+uml-remove-task_protections.patch
+uml-use-um_thread_size-in-userspace-code.patch
+uml-tidy-irq-code.patch
+uml-irq-stacks.patch
+uml-monitor-stack-usage.patch
+uml-shrink-kernel-stacks.patch
