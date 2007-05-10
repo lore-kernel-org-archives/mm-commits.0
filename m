@@ -1,310 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-documentation.patch removed from -mm tree
-Date: Thu, 10 May 2007 15:32:28 -0700
-Message-ID: <200705102232.l4AMWSpF032623@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-non-optimized-architectures-update.patch removed from -mm tree
+Date: Thu, 10 May 2007 15:32:26 -0700
+Message-ID: <200705102232.l4AMWQNP032620@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58623 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759312AbXEJWcf (ORCPT
+	by vger.kernel.org with ESMTP id S1758310AbXEJWcc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 18:32:35 -0400
+	Thu, 10 May 2007 18:32:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Linux Kernel Markers Documentation
+     linux-kernel-markers-non-optimized-architectures update
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-documentation.patch
+     linux-kernel-markers-non-optimized-architectures-update.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers Documentation
+Subject: linux-kernel-markers-non-optimized-architectures update
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-
-Here is some documentation explaining what is/how to use the Linux
-Kernel Markers.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/marker.txt |  266 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 266 insertions(+)
+ include/asm-alpha/marker.h   |   13 +++++++++++++
+ include/asm-arm26/marker.h   |   13 +++++++++++++
+ include/asm-generic/marker.h |   15 +++++++++++----
+ 3 files changed, 37 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null Documentation/marker.txt
+diff -puN /dev/null include/asm-alpha/marker.h
 --- /dev/null
-+++ a/Documentation/marker.txt
-@@ -0,0 +1,266 @@
-+ 	             Using the Linux Kernel Markers
-+
-+			    Mathieu Desnoyers
-+
-+
-+	This document introduces to markers and discusses its purpose. It
-+shows some usage examples of the Linux Kernel Markers : how to insert markers
-+within the kernel and how to connect probes to a marker. Finally, it has some
-+probe module examples. This is what connects to a marker.
-+
-+
-+* Purpose of markers
-+
-+A marker placed in your code provides a hook to a function (probe) that
-+you can provide at runtime. A marker can be "on" (a probe is connected to it)
-+or "off" (no probe is attached). An "off" marker has no effect. When turned on,
-+the function you provide is called each time the marker is executed in the
-+execution context of the caller. When the function provided ends its execution,
-+it returns to the caller (marker site).
-+
-+You can put markers at important locations in the code. They act as
-+lightweight hooks that can pass an arbitrary number of parameters,
-+described in a printk-like format string, to a function whenever the marker
-+code is reached.
-+
-+They can be used for tracing (LTTng, LKET over SystemTAP), overall performance
-+accounting (SystemTAP). They could also be used to implement
-+efficient hooks for SELinux or any other subsystem that would have this
-+kind of need.
-+
-+Using the markers for system audit (SELinux) would require to pass a
-+variable by address that would be later checked by the marked routine.
-+
-+
-+* Usage
-+
-+In order to use the macro MARK, you should include linux/marker.h.
-+
-+#include <linux/marker.h>
-+
-+Add, in your code :
-+
-+trace_mark(subsystem_event, "%d %s", someint, somestring);
-+Where :
-+- subsystem_event is an identifier unique to your event
-+    - subsystem is the name of your subsystem.
-+    - event is the name of the event to mark.
-+- "%d %s" is the formatted string for the serializer.
-+- someint is an integer.
-+- somestring is a char pointer.
-+
-+Connecting a function (probe) to a marker is done by providing a probe
-+(function to call) for the specific marker through marker_set_probe(). It will
-+automatically connect the function and enable the marker site. Removing a probe
-+is done through marker_remove_probe(). Probe removal is preempt safe because
-+preemption is disabled around the probe call. See the "Probe example" section
-+below for a sample probe module.
-+
-+The marker mechanism supports multiple instances of the same marker.
-+Markers can be put in inline functions, inlined static functions and
-+unrolled loops.
-+
-+Note : It is safe to put markers within preempt-safe code : preempt_enable()
-+will not call the scheduler due to the tests in preempt_schedule().
-+
-+
-+* Optimization for a given architecture
-+
-+You will find, in asm-*/marker.h, optimisations for given architectures
-+(currently i386 and powerpc). They use a load immediate instead of a data load,
-+which saves a data cache hit, but also requires cross CPU code modification. In
-+order to support embedded systems which use read-only memory for their code, the
-+optimization can be disabled through menu options.
-+
-+The MF_* flags can be used to control the type of marker. See the
-+include/marker.h header for the list of flags. They can be specified as the
-+first parameter of the _trace_mark() macro, such as the following example which is
-+safe with respect to lockdep.c (useful for marking lockdep.c and printk
-+functions).
-+
-+_trace_mark(MF_DEFAULT | ~MF_LOCKDEP, subsystem_eventb, MARK_NOARGS);
-+
-+Another example is to specify that a specific marker must never call printk :
-+_trace_mark(MF_DEFAULT | ~MF_PRINTK, subsystem_eventc,
-+  "%d %s", someint, somestring,);
-+
-+Flag compatibility is checked before connecting the probe to the marker : the
-+right flags must be given to _marker_set_enable().
-+
-+
-+* Probe example
-+
-+You can build the kernel modules, probe-example.ko and marker-example.ko,
-+using the following Makefile:
-+------------------------------ CUT -------------------------------------
-+obj-m := probe-example.o marker-example.o
-+KDIR := /lib/modules/$(shell uname -r)/build
-+PWD := $(shell pwd)
-+default:
-+	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
-+clean:
-+	rm -f *.mod.c *.ko *.o
-+------------------------------ CUT -------------------------------------
-+/* probe-example.c
++++ a/include/asm-alpha/marker.h
+@@ -0,0 +1,13 @@
++/*
++ * marker.h
 + *
-+ * Connects two functions to marker call sites.
++ * Code markup for dynamic and static tracing. Architecture specific
++ * optimisations.
 + *
-+ * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ * No optimisation implemented.
 + *
 + * This file is released under the GPLv2.
 + * See the file COPYING for more details.
 + */
 +
-+#include <linux/sched.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/marker.h>
-+#include <asm/atomic.h>
-+
-+#define NUM_PROBES ARRAY_SIZE(probe_array)
-+
-+struct probe_data {
-+	const char *name;
-+	const char *format;
-+	marker_probe_func *probe_func;
-+};
-+
-+void probe_subsystem_event(const struct __mark_marker_c *mdata,
-+		const char *format, ...)
-+{
-+	va_list ap;
-+	/* Declare args */
-+	unsigned int value;
-+	const char *mystr;
-+
-+	/* Assign args */
-+	va_start(ap, format);
-+	value = va_arg(ap, typeof(value));
-+	mystr = va_arg(ap, typeof(mystr));
-+
-+	/* Call printk */
-+	printk("Value %u, string %s\n", value, mystr);
-+
-+	/* or count, check rights, serialize data in a buffer */
-+
-+	va_end(ap);
-+}
-+
-+atomic_t eventb_count = ATOMIC_INIT(0);
-+
-+void probe_subsystem_eventb(const struct __mark_marker_c *mdata,
-+	const char *format, ...)
-+{
-+	/* Increment counter */
-+	atomic_inc(&eventb_count);
-+}
-+
-+static struct probe_data probe_array[] =
-+{
-+	{	.name = "subsystem_event",
-+		.format = "%d %s",
-+		.probe_func = probe_subsystem_event },
-+	{	.name = "subsystem_eventb",
-+		.format = MARK_NOARGS,
-+		.probe_func = probe_subsystem_eventb },
-+};
-+
-+static int __init probe_init(void)
-+{
-+	int result;
-+	uint8_t eID;
-+
-+	for (eID = 0; eID < NUM_PROBES; eID++) {
-+		result = marker_set_probe(probe_array[eID].name,
-+				probe_array[eID].format,
-+				probe_array[eID].probe_func, &probe_array[eID]);
-+		if (!result)
-+			printk(KERN_INFO "Unable to register probe %s\n",
-+				probe_array[eID].name);
-+	}
-+	return 0;
-+}
-+
-+static void __exit probe_fini(void)
-+{
-+	uint8_t eID;
-+
-+	for (eID = 0; eID < NUM_PROBES; eID++) {
-+		marker_remove_probe(probe_array[eID].name);
-+	}
-+	synchronize_sched();	/* Wait for probes to finish */
-+	printk("Number of event b : %u\n", atomic_read(&eventb_count));
-+}
-+
-+module_init(probe_init);
-+module_exit(probe_fini);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mathieu Desnoyers");
-+MODULE_DESCRIPTION("SUBSYSTEM Probe");
-+------------------------------ CUT -------------------------------------
-+/* marker-example.c
++#include <asm-generic/marker.h>
+diff -puN /dev/null include/asm-arm26/marker.h
+--- /dev/null
++++ a/include/asm-arm26/marker.h
+@@ -0,0 +1,13 @@
++/*
++ * marker.h
 + *
-+ * Executes a marker when /proc/marker-example is opened.
++ * Code markup for dynamic and static tracing. Architecture specific
++ * optimisations.
 + *
-+ * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ * No optimisation implemented.
 + *
 + * This file is released under the GPLv2.
 + * See the file COPYING for more details.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/marker.h>
-+#include <linux/sched.h>
-+#include <linux/proc_fs.h>
++#include <asm-generic/marker.h>
+diff -puN include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architectures-update include/asm-generic/marker.h
+--- a/include/asm-generic/marker.h~linux-kernel-markers-non-optimized-architectures-update
++++ a/include/asm-generic/marker.h
+@@ -13,11 +13,18 @@
+  * "used" attribute to fix a gcc 4.1.x bug.
+  */
+ 
+-#define _MF_DEFAULT			(_MF_LOCKDEP | _MF_PRINTK)
++/* Default flags, used by MARK() */
++#define MF_DEFAULT			(MF_LOCKDEP | MF_PRINTK)
+ 
+-#define MARK_OPTIMIZED			MARK_GENERIC
+-#define _MARK				MARK_GENERIC
+-#define trace_mark(format, args...)	_trace_mark(_MF_DEFAULT, format, ## args)
++/* Fallback on the generic markers, since no optimized version is available */
++#define trace_mark_optimized		trace_mark_generic
++#define _trace_mark			trace_mark_generic
 +
-+struct proc_dir_entry *pentry_example = NULL;
++/* Marker with default behavior */
++#define trace_mark(format, args...)	_trace_mark(MF_DEFAULT, format, ## args)
 +
-+static int my_open(struct inode *inode, struct file *file)
-+{
-+	int i;
-+
-+	trace_mark(subsystem_event, "%d %s", 123, "example string");
-+	for (i=0; i<10; i++) {
-+		trace_mark(subsystem_eventb, MARK_NOARGS);
-+	}
-+	return -EPERM;
-+}
-+
-+static struct file_operations mark_ops = {
-+	.open = my_open,
-+};
-+
-+static int example_init(void)
-+{
-+	printk(KERN_ALERT "example init\n");
-+	pentry_example = create_proc_entry("marker-example", 0444, NULL);
-+	if (pentry_example)
-+		pentry_example->proc_fops = &mark_ops;
-+	else
-+		return -EPERM;
-+	return 0;
-+}
-+
-+static void example_exit(void)
-+{
-+	printk(KERN_ALERT "example exit\n");
-+	remove_proc_entry("marker-example", NULL);
-+}
-+
-+module_init(example_init)
-+module_exit(example_exit)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mathieu Desnoyers");
-+MODULE_DESCRIPTION("Linux Trace Toolkit example");
-+------------------------------ CUT -------------------------------------
-+Sequence of operations : (as root)
-+make
-+insmod marker-example.ko
-+insmod probe-example.ko
-+  (it is important to load the probe after the marked code)
-+cat /proc/marker-example (returns an expected error)
-+rmmod marker-example probe-example
-+dmesg
-+------------------------------ CUT -------------------------------------
++/* Architecture dependant marker information, used internally for marker
++ * activation. */
+ 
+ #define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET \
+ 		MARK_GENERIC_ENABLE_IMMEDIATE_OFFSET
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -312,6 +101,7 @@ Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 origin.patch
 git-avr32.patch
 powerpc-promc-remove-undef-printk.patch
+linux-kernel-markers-non-optimized-architectures-update.patch
 linux-kernel-markers-documentation.patch
 linux-kernel-markers-documentation-update.patch
 markers-define-the-linker-macro-extra_rwdata.patch
