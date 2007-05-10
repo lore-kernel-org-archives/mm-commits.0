@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slob-implement-rcu-freeing.patch added to -mm tree
-Date: Thu, 10 May 2007 00:53:52 -0700
-Message-ID: <200705100753.l4A7rqxj015498@shell0.pdx.osdl.net>
+Subject: + change-zonelist-order-v6-zonelist-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 01:11:10 -0700
+Message-ID: <200705100811.l4A8BAWf015793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41895 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758097AbXEJHyn (ORCPT
+	by vger.kernel.org with ESMTP id S1755326AbXEJIL0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 03:54:43 -0400
+	Thu, 10 May 2007 04:11:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nickpiggin@yahoo.com.au, mpm@selenic.com, npiggin@suse.de
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, jesse.barnes@intel.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     slob: implement RCU freeing
+     change-zonelist-order-v6-zonelist-fix
 has been added to the -mm tree.  Its filename is
-     slob-implement-rcu-freeing.patch
+     change-zonelist-order-v6-zonelist-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,145 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slob: implement RCU freeing
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: change-zonelist-order-v6-zonelist-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The SLOB allocator should implement SLAB_DESTROY_BY_RCU correctly, because
-even on UP, RCU freeing semantics are not equivalent to simply freeing
-immediately.  This also allows SLOB to be used on SMP.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "jesse.barnes@intel.com" <jesse.barnes@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    7 +-----
- mm/slob.c    |   52 ++++++++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 47 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN init/Kconfig~slob-implement-rcu-freeing init/Kconfig
---- a/init/Kconfig~slob-implement-rcu-freeing
-+++ a/init/Kconfig
-@@ -537,14 +537,11 @@ config SLUB
- 	   and has enhanced diagnostics.
+diff -puN mm/page_alloc.c~change-zonelist-order-v6-zonelist-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~change-zonelist-order-v6-zonelist-fix
++++ a/mm/page_alloc.c
+@@ -1826,8 +1826,8 @@ static void build_zonelists_in_node_orde
  
- config SLOB
--#
--#	SLOB does not support SMP because SLAB_DESTROY_BY_RCU is unsupported
--#
--	depends on EMBEDDED && !SMP && !SPARSEMEM
-+	depends on EMBEDDED && !SPARSEMEM
- 	bool "SLOB (Simple Allocator)"
- 	help
- 	   SLOB replaces the SLAB allocator with a drastically simpler
--	   allocator.  SLOB is more space efficient that SLAB but does not
-+	   allocator.  SLOB is more space efficient than SLAB but does not
- 	   scale well (single lock for all operations) and is also highly
- 	   susceptible to fragmentation. SLUB can accomplish a higher object
- 	   density. It is usually better to use SLUB instead of SLOB.
-diff -puN mm/slob.c~slob-implement-rcu-freeing mm/slob.c
---- a/mm/slob.c~slob-implement-rcu-freeing
-+++ a/mm/slob.c
-@@ -35,6 +35,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/timer.h>
-+#include <linux/rcupdate.h>
- 
- struct slob_block {
- 	int units;
-@@ -53,6 +54,16 @@ struct bigblock {
- };
- typedef struct bigblock bigblock_t;
- 
-+/*
-+ * struct slob_rcu is inserted at the tail of allocated slob blocks, which
-+ * were created with a SLAB_DESTROY_BY_RCU slab. slob_rcu is used to free
-+ * the block using call_rcu.
-+ */
-+struct slob_rcu {
-+	struct rcu_head head;
-+	int size;
-+};
-+
- static slob_t arena = { .next = &arena, .units = 1 };
- static slob_t *slobfree = &arena;
- static bigblock_t *bigblocks;
-@@ -266,6 +277,7 @@ size_t ksize(const void *block)
- 
- struct kmem_cache {
- 	unsigned int size, align;
-+	unsigned long flags;
- 	const char *name;
- 	void (*ctor)(void *, struct kmem_cache *, unsigned long);
- 	void (*dtor)(void *, struct kmem_cache *, unsigned long);
-@@ -283,6 +295,12 @@ struct kmem_cache *kmem_cache_create(con
- 	if (c) {
- 		c->name = name;
- 		c->size = size;
-+		if (flags & SLAB_DESTROY_BY_RCU) {
-+			BUG_ON(c->dtor);
-+			/* leave room for rcu footer at the end of object */
-+			c->size += sizeof(struct slob_rcu);
-+		}
-+		c->flags = flags;
- 		c->ctor = ctor;
- 		c->dtor = dtor;
- 		/* ignore alignment unless it's forced */
-@@ -328,15 +346,35 @@ void *kmem_cache_zalloc(struct kmem_cach
- }
- EXPORT_SYMBOL(kmem_cache_zalloc);
- 
--void kmem_cache_free(struct kmem_cache *c, void *b)
-+static void __kmem_cache_free(void *b, int size)
- {
--	if (c->dtor)
--		c->dtor(b, c, 0);
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		zonelist = pgdat->node_zonelists + i;
+-		for (j = 0; zonelist->zones[j] != NULL; j++);
 -
--	if (c->size < PAGE_SIZE)
--		slob_free(b, c->size);
-+	if (size < PAGE_SIZE)
-+		slob_free(b, size);
- 	else
--		free_pages((unsigned long)b, get_order(c->size));
-+		free_pages((unsigned long)b, get_order(size));
-+}
-+
-+static void kmem_rcu_free(struct rcu_head *head)
-+{
-+	struct slob_rcu *slob_rcu = (struct slob_rcu *)head;
-+	void *b = (void *)slob_rcu - (slob_rcu->size - sizeof(struct slob_rcu));
-+
-+	__kmem_cache_free(b, slob_rcu->size);
-+}
-+
-+void kmem_cache_free(struct kmem_cache *c, void *b)
-+{
-+	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
-+		struct slob_rcu *slob_rcu;
-+		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
-+		INIT_RCU_HEAD(&slob_rcu->head);
-+		slob_rcu->size = c->size;
-+		call_rcu(&slob_rcu->head, kmem_rcu_free);
-+	} else {
-+		if (c->dtor)
-+			c->dtor(b, c, 0);
-+		__kmem_cache_free(b, c->size);
-+	}
++		for (j = 0; zonelist->zones[j] != NULL; j++)
++			;
+  		j = build_zonelists_node(NODE_DATA(node), zonelist, j, i);
+ 		zonelist->zones[j] = NULL;
+ 	}
+@@ -1879,8 +1879,6 @@ static void set_zonelist_order(void)
+ 		current_zonelist_order = user_zonelist_order;
  }
- EXPORT_SYMBOL(kmem_cache_free);
  
+-
+-
+ static void build_zonelists(pg_data_t *pgdat)
+ {
+ 	int j, node, load;
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ia64-race-flushing-icache-in-do_no_page-path.patch
-slob-implement-rcu-freeing.patch
+revert-md-improve-partition-detection-in-md-array.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
+xfs-clean-up-shrinker-games.patch
+change-zonelist-order-v6-zonelist-fix.patch
 lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-convert-hugetlbfs-to-use-vm_ops-fault.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-sched2-sched-domain-sysctl.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+synclink_gt-add-compat_ioctl-fix.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-powerpc-optimization-fix.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-documentation-update.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+pm3fb-preliminary-24-to-26-port-fix.patch
+linuxpps-pulse-per-second-support-for-linux-fix.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
