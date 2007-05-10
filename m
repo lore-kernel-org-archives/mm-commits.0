@@ -1,112 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + i386-work-around-miscompilation-of-alternatives-code.patch added to -mm tree
-Date: Thu, 10 May 2007 11:56:55 -0700
-Message-ID: <200705101856.l4AIutlX027713@shell0.pdx.osdl.net>
+Subject: - andi-you-broke-my-laptop.patch removed from -mm tree
+Date: Thu, 10 May 2007 11:57:38 -0700
+Message-ID: <200705101857.l4AIvcfO027728@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36190 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754866AbXEJS5S (ORCPT
+	by vger.kernel.org with ESMTP id S1754842AbXEJS55 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 14:57:18 -0400
+	Thu, 10 May 2007 14:57:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: joerg.roedel@amd.com, ak@suse.de, bhalevy@panasas.com, zaitcev@redhat.com
+To: zaitcev@redhat.com, ak@suse.de, joerg.roedel@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: work around miscompilation of alternatives code
-has been added to the -mm tree.  Its filename is
-     i386-work-around-miscompilation-of-alternatives-code.patch
+     Andi, you broke my laptop :-)
+has been removed from the -mm tree.  Its filename was
+     andi-you-broke-my-laptop.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: i386: work around miscompilation of alternatives code
-From: "Joerg Roedel" <joerg.roedel@amd.com>
+Subject: Andi, you broke my laptop :-)
+From: Pete Zaitcev <zaitcev@redhat.com>
 
-A recent change makes my Dell 1501 hang on boot.  It's an AMD MK-36.  I use
-an x86_64 kernel.  It is 100% reproducible.
+The attached patch (actually, git show output) makes my Dell 1501 to hang
+on boot. Sorry, I have no clue why... The culprit is found with git bisect.
+But yes, it's an AMD MK-36. I use an x86_64 kernel. It is 100% reproducible.
 
-I debugged this problem a bit and my compiler[1]interprets the =A constraint
-as %rax instead of %edx:%eax on x86_64 which causes the problem.  The appended
-patch provides a workaround for this and fixed the hang on my machine.
+Cheers,
+-- Pete
 
-[1] gcc version 4.1.3 20070429 (prerelease) (Debian 4.1.2-5)
+commit c5bcb5635a03da3158f121ae20ccbbf72b4fc62a
+Author: Andi Kleen <ak@suse.de>
+Date:   Wed May 2 19:27:21 2007 +0200
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benny Halevy <bhalevy@panasas.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
+    [PATCH] x86: Use RDTSCP for synchronous get_cycles if possible
+
+    RDTSCP is already synchronous and doesn't need an explicit CPUID.
+    This is a little faster and more importantly avoids VMEXITs on Hypervisors.
+
+    Original patch from Joerg Roedel, but reworked by AK
+    Also includes miscompilation fix by Eric Biederman
+
+    Cc: "Joerg Roedel" <joerg.roedel@amd.com>
+
+    Signed-off-by: Andi Kleen <ak@suse.de>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/alternative.h   |    6 ++++++
- include/asm-i386/tsc.h           |    6 ++++--
- include/asm-x86_64/alternative.h |    6 ++++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ include/asm-i386/tsc.h |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN include/asm-i386/alternative.h~i386-work-around-miscompilation-of-alternatives-code include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~i386-work-around-miscompilation-of-alternatives-code
-+++ a/include/asm-i386/alternative.h
-@@ -98,6 +98,12 @@ static inline void alternatives_smp_swit
- 		      ".previous" : output : [feat] "i" (feature), ##input)
- 
- /*
-+ * use this macro(s) if you need more than one output parameter
-+ * in alternative_io
-+ */
-+#define ASM_OUTPUT2(a, b) a, b
-+
-+/*
-  * Alternative inline assembly for SMP.
-  *
-  * The LOCK_PREFIX macro defined here replaces the LOCK and
-diff -puN include/asm-i386/tsc.h~i386-work-around-miscompilation-of-alternatives-code include/asm-i386/tsc.h
---- a/include/asm-i386/tsc.h~i386-work-around-miscompilation-of-alternatives-code
+diff -puN include/asm-i386/tsc.h~andi-you-broke-my-laptop include/asm-i386/tsc.h
+--- a/include/asm-i386/tsc.h~andi-you-broke-my-laptop
 +++ a/include/asm-i386/tsc.h
-@@ -35,14 +35,16 @@ static inline cycles_t get_cycles(void)
- static __always_inline cycles_t get_cycles_sync(void)
- {
- 	unsigned long long ret;
--	unsigned eax;
-+	unsigned eax, edx;
+@@ -38,15 +38,6 @@ static __always_inline cycles_t get_cycl
+ 	unsigned eax;
  
  	/*
-   	 * Use RDTSCP if possible; it is guaranteed to be synchronous
-  	 * and doesn't cause a VMEXIT on Hypervisors
- 	 */
- 	alternative_io(ASM_NOP3, ".byte 0x0f,0x01,0xf9", X86_FEATURE_RDTSCP,
+-  	 * Use RDTSCP if possible; it is guaranteed to be synchronous
+- 	 * and doesn't cause a VMEXIT on Hypervisors
+-	 */
+-	alternative_io(ASM_NOP3, ".byte 0x0f,0x01,0xf9", X86_FEATURE_RDTSCP,
 -			 	 "=A" (ret), "0" (0ULL) : "ecx", "memory");
-+		       ASM_OUTPUT2("=a" (eax), "=d" (edx)),
-+		       "a" (0U), "d" (0U) : "ecx", "memory");
-+	ret = (((unsigned long long)edx) << 32) | ((unsigned long long)eax);
- 	if (ret)
- 		return ret;
- 
-diff -puN include/asm-x86_64/alternative.h~i386-work-around-miscompilation-of-alternatives-code include/asm-x86_64/alternative.h
---- a/include/asm-x86_64/alternative.h~i386-work-around-miscompilation-of-alternatives-code
-+++ a/include/asm-x86_64/alternative.h
-@@ -103,6 +103,12 @@ static inline void alternatives_smp_swit
- 		      ".previous" : output : [feat] "i" (feature), ##input)
- 
- /*
-+ * use this macro(s) if you need more than one output parameter
-+ * in alternative_io
-+ */
-+#define ASM_OUTPUT2(a, b) a, b
-+
-+/*
-  * Alternative inline assembly for SMP.
-  *
-  * The LOCK_PREFIX macro defined here replaces the LOCK and
+-	if (ret)
+-		return ret;
+-
+-	/*
+ 	 * Don't do an additional sync on CPUs where we know
+ 	 * RDTSC is already synchronous:
+ 	 */
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from zaitcev@redhat.com are
 
 origin.patch
 i386-work-around-miscompilation-of-alternatives-code.patch
