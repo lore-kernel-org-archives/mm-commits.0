@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ii-scsi.patch added to -mm tree
-Date: Wed, 09 May 2007 23:17:24 -0700
-Message-ID: <200705100617.l4A6HO5A013824@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-ii-block-devices.patch added to -mm tree
+Date: Wed, 09 May 2007 23:17:29 -0700
+Message-ID: <200705100617.l4A6HTtl013830@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46188 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755076AbXEJGRi (ORCPT
+	by vger.kernel.org with ESMTP id S1755001AbXEJGRq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 02:17:38 -0400
+	Thu, 10 May 2007 02:17:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, James.Bottomley@steeleye.com, jengelh@gmx.de
+Cc: jengelh@linux01.gwdg.de, axboe@kernel.dk, jengelh@gmx.de
 
 
 The patch titled
-     Use menuconfig objects II - SCSI
+     Use menuconfig objects II - block devices
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ii-scsi.patch
+     use-menuconfig-objects-ii-block-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - SCSI
+Subject: Use menuconfig objects II - block devices
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
@@ -34,63 +34,39 @@ so that the user can disable all the options in that menu at once
 instead of having to disable each option separately.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig        |    8 ++++++--
- drivers/scsi/pcmcia/Kconfig |    8 ++++++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/block/Kconfig |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~use-menuconfig-objects-ii-scsi drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~use-menuconfig-objects-ii-scsi
-+++ a/drivers/scsi/Kconfig
-@@ -285,8 +285,12 @@ source "drivers/scsi/libsas/Kconfig"
- 
- endmenu
- 
--menu "SCSI low-level drivers"
-+menuconfig SCSI_LOWLEVEL
-+	bool "SCSI low-level drivers"
- 	depends on SCSI!=n
-+	default y
-+
-+if SCSI_LOWLEVEL
- 
- config ISCSI_TCP
- 	tristate "iSCSI Initiator over TCP/IP"
-@@ -1795,7 +1799,7 @@ config SCSI_SRP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called libsrp.
- 
--endmenu
-+endif # SCSI_LOWLEVEL
- 
- source "drivers/scsi/pcmcia/Kconfig"
- 
-diff -puN drivers/scsi/pcmcia/Kconfig~use-menuconfig-objects-ii-scsi drivers/scsi/pcmcia/Kconfig
---- a/drivers/scsi/pcmcia/Kconfig~use-menuconfig-objects-ii-scsi
-+++ a/drivers/scsi/pcmcia/Kconfig
-@@ -2,8 +2,12 @@
- # PCMCIA SCSI adapter configuration
+diff -puN drivers/block/Kconfig~use-menuconfig-objects-ii-block-devices drivers/block/Kconfig
+--- a/drivers/block/Kconfig~use-menuconfig-objects-ii-block-devices
++++ a/drivers/block/Kconfig
+@@ -2,9 +2,12 @@
+ # Block device driver configuration
  #
  
--menu "PCMCIA SCSI adapter support"
-+menuconfig SCSI_LOWLEVEL_PCMCIA
-+	bool "PCMCIA SCSI adapter support"
- 	depends on SCSI!=n && PCMCIA!=n
+-if BLOCK
++menuconfig BLK_DEV
++	bool "Block devices"
++	depends on BLOCK
 +	default y
-+
-+if SCSI_LOWLEVEL_PCMCIA
  
- config PCMCIA_AHA152X
- 	tristate "Adaptec AHA152X PCMCIA support"
-@@ -77,4 +81,4 @@ config PCMCIA_SYM53C500
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called sym53c500_cs.
+-menu "Block devices"
++if BLK_DEV
+ 
+ config BLK_DEV_FD
+ 	tristate "Normal floppy disk support"
+@@ -459,6 +462,4 @@ config XILINX_SYSACE
+ 	help
+ 	  Include support for the Xilinx SystemACE CompactFlash interface
  
 -endmenu
-+endif # SCSI_LOWLEVEL_PCMCIA
+-
+-endif
++endif # BLK_DEV
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
