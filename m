@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch added to -mm tree
-Date: Thu, 10 May 2007 02:38:12 -0700
-Message-ID: <200705100941.l4A9fBTU017378@shell0.pdx.osdl.net>
+Subject: + afs-write-support-fixes-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 02:41:45 -0700
+Message-ID: <200705100944.l4A9iijP017435@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35190 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753978AbXEJJlT (ORCPT
+	by vger.kernel.org with ESMTP id S1759920AbXEJJox (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 05:41:19 -0400
+	Thu, 10 May 2007 05:44:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca
+Cc: akpm@linux-foundation.org, dhowells@redhat.com
 
 
 The patch titled
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
+     afs-write-support-fixes-fix
 has been added to the -mm tree.  Its filename is
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
+     afs-write-support-fixes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
+Subject: afs-write-support-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/i2c/chips/ds1682.c:38:1: warning: "DEBUG" redefined
-<command line>:1:1: warning: this is the location of the previous definition
+fs/afs/fsclient.c: In function 'afs_fs_fetch_data64':
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c: In function 'afs_fs_fetch_data':
+fs/afs/fsclient.c:471: warning: right shift count >= width of type
+fs/afs/fsclient.c:471: warning: right shift count >= width of type
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/ds1682.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/afs/fsclient.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix drivers/i2c/chips/ds1682.c
---- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
-+++ a/drivers/i2c/chips/ds1682.c
-@@ -35,8 +35,6 @@
-  *
-  */
+diff -puN fs/afs/fsclient.c~afs-write-support-fixes-fix fs/afs/fsclient.c
+--- a/fs/afs/fsclient.c~afs-write-support-fixes-fix
++++ a/fs/afs/fsclient.c
+@@ -447,7 +447,7 @@ static int afs_fs_fetch_data64(struct af
+ 	bp[1] = htonl(vnode->fid.vid);
+ 	bp[2] = htonl(vnode->fid.vnode);
+ 	bp[3] = htonl(vnode->fid.unique);
+-	bp[4] = htonl(offset >> 32);
++	bp[4] = htonl(upper_32_bits(offset));
+ 	bp[5] = htonl((u32) offset);
+ 	bp[6] = 0;
+ 	bp[7] = htonl((u32) length);
+@@ -468,7 +468,7 @@ int afs_fs_fetch_data(struct afs_server 
+ 	struct afs_call *call;
+ 	__be32 *bp;
  
--#define DEBUG
--
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/init.h>
+-	if (offset >> 32 || (offset + length) >> 32)
++	if (upper_32_bits(offset) || upper_32_bits(offset + length))
+ 		return afs_fs_fetch_data64(server, key, vnode, offset, length,
+ 					   buffer, wait_mode);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+upper-32-bits.patch
+afs-write-support-fixes-fix.patch
 revert-md-improve-partition-detection-in-md-array.patch
 git-acpi.patch
 git-acpi-export-acpi_set_cstate_limit.patch
@@ -102,7 +121,6 @@ maps2-add-proc-pid-pagemap-interface.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
 m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
-upper-32-bits.patch
 lib-hexdump.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
 synclink_gt-add-compat_ioctl-fix.patch
