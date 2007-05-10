@@ -1,116 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch added to -mm tree
-Date: Wed, 09 May 2007 19:47:12 -0700
-Message-ID: <200705100247.l4A2lCKF010376@shell0.pdx.osdl.net>
+Subject: + pci-quirks-disable-msi-on-rs400-200-and-rs480.patch added to -mm tree
+Date: Wed, 09 May 2007 19:49:01 -0700
+Message-ID: <200705100249.l4A2n1On010422@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60883 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753376AbXEJCrU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 22:47:20 -0400
+	by vger.kernel.org with ESMTP id S1753153AbXEJCu1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 22:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kogiidena@eggplant.ddo.jp, a.zummo@towertech.it, david-b@pacbell.net
+Cc: htejun@gmail.com, greg@kroah.com, jeff@garzik.org, stable@kernel.org, torresmat@gmail.com
 
 
 The patch titled
-     rtc-rs5c313.c: add error handling to avoid hardware hangup
+     pci-quirks: disable MSI on RS400-200 and RS480
 has been added to the -mm tree.  Its filename is
-     rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
+     pci-quirks-disable-msi-on-rs400-200-and-rs480.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-rs5c313.c: add error handling to avoid hardware hangup
-From: "kogiidena" <kogiidena@eggplant.ddo.jp>
+Subject: pci-quirks: disable MSI on RS400-200 and RS480
+=46rom: Tejun Heo <htejun@gmail.com>
 
-Add error processing.  Hanging up by an infinite loop is evaded.
+MSI doesn't work on RS400-200 and RS480 requiring pci=3Dnomsi kernel bo=
+ot
+parameter for ahci to work.  This patch renames quirk_svw_msi() to
+quirk_disable_all_msi() and use it to disable MSI on those chips.
 
-Signed-off-by: kogiidena <kogiidena@eggplant.ddo.jp>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+  http://thread.gmane.org/gmane.linux.ide/17820
+  http://thread.gmane.org/gmane.linux.ide/17516
+  https://bugzilla.novell.com/show_bug.cgi?id=3D263893
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Mat=ED-as Alejandro Torres <torresmat@gmail.com>
+Cc: Greg K-H <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ drivers/pci/quirks.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -212,7 +212,9 @@ static inline void rs5c313_write_intintv
- static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
+diff -puN drivers/pci/quirks.c~pci-quirks-disable-msi-on-rs400-200-and-=
+rs480 drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-quirks-disable-msi-on-rs400-200-and-rs48=
+0
++++ a/drivers/pci/quirks.c
+@@ -1625,18 +1625,20 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_N
+ 			quirk_nvidia_ck804_pcie_aer_ext_cap);
+=20
+ #ifdef CONFIG_PCI_MSI
+-/* The Serverworks PCI-X chipset does not support MSI. We cannot easil=
+y rely
+- * on setting PCI_BUS_FLAGS_NO_MSI in its bus flags because there are =
+actually
+- * some other busses controlled by the chipset even if Linux is not aw=
+are of it.
+- * Instead of setting the flag on all busses in the machine, simply di=
+sable MSI
+- * globally.
++/* Some chipsets do not support MSI. We cannot easily rely on setting
++ * PCI_BUS_FLAGS_NO_MSI in its bus flags because there are actually
++ * some other busses controlled by the chipset even if Linux is not
++ * aware of it.  Instead of setting the flag on all busses in the
++ * machine, simply disable MSI globally.
+  */
+-static void __init quirk_svw_msi(struct pci_dev *dev)
++static void __init quirk_disable_all_msi(struct pci_dev *dev)
  {
- 	int data;
-+	int cnt;
- 
-+	cnt = 0;
- 	while (1) {
- 		RS5C313_CEENABLE;	/* CE:H */
- 
-@@ -225,6 +227,10 @@ static int rs5c313_rtc_read_time(struct 
- 		RS5C313_CEDISABLE;
- 		ndelay(700);	/* CE:L */
- 
-+		if (cnt++ > 100) {
-+			dev_err(dev, "%s: timeout error\n", __FUNCTION__);
-+			return -EIO;
-+		}
- 	}
- 
- 	data = rs5c313_read_reg(RS5C313_ADDR_SEC);
-@@ -266,7 +272,9 @@ static int rs5c313_rtc_read_time(struct 
- static int rs5c313_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
- 	int data;
-+	int cnt;
- 
-+	cnt = 0;
- 	/* busy check. */
- 	while (1) {
- 		RS5C313_CEENABLE;	/* CE:H */
-@@ -279,6 +287,11 @@ static int rs5c313_rtc_set_time(struct d
- 		RS5C313_MISCOP;
- 		RS5C313_CEDISABLE;
- 		ndelay(700);	/* CE:L */
-+
-+		if (cnt++ > 100) {
-+			dev_err(dev, "%s: timeout error\n", __FUNCTION__);
-+			return -EIO;
-+		}
- 	}
- 
- 	data = BIN2BCD(tm->tm_sec);
-@@ -317,6 +330,7 @@ static int rs5c313_rtc_set_time(struct d
- static void rs5c313_check_xstp_bit(void)
- {
- 	struct rtc_time tm;
-+	int cnt;
- 
- 	RS5C313_CEENABLE;	/* CE:H */
- 	if (rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP) {
-@@ -326,8 +340,11 @@ static void rs5c313_check_xstp_bit(void)
- 		rs5c313_write_cntreg(0x07);
- 
- 		/* busy check. */
--		while (rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)
-+		for (cnt = 0; cnt < 100; cnt++) {
-+			if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
-+				break;
- 			RS5C313_MISCOP;
-+		}
- 
- 		memset(&tm, 0, sizeof(struct rtc_time));
- 		tm.tm_mday 	= 1;
+ 	pci_no_msi();
+ 	printk(KERN_WARNING "PCI: MSI quirk detected. MSI deactivated.\n");
+ }
+-DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVE=
+RWORKS_GCNB_LE, quirk_svw_msi);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVE=
+RWORKS_GCNB_LE, quirk_disable_all_msi);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_RS400_200=
+, quirk_disable_all_msi);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_RS480, qu=
+irk_disable_all_msi);
+=20
+ /* Disable MSI on chipsets that are known to not support it */
+ static void __devinit quirk_disable_msi(struct pci_dev *dev)
 _
 
-Patches currently in -mm which might be from kogiidena@eggplant.ddo.jp are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-rtc-rs5c313c-error-and-warning-are-fixed.patch
-rtc-rs5c313c-rtc_time-value-are-fixed.patch
-rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-dvb.patch
+libata-clean-up-sff-init-mess.patch
+ahci-crash-fix.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+optional-led-trigger-for-libata.patch
+drivers-ata-remove-the-wildcard-from-sata_nv-driver.patch
+add-the-combined-mode-for-ati-sb700.patch
+add-the-ati-sb700-sata-controller-device-id-to-ahci-pci-table.patch
+libata-add-support-for-ata_16-on-atapi.patch
+pata_scc-fix-compilation.patch
+sata_nv-fix-adma-freeze-thaw-irq_clear-issues.patch
+sata_promise-fix-another-error-decode-regression.patch
+pci-quirks-disable-msi-on-rs400-200-and-rs480.patch
