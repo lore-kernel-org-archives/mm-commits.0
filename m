@@ -1,148 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - revert-md-improve-partition-detection-in-md-array.patch removed from -mm tree
-Date: Thu, 10 May 2007 03:14:15 -0700
-Message-ID: <200705101014.l4AAEFPZ017989@shell0.pdx.osdl.net>
+Subject: - afs-write-support-fixes-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 03:13:26 -0700
+Message-ID: <200705101013.l4AADQtY017934@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59550 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760006AbXEJKOs (ORCPT
+	by vger.kernel.org with ESMTP id S1751580AbXEJKif (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 06:14:48 -0400
+	Thu, 10 May 2007 06:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Nicolas.Mailhot@LaPoste.net, neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "md: improve partition detection in md array"
+     afs-write-support-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     revert-md-improve-partition-detection-in-md-array.patch
+     afs-write-support-fixes-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into afs-write-support-fixes.patch
 
 ------------------------------------------------------
-Subject: revert "md: improve partition detection in md array"
+Subject: afs-write-support-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=8461
+fs/afs/fsclient.c: In function 'afs_fs_fetch_data64':
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c:450: warning: right shift count >= width of type
+fs/afs/fsclient.c: In function 'afs_fs_fetch_data':
+fs/afs/fsclient.c:471: warning: right shift count >= width of type
+fs/afs/fsclient.c:471: warning: right shift count >= width of type
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: Nicolas Mailhot <Nicolas.Mailhot@LaPoste.net>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c           |   26 ++++++++++++++++++--------
- drivers/md/raid1.c        |    1 +
- drivers/md/raid5.c        |    2 ++
- include/linux/raid/md_k.h |    1 +
- 4 files changed, 22 insertions(+), 8 deletions(-)
+ fs/afs/fsclient.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/md.c~revert-md-improve-partition-detection-in-md-array drivers/md/md.c
---- a/drivers/md/md.c~revert-md-improve-partition-detection-in-md-array
-+++ a/drivers/md/md.c
-@@ -3104,7 +3104,6 @@ static int do_md_run(mddev_t * mddev)
- 	struct gendisk *disk;
- 	struct mdk_personality *pers;
- 	char b[BDEVNAME_SIZE];
--	struct block_device *bdev;
+diff -puN fs/afs/fsclient.c~afs-write-support-fixes-fix fs/afs/fsclient.c
+--- a/fs/afs/fsclient.c~afs-write-support-fixes-fix
++++ a/fs/afs/fsclient.c
+@@ -447,7 +447,7 @@ static int afs_fs_fetch_data64(struct af
+ 	bp[1] = htonl(vnode->fid.vid);
+ 	bp[2] = htonl(vnode->fid.vnode);
+ 	bp[3] = htonl(vnode->fid.unique);
+-	bp[4] = htonl(offset >> 32);
++	bp[4] = htonl(upper_32_bits(offset));
+ 	bp[5] = htonl((u32) offset);
+ 	bp[6] = 0;
+ 	bp[7] = htonl((u32) length);
+@@ -468,7 +468,7 @@ int afs_fs_fetch_data(struct afs_server 
+ 	struct afs_call *call;
+ 	__be32 *bp;
  
- 	if (list_empty(&mddev->disks))
- 		/* cannot run an array with no devices.. */
-@@ -3332,13 +3331,7 @@ static int do_md_run(mddev_t * mddev)
- 	md_wakeup_thread(mddev->thread);
- 	md_wakeup_thread(mddev->sync_thread); /* possibly kick off a reshape */
+-	if (offset >> 32 || (offset + length) >> 32)
++	if (upper_32_bits(offset) || upper_32_bits(offset + length))
+ 		return afs_fs_fetch_data64(server, key, vnode, offset, length,
+ 					   buffer, wait_mode);
  
--	bdev = bdget_disk(mddev->gendisk, 0);
--	if (bdev) {
--		bd_set_size(bdev, mddev->array_size << 1);
--		blkdev_ioctl(bdev->bd_inode, NULL, BLKRRPART, 0);
--		bdput(bdev);
--	}
--
-+	mddev->changed = 1;
- 	md_new_event(mddev);
- 	kobject_uevent(&mddev->gendisk->kobj, KOBJ_CHANGE);
- 	return 0;
-@@ -3460,6 +3453,7 @@ static int do_md_stop(mddev_t * mddev, i
- 			mddev->pers = NULL;
- 
- 			set_capacity(disk, 0);
-+			mddev->changed = 1;
- 
- 			if (mddev->ro)
- 				mddev->ro = 0;
-@@ -4599,6 +4593,20 @@ static int md_release(struct inode *inod
- 	return 0;
- }
- 
-+static int md_media_changed(struct gendisk *disk)
-+{
-+	mddev_t *mddev = disk->private_data;
-+
-+	return mddev->changed;
-+}
-+
-+static int md_revalidate(struct gendisk *disk)
-+{
-+	mddev_t *mddev = disk->private_data;
-+
-+	mddev->changed = 0;
-+	return 0;
-+}
- static struct block_device_operations md_fops =
- {
- 	.owner		= THIS_MODULE,
-@@ -4606,6 +4614,8 @@ static struct block_device_operations md
- 	.release	= md_release,
- 	.ioctl		= md_ioctl,
- 	.getgeo		= md_getgeo,
-+	.media_changed	= md_media_changed,
-+	.revalidate_disk= md_revalidate,
- };
- 
- static int md_thread(void * arg)
-diff -puN drivers/md/raid1.c~revert-md-improve-partition-detection-in-md-array drivers/md/raid1.c
---- a/drivers/md/raid1.c~revert-md-improve-partition-detection-in-md-array
-+++ a/drivers/md/raid1.c
-@@ -2063,6 +2063,7 @@ static int raid1_resize(mddev_t *mddev, 
- 	 */
- 	mddev->array_size = sectors>>1;
- 	set_capacity(mddev->gendisk, mddev->array_size << 1);
-+	mddev->changed = 1;
- 	if (mddev->array_size > mddev->size && mddev->recovery_cp == MaxSector) {
- 		mddev->recovery_cp = mddev->size << 1;
- 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
-diff -puN drivers/md/raid5.c~revert-md-improve-partition-detection-in-md-array drivers/md/raid5.c
---- a/drivers/md/raid5.c~revert-md-improve-partition-detection-in-md-array
-+++ a/drivers/md/raid5.c
-@@ -4514,6 +4514,7 @@ static int raid5_resize(mddev_t *mddev, 
- 	sectors &= ~((sector_t)mddev->chunk_size/512 - 1);
- 	mddev->array_size = (sectors * (mddev->raid_disks-conf->max_degraded))>>1;
- 	set_capacity(mddev->gendisk, mddev->array_size << 1);
-+	mddev->changed = 1;
- 	if (sectors/2  > mddev->size && mddev->recovery_cp == MaxSector) {
- 		mddev->recovery_cp = mddev->size << 1;
- 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
-@@ -4648,6 +4649,7 @@ static void end_reshape(raid5_conf_t *co
- 		conf->mddev->array_size = conf->mddev->size *
- 			(conf->raid_disks - conf->max_degraded);
- 		set_capacity(conf->mddev->gendisk, conf->mddev->array_size << 1);
-+		conf->mddev->changed = 1;
- 
- 		bdev = bdget_disk(conf->mddev->gendisk, 0);
- 		if (bdev) {
-diff -puN include/linux/raid/md_k.h~revert-md-improve-partition-detection-in-md-array include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~revert-md-improve-partition-detection-in-md-array
-+++ a/include/linux/raid/md_k.h
-@@ -201,6 +201,7 @@ struct mddev_s
- 	struct mutex			reconfig_mutex;
- 	atomic_t			active;
- 
-+	int				changed;	/* true if we might need to reread partition info */
- 	int				degraded;	/* whether md should consider
- 							 * adding a spare
- 							 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,6 +71,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 upper-32-bits.patch
 afs-write-support-fixes.patch
+afs-write-support-fixes-fix.patch
 revert-md-improve-partition-detection-in-md-array.patch
 git-acpi.patch
 git-acpi-export-acpi_set_cstate_limit.patch
