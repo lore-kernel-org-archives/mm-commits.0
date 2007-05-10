@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix-alloc_zeroed_user_highpage-on-m68knommu.patch added to -mm tree
-Date: Wed, 09 May 2007 18:34:03 -0700
-Message-ID: <200705100134.l4A1Y3Oq009052@shell0.pdx.osdl.net>
+Subject: + dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch added to -mm tree
+Date: Wed, 09 May 2007 18:36:07 -0700
+Message-ID: <200705100136.l4A1a7XX009073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47587 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750930AbXEJBfO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 21:35:14 -0400
+	by vger.kernel.org with ESMTP id S1750992AbXEJBgp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 21:36:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     Fix alloc_zeroed_user_highpage() on m68knommu
+     Remove unused parameter to allocflags_to_migratetype()
 has been added to the -mm tree.  Its filename is
-     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix-alloc_zeroed_user_highpage-on-m68knommu.patch
+     dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix alloc_zeroed_user_highpage() on m68knommu
+Subject: Remove unused parameter to allocflags_to_migratetype()
 From: Mel Gorman <mel@csn.ul.ie>
 
-The patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-missed updating the m68knommu architecture when alloc_zeroed_user_highpage()
-changed to alloc_zeroed_user_highpage_movable(). This patch fixes the problem.
+The patch dont-group-high-order-atomic-allocations.patch should have removed
+the order parameter to allocflags_to_migratetype() but did not.  This patch
+addresses the problem.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68knommu/page.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-m68knommu/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix-alloc_zeroed_user_highpage-on-m68knommu include/asm-m68knommu/page.h
---- a/include/asm-m68knommu/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix-alloc_zeroed_user_highpage-on-m68knommu
-+++ a/include/asm-m68knommu/page.h
-@@ -22,7 +22,8 @@
- #define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+diff -puN mm/page_alloc.c~dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype mm/page_alloc.c
+--- a/mm/page_alloc.c~dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype
++++ a/mm/page_alloc.c
+@@ -152,7 +152,7 @@ static void set_pageblock_migratetype(st
+ 					PB_migrate, PB_migrate_end);
+ }
  
--#define alloc_zeroed_user_highpage(vma, vaddr) alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO, vma, vaddr)
-+#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
-+	alloc_page_vma(GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr)
- #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
+-static inline int allocflags_to_migratetype(gfp_t gfp_flags, int order)
++static inline int allocflags_to_migratetype(gfp_t gfp_flags)
+ {
+ 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
  
- /*
+@@ -1098,7 +1098,7 @@ static struct page *buffered_rmqueue(str
+ 	struct page *page;
+ 	int cold = !!(gfp_flags & __GFP_COLD);
+ 	int cpu;
+-	int migratetype = allocflags_to_migratetype(gfp_flags, order);
++	int migratetype = allocflags_to_migratetype(gfp_flags);
+ 
+ again:
+ 	cpu  = get_cpu();
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -79,8 +86,8 @@ fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 remove-page_group_by_mobility.patch
 dont-group-high-order-atomic-allocations.patch
+dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
 remove-alloc_zeroed_user_highpage.patch
-remove-unused-parameter-to-allocflags_to_migratetype.patch
 use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
