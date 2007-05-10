@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-at91-supports-new-style-i2c-drivers.patch added to -mm tree
-Date: Thu, 10 May 2007 00:48:36 -0700
-Message-ID: <200705100748.l4A7maRk015430@shell0.pdx.osdl.net>
+Subject: + slob-implement-rcu-freeing.patch added to -mm tree
+Date: Thu, 10 May 2007 00:53:52 -0700
+Message-ID: <200705100753.l4A7rqxj015498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38440 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756856AbXEJHtQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758097AbXEJHyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 03:49:16 -0400
+	Thu, 10 May 2007 03:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, andrew@sanpeople.com, dbrownell@users.sourceforge.net, khali@linux-fr.org
+Cc: nickpiggin@yahoo.com.au, mpm@selenic.com, npiggin@suse.de
 
 
 The patch titled
-     i2c-at91 supports new-style i2c drivers
+     slob: implement RCU freeing
 has been added to the -mm tree.  Its filename is
-     i2c-at91-supports-new-style-i2c-drivers.patch
+     slob-implement-rcu-freeing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c-at91 supports new-style i2c drivers
-From: David Brownell <david-b@pacbell.net>
+Subject: slob: implement RCU freeing
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-Make i2c-at91 register as i2c adapter zero (none of these chips seem to
-have more than one TWI controllers) to let it kick in any board-specific
-device declarations; also make it hotplug/coldplug.
+The SLOB allocator should implement SLAB_DESTROY_BY_RCU correctly, because
+even on UP, RCU freeing semantics are not equivalent to simply freeing
+immediately.  This also allows SLOB to be used on SMP.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Victor <andrew@sanpeople.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-at91.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ init/Kconfig |    7 +-----
+ mm/slob.c    |   52 ++++++++++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 47 insertions(+), 12 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers drivers/i2c/busses/i2c-at91.c
---- a/drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers
-+++ a/drivers/i2c/busses/i2c-at91.c
-@@ -226,13 +226,14 @@ static int __devinit at91_i2c_probe(stru
- 	adapter->algo = &at91_algorithm;
- 	adapter->class = I2C_CLASS_HWMON;
- 	adapter->dev.parent = &pdev->dev;
-+	/* adapter->id == 0 ... only one TWI controller for now */
+diff -puN init/Kconfig~slob-implement-rcu-freeing init/Kconfig
+--- a/init/Kconfig~slob-implement-rcu-freeing
++++ a/init/Kconfig
+@@ -537,14 +537,11 @@ config SLUB
+ 	   and has enhanced diagnostics.
  
- 	platform_set_drvdata(pdev, adapter);
+ config SLOB
+-#
+-#	SLOB does not support SMP because SLAB_DESTROY_BY_RCU is unsupported
+-#
+-	depends on EMBEDDED && !SMP && !SPARSEMEM
++	depends on EMBEDDED && !SPARSEMEM
+ 	bool "SLOB (Simple Allocator)"
+ 	help
+ 	   SLOB replaces the SLAB allocator with a drastically simpler
+-	   allocator.  SLOB is more space efficient that SLAB but does not
++	   allocator.  SLOB is more space efficient than SLAB but does not
+ 	   scale well (single lock for all operations) and is also highly
+ 	   susceptible to fragmentation. SLUB can accomplish a higher object
+ 	   density. It is usually better to use SLUB instead of SLOB.
+diff -puN mm/slob.c~slob-implement-rcu-freeing mm/slob.c
+--- a/mm/slob.c~slob-implement-rcu-freeing
++++ a/mm/slob.c
+@@ -35,6 +35,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/timer.h>
++#include <linux/rcupdate.h>
  
- 	clk_enable(twi_clk);		/* enable peripheral clock */
- 	at91_twi_hwinit();		/* initialize TWI controller */
+ struct slob_block {
+ 	int units;
+@@ -53,6 +54,16 @@ struct bigblock {
+ };
+ typedef struct bigblock bigblock_t;
  
--	rc = i2c_add_adapter(adapter);
-+	rc = i2c_add_numbered_adapter(adapter);
- 	if (rc) {
- 		dev_err(&pdev->dev, "Adapter %s registration failed\n",
- 				adapter->name);
-@@ -295,6 +296,9 @@ static int at91_i2c_resume(struct platfo
- #define at91_i2c_resume		NULL
- #endif
- 
-+/* work with "modprobe at91_i2c" from hotplugging or coldplugging */
-+MODULE_ALIAS("at91_i2c");
++/*
++ * struct slob_rcu is inserted at the tail of allocated slob blocks, which
++ * were created with a SLAB_DESTROY_BY_RCU slab. slob_rcu is used to free
++ * the block using call_rcu.
++ */
++struct slob_rcu {
++	struct rcu_head head;
++	int size;
++};
 +
- static struct platform_driver at91_i2c_driver = {
- 	.probe		= at91_i2c_probe,
- 	.remove		= __devexit_p(at91_i2c_remove),
+ static slob_t arena = { .next = &arena, .units = 1 };
+ static slob_t *slobfree = &arena;
+ static bigblock_t *bigblocks;
+@@ -266,6 +277,7 @@ size_t ksize(const void *block)
+ 
+ struct kmem_cache {
+ 	unsigned int size, align;
++	unsigned long flags;
+ 	const char *name;
+ 	void (*ctor)(void *, struct kmem_cache *, unsigned long);
+ 	void (*dtor)(void *, struct kmem_cache *, unsigned long);
+@@ -283,6 +295,12 @@ struct kmem_cache *kmem_cache_create(con
+ 	if (c) {
+ 		c->name = name;
+ 		c->size = size;
++		if (flags & SLAB_DESTROY_BY_RCU) {
++			BUG_ON(c->dtor);
++			/* leave room for rcu footer at the end of object */
++			c->size += sizeof(struct slob_rcu);
++		}
++		c->flags = flags;
+ 		c->ctor = ctor;
+ 		c->dtor = dtor;
+ 		/* ignore alignment unless it's forced */
+@@ -328,15 +346,35 @@ void *kmem_cache_zalloc(struct kmem_cach
+ }
+ EXPORT_SYMBOL(kmem_cache_zalloc);
+ 
+-void kmem_cache_free(struct kmem_cache *c, void *b)
++static void __kmem_cache_free(void *b, int size)
+ {
+-	if (c->dtor)
+-		c->dtor(b, c, 0);
+-
+-	if (c->size < PAGE_SIZE)
+-		slob_free(b, c->size);
++	if (size < PAGE_SIZE)
++		slob_free(b, size);
+ 	else
+-		free_pages((unsigned long)b, get_order(c->size));
++		free_pages((unsigned long)b, get_order(size));
++}
++
++static void kmem_rcu_free(struct rcu_head *head)
++{
++	struct slob_rcu *slob_rcu = (struct slob_rcu *)head;
++	void *b = (void *)slob_rcu - (slob_rcu->size - sizeof(struct slob_rcu));
++
++	__kmem_cache_free(b, slob_rcu->size);
++}
++
++void kmem_cache_free(struct kmem_cache *c, void *b)
++{
++	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
++		struct slob_rcu *slob_rcu;
++		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
++		INIT_RCU_HEAD(&slob_rcu->head);
++		slob_rcu->size = c->size;
++		call_rcu(&slob_rcu->head, kmem_rcu_free);
++	} else {
++		if (c->dtor)
++			c->dtor(b, c, 0);
++		__kmem_cache_free(b, c->size);
++	}
+ }
+ EXPORT_SYMBOL(kmem_cache_free);
+ 
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
 origin.patch
-i2c-at91-supports-new-style-i2c-drivers.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-fix-jdelvare-i2c-i2c-at91-support-new-style-binding.patch
-leds-gpio-handles-timer-unsafe-gpios.patch
-use-menuconfig-objects-ii-rtc.patch
-mpc52xx-psc-spi-master-driver-update.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
-rtc-rs5c313c-error-and-warning-are-fixed.patch
-rtc-rs5c313c-rtc_time-value-are-fixed.patch
-rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
+ia64-race-flushing-icache-in-do_no_page-path.patch
+slob-implement-rcu-freeing.patch
+lazy-freeing-of-memory-through-madv_free.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+convert-hugetlbfs-to-use-vm_ops-fault.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+sched2-sched-domain-sysctl.patch
