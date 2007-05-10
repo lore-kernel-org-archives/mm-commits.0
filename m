@@ -1,62 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-device_probe_drivers-function.patch removed from -mm tree
-Date: Wed, 09 May 2007 17:46:47 -0700
-Message-ID: <200705100046.l4A0klS2008298@shell0.pdx.osdl.net>
+Subject: + ucb1x00-do-not-access-input_dev-private-directly.patch added to -mm tree
+Date: Wed, 09 May 2007 17:48:36 -0700
+Message-ID: <200705100048.l4A0mawr008323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46646 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55501 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755176AbXEJAqv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:46:51 -0400
+	by vger.kernel.org with ESMTP id S1751856AbXEJAtR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:49:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cw@f00f.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dtor@insightbb.com, dtor@mail.ru, rmk@arm.linux.org.uk, rpurdie@rpsys.net
 
 
 The patch titled
-     Remove unused device_probe_drivers function
-has been removed from the -mm tree.  Its filename was
-     remove-unused-device_probe_drivers-function.patch
+     ucb1x00: do not access input_dev->private directly
+has been added to the -mm tree.  Its filename is
+     ucb1x00-do-not-access-input_dev-private-directly.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unused device_probe_drivers function
-From: Chris Wedgwood <cw@f00f.org>
+Subject: ucb1x00: do not access input_dev->private directly
+From: Dmitry Torokhov <dtor@insightbb.com>
 
-Signed-off-by: Chris Wedgwood <cw@f00f.org>
-Cc: Greg KH <greg@kroah.com>
+Use input_get_drvdata() and input_set_drvdata() helpers to do that.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dd.c |   13 -------------
- 1 files changed, 13 deletions(-)
+ drivers/mfd/ucb1x00-ts.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/dd.c~remove-unused-device_probe_drivers-function drivers/base/dd.c
---- a/drivers/base/dd.c~remove-unused-device_probe_drivers-function
-+++ a/drivers/base/dd.c
-@@ -207,19 +207,6 @@ static int __device_attach(struct device
- 	return driver_probe_device(drv, dev);
- }
+diff -puN drivers/mfd/ucb1x00-ts.c~ucb1x00-do-not-access-input_dev-private-directly drivers/mfd/ucb1x00-ts.c
+--- a/drivers/mfd/ucb1x00-ts.c~ucb1x00-do-not-access-input_dev-private-directly
++++ a/drivers/mfd/ucb1x00-ts.c
+@@ -300,7 +300,7 @@ static void ucb1x00_ts_irq(int idx, void
  
--static int device_probe_drivers(void *data)
--{
--	struct device *dev = data;
--	int ret = 0;
--
--	if (dev->bus) {
--		down(&dev->sem);
--		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
--		up(&dev->sem);
--	}
--	return ret;
--}
--
- /**
-  *	device_attach - try to attach device to a driver.
-  *	@dev:	device.
+ static int ucb1x00_ts_open(struct input_dev *idev)
+ {
+-	struct ucb1x00_ts *ts = idev->private;
++	struct ucb1x00_ts *ts = input_get_drvdata(idev);
+ 	int ret = 0;
+ 
+ 	BUG_ON(ts->rtask);
+@@ -337,7 +337,7 @@ static int ucb1x00_ts_open(struct input_
+  */
+ static void ucb1x00_ts_close(struct input_dev *idev)
+ {
+-	struct ucb1x00_ts *ts = idev->private;
++	struct ucb1x00_ts *ts = input_get_drvdata(idev);
+ 
+ 	if (ts->rtask)
+ 		kthread_stop(ts->rtask);
+@@ -389,7 +389,6 @@ static int ucb1x00_ts_add(struct ucb1x00
+ 	ts->idev = idev;
+ 	ts->adcsync = adcsync ? UCB_SYNC : UCB_NOSYNC;
+ 
+-	idev->private    = ts;
+ 	idev->name       = "Touchscreen panel";
+ 	idev->id.product = ts->ucb->id;
+ 	idev->open       = ucb1x00_ts_open;
+@@ -400,6 +399,8 @@ static int ucb1x00_ts_add(struct ucb1x00
+ 	__set_bit(ABS_Y, idev->absbit);
+ 	__set_bit(ABS_PRESSURE, idev->absbit);
+ 
++	input_set_drvdata(idev, ts);
++
+ 	err = input_register_device(idev);
+ 	if (err)
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from cw@f00f.org are
+Patches currently in -mm which might be from dtor@insightbb.com are
 
-remove-unused-device_probe_drivers-function.patch
+origin.patch
+drivers-hwmon-switch-to-using-input_dev-devparent.patch
+git-input.patch
+ucb1x00-do-not-access-input_dev-private-directly.patch
