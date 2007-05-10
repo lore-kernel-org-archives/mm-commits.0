@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-bay-unsuppress-uevents.patch added to -mm tree
-Date: Wed, 09 May 2007 21:16:05 -0700
-Message-ID: <200705100416.l4A4G5Q1011791@shell0.pdx.osdl.net>
+Subject: + slub-remove-nr_cpu_ids-hack.patch added to -mm tree
+Date: Wed, 09 May 2007 21:29:56 -0700
+Message-ID: <200705100429.l4A4Tuea011978@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56051 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754700AbXEJEQM (ORCPT
+	by vger.kernel.org with ESMTP id S1754627AbXEJEaF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 00:16:12 -0400
+	Thu, 10 May 2007 00:30:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     ACPI: bay: unsuppress uevents
+     SLUB: remove nr_cpu_ids hack
 has been added to the -mm tree.  Its filename is
-     acpi-bay-unsuppress-uevents.patch
+     slub-remove-nr_cpu_ids-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: bay: unsuppress uevents
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: SLUB: remove nr_cpu_ids hack
+From: Christoph Lameter <clameter@sgi.com>
 
-Since platform devices seem to get uevents suppressed by default, manually
-unsuppress for the bay device since we want to be able to send uevents.
+This was in SLUB in order to head off trouble while the nr_cpu_ids
+functionality was not merged.  Its merged now so no need to still have this.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bay.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/slub.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/bay.c~acpi-bay-unsuppress-uevents drivers/acpi/bay.c
---- a/drivers/acpi/bay.c~acpi-bay-unsuppress-uevents
-+++ a/drivers/acpi/bay.c
-@@ -288,6 +288,11 @@ static int bay_add(acpi_handle handle, i
- 	new_bay->pdev = pdev;
- 	platform_set_drvdata(pdev, new_bay);
+diff -puN mm/slub.c~slub-remove-nr_cpu_ids-hack mm/slub.c
+--- a/mm/slub.c~slub-remove-nr_cpu_ids-hack
++++ a/mm/slub.c
+@@ -2445,9 +2445,8 @@ void __init kmem_cache_init(void)
+ 	register_cpu_notifier(&slab_notifier);
+ #endif
  
-+	/*
-+	 * we want the bay driver to be able to send uevents
-+	 */
-+	pdev->dev.uevent_suppress = 0;
-+
- 	if (acpi_bay_add_fs(new_bay)) {
- 		platform_device_unregister(new_bay->pdev);
- 		goto bay_add_err;
+-	if (nr_cpu_ids)	/* Remove when nr_cpu_ids is fixed upstream ! */
+-		kmem_size = offsetof(struct kmem_cache, cpu_slab)
+-			 + nr_cpu_ids * sizeof(struct page *);
++	kmem_size = offsetof(struct kmem_cache, cpu_slab) +
++				nr_cpu_ids * sizeof(struct page *);
+ 
+ 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
+ 		" Processors=%d, Nodes=%d\n",
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-acpi-dock-cleanup-the-uid-patch.patch
-acpi-dock-fix-opps-after-dock-driver-fails-to-initialize.patch
-acpi-dock-use-dynamically-allocated-platform-device.patch
-acpi-dock-add-immediate_undock-option.patch
-acpi-dock-unsuppress-uevents.patch
-acpi-dock-send-envp-with-uevent.patch
-acpi-bay-unsuppress-uevents.patch
-acpi-fix-oops-after-dock-driver-fails-to-initialize.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
+slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
+slub-slub_debug-must-depend-on-slub.patch
+slub-remove-nr_cpu_ids-hack.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-i386-support.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+define-percpu-smp-cacheline-align-interface.patch
+call-percpu-smp-cacheline-algin-interface.patch
+remove-constructor-from-buffer_head.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code.patch
