@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ucb1x00-do-not-access-input_dev-private-directly.patch added to -mm tree
-Date: Wed, 09 May 2007 17:48:36 -0700
-Message-ID: <200705100048.l4A0mawr008323@shell0.pdx.osdl.net>
+Subject: + revert-paravirt-add-startup-infrastructure-for-paravirtualization.patch added to -mm tree
+Date: Wed, 09 May 2007 17:51:31 -0700
+Message-ID: <200705100051.l4A0pVA0008364@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55501 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751856AbXEJAtR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:49:17 -0400
+	by vger.kernel.org with ESMTP id S1752205AbXEJAw0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:52:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dtor@insightbb.com, dtor@mail.ru, rmk@arm.linux.org.uk, rpurdie@rpsys.net
+Cc: ebiederm@xmission.com, ak@suse.de, chrisw@sous-sol.org, hpa@zytor.com, jeremy@goop.org, rusty@rustcorp.com.au, zach@vmware.com
 
 
 The patch titled
-     ucb1x00: do not access input_dev->private directly
+     Revert "[PATCH] paravirt: Add startup infrastructure for paravirtualization"
 has been added to the -mm tree.  Its filename is
-     ucb1x00-do-not-access-input_dev-private-directly.patch
+     revert-paravirt-add-startup-infrastructure-for-paravirtualization.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ucb1x00: do not access input_dev->private directly
-From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: Revert "[PATCH] paravirt: Add startup infrastructure for paravirtualization"
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Use input_get_drvdata() and input_set_drvdata() helpers to do that.
+This reverts commit c9ccf30d77f04064fe5436027ab9d2230c7cdd94.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Entering the kernel at startup_32 without passing our real mode data in
+%esi, and without guaranteeing that physical and virtual addresses are
+identity mapped makes head.S impossible to maintain.
+
+The only user of this infrastructure is lguest which is not merged so
+nothing we currently support will break by removing this over designed
+nightmare, and only the pending lguest patches will be affected.  The
+pending Xen patches have a different entry point that they use.
+
+We are currently discussing what Xen and lguest need to do to boot the
+kernel in a more normal fashion so using startup_32 in this weird manner is
+clearly not their long term direction.
+
+So let's remove this code in head.S before it causes brain damage to people
+trying to maintain head.S
+
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Zachary Amsden <zach@vmware.com>
+CC: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/ucb1x00-ts.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ arch/i386/kernel/head.S        |   38 -------------------------------
+ arch/i386/kernel/paravirt.c    |    1 
+ arch/i386/kernel/vmlinux.lds.S |    6 ----
+ include/asm-i386/paravirt.h    |    5 ----
+ 4 files changed, 50 deletions(-)
 
-diff -puN drivers/mfd/ucb1x00-ts.c~ucb1x00-do-not-access-input_dev-private-directly drivers/mfd/ucb1x00-ts.c
---- a/drivers/mfd/ucb1x00-ts.c~ucb1x00-do-not-access-input_dev-private-directly
-+++ a/drivers/mfd/ucb1x00-ts.c
-@@ -300,7 +300,7 @@ static void ucb1x00_ts_irq(int idx, void
+diff -puN arch/i386/kernel/head.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization
++++ a/arch/i386/kernel/head.S
+@@ -71,12 +71,6 @@ INIT_MAP_BEYOND_END = BOOTBITMAP_SIZE + 
+ .section .text.head,"ax",@progbits
+ ENTRY(startup_32)
  
- static int ucb1x00_ts_open(struct input_dev *idev)
- {
--	struct ucb1x00_ts *ts = idev->private;
-+	struct ucb1x00_ts *ts = input_get_drvdata(idev);
- 	int ret = 0;
- 
- 	BUG_ON(ts->rtask);
-@@ -337,7 +337,7 @@ static int ucb1x00_ts_open(struct input_
+-#ifdef CONFIG_PARAVIRT
+-        movl %cs, %eax
+-        testl $0x3, %eax
+-        jnz startup_paravirt
+-#endif
+-
+ /*
+  * Set segments to known values.
   */
- static void ucb1x00_ts_close(struct input_dev *idev)
- {
--	struct ucb1x00_ts *ts = idev->private;
-+	struct ucb1x00_ts *ts = input_get_drvdata(idev);
+@@ -501,38 +495,6 @@ ignore_int:
+ 	iret
  
- 	if (ts->rtask)
- 		kthread_stop(ts->rtask);
-@@ -389,7 +389,6 @@ static int ucb1x00_ts_add(struct ucb1x00
- 	ts->idev = idev;
- 	ts->adcsync = adcsync ? UCB_SYNC : UCB_NOSYNC;
+ .section .text
+-#ifdef CONFIG_PARAVIRT
+-startup_paravirt:
+-	cld
+- 	movl $(init_thread_union+THREAD_SIZE),%esp
+-
+-	/* We take pains to preserve all the regs. */
+-	pushl	%edx
+-	pushl	%ecx
+-	pushl	%eax
+-
+-	pushl	$__start_paravirtprobe
+-1:
+-	movl	0(%esp), %eax
+-	cmpl	$__stop_paravirtprobe, %eax
+-	je	unhandled_paravirt
+-	pushl	(%eax)
+-	movl	8(%esp), %eax
+-	call	*(%esp)
+-	popl	%eax
+-
+-	movl	4(%esp), %eax
+-	movl	8(%esp), %ecx
+-	movl	12(%esp), %edx
+-
+-	addl	$4, (%esp)
+-	jmp	1b
+-
+-unhandled_paravirt:
+-	/* Nothing wanted us: we're screwed. */
+-	ud2
+-#endif
+-
+ /*
+  * Real beginning of normal "text" segment
+  */
+diff -puN arch/i386/kernel/paravirt.c~revert-paravirt-add-startup-infrastructure-for-paravirtualization arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~revert-paravirt-add-startup-infrastructure-for-paravirtualization
++++ a/arch/i386/kernel/paravirt.c
+@@ -19,7 +19,6 @@
+ #include <linux/module.h>
+ #include <linux/efi.h>
+ #include <linux/bcd.h>
+-#include <linux/start_kernel.h>
+ #include <linux/highmem.h>
  
--	idev->private    = ts;
- 	idev->name       = "Touchscreen panel";
- 	idev->id.product = ts->ucb->id;
- 	idev->open       = ucb1x00_ts_open;
-@@ -400,6 +399,8 @@ static int ucb1x00_ts_add(struct ucb1x00
- 	__set_bit(ABS_Y, idev->absbit);
- 	__set_bit(ABS_PRESSURE, idev->absbit);
+ #include <asm/bug.h>
+diff -puN arch/i386/kernel/vmlinux.lds.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -80,12 +80,6 @@ SECTIONS
+ 	CONSTRUCTORS
+ 	} :data
  
-+	input_set_drvdata(idev, ts);
-+
- 	err = input_register_device(idev);
- 	if (err)
- 		goto fail;
+-  .paravirtprobe : AT(ADDR(.paravirtprobe) - LOAD_OFFSET) {
+-  	__start_paravirtprobe = .;
+-	*(.paravirtprobe)
+-  	__stop_paravirtprobe = .;
+-  }
+-
+   . = ALIGN(4096);
+   .data_nosave : AT(ADDR(.data_nosave) - LOAD_OFFSET) {
+   	__nosave_begin = .;
+diff -puN include/asm-i386/paravirt.h~revert-paravirt-add-startup-infrastructure-for-paravirtualization include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~revert-paravirt-add-startup-infrastructure-for-paravirtualization
++++ a/include/asm-i386/paravirt.h
+@@ -222,11 +222,6 @@ struct paravirt_ops
+ 	void (*iret)(void);
+ };
+ 
+-/* Mark a paravirt probe function. */
+-#define paravirt_probe(fn)						\
+- static asmlinkage void (*__paravirtprobe_##fn)(void) __attribute_used__ \
+-		__attribute__((__section__(".paravirtprobe"))) = fn
+-
+ extern struct paravirt_ops paravirt_ops;
+ 
+ #define PARAVIRT_PATCH(x)					\
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-drivers-hwmon-switch-to-using-input_dev-devparent.patch
-git-input.patch
-ucb1x00-do-not-access-input_dev-private-directly.patch
+iop13xx-msi-support-rev6.patch
+dvb_en_50221-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+i386-irq-kill-irq-compression.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
+revert-paravirt-add-startup-infrastructure-for-paravirtualization.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
