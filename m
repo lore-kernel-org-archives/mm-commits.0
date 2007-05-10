@@ -1,122 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-oops-after-dock-driver-fails-to-initialize.patch added to -mm tree
-Date: Wed, 09 May 2007 17:42:11 -0700
-Message-ID: <200705100042.l4A0gBZ9008196@shell0.pdx.osdl.net>
+Subject: - remove-unused-device_probe_drivers-function.patch removed from -mm tree
+Date: Wed, 09 May 2007 17:46:47 -0700
+Message-ID: <200705100046.l4A0klS2008298@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34078 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751908AbXEJAnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:43:35 -0400
+	by vger.kernel.org with ESMTP id S1755176AbXEJAqv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:46:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: cebbert@redhat.com, kristen.c.accardi@intel.com, lenb@kernel.org
+To: cw@f00f.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: fix oops after dock driver fails to initialize
-has been added to the -mm tree.  Its filename is
-     acpi-fix-oops-after-dock-driver-fails-to-initialize.patch
+     Remove unused device_probe_drivers function
+has been removed from the -mm tree.  Its filename was
+     remove-unused-device_probe_drivers-function.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: fix oops after dock driver fails to initialize
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: Remove unused device_probe_drivers function
+From: Chris Wedgwood <cw@f00f.org>
 
-The driver tests the dock_station pointer for nonnull to check whether it has
-initialized properly.  But in some cases dock_station will be non-null after
-being freed when driver init fails.  Fix by zeroing the pointer after freeing.
-
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Chris Wedgwood <cw@f00f.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/dock.c |   26 ++++++++++++--------------
- 1 files changed, 12 insertions(+), 14 deletions(-)
+ drivers/base/dd.c |   13 -------------
+ 1 files changed, 13 deletions(-)
 
-diff -puN drivers/acpi/dock.c~acpi-fix-oops-after-dock-driver-fails-to-initialize drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-fix-oops-after-dock-driver-fails-to-initialize
-+++ a/drivers/acpi/dock.c
-@@ -714,31 +714,24 @@ static int dock_add(acpi_handle handle)
- 	dock_device.name = dock_device_name;
- 	ret = platform_device_register(&dock_device);
- 	if (ret) {
--		printk(KERN_ERR PREFIX "Error %d registering dock device\n", ret);
--		kfree(dock_station);
--		return ret;
-+		printk(KERN_ERR PREFIX "Error %d registering dock device\n",
-+				ret);
-+		goto err;
- 	}
- 	ret = device_create_file(&dock_device.dev, &dev_attr_docked);
- 	if (ret) {
- 		printk("Error %d adding sysfs file\n", ret);
--		platform_device_unregister(&dock_device);
--		kfree(dock_station);
--		return ret;
-+		goto err_register;
- 	}
- 	ret = device_create_file(&dock_device.dev, &dev_attr_undock);
- 	if (ret) {
- 		printk("Error %d adding sysfs file\n", ret);
--		device_remove_file(&dock_device.dev, &dev_attr_docked);
--		platform_device_unregister(&dock_device);
--		kfree(dock_station);
--		return ret;
-+		goto err_sysfs_1;
- 	}
- 	ret = device_create_file(&dock_device.dev, &dev_attr_uid);
- 	if (ret) {
- 		printk("Error %d adding sysfs file\n", ret);
--		platform_device_unregister(&dock_device);
--		kfree(dock_station);
--		return ret;
-+		goto err_sysfs_2;
- 	}
- 
- 	/* Find dependent devices */
-@@ -749,7 +742,6 @@ static int dock_add(acpi_handle handle)
- 	/* add the dock station as a device dependent on itself */
- 	dd = alloc_dock_dependent_device(handle);
- 	if (!dd) {
--		kfree(dock_station);
- 		ret = -ENOMEM;
- 		goto dock_add_err_unregister;
- 	}
-@@ -773,10 +765,15 @@ static int dock_add(acpi_handle handle)
- dock_add_err:
- 	kfree(dd);
- dock_add_err_unregister:
-+err_sysfs_2:
- 	device_remove_file(&dock_device.dev, &dev_attr_docked);
-+err_sysfs_1:
- 	device_remove_file(&dock_device.dev, &dev_attr_undock);
-+err_register:
- 	platform_device_unregister(&dock_device);
-+err:
- 	kfree(dock_station);
-+	dock_station = NULL;
- 	return ret;
+diff -puN drivers/base/dd.c~remove-unused-device_probe_drivers-function drivers/base/dd.c
+--- a/drivers/base/dd.c~remove-unused-device_probe_drivers-function
++++ a/drivers/base/dd.c
+@@ -207,19 +207,6 @@ static int __device_attach(struct device
+ 	return driver_probe_device(drv, dev);
  }
  
-@@ -810,6 +807,7 @@ static int dock_remove(void)
- 
- 	/* free dock station memory */
- 	kfree(dock_station);
-+	dock_station = NULL;
- 	return 0;
- }
- 
+-static int device_probe_drivers(void *data)
+-{
+-	struct device *dev = data;
+-	int ret = 0;
+-
+-	if (dev->bus) {
+-		down(&dev->sem);
+-		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
+-		up(&dev->sem);
+-	}
+-	return ret;
+-}
+-
+ /**
+  *	device_attach - try to attach device to a driver.
+  *	@dev:	device.
 _
 
-Patches currently in -mm which might be from cebbert@redhat.com are
+Patches currently in -mm which might be from cw@f00f.org are
 
-origin.patch
-acpi-fix-oops-after-dock-driver-fails-to-initialize.patch
+remove-unused-device_probe_drivers-function.patch
