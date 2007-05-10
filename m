@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rs5c313c-rtc_time-value-are-fixed.patch added to -mm tree
-Date: Wed, 09 May 2007 19:46:38 -0700
-Message-ID: <200705100246.l4A2kcnk010368@shell0.pdx.osdl.net>
+Subject: + rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch added to -mm tree
+Date: Wed, 09 May 2007 19:47:12 -0700
+Message-ID: <200705100247.l4A2lCKF010376@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52245 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753023AbXEJCrF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 22:47:05 -0400
+	by vger.kernel.org with ESMTP id S1753376AbXEJCrU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 22:47:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kogiidena@eggplant.ddo.jp, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc-rs5c313.c: rtc_time value are fixed
+     rtc-rs5c313.c: add error handling to avoid hardware hangup
 has been added to the -mm tree.  Its filename is
-     rtc-rs5c313c-rtc_time-value-are-fixed.patch
+     rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-rs5c313.c: rtc_time value are fixed
+Subject: rtc-rs5c313.c: add error handling to avoid hardware hangup
 From: "kogiidena" <kogiidena@eggplant.ddo.jp>
 
-Correct an initial value of suruct rtc_ time.
+Add error processing.  Hanging up by an infinite loop is evaded.
 
 Signed-off-by: kogiidena <kogiidena@eggplant.ddo.jp>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -36,22 +36,76 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-rs5c313.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-rtc_time-value-are-fixed drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-rtc_time-value-are-fixed
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup
 +++ a/drivers/rtc/rtc-rs5c313.c
-@@ -331,7 +331,8 @@ static void rs5c313_check_xstp_bit(void)
+@@ -212,7 +212,9 @@ static inline void rs5c313_write_intintv
+ static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	int data;
++	int cnt;
+ 
++	cnt = 0;
+ 	while (1) {
+ 		RS5C313_CEENABLE;	/* CE:H */
+ 
+@@ -225,6 +227,10 @@ static int rs5c313_rtc_read_time(struct 
+ 		RS5C313_CEDISABLE;
+ 		ndelay(700);	/* CE:L */
+ 
++		if (cnt++ > 100) {
++			dev_err(dev, "%s: timeout error\n", __FUNCTION__);
++			return -EIO;
++		}
+ 	}
+ 
+ 	data = rs5c313_read_reg(RS5C313_ADDR_SEC);
+@@ -266,7 +272,9 @@ static int rs5c313_rtc_read_time(struct 
+ static int rs5c313_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	int data;
++	int cnt;
+ 
++	cnt = 0;
+ 	/* busy check. */
+ 	while (1) {
+ 		RS5C313_CEENABLE;	/* CE:H */
+@@ -279,6 +287,11 @@ static int rs5c313_rtc_set_time(struct d
+ 		RS5C313_MISCOP;
+ 		RS5C313_CEDISABLE;
+ 		ndelay(700);	/* CE:L */
++
++		if (cnt++ > 100) {
++			dev_err(dev, "%s: timeout error\n", __FUNCTION__);
++			return -EIO;
++		}
+ 	}
+ 
+ 	data = BIN2BCD(tm->tm_sec);
+@@ -317,6 +330,7 @@ static int rs5c313_rtc_set_time(struct d
+ static void rs5c313_check_xstp_bit(void)
+ {
+ 	struct rtc_time tm;
++	int cnt;
+ 
+ 	RS5C313_CEENABLE;	/* CE:H */
+ 	if (rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP) {
+@@ -326,8 +340,11 @@ static void rs5c313_check_xstp_bit(void)
+ 		rs5c313_write_cntreg(0x07);
+ 
+ 		/* busy check. */
+-		while (rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)
++		for (cnt = 0; cnt < 100; cnt++) {
++			if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
++				break;
+ 			RS5C313_MISCOP;
++		}
  
  		memset(&tm, 0, sizeof(struct rtc_time));
  		tm.tm_mday 	= 1;
--		tm.tm_mon 	= 1;
-+		tm.tm_mon 	= 1 - 1;
-+		tm.tm_year 	= 2000 - 1900;
- 
- 		rs5c313_rtc_set_time(NULL, &tm);
- 		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
 _
 
 Patches currently in -mm which might be from kogiidena@eggplant.ddo.jp are
@@ -59,4 +113,4 @@ Patches currently in -mm which might be from kogiidena@eggplant.ddo.jp are
 origin.patch
 rtc-rs5c313c-error-and-warning-are-fixed.patch
 rtc-rs5c313c-rtc_time-value-are-fixed.patch
-rtcrtc-rs5c313c-add-error-handling-toavoidhardware.patch
+rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
