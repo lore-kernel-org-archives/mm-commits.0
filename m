@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-fixup-hard_irq_disable-semantics.patch added to -mm tree
-Date: Wed, 09 May 2007 22:43:07 -0700
-Message-ID: <200705100543.l4A5h7gc013246@shell0.pdx.osdl.net>
+Subject: + pm3fb-preliminary-24-to-26-port-fix.patch added to -mm tree
+Date: Wed, 09 May 2007 22:55:24 -0700
+Message-ID: <200705100555.l4A5tOYt013473@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49786 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624AbXEJFnV (ORCPT
+	by vger.kernel.org with ESMTP id S1750755AbXEJFze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:43:21 -0400
+	Thu, 10 May 2007 01:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, paulus@samba.org, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, adaplas@gmail.com, krzysztof.h1@wp.pl
 
 
 The patch titled
-     powerpc: fixup hard_irq_disable semantics
+     pm3fb-preliminary-24-to-26-port-fix
 has been added to the -mm tree.  Its filename is
-     powerpc-fixup-hard_irq_disable-semantics.patch
+     pm3fb-preliminary-24-to-26-port-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: fixup hard_irq_disable semantics
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: pm3fb-preliminary-24-to-26-port-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch renames the raw hard_irq_{enable,disable} into
-__hard_irq_{enable,disable} and introduces a higher level hard_irq_disable()
-function that can be used by any code to enforce that IRQs are fully disabled,
-not only lazy disabled.
+Nuke pestiferous CVS string.
 
-The difference with the __ versions is that it will update some per-processor
-fields so that the kernel keeps track and properly re-enables them in the next
-local_irq_disable();
-
-This prepares powerpc for my next patch that introduces hard_irq_disable()
-generically.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/irq.c               |    2 +-
- arch/powerpc/kernel/swsusp.c            |    4 ----
- arch/powerpc/platforms/cell/pervasive.c |    6 ++----
- include/asm-powerpc/hw_irq.h            |   11 +++++++++--
- 4 files changed, 12 insertions(+), 11 deletions(-)
+ include/video/pm3fb.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/powerpc/kernel/irq.c~powerpc-fixup-hard_irq_disable-semantics arch/powerpc/kernel/irq.c
---- a/arch/powerpc/kernel/irq.c~powerpc-fixup-hard_irq_disable-semantics
-+++ a/arch/powerpc/kernel/irq.c
-@@ -173,7 +173,7 @@ void local_irq_restore(unsigned long en)
- 		lv1_get_version_info(&tmp);
- 	}
+diff -puN include/video/pm3fb.h~pm3fb-preliminary-24-to-26-port-fix include/video/pm3fb.h
+--- a/include/video/pm3fb.h~pm3fb-preliminary-24-to-26-port-fix
++++ a/include/video/pm3fb.h
+@@ -7,9 +7,6 @@
+  *  This file is subject to the terms and conditions of the GNU General Public
+  *  License. See the file COPYING in the main directory of this archive for
+  *  more details.
+- *
+- *  $Header: /cvsroot/linux/drivers/video/pm3fb.h,v 1.1 2002/02/25 19:11:06 marcelo Exp $
+- *
+  */
  
--	hard_irq_enable();
-+	__hard_irq_enable();
- }
- #endif /* CONFIG_PPC64 */
- 
-diff -puN arch/powerpc/kernel/swsusp.c~powerpc-fixup-hard_irq_disable-semantics arch/powerpc/kernel/swsusp.c
---- a/arch/powerpc/kernel/swsusp.c~powerpc-fixup-hard_irq_disable-semantics
-+++ a/arch/powerpc/kernel/swsusp.c
-@@ -36,8 +36,4 @@ void restore_processor_state(void)
- #ifdef CONFIG_PPC32
- 	set_context(current->active_mm->context.id, current->active_mm->pgd);
- #endif
--
--#ifdef CONFIG_PPC64
--	hard_irq_enable();
--#endif
- }
-diff -puN arch/powerpc/platforms/cell/pervasive.c~powerpc-fixup-hard_irq_disable-semantics arch/powerpc/platforms/cell/pervasive.c
---- a/arch/powerpc/platforms/cell/pervasive.c~powerpc-fixup-hard_irq_disable-semantics
-+++ a/arch/powerpc/platforms/cell/pervasive.c
-@@ -43,12 +43,10 @@ static void cbe_power_save(void)
- 	unsigned long ctrl, thread_switch_control;
- 
- 	/*
--	 * We need to hard disable interrupts, but we also need to mark them
--	 * hard disabled in the PACA so that the local_irq_enable() done by
--	 * our caller upon return propertly hard enables.
-+	 * We need to hard disable interrupts, the local_irq_enable() done by
-+	 * our caller upon return will hard re-enable.
- 	 */
- 	hard_irq_disable();
--	get_paca()->hard_enabled = 0;
- 
- 	ctrl = mfspr(SPRN_CTRLF);
- 
-diff -puN include/asm-powerpc/hw_irq.h~powerpc-fixup-hard_irq_disable-semantics include/asm-powerpc/hw_irq.h
---- a/include/asm-powerpc/hw_irq.h~powerpc-fixup-hard_irq_disable-semantics
-+++ a/include/asm-powerpc/hw_irq.h
-@@ -48,8 +48,15 @@ extern void iseries_handle_interrupts(vo
- 
- #define irqs_disabled()		(local_get_flags() == 0)
- 
--#define hard_irq_enable()	__mtmsrd(mfmsr() | MSR_EE, 1)
--#define hard_irq_disable()	__mtmsrd(mfmsr() & ~MSR_EE, 1)
-+#define __hard_irq_enable()	__mtmsrd(mfmsr() | MSR_EE, 1)
-+#define __hard_irq_disable()	__mtmsrd(mfmsr() & ~MSR_EE, 1)
-+
-+#define  hard_irq_disable()			\
-+	do {					\
-+		__hard_irq_disable();		\
-+		get_paca()->soft_enabled = 0;	\
-+		get_paca()->hard_enabled = 0;	\
-+	} while(0)
- 
- #else
- 
+ #ifndef PM3FB_H
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-do-not-select-macintosh-drivers-by-default.patch
-introduce-freezer-flags-rev-2.patch
-powerpc-fixup-hard_irq_disable-semantics.patch
-add-hard_irq_disable.patch
-stop_machine-now-uses-hard_irq_disable.patch
-linux-kernel-markers-powerpc-optimization.patch
+revert-md-improve-partition-detection-in-md-array.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+synclink_gt-add-compat_ioctl-fix.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
 linux-kernel-markers-powerpc-optimization-fix.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-documentation-update.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+pm3fb-preliminary-24-to-26-port-fix.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
