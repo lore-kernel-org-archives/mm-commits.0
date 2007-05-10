@@ -1,397 +1,239 @@
 From: akpm@linux-foundation.org
-Subject: - markers-use-extra_rwdata-in-architectures.patch removed from -mm tree
-Date: Thu, 10 May 2007 15:32:34 -0700
-Message-ID: <200705102232.l4AMWYxs032632@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-i386-optimization.patch removed from -mm tree
+Date: Thu, 10 May 2007 15:32:20 -0700
+Message-ID: <200705102232.l4AMWKCw032611@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46361 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759523AbXEJWcl (ORCPT
+	by vger.kernel.org with ESMTP id S1752694AbXEJWc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 18:32:41 -0400
+	Thu, 10 May 2007 18:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ak@muc.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: use EXTRA_RWDATA in architectures
+     Linux Kernel Markers: i386 optimization
 has been removed from the -mm tree.  Its filename was
-     markers-use-extra_rwdata-in-architectures.patch
+     linux-kernel-markers-i386-optimization.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: markers: use EXTRA_RWDATA in architectures
+Subject: Linux Kernel Markers: i386 optimization
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
+[akpm@linux-foundation.org: fix includes]
+[bunk@stusta.de: marker exports must be EXPORT_SYMBOL_GPL]
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: <linux-arch@vger.kernel.org>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <>
 ---
 
- arch/alpha/kernel/vmlinux.lds.S            |    1 +
- arch/arm/kernel/vmlinux.lds.S              |    1 +
- arch/arm26/kernel/vmlinux-arm26-xip.lds.in |    1 +
- arch/arm26/kernel/vmlinux-arm26.lds.in     |    1 +
- arch/avr32/kernel/vmlinux.lds.c            |    1 +
- arch/cris/arch-v10/vmlinux.lds.S           |    1 +
- arch/cris/arch-v32/vmlinux.lds.S           |    1 +
- arch/frv/kernel/vmlinux.lds.S              |    1 +
- arch/h8300/kernel/vmlinux.lds.S            |    4 +++-
- arch/i386/kernel/vmlinux.lds.S             |    1 +
- arch/ia64/kernel/vmlinux.lds.S             |    2 +-
- arch/m32r/kernel/vmlinux.lds.S             |    1 +
- arch/m68k/kernel/vmlinux-std.lds           |    1 +
- arch/m68k/kernel/vmlinux-sun3.lds          |    1 +
- arch/m68knommu/kernel/vmlinux.lds.S        |    1 +
- arch/mips/kernel/vmlinux.lds.S             |    2 ++
- arch/parisc/kernel/vmlinux.lds.S           |    1 +
- arch/powerpc/kernel/vmlinux.lds.S          |    2 ++
- arch/ppc/kernel/vmlinux.lds.S              |    1 +
- arch/s390/kernel/vmlinux.lds.S             |    1 +
- arch/sh/kernel/vmlinux.lds.S               |    1 +
- arch/sh64/kernel/vmlinux.lds.S             |    1 +
- arch/sparc/kernel/vmlinux.lds.S            |    1 +
- arch/sparc64/kernel/vmlinux.lds.S          |    1 +
- arch/um/kernel/dyn.lds.S                   |    1 +
- arch/um/kernel/uml.lds.S                   |    1 +
- arch/v850/kernel/vmlinux.lds.S             |    1 +
- arch/x86_64/kernel/vmlinux.lds.S           |    1 +
- arch/xtensa/kernel/vmlinux.lds.S           |    2 +-
- 29 files changed, 33 insertions(+), 3 deletions(-)
+ arch/i386/kernel/Makefile |    1 
+ arch/i386/kernel/marker.c |   99 ++++++++++++++++++++++++++++++++++++
+ include/asm-i386/marker.h |   79 ++++++++++++++++++++++++++++
+ 3 files changed, 179 insertions(+)
 
-diff -puN arch/alpha/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/alpha/kernel/vmlinux.lds.S
---- a/arch/alpha/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/alpha/kernel/vmlinux.lds.S
-@@ -87,6 +87,7 @@ SECTIONS
-   _data = .;
-   .data : {					/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
-   }
- 
-diff -puN arch/arm/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/arm/kernel/vmlinux.lds.S
---- a/arch/arm/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/arm/kernel/vmlinux.lds.S
-@@ -156,6 +156,7 @@ SECTIONS
- 		 * and the usual data section
- 		 */
- 		*(.data)
-+		EXTRA_RWDATA
- 		CONSTRUCTORS
- 
- 		_edata = .;
-diff -puN arch/arm26/kernel/vmlinux-arm26-xip.lds.in~markers-use-extra_rwdata-in-architectures arch/arm26/kernel/vmlinux-arm26-xip.lds.in
---- a/arch/arm26/kernel/vmlinux-arm26-xip.lds.in~markers-use-extra_rwdata-in-architectures
-+++ a/arch/arm26/kernel/vmlinux-arm26-xip.lds.in
-@@ -112,6 +112,7 @@ SECTIONS
- 		 * and the usual data section
- 		 */
- 		*(.data)
-+		EXTRA_RWDATA
- 		CONSTRUCTORS
- 
- 		*(.init.data)
-diff -puN arch/arm26/kernel/vmlinux-arm26.lds.in~markers-use-extra_rwdata-in-architectures arch/arm26/kernel/vmlinux-arm26.lds.in
---- a/arch/arm26/kernel/vmlinux-arm26.lds.in~markers-use-extra_rwdata-in-architectures
-+++ a/arch/arm26/kernel/vmlinux-arm26.lds.in
-@@ -107,6 +107,7 @@ SECTIONS
- 		 * and the usual data section
- 		 */
- 		*(.data)
-+		EXTRA_RWDATA
- 		CONSTRUCTORS
- 
- 		_edata = .;
-diff -puN arch/avr32/kernel/vmlinux.lds.c~markers-use-extra_rwdata-in-architectures arch/avr32/kernel/vmlinux.lds.c
---- a/arch/avr32/kernel/vmlinux.lds.c~markers-use-extra_rwdata-in-architectures
-+++ a/arch/avr32/kernel/vmlinux.lds.c
-@@ -113,6 +113,7 @@ SECTIONS
- 		/* And the rest... */
- 		*(.data.rel*)
- 		*(.data)
-+		EXTRA_RWDATA
- 		CONSTRUCTORS
- 
- 		_edata = .;
-diff -puN arch/cris/arch-v10/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/cris/arch-v10/vmlinux.lds.S
---- a/arch/cris/arch-v10/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/cris/arch-v10/vmlinux.lds.S
-@@ -45,6 +45,7 @@ SECTIONS
- 	__Sdata = . ;
- 	.data : {                     /* Data */
- 		*(.data)
-+		EXTRA_RWDATA
- 	}
- 	__edata = . ;                 /* End of data section */
- 	_edata = . ;
-diff -puN arch/cris/arch-v32/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/cris/arch-v32/vmlinux.lds.S
---- a/arch/cris/arch-v32/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/cris/arch-v32/vmlinux.lds.S
-@@ -50,6 +50,7 @@ SECTIONS
- 	__Sdata = . ;
- 	.data : {                     /* Data */
- 		*(.data)
-+		EXTRA_RWDATA
- 	}
- 	__edata = . ;		/* End of data section. */
- 	_edata = . ;
-diff -puN arch/frv/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/frv/kernel/vmlinux.lds.S
---- a/arch/frv/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/frv/kernel/vmlinux.lds.S
-@@ -134,6 +134,7 @@ SECTIONS
-   .data : {			/* Data */
- 	*(.data .data.*)
- 	*(.exit.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	}
- 
-diff -puN arch/h8300/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/h8300/kernel/vmlinux.lds.S
---- a/arch/h8300/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/h8300/kernel/vmlinux.lds.S
-@@ -105,7 +105,9 @@ SECTIONS
- 	. = ALIGN(0x4) ;
- 		*(.data)
- 	. = ALIGN(0x4) ;
--		*(.data.*)	
-+		*(.data.*)
-+	. = ALIGN(0x4) ;
-+	EXTRA_RWDATA
- 
- 	. = ALIGN(0x4) ;
- 	___init_begin = .;
-diff -puN arch/i386/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -77,6 +77,7 @@ SECTIONS
-   . = ALIGN(4096);
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {	/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	} :data
- 
-diff -puN arch/ia64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/ia64/kernel/vmlinux.lds.S
---- a/arch/ia64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/ia64/kernel/vmlinux.lds.S
-@@ -215,7 +215,7 @@ SECTIONS
- 
-   data : { } :data
-   .data : AT(ADDR(.data) - LOAD_OFFSET)
--	{ *(.data) *(.data1) *(.gnu.linkonce.d*) CONSTRUCTORS }
-+	{ *(.data) *(.data1) *(.gnu.linkonce.d*) EXTRA_RWDATA CONSTRUCTORS }
- 
-   . = ALIGN(16);	/* gp must be 16-byte aligned for exc. table */
-   .got : AT(ADDR(.got) - LOAD_OFFSET)
-diff -puN arch/m32r/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/m32r/kernel/vmlinux.lds.S
---- a/arch/m32r/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/m32r/kernel/vmlinux.lds.S
-@@ -51,6 +51,7 @@ SECTIONS
- 	*(.spu)
- 	*(.spi)
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	}
- 
-diff -puN arch/m68k/kernel/vmlinux-std.lds~markers-use-extra_rwdata-in-architectures arch/m68k/kernel/vmlinux-std.lds
---- a/arch/m68k/kernel/vmlinux-std.lds~markers-use-extra_rwdata-in-architectures
-+++ a/arch/m68k/kernel/vmlinux-std.lds
-@@ -29,6 +29,7 @@ SECTIONS
- 
-   .data : {			/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	}
- 
-diff -puN arch/m68k/kernel/vmlinux-sun3.lds~markers-use-extra_rwdata-in-architectures arch/m68k/kernel/vmlinux-sun3.lds
---- a/arch/m68k/kernel/vmlinux-sun3.lds~markers-use-extra_rwdata-in-architectures
-+++ a/arch/m68k/kernel/vmlinux-sun3.lds
-@@ -24,6 +24,7 @@ SECTIONS
- 
-   .data : {			/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	. = ALIGN(16);		/* Exception table */
- 	__start___ex_table = .;
-diff -puN arch/m68knommu/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/m68knommu/kernel/vmlinux.lds.S
---- a/arch/m68knommu/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/m68knommu/kernel/vmlinux.lds.S
-@@ -134,6 +134,7 @@ SECTIONS {
- 		. = ALIGN(4);
- 		_sdata = . ;
- 		*(.data)
-+		EXTRA_RWDATA
- 		. = ALIGN(8192) ;
- 		*(.data.init_task)
- 		_edata = . ;
-diff -puN arch/mips/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/mips/kernel/vmlinux.lds.S
---- a/arch/mips/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/mips/kernel/vmlinux.lds.S
-@@ -64,6 +64,8 @@ SECTIONS
- 
-     *(.data)
- 
-+    EXTRA_RWDATA
+diff -puN arch/i386/kernel/Makefile~linux-kernel-markers-i386-optimization arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~linux-kernel-markers-i386-optimization
++++ a/arch/i386/kernel/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_MODULES)		+= module.o
+ obj-y				+= sysenter.o vsyscall.o
+ obj-$(CONFIG_ACPI_SRAT) 	+= srat.o
+ obj-$(CONFIG_EFI) 		+= efi.o efi_stub.o
++obj-$(CONFIG_MARKERS_ENABLE_OPTIMIZATION)	+= marker.o
+ obj-$(CONFIG_DOUBLEFAULT) 	+= doublefault.o
+ obj-$(CONFIG_SERIAL_8250)	+= legacy_serial.o
+ obj-$(CONFIG_VM86)		+= vm86.o
+diff -puN /dev/null arch/i386/kernel/marker.c
+--- /dev/null
++++ a/arch/i386/kernel/marker.c
+@@ -0,0 +1,99 @@
++/* marker.c
++ *
++ * Erratum 49 fix for Intel PIII and higher.
++ *
++ * Permits marker activation by XMC with correct serialization.
++ *
++ * Reentrant for NMI and trap handler instrumentation. Permits XMC to a
++ * location that has preemption enabled because it involves no temporary or
++ * reused data structure.
++ *
++ * Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ */
 +
-     CONSTRUCTORS
-   }
-   _gp = . + 0x8000;
-diff -puN arch/parisc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/parisc/kernel/vmlinux.lds.S
---- a/arch/parisc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/parisc/kernel/vmlinux.lds.S
-@@ -92,6 +92,7 @@ SECTIONS
-   . = ALIGN(L1_CACHE_BYTES);
-   .data : {			/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	}
- 
-diff -puN arch/powerpc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/powerpc/kernel/vmlinux.lds.S
---- a/arch/powerpc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/powerpc/kernel/vmlinux.lds.S
-@@ -165,11 +165,13 @@ SECTIONS
- 		*(.data)
- 		*(.sdata)
- 		*(.got.plt) *(.got)
-+		EXTRA_RWDATA
- 	}
- #else
- 	.data : {
- 		*(.data .data.rel* .toc1)
- 		*(.branch_lt)
-+		EXTRA_RWDATA
- 	}
- 
- 	.opd : {
-diff -puN arch/ppc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/ppc/kernel/vmlinux.lds.S
---- a/arch/ppc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/ppc/kernel/vmlinux.lds.S
-@@ -73,6 +73,7 @@ SECTIONS
-     *(.sdata2)
-     *(.got.plt) *(.got)
-     *(.dynamic)
-+    EXTRA_RWDATA
-     CONSTRUCTORS
-   }
- 
-diff -puN arch/s390/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/s390/kernel/vmlinux.lds.S
---- a/arch/s390/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/s390/kernel/vmlinux.lds.S
-@@ -49,6 +49,7 @@ SECTIONS
- 
-   .data : {			/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	}
- 
-diff -puN arch/sh/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/sh/kernel/vmlinux.lds.S
---- a/arch/sh/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/sh/kernel/vmlinux.lds.S
-@@ -42,6 +42,7 @@ SECTIONS
- 
-   .data : {			/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 
-  	 /* Align the initial ramdisk image (INITRD) on page boundaries. */
-  	 . = ALIGN(PAGE_SIZE);
-diff -puN arch/sh64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/sh64/kernel/vmlinux.lds.S
---- a/arch/sh64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/sh64/kernel/vmlinux.lds.S
-@@ -79,6 +79,7 @@ SECTIONS
- 
-   .data : C_PHYS(.data) {			/* Data */
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	}
- 
-diff -puN arch/sparc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/sparc/kernel/vmlinux.lds.S
---- a/arch/sparc/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/sparc/kernel/vmlinux.lds.S
-@@ -23,6 +23,7 @@ SECTIONS
-   .data    :
-   {
-     *(.data)
-+    EXTRA_RWDATA
-     CONSTRUCTORS
-   }
-   .data1   : { *(.data1) }
-diff -puN arch/sparc64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/sparc64/kernel/vmlinux.lds.S
---- a/arch/sparc64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/sparc64/kernel/vmlinux.lds.S
-@@ -28,6 +28,7 @@ SECTIONS
-   .data    :
-   {
-     *(.data)
-+    EXTRA_RWDATA
-     CONSTRUCTORS
-   }
-   .data1   : { *(.data1) }
-diff -puN arch/um/kernel/dyn.lds.S~markers-use-extra_rwdata-in-architectures arch/um/kernel/dyn.lds.S
---- a/arch/um/kernel/dyn.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/um/kernel/dyn.lds.S
-@@ -98,6 +98,7 @@ SECTIONS
-     . = ALIGN(KERNEL_STACK_SIZE);		/* init_task */
-     *(.data.init_task)
-     *(.data .data.* .gnu.linkonce.d.*)
-+    EXTRA_RWDATA
-     SORT(CONSTRUCTORS)
-   }
-   .data1          : { *(.data1) }
-diff -puN arch/um/kernel/uml.lds.S~markers-use-extra_rwdata-in-architectures arch/um/kernel/uml.lds.S
---- a/arch/um/kernel/uml.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/um/kernel/uml.lds.S
-@@ -61,6 +61,7 @@ SECTIONS
-     *(.data.init_task)
-     *(.data)
-     *(.gnu.linkonce.d*)
-+    EXTRA_RWDATA
-     CONSTRUCTORS
-   }
-   .data1   : { *(.data1) }
-diff -puN arch/v850/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/v850/kernel/vmlinux.lds.S
---- a/arch/v850/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/v850/kernel/vmlinux.lds.S
-@@ -116,6 +116,7 @@
-         	*(.data)						      \
- 			*(.exit.data)	/* 2.5 convention */		      \
- 			*(.data.exit)	/* 2.4 convention */		      \
-+		EXTRA_RWDATA						      \
- 		. = ALIGN (16) ;					      \
- 		*(.data.cacheline_aligned)				      \
- 		. = ALIGN (0x2000) ;					      \
-diff -puN arch/x86_64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/x86_64/kernel/vmlinux.lds.S
---- a/arch/x86_64/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/x86_64/kernel/vmlinux.lds.S
-@@ -56,6 +56,7 @@ SECTIONS
- 				/* Data */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {
- 	*(.data)
-+	EXTRA_RWDATA
- 	CONSTRUCTORS
- 	} :data
- 
-diff -puN arch/xtensa/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures arch/xtensa/kernel/vmlinux.lds.S
---- a/arch/xtensa/kernel/vmlinux.lds.S~markers-use-extra_rwdata-in-architectures
-+++ a/arch/xtensa/kernel/vmlinux.lds.S
-@@ -144,7 +144,7 @@ SECTIONS
-   _fdata = .;
-   .data :
-   {
--    *(.data) CONSTRUCTORS
-+    *(.data) EXTRA_RWDATA CONSTRUCTORS
-     . = ALIGN(XCHAL_ICACHE_LINESIZE);
-     *(.data.cacheline_aligned)
-   }
++#include <linux/notifier.h>
++#include <linux/mutex.h>
++#include <linux/preempt.h>
++#include <linux/smp.h>
++#include <linux/notifier.h>
++#include <linux/module.h>
++#include <linux/marker.h>
++#include <linux/kdebug.h>
++
++#include <asm/cacheflush.h>
++
++#define BREAKPOINT_INSTRUCTION  0xcc
++#define BREAKPOINT_INS_LEN 1
++
++static DEFINE_MUTEX(mark_mutex);
++static long target_eip = 0;
++
++static void mark_synchronize_core(void *info)
++{
++	sync_core();	/* use cpuid to stop speculative execution */
++}
++
++/* We simply skip the 2 bytes load immediate here, leaving the register in an
++ * undefined state. We don't care about the content (0 or !0), because we are
++ * changing the value 0->1 or 1->0. This small window of undefined value
++ * doesn't matter.
++ */
++static int mark_notifier(struct notifier_block *nb,
++	unsigned long val, void *data)
++{
++	enum die_val die_val = (enum die_val) val;
++	struct die_args *args = (struct die_args *)data;
++
++	if (!args->regs || user_mode_vm(args->regs))
++		return NOTIFY_DONE;
++
++	if (die_val == DIE_INT3	&& args->regs->eip == target_eip) {
++		args->regs->eip += 1; /* Skip the next byte of load immediate */
++		return NOTIFY_STOP;
++	}
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block mark_notify = {
++	.notifier_call = mark_notifier,
++	.priority = 0x7fffffff,	/* we need to be notified first */
++};
++
++int marker_optimized_set_enable(void *address, char enable)
++{
++	char saved_byte;
++	int ret;
++	char *dest = address;
++
++	if (!(enable ^ dest[1])) /* Must be a state change 0<->1 to execute */
++		return 0;
++
++	mutex_lock(&mark_mutex);
++	target_eip = (long)address + BREAKPOINT_INS_LEN;
++	/* register_die_notifier has memory barriers */
++	register_die_notifier(&mark_notify);
++	saved_byte = *dest;
++	*dest = BREAKPOINT_INSTRUCTION;
++	wmb();
++	/* Execute serializing instruction on each CPU.
++	 * Acts as a memory barrier. */
++	ret = on_each_cpu(mark_synchronize_core, NULL, 1, 1);
++	BUG_ON(ret != 0);
++
++	dest[1] = enable;
++	wmb();
++	*dest = saved_byte;
++		/* Wait for all int3 handlers to end
++		   (interrupts are disabled in int3).
++		   This CPU is clearly not in a int3 handler
++		   (not preemptible).
++		   synchronize_sched has memory barriers */
++	synchronize_sched();
++	unregister_die_notifier(&mark_notify);
++	/* unregister_die_notifier has memory barriers */
++	target_eip = 0;
++	mutex_unlock(&mark_mutex);
++	flush_icache_range(address, size);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(marker_optimized_set_enable);
+diff -puN /dev/null include/asm-i386/marker.h
+--- /dev/null
++++ a/include/asm-i386/marker.h
+@@ -0,0 +1,79 @@
++#ifndef _ASM_I386_MARKER_H
++#define _ASM_I386_MARKER_H
++
++/*
++ * marker.h
++ *
++ * Code markup for dynamic and static tracing. i386 architecture optimisations.
++ *
++ * (C) Copyright 2006 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ */
++
++
++#ifdef CONFIG_MARKERS
++
++#define MF_DEFAULT (MF_OPTIMIZED | MF_LOCKDEP | MF_PRINTK)
++
++/* Optimized version of the markers */
++#define MARK_OPTIMIZED(flags, name, format, args...) \
++	do { \
++		static const char __mstrtab_name_##name[] \
++		__attribute__((section("__markers_strings"))) \
++		= #name; \
++		static const char __mstrtab_format_##name[] \
++		__attribute__((section("__markers_strings"))) \
++		= format; \
++		static struct __mark_marker_data __mark_data_##name \
++		__attribute__((section("__markers_data"))) = \
++		{ __mstrtab_name_##name,  __mstrtab_format_##name, \
++		(flags) | MF_OPTIMIZED, __mark_empty_function, NULL }; \
++		char condition; \
++		asm volatile(	".section __markers, \"a\", @progbits;\n\t" \
++					".long %1, 0f;\n\t" \
++					".previous;\n\t" \
++					".align 2\n\t" \
++					"0:\n\t" \
++					"movb $0,%0;\n\t" \
++				: "=r" (condition) \
++				: "m" (__mark_data_##name)); \
++		__mark_check_format(format, ## args); \
++		if (unlikely(condition)) { \
++			preempt_disable(); \
++			(*__mark_data_##name.call)(&__mark_data_##name, \
++						format, ## args); \
++			preempt_enable(); \
++		} \
++	} while (0)
++
++/* Marker macro selecting the generic or optimized version of marker, depending
++ * on the flags specified. */
++#define _trace_mark(flags, format, args...) \
++do { \
++	if (((flags) & MF_LOCKDEP) && ((flags) & MF_OPTIMIZED)) \
++		MARK_OPTIMIZED(flags, format, ## args); \
++	else \
++		MARK_GENERIC(flags, format, ## args); \
++} while (0)
++
++/* Marker with default behavior */
++#define trace_mark(format, args...) _trace_mark(MF_DEFAULT, format, ## args)
++
++/* Architecture dependant marker information, used internally for marker
++ * activation. */
++
++/* Offset of the immediate value from the start of the movb instruction, in
++ * bytes. */
++#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET 1
++#define MARK_OPTIMIZED_ENABLE_TYPE char
++/* Dereference enable as lvalue from a pointer to its instruction */
++#define MARK_OPTIMIZED_ENABLE(a) \
++	*(MARK_OPTIMIZED_ENABLE_TYPE*) \
++		((char*)a+MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET)
++
++extern int marker_optimized_set_enable(void *address, char enable);
++
++#endif
++#endif //_ASM_I386_MARKER_H
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -399,5 +241,12 @@ Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 origin.patch
 git-avr32.patch
 powerpc-promc-remove-undef-printk.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-update.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-non-optimized-architectures-update.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-update.patch
+markers-define-the-linker-macro-extra_rwdata.patch
 markers-use-extra_rwdata-in-architectures.patch
 port-of-blktrace-to-the-linux-kernel-markers.patch
