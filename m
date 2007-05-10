@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-i386-optimization-update.patch added to -mm tree
-Date: Wed, 09 May 2007 20:44:35 -0700
-Message-ID: <200705100344.l4A3iZux011249@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-powerpc-optimization-update.patch added to -mm tree
+Date: Wed, 09 May 2007 20:44:33 -0700
+Message-ID: <200705100344.l4A3iXJi011246@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48612 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753996AbXEJDom (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:44:42 -0400
+	by vger.kernel.org with ESMTP id S1754072AbXEJDop (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:44:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     linux-kernel-markers-i386-optimization update
+     linux-kernel-markers-powerpc-optimization update
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-i386-optimization-update.patch
+     linux-kernel-markers-powerpc-optimization-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,20 +25,20 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-i386-optimization update
+Subject: linux-kernel-markers-powerpc-optimization update
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/marker.h |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/asm-powerpc/marker.h |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-update include/asm-i386/marker.h
---- a/include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-update
-+++ a/include/asm-i386/marker.h
-@@ -18,7 +18,7 @@
+diff -puN include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-update include/asm-powerpc/marker.h
+--- a/include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-update
++++ a/include/asm-powerpc/marker.h
+@@ -20,7 +20,7 @@
  #define MF_DEFAULT (MF_OPTIMIZED | MF_LOCKDEP | MF_PRINTK)
  
  /* Optimized version of the markers */
@@ -47,7 +47,7 @@ diff -puN include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-updat
  	do { \
  		static const char __mstrtab_name_##name[] \
  		__attribute__((section("__markers_strings"))) \
-@@ -26,9 +26,13 @@
+@@ -28,9 +28,13 @@
  		static const char __mstrtab_format_##name[] \
  		__attribute__((section("__markers_strings"))) \
  		= format; \
@@ -61,20 +61,10 @@ diff -puN include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-updat
  		(flags) | MF_OPTIMIZED, __mark_empty_function, NULL }; \
  		char condition; \
  		asm volatile(	".section __markers, \"a\", @progbits;\n\t" \
-@@ -40,7 +44,8 @@
- 				: "=r" (condition) \
- 				: "m" (__mark_data_##name)); \
- 		__mark_check_format(format, ## args); \
--		if (unlikely(condition)) { \
-+		if (likely(!condition)) { \
-+		} else { \
- 			preempt_disable(); \
- 			(*__mark_data_##name.call)(&__mark_data_##name, \
- 						format, ## args); \
-@@ -53,9 +58,9 @@
+@@ -55,9 +59,9 @@
  #define _trace_mark(flags, format, args...) \
  do { \
- 	if (((flags) & MF_LOCKDEP) && ((flags) & MF_OPTIMIZED)) \
+ 	if ((flags) & MF_OPTIMIZED) \
 -		MARK_OPTIMIZED(flags, format, ## args); \
 +		trace_mark_optimized(flags, format, ## args); \
  	else \
