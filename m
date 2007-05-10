@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rs5c313c-error-and-warning-are-fixed.patch added to -mm tree
-Date: Wed, 09 May 2007 19:46:26 -0700
-Message-ID: <200705100246.l4A2kQo5010359@shell0.pdx.osdl.net>
+Subject: + rtc-rs5c313c-rtc_time-value-are-fixed.patch added to -mm tree
+Date: Wed, 09 May 2007 19:46:38 -0700
+Message-ID: <200705100246.l4A2kcnk010368@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39501 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752784AbXEJCq6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 22:46:58 -0400
+	by vger.kernel.org with ESMTP id S1753023AbXEJCrF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 22:47:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kogiidena@eggplant.ddo.jp, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc-rs5c313.c: error and warning are fixed
+     rtc-rs5c313.c: rtc_time value are fixed
 has been added to the -mm tree.  Its filename is
-     rtc-rs5c313c-error-and-warning-are-fixed.patch
+     rtc-rs5c313c-rtc_time-value-are-fixed.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-rs5c313.c: error and warning are fixed
+Subject: rtc-rs5c313.c: rtc_time value are fixed
 From: "kogiidena" <kogiidena@eggplant.ddo.jp>
 
-Correct a compile error and warning.
+Correct an initial value of suruct rtc_ time.
 
 Signed-off-by: kogiidena <kogiidena@eggplant.ddo.jp>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -36,57 +36,27 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |    2 +-
- drivers/rtc/rtc-rs5c313.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-rs5c313.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-rs5c313c-error-and-warning-are-fixed drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-rs5c313c-error-and-warning-are-fixed
-+++ a/drivers/rtc/Kconfig
-@@ -396,7 +396,7 @@ config RTC_DRV_BFIN
- 
- config RTC_DRV_RS5C313
- 	tristate "Ricoh RS5C313"
--	depends on RTC_CLASS && BROKEN
-+	depends on RTC_CLASS && SH_LANDISK
- 	help
- 	  If you say yes here you get support for the Ricoh RS5C313 RTC chips.
- 
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-error-and-warning-are-fixed drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-error-and-warning-are-fixed
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-rtc_time-value-are-fixed drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-rtc_time-value-are-fixed
 +++ a/drivers/rtc/rtc-rs5c313.c
-@@ -126,7 +126,7 @@ static void rs5c313_write_data(unsigned 
- static unsigned char rs5c313_read_data(void)
- {
- 	int i;
--	unsigned char data;
-+	unsigned char data = 0;
+@@ -331,7 +331,8 @@ static void rs5c313_check_xstp_bit(void)
  
- 	for (i = 0; i < 8; i++) {
- 		ndelay(700);
-@@ -194,7 +194,7 @@ static void rs5c313_write_reg(unsigned c
- 	return;
- }
+ 		memset(&tm, 0, sizeof(struct rtc_time));
+ 		tm.tm_mday 	= 1;
+-		tm.tm_mon 	= 1;
++		tm.tm_mon 	= 1 - 1;
++		tm.tm_year 	= 2000 - 1900;
  
--static inline unsigned char rs5c313_read_cntreg(unsigned char addr)
-+static inline unsigned char rs5c313_read_cntreg(void)
- {
- 	return rs5c313_read_reg(RS5C313_ADDR_CNTREG);
- }
-@@ -356,7 +356,7 @@ static int rs5c313_rtc_probe(struct plat
- 
- 	platform_set_drvdata(pdev, rtc);
- 
--	return err;
-+	return 0;
- }
- 
- static int __devexit rs5c313_rtc_remove(struct platform_device *pdev)
+ 		rs5c313_rtc_set_time(NULL, &tm);
+ 		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
 _
 
 Patches currently in -mm which might be from kogiidena@eggplant.ddo.jp are
 
 origin.patch
 rtc-rs5c313c-error-and-warning-are-fixed.patch
-rtcrtc-rs5c313c-rtc_time-value-are-fixed.patch
+rtc-rs5c313c-rtc_time-value-are-fixed.patch
 rtcrtc-rs5c313c-add-error-handling-toavoidhardware.patch
