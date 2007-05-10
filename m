@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-boot-based-time.patch added to -mm tree
-Date: Thu, 10 May 2007 16:40:57 -0700
-Message-ID: <200705102340.l4ANevYo001520@shell0.pdx.osdl.net>
+Subject: + use-boot-based-time-for-process-start-time-and-boot-time-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 16:41:10 -0700
+Message-ID: <200705102341.l4ANfAil001530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49857 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757483AbXEJXlQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757252AbXEJXlV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 19:41:16 -0400
+	Thu, 10 May 2007 19:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tjanouse@redhat.com, johnstul@us.ibm.com, tsmetana@redhat.com
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, tjanouse@redhat.com, tsmetana@redhat.com
 
 
 The patch titled
-     Introduce boot based time
+     use-boot-based-time-for-process-start-time-and-boot-time-fix
 has been added to the -mm tree.  Its filename is
-     introduce-boot-based-time.patch
+     use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,123 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Introduce boot based time
-From: Tomas Janousek <tjanouse@redhat.com>
+Subject: use-boot-based-time-for-process-start-time-and-boot-time-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The commits
-
-  411187fb05cd11676b0979d9fbf3291db69dbce2 (GTOD: persistent clock support)
-  c1d370e167d66b10bca3b602d3740405469383de (i386: use GTOD persistent clock
-    support)
-
-changed the monotonic time so that it no longer jumps after resume, but it's
-not possible to use it for boot time and process start time calculations then.
- Also, the uptime no longer increases during suspend.
-
-I add a variable to track the wall_to_monotonic changes, a function to get the
-real boot time and a function to get the boot based time from the monotonic
-one.
-
-Signed-off-by: Tomas Janousek <tjanouse@redhat.com>
-Cc: Tomas Smetana <tsmetana@redhat.com>
 Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Tomas Janousek <tjanouse@redhat.com>
+Cc: Tomas Smetana <tsmetana@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h      |    2 +
- kernel/time/timekeeping.c |   41 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 43 insertions(+)
+ include/linux/sched.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/time.h~introduce-boot-based-time include/linux/time.h
---- a/include/linux/time.h~introduce-boot-based-time
-+++ a/include/linux/time.h
-@@ -116,6 +116,8 @@ extern int do_setitimer(int which, struc
- extern unsigned int alarm_setitimer(unsigned int seconds);
- extern int do_getitimer(int which, struct itimerval *value);
- extern void getnstimeofday(struct timespec *tv);
-+extern void getboottime(struct timespec *ts);
-+extern void monotonic_to_bootbased(struct timespec *ts);
+diff -puN include/linux/sched.h~use-boot-based-time-for-process-start-time-and-boot-time-fix include/linux/sched.h
+--- a/include/linux/sched.h~use-boot-based-time-for-process-start-time-and-boot-time-fix
++++ a/include/linux/sched.h
+@@ -900,7 +900,8 @@ struct task_struct {
+ 	unsigned int rt_priority;
+ 	cputime_t utime, stime;
+ 	unsigned long nvcsw, nivcsw; /* context switch counts */
+-	struct timespec start_time, real_start_time;
++	struct timespec start_time;
++	struct timespec real_start_time;
+ /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
+ 	unsigned long min_flt, maj_flt;
  
- extern struct timespec timespec_trunc(struct timespec t, unsigned gran);
- extern int timekeeping_is_continuous(void);
-diff -puN kernel/time/timekeeping.c~introduce-boot-based-time kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~introduce-boot-based-time
-+++ a/kernel/time/timekeeping.c
-@@ -36,9 +36,17 @@ EXPORT_SYMBOL(xtime_lock);
-  * at zero at system boot time, so wall_to_monotonic will be negative,
-  * however, we will ALWAYS keep the tv_nsec part positive so we can use
-  * the usual normalization.
-+ *
-+ * wall_to_monotonic is moved after resume from suspend for the monotonic
-+ * time not to jump. We need to add total_sleep_time to wall_to_monotonic
-+ * to get the real boot based time offset.
-+ *
-+ * - wall_to_monotonic is no longer the boot time, getboottime must be
-+ * used instead.
-  */
- struct timespec xtime __attribute__ ((aligned (16)));
- struct timespec wall_to_monotonic __attribute__ ((aligned (16)));
-+static unsigned long total_sleep_time;
- 
- EXPORT_SYMBOL(xtime);
- 
-@@ -251,6 +259,7 @@ void __init timekeeping_init(void)
- 	xtime.tv_nsec = 0;
- 	set_normalized_timespec(&wall_to_monotonic,
- 		-xtime.tv_sec, -xtime.tv_nsec);
-+	total_sleep_time = 0;
- 
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- }
-@@ -280,6 +289,7 @@ static int timekeeping_resume(struct sys
- 
- 		xtime.tv_sec += sleep_length;
- 		wall_to_monotonic.tv_sec -= sleep_length;
-+		total_sleep_time += sleep_length;
- 	}
- 	/* re-base the last cycle value */
- 	clock->cycle_last = clocksource_read(clock);
-@@ -474,3 +484,34 @@ void update_wall_time(void)
- 	change_clocksource();
- 	update_vsyscall(&xtime, clock);
- }
-+
-+/**
-+ * getboottime - Return the real time of system boot.
-+ * @ts:		pointer to the timespec to be set
-+ *
-+ * Returns the time of day in a timespec.
-+ *
-+ * This is based on the wall_to_monotonic offset and the total suspend
-+ * time. Calls to settimeofday will affect the value returned (which
-+ * basically means that however wrong your real time clock is at boot time,
-+ * you get the right time here).
-+ */
-+void getboottime(struct timespec *ts)
-+{
-+	set_normalized_timespec(ts,
-+		- (wall_to_monotonic.tv_sec + total_sleep_time),
-+		- wall_to_monotonic.tv_nsec);
-+}
-+
-+EXPORT_SYMBOL(getboottime);
-+
-+/**
-+ * monotonic_to_bootbased - Convert the monotonic time to boot based.
-+ * @ts:		pointer to the timespec to be converted
-+ */
-+void monotonic_to_bootbased(struct timespec *ts)
-+{
-+	ts->tv_sec += total_sleep_time;
-+}
-+
-+EXPORT_SYMBOL(monotonic_to_bootbased);
 _
 
-Patches currently in -mm which might be from tjanouse@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-introduce-boot-based-time.patch
+origin.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
+xfs-clean-up-shrinker-games.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+lib-hexdump.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+synclink_gt-add-compat_ioctl-fix.patch
+stop_machine-now-uses-hard_irq_disable-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
 introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time.patch
 use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-use-boot-based-time-for-uptime-in-proc.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+pm3fb-preliminary-24-to-26-port-fix.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
