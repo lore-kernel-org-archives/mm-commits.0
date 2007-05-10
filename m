@@ -1,135 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-powerpc-optimization-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 15:32:18 -0700
-Message-ID: <200705102232.l4AMWI4d032607@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-powerpc-optimization.patch removed from -mm tree
+Date: Thu, 10 May 2007 15:32:12 -0700
+Message-ID: <200705102232.l4AMWCon032598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49587 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758310AbXEJWc1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756708AbXEJWc1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 10 May 2007 18:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca, paulus@samba.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-kernel-markers-powerpc-optimization-fix
+     Linux Kernel Markers: powerpc optimization
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-powerpc-optimization-fix.patch
+     linux-kernel-markers-powerpc-optimization.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-powerpc-optimization-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Linux Kernel Markers: powerpc optimization
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-- Standardise comment layout
-
-- Ficks speling.
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/marker.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/powerpc/kernel/Makefile |    1 
+ arch/powerpc/kernel/marker.c |   25 ++++++++++
+ include/asm-powerpc/marker.h |   81 +++++++++++++++++++++++++++++++++
+ 3 files changed, 107 insertions(+)
 
-diff -puN include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-fix include/asm-powerpc/marker.h
---- a/include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-fix
+diff -puN arch/powerpc/kernel/Makefile~linux-kernel-markers-powerpc-optimization arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~linux-kernel-markers-powerpc-optimization
++++ a/arch/powerpc/kernel/Makefile
+@@ -96,3 +96,4 @@ obj-$(CONFIG_PPC64)		+= $(obj64-y)
+ 
+ extra-$(CONFIG_PPC_FPU)		+= fpu.o
+ extra-$(CONFIG_PPC64)		+= entry_64.o
++obj-$(CONFIG_MARKERS_ENABLE_OPTIMIZATION)	+= marker.o
+diff -puN /dev/null arch/powerpc/kernel/marker.c
+--- /dev/null
++++ a/arch/powerpc/kernel/marker.c
+@@ -0,0 +1,25 @@
++/* marker.c
++ *
++ * Powerpc optimized marker enabling/disabling.
++ *
++ * Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ */
++
++#include <linux/module.h>
++#include <linux/marker.h>
++#include <linux/string.h>
++#include <asm/cacheflush.h>
++
++int marker_optimized_set_enable(void *address, char enable)
++{
++	char newi[MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET+1];
++	int size = MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET
++			+ sizeof(MARK_OPTIMIZED_ENABLE_TYPE);
++
++	memcpy(newi, address, size);
++	MARK_OPTIMIZED_ENABLE(&newi[0]) = enable;
++	memcpy(address, newi, size);
++	flush_icache_range((unsigned long)address, size);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(marker_optimized_set_enable);
+diff -puN /dev/null include/asm-powerpc/marker.h
+--- /dev/null
 +++ a/include/asm-powerpc/marker.h
-@@ -67,11 +67,15 @@ do { \
- /* Marker with default behavior */
- #define trace_mark(format, args...) _trace_mark(MF_DEFAULT, format, ## args)
- 
--/* Architecture dependant marker information, used internally for marker
-- * activation. */
+@@ -0,0 +1,81 @@
++#ifndef _ASM_POWERPC_MARKER_H
++#define _ASM_POWERPC_MARKER_H
++
 +/*
-+ * Architecture dependent marker information, used internally for marker
-+ * activation
++ * marker.h
++ *
++ * Code markup for dynamic and static tracing. PowerPC architecture
++ * optimisations.
++ *
++ * (C) Copyright 2006 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
 + */
- 
--/* Offset of the immediate value from the start of the addi instruction (result
-- * of the li mnemonic), in bytes. */
-+/*
-+ * Offset of the immediate value from the start of the addi instruction (result
-+ * of the li mnemonic), in bytes
-+ */
- #define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET 2
- #define MARK_OPTIMIZED_ENABLE_TYPE short
- /* Dereference enable as lvalue from a pointer to its instruction */
++
++#include <asm/asm-compat.h>
++
++#ifdef CONFIG_MARKERS
++
++#define MF_DEFAULT (MF_OPTIMIZED | MF_LOCKDEP | MF_PRINTK)
++
++/* Optimized version of the markers */
++#define MARK_OPTIMIZED(flags, name, format, args...) \
++	do { \
++		static const char __mstrtab_name_##name[] \
++		__attribute__((section("__markers_strings"))) \
++		= #name; \
++		static const char __mstrtab_format_##name[] \
++		__attribute__((section("__markers_strings"))) \
++		= format; \
++		static struct __mark_marker_data __mark_data_##name \
++		__attribute__((section("__markers_data"))) = \
++		{ __mstrtab_name_##name,  __mstrtab_format_##name, \
++		(flags) | MF_OPTIMIZED, __mark_empty_function, NULL }; \
++		char condition; \
++		asm volatile(	".section __markers, \"a\", @progbits;\n\t" \
++					PPC_LONG "%1, 0f;\n\t" \
++					".previous;\n\t" \
++					".align 4\n\t" \
++					"0:\n\t" \
++					"li %0,0;\n\t" \
++				: "=r" (condition) \
++				: "i" (&__mark_data_##name)); \
++		__mark_check_format(format, ## args); \
++		if (unlikely(condition)) { \
++			preempt_disable(); \
++			(*__mark_data_##name.call)(&__mark_data_##name, \
++						format, ## args); \
++			preempt_enable(); \
++		} \
++	} while (0)
++
++/* Marker macro selecting the generic or optimized version of marker, depending
++ * on the flags specified. */
++#define _trace_mark(flags, format, args...) \
++do { \
++	if ((flags) & MF_OPTIMIZED) \
++		MARK_OPTIMIZED(flags, format, ## args); \
++	else \
++		MARK_GENERIC(flags, format, ## args); \
++} while (0)
++
++/* Marker with default behavior */
++#define trace_mark(format, args...) _trace_mark(MF_DEFAULT, format, ## args)
++
++/* Architecture dependant marker information, used internally for marker
++ * activation. */
++
++/* Offset of the immediate value from the start of the addi instruction (result
++ * of the li mnemonic), in bytes. */
++#define MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET 2
++#define MARK_OPTIMIZED_ENABLE_TYPE short
++/* Dereference enable as lvalue from a pointer to its instruction */
++#define MARK_OPTIMIZED_ENABLE(a) \
++	*(MARK_OPTIMIZED_ENABLE_TYPE*) \
++		((char*)a+MARK_OPTIMIZED_ENABLE_IMMEDIATE_OFFSET)
++
++extern int marker_optimized_set_enable(void *address, char enable);
++
++#endif
++#endif //_ASM_POWERPC_MARKER_H
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
-x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
-xfs-clean-up-shrinker-games.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-lib-hexdump.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-synclink_gt-add-compat_ioctl-fix.patch
-stop_machine-now-uses-hard_irq_disable-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-tty-add-compat_ioctl.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
+powerpc-promc-remove-undef-printk.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-update.patch
 linux-kernel-markers-powerpc-optimization-fix.patch
 linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-update.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-non-optimized-architectures-update.patch
+linux-kernel-markers-documentation.patch
 linux-kernel-markers-documentation-update.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-ntfs-use-zero_user_page.patch
-pm3fb-preliminary-24-to-26-port-fix.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
+port-of-blktrace-to-the-linux-kernel-markers.patch
