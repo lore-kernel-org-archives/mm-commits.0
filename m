@@ -1,84 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + andi-you-broke-my-laptop.patch added to -mm tree
-Date: Wed, 09 May 2007 20:19:44 -0700
-Message-ID: <200705100319.l4A3JiJL010924@shell0.pdx.osdl.net>
+Subject: - markers-add-instrumentation-markers-menus-to-avr32.patch removed from -mm tree
+Date: Wed, 09 May 2007 20:37:35 -0700
+Message-ID: <200705100337.l4A3bZtO011148@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41818 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751743AbXEJDUF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:20:05 -0400
+	by vger.kernel.org with ESMTP id S1753903AbXEJDhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:37:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: zaitcev@redhat.com, ak@suse.de, joerg.roedel@amd.com
+To: mathieu.desnoyers@polymtl.ca, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Andi, you broke my laptop :-)
-has been added to the -mm tree.  Its filename is
-     andi-you-broke-my-laptop.patch
+     markers: add instrumentation/markers menus to avr32
+has been removed from the -mm tree.  Its filename was
+     markers-add-instrumentation-markers-menus-to-avr32.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Andi, you broke my laptop :-)
-From: Pete Zaitcev <zaitcev@redhat.com>
+Subject: markers: add instrumentation/markers menus to avr32
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-The attached patch (actually, git show output) makes my Dell 1501 to hang
-on boot. Sorry, I have no clue why... The culprit is found with git bisect.
-But yes, it's an AMD MK-36. I use an x86_64 kernel. It is 100% reproducible.
-
-Cheers,
--- Pete
-
-commit c5bcb5635a03da3158f121ae20ccbbf72b4fc62a
-Author: Andi Kleen <ak@suse.de>
-Date:   Wed May 2 19:27:21 2007 +0200
-
-    [PATCH] x86: Use RDTSCP for synchronous get_cycles if possible
-
-    RDTSCP is already synchronous and doesn't need an explicit CPUID.
-    This is a little faster and more importantly avoids VMEXITs on Hypervisors.
-
-    Original patch from Joerg Roedel, but reworked by AK
-    Also includes miscompilation fix by Eric Biederman
-
-    Cc: "Joerg Roedel" <joerg.roedel@amd.com>
-
-    Signed-off-by: Andi Kleen <ak@suse.de>
-
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/tsc.h |    9 ---------
- 1 file changed, 9 deletions(-)
+ arch/avr32/Kconfig.debug |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/asm-i386/tsc.h~andi-you-broke-my-laptop include/asm-i386/tsc.h
---- a/include/asm-i386/tsc.h~andi-you-broke-my-laptop
-+++ a/include/asm-i386/tsc.h
-@@ -38,15 +38,6 @@ static __always_inline cycles_t get_cycl
- 	unsigned eax;
+diff -puN arch/avr32/Kconfig.debug~markers-add-instrumentation-markers-menus-to-avr32 arch/avr32/Kconfig.debug
+--- a/arch/avr32/Kconfig.debug~markers-add-instrumentation-markers-menus-to-avr32
++++ a/arch/avr32/Kconfig.debug
+@@ -6,6 +6,9 @@ config TRACE_IRQFLAGS_SUPPORT
  
- 	/*
--  	 * Use RDTSCP if possible; it is guaranteed to be synchronous
-- 	 * and doesn't cause a VMEXIT on Hypervisors
--	 */
--	alternative_io(ASM_NOP3, ".byte 0x0f,0x01,0xf9", X86_FEATURE_RDTSCP,
--			 	 "=A" (ret), "0" (0ULL) : "ecx", "memory");
--	if (ret)
--		return ret;
--
--	/*
- 	 * Don't do an additional sync on CPUs where we know
- 	 * RDTSC is already synchronous:
- 	 */
+ source "lib/Kconfig.debug"
+ 
++menu "Instrumentation Support"
++	depends on EXPERIMENTAL
++
+ config KPROBES
+ 	bool "Kprobes"
+ 	depends on DEBUG_KERNEL
+@@ -17,4 +20,8 @@ config KPROBES
+           for kernel debugging, non-intrusive instrumentation and testing.
+           If in doubt, say "N".
+ 
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ endmenu
 _
 
-Patches currently in -mm which might be from zaitcev@redhat.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-andi-you-broke-my-laptop.patch
+x86_64-fix-default_do_nmi-missing-return-after-a-if.patch
+git-avr32.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-kconfig-menus-update.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-update.patch
+allow-userspace-applications-to-use-markerh-to-parse-the-markers-section-in-the-kernel-binary.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-update.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-update.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
