@@ -1,89 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: + afs-fix-interminable-loop-in-afs_write_back_from_locked_page.patch added to -mm tree
-Date: Thu, 10 May 2007 16:14:24 -0700
-Message-ID: <200705102314.l4ANEOhf001035@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-ii-fusion.patch removed from -mm tree
+Date: Thu, 10 May 2007 16:17:52 -0700
+Message-ID: <200705102317.l4ANHrUC001117@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54743 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759338AbXEJXOk (ORCPT
+	by vger.kernel.org with ESMTP id S1755110AbXEJXSO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 19:14:40 -0400
+	Thu, 10 May 2007 19:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, mikukkon@iki.fi
+To: jengelh@linux01.gwdg.de, Eric.Moore@lsil.com, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AFS: fix interminable loop in afs_write_back_from_locked_page()
-has been added to the -mm tree.  Its filename is
-     afs-fix-interminable-loop-in-afs_write_back_from_locked_page.patch
+     Use menuconfig objects II - fusion
+has been removed from the -mm tree.  Its filename was
+     use-menuconfig-objects-ii-fusion.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
+This patch was dropped because it broke
 
 ------------------------------------------------------
-Subject: AFS: fix interminable loop in afs_write_back_from_locked_page(=
-)
-=46rom: David Howells <dhowells@redhat.com>
+Subject: Use menuconfig objects II - fusion
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-=46ollowing bug was uncovered by compiling with '-W' flag:
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
-  CC [M]  fs/afs/write.o
-fs/afs/write.c: In function =E2=80=98afs_write_back_from_locked_page=E2=
-=80=99:
-fs/afs/write.c:398: warning: comparison of unsigned expression >=3D 0 i=
-s always true
-
-Loop variable 'n' is unsigned, so wraps around happily as far as I can
-see. Trival fix attached (compile tested only).
-
-Signed-off-by: Mika Kukkonen <mikukkon@iki.fi>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/message/fusion/Kconfig |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN fs/afs/write.c~afs-fix-interminable-loop-in-afs_write_back_fr=
-om_locked_page fs/afs/write.c
---- a/fs/afs/write.c~afs-fix-interminable-loop-in-afs_write_back_from_l=
-ocked_page
-+++ a/fs/afs/write.c
-@@ -395,8 +395,9 @@ static int afs_write_back_from_locked_pa
- 		if (n =3D=3D 0)
- 			goto no_more;
- 		if (pages[0]->index !=3D start) {
--			for (n--; n >=3D 0; n--)
--				put_page(pages[n]);
-+			do {
-+				put_page(pages[--n]);
-+			} while (n > 0);
- 			goto no_more;
- 		}
-=20
+diff -puN drivers/message/fusion/Kconfig~use-menuconfig-objects-ii-fusion drivers/message/fusion/Kconfig
+--- a/drivers/message/fusion/Kconfig~use-menuconfig-objects-ii-fusion
++++ a/drivers/message/fusion/Kconfig
+@@ -1,11 +1,10 @@
+-
+-menu "Fusion MPT device support"
++menuconfig FUSION
++	bool "Fusion MPT device support"
+ 	depends on PCI
+-
+-config FUSION
+-	bool
+ 	default n
+ 
++if FUSION
++
+ config FUSION_SPI
+ 	tristate "Fusion MPT ScsiHost drivers for SPI"
+ 	depends on PCI && SCSI
+@@ -24,7 +23,6 @@ config FUSION_SPI
+ config FUSION_FC
+ 	tristate "Fusion MPT ScsiHost drivers for FC"
+ 	depends on PCI && SCSI
+-	select FUSION
+ 	select SCSI_FC_ATTRS
+ 	---help---
+ 	  SCSI HOST support for a Fiber Channel host adapters.
+@@ -41,7 +39,6 @@ config FUSION_FC
+ config FUSION_SAS
+ 	tristate "Fusion MPT ScsiHost drivers for SAS"
+ 	depends on PCI && SCSI
+- 	select FUSION
+ 	select SCSI_SAS_ATTRS
+ 	---help---
+ 	  SCSI HOST support for a SAS host adapters.
+@@ -55,7 +52,6 @@ config FUSION_SAS
+ 
+ config FUSION_MAX_SGE
+ 	int "Maximum number of scatter gather entries (16 - 128)"
+-	depends on FUSION
+ 	default "128"
+ 	range 16 128
+ 	help
+@@ -101,4 +97,4 @@ config FUSION_LAN
+ 
+ 	  If unsure whether you really want or need this, say N.
+ 
+-endmenu
++endif # FUSION
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-git-net.patch
-afs-fix-interminable-loop-in-afs_write_back_from_locked_page.patch
-afs-fix-a-couple-of-problems-with-unlinking-afs-files.patch
-introduce-freezer-flags-rev-2.patch
-frv-gdb-use-__maybe_unused.patch
-mutex-subsystem-synchro-test-module.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-ii-sound.patch
+git-dvb.patch
+use-menuconfig-objects-ii-ieee1394.patch
+use-menuconfig-objects-ii-infiniband.patch
+use-menuconfig-objects-ii-kvm-virt.patch
+use-menuconfig-objects-libata.patch
+use-menuconfig-objects-ide.patch
+use-menuconfig-objects-phy.patch
+use-menuconfig-objects-netdev.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+use-menuconfig-objects-ii-netdev-atm.patch
+use-menuconfig-objects-ii-netdev-pcmcia.patch
+use-menuconfig-objects-ii-netdev-wan.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-fusion.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-usb.patch
+git-watchdog.patch
+use-menuconfig-objects-crypto.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-rtc.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
