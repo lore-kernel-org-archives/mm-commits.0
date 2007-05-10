@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + time-locale-in-gen_initramfs_listsh.patch added to -mm tree
-Date: Wed, 09 May 2007 17:09:39 -0700
-Message-ID: <200705100009.l4A09dCX006523@shell0.pdx.osdl.net>
+Subject: + serial-use-resource_size_t-for-port-io-addresses.patch added to -mm tree
+Date: Wed, 09 May 2007 17:11:24 -0700
+Message-ID: <200705100011.l4A0BOOc006569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51971 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760594AbXEJAKO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:10:14 -0400
+	by vger.kernel.org with ESMTP id S1754537AbXEJAMK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:12:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian.fainelli@int-evry.fr, sam@ravnborg.org
+Cc: david@gibson.dropbear.id.au, alan@lxorguk.ukuu.org.uk, dwg@au1.ibm.com, kebkal@gmail.com, ralf@linux-mips.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     time locale in gen_initramfs_list.sh
+     serial: use resource_size_t for port IO addresses
 has been added to the -mm tree.  Its filename is
-     time-locale-in-gen_initramfs_listsh.patch
+     serial-use-resource_size_t-for-port-io-addresses.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: time locale in gen_initramfs_list.sh
-From: Florian Fainelli <florian.fainelli@int-evry.fr>
+Subject: serial: use resource_size_t for port IO addresses
+From: David Gibson <david@gibson.dropbear.id.au>
 
-I noticed that some zsh users who forced their ls formatting to something non
-standard could not generate the initramfs file list.  Forcing the locale to C
-while generating seems not to be enough.  Adding --time-style=locale will use
-C locale ls output and will let them generate the initramfs list.  It has no
-side effects for other users.
+At present, various parts of the serial code use unsigned long to define
+resource addresses.  This is a problem, because some 32-bit platforms have
+physical addresses larger than 32-bits, and have mmio serial uarts located
+above the 4GB point.
 
-Signed-off-by: Florian Fainelli <florian.fainelli@int-evry.fr>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+This patch changes the type of mapbase in both struct uart_port and struct
+plat_serial8250_port to resource_size_t, which can be configured to be 64
+bits on such platforms.  The mapbase in serial_struct can't safely be
+changed, because that structure is user visible.
+
+Signed-off-by: David Gibson <dwg@au1.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Oleksiy Kebkal <kebkal@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/8250.c        |    5 +++--
+ drivers/serial/8250_early.c  |   16 +++++++++-------
+ drivers/serial/serial_core.c |    9 +++++----
+ include/linux/serial_8250.h  |    2 +-
+ include/linux/serial_core.h  |    2 +-
+ 5 files changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN scripts/gen_initramfs_list.sh~time-locale-in-gen_initramfs_listsh scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~time-locale-in-gen_initramfs_listsh
-+++ a/scripts/gen_initramfs_list.sh
-@@ -125,7 +125,7 @@ parse() {
- 			str="${ftype} ${name} ${location} ${str}"
- 			;;
- 		"nod")
--			local dev=`LC_ALL=C ls -l "${location}"`
-+			local dev=`LC_ALL=C ls --time-style=locale -l "${location}"`
- 			local maj=`field 5 ${dev}`
- 			local min=`field 6 ${dev}`
- 			maj=${maj%,}
-@@ -135,7 +135,7 @@ parse() {
- 			str="${ftype} ${name} ${str} ${dev} ${maj} ${min}"
- 			;;
- 		"slink")
--			local target=`field 11 $(LC_ALL=C ls -l "${location}")`
-+			local target=`field 11 $(LC_ALL=C ls --time-style=locale -l "${location}")`
- 			str="${ftype} ${name} ${target} ${str}"
- 			;;
- 		*)
+diff -puN drivers/serial/8250.c~serial-use-resource_size_t-for-port-io-addresses drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-use-resource_size_t-for-port-io-addresses
++++ a/drivers/serial/8250.c
+@@ -2649,8 +2649,9 @@ static int __devinit serial8250_probe(st
+ 		ret = serial8250_register_port(&port);
+ 		if (ret < 0) {
+ 			dev_err(&dev->dev, "unable to register port at index %d "
+-				"(IO%lx MEM%lx IRQ%d): %d\n", i,
+-				p->iobase, p->mapbase, p->irq, ret);
++				"(IO%lx MEM%llx IRQ%d): %d\n", i,
++				p->iobase, (unsigned long long)p->mapbase,
++				p->irq, ret);
+ 		}
+ 	}
+ 	return 0;
+diff -puN drivers/serial/8250_early.c~serial-use-resource_size_t-for-port-io-addresses drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-use-resource_size_t-for-port-io-addresses
++++ a/drivers/serial/8250_early.c
+@@ -145,8 +145,9 @@ static int __init parse_options(struct e
+ 		port->mapbase = simple_strtoul(options + 5, &options, 0);
+ 		port->membase = ioremap(port->mapbase, mapsize);
+ 		if (!port->membase) {
+-			printk(KERN_ERR "%s: Couldn't ioremap 0x%lx\n",
+-				__FUNCTION__, port->mapbase);
++			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
++				__FUNCTION__,
++			       (unsigned long long)port->mapbase);
+ 			return -ENOMEM;
+ 		}
+ 		mmio = 1;
+@@ -168,9 +169,10 @@ static int __init parse_options(struct e
+ 			device->baud);
+ 	}
+ 
+-	printk(KERN_INFO "Early serial console at %s 0x%lx (options '%s')\n",
++	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
+ 		mmio ? "MMIO" : "I/O port",
+-		mmio ? port->mapbase : (unsigned long) port->iobase,
++		mmio ? (unsigned long long) port->mapbase
++	             : (unsigned long long) port->iobase,
+ 		device->options);
+ 	return 0;
+ }
+@@ -236,10 +238,10 @@ static int __init early_uart_console_swi
+ 	mmio = (port->iotype == UPIO_MEM);
+ 	line = serial8250_start_console(port, device->options);
+ 	if (line < 0)
+-		printk("No ttyS device at %s 0x%lx for console\n",
++		printk("No ttyS device at %s 0x%llx for console\n",
+ 			mmio ? "MMIO" : "I/O port",
+-			mmio ? port->mapbase :
+-			    (unsigned long) port->iobase);
++			mmio ? (unsigned long long) port->mapbase
++		             : (unsigned long long) port->iobase);
+ 
+ 	unregister_console(&early_uart_console);
+ 	if (mmio)
+diff -puN drivers/serial/serial_core.c~serial-use-resource_size_t-for-port-io-addresses drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-use-resource_size_t-for-port-io-addresses
++++ a/drivers/serial/serial_core.c
+@@ -626,7 +626,7 @@ static int uart_get_info(struct uart_sta
+ 	tmp.hub6	    = port->hub6;
+ 	tmp.io_type         = port->iotype;
+ 	tmp.iomem_reg_shift = port->regshift;
+-	tmp.iomem_base      = (void *)port->mapbase;
++	tmp.iomem_base      = (void *)(unsigned long)port->mapbase;
+ 
+ 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
+ 		return -EFAULT;
+@@ -1666,10 +1666,11 @@ static int uart_line_info(char *buf, str
+ 		return 0;
+ 
+ 	mmio = port->iotype >= UPIO_MEM;
+-	ret = sprintf(buf, "%d: uart:%s %s%08lX irq:%d",
++	ret = sprintf(buf, "%d: uart:%s %s%08llX irq:%d",
+ 			port->line, uart_type(port),
+ 			mmio ? "mmio:0x" : "port:",
+-			mmio ? port->mapbase : (unsigned long) port->iobase,
++			mmio ? (unsigned long long)port->mapbase
++		             : (unsigned long long) port->iobase,
+ 			port->irq);
+ 
+ 	if (port->type == PORT_UNKNOWN) {
+@@ -2063,7 +2064,7 @@ uart_report_port(struct uart_driver *drv
+ 	case UPIO_TSI:
+ 	case UPIO_DWAPB:
+ 		snprintf(address, sizeof(address),
+-			 "MMIO 0x%lx", port->mapbase);
++			 "MMIO 0x%llx", (unsigned long long)port->mapbase);
+ 		break;
+ 	default:
+ 		strlcpy(address, "*unknown*", sizeof(address));
+diff -puN include/linux/serial_8250.h~serial-use-resource_size_t-for-port-io-addresses include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~serial-use-resource_size_t-for-port-io-addresses
++++ a/include/linux/serial_8250.h
+@@ -20,7 +20,7 @@
+ struct plat_serial8250_port {
+ 	unsigned long	iobase;		/* io base address */
+ 	void __iomem	*membase;	/* ioremap cookie or NULL */
+-	unsigned long	mapbase;	/* resource base */
++	resource_size_t	mapbase;	/* resource base */
+ 	unsigned int	irq;		/* interrupt number */
+ 	unsigned int	uartclk;	/* UART clock rate */
+ 	unsigned char	regshift;	/* register shift */
+diff -puN include/linux/serial_core.h~serial-use-resource_size_t-for-port-io-addresses include/linux/serial_core.h
+--- a/include/linux/serial_core.h~serial-use-resource_size_t-for-port-io-addresses
++++ a/include/linux/serial_core.h
+@@ -279,7 +279,7 @@ struct uart_port {
+ 	const struct uart_ops	*ops;
+ 	unsigned int		custom_divisor;
+ 	unsigned int		line;			/* port index */
+-	unsigned long		mapbase;		/* for ioremap */
++	resource_size_t		mapbase;		/* for ioremap */
+ 	struct device		*dev;			/* parent device */
+ 	unsigned char		hub6;			/* this should be in the 8250 driver */
+ 	unsigned char		unused[3];
 _
 
-Patches currently in -mm which might be from florian.fainelli@int-evry.fr are
+Patches currently in -mm which might be from david@gibson.dropbear.id.au are
 
-time-locale-in-gen_initramfs_listsh.patch
-git-watchdog.patch
+origin.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
