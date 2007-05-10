@@ -1,80 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + bug-in-mm-thrashc-function-grab_swap_token.patch added to -mm tree
-Date: Thu, 10 May 2007 15:30:06 -0700
-Message-ID: <200705102230.l4AMU638032557@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-kconfig-menus-update.patch removed from -mm tree
+Date: Thu, 10 May 2007 15:32:04 -0700
+Message-ID: <200705102232.l4AMW4Yb032586@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43673 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756187AbXEJWad (ORCPT
+	by vger.kernel.org with ESMTP id S1751856AbXEJWcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 18:30:33 -0400
+	Thu, 10 May 2007 18:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mikukkon@miku.homelinux.net, mikukkon@iki.fi, riel@redhat.com
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Bug in mm/thrash.c function grab_swap_token()
-has been added to the -mm tree.  Its filename is
-     bug-in-mm-thrashc-function-grab_swap_token.patch
+     linux-kernel-markers-kconfig-menus update
+has been removed from the -mm tree.  Its filename was
+     linux-kernel-markers-kconfig-menus-update.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Bug in mm/thrash.c function grab_swap_token()
-=46rom: Mika Kukkonen <mikukkon@miku.homelinux.net>
+Subject: linux-kernel-markers-kconfig-menus update
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-=46ollowing bug was uncovered by compiling with '-W' flag:
-
-  CC      mm/thrash.o
-mm/thrash.c: In function =E2=80=98grab_swap_token=E2=80=99:
-mm/thrash.c:52: warning: comparison of unsigned expression < 0 is alway=
-s false
-
-Variable token_priority is unsigned, so decrementing first and then
-checking the result does not work; fixed by reversing the test, patch
-attached (compile tested only).
-
-I am not sure if likely() makes much sense in this new situation, but
-I'll let somebody else to make a decision on that.
-
-Signed-off-by: Mika Kukkonen <mikukkon@iki.fi>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/thrash.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ arch/avr32/Kconfig.debug |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/thrash.c~bug-in-mm-thrashc-function-grab_swap_token mm/thr=
-ash.c
---- a/mm/thrash.c~bug-in-mm-thrashc-function-grab_swap_token
-+++ a/mm/thrash.c
-@@ -48,9 +48,8 @@ void grab_swap_token(void)
- 		if (current_interval < current->mm->last_interval)
- 			current->mm->token_priority++;
- 		else {
--			current->mm->token_priority--;
--			if (unlikely(current->mm->token_priority < 0))
--				current->mm->token_priority =3D 0;
-+			if (likely(current->mm->token_priority > 0))
-+				current->mm->token_priority--;
- 		}
- 		/* Check if we deserve the token */
- 		if (current->mm->token_priority >
+diff -puN arch/avr32/Kconfig.debug~linux-kernel-markers-kconfig-menus-update arch/avr32/Kconfig.debug
+--- a/arch/avr32/Kconfig.debug~linux-kernel-markers-kconfig-menus-update
++++ a/arch/avr32/Kconfig.debug
+@@ -6,6 +6,9 @@ config TRACE_IRQFLAGS_SUPPORT
+ 
+ source "lib/Kconfig.debug"
+ 
++menu "Instrumentation Support"
++	depends on EXPERIMENTAL
++
+ config KPROBES
+ 	bool "Kprobes"
+ 	depends on DEBUG_KERNEL
+@@ -17,4 +20,8 @@ config KPROBES
+           for kernel debugging, non-intrusive instrumentation and testing.
+           If in doubt, say "N".
+ 
++source "kernel/Kconfig.marker"
++
++endmenu
++
+ endmenu
 _
 
-Patches currently in -mm which might be from mikukkon@miku.homelinux.ne=
-t are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-bug-in-mm-thrashc-function-grab_swap_token.patch
+origin.patch
+git-avr32.patch
+powerpc-promc-remove-undef-printk.patch
+linux-kernel-markers-kconfig-menus-update.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-update.patch
+linux-kernel-markers-architecture-independant-code-update-fix.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-update.patch
+linux-kernel-markers-powerpc-optimization-fix.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-update.patch
+linux-kernel-markers-non-optimized-architectures.patch
+linux-kernel-markers-non-optimized-architectures-update.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-update.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
+port-of-blktrace-to-the-linux-kernel-markers.patch
