@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ii-module-menu.patch added to -mm tree
-Date: Wed, 09 May 2007 23:17:50 -0700
-Message-ID: <200705100617.l4A6HoN6013851@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-ii-oprofile.patch added to -mm tree
+Date: Wed, 09 May 2007 23:17:52 -0700
+Message-ID: <200705100617.l4A6Hqhm013854@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45933 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755225AbXEJGSH (ORCPT
+	by vger.kernel.org with ESMTP id S1755162AbXEJGSF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 02:18:07 -0400
+	Thu, 10 May 2007 02:18:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, rusty@rustcorp.com.au
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, phil.el@wanadoo.fr
 
 
 The patch titled
-     Use menuconfig objects II - module menu
+     Use menuconfig objects II - oprofile
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ii-module-menu.patch
+     use-menuconfig-objects-ii-oprofile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - module menu
+Subject: Use menuconfig objects II - oprofile
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Change menuconfig objects from "menu, config" into "menuconfig" so that the
-user can disable the whole feature without entering its menu first.
+Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
+so that the user can disable all the options in that menu at once
+instead of having to disable each option separately.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/i386/Kconfig |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN init/Kconfig~use-menuconfig-objects-ii-module-menu init/Kconfig
---- a/init/Kconfig~use-menuconfig-objects-ii-module-menu
-+++ a/init/Kconfig
-@@ -602,9 +602,7 @@ config BASE_SMALL
- 	default 0 if BASE_FULL
- 	default 1 if !BASE_FULL
+diff -puN arch/i386/Kconfig~use-menuconfig-objects-ii-oprofile arch/i386/Kconfig
+--- a/arch/i386/Kconfig~use-menuconfig-objects-ii-oprofile
++++ a/arch/i386/Kconfig
+@@ -1216,8 +1216,12 @@ source "drivers/Kconfig"
  
--menu "Loadable module support"
--
--config MODULES
-+menuconfig MODULES
- 	bool "Enable loadable module support"
- 	help
- 	  Kernel modules are small pieces of compiled code which can
-@@ -684,6 +682,5 @@ config STOP_MACHINE
- 	depends on (SMP && MODULE_UNLOAD) || HOTPLUG_CPU
- 	help
- 	  Need stop_machine() primitive.
+ source "fs/Kconfig"
+ 
+-menu "Instrumentation Support"
++menuconfig INSTRUMENTATION
++	bool "Instrumentation Support"
+ 	depends on EXPERIMENTAL
++	default y
++
++if INSTRUMENTATION
+ 
+ source "arch/i386/oprofile/Kconfig"
+ 
+@@ -1231,7 +1235,8 @@ config KPROBES
+ 	  a probepoint and specifies the callback.  Kprobes is useful
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
 -endmenu
++
++endif # INSTRUMENTATION
  
- source "block/Kconfig"
+ source "arch/i386/Kconfig.debug"
+ 
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
