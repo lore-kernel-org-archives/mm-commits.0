@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ii-netdev-atm.patch added to -mm tree
-Date: Wed, 09 May 2007 23:17:11 -0700
-Message-ID: <200705100617.l4A6HBP8013809@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-ii-ieee1394.patch added to -mm tree
+Date: Wed, 09 May 2007 23:16:56 -0700
+Message-ID: <200705100616.l4A6Guc1013791@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53846 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753682AbXEJGRX (ORCPT
+	by vger.kernel.org with ESMTP id S1752072AbXEJGRX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 10 May 2007 02:17:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     Use menuconfig objects II - netdev/atm
+     Use menuconfig objects II - IEEE1394
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ii-netdev-atm.patch
+     use-menuconfig-objects-ii-ieee1394.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,147 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - netdev/atm
+Subject: Use menuconfig objects II - IEEE1394
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
 so that the user can disable all the options in that menu at once
 instead of having to disable each option separately.
 
+Follows Stefan's suggestion as per http://lkml.org/lkml/2007/4/28/108
+
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/Kconfig |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ drivers/ieee1394/Kconfig |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/atm/Kconfig~use-menuconfig-objects-ii-netdev-atm drivers/atm/Kconfig
---- a/drivers/atm/Kconfig~use-menuconfig-objects-ii-netdev-atm
-+++ a/drivers/atm/Kconfig
-@@ -2,19 +2,22 @@
- # ATM device configuration
- #
- 
--menu "ATM drivers"
-+menuconfig ATM_DRIVERS
-+	bool "ATM drivers"
- 	depends on NETDEVICES && ATM
+diff -puN drivers/ieee1394/Kconfig~use-menuconfig-objects-ii-ieee1394 drivers/ieee1394/Kconfig
+--- a/drivers/ieee1394/Kconfig~use-menuconfig-objects-ii-ieee1394
++++ a/drivers/ieee1394/Kconfig
+@@ -1,4 +1,8 @@
+-menu "IEEE 1394 (FireWire) support"
++menuconfig IEEE1394_SUPPORT
++	bool "IEEE 1394 (FireWire) support"
 +	default y
 +
-+if ATM_DRIVERS
++if IEEE1394_SUPPORT
  
- config ATM_DUMMY
- 	tristate "Dummy ATM driver"
--	depends on ATM
- 	help
- 	  Dummy ATM driver. Useful for proxy signalling, testing,
- 	  and development.  If unsure, say N.
+ source "drivers/firewire/Kconfig"
  
- config ATM_TCP
- 	tristate "ATM over TCP"
--	depends on INET && ATM
-+	depends on INET
- 	help
- 	  ATM over TCP driver. Useful mainly for development and for
- 	  experiments. If unsure, say N.
-@@ -30,7 +33,7 @@ config ATM_LANAI
- 
- config ATM_ENI
- 	tristate "Efficient Networks ENI155P"
--	depends on PCI && ATM
-+	depends on PCI
- 	---help---
- 	  Driver for the Efficient Networks ENI155p series and SMC ATM
- 	  Power155 155 Mbps ATM adapters. Both, the versions with 512KB and
-@@ -139,7 +142,7 @@ config ATM_ENI_BURST_RX_2W
- 
- config ATM_FIRESTREAM
- 	tristate "Fujitsu FireStream (FS50/FS155) "
--	depends on PCI && ATM
-+	depends on PCI
- 	help
- 	  Driver for the Fujitsu FireStream 155 (MB86697) and
- 	  FireStream 50 (MB86695) ATM PCI chips.
-@@ -149,7 +152,7 @@ config ATM_FIRESTREAM
- 
- config ATM_ZATM
- 	tristate "ZeitNet ZN1221/ZN1225"
--	depends on PCI && ATM
-+	depends on PCI
- 	help
- 	  Driver for the ZeitNet ZN1221 (MMF) and ZN1225 (UTP-5) 155 Mbps ATM
- 	  adapters.
-@@ -169,7 +172,7 @@ config ATM_ZATM_DEBUG
- 
- config ATM_NICSTAR
- 	tristate "IDT 77201 (NICStAR) (ForeRunnerLE)"
--	depends on PCI && ATM && !64BIT
-+	depends on PCI && !64BIT
- 	help
- 	  The NICStAR chipset family is used in a large number of ATM NICs for
- 	  25 and for 155 Mbps, including IDT cards and the Fore ForeRunnerLE
-@@ -202,7 +205,7 @@ config ATM_NICSTAR_USE_IDT77105
- 
- config ATM_IDT77252
- 	tristate "IDT 77252 (NICStAR II)"
--	depends on PCI && ATM
-+	depends on PCI
- 	help
- 	  Driver for the IDT 77252 ATM PCI chips.
- 
-@@ -237,7 +240,7 @@ config ATM_IDT77252_USE_SUNI
- 
- config ATM_AMBASSADOR
- 	tristate "Madge Ambassador (Collage PCI 155 Server)"
--	depends on PCI && ATM
-+	depends on PCI
- 	select BITREVERSE
- 	help
- 	  This is a driver for ATMizer based ATM card produced by Madge
-@@ -262,7 +265,7 @@ config ATM_AMBASSADOR_DEBUG
- 
- config ATM_HORIZON
- 	tristate "Madge Horizon [Ultra] (Collage PCI 25 and Collage PCI 155 Client)"
--	depends on PCI && ATM
-+	depends on PCI
- 	help
- 	  This is a driver for the Horizon chipset ATM adapter cards once
- 	  produced by Madge Networks Ltd. Say Y (or M to compile as a module
-@@ -286,7 +289,7 @@ config ATM_HORIZON_DEBUG
- 
- config ATM_IA
- 	tristate "Interphase ATM PCI x575/x525/x531"
--	depends on PCI && ATM && !64BIT
-+	depends on PCI && !64BIT
- 	---help---
- 	  This is a driver for the Interphase (i)ChipSAR adapter cards
- 	  which include a variety of variants in term of the size of the
-@@ -319,7 +322,7 @@ config ATM_IA_DEBUG
- 
- config ATM_FORE200E_MAYBE
- 	tristate "FORE Systems 200E-series"
--	depends on (PCI || SBUS) && ATM
-+	depends on PCI || SBUS
- 	---help---
- 	  This is a driver for the FORE Systems 200E-series ATM adapter
- 	  cards. It simultaneously supports PCA-200E and SBA-200E models
-@@ -436,7 +439,7 @@ config ATM_FORE200E
- 
- config ATM_HE
- 	tristate "ForeRunner HE Series"
--	depends on PCI && ATM
-+	depends on PCI
- 	help
- 	  This is a driver for the Marconi ForeRunner HE-series ATM adapter
- 	  cards. It simultaneously supports the 155 and 622 versions.
-@@ -448,5 +451,4 @@ config ATM_HE_USE_SUNI
- 	  Support for the S/UNI-Ultra and S/UNI-622 found in the ForeRunner
- 	  HE cards.  This driver provides carrier detection some statistics.
+@@ -146,4 +150,4 @@ config IEEE1394_RAWIO
+ 	  To compile this driver as a module, say M here: the module will be
+ 	  called raw1394.
  
 -endmenu
--
-+endif # ATM
++endif # IEEE1394_SUPPORT
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
