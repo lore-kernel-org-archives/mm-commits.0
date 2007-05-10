@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ii-ieee1394.patch added to -mm tree
-Date: Wed, 09 May 2007 23:16:56 -0700
-Message-ID: <200705100616.l4A6Guc1013791@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-ii-led.patch added to -mm tree
+Date: Wed, 09 May 2007 23:17:02 -0700
+Message-ID: <200705100617.l4A6H2Jg013800@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47250 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752072AbXEJGRX (ORCPT
+	by vger.kernel.org with ESMTP id S1752072AbXEJGRY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 02:17:23 -0400
+	Thu, 10 May 2007 02:17:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, stefanr@s5r6.in-berlin.de
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, rpurdie@rpsys.net
 
 
 The patch titled
-     Use menuconfig objects II - IEEE1394
+     Use menuconfig objects II - LED
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ii-ieee1394.patch
+     use-menuconfig-objects-ii-led.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - IEEE1394
+Subject: Use menuconfig objects II - LED
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
-so that the user can disable all the options in that menu at once
-instead of having to disable each option separately.
-
-Follows Stefan's suggestion as per http://lkml.org/lkml/2007/4/28/108
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/Kconfig |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/leds/Kconfig |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ieee1394/Kconfig~use-menuconfig-objects-ii-ieee1394 drivers/ieee1394/Kconfig
---- a/drivers/ieee1394/Kconfig~use-menuconfig-objects-ii-ieee1394
-+++ a/drivers/ieee1394/Kconfig
-@@ -1,4 +1,8 @@
--menu "IEEE 1394 (FireWire) support"
-+menuconfig IEEE1394_SUPPORT
-+	bool "IEEE 1394 (FireWire) support"
-+	default y
+diff -puN drivers/leds/Kconfig~use-menuconfig-objects-ii-led drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~use-menuconfig-objects-ii-led
++++ a/drivers/leds/Kconfig
+@@ -1,7 +1,5 @@
+ 
+-menu "LED devices"
+-
+-config NEW_LEDS
++menuconfig NEW_LEDS
+ 	bool "LED Support"
+ 	help
+ 	  Say Y to enable Linux LED support.  This allows control of supported
+@@ -10,9 +8,10 @@ config NEW_LEDS
+ 	  This is not related to standard keyboard LEDs which are controlled
+ 	  via the input system.
+ 
++if NEW_LEDS
 +
-+if IEEE1394_SUPPORT
+ config LEDS_CLASS
+ 	tristate "LED Class Support"
+-	depends on NEW_LEDS
+ 	help
+ 	  This option enables the led sysfs class in /sys/class/leds.  You'll
+ 	  need this to do anything useful with LEDs.  If unsure, say N.
+@@ -106,7 +105,6 @@ comment "LED Triggers"
  
- source "drivers/firewire/Kconfig"
- 
-@@ -146,4 +150,4 @@ config IEEE1394_RAWIO
- 	  To compile this driver as a module, say M here: the module will be
- 	  called raw1394.
+ config LEDS_TRIGGERS
+ 	bool "LED Trigger support"
+-	depends on NEW_LEDS
+ 	help
+ 	  This option enables trigger support for the leds class.
+ 	  These triggers allow kernel events to drive the LEDs and can
+@@ -135,5 +133,4 @@ config LEDS_TRIGGER_HEARTBEAT
+ 	  load average.
+ 	  If unsure, say Y.
  
 -endmenu
-+endif # IEEE1394_SUPPORT
+-
++endif # NEW_LEDS
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
