@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-tme_handler-to-check-_page_present-bit.patch added to -mm tree
-Date: Wed, 09 May 2007 22:23:49 -0700
-Message-ID: <200705100523.l4A5NnHp012959@shell0.pdx.osdl.net>
+Subject: + m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch added to -mm tree
+Date: Wed, 09 May 2007 22:23:45 -0700
+Message-ID: <200705100523.l4A5Njmh012949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59784 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755401AbXEJFYE (ORCPT
+	by vger.kernel.org with ESMTP id S1755494AbXEJFYi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:24:04 -0400
+	Thu, 10 May 2007 01:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takata@linux-m32r.org, hitoshiy@linux-m32r.org
+Cc: takata.hirokazu@renesas.com, alan@linuxcare.com.au, hitoshiy@linux-m32r.org, takata@linux-m32r.org
 
 
 The patch titled
-     m32r: fix tme_handler to check _PAGE_PRESENT bit
+     m32r: fix switch_to macro to push/pop frame pointer if needed
 has been added to the -mm tree.  Its filename is
-     m32r-fix-tme_handler-to-check-_page_present-bit.patch
+     m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: fix tme_handler to check _PAGE_PRESENT bit
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: m32r: fix switch_to macro to push/pop frame pointer if needed
+From: Hirokazu Takata <takata.hirokazu@renesas.com>
 
-Fix the tlb-miss handler (tme_handler) to check _PAGE_PRESENT bit
-in order to handle file-mapped or swapped-out pages correctly.
+This patch fixes a rarely-happened but severe scheduling problem of
+the recent m32r kernel of 2.6.17-rc3 or later.
 
-This patch is required to fix unexpected page errors for m32r.
+In the following previous m32r patch, the switch_to macro was
+modified not to do unnecessary push/pop operations for tuning.
+> [PATCH] m32r: update switch_to macro for tuning
+> 4127272c38619c56f0c1aa01d01c7bd757db70a1
+
+In this modification, only 'lr' and 'sp' registers are push/pop'ed,
+assuming that the m32r kernel is always compiled with
+-fomit-frame-pointer option.
+
+However, in 2.6 kernel, kernel/sched.c is irregularly compiled
+with -fno-omit-frame-pointer if CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER
+is not defined.
+
+ -- kernel/Makefile --
+   :
+ ifneq ($(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER),y)
+ # According to Alan Modra <alan@linuxcare.com.au>, the -fno-omit-frame-pointer is
+ # needed for x86 only.  Why this used to be enabled for all architectures is beyond
+ # me.  I suspect most platforms don't need this, but until we know that for sure
+ # I turn this off for IA-64 only.  Andreas Schwab says it's also needed on m68k
+ # to get a correct value for the wait-channel (WCHAN in ps). --davidm
+ CFLAGS_sched.o := $(PROFILING) -fno-omit-frame-pointer
+ endif
+   :
+ ---
+
+Therefore, for the recent m32r kernel, we have to push/pop 'fp'
+(frame pointer) if CONFIG_FRAME_POINTER is defined or
+CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER is not defined.
 
 Signed-off-by: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
 Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/mm/mmu.S |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ arch/m32r/Kconfig         |    4 ++++
+ include/asm-m32r/system.h |   11 +++++++++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN arch/m32r/mm/mmu.S~m32r-fix-tme_handler-to-check-_page_present-bit arch/m32r/mm/mmu.S
---- a/arch/m32r/mm/mmu.S~m32r-fix-tme_handler-to-check-_page_present-bit
-+++ a/arch/m32r/mm/mmu.S
-@@ -163,7 +163,8 @@ ENTRY(tme_handler)
+diff -puN arch/m32r/Kconfig~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if
++++ a/arch/m32r/Kconfig
+@@ -241,6 +241,10 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
  
- 	; pte_data = (unsigned long)pte_val(*pte);
- 	ld	r2, @r3			; r2: pte data
--	or3	r2, r2, #2		; _PAGE_PRESENT(=2)
-+	and3	r3, r2, #2		; _PAGE_PRESENT(=2) check
-+	beqz	r3, 3f
- 
- 	.fillinsn
- 5:
-@@ -264,11 +265,8 @@ ENTRY(tme_handler)
- ;
- 	and3	r1, r1, #0xeff
- 	ldi	r4, #611		; _KERNPG_TABLE(=611)
--	beq	r1, r4, 4f		; !pmd_bad(*pmd) ?
--	.fillinsn
--3:
--	ldi	r1, #0			; r1: pte_data = 0
--	bra	5f
-+	bne	r1, r4, 3f		; !pmd_bad(*pmd) ?
++config SCHED_NO_NO_OMIT_FRAME_POINTER
++        bool
++        default y
 +
- 	.fillinsn
- 4:
- 	; pte = pte_offset(pmd, address);
-@@ -282,8 +280,10 @@ ENTRY(tme_handler)
- 	add	r4, r3			; r4: pte
- 	; pte_data = (unsigned long)pte_val(*pte);
- 	ld	r1, @r4			; r1: pte_data
--	.fillinsn
-+	and3	r3, r1, #2		; _PAGE_PRESENT(=2) check
-+	beqz	r3, 3f
+ config PREEMPT
+ 	bool "Preemptible Kernel"
+ 	help
+diff -puN include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if include/asm-m32r/system.h
+--- a/include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if
++++ a/include/asm-m32r/system.h
+@@ -21,12 +21,22 @@
+  * `next' and `prev' should be struct task_struct, but it isn't always defined
+  */
  
-+	.fillinsn
- ;; set tlb
- ; r0: address, r1: pte_data, r2: entry
- ; r3,r4: (free)
-@@ -295,8 +295,7 @@ ENTRY(tme_handler)
- 	and3	r4, r4, #(MMU_CONTEXT_ASID_MASK)
- 	or	r3, r4
- 	st	r3, @r2
--	or3	r4, r1, #2		; _PAGE_PRESENT(=2)
--	st	r4, @(4,r2)		; set_tlb_data(entry, pte_data);
-+	st	r1, @(4,r2)		; set_tlb_data(entry, pte_data);
- 
- 	ld	r4, @sp+
- 	ld	r3, @sp+
-@@ -306,6 +305,11 @@ ENTRY(tme_handler)
- 	ld	sp, @sp+
- 	rte
- 
-+	.fillinsn
-+3:
-+	ldi	r1, #2			; r1: pte_data = 0 | _PAGE_PRESENT(=2)
-+	bra	5b
++#if defined(CONFIG_FRAME_POINTER)
++    || !defined(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER)
++#define M32R_PUSH_FP "	push fp\n"
++#define M32R_POP_FP  "	pop  fp\n"
++#else
++#define M32R_PUSH_FP ""
++#define M32R_POP_FP  ""
++#endif
 +
- #else
- #error unknown isa configuration
- #endif
+ #define switch_to(prev, next, last)  do { \
+ 	__asm__ __volatile__ ( \
+ 		"	seth	lr, #high(1f)				\n" \
+ 		"	or3	lr, lr, #low(1f)			\n" \
+ 		"	st	lr, @%4  ; store old LR			\n" \
+ 		"	ld	lr, @%5  ; load new LR			\n" \
++			M32R_PUSH_FP \
+ 		"	st	sp, @%2  ; store old SP			\n" \
+ 		"	ld	sp, @%3  ; load new SP			\n" \
+ 		"	push	%1  ; store `prev' on new stack		\n" \
+@@ -34,6 +44,7 @@
+ 		"	.fillinsn					\n" \
+ 		"1:							\n" \
+ 		"	pop	%0  ; restore `__last' from new stack	\n" \
++			M32R_POP_FP \
+ 		: "=r" (last) \
+ 		: "0" (prev), \
+ 		  "r" (&(prev->thread.sp)), "r" (&(next->thread.sp)), \
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from takata.hirokazu@renesas.com are
 
-origin.patch
 m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch
 m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
-m32r-fix-tme_handler-to-check-_page_present-bit.patch
-m32r-fix-pte_to_pgoff.patch
