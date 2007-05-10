@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch added to -mm tree
-Date: Wed, 09 May 2007 22:23:45 -0700
-Message-ID: <200705100523.l4A5Njmh012949@shell0.pdx.osdl.net>
+Subject: + add-hard_irq_disable.patch added to -mm tree
+Date: Wed, 09 May 2007 22:43:09 -0700
+Message-ID: <200705100543.l4A5h9rL013249@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42179 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755494AbXEJFYi (ORCPT
+	by vger.kernel.org with ESMTP id S1754233AbXEJFnR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:24:38 -0400
+	Thu, 10 May 2007 01:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takata.hirokazu@renesas.com, alan@linuxcare.com.au, hitoshiy@linux-m32r.org, takata@linux-m32r.org
+Cc: benh@kernel.crashing.org, paulus@samba.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     m32r: fix switch_to macro to push/pop frame pointer if needed
+     Add hard_irq_disable()
 has been added to the -mm tree.  Its filename is
-     m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch
+     add-hard_irq_disable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,102 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: fix switch_to macro to push/pop frame pointer if needed
-From: Hirokazu Takata <takata.hirokazu@renesas.com>
+Subject: Add hard_irq_disable()
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-This patch fixes a rarely-happened but severe scheduling problem of
-the recent m32r kernel of 2.6.17-rc3 or later.
+Some architectures, like powerpc, implement lazy disabling of interrupts. 
+That means that on those, local_irq_disable() doesn't actually disable
+interrupts on the CPU, but only sets some per CPU flag which cause them to be
+disabled only if an interrupt actually occurs.
 
-In the following previous m32r patch, the switch_to macro was
-modified not to do unnecessary push/pop operations for tuning.
-> [PATCH] m32r: update switch_to macro for tuning
-> 4127272c38619c56f0c1aa01d01c7bd757db70a1
+However, in some cases, such as stop_machine, we really want interrupts to be
+fully disabled.  For example, I have code using stop machine to do ECC error
+injection, used to verify operations of the ECC hardware, that sort of thing. 
+It really needs to make sure that nothing is actually writing to memory while
+the injection happens.  Similar examples can be found in other low level bits
+and pieces.
 
-In this modification, only 'lr' and 'sp' registers are push/pop'ed,
-assuming that the m32r kernel is always compiled with
--fomit-frame-pointer option.
+This patch implements a generic hard_irq_disable() function which is meant to
+be called -after- local_irq_disable() and ensures that interrupts are fully
+disabled on that CPU.  The default implementation is a nop, though powerpc
+does already provide an appropriate one.
 
-However, in 2.6 kernel, kernel/sched.c is irregularly compiled
-with -fno-omit-frame-pointer if CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER
-is not defined.
-
- -- kernel/Makefile --
-   :
- ifneq ($(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER),y)
- # According to Alan Modra <alan@linuxcare.com.au>, the -fno-omit-frame-pointer is
- # needed for x86 only.  Why this used to be enabled for all architectures is beyond
- # me.  I suspect most platforms don't need this, but until we know that for sure
- # I turn this off for IA-64 only.  Andreas Schwab says it's also needed on m68k
- # to get a correct value for the wait-channel (WCHAN in ps). --davidm
- CFLAGS_sched.o := $(PROFILING) -fno-omit-frame-pointer
- endif
-   :
- ---
-
-Therefore, for the recent m32r kernel, we have to push/pop 'fp'
-(frame pointer) if CONFIG_FRAME_POINTER is defined or
-CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER is not defined.
-
-Signed-off-by: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig         |    4 ++++
- include/asm-m32r/system.h |   11 +++++++++++
- 2 files changed, 15 insertions(+)
+ include/linux/interrupt.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/m32r/Kconfig~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if
-+++ a/arch/m32r/Kconfig
-@@ -241,6 +241,10 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
+diff -puN include/linux/interrupt.h~add-hard_irq_disable include/linux/interrupt.h
+--- a/include/linux/interrupt.h~add-hard_irq_disable
++++ a/include/linux/interrupt.h
+@@ -241,6 +241,16 @@ static inline void __deprecated save_and
+ #define save_and_cli(x)	save_and_cli(&x)
+ #endif /* CONFIG_SMP */
  
-+config SCHED_NO_NO_OMIT_FRAME_POINTER
-+        bool
-+        default y
-+
- config PREEMPT
- 	bool "Preemptible Kernel"
- 	help
-diff -puN include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if include/asm-m32r/system.h
---- a/include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if
-+++ a/include/asm-m32r/system.h
-@@ -21,12 +21,22 @@
-  * `next' and `prev' should be struct task_struct, but it isn't always defined
-  */
- 
-+#if defined(CONFIG_FRAME_POINTER)
-+    || !defined(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER)
-+#define M32R_PUSH_FP "	push fp\n"
-+#define M32R_POP_FP  "	pop  fp\n"
-+#else
-+#define M32R_PUSH_FP ""
-+#define M32R_POP_FP  ""
++/* Some architectures might implement lazy enabling/disabling of
++ * interrupts. In some cases, such as stop_machine, we might want
++ * to ensure that after a local_irq_disable(), interrupts have
++ * really been disabled in hardware. Such architectures need to
++ * implement the following hook.
++ */
++#ifndef hard_irq_disable
++#define hard_irq_disable()	do { } while(0)
 +#endif
 +
- #define switch_to(prev, next, last)  do { \
- 	__asm__ __volatile__ ( \
- 		"	seth	lr, #high(1f)				\n" \
- 		"	or3	lr, lr, #low(1f)			\n" \
- 		"	st	lr, @%4  ; store old LR			\n" \
- 		"	ld	lr, @%5  ; load new LR			\n" \
-+			M32R_PUSH_FP \
- 		"	st	sp, @%2  ; store old SP			\n" \
- 		"	ld	sp, @%3  ; load new SP			\n" \
- 		"	push	%1  ; store `prev' on new stack		\n" \
-@@ -34,6 +44,7 @@
- 		"	.fillinsn					\n" \
- 		"1:							\n" \
- 		"	pop	%0  ; restore `__last' from new stack	\n" \
-+			M32R_POP_FP \
- 		: "=r" (last) \
- 		: "0" (prev), \
- 		  "r" (&(prev->thread.sp)), "r" (&(next->thread.sp)), \
+ /* PLEASE, avoid to allocate new softirqs, if you need not _really_ high
+    frequency threaded job scheduling. For almost all the purposes
+    tasklets are more than enough. F.e. all serial device BHs et
 _
 
-Patches currently in -mm which might be from takata.hirokazu@renesas.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch
-m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if-fix.patch
+origin.patch
+do-not-select-macintosh-drivers-by-default.patch
+introduce-freezer-flags-rev-2.patch
+powerpc-fixup-hard_irq_disable-semantics.patch
+add-hard_irq_disable.patch
+stop_machine-now-uses-hard_irq_disable.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-fix.patch
