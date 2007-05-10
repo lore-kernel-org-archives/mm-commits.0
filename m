@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-paravirt-add-startup-infrastructure-for-paravirtualization.patch added to -mm tree
-Date: Wed, 09 May 2007 17:51:31 -0700
-Message-ID: <200705100051.l4A0pVA0008364@shell0.pdx.osdl.net>
+Subject: + revert-md-improve-partition-detection-in-md-array.patch added to -mm tree
+Date: Wed, 09 May 2007 17:54:29 -0700
+Message-ID: <200705100054.l4A0sTXO008412@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48866 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbXEJAw0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:52:26 -0400
+	by vger.kernel.org with ESMTP id S1759264AbXEJAyi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 20:54:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ak@suse.de, chrisw@sous-sol.org, hpa@zytor.com, jeremy@goop.org, rusty@rustcorp.com.au, zach@vmware.com
+Cc: akpm@linux-foundation.org, Nicolas.Mailhot@LaPoste.net, neilb@suse.de
 
 
 The patch titled
-     Revert "[PATCH] paravirt: Add startup infrastructure for paravirtualization"
+     revert "md: improve partition detection in md array"
 has been added to the -mm tree.  Its filename is
-     revert-paravirt-add-startup-infrastructure-for-paravirtualization.patch
+     revert-md-improve-partition-detection-in-md-array.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,162 +25,188 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Revert "[PATCH] paravirt: Add startup infrastructure for paravirtualization"
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: revert "md: improve partition detection in md array"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This reverts commit c9ccf30d77f04064fe5436027ab9d2230c7cdd94.
+Fix http://bugzilla.kernel.org/show_bug.cgi?id=8461
 
-Entering the kernel at startup_32 without passing our real mode data in
-%esi, and without guaranteeing that physical and virtual addresses are
-identity mapped makes head.S impossible to maintain.
-
-The only user of this infrastructure is lguest which is not merged so
-nothing we currently support will break by removing this over designed
-nightmare, and only the pending lguest patches will be affected.  The
-pending Xen patches have a different entry point that they use.
-
-We are currently discussing what Xen and lguest need to do to boot the
-kernel in a more normal fashion so using startup_32 in this weird manner is
-clearly not their long term direction.
-
-So let's remove this code in head.S before it causes brain damage to people
-trying to maintain head.S
-
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Zachary Amsden <zach@vmware.com>
-CC: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Nicolas Mailhot <Nicolas.Mailhot@LaPoste.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S        |   38 -------------------------------
- arch/i386/kernel/paravirt.c    |    1 
- arch/i386/kernel/vmlinux.lds.S |    6 ----
- include/asm-i386/paravirt.h    |    5 ----
- 4 files changed, 50 deletions(-)
+ drivers/md/md.c           |   26 ++++++++++++++++++--------
+ drivers/md/raid1.c        |    1 +
+ drivers/md/raid5.c        |    2 ++
+ include/linux/raid/md_k.h |    1 +
+ 4 files changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN arch/i386/kernel/head.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization
-+++ a/arch/i386/kernel/head.S
-@@ -71,12 +71,6 @@ INIT_MAP_BEYOND_END = BOOTBITMAP_SIZE + 
- .section .text.head,"ax",@progbits
- ENTRY(startup_32)
+diff -puN drivers/md/md.c~revert-md-improve-partition-detection-in-md-array drivers/md/md.c
+--- a/drivers/md/md.c~revert-md-improve-partition-detection-in-md-array
++++ a/drivers/md/md.c
+@@ -3104,7 +3104,6 @@ static int do_md_run(mddev_t * mddev)
+ 	struct gendisk *disk;
+ 	struct mdk_personality *pers;
+ 	char b[BDEVNAME_SIZE];
+-	struct block_device *bdev;
  
--#ifdef CONFIG_PARAVIRT
--        movl %cs, %eax
--        testl $0x3, %eax
--        jnz startup_paravirt
--#endif
--
- /*
-  * Set segments to known values.
-  */
-@@ -501,38 +495,6 @@ ignore_int:
- 	iret
+ 	if (list_empty(&mddev->disks))
+ 		/* cannot run an array with no devices.. */
+@@ -3332,13 +3331,7 @@ static int do_md_run(mddev_t * mddev)
+ 	md_wakeup_thread(mddev->thread);
+ 	md_wakeup_thread(mddev->sync_thread); /* possibly kick off a reshape */
  
- .section .text
--#ifdef CONFIG_PARAVIRT
--startup_paravirt:
--	cld
-- 	movl $(init_thread_union+THREAD_SIZE),%esp
+-	bdev = bdget_disk(mddev->gendisk, 0);
+-	if (bdev) {
+-		bd_set_size(bdev, mddev->array_size << 1);
+-		blkdev_ioctl(bdev->bd_inode, NULL, BLKRRPART, 0);
+-		bdput(bdev);
+-	}
 -
--	/* We take pains to preserve all the regs. */
--	pushl	%edx
--	pushl	%ecx
--	pushl	%eax
--
--	pushl	$__start_paravirtprobe
--1:
--	movl	0(%esp), %eax
--	cmpl	$__stop_paravirtprobe, %eax
--	je	unhandled_paravirt
--	pushl	(%eax)
--	movl	8(%esp), %eax
--	call	*(%esp)
--	popl	%eax
--
--	movl	4(%esp), %eax
--	movl	8(%esp), %ecx
--	movl	12(%esp), %edx
--
--	addl	$4, (%esp)
--	jmp	1b
--
--unhandled_paravirt:
--	/* Nothing wanted us: we're screwed. */
--	ud2
--#endif
--
- /*
-  * Real beginning of normal "text" segment
-  */
-diff -puN arch/i386/kernel/paravirt.c~revert-paravirt-add-startup-infrastructure-for-paravirtualization arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~revert-paravirt-add-startup-infrastructure-for-paravirtualization
-+++ a/arch/i386/kernel/paravirt.c
-@@ -19,7 +19,6 @@
- #include <linux/module.h>
- #include <linux/efi.h>
- #include <linux/bcd.h>
--#include <linux/start_kernel.h>
- #include <linux/highmem.h>
++	mddev->changed = 1;
+ 	md_new_event(mddev);
+ 	kobject_uevent(&mddev->gendisk->kobj, KOBJ_CHANGE);
+ 	return 0;
+@@ -3460,6 +3453,7 @@ static int do_md_stop(mddev_t * mddev, i
+ 			mddev->pers = NULL;
  
- #include <asm/bug.h>
-diff -puN arch/i386/kernel/vmlinux.lds.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~revert-paravirt-add-startup-infrastructure-for-paravirtualization
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -80,12 +80,6 @@ SECTIONS
- 	CONSTRUCTORS
- 	} :data
+ 			set_capacity(disk, 0);
++			mddev->changed = 1;
  
--  .paravirtprobe : AT(ADDR(.paravirtprobe) - LOAD_OFFSET) {
--  	__start_paravirtprobe = .;
--	*(.paravirtprobe)
--  	__stop_paravirtprobe = .;
--  }
--
-   . = ALIGN(4096);
-   .data_nosave : AT(ADDR(.data_nosave) - LOAD_OFFSET) {
-   	__nosave_begin = .;
-diff -puN include/asm-i386/paravirt.h~revert-paravirt-add-startup-infrastructure-for-paravirtualization include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~revert-paravirt-add-startup-infrastructure-for-paravirtualization
-+++ a/include/asm-i386/paravirt.h
-@@ -222,11 +222,6 @@ struct paravirt_ops
- 	void (*iret)(void);
+ 			if (mddev->ro)
+ 				mddev->ro = 0;
+@@ -4599,6 +4593,20 @@ static int md_release(struct inode *inod
+ 	return 0;
+ }
+ 
++static int md_media_changed(struct gendisk *disk)
++{
++	mddev_t *mddev = disk->private_data;
++
++	return mddev->changed;
++}
++
++static int md_revalidate(struct gendisk *disk)
++{
++	mddev_t *mddev = disk->private_data;
++
++	mddev->changed = 0;
++	return 0;
++}
+ static struct block_device_operations md_fops =
+ {
+ 	.owner		= THIS_MODULE,
+@@ -4606,6 +4614,8 @@ static struct block_device_operations md
+ 	.release	= md_release,
+ 	.ioctl		= md_ioctl,
+ 	.getgeo		= md_getgeo,
++	.media_changed	= md_media_changed,
++	.revalidate_disk= md_revalidate,
  };
  
--/* Mark a paravirt probe function. */
--#define paravirt_probe(fn)						\
-- static asmlinkage void (*__paravirtprobe_##fn)(void) __attribute_used__ \
--		__attribute__((__section__(".paravirtprobe"))) = fn
--
- extern struct paravirt_ops paravirt_ops;
+ static int md_thread(void * arg)
+diff -puN drivers/md/raid1.c~revert-md-improve-partition-detection-in-md-array drivers/md/raid1.c
+--- a/drivers/md/raid1.c~revert-md-improve-partition-detection-in-md-array
++++ a/drivers/md/raid1.c
+@@ -2063,6 +2063,7 @@ static int raid1_resize(mddev_t *mddev, 
+ 	 */
+ 	mddev->array_size = sectors>>1;
+ 	set_capacity(mddev->gendisk, mddev->array_size << 1);
++	mddev->changed = 1;
+ 	if (mddev->array_size > mddev->size && mddev->recovery_cp == MaxSector) {
+ 		mddev->recovery_cp = mddev->size << 1;
+ 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+diff -puN drivers/md/raid5.c~revert-md-improve-partition-detection-in-md-array drivers/md/raid5.c
+--- a/drivers/md/raid5.c~revert-md-improve-partition-detection-in-md-array
++++ a/drivers/md/raid5.c
+@@ -4514,6 +4514,7 @@ static int raid5_resize(mddev_t *mddev, 
+ 	sectors &= ~((sector_t)mddev->chunk_size/512 - 1);
+ 	mddev->array_size = (sectors * (mddev->raid_disks-conf->max_degraded))>>1;
+ 	set_capacity(mddev->gendisk, mddev->array_size << 1);
++	mddev->changed = 1;
+ 	if (sectors/2  > mddev->size && mddev->recovery_cp == MaxSector) {
+ 		mddev->recovery_cp = mddev->size << 1;
+ 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+@@ -4648,6 +4649,7 @@ static void end_reshape(raid5_conf_t *co
+ 		conf->mddev->array_size = conf->mddev->size *
+ 			(conf->raid_disks - conf->max_degraded);
+ 		set_capacity(conf->mddev->gendisk, conf->mddev->array_size << 1);
++		conf->mddev->changed = 1;
  
- #define PARAVIRT_PATCH(x)					\
+ 		bdev = bdget_disk(conf->mddev->gendisk, 0);
+ 		if (bdev) {
+diff -puN include/linux/raid/md_k.h~revert-md-improve-partition-detection-in-md-array include/linux/raid/md_k.h
+--- a/include/linux/raid/md_k.h~revert-md-improve-partition-detection-in-md-array
++++ a/include/linux/raid/md_k.h
+@@ -201,6 +201,7 @@ struct mddev_s
+ 	struct mutex			reconfig_mutex;
+ 	atomic_t			active;
+ 
++	int				changed;	/* true if we might need to reread partition info */
+ 	int				degraded;	/* whether md should consider
+ 							 * adding a spare
+ 							 */
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-iop13xx-msi-support-rev6.patch
-dvb_en_50221-convert-to-kthread-api.patch
-fix-i-oat-for-kexec.patch
-pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
-i386-irq-kill-irq-compression.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
-revert-paravirt-add-startup-infrastructure-for-paravirtualization.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
+revert-md-improve-partition-detection-in-md-array.patch
