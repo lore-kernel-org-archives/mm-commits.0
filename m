@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-write_trylock_irqsave-in-ptrace_attach-fix.patch added to -mm tree
-Date: Wed, 09 May 2007 18:50:19 -0700
-Message-ID: <200705100150.l4A1oJ7C009317@shell0.pdx.osdl.net>
+Subject: + introduce-write_trylock_irqsave.patch added to -mm tree
+Date: Wed, 09 May 2007 18:50:16 -0700
+Message-ID: <200705100150.l4A1oG0E009311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38098 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbXEJBu1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 21:50:27 -0400
+	by vger.kernel.org with ESMTP id S1752573AbXEJBuf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 21:50:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sripathik@in.ibm.com
+Cc: sripathik@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru
 
 
 The patch titled
-     use-write_trylock_irqsave-in-ptrace_attach-fix
+     Introduce write_trylock_irqsave
 has been added to the -mm tree.  Its filename is
-     use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+     introduce-write_trylock_irqsave.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use-write_trylock_irqsave-in-ptrace_attach-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Introduce write_trylock_irqsave
+From: Sripathi Kodi <sripathik@in.ibm.com>
 
-Cc: Sripathi Kodi <sripathik@in.ibm.com>
+I am trying to fix the BUG I mentioned here:
+http://lkml.org/lkml/2007/04/20/41. I noticed that an elegant way to solve
+this problem is to have a write_trylock_irqsave helper function. Since we
+don't have this now, the code in ptrace_attach  implements it using
+local_irq_disable and write_trylock. I wish to add write_trylock_irqsave to
+mainline kernel and then fix the -rt specific problem using this.
+
+The patch below adds write_trylock_irqsave function.
+
+Signed-off-by: Sripathi Kodi <sripathik@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/spinlock.h         |    2 ++
+ include/linux/spinlock_api_smp.h |    1 +
+ include/linux/spinlock_api_up.h  |    2 ++
+ kernel/spinlock.c                |   14 ++++++++++++++
+ 4 files changed, 19 insertions(+)
 
-diff -puN kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach-fix kernel/ptrace.c
---- a/kernel/ptrace.c~use-write_trylock_irqsave-in-ptrace_attach-fix
-+++ a/kernel/ptrace.c
-@@ -160,7 +160,7 @@ int ptrace_may_attach(struct task_struct
- int ptrace_attach(struct task_struct *task)
- {
- 	int retval;
--	unsigned long flags = 0;
-+	unsigned long flags;
+diff -puN include/linux/spinlock.h~introduce-write_trylock_irqsave include/linux/spinlock.h
+--- a/include/linux/spinlock.h~introduce-write_trylock_irqsave
++++ a/include/linux/spinlock.h
+@@ -171,6 +171,8 @@ do {								\
+ #define spin_trylock(lock)		__cond_lock(lock, _spin_trylock(lock))
+ #define read_trylock(lock)		__cond_lock(lock, _read_trylock(lock))
+ #define write_trylock(lock)		__cond_lock(lock, _write_trylock(lock))
++#define write_trylock_irqsave(lock, flags) \
++		__cond_lock(lock, _write_trylock_irqsave(lock, flags))
  
- 	retval = -EPERM;
- 	if (task->pid <= 1)
+ #define spin_lock(lock)			_spin_lock(lock)
+ 
+diff -puN include/linux/spinlock_api_smp.h~introduce-write_trylock_irqsave include/linux/spinlock_api_smp.h
+--- a/include/linux/spinlock_api_smp.h~introduce-write_trylock_irqsave
++++ a/include/linux/spinlock_api_smp.h
+@@ -41,6 +41,7 @@ unsigned long __lockfunc _write_lock_irq
+ int __lockfunc _spin_trylock(spinlock_t *lock);
+ int __lockfunc _read_trylock(rwlock_t *lock);
+ int __lockfunc _write_trylock(rwlock_t *lock);
++int __lockfunc _write_trylock_irqsave(rwlock_t *lock, unsigned long flags);
+ int __lockfunc _spin_trylock_bh(spinlock_t *lock);
+ void __lockfunc _spin_unlock(spinlock_t *lock)		__releases(lock);
+ void __lockfunc _read_unlock(rwlock_t *lock)		__releases(lock);
+diff -puN include/linux/spinlock_api_up.h~introduce-write_trylock_irqsave include/linux/spinlock_api_up.h
+--- a/include/linux/spinlock_api_up.h~introduce-write_trylock_irqsave
++++ a/include/linux/spinlock_api_up.h
+@@ -64,6 +64,8 @@
+ #define _spin_trylock(lock)			({ __LOCK(lock); 1; })
+ #define _read_trylock(lock)			({ __LOCK(lock); 1; })
+ #define _write_trylock(lock)			({ __LOCK(lock); 1; })
++#define _write_trylock_irqsave(lock, flags) \
++				({ __LOCK_IRQSAVE(lock, flags); 1; })
+ #define _spin_trylock_bh(lock)			({ __LOCK_BH(lock); 1; })
+ #define _spin_unlock(lock)			__UNLOCK(lock)
+ #define _read_unlock(lock)			__UNLOCK(lock)
+diff -puN kernel/spinlock.c~introduce-write_trylock_irqsave kernel/spinlock.c
+--- a/kernel/spinlock.c~introduce-write_trylock_irqsave
++++ a/kernel/spinlock.c
+@@ -60,6 +60,20 @@ int __lockfunc _write_trylock(rwlock_t *
+ }
+ EXPORT_SYMBOL(_write_trylock);
+ 
++int __lockfunc _write_trylock_irqsave(rwlock_t *lock, unsigned long flags)
++{
++	int ret;
++
++	local_irq_save(flags);
++	ret = _write_trylock(lock);
++	if (ret)
++		return ret;
++
++	local_irq_restore(flags);
++	return 0;
++}
++EXPORT_SYMBOL(_write_trylock_irqsave);
++
+ /*
+  * If lockdep is enabled then we use the non-preemption spin-ops
+  * even on CONFIG_PREEMPT, because lockdep assumes that interrupts are
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sripathik@in.ibm.com are
 
-origin.patch
-revert-md-improve-partition-detection-in-md-array.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ia64-sa_interrupt-is-deprecated.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
-x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-upper-32-bits.patch
-lib-hexdump.patch
+introduce-write_trylock_irqsave.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-tty-add-compat_ioctl.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-ntfs-use-zero_user_page.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
