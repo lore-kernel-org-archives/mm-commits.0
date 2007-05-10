@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-expose-an-to-user-space.patch added to -mm tree
-Date: Wed, 09 May 2007 22:12:26 -0700
-Message-ID: <200705100512.l4A5CQF2012736@shell0.pdx.osdl.net>
+Subject: + v4l-saa7134-add-support-for-10moons-tm300-card.patch added to -mm tree
+Date: Wed, 09 May 2007 22:19:02 -0700
+Message-ID: <200705100519.l4A5J2WI012864@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36230 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755412AbXEJFMe (ORCPT
+	by vger.kernel.org with ESMTP id S1754540AbXEJFTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 01:12:34 -0400
+	Thu, 10 May 2007 01:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com
+Cc: wankai@sjtu.org, mchehab@infradead.org
 
 
 The patch titled
-     libata: expose AN to user space
+     v4l: saa7134: add support for 10moons TM300 card
 has been added to the -mm tree.  Its filename is
-     libata-expose-an-to-user-space.patch
+     v4l-saa7134-add-support-for-10moons-tm300-card.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: expose AN to user space
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: v4l: saa7134: add support for 10moons TM300 card
+From: Tony Wan <wankai@sjtu.org>
 
-If Asynchronous Notification of media change events is supported, pass that
-information up to the SCSI layer.
+Support the 10moons TM300 TV card (so called TV Master 3), which is a 10moons
+saa7130 based board.  Here not include features for the IR-remote.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+It has been tested using TVTIME.  The card was auto-detected and all the input
+sources worked correct with sound.
+
+Signed-off-by: Tony Wan <wankai@sjtu.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/video/saa7134/saa7134-cards.c |   38 ++++++++++++++++++
+ drivers/media/video/saa7134/saa7134.h       |    1 
+ 2 files changed, 39 insertions(+)
 
-diff -puN drivers/ata/libata-scsi.c~libata-expose-an-to-user-space drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata-expose-an-to-user-space
-+++ a/drivers/ata/libata-scsi.c
-@@ -899,6 +899,9 @@ static void ata_scsi_dev_config(struct s
- 		blk_queue_max_hw_segments(q, q->max_hw_segments - 1);
- 	}
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-add-support-for-10moons-tm300-card drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-add-support-for-10moons-tm300-card
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -3502,6 +3502,38 @@ struct saa7134_board saa7134_boards[] = 
+ 			.amux = TV,
+ 		},
+ 	},
++	[SAA7134_BOARD_10MOONSTVMASTER3] = {
++		/* Tony Wan <aloha_cn@hotmail.com> */
++		.name           = "10MOONS TM300 TV Card",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_LG_PAL_NEW_TAPC,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.gpiomask       = 0x7000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = LINE2,
++			.gpio = 0x0000,
++			.tv   = 1,
++		},{
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE1,
++			.gpio = 0x2000,
++		},{
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++			.gpio = 0x2000,
++		}},
++		.mute = {
++			.name = name_mute,
++			.amux = LINE2,
++			.gpio = 0x3000,
++		},
++	},
+ };
  
-+	if (dev->flags & ATA_DFLAG_AN)
-+		sdev->media_change_notify = 1;
-+
- 	if (dev->flags & ATA_DFLAG_NCQ) {
- 		int depth;
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -4219,6 +4251,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 		.subdevice    = 0x2003, /* OEM cardbus */
+ 		.driver_data  = SAA7134_BOARD_SABRENT_TV_PCB05,
+ 	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = PCI_VENDOR_ID_PHILIPS,
++		.subdevice    = 0x2304,
++		.driver_data  = SAA7134_BOARD_10MOONSTVMASTER3,
++	},{
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+diff -puN drivers/media/video/saa7134/saa7134.h~v4l-saa7134-add-support-for-10moons-tm300-card drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~v4l-saa7134-add-support-for-10moons-tm300-card
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -238,6 +238,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_ECS_TVP3XP_4CB6  113
+ #define SAA7134_BOARD_KWORLD_DVBT_210 114
+ #define SAA7134_BOARD_SABRENT_TV_PCB05     115
++#define SAA7134_BOARD_10MOONSTVMASTER3     116
  
+ #define SAA7134_MAXBOARDS 8
+ #define SAA7134_INPUT_MAX 8
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from wankai@sjtu.org are
 
-origin.patch
-acpi-dock-cleanup-the-uid-patch.patch
-acpi-dock-fix-opps-after-dock-driver-fails-to-initialize.patch
-acpi-dock-use-dynamically-allocated-platform-device.patch
-acpi-dock-add-immediate_undock-option.patch
-acpi-dock-unsuppress-uevents.patch
-acpi-dock-send-envp-with-uevent.patch
-acpi-bay-unsuppress-uevents.patch
-libata-check-for-an-support.patch
-genhd-expose-an-to-user-space.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-genhd-send-async-notification-on-media-change.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
+v4l-saa7134-add-support-for-10moons-tm300-card.patch
+v4l-saa7134-enable-ir-remote-for-10moons-tm300-card.patch
+v4l-enlarge-the-size-of-ir-key-table-to-256.patch
