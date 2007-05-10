@@ -1,23 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-jdelvare-i2c-i2c-at91-support-new-style-binding.patch added to -mm tree
-Date: Wed, 09 May 2007 20:51:59 -0700
-Message-ID: <200705100351.l4A3pxl4011367@shell0.pdx.osdl.net>
+Subject: + uml-use-um_thread_size-in-userspace-code.patch added to -mm tree
+Date: Wed, 09 May 2007 21:07:58 -0700
+Message-ID: <200705100407.l4A47wmt011603@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45513 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754410AbXEJDwc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 23:52:32 -0400
+	by vger.kernel.org with ESMTP id S1757336AbXEJEIB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 10 May 2007 00:08:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, david-b@pacbell.net, khali@linux-fr.org
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     i2c-at91: compile fix (IS_ERR)
+     uml: use UM_THREAD_SIZE in userspace code
 has been added to the -mm tree.  Its filename is
-     fix-jdelvare-i2c-i2c-at91-support-new-style-binding.patch
+     uml-use-um_thread_size-in-userspace-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c-at91: compile fix (IS_ERR)
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: uml: use UM_THREAD_SIZE in userspace code
+From: Jeff Dike <jdike@addtoit.com>
 
-  CC      drivers/i2c/busses/i2c-at91.o
-drivers/i2c/busses/i2c-at91.c: In function 'at91_i2c_probe':
-drivers/i2c/busses/i2c-at91.c:213: warning: implicit declaration of function 'IS_ERR'
+Now that we have UM_THREAD_SIZE, we can replace the calculations in
+user-space code (an earlier patch took care of the kernel side of the
+house).
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-at91.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/kernel/init_task.c      |    3 +--
+ arch/um/os-Linux/skas/process.c |    7 +++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-at91.c~fix-jdelvare-i2c-i2c-at91-support-new-style-binding drivers/i2c/busses/i2c-at91.c
---- a/drivers/i2c/busses/i2c-at91.c~fix-jdelvare-i2c-i2c-at91-support-new-style-binding
-+++ a/drivers/i2c/busses/i2c-at91.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/version.h>
- #include <linux/kernel.h>
-+#include <linux/err.h>
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/delay.h>
+diff -puN arch/um/kernel/init_task.c~uml-use-um_thread_size-in-userspace-code arch/um/kernel/init_task.c
+--- a/arch/um/kernel/init_task.c~uml-use-um_thread_size-in-userspace-code
++++ a/arch/um/kernel/init_task.c
+@@ -44,8 +44,7 @@ __attribute__((__section__(".data.init_t
+ 
+ void unprotect_stack(unsigned long stack)
+ {
+-	os_protect_memory((void *) stack, (1 << CONFIG_KERNEL_STACK_ORDER) * PAGE_SIZE,
+-		       1, 1, 0);
++	os_protect_memory((void *) stack, THREAD_SIZE, 1, 1, 0);
+ }
+ 
+ /*
+diff -puN arch/um/os-Linux/skas/process.c~uml-use-um_thread_size-in-userspace-code arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-use-um_thread_size-in-userspace-code
++++ a/arch/um/os-Linux/skas/process.c
+@@ -490,8 +490,8 @@ void map_stub_pages(int fd, unsigned lon
+ void new_thread(void *stack, jmp_buf *buf, void (*handler)(void))
+ {
+ 	(*buf)[0].JB_IP = (unsigned long) handler;
+-	(*buf)[0].JB_SP = (unsigned long) stack +
+-		(PAGE_SIZE << UML_CONFIG_KERNEL_STACK_ORDER) - sizeof(void *);
++	(*buf)[0].JB_SP = (unsigned long) stack + UM_THREAD_SIZE -
++		sizeof(void *);
+ }
+ 
+ #define INIT_JMP_NEW_THREAD 0
+@@ -533,8 +533,7 @@ int start_idle_thread(void *stack, jmp_b
+ 	case INIT_JMP_NEW_THREAD:
+ 		(*switch_buf)[0].JB_IP = (unsigned long) new_thread_handler;
+ 		(*switch_buf)[0].JB_SP = (unsigned long) stack +
+-			(PAGE_SIZE << UML_CONFIG_KERNEL_STACK_ORDER) -
+-			sizeof(void *);
++			UM_THREAD_SIZE - sizeof(void *);
+ 		break;
+ 	case INIT_JMP_CALLBACK:
+ 		(*cb_proc)(cb_arg);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-dvb.patch
-fix-jdelvare-i2c-i2c-at91-support-new-style-binding.patch
-pata_scc-fix-compilation.patch
-git-parisc.patch
-git-watchdog.patch
+uml-remove-task_protections.patch
+uml-use-um_thread_size-in-userspace-code.patch
+uml-tidy-irq-code.patch
+uml-irq-stacks.patch
+uml-monitor-stack-usage.patch
+uml-shrink-kernel-stacks.patch
