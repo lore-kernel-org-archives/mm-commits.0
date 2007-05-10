@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + use-defines-in-sys_getpriority-sys_setpriority-fix.patch added to -mm tree
-Date: Thu, 10 May 2007 16:48:32 -0700
-Message-ID: <200705102348.l4ANmWQT001680@shell0.pdx.osdl.net>
+Subject: + submitchecklist-add-W-help.patch added to -mm tree
+Date: Thu, 10 May 2007 16:55:11 -0700
+Message-ID: <200705102355.l4ANtBUe001787@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58889 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762710AbXEJXsq (ORCPT
+	by vger.kernel.org with ESMTP id S1754891AbXEJXzO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 19:48:46 -0400
+	Thu, 10 May 2007 19:55:14 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4ANtCw4009394
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 10 May 2007 16:55:13 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwalker@mvista.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     use-defines-in-sys_getpriority-sys_setpriority-fix
+     SubmitChecklist: add -W help
 has been added to the -mm tree.  Its filename is
-     use-defines-in-sys_getpriority-sys_setpriority-fix.patch
+     submitchecklist-add-W-help.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +30,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use-defines-in-sys_getpriority-sys_setpriority-fix
+Subject: SubmitChecklist: add -W help
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Help people to work out how to use `gcc -W'.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 +
- 1 files changed, 1 insertion(+)
+ Documentation/SubmitChecklist |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sys.c~use-defines-in-sys_getpriority-sys_setpriority-fix kernel/sys.c
---- a/kernel/sys.c~use-defines-in-sys_getpriority-sys_setpriority-fix
-+++ a/kernel/sys.c
-@@ -14,6 +14,7 @@
- #include <linux/prctl.h>
- #include <linux/highuid.h>
- #include <linux/fs.h>
-+#include <linux/resource.h>
- #include <linux/kernel.h>
- #include <linux/kexec.h>
- #include <linux/workqueue.h>
+diff -puN Documentation/SubmitChecklist~submitchecklist-add-W-help Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~submitchecklist-add-W-help
++++ a/Documentation/SubmitChecklist
+@@ -73,9 +73,9 @@ kernel patches.
+     If the new code is substantial, addition of subsystem-specific fault
+     injection might be appropriate.
+ 
+-22: Newly-added code has been compiled with `gcc -W'.  This will generate
+-    lots of noise, but is good for finding bugs like "warning: comparison
+-    between signed and unsigned".
++22: Newly-added code has been compiled with `gcc -W' (use "make
++    EXTRA_CFLAGS=-W").  This will generate lots of noise, but is good for
++    finding bugs like "warning: comparison between signed and unsigned".
+ 
+ 23: Tested after it has been merged into the -mm patchset to make sure
+     that it still works with all of the other queued patches and various
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +114,7 @@ add-lzo1x-compression-support-to-the-kernel-fix.patch
 use-no_pci_devices-in-pci-searchc.patch
 introduce-boot-based-time-fix.patch
 use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+submitchecklist-add-W-help.patch
 tty-add-compat_ioctl.patch
 mpc52xx-psc-spi-master-driver-update-tidy.patch
 use-defines-in-sys_getpriority-sys_setpriority-fix.patch
