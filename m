@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ii-oprofile.patch added to -mm tree
-Date: Wed, 09 May 2007 23:17:52 -0700
-Message-ID: <200705100617.l4A6Hqhm013854@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-ii-ipmi.patch added to -mm tree
+Date: Wed, 09 May 2007 23:17:47 -0700
+Message-ID: <200705100617.l4A6HlID013845@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45286 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755162AbXEJGSF (ORCPT
+	by vger.kernel.org with ESMTP id S1755230AbXEJGSJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 02:18:05 -0400
+	Thu, 10 May 2007 02:18:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, phil.el@wanadoo.fr
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, minyard@acm.org
 
 
 The patch titled
-     Use menuconfig objects II - oprofile
+     Use menuconfig objects II - IPMI
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ii-oprofile.patch
+     use-menuconfig-objects-ii-ipmi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - oprofile
+Subject: Use menuconfig objects II - IPMI
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
-so that the user can disable all the options in that menu at once
-instead of having to disable each option separately.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Philippe Elie <phil.el@wanadoo.fr>
+Acked-by: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/char/ipmi/Kconfig |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN arch/i386/Kconfig~use-menuconfig-objects-ii-oprofile arch/i386/Kconfig
---- a/arch/i386/Kconfig~use-menuconfig-objects-ii-oprofile
-+++ a/arch/i386/Kconfig
-@@ -1216,8 +1216,12 @@ source "drivers/Kconfig"
+diff -puN drivers/char/ipmi/Kconfig~use-menuconfig-objects-ii-ipmi drivers/char/ipmi/Kconfig
+--- a/drivers/char/ipmi/Kconfig~use-menuconfig-objects-ii-ipmi
++++ a/drivers/char/ipmi/Kconfig
+@@ -2,8 +2,7 @@
+ # IPMI device configuration
+ #
  
- source "fs/Kconfig"
+-menu "IPMI"
+-config IPMI_HANDLER
++menuconfig IPMI_HANDLER
+        tristate 'IPMI top-level message handler'
+        help
+          This enables the central IPMI message handler, required for IPMI
+@@ -16,9 +15,10 @@ config IPMI_HANDLER
  
--menu "Instrumentation Support"
-+menuconfig INSTRUMENTATION
-+	bool "Instrumentation Support"
- 	depends on EXPERIMENTAL
-+	default y
+ 	 If unsure, say N.
+ 
++if IPMI_HANDLER
 +
-+if INSTRUMENTATION
+ config IPMI_PANIC_EVENT
+        bool 'Generate a panic event to all BMCs on a panic'
+-       depends on IPMI_HANDLER
+        help
+          When a panic occurs, this will cause the IPMI message handler to
+ 	 generate an IPMI event describing the panic to each interface
+@@ -38,14 +38,12 @@ config IPMI_PANIC_STRING
  
- source "arch/i386/oprofile/Kconfig"
+ config IPMI_DEVICE_INTERFACE
+        tristate 'Device interface for IPMI'
+-       depends on IPMI_HANDLER
+        help
+          This provides an IOCTL interface to the IPMI message handler so
+ 	 userland processes may use IPMI.  It supports poll() and select().
  
-@@ -1231,7 +1235,8 @@ config KPROBES
- 	  a probepoint and specifies the callback.  Kprobes is useful
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
+ config IPMI_SI
+        tristate 'IPMI System Interface handler'
+-       depends on IPMI_HANDLER
+        help
+          Provides a driver for System Interfaces (KCS, SMIC, BT).
+ 	 Currently, only KCS and SMIC are supported.  If
+@@ -53,15 +51,13 @@ config IPMI_SI
+ 
+ config IPMI_WATCHDOG
+        tristate 'IPMI Watchdog Timer'
+-       depends on IPMI_HANDLER
+        help
+          This enables the IPMI watchdog timer.
+ 
+ config IPMI_POWEROFF
+        tristate 'IPMI Poweroff'
+-       depends on IPMI_HANDLER
+        help
+          This enables a function to power off the system with IPMI if
+ 	 the IPMI management controller is capable of this.
+ 
 -endmenu
-+
-+endif # INSTRUMENTATION
- 
- source "arch/i386/Kconfig.debug"
- 
++endif # IPMI_HANDLER
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
