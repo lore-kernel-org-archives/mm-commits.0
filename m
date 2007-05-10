@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-lzo1x-compression-support-to-the-kernel-fix.patch added to -mm tree
-Date: Thu, 10 May 2007 02:36:58 -0700
-Message-ID: <200705100939.l4A9dvfk017359@shell0.pdx.osdl.net>
+Subject: + i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 02:38:12 -0700
+Message-ID: <200705100941.l4A9fBTU017378@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58171 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751704AbXEJJkN (ORCPT
+	by vger.kernel.org with ESMTP id S1753978AbXEJJlT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 05:40:13 -0400
+	Thu, 10 May 2007 05:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, rpurdie@openedhand.com
+Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca
 
 
 The patch titled
-     add-lzo1x-compression-support-to-the-kernel-fix
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
 has been added to the -mm tree.  Its filename is
-     add-lzo1x-compression-support-to-the-kernel-fix.patch
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-lzo1x-compression-support-to-the-kernel-fix
+Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/lzo/lzointf.c:36: error: expected ',' or ';' before 'static'
+drivers/i2c/chips/ds1682.c:38:1: warning: "DEBUG" redefined
+<command line>:1:1: warning: this is the location of the previous definition
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Richard Purdie <rpurdie@openedhand.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lzo/lzointf.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/ds1682.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN lib/lzo/lzointf.c~add-lzo1x-compression-support-to-the-kernel-fix lib/lzo/lzointf.c
---- a/lib/lzo/lzointf.c~add-lzo1x-compression-support-to-the-kernel-fix
-+++ a/lib/lzo/lzointf.c
-@@ -32,6 +32,5 @@ EXPORT_SYMBOL_GPL(lzo1x_1_compress);
- EXPORT_SYMBOL_GPL(lzo1x_decompress);
- EXPORT_SYMBOL_GPL(lzo1x_decompress_safe);
+diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix drivers/i2c/chips/ds1682.c
+--- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
++++ a/drivers/i2c/chips/ds1682.c
+@@ -35,8 +35,6 @@
+  *
+  */
  
--MODULE_LICENSE("GPL")
--MODULE_DESCRIPTION("LZO compression library")
+-#define DEBUG
 -
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("LZO compression library");
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +64,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-avr32.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
 git-hid-fixup.patch
 git-ia64-sa_interrupt-is-deprecated.patch
 sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
