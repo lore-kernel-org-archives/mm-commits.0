@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-check-for-allocated-memory-for-data-of-new-inodes.patch added to -mm tree
-Date: Fri, 11 May 2007 12:17:11 -0700
-Message-ID: <200705111917.l4BJHBtI024242@shell0.pdx.osdl.net>
+Subject: + alpha-misc-fixes.patch added to -mm tree
+Date: Fri, 11 May 2007 12:15:44 -0700
+Message-ID: <200705111915.l4BJFiE0024207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51831 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763613AbXEKTRr (ORCPT
+	by vger.kernel.org with ESMTP id S1758914AbXEKTS1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:17:47 -0400
+	Fri, 11 May 2007 15:18:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, hch@lst.de, jack@ucw.cz
+Cc: jay.estabrook@hp.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     UDF: check for allocated memory for data of new inodes
+     ALPHA: misc fixes
 has been added to the -mm tree.  Its filename is
-     udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+     alpha-misc-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: UDF: check for allocated memory for data of new inodes
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: ALPHA: misc fixes
+From: Jay Estabrook <jay.estabrook@hp.com>
 
-Add checking for granted memory for inode data at the moment of its
-creation.
+1. arch/alpha/Kconfig
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Christoph Hellwig <hch@lst.de>
+   several adjustments:
+      a) additions to the systems list and cleanup of same
+      b) change limits of NR_CPUS and make dep. on platform
+
+   Note that MARVEL support is limited to 32 CPUs whan using
+   42-bit KSEG - one needs 48-bit KSEG to handle up to 64, and
+   we've never supported 48-bit KSEG.
+
+2. include/asm-alpha/core_wildfire.h
+
+   fix a typo that undoubtedly prevents WILDFIRE support
+   from working
+
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/ialloc.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletion(-)
+ arch/alpha/Kconfig                |   26 ++++++++++++++------------
+ include/asm-alpha/core_wildfire.h |    2 +-
+ 2 files changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN fs/udf/ialloc.c~udf-check-for-allocated-memory-for-data-of-new-inodes fs/udf/ialloc.c
---- a/fs/udf/ialloc.c~udf-check-for-allocated-memory-for-data-of-new-inodes
-+++ a/fs/udf/ialloc.c
-@@ -50,7 +50,7 @@ void udf_free_inode(struct inode * inode
- 		else
- 			UDF_SB_LVIDIU(sb)->numFiles =
- 				cpu_to_le32(le32_to_cpu(UDF_SB_LVIDIU(sb)->numFiles) - 1);
--		
-+
- 		mark_buffer_dirty(sbi->s_lvidbh);
- 	}
- 	mutex_unlock(&sbi->s_alloc_mutex);
-@@ -136,6 +136,12 @@ struct inode * udf_new_inode (struct ino
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_DATA(inode) = kzalloc(inode->i_sb->s_blocksize - sizeof(struct fileEntry), GFP_KERNEL);
- 	}
-+	if (!UDF_I_DATA(inode))
-+	{
-+		iput(inode);
-+		*err = -ENOMEM;
-+		return NULL;
-+	}
- 	if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_AD_IN_ICB))
- 		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_IN_ICB;
- 	else if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_SHORT_AD))
+diff -puN arch/alpha/Kconfig~alpha-misc-fixes arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-misc-fixes
++++ a/arch/alpha/Kconfig
+@@ -83,22 +83,20 @@ choice
+ 	  check out the Linux/Alpha FAQ, accessible on the WWW from
+ 	  <http://www.alphalinux.org/>. In summary:
+ 
+-	  Alcor/Alpha-XLT     AS 600
++	  Alcor/Alpha-XLT     AS 600, AS 500, XL-300, XL-366
+ 	  Alpha-XL            XL-233, XL-266
+ 	  AlphaBook1          Alpha laptop
+ 	  Avanti              AS 200, AS 205, AS 250, AS 255, AS 300, AS 400
+ 	  Cabriolet           AlphaPC64, AlphaPCI64
+-	  DP264               DP264
++	  DP264               DP264 / DS20 / ES40 / DS10 / DS10L
+ 	  EB164               EB164 21164 evaluation board
+ 	  EB64+               EB64+ 21064 evaluation board
+ 	  EB66                EB66 21066 evaluation board
+ 	  EB66+               EB66+ 21066 evaluation board
+-	  Jensen              DECpc 150, DEC 2000 model 300,
+-	  DEC 2000 model 500
++	  Jensen              DECpc 150, DEC 2000 models 300, 500
+ 	  LX164               AlphaPC164-LX
+ 	  Lynx                AS 2100A
+-	  Miata               Personal Workstation 433a, 433au, 500a,
+-	  500au, 600a, or 600au
++	  Miata               Personal Workstation 433/500/600 a/au
+ 	  Marvel              AlphaServer ES47 / ES80 / GS1280
+ 	  Mikasa              AS 1000
+ 	  Noname              AXPpci33, UDB (Multia)
+@@ -108,9 +106,9 @@ choice
+ 	  Ruffian             RPX164-2, AlphaPC164-UX, AlphaPC164-BX
+ 	  SX164               AlphaPC164-SX
+ 	  Sable               AS 2000, AS 2100
+-	  Shark		      DS 20L
+-	  Takara              Takara
+-	  Titan               AlphaServer ES45 / DS25
++	  Shark               DS 20L
++	  Takara              Takara (OEM)
++	  Titan               AlphaServer ES45 / DS25 / DS15
+ 	  Wildfire            AlphaServer GS 40/80/160/320
+ 
+ 	  If you don't know what to do, choose "generic".
+@@ -546,10 +544,14 @@ config HAVE_DEC_LOCK
+ 	default y
+ 
+ config NR_CPUS
+-	int "Maximum number of CPUs (2-64)"
+-	range 2 64
++	int "Maximum number of CPUs (2-32)"
++	range 2 32
+ 	depends on SMP
+-	default "64"
++	default "32" if ALPHA_GENERIC || ALPHA_MARVEL
++	default "4" if !ALPHA_GENERIC && !ALPHA_MARVEL
++	help
++	  MARVEL support can handle a maximum of 32 CPUs, all the others
++          with working support have a maximum of 4 CPUs.
+ 
+ config ARCH_DISCONTIGMEM_ENABLE
+ 	bool "Discontiguous Memory Support (EXPERIMENTAL)"
+diff -puN include/asm-alpha/core_wildfire.h~alpha-misc-fixes include/asm-alpha/core_wildfire.h
+--- a/include/asm-alpha/core_wildfire.h~alpha-misc-fixes
++++ a/include/asm-alpha/core_wildfire.h
+@@ -295,7 +295,7 @@ __EXTERN_INLINE int wildfire_is_ioaddr(u
+ 
+ __EXTERN_INLINE int wildfire_is_mmio(const volatile void __iomem *xaddr)
+ {
+-	unsigned long addr = (unsigned long)addr;
++	unsigned long addr = (unsigned long)xaddr;
+ 	return (addr & 0x100000000UL) == 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from jay.estabrook@hp.com are
 
 origin.patch
-udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+alpha-support-graphics-on-non-zero-pci-domains.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
+alpha-misc-fixes.patch
