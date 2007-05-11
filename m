@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-tidyups.patch added to -mm tree
-Date: Thu, 10 May 2007 20:50:52 -0700
-Message-ID: <200705110350.l4B3oqsd005528@shell0.pdx.osdl.net>
+Subject: + lguest-the-guest-code-tidyups.patch added to -mm tree
+Date: Thu, 10 May 2007 20:50:50 -0700
+Message-ID: <200705110350.l4B3ooPl005524@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34731 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757262AbXEKDu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752652AbXEKDu4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 23:50:58 -0400
+	Thu, 10 May 2007 23:50:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     lguest host feedback tidyups
+     lguest guest feedback tidyups
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-tidyups.patch
+     lguest-the-guest-code-tidyups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,165 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest host feedback tidyups
+Subject: lguest guest feedback tidyups
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-1) Sam Ravnborg says lg-objs is deprecated, use lg-y.
-2) Sparse: page_tables.c unnecessary initialization
-3) Lots of __force to shut sparse up: guest "physical" addresses are
-   userspace virtual.
-4) Change prototype of run_lguest and do cast in caller instead (when we add
-   __iomem to cast, it runs over another line).
+1) send-dma and bind-dma hypercall wrappers for drivers to use,
+2) formalization of the convention that devices can use the irq
+   corresponding to their index on the lguest_bus.
+3) ___force to shut up sparse: guests *can* use ioremap as virtual mem.
+4) lguest.c should include "lguest_bus.h" for lguest_devices declaration.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c                 |   16 ++++++++--------
- drivers/lguest/hypercalls.c           |    3 ++-
- drivers/lguest/interrupts_and_traps.c |    4 ++--
- drivers/lguest/lg.h                   |    2 +-
- drivers/lguest/lguest_user.c          |    2 +-
- drivers/lguest/page_tables.c          |    2 +-
- 6 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/lguest/lguest.c     |   20 ++++++++++++++++++++
+ drivers/lguest/lguest_bus.c |    2 +-
+ include/linux/lguest_bus.h  |   13 ++++++++++++-
+ 3 files changed, 33 insertions(+), 2 deletions(-)
 
-diff -puN drivers/lguest/core.c~lguest-the-host-code-tidyups drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/core.c
-@@ -218,7 +218,7 @@ u32 lgread_u32(struct lguest *lg, u32 ad
- 
- 	/* Don't let them access lguest binary */
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || get_user(val, (u32 __user *)addr) != 0)
-+	    || get_user(val, (__force u32 __user *)addr) != 0)
- 		kill_guest(lg, "bad read address %u", addr);
- 	return val;
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-tidyups drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-tidyups
++++ a/drivers/lguest/lguest.c
+@@ -27,6 +27,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/lguest.h>
+ #include <linux/lguest_launcher.h>
++#include <linux/lguest_bus.h>
+ #include <asm/paravirt.h>
+ #include <asm/param.h>
+ #include <asm/page.h>
+@@ -102,6 +103,25 @@ void async_hcall(unsigned long call,
+ 	local_irq_restore(flags);
  }
-@@ -226,14 +226,14 @@ u32 lgread_u32(struct lguest *lg, u32 ad
- void lgwrite_u32(struct lguest *lg, u32 addr, u32 val)
+ 
++void lguest_send_dma(unsigned long key, struct lguest_dma *dma)
++{
++	dma->used_len = 0;
++	hcall(LHCALL_SEND_DMA, key, __pa(dma), 0);
++}
++
++int lguest_bind_dma(unsigned long key, struct lguest_dma *dmas,
++		    unsigned int num, u8 irq)
++{
++	if (!hcall(LHCALL_BIND_DMA, key, __pa(dmas), (num << 8) | irq))
++		return -ENOMEM;
++	return 0;
++}
++
++void lguest_unbind_dma(unsigned long key, struct lguest_dma *dmas)
++{
++	hcall(LHCALL_BIND_DMA, key, __pa(dmas), 0);
++}
++
+ static unsigned long save_fl(void)
  {
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || put_user(val, (u32 __user *)addr) != 0)
-+	    || put_user(val, (__force u32 __user *)addr) != 0)
- 		kill_guest(lg, "bad write address %u", addr);
- }
+ 	return lguest_data.irq_enabled;
+diff -puN drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups drivers/lguest/lguest_bus.c
+--- a/drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups
++++ a/drivers/lguest/lguest_bus.c
+@@ -136,7 +136,7 @@ static int __init lguest_bus_init(void)
+ 		return 0;
  
- void lgread(struct lguest *lg, void *b, u32 addr, unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_from_user(b, (void __user *)addr, bytes) != 0) {
-+	    || copy_from_user(b, (__force void __user *)addr, bytes) != 0) {
- 		/* copy_from_user should do this, but as we rely on it... */
- 		memset(b, 0, bytes);
- 		kill_guest(lg, "bad read address %u len %u", addr, bytes);
-@@ -243,7 +243,7 @@ void lgread(struct lguest *lg, void *b, 
- void lgwrite(struct lguest *lg, u32 addr, const void *b, unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_to_user((void __user *)addr, b, bytes) != 0)
-+	    || copy_to_user((__force void __user *)addr, b, bytes) != 0)
- 		kill_guest(lg, "bad write address %u len %u", addr, bytes);
- }
+ 	/* Devices are in page above top of "normal" mem. */
+-	lguest_devices = ioremap(max_pfn << PAGE_SHIFT, PAGE_SIZE);
++	lguest_devices = (__force void*)ioremap(max_pfn<<PAGE_SHIFT,PAGE_SIZE);
  
-@@ -294,7 +294,7 @@ static void run_guest_once(struct lguest
- 		     : "memory", "%edx", "%ecx", "%edi", "%esi");
- }
+ 	if (bus_register(&lguest_bus.bus) != 0
+ 	    || device_register(&lguest_bus.dev) != 0)
+diff -puN include/linux/lguest_bus.h~lguest-the-guest-code-tidyups include/linux/lguest_bus.h
+--- a/include/linux/lguest_bus.h~lguest-the-guest-code-tidyups
++++ a/include/linux/lguest_bus.h
+@@ -7,7 +7,6 @@
  
--int run_guest(struct lguest *lg, char *__user user)
-+int run_guest(struct lguest *lg, unsigned long __user *user)
- {
- 	while (!lg->dead) {
- 		unsigned int cr2 = 0; /* Damn gcc */
-@@ -302,8 +302,8 @@ int run_guest(struct lguest *lg, char *_
- 		/* Hypercalls first: we might have been out to userspace */
- 		do_hypercalls(lg);
- 		if (lg->dma_is_pending) {
--			if (put_user(lg->pending_dma, (unsigned long *)user) ||
--			    put_user(lg->pending_key, (unsigned long *)user+1))
-+			if (put_user(lg->pending_dma, user) ||
-+			    put_user(lg->pending_key, user+1))
- 				return -EFAULT;
- 			return sizeof(unsigned long)*2;
- 		}
-@@ -420,7 +420,7 @@ static int __init init(void)
- 	lock_cpu_hotplug();
- 	if (cpu_has_pge) { /* We have a broader idea of "global". */
- 		cpu_had_pge = 1;
--		on_each_cpu(adjust_pge, 0, 0, 1);
-+		on_each_cpu(adjust_pge, (void *)0, 0, 1);
- 		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
- 	}
- 	unlock_cpu_hotplug();
-diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups drivers/lguest/hypercalls.c
---- a/drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/hypercalls.c
-@@ -83,7 +83,8 @@ static void do_hcall(struct lguest *lg, 
- 		guest_set_pmd(lg, regs->edx, regs->ebx);
- 		break;
- 	case LHCALL_LOAD_TLS:
--		guest_load_tls(lg, (struct desc_struct __user*)regs->edx);
-+		guest_load_tls(lg,
-+			       (__force struct desc_struct __user*)regs->edx);
- 		break;
- 	case LHCALL_TS:
- 		lg->ts = regs->edx;
-diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups drivers/lguest/interrupts_and_traps.c
---- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/interrupts_and_traps.c
-@@ -18,7 +18,7 @@ static int idt_present(u32 lo, u32 hi)
+ struct lguest_device {
+ 	/* Unique busid, and index into lguest_page->devices[] */
+-	/* By convention, each device can use irq index+1 if it wants to. */
+ 	unsigned int index;
  
- static void push_guest_stack(struct lguest *lg, u32 __user **gstack, u32 val)
- {
--	lgwrite_u32(lg, (u32)--(*gstack), val);
-+	lgwrite_u32(lg, (__force u32)--(*gstack), val);
- }
+ 	struct device dev;
+@@ -16,6 +15,18 @@ struct lguest_device {
+ 	void *private;
+ };
  
- static void set_guest_interrupt(struct lguest *lg, u32 lo, u32 hi, int has_err)
-@@ -53,7 +53,7 @@ static void set_guest_interrupt(struct l
- 
- 	/* Change the real stack so switcher returns to trap handler */
- 	lg->regs->ss = ss;
--	lg->regs->esp = (u32)gstack + lg->page_offset;
-+	lg->regs->esp = (__force u32)gstack + lg->page_offset;
- 	lg->regs->cs = (__KERNEL_CS|GUEST_PL);
- 	lg->regs->eip = idt_address(lo, hi);
- 
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-tidyups drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/lg.h
-@@ -182,7 +182,7 @@ void lgwrite(struct lguest *lg, u32 addr
- int find_free_guest(void);
- int lguest_address_ok(const struct lguest *lg,
- 		      unsigned long addr, unsigned long len);
--int run_guest(struct lguest *lg, char *__user user);
-+int run_guest(struct lguest *lg, unsigned long __user *user);
- 
- 
- /* interrupts_and_traps.c: */
-diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-tidyups drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/lguest_user.c
-@@ -65,7 +65,7 @@ static ssize_t read(struct file *file, c
- 	if (lg->dma_is_pending)
- 		lg->dma_is_pending = 0;
- 
--	return run_guest(lg, user);
-+	return run_guest(lg, (unsigned long __user *)user);
- }
- 
- /* Take: pfnlimit, pgdir, start, pageoffset. */
-diff -puN drivers/lguest/page_tables.c~lguest-the-host-code-tidyups drivers/lguest/page_tables.c
---- a/drivers/lguest/page_tables.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/page_tables.c
-@@ -13,7 +13,7 @@
- #define PTES_PER_PAGE (1 << PTES_PER_PAGE_SHIFT)
- #define SWITCHER_PGD_INDEX (PTES_PER_PAGE - 1)
- 
--static DEFINE_PER_CPU(spte_t *, switcher_pte_pages) = { NULL };
-+static DEFINE_PER_CPU(spte_t *, switcher_pte_pages);
- #define switcher_pte_page(cpu) per_cpu(switcher_pte_pages, cpu)
- 
- static unsigned vaddr_to_pgd_index(unsigned long vaddr)
++/* By convention, each device can use irq index+1 if it wants to. */
++static inline int lgdev_irq(const struct lguest_device *dev)
++{
++	return dev->index + 1;
++}
++
++/* dma args must not be vmalloced! */
++void lguest_send_dma(unsigned long key, struct lguest_dma *dma);
++int lguest_bind_dma(unsigned long key, struct lguest_dma *dmas,
++		    unsigned int num, u8 irq);
++void lguest_unbind_dma(unsigned long key, struct lguest_dma *dmas);
++
+ struct lguest_driver {
+ 	const char *name;
+ 	struct module *owner;
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
