@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + add-common-orderly_poweroff-fix.patch added to -mm tree
-Date: Fri, 11 May 2007 16:17:58 -0700
-Message-ID: <200705112317.l4BNHwh2029197@shell0.pdx.osdl.net>
+Subject: + add-argv_split-fix.patch added to -mm tree
+Date: Fri, 11 May 2007 16:19:05 -0700
+Message-ID: <200705112319.l4BNJ50q029231@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44347 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755043AbXEKXSj (ORCPT
+	by vger.kernel.org with ESMTP id S1755185AbXEKXTR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 19:18:39 -0400
+	Fri, 11 May 2007 19:19:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jeremy@goop.org, randy.dunlap@oracle.com
 
 
 The patch titled
-     add-common-orderly_poweroff-fix
+     add-argv_split-fix
 has been added to the -mm tree.  Its filename is
-     add-common-orderly_poweroff-fix.patch
+     add-argv_split-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-common-orderly_poweroff-fix
+Subject: add-argv_split-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -34,29 +34,20 @@ Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- sysctl.c     |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ lib/argv_split.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN arch/sparc64/kernel/power.c~add-common-orderly_poweroff-fix arch/sparc64/kernel/power.c
-diff -puN drivers/acpi/thermal.c~add-common-orderly_poweroff-fix drivers/acpi/thermal.c
-diff -puN drivers/sbus/char/bbc_envctrl.c~add-common-orderly_poweroff-fix drivers/sbus/char/bbc_envctrl.c
-diff -puN drivers/sbus/char/envctrl.c~add-common-orderly_poweroff-fix drivers/sbus/char/envctrl.c
-diff -puN include/linux/reboot.h~add-common-orderly_poweroff-fix include/linux/reboot.h
-diff -puN include/linux/sysctl.h~add-common-orderly_poweroff-fix include/linux/sysctl.h
-diff -puN kernel/sys.c~add-common-orderly_poweroff-fix kernel/sys.c
---- a/kernel/sys.c~add-common-orderly_poweroff-fix
-+++ a/kernel/sys.c
-@@ -2286,7 +2286,7 @@ static void argv_cleanup(char **argv, ch
- }
+diff -puN lib/argv_split.c~add-argv_split-fix lib/argv_split.c
+--- a/lib/argv_split.c~add-argv_split-fix
++++ a/lib/argv_split.c
+@@ -41,7 +41,6 @@ static int count_argc(const char *str)
  
  /**
-- * Trigger an orderly system poweroff
-+ * orderly_poweroff - Trigger an orderly system poweroff
-  * @force: force poweroff if command execution fails
+  * argv_free - free an argv
+- *
+  * @argv - the argument vector to be freed
   *
-  * This may be called from any context to trigger a system shutdown.
-diff -puN kernel/sysctl.c~add-common-orderly_poweroff-fix kernel/sysctl.c
+  * Frees an argv and the strings it points to.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +110,7 @@ add-lzo1x-compression-support-to-the-kernel-fix.patch
 use-no_pci_devices-in-pci-searchc.patch
 introduce-boot-based-time-fix.patch
 use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
 add-common-orderly_poweroff-fix.patch
 crc7-support-fix.patch
 revoke-wire-up-i386-system-calls.patch
