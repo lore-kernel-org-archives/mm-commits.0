@@ -1,14 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-move-frozen_process-to-kernel-power-processc.patch added to -mm tree
-Date: Fri, 11 May 2007 12:42:45 -0700
-Message-ID: <200705111942.l4BJgjda024855@shell0.pdx.osdl.net>
+Subject: + freezer-fix-pf_nofreeze-vs-freezeable-race.patch added to -mm tree
+Date: Fri, 11 May 2007 12:42:40 -0700
+Message-ID: <200705111942.l4BJgfFU024852@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36679 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964796AbXEKTnG (ORCPT
+	by vger.kernel.org with ESMTP id S1763225AbXEKTnM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:43:06 -0400
+	Fri, 11 May 2007 15:43:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,24 +19,34 @@ Cc: ego@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, pavel@ucw.cz, rjw@si
 
 
 The patch titled
-     freezer: move frozen_process to kernel/power/process.c
+     freezer: fix PF_NOFREEZE vs freezeable race
 has been added to the -mm tree.  Its filename is
-     freezer-move-frozen_process-to-kernel-power-processc.patch
+     freezer-fix-pf_nofreeze-vs-freezeable-race.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer: move frozen_process to kernel/power/process.c
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: freezer: fix PF_NOFREEZE vs freezeable race
+=46rom: Gautham R Shenoy <ego@in.ibm.com>
 
-Other than refrigerator, no one else calls frozen_process().  So move it from
-include/linux/freezer.h to kernel/power/process.c.
+This patch fixes the race pointed out by Oleg Nesterov.
 
-Also, since a task can be marked as frozen by itself, we don't need to pass
-the (struct task_struct *p) parameter to frozen_process().
+* Freezer marks a thread as freezeable.
+* The thread now marks itself PF_NOFREEZE, but it will be frozen on
+=A0 on calling try_to_freeze(). Thus the task is frozen, even though it=
+ doesn't
+=A0 want to.
+* Subsequent thaw_processes() will also fail to thaw the task since it =
+is
+=A0 marked PF_NOFREEZE.
+
+Avoid this problem by checking the task's PF_NOFREEZE status in
+frozen_processes() before marking the task as frozen.
 
 Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
@@ -43,71 +56,27 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |   13 -------------
- kernel/power/process.c  |   14 +++++++++++++-
- 2 files changed, 13 insertions(+), 14 deletions(-)
+ include/linux/freezer.h |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc
+diff -puN include/linux/freezer.h~freezer-fix-pf_nofreeze-vs-freezeable=
+-race include/linux/freezer.h
+--- a/include/linux/freezer.h~freezer-fix-pf_nofreeze-vs-freezeable-rac=
+e
 +++ a/include/linux/freezer.h
-@@ -58,18 +58,6 @@ static inline int thaw_process(struct ta
- 	return 0;
- }
- 
--/*
-- * freezing is complete, mark process as frozen
-- */
--static inline void frozen_process(struct task_struct *p)
--{
--	if (!unlikely(p->flags & PF_NOFREEZE)) {
--		p->flags |= PF_FROZEN;
--		wmb();
--	}
--	clear_tsk_thread_flag(p, TIF_FREEZE);
--}
--
- extern void refrigerator(void);
- extern int freeze_processes(void);
- extern void thaw_processes(void);
-@@ -132,7 +120,6 @@ static inline int frozen(struct task_str
- static inline int freezing(struct task_struct *p) { return 0; }
- static inline void freeze(struct task_struct *p) { BUG(); }
- static inline int thaw_process(struct task_struct *p) { return 1; }
--static inline void frozen_process(struct task_struct *p) { BUG(); }
- 
- static inline void refrigerator(void) {}
- static inline int freeze_processes(void) { BUG(); return 0; }
-diff -puN kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc kernel/power/process.c
---- a/kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc
-+++ a/kernel/power/process.c
-@@ -32,6 +32,18 @@ static inline int freezeable(struct task
- 	return 1;
- }
- 
-+/*
-+ * freezing is complete, mark current process as frozen
-+ */
-+static inline void frozen_process(void)
-+{
-+	if (!unlikely(current->flags & PF_NOFREEZE)) {
-+		current->flags |= PF_FROZEN;
+@@ -63,8 +63,10 @@ static inline int thaw_process(struct ta
+  */
+ static inline void frozen_process(struct task_struct *p)
+ {
+-	p->flags |=3D PF_FROZEN;
+-	wmb();
++	if (!unlikely(p->flags & PF_NOFREEZE)) {
++		p->flags |=3D PF_FROZEN;
 +		wmb();
 +	}
-+	clear_tsk_thread_flag(current, TIF_FREEZE);
-+}
-+
- /* Refrigerator is place where frozen processes are stored :-). */
- void refrigerator(void)
- {
-@@ -41,7 +53,7 @@ void refrigerator(void)
- 
- 	task_lock(current);
- 	if (freezing(current)) {
--		frozen_process(current);
-+		frozen_process();
- 		task_unlock(current);
- 	} else {
- 		task_unlock(current);
+ 	clear_tsk_thread_flag(p, TIF_FREEZE);
+ }
+=20
 _
 
 Patches currently in -mm which might be from ego@in.ibm.com are
