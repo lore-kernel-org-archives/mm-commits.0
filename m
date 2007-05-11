@@ -1,59 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch removed from -mm tree
-Date: Thu, 10 May 2007 22:41:42 -0700
-Message-ID: <200705110541.l4B5fgrN007462@shell0.pdx.osdl.net>
+Subject: - pata_acpi-restore-driver-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 22:45:12 -0700
+Message-ID: <200705110545.l4B5jCpt007564@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33435 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755531AbXEKFmT (ORCPT
+	by vger.kernel.org with ESMTP id S1759012AbXEKFpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 01:42:19 -0400
+	Fri, 11 May 2007 01:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jpk@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sn-validate-smp_affinity-mask-on-intr-redirect-fix-2
+     pata_acpi-restore-driver-fix
 has been removed from the -mm tree.  Its filename was
-     sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+     pata_acpi-restore-driver-fix.patch
 
-This patch was dropped because it was folded into sn-validate-smp_affinity-mask-on-intr-redirect.patch
+This patch was dropped because it was folded into pata_acpi-restore-driver.patch
 
 ------------------------------------------------------
-Subject: sn-validate-smp_affinity-mask-on-intr-redirect-fix-2
+Subject: pata_acpi-restore-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: John Keller <jpk@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+These got removed in git-libata-all
+
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/irq.h |    4 ++++
- 1 files changed, 4 insertions(+)
+ drivers/ata/pata_acpi.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect-fix-2 include/asm-ia64/irq.h
---- a/include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect-fix-2
-+++ a/include/asm-ia64/irq.h
-@@ -11,6 +11,9 @@
-  * 02/29/00     D.Mosberger	moved most things into hw_irq.h
-  */
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix
++++ a/drivers/ata/pata_acpi.c
+@@ -314,8 +314,6 @@ static struct scsi_host_template pacpi_s
+ 	.slave_destroy		= ata_scsi_slave_destroy,
+ 	/* Use standard CHS mapping rules */
+ 	.bios_param		= ata_std_bios_param,
+-	.resume			= ata_scsi_device_resume,
+-	.suspend		= ata_scsi_device_suspend,
+ };
  
-+#include <linux/types.h>
-+#include <linux/cpumask.h>
-+
- #define NR_IRQS		256
- #define NR_IRQ_VECTORS	NR_IRQS
- 
-@@ -29,6 +32,7 @@ extern void disable_irq (unsigned int);
- extern void disable_irq_nosync (unsigned int);
- extern void enable_irq (unsigned int);
- extern void set_irq_affinity_info (unsigned int irq, int dest, int redir);
-+bool is_affinity_mask_valid(cpumask_t cpumask);
- 
- #define is_affinity_mask_valid is_affinity_mask_valid
- 
+ static const struct ata_port_operations pacpi_ops = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,12 +69,12 @@ cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-hid-fixup.patch
 sn-validate-smp_affinity-mask-on-intr-redirect.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
 sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
 git-leds.patch
 git-leds-fixup.patch
 git-libata-all-sata_via-build-fix.patch
+pata_acpi-restore-driver.patch
 pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 netxen_nic_main-dont-use-deprecated-irq-flags.patch
