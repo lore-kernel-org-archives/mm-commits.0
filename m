@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + missing-include-file-in-tpm_atmelh.patch added to -mm tree
-Date: Fri, 11 May 2007 12:42:58 -0700
-Message-ID: <200705111942.l4BJgwEP024865@shell0.pdx.osdl.net>
+Subject: + maintainers-remove-invalid-list-address-for-tpm.patch added to -mm tree
+Date: Fri, 11 May 2007 12:43:47 -0700
+Message-ID: <200705111943.l4BJhlF4024893@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39638 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763428AbXEKTnO (ORCPT
+	by vger.kernel.org with ESMTP id S1763574AbXEKToM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:43:14 -0400
+	Fri, 11 May 2007 15:44:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au
+Cc: sfr@canb.auug.org.au, kjhall@us.ibm.com, tpm@selhorst.net
 
 
 The patch titled
-     Missing include file in tpm_atmel.h
+     MAINTAINERS: remove invalid list address for TPM
 has been added to the -mm tree.  Its filename is
-     missing-include-file-in-tpm_atmelh.patch
+     maintainers-remove-invalid-list-address-for-tpm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Missing include file in tpm_atmel.h
+Subject: MAINTAINERS: remove invalid list address for TPM
 From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-On PPC64, we need to include asm/prom.h for function definitions.
+This address bounces with "550 Unknown user".
 
 Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Kylene Hall <kjhall@us.ibm.com>
+Cc: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_atmel.h |    3 +++
- 1 files changed, 3 insertions(+)
+ MAINTAINERS |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm_atmel.h~missing-include-file-in-tpm_atmelh drivers/char/tpm/tpm_atmel.h
---- a/drivers/char/tpm/tpm_atmel.h~missing-include-file-in-tpm_atmelh
-+++ a/drivers/char/tpm/tpm_atmel.h
-@@ -23,6 +23,9 @@
-  */
+diff -puN MAINTAINERS~maintainers-remove-invalid-list-address-for-tpm MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-invalid-list-address-for-tpm
++++ a/MAINTAINERS
+@@ -3319,7 +3319,6 @@ W:	http://tpmdd.sourceforge.net
+ P:	Marcel Selhorst
+ M:	tpm@selhorst.net
+ W:	http://www.prosec.rub.de/tpm/
+-L:	tpmdd-devel@lists.sourceforge.net
+ S:	Maintained
  
- #ifdef CONFIG_PPC64
-+
-+#include <asm/prom.h>
-+
- #define atmel_getb(chip, offset) readb(chip->vendor->iobase + offset);
- #define atmel_putb(val, chip, offset) writeb(val, chip->vendor->iobase + offset)
- #define atmel_request_region request_mem_region
+ Telecom Clock Driver for MCPL0010
 _
 
 Patches currently in -mm which might be from sfr@canb.auug.org.au are
@@ -58,4 +58,5 @@ Patches currently in -mm which might be from sfr@canb.auug.org.au are
 origin.patch
 consolidate-asm-pollh.patch
 missing-include-file-in-tpm_atmelh.patch
+maintainers-remove-invalid-list-address-for-tpm.patch
 powerpc64-symbols-start-with.patch
