@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 22:39:56 -0700
-Message-ID: <200705110539.l4B5du7m007426@shell0.pdx.osdl.net>
+Subject: - i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch removed from -mm tree
+Date: Thu, 10 May 2007 22:40:02 -0700
+Message-ID: <200705110540.l4B5e28s007435@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40925 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754719AbXEKFki (ORCPT
+	by vger.kernel.org with ESMTP id S1756110AbXEKFkw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 01:40:38 -0400
+	Fri, 11 May 2007 01:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, grant.likely@secretlab.ca, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
 has been removed from the -mm tree.  Its filename was
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
 
 This patch was dropped because it was folded into i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 
 ------------------------------------------------------
-Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
+Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/i2c/chips/ds1682.c:38:1: warning: "DEBUG" redefined
-<command line>:1:1: warning: this is the location of the previous definition
+drivers/i2c/chips/ds1682.c: In function 'ds1682_store':
+drivers/i2c/chips/ds1682.c:127: warning: format '%i' expects type 'int', but argument 5 has type 'size_t'
+drivers/i2c/chips/ds1682.c: In function 'ds1682_user_data_store':
+drivers/i2c/chips/ds1682.c:218: warning: format '%i' expects type 'int', but argument 4 has type 'size_t'
 
 Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/ds1682.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/i2c/chips/ds1682.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix drivers/i2c/chips/ds1682.c
---- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
+diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes drivers/i2c/chips/ds1682.c
+--- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
 +++ a/drivers/i2c/chips/ds1682.c
-@@ -35,8 +35,6 @@
-  *
-  */
+@@ -124,7 +124,7 @@ static ssize_t ds1682_store(struct devic
+ 	reg = ds1682_attr_to_reg(attr, &regsize);
  
--#define DEBUG
--
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/init.h>
+ 	if ((reg < 0) || (count >= 16) || (buf[count] != '\0')) {
+-		dev_dbg(dev, "insane input; reg=0x%i count=%i%s\n",
++		dev_dbg(dev, "insane input; reg=0x%i count=%zd%s\n",
+ 			reg, count, buf[count] == '\0' ? " unterminated" : "");
+ 		return -EIO;
+ 	}
+@@ -215,7 +215,7 @@ static ssize_t ds1682_user_data_store(st
+ 
+ 	/* Check input for sanity */
+ 	if ((count >= 80) || (buf[count] != '\0')) {
+-		dev_dbg(dev, "insane input; count=%i%s\n",
++		dev_dbg(dev, "insane input; count=%zd%s\n",
+ 			count, buf[count] == '\0' ? " unterminated" : "");
+ 		return -EIO;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +80,6 @@ arm-stacktrace-fix.patch
 git-avr32.patch
 cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
 git-hid-fixup.patch
 sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
