@@ -1,32 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch removed from -mm tree
-Date: Fri, 11 May 2007 12:28:30 -0700
-Message-ID: <200705111928.l4BJSVXA024538@shell0.pdx.osdl.net>
+Subject: - freezer-take-kernel_execve-into-consideration.patch removed from -mm tree
+Date: Fri, 11 May 2007 12:29:02 -0700
+Message-ID: <200705111929.l4BJT24t024575@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58458 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761959AbXEKT3n (ORCPT
+	by vger.kernel.org with ESMTP id S1759548AbXEKT3s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:29:43 -0400
+	Fri, 11 May 2007 15:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rjw@sisk.pl, aneesh.kumar@gmail.com, ego@in.ibm.com, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, pavel@ucw.cz, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: read PF_BORROWED_MM in a nonracy way
+     freezer: take kernel_execve into consideration
 has been removed from the -mm tree.  Its filename was
-     freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+     freezer-take-kernel_execve-into-consideration.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: freezer: read PF_BORROWED_MM in a nonracy way
+Subject: freezer: take kernel_execve into consideration
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The reading of PF_BORROWED_MM in is_user_space() without task_lock() is racy. 
-Fix it.
+Kernel threads can become userland processes by calling kernel_execve().  In
+particular, this may happen right after
+try_to_freeze_tasks(FREEZER_USER_SPACE) has returned, so try_to_freeze_tasks()
+needs to take userspace processes into consideration even if it is called with
+FREEZER_KERNEL_THREADS.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
@@ -38,46 +41,36 @@ Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/power/process.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/process.c~freezer-read-pf_borrowed_mm-in-a-nonracy-way kernel/power/process.c
---- a/kernel/power/process.c~freezer-read-pf_borrowed_mm-in-a-nonracy-way
+diff -puN kernel/power/process.c~freezer-take-kernel_execve-into-consideration kernel/power/process.c
+--- a/kernel/power/process.c~freezer-take-kernel_execve-into-consideration
 +++ a/kernel/power/process.c
-@@ -8,6 +8,7 @@
+@@ -126,7 +126,7 @@ static unsigned int try_to_freeze_tasks(
+ 				cancel_freezing(p);
+ 				continue;
+ 			}
+-			if (is_user_space(p) == !freeze_user_space)
++			if (freeze_user_space && !is_user_space(p))
+ 				continue;
  
- #undef DEBUG
+ 			freeze_process(p);
+@@ -153,7 +153,7 @@ static unsigned int try_to_freeze_tasks(
+ 				TIMEOUT / HZ, todo);
+ 		read_lock(&tasklist_lock);
+ 		do_each_thread(g, p) {
+-			if (is_user_space(p) == !freeze_user_space)
++			if (freeze_user_space && !is_user_space(p))
+ 				continue;
  
-+#include <linux/sched.h>
- #include <linux/interrupt.h>
- #include <linux/suspend.h>
- #include <linux/module.h>
-@@ -88,7 +89,12 @@ static void cancel_freezing(struct task_
- 
- static inline int is_user_space(struct task_struct *p)
- {
--	return p->mm && !(p->flags & PF_BORROWED_MM);
-+	int ret;
-+
-+	task_lock(p);
-+	ret = p->mm && !(p->flags & PF_BORROWED_MM);
-+	task_unlock(p);
-+	return ret;
- }
- 
- static unsigned int try_to_freeze_tasks(int freeze_user_space)
+ 			task_lock(p);
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
 at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
 freezer-take-kernel_execve-into-consideration.patch
 fix-pf_nofreeze-and-freezeable-race-2.patch
 freezer-document-task_lock-in-thaw_process.patch
