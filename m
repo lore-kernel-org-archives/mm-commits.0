@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 22:41:36 -0700
-Message-ID: <200705110541.l4B5fanL007457@shell0.pdx.osdl.net>
+Subject: - sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch removed from -mm tree
+Date: Thu, 10 May 2007 22:41:42 -0700
+Message-ID: <200705110541.l4B5fgrN007462@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43845 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754798AbXEKFmM (ORCPT
+	by vger.kernel.org with ESMTP id S1755531AbXEKFmT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 01:42:12 -0400
+	Fri, 11 May 2007 01:42:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jpk@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sn-validate-smp_affinity-mask-on-intr-redirect-fix
+     sn-validate-smp_affinity-mask-on-intr-redirect-fix-2
 has been removed from the -mm tree.  Its filename was
-     sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+     sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
 
 This patch was dropped because it was folded into sn-validate-smp_affinity-mask-on-intr-redirect.patch
 
 ------------------------------------------------------
-Subject: sn-validate-smp_affinity-mask-on-intr-redirect-fix
+Subject: sn-validate-smp_affinity-mask-on-intr-redirect-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: John Keller <jpk@sgi.com>
@@ -30,21 +30,30 @@ Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/proc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-ia64/irq.h |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect-fix kernel/irq/proc.c
---- a/kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect-fix
-+++ a/kernel/irq/proc.c
-@@ -28,7 +28,7 @@ static int irq_affinity_read_proc(char *
- }
+diff -puN include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect-fix-2 include/asm-ia64/irq.h
+--- a/include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect-fix-2
++++ a/include/asm-ia64/irq.h
+@@ -11,6 +11,9 @@
+  * 02/29/00     D.Mosberger	moved most things into hw_irq.h
+  */
  
- #ifndef is_affinity_mask_valid
--#define is_affinity_mask_valid() 1
-+#define is_affinity_mask_valid(val) 1
- #endif
++#include <linux/types.h>
++#include <linux/cpumask.h>
++
+ #define NR_IRQS		256
+ #define NR_IRQ_VECTORS	NR_IRQS
  
- int no_irq_affinity;
+@@ -29,6 +32,7 @@ extern void disable_irq (unsigned int);
+ extern void disable_irq_nosync (unsigned int);
+ extern void enable_irq (unsigned int);
+ extern void set_irq_affinity_info (unsigned int irq, int dest, int redir);
++bool is_affinity_mask_valid(cpumask_t cpumask);
+ 
+ #define is_affinity_mask_valid is_affinity_mask_valid
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +77,6 @@ cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-hid-fixup.patch
 sn-validate-smp_affinity-mask-on-intr-redirect.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
 sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
 sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
