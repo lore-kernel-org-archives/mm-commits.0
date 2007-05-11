@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-fix-kthread_create-vs-freezer-theoretical-race.patch added to -mm tree
-Date: Fri, 11 May 2007 12:42:35 -0700
-Message-ID: <200705111942.l4BJgZQQ024849@shell0.pdx.osdl.net>
+Subject: + freezer-move-frozen_process-to-kernel-power-processc.patch added to -mm tree
+Date: Fri, 11 May 2007 12:42:45 -0700
+Message-ID: <200705111942.l4BJgjda024855@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53985 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933647AbXEKTnA (ORCPT
+	by vger.kernel.org with ESMTP id S964796AbXEKTnG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:43:00 -0400
+	Fri, 11 May 2007 15:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ebiederm@xmission.com, ego@in.ibm.com, rjw@sisk.pl
+Cc: ego@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     freezer: fix kthread_create vs freezer theoretical race
+     freezer: move frozen_process to kernel/power/process.c
 has been added to the -mm tree.  Its filename is
-     freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+     freezer-move-frozen_process-to-kernel-power-processc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer: fix kthread_create vs freezer theoretical race
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: freezer: move frozen_process to kernel/power/process.c
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-kthread() sleeps in TASK_INTERRUPTIBLE state waiting for the first wakeup.  In
-theory, this wakeup may come from freeze_process()->signal_wake_up(), so the
-task can disappear even before kthread_create() sets its ->comm.
+Other than refrigerator, no one else calls frozen_process().  So move it from
+include/linux/freezer.h to kernel/power/process.c.
 
-Change kthread() to use TASK_UNINTERRUPTIBLE.
+Also, since a task can be marked as frozen by itself, we don't need to pass
+the (struct task_struct *p) parameter to frozen_process().
 
-[akpm@linux-foundation.org: s/BUG_ON/WARN_ON+recover]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/freezer.h |   13 -------------
+ kernel/power/process.c  |   14 +++++++++++++-
+ 2 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN kernel/kthread.c~freezer-fix-kthread_create-vs-freezer-theoretical-race kernel/kthread.c
---- a/kernel/kthread.c~freezer-fix-kthread_create-vs-freezer-theoretical-race
-+++ a/kernel/kthread.c
-@@ -70,7 +70,7 @@ static int kthread(void *_create)
- 	data = create->data;
+diff -puN include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc include/linux/freezer.h
+--- a/include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc
++++ a/include/linux/freezer.h
+@@ -58,18 +58,6 @@ static inline int thaw_process(struct ta
+ 	return 0;
+ }
  
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
--	__set_current_state(TASK_INTERRUPTIBLE);
-+	__set_current_state(TASK_UNINTERRUPTIBLE);
- 	complete(&create->started);
- 	schedule();
+-/*
+- * freezing is complete, mark process as frozen
+- */
+-static inline void frozen_process(struct task_struct *p)
+-{
+-	if (!unlikely(p->flags & PF_NOFREEZE)) {
+-		p->flags |= PF_FROZEN;
+-		wmb();
+-	}
+-	clear_tsk_thread_flag(p, TIF_FREEZE);
+-}
+-
+ extern void refrigerator(void);
+ extern int freeze_processes(void);
+ extern void thaw_processes(void);
+@@ -132,7 +120,6 @@ static inline int frozen(struct task_str
+ static inline int freezing(struct task_struct *p) { return 0; }
+ static inline void freeze(struct task_struct *p) { BUG(); }
+ static inline int thaw_process(struct task_struct *p) { return 1; }
+-static inline void frozen_process(struct task_struct *p) { BUG(); }
  
-@@ -162,7 +162,10 @@ EXPORT_SYMBOL(kthread_create);
-  */
- void kthread_bind(struct task_struct *k, unsigned int cpu)
- {
--	BUG_ON(k->state != TASK_INTERRUPTIBLE);
-+	if (k->state != TASK_UNINTERRUPTIBLE) {
-+		WARN_ON(1);
-+		return;
+ static inline void refrigerator(void) {}
+ static inline int freeze_processes(void) { BUG(); return 0; }
+diff -puN kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc kernel/power/process.c
+--- a/kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc
++++ a/kernel/power/process.c
+@@ -32,6 +32,18 @@ static inline int freezeable(struct task
+ 	return 1;
+ }
+ 
++/*
++ * freezing is complete, mark current process as frozen
++ */
++static inline void frozen_process(void)
++{
++	if (!unlikely(current->flags & PF_NOFREEZE)) {
++		current->flags |= PF_FROZEN;
++		wmb();
 +	}
- 	/* Must have done schedule() in kthread() before we set_task_cpu */
- 	wait_task_inactive(k);
- 	set_task_cpu(k, cpu);
++	clear_tsk_thread_flag(current, TIF_FREEZE);
++}
++
+ /* Refrigerator is place where frozen processes are stored :-). */
+ void refrigerator(void)
+ {
+@@ -41,7 +53,7 @@ void refrigerator(void)
+ 
+ 	task_lock(current);
+ 	if (freezing(current)) {
+-		frozen_process(current);
++		frozen_process();
+ 		task_unlock(current);
+ 	} else {
+ 		task_unlock(current);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
 origin.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
 freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
 freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
 freezer-fix-vfork-problem.patch
@@ -86,6 +120,3 @@ freezer-take-kernel_execve-into-consideration.patch
 freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
 freezer-fix-pf_nofreeze-vs-freezeable-race.patch
 freezer-move-frozen_process-to-kernel-power-processc.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
