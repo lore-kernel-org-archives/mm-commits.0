@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-kstrndup.patch added to -mm tree
-Date: Fri, 11 May 2007 12:24:21 -0700
-Message-ID: <200705111924.l4BJOL1f024439@shell0.pdx.osdl.net>
+Subject: + add-argv_split.patch added to -mm tree
+Date: Fri, 11 May 2007 12:26:01 -0700
+Message-ID: <200705111926.l4BJQ1uY024478@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38908 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754460AbXEKT0s (ORCPT
+	by vger.kernel.org with ESMTP id S1751555AbXEKT1Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:26:48 -0400
+	Fri, 11 May 2007 15:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, acme@mandriva.com, akinobu.mita@gmail.com, akpm@linux-foundation.org, chrisw@sous-sol.org, jeremy@xensource.com, randy.dunlap@oracle.com, takis@issaris.org, viro@ftp.linux.org.uk, yoshfuji@linux-ipv6.org
+Cc: jeremy@goop.org, akpm@linux-foundation.org, chrisw@sous-sol.org, jeremy@xensource.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     add kstrndup
+     add argv_split()
 has been added to the -mm tree.  Its filename is
-     add-kstrndup.patch
+     add-argv_split.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,186 +26,217 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add kstrndup
+Subject: add argv_split()
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add a kstrndup function, modelled on strndup.  Like strndup this returns a
-string copied into its own allocated memory, but it copies no more than the
-specified number of bytes from the source.
+argv_split() is a helper function which takes a string, splits it at
+whitespace, and returns a NULL-terminated argv vector.  This is deliberately
+simple - it does no quote processing of any kind.
 
-Remove private strndup() from irda code.
+[ Seems to me that this is something which is already being done in
+  the kernel, but I couldn't find any other implementations, either to
+  steal or replace.  Keep an eye out. ]
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Arnaldo Carvalho de Melo <acme@mandriva.com>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Cc: Panagiotis Issaris <takis@issaris.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h  |    1 
- mm/util.c               |   30 +++++++++++++++++++++++---
- net/irda/irias_object.c |   43 ++++----------------------------------
- 3 files changed, 33 insertions(+), 41 deletions(-)
+ include/linux/string.h |    3 
+ lib/Makefile           |    2 
+ lib/argv_split.c       |  159 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 163 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/string.h~add-kstrndup include/linux/string.h
---- a/include/linux/string.h~add-kstrndup
+diff -puN include/linux/string.h~add-argv_split include/linux/string.h
+--- a/include/linux/string.h~add-argv_split
 +++ a/include/linux/string.h
-@@ -105,6 +105,7 @@ extern void * memchr(const void *,int,__
- #endif
- 
- extern char *kstrdup(const char *s, gfp_t gfp);
-+extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
+@@ -108,6 +108,9 @@ extern char *kstrdup(const char *s, gfp_
+ extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
  extern void *kmemdup(const void *src, size_t len, gfp_t gfp);
  
++extern char **argv_split(gfp_t gfp, const char *str, int *argcp);
++extern void argv_free(char **argv);
++
  #ifdef __cplusplus
-diff -puN mm/util.c~add-kstrndup mm/util.c
---- a/mm/util.c~add-kstrndup
-+++ a/mm/util.c
-@@ -18,9 +18,8 @@ void *__kzalloc(size_t size, gfp_t flags
  }
- EXPORT_SYMBOL(__kzalloc);
+ #endif
+diff -puN lib/Makefile~add-argv_split lib/Makefile
+--- a/lib/Makefile~add-argv_split
++++ a/lib/Makefile
+@@ -5,7 +5,7 @@
+ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+-	 sha1.o irq_regs.o reciprocal_div.o
++	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
  
--/*
-+/**
-  * kstrdup - allocate space for and copy an existing string
-- *
-  * @s: the string to duplicate
-  * @gfp: the GFP mask used in the kmalloc() call when allocating memory
-  */
-@@ -41,6 +40,32 @@ char *kstrdup(const char *s, gfp_t gfp)
- EXPORT_SYMBOL(kstrdup);
- 
- /**
-+ * kstrndup - allocate space for and copy an existing string
-+ * @s: the string to duplicate
-+ * @max: read at most @max chars from @s
-+ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
+ lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
+ lib-$(CONFIG_SMP) += cpumask.o
+diff -puN /dev/null lib/argv_split.c
+--- /dev/null
++++ a/lib/argv_split.c
+@@ -0,0 +1,159 @@
++/*
++ * Helper function for splitting a string into an argv-like array.
 + */
-+char *kstrndup(const char *s, size_t max, gfp_t gfp)
++
++#ifndef TEST
++#include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/bug.h>
++#endif
++
++static const char *skip_sep(const char *cp)
 +{
-+	size_t len;
-+	char *buf;
++	while (*cp && isspace(*cp))
++		cp++;
 +
-+	if (!s)
-+		return NULL;
-+
-+	len = strlen(s);
-+	if (len > max)
-+		len = max;
-+	buf = kmalloc_track_caller(len+1, gfp);
-+ 	if (buf) {
-+		memcpy(buf, s, len);
-+		buf[len] = '\0';
-+	}
-+	return buf;
++	return cp;
 +}
-+EXPORT_SYMBOL(kstrndup);
++
++static const char *skip_arg(const char *cp)
++{
++	while (*cp && !isspace(*cp))
++		cp++;
++
++	return cp;
++}
++
++static int count_argc(const char *str)
++{
++	int count = 0;
++
++	while (*str) {
++		str = skip_sep(str);
++		if (*str) {
++			count++;
++			str = skip_arg(str);
++		}
++	}
++
++	return count;
++}
 +
 +/**
-  * kmemdup - duplicate region of memory
-  *
-  * @src: memory region to duplicate
-@@ -60,7 +85,6 @@ EXPORT_SYMBOL(kmemdup);
- 
- /*
-  * strndup_user - duplicate an existing string from user space
-- *
-  * @s: The string to duplicate
-  * @n: Maximum number of bytes to copy, including the trailing NUL.
-  */
-diff -puN net/irda/irias_object.c~add-kstrndup net/irda/irias_object.c
---- a/net/irda/irias_object.c~add-kstrndup
-+++ a/net/irda/irias_object.c
-@@ -36,39 +36,6 @@ hashbin_t *irias_objects;
-  */
- struct ias_value irias_missing = { IAS_MISSING, 0, 0, 0, {0}};
- 
--/*
-- * Function strndup (str, max)
-- *
-- *    My own kernel version of strndup!
-- *
-- * Faster, check boundary... Jean II
-- */
--static char *strndup(char *str, size_t max)
--{
--	char *new_str;
--	int len;
--
--	/* Check string */
--	if (str == NULL)
--		return NULL;
--	/* Check length, truncate */
--	len = strlen(str);
--	if(len > max)
--		len = max;
--
--	/* Allocate new string */
--	new_str = kmalloc(len + 1, GFP_ATOMIC);
--	if (new_str == NULL) {
--		IRDA_WARNING("%s: Unable to kmalloc!\n", __FUNCTION__);
--		return NULL;
--	}
--
--	/* Copy and truncate */
--	memcpy(new_str, str, len);
--	new_str[len] = '\0';
--
--	return new_str;
--}
- 
- /*
-  * Function ias_new_object (name, id)
-@@ -90,7 +57,7 @@ struct ias_object *irias_new_object( cha
- 	}
- 
- 	obj->magic = IAS_OBJECT_MAGIC;
--	obj->name = strndup(name, IAS_MAX_CLASSNAME);
-+	obj->name = kstrndup(name, IAS_MAX_CLASSNAME, GFP_ATOMIC);
- 	if (!obj->name) {
- 		IRDA_WARNING("%s(), Unable to allocate name!\n",
- 			     __FUNCTION__);
-@@ -360,7 +327,7 @@ void irias_add_integer_attrib(struct ias
- 	}
- 
- 	attrib->magic = IAS_ATTRIB_MAGIC;
--	attrib->name = strndup(name, IAS_MAX_ATTRIBNAME);
-+	attrib->name = kstrndup(name, IAS_MAX_ATTRIBNAME, GFP_ATOMIC);
- 
- 	/* Insert value */
- 	attrib->value = irias_new_integer_value(value);
-@@ -404,7 +371,7 @@ void irias_add_octseq_attrib(struct ias_
- 	}
- 
- 	attrib->magic = IAS_ATTRIB_MAGIC;
--	attrib->name = strndup(name, IAS_MAX_ATTRIBNAME);
-+	attrib->name = kstrndup(name, IAS_MAX_ATTRIBNAME, GFP_ATOMIC);
- 
- 	attrib->value = irias_new_octseq_value( octets, len);
- 	if (!attrib->name || !attrib->value) {
-@@ -446,7 +413,7 @@ void irias_add_string_attrib(struct ias_
- 	}
- 
- 	attrib->magic = IAS_ATTRIB_MAGIC;
--	attrib->name = strndup(name, IAS_MAX_ATTRIBNAME);
-+	attrib->name = kstrndup(name, IAS_MAX_ATTRIBNAME, GFP_ATOMIC);
- 
- 	attrib->value = irias_new_string_value(value);
- 	if (!attrib->name || !attrib->value) {
-@@ -506,7 +473,7 @@ struct ias_value *irias_new_string_value
- 
- 	value->type = IAS_STRING;
- 	value->charset = CS_ASCII;
--	value->t.string = strndup(string, IAS_MAX_STRING);
-+	value->t.string = kstrndup(string, IAS_MAX_STRING, GFP_ATOMIC);
- 	if (!value->t.string) {
- 		IRDA_WARNING("%s: Unable to kmalloc!\n", __FUNCTION__);
- 		kfree(value);
++ * argv_free - free an argv
++ *
++ * @argv - the argument vector to be freed
++ *
++ * Frees an argv and the strings it points to.
++ */
++void argv_free(char **argv)
++{
++	char **p;
++	for (p = argv; *p; p++)
++		kfree(*p);
++
++	kfree(argv);
++}
++EXPORT_SYMBOL(argv_free);
++
++/**
++ * argv_split - split a string at whitespace, returning an argv
++ * @gfp: the GFP mask used to allocate memory
++ * @str: the string to be split
++ * @argcp: returned argument count
++ *
++ * Returns an array of pointers to strings which are split out from
++ * @str.  This is performed by strictly splitting on white-space; no
++ * quote processing is performed.  Multiple whitespace characters are
++ * considered to be a single argument separator.  The returned array
++ * is always NULL-terminated.  Returns NULL on memory allocation
++ * failure.
++ */
++char **argv_split(gfp_t gfp, const char *str, int *argcp)
++{
++	int argc = count_argc(str);
++	char **argv = kzalloc(sizeof(*argv) * (argc+1), gfp);
++	char **argvp;
++
++	if (argv == NULL)
++		goto out;
++
++	*argcp = argc;
++	argvp = argv;
++
++	while (*str) {
++		str = skip_sep(str);
++
++		if (*str) {
++			const char *p = str;
++			char *t;
++
++			str = skip_arg(str);
++
++			t = kstrndup(p, str-p, gfp);
++			if (t == NULL)
++				goto fail;
++			*argvp++ = t;
++		}
++	}
++	*argvp = NULL;
++
++  out:
++	return argv;
++
++  fail:
++	argv_free(argv);
++	return NULL;
++}
++EXPORT_SYMBOL(argv_split);
++
++#ifdef TEST
++#define _GNU_SOURCE
++#include <ctype.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++
++typedef enum {
++	GFP_KERNEL,
++} gfp_t;
++#define kzalloc(size, x)	malloc(size)
++#define kfree(x)		free(x)
++#define kstrndup(s, n, gfp)	strndup(s, n)
++#define BUG()	abort()
++
++int main() {
++	const char *testvec[] = {
++		"",
++		"x",
++		"\"",
++		"\\\0",
++		"\"",
++		"test one two three",
++		"arg\"foo\"bar biff",
++		"one two\\ three four",
++		"one \"two three\" four",
++		NULL,
++	};
++	const char **t;
++
++	for (t = testvec; *t; t++) {
++		char **argv;
++		int argc;
++		char **a;
++
++		printf("%d: test [%s]\n", t-testvec, *t);
++
++		argv = argv_split(GFP_KERNEL, *t, &argc);
++
++		printf("argc=%d vec=", argc);
++		for (a = argv; *a; a++)
++			printf("[%s] ", *a);
++		printf("\n");
++
++		argv_free(argv);
++	}
++
++	return 0;
++}
++#endif
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
