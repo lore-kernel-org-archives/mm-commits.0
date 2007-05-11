@@ -1,117 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-console-driver-tidyups.patch added to -mm tree
-Date: Thu, 10 May 2007 20:50:56 -0700
-Message-ID: <200705110350.l4B3ou0v005534@shell0.pdx.osdl.net>
+Subject: - synclink_gt-add-compat_ioctl-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 21:48:13 -0700
+Message-ID: <200705110448.l4B4mDKR006345@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46959 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757560AbXEKDvD (ORCPT
+	by vger.kernel.org with ESMTP id S1753689AbXEKEsV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 23:51:03 -0400
+	Fri, 11 May 2007 00:48:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, arnd@arndb.de, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest console driver feedback tidyups
-has been added to the -mm tree.  Its filename is
-     lguest-the-console-driver-tidyups.patch
+     synclink_gt-add-compat_ioctl-fix
+has been removed from the -mm tree.  Its filename was
+     synclink_gt-add-compat_ioctl-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into synclink_gt-add-compat_ioctl.patch
 
 ------------------------------------------------------
-Subject: lguest console driver feedback tidyups
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: synclink_gt-add-compat_ioctl-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-1) Use new lguest_send_dma & lguest_bind_dma functions.
-2) sparse: lguest_cons can be static.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvc_lguest.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/synclink.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/hvc_lguest.c~lguest-the-console-driver-tidyups drivers/char/hvc_lguest.c
---- a/drivers/char/hvc_lguest.c~lguest-the-console-driver-tidyups
-+++ a/drivers/char/hvc_lguest.c
-@@ -36,7 +36,7 @@ static int put_chars(u32 vtermno, const 
- 	dma.len[1] = 0;
- 	dma.addr[0] = __pa(buf);
- 
--	hcall(LHCALL_SEND_DMA, LGUEST_CONSOLE_DMA_KEY, __pa(&dma), 0);
-+	lguest_send_dma(LGUEST_CONSOLE_DMA_KEY, &dma);
- 	return count;
- }
- 
-@@ -59,7 +59,7 @@ static int get_chars(u32 vtermno, char *
- 	return count;
- }
- 
--struct hv_ops lguest_cons = {
-+static struct hv_ops lguest_cons = {
- 	.get_chars = get_chars,
- 	.put_chars = put_chars,
- };
-@@ -75,14 +75,17 @@ console_initcall(cons_init);
- 
- static int lguestcons_probe(struct lguest_device *lgdev)
- {
--	lgdev->private = hvc_alloc(0, lgdev->index+1, &lguest_cons, 256);
-+	int err;
-+
-+	lgdev->private = hvc_alloc(0, lgdev_irq(lgdev), &lguest_cons, 256);
- 	if (IS_ERR(lgdev->private))
- 		return PTR_ERR(lgdev->private);
- 
--	if (!hcall(LHCALL_BIND_DMA, LGUEST_CONSOLE_DMA_KEY, __pa(&cons_input),
--		   (1<<8) + lgdev->index+1))
-+	err = lguest_bind_dma(LGUEST_CONSOLE_DMA_KEY, &cons_input, 1,
-+			      lgdev_irq(lgdev));
-+	if (err)
- 		printk("lguest console: failed to bind buffer.\n");
--	return 0;
-+	return err;
- }
- 
- static struct lguest_driver lguestcons_drv = {
+diff -puN include/linux/synclink.h~synclink_gt-add-compat_ioctl-fix include/linux/synclink.h
+--- a/include/linux/synclink.h~synclink_gt-add-compat_ioctl-fix
++++ a/include/linux/synclink.h
+@@ -295,8 +295,7 @@ struct gpio_desc {
+ /* provide 32 bit ioctl compatibility on 64 bit systems */
+ #ifdef CONFIG_COMPAT
+ #include <linux/compat.h>
+-struct MGSL_PARAMS32
+-{
++struct MGSL_PARAMS32 {
+ 	compat_ulong_t	mode;
+ 	unsigned char	loopback;
+ 	unsigned short	flags;
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-xfs-clean-up-shrinker-games.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-powerpc-fixup-hard_irq_disable-semantics.patch
-add-hard_irq_disable.patch
-stop_machine-now-uses-hard_irq_disable.patch
+lib-hexdump.patch
+synclink_gt-add-compat_ioctl.patch
+synclink_gt-add-compat_ioctl-fix.patch
 stop_machine-now-uses-hard_irq_disable-fix.patch
-use-menuconfig-objects-ii-module-menu.patch
-module_author-dont-advice-putting-in-an-email-address.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
-lguest-the-guest-code-tidyups.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+submitchecklist-add-W-help.patch
+ntfs-use-zero_user_page.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+use-defines-in-sys_getpriority-sys_setpriority-fix.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
-lguest-the-host-code-tidyups.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-makefile-and-kconfig-tidyups.patch
-lguest-the-console-driver.patch
-lguest-the-console-driver-tidyups.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-tidyups.patch
-lguest-the-block-driver.patch
-lguest-the-block-driver-tidyups.patch
-lguest-the-documentation-example-launcher.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+pm3fb-preliminary-24-to-26-port-fix.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
