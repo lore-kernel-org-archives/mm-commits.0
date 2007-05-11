@@ -1,82 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-take-kernel_execve-into-consideration.patch removed from -mm tree
-Date: Fri, 11 May 2007 12:29:02 -0700
-Message-ID: <200705111929.l4BJT24t024575@shell0.pdx.osdl.net>
+Subject: - freezer-remove-pf_nofreeze-from-rcutorture-thread.patch removed from -mm tree
+Date: Fri, 11 May 2007 12:28:40 -0700
+Message-ID: <200705111928.l4BJSeeg024557@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52363 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759548AbXEKT3s (ORCPT
+	by vger.kernel.org with ESMTP id S1759723AbXEKT3u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:29:48 -0400
+	Fri, 11 May 2007 15:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, aneesh.kumar@gmail.com, ego@in.ibm.com, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, pavel@ucw.cz, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, aneesh.kumar@gmail.com, ego@in.ibm.com, oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: take kernel_execve into consideration
+     freezer: remove PF_NOFREEZE from rcutorture thread
 has been removed from the -mm tree.  Its filename was
-     freezer-take-kernel_execve-into-consideration.patch
+     freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: freezer: take kernel_execve into consideration
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: freezer: remove PF_NOFREEZE from rcutorture thread
+From: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
-Kernel threads can become userland processes by calling kernel_execve().  In
-particular, this may happen right after
-try_to_freeze_tasks(FREEZER_USER_SPACE) has returned, so try_to_freeze_tasks()
-needs to take userspace processes into consideration even if it is called with
-FREEZER_KERNEL_THREADS.
+Remove PF_NOFREEZE from the rcutorture thread, adding a try_to_freeze() call
+as required.
 
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Aneesh Kumar <aneesh.kumar@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/rcutorture.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/power/process.c~freezer-take-kernel_execve-into-consideration kernel/power/process.c
---- a/kernel/power/process.c~freezer-take-kernel_execve-into-consideration
-+++ a/kernel/power/process.c
-@@ -126,7 +126,7 @@ static unsigned int try_to_freeze_tasks(
- 				cancel_freezing(p);
- 				continue;
- 			}
--			if (is_user_space(p) == !freeze_user_space)
-+			if (freeze_user_space && !is_user_space(p))
- 				continue;
+diff -puN kernel/rcutorture.c~freezer-remove-pf_nofreeze-from-rcutorture-thread kernel/rcutorture.c
+--- a/kernel/rcutorture.c~freezer-remove-pf_nofreeze-from-rcutorture-thread
++++ a/kernel/rcutorture.c
+@@ -46,6 +46,7 @@
+ #include <linux/byteorder/swabb.h>
+ #include <linux/stat.h>
+ #include <linux/srcu.h>
++#include <linux/freezer.h>
  
- 			freeze_process(p);
-@@ -153,7 +153,7 @@ static unsigned int try_to_freeze_tasks(
- 				TIMEOUT / HZ, todo);
- 		read_lock(&tasklist_lock);
- 		do_each_thread(g, p) {
--			if (is_user_space(p) == !freeze_user_space)
-+			if (freeze_user_space && !is_user_space(p))
- 				continue;
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
+@@ -518,7 +519,6 @@ rcu_torture_writer(void *arg)
  
- 			task_lock(p);
+ 	VERBOSE_PRINTK_STRING("rcu_torture_writer task started");
+ 	set_user_nice(current, 19);
+-	current->flags |= PF_NOFREEZE;
+ 
+ 	do {
+ 		schedule_timeout_uninterruptible(1);
+@@ -540,6 +540,7 @@ rcu_torture_writer(void *arg)
+ 		}
+ 		rcu_torture_current_version++;
+ 		oldbatch = cur_ops->completed();
++		try_to_freeze();
+ 	} while (!kthread_should_stop() && !fullstop);
+ 	VERBOSE_PRINTK_STRING("rcu_torture_writer task stopping");
+ 	while (!kthread_should_stop())
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
-origin.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
 freezer-take-kernel_execve-into-consideration.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-add-common-orderly_poweroff.patch
-add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
-shrink_slab-handle-bad-shrinkers.patch
