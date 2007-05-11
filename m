@@ -1,775 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: + airo-wpa-support.patch added to -mm tree
-Date: Fri, 11 May 2007 00:15:31 -0700
-Message-ID: <200705110715.l4B7FVTm009500@shell0.pdx.osdl.net>
+Subject: - forcedeth-improve-napi-logic.patch removed from -mm tree
+Date: Fri, 11 May 2007 00:18:41 -0700
+Message-ID: <200705110718.l4B7IfqG009541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60780 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751856AbXEKHSA (ORCPT
+	by vger.kernel.org with ESMTP id S1753042AbXEKHSy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 03:18:00 -0400
+	Fri, 11 May 2007 03:18:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: castet.matthieu@free.fr, dcbw@redhat.com, herbert@gondor.apana.org.au, jt@hpl.hp.com, linville@tuxdriver.com
+To: mingo@elte.hu, aabdulla@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     airo: wpa support
-has been added to the -mm tree.  Its filename is
-     airo-wpa-support.patch
+     forcedeth: improve NAPI logic
+has been removed from the -mm tree.  Its filename was
+     forcedeth-improve-napi-logic.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: airo: wpa support
-From: matthieu castet <castet.matthieu@free.fr>
+Subject: forcedeth: improve NAPI logic
+From: Ingo Molnar <mingo@elte.hu>
 
-Add wpa support for airo driver.  In then end of 2005 I manage to make work
-wpa but the code was really ugly.  I manage to find some time to clean it.
+Another forcedeth.c thing: i noticed that its NAPI handler does not do
+tx-ring processing.  The patch below implements this - tested on DESC_VER_2
+hardware, with CONFIG_FORCEDETH_NAPI=y.
 
-To support wpa, a new interface of the firmware should be used.  This
-interface is incompatible with the old interface and using both interface
-at the same time make the firmware hang.
 
-Porting OPEN and WEP mode to new interface need some driver rewrite, and
-the old interface should be keep for the older cards (or the cards that
-doesn't have newer firmware).  That's why I didn't do it, and I added a
-module parameter for choosing between the old driver behavior (with no wpa
-support) or the driver with wpa only support.
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+---
+Auke said:
 
-The wireless extension handlers are a bit ugly, I will be very happy, if
-somebody could help me to clean them.
+the patch needs to be improved.
 
-Cc: Jean Tourrilhes <jt@hpl.hp.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+The following needs to be done when NAPI is enabled:
+- remove the tx handling within the ISRs
+- mask off the tx interrupts within the ISRs that handle tx processing
+- re-enable tx interrupts within the NAPI handler
+- add tx handling within the NAPI handler (this patch covers it)
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c |  403 +++++++++++++++++++++++++++++++---
- 1 file changed, 379 insertions(+), 24 deletions(-)
+ drivers/net/forcedeth.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/net/wireless/airo.c~airo-wpa-support drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~airo-wpa-support
-+++ a/drivers/net/wireless/airo.c
-@@ -16,6 +16,7 @@
-     Code was also integrated from the Cisco Aironet driver for Linux.
-     Support for MPI350 cards was added by Fabrice Bellet
-     <fabrice@bellet.info>.
-+    (C) 2005-2007 Matthieu CASTET <castet.matthieu@free.fr> for WPA support
+diff -puN drivers/net/forcedeth.c~forcedeth-improve-napi-logic drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-improve-napi-logic
++++ a/drivers/net/forcedeth.c
+@@ -3111,9 +3111,17 @@ static int nv_napi_poll(struct net_devic
+ 	int retcode;
  
- ======================================================================*/
- 
-@@ -90,6 +91,12 @@ static struct pci_driver airo_driver = {
- #include <linux/delay.h>
- #endif
- 
-+/* enable rx mic checking
-+ *disable because it takes some time in ISR
-+ * XXX crypto doesn't work anymore in ISR on 2.6.21
-+ */
-+//#define WPA_CHECK_RX_MIC
+ 	if (np->desc_ver == DESC_VER_1 || np->desc_ver == DESC_VER_2) {
++		spin_lock_irqsave(&np->lock, flags);
++		nv_tx_done(dev);
++		spin_unlock_irqrestore(&np->lock, flags);
 +
- /* Hack to do some power saving */
- #define POWER_ON_DOWN
- 
-@@ -222,6 +229,7 @@ static
- int maxencrypt /* = 0 */; /* The highest rate that the card can encrypt at.
- 		       0 means no limit.  For old cards this was 4 */
- 
-+static int wpa_enabled; /* If set the card is in WPA mode. This is incompatible with WEP or open mode */
- static int auto_wep /* = 0 */; /* If set, it tries to figure out the wep mode */
- static int aux_bap /* = 0 */; /* Checks to see if the aux ports are needed to read
- 		    the bap, needed on some older cards and buses. */
-@@ -249,6 +257,9 @@ module_param(basic_rate, int, 0);
- module_param_array(rates, int, NULL, 0);
- module_param_array(ssids, charp, NULL, 0);
- module_param(auto_wep, int, 0);
-+module_param(wpa_enabled, int, 0);
-+MODULE_PARM_DESC(wpa_enabled, "If non-zero, the driver can use WPA \
-+but Open and WEP mode won't be possible");
- MODULE_PARM_DESC(auto_wep, "If non-zero, the driver will keep looping through \
- the authentication options until an association is made.  The value of \
- auto_wep is number of the wep keys to check.  A value of 2 will try using \
-@@ -451,6 +462,7 @@ static int do8bitIO = 0;
- #define RID_UNKNOWN22  0xFF22
- #define RID_LEAPUSERNAME 0xFF23
- #define RID_LEAPPASSWORD 0xFF24
-+#define RID_WPA        0xFF25
- #define RID_STATUS     0xFF50
- #define RID_BEACON_HST 0xFF51
- #define RID_BUSY_HST   0xFF52
-@@ -505,6 +517,14 @@ typedef struct {
- 	u8 key[16];
- } WepKeyRid;
- 
-+typedef struct {
-+	u16 len;
-+	u16 kindex;
-+	u8 mac[ETH_ALEN];
-+	u16 klen;
-+	u8 key[48];
-+} WpaKeyRid;
-+
- /* These structures are from the Aironet's PC4500 Developers Manual */
- typedef struct {
- 	u16 len;
-@@ -524,6 +544,19 @@ typedef struct {
- #define MOD_MOK 2
- } ModulationRid;
- 
-+/* Only present on firmware >= 5.30.17 */
-+typedef struct {
-+	u16 _reserved5[4];
-+	u16 auth_cipher;
-+#define AUTH_CIPHER_NONE 1
-+#define AUTH_CIPHER_WEP 0xc
-+#define AUTH_CIPHER_TKIP 0x210
-+	u16 auth_key;
-+#define AUTH_KEY_MGMT_NONE 1
-+#define AUTH_KEY_MGMT_802_1X 4
-+#define AUTH_KEY_MGMT_PSK 8
-+} ConfigRidExtra;
-+
- typedef struct {
- 	u16 len; /* sizeof(ConfigRid) */
- 	u16 opmode; /* operating mode */
-@@ -579,6 +612,7 @@ typedef struct {
- #define AUTH_ENCRYPT 0x101
- #define AUTH_SHAREDKEY 0x102
- #define AUTH_ALLOW_UNENCRYPTED 0x200
-+#define AUTH_ENCRYPT_WPA 0xc101
- 	u16 associationTimeout;
- 	u16 specifiedApTimeout;
- 	u16 offlineScanInterval;
-@@ -642,6 +676,8 @@ typedef struct {
- #define MAGIC_STAY_IN_CAM (1<<10)
- 	u8 magicControl;
- 	u16 autoWake;
-+	/* Only present on firmware >= 5.30.17 */
-+	ConfigRidExtra extra;
- } ConfigRid;
- 
- typedef struct {
-@@ -1227,6 +1263,15 @@ struct airo_info {
- 	unsigned int bssListFirst;
- 	unsigned int bssListNext;
- 	unsigned int bssListRidLen;
-+	unsigned int ConfigRidLen;
-+	unsigned char wpa_tx_key [8];
-+	unsigned char wpa_rx_key [8];
-+	unsigned char wpa_rx_key_m [8];
-+	unsigned char wpa_rx_key_m_old [8];
-+	u8 LLC [10];
-+	struct crypto_hash *tfm_michael;
-+	int wpa_enabled;
-+	int wpa_key_enabled;
- 
- 	struct list_head network_list;
- 	struct list_head network_free_list;
-@@ -1723,6 +1768,55 @@ static void emmh32_final(emmh32_context 
- 	digest[3] = val & 0xFF;
- }
- 
-+static void wpa_compute_mic(struct airo_info *ai ,char *pPacket, u8 *mic, int len, char *key)
-+{
-+	struct scatterlist sg[3];
-+	struct hash_desc desc;
-+
-+	sg[0].page = virt_to_page(pPacket);
-+	sg[0].offset = offset_in_page(pPacket);
-+	sg[0].length = sizeof(etherHead);
-+
-+
-+	sg[1].page = virt_to_page(ai->LLC);
-+	sg[1].offset = offset_in_page(ai->LLC);
-+	sg[1].length = sizeof(ai->LLC);
-+
-+	sg[2].page = virt_to_page(pPacket + sizeof(etherHead));
-+	sg[2].offset = offset_in_page(pPacket + sizeof(etherHead));
-+	sg[2].length = len - sizeof(etherHead);
-+
-+	crypto_hash_setkey(ai->tfm_michael, key, 8);
-+
-+	desc.tfm = ai->tfm_michael;
-+	desc.flags = 0;
-+
-+	crypto_hash_digest(&desc, sg, len + sizeof(ai->LLC),
-+			mic);
-+}
-+
-+#ifdef WPA_CHECK_RX_MIC
-+static int wpa_check_rx_mic(struct airo_info *ai ,char *buffer, int len)
-+{
-+	u8 mic[8];
-+	/* multicast */
-+	if (buffer[0] & 1) {
-+		wpa_compute_mic(ai, buffer, mic, len, ai->wpa_rx_key_m);
-+		if (memcmp(mic, buffer + len, 8)) {
-+			/* we don't know the current index, try the old one */
-+			wpa_compute_mic(ai, buffer, mic, len, ai->wpa_rx_key_m_old);
-+			return memcmp(mic, buffer + len, 8);
-+		}
-+	}
-+	else {
-+		wpa_compute_mic(ai, buffer, mic, len, ai->wpa_rx_key);
-+		return memcmp(mic, buffer + len, 8);
-+	}
-+	return 0;
-+}
-+#endif
-+
-+
- static int readBSSListRid(struct airo_info *ai, int first,
- 		      BSSListRid *list) {
- 	int rc;
-@@ -1786,6 +1880,18 @@ static int writeWepKeyRid(struct airo_in
- 	return rc;
- }
- 
-+static int writeWpaKeyRid(struct airo_info*ai, WpaKeyRid *pwkr, int lock) {
-+	int rc;
-+	WpaKeyRid wkr = *pwkr;
-+
-+	wkr.len = cpu_to_le16(wkr.len);
-+	wkr.kindex = cpu_to_le16(wkr.kindex);
-+	wkr.klen = cpu_to_le16(wkr.klen);
-+	rc = PC4500_writerid(ai, RID_WPA, &wkr, sizeof(wkr), lock);
-+	if (rc!=SUCCESS) airo_print_err(ai->dev->name, "WPA set %x", rc);
-+	return rc;
-+}
-+
- static int readSsidRid(struct airo_info*ai, SsidRid *ssidr) {
- 	int i;
- 	int rc = PC4500_readrid(ai, RID_SSID, ssidr, sizeof(*ssidr), 1);
-@@ -1816,7 +1922,7 @@ static int readConfigRid(struct airo_inf
- 	if (ai->config.len)
- 		return SUCCESS;
- 
--	rc = PC4500_readrid(ai, RID_ACTUALCONFIG, &cfg, sizeof(cfg), lock);
-+	rc = PC4500_readrid(ai, RID_ACTUALCONFIG, &cfg, ai->ConfigRidLen, lock);
- 	if (rc != SUCCESS)
- 		return rc;
- 
-@@ -1879,7 +1985,7 @@ static int writeConfigRid(struct airo_in
- 	for(s = &cfgr.autoWake; s <= &cfgr.autoWake; s++)
- 		*s = cpu_to_le16(*s);
- 
--	return PC4500_writerid( ai, RID_CONFIG, &cfgr, sizeof(cfgr), lock);
-+	return PC4500_writerid( ai, RID_CONFIG, &cfgr, ai->ConfigRidLen, lock);
- }
- static int readStatusRid(struct airo_info*ai, StatusRid *statr, int lock) {
- 	int rc = PC4500_readrid(ai, RID_STATUS, statr, sizeof(*statr), lock);
-@@ -2040,7 +2146,20 @@ static int mpi_send_packet (struct net_d
- 	 * Firmware automaticly puts 802 header on so
- 	 * we don't need to account for it in the length
- 	 */
--	if (test_bit(FLAG_MIC_CAPABLE, &ai->flags) && ai->micstats.enabled &&
-+	if (ai->wpa_key_enabled) {
-+		u8 mic [8];
-+
-+		*payloadLen = cpu_to_le16(len-sizeof(etherHead)+8);
-+		ai->txfids[0].tx_desc.len += 8;
-+
-+		wpa_compute_mic(ai, buffer, mic, len, ai->wpa_tx_key);
-+
-+		dev->trans_start = jiffies;
-+		/* copy data into airo dma buffer */
-+		memcpy(sendbuf, buffer, len);
-+		memcpy(sendbuf + len, mic, 8);
-+	}
-+    else if (test_bit(FLAG_MIC_CAPABLE, &ai->flags) && ai->micstats.enabled &&
- 		(ntohs(((u16 *)buffer)[6]) != 0x888E)) {
- 		MICBuffer pMic;
- 
-@@ -2446,6 +2565,8 @@ void stop_airo_card( struct net_device *
- 				ai->shared, ai->shared_dma);
- 		}
-         }
-+	if (ai->tfm_michael)
-+		crypto_free_hash(ai->tfm_michael);
- 	crypto_free_cipher(ai->tfm);
- 	del_airo_dev(ai);
- 	free_netdev( dev );
-@@ -2779,6 +2900,7 @@ static int airo_test_wpa_capable(struct 
- 	if ((cap_rid.softVer > 0x530)
- 	  || ((cap_rid.softVer == 0x530) && (cap_rid.softSubVer >= 17))) {
- 		airo_print_info(name, "WPA is supported.");
-+		airo_print_info(name, "Version 5.41 is recomended");
- 		return 1;
- 	}
- 
-@@ -2808,6 +2930,11 @@ static struct net_device *_init_airo_car
- 	}
- 
- 	ai = dev->priv;
-+	/* this is needed for initialisation, the firware check will be done
-+	 * latter. The windows driver, do it a different way : it reads
-+	 * ConfigRid.len .
-+	 */
-+	ai->ConfigRidLen = sizeof(ConfigRid) - sizeof(ConfigRidExtra);
- 	ai->wifidev = NULL;
- 	ai->flags = 0;
- 	ai->jobs = 0;
-@@ -2888,15 +3015,29 @@ static struct net_device *_init_airo_car
- 	}
- 
- 	/* Test for WPA support */
--	if (airo_test_wpa_capable(ai)) {
-+	if (airo_test_wpa_capable(ai) && wpa_enabled) {
-+		char LLC1 [] = {0, 0, 0, 0, 0xaa, 0xaa, 0x03, 0x00, 0x00, 0x00};
- 		set_bit(FLAG_WPA_CAPABLE, &ai->flags);
- 		ai->bssListFirst = RID_WPA_BSSLISTFIRST;
- 		ai->bssListNext = RID_WPA_BSSLISTNEXT;
- 		ai->bssListRidLen = sizeof(BSSListRid);
-+		ai->ConfigRidLen = sizeof(ConfigRid);
-+		memcpy(ai->LLC, LLC1, sizeof(ai->LLC));
-+		ai->tfm_michael = crypto_alloc_hash("michael_mic", 0, CRYPTO_ALG_ASYNC);
-+		if (ai->tfm_michael == NULL) {
-+			printk(KERN_DEBUG "crypto API michael_mic failed. Removing WPA\n");
-+		}
-+		else {
-+			ai->wpa_enabled = 1;
-+			/* we don't want to enable wep mode : it will make the firmware
-+			 * hanging */
-+			auto_wep = 0;
-+		}
+ 		pkts = nv_rx_process(dev, limit);
+ 		retcode = nv_alloc_rx(dev);
  	} else {
- 		ai->bssListFirst = RID_BSSLISTFIRST;
- 		ai->bssListNext = RID_BSSLISTNEXT;
- 		ai->bssListRidLen = sizeof(BSSListRid) - sizeof(BSSListRidExtra);
-+		ai->ConfigRidLen = sizeof(ConfigRid) - sizeof(ConfigRidExtra);
++		spin_lock_irqsave(&np->lock, flags);
++		nv_tx_done_optimized(dev, np->tx_ring_size);
++		spin_unlock_irqrestore(&np->lock, flags);
++
+ 		pkts = nv_rx_process_optimized(dev, limit);
+ 		retcode = nv_alloc_rx_optimized(dev);
  	}
- 
- 	rc = register_netdev(dev);
-@@ -3199,7 +3340,9 @@ static irqreturn_t airo_interrupt ( int 
- 
- 		if ( status & EV_MIC ) {
- 			OUT4500( apriv, EVACK, EV_MIC );
--			if (test_bit(FLAG_MIC_CAPABLE, &apriv->flags)) {
-+			if (apriv->wpa_enabled) {
-+			}
-+			else if (test_bit(FLAG_MIC_CAPABLE, &apriv->flags)) {
- 				set_bit(JOB_MIC, &apriv->jobs);
- 				wake_up_interruptible(&apriv->thr_wait);
- 			}
-@@ -3243,6 +3386,8 @@ static irqreturn_t airo_interrupt ( int 
- 			  leaving BSS */
- #define RC_NOAUTH 9 /* Station requesting (Re)Association is not
- 		       Authenticated with the responding station */
-+			printk("status : %x\n", newStatus);
-+
- 			if (newStatus == FORCELOSS && apriv->scan_timeout > 0)
- 				scan_forceloss = 1;
- 			if(newStatus == ASSOCIATED || newStatus == REASSOCIATED) {
-@@ -3369,7 +3514,9 @@ static irqreturn_t airo_interrupt ( int 
- 			} else {
- 				MICBuffer micbuf;
- 				bap_read (apriv, buffer, ETH_ALEN*2, BAP0);
--				if (apriv->micstats.enabled) {
-+				if (apriv->wpa_key_enabled) {
-+				}
-+				else if (apriv->micstats.enabled) {
- 					bap_read (apriv,(u16*)&micbuf,sizeof(micbuf),BAP0);
- 					if (ntohs(micbuf.typelen) > 0x05DC)
- 						bap_setup (apriv, fid, 0x44, BAP0);
-@@ -3382,7 +3529,18 @@ static irqreturn_t airo_interrupt ( int 
- 					}
- 				}
- 				bap_read(apriv,buffer+ETH_ALEN,len,BAP0);
--				if (decapsulate(apriv,&micbuf,(etherHead*)buffer,len)) {
-+				if (apriv->wpa_key_enabled) {
-+					len -= 8;
-+
-+					//this is easy to do, but take some time in ISR
-+#ifdef WPA_CHECK_RX_MIC
-+					if (wpa_check_rx_mic(apriv, skb->data, len + hdrlen))
-+						goto badmic;
-+
-+#endif
-+					skb_trim (skb, len + hdrlen);
-+				}
-+				else if (decapsulate(apriv,&micbuf,(etherHead*)buffer,len)) {
- badmic:
- 					dev_kfree_skb_irq (skb);
- badrx:
-@@ -3611,7 +3769,9 @@ static void mpi_receive_802_3(struct air
- 		}
- 		buffer = skb_put(skb,len);
- 		memcpy(buffer, ai->rxfids[0].virtual_host_addr, ETH_ALEN * 2);
--		if (ai->micstats.enabled) {
-+		if (ai->wpa_key_enabled) {
-+		}
-+		else if (ai->micstats.enabled) {
- 			memcpy(&micbuf,
- 				ai->rxfids[0].virtual_host_addr + ETH_ALEN * 2,
- 				sizeof(micbuf));
-@@ -3626,7 +3786,17 @@ static void mpi_receive_802_3(struct air
- 		memcpy(buffer + ETH_ALEN * 2,
- 			ai->rxfids[0].virtual_host_addr + ETH_ALEN * 2 + off,
- 			len - ETH_ALEN * 2 - off);
--		if (decapsulate (ai, &micbuf, (etherHead*)buffer, len - off - ETH_ALEN * 2)) {
-+		if (ai->wpa_key_enabled) {
-+			len -= 8;
-+
-+#ifdef WPA_CHECK_RX_MIC
-+			if (wpa_check_rx_mic(ai, buffer, len))
-+				goto badmic;
-+#endif
-+
-+			skb_trim (skb, len);
-+		}
-+		else if (decapsulate (ai, &micbuf, (etherHead*)buffer, len - off - ETH_ALEN * 2)) {
- badmic:
- 			dev_kfree_skb_irq (skb);
- 			goto badrx;
-@@ -4325,7 +4495,10 @@ static int transmit_802_3_packet(struct 
- 	}
- 	len -= ETH_ALEN * 2;
- 
--	if (test_bit(FLAG_MIC_CAPABLE, &ai->flags) && ai->micstats.enabled && 
-+	if (ai->wpa_key_enabled) {
-+		miclen = 8;
-+	}
-+	else if (test_bit(FLAG_MIC_CAPABLE, &ai->flags) && ai->micstats.enabled &&
- 	    (ntohs(((u16 *)pPacket)[6]) != 0x888E)) {
- 		if (encapsulate(ai,(etherHead *)pPacket,&pMic,len) != SUCCESS)
- 			return ERROR;
-@@ -4339,9 +4512,27 @@ static int transmit_802_3_packet(struct 
- 	payloadLen = cpu_to_le16(len + miclen);
- 	bap_write(ai, &payloadLen, sizeof(payloadLen),BAP1);
- 	bap_write(ai, (const u16*)pPacket, sizeof(etherHead), BAP1);
--	if (miclen)
--		bap_write(ai, (const u16*)&pMic, miclen, BAP1);
--	bap_write(ai, (const u16*)(pPacket + sizeof(etherHead)), len, BAP1);
-+	if (ai->wpa_key_enabled) {
-+		u8 mic[8];
-+
-+		wpa_compute_mic(ai, pPacket, mic, len + sizeof(etherHead), ai->wpa_tx_key);
-+		//XXX ugly hack because we write per 16 bits packet
-+		bap_write(ai, (const u16*)(pPacket + sizeof(etherHead)), len - (len&1), BAP1);
-+		if (len&1) {
-+			u8 tmp [2];
-+			tmp [0] = pPacket [sizeof(etherHead) + len-1];
-+			tmp [1] = mic[0];
-+			bap_write(ai, (const u16*)tmp, 2, BAP1);
-+			bap_write(ai, (const u16*)(mic+1), sizeof(mic)-1, BAP1);
-+		}
-+		else
-+			bap_write(ai, (const u16*)mic, sizeof(mic), BAP1);
-+	}
-+	else {
-+		if (miclen)
-+			bap_write(ai, (const u16*)&pMic, miclen, BAP1);
-+		bap_write(ai, (const u16*)(pPacket + sizeof(etherHead)), len, BAP1);
-+	}
- 	// issue the transmit command
- 	memset( &cmd, 0, sizeof( cmd ) );
- 	cmd.cmd = CMD_TRANSMIT;
-@@ -6354,6 +6545,10 @@ static int airo_set_encode(struct net_de
- 	int perm = ( dwrq->flags & IW_ENCODE_TEMP ? 0 : 1 );
- 	u16 currentAuthType = local->config.authType;
- 
-+	/* In wpa mode, only wpa is allowed */
-+	if (local->wpa_enabled)
-+		return -EINVAL;
-+
- 	/* Is WEP supported ? */
- 	readCapabilityRid(local, &cap_rid, 1);
- 	/* Older firmware doesn't support this...
-@@ -6449,6 +6644,7 @@ static int airo_get_encode(struct net_de
- 	readConfigRid(local, 1);
- 	/* Check encryption mode */
- 	switch(local->config.authType)	{
-+		case AUTH_ENCRYPT_WPA:
- 		case AUTH_ENCRYPT:
- 			dwrq->flags = IW_ENCODE_OPEN;
- 			break;
-@@ -6480,6 +6676,85 @@ static int airo_get_encode(struct net_de
- /*
-  * Wireless Handler : set extended Encryption parameters
-  */
-+static int airo_set_encodeext_wpa(struct airo_info *local,
-+							struct iw_encode_ext *ext,
-+							struct iw_point *encoding)
-+{
-+	static const unsigned char macaddr[ETH_ALEN] = { 0x01, 0, 0, 0, 0, 0 };
-+	WpaKeyRid wkr;
-+	int index = (encoding->flags & IW_ENCODE_INDEX) - 1;
-+
-+	printk("set wpa : %d %d %d %x\n", ext->alg, ext->key_len, index, ext->ext_flags);
-+
-+	memset(&wkr, 0, sizeof(wkr));
-+	wkr.len = sizeof(wkr);
-+
-+	if ((encoding->flags & IW_ENCODE_DISABLED) ||
-+			ext->alg == IW_ENCODE_ALG_NONE || ext->key_len == 0) {
-+		wkr.kindex = index;
-+		memcpy( wkr.mac, macaddr, ETH_ALEN );
-+		printk(KERN_INFO "Wpa Removing key %d\n", index);
-+		memset(local->wpa_tx_key, 0, 8);
-+		memset(local->wpa_rx_key, 0, 8);
-+		memset(local->wpa_rx_key_m, 0, 8);
-+		memset(local->wpa_rx_key_m_old, 0, 8);
-+		local->wpa_key_enabled = 0;
-+	}
-+	else if (ext->alg == IW_ENCODE_ALG_WEP)
-+		return -EOPNOTSUPP;
-+	else if (ext->alg == IW_ENCODE_ALG_TKIP && ext->key_len == 32) {
-+		// we cannot set a WPA key in a non-WPA mode
-+		if (local->config.authType != AUTH_ENCRYPT_WPA)
-+			return -EINVAL;
-+		wkr.kindex = index;
-+		memcpy( wkr.mac, macaddr, ETH_ALEN );
-+		wkr.klen = 0x30;
-+
-+		/* firmware use ndis order + a hole at 16-21 */
-+		memcpy(wkr.key, ext->key, 16); /* temporal key */
-+		memcpy(wkr.key + 40, ext->key + 16, 8); /*TX*/
-+		memcpy(wkr.key + 32, ext->key + 24, 8); /*RX*/
-+
-+		if (ext->ext_flags & IW_ENCODE_EXT_RX_SEQ_VALID) {
-+			memcpy(wkr.key + 22, ext->rx_seq, 6);
-+		}
-+
-+		if (ext->ext_flags & IW_ENCODE_EXT_GROUP_KEY) {
-+			memcpy(local->wpa_rx_key_m_old, local->wpa_rx_key_m, 8);
-+			memcpy(local->wpa_rx_key_m, ext->key+16, 8);
-+		}
-+		else {
-+			memcpy(local->wpa_tx_key, ext->key+16, 8);
-+			memcpy(local->wpa_rx_key, ext->key+24, 8);
-+		}
-+	}
-+	else
-+		return -EINVAL;
-+
-+
-+
-+	if (down_interruptible(&local->sem))
-+		return ERROR;
-+
-+	writeWpaKeyRid(local, &wkr, 0);
-+
-+	if (ext->ext_flags & IW_ENCODE_EXT_SET_TX_KEY) {
-+		memset(&wkr, 0, sizeof(wkr));
-+		wkr.len = sizeof(wkr);
-+		wkr.kindex = 0xffff;
-+		wkr.mac[0] = (char)index;
-+		wkr.klen = 0x30;
-+
-+		printk(KERN_INFO "Setting default tx key to %d\n", index);
-+		writeWpaKeyRid(local, &wkr, 0);
-+
-+		local->wpa_key_enabled = 1;
-+	}
-+
-+	up(&local->sem);
-+	return 0;
-+}
-+
- static int airo_set_encodeext(struct net_device *dev,
- 			   struct iw_request_info *info,
- 			    union iwreq_data *wrqu,
-@@ -6502,6 +6777,8 @@ static int airo_set_encodeext(struct net
- 	} */
- 	readConfigRid(local, 1);
- 
-+	if (local->wpa_enabled)
-+		return airo_set_encodeext_wpa(local, ext, encoding);
- 	/* Determine and validate the key index */
- 	idx = encoding->flags & IW_ENCODE_INDEX;
- 	if (idx) {
-@@ -6576,6 +6853,7 @@ static int airo_get_encodeext(struct net
- 	struct iw_encode_ext *ext = (struct iw_encode_ext *)extra;
- 	CapabilityRid cap_rid;		/* Card capability info */
- 	int idx, max_key_len;
-+	printk("get_encode\n");
- 
- 	/* Is it supported ? */
- 	readCapabilityRid(local, &cap_rid, 1);
-@@ -6601,6 +6879,7 @@ static int airo_get_encodeext(struct net
- 
- 	/* Check encryption mode */
- 	switch(local->config.authType) {
-+		case AUTH_ENCRYPT_WPA:
- 		case AUTH_ENCRYPT:
- 			encoding->flags = IW_ENCODE_ALG_WEP | IW_ENCODE_ENABLED;
- 			break;
-@@ -6626,6 +6905,20 @@ static int airo_get_encodeext(struct net
- }
- 
- 
-+static void wpa_off(struct airo_info *local)
-+{
-+	printk(KERN_INFO"WPA dis\n");
-+	local->config.authType=AUTH_OPEN;
-+	local->config.extra.auth_key=AUTH_KEY_MGMT_NONE;
-+}
-+
-+static void wpa_on(struct airo_info *local)
-+{
-+	printk(KERN_INFO"WPA enable\n");
-+	local->config.authType=AUTH_ENCRYPT_WPA;
-+	local->config.extra.auth_cipher=AUTH_CIPHER_TKIP;
-+	//local->config.extra._reserved5[0]=0x40;
-+}
- /*------------------------------------------------------------------*/
- /*
-  * Wireless Handler : set extended authentication parameters
-@@ -6640,17 +6933,55 @@ static int airo_set_auth(struct net_devi
- 
- 	switch (param->flags & IW_AUTH_INDEX) {
- 	case IW_AUTH_WPA_VERSION:
-+		if (param->value == IW_AUTH_WPA_VERSION_WPA)
-+			wpa_on(local);
-+		else if (param->value == IW_AUTH_WPA_VERSION_DISABLED)
-+			wpa_off(local);
-+		else
-+			return -EINVAL;
-+		break;
- 	case IW_AUTH_CIPHER_PAIRWISE:
- 	case IW_AUTH_CIPHER_GROUP:
-+		if ((param->value == IW_AUTH_CIPHER_TKIP) && (local->config.authType == AUTH_ENCRYPT_WPA))
-+			return 0;
-+		else if (((param->value == IW_AUTH_CIPHER_WEP40) ||(param->value == IW_AUTH_CIPHER_WEP104))
-+				&& (local->config.authType != AUTH_ENCRYPT_WPA))
-+			return 0;
-+		else if ((param->value == IW_AUTH_CIPHER_NONE) && (local->config.authType != AUTH_ENCRYPT_WPA))
-+			local->config.authType = AUTH_OPEN;
-+		else
-+			return -EINVAL;
-+		break;
- 	case IW_AUTH_KEY_MGMT:
--	case IW_AUTH_RX_UNENCRYPTED_EAPOL:
-+		if (local->config.authType != AUTH_ENCRYPT_WPA)
-+			return -EINVAL;
-+		if (param->value == IW_AUTH_KEY_MGMT_802_1X)
-+			local->config.extra.auth_key=AUTH_KEY_MGMT_802_1X;
-+		else if (param->value == IW_AUTH_KEY_MGMT_PSK)
-+			local->config.extra.auth_key=AUTH_KEY_MGMT_PSK;
-+		else
-+			return -EINVAL;
-+		break;
- 	case IW_AUTH_PRIVACY_INVOKED:
-+		if (!param->value) {
-+			if (local->config.authType == AUTH_ENCRYPT_WPA)
-+				wpa_off(local);
-+			else
-+				wpa_on(local);
-+		}
-+		else
-+			return 0;
-+		break;
-+	case IW_AUTH_RX_UNENCRYPTED_EAPOL:
-+	case IW_AUTH_TKIP_COUNTERMEASURES:
- 		/*
- 		 * airo does not use these parameters
- 		 */
- 		break;
- 
- 	case IW_AUTH_DROP_UNENCRYPTED:
-+		if (local->wpa_enabled)
-+			break;
- 		if (param->value) {
- 			/* Only change auth type if unencrypted */
- 			if (currentAuthType == AUTH_OPEN)
-@@ -6659,15 +6990,16 @@ static int airo_set_auth(struct net_devi
- 			local->config.authType = AUTH_OPEN;
- 		}
- 
--		/* Commit the changes to flags if needed */
--		if (local->config.authType != currentAuthType)
--			set_bit (FLAG_COMMIT, &local->flags);
- 		break;
- 
- 	case IW_AUTH_80211_AUTH_ALG: {
- 			/* FIXME: What about AUTH_OPEN?  This API seems to
- 			 * disallow setting our auth to AUTH_OPEN.
- 			 */
-+			/* does not make sense with WPA */
-+			if (local->config.authType == AUTH_ENCRYPT_WPA)
-+				return 0;
-+
- 			if (param->value & IW_AUTH_ALG_SHARED_KEY) {
- 				local->config.authType = AUTH_SHAREDKEY;
- 			} else if (param->value & IW_AUTH_ALG_OPEN_SYSTEM) {
-@@ -6675,21 +7007,20 @@ static int airo_set_auth(struct net_devi
- 			} else
- 				return -EINVAL;
- 			break;
--
--			/* Commit the changes to flags if needed */
--			if (local->config.authType != currentAuthType)
--				set_bit (FLAG_COMMIT, &local->flags);
- 		}
- 
- 	case IW_AUTH_WPA_ENABLED:
--		/* Silently accept disable of WPA */
--		if (param->value > 0)
--			return -EOPNOTSUPP;
-+		if (param->value == 0)
-+			wpa_off(local);
-+		else
-+			wpa_on(local);
- 		break;
- 
- 	default:
- 		return -EOPNOTSUPP;
- 	}
-+
-+	set_bit (FLAG_COMMIT, &local->flags);
- 	return -EINPROGRESS;
- }
- 
-@@ -6741,6 +7072,29 @@ static int airo_get_auth(struct net_devi
- 	return 0;
- }
- 
-+static int airo_disasociate(struct net_device *dev,
-+		struct iw_request_info *info,
-+		struct iw_point *data, char *extra)
-+{
-+	struct airo_info *local = dev->priv;
-+	Resp rsp;
-+	SsidRid SSID_rid;		/* SSIDs */
-+
-+	/* reset the list */
-+	memset(&SSID_rid, 0, sizeof(SSID_rid));
-+
-+	/* Set the SSID */
-+	strcpy(SSID_rid.ssids[0].ssid, "tsunami");
-+	SSID_rid.ssids[0].len = 7;
-+	SSID_rid.len = sizeof(SSID_rid);
-+	/* Write it to the card */
-+	disable_MAC(local, 1);
-+	writeSsidRid(local, &SSID_rid, 1);
-+	enable_MAC(local, &rsp, 1);
-+
-+	return 0;
-+}
-+
- 
- /*------------------------------------------------------------------*/
- /*
-@@ -7558,6 +7912,7 @@ static const iw_handler		airo_handler[] 
- 	(iw_handler) airo_set_encodeext,	/* SIOCSIWENCODEEXT */
- 	(iw_handler) airo_get_encodeext,	/* SIOCGIWENCODEEXT */
- 	(iw_handler) NULL,			/* SIOCSIWPMKSA */
-+	[SIOCSIWMLME-SIOCSIWCOMMIT] = (iw_handler) airo_disasociate,
- };
- 
- /* Note : don't describe AIROIDIFC and AIROOLDIDIFC in here.
 _
 
-Patches currently in -mm which might be from castet.matthieu@free.fr are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-tuner-simplec-add-suport-for-secam-bg-with-fi1216mf.patch
-airo-wpa-support.patch
+use-defines-in-sys_getpriority-sys_setpriority.patch
+forcedeth-improve-napi-logic.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+introduce-freezer-flags-rev-2.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+introduce-write_trylock_irqsave.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+timer_stats-slimmed-down-using-statistics-infrastucture.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
