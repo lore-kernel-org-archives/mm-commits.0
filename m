@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + slab-allocators-drop-support-for-destructors.patch added to -mm tree
-Date: Fri, 11 May 2007 12:09:28 -0700
-Message-ID: <200705111909.l4BJ9SRk023971@shell0.pdx.osdl.net>
+Date: Fri, 11 May 2007 12:10:05 -0700
+Message-ID: <200705111910.l4BJA6ZC024001@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54249 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762933AbXEKTJq (ORCPT
+	by vger.kernel.org with ESMTP id S965539AbXEKTKR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:09:46 -0400
+	Fri, 11 May 2007 15:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi, clameter@sgi.com, lethal@linux-sh.org
+Cc: clameter@sgi.com, lethal@linux-sh.org, penberg@cs.helsinki.fi
 
 
 The patch titled
-     From: clameter@sgi.com
+     Slab allocators: Drop support for destructors
 has been added to the -mm tree.  Its filename is
      slab-allocators-drop-support-for-destructors.patch
 
@@ -26,30 +26,25 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: From: clameter@sgi.com
+Subject: Slab allocators: Drop support for destructors
+From: Christoph Lameter <clameter@sgi.com>
 
-
-There is no user of destructors left. There is no reason why we should
-keep checking for destructors calls in the slab allocators.
+There is no user of destructors left.  There is no reason why we should keep
+checking for destructors calls in the slab allocators.
 
 The RFC for this patch was discussed at
 http://marc.info/?l=linux-kernel&m=117882364330705&w=2
 
 Destructors were mainly used for list management which required them to take a
-spinlock. Taking a spinlock in a destructor is a bit risky since the slab
+spinlock.  Taking a spinlock in a destructor is a bit risky since the slab
 allocators may run the destructors anytime they decide a slab is no longer
 needed.
 
-Patch drops destructor support. Any attempt to use a destructor will BUG().
+Patch drops destructor support.  Any attempt to use a destructor will BUG().
 
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-
----
-
-Index: linux-2.6.21-mm2/include/linux/slub_def.h
-===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -350,17 +345,28 @@ diff -puN mm/slub.c~slab-allocators-drop-support-for-destructors mm/slub.c
  	&sanity_checks_attr.attr,
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-unionfs-fix-slab-abuses-with-krealloc.patch
+vm-statistics-make-timer-deferrable.patch
+quicklist-support-for-ia64.patch
+ubi-remove-inverted-check-in-ltree_entry_ctor.patch
+quicklist-support-for-x86_64.patch
+slub-i386-support.patch
 slab-allocators-drop-support-for-destructors.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-revoke-special-mmap-handling.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+remove-slab_ctor_constructor.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+define-percpu-smp-cacheline-align-interface.patch
+call-percpu-smp-cacheline-algin-interface.patch
+remove-constructor-from-buffer_head.patch
+mm-implement-swap-prefetching.patch
 revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-slab-leaks3-default-y.patch
