@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mlx4-dont-use-deprecated-irq-flags.patch added to -mm tree
-Date: Thu, 10 May 2007 18:00:06 -0700
-Message-ID: <200705110103.l4B135XG002848@shell0.pdx.osdl.net>
+Subject: + i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch added to -mm tree
+Date: Thu, 10 May 2007 18:14:08 -0700
+Message-ID: <200705110117.l4B1H75b003091@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40286 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756362AbXEKBDJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756705AbXEKBR2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 21:03:09 -0400
+	Thu, 10 May 2007 21:17:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca, khali@linux-fr.org
 
 
 The patch titled
-     mlx4: don't use deprecated IRQ flags
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
 has been added to the -mm tree.  Its filename is
-     mlx4-dont-use-deprecated-irq-flags.patch
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mlx4: don't use deprecated IRQ flags
+Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
+drivers/i2c/chips/ds1682.c: In function 'ds1682_store':
+drivers/i2c/chips/ds1682.c:127: warning: format '%i' expects type 'int', but argument 5 has type 'size_t'
+drivers/i2c/chips/ds1682.c: In function 'ds1682_user_data_store':
+drivers/i2c/chips/ds1682.c:218: warning: format '%i' expects type 'int', but argument 4 has type 'size_t'
+
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mlx4/eq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/chips/ds1682.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/mlx4/eq.c~mlx4-dont-use-deprecated-irq-flags drivers/net/mlx4/eq.c
---- a/drivers/net/mlx4/eq.c~mlx4-dont-use-deprecated-irq-flags
-+++ a/drivers/net/mlx4/eq.c
-@@ -623,7 +623,7 @@ int __devinit mlx4_init_eq_table(struct 
- 		priv->eq_table.eq[MLX4_EQ_CATAS].have_irq = 1;
- 	} else {
- 		err = request_irq(dev->pdev->irq, mlx4_interrupt,
--				  SA_SHIRQ, DRV_NAME, dev);
-+				  IRQF_SHARED, DRV_NAME, dev);
- 		if (err)
- 			goto err_out_async;
+diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes drivers/i2c/chips/ds1682.c
+--- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
++++ a/drivers/i2c/chips/ds1682.c
+@@ -124,7 +124,7 @@ static ssize_t ds1682_store(struct devic
+ 	reg = ds1682_attr_to_reg(attr, &regsize);
  
+ 	if ((reg < 0) || (count >= 16) || (buf[count] != '\0')) {
+-		dev_dbg(dev, "insane input; reg=0x%i count=%i%s\n",
++		dev_dbg(dev, "insane input; reg=0x%i count=%zd%s\n",
+ 			reg, count, buf[count] == '\0' ? " unterminated" : "");
+ 		return -EIO;
+ 	}
+@@ -215,7 +215,7 @@ static ssize_t ds1682_user_data_store(st
+ 
+ 	/* Check input for sanity */
+ 	if ((count >= 80) || (buf[count] != '\0')) {
+-		dev_dbg(dev, "insane input; count=%i%s\n",
++		dev_dbg(dev, "insane input; count=%zd%s\n",
+ 			count, buf[count] == '\0' ? " unterminated" : "");
+ 		return -EIO;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +85,8 @@ git-leds-fixup.patch
 git-libata-all-sata_via-build-fix.patch
 pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+netxen_nic_main-dont-use-deprecated-irq-flags.patch
+mlx4-dont-use-deprecated-irq-flags.patch
 git-battery.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
@@ -122,5 +139,4 @@ integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 w1-build-fix.patch
-netxen_nic_main-dont-use-deprecated-irq-flags.patch
-mlx4-dont-use-deprecated-irq-flags.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
