@@ -1,63 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + add-kstrndup-fix.patch added to -mm tree
-Date: Fri, 11 May 2007 14:50:17 -0700
-Message-ID: <200705112150.l4BLoHqh027736@shell0.pdx.osdl.net>
+Subject: + x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch added to -mm tree
+Date: Fri, 11 May 2007 15:38:33 -0700
+Message-ID: <200705112238.l4BMcXeB028527@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46656 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751349AbXEKVuX (ORCPT
+	by vger.kernel.org with ESMTP id S1751130AbXEKWiz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 17:50:23 -0400
+	Fri, 11 May 2007 18:38:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, jeremy@xensource.com, rene.scharfe@lsrfire.ath.cx
+Cc: jeremy@goop.org, jeremy@xensource.com, roland@redhat.com
 
 
 The patch titled
-     add-kstrndup fix
+     x86-use-elfnoteh-to-generate-vsyscall-notes fix
 has been added to the -mm tree.  Its filename is
-     add-kstrndup-fix.patch
+     x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-kstrndup fix
-=46rom: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: x86-use-elfnoteh-to-generate-vsyscall-notes fix
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-strnlen prevents over-reading the input.
+Roland McGrath <roland@redhat.com>:
+> I used .balign because .align has inconsistent meaning on some platforms
+> (matches .p2align instead of .balign).  Using .align in a
+> machine-independent file seems questionable.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Ren=E9 Scharfe <rene.scharfe@lsrfire.ath.cx>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ include/linux/elfnote.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/util.c~add-kstrndup-fix mm/util.c
---- a/mm/util.c~add-kstrndup-fix
-+++ a/mm/util.c
-@@ -53,9 +53,7 @@ char *kstrndup(const char *s, size_t max
- 	if (!s)
- 		return NULL;
-=20
--	len =3D strlen(s);
--	if (len > max)
--		len =3D max;
-+	len =3D strnlen(s, max);
- 	buf =3D kmalloc_track_caller(len+1, gfp);
-  	if (buf) {
- 		memcpy(buf, s, len);
+diff -puN include/linux/elfnote.h~x86-use-elfnoteh-to-generate-vsyscall-notes-fix include/linux/elfnote.h
+--- a/include/linux/elfnote.h~x86-use-elfnoteh-to-generate-vsyscall-notes-fix
++++ a/include/linux/elfnote.h
+@@ -40,16 +40,16 @@
+  */
+ #define ELFNOTE_START(name, type, flags)	\
+ .pushsection .note.name, flags,@note	;	\
+-  .align 4				;	\
++  .balign 4				;	\
+   .long 2f - 1f		/* namesz */	;	\
+   .long 4484f - 3f	/* descsz */	;	\
+   .long type				;	\
+ 1:.asciz #name				;	\
+-2:.align 4				;	\
++2:.balign 4				;	\
+ 3:
+ 
+ #define ELFNOTE_END				\
+-4484:.align 4				;	\
++4484:.balign 4				;	\
+ .popsection				;
+ 
+ #define ELFNOTE(name, type, desc)		\
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
