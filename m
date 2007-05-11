@@ -1,61 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 23:06:48 -0700
-Message-ID: <200705110606.l4B66mRp008313@shell0.pdx.osdl.net>
+Subject: - x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 23:07:42 -0700
+Message-ID: <200705110607.l4B67gnG008338@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35871 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43420 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758970AbXEKGIG (ORCPT
+	by vger.kernel.org with ESMTP id S1759187AbXEKGIQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 02:08:06 -0400
+	Fri, 11 May 2007 02:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, chrisw@sous-sol.org, ebiederm@xmission.com, hpa@zytor.com, jeremy@goop.org, jeremy@xensource.com, torvalds@linux-foundation.org, zach@vmware.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-map-enough-initial-memory-to-create-lowmem-mappings fix
+     x86_64-extract-helper-function-from-e820_register_active_regions-fix
 has been removed from the -mm tree.  Its filename was
-     i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+     x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into x86_64-extract-helper-function-from-e820_register_active_regions.patch
 
 ------------------------------------------------------
-Subject: i386-map-enough-initial-memory-to-create-lowmem-mappings fix
+Subject: x86_64-extract-helper-function-from-e820_register_active_regions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/asm-offsets.c: In function 'foo':
-arch/i386/kernel/asm-offsets.c:101: error: 'PTRS_PER_PTE' undeclared (first use in this function)
-arch/i386/kernel/asm-offsets.c:101: error: (Each undeclared identifier is reported only once
-arch/i386/kernel/asm-offsets.c:101: error: for each function it appears in.)
-arch/i386/kernel/asm-offsets.c:103: error: 'PTRS_PER_PGD' undeclared (first use in this function)
+We usually put the storage thingy after the type.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Linus Torvalds <torvalds@osdl.org>
-Cc: Zachary Amsden <zach@vmware.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86_64/kernel/e820.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings-fix arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings-fix
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -14,6 +14,7 @@
- #include <asm/pgtable.h>
- #include <asm/fixmap.h>
- #include <asm/processor.h>
-+#include <asm/pgtable.h>
- #include <asm/thread_info.h>
- #include <asm/elf.h>
- 
+diff -puN arch/x86_64/kernel/e820.c~x86_64-extract-helper-function-from-e820_register_active_regions-fix arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~x86_64-extract-helper-function-from-e820_register_active_regions-fix
++++ a/arch/x86_64/kernel/e820.c
+@@ -293,7 +293,7 @@ void __init e820_mark_nosave_regions(voi
+  * Finds an active region in the address range from start_pfn to end_pfn and
+  * returns its range in ei_startpfn and ei_endpfn for the e820 entry.
+  */
+-static __init int e820_find_active_region(const struct e820entry *ei,
++static int __init e820_find_active_region(const struct e820entry *ei,
+ 					  unsigned long start_pfn,
+ 					  unsigned long end_pfn,
+ 					  unsigned long *ei_startpfn,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,9 +89,9 @@ git-unionfs.patch
 auerswald-fix-file-release-handler.patch
 git-wireless.patch
 git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
+i386-add-support-for-picopower-irq-router.patch
 blacklist-dell-optiplex-320-from-using-the-hpet.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
 x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
 xfs-clean-up-shrinker-games.patch
 change-zonelist-order-v6-zonelist-fix.patch
