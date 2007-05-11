@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-all-sata_via-build-fix.patch added to -mm tree
-Date: Thu, 10 May 2007 17:34:24 -0700
-Message-ID: <200705110037.l4B0bOZA002414@shell0.pdx.osdl.net>
+Subject: + pata_acpi-restore-driver-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 17:42:08 -0700
+Message-ID: <200705110045.l4B0j7Sc002541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56200 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758619AbXEKAiC (ORCPT
+	by vger.kernel.org with ESMTP id S1751044AbXEKApT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 20:38:02 -0400
+	Thu, 10 May 2007 20:45:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, alan@redhat.com
 
 
 The patch titled
-     git-libata-all: sata_via build fix
+     pata_acpi-restore-driver-fix
 has been added to the -mm tree.  Its filename is
-     git-libata-all-sata_via-build-fix.patch
+     pata_acpi-restore-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-libata-all: sata_via build fix
+Subject: pata_acpi-restore-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+These got removed in git-libata-all
+
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_via.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/ata/pata_acpi.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/ata/sata_via.c~git-libata-all-sata_via-build-fix drivers/ata/sata_via.c
---- a/drivers/ata/sata_via.c~git-libata-all-sata_via-build-fix
-+++ a/drivers/ata/sata_via.c
-@@ -116,10 +116,6 @@ static struct scsi_host_template svia_sh
- 	.slave_configure	= ata_scsi_slave_config,
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix
++++ a/drivers/ata/pata_acpi.c
+@@ -314,8 +314,6 @@ static struct scsi_host_template pacpi_s
  	.slave_destroy		= ata_scsi_slave_destroy,
+ 	/* Use standard CHS mapping rules */
  	.bios_param		= ata_std_bios_param,
--#ifdef CONFIG_PM
--	.suspend		= ata_scsi_device_suspend,
 -	.resume			= ata_scsi_device_resume,
--#endif
+-	.suspend		= ata_scsi_device_suspend,
  };
  
- static const struct ata_port_operations vt6420_sata_ops = {
+ static const struct ata_port_operations pacpi_ops = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +69,8 @@ sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
 git-leds.patch
 git-leds-fixup.patch
+git-libata-all-sata_via-build-fix.patch
+pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-battery.patch
 git-parisc.patch
@@ -123,4 +124,3 @@ integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 w1-build-fix.patch
-git-libata-all-sata_via-build-fix.patch
