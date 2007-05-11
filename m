@@ -1,56 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch removed from -mm tree
-Date: Thu, 10 May 2007 22:35:34 -0700
-Message-ID: <200705110535.l4B5ZYsu007349@shell0.pdx.osdl.net>
+Subject: - i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 22:39:56 -0700
+Message-ID: <200705110539.l4B5du7m007426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60784 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754640AbXEKFgI (ORCPT
+	by vger.kernel.org with ESMTP id S1754719AbXEKFki (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 01:36:08 -0400
+	Fri, 11 May 2007 01:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-driver-sysfs-fix-error-handling-in-binattr-write
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-sysfs-fix-error-handling-in-binattr-write
+Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/sysfs/bin.c: In function 'read':
-fs/sysfs/bin.c:58: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
+drivers/i2c/chips/ds1682.c:38:1: warning: "DEBUG" redefined
+<command line>:1:1: warning: this is the location of the previous definition
 
-I made the local size_t, to force some fishy-looking arithmetic in there to
-use unsigned arithmetic.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/chips/ds1682.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
-+++ a/fs/sysfs/bin.c
-@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
- 		goto out_unlock;
- 	}
+diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix drivers/i2c/chips/ds1682.c
+--- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix
++++ a/drivers/i2c/chips/ds1682.c
+@@ -35,8 +35,6 @@
+  *
+  */
  
--	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
-+	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
- 
- 	*off = offs + count;
- 
+-#define DEBUG
+-
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,8 +66,8 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 arm-stacktrace-fix.patch
 git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
 git-hid-fixup.patch
