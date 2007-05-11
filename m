@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-fix-fake-numa-for-machines-with-true-srat.patch removed from -mm tree
-Date: Thu, 10 May 2007 17:08:00 -0700
-Message-ID: <200705110008.l4B080vC001962@shell0.pdx.osdl.net>
+Subject: + x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch added to -mm tree
+Date: Thu, 10 May 2007 17:08:58 -0700
+Message-ID: <200705110008.l4B08w6H001979@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60525 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756741AbXEKAIH (ORCPT
+	by vger.kernel.org with ESMTP id S1755321AbXEKAK2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 20:08:07 -0400
+	Thu, 10 May 2007 20:10:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, ak@suse.de, lenb@kernel.org
 
 
 The patch titled
-     x86_64: fix fake numa for machines with true srat
-has been removed from the -mm tree.  Its filename was
-     x86_64-fix-fake-numa-for-machines-with-true-srat.patch
+     x86_64 acpi: disable srat when numa emulation succeeds
+has been added to the -mm tree.  Its filename is
+     x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fix fake numa for machines with true srat
+Subject: x86_64 acpi: disable srat when numa emulation succeeds
 From: David Rientjes <rientjes@google.com>
 
-Use the newly exported disable_srat() function to disable all SRAT detected
-values before registering emulated node active regions or calling
-setup_node_bootmem().  This ensures we are correctly srat_disabled() since we
-never call acpi_scan_nodes() in the emulated case, even on true SRAT machines.
+When NUMA emulation succeeds, acpi_numa needs to be set to -1 so that
+srat_disabled() will always return true.  We won't be calling
+acpi_scan_nodes() or registering the true nodes we've found.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/numa.c |    7 +------
- 1 files changed, 1 insertion(+), 6 deletions(-)
+ arch/x86_64/mm/numa.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-fix-fake-numa-for-machines-with-true-srat arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-fix-fake-numa-for-machines-with-true-srat
+diff -puN arch/x86_64/mm/numa.c~x86_64-acpi-disable-srat-when-numa-emulation-succeeds arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-acpi-disable-srat-when-numa-emulation-succeeds
 +++ a/arch/x86_64/mm/numa.c
-@@ -463,6 +463,7 @@ done:
- 		}
- 	}
- out:
-+	disable_srat();
- 	memnode_shift = compute_hash_shift(nodes, num_nodes);
- 	if (memnode_shift < 0) {
- 		memnode_shift = 0;
-@@ -470,12 +471,6 @@ out:
- 		       "disabled.\n");
- 		return -1;
- 	}
--
--	/*
--	 * We need to vacate all active ranges that may have been registered by
+@@ -476,9 +476,11 @@ out:
+ 
+ 	/*
+ 	 * We need to vacate all active ranges that may have been registered by
 -	 * SRAT.
--	 */
--	remove_all_active_ranges();
++	 * SRAT and set acpi_numa to -1 so that srat_disabled() always returns
++	 * true.  NUMA emulation has succeeded so we will not scan ACPI nodes.
+ 	 */
+ 	remove_all_active_ranges();
++	acpi_numa = -1;
  	for_each_node_mask(i, node_possible_map) {
  		e820_register_active_regions(i, nodes[i].start >> PAGE_SHIFT,
  						nodes[i].end >> PAGE_SHIFT);
@@ -72,10 +68,10 @@ powerpc-ps3-use-__maybe_unused.patch
 mips-excite-use-__maybe_unused.patch
 mips-tlbex-use-__maybe_unused.patch
 scsi-fix-ambiguous-gdthtable-definition.patch
+x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
 x86_64-fix-e820_hole_size-based-on-address-ranges.patch
-x86_64-fix-fake-numa-for-machines-with-true-srat.patch
 x86_64-slit-fake-pxm-to-node-mapping-for-fake-numa.patch
 x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa.patch
 maps2-uninline-some-functions-in-the-page-walker.patch
