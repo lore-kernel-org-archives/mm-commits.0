@@ -1,126 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - ieee1394-iso-needs-schedh.patch removed from -mm tree
-Date: Thu, 10 May 2007 23:29:49 -0700
-Message-ID: <200705110629.l4B6Tncc008791@shell0.pdx.osdl.net>
+Subject: - blacklist-dell-optiplex-320-from-using-the-hpet.patch removed from -mm tree
+Date: Thu, 10 May 2007 23:28:28 -0700
+Message-ID: <200705110628.l4B6SSf9008745@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48417 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812AbXEKGaB (ORCPT
+	by vger.kernel.org with ESMTP id S1755641AbXEKGaC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 02:30:01 -0400
+	Fri, 11 May 2007 02:30:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, ak@suse.de, guilherme@centralinf.com.br, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ieee1394/iso.c needs sched.h
+     Blacklist Dell Optiplex 320 from using the HPET
 has been removed from the -mm tree.  Its filename was
-     ieee1394-iso-needs-schedh.patch
+     blacklist-dell-optiplex-320-from-using-the-hpet.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ieee1394/iso.c needs sched.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Blacklist Dell Optiplex 320 from using the HPET
+From: john stultz <johnstul@us.ibm.com>
 
-alpha:
+One of the 2.6.21 regressions was Guilherme's problem seeing his box lock
+up when the system detected an unstable TSC and dropped back to using the
+HPET.
 
-drivers/ieee1394/iso.c: In function 'hpsb_iso_xmit_sync':
-drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
-drivers/ieee1394/iso.c:440: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
-drivers/ieee1394/iso.c:440: error: (Each undeclared identifier is reported only once
-drivers/ieee1394/iso.c:440: error: for each function it appears in.)
-drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'signal_pending'
-drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
-drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'schedule'
-drivers/ieee1394/iso.c: In function 'hpsb_iso_wake':
-drivers/ieee1394/iso.c:562: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+In digging deeper, we found the HPET is not actually incrementing on this
+system.  And in fact, the reason why this issue just cropped up was because
+of Thomas's clocksource watchdog code was comparing the TSC to the HPET
+(which wasn't moving) and thought the TSC was broken.
 
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Anyway, Guliherme checked for a BIOS update and did not find one, so I've
+added a DMI blacklist against his system so the HPET is not used.
+
+Many thanks to Guilherme for the slow and laborious testing that finally
+narrowed down this issue.
+
+[akpm@linux-foundation.org: section fix]
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: "Guilherme M. Schroeder" <guilherme@centralinf.com.br>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/iso.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/hpet.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh drivers/ieee1394/iso.c
---- a/drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh
-+++ a/drivers/ieee1394/iso.c
-@@ -9,6 +9,7 @@
-  * directory of the kernel sources for details.
-  */
+diff -puN arch/i386/kernel/hpet.c~blacklist-dell-optiplex-320-from-using-the-hpet arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~blacklist-dell-optiplex-320-from-using-the-hpet
++++ a/arch/i386/kernel/hpet.c
+@@ -5,6 +5,7 @@
+ #include <linux/init.h>
+ #include <linux/sysdev.h>
+ #include <linux/pm.h>
++#include <linux/dmi.h>
  
-+#include <linux/sched.h>
- #include <linux/pci.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
+ #include <asm/hpet.h>
+ #include <asm/io.h>
+@@ -48,6 +49,30 @@ static int __init hpet_setup(char* str)
+ }
+ __setup("hpet=", hpet_setup);
+ 
++
++/* DMI Blacklist for bad HPETs */
++static int __init dmi_mark_hpet_broken(struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE "%s detected: HPET does not function.\n",
++		       d->ident);
++	boot_hpet_disable = 1;
++	return 0;
++}
++
++/* List of systems that have known HPETproblems */
++static struct dmi_system_id __initdata bad_hpet_dmi_table[] = {
++	{
++	 .callback = dmi_mark_hpet_broken,
++	 .ident = "Dell OptiPlex 320",
++	 .matches = {
++		     DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 320"),
++		     DMI_MATCH(DMI_BOARD_VENDOR, "Dell Inc."),
++		     DMI_MATCH(DMI_BOARD_NAME, "0UT237"),
++		     },
++	 },
++	 {}
++};
++
+ static inline int is_hpet_capable(void)
+ {
+ 	return (!boot_hpet_disable && hpet_address);
+@@ -228,6 +253,8 @@ int __init hpet_enable(void)
+ 	uint64_t hpet_freq;
+ 	u64 tmp;
+ 
++	dmi_check_system(bad_hpet_dmi_table);
++
+ 	if (!is_hpet_capable())
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
-lib-hexdump.patch
-stop_machine-now-uses-hard_irq_disable.patch
-submitchecklist-add-W-help.patch
-tty-add-compat_ioctl.patch
-use-defines-in-sys_getpriority-sys_setpriority.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-pm3fb-preliminary-24-to-26-port.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-arm-stacktrace-fix.patch
-git-avr32.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect.patch
-ieee1394-iso-needs-schedh.patch
-git-leds.patch
-git-leds-fixup.patch
-git-libata-all-sata_via-build-fix.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-netxen_nic_main-dont-use-deprecated-irq-flags.patch
-mlx4-dont-use-deprecated-irq-flags.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-xfs-clean-up-shrinker-games.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+introduce-boot-based-time.patch
 introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
 use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-ntfs-use-zero_user_page.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
+use-boot-based-time-for-uptime-in-proc.patch
