@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch added to -mm tree
-Date: Fri, 11 May 2007 13:55:52 -0700
-Message-ID: <200705112055.l4BKtq46026450@shell0.pdx.osdl.net>
+Subject: + i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers.patch added to -mm tree
+Date: Fri, 11 May 2007 14:09:07 -0700
+Message-ID: <200705112109.l4BL97C5026729@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52291 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759313AbXEKU46 (ORCPT
+	by vger.kernel.org with ESMTP id S1761172AbXEKVJY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 16:56:58 -0400
+	Fri, 11 May 2007 17:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adurbin@google.com, ak@suse.de
+Cc: ink@jurassic.park.msu.ru, Wolfgang.Erig@gmx.de, ak@suse.de, cebbert@redhat.com, greg@kroah.com
 
 
 The patch titled
-     mmconfig x86_64/i386: insert unclaimed MMCONFIG resources
+     i386 pci: fixup for Siemens Nixdorf AG FSC Multiprocessor Interrupt Controllers
 has been added to the -mm tree.  Its filename is
-     mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+     i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,107 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmconfig x86_64/i386: insert unclaimed MMCONFIG resources
-From: Aaron Durbin <adurbin@google.com>
+Subject: i386 pci: fixup for Siemens Nixdorf AG FSC Multiprocessor Interrupt Controllers
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Insert the unclaimed MMCONFIG resources into the resource tree without the
-IORESOURCE_BUSY flag during late initialization.  This allows the MMCONFIG
-regions to be visible in the iomem resource tree without interfering with
-other system resources that were discovered during PCI initialization.
+Wolfgang gets:
 
-Signed-off-by: Aaron Durbin <adurbin@google.com>
+ PCI: Cannot allocate resource region 0 of device 0000:00:04.0
+ PCI: Error while updating region 0000:00:04.0/0 (a8008000 != fec08000)
+
+Note that the BAR seems to have high address bits hardwired to fec00000.
+And device 0000:00:04.0 is
+
+ 00:04.0 System peripheral: Siemens Nixdorf AG FSC Multiprocessor Interrupt Controller (rev 02)
+
+I'd guess that when we try to reassign this resource, PCI interrupts might
+just stop working. This could explain SCSI timeouts and other weird things.
+
+Cc: Wolfgang Erig <Wolfgang.Erig@gmx.de>
+Cc: Chuck Ebbert <cebbert@redhat.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |   49 +++++++++++++++++++++++++++---
- 1 files changed, 45 insertions(+), 4 deletions(-)
+ arch/i386/pci/fixup.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -24,6 +24,9 @@
- 
- DECLARE_BITMAP(pci_mmcfg_fallback_slots, 32*PCI_MMCFG_MAX_CHECK_BUS);
- 
-+/* Indicate if the mmcfg resources have been placed into the resource table. */
-+static int __initdata pci_mmcfg_resources_inserted = 0;
-+
- /* K8 systems have some devices (typically in the builtin northbridge)
-    that are only accessible using type1
-    Normally this can be expressed in the MCFG by not listing them
-@@ -170,7 +173,7 @@ static int __init pci_mmcfg_check_hostbr
- 	return name != NULL;
- }
- 
--static void __init pci_mmcfg_insert_resources(void)
-+static void __init pci_mmcfg_insert_resources(int resource_flags)
- {
- #define PCI_MMCFG_RESOURCE_NAME_LEN 19
- 	int i;
-@@ -194,10 +197,13 @@ static void __init pci_mmcfg_insert_reso
- 			 cfg->pci_segment);
- 		res->start = cfg->address;
- 		res->end = res->start + (num_buses << 20) - 1;
--		res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+		res->flags = IORESOURCE_MEM | resource_flags;
- 		insert_resource(&iomem_resource, res);
- 		names += PCI_MMCFG_RESOURCE_NAME_LEN;
- 	}
-+
-+	/* Mark that the resources have been inserted. */
-+	pci_mmcfg_resources_inserted = 1;
- }
- 
- static void __init pci_mmcfg_reject_broken(int type)
-@@ -267,7 +273,42 @@ void __init pci_mmcfg_init(int type)
- 		if (type == 1)
- 			unreachable_devices();
- 		if (known_bridge)
--			pci_mmcfg_insert_resources();
-+			pci_mmcfg_insert_resources(IORESOURCE_BUSY);
- 		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
--	}
-+	} else
-+		/*
-+		 * Signal not to attempt to insert mmcfg resources because
-+		 * the architecture mmcfg setup could not initialize.
-+		 */
-+		pci_mmcfg_resources_inserted = 1;
-+}
-+
-+static int __init pci_mmcfg_late_insert_resources(void)
-+{
-+	/*
-+	 * If resources are already inserted or we are not using MMCONFIG,
-+	 * don't insert the resources.
-+	 * */
-+	if ((pci_mmcfg_resources_inserted == 1) ||
-+	    (pci_probe & PCI_PROBE_MMCONF) == 0 ||
-+	    (pci_mmcfg_config_num == 0) ||
-+	    (pci_mmcfg_config == NULL) ||
-+	    (pci_mmcfg_config[0].address == 0))
-+		return 1;
-+
-+	/*
-+	 * Attempt to insert the mmcfg resources but not with the busy flag
-+	 * marked so it won't cause request errors when __request_region is
-+	 * called.
-+	 */
-+	pci_mmcfg_insert_resources(0);
-+
-+	return 0;
- }
+diff -puN arch/i386/pci/fixup.c~i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers arch/i386/pci/fixup.c
+--- a/arch/i386/pci/fixup.c~i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers
++++ a/arch/i386/pci/fixup.c
+@@ -438,3 +438,14 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_CY
+ 			pci_early_fixup_cyrix_5530);
+ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY,
+ 			pci_early_fixup_cyrix_5530);
 +
 +/*
-+ * Perform MMCONFIG resource insertion after PCI initialization to allow for
-+ * misprogrammed MCFG tables that state larger sizes but actually conflict
-+ * with other system resources.
++ * Siemens Nixdorf AG FSC Multiprocessor Interrupt Controller:
++ * prevent update of the BAR0, which doesn't look like a normal BAR.
 + */
-+late_initcall(pci_mmcfg_late_insert_resources);
++static void __devinit pci_siemens_interrupt_controller(struct pci_dev *dev)
++{
++	dev->resource[0].flags |= IORESOURCE_PCI_FIXED;
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SIEMENS, 0x0015,
++			  pci_siemens_interrupt_controller);
 _
 
-Patches currently in -mm which might be from adurbin@google.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+origin.patch
+i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers.patch
+alpha-support-graphics-on-non-zero-pci-domains.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
+alpha-misc-fixes.patch
+make-sure-nobodys-leaking-resources.patch
