@@ -1,64 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - sbp2-include-fixes.patch removed from -mm tree
-Date: Thu, 10 May 2007 23:29:33 -0700
-Message-ID: <200705110629.l4B6TXkv008785@shell0.pdx.osdl.net>
+Subject: - ieee1394-iso-needs-schedh.patch removed from -mm tree
+Date: Thu, 10 May 2007 23:29:49 -0700
+Message-ID: <200705110629.l4B6Tncc008791@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36428 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757275AbXEKG3n (ORCPT
+	by vger.kernel.org with ESMTP id S1754812AbXEKGaB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 02:29:43 -0400
+	Fri, 11 May 2007 02:30:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sbp2: include fixes
+     ieee1394/iso.c needs sched.h
 has been removed from the -mm tree.  Its filename was
-     sbp2-include-fixes.patch
+     ieee1394-iso-needs-schedh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sbp2: include fixes
+Subject: ieee1394/iso.c needs sched.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ieee1394/sbp2.c: In function 'sbp2util_access_timeout':
-drivers/ieee1394/sbp2.c:399: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
-drivers/ieee1394/sbp2.c:399: error: (Each undeclared identifier is reported only once
-drivers/ieee1394/sbp2.c:399: error: for each function it appears in.)
-drivers/ieee1394/sbp2.c:399: warning: implicit declaration of function 'signal_pending'
-drivers/ieee1394/sbp2.c:399: warning: implicit declaration of function 'schedule_timeout'
-drivers/ieee1394/sbp2.c: In function 'sbp2_prep_command_orb_sg':
-drivers/ieee1394/sbp2.c:1438: warning: implicit declaration of function 'page_address'
-drivers/ieee1394/sbp2.c:1438: warning: passing argument 2 of 'dma_map_single' makes pointer from integer without a cast
-drivers/ieee1394/sbp2.c: In function 'sbp2_handle_status_write':
-drivers/ieee1394/sbp2.c:1842: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+alpha:
 
-Possibly due to changes in -mm, but this file should explicitly include the
-headers for the stuff it uses.
+drivers/ieee1394/iso.c: In function 'hpsb_iso_xmit_sync':
+drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
+drivers/ieee1394/iso.c:440: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+drivers/ieee1394/iso.c:440: error: (Each undeclared identifier is reported only once
+drivers/ieee1394/iso.c:440: error: for each function it appears in.)
+drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'signal_pending'
+drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
+drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'schedule'
+drivers/ieee1394/iso.c: In function 'hpsb_iso_wake':
+drivers/ieee1394/iso.c:562: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/sbp2.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ieee1394/iso.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ieee1394/sbp2.c~sbp2-include-fixes drivers/ieee1394/sbp2.c
---- a/drivers/ieee1394/sbp2.c~sbp2-include-fixes
-+++ a/drivers/ieee1394/sbp2.c
-@@ -56,6 +56,8 @@
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
- #include <linux/gfp.h>
+diff -puN drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh drivers/ieee1394/iso.c
+--- a/drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh
++++ a/drivers/ieee1394/iso.c
+@@ -9,6 +9,7 @@
+  * directory of the kernel sources for details.
+  */
+ 
 +#include <linux/sched.h>
-+#include <linux/mm.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
+ #include <linux/pci.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +79,6 @@ cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-hid-fixup.patch
 sn-validate-smp_affinity-mask-on-intr-redirect.patch
-sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
 git-leds.patch
 git-leds-fixup.patch
