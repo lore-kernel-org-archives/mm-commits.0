@@ -1,112 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - move-frozen_process-to-kernel-power-processc.patch removed from -mm tree
-Date: Fri, 11 May 2007 12:29:18 -0700
-Message-ID: <200705111929.l4BJTI9J024591@shell0.pdx.osdl.net>
+Subject: - freezer-document-task_lock-in-thaw_process.patch removed from -mm tree
+Date: Fri, 11 May 2007 12:29:14 -0700
+Message-ID: <200705111929.l4BJTE0L024588@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43989 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759548AbXEKTaS (ORCPT
+	by vger.kernel.org with ESMTP id S1759395AbXEKTaM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:30:18 -0400
+	Fri, 11 May 2007 15:30:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ego@in.ibm.com, oleg@tv-sign.ru, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, ego@in.ibm.com, oleg@tv-sign.ru, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Move frozen_process() to kernel/power/process.c
+     freezer: document task_lock in thaw_process
 has been removed from the -mm tree.  Its filename was
-     move-frozen_process-to-kernel-power-processc.patch
+     freezer-document-task_lock-in-thaw_process.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Move frozen_process() to kernel/power/process.c
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: freezer: document task_lock in thaw_process
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Other than refrigerator, no one else calls frozen_process(). So move it
-from include/linux/freezer.h to kernel/power/process.c.
+The task_lock() in include/linux/freezer.h:thaw_process() looks as though
+it were protecting p->flags, which is not the case.  Add a comment that
+explains why it's there.
 
-Also, since a task can be marked frozen by itself, we don't need to pass
-the (struct task_struct *p) parameter to frozen_process().
-
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |   13 -------------
- kernel/power/process.c  |   14 +++++++++++++-
- 2 files changed, 13 insertions(+), 14 deletions(-)
+ include/linux/freezer.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/freezer.h~move-frozen_process-to-kernel-power-processc include/linux/freezer.h
---- a/include/linux/freezer.h~move-frozen_process-to-kernel-power-processc
+diff -puN include/linux/freezer.h~freezer-document-task_lock-in-thaw_process include/linux/freezer.h
+--- a/include/linux/freezer.h~freezer-document-task_lock-in-thaw_process
 +++ a/include/linux/freezer.h
-@@ -58,18 +58,6 @@ static inline int thaw_process(struct ta
- 	return 0;
- }
+@@ -37,6 +37,12 @@ static inline void do_not_freeze(struct 
  
--/*
-- * freezing is complete, mark process as frozen
-- */
--static inline void frozen_process(struct task_struct *p)
--{
--	if (!unlikely(p->flags & PF_NOFREEZE)) {
--		p->flags |= PF_FROZEN;
--		wmb();
--	}
--	clear_tsk_thread_flag(p, TIF_FREEZE);
--}
--
- extern void refrigerator(void);
- extern int freeze_processes(void);
- extern void thaw_processes(void);
-@@ -132,7 +120,6 @@ static inline int frozen(struct task_str
- static inline int freezing(struct task_struct *p) { return 0; }
- static inline void freeze(struct task_struct *p) { BUG(); }
- static inline int thaw_process(struct task_struct *p) { return 1; }
--static inline void frozen_process(struct task_struct *p) { BUG(); }
- 
- static inline void refrigerator(void) {}
- static inline int freeze_processes(void) { BUG(); return 0; }
-diff -puN kernel/power/process.c~move-frozen_process-to-kernel-power-processc kernel/power/process.c
---- a/kernel/power/process.c~move-frozen_process-to-kernel-power-processc
-+++ a/kernel/power/process.c
-@@ -32,6 +32,18 @@ static inline int freezeable(struct task
- 	return 1;
- }
- 
-+/*
-+ * freezing is complete, mark current process as frozen
-+ */
-+static inline void frozen_process(void)
-+{
-+	if (!unlikely(current->flags & PF_NOFREEZE)) {
-+		current->flags |= PF_FROZEN;
-+		wmb();
-+	}
-+	clear_tsk_thread_flag(current, TIF_FREEZE);
-+}
-+
- /* Refrigerator is place where frozen processes are stored :-). */
- void refrigerator(void)
+ /*
+  * Wake up a frozen process
++ *
++ * task_lock() is taken to prevent the race with refrigerator() which may
++ * occur if the freezing of tasks fails.  Namely, without the lock, if the
++ * freezing of tasks failed, thaw_tasks() might have run before a task in
++ * refrigerator() could call frozen_process(), in which case the task would be
++ * frozen and no one would thaw it.
+  */
+ static inline int thaw_process(struct task_struct *p)
  {
-@@ -41,7 +53,7 @@ void refrigerator(void)
- 
- 	task_lock(current);
- 	if (freezing(current)) {
--		frozen_process(current);
-+		frozen_process();
- 		task_unlock(current);
- 	} else {
- 		task_unlock(current);
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+freezer-document-task_lock-in-thaw_process.patch
 move-frozen_process-to-kernel-power-processc.patch
 separate-freezer-from-pm-code-rev-2.patch
 introduce-freezer-flags-rev-2.patch
+add-common-orderly_poweroff.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
