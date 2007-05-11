@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch added to -mm tree
-Date: Thu, 10 May 2007 18:14:08 -0700
-Message-ID: <200705110117.l4B1H75b003091@shell0.pdx.osdl.net>
+Subject: + arm-stacktrace-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 18:45:32 -0700
+Message-ID: <200705110148.l4B1mV2Z003605@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47235 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756705AbXEKBR2 (ORCPT
+	by vger.kernel.org with ESMTP id S1756862AbXEKBsv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 21:17:28 -0400
+	Thu, 10 May 2007 21:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, grant.likely@secretlab.ca, khali@linux-fr.org
+Cc: akpm@linux-foundation.org, hch@lst.de, rmk@arm.linux.org.uk
 
 
 The patch titled
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
+     arm: stacktrace fix
 has been added to the -mm tree.  Its filename is
-     i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
+     arm-stacktrace-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
+Subject: arm: stacktrace fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/i2c/chips/ds1682.c: In function 'ds1682_store':
-drivers/i2c/chips/ds1682.c:127: warning: format '%i' expects type 'int', but argument 5 has type 'size_t'
-drivers/i2c/chips/ds1682.c: In function 'ds1682_user_data_store':
-drivers/i2c/chips/ds1682.c:218: warning: format '%i' expects type 'int', but argument 4 has type 'size_t'
+ab1b6f03a10ba1f5638188ab06bf46e33ac3a160 said
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jean Delvare <khali@linux-fr.org>
+ - remove the unused task argument to save_stack_trace, it's always current
+
+then broke arm:
+
+arch/arm/kernel/stacktrace.c:56: error: conflicting types for 'save_stack_trace'
+include/linux/stacktrace.h:11: error: previous declaration of 'save_stack_trace' was here
+arch/arm/kernel/stacktrace.c:56: error: conflicting types for 'save_stack_trace'
+include/linux/stacktrace.h:11: error: previous declaration of 'save_stack_trace' was here
+
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/ds1682.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/kernel/stacktrace.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes drivers/i2c/chips/ds1682.c
---- a/drivers/i2c/chips/ds1682.c~i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes
-+++ a/drivers/i2c/chips/ds1682.c
-@@ -124,7 +124,7 @@ static ssize_t ds1682_store(struct devic
- 	reg = ds1682_attr_to_reg(attr, &regsize);
+diff -puN arch/arm/kernel/stacktrace.c~arm-stacktrace-fix arch/arm/kernel/stacktrace.c
+--- a/arch/arm/kernel/stacktrace.c~arm-stacktrace-fix
++++ a/arch/arm/kernel/stacktrace.c
+@@ -52,21 +52,15 @@ static int save_trace(struct stackframe 
+ 	return trace->nr_entries >= trace->max_entries;
+ }
  
- 	if ((reg < 0) || (count >= 16) || (buf[count] != '\0')) {
--		dev_dbg(dev, "insane input; reg=0x%i count=%i%s\n",
-+		dev_dbg(dev, "insane input; reg=0x%i count=%zd%s\n",
- 			reg, count, buf[count] == '\0' ? " unterminated" : "");
- 		return -EIO;
- 	}
-@@ -215,7 +215,7 @@ static ssize_t ds1682_user_data_store(st
+-void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
++void save_stack_trace(struct stack_trace *trace)
+ {
+ 	struct stack_trace_data data;
+ 	unsigned long fp, base;
  
- 	/* Check input for sanity */
- 	if ((count >= 80) || (buf[count] != '\0')) {
--		dev_dbg(dev, "insane input; count=%i%s\n",
-+		dev_dbg(dev, "insane input; count=%zd%s\n",
- 			count, buf[count] == '\0' ? " unterminated" : "");
- 		return -EIO;
- 	}
+ 	data.trace = trace;
+ 	data.skip = trace->skip;
+-
+-	if (task) {
+-		base = (unsigned long)task_stack_page(task);
+-		fp = 0; /* FIXME */
+-	} else {
+-		base = (unsigned long)task_stack_page(current);
+-		asm("mov %0, fp" : "=r" (fp));
+-	}
++	base = (unsigned long)task_stack_page(current);
++	asm("mov %0, fp" : "=r" (fp));
+ 
+ 	walk_stackframe(fp, base, base + THREAD_SIZE, save_trace, &data);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +88,7 @@ git-avr32.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
 git-hid-fixup.patch
 sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
 sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
@@ -139,4 +153,4 @@ integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 w1-build-fix.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
+arm-stacktrace-fix.patch
