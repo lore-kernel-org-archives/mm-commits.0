@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-add-ppc-openfirmware-unregister.patch added to -mm tree
-Date: Fri, 11 May 2007 13:00:01 -0700
-Message-ID: <200705112000.l4BK05mK025389@shell0.pdx.osdl.net>
+Subject: + tidy-up-usermode-helper-waiting-a-bit-fix.patch added to -mm tree
+Date: Fri, 11 May 2007 13:38:26 -0700
+Message-ID: <200705112038.l4BKcQv6026124@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41293 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759714AbXEKUBW (ORCPT
+	by vger.kernel.org with ESMTP id S1757326AbXEKUjS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 16:01:22 -0400
+	Fri, 11 May 2007 16:39:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krafft@de.ibm.com, minyard@acm.org, stable@kernel.org
+Cc: jeremy@goop.org, johannes@sipsolutions.net
 
 
 The patch titled
-     IPMI: Add PPC openfirmware unregister
+     tidy-up-usermode-helper-waiting-a-bit fix
 has been added to the -mm tree.  Its filename is
-     ipmi-add-ppc-openfirmware-unregister.patch
+     tidy-up-usermode-helper-waiting-a-bit-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPMI: Add PPC openfirmware unregister
-From: Christian Krafft <krafft@de.ibm.com>
+Subject: tidy-up-usermode-helper-waiting-a-bit fix
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-When trying to load the ipmi_si module on a powerpc with no BMC (baseboard
-management controller) the driver failes to load correctly, but doesn't
-unregister itself from of_platform.  So, on a second modprobe the kernel
-crashes.  This patch adds the missing unregister call.
-
-Signed-off-by: Christian Krafft <krafft@de.ibm.com>
-Signed-off-by: Corey Minyard <minyard@acm.org>
-Cc: <stable@kernel.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ kernel/kmod.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-ppc-openfirmware-unregister drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-ppc-openfirmware-unregister
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2974,6 +2974,10 @@ static __devinit int init_ipmi_si(void)
- #ifdef CONFIG_PCI
- 		pci_unregister_driver(&ipmi_pci_driver);
- #endif
-+
-+#ifdef CONFIG_PPC_OF
-+		of_unregister_platform_driver(&ipmi_of_platform_driver);
-+#endif
- 		driver_unregister(&ipmi_driver);
- 		printk("ipmi_si: Unable to find any System Interface(s)\n");
- 		return -ENODEV;
+diff -puN kernel/kmod.c~tidy-up-usermode-helper-waiting-a-bit-fix kernel/kmod.c
+--- a/kernel/kmod.c~tidy-up-usermode-helper-waiting-a-bit-fix
++++ a/kernel/kmod.c
+@@ -243,7 +243,7 @@ static void __call_usermodehelper(struct
+ 	/* CLONE_VFORK: wait until the usermode helper has execve'd
+ 	 * successfully We need the data structures to stay around
+ 	 * until that is done.  */
+-	if (wait == UMH_WAIT_PROC)
++	if (wait == UMH_WAIT_PROC || wait == UMH_NO_WAIT)
+ 		pid = kernel_thread(wait_for_helper, sub_info,
+ 				    CLONE_FS | CLONE_FILES | SIGCHLD);
+ 	else
 _
 
-Patches currently in -mm which might be from krafft@de.ibm.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-ipmi-add-ppc-openfirmware-unregister.patch
+loop_probe-fix-return-value.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+i386-move-common-parts-of-smp-into-their-own-file.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+add-kstrndup.patch
+add-argv_split.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+tidy-up-usermode-helper-waiting-a-bit-fix.patch
+lguest-the-guest-code.patch
