@@ -1,70 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-document-task_lock-in-thaw_process.patch removed from -mm tree
-Date: Fri, 11 May 2007 12:29:14 -0700
-Message-ID: <200705111929.l4BJTE0L024588@shell0.pdx.osdl.net>
+Subject: - fix-pf_nofreeze-and-freezeable-race-2.patch removed from -mm tree
+Date: Fri, 11 May 2007 12:29:10 -0700
+Message-ID: <200705111929.l4BJTA4p024585@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56803 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759395AbXEKTaM (ORCPT
+	by vger.kernel.org with ESMTP id S1759069AbXEKTaK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:30:12 -0400
+	Fri, 11 May 2007 15:30:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ego@in.ibm.com, oleg@tv-sign.ru, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: ego@in.ibm.com, oleg@tv-sign.ru, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: document task_lock in thaw_process
+     Fix PF_NOFREEZE and freezeable race
 has been removed from the -mm tree.  Its filename was
-     freezer-document-task_lock-in-thaw_process.patch
+     fix-pf_nofreeze-and-freezeable-race-2.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: freezer: document task_lock in thaw_process
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Fix PF_NOFREEZE and freezeable race
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-The task_lock() in include/linux/freezer.h:thaw_process() looks as though
-it were protecting p->flags, which is not the case.  Add a comment that
-explains why it's there.
+This patch fixes the race pointed out by Oleg Nesterov.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+* Freezer marks a thread as freezeable.
+* The thread now marks itself PF_NOFREEZE causing it to
+  freeze on calling try_to_freeze(). Thus the task is frozen, even though
+  it doesn't want to.
+* Subsequent thaw_processes() will also fail to thaw the task since it is
+  marked PF_NOFREEZE.
+
+Avoid this problem by checking the task's PF_NOFREEZE status in
+frozen_processes() before marking the task as frozen.
+
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/freezer.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer-document-task_lock-in-thaw_process include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-document-task_lock-in-thaw_process
+diff -puN include/linux/freezer.h~fix-pf_nofreeze-and-freezeable-race-2 include/linux/freezer.h
+--- a/include/linux/freezer.h~fix-pf_nofreeze-and-freezeable-race-2
 +++ a/include/linux/freezer.h
-@@ -37,6 +37,12 @@ static inline void do_not_freeze(struct 
- 
- /*
-  * Wake up a frozen process
-+ *
-+ * task_lock() is taken to prevent the race with refrigerator() which may
-+ * occur if the freezing of tasks fails.  Namely, without the lock, if the
-+ * freezing of tasks failed, thaw_tasks() might have run before a task in
-+ * refrigerator() could call frozen_process(), in which case the task would be
-+ * frozen and no one would thaw it.
+@@ -57,8 +57,10 @@ static inline int thaw_process(struct ta
   */
- static inline int thaw_process(struct task_struct *p)
+ static inline void frozen_process(struct task_struct *p)
  {
+-	p->flags |= PF_FROZEN;
+-	wmb();
++	if (!unlikely(p->flags & PF_NOFREEZE)) {
++		p->flags |= PF_FROZEN;
++		wmb();
++	}
+ 	clear_tsk_thread_flag(p, TIF_FREEZE);
+ }
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
 origin.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
 freezer-document-task_lock-in-thaw_process.patch
 move-frozen_process-to-kernel-power-processc.patch
 separate-freezer-from-pm-code-rev-2.patch
 introduce-freezer-flags-rev-2.patch
-add-common-orderly_poweroff.patch
-add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
-shrink_slab-handle-bad-shrinkers.patch
