@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - i386-add-support-for-picopower-irq-router-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 23:07:10 -0700
-Message-ID: <200705110607.l4B67ADG008323@shell0.pdx.osdl.net>
+Subject: - i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch removed from -mm tree
+Date: Thu, 10 May 2007 23:06:48 -0700
+Message-ID: <200705110606.l4B66mRp008313@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56060 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754568AbXEKGHe (ORCPT
+	by vger.kernel.org with ESMTP id S1758970AbXEKGIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 02:07:34 -0400
+	Fri, 11 May 2007 02:08:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tmb@mandriva.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, chrisw@sous-sol.org, ebiederm@xmission.com, hpa@zytor.com, jeremy@goop.org, jeremy@xensource.com, torvalds@linux-foundation.org, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-add-support-for-picopower-irq-router-fix
+     i386-map-enough-initial-memory-to-create-lowmem-mappings fix
 has been removed from the -mm tree.  Its filename was
-     i386-add-support-for-picopower-irq-router-fix.patch
+     i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 
-This patch was dropped because it was folded into i386-add-support-for-picopower-irq-router.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386-add-support-for-picopower-irq-router-fix
+Subject: i386-map-enough-initial-memory-to-create-lowmem-mappings fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/pci/irq.c: In function 'pirq_pico_set':
-arch/i386/pci/irq.c:510: warning: no return statement in function returning non-void
-arch/i386/pci/irq.c:510: warning: control reaches end of non-void function
+arch/i386/kernel/asm-offsets.c: In function 'foo':
+arch/i386/kernel/asm-offsets.c:101: error: 'PTRS_PER_PTE' undeclared (first use in this function)
+arch/i386/kernel/asm-offsets.c:101: error: (Each undeclared identifier is reported only once
+arch/i386/kernel/asm-offsets.c:101: error: for each function it appears in.)
+arch/i386/kernel/asm-offsets.c:103: error: 'PTRS_PER_PGD' undeclared (first use in this function)
 
-Cc: Thomas Backlund <tmb@mandriva.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Linus Torvalds <torvalds@osdl.org>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/irq.c |    4 +++-
- linux/pci_ids.h     |    0 
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/kernel/asm-offsets.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/pci/irq.c~i386-add-support-for-picopower-irq-router-fix arch/i386/pci/irq.c
---- a/arch/i386/pci/irq.c~i386-add-support-for-picopower-irq-router-fix
-+++ a/arch/i386/pci/irq.c
-@@ -500,13 +500,15 @@ static int pirq_pico_get(struct pci_dev 
- 	return ((pirq - 1) & 1) ? (inb(0x26) >> 4) : (inb(0x26) & 0xf);
- }
+diff -puN arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings-fix arch/i386/kernel/asm-offsets.c
+--- a/arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings-fix
++++ a/arch/i386/kernel/asm-offsets.c
+@@ -14,6 +14,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/fixmap.h>
+ #include <asm/processor.h>
++#include <asm/pgtable.h>
+ #include <asm/thread_info.h>
+ #include <asm/elf.h>
  
--static int pirq_pico_set(struct pci_dev *router, struct pci_dev *dev, int pirq, int irq)
-+static int pirq_pico_set(struct pci_dev *router, struct pci_dev *dev, int pirq,
-+			int irq)
- {
- 	unsigned int x;
- 	outb(0x10 + ((pirq - 1) >> 1), 0x24);
- 	x = inb(0x26);
- 	x = ((pirq - 1) & 1) ? ((x & 0x0f) | (irq << 4)) : ((x & 0xf0) | (irq));
- 	outb(x, 0x26);
-+	return 1;
- }
- 
- #ifdef CONFIG_PCI_BIOS
-diff -puN include/linux/pci_ids.h~i386-add-support-for-picopower-irq-router-fix include/linux/pci_ids.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,7 +97,7 @@ git-unionfs.patch
 auerswald-fix-file-release-handler.patch
 git-wireless.patch
 git-wireless-fixup.patch
-i386-add-support-for-picopower-irq-router.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 i386-add-support-for-picopower-irq-router-fix.patch
 blacklist-dell-optiplex-320-from-using-the-hpet.patch
 x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
