@@ -1,84 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - fix-kthread_create-vs-freezer-theoretical-race.patch removed from -mm tree
-Date: Fri, 11 May 2007 12:29:07 -0700
-Message-ID: <200705111929.l4BJT7aJ024582@shell0.pdx.osdl.net>
+Subject: - freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch removed from -mm tree
+Date: Fri, 11 May 2007 12:28:30 -0700
+Message-ID: <200705111928.l4BJSVXA024538@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42076 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759773AbXEKT3p (ORCPT
+	by vger.kernel.org with ESMTP id S1761959AbXEKT3n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:29:45 -0400
+	Fri, 11 May 2007 15:29:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, aneesh.kumar@gmail.com, ego@in.ibm.com, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, pavel@ucw.cz, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix kthread_create() vs freezer theoretical race
+     freezer: read PF_BORROWED_MM in a nonracy way
 has been removed from the -mm tree.  Its filename was
-     fix-kthread_create-vs-freezer-theoretical-race.patch
+     freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fix kthread_create() vs freezer theoretical race
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: freezer: read PF_BORROWED_MM in a nonracy way
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-kthread() sleeps in TASK_INTERRUPTIBLE state waiting for the first wakeup.  In
-theory, this wakeup may come from freeze_process()->signal_wake_up(), so the
-task can disappear even before kthread_create() sets its ->comm.
+The reading of PF_BORROWED_MM in is_user_space() without task_lock() is racy. 
+Fix it.
 
-Change kthread() to use TASK_UNINTERRUPTIBLE.
-
-[akpm@linux-foundation.org: s/BUG_ON/WARN_ON+recover]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Aneesh Kumar <aneesh.kumar@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/power/process.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kthread.c~fix-kthread_create-vs-freezer-theoretical-race kernel/kthread.c
---- a/kernel/kthread.c~fix-kthread_create-vs-freezer-theoretical-race
-+++ a/kernel/kthread.c
-@@ -70,7 +70,7 @@ static int kthread(void *_create)
- 	data = create->data;
+diff -puN kernel/power/process.c~freezer-read-pf_borrowed_mm-in-a-nonracy-way kernel/power/process.c
+--- a/kernel/power/process.c~freezer-read-pf_borrowed_mm-in-a-nonracy-way
++++ a/kernel/power/process.c
+@@ -8,6 +8,7 @@
  
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
--	__set_current_state(TASK_INTERRUPTIBLE);
-+	__set_current_state(TASK_UNINTERRUPTIBLE);
- 	complete(&create->started);
- 	schedule();
+ #undef DEBUG
  
-@@ -162,7 +162,10 @@ EXPORT_SYMBOL(kthread_create);
-  */
- void kthread_bind(struct task_struct *k, unsigned int cpu)
++#include <linux/sched.h>
+ #include <linux/interrupt.h>
+ #include <linux/suspend.h>
+ #include <linux/module.h>
+@@ -88,7 +89,12 @@ static void cancel_freezing(struct task_
+ 
+ static inline int is_user_space(struct task_struct *p)
  {
--	BUG_ON(k->state != TASK_INTERRUPTIBLE);
-+	if (k->state != TASK_UNINTERRUPTIBLE) {
-+		WARN_ON(1);
-+		return;
-+	}
- 	/* Must have done schedule() in kthread() before we set_task_cpu */
- 	wait_task_inactive(k);
- 	set_task_cpu(k, cpu);
+-	return p->mm && !(p->flags & PF_BORROWED_MM);
++	int ret;
++
++	task_lock(p);
++	ret = p->mm && !(p->flags & PF_BORROWED_MM);
++	task_unlock(p);
++	return ret;
+ }
+ 
+ static unsigned int try_to_freeze_tasks(int freeze_user_space)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
 fix-pf_nofreeze-and-freezeable-race-2.patch
 freezer-document-task_lock-in-thaw_process.patch
 move-frozen_process-to-kernel-power-processc.patch
 separate-freezer-from-pm-code-rev-2.patch
 introduce-freezer-flags-rev-2.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
+add-common-orderly_poweroff.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
