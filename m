@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-race-condition-about-network-device-name.patch added to -mm tree
-Date: Thu, 10 May 2007 23:50:53 -0700
-Message-ID: <200705110650.l4B6or4h009111@shell0.pdx.osdl.net>
+Subject: + fix-race-condition-about-network-device-name-fix.patch added to -mm tree
+Date: Thu, 10 May 2007 23:50:55 -0700
+Message-ID: <200705110650.l4B6otFp009114@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51800 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755620AbXEKGvC (ORCPT
+	by vger.kernel.org with ESMTP id S1751908AbXEKGvA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 02:51:02 -0400
+	Fri, 11 May 2007 02:51:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kaneshige.kenji@jp.fujitsu.com, davem@davemloft.net
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kaneshige.kenji@jp.fujitsu.com
 
 
 The patch titled
-     Fix race condition about network device name allocation
+     fix-race-condition-about-network-device-name-fix
 has been added to the -mm tree.  Its filename is
-     fix-race-condition-about-network-device-name.patch
+     fix-race-condition-about-network-device-name-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,132 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix race condition about network device name allocation
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: fix-race-condition-about-network-device-name-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the race condition between dev_alloc_name() and net device
-unregistration.
+sneakily fix a spelling error
 
-dev_alloc_name checks `dev_base' list to find a suitable ID. On the
-other hand, net devices are removed from that list on net device
-unregistration. Both of them are done with holding rtnl lock. However,
-removing sysfs entry is delayed until netdev_run_todo(), which doesn't
-acquire rtnl lock. Therefore, on dev_alloc_name(), device name could
-conflict with the device, which is unregistered, but its sysfs entry
-still exist.
-
-To fix this bug, change dev_alloc_name to check not only `dev_base'
-list but also todo list and snapshot list.
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c |   48 +++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 38 insertions(+), 10 deletions(-)
+ net/core/dev.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN net/core/dev.c~fix-race-condition-about-network-device-name net/core/dev.c
---- a/net/core/dev.c~fix-race-condition-about-network-device-name
+diff -puN net/core/dev.c~fix-race-condition-about-network-device-name-fix net/core/dev.c
+--- a/net/core/dev.c~fix-race-condition-about-network-device-name-fix
 +++ a/net/core/dev.c
-@@ -229,6 +229,11 @@ extern void netdev_unregister_sysfs(stru
+@@ -229,7 +229,7 @@ extern void netdev_unregister_sysfs(stru
  #define	netdev_unregister_sysfs(dev)	do { } while(0)
  #endif
  
-+/* Delayed registration/unregisteration */
-+static DEFINE_SPINLOCK(net_todo_list_lock);
-+static LIST_HEAD(net_todo_list);
-+static LIST_HEAD(net_todo_snapshot_list);
-+
- 
- /*******************************************************************************
- 
-@@ -719,7 +724,32 @@ int dev_alloc_name(struct net_device *de
- 				set_bit(i, inuse);
- 		}
- 
-+		spin_lock(&net_todo_list_lock);
-+		list_for_each_entry(d, &net_todo_list, todo_list) {
-+			if (!sscanf(d->name, name, &i))
-+				continue;
-+			if (i < 0 || i >= max_netdevices)
-+				continue;
-+
-+			/*  avoid cases where sscanf is not exact inverse of printf */
-+			snprintf(buf, sizeof(buf), name, i);
-+			if (!strncmp(buf, d->name, IFNAMSIZ))
-+				set_bit(i, inuse);
-+		}
-+		list_for_each_entry(d, &net_todo_snapshot_list, todo_list) {
-+			if (!sscanf(d->name, name, &i))
-+				continue;
-+			if (i < 0 || i >= max_netdevices)
-+				continue;
-+
-+			/*  avoid cases where sscanf is not exact inverse of printf */
-+			snprintf(buf, sizeof(buf), name, i);
-+			if (!strncmp(buf, d->name, IFNAMSIZ))
-+				set_bit(i, inuse);
-+		}
- 		i = find_first_zero_bit(inuse, max_netdevices);
-+		spin_unlock(&net_todo_list_lock);
-+
- 		free_page((unsigned long) inuse);
- 	}
- 
-@@ -2970,10 +3000,6 @@ static int dev_new_index(void)
- 
- static int dev_boot_phase = 1;
- 
 -/* Delayed registration/unregisteration */
--static DEFINE_SPINLOCK(net_todo_list_lock);
--static struct list_head net_todo_list = LIST_HEAD_INIT(net_todo_list);
--
- static void net_set_todo(struct net_device *dev)
- {
- 	spin_lock(&net_todo_list_lock);
-@@ -3228,8 +3254,6 @@ static void netdev_wait_allrefs(struct n
- static DEFINE_MUTEX(net_todo_run_mutex);
- void netdev_run_todo(void)
- {
--	struct list_head list;
--
- 	/* Need to guard against multiple cpu's getting out of order. */
- 	mutex_lock(&net_todo_run_mutex);
++/* Delayed registration/unregistration */
+ static DEFINE_SPINLOCK(net_todo_list_lock);
+ static LIST_HEAD(net_todo_list);
+ static LIST_HEAD(net_todo_snapshot_list);
+@@ -718,7 +718,7 @@ int dev_alloc_name(struct net_device *de
+ 			if (i < 0 || i >= max_netdevices)
+ 				continue;
  
-@@ -3243,13 +3267,13 @@ void netdev_run_todo(void)
+-			/*  avoid cases where sscanf is not exact inverse of printf */
++			/* avoid cases where sscanf is not exact inverse of printf */
+ 			snprintf(buf, sizeof(buf), name, i);
+ 			if (!strncmp(buf, d->name, IFNAMSIZ))
+ 				set_bit(i, inuse);
+@@ -731,7 +731,7 @@ int dev_alloc_name(struct net_device *de
+ 			if (i < 0 || i >= max_netdevices)
+ 				continue;
  
- 	/* Snapshot list, allow later requests */
- 	spin_lock(&net_todo_list_lock);
--	list_replace_init(&net_todo_list, &list);
-+	list_replace_init(&net_todo_list, &net_todo_snapshot_list);
- 	spin_unlock(&net_todo_list_lock);
- 
--	while (!list_empty(&list)) {
-+	while (!list_empty(&net_todo_snapshot_list)) {
- 		struct net_device *dev
--			= list_entry(list.next, struct net_device, todo_list);
--		list_del(&dev->todo_list);
-+			= list_entry(net_todo_snapshot_list.next,
-+				     struct net_device, todo_list);
- 
- 		if (unlikely(dev->reg_state != NETREG_UNREGISTERING)) {
- 			printk(KERN_ERR "network todo '%s' but state %d\n",
-@@ -3269,6 +3293,10 @@ void netdev_run_todo(void)
- 		BUG_TRAP(!dev->ip6_ptr);
- 		BUG_TRAP(!dev->dn_ptr);
- 
-+		spin_lock(&net_todo_list_lock);
-+		list_del(&dev->todo_list);
-+		spin_unlock(&net_todo_list_lock);
-+
- 		/* It must be the very last action,
- 		 * after this 'dev' may point to freed up memory.
- 		 */
+-			/*  avoid cases where sscanf is not exact inverse of printf */
++			/* avoid cases where sscanf is not exact inverse of printf */
+ 			snprintf(buf, sizeof(buf), name, i);
+ 			if (!strncmp(buf, d->name, IFNAMSIZ))
+ 				set_bit(i, inuse);
 _
 
-Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-race-condition-about-network-device-name.patch
+lib-hexdump.patch
+stop_machine-now-uses-hard_irq_disable.patch
+submitchecklist-add-W-help.patch
+tty-add-compat_ioctl.patch
+use-defines-in-sys_getpriority-sys_setpriority.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+pm3fb-preliminary-24-to-26-port.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+arm-stacktrace-fix.patch
+git-avr32.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect.patch
+git-leds.patch
+git-leds-fixup.patch
+git-libata-all-sata_via-build-fix.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+netxen_nic_main-dont-use-deprecated-irq-flags.patch
+mlx4-dont-use-deprecated-irq-flags.patch
 fix-race-condition-about-network-device-name-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+xfs-clean-up-shrinker-games.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+ntfs-use-zero_user_page.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
