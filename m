@@ -1,71 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - pm3fb-preliminary-24-to-26-port-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 22:05:58 -0700
-Message-ID: <200705110505.l4B55wIF006586@shell0.pdx.osdl.net>
+Subject: + evdev-fix-overflow-in-compat_ioctl.patch added to -mm tree
+Date: Thu, 10 May 2007 22:30:22 -0700
+Message-ID: <200705110530.l4B5UM4m007215@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44167 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754471AbXEKFGE (ORCPT
+	by vger.kernel.org with ESMTP id S1751090AbXEKFcE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 01:06:04 -0400
+	Fri, 11 May 2007 01:32:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@gmail.com, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kenichi3.nagai@toshiba.co.jp, dtor@mail.ru, stable@kernel.org
 
 
 The patch titled
-     pm3fb-preliminary-24-to-26-port-fix
-has been removed from the -mm tree.  Its filename was
-     pm3fb-preliminary-24-to-26-port-fix.patch
+     evdev: fix overflow in compat_ioctl
+has been added to the -mm tree.  Its filename is
+     evdev-fix-overflow-in-compat_ioctl.patch
 
-This patch was dropped because it was folded into pm3fb-preliminary-24-to-26-port.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pm3fb-preliminary-24-to-26-port-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: evdev: fix overflow in compat_ioctl
+From: Kenichi Nagai <kenichi3.nagai@toshiba.co.jp>
 
-Nuke pestiferous CVS string.
+When exporting input device bitmaps via compat_ioctl on BIG_ENDIAN
+platforms evdev calculates data size incorrectly.  This causes buffer
+overflow if user specifies buffer smaller than maxlen.
 
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Kenichi Nagai <kenichi3.nagai@toshiba.co.jp>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/video/pm3fb.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/input/evdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/video/pm3fb.h~pm3fb-preliminary-24-to-26-port-fix include/video/pm3fb.h
---- a/include/video/pm3fb.h~pm3fb-preliminary-24-to-26-port-fix
-+++ a/include/video/pm3fb.h
-@@ -7,9 +7,6 @@
-  *  This file is subject to the terms and conditions of the GNU General Public
-  *  License. See the file COPYING in the main directory of this archive for
-  *  more details.
-- *
-- *  $Header: /cvsroot/linux/drivers/video/pm3fb.h,v 1.1 2002/02/25 19:11:06 marcelo Exp $
-- *
-  */
+diff -puN drivers/input/evdev.c~evdev-fix-overflow-in-compat_ioctl drivers/input/evdev.c
+--- a/drivers/input/evdev.c~evdev-fix-overflow-in-compat_ioctl
++++ a/drivers/input/evdev.c
+@@ -336,7 +336,7 @@ static int bits_to_user(unsigned long *b
  
- #ifndef PM3FB_H
+ 	if (compat) {
+ 		len = NBITS_COMPAT(maxbit) * sizeof(compat_long_t);
+-		if (len < maxlen)
++		if (len > maxlen)
+ 			len = maxlen;
+ 
+ 		for (i = 0; i < len / sizeof(compat_long_t); i++)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kenichi3.nagai@toshiba.co.jp are
 
-origin.patch
-lib-hexdump.patch
-stop_machine-now-uses-hard_irq_disable.patch
-submitchecklist-add-W-help.patch
-tty-add-compat_ioctl.patch
-use-defines-in-sys_getpriority-sys_setpriority.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-pm3fb-preliminary-24-to-26-port.patch
-pm3fb-preliminary-24-to-26-port-fix.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
+evdev-fix-overflow-in-compat_ioctl.patch
