@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-correct-low-level-i-o-routines-for-sable-lynx.patch added to -mm tree
-Date: Fri, 11 May 2007 12:15:39 -0700
-Message-ID: <200705111915.l4BJFdZo024202@shell0.pdx.osdl.net>
+Subject: + alpha-support-graphics-on-non-zero-pci-domains-fix.patch added to -mm tree
+Date: Fri, 11 May 2007 12:15:35 -0700
+Message-ID: <200705111915.l4BJFZC1024196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50092 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763390AbXEKTQq (ORCPT
+	by vger.kernel.org with ESMTP id S1763391AbXEKTQr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:16:46 -0400
+	Fri, 11 May 2007 15:16:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jay.estabrook@hp.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
 
 
 The patch titled
-     ALPHA: correct low-level I/O routines for sable-lynx
+     alpha-support-graphics-on-non-zero-pci-domains fix
 has been added to the -mm tree.  Its filename is
-     alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
+     alpha-support-graphics-on-non-zero-pci-domains-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALPHA: correct low-level I/O routines for sable-lynx
-From: Jay Estabrook <jay.estabrook@hp.com>
+Subject: alpha-support-graphics-on-non-zero-pci-domains fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This code corrects the behavior of the t2_readX/t2_writeX routines,
-and t2_ioreadNN/t2_iowriteNN routines.
+The runtime already did that.
 
-The value T2_DENSE_MEM is now subtracted from the "xaddr" argument in
-each of the readX/writeX routines, since those routines may be called
-directly, rather than always through the ioreadNN/iowriteNN routines.
-
-Examples of the direct calls, via the __raw_readX/writeX macros, are
-the memcpy_fromio/toio, _memset_c_io, and scr_memcpyw routines.
-
-Signed-off-by: Jay Estabrook <jay.estabrook@hp.com>
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
 Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/core_t2.h |   26 ++++++++++++++++----------
- 1 files changed, 16 insertions(+), 10 deletions(-)
+ arch/alpha/kernel/console.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-alpha/core_t2.h~alpha-correct-low-level-i-o-routines-for-sable-lynx include/asm-alpha/core_t2.h
---- a/include/asm-alpha/core_t2.h~alpha-correct-low-level-i-o-routines-for-sable-lynx
-+++ a/include/asm-alpha/core_t2.h
-@@ -437,9 +437,15 @@ static inline void t2_outl(u32 b, unsign
+diff -puN arch/alpha/kernel/console.c~alpha-support-graphics-on-non-zero-pci-domains-fix arch/alpha/kernel/console.c
+--- a/arch/alpha/kernel/console.c~alpha-support-graphics-on-non-zero-pci-domains-fix
++++ a/arch/alpha/kernel/console.c
+@@ -17,7 +17,7 @@
  
- static DEFINE_SPINLOCK(t2_hae_lock);
+ #ifdef CONFIG_VGA_HOSE
  
-+/*
-+ * NOTE: take T2_DENSE_MEM off in each readX/writeX routine, since
-+ *       they may be called directly, rather than through the
-+ *       ioreadNN/iowriteNN routines.
-+ */
-+
- __EXTERN_INLINE u8 t2_readb(const volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long result, msb;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -453,7 +459,7 @@ __EXTERN_INLINE u8 t2_readb(const volati
- 
- __EXTERN_INLINE u16 t2_readw(const volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long result, msb;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -471,7 +477,7 @@ __EXTERN_INLINE u16 t2_readw(const volat
-  */
- __EXTERN_INLINE u32 t2_readl(const volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long result, msb;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -485,7 +491,7 @@ __EXTERN_INLINE u32 t2_readl(const volat
- 
- __EXTERN_INLINE u64 t2_readq(const volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long r0, r1, work, msb;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -501,7 +507,7 @@ __EXTERN_INLINE u64 t2_readq(const volat
- 
- __EXTERN_INLINE void t2_writeb(u8 b, volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long msb, w;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -515,7 +521,7 @@ __EXTERN_INLINE void t2_writeb(u8 b, vol
- 
- __EXTERN_INLINE void t2_writew(u16 b, volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long msb, w;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -533,7 +539,7 @@ __EXTERN_INLINE void t2_writew(u16 b, vo
-  */
- __EXTERN_INLINE void t2_writel(u32 b, volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long msb;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -546,7 +552,7 @@ __EXTERN_INLINE void t2_writel(u32 b, vo
- 
- __EXTERN_INLINE void t2_writeq(u64 b, volatile void __iomem *xaddr)
- {
--	unsigned long addr = (unsigned long) xaddr;
-+	unsigned long addr = (unsigned long) xaddr - T2_DENSE_MEM;
- 	unsigned long msb, work;
- 	unsigned long flags;
- 	spin_lock_irqsave(&t2_hae_lock, flags);
-@@ -587,14 +593,14 @@ __EXTERN_INLINE int t2_is_mmio(const vol
- __EXTERN_INLINE unsigned int t2_ioread##NS(void __iomem *xaddr)		\
- {									\
- 	if (t2_is_mmio(xaddr))						\
--		return t2_read##OS(xaddr - T2_DENSE_MEM);		\
-+		return t2_read##OS(xaddr);				\
- 	else								\
- 		return t2_in##OS((unsigned long)xaddr - T2_IO);		\
- }									\
- __EXTERN_INLINE void t2_iowrite##NS(u##NS b, void __iomem *xaddr)	\
- {									\
- 	if (t2_is_mmio(xaddr))						\
--		t2_write##OS(b, xaddr - T2_DENSE_MEM);			\
-+		t2_write##OS(b, xaddr);					\
- 	else								\
- 		t2_out##OS(b, (unsigned long)xaddr - T2_IO);		\
- }
+-struct pci_controller *pci_vga_hose = NULL;
++struct pci_controller *pci_vga_hose;
+ static struct resource alpha_vga = {
+ 	.name	= "alpha-vga+",
+ 	.start	= 0x3C0,
 _
 
-Patches currently in -mm which might be from jay.estabrook@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-alpha-support-graphics-on-non-zero-pci-domains.patch
+lib-hexdump.patch
+stop_machine-now-uses-hard_irq_disable.patch
+submitchecklist-add-W-help.patch
+tty-add-compat_ioctl.patch
+use-defines-in-sys_getpriority-sys_setpriority.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+pm3fb-preliminary-24-to-26-port.patch
+ntfs-use-zero_user_page.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+arm-stacktrace-fix.patch
+git-avr32.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect.patch
+git-leds.patch
+git-leds-fixup.patch
+git-libata-all-sata_via-build-fix.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+netxen_nic_main-dont-use-deprecated-irq-flags.patch
+mlx4-dont-use-deprecated-irq-flags.patch
+fix-race-condition-about-network-device-name-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+xfs-clean-up-shrinker-games.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
-alpha-misc-fixes.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
