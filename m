@@ -1,49 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - use-defines-in-sys_getpriority-sys_setpriority-fix.patch removed from -mm tree
-Date: Thu, 10 May 2007 21:50:59 -0700
-Message-ID: <200705110450.l4B4oxrc006400@shell0.pdx.osdl.net>
+Subject: - mpc52xx-psc-spi-master-driver-update-tidy.patch removed from -mm tree
+Date: Thu, 10 May 2007 21:50:33 -0700
+Message-ID: <200705110450.l4B4oXoK006391@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37338 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969AbXEKEvP (ORCPT
+	by vger.kernel.org with ESMTP id S1754293AbXEKEv3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 00:51:15 -0400
+	Fri, 11 May 2007 00:51:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwalker@mvista.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david-b@pacbell.net, dragos.carp@toptica.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use-defines-in-sys_getpriority-sys_setpriority-fix
+     mpc52xx-psc-spi-master-driver-update-tidy
 has been removed from the -mm tree.  Its filename was
-     use-defines-in-sys_getpriority-sys_setpriority-fix.patch
+     mpc52xx-psc-spi-master-driver-update-tidy.patch
 
-This patch was dropped because it was folded into use-defines-in-sys_getpriority-sys_setpriority.patch
+This patch was dropped because it was folded into mpc52xx-psc-spi-master-driver.patch
 
 ------------------------------------------------------
-Subject: use-defines-in-sys_getpriority-sys_setpriority-fix
+Subject: mpc52xx-psc-spi-master-driver-update-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Dragos Carp <dragos.carp@toptica.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/spi/mpc52xx_psc_spi.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~use-defines-in-sys_getpriority-sys_setpriority-fix kernel/sys.c
---- a/kernel/sys.c~use-defines-in-sys_getpriority-sys_setpriority-fix
-+++ a/kernel/sys.c
-@@ -14,6 +14,7 @@
- #include <linux/prctl.h>
- #include <linux/highuid.h>
- #include <linux/fs.h>
-+#include <linux/resource.h>
- #include <linux/kernel.h>
- #include <linux/kexec.h>
- #include <linux/workqueue.h>
+diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx-psc-spi-master-driver-update-tidy drivers/spi/mpc52xx_psc_spi.c
+--- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx-psc-spi-master-driver-update-tidy
++++ a/drivers/spi/mpc52xx_psc_spi.c
+@@ -540,7 +540,10 @@ static int __exit mpc52xx_psc_spi_do_rem
+ static int __init mpc52xx_psc_spi_probe(struct platform_device *dev)
+ {
+ 	switch(dev->id) {
+-	case 1: case 2: case 3: case 6:
++	case 1:
++	case 2:
++	case 3:
++	case 6:
+ 		return mpc52xx_psc_spi_do_probe(&dev->dev,
+ 			MPC52xx_PA(MPC52xx_PSCx_OFFSET(dev->id)),
+ 			MPC52xx_PSC_SIZE, platform_get_irq(dev, 0), dev->id);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -53,7 +57,8 @@ lib-hexdump.patch
 stop_machine-now-uses-hard_irq_disable.patch
 submitchecklist-add-W-help.patch
 tty-add-compat_ioctl.patch
-use-defines-in-sys_getpriority-sys_setpriority.patch
+mpc52xx-psc-spi-master-driver.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
 use-defines-in-sys_getpriority-sys_setpriority-fix.patch
 signal-timer-event-fds-v9-signalfd-core.patch
 signal-timer-event-fds-v9-timerfd-core.patch
