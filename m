@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-allocators-drop-support-for-destructors.patch added to -mm tree
-Date: Fri, 11 May 2007 12:10:05 -0700
-Message-ID: <200705111910.l4BJA6ZC024001@shell0.pdx.osdl.net>
+Subject: + alpha-support-graphics-on-non-zero-pci-domains.patch added to -mm tree
+Date: Fri, 11 May 2007 12:15:30 -0700
+Message-ID: <200705111915.l4BJFVtD024190@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42277 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56186 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965539AbXEKTKR (ORCPT
+	by vger.kernel.org with ESMTP id S1763378AbXEKTQp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:10:17 -0400
+	Fri, 11 May 2007 15:16:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, lethal@linux-sh.org, penberg@cs.helsinki.fi
+Cc: jay.estabrook@hp.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     Slab allocators: Drop support for destructors
+     ALPHA: support graphics on non-zero PCI domains
 has been added to the -mm tree.  Its filename is
-     slab-allocators-drop-support-for-destructors.patch
+     alpha-support-graphics-on-non-zero-pci-domains.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,347 +26,723 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Slab allocators: Drop support for destructors
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ALPHA: support graphics on non-zero PCI domains
+From: Jay Estabrook <jay.estabrook@hp.com>
 
-There is no user of destructors left.  There is no reason why we should keep
-checking for destructors calls in the slab allocators.
+This code replaces earlier and incomplete handling of graphics on non-zero PCI
+domains (aka hoses or peer PCI buses).
 
-The RFC for this patch was discussed at
-http://marc.info/?l=linux-kernel&m=117882364330705&w=2
+An option (CONFIG_VGA_HOSE) is set TRUE if configuring a GENERIC kernel, or a
+kernel for MARVEL, TITAN, or TSUNAMI machines, as these are the machines whose
+SRM consoles are capable of configuring and handling graphics options on
+non-zero hoses.  All other machines have the option set FALSE.
 
-Destructors were mainly used for list management which required them to take a
-spinlock.  Taking a spinlock in a destructor is a bit risky since the slab
-allocators may run the destructors anytime they decide a slab is no longer
-needed.
+A routine, "find_console_vga_hose()", is used to find the graphics device
+which the machine's firmware believes is the console device, and it sets a
+global (pci_vga_hose) for later use in managing access to the device.  This is
+called in "init_arch" on TITAN and TSUNAMI machines; MARVEL machines use a
+custom version of this routine because of extra complexity.
 
-Patch drops destructor support.  Any attempt to use a destructor will BUG().
+A routine, "locate_and_init_vga()", is used to find the graphics device and
+set a global (pci_vga_hose) for later use in managing access to the device, in
+the case where "find_console_vga_hose" has failed.
 
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Various adjustments are made to the ioremap and ioportmap routines for
+detecting and translating "legacy" VGA register and memory references to the
+real PCI domain.
+
+Signed-off-by: Jay Estabrook <jay.estabrook@hp.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    1 
- mm/slab.c                |   27 +--------------------
- mm/slob.c                |    5 ----
- mm/slub.c                |   46 ++++++++++++-------------------------
- 4 files changed, 17 insertions(+), 62 deletions(-)
+ arch/alpha/Kconfig               |   16 ++++++
+ arch/alpha/kernel/console.c      |   70 +++++++++++++++++++----------
+ arch/alpha/kernel/core_marvel.c  |   43 +++++++----------
+ arch/alpha/kernel/core_titan.c   |   70 ++++++++++++-----------------
+ arch/alpha/kernel/core_tsunami.c |   24 +++++++++
+ arch/alpha/kernel/proto.h        |    9 +++
+ arch/alpha/kernel/sys_dp264.c    |   11 ++++
+ arch/alpha/kernel/sys_marvel.c   |    4 -
+ arch/alpha/kernel/sys_titan.c    |    2 
+ include/asm-alpha/core_titan.h   |    7 --
+ include/asm-alpha/core_tsunami.h |   15 +-----
+ include/asm-alpha/vga.h          |   31 ++++++++++++
+ 12 files changed, 190 insertions(+), 112 deletions(-)
 
-diff -puN include/linux/slub_def.h~slab-allocators-drop-support-for-destructors include/linux/slub_def.h
---- a/include/linux/slub_def.h~slab-allocators-drop-support-for-destructors
-+++ a/include/linux/slub_def.h
-@@ -40,7 +40,6 @@ struct kmem_cache {
- 	int objects;		/* Number of objects in slab */
- 	int refcount;		/* Refcount for slab cache destroy */
- 	void (*ctor)(void *, struct kmem_cache *, unsigned long);
--	void (*dtor)(void *, struct kmem_cache *, unsigned long);
- 	int inuse;		/* Offset to metadata */
- 	int align;		/* Alignment */
- 	const char *name;	/* Name (only for display!) */
-diff -puN mm/slab.c~slab-allocators-drop-support-for-destructors mm/slab.c
---- a/mm/slab.c~slab-allocators-drop-support-for-destructors
-+++ a/mm/slab.c
-@@ -409,9 +409,6 @@ struct kmem_cache {
- 	/* constructor func */
- 	void (*ctor) (void *, struct kmem_cache *, unsigned long);
+diff -puN arch/alpha/Kconfig~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/Kconfig
+@@ -481,6 +481,15 @@ config ALPHA_BROKEN_IRQ_MASK
+ 	depends on ALPHA_GENERIC || ALPHA_PC164
+ 	default y
  
--	/* de-constructor func */
--	void (*dtor) (void *, struct kmem_cache *, unsigned long);
--
- /* 5) cache creation/removal */
- 	const char *name;
- 	struct list_head next;
-@@ -1911,20 +1908,11 @@ static void slab_destroy_objs(struct kme
- 				slab_error(cachep, "end of a freed object "
- 					   "was overwritten");
- 		}
--		if (cachep->dtor && !(cachep->flags & SLAB_POISON))
--			(cachep->dtor) (objp + obj_offset(cachep), cachep, 0);
- 	}
- }
- #else
- static void slab_destroy_objs(struct kmem_cache *cachep, struct slab *slabp)
- {
--	if (cachep->dtor) {
--		int i;
--		for (i = 0; i < cachep->num; i++) {
--			void *objp = index_to_obj(cachep, slabp, i);
--			(cachep->dtor) (objp, cachep, 0);
--		}
--	}
- }
- #endif
- 
-@@ -2124,7 +2112,7 @@ static int setup_cpu_cache(struct kmem_c
-  * @align: The required alignment for the objects.
-  * @flags: SLAB flags
-  * @ctor: A constructor for the objects.
-- * @dtor: A destructor for the objects.
-+ * @dtor: A destructor for the objects (not implemented anymore).
-  *
-  * Returns a ptr to the cache on success, NULL on failure.
-  * Cannot be called within a int, but can be interrupted.
-@@ -2159,7 +2147,7 @@ kmem_cache_create (const char *name, siz
- 	 * Sanity checks... these are all serious usage bugs.
- 	 */
- 	if (!name || in_interrupt() || (size < BYTES_PER_WORD) ||
--	    (size > (1 << MAX_OBJ_ORDER) * PAGE_SIZE) || (dtor && !ctor)) {
-+	    (size > (1 << MAX_OBJ_ORDER) * PAGE_SIZE) || dtor) {
- 		printk(KERN_ERR "%s: Early error in slab %s\n", __FUNCTION__,
- 				name);
- 		BUG();
-@@ -2213,9 +2201,6 @@ kmem_cache_create (const char *name, siz
- 	if (flags & SLAB_DESTROY_BY_RCU)
- 		BUG_ON(flags & SLAB_POISON);
- #endif
--	if (flags & SLAB_DESTROY_BY_RCU)
--		BUG_ON(dtor);
--
- 	/*
- 	 * Always checks flags, a caller might be expecting debug support which
- 	 * isn't available.
-@@ -2370,7 +2355,6 @@ kmem_cache_create (const char *name, siz
- 		BUG_ON(!cachep->slabp_cache);
- 	}
- 	cachep->ctor = ctor;
--	cachep->dtor = dtor;
- 	cachep->name = name;
- 
- 	if (setup_cpu_cache(cachep)) {
-@@ -2835,7 +2819,6 @@ failed:
-  * Perform extra freeing checks:
-  * - detect bad pointers.
-  * - POISON/RED_ZONE checking
-- * - destructor calls, for caches with POISON+dtor
-  */
- static void kfree_debugcheck(const void *objp)
- {
-@@ -2894,12 +2877,6 @@ static void *cache_free_debugcheck(struc
- 	BUG_ON(objnr >= cachep->num);
- 	BUG_ON(objp != index_to_obj(cachep, slabp, objnr));
- 
--	if (cachep->flags & SLAB_POISON && cachep->dtor) {
--		/* we want to cache poison the object,
--		 * call the destruction callback
--		 */
--		cachep->dtor(objp + obj_offset(cachep), cachep, 0);
--	}
- #ifdef CONFIG_DEBUG_SLAB_LEAK
- 	slab_bufctl(slabp)[objnr] = BUFCTL_FREE;
- #endif
-diff -puN mm/slob.c~slab-allocators-drop-support-for-destructors mm/slob.c
---- a/mm/slob.c~slab-allocators-drop-support-for-destructors
-+++ a/mm/slob.c
-@@ -280,7 +280,6 @@ struct kmem_cache {
- 	unsigned long flags;
- 	const char *name;
- 	void (*ctor)(void *, struct kmem_cache *, unsigned long);
--	void (*dtor)(void *, struct kmem_cache *, unsigned long);
- };
- 
- struct kmem_cache *kmem_cache_create(const char *name, size_t size,
-@@ -296,13 +295,11 @@ struct kmem_cache *kmem_cache_create(con
- 		c->name = name;
- 		c->size = size;
- 		if (flags & SLAB_DESTROY_BY_RCU) {
--			BUG_ON(dtor);
- 			/* leave room for rcu footer at the end of object */
- 			c->size += sizeof(struct slob_rcu);
- 		}
- 		c->flags = flags;
- 		c->ctor = ctor;
--		c->dtor = dtor;
- 		/* ignore alignment unless it's forced */
- 		c->align = (flags & SLAB_HWCACHE_ALIGN) ? SLOB_ALIGN : 0;
- 		if (c->align < align)
-@@ -371,8 +368,6 @@ void kmem_cache_free(struct kmem_cache *
- 		slob_rcu->size = c->size;
- 		call_rcu(&slob_rcu->head, kmem_rcu_free);
- 	} else {
--		if (c->dtor)
--			c->dtor(b, c, 0);
- 		__kmem_cache_free(b, c->size);
- 	}
- }
-diff -puN mm/slub.c~slab-allocators-drop-support-for-destructors mm/slub.c
---- a/mm/slub.c~slab-allocators-drop-support-for-destructors
-+++ a/mm/slub.c
-@@ -891,13 +891,13 @@ static void kmem_cache_open_debug_check(
- 	 * On 32 bit platforms the limit is 256k. On 64bit platforms
- 	 * the limit is 512k.
- 	 *
--	 * Debugging or ctor/dtors may create a need to move the free
-+	 * Debugging or ctor may create a need to move the free
- 	 * pointer. Fail if this happens.
- 	 */
- 	if (s->size >= 65535 * sizeof(void *)) {
- 		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
- 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
--		BUG_ON(s->ctor || s->dtor);
-+		BUG_ON(s->ctor);
- 	}
- 	else
- 		/*
-@@ -1030,15 +1030,12 @@ static void __free_slab(struct kmem_cach
- {
- 	int pages = 1 << s->order;
- 
--	if (unlikely(SlabDebug(page) || s->dtor)) {
-+	if (unlikely(SlabDebug(page))) {
- 		void *p;
- 
- 		slab_pad_check(s, page);
--		for_each_object(p, s, page_address(page)) {
--			if (s->dtor)
--				s->dtor(p, s, 0);
-+		for_each_object(p, s, page_address(page))
- 			check_object(s, page, p, 0);
--		}
- 	}
- 
- 	mod_zone_page_state(page_zone(page),
-@@ -1871,7 +1868,7 @@ static int calculate_sizes(struct kmem_c
- 	 * then we should never poison the object itself.
- 	 */
- 	if ((flags & SLAB_POISON) && !(flags & SLAB_DESTROY_BY_RCU) &&
--			!s->ctor && !s->dtor)
-+			!s->ctor)
- 		s->flags |= __OBJECT_POISON;
- 	else
- 		s->flags &= ~__OBJECT_POISON;
-@@ -1901,7 +1898,7 @@ static int calculate_sizes(struct kmem_c
- 
- #ifdef CONFIG_SLUB_DEBUG
- 	if (((flags & (SLAB_DESTROY_BY_RCU | SLAB_POISON)) ||
--		s->ctor || s->dtor)) {
-+		s->ctor)) {
- 		/*
- 		 * Relocate free pointer after the object if it is not
- 		 * permitted to overwrite the first word of the object on
-@@ -1970,13 +1967,11 @@ static int calculate_sizes(struct kmem_c
- static int kmem_cache_open(struct kmem_cache *s, gfp_t gfpflags,
- 		const char *name, size_t size,
- 		size_t align, unsigned long flags,
--		void (*ctor)(void *, struct kmem_cache *, unsigned long),
--		void (*dtor)(void *, struct kmem_cache *, unsigned long))
-+		void (*ctor)(void *, struct kmem_cache *, unsigned long))
- {
- 	memset(s, 0, kmem_size);
- 	s->name = name;
- 	s->ctor = ctor;
--	s->dtor = dtor;
- 	s->objsize = size;
- 	s->flags = flags;
- 	s->align = align;
-@@ -2161,7 +2156,7 @@ static struct kmem_cache *create_kmalloc
- 
- 	down_write(&slub_lock);
- 	if (!kmem_cache_open(s, gfp_flags, name, size, ARCH_KMALLOC_MINALIGN,
--			flags, NULL, NULL))
-+			flags, NULL))
- 		goto panic;
- 
- 	list_add(&s->list, &slab_caches);
-@@ -2463,7 +2458,7 @@ static int slab_unmergeable(struct kmem_
- 	if (slub_nomerge || (s->flags & SLUB_NEVER_MERGE))
- 		return 1;
- 
--	if (s->ctor || s->dtor)
-+	if (s->ctor)
- 		return 1;
- 
- 	return 0;
-@@ -2471,15 +2466,14 @@ static int slab_unmergeable(struct kmem_
- 
- static struct kmem_cache *find_mergeable(size_t size,
- 		size_t align, unsigned long flags,
--		void (*ctor)(void *, struct kmem_cache *, unsigned long),
--		void (*dtor)(void *, struct kmem_cache *, unsigned long))
-+		void (*ctor)(void *, struct kmem_cache *, unsigned long))
- {
- 	struct list_head *h;
- 
- 	if (slub_nomerge || (flags & SLUB_NEVER_MERGE))
- 		return NULL;
- 
--	if (ctor || dtor)
-+	if (ctor)
- 		return NULL;
- 
- 	size = ALIGN(size, sizeof(void *));
-@@ -2521,8 +2515,10 @@ struct kmem_cache *kmem_cache_create(con
- {
- 	struct kmem_cache *s;
- 
-+	BUG_ON(dtor);
++config VGA_HOSE
++	bool
++	depends on ALPHA_GENERIC || ALPHA_TITAN || ALPHA_MARVEL || ALPHA_TSUNAMI
++	default y
++	help
++	  Support VGA on an arbitrary hose; needed for several platforms
++	  which always have multiple hoses, and whose consoles support it.
 +
- 	down_write(&slub_lock);
--	s = find_mergeable(size, align, flags, dtor, ctor);
-+	s = find_mergeable(size, align, flags, ctor);
- 	if (s) {
- 		s->refcount++;
- 		/*
-@@ -2536,7 +2532,7 @@ struct kmem_cache *kmem_cache_create(con
- 	} else {
- 		s = kmalloc(kmem_size, GFP_KERNEL);
- 		if (s && kmem_cache_open(s, GFP_KERNEL, name,
--				size, align, flags, ctor, dtor)) {
-+				size, align, flags, ctor)) {
- 			if (sysfs_slab_add(s)) {
- 				kfree(s);
- 				goto err;
-@@ -3177,17 +3173,6 @@ static ssize_t ctor_show(struct kmem_cac
- }
- SLAB_ATTR_RO(ctor);
++
+ config ALPHA_SRM
+ 	bool "Use SRM as bootloader" if ALPHA_CABRIOLET || ALPHA_AVANTI_CH || ALPHA_EB64P || ALPHA_PC164 || ALPHA_TAKARA || ALPHA_EB164 || ALPHA_ALCOR || ALPHA_MIATA || ALPHA_LX164 || ALPHA_SX164 || ALPHA_NAUTILUS || ALPHA_NONAME
+ 	default y if ALPHA_JENSEN || ALPHA_MIKASA || ALPHA_SABLE || ALPHA_LYNX || ALPHA_NORITAKE || ALPHA_DP264 || ALPHA_RAWHIDE || ALPHA_EIGER || ALPHA_WILDFIRE || ALPHA_TITAN || ALPHA_SHARK || ALPHA_MARVEL
+@@ -644,6 +653,13 @@ source "arch/alpha/oprofile/Kconfig"
  
--static ssize_t dtor_show(struct kmem_cache *s, char *buf)
+ source "arch/alpha/Kconfig.debug"
+ 
++# DUMMY_CONSOLE may be defined in drivers/video/console/Kconfig
++# but we also need it if VGA_HOSE is set
++config DUMMY_CONSOLE
++	bool
++	depends on VGA_HOSE
++	default y
++
+ source "security/Kconfig"
+ 
+ source "crypto/Kconfig"
+diff -puN arch/alpha/kernel/console.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/console.c
+--- a/arch/alpha/kernel/console.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/console.c
+@@ -9,16 +9,20 @@
+ #include <linux/init.h>
+ #include <linux/tty.h>
+ #include <linux/console.h>
++#include <linux/vt.h>
+ #include <asm/vga.h>
+ #include <asm/machvec.h>
+ 
++#include "pci_impl.h"
++
+ #ifdef CONFIG_VGA_HOSE
+ 
+-/*
+- * Externally-visible vga hose bases
+- */
+-unsigned long __vga_hose_io_base = 0;	/* base for default hose */
+-unsigned long __vga_hose_mem_base = 0;	/* base for default hose */
++struct pci_controller *pci_vga_hose = NULL;
++static struct resource alpha_vga = {
++	.name	= "alpha-vga+",
++	.start	= 0x3C0,
++	.end	= 0x3DF
++};
+ 
+ static struct pci_controller * __init 
+ default_vga_hose_select(struct pci_controller *h1, struct pci_controller *h2)
+@@ -30,36 +34,58 @@ default_vga_hose_select(struct pci_contr
+ }
+ 
+ void __init 
+-set_vga_hose(struct pci_controller *hose)
 -{
--	if (s->dtor) {
--		int n = sprint_symbol(buf, (unsigned long)s->dtor);
--
--		return n + sprintf(buf + n, "\n");
+-	if (hose) {
+-		__vga_hose_io_base = hose->io_space->start;
+-		__vga_hose_mem_base = hose->mem_space->start;
 -	}
--	return 0;
 -}
--SLAB_ATTR_RO(dtor);
 -
- static ssize_t aliases_show(struct kmem_cache *s, char *buf)
+-void __init 
+ locate_and_init_vga(void *(*sel_func)(void *, void *))
  {
- 	return sprintf(buf, "%d\n", s->refcount - 1);
-@@ -3419,7 +3404,6 @@ static struct attribute * slab_attrs[] =
- 	&partial_attr.attr,
- 	&cpu_slabs_attr.attr,
- 	&ctor_attr.attr,
--	&dtor_attr.attr,
- 	&aliases_attr.attr,
- 	&align_attr.attr,
- 	&sanity_checks_attr.attr,
+ 	struct pci_controller *hose = NULL;
+ 	struct pci_dev *dev = NULL;
+ 
++	/* Default the select function */
+ 	if (!sel_func) sel_func = (void *)default_vga_hose_select;
+ 
++	/* Find the console VGA device */
+ 	for(dev=NULL; (dev=pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, dev));) {
+-		if (!hose) hose = dev->sysdata;
+-		else hose = sel_func(hose, dev->sysdata);
++		if (!hose)
++			hose = dev->sysdata;
++		else
++			hose = sel_func(hose, dev->sysdata);
+ 	}
+ 
+-	/* Did we already inititialize the correct one? */
+-	if (conswitchp == &vga_con &&
+-	    __vga_hose_io_base == hose->io_space->start &&
+-	    __vga_hose_mem_base == hose->mem_space->start)
++	/* Did we already initialize the correct one? Is there one? */
++	if (!hose || (conswitchp == &vga_con && pci_vga_hose == hose))
+ 		return;
+ 
+-	/* Set the VGA hose and init the new console */
+-	set_vga_hose(hose);
++	/* Create a new VGA ioport resource WRT the hose it is on. */
++	alpha_vga.start += hose->io_space->start;
++	alpha_vga.end += hose->io_space->start;
++	request_resource(hose->io_space, &alpha_vga);
++
++	/* Set the VGA hose and init the new console. */
++	pci_vga_hose = hose;
+ 	take_over_console(&vga_con, 0, MAX_NR_CONSOLES-1, 1);
+ }
+ 
++void __init
++find_console_vga_hose(void)
++{
++	u64 *pu64 = (u64 *)((u64)hwrpb + hwrpb->ctbt_offset);
++
++	if (pu64[7] == 3) {	/* TERM_TYPE == graphics */
++		struct pci_controller *hose;
++		int h = (pu64[30] >> 24) & 0xff;	/* console hose # */
++
++		/*
++		 * Our hose numbering DOES match the console's, so find
++		 * the right one...
++		 */
++		for (hose = hose_head; hose; hose = hose->next) {
++			if (hose->index == h) break;
++		}
++
++		if (hose) {
++			printk("Console graphics on hose %d\n", h);
++			pci_vga_hose = hose;
++		}
++	}
++}
++
+ #endif
+diff -puN arch/alpha/kernel/core_marvel.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/core_marvel.c
+--- a/arch/alpha/kernel/core_marvel.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/core_marvel.c
+@@ -25,6 +25,7 @@
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include <asm/rtc.h>
++#include <asm/vga.h>
+ 
+ #include "proto.h"
+ #include "pci_impl.h"
+@@ -367,9 +368,8 @@ marvel_io7_present(gct6_node *node)
+ }
+ 
+ static void __init
+-marvel_init_vga_hose(void)
++marvel_find_console_vga_hose(void)
+ {
+-#ifdef CONFIG_VGA_HOSE
+ 	u64 *pu64 = (u64 *)((u64)hwrpb + hwrpb->ctbt_offset);
+ 
+ 	if (pu64[7] == 3) {	/* TERM_TYPE == graphics */
+@@ -403,7 +403,6 @@ marvel_init_vga_hose(void)
+ 			pci_vga_hose = hose;
+ 		}
+ 	}
+-#endif /* CONFIG_VGA_HOSE */
+ }
+ 
+ gct6_search_struct gct_wanted_node_list[] = {
+@@ -459,7 +458,7 @@ marvel_init_arch(void)
+ 		marvel_init_io7(io7);
+ 
+ 	/* Check for graphic console location (if any).  */
+-	marvel_init_vga_hose();
++	marvel_find_console_vga_hose();
+ }
+ 
+ void
+@@ -684,9 +683,6 @@ __marvel_rtc_io(u8 b, unsigned long addr
+ /*
+  * IO map support.
+  */
+-
+-#define __marvel_is_mem_vga(a)	(((a) >= 0xa0000) && ((a) <= 0xc0000))
+-
+ void __iomem *
+ marvel_ioremap(unsigned long addr, unsigned long size)
+ {
+@@ -698,13 +694,9 @@ marvel_ioremap(unsigned long addr, unsig
+ 	unsigned long pfn;
+ 
+ 	/*
+-	 * Adjust the addr.
++	 * Adjust the address.
+ 	 */ 
+-#ifdef CONFIG_VGA_HOSE
+-	if (pci_vga_hose && __marvel_is_mem_vga(addr)) {
+-		addr += pci_vga_hose->mem_space->start;
+-	}
+-#endif
++	FIXUP_MEMADDR_VGA(addr);
+ 
+ 	/*
+ 	 * Find the hose.
+@@ -781,7 +773,9 @@ marvel_ioremap(unsigned long addr, unsig
+ 		return (void __iomem *) vaddr;
+ 	}
+ 
+-	return NULL;
++	/* Assume it was already a reasonable address */
++	vaddr = baddr + hose->mem_space->start;
++	return (void __iomem *) vaddr;
+ }
+ 
+ void
+@@ -803,21 +797,12 @@ marvel_is_mmio(const volatile void __iom
+ 		return (addr & 0xFF000000UL) == 0;
+ }
+ 
+-#define __marvel_is_port_vga(a)	\
+-  (((a) >= 0x3b0) && ((a) < 0x3e0) && ((a) != 0x3b3) && ((a) != 0x3d3))
+ #define __marvel_is_port_kbd(a)	(((a) == 0x60) || ((a) == 0x64))
+ #define __marvel_is_port_rtc(a)	(((a) == 0x70) || ((a) == 0x71))
+ 
+ void __iomem *marvel_ioportmap (unsigned long addr)
+ {
+-	if (__marvel_is_port_rtc (addr) || __marvel_is_port_kbd(addr))
+-		;
+-#ifdef CONFIG_VGA_HOSE
+-	else if (__marvel_is_port_vga (addr) && pci_vga_hose)
+-		addr += pci_vga_hose->io_space->start;
+-#endif
+-	else
+-		return NULL;
++	FIXUP_IOADDR_VGA(addr);
+ 	return (void __iomem *)addr;
+ }
+ 
+@@ -829,8 +814,14 @@ marvel_ioread8(void __iomem *xaddr)
+ 		return 0;
+ 	else if (__marvel_is_port_rtc(addr))
+ 		return __marvel_rtc_io(0, addr, 0);
+-	else
++	else if (marvel_is_ioaddr(addr))
+ 		return __kernel_ldbu(*(vucp)addr);
++	else
++		/* this should catch other legacy addresses
++		   that would normally fail on MARVEL,
++		   because there really is nothing there...
++		*/
++		return ~0;
+ }
+ 
+ void
+@@ -841,7 +832,7 @@ marvel_iowrite8(u8 b, void __iomem *xadd
+ 		return;
+ 	else if (__marvel_is_port_rtc(addr)) 
+ 		__marvel_rtc_io(b, addr, 1);
+-	else
++	else if (marvel_is_ioaddr(addr))
+ 		__kernel_stb(b, *(vucp)addr);
+ }
+ 
+diff -puN arch/alpha/kernel/core_titan.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/core_titan.c
+--- a/arch/alpha/kernel/core_titan.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/core_titan.c
+@@ -21,6 +21,7 @@
+ #include <asm/smp.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
++#include <asm/vga.h>
+ 
+ #include "proto.h"
+ #include "pci_impl.h"
+@@ -35,6 +36,11 @@ struct
+ } saved_config[4] __attribute__((common));
+ 
+ /*
++ * Is PChip 1 present? No need to query it more than once.
++ */
++static int titan_pchip1_present;
++
++/*
+  * BIOS32-style PCI interface:
+  */
+ 
+@@ -344,43 +350,17 @@ titan_init_one_pachip_port(titan_pachip_
+ static void __init
+ titan_init_pachips(titan_pachip *pachip0, titan_pachip *pachip1)
+ {
+-	int pchip1_present = TITAN_cchip->csc.csr & 1L<<14;
++	titan_pchip1_present = TITAN_cchip->csc.csr & 1L<<14;
+ 
+ 	/* Init the ports in hose order... */
+ 	titan_init_one_pachip_port(&pachip0->g_port, 0);	/* hose 0 */
+-	if (pchip1_present)
++	if (titan_pchip1_present)
+ 		titan_init_one_pachip_port(&pachip1->g_port, 1);/* hose 1 */
+ 	titan_init_one_pachip_port(&pachip0->a_port, 2);	/* hose 2 */
+-	if (pchip1_present)
++	if (titan_pchip1_present)
+ 		titan_init_one_pachip_port(&pachip1->a_port, 3);/* hose 3 */
+ }
+ 
+-static void __init
+-titan_init_vga_hose(void)
+-{
+-#ifdef CONFIG_VGA_HOSE
+-	u64 *pu64 = (u64 *)((u64)hwrpb + hwrpb->ctbt_offset);
+-
+-	if (pu64[7] == 3) {	/* TERM_TYPE == graphics */
+-		struct pci_controller *hose;
+-		int h = (pu64[30] >> 24) & 0xff;	/* console hose # */
+-
+-		/*
+-		 * Our hose numbering matches the console's, so just find
+-		 * the right one...
+-		 */
+-		for (hose = hose_head; hose; hose = hose->next) {
+-			if (hose->index == h) break;
+-		}
+-
+-		if (hose) {
+-			printk("Console graphics on hose %d\n", hose->index);
+-			pci_vga_hose = hose;
+-		}
+-	}
+-#endif /* CONFIG_VGA_HOSE */
+-}
+-
+ void __init
+ titan_init_arch(void)
+ {
+@@ -406,6 +386,7 @@ titan_init_arch(void)
+ 
+ 	/* With multiple PCI busses, we play with I/O as physical addrs.  */
+ 	ioport_resource.end = ~0UL;
++	iomem_resource.end = ~0UL;
+ 
+ 	/* PCI DMA Direct Mapping is 1GB at 2GB.  */
+ 	__direct_map_base = 0x80000000;
+@@ -415,7 +396,7 @@ titan_init_arch(void)
+ 	titan_init_pachips(TITAN_pachip0, TITAN_pachip1);
+ 
+ 	/* Check for graphic console location (if any).  */
+-	titan_init_vga_hose();
++	find_console_vga_hose();
+ }
+ 
+ static void
+@@ -441,9 +422,7 @@ titan_kill_one_pachip_port(titan_pachip_
+ static void
+ titan_kill_pachips(titan_pachip *pachip0, titan_pachip *pachip1)
+ {
+-	int pchip1_present = TITAN_cchip->csc.csr & 1L<<14;
+-
+-	if (pchip1_present) {
++	if (titan_pchip1_present) {
+ 		titan_kill_one_pachip_port(&pachip1->g_port, 1);
+ 		titan_kill_one_pachip_port(&pachip1->a_port, 3);
+ 	}
+@@ -463,6 +442,14 @@ titan_kill_arch(int mode)
+  */
+ 
+ void __iomem *
++titan_ioportmap(unsigned long addr)
++{
++	FIXUP_IOADDR_VGA(addr);
++	return (void __iomem *)(addr + TITAN_IO_BIAS);
++}
++
++
++void __iomem *
+ titan_ioremap(unsigned long addr, unsigned long size)
+ {
+ 	int h = (addr & TITAN_HOSE_MASK) >> TITAN_HOSE_SHIFT;
+@@ -475,14 +462,12 @@ titan_ioremap(unsigned long addr, unsign
+ 	unsigned long pfn;
+ 
+ 	/*
+-	 * Adjust the addr.
++	 * Adjust the address and hose, if necessary.
+ 	 */ 
+-#ifdef CONFIG_VGA_HOSE
+-	if (pci_vga_hose && __titan_is_mem_vga(addr)) {
++	if (pci_vga_hose && __is_mem_vga(addr)) {
+ 		h = pci_vga_hose->index;
+ 		addr += pci_vga_hose->mem_space->start;
+ 	}
+-#endif
+ 
+ 	/*
+ 	 * Find the hose.
+@@ -521,8 +506,10 @@ titan_ioremap(unsigned long addr, unsign
+ 		 * Map it
+ 		 */
+ 		area = get_vm_area(size, VM_IOREMAP);
+-		if (!area)
++		if (!area) {
++			printk("ioremap failed... no vm_area...\n");
+ 			return NULL;
++		}
+ 
+ 		ptes = hose->sg_pci->ptes;
+ 		for (vaddr = (unsigned long)area->addr; 
+@@ -539,7 +526,7 @@ titan_ioremap(unsigned long addr, unsign
+ 			if (__alpha_remap_area_pages(vaddr,
+ 						     pfn << PAGE_SHIFT, 
+ 						     PAGE_SIZE, 0)) {
+-				printk("FAILED to map...\n");
++				printk("FAILED to remap_area_pages...\n");
+ 				vfree(area->addr);
+ 				return NULL;
+ 			}
+@@ -551,7 +538,8 @@ titan_ioremap(unsigned long addr, unsign
+ 		return (void __iomem *) vaddr;
+ 	}
+ 
+-	return NULL;
++	/* Assume a legacy (read: VGA) address, and return appropriately. */
++	return (void __iomem *)(addr + TITAN_MEM_BIAS);
+ }
+ 
+ void
+@@ -574,6 +562,7 @@ titan_is_mmio(const volatile void __iome
+ }
+ 
+ #ifndef CONFIG_ALPHA_GENERIC
++EXPORT_SYMBOL(titan_ioportmap);
+ EXPORT_SYMBOL(titan_ioremap);
+ EXPORT_SYMBOL(titan_iounmap);
+ EXPORT_SYMBOL(titan_is_mmio);
+@@ -750,6 +739,7 @@ titan_agp_info(void)
+ 	if (titan_query_agp(port))
+ 		hosenum = 2;
+ 	if (hosenum < 0 && 
++	    titan_pchip1_present &&
+ 	    titan_query_agp(port = &TITAN_pachip1->a_port)) 
+ 		hosenum = 3;
+ 	
+diff -puN arch/alpha/kernel/core_tsunami.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/core_tsunami.c
+--- a/arch/alpha/kernel/core_tsunami.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/core_tsunami.c
+@@ -19,6 +19,7 @@
+ 
+ #include <asm/ptrace.h>
+ #include <asm/smp.h>
++#include <asm/vga.h>
+ 
+ #include "proto.h"
+ #include "pci_impl.h"
+@@ -349,6 +350,26 @@ tsunami_init_one_pchip(tsunami_pchip *pc
+ 	tsunami_pci_tbi(hose, 0, -1);
+ }
+ 
++
++void __iomem *
++tsunami_ioportmap(unsigned long addr)
++{
++	FIXUP_IOADDR_VGA(addr);
++	return (void __iomem *)(addr + TSUNAMI_IO_BIAS);
++}
++
++void __iomem *
++tsunami_ioremap(unsigned long addr, unsigned long size)
++{
++	FIXUP_MEMADDR_VGA(addr);
++	return (void __iomem *)(addr + TSUNAMI_MEM_BIAS);
++}
++
++#ifndef CONFIG_ALPHA_GENERIC
++EXPORT_SYMBOL(tsunami_ioportmap);
++EXPORT_SYMBOL(tsunami_ioremap);
++#endif
++
+ void __init
+ tsunami_init_arch(void)
+ {
+@@ -393,6 +414,9 @@ tsunami_init_arch(void)
+ 	tsunami_init_one_pchip(TSUNAMI_pchip0, 0);
+ 	if (TSUNAMI_cchip->csc.csr & 1L<<14)
+ 		tsunami_init_one_pchip(TSUNAMI_pchip1, 1);
++
++	/* Check for graphic console location (if any).  */
++	find_console_vga_hose();
+ }
+ 
+ static void
+diff -puN arch/alpha/kernel/proto.h~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/proto.h
+--- a/arch/alpha/kernel/proto.h~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/proto.h
+@@ -108,6 +108,15 @@ extern int wildfire_cpuid_to_nid(int);
+ extern unsigned long wildfire_node_mem_start(int);
+ extern unsigned long wildfire_node_mem_size(int);
+ 
++/* console.c */
++#ifdef CONFIG_VGA_HOSE
++extern void find_console_vga_hose(void);
++extern void locate_and_init_vga(void *(*)(void *, void *));
++#else
++static inline void find_console_vga_hose(void) { }
++static inline void locate_and_init_vga(void *(*)(void *, void *)) { }
++#endif
++
+ /* setup.c */
+ extern unsigned long srm_hae;
+ extern int boot_cpuid;
+diff -puN arch/alpha/kernel/sys_dp264.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/sys_dp264.c
+--- a/arch/alpha/kernel/sys_dp264.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/sys_dp264.c
+@@ -543,6 +543,7 @@ dp264_init_pci(void)
+ {
+ 	common_init_pci();
+ 	SMC669_Init(0);
++	locate_and_init_vga(NULL);
+ }
+ 
+ static void __init
+@@ -551,6 +552,14 @@ monet_init_pci(void)
+ 	common_init_pci();
+ 	SMC669_Init(1);
+ 	es1888_init();
++	locate_and_init_vga(NULL);
++}
++
++static void __init
++clipper_init_pci(void)
++{
++	common_init_pci();
++	locate_and_init_vga(NULL);
+ }
+ 
+ static void __init
+@@ -655,7 +664,7 @@ struct alpha_machine_vector clipper_mv _
+ 	.init_arch		= tsunami_init_arch,
+ 	.init_irq		= clipper_init_irq,
+ 	.init_rtc		= common_init_rtc,
+-	.init_pci		= common_init_pci,
++	.init_pci		= clipper_init_pci,
+ 	.kill_arch		= tsunami_kill_arch,
+ 	.pci_map_irq		= clipper_map_irq,
+ 	.pci_swizzle		= common_swizzle,
+diff -puN arch/alpha/kernel/sys_marvel.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/sys_marvel.c
+--- a/arch/alpha/kernel/sys_marvel.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/sys_marvel.c
+@@ -22,6 +22,7 @@
+ #include <asm/core_marvel.h>
+ #include <asm/hwrpb.h>
+ #include <asm/tlbflush.h>
++#include <asm/vga.h>
+ 
+ #include "proto.h"
+ #include "err_impl.h"
+@@ -412,10 +413,7 @@ marvel_init_pci(void)
+ 
+ 	pci_probe_only = 1;
+ 	common_init_pci();
+-
+-#ifdef CONFIG_VGA_HOSE
+ 	locate_and_init_vga(NULL);
+-#endif
+ 
+ 	/* Clear any io7 errors.  */
+ 	for (io7 = NULL; (io7 = marvel_next_io7(io7)) != NULL; ) 
+diff -puN arch/alpha/kernel/sys_titan.c~alpha-support-graphics-on-non-zero-pci-domains arch/alpha/kernel/sys_titan.c
+--- a/arch/alpha/kernel/sys_titan.c~alpha-support-graphics-on-non-zero-pci-domains
++++ a/arch/alpha/kernel/sys_titan.c
+@@ -331,9 +331,7 @@ titan_init_pci(void)
+ 	pci_probe_only = 1;
+ 	common_init_pci();
+ 	SMC669_Init(0);
+-#ifdef CONFIG_VGA_HOSE
+ 	locate_and_init_vga(NULL);
+-#endif
+ }
+ 
+ 
+diff -puN include/asm-alpha/core_titan.h~alpha-support-graphics-on-non-zero-pci-domains include/asm-alpha/core_titan.h
+--- a/include/asm-alpha/core_titan.h~alpha-support-graphics-on-non-zero-pci-domains
++++ a/include/asm-alpha/core_titan.h
+@@ -380,12 +380,7 @@ struct el_PRIVATEER_envdata_mcheck {
+ /*
+  * Memory functions.  all accesses are done through linear space.
+  */
+-
+-__EXTERN_INLINE void __iomem *titan_ioportmap(unsigned long addr)
+-{
+-	return (void __iomem *)(addr + TITAN_IO_BIAS);
+-}
+-
++extern void __iomem *titan_ioportmap(unsigned long addr);
+ extern void __iomem *titan_ioremap(unsigned long addr, unsigned long size);
+ extern void titan_iounmap(volatile void __iomem *addr);
+ 
+diff -puN include/asm-alpha/core_tsunami.h~alpha-support-graphics-on-non-zero-pci-domains include/asm-alpha/core_tsunami.h
+--- a/include/asm-alpha/core_tsunami.h~alpha-support-graphics-on-non-zero-pci-domains
++++ a/include/asm-alpha/core_tsunami.h
+@@ -2,6 +2,7 @@
+ #define __ALPHA_TSUNAMI__H__
+ 
+ #include <linux/types.h>
++#include <linux/pci.h>
+ #include <asm/compiler.h>
+ 
+ /*
+@@ -302,18 +303,8 @@ struct el_TSUNAMI_sysdata_mcheck {
+ /*
+  * Memory functions.  all accesses are done through linear space.
+  */
+-
+-__EXTERN_INLINE void __iomem *tsunami_ioportmap(unsigned long addr)
+-{
+-	return (void __iomem *)(addr + TSUNAMI_IO_BIAS);
+-}
+-
+-__EXTERN_INLINE void __iomem *tsunami_ioremap(unsigned long addr, 
+-					      unsigned long size)
+-{
+-	return (void __iomem *)(addr + TSUNAMI_MEM_BIAS);
+-}
+-
++extern void __iomem *tsunami_ioportmap(unsigned long addr);
++extern void __iomem *tsunami_ioremap(unsigned long addr, unsigned long size);
+ __EXTERN_INLINE int tsunami_is_ioaddr(unsigned long addr)
+ {
+ 	return addr >= TSUNAMI_BASE;
+diff -puN include/asm-alpha/vga.h~alpha-support-graphics-on-non-zero-pci-domains include/asm-alpha/vga.h
+--- a/include/asm-alpha/vga.h~alpha-support-graphics-on-non-zero-pci-domains
++++ a/include/asm-alpha/vga.h
+@@ -46,6 +46,37 @@ extern void scr_memcpyw(u16 *d, const u1
+ #define vga_readb(a)	readb((u8 __iomem *)(a))
+ #define vga_writeb(v,a)	writeb(v, (u8 __iomem *)(a))
+ 
++#ifdef CONFIG_VGA_HOSE
++#include <linux/ioport.h>
++#include <linux/pci.h>
++
++extern struct pci_controller *pci_vga_hose;
++
++# define __is_port_vga(a)       \
++	(((a) >= 0x3b0) && ((a) < 0x3e0) && \
++	 ((a) != 0x3b3) && ((a) != 0x3d3))
++
++# define __is_mem_vga(a) \
++	(((a) >= 0xa0000) && ((a) <= 0xc0000))
++
++# define FIXUP_IOADDR_VGA(a) do {                       \
++	if (pci_vga_hose && __is_port_vga(a))     \
++		(a) += pci_vga_hose->io_space->start;	  \
++ } while(0)
++
++# define FIXUP_MEMADDR_VGA(a) do {                       \
++	if (pci_vga_hose && __is_mem_vga(a))     \
++		(a) += pci_vga_hose->mem_space->start; \
++ } while(0)
++
++#else /* CONFIG_VGA_HOSE */
++# define pci_vga_hose 0
++# define __is_port_vga(a) 0
++# define __is_mem_vga(a) 0
++# define FIXUP_IOADDR_VGA(a)
++# define FIXUP_MEMADDR_VGA(a)
++#endif /* CONFIG_VGA_HOSE */
++
+ #define VGA_MAP_MEM(x,s)	((unsigned long) ioremap(x, s))
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jay.estabrook@hp.com are
 
 origin.patch
-vm-statistics-make-timer-deferrable.patch
-quicklist-support-for-ia64.patch
-ubi-remove-inverted-check-in-ltree_entry_ctor.patch
-quicklist-support-for-x86_64.patch
-slub-i386-support.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-remove-constructor-from-buffer_head.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+alpha-support-graphics-on-non-zero-pci-domains.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
+alpha-misc-fixes.patch
