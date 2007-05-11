@@ -1,81 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-fix-kconfig-select-warning-with-ucc_fast.patch added to -mm tree
-Date: Thu, 10 May 2007 20:37:25 -0700
-Message-ID: <200705110337.l4B3bPu1005357@shell0.pdx.osdl.net>
+Subject: + couple-fixes-to-fs-ecryptfs-inodec.patch added to -mm tree
+Date: Thu, 10 May 2007 20:41:20 -0700
+Message-ID: <200705110341.l4B3fKkR005406@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53348 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751998AbXEKDhd (ORCPT
+	by vger.kernel.org with ESMTP id S1752250AbXEKDlj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 23:37:33 -0400
+	Thu, 10 May 2007 23:41:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: timur@freescale.com
+Cc: mikukkon@miku.homelinux.net, mhalcrow@us.ibm.com, mikukkon@iki.fi
 
 
 The patch titled
-     powerpc: fix Kconfig 'select' warning with UCC_FAST
+     Couple fixes to fs/ecryptfs/inode.c
 has been added to the -mm tree.  Its filename is
-     powerpc-fix-kconfig-select-warning-with-ucc_fast.patch
+     couple-fixes-to-fs-ecryptfs-inodec.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: fix Kconfig 'select' warning with UCC_FAST
-From: Timur Tabi <timur@freescale.com>
+Subject: Couple fixes to fs/ecryptfs/inode.c
+=46rom: Mika Kukkonen <mikukkon@miku.homelinux.net>
 
-The UCC_GETH Kconfig option in drivers/net/Kconfig had a line to select the
-UCC_FAST option is arch/powerpc/sysdev/qe_lib/Kconfig, which is only used
-on PowerPC builds.  On other architectures, this would generated a warning.
- The fix is to have UCC_FAST depend on UCC_GETH.
+=46ollowing was uncovered by compiling the kernel with '-W' flag:
 
-Signed-off-by: Timur Tabi <timur@freescale.com>
+  CC [M]  fs/ecryptfs/inode.o
+fs/ecryptfs/inode.c: In function =E2=80=98ecryptfs_lookup=E2=80=99:
+fs/ecryptfs/inode.c:304: warning: comparison of unsigned expression < 0=
+ is always false
+fs/ecryptfs/inode.c: In function =E2=80=98ecryptfs_symlink=E2=80=99:
+fs/ecryptfs/inode.c:486: warning: comparison of unsigned expression < 0=
+ is always false
+
+=46unction ecryptfs_encode_filename() can return -ENOMEM, so change the
+variables to plain int, as in the first case the only real use actually
+expects int, and in latter case there is no use beoynd the error check.
+
+Signed-off-by: Mika Kukkonen <mikukkon@iki.fi>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/qe_lib/Kconfig |    4 +---
- drivers/net/Kconfig                |    1 -
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ fs/ecryptfs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/sysdev/qe_lib/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast arch/powerpc/sysdev/qe_lib/Kconfig
---- a/arch/powerpc/sysdev/qe_lib/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast
-+++ a/arch/powerpc/sysdev/qe_lib/Kconfig
-@@ -5,15 +5,13 @@
- config UCC_SLOW
- 	bool
- 	default n
--	select UCC
- 	help
- 	  This option provides qe_lib support to UCC slow
- 	  protocols: UART, BISYNC, QMC
- 
- config UCC_FAST
- 	bool
--	default n
--	select UCC
-+	default y if UCC_GETH
- 	help
- 	  This option provides qe_lib support to UCC fast
- 	  protocols: HDLC, Ethernet, ATM, transparent
-diff -puN drivers/net/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast drivers/net/Kconfig
---- a/drivers/net/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast
-+++ a/drivers/net/Kconfig
-@@ -2276,7 +2276,6 @@ config GFAR_NAPI
- config UCC_GETH
- 	tristate "Freescale QE Gigabit Ethernet"
- 	depends on QUICC_ENGINE
--	select UCC_FAST
- 	help
- 	  This driver supports the Gigabit Ethernet mode of the QUICC Engine,
- 	  which is available on some Freescale SOCs.
+diff -puN fs/ecryptfs/inode.c~couple-fixes-to-fs-ecryptfs-inodec fs/ecr=
+yptfs/inode.c
+--- a/fs/ecryptfs/inode.c~couple-fixes-to-fs-ecryptfs-inodec
++++ a/fs/ecryptfs/inode.c
+@@ -282,7 +282,7 @@ static struct dentry *ecryptfs_lookup(st
+ 	struct dentry *lower_dentry;
+ 	struct vfsmount *lower_mnt;
+ 	char *encoded_name;
+-	unsigned int encoded_namelen;
++	int encoded_namelen;
+ 	struct ecryptfs_crypt_stat *crypt_stat =3D NULL;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+ 	char *page_virt =3D NULL;
+@@ -473,7 +473,7 @@ static int ecryptfs_symlink(struct inode
+ 	struct dentry *lower_dir_dentry;
+ 	umode_t mode;
+ 	char *encoded_symname;
+-	unsigned int encoded_symlen;
++	int encoded_symlen;
+ 	struct ecryptfs_crypt_stat *crypt_stat =3D NULL;
+=20
+ 	lower_dentry =3D ecryptfs_dentry_to_lower(dentry);
 _
 
-Patches currently in -mm which might be from timur@freescale.com are
+Patches currently in -mm which might be from mikukkon@miku.homelinux.ne=
+t are
 
-origin.patch
-powerpc-fix-kconfig-select-warning-with-ucc_fast.patch
+bug-in-mm-thrashc-function-grab_swap_token.patch
+couple-fixes-to-fs-ecryptfs-inodec.patch
