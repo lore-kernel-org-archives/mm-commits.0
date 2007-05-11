@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-stacktrace-fix.patch added to -mm tree
-Date: Thu, 10 May 2007 18:45:32 -0700
-Message-ID: <200705110148.l4B1mV2Z003605@shell0.pdx.osdl.net>
+Subject: + locks-fix-f_getlk-regression-failure-to-find-conflicts.patch added to -mm tree
+Date: Thu, 10 May 2007 19:28:10 -0700
+Message-ID: <200705110228.l4B2SABl004251@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55069 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756862AbXEKBsv (ORCPT
+	by vger.kernel.org with ESMTP id S1756851AbXEKC2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 21:48:51 -0400
+	Thu, 10 May 2007 22:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, rmk@arm.linux.org.uk
+Cc: bfields@fieldses.org, bfields@citi.umich.edu, doug.chapman@hp.com
 
 
 The patch titled
-     arm: stacktrace fix
+     locks: fix F_GETLK regression (failure to find conflicts)
 has been added to the -mm tree.  Its filename is
-     arm-stacktrace-fix.patch
+     locks-fix-f_getlk-regression-failure-to-find-conflicts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,131 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm: stacktrace fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: locks: fix F_GETLK regression (failure to find conflicts)
+From: "J. Bruce Fields" <bfields@fieldses.org>
 
-ab1b6f03a10ba1f5638188ab06bf46e33ac3a160 said
+In 9d6a8c5c213e34c475e72b245a8eb709258e968c we changed posix_test_lock to
+modify its single file_lock argument instead of taking separate input and
+output arguments.  This makes it no longer safe to set the output lock's
+fl_type to F_UNLCK before looking for a conflict, since that means
+searching for a conflict against a lock with type F_UNLCK.
 
- - remove the unused task argument to save_stack_trace, it's always current
+This fixes a regression which causes F_GETLK to incorrectly report no
+conflict on most filesystems (including any filesystem that doesn't do its
+own locking).
 
-then broke arm:
+Also fix posix_lock_to_flock() to copy the lock type.  This isn't strictly
+necessary, since the caller already does this; but it seems less likely to
+cause confusion in the future.
 
-arch/arm/kernel/stacktrace.c:56: error: conflicting types for 'save_stack_trace'
-include/linux/stacktrace.h:11: error: previous declaration of 'save_stack_trace' was here
-arch/arm/kernel/stacktrace.c:56: error: conflicting types for 'save_stack_trace'
-include/linux/stacktrace.h:11: error: previous declaration of 'save_stack_trace' was here
+Thanks to Doug Chapman for the bug report.
 
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Cc: Doug Chapman <doug.chapman@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/stacktrace.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ fs/locks.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/kernel/stacktrace.c~arm-stacktrace-fix arch/arm/kernel/stacktrace.c
---- a/arch/arm/kernel/stacktrace.c~arm-stacktrace-fix
-+++ a/arch/arm/kernel/stacktrace.c
-@@ -52,21 +52,15 @@ static int save_trace(struct stackframe 
- 	return trace->nr_entries >= trace->max_entries;
- }
- 
--void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
-+void save_stack_trace(struct stack_trace *trace)
+diff -puN fs/locks.c~locks-fix-f_getlk-regression-failure-to-find-conflicts fs/locks.c
+--- a/fs/locks.c~locks-fix-f_getlk-regression-failure-to-find-conflicts
++++ a/fs/locks.c
+@@ -669,7 +669,6 @@ posix_test_lock(struct file *filp, struc
  {
- 	struct stack_trace_data data;
- 	unsigned long fp, base;
+ 	struct file_lock *cfl;
  
- 	data.trace = trace;
- 	data.skip = trace->skip;
--
--	if (task) {
--		base = (unsigned long)task_stack_page(task);
--		fp = 0; /* FIXME */
--	} else {
--		base = (unsigned long)task_stack_page(current);
--		asm("mov %0, fp" : "=r" (fp));
+-	fl->fl_type = F_UNLCK;
+ 	lock_kernel();
+ 	for (cfl = filp->f_path.dentry->d_inode->i_flock; cfl; cfl = cfl->fl_next) {
+ 		if (!IS_POSIX(cfl))
+@@ -681,7 +680,8 @@ posix_test_lock(struct file *filp, struc
+ 		__locks_copy_lock(fl, cfl);
+ 		unlock_kernel();
+ 		return 1;
 -	}
-+	base = (unsigned long)task_stack_page(current);
-+	asm("mov %0, fp" : "=r" (fp));
- 
- 	walk_stackframe(fp, base, base + THREAD_SIZE, save_trace, &data);
++	} else
++		fl->fl_type = F_UNLCK;
+ 	unlock_kernel();
+ 	return 0;
  }
+@@ -1632,6 +1632,7 @@ static int posix_lock_to_flock(struct fl
+ 	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
+ 		fl->fl_end - fl->fl_start + 1;
+ 	flock->l_whence = 0;
++	flock->l_type = fl->fl_type;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
 origin.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-fix.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder-printk-fixes.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-leds.patch
-git-leds-fixup.patch
-git-libata-all-sata_via-build-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-netxen_nic_main-dont-use-deprecated-irq-flags.patch
-mlx4-dont-use-deprecated-irq-flags.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
-xfs-clean-up-shrinker-games.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-lib-hexdump.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-synclink_gt-add-compat_ioctl-fix.patch
-stop_machine-now-uses-hard_irq_disable-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-submitchecklist-add-W-help.patch
-tty-add-compat_ioctl.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
-use-defines-in-sys_getpriority-sys_setpriority-fix.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-ntfs-use-zero_user_page.patch
-pm3fb-preliminary-24-to-26-port-fix.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
-arm-stacktrace-fix.patch
+locks-fix-f_getlk-regression-failure-to-find-conflicts.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+nfs-use-zero_user_page.patch
