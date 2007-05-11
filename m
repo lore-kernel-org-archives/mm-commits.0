@@ -1,401 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: + add-common-orderly_poweroff.patch added to -mm tree
-Date: Fri, 11 May 2007 12:27:09 -0700
-Message-ID: <200705111927.l4BJR9i1024508@shell0.pdx.osdl.net>
+Subject: - freezer-remove-pf_nofreeze-from-bluetooth-threads.patch removed from -mm tree
+Date: Fri, 11 May 2007 12:28:44 -0700
+Message-ID: <200705111928.l4BJSixH024560@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45347 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759623AbXEKTaY (ORCPT
+	by vger.kernel.org with ESMTP id S1759773AbXEKT3w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 15:30:24 -0400
+	Fri, 11 May 2007 15:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, akpm@linux-foundation.org, arnd@arndb.de, chrisw@sous-sol.org, davem@davemloft.net, jeremy@xensource.com, lenb@kernel.org, randy.dunlap@oracle.com, rjw@sisk.pl, viro@zeniv.linux.org.uk
+To: rjw@sisk.pl, aneesh.kumar@gmail.com, ego@in.ibm.com, marcel@holtmann.org, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, pavel@ucw.cz, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add common orderly_poweroff()
-has been added to the -mm tree.  Its filename is
-     add-common-orderly_poweroff.patch
+     freezer: remove PF_NOFREEZE from bluetooth threads
+has been removed from the -mm tree.  Its filename was
+     freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add common orderly_poweroff()
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: freezer: remove PF_NOFREEZE from bluetooth threads
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Various pieces of code around the kernel want to be able to trigger an orderly
-poweroff.  This pulls them together into a single implementation.
+Remove PF_NOFREEZE from the bluetooth threads, adding try_to_freeze() calls as
+required.
 
-By default the poweroff command is /sbin/poweroff, but it can be set via
-sysctl: kernel/poweroff_cmd.  This is split at whitespace, so it can include
-command-line arguments.
-
-This patch replaces four other instances of invoking either "poweroff" or
-"shutdown -h now": one sparc64, two sbus drivers, and acpi thermal management.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Acked-by: Len Brown <lenb@kernel.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Aneesh Kumar <aneesh.kumar@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/power.c     |   40 +-------------------
- drivers/acpi/thermal.c          |   24 +-----------
- drivers/sbus/char/bbc_envctrl.c |    5 +-
- drivers/sbus/char/envctrl.c     |    7 +--
- include/linux/reboot.h          |    5 ++
- include/linux/sysctl.h          |    1 
- kernel/sys.c                    |   58 ++++++++++++++++++++++++++++++
- kernel/sysctl.c                 |   10 +++++
- 8 files changed, 82 insertions(+), 68 deletions(-)
+ net/bluetooth/bnep/core.c   |    4 +++-
+ net/bluetooth/cmtp/core.c   |    4 +++-
+ net/bluetooth/hidp/core.c   |    4 +++-
+ net/bluetooth/rfcomm/core.c |    3 ++-
+ 4 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc64/kernel/power.c~add-common-orderly_poweroff arch/sparc64/kernel/power.c
---- a/arch/sparc64/kernel/power.c~add-common-orderly_poweroff
-+++ a/arch/sparc64/kernel/power.c
-@@ -13,6 +13,7 @@
- #include <linux/interrupt.h>
- #include <linux/pm.h>
- #include <linux/syscalls.h>
-+#include <linux/reboot.h>
+diff -puN net/bluetooth/bnep/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/bnep/core.c
+--- a/net/bluetooth/bnep/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/bnep/core.c
+@@ -38,6 +38,7 @@
+ #include <linux/wait.h>
+ #include <linux/errno.h>
+ #include <linux/net.h>
++#include <linux/freezer.h>
+ #include <net/sock.h>
  
- #include <asm/system.h>
- #include <asm/auxio.h>
-@@ -32,14 +33,13 @@ int scons_pwroff = 1; 
- #include <linux/pci.h>
- static void __iomem *power_reg;
+ #include <linux/socket.h>
+@@ -474,11 +475,12 @@ static int bnep_session(void *arg)
  
--static DECLARE_WAIT_QUEUE_HEAD(powerd_wait);
- static int button_pressed;
+ 	daemonize("kbnepd %s", dev->name);
+ 	set_user_nice(current, -15);
+-	current->flags |= PF_NOFREEZE;
  
- static irqreturn_t power_handler(int irq, void *dev_id)
- {
- 	if (button_pressed == 0) {
- 		button_pressed = 1;
--		wake_up(&powerd_wait);
-+		orderly_poweroff(true);
- 	}
+ 	init_waitqueue_entry(&wait, current);
+ 	add_wait_queue(sk->sk_sleep, &wait);
+ 	while (!atomic_read(&s->killed)) {
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
  
- 	/* FIXME: Check registers for status... */
-@@ -75,36 +75,6 @@ void (*pm_power_off)(void) = machine_pow
- EXPORT_SYMBOL(pm_power_off);
+ 		// RX
+diff -puN net/bluetooth/cmtp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/cmtp/core.c
+--- a/net/bluetooth/cmtp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/cmtp/core.c
+@@ -34,6 +34,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/file.h>
+ #include <linux/init.h>
++#include <linux/freezer.h>
+ #include <net/sock.h>
  
- #ifdef CONFIG_PCI
--static int powerd(void *__unused)
--{
--	static char *envp[] = { "HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
--	char *argv[] = { "/sbin/shutdown", "-h", "now", NULL };
--	DECLARE_WAITQUEUE(wait, current);
--
--	daemonize("powerd");
--
--	add_wait_queue(&powerd_wait, &wait);
--again:
--	for (;;) {
--		set_task_state(current, TASK_INTERRUPTIBLE);
--		if (button_pressed)
--			break;
--		flush_signals(current);
--		schedule();
--	}
--	__set_current_state(TASK_RUNNING);
--	remove_wait_queue(&powerd_wait, &wait);
--
--	/* Ok, down we go... */
--	button_pressed = 0;
--	if (kernel_execve("/sbin/shutdown", argv, envp) < 0) {
--		printk("powerd: shutdown execution failed\n");
--		add_wait_queue(&powerd_wait, &wait);
--		goto again;
--	}
--	return 0;
--}
--
- static int __init has_button_interrupt(unsigned int irq, struct device_node *dp)
- {
- 	if (irq == PCI_IRQ_NONE)
-@@ -128,12 +98,6 @@ static int __devinit power_probe(struct 
- 	poweroff_method = machine_halt;  /* able to use the standard halt */
+ #include <linux/isdn/capilli.h>
+@@ -287,11 +288,12 @@ static int cmtp_session(void *arg)
  
- 	if (has_button_interrupt(irq, op->node)) {
--		if (kernel_thread(powerd, NULL, CLONE_FS) < 0) {
--			printk("Failed to start power daemon.\n");
--			return 0;
--		}
--		printk("powerd running.\n");
--
- 		if (request_irq(irq,
- 				power_handler, 0, "power", NULL) < 0)
- 			printk("power: Error, cannot register IRQ handler.\n");
-diff -puN drivers/acpi/thermal.c~add-common-orderly_poweroff drivers/acpi/thermal.c
---- a/drivers/acpi/thermal.c~add-common-orderly_poweroff
-+++ a/drivers/acpi/thermal.c
-@@ -40,6 +40,7 @@
- #include <linux/jiffies.h>
- #include <linux/kmod.h>
- #include <linux/seq_file.h>
-+#include <linux/reboot.h>
+ 	daemonize("kcmtpd_ctr_%d", session->num);
+ 	set_user_nice(current, -15);
+-	current->flags |= PF_NOFREEZE;
+ 
+ 	init_waitqueue_entry(&wait, current);
+ 	add_wait_queue(sk->sk_sleep, &wait);
+ 	while (!atomic_read(&session->terminate)) {
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		if (sk->sk_state != BT_CONNECTED)
+diff -puN net/bluetooth/hidp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/hidp/core.c
+@@ -35,6 +35,7 @@
+ #include <linux/file.h>
+ #include <linux/init.h>
+ #include <linux/wait.h>
++#include <linux/freezer.h>
+ #include <net/sock.h>
+ 
+ #include <linux/input.h>
+@@ -547,13 +548,14 @@ static int hidp_session(void *arg)
+ 
+ 	daemonize("khidpd_%04x%04x", vendor, product);
+ 	set_user_nice(current, -15);
+-	current->flags |= PF_NOFREEZE;
+ 
+ 	init_waitqueue_entry(&ctrl_wait, current);
+ 	init_waitqueue_entry(&intr_wait, current);
+ 	add_wait_queue(ctrl_sk->sk_sleep, &ctrl_wait);
+ 	add_wait_queue(intr_sk->sk_sleep, &intr_wait);
+ 	while (!atomic_read(&session->terminate)) {
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		if (ctrl_sk->sk_state != BT_CONNECTED || intr_sk->sk_state != BT_CONNECTED)
+diff -puN net/bluetooth/rfcomm/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~freezer-remove-pf_nofreeze-from-bluetooth-threads
++++ a/net/bluetooth/rfcomm/core.c
+@@ -37,6 +37,7 @@
+ #include <linux/device.h>
+ #include <linux/net.h>
+ #include <linux/mutex.h>
++#include <linux/freezer.h>
+ 
+ #include <net/sock.h>
  #include <asm/uaccess.h>
+@@ -1854,6 +1855,7 @@ static void rfcomm_worker(void)
+ 	BT_DBG("");
  
- #include <acpi/acpi_bus.h>
-@@ -59,7 +60,6 @@
- #define ACPI_THERMAL_NOTIFY_CRITICAL	0xF0
- #define ACPI_THERMAL_NOTIFY_HOT		0xF1
- #define ACPI_THERMAL_MODE_ACTIVE	0x00
--#define ACPI_THERMAL_PATH_POWEROFF	"/sbin/poweroff"
+ 	while (!atomic_read(&terminate)) {
++		try_to_freeze();
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 		if (!test_bit(RFCOMM_SCHED_WAKEUP, &rfcomm_event)) {
+ 			/* No pending events. Let's sleep.
+@@ -1940,7 +1942,6 @@ static int rfcomm_run(void *unused)
  
- #define ACPI_THERMAL_MAX_ACTIVE	10
- #define ACPI_THERMAL_MAX_LIMIT_STR_LEN 65
-@@ -419,26 +419,6 @@ static int acpi_thermal_get_devices(stru
- 	return 0;
- }
+ 	daemonize("krfcommd");
+ 	set_user_nice(current, -10);
+-	current->flags |= PF_NOFREEZE;
  
--static int acpi_thermal_call_usermode(char *path)
--{
--	char *argv[2] = { NULL, NULL };
--	char *envp[3] = { NULL, NULL, NULL };
--
--
--	if (!path)
--		return -EINVAL;
--
--	argv[0] = path;
--
--	/* minimal command environment */
--	envp[0] = "HOME=/";
--	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
--
--	call_usermodehelper(argv[0], argv, envp, 0);
--
--	return 0;
--}
--
- static int acpi_thermal_critical(struct acpi_thermal *tz)
- {
- 	if (!tz || !tz->trips.critical.flags.valid)
-@@ -456,7 +436,7 @@ static int acpi_thermal_critical(struct 
- 	acpi_bus_generate_event(tz->device, ACPI_THERMAL_NOTIFY_CRITICAL,
- 				tz->trips.critical.flags.enabled);
+ 	BT_DBG("");
  
--	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-+	orderly_poweroff(true);
- 
- 	return 0;
- }
-diff -puN drivers/sbus/char/bbc_envctrl.c~add-common-orderly_poweroff drivers/sbus/char/bbc_envctrl.c
---- a/drivers/sbus/char/bbc_envctrl.c~add-common-orderly_poweroff
-+++ a/drivers/sbus/char/bbc_envctrl.c
-@@ -7,6 +7,7 @@
- #include <linux/kthread.h>
- #include <linux/delay.h>
- #include <linux/kmod.h>
-+#include <linux/reboot.h>
- #include <asm/oplib.h>
- #include <asm/ebus.h>
- 
-@@ -170,8 +171,6 @@ static void get_current_temps(struct bbc
- static void do_envctrl_shutdown(struct bbc_cpu_temperature *tp)
- {
- 	static int shutting_down = 0;
--	static char *envp[] = { "HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
--	char *argv[] = { "/sbin/shutdown", "-h", "now", NULL };
- 	char *type = "???";
- 	s8 val = -1;
- 
-@@ -195,7 +194,7 @@ static void do_envctrl_shutdown(struct b
- 	printk(KERN_CRIT "kenvctrld: Shutting down the system now.\n");
- 
- 	shutting_down = 1;
--	if (call_usermodehelper("/sbin/shutdown", argv, envp, 0) < 0)
-+	if (orderly_poweroff(true) < 0)
- 		printk(KERN_CRIT "envctrl: shutdown execution failed\n");
- }
- 
-diff -puN drivers/sbus/char/envctrl.c~add-common-orderly_poweroff drivers/sbus/char/envctrl.c
---- a/drivers/sbus/char/envctrl.c~add-common-orderly_poweroff
-+++ a/drivers/sbus/char/envctrl.c
-@@ -26,6 +26,7 @@
- #include <linux/ioport.h>
- #include <linux/miscdevice.h>
- #include <linux/kmod.h>
-+#include <linux/reboot.h>
- 
- #include <asm/ebus.h>
- #include <asm/uaccess.h>
-@@ -965,10 +966,6 @@ static struct i2c_child_t *envctrl_get_i
- static void envctrl_do_shutdown(void)
- {
- 	static int inprog = 0;
--	static char *envp[] = {	
--		"HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
--	char *argv[] = { 
--		"/sbin/shutdown", "-h", "now", NULL };	
- 	int ret;
- 
- 	if (inprog != 0)
-@@ -976,7 +973,7 @@ static void envctrl_do_shutdown(void)
- 
- 	inprog = 1;
- 	printk(KERN_CRIT "kenvctrld: WARNING: Shutting down the system now.\n");
--	ret = call_usermodehelper("/sbin/shutdown", argv, envp, 0);
-+	ret = orderly_poweroff(true);
- 	if (ret < 0) {
- 		printk(KERN_CRIT "kenvctrld: WARNING: system shutdown failed!\n"); 
- 		inprog = 0;  /* unlikely to succeed, but we could try again */
-diff -puN include/linux/reboot.h~add-common-orderly_poweroff include/linux/reboot.h
---- a/include/linux/reboot.h~add-common-orderly_poweroff
-+++ a/include/linux/reboot.h
-@@ -67,6 +67,11 @@ extern void kernel_power_off(void);
- 
- void ctrl_alt_del(void);
- 
-+#define POWEROFF_CMD_PATH_LEN	256
-+extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
-+
-+extern int orderly_poweroff(bool force);
-+
- /*
-  * Emergency restart, callable from an interrupt handler.
-  */
-diff -puN include/linux/sysctl.h~add-common-orderly_poweroff include/linux/sysctl.h
---- a/include/linux/sysctl.h~add-common-orderly_poweroff
-+++ a/include/linux/sysctl.h
-@@ -165,6 +165,7 @@ enum
- 	KERN_MAX_LOCK_DEPTH=74,
- 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
- 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
-+	KERN_POWEROFF_CMD=77,	/* string: poweroff command line */
- };
- 
- 
-diff -puN kernel/sys.c~add-common-orderly_poweroff kernel/sys.c
---- a/kernel/sys.c~add-common-orderly_poweroff
-+++ a/kernel/sys.c
-@@ -2277,3 +2277,61 @@ asmlinkage long sys_getcpu(unsigned __us
- 	}
- 	return err ? -EFAULT : 0;
- }
-+
-+char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
-+
-+static void argv_cleanup(char **argv, char **envp)
-+{
-+	argv_free(argv);
-+}
-+
-+/**
-+ * Trigger an orderly system poweroff
-+ * @force: force poweroff if command execution fails
-+ *
-+ * This may be called from any context to trigger a system shutdown.
-+ * If the orderly shutdown fails, it will force an immediate shutdown.
-+ */
-+int orderly_poweroff(bool force)
-+{
-+	int argc;
-+	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
-+	static char *envp[] = {
-+		"HOME=/",
-+		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
-+		NULL
-+	};
-+	int ret = -ENOMEM;
-+	struct subprocess_info *info;
-+
-+	if (argv == NULL) {
-+		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
-+		       __func__, poweroff_cmd);
-+		goto out;
-+	}
-+
-+	info = call_usermodehelper_setup(argv[0], argv, envp);
-+	if (info == NULL) {
-+		argv_free(argv);
-+		goto out;
-+	}
-+
-+	call_usermodehelper_setcleanup(info, argv_cleanup);
-+
-+	ret = call_usermodehelper_exec(info, -1);
-+
-+  out:
-+	if (ret && force) {
-+		printk(KERN_WARNING "Failed to start orderly shutdown: "
-+		       "forcing the issue\n");
-+
-+		/* I guess this should try to kick off some daemon to
-+		   sync and poweroff asap.  Or not even bother syncing
-+		   if we're doing an emergency shutdown? */
-+		emergency_sync();
-+		kernel_power_off();
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(orderly_poweroff);
-diff -puN kernel/sysctl.c~add-common-orderly_poweroff kernel/sysctl.c
---- a/kernel/sysctl.c~add-common-orderly_poweroff
-+++ a/kernel/sysctl.c
-@@ -45,6 +45,7 @@
- #include <linux/syscalls.h>
- #include <linux/nfs_fs.h>
- #include <linux/acpi.h>
-+#include <linux/reboot.h>
- 
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -615,6 +616,15 @@ static ctl_table kern_table[] = {
- 		.proc_handler   = &proc_dointvec,
- 	},
- #endif
-+	{
-+		.ctl_name	= KERN_POWEROFF_CMD,
-+		.procname	= "poweroff_cmd",
-+		.data		= &poweroff_cmd,
-+		.maxlen		= POWEROFF_CMD_PATH_LEN,
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dostring,
-+		.strategy	= &sysctl_string,
-+	},
- 
- 	{ .ctl_name = 0 }
- };
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-loop_probe-fix-return-value.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes.patch
-i386-move-common-parts-of-smp-into-their-own-file.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-add-kstrndup.patch
-add-argv_split.patch
-split-usermodehelper-setup-from-execution.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
 add-common-orderly_poweroff.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-lguest-the-guest-code.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
