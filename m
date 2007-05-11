@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + netxen_nic_main-dont-use-deprecated-irq-flags.patch added to -mm tree
-Date: Thu, 10 May 2007 17:59:02 -0700
-Message-ID: <200705110102.l4B121JS002838@shell0.pdx.osdl.net>
+Subject: + mlx4-dont-use-deprecated-irq-flags.patch added to -mm tree
+Date: Thu, 10 May 2007 18:00:06 -0700
+Message-ID: <200705110103.l4B135XG002848@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35090 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753607AbXEKBCH (ORCPT
+	by vger.kernel.org with ESMTP id S1756362AbXEKBDJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 May 2007 21:02:07 -0400
+	Thu, 10 May 2007 21:03:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     netxen_nic_main don't use deprecated irq flags
+     mlx4: don't use deprecated IRQ flags
 has been added to the -mm tree.  Its filename is
-     netxen_nic_main-dont-use-deprecated-irq-flags.patch
+     mlx4-dont-use-deprecated-irq-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: netxen_nic_main don't use deprecated irq flags
+Subject: mlx4: don't use deprecated IRQ flags
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/net/netxen/netxen_nic_main.c: In function 'netxen_nic_open':
-drivers/net/netxen/netxen_nic_main.c:738: warning: 'deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:66)
-drivers/net/netxen/netxen_nic_main.c:738: warning: 'deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:66)
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netxen/netxen_nic_main.c |    2 +-
+ drivers/net/mlx4/eq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/netxen/netxen_nic_main.c~netxen_nic_main-dont-use-deprecated-irq-flags drivers/net/netxen/netxen_nic_main.c
---- a/drivers/net/netxen/netxen_nic_main.c~netxen_nic_main-dont-use-deprecated-irq-flags
-+++ a/drivers/net/netxen/netxen_nic_main.c
-@@ -735,7 +735,7 @@ static int netxen_nic_open(struct net_de
- 		}
- 		adapter->irq = adapter->ahw.pdev->irq;
- 		err = request_irq(adapter->ahw.pdev->irq, netxen_intr,
--				  SA_SHIRQ | SA_SAMPLE_RANDOM, netdev->name,
-+				  IRQF_SHARED|IRQF_SAMPLE_RANDOM, netdev->name,
- 				  adapter);
- 		if (err) {
- 			printk(KERN_ERR "request_irq failed with: %d\n", err);
+diff -puN drivers/net/mlx4/eq.c~mlx4-dont-use-deprecated-irq-flags drivers/net/mlx4/eq.c
+--- a/drivers/net/mlx4/eq.c~mlx4-dont-use-deprecated-irq-flags
++++ a/drivers/net/mlx4/eq.c
+@@ -623,7 +623,7 @@ int __devinit mlx4_init_eq_table(struct 
+ 		priv->eq_table.eq[MLX4_EQ_CATAS].have_irq = 1;
+ 	} else {
+ 		err = request_irq(dev->pdev->irq, mlx4_interrupt,
+-				  SA_SHIRQ, DRV_NAME, dev);
++				  IRQF_SHARED, DRV_NAME, dev);
+ 		if (err)
+ 			goto err_out_async;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,3 +123,4 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 w1-build-fix.patch
 netxen_nic_main-dont-use-deprecated-irq-flags.patch
+mlx4-dont-use-deprecated-irq-flags.patch
