@@ -1,82 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - ucb1x00-do-not-access-input_dev-private-directly.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:37:10 -0700
-Message-ID: <200705120537.l4C5bASj002441@shell0.pdx.osdl.net>
+Subject: - ocfs2-use-zero_user_page.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:37:08 -0700
+Message-ID: <200705120537.l4C5b8Yp002438@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51082 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754857AbXELFhe (ORCPT
+	by vger.kernel.org with ESMTP id S1756706AbXELFhj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:37:34 -0400
+	Sat, 12 May 2007 01:37:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dtor@insightbb.com, dtor@mail.ru, rmk@arm.linux.org.uk, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: nate.diller@gmail.com, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ucb1x00: do not access input_dev->private directly
+     ocfs2: use zero_user_page
 has been removed from the -mm tree.  Its filename was
-     ucb1x00-do-not-access-input_dev-private-directly.patch
+     ocfs2-use-zero_user_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ucb1x00: do not access input_dev->private directly
-From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: ocfs2: use zero_user_page
+From: Nate Diller <nate.diller@gmail.com>
 
-Use input_get_drvdata() and input_set_drvdata() helpers to do that.
+Use zero_user_page() instead of open-coding it.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/ucb1x00-ts.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/ocfs2/aops.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/mfd/ucb1x00-ts.c~ucb1x00-do-not-access-input_dev-private-directly drivers/mfd/ucb1x00-ts.c
---- a/drivers/mfd/ucb1x00-ts.c~ucb1x00-do-not-access-input_dev-private-directly
-+++ a/drivers/mfd/ucb1x00-ts.c
-@@ -300,7 +300,7 @@ static void ucb1x00_ts_irq(int idx, void
- 
- static int ucb1x00_ts_open(struct input_dev *idev)
- {
--	struct ucb1x00_ts *ts = idev->private;
-+	struct ucb1x00_ts *ts = input_get_drvdata(idev);
- 	int ret = 0;
- 
- 	BUG_ON(ts->rtask);
-@@ -337,7 +337,7 @@ static int ucb1x00_ts_open(struct input_
-  */
- static void ucb1x00_ts_close(struct input_dev *idev)
- {
--	struct ucb1x00_ts *ts = idev->private;
-+	struct ucb1x00_ts *ts = input_get_drvdata(idev);
- 
- 	if (ts->rtask)
- 		kthread_stop(ts->rtask);
-@@ -389,7 +389,6 @@ static int ucb1x00_ts_add(struct ucb1x00
- 	ts->idev = idev;
- 	ts->adcsync = adcsync ? UCB_SYNC : UCB_NOSYNC;
- 
--	idev->private    = ts;
- 	idev->name       = "Touchscreen panel";
- 	idev->id.product = ts->ucb->id;
- 	idev->open       = ucb1x00_ts_open;
-@@ -400,6 +399,8 @@ static int ucb1x00_ts_add(struct ucb1x00
- 	__set_bit(ABS_Y, idev->absbit);
- 	__set_bit(ABS_PRESSURE, idev->absbit);
- 
-+	input_set_drvdata(idev, ts);
-+
- 	err = input_register_device(idev);
- 	if (err)
- 		goto fail;
+diff -puN fs/ocfs2/aops.c~ocfs2-use-zero_user_page fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-use-zero_user_page
++++ a/fs/ocfs2/aops.c
+@@ -235,10 +235,7 @@ static int ocfs2_readpage(struct file *f
+ 	 * XXX sys_readahead() seems to get that wrong?
+ 	 */
+ 	if (start >= i_size_read(inode)) {
+-		char *addr = kmap(page);
+-		memset(addr, 0, PAGE_SIZE);
+-		flush_dcache_page(page);
+-		kunmap(page);
++		zero_user_page(page, 0, PAGE_SIZE, KM_USER0);
+ 		SetPageUptodate(page);
+ 		ret = 0;
+ 		goto out_alloc;
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from nate.diller@gmail.com are
 
 origin.patch
-git-input.patch
+ntfs-use-zero_user_page.patch
+cifs-use-simple_prepare_write-to-zero-page-data.patch
+git-gfs2-nmw.patch
+nfs-use-zero_user_page.patch
+git-ocfs2.patch
+xfs-use-zero_user_page.patch
+ext4-use-simple_prepare_write-to-zero-page-data.patch
+ext4-use-zero_user_page.patch
+ecryptfs-use-zero_user_page.patch
+reiser4.patch
+reiser4-use-zero_user_page.patch
