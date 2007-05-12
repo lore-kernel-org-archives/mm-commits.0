@@ -1,194 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-ii-netdev-pcmcia.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:36:54 -0700
-Message-ID: <200705120536.l4C5asFm002415@shell0.pdx.osdl.net>
+Subject: - mips-tlbex-use-__maybe_unused.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:36:48 -0700
+Message-ID: <200705120536.l4C5amq3002404@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32972 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756537AbXELFhG (ORCPT
+	by vger.kernel.org with ESMTP id S1755050AbXELFhH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:37:06 -0400
+	Sat, 12 May 2007 01:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: rientjes@google.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects II - netdev/pcmcia
+     mips: tlbex: use __maybe_unused
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-ii-netdev-pcmcia.patch
+     mips-tlbex-use-__maybe_unused.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - netdev/pcmcia
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: mips: tlbex: use __maybe_unused
+From: David Rientjes <rientjes@google.com>
 
-Change Kconfig objects from "menu, config" into "menuconfig" so
-that the user can disable the whole feature without having to
-enter the menu first.
+Replace function instances of __attribute__((unused)) with
+__maybe_unused.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pcmcia/Kconfig |   23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ arch/mips/mm/tlbex.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN drivers/net/pcmcia/Kconfig~use-menuconfig-objects-ii-netdev-pcmcia drivers/net/pcmcia/Kconfig
---- a/drivers/net/pcmcia/Kconfig~use-menuconfig-objects-ii-netdev-pcmcia
-+++ a/drivers/net/pcmcia/Kconfig
-@@ -2,11 +2,9 @@
- # PCMCIA Network device configuration
- #
+diff -puN arch/mips/mm/tlbex.c~mips-tlbex-use-__maybe_unused arch/mips/mm/tlbex.c
+--- a/arch/mips/mm/tlbex.c~mips-tlbex-use-__maybe_unused
++++ a/arch/mips/mm/tlbex.c
+@@ -35,24 +35,24 @@
+ #include <asm/smp.h>
+ #include <asm/war.h>
  
--menu "PCMCIA network device support"
--	depends on NETDEVICES && PCMCIA!=n
--
--config NET_PCMCIA
-+menuconfig NET_PCMCIA
- 	bool "PCMCIA network device support"
-+	depends on PCMCIA
- 	---help---
- 	  Say Y if you would like to include support for any PCMCIA or CardBus
- 	  network adapters, then say Y to the driver for your particular card
-@@ -21,9 +19,10 @@ config NET_PCMCIA
+-static __init int __attribute__((unused)) r45k_bvahwbug(void)
++static __init int __maybe_unused r45k_bvahwbug(void)
+ {
+ 	/* XXX: We should probe for the presence of this bug, but we don't. */
+ 	return 0;
+ }
  
- 	  If unsure, say N.
+-static __init int __attribute__((unused)) r4k_250MHZhwbug(void)
++static __init int __maybe_unused r4k_250MHZhwbug(void)
+ {
+ 	/* XXX: We should probe for the presence of this bug, but we don't. */
+ 	return 0;
+ }
  
-+if NET_PCMCIA
-+
- config PCMCIA_3C589
- 	tristate "3Com 3c589 PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	help
- 	  Say Y here if you intend to attach a 3Com 3c589 or compatible PCMCIA
- 	  (PC-card) Ethernet card to your computer.
-@@ -33,7 +32,6 @@ config PCMCIA_3C589
+-static __init int __attribute__((unused)) bcm1250_m3_war(void)
++static __init int __maybe_unused bcm1250_m3_war(void)
+ {
+ 	return BCM1250_M3_WAR;
+ }
  
- config PCMCIA_3C574
- 	tristate "3Com 3c574 PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	help
- 	  Say Y here if you intend to attach a 3Com 3c574 or compatible PCMCIA
- 	  (PC-card) Fast Ethernet card to your computer.
-@@ -43,7 +41,6 @@ config PCMCIA_3C574
+-static __init int __attribute__((unused)) r10000_llsc_war(void)
++static __init int __maybe_unused r10000_llsc_war(void)
+ {
+ 	return R10000_LLSC_WAR;
+ }
+@@ -511,18 +511,18 @@ L_LA(_r3000_write_probe_fail)
+ #define i_ehb(buf) i_sll(buf, 0, 0, 3)
  
- config PCMCIA_FMVJ18X
- 	tristate "Fujitsu FMV-J18x PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	select CRC32
- 	help
- 	  Say Y here if you intend to attach a Fujitsu FMV-J18x or compatible
-@@ -54,7 +51,6 @@ config PCMCIA_FMVJ18X
+ #ifdef CONFIG_64BIT
+-static __init int __attribute__((unused)) in_compat_space_p(long addr)
++static __init int __maybe_unused in_compat_space_p(long addr)
+ {
+ 	/* Is this address in 32bit compat space? */
+ 	return (((addr) & 0xffffffff00000000L) == 0xffffffff00000000L);
+ }
  
- config PCMCIA_PCNET
- 	tristate "NE2000 compatible PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	select CRC32
- 	help
- 	  Say Y here if you intend to attach an NE2000 compatible PCMCIA
-@@ -65,7 +61,6 @@ config PCMCIA_PCNET
+-static __init int __attribute__((unused)) rel_highest(long val)
++static __init int __maybe_unused rel_highest(long val)
+ {
+ 	return ((((val + 0x800080008000L) >> 48) & 0xffff) ^ 0x8000) - 0x8000;
+ }
  
- config PCMCIA_NMCLAN
- 	tristate "New Media PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	help
- 	  Say Y here if you intend to attach a New Media Ethernet or LiveWire
- 	  PCMCIA (PC-card) Ethernet card to your computer.
-@@ -75,7 +70,6 @@ config PCMCIA_NMCLAN
+-static __init int __attribute__((unused)) rel_higher(long val)
++static __init int __maybe_unused rel_higher(long val)
+ {
+ 	return ((((val + 0x80008000L) >> 32) & 0xffff) ^ 0x8000) - 0x8000;
+ }
+@@ -556,8 +556,8 @@ static __init void i_LA_mostly(u32 **buf
+ 		i_lui(buf, rs, rel_hi(addr));
+ }
  
- config PCMCIA_SMC91C92
- 	tristate "SMC 91Cxx PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	select CRC32
- 	select MII
- 	help
-@@ -87,7 +81,6 @@ config PCMCIA_SMC91C92
+-static __init void __attribute__((unused)) i_LA(u32 **buf, unsigned int rs,
+-						long addr)
++static __init void __maybe_unused i_LA(u32 **buf, unsigned int rs,
++					     long addr)
+ {
+ 	i_LA_mostly(buf, rs, addr);
+ 	if (rel_lo(addr))
+@@ -636,8 +636,8 @@ static __init void copy_handler(struct r
+ 	move_labels(lab, first, end, off);
+ }
  
- config PCMCIA_XIRC2PS
- 	tristate "Xircom 16-bit PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	help
- 	  Say Y here if you intend to attach a Xircom 16-bit PCMCIA (PC-card)
- 	  Ethernet or Fast Ethernet card to your computer.
-@@ -97,7 +90,6 @@ config PCMCIA_XIRC2PS
+-static __init int __attribute__((unused)) insn_has_bdelay(struct reloc *rel,
+-							  u32 *addr)
++static __init int __maybe_unused insn_has_bdelay(struct reloc *rel,
++						       u32 *addr)
+ {
+ 	for (; rel->lab != label_invalid; rel++) {
+ 		if (rel->addr == addr
+@@ -650,15 +650,15 @@ static __init int __attribute__((unused)
+ }
  
- config PCMCIA_AXNET
- 	tristate "Asix AX88190 PCMCIA support"
--	depends on NET_PCMCIA && PCMCIA
- 	---help---
- 	  Say Y here if you intend to attach an Asix AX88190-based PCMCIA
- 	  (PC-card) Fast Ethernet card to your computer.  These cards are
-@@ -109,7 +101,7 @@ config PCMCIA_AXNET
+ /* convenience functions for labeled branches */
+-static void __init __attribute__((unused))
++static void __init __maybe_unused
+ 	il_bltz(u32 **p, struct reloc **r, unsigned int reg, enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+ 	i_bltz(p, reg, 0);
+ }
  
- config ARCNET_COM20020_CS
- 	tristate "COM20020 ARCnet PCMCIA support"
--	depends on NET_PCMCIA && ARCNET_COM20020 && PCMCIA
-+	depends on ARCNET_COM20020
- 	help
- 	  Say Y here if you intend to attach this type of ARCnet PCMCIA card
- 	  to your computer.
-@@ -119,7 +111,7 @@ config ARCNET_COM20020_CS
+-static void __init __attribute__((unused)) il_b(u32 **p, struct reloc **r,
+-					 enum label_id l)
++static void __init __maybe_unused il_b(u32 **p, struct reloc **r,
++					     enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+ 	i_b(p, 0);
+@@ -671,7 +671,7 @@ static void __init il_beqz(u32 **p, stru
+ 	i_beqz(p, reg, 0);
+ }
  
- config PCMCIA_IBMTR
- 	tristate "IBM PCMCIA tokenring adapter support"
--	depends on NET_PCMCIA && IBMTR!=y && TR && PCMCIA && !64BIT
-+	depends on IBMTR!=y && TR && !64BIT
- 	help
- 	  Say Y here if you intend to attach this type of Token Ring PCMCIA
- 	  card to your computer. You then also need to say Y to "Token Ring
-@@ -128,5 +120,4 @@ config PCMCIA_IBMTR
- 	  To compile this driver as a module, choose M here: the module will be
- 	  called ibmtr_cs.
+-static void __init __attribute__((unused))
++static void __init __maybe_unused
+ il_beqzl(u32 **p, struct reloc **r, unsigned int reg, enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+@@ -692,7 +692,7 @@ static void __init il_bgezl(u32 **p, str
+ 	i_bgezl(p, reg, 0);
+ }
  
--endmenu
--
-+endif # NET_PCMCIA
+-static void __init __attribute__((unused))
++static void __init __maybe_unused
+ il_bgez(u32 **p, struct reloc **r, unsigned int reg, enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+@@ -810,7 +810,7 @@ static __initdata u32 final_handler[64];
+  *
+  * As if we MIPS hackers wouldn't know how to nop pipelines happy ...
+  */
+-static __init void __attribute__((unused)) build_tlb_probe_entry(u32 **p)
++static __init void __maybe_unused build_tlb_probe_entry(u32 **p)
+ {
+ 	switch (current_cpu_data.cputype) {
+ 	/* Found by experiment: R4600 v2.0 needs this, too.  */
+@@ -1098,7 +1098,7 @@ build_get_pgd_vmalloc64(u32 **p, struct 
+  * TMP and PTR are scratch.
+  * TMP will be clobbered, PTR will hold the pgd entry.
+  */
+-static __init void __attribute__((unused))
++static __init void __maybe_unused
+ build_get_pgde32(u32 **p, unsigned int tmp, unsigned int ptr)
+ {
+ 	long pgdc = (long)pgd_current;
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-ii-sound.patch
-git-dvb.patch
-git-ieee1394.patch
-use-menuconfig-objects-ii-infiniband.patch
-use-menuconfig-objects-ii-kvm-virt.patch
-use-menuconfig-objects-ide.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-usb.patch
-use-menuconfig-objects-crypto.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-rtc.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-ii-isdn.patch
-use-menuconfig-objects-ii-md.patch
+git-alsa.patch
+powerpc-ps3-use-__maybe_unused.patch
+scsi-fix-ambiguous-gdthtable-definition.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+x86_64-fix-e820_hole_size-based-on-address-ranges.patch
+x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
+x86_64-slit-fake-pxm-to-node-mapping-for-fake-numa-2.patch
+x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
