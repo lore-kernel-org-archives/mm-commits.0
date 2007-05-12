@@ -1,88 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - locks-fix-f_getlk-regression-failure-to-find-conflicts.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:16:29 -0700
-Message-ID: <200705120516.l4C5GTtC001825@shell0.pdx.osdl.net>
+Subject: - i2c-at91-supports-new-style-i2c-drivers.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:39 -0700
+Message-ID: <200705120515.l4C5FdpK001767@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50886 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756656AbXELFQl (ORCPT
+	by vger.kernel.org with ESMTP id S1756580AbXELFQy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:16:41 -0400
+	Sat, 12 May 2007 01:16:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@fieldses.org, bfields@citi.umich.edu, doug.chapman@hp.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, andrew@sanpeople.com, dbrownell@users.sourceforge.net, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     locks: fix F_GETLK regression (failure to find conflicts)
+     i2c-at91 supports new-style i2c drivers
 has been removed from the -mm tree.  Its filename was
-     locks-fix-f_getlk-regression-failure-to-find-conflicts.patch
+     i2c-at91-supports-new-style-i2c-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: locks: fix F_GETLK regression (failure to find conflicts)
-From: "J. Bruce Fields" <bfields@fieldses.org>
+Subject: i2c-at91 supports new-style i2c drivers
+From: David Brownell <david-b@pacbell.net>
 
-In 9d6a8c5c213e34c475e72b245a8eb709258e968c we changed posix_test_lock to
-modify its single file_lock argument instead of taking separate input and
-output arguments.  This makes it no longer safe to set the output lock's
-fl_type to F_UNLCK before looking for a conflict, since that means
-searching for a conflict against a lock with type F_UNLCK.
+Make i2c-at91 register as i2c adapter zero (none of these chips seem to
+have more than one TWI controllers) to let it kick in any board-specific
+device declarations; also make it hotplug/coldplug.
 
-This fixes a regression which causes F_GETLK to incorrectly report no
-conflict on most filesystems (including any filesystem that doesn't do its
-own locking).
-
-Also fix posix_lock_to_flock() to copy the lock type.  This isn't strictly
-necessary, since the caller already does this; but it seems less likely to
-cause confusion in the future.
-
-Thanks to Doug Chapman for the bug report.
-
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Cc: Doug Chapman <doug.chapman@hp.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-at91.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/locks.c~locks-fix-f_getlk-regression-failure-to-find-conflicts fs/locks.c
---- a/fs/locks.c~locks-fix-f_getlk-regression-failure-to-find-conflicts
-+++ a/fs/locks.c
-@@ -669,7 +669,6 @@ posix_test_lock(struct file *filp, struc
- {
- 	struct file_lock *cfl;
+diff -puN drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers drivers/i2c/busses/i2c-at91.c
+--- a/drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers
++++ a/drivers/i2c/busses/i2c-at91.c
+@@ -226,13 +226,14 @@ static int __devinit at91_i2c_probe(stru
+ 	adapter->algo = &at91_algorithm;
+ 	adapter->class = I2C_CLASS_HWMON;
+ 	adapter->dev.parent = &pdev->dev;
++	/* adapter->id == 0 ... only one TWI controller for now */
  
--	fl->fl_type = F_UNLCK;
- 	lock_kernel();
- 	for (cfl = filp->f_path.dentry->d_inode->i_flock; cfl; cfl = cfl->fl_next) {
- 		if (!IS_POSIX(cfl))
-@@ -681,7 +680,8 @@ posix_test_lock(struct file *filp, struc
- 		__locks_copy_lock(fl, cfl);
- 		unlock_kernel();
- 		return 1;
--	}
-+	} else
-+		fl->fl_type = F_UNLCK;
- 	unlock_kernel();
- 	return 0;
- }
-@@ -1632,6 +1632,7 @@ static int posix_lock_to_flock(struct fl
- 	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
- 		fl->fl_end - fl->fl_start + 1;
- 	flock->l_whence = 0;
-+	flock->l_type = fl->fl_type;
- 	return 0;
- }
+ 	platform_set_drvdata(pdev, adapter);
  
+ 	clk_enable(twi_clk);		/* enable peripheral clock */
+ 	at91_twi_hwinit();		/* initialize TWI controller */
+ 
+-	rc = i2c_add_adapter(adapter);
++	rc = i2c_add_numbered_adapter(adapter);
+ 	if (rc) {
+ 		dev_err(&pdev->dev, "Adapter %s registration failed\n",
+ 				adapter->name);
+@@ -295,6 +296,9 @@ static int at91_i2c_resume(struct platfo
+ #define at91_i2c_resume		NULL
+ #endif
+ 
++/* work with "modprobe at91_i2c" from hotplugging or coldplugging */
++MODULE_ALIAS("at91_i2c");
++
+ static struct platform_driver at91_i2c_driver = {
+ 	.probe		= at91_i2c_probe,
+ 	.remove		= __devexit_p(at91_i2c_remove),
 _
 
-Patches currently in -mm which might be from bfields@fieldses.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-nfs-use-zero_user_page.patch
-remove-slab_ctor_constructor.patch
+documentation-gpiotxt-mentions-generic_gpio.patch
+rtc-rs5c313c-error-and-warning-are-fixed.patch
+rtc-rs5c313c-rtc_time-value-are-fixed.patch
+rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+git-leds.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+use-menuconfig-objects-ii-rtc.patch
