@@ -1,99 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - ocfs2-kobject-kset-foobar.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:16 -0700
-Message-ID: <200705120515.l4C5FGbM001740@shell0.pdx.osdl.net>
+Subject: - early_pfn_to_nid-needs-to-be-__meminit.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:13 -0700
+Message-ID: <200705120515.l4C5FDlk001737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50216 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756313AbXELFPW (ORCPT
+	by vger.kernel.org with ESMTP id S1756308AbXELFPY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:22 -0400
+	Sat, 12 May 2007 01:15:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ocfs2: kobject/kset foobar
+     early_pfn_to_nid needs to be __meminit
 has been removed from the -mm tree.  Its filename was
-     ocfs2-kobject-kset-foobar.patch
+     early_pfn_to_nid-needs-to-be-__meminit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ocfs2: kobject/kset foobar
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: early_pfn_to_nid needs to be __meminit
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Fix gcc warning and Oops that it causes:
+Since it is referenced by memmap_init_zone (which is __meminit) via the
+early_pfn_in_nid macro when CONFIG_NODES_SPAN_OTHER_NODES is set (which
+basically means PowerPC 64).
 
-fs/ocfs2/cluster/masklog.c:161: warning: assignment from incompatible pointer type
-[ 2776.204120] OCFS2 Node Manager 1.3.3
-[ 2776.211729] BUG: spinlock bad magic on CPU#0, modprobe/4424
-[ 2776.214269]  lock: ffff810021c8fe18, .magic: ffffffff, .owner: /6394416, .owner_cpu: 0
-[ 2776.217864] [ 2776.217865] Call Trace:
-[ 2776.219662]  [<ffffffff803426c8>] spin_bug+0x9e/0xe9
-[ 2776.221921]  [<ffffffff803427bf>] _raw_spin_lock+0x23/0xf9
-[ 2776.224417]  [<ffffffff8051acf4>] _spin_lock+0x9/0xb
-[ 2776.226676]  [<ffffffff8033c3b1>] kobject_shadow_add+0x98/0x1ac
-[ 2776.229367]  [<ffffffff8033c4d0>] kobject_add+0xb/0xd
-[ 2776.231665]  [<ffffffff8033c4df>] kset_add+0xd/0xf
-[ 2776.233845]  [<ffffffff8033c5a6>] kset_register+0x23/0x28
-[ 2776.236309]  [<ffffffff8808ccb7>] :ocfs2_nodemanager:mlog_sys_init+0x68/0x6d
-[ 2776.239518]  [<ffffffff8808ccee>] :ocfs2_nodemanager:o2cb_sys_init+0x32/0x4a
-[ 2776.242726]  [<ffffffff880b80a6>] :ocfs2_nodemanager:init_o2nm+0xa6/0xd5
-[ 2776.245772]  [<ffffffff8025266c>] sys_init_module+0x1471/0x15d2
-[ 2776.248465]  [<ffffffff8033f250>] simple_strtoull+0x0/0xdc
-[ 2776.250959]  [<ffffffff8020948e>] system_call+0x7e/0x83
+This removes a section mismatch warning in those circumstances.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/masklog.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/masklog.c~ocfs2-kobject-kset-foobar fs/ocfs2/cluster/masklog.c
---- a/fs/ocfs2/cluster/masklog.c~ocfs2-kobject-kset-foobar
-+++ a/fs/ocfs2/cluster/masklog.c
-@@ -144,7 +144,8 @@ static struct kobj_type mlog_ktype = {
- };
- 
- static struct kset mlog_kset = {
--	.kobj   = {.name = "logmask", .ktype = &mlog_ktype},
-+	.kobj  = {.name = "logmask"},
-+	.ktype = &mlog_ktype
- };
- 
- int mlog_sys_init(struct kset *o2cb_subsys)
-@@ -157,7 +158,7 @@ int mlog_sys_init(struct kset *o2cb_subs
- 	}
- 	mlog_attr_ptrs[i] = NULL;
- 
--	kobj_set_kset_s(&mlog_kset, o2cb_subsys);
-+	kobj_set_kset_s(&mlog_kset, *o2cb_subsys);
- 	return kset_register(&mlog_kset);
- }
+diff -puN mm/page_alloc.c~early_pfn_to_nid-needs-to-be-__meminit mm/page_alloc.c
+--- a/mm/page_alloc.c~early_pfn_to_nid-needs-to-be-__meminit
++++ a/mm/page_alloc.c
+@@ -2284,7 +2284,7 @@ static int __meminit next_active_region_
+  * was used and there are no special requirements, this is a convenient
+  * alternative
+  */
+-int __init early_pfn_to_nid(unsigned long pfn)
++int __meminit early_pfn_to_nid(unsigned long pfn)
+ {
+ 	int i;
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-lib-hexdump.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-kstrndup.patch
-add-argv_split.patch
-add-argv_split-fix.patch
-split-usermodehelper-setup-from-execution.patch
-add-common-orderly_poweroff.patch
-add-common-orderly_poweroff-fix.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-profile-likely-unlikely-macros.patch
+consolidate-asm-pollh.patch
+missing-include-file-in-tpm_atmelh.patch
+maintainers-remove-invalid-list-address-for-tpm.patch
+powerpc64-symbols-start-with.patch
