@@ -1,132 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + git-newsetup-fixup.patch added to -mm tree
-Date: Fri, 11 May 2007 22:31:03 -0700
-Message-ID: <200705120531.l4C5V2Kx002028@shell0.pdx.osdl.net>
+Subject: - x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:32:24 -0700
+Message-ID: <200705120532.l4C5WOD8002043@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40823 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752314AbXELFbF (ORCPT
+	by vger.kernel.org with ESMTP id S1750930AbXELFch (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:31:05 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5V3bD024501
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:31:04 -0700
+	Sat, 12 May 2007 01:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-newsetup-fixup
-has been added to the -mm tree.  Its filename is
-     git-newsetup-fixup.patch
+     x86_64: display more intuitive error message if kernel is not 2MB aligned
+has been removed from the -mm tree.  Its filename was
+     x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64: display more intuitive error message if kernel is not 2MB aligned
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
+o x86_64 kernel needs to be compiled for 2MB aligned addresses. Currently
+  we are using BUILD_BUG_ON() to warn the user if he has not done so. But
+  looks like folks are not finding message very intutive and don't open
+  the respective c file to find problem source. (Bug 8439)
+
+arch/x86_64/kernel/head64.c: In function 'x86_64_start_kernel':
+arch/x86_64/kernel/head64.c:70: error: size of array 'type name' is negative
+
+o Using preprocessor directive #error to print a better message if
+  CONFIG_PHYSICAL_START is not aligned to 2MB boundary.
+
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/alternative.h |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86_64/kernel/head64.c |    7 -------
+ include/asm-x86_64/page.h   |    9 +++++++++
+ 2 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-x86_64/alternative.h~git-newsetup-fixup include/asm-x86_64/alternative.h
---- a/include/asm-x86_64/alternative.h~git-newsetup-fixup
-+++ a/include/asm-x86_64/alternative.h
-@@ -138,7 +138,6 @@ static inline void alternatives_smp_swit
- 		      "663:\n\t" newinstr "\n664:\n"   /* replacement */ \
- 		      ".previous" : output : [feat] "i" (feature), ##input)
+diff -puN arch/x86_64/kernel/head64.c~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned arch/x86_64/kernel/head64.c
+--- a/arch/x86_64/kernel/head64.c~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned
++++ a/arch/x86_64/kernel/head64.c
+@@ -62,13 +62,6 @@ void __init x86_64_start_kernel(char * r
+ {
+ 	int i;
  
--<<<<<<< HEAD/include/asm-x86_64/alternative.h
- /*
-  * use this macro(s) if you need more than one output parameter
-  * in alternative_io
-@@ -178,8 +177,6 @@ static inline void alternatives_smp_swit
- #define LOCK_PREFIX ""
- #endif
+-	/*
+-	 * Make sure kernel is aligned to 2MB address. Catching it at compile
+-	 * time is better. Change your config file and compile the kernel
+-	 * for a 2MB aligned address (CONFIG_PHYSICAL_START)
+-	 */
+-	BUILD_BUG_ON(CONFIG_PHYSICAL_START & (__KERNEL_ALIGN - 1));
+-
+ 	/* clear bss before set_intr_gate with early_idt_handler */
+ 	clear_bss();
  
--=======
-->>>>>>> /include/asm-x86_64/alternative.h
- struct paravirt_patch;
- #ifdef CONFIG_PARAVIRT
- void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end);
+diff -puN include/asm-x86_64/page.h~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned include/asm-x86_64/page.h
+--- a/include/asm-x86_64/page.h~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned
++++ a/include/asm-x86_64/page.h
+@@ -80,6 +80,15 @@ extern unsigned long phys_base;
+ #define __PHYSICAL_START	CONFIG_PHYSICAL_START
+ #define __KERNEL_ALIGN		0x200000
+ 
++/*
++ * Make sure kernel is aligned to 2MB address. Catching it at compile
++ * time is better. Change your config file and compile the kernel
++ * for a 2MB aligned address (CONFIG_PHYSICAL_START)
++ */
++#if (CONFIG_PHYSICAL_START % __KERNEL_ALIGN) != 0
++#error "CONFIG_PHYSICAL_START must be a multiple of 2MB"
++#endif
++
+ #define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
+ #define __START_KERNEL_map	_AC(0xffffffff80000000, UL)
+ #define __PAGE_OFFSET           _AC(0xffff810000000000, UL)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
 origin.patch
-ntfs-use-zero_user_page.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mips-fixup.patch
-fix-race-condition-about-network-device-name-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-git-newsetup-fixup.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+fix-i-oat-for-kexec.patch
