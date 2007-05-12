@@ -1,127 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - submitchecklist-add-W-help.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:59 -0700
-Message-ID: <200705120533.l4C5Xxws002156@shell0.pdx.osdl.net>
+Subject: - m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:33:03 -0700
+Message-ID: <200705120533.l4C5X3xB002079@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59250 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755125AbXELFeB (ORCPT
+	by vger.kernel.org with ESMTP id S1755138AbXELFeC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:34:01 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5XxBW024756
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:34:00 -0700
+	Sat, 12 May 2007 01:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: takata.hirokazu@renesas.com, alan@linuxcare.com.au, hitoshiy@linux-m32r.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SubmitChecklist: add -W help
+     m32r: fix switch_to macro to push/pop frame pointer if needed
 has been removed from the -mm tree.  Its filename was
-     submitchecklist-add-W-help.patch
+     m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SubmitChecklist: add -W help
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: m32r: fix switch_to macro to push/pop frame pointer if needed
+From: Hirokazu Takata <takata.hirokazu@renesas.com>
 
-Help people to work out how to use `gcc -W'.
+This patch fixes a rarely-happened but severe scheduling problem of
+the recent m32r kernel of 2.6.17-rc3 or later.
 
+In the following previous m32r patch, the switch_to macro was
+modified not to do unnecessary push/pop operations for tuning.
+> [PATCH] m32r: update switch_to macro for tuning
+> 4127272c38619c56f0c1aa01d01c7bd757db70a1
 
+In this modification, only 'lr' and 'sp' registers are push/pop'ed,
+assuming that the m32r kernel is always compiled with
+-fomit-frame-pointer option.
+
+However, in 2.6 kernel, kernel/sched.c is irregularly compiled
+with -fno-omit-frame-pointer if CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER
+is not defined.
+
+ -- kernel/Makefile --
+   :
+ ifneq ($(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER),y)
+ # According to Alan Modra <alan@linuxcare.com.au>, the -fno-omit-frame-pointer is
+ # needed for x86 only.  Why this used to be enabled for all architectures is beyond
+ # me.  I suspect most platforms don't need this, but until we know that for sure
+ # I turn this off for IA-64 only.  Andreas Schwab says it's also needed on m68k
+ # to get a correct value for the wait-channel (WCHAN in ps). --davidm
+ CFLAGS_sched.o := $(PROFILING) -fno-omit-frame-pointer
+ endif
+   :
+ ---
+
+Therefore, for the recent m32r kernel, we have to push/pop 'fp'
+(frame pointer) if CONFIG_FRAME_POINTER is defined or
+CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER is not defined.
+
+Signed-off-by: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmitChecklist |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/m32r/Kconfig         |    4 ++++
+ include/asm-m32r/system.h |   11 +++++++++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN Documentation/SubmitChecklist~submitchecklist-add-W-help Documentation/SubmitChecklist
---- a/Documentation/SubmitChecklist~submitchecklist-add-W-help
-+++ a/Documentation/SubmitChecklist
-@@ -73,9 +73,9 @@ kernel patches.
-     If the new code is substantial, addition of subsystem-specific fault
-     injection might be appropriate.
+diff -puN arch/m32r/Kconfig~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if
++++ a/arch/m32r/Kconfig
+@@ -241,6 +241,10 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
  
--22: Newly-added code has been compiled with `gcc -W'.  This will generate
--    lots of noise, but is good for finding bugs like "warning: comparison
--    between signed and unsigned".
-+22: Newly-added code has been compiled with `gcc -W' (use "make
-+    EXTRA_CFLAGS=-W").  This will generate lots of noise, but is good for
-+    finding bugs like "warning: comparison between signed and unsigned".
++config SCHED_NO_NO_OMIT_FRAME_POINTER
++        bool
++        default y
++
+ config PREEMPT
+ 	bool "Preemptible Kernel"
+ 	help
+diff -puN include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if include/asm-m32r/system.h
+--- a/include/asm-m32r/system.h~m32r-fix-switch_to-macro-to-push-pop-frame-pointer-if
++++ a/include/asm-m32r/system.h
+@@ -21,12 +21,22 @@
+  * `next' and `prev' should be struct task_struct, but it isn't always defined
+  */
  
- 23: Tested after it has been merged into the -mm patchset to make sure
-     that it still works with all of the other queued patches and various
++#if defined(CONFIG_FRAME_POINTER) || \
++	!defined(CONFIG_SCHED_NO_NO_OMIT_FRAME_POINTER)
++#define M32R_PUSH_FP "	push fp\n"
++#define M32R_POP_FP  "	pop  fp\n"
++#else
++#define M32R_PUSH_FP ""
++#define M32R_POP_FP  ""
++#endif
++
+ #define switch_to(prev, next, last)  do { \
+ 	__asm__ __volatile__ ( \
+ 		"	seth	lr, #high(1f)				\n" \
+ 		"	or3	lr, lr, #low(1f)			\n" \
+ 		"	st	lr, @%4  ; store old LR			\n" \
+ 		"	ld	lr, @%5  ; load new LR			\n" \
++			M32R_PUSH_FP \
+ 		"	st	sp, @%2  ; store old SP			\n" \
+ 		"	ld	sp, @%3  ; load new SP			\n" \
+ 		"	push	%1  ; store `prev' on new stack		\n" \
+@@ -34,6 +44,7 @@
+ 		"	.fillinsn					\n" \
+ 		"1:							\n" \
+ 		"	pop	%0  ; restore `__last' from new stack	\n" \
++			M32R_POP_FP \
+ 		: "=r" (last) \
+ 		: "0" (prev), \
+ 		  "r" (&(prev->thread.sp)), "r" (&(next->thread.sp)), \
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from takata.hirokazu@renesas.com are
 
 origin.patch
-ntfs-use-zero_user_page.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mips-fixup.patch
-fix-race-condition-about-network-device-name-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-git-newsetup-fixup.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
