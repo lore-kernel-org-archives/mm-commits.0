@@ -1,62 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-gpiotxt-mentions-generic_gpio.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:32:37 -0700
-Message-ID: <200705120532.l4C5WbrY002052@shell0.pdx.osdl.net>
+Subject: - vm-statistics-make-timer-deferrable.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:32:54 -0700
+Message-ID: <200705120532.l4C5WsZK002069@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49530 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756928AbXELFct (ORCPT
+	by vger.kernel.org with ESMTP id S1756777AbXELFc6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:32:49 -0400
+	Sat, 12 May 2007 01:32:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/gpio.txt mentions GENERIC_GPIO
+     VM statistics: Make timer deferrable
 has been removed from the -mm tree.  Its filename was
-     documentation-gpiotxt-mentions-generic_gpio.patch
+     vm-statistics-make-timer-deferrable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation/gpio.txt mentions GENERIC_GPIO
-From: David Brownell <david-b@pacbell.net>
+Subject: VM statistics: Make timer deferrable
+From: Christoph Lameter <clameter@sgi.com>
 
-Documentation/gpio.txt should mention the Kconfig GENERIC_GPIO flag, for
-platforms to declare when relevant.  This should help minimize goofs like
-omitting it, or not depending on it when needed.
+VM statistics updates do not matter if the kernel is in idle powersaving
+mode.  So allow the timer to be deferred.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+It would be better though if we could switch the timer between deferrable
+and nondeferrable based on differentials present.  The timer would start
+out nondeferrable and if we find that there were no updates in the last
+statistics interval then we would switch the timer to deferrable.  If the
+timer later finds again that there are differentials then go to
+nondeferrable again.
+
+And yet another way would be to run the timer shortly before going to idle?
+
+The solution here means that the VM counters may be slightly off during
+idle since differentials may be still pending while the timer is deferred.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/gpio.txt~documentation-gpiotxt-mentions-generic_gpio Documentation/gpio.txt
---- a/Documentation/gpio.txt~documentation-gpiotxt-mentions-generic_gpio
-+++ a/Documentation/gpio.txt
-@@ -66,7 +66,9 @@ registers; another might implement it by
- used for several very different kinds of GPIO controller.
+diff -puN mm/vmstat.c~vm-statistics-make-timer-deferrable mm/vmstat.c
+--- a/mm/vmstat.c~vm-statistics-make-timer-deferrable
++++ a/mm/vmstat.c
+@@ -698,7 +698,7 @@ static void __devinit start_cpu_timer(in
+ {
+ 	struct delayed_work *vmstat_work = &per_cpu(vmstat_work, cpu);
  
- That said, if the convention is supported on their platform, drivers should
--use it when possible:
-+use it when possible.  Platforms should declare GENERIC_GPIO support in
-+Kconfig (boolean true), which multi-platform drivers can depend on when
-+using the include file:
- 
- 	#include <asm/gpio.h>
+-	INIT_DELAYED_WORK(vmstat_work, vmstat_update);
++	INIT_DELAYED_WORK_DEFERRABLE(vmstat_work, vmstat_update);
+ 	schedule_delayed_work_on(cpu, vmstat_work, HZ + cpu);
+ }
  
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-git-leds.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-use-menuconfig-objects-ii-rtc.patch
+ubi-remove-inverted-check-in-ltree_entry_ctor.patch
+quicklist-support-for-x86_64.patch
+slub-i386-support.patch
+slab-allocators-drop-support-for-destructors.patch
+remove-slab_ctor_constructor.patch
+remove-constructor-from-buffer_head.patch
+remove-slab_ctor_constructor-fix.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+define-percpu-smp-cacheline-align-interface.patch
+call-percpu-smp-cacheline-algin-interface.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code.patch
