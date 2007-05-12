@@ -1,99 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - small-cleanup-in-gpt-partition-handling.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:44 -0700
-Message-ID: <200705120533.l4C5XiJa002137@shell0.pdx.osdl.net>
+Subject: - powerpc-fixup-hard_irq_disable-semantics.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:33:49 -0700
+Message-ID: <200705120533.l4C5XnoL002143@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39825 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754854AbXELFdt (ORCPT
+	by vger.kernel.org with ESMTP id S1755001AbXELFd6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:33:49 -0400
+	Sat, 12 May 2007 01:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, paulus@samba.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     small cleanup in gpt partition handling
+     powerpc: fixup hard_irq_disable semantics
 has been removed from the -mm tree.  Its filename was
-     small-cleanup-in-gpt-partition-handling.patch
+     powerpc-fixup-hard_irq_disable-semantics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: small cleanup in gpt partition handling
-From: Olaf Hering <olaf@aepfle.de>
+Subject: powerpc: fixup hard_irq_disable semantics
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Remove unused argument in is_pmbr_valid()
-Remove unneeded initialization of local variable legacy_mbr
+This patch renames the raw hard_irq_{enable,disable} into
+__hard_irq_{enable,disable} and introduces a higher level hard_irq_disable()
+function that can be used by any code to enforce that IRQs are fully disabled,
+not only lazy disabled.
 
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
+The difference with the __ versions is that it will update some per-processor
+fields so that the kernel keeps track and properly re-enables them in the next
+local_irq_disable();
+
+This prepares powerpc for my next patch that introduces hard_irq_disable()
+generically.
+
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/efi.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ arch/powerpc/kernel/irq.c               |    2 +-
+ arch/powerpc/kernel/swsusp.c            |    4 ----
+ arch/powerpc/platforms/cell/pervasive.c |    6 ++----
+ include/asm-powerpc/hw_irq.h            |   11 +++++++++--
+ 4 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN fs/partitions/efi.c~small-cleanup-in-gpt-partition-handling fs/partitions/efi.c
---- a/fs/partitions/efi.c~small-cleanup-in-gpt-partition-handling
-+++ a/fs/partitions/efi.c
-@@ -152,7 +152,7 @@ last_lba(struct block_device *bdev)
- }
+diff -puN arch/powerpc/kernel/irq.c~powerpc-fixup-hard_irq_disable-semantics arch/powerpc/kernel/irq.c
+--- a/arch/powerpc/kernel/irq.c~powerpc-fixup-hard_irq_disable-semantics
++++ a/arch/powerpc/kernel/irq.c
+@@ -173,7 +173,7 @@ void local_irq_restore(unsigned long en)
+ 		lv1_get_version_info(&tmp);
+ 	}
  
- static inline int
--pmbr_part_valid(struct partition *part, u64 lastlba)
-+pmbr_part_valid(struct partition *part)
- {
-         if (part->sys_ind == EFI_PMBR_OSTYPE_EFI_GPT &&
-             le32_to_cpu(part->start_sect) == 1UL)
-@@ -163,7 +163,6 @@ pmbr_part_valid(struct partition *part, 
- /**
-  * is_pmbr_valid(): test Protective MBR for validity
-  * @mbr: pointer to a legacy mbr structure
-- * @lastlba: last_lba for the whole device
-  *
-  * Description: Returns 1 if PMBR is valid, 0 otherwise.
-  * Validity depends on two things:
-@@ -171,13 +170,13 @@ pmbr_part_valid(struct partition *part, 
-  *  2) One partition of type 0xEE is found
-  */
- static int
--is_pmbr_valid(legacy_mbr *mbr, u64 lastlba)
-+is_pmbr_valid(legacy_mbr *mbr)
- {
- 	int i;
- 	if (!mbr || le16_to_cpu(mbr->signature) != MSDOS_MBR_SIGNATURE)
-                 return 0;
- 	for (i = 0; i < 4; i++)
--		if (pmbr_part_valid(&mbr->partition_record[i], lastlba))
-+		if (pmbr_part_valid(&mbr->partition_record[i]))
-                         return 1;
- 	return 0;
+-	hard_irq_enable();
++	__hard_irq_enable();
  }
-@@ -516,7 +515,7 @@ find_valid_gpt(struct block_device *bdev
- 	int good_pgpt = 0, good_agpt = 0, good_pmbr = 0;
- 	gpt_header *pgpt = NULL, *agpt = NULL;
- 	gpt_entry *pptes = NULL, *aptes = NULL;
--	legacy_mbr *legacymbr = NULL;
-+	legacy_mbr *legacymbr;
- 	u64 lastlba;
- 	if (!bdev || !gpt || !ptes)
- 		return 0;
-@@ -528,9 +527,8 @@ find_valid_gpt(struct block_device *bdev
-                 if (legacymbr) {
-                         read_lba(bdev, 0, (u8 *) legacymbr,
-                                  sizeof (*legacymbr));
--                        good_pmbr = is_pmbr_valid(legacymbr, lastlba);
-+                        good_pmbr = is_pmbr_valid(legacymbr);
-                         kfree(legacymbr);
--                        legacymbr=NULL;
-                 }
-                 if (!good_pmbr)
-                         goto fail;
+ #endif /* CONFIG_PPC64 */
+ 
+diff -puN arch/powerpc/kernel/swsusp.c~powerpc-fixup-hard_irq_disable-semantics arch/powerpc/kernel/swsusp.c
+--- a/arch/powerpc/kernel/swsusp.c~powerpc-fixup-hard_irq_disable-semantics
++++ a/arch/powerpc/kernel/swsusp.c
+@@ -36,8 +36,4 @@ void restore_processor_state(void)
+ #ifdef CONFIG_PPC32
+ 	set_context(current->active_mm->context.id, current->active_mm->pgd);
+ #endif
+-
+-#ifdef CONFIG_PPC64
+-	hard_irq_enable();
+-#endif
+ }
+diff -puN arch/powerpc/platforms/cell/pervasive.c~powerpc-fixup-hard_irq_disable-semantics arch/powerpc/platforms/cell/pervasive.c
+--- a/arch/powerpc/platforms/cell/pervasive.c~powerpc-fixup-hard_irq_disable-semantics
++++ a/arch/powerpc/platforms/cell/pervasive.c
+@@ -43,12 +43,10 @@ static void cbe_power_save(void)
+ 	unsigned long ctrl, thread_switch_control;
+ 
+ 	/*
+-	 * We need to hard disable interrupts, but we also need to mark them
+-	 * hard disabled in the PACA so that the local_irq_enable() done by
+-	 * our caller upon return propertly hard enables.
++	 * We need to hard disable interrupts, the local_irq_enable() done by
++	 * our caller upon return will hard re-enable.
+ 	 */
+ 	hard_irq_disable();
+-	get_paca()->hard_enabled = 0;
+ 
+ 	ctrl = mfspr(SPRN_CTRLF);
+ 
+diff -puN include/asm-powerpc/hw_irq.h~powerpc-fixup-hard_irq_disable-semantics include/asm-powerpc/hw_irq.h
+--- a/include/asm-powerpc/hw_irq.h~powerpc-fixup-hard_irq_disable-semantics
++++ a/include/asm-powerpc/hw_irq.h
+@@ -48,8 +48,15 @@ extern void iseries_handle_interrupts(vo
+ 
+ #define irqs_disabled()		(local_get_flags() == 0)
+ 
+-#define hard_irq_enable()	__mtmsrd(mfmsr() | MSR_EE, 1)
+-#define hard_irq_disable()	__mtmsrd(mfmsr() & ~MSR_EE, 1)
++#define __hard_irq_enable()	__mtmsrd(mfmsr() | MSR_EE, 1)
++#define __hard_irq_disable()	__mtmsrd(mfmsr() & ~MSR_EE, 1)
++
++#define  hard_irq_disable()			\
++	do {					\
++		__hard_irq_disable();		\
++		get_paca()->soft_enabled = 0;	\
++		get_paca()->hard_enabled = 0;	\
++	} while(0)
+ 
+ #else
+ 
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-keep-track-of-network-interface-renaming.patch
+do-not-select-macintosh-drivers-by-default.patch
