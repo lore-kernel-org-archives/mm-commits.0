@@ -1,420 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - afs-write-support-fixes.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:07 -0700
-Message-ID: <200705120515.l4C5F7Tk001728@shell0.pdx.osdl.net>
+Subject: - upper-32-bits.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:03 -0700
+Message-ID: <200705120515.l4C5F3ef001725@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36209 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38196 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756275AbXELFPT (ORCPT
+	by vger.kernel.org with ESMTP id S1756357AbXELFPX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:19 -0400
+	Sat, 12 May 2007 01:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, Mike.Miller@hp.com, Steve.Cameron@hp.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AFS: write support fixes
+     add upper-32-bits macro
 has been removed from the -mm tree.  Its filename was
-     afs-write-support-fixes.patch
+     upper-32-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: AFS: write support fixes
-From: David Howells <dhowells@redhat.com>
+Subject: add upper-32-bits macro
+From: Andrew Morton <akpm@linux-foundation.org>
 
-AFS write support fixes:
+We keep on getting "right shift count >= width of type" warnings when doing
+things like
 
- (1) Support large files using the 64-bit file access operations if available
-     on the server.
+	sector_t s;
 
- (2) Use kmap_atomic() rather than kmap() in afs_prepare_page().
+	x = s >> 56;
 
- (3) Don't do stuff in afs_writepage() that's done by the caller.
+because with CONFIG_LBD=n, s is only 32-bit.  Similar problems can occur with
+dma_addr_t's.
 
-[akpm@linux-foundation.org: fix right shift count >= width of type]
-Signed-off-by: David Howells <dhowells@redhat.com>
+So add a simple wrapper function which code can use to avoid this warning. 
+The above example would become
+
+	x = upper_32_bits(s) >> 24;
+
+The first user is in fact AFS.
+
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: "Cameron, Steve" <Steve.Cameron@hp.com>
+Cc: "Miller, Mike (OS Dev)" <Mike.Miller@hp.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/afs_fs.h   |    2 
- fs/afs/fsclient.c |  217 ++++++++++++++++++++++++++++++++++++++++++--
- fs/afs/write.c    |   14 --
- 3 files changed, 216 insertions(+), 17 deletions(-)
+ include/linux/kernel.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/afs/afs_fs.h~afs-write-support-fixes fs/afs/afs_fs.h
---- a/fs/afs/afs_fs.h~afs-write-support-fixes
-+++ a/fs/afs/afs_fs.h
-@@ -31,6 +31,8 @@ enum AFS_FS_Operations {
- 	FSGETVOLUMEINFO		= 148,	/* AFS Get root volume information */
- 	FSGETROOTVOLUME		= 151,	/* AFS Get root volume name */
- 	FSLOOKUP		= 161,	/* AFS lookup file in directory */
-+	FSFETCHDATA64		= 65537, /* AFS Fetch file data */
-+	FSSTOREDATA64		= 65538, /* AFS Store file data */
- };
+diff -puN include/linux/kernel.h~upper-32-bits include/linux/kernel.h
+--- a/include/linux/kernel.h~upper-32-bits
++++ a/include/linux/kernel.h
+@@ -41,6 +41,16 @@ extern const char linux_proc_banner[];
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+ #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
  
- enum AFS_FS_Errors {
-diff -puN fs/afs/fsclient.c~afs-write-support-fixes fs/afs/fsclient.c
---- a/fs/afs/fsclient.c~afs-write-support-fixes
-+++ a/fs/afs/fsclient.c
-@@ -293,9 +293,33 @@ static int afs_deliver_fs_fetch_data(str
- 	case 0:
- 		call->offset = 0;
- 		call->unmarshall++;
-+		if (call->operation_ID != FSFETCHDATA64) {
-+			call->unmarshall++;
-+			goto no_msw;
-+		}
- 
--		/* extract the returned data length */
-+		/* extract the upper part of the returned data length of an
-+		 * FSFETCHDATA64 op (which should always be 0 using this
-+		 * client) */
- 	case 1:
-+		_debug("extract data length (MSW)");
-+		ret = afs_extract_data(call, skb, last, &call->tmp, 4);
-+		switch (ret) {
-+		case 0:		break;
-+		case -EAGAIN:	return 0;
-+		default:	return ret;
-+		}
-+
-+		call->count = ntohl(call->tmp);
-+		_debug("DATA length MSW: %u", call->count);
-+		if (call->count > 0)
-+			return -EBADMSG;
-+		call->offset = 0;
-+		call->unmarshall++;
-+
-+	no_msw:
-+		/* extract the returned data length */
-+	case 2:
- 		_debug("extract data length");
- 		ret = afs_extract_data(call, skb, last, &call->tmp, 4);
- 		switch (ret) {
-@@ -312,7 +336,7 @@ static int afs_deliver_fs_fetch_data(str
- 		call->unmarshall++;
- 
- 		/* extract the returned data */
--	case 2:
-+	case 3:
- 		_debug("extract data");
- 		if (call->count > 0) {
- 			page = call->reply3;
-@@ -331,7 +355,7 @@ static int afs_deliver_fs_fetch_data(str
- 		call->unmarshall++;
- 
- 		/* extract the metadata */
--	case 3:
-+	case 4:
- 		ret = afs_extract_data(call, skb, last, call->buffer,
- 				       (21 + 3 + 6) * 4);
- 		switch (ret) {
-@@ -349,7 +373,7 @@ static int afs_deliver_fs_fetch_data(str
- 		call->offset = 0;
- 		call->unmarshall++;
- 
--	case 4:
-+	case 5:
- 		_debug("trailer");
- 		if (skb->len != 0)
- 			return -EBADMSG;
-@@ -381,6 +405,56 @@ static const struct afs_call_type afs_RX
- 	.destructor	= afs_flat_call_destructor,
- };
- 
-+static const struct afs_call_type afs_RXFSFetchData64 = {
-+	.name		= "FS.FetchData64",
-+	.deliver	= afs_deliver_fs_fetch_data,
-+	.abort_to_error	= afs_abort_to_error,
-+	.destructor	= afs_flat_call_destructor,
-+};
-+
-+/*
-+ * fetch data from a very large file
++/**
++ * upper_32_bits - return bits 32-63 of a number
++ * @n: the number we're accessing
++ *
++ * A basic shift-right of a 64- or 32-bit quantity.  Use this to suppress
++ * the "right shift count >= width of type" warning when that quantity is
++ * 32-bits.
 + */
-+static int afs_fs_fetch_data64(struct afs_server *server,
-+			       struct key *key,
-+			       struct afs_vnode *vnode,
-+			       off_t offset, size_t length,
-+			       struct page *buffer,
-+			       const struct afs_wait_mode *wait_mode)
-+{
-+	struct afs_call *call;
-+	__be32 *bp;
++#define upper_32_bits(n) ((u32)(((n) >> 16) >> 16))
 +
-+	_enter("");
-+
-+	ASSERTCMP(length, <, ULONG_MAX);
-+
-+	call = afs_alloc_flat_call(&afs_RXFSFetchData64, 32, (21 + 3 + 6) * 4);
-+	if (!call)
-+		return -ENOMEM;
-+
-+	call->key = key;
-+	call->reply = vnode;
-+	call->reply2 = NULL; /* volsync */
-+	call->reply3 = buffer;
-+	call->service_id = FS_SERVICE;
-+	call->port = htons(AFS_FS_PORT);
-+	call->operation_ID = FSFETCHDATA64;
-+
-+	/* marshall the parameters */
-+	bp = call->request;
-+	bp[0] = htonl(FSFETCHDATA64);
-+	bp[1] = htonl(vnode->fid.vid);
-+	bp[2] = htonl(vnode->fid.vnode);
-+	bp[3] = htonl(vnode->fid.unique);
-+	bp[4] = htonl(upper_32_bits(offset));
-+	bp[5] = htonl((u32) offset);
-+	bp[6] = 0;
-+	bp[7] = htonl((u32) length);
-+
-+	return afs_make_call(&server->addr, call, GFP_NOFS, wait_mode);
-+}
-+
- /*
-  * fetch data from a file
-  */
-@@ -394,6 +468,10 @@ int afs_fs_fetch_data(struct afs_server 
- 	struct afs_call *call;
- 	__be32 *bp;
- 
-+	if (upper_32_bits(offset) || upper_32_bits(offset + length))
-+		return afs_fs_fetch_data64(server, key, vnode, offset, length,
-+					   buffer, wait_mode);
-+
- 	_enter("");
- 
- 	call = afs_alloc_flat_call(&afs_RXFSFetchData, 24, (21 + 3 + 6) * 4);
-@@ -406,6 +484,7 @@ int afs_fs_fetch_data(struct afs_server 
- 	call->reply3 = buffer;
- 	call->service_id = FS_SERVICE;
- 	call->port = htons(AFS_FS_PORT);
-+	call->operation_ID = FSFETCHDATA;
- 
- 	/* marshall the parameters */
- 	bp = call->request;
-@@ -1032,6 +1111,73 @@ static const struct afs_call_type afs_RX
- 	.destructor	= afs_flat_call_destructor,
- };
- 
-+static const struct afs_call_type afs_RXFSStoreData64 = {
-+	.name		= "FS.StoreData64",
-+	.deliver	= afs_deliver_fs_store_data,
-+	.abort_to_error	= afs_abort_to_error,
-+	.destructor	= afs_flat_call_destructor,
-+};
-+
-+/*
-+ * store a set of pages to a very large file
-+ */
-+static int afs_fs_store_data64(struct afs_server *server,
-+			       struct afs_writeback *wb,
-+			       pgoff_t first, pgoff_t last,
-+			       unsigned offset, unsigned to,
-+			       loff_t size, loff_t pos, loff_t i_size,
-+			       const struct afs_wait_mode *wait_mode)
-+{
-+	struct afs_vnode *vnode = wb->vnode;
-+	struct afs_call *call;
-+	__be32 *bp;
-+
-+	_enter(",%x,{%x:%u},,",
-+	       key_serial(wb->key), vnode->fid.vid, vnode->fid.vnode);
-+
-+	call = afs_alloc_flat_call(&afs_RXFSStoreData64,
-+				   (4 + 6 + 3 * 2) * 4,
-+				   (21 + 6) * 4);
-+	if (!call)
-+		return -ENOMEM;
-+
-+	call->wb = wb;
-+	call->key = wb->key;
-+	call->reply = vnode;
-+	call->service_id = FS_SERVICE;
-+	call->port = htons(AFS_FS_PORT);
-+	call->mapping = vnode->vfs_inode.i_mapping;
-+	call->first = first;
-+	call->last = last;
-+	call->first_offset = offset;
-+	call->last_to = to;
-+	call->send_pages = true;
-+	call->store_version = vnode->status.data_version + 1;
-+
-+	/* marshall the parameters */
-+	bp = call->request;
-+	*bp++ = htonl(FSSTOREDATA64);
-+	*bp++ = htonl(vnode->fid.vid);
-+	*bp++ = htonl(vnode->fid.vnode);
-+	*bp++ = htonl(vnode->fid.unique);
-+
-+	*bp++ = 0; /* mask */
-+	*bp++ = 0; /* mtime */
-+	*bp++ = 0; /* owner */
-+	*bp++ = 0; /* group */
-+	*bp++ = 0; /* unix mode */
-+	*bp++ = 0; /* segment size */
-+
-+	*bp++ = htonl(pos >> 32);
-+	*bp++ = htonl((u32) pos);
-+	*bp++ = htonl(size >> 32);
-+	*bp++ = htonl((u32) size);
-+	*bp++ = htonl(i_size >> 32);
-+	*bp++ = htonl((u32) i_size);
-+
-+	return afs_make_call(&server->addr, call, GFP_NOFS, wait_mode);
-+}
-+
- /*
-  * store a set of pages
-  */
-@@ -1062,7 +1208,9 @@ int afs_fs_store_data(struct afs_server 
- 	       (unsigned long long) size, (unsigned long long) pos,
- 	       (unsigned long long) i_size);
- 
--	BUG_ON(i_size > 0xffffffff); // TODO: use 64-bit store
-+	if (pos >> 32 || i_size >> 32 || size >> 32 || (pos + size) >> 32)
-+		return afs_fs_store_data64(server, wb, first, last, offset, to,
-+					   size, pos, i_size, wait_mode);
- 
- 	call = afs_alloc_flat_call(&afs_RXFSStoreData,
- 				   (4 + 6 + 3) * 4,
-@@ -1158,6 +1306,61 @@ static const struct afs_call_type afs_RX
- 	.destructor	= afs_flat_call_destructor,
- };
- 
-+static const struct afs_call_type afs_RXFSStoreData64_as_Status = {
-+	.name		= "FS.StoreData64",
-+	.deliver	= afs_deliver_fs_store_status,
-+	.abort_to_error	= afs_abort_to_error,
-+	.destructor	= afs_flat_call_destructor,
-+};
-+
-+/*
-+ * set the attributes on a very large file, using FS.StoreData rather than
-+ * FS.StoreStatus so as to alter the file size also
-+ */
-+static int afs_fs_setattr_size64(struct afs_server *server, struct key *key,
-+				 struct afs_vnode *vnode, struct iattr *attr,
-+				 const struct afs_wait_mode *wait_mode)
-+{
-+	struct afs_call *call;
-+	__be32 *bp;
-+
-+	_enter(",%x,{%x:%u},,",
-+	       key_serial(key), vnode->fid.vid, vnode->fid.vnode);
-+
-+	ASSERT(attr->ia_valid & ATTR_SIZE);
-+
-+	call = afs_alloc_flat_call(&afs_RXFSStoreData64_as_Status,
-+				   (4 + 6 + 3 * 2) * 4,
-+				   (21 + 6) * 4);
-+	if (!call)
-+		return -ENOMEM;
-+
-+	call->key = key;
-+	call->reply = vnode;
-+	call->service_id = FS_SERVICE;
-+	call->port = htons(AFS_FS_PORT);
-+	call->store_version = vnode->status.data_version + 1;
-+	call->operation_ID = FSSTOREDATA;
-+
-+	/* marshall the parameters */
-+	bp = call->request;
-+	*bp++ = htonl(FSSTOREDATA64);
-+	*bp++ = htonl(vnode->fid.vid);
-+	*bp++ = htonl(vnode->fid.vnode);
-+	*bp++ = htonl(vnode->fid.unique);
-+
-+	xdr_encode_AFS_StoreStatus(&bp, attr);
-+
-+	*bp++ = 0;				/* position of start of write */
-+	*bp++ = 0;
-+	*bp++ = 0;				/* size of write */
-+	*bp++ = 0;
-+	*bp++ = htonl(attr->ia_size >> 32);	/* new file length */
-+	*bp++ = htonl((u32) attr->ia_size);
-+
-+	return afs_make_call(&server->addr, call, GFP_NOFS, wait_mode);
-+}
-+
- /*
-  * set the attributes on a file, using FS.StoreData rather than FS.StoreStatus
-  * so as to alter the file size also
-@@ -1173,7 +1376,9 @@ static int afs_fs_setattr_size(struct af
- 	       key_serial(key), vnode->fid.vid, vnode->fid.vnode);
- 
- 	ASSERT(attr->ia_valid & ATTR_SIZE);
--	ASSERTCMP(attr->ia_size, <=, 0xffffffff); // TODO: use 64-bit store
-+	if (attr->ia_size >> 32)
-+		return afs_fs_setattr_size64(server, key, vnode, attr,
-+					     wait_mode);
- 
- 	call = afs_alloc_flat_call(&afs_RXFSStoreData_as_Status,
- 				   (4 + 6 + 3) * 4,
-diff -puN fs/afs/write.c~afs-write-support-fixes fs/afs/write.c
---- a/fs/afs/write.c~afs-write-support-fixes
-+++ a/fs/afs/write.c
-@@ -122,7 +122,7 @@ static int afs_prepare_page(struct afs_v
- 	if (offset == 0 && to == PAGE_SIZE)
- 		return 0;
- 
--	p = kmap(page);
-+	p = kmap_atomic(page, KM_USER0);
- 
- 	i_size = i_size_read(&vnode->vfs_inode);
- 	pos = (loff_t) page->index << PAGE_SHIFT;
-@@ -133,7 +133,7 @@ static int afs_prepare_page(struct afs_v
- 			memset(p, 0, offset);
- 		if (to < PAGE_SIZE)
- 			memset(p + to, 0, PAGE_SIZE - to);
--		kunmap(page);
-+		kunmap_atomic(p, KM_USER0);
- 		return 0;
- 	}
- 
-@@ -152,7 +152,7 @@ static int afs_prepare_page(struct afs_v
- 			memset(p + eof, 0, PAGE_SIZE - eof);
- 	}
- 
--	kunmap(p);
-+	kunmap_atomic(p, KM_USER0);
- 
- 	ret = 0;
- 	if (offset > 0 || eof > to) {
-@@ -489,14 +489,6 @@ int afs_writepage(struct page *page, str
- 
- 	_enter("{%lx},", page->index);
- 
--	if (wbc->sync_mode != WB_SYNC_NONE)
--		wait_on_page_writeback(page);
--
--	if (PageWriteback(page) || !PageDirty(page)) {
--		unlock_page(page);
--		return 0;
--	}
--
- 	wb = (struct afs_writeback *) page_private(page);
- 	ASSERT(wb != NULL);
- 
+ #define	KERN_EMERG	"<0>"	/* system is unusable			*/
+ #define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
+ #define	KERN_CRIT	"<2>"	/* critical conditions			*/
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-afs-fix-interminable-loop-in-afs_write_back_from_locked_page.patch
-afs-fix-a-couple-of-problems-with-unlinking-afs-files.patch
-afs-implement-statfs.patch
-frv-gdb-use-__maybe_unused.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-git-net.patch
-remove-slab_ctor_constructor.patch
-split-usermodehelper-setup-from-execution.patch
-mutex-subsystem-synchro-test-module.patch
+lib-hexdump.patch
+stop_machine-now-uses-hard_irq_disable.patch
+submitchecklist-add-W-help.patch
+tty-add-compat_ioctl.patch
+use-defines-in-sys_getpriority-sys_setpriority.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+pm3fb-preliminary-24-to-26-port.patch
+ntfs-use-zero_user_page.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+arm-stacktrace-fix.patch
+git-avr32.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect.patch
+git-leds.patch
+git-leds-fixup.patch
+git-libata-all-sata_via-build-fix.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+netxen_nic_main-dont-use-deprecated-irq-flags.patch
+mlx4-dont-use-deprecated-irq-flags.patch
+fix-race-condition-about-network-device-name-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
