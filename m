@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - use-task_pgrp-task_session-in-copy_process.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:34:38 -0700
-Message-ID: <200705120534.l4C5YcRG002217@shell0.pdx.osdl.net>
+Subject: - use-struct-pid-parameter-in-copy_process.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:34:35 -0700
+Message-ID: <200705120534.l4C5YZFv002214@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49858 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755296AbXELFev (ORCPT
+	by vger.kernel.org with ESMTP id S1755293AbXELFev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 12 May 2007 01:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,52 +15,88 @@ To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmis
 
 
 The patch titled
-     Use task_pgrp() task_session() in copy_process()
+     Use struct pid parameter in copy_process()
 has been removed from the -mm tree.  Its filename was
-     use-task_pgrp-task_session-in-copy_process.patch
+     use-struct-pid-parameter-in-copy_process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use task_pgrp() task_session() in copy_process()
+Subject: Use struct pid parameter in copy_process()
 From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Use task_pgrp() and task_session() in copy_process(), and avoid find_pid()
-call when attaching the task to its process group and session.
+Modify copy_process() to take a struct pid * parameter instead of a pid_t. 
+This simplifies the code a bit and also avoids having to call find_pid() to
+convert the pid_t to a struct pid.
+
+Changelog:
+	- Fixed Badari Pulavarty's comments and passed in &init_struct_pid
+	  from fork_idle().
+	- Fixed Eric Biederman's comments and simplified this patch and
+	  used a new patch to remove the likely(pid) check.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: <containers@lists.osdl.org>
 Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ kernel/fork.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN kernel/fork.c~use-task_pgrp-task_session-in-copy_process kernel/fork.c
---- a/kernel/fork.c~use-task_pgrp-task_session-in-copy_process
+diff -puN kernel/fork.c~use-struct-pid-parameter-in-copy_process kernel/fork.c
+--- a/kernel/fork.c~use-struct-pid-parameter-in-copy_process
 +++ a/kernel/fork.c
-@@ -1249,14 +1249,11 @@ static struct task_struct *copy_process(
- 			__ptrace_link(p, current->parent);
- 
- 		if (thread_group_leader(p)) {
--			pid_t pgid = process_group(current);
--			pid_t sid = process_session(current);
--
- 			p->signal->tty = current->signal->tty;
--			p->signal->pgrp = pgid;
-+			p->signal->pgrp = process_group(current);
- 			set_signal_session(p->signal, process_session(current));
--			attach_pid(p, PIDTYPE_PGID, find_pid(pgid));
--			attach_pid(p, PIDTYPE_SID, find_pid(sid));
-+			attach_pid(p, PIDTYPE_PGID, task_pgrp(current));
-+			attach_pid(p, PIDTYPE_SID, task_session(current));
- 
+@@ -956,7 +956,7 @@ static struct task_struct *copy_process(
+ 					unsigned long stack_size,
+ 					int __user *parent_tidptr,
+ 					int __user *child_tidptr,
+-					int pid)
++					struct pid *pid)
+ {
+ 	int retval;
+ 	struct task_struct *p = NULL;
+@@ -1023,7 +1023,7 @@ static struct task_struct *copy_process(
+ 	p->did_exec = 0;
+ 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
+ 	copy_flags(clone_flags, p);
+-	p->pid = pid;
++	p->pid = pid_nr(pid);
+ 	retval = -EFAULT;
+ 	if (clone_flags & CLONE_PARENT_SETTID)
+ 		if (put_user(p->pid, parent_tidptr))
+@@ -1261,7 +1261,7 @@ static struct task_struct *copy_process(
  			list_add_tail_rcu(&p->tasks, &init_task.tasks);
  			__get_cpu_var(process_counts)++;
+ 		}
+-		attach_pid(p, PIDTYPE_PID, find_pid(p->pid));
++		attach_pid(p, PIDTYPE_PID, pid);
+ 		nr_threads++;
+ 	}
+ 
+@@ -1325,7 +1325,8 @@ struct task_struct * __cpuinit fork_idle
+ 	struct task_struct *task;
+ 	struct pt_regs regs;
+ 
+-	task = copy_process(CLONE_VM, 0, idle_regs(&regs), 0, NULL, NULL, 0);
++	task = copy_process(CLONE_VM, 0, idle_regs(&regs), 0, NULL, NULL,
++				&init_struct_pid);
+ 	if (!IS_ERR(task))
+ 		init_idle(task, cpu);
+ 
+@@ -1375,7 +1376,7 @@ long do_fork(unsigned long clone_flags,
+ 			clone_flags |= CLONE_PTRACE;
+ 	}
+ 
+-	p = copy_process(clone_flags, stack_start, regs, stack_size, parent_tidptr, child_tidptr, nr);
++	p = copy_process(clone_flags, stack_start, regs, stack_size, parent_tidptr, child_tidptr, pid);
+ 	/*
+ 	 * Do this prior waking up the new thread - the thread pointer
+ 	 * might get invalid after that point, if the thread exits quickly.
 _
 
 Patches currently in -mm which might be from sukadev@us.ibm.com are
