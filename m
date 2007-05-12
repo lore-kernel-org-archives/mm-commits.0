@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch added to -mm tree
-Date: Sat, 12 May 2007 01:28:59 -0700
-Message-ID: <200705120828.l4C8Sx3L004778@shell0.pdx.osdl.net>
+Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch added to -mm tree
+Date: Sat, 12 May 2007 01:28:52 -0700
+Message-ID: <200705120828.l4C8SqjQ004775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46072 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756903AbXELI3E (ORCPT
+	by vger.kernel.org with ESMTP id S1756908AbXELI27 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 04:29:04 -0400
+	Sat, 12 May 2007 04:28:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mikew@google.com
 
 
 The patch titled
-     writeback: fix time ordering of the per superblock dirty inode lists 3
+     writeback: fix time ordering of the per superblock dirty inode lists: memory-backed inodes
 has been added to the -mm tree.  Its filename is
-     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: fix time ordering of the per superblock dirty inode lists 3
+Subject: writeback: fix time ordering of the per superblock dirty inode lists: memory-backed inodes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-While writeback is working against a dirty inode it does a check after trying
-to write some of the inode's pages:
+For reasons which escape me, inodes which are dirty against a ram-backed
+filesystem are managed in the same way as inodes which are backed by real
+devices.
 
-"did the lower layers skip some of the inode's dirty pages because they were
-locked (or under writeback, or whatever)"
+Probably we could optimise things here.  But given that we skip the entire
+supeblock as son as we hit the first dirty inode, there's not a lot to be
+gained.
 
-If this turns out to be true, we must move the inode back onto s_dirty and
-redirty it.  The reason for doing this is that fsync() and friends only check
-the s_dirty list, and those functions want to know about those pages which
-were locked, so they can be waited upon and, if necessary, rewritten.
+And the code does need to handle one particular non-backed superblock: the
+kernel's fake internal superblock which holds all the blockdevs.
 
-Problem is, that redirtying was putting the inode onto the tail of s_dirty
-without updating its timestamp.  This causes a violation of s_dirty ordering.
+Still.  At present when the code encounters an inode which is dirty against a
+memory-backed filesystem it will skip that inode by refiling it back onto
+s_dirty.  But it fails to update the inode's timestamp when doing so which at
+least makes the debugging code upset.
 
-Fix this by updating inode->dirtied_when when moving the inode onto s_dirty.
-
-But the code is still a bit buggy?  If the inode was _already_ dirty then we
-don't need to move it at all.  Oh well, hopefully it doesn't matter too much,
-as that was a redirtying, which was very recent anwyay.
+Fix.
 
 Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -56,18 +54,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/fs-writeback.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3 fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2
 +++ a/fs/fs-writeback.c
-@@ -484,7 +484,7 @@ int generic_sync_sb_inodes(struct super_
- 			 * buffers.  Skip this inode for now.
- 			 */
+@@ -415,7 +415,7 @@ int generic_sync_sb_inodes(struct super_
+ 
+ 		if (!bdi_cap_writeback_dirty(bdi)) {
  			check_dirty_inode(inode);
 -			list_move(&inode->i_list, &sb->s_dirty);
 +			redirty_tail(inode);
  			check_dirty_inode(inode);
- 		}
- 		spin_unlock(&inode_lock);
+ 			if (sb_is_blkdev_sb(sb)) {
+ 				/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
