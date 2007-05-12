@@ -1,53 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-dock-unsuppress-uevents.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:56 -0700
-Message-ID: <200705120515.l4C5FuTB001788@shell0.pdx.osdl.net>
+Subject: - acpi-bay-unsuppress-uevents.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:16:00 -0700
+Message-ID: <200705120516.l4C5G033001794@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43561 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756491AbXELFP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756503AbXELFQC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:58 -0400
+	Sat, 12 May 2007 01:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: dock: unsuppress uevents
+     ACPI: bay: unsuppress uevents
 has been removed from the -mm tree.  Its filename was
-     acpi-dock-unsuppress-uevents.patch
+     acpi-bay-unsuppress-uevents.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: dock: unsuppress uevents
+Subject: ACPI: bay: unsuppress uevents
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Platform devices may not send uevents by default - override the setting so
-that we can send uevents on dock/undock.
+Since platform devices seem to get uevents suppressed by default, manually
+unsuppress for the bay device since we want to be able to send uevents.
 
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/dock.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/acpi/bay.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/acpi/dock.c~acpi-dock-unsuppress-uevents drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-dock-unsuppress-uevents
-+++ a/drivers/acpi/dock.c
-@@ -751,6 +751,9 @@ static int dock_add(acpi_handle handle)
- 		return PTR_ERR(dock_device);
- 	}
+diff -puN drivers/acpi/bay.c~acpi-bay-unsuppress-uevents drivers/acpi/bay.c
+--- a/drivers/acpi/bay.c~acpi-bay-unsuppress-uevents
++++ a/drivers/acpi/bay.c
+@@ -288,6 +288,11 @@ static int bay_add(acpi_handle handle, i
+ 	new_bay->pdev = pdev;
+ 	platform_set_drvdata(pdev, new_bay);
  
-+	/* we want the dock device to send uevents */
-+	dock_device->dev.uevent_suppress = 0;
++	/*
++	 * we want the bay driver to be able to send uevents
++	 */
++	pdev->dev.uevent_suppress = 0;
 +
- 	ret = device_create_file(&dock_device->dev, &dev_attr_docked);
- 	if (ret) {
- 		printk("Error %d adding sysfs file\n", ret);
+ 	if (acpi_bay_add_fs(new_bay)) {
+ 		platform_device_unregister(new_bay->pdev);
+ 		goto bay_add_err;
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
