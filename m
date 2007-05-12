@@ -1,69 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-use-__set_current_state.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:14:52 -0700
-Message-ID: <200705120514.l4C5EqX0001693@shell0.pdx.osdl.net>
+Subject: - sunrpc-fix-crash-in-rpc_malloc.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:14:46 -0700
+Message-ID: <200705120514.l4C5Ekas001687@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52512 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755200AbXELFPH (ORCPT
+	by vger.kernel.org with ESMTP id S1756242AbXELFPK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:07 -0400
+	Sat, 12 May 2007 01:15:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milindchoudhary@gmail.com, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: use __set_current_state()
+     sunrpc: fix crash in rpc_malloc()
 has been removed from the -mm tree.  Its filename was
-     nfs-use-__set_current_state.patch
+     sunrpc-fix-crash-in-rpc_malloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfs: use __set_current_state()
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: sunrpc: fix crash in rpc_malloc()
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-use __set_current_state(TASK_*) instead of current->state = TASK_*, in fs/nfs
+While the comment says:
+ * To prevent rpciod from hanging, this allocator never sleeps,
+ * returning NULL if the request cannot be serviced immediately.
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+The function does not actually check for NULL pointers being returned.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/idmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sunrpc/sched.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/nfs/idmap.c~nfs-use-__set_current_state fs/nfs/idmap.c
---- a/fs/nfs/idmap.c~nfs-use-__set_current_state
-+++ a/fs/nfs/idmap.c
-@@ -272,7 +272,7 @@ nfs_idmap_id(struct idmap *idmap, struct
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	mutex_unlock(&idmap->idmap_im_lock);
- 	schedule();
--	current->state = TASK_RUNNING;
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&idmap->idmap_wq, &wq);
- 	mutex_lock(&idmap->idmap_im_lock);
- 
-@@ -333,7 +333,7 @@ nfs_idmap_name(struct idmap *idmap, stru
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	mutex_unlock(&idmap->idmap_im_lock);
- 	schedule();
--	current->state = TASK_RUNNING;
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&idmap->idmap_wq, &wq);
- 	mutex_lock(&idmap->idmap_im_lock);
- 
+diff -puN net/sunrpc/sched.c~sunrpc-fix-crash-in-rpc_malloc net/sunrpc/sched.c
+--- a/net/sunrpc/sched.c~sunrpc-fix-crash-in-rpc_malloc
++++ a/net/sunrpc/sched.c
+@@ -762,6 +762,10 @@ void *rpc_malloc(struct rpc_task *task, 
+ 		buf = mempool_alloc(rpc_buffer_mempool, gfp);
+ 	else
+ 		buf = kmalloc(size, gfp);
++
++	if (!buf)
++		return NULL;
++
+ 	*buf = size;
+ 	dprintk("RPC: %5u allocated buffer of size %zu at %p\n",
+ 			task->tk_pid, size, buf);
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-alsa.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+loop_probe-fix-return-value.patch
+lazy-freeing-of-memory-through-madv_free.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+lumpy-reclaim-v4.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
