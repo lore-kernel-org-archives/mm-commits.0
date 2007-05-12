@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch added to -mm tree
-Date: Sat, 12 May 2007 01:28:52 -0700
-Message-ID: <200705120828.l4C8SqjQ004775@shell0.pdx.osdl.net>
+Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch added to -mm tree
+Date: Sat, 12 May 2007 01:29:04 -0700
+Message-ID: <200705120829.l4C8T4Bd004781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32938 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756908AbXELI27 (ORCPT
+	by vger.kernel.org with ESMTP id S1756881AbXELI3J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 04:28:59 -0400
+	Sat, 12 May 2007 04:29:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mikew@google.com
 
 
 The patch titled
-     writeback: fix time ordering of the per superblock dirty inode lists: memory-backed inodes
+     writeback: fix time ordering of the per superblock dirty inode lists 4
 has been added to the -mm tree.  Its filename is
-     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: fix time ordering of the per superblock dirty inode lists: memory-backed inodes
+Subject: writeback: fix time ordering of the per superblock dirty inode lists 4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-For reasons which escape me, inodes which are dirty against a ram-backed
-filesystem are managed in the same way as inodes which are backed by real
-devices.
+When the kupdate function has tried to write back an expired inode it will
+then check to see whether some of the inode's pages are still dirty.
 
-Probably we could optimise things here.  But given that we skip the entire
-supeblock as son as we hit the first dirty inode, there's not a lot to be
-gained.
+This can happen when the filesystem decided to not write a page for some
+reason.  But it does _not_ occur due to redirtyings: a redirtying will set
+I_DIRTY_PAGES.
 
-And the code does need to handle one particular non-backed superblock: the
-kernel's fake internal superblock which holds all the blockdevs.
+What we need to do here is to set I_DIRTY_PAGES to reflect reality and to then
+put the inode onto the _head_ of s_dirty for consideration on the next kupdate
+pass, in five seconds time.
 
-Still.  At present when the code encounters an inode which is dirty against a
-memory-backed filesystem it will skip that inode by refiling it back onto
-s_dirty.  But it fails to update the inode's timestamp when doing so which at
-least makes the debugging code upset.
+Problem is, the code failed to modify the inode's timestamp when pushing the
+inode onto thehead of s_dirty.
 
-Fix.
+The patch:
+
+If there are no other inodes on s_dirty then we leave the inode's timestamp
+alone: it is already expired.
+
+If there _are_ other inodes on s_dirty then we arrange for this inode to get
+the same timestamp as the inode which is at the head of s_dirty, thus
+preserving the s_dirty ordering.  But we only need to do this if this inode
+purports to have been dirtied before the one at head-of-list.
 
 Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2 fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4
 +++ a/fs/fs-writeback.c
-@@ -415,7 +415,7 @@ int generic_sync_sb_inodes(struct super_
+@@ -211,6 +211,28 @@ static void redirty_tail(struct inode *i
+ }
  
- 		if (!bdi_cap_writeback_dirty(bdi)) {
- 			check_dirty_inode(inode);
--			list_move(&inode->i_list, &sb->s_dirty);
-+			redirty_tail(inode);
- 			check_dirty_inode(inode);
- 			if (sb_is_blkdev_sb(sb)) {
+ /*
++ * Redirty an inode, but mark it as the very next-to-be-written inode on its
++ * superblock's dirty-inode list.
++ * We need to preserve s_dirty's reverse-time-orderedness, so we cheat by
++ * setting this inode's dirtied_when to the same value as that of the inode
++ * which is presently head-of-list, if present head-of-list is newer than this
++ * inode. (head-of-list is the least-recently-dirtied inode: the oldest one).
++ */
++static void redirty_head(struct inode *inode)
++{
++	struct super_block *sb = inode->i_sb;
++
++	if (!list_empty(&sb->s_dirty)) {
++		struct inode *head_inode;
++
++		head_inode = list_entry(sb->s_dirty.prev, struct inode, i_list);
++		if (time_after(inode->dirtied_when, head_inode->dirtied_when))
++			inode->dirtied_when = head_inode->dirtied_when;
++	}
++	list_move_tail(&inode->i_list, &sb->s_dirty);
++}
++
++/*
+  * Write a single inode's dirty pages and inode data out to disk.
+  * If `wait' is set, wait on the writeout.
+  *
+@@ -272,7 +294,7 @@ __sync_single_inode(struct inode *inode,
+ 				 */
+ 				inode->i_state |= I_DIRTY_PAGES;
+ 				check_dirty_inode(inode);
+-				list_move_tail(&inode->i_list, &sb->s_dirty);
++				redirty_head(inode);
+ 				check_dirty_inode(inode);
+ 			} else {
  				/*
 _
 
