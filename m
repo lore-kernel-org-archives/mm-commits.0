@@ -1,69 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - uml-shrink-kernel-stacks.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:33 -0700
-Message-ID: <200705120533.l4C5XXJr002111@shell0.pdx.osdl.net>
+Subject: - let-sysv68_partition-default-to-yes-on-vme-only.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:33:16 -0700
+Message-ID: <200705120533.l4C5XGQX002094@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33650 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809AbXELFdg (ORCPT
+	by vger.kernel.org with ESMTP id S1752314AbXELFda (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:33:36 -0400
+	Sat, 12 May 2007 01:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: shrink kernel stacks
+     Let SYSV68_PARTITION default to yes on VME only
 has been removed from the -mm tree.  Its filename was
-     uml-shrink-kernel-stacks.patch
+     let-sysv68_partition-default-to-yes-on-vme-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: shrink kernel stacks
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Let SYSV68_PARTITION default to yes on VME only
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Make kernel stacks be 1 page on i386 and 2 pages on x86_64.  These match the
-host values.
+Don't enable SYSV68 partition table support on all m68k boxes by default,
+only on Motorola VME boards.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Philippe De Muyter <phdm@macqel.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig   |    3 ++-
- arch/um/defconfig |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/partitions/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/Kconfig~uml-shrink-kernel-stacks arch/um/Kconfig
---- a/arch/um/Kconfig~uml-shrink-kernel-stacks
-+++ a/arch/um/Kconfig
-@@ -277,7 +277,8 @@ config HIGHMEM
+diff -puN fs/partitions/Kconfig~let-sysv68_partition-default-to-yes-on-vme-only fs/partitions/Kconfig
+--- a/fs/partitions/Kconfig~let-sysv68_partition-default-to-yes-on-vme-only
++++ a/fs/partitions/Kconfig
+@@ -239,7 +239,7 @@ config EFI_PARTITION
  
- config KERNEL_STACK_ORDER
- 	int "Kernel stack size order"
--	default 2
-+	default 1 if 64BIT
-+	default 0 if !64BIT
+ config SYSV68_PARTITION
+ 	bool "SYSV68 partition table support" if PARTITION_ADVANCED
+-	default y if M68K
++	default y if VME
  	help
- 	This option determines the size of UML kernel stacks.  They will
- 	be 1 << order pages.  The default is OK unless you're running Valgrind
-diff -puN arch/um/defconfig~uml-shrink-kernel-stacks arch/um/defconfig
---- a/arch/um/defconfig~uml-shrink-kernel-stacks
-+++ a/arch/um/defconfig
-@@ -86,7 +86,7 @@ CONFIG_MCONSOLE=y
- # CONFIG_MAGIC_SYSRQ is not set
- CONFIG_NEST_LEVEL=0
- # CONFIG_HIGHMEM is not set
--CONFIG_KERNEL_STACK_ORDER=2
-+CONFIG_KERNEL_STACK_ORDER=0
- CONFIG_UML_REAL_TIME_CLOCK=y
- 
- #
+ 	  Say Y here if you would like to be able to read the hard disk
+ 	  partition table format used by Motorola Delta machines (using
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
+git-dvb.patch
