@@ -1,141 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - mips-excite-use-__maybe_unused.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:36:45 -0700
-Message-ID: <200705120536.l4C5ajdx002400@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-netdev.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:36:52 -0700
+Message-ID: <200705120536.l4C5aqaH002412@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38388 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756886AbXELFhA (ORCPT
+	by vger.kernel.org with ESMTP id S1754790AbXELFhB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:37:00 -0400
+	Sat, 12 May 2007 01:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ralf@linux-mips.org, thomas.koeller@baslerweb.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: excite: use __maybe_unused
+     Use menuconfig objects: netdev
 has been removed from the -mm tree.  Its filename was
-     mips-excite-use-__maybe_unused.patch
+     use-menuconfig-objects-netdev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips: excite: use __maybe_unused
-From: David Rientjes <rientjes@google.com>
+Subject: Use menuconfig objects: netdev
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Replace variable instances of __attribute__((unused)) with
-__maybe_unused.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Koeller <thomas.koeller@baslerweb.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/basler/excite/excite_device.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/net/Kconfig |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN arch/mips/basler/excite/excite_device.c~mips-excite-use-__maybe_unused arch/mips/basler/excite/excite_device.c
---- a/arch/mips/basler/excite/excite_device.c~mips-excite-use-__maybe_unused
-+++ a/arch/mips/basler/excite/excite_device.c
-@@ -68,7 +68,7 @@ enum {
+diff -puN drivers/net/Kconfig~use-menuconfig-objects-netdev drivers/net/Kconfig
+--- a/drivers/net/Kconfig~use-menuconfig-objects-netdev
++++ a/drivers/net/Kconfig
+@@ -1942,8 +1942,12 @@ endmenu
+ #	Gigabit Ethernet
+ #
  
+-menu "Ethernet (1000 Mbit)"
++menuconfig NETDEV_1000
++	bool "Ethernet (1000 Mbit)"
+ 	depends on !UML
++	default y
++
++if NETDEV_1000
  
- static struct resource
--	excite_ctr_resource __attribute__((unused)) = {
-+	excite_ctr_resource __maybe_unused = {
- 		.name		= "GPI counters",
- 		.start		= 0,
- 		.end		= 5,
-@@ -77,7 +77,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_gpislice_resource __attribute__((unused)) = {
-+	excite_gpislice_resource __maybe_unused = {
- 		.name		= "GPI slices",
- 		.start		= 0,
- 		.end		= 1,
-@@ -86,7 +86,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_mdio_channel_resource __attribute__((unused)) = {
-+	excite_mdio_channel_resource __maybe_unused = {
- 		.name		= "MDIO channels",
- 		.start		= 0,
- 		.end		= 1,
-@@ -95,7 +95,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_fifomem_resource __attribute__((unused)) = {
-+	excite_fifomem_resource __maybe_unused = {
- 		.name		= "FIFO memory",
- 		.start		= 0,
- 		.end		= 767,
-@@ -104,7 +104,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_scram_resource __attribute__((unused)) = {
-+	excite_scram_resource __maybe_unused = {
- 		.name		= "Scratch RAM",
- 		.start		= EXCITE_PHYS_SCRAM,
- 		.end		= EXCITE_PHYS_SCRAM + EXCITE_SIZE_SCRAM - 1,
-@@ -113,7 +113,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_fpga_resource __attribute__((unused)) = {
-+	excite_fpga_resource __maybe_unused = {
- 		.name		= "System FPGA",
- 		.start		= EXCITE_PHYS_FPGA,
- 		.end		= EXCITE_PHYS_FPGA + EXCITE_SIZE_FPGA - 1,
-@@ -122,7 +122,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_nand_resource __attribute__((unused)) = {
-+	excite_nand_resource __maybe_unused = {
- 		.name		= "NAND flash control",
- 		.start		= EXCITE_PHYS_NAND,
- 		.end		= EXCITE_PHYS_NAND + EXCITE_SIZE_NAND - 1,
-@@ -131,7 +131,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_titan_resource __attribute__((unused)) = {
-+	excite_titan_resource __maybe_unused = {
- 		.name		= "TITAN registers",
- 		.start		= EXCITE_PHYS_TITAN,
- 		.end		= EXCITE_PHYS_TITAN + EXCITE_SIZE_TITAN - 1,
+ config ACENIC
+ 	tristate "Alteon AceNIC/3Com 3C985/NetGear GA620 Gigabit support"
+@@ -2369,14 +2373,18 @@ config ATL1
+ 	  To compile this driver as a module, choose M here.  The module
+ 	  will be called atl1.
+ 
+-endmenu
++endif # NETDEV_1000
+ 
+ #
+ #	10 Gigabit Ethernet
+ #
+ 
+-menu "Ethernet (10000 Mbit)"
++menuconfig NETDEV_10000
++	bool "Ethernet (10000 Mbit)"
+ 	depends on !UML
++	default y
++
++if NETDEV_10000
+ 
+ config CHELSIO_T1
+         tristate "Chelsio 10Gb Ethernet support"
+@@ -2551,7 +2559,7 @@ config MLX4_DEBUG
+ 	  debug_level module parameter (which can also be set after
+ 	  the driver is loaded through sysfs).
+ 
+-endmenu
++endif # NETDEV_10000
+ 
+ source "drivers/net/tokenring/Kconfig"
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-git-alsa.patch
-powerpc-ps3-use-__maybe_unused.patch
-scsi-fix-ambiguous-gdthtable-definition.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-x86_64-fix-e820_hole_size-based-on-address-ranges.patch
-x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
-x86_64-slit-fake-pxm-to-node-mapping-for-fake-numa-2.patch
-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-ii-sound.patch
+git-dvb.patch
+git-ieee1394.patch
+use-menuconfig-objects-ii-infiniband.patch
+use-menuconfig-objects-ii-kvm-virt.patch
+use-menuconfig-objects-ide.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-usb.patch
+use-menuconfig-objects-crypto.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-rtc.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
