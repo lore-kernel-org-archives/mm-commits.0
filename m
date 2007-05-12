@@ -1,64 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-ii-ieee1394.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:36:23 -0700
-Message-ID: <200705120536.l4C5aNAg002370@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-libata.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:36:40 -0700
+Message-ID: <200705120536.l4C5aefR002389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40043 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756665AbXELFgl (ORCPT
+	by vger.kernel.org with ESMTP id S1756777AbXELFgt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:36:41 -0400
+	Sat, 12 May 2007 01:36:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects II - IEEE1394
+     Use menuconfig objects: libata
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-ii-ieee1394.patch
+     use-menuconfig-objects-libata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects II - IEEE1394
+Subject: Use menuconfig objects: libata
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Make a "menuconfig" out of the Kconfig objects "menu, ..., endmenu",
-so that the user can disable all the options in that menu at once
-instead of having to disable each option separately.
-
-Follows Stefan's suggestion as per http://lkml.org/lkml/2007/4/28/108
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/Kconfig |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/ata/Kconfig |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ieee1394/Kconfig~use-menuconfig-objects-ii-ieee1394 drivers/ieee1394/Kconfig
---- a/drivers/ieee1394/Kconfig~use-menuconfig-objects-ii-ieee1394
-+++ a/drivers/ieee1394/Kconfig
-@@ -1,5 +1,9 @@
--menu "IEEE 1394 (FireWire) support"
-+menuconfig IEEE1394_SUPPORT
-+	bool "IEEE 1394 (FireWire) support"
- 	depends on PCI || BROKEN
-+	default y
-+
-+if IEEE1394_SUPPORT
+diff -puN drivers/ata/Kconfig~use-menuconfig-objects-libata drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~use-menuconfig-objects-libata
++++ a/drivers/ata/Kconfig
+@@ -2,11 +2,9 @@
+ # SATA/PATA driver configuration
+ #
  
- source "drivers/firewire/Kconfig"
+-menu "Serial ATA (prod) and Parallel ATA (experimental) drivers"
++menuconfig ATA
++	tristate "Serial ATA (prod) and Parallel ATA (experimental) drivers"
+ 	depends on HAS_IOMEM
+-
+-config ATA
+-	tristate "ATA device support"
+ 	depends on BLOCK
+ 	depends on !(M32R || M68K) || BROKEN
+ 	depends on !SUN4 || BROKEN
+@@ -594,6 +592,4 @@ config PATA_SCC
  
-@@ -147,4 +151,4 @@ config IEEE1394_RAWIO
- 	  To compile this driver as a module, say M here: the module will be
- 	  called raw1394.
+ 	  If unsure, say N.
  
+-endif
 -endmenu
-+endif # IEEE1394_SUPPORT
+-
++endif # ATA
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
