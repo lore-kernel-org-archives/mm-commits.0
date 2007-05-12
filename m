@@ -1,64 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - dont-init-pgrp-and-__session-in-init_signals.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:34:51 -0700
-Message-ID: <200705120534.l4C5YppS002231@shell0.pdx.osdl.net>
+Subject: - signal-timer-event-fds-v9-timerfd-compat-code.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:35:12 -0700
+Message-ID: <200705120535.l4C5ZBZl002270@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40132 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755382AbXELFfD (ORCPT
+	by vger.kernel.org with ESMTP id S1755382AbXELFfO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:35:03 -0400
+	Sat, 12 May 2007 01:35:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@us.ibm.com, clg@fr.ibm.com, ebiederm@xmission.com, haveblue@us.ibm.com, oleg@tv-sign.ru, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Don't init pgrp and __session in INIT_SIGNALS
+     signal/timer/event: timerfd compat code
 has been removed from the -mm tree.  Its filename was
-     dont-init-pgrp-and-__session-in-init_signals.patch
+     signal-timer-event-fds-v9-timerfd-compat-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Don't init pgrp and __session in INIT_SIGNALS
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: signal/timer/event: timerfd compat code
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Remove initialization of pgrp and __session in INIT_SIGNALS, as these are
-later set by the call to __set_special_pids() in init/main.c by the patch:
+This patch implements the necessary compat code for the timerfd system call.
 
-	explicitly-set-pgid-and-sid-of-init-process.patch
-
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/compat.c            |   23 +++++++++++++++++++++++
+ include/linux/compat.h |    5 +++++
+ kernel/compat.c        |    8 ++++----
+ 3 files changed, 32 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/init_task.h~dont-init-pgrp-and-__session-in-init_signals include/linux/init_task.h
---- a/include/linux/init_task.h~dont-init-pgrp-and-__session-in-init_signals
-+++ a/include/linux/init_task.h
-@@ -65,9 +65,9 @@
- 	.posix_timers	 = LIST_HEAD_INIT(sig.posix_timers),		\
- 	.cpu_timers	= INIT_CPU_TIMERS(sig.cpu_timers),		\
- 	.rlim		= INIT_RLIMITS,					\
--	.pgrp		= 1,						\
-+	.pgrp		= 0,						\
- 	.tty_old_pgrp   = NULL,						\
--	{ .__session      = 1},						\
-+	{ .__session      = 0},						\
+diff -puN fs/compat.c~signal-timer-event-fds-v9-timerfd-compat-code fs/compat.c
+--- a/fs/compat.c~signal-timer-event-fds-v9-timerfd-compat-code
++++ a/fs/compat.c
+@@ -2225,3 +2225,26 @@ asmlinkage long compat_sys_signalfd(int 
+ 
+ #endif /* CONFIG_SIGNALFD */
+ 
++#ifdef CONFIG_TIMERFD
++
++asmlinkage long compat_sys_timerfd(int ufd, int clockid, int flags,
++				   const struct compat_itimerspec __user *utmr)
++{
++	long res;
++	struct itimerspec t;
++	struct itimerspec __user *ut;
++
++	res = -EFAULT;
++	if (get_compat_itimerspec(&t, utmr))
++		goto err_exit;
++	ut = compat_alloc_user_space(sizeof(*ut));
++	if (copy_to_user(ut, &t, sizeof(t)) )
++		goto err_exit;
++
++	res = sys_timerfd(ufd, clockid, flags, ut);
++err_exit:
++	return res;
++}
++
++#endif /* CONFIG_TIMERFD */
++
+diff -puN include/linux/compat.h~signal-timer-event-fds-v9-timerfd-compat-code include/linux/compat.h
+--- a/include/linux/compat.h~signal-timer-event-fds-v9-timerfd-compat-code
++++ a/include/linux/compat.h
+@@ -225,6 +225,11 @@ static inline int compat_timespec_compar
+ 	return lhs->tv_nsec - rhs->tv_nsec;
  }
  
- extern struct nsproxy init_nsproxy;
++extern int get_compat_itimerspec(struct itimerspec *dst,
++				 const struct compat_itimerspec __user *src);
++extern int put_compat_itimerspec(struct compat_itimerspec __user *dst,
++				 const struct itimerspec *src);
++
+ asmlinkage long compat_sys_adjtimex(struct compat_timex __user *utp);
+ 
+ extern int compat_printk(const char *fmt, ...);
+diff -puN kernel/compat.c~signal-timer-event-fds-v9-timerfd-compat-code kernel/compat.c
+--- a/kernel/compat.c~signal-timer-event-fds-v9-timerfd-compat-code
++++ a/kernel/compat.c
+@@ -475,8 +475,8 @@ asmlinkage long compat_sys_sched_getaffi
+ 	return min_length;
+ }
+ 
+-static int get_compat_itimerspec(struct itimerspec *dst, 
+-				 struct compat_itimerspec __user *src)
++int get_compat_itimerspec(struct itimerspec *dst,
++			  const struct compat_itimerspec __user *src)
+ { 
+ 	if (get_compat_timespec(&dst->it_interval, &src->it_interval) ||
+ 	    get_compat_timespec(&dst->it_value, &src->it_value))
+@@ -484,8 +484,8 @@ static int get_compat_itimerspec(struct 
+ 	return 0;
+ } 
+ 
+-static int put_compat_itimerspec(struct compat_itimerspec __user *dst, 
+-				 struct itimerspec *src)
++int put_compat_itimerspec(struct compat_itimerspec __user *dst,
++			  const struct itimerspec *src)
+ { 
+ 	if (put_compat_timespec(&src->it_interval, &dst->it_interval) ||
+ 	    put_compat_timespec(&src->it_value, &dst->it_value))
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
+compat-signalfd-and-timerfd-are-cond-syscalls.patch
+x86_64-use-signalfd-and-timerfd-compat-syscalls.patch
