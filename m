@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Fri, 11 May 2007 22:27:41 -0700
-Message-ID: <200705120527.l4C5ReM3001948@shell0.pdx.osdl.net>
+Subject: + git-mips-fixup.patch added to -mm tree
+Date: Fri, 11 May 2007 22:28:46 -0700
+Message-ID: <200705120528.l4C5SjDN001968@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52569 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754948AbXELF1n (ORCPT
+	by vger.kernel.org with ESMTP id S1750930AbXELF2s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:27:43 -0400
+	Sat, 12 May 2007 01:28:48 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5Rf23024374
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5SkcQ024409
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:27:42 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:28:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-dvb-fixup
+     git-mips-fixup
 has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     git-mips-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,30 +30,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/Kconfig |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/mips/Kconfig        |    4 ----
+ arch/mips/cobalt/setup.c |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-fixup drivers/media/video/em28xx/Kconfig
---- a/drivers/media/video/em28xx/Kconfig~git-dvb-fixup
-+++ a/drivers/media/video/em28xx/Kconfig
-@@ -1,11 +1,6 @@
- config VIDEO_EM28XX
- 	tristate "Empia EM2800/2820/2840 USB video capture support"
--<<<<<<< HEAD/drivers/media/video/em28xx/Kconfig
- 	depends on VIDEO_V4L1 && I2C
--	select VIDEO_BUF
+diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
+--- a/arch/mips/Kconfig~git-mips-fixup
++++ a/arch/mips/Kconfig
+@@ -617,12 +617,8 @@ config TOSHIBA_JMR3927
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+ 	select SYS_SUPPORTS_LITTLE_ENDIAN
+ 	select SYS_SUPPORTS_BIG_ENDIAN
+-<<<<<<< HEAD/arch/mips/Kconfig
+-	select GENERIC_HARDIRQS_NO__DO_IRQ
 -=======
--	depends on VIDEO_V4L1 && I2C
-->>>>>>> /drivers/media/video/em28xx/Kconfig
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
+ 	select TOSHIBA_BOARDS
+ 	select GENERIC_HARDIRQS_NO__DO_IRQ
+->>>>>>> /arch/mips/Kconfig
+ 
+ config TOSHIBA_RBTX4927
+ 	bool "Toshiba TBTX49[23]7 board"
+diff -puN arch/mips/cobalt/setup.c~git-mips-fixup arch/mips/cobalt/setup.c
+--- a/arch/mips/cobalt/setup.c~git-mips-fixup
++++ a/arch/mips/cobalt/setup.c
+@@ -103,9 +103,6 @@ void __init plat_mem_setup(void)
+ 	/* These resources have been reserved by VIA SuperI/O chip. */
+ 	for (i = 0; i < ARRAY_SIZE(cobalt_reserved_resources); i++)
+ 		request_resource(&ioport_resource, cobalt_reserved_resources + i);
+-<<<<<<< HEAD/arch/mips/cobalt/setup.c
+-=======
+-
+         /* Read the cobalt id register out of the PCI config space */
+         PCI_CFG_SET(devfn, (VIA_COBALT_BRD_ID_REG & ~0x3));
+         cobalt_board_id = GT_READ(GT_PCI0_CFGDATA_OFS);
+@@ -128,7 +125,6 @@ void __init plat_mem_setup(void)
+ 		early_serial_setup(&uart);
+ #endif
+ 	}
+->>>>>>> /arch/mips/cobalt/setup.c
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +98,7 @@ git-ieee1394.patch
 git-leds.patch
 git-leds-fixup.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-e1000.patch
+git-mips-fixup.patch
 fix-race-condition-about-network-device-name-fix.patch
 git-battery.patch
 git-ocfs2.patch
