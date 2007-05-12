@@ -1,53 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + remove-slab_ctor_constructor-fix.patch added to -mm tree
-Date: Fri, 11 May 2007 16:56:08 -0700
-Message-ID: <200705112359.l4BNx9GN029851@shell0.pdx.osdl.net>
+Subject: - git-ia64-sa_interrupt-is-deprecated.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:14:13 -0700
+Message-ID: <200705120514.l4C5EFgh001663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33590 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933386AbXEKX7Q (ORCPT
+	by vger.kernel.org with ESMTP id S1757430AbXELFOS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 May 2007 19:59:16 -0400
+	Sat, 12 May 2007 01:14:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+To: akpm@linux-foundation.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove-slab_ctor_constructor-fix
-has been added to the -mm tree.  Its filename is
-     remove-slab_ctor_constructor-fix.patch
+     git-ia64: SA_INTERRUPT is deprecated
+has been removed from the -mm tree.  Its filename was
+     git-ia64-sa_interrupt-is-deprecated.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove-slab_ctor_constructor-fix
+Subject: git-ia64: SA_INTERRUPT is deprecated
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
+ arch/ia64/kernel/irq_ia64.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~remove-slab_ctor_constructor-fix mm/slab.c
---- a/mm/slab.c~remove-slab_ctor_constructor-fix
-+++ a/mm/slab.c
-@@ -3074,7 +3074,7 @@ static void *cache_alloc_debugcheck_afte
- #endif
- 	objp += obj_offset(cachep);
- 	if (cachep->ctor && cachep->flags & SLAB_POISON)
--		cachep->ctor(objp, cachep, SLAB_CTOR_CONSTRUCTOR);
-+		cachep->ctor(objp, cachep, 0);
- #if ARCH_SLAB_MINALIGN
- 	if ((u32)objp & (ARCH_SLAB_MINALIGN-1)) {
- 		printk(KERN_ERR "0x%p: not aligned to ARCH_SLAB_MINALIGN=%d\n",
+diff -puN arch/ia64/kernel/irq_ia64.c~git-ia64-sa_interrupt-is-deprecated arch/ia64/kernel/irq_ia64.c
+--- a/arch/ia64/kernel/irq_ia64.c~git-ia64-sa_interrupt-is-deprecated
++++ a/arch/ia64/kernel/irq_ia64.c
+@@ -289,7 +289,7 @@ static struct irqaction resched_irqactio
+ 
+ static struct irqaction tlb_irqaction = {
+ 	.handler =	dummy_handler,
+-	.flags =	SA_INTERRUPT,
++	.flags =	IRQF_DISABLED,
+ 	.name =		"tlb_flush"
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,3 +119,4 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 w1-build-fix.patch
 check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
