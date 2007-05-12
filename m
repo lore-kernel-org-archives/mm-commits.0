@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-fixup.patch added to -mm tree
-Date: Fri, 11 May 2007 22:28:46 -0700
-Message-ID: <200705120528.l4C5SjDN001968@shell0.pdx.osdl.net>
+Subject: + git-nfs-server-cluster-locking-api-fixup.patch added to -mm tree
+Date: Fri, 11 May 2007 22:30:06 -0700
+Message-ID: <200705120530.l4C5U5nW002019@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54235 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750930AbXELF2s (ORCPT
+	by vger.kernel.org with ESMTP id S1750930AbXELFaI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:28:48 -0400
+	Sat, 12 May 2007 01:30:08 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5SkcQ024409
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5U6Zs024466
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:28:47 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:30:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-mips-fixup
+     git-nfs-server-cluster-locking-api-fixup
 has been added to the -mm tree.  Its filename is
-     git-mips-fixup.patch
+     git-nfs-server-cluster-locking-api-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,53 +30,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mips-fixup
+Subject: git-nfs-server-cluster-locking-api-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig        |    4 ----
- arch/mips/cobalt/setup.c |    4 ----
- 2 files changed, 8 deletions(-)
+ fs/locks.c |   54 ---------------------------------------------------
+ 1 file changed, 54 deletions(-)
 
-diff -puN arch/mips/Kconfig~git-mips-fixup arch/mips/Kconfig
---- a/arch/mips/Kconfig~git-mips-fixup
-+++ a/arch/mips/Kconfig
-@@ -617,12 +617,8 @@ config TOSHIBA_JMR3927
- 	select SYS_SUPPORTS_32BIT_KERNEL
- 	select SYS_SUPPORTS_LITTLE_ENDIAN
- 	select SYS_SUPPORTS_BIG_ENDIAN
--<<<<<<< HEAD/arch/mips/Kconfig
--	select GENERIC_HARDIRQS_NO__DO_IRQ
--=======
- 	select TOSHIBA_BOARDS
- 	select GENERIC_HARDIRQS_NO__DO_IRQ
-->>>>>>> /arch/mips/Kconfig
- 
- config TOSHIBA_RBTX4927
- 	bool "Toshiba TBTX49[23]7 board"
-diff -puN arch/mips/cobalt/setup.c~git-mips-fixup arch/mips/cobalt/setup.c
---- a/arch/mips/cobalt/setup.c~git-mips-fixup
-+++ a/arch/mips/cobalt/setup.c
-@@ -103,9 +103,6 @@ void __init plat_mem_setup(void)
- 	/* These resources have been reserved by VIA SuperI/O chip. */
- 	for (i = 0; i < ARRAY_SIZE(cobalt_reserved_resources); i++)
- 		request_resource(&ioport_resource, cobalt_reserved_resources + i);
--<<<<<<< HEAD/arch/mips/cobalt/setup.c
--=======
--
-         /* Read the cobalt id register out of the PCI config space */
-         PCI_CFG_SET(devfn, (VIA_COBALT_BRD_ID_REG & ~0x3));
-         cobalt_board_id = GT_READ(GT_PCI0_CFGDATA_OFS);
-@@ -128,7 +125,6 @@ void __init plat_mem_setup(void)
- 		early_serial_setup(&uart);
- #endif
- 	}
-->>>>>>> /arch/mips/cobalt/setup.c
+diff -puN fs/locks.c~git-nfs-server-cluster-locking-api-fixup fs/locks.c
+--- a/fs/locks.c~git-nfs-server-cluster-locking-api-fixup
++++ a/fs/locks.c
+@@ -1598,59 +1598,6 @@ asmlinkage long sys_flock(unsigned int f
+ 	return error;
  }
  
- /*
+-<<<<<<< HEAD/fs/locks.c
+-/**
+- * vfs_test_lock - test file byte range lock
+- * @filp: The file to test lock for
+- * @fl: The lock to test
+- * @conf: Place to return a copy of the conflicting lock, if found
+- *
+- * Returns -ERRNO on failure.  Indicates presence of conflicting lock by
+- * setting conf->fl_type to something other than F_UNLCK.
+- */
+-int vfs_test_lock(struct file *filp, struct file_lock *fl)
+-{
+-	if (filp->f_op && filp->f_op->lock)
+-		return filp->f_op->lock(filp, F_GETLK, fl);
+-	posix_test_lock(filp, fl);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vfs_test_lock);
+-
+-static int posix_lock_to_flock(struct flock *flock, struct file_lock *fl)
+-{
+-	flock->l_pid = fl->fl_pid;
+-#if BITS_PER_LONG == 32
+-	/*
+-	 * Make sure we can represent the posix lock via
+-	 * legacy 32bit flock.
+-	 */
+-	if (fl->fl_start > OFFT_OFFSET_MAX)
+-		return -EOVERFLOW;
+-	if (fl->fl_end != OFFSET_MAX && fl->fl_end > OFFT_OFFSET_MAX)
+-		return -EOVERFLOW;
+-#endif
+-	flock->l_start = fl->fl_start;
+-	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
+-		fl->fl_end - fl->fl_start + 1;
+-	flock->l_whence = 0;
+-	flock->l_type = fl->fl_type;
+-	return 0;
+-}
+-
+-#if BITS_PER_LONG == 32
+-static void posix_lock_to_flock64(struct flock64 *flock, struct file_lock *fl)
+-{
+-	flock->l_pid = fl->fl_pid;
+-	flock->l_start = fl->fl_start;
+-	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
+-		fl->fl_end - fl->fl_start + 1;
+-	flock->l_whence = 0;
+-	flock->l_type = fl->fl_type;
+-}
+-#endif
+-
+-=======
+ /**
+  * vfs_test_lock - test file byte range lock
+  * @filp: The file to test lock for
+@@ -1701,7 +1648,6 @@ static void posix_lock_to_flock64(struct
+ }
+ #endif
+ 
+->>>>>>> /fs/locks.c
+ /* Report the first existing lock that would conflict with l.
+  * This implements the F_GETLK command of fcntl().
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +134,7 @@ pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-mips-fixup.patch
 fix-race-condition-about-network-device-name-fix.patch
 git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
 git-ocfs2.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
