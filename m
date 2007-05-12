@@ -1,76 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - bug-in-mm-thrashc-function-grab_swap_token.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:32:30 -0700
-Message-ID: <200705120532.l4C5WUKN002046@shell0.pdx.osdl.net>
+Subject: - afs-fix-interminable-loop-in-afs_write_back_from_locked_page.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:32:47 -0700
+Message-ID: <200705120532.l4C5WlUh002060@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43589 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756665AbXELFc4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756989AbXELFdE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:32:56 -0400
+	Sat, 12 May 2007 01:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikukkon@miku.homelinux.net, mikukkon@iki.fi, riel@redhat.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mikukkon@iki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Bug in mm/thrash.c function grab_swap_token()
+     AFS: fix interminable loop in afs_write_back_from_locked_page()
 has been removed from the -mm tree.  Its filename was
-     bug-in-mm-thrashc-function-grab_swap_token.patch
+     afs-fix-interminable-loop-in-afs_write_back_from_locked_page.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
 
 ------------------------------------------------------
-Subject: Bug in mm/thrash.c function grab_swap_token()
-=46rom: Mika Kukkonen <mikukkon@miku.homelinux.net>
+Subject: AFS: fix interminable loop in afs_write_back_from_locked_page(=
+)
+=46rom: David Howells <dhowells@redhat.com>
 
 =46ollowing bug was uncovered by compiling with '-W' flag:
 
-  CC      mm/thrash.o
-mm/thrash.c: In function =E2=80=98grab_swap_token=E2=80=99:
-mm/thrash.c:52: warning: comparison of unsigned expression < 0 is alway=
-s false
+  CC [M]  fs/afs/write.o
+fs/afs/write.c: In function =E2=80=98afs_write_back_from_locked_page=E2=
+=80=99:
+fs/afs/write.c:398: warning: comparison of unsigned expression >=3D 0 i=
+s always true
 
-Variable token_priority is unsigned, so decrementing first and then
-checking the result does not work; fixed by reversing the test, patch
-attached (compile tested only).
-
-I am not sure if likely() makes much sense in this new situation, but
-I'll let somebody else to make a decision on that.
+Loop variable 'n' is unsigned, so wraps around happily as far as I can
+see. Trival fix attached (compile tested only).
 
 Signed-off-by: Mika Kukkonen <mikukkon@iki.fi>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/thrash.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/afs/write.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/thrash.c~bug-in-mm-thrashc-function-grab_swap_token mm/thr=
-ash.c
---- a/mm/thrash.c~bug-in-mm-thrashc-function-grab_swap_token
-+++ a/mm/thrash.c
-@@ -48,9 +48,8 @@ void grab_swap_token(void)
- 		if (current_interval < current->mm->last_interval)
- 			current->mm->token_priority++;
- 		else {
--			current->mm->token_priority--;
--			if (unlikely(current->mm->token_priority < 0))
--				current->mm->token_priority =3D 0;
-+			if (likely(current->mm->token_priority > 0))
-+				current->mm->token_priority--;
+diff -puN fs/afs/write.c~afs-fix-interminable-loop-in-afs_write_back_fr=
+om_locked_page fs/afs/write.c
+--- a/fs/afs/write.c~afs-fix-interminable-loop-in-afs_write_back_from_l=
+ocked_page
++++ a/fs/afs/write.c
+@@ -395,8 +395,9 @@ static int afs_write_back_from_locked_pa
+ 		if (n =3D=3D 0)
+ 			goto no_more;
+ 		if (pages[0]->index !=3D start) {
+-			for (n--; n >=3D 0; n--)
+-				put_page(pages[n]);
++			do {
++				put_page(pages[--n]);
++			} while (n > 0);
+ 			goto no_more;
  		}
- 		/* Check if we deserve the token */
- 		if (current->mm->token_priority >
+=20
 _
 
-Patches currently in -mm which might be from mikukkon@miku.homelinux.ne=
-t are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-couple-fixes-to-fs-ecryptfs-inodec.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+remove-slab_ctor_constructor.patch
+split-usermodehelper-setup-from-execution.patch
+mutex-subsystem-synchro-test-module.patch
