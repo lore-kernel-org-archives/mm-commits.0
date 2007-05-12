@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-fixup.patch added to -mm tree
-Date: Fri, 11 May 2007 22:26:55 -0700
-Message-ID: <200705120526.l4C5QsmK001945@shell0.pdx.osdl.net>
+Subject: + git-dvb-fixup.patch added to -mm tree
+Date: Fri, 11 May 2007 22:27:41 -0700
+Message-ID: <200705120527.l4C5ReM3001948@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40044 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754760AbXELF06 (ORCPT
+	by vger.kernel.org with ESMTP id S1754948AbXELF1n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:26:58 -0400
+	Sat, 12 May 2007 01:27:43 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5QtfH024351
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5Rf23024374
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:26:56 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:27:42 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-alsa-fixup
+     git-dvb-fixup
 has been added to the -mm tree.  Its filename is
-     git-alsa-fixup.patch
+     git-dvb-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,83 +30,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
+Subject: git-dvb-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_codec.c |    8 --------
- sound/usb/usbquirks.h     |   26 --------------------------
- 2 files changed, 34 deletions(-)
+ drivers/media/video/em28xx/Kconfig |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN sound/pci/hda/hda_codec.c~git-alsa-fixup sound/pci/hda/hda_codec.c
---- a/sound/pci/hda/hda_codec.c~git-alsa-fixup
-+++ a/sound/pci/hda/hda_codec.c
-@@ -703,20 +703,12 @@ static u32 query_amp_caps(struct hda_cod
- 	if (!(info->status & INFO_AMP_CAPS)) {
- 		if (!(get_wcaps(codec, nid) & AC_WCAP_AMP_OVRD))
- 			nid = codec->afg;
--<<<<<<< HEAD/sound/pci/hda/hda_codec.c
--		info->amp_caps = snd_hda_param_read(codec, nid,
--						    direction == HDA_OUTPUT ?
--						    AC_PAR_AMP_OUT_CAP :
--						    AC_PAR_AMP_IN_CAP);
--		info->status |= INFO_AMP_CAPS;
+diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-fixup drivers/media/video/em28xx/Kconfig
+--- a/drivers/media/video/em28xx/Kconfig~git-dvb-fixup
++++ a/drivers/media/video/em28xx/Kconfig
+@@ -1,11 +1,6 @@
+ config VIDEO_EM28XX
+ 	tristate "Empia EM2800/2820/2840 USB video capture support"
+-<<<<<<< HEAD/drivers/media/video/em28xx/Kconfig
+ 	depends on VIDEO_V4L1 && I2C
+-	select VIDEO_BUF
 -=======
- 		info->amp_caps = snd_hda_param_read(codec, nid,
- 						    direction == HDA_OUTPUT ?
- 						    AC_PAR_AMP_OUT_CAP :
- 						    AC_PAR_AMP_IN_CAP);
- 		if (info->amp_caps)
- 			info->status |= INFO_AMP_CAPS;
-->>>>>>> /sound/pci/hda/hda_codec.c
- 	}
- 	return info->amp_caps;
- }
-diff -puN sound/usb/usbquirks.h~git-alsa-fixup sound/usb/usbquirks.h
---- a/sound/usb/usbquirks.h~git-alsa-fixup
-+++ a/sound/usb/usbquirks.h
-@@ -40,31 +40,6 @@
- 	.bInterfaceClass = USB_CLASS_VENDOR_SPEC
- 
- /*
--<<<<<<< HEAD/sound/usb/usbquirks.h
-- * Logitech QuickCam: bDeviceClass is vendor-specific, so generic interface
-- * class matches do not take effect without an explicit ID match.
-- */
--{
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.idVendor = 0x046d,
--	.idProduct = 0x08f0,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIO_CONTROL
--},
--{
--	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |
--		       USB_DEVICE_ID_MATCH_INT_CLASS |
--		       USB_DEVICE_ID_MATCH_INT_SUBCLASS,
--	.idVendor = 0x046d,
--	.idProduct = 0x08f6,
--	.bInterfaceClass = USB_CLASS_AUDIO,
--	.bInterfaceSubClass = USB_SUBCLASS_AUDIO_CONTROL
--},
--
--/*
--=======
-  * Logitech QuickCam: bDeviceClass is vendor-specific, so generic interface
-  * class matches do not take effect without an explicit ID match.
-  */
-@@ -97,7 +72,6 @@
- },
- 
- /*
-->>>>>>> /sound/usb/usbquirks.h
-  * Yamaha devices
-  */
- 
+-	depends on VIDEO_V4L1 && I2C
+->>>>>>> /drivers/media/video/em28xx/Kconfig
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select VIDEO_IR
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +66,7 @@ git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-arm.patch
 git-avr32.patch
+git-dvb-fixup.patch
 cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-gfs2-nmw.patch
