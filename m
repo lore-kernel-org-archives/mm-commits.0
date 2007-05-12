@@ -1,448 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: - consolidate-generic_writepages-and-mpage_writepages.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:34:07 -0700
-Message-ID: <200705120534.l4C5Y7Tb002172@shell0.pdx.osdl.net>
+Subject: - tty-add-compat_ioctl.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:34:05 -0700
+Message-ID: <200705120534.l4C5Y5WK002165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33168 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755157AbXELFeV (ORCPT
+	by vger.kernel.org with ESMTP id S1755066AbXELFeP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:34:21 -0400
+	Sat, 12 May 2007 01:34:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@infradead.org, mm-commits@vger.kernel.org
+To: paulkf@microgate.com, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     consolidate generic_writepages and mpage_writepages
+     tty: add compat_ioctl
 has been removed from the -mm tree.  Its filename was
-     consolidate-generic_writepages-and-mpage_writepages.patch
+     tty-add-compat_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: consolidate generic_writepages and mpage_writepages
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: tty: add compat_ioctl
+From: Paul Fulghum <paulkf@microgate.com>
 
-Clean up massive code duplication between mpage_writepages() and
-generic_writepages().
+Add compat_ioctl method for tty code to allow processing of 32 bit ioctl
+calls on 64 bit systems by tty core, tty drivers, and line disciplines.
 
-The new generic function, write_cache_pages() takes a function pointer
-argument, which will be called for each page to be written.
+Based on patch by Arnd Bergmann:
+http://www.uwsg.iu.edu/hypermail/linux/kernel/0511.0/1732.html
 
-Maybe cifs_writepages() too can use this infrastructure, but I'm not
-touching that with a ten-foot pole.
-
-The upcoming page writeback support in fuse will also want this.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+[akpm@linux-foundation.org: make things static]
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c                |  172 +++++++++---------------------------
- include/linux/mpage.h     |    1 
- include/linux/writeback.h |   10 +-
- mm/page-writeback.c       |   59 ++++++++----
- 4 files changed, 92 insertions(+), 150 deletions(-)
+ drivers/char/n_tty.c       |   29 ++++++++++-------------
+ drivers/char/tty_io.c      |   43 ++++++++++++++++++++++++++++++++---
+ include/linux/tty_driver.h |    9 +++++++
+ include/linux/tty_ldisc.h  |    7 +++++
+ 4 files changed, 69 insertions(+), 19 deletions(-)
 
-diff -puN fs/mpage.c~consolidate-generic_writepages-and-mpage_writepages fs/mpage.c
---- a/fs/mpage.c~consolidate-generic_writepages-and-mpage_writepages
-+++ a/fs/mpage.c
-@@ -454,11 +454,18 @@ EXPORT_SYMBOL(mpage_readpage);
-  * written, so it can intelligently allocate a suitably-sized BIO.  For now,
-  * just allocate full-size (16-page) BIOs.
-  */
--static struct bio *
--__mpage_writepage(struct bio *bio, struct page *page, get_block_t get_block,
--	sector_t *last_block_in_bio, int *ret, struct writeback_control *wbc,
--	writepage_t writepage_fn)
-+struct mpage_data {
-+	struct bio *bio;
-+	sector_t last_block_in_bio;
-+	get_block_t *get_block;
-+	unsigned use_writepage;
-+};
-+
-+static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
-+			     void *data)
+diff -puN drivers/char/n_tty.c~tty-add-compat_ioctl drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~tty-add-compat_ioctl
++++ a/drivers/char/n_tty.c
+@@ -1544,21 +1544,18 @@ static unsigned int normal_poll(struct t
+ }
+ 
+ struct tty_ldisc tty_ldisc_N_TTY = {
+-	TTY_LDISC_MAGIC,	/* magic */
+-	"n_tty",		/* name */
+-	0,			/* num */
+-	0,			/* flags */
+-	n_tty_open,		/* open */
+-	n_tty_close,		/* close */
+-	n_tty_flush_buffer,	/* flush_buffer */
+-	n_tty_chars_in_buffer,	/* chars_in_buffer */
+-	read_chan,		/* read */
+-	write_chan,		/* write */
+-	n_tty_ioctl,		/* ioctl */
+-	n_tty_set_termios,	/* set_termios */
+-	normal_poll,		/* poll */
+-	NULL,			/* hangup */
+-	n_tty_receive_buf,	/* receive_buf */
+-	n_tty_write_wakeup	/* write_wakeup */
++	.magic           = TTY_LDISC_MAGIC,
++	.name            = "n_tty",
++	.open            = n_tty_open,
++	.close           = n_tty_close,
++	.flush_buffer    = n_tty_flush_buffer,
++	.chars_in_buffer = n_tty_chars_in_buffer,
++	.read            = read_chan,
++	.write           = write_chan,
++	.ioctl           = n_tty_ioctl,
++	.set_termios     = n_tty_set_termios,
++	.poll            = normal_poll,
++	.receive_buf     = n_tty_receive_buf,
++	.write_wakeup    = n_tty_write_wakeup
+ };
+ 
+diff -puN drivers/char/tty_io.c~tty-add-compat_ioctl drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-add-compat_ioctl
++++ a/drivers/char/tty_io.c
+@@ -151,6 +151,12 @@ static int tty_open(struct inode *, stru
+ static int tty_release(struct inode *, struct file *);
+ int tty_ioctl(struct inode * inode, struct file * file,
+ 	      unsigned int cmd, unsigned long arg);
++#ifdef CONFIG_COMPAT
++static long tty_compat_ioctl(struct file * file, unsigned int cmd,
++				unsigned long arg);
++#else
++#define tty_compat_ioctl NULL
++#endif
+ static int tty_fasync(int fd, struct file * filp, int on);
+ static void release_tty(struct tty_struct *tty, int idx);
+ static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
+@@ -1143,8 +1149,8 @@ static unsigned int hung_up_tty_poll(str
+ 	return POLLIN | POLLOUT | POLLERR | POLLHUP | POLLRDNORM | POLLWRNORM;
+ }
+ 
+-static int hung_up_tty_ioctl(struct inode * inode, struct file * file,
+-			     unsigned int cmd, unsigned long arg)
++static long hung_up_tty_ioctl(struct file * file,
++			      unsigned int cmd, unsigned long arg)
  {
-+	struct mpage_data *mpd = data;
-+	struct bio *bio = mpd->bio;
- 	struct address_space *mapping = page->mapping;
- 	struct inode *inode = page->mapping->host;
- 	const unsigned blkbits = inode->i_blkbits;
-@@ -476,6 +483,7 @@ __mpage_writepage(struct bio *bio, struc
- 	int length;
- 	struct buffer_head map_bh;
- 	loff_t i_size = i_size_read(inode);
-+	int ret = 0;
+ 	return cmd == TIOCSPGRP ? -ENOTTY : -EIO;
+ }
+@@ -1155,6 +1161,7 @@ static const struct file_operations tty_
+ 	.write		= tty_write,
+ 	.poll		= tty_poll,
+ 	.ioctl		= tty_ioctl,
++	.compat_ioctl	= tty_compat_ioctl,
+ 	.open		= tty_open,
+ 	.release	= tty_release,
+ 	.fasync		= tty_fasync,
+@@ -1167,6 +1174,7 @@ static const struct file_operations ptmx
+ 	.write		= tty_write,
+ 	.poll		= tty_poll,
+ 	.ioctl		= tty_ioctl,
++	.compat_ioctl	= tty_compat_ioctl,
+ 	.open		= ptmx_open,
+ 	.release	= tty_release,
+ 	.fasync		= tty_fasync,
+@@ -1179,6 +1187,7 @@ static const struct file_operations cons
+ 	.write		= redirected_tty_write,
+ 	.poll		= tty_poll,
+ 	.ioctl		= tty_ioctl,
++	.compat_ioctl	= tty_compat_ioctl,
+ 	.open		= tty_open,
+ 	.release	= tty_release,
+ 	.fasync		= tty_fasync,
+@@ -1189,7 +1198,8 @@ static const struct file_operations hung
+ 	.read		= hung_up_tty_read,
+ 	.write		= hung_up_tty_write,
+ 	.poll		= hung_up_tty_poll,
+-	.ioctl		= hung_up_tty_ioctl,
++	.unlocked_ioctl = hung_up_tty_ioctl,
++	.compat_ioctl	= hung_up_tty_ioctl,
+ 	.release	= tty_release,
+ };
  
- 	if (page_has_buffers(page)) {
- 		struct buffer_head *head = page_buffers(page);
-@@ -538,7 +546,7 @@ __mpage_writepage(struct bio *bio, struc
- 
- 		map_bh.b_state = 0;
- 		map_bh.b_size = 1 << blkbits;
--		if (get_block(inode, block_in_file, &map_bh, 1))
-+		if (mpd->get_block(inode, block_in_file, &map_bh, 1))
- 			goto confused;
- 		if (buffer_new(&map_bh))
- 			unmap_underlying_metadata(map_bh.b_bdev,
-@@ -584,7 +592,7 @@ page_is_mapped:
- 	/*
- 	 * This page will go to BIO.  Do we need to send this BIO off first?
- 	 */
--	if (bio && *last_block_in_bio != blocks[0] - 1)
-+	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
- 		bio = mpage_bio_submit(WRITE, bio);
- 
- alloc_new:
-@@ -641,7 +649,7 @@ alloc_new:
- 					boundary_block, 1 << blkbits);
- 		}
- 	} else {
--		*last_block_in_bio = blocks[blocks_per_page - 1];
-+		mpd->last_block_in_bio = blocks[blocks_per_page - 1];
- 	}
- 	goto out;
- 
-@@ -649,18 +657,19 @@ confused:
- 	if (bio)
- 		bio = mpage_bio_submit(WRITE, bio);
- 
--	if (writepage_fn) {
--		*ret = (*writepage_fn)(page, wbc);
-+	if (mpd->use_writepage) {
-+		ret = mapping->a_ops->writepage(page, wbc);
- 	} else {
--		*ret = -EAGAIN;
-+		ret = -EAGAIN;
- 		goto out;
- 	}
- 	/*
- 	 * The caller has a ref on the inode, so *mapping is stable
- 	 */
--	mapping_set_error(mapping, *ret);
-+	mapping_set_error(mapping, ret);
- out:
--	return bio;
-+	mpd->bio = bio;
-+	return ret;
+@@ -3357,6 +3367,32 @@ int tty_ioctl(struct inode * inode, stru
+ 	return retval;
  }
  
- /**
-@@ -683,120 +692,27 @@ out:
-  * the call was made get new I/O started against them.  If wbc->sync_mode is
-  * WB_SYNC_ALL then we were called for data integrity and we must wait for
-  * existing IO to complete.
-- *
-- * If you fix this you should check generic_writepages() also!
-  */
- int
- mpage_writepages(struct address_space *mapping,
- 		struct writeback_control *wbc, get_block_t get_block)
- {
--	struct backing_dev_info *bdi = mapping->backing_dev_info;
--	struct bio *bio = NULL;
--	sector_t last_block_in_bio = 0;
--	int ret = 0;
--	int done = 0;
--	int (*writepage)(struct page *page, struct writeback_control *wbc);
--	struct pagevec pvec;
--	int nr_pages;
--	pgoff_t index;
--	pgoff_t end;		/* Inclusive */
--	int scanned = 0;
--	int range_whole = 0;
--
--	if (wbc->nonblocking && bdi_write_congested(bdi)) {
--		wbc->encountered_congestion = 1;
--		return 0;
--	}
-+	int ret;
- 
--	writepage = NULL;
--	if (get_block == NULL)
--		writepage = mapping->a_ops->writepage;
--
--	pagevec_init(&pvec, 0);
--	if (wbc->range_cyclic) {
--		index = mapping->writeback_index; /* Start from prev offset */
--		end = -1;
--	} else {
--		index = wbc->range_start >> PAGE_CACHE_SHIFT;
--		end = wbc->range_end >> PAGE_CACHE_SHIFT;
--		if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX)
--			range_whole = 1;
--		scanned = 1;
-+	if (!get_block)
-+		ret = generic_writepages(mapping, wbc);
-+	else {
-+		struct mpage_data mpd = {
-+			.bio = NULL,
-+			.last_block_in_bio = 0,
-+			.get_block = get_block,
-+			.use_writepage = 1,
-+		};
-+
-+		ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
-+		if (mpd.bio)
-+			mpage_bio_submit(WRITE, mpd.bio);
- 	}
--retry:
--	while (!done && (index <= end) &&
--			(nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
--			PAGECACHE_TAG_DIRTY,
--			min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
--		unsigned i;
--
--		scanned = 1;
--		for (i = 0; i < nr_pages; i++) {
--			struct page *page = pvec.pages[i];
--
--			/*
--			 * At this point we hold neither mapping->tree_lock nor
--			 * lock on the page itself: the page may be truncated or
--			 * invalidated (changing page->mapping to NULL), or even
--			 * swizzled back from swapper_space to tmpfs file
--			 * mapping
--			 */
--
--			lock_page(page);
--
--			if (unlikely(page->mapping != mapping)) {
--				unlock_page(page);
--				continue;
--			}
--
--			if (!wbc->range_cyclic && page->index > end) {
--				done = 1;
--				unlock_page(page);
--				continue;
--			}
--
--			if (wbc->sync_mode != WB_SYNC_NONE)
--				wait_on_page_writeback(page);
--
--			if (PageWriteback(page) ||
--					!clear_page_dirty_for_io(page)) {
--				unlock_page(page);
--				continue;
--			}
--
--			if (writepage) {
--				ret = (*writepage)(page, wbc);
--				mapping_set_error(mapping, ret);
--			} else {
--				bio = __mpage_writepage(bio, page, get_block,
--						&last_block_in_bio, &ret, wbc,
--						page->mapping->a_ops->writepage);
--			}
--			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE))
--				unlock_page(page);
--			if (ret || (--(wbc->nr_to_write) <= 0))
--				done = 1;
--			if (wbc->nonblocking && bdi_write_congested(bdi)) {
--				wbc->encountered_congestion = 1;
--				done = 1;
--			}
--		}
--		pagevec_release(&pvec);
--		cond_resched();
--	}
--	if (!scanned && !done) {
--		/*
--		 * We hit the last page and there is more work to be done: wrap
--		 * back to the start of the file
--		 */
--		scanned = 1;
--		index = 0;
--		goto retry;
--	}
--	if (wbc->range_cyclic || (range_whole && wbc->nr_to_write > 0))
--		mapping->writeback_index = index;
--	if (bio)
--		mpage_bio_submit(WRITE, bio);
- 	return ret;
- }
- EXPORT_SYMBOL(mpage_writepages);
-@@ -804,15 +720,15 @@ EXPORT_SYMBOL(mpage_writepages);
- int mpage_writepage(struct page *page, get_block_t get_block,
- 	struct writeback_control *wbc)
- {
--	int ret = 0;
--	struct bio *bio;
--	sector_t last_block_in_bio = 0;
--
--	bio = __mpage_writepage(NULL, page, get_block,
--			&last_block_in_bio, &ret, wbc, NULL);
--	if (bio)
--		mpage_bio_submit(WRITE, bio);
--
-+	struct mpage_data mpd = {
-+		.bio = NULL,
-+		.last_block_in_bio = 0,
-+		.get_block = get_block,
-+		.use_writepage = 0,
-+	};
-+	int ret = __mpage_writepage(page, wbc, &mpd);
-+	if (mpd.bio)
-+		mpage_bio_submit(WRITE, mpd.bio);
- 	return ret;
- }
- EXPORT_SYMBOL(mpage_writepage);
-diff -puN include/linux/mpage.h~consolidate-generic_writepages-and-mpage_writepages include/linux/mpage.h
---- a/include/linux/mpage.h~consolidate-generic_writepages-and-mpage_writepages
-+++ a/include/linux/mpage.h
-@@ -12,7 +12,6 @@
- #ifdef CONFIG_BLOCK
- 
- struct writeback_control;
--typedef int (writepage_t)(struct page *page, struct writeback_control *wbc);
- 
- int mpage_readpages(struct address_space *mapping, struct list_head *pages,
- 				unsigned nr_pages, get_block_t get_block);
-diff -puN include/linux/writeback.h~consolidate-generic_writepages-and-mpage_writepages include/linux/writeback.h
---- a/include/linux/writeback.h~consolidate-generic_writepages-and-mpage_writepages
-+++ a/include/linux/writeback.h
-@@ -111,9 +111,15 @@ balance_dirty_pages_ratelimited(struct a
- 	balance_dirty_pages_ratelimited_nr(mapping, 1);
- }
- 
-+typedef int (*writepage_t)(struct page *page, struct writeback_control *wbc,
-+				void *data);
-+
- int pdflush_operation(void (*fn)(unsigned long), unsigned long arg0);
--extern int generic_writepages(struct address_space *mapping,
--			      struct writeback_control *wbc);
-+int generic_writepages(struct address_space *mapping,
-+		       struct writeback_control *wbc);
-+int write_cache_pages(struct address_space *mapping,
-+		      struct writeback_control *wbc, writepage_t writepage,
-+		      void *data);
- int do_writepages(struct address_space *mapping, struct writeback_control *wbc);
- int sync_page_range(struct inode *inode, struct address_space *mapping,
- 			loff_t pos, loff_t count);
-diff -puN mm/page-writeback.c~consolidate-generic_writepages-and-mpage_writepages mm/page-writeback.c
---- a/mm/page-writeback.c~consolidate-generic_writepages-and-mpage_writepages
-+++ a/mm/page-writeback.c
-@@ -588,31 +588,27 @@ void __init page_writeback_init(void)
- }
- 
- /**
-- * generic_writepages - walk the list of dirty pages of the given address space and writepage() all of them.
-+ * write_cache_pages - walk the list of dirty pages of the given address space and write all of them.
-  * @mapping: address space structure to write
-  * @wbc: subtract the number of written pages from *@wbc->nr_to_write
-+ * @writepage: function called for each page
-+ * @data: data passed to writepage function
-  *
-- * This is a library function, which implements the writepages()
-- * address_space_operation.
-- *
-- * If a page is already under I/O, generic_writepages() skips it, even
-+ * If a page is already under I/O, write_cache_pages() skips it, even
-  * if it's dirty.  This is desirable behaviour for memory-cleaning writeback,
-  * but it is INCORRECT for data-integrity system calls such as fsync().  fsync()
-  * and msync() need to guarantee that all the data which was dirty at the time
-  * the call was made get new I/O started against them.  If wbc->sync_mode is
-  * WB_SYNC_ALL then we were called for data integrity and we must wait for
-  * existing IO to complete.
-- *
-- * Derived from mpage_writepages() - if you fix this you should check that
-- * also!
-  */
--int generic_writepages(struct address_space *mapping,
--		       struct writeback_control *wbc)
-+int write_cache_pages(struct address_space *mapping,
-+		      struct writeback_control *wbc, writepage_t writepage,
-+		      void *data)
- {
- 	struct backing_dev_info *bdi = mapping->backing_dev_info;
- 	int ret = 0;
- 	int done = 0;
--	int (*writepage)(struct page *page, struct writeback_control *wbc);
- 	struct pagevec pvec;
- 	int nr_pages;
- 	pgoff_t index;
-@@ -625,12 +621,6 @@ int generic_writepages(struct address_sp
- 		return 0;
- 	}
- 
--	writepage = mapping->a_ops->writepage;
--
--	/* deal with chardevs and other special file */
--	if (!writepage)
--		return 0;
--
- 	pagevec_init(&pvec, 0);
- 	if (wbc->range_cyclic) {
- 		index = mapping->writeback_index; /* Start from prev offset */
-@@ -682,8 +672,7 @@ retry:
- 				continue;
- 			}
- 
--			ret = (*writepage)(page, wbc);
--			mapping_set_error(mapping, ret);
-+			ret = (*writepage)(page, wbc, data);
- 
- 			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE))
- 				unlock_page(page);
-@@ -710,6 +699,38 @@ retry:
- 		mapping->writeback_index = index;
- 	return ret;
- }
-+EXPORT_SYMBOL(write_cache_pages);
-+
-+/*
-+ * Function used by generic_writepages to call the real writepage
-+ * function and set the mapping flags on error
-+ */
-+static int __writepage(struct page *page, struct writeback_control *wbc,
-+		       void *data)
++#ifdef CONFIG_COMPAT
++static long tty_compat_ioctl(struct file * file, unsigned int cmd,
++				unsigned long arg)
 +{
-+	struct address_space *mapping = data;
-+	int ret = mapping->a_ops->writepage(page, wbc);
-+	mapping_set_error(mapping, ret);
-+	return ret;
-+}
++	struct inode *inode = file->f_dentry->d_inode;
++	struct tty_struct *tty = file->private_data;
++	struct tty_ldisc *ld;
++	int retval = -ENOIOCTLCMD;
 +
-+/**
-+ * generic_writepages - walk the list of dirty pages of the given address space and writepage() all of them.
-+ * @mapping: address space structure to write
-+ * @wbc: subtract the number of written pages from *@wbc->nr_to_write
++	if (tty_paranoia_check(tty, inode, "tty_ioctl"))
++		return -EINVAL;
++
++	if (tty->driver->compat_ioctl) {
++		retval = (tty->driver->compat_ioctl)(tty, file, cmd, arg);
++		if (retval != -ENOIOCTLCMD)
++			return retval;
++	}
++
++	ld = tty_ldisc_ref_wait(tty);
++	if (ld->compat_ioctl)
++		retval = ld->compat_ioctl(tty, file, cmd, arg);
++	tty_ldisc_deref(ld);
++
++	return retval;
++}
++#endif
+ 
+ /*
+  * This implements the "Secure Attention Key" ---  the idea is to
+@@ -3689,6 +3725,7 @@ void tty_set_operations(struct tty_drive
+ 	driver->write_room = op->write_room;
+ 	driver->chars_in_buffer = op->chars_in_buffer;
+ 	driver->ioctl = op->ioctl;
++	driver->compat_ioctl = op->compat_ioctl;
+ 	driver->set_termios = op->set_termios;
+ 	driver->throttle = op->throttle;
+ 	driver->unthrottle = op->unthrottle;
+diff -puN include/linux/tty_driver.h~tty-add-compat_ioctl include/linux/tty_driver.h
+--- a/include/linux/tty_driver.h~tty-add-compat_ioctl
++++ a/include/linux/tty_driver.h
+@@ -52,6 +52,11 @@
+  * 	This routine allows the tty driver to implement
+  *	device-specific ioctl's.  If the ioctl number passed in cmd
+  * 	is not recognized by the driver, it should return ENOIOCTLCMD.
 + *
-+ * This is a library function, which implements the writepages()
-+ * address_space_operation.
-+ */
-+int generic_writepages(struct address_space *mapping,
-+		       struct writeback_control *wbc)
-+{
-+	/* deal with chardevs and other special file */
-+	if (!mapping->a_ops->writepage)
-+		return 0;
-+
-+	return write_cache_pages(mapping, wbc, __writepage, mapping);
-+}
- 
- EXPORT_SYMBOL(generic_writepages);
- 
++ * long (*compat_ioctl)(struct tty_struct *tty, struct file * file,
++ * 	                unsigned int cmd, unsigned long arg);
++ *
++ * 	implement ioctl processing for 32 bit process on 64 bit system
+  * 
+  * void (*set_termios)(struct tty_struct *tty, struct ktermios * old);
+  *
+@@ -132,6 +137,8 @@ struct tty_operations {
+ 	int  (*chars_in_buffer)(struct tty_struct *tty);
+ 	int  (*ioctl)(struct tty_struct *tty, struct file * file,
+ 		    unsigned int cmd, unsigned long arg);
++	long (*compat_ioctl)(struct tty_struct *tty, struct file * file,
++			     unsigned int cmd, unsigned long arg);
+ 	void (*set_termios)(struct tty_struct *tty, struct ktermios * old);
+ 	void (*throttle)(struct tty_struct * tty);
+ 	void (*unthrottle)(struct tty_struct * tty);
+@@ -193,6 +200,8 @@ struct tty_driver {
+ 	int  (*chars_in_buffer)(struct tty_struct *tty);
+ 	int  (*ioctl)(struct tty_struct *tty, struct file * file,
+ 		    unsigned int cmd, unsigned long arg);
++	long (*compat_ioctl)(struct tty_struct *tty, struct file * file,
++			     unsigned int cmd, unsigned long arg);
+ 	void (*set_termios)(struct tty_struct *tty, struct ktermios * old);
+ 	void (*throttle)(struct tty_struct * tty);
+ 	void (*unthrottle)(struct tty_struct * tty);
+diff -puN include/linux/tty_ldisc.h~tty-add-compat_ioctl include/linux/tty_ldisc.h
+--- a/include/linux/tty_ldisc.h~tty-add-compat_ioctl
++++ a/include/linux/tty_ldisc.h
+@@ -59,6 +59,11 @@
+  * 	low-level driver can "grab" an ioctl request before the line
+  * 	discpline has a chance to see it.
+  * 
++ * long	(*compat_ioctl)(struct tty_struct * tty, struct file * file,
++ * 		        unsigned int cmd, unsigned long arg);
++ *
++ *      Process ioctl calls from 32-bit process on 64-bit system
++ *
+  * void	(*set_termios)(struct tty_struct *tty, struct ktermios * old);
+  *
+  * 	This function notifies the line discpline that a change has
+@@ -118,6 +123,8 @@ struct tty_ldisc {
+ 			 const unsigned char * buf, size_t nr);	
+ 	int	(*ioctl)(struct tty_struct * tty, struct file * file,
+ 			 unsigned int cmd, unsigned long arg);
++	long	(*compat_ioctl)(struct tty_struct * tty, struct file * file,
++				unsigned int cmd, unsigned long arg);
+ 	void	(*set_termios)(struct tty_struct *tty, struct ktermios * old);
+ 	unsigned int (*poll)(struct tty_struct *, struct file *,
+ 			     struct poll_table_struct *);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
 origin.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
+tty-flush-flip-buffer-on-ldisc-input-queue-flush.patch
