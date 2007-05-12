@@ -1,66 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-bay-unsuppress-uevents.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:16:00 -0700
-Message-ID: <200705120516.l4C5G033001794@shell0.pdx.osdl.net>
+Subject: - timer-revert-parenthesis-fix-in-tbase_get_deferrable-etc.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:44 -0700
+Message-ID: <200705120515.l4C5FicX001773@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59188 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756503AbXELFQC (ORCPT
+	by vger.kernel.org with ESMTP id S1756536AbXELFQD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:16:02 -0400
+	Sat, 12 May 2007 01:16:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: jarkao2@o2.pl, oleg@tv-sign.ru, satyam.sharma@gmail.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: bay: unsuppress uevents
+     timer: revert parenthesis fix in tbase_get_deferrable() etc
 has been removed from the -mm tree.  Its filename was
-     acpi-bay-unsuppress-uevents.patch
+     timer-revert-parenthesis-fix-in-tbase_get_deferrable-etc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: bay: unsuppress uevents
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: timer: revert parenthesis fix in tbase_get_deferrable() etc
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-Since platform devices seem to get uevents suppressed by default, manually
-unsuppress for the bay device since we want to be able to send uevents.
+> > On 09-05-2007 21:10, Pallipadi, Venkatesh wrote:
+> > ...
+> > > On a 64 bit system, converting pointer to int causes unnecessary
+> > > compiler
+> > > warning, and intermediate long conversion was to avoid that. I will have
+> > > to rephrase my comment to remove 32 bit value and use int, as that is
+> > > what
+> > > the function returns.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+So, this patch reverts all changes done by my previous patch.
+
+I apologize for my wrong comment about "logical error" here.
+
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Satyam Sharma <satyam.sharma@gmail.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bay.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/timer.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/bay.c~acpi-bay-unsuppress-uevents drivers/acpi/bay.c
---- a/drivers/acpi/bay.c~acpi-bay-unsuppress-uevents
-+++ a/drivers/acpi/bay.c
-@@ -288,6 +288,11 @@ static int bay_add(acpi_handle handle, i
- 	new_bay->pdev = pdev;
- 	platform_set_drvdata(pdev, new_bay);
+diff -puN kernel/timer.c~timer-revert-parenthesis-fix-in-tbase_get_deferrable-etc kernel/timer.c
+--- a/kernel/timer.c~timer-revert-parenthesis-fix-in-tbase_get_deferrable-etc
++++ a/kernel/timer.c
+@@ -92,24 +92,24 @@ static DEFINE_PER_CPU(tvec_base_t *, tve
+ /* Functions below help us manage 'deferrable' flag */
+ static inline unsigned int tbase_get_deferrable(tvec_base_t *base)
+ {
+-	return (unsigned int)((unsigned long)base & TBASE_DEFERRABLE_FLAG);
++	return ((unsigned int)(unsigned long)base & TBASE_DEFERRABLE_FLAG);
+ }
  
-+	/*
-+	 * we want the bay driver to be able to send uevents
-+	 */
-+	pdev->dev.uevent_suppress = 0;
-+
- 	if (acpi_bay_add_fs(new_bay)) {
- 		platform_device_unregister(new_bay->pdev);
- 		goto bay_add_err;
+ static inline tvec_base_t *tbase_get_base(tvec_base_t *base)
+ {
+-	return (tvec_base_t *)((unsigned long)base & ~TBASE_DEFERRABLE_FLAG);
++	return ((tvec_base_t *)((unsigned long)base & ~TBASE_DEFERRABLE_FLAG));
+ }
+ 
+ static inline void timer_set_deferrable(struct timer_list *timer)
+ {
+-	timer->base = (tvec_base_t *)((unsigned long)timer->base |
+-	                               TBASE_DEFERRABLE_FLAG);
++	timer->base = ((tvec_base_t *)((unsigned long)(timer->base) |
++	                               TBASE_DEFERRABLE_FLAG));
+ }
+ 
+ static inline void
+ timer_set_base(struct timer_list *timer, tvec_base_t *new_base)
+ {
+-	timer->base = (tvec_base_t *)((unsigned long)new_base |
++	timer->base = (tvec_base_t *)((unsigned long)(new_base) |
+ 	                              tbase_get_deferrable(timer->base));
+ }
+ 
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
 origin.patch
-git-acpi.patch
-libata-check-for-an-support.patch
-genhd-expose-an-to-user-space.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-genhd-send-async-notification-on-media-change.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
