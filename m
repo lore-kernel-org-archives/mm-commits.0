@@ -1,69 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - video-remove-archaic-if-construct-from-kconfig-file.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:35:50 -0700
-Message-ID: <200705120535.l4C5Zo06002328@shell0.pdx.osdl.net>
+Subject: - nvidiafb-enable-debugging-messages-a-kconfig-option.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:35:45 -0700
+Message-ID: <200705120535.l4C5Zjbr002322@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32985 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756359AbXELFf6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756545AbXELFgA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:35:58 -0400
+	Sat, 12 May 2007 01:36:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VIDEO: remove archaic if[] construct from Kconfig file
+     nvidiafb: Enable debugging messages a Kconfig option
 has been removed from the -mm tree.  Its filename was
-     video-remove-archaic-if-construct-from-kconfig-file.patch
+     nvidiafb-enable-debugging-messages-a-kconfig-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: VIDEO: remove archaic if[] construct from Kconfig file
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: nvidiafb: Enable debugging messages a Kconfig option
+From: Jean Delvare <khali@linux-fr.org>
 
-Remove the obsolete "if [ ]" construct from the video console Kconfig
-file.
+Let the user enable debugging messages in nvidiafb.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/Kconfig |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/video/Kconfig         |   11 ++++++++++-
+ drivers/video/nvidia/nvidia.c |    1 -
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/console/Kconfig~video-remove-archaic-if-construct-from-kconfig-file drivers/video/console/Kconfig
---- a/drivers/video/console/Kconfig~video-remove-archaic-if-construct-from-kconfig-file
-+++ a/drivers/video/console/Kconfig
-@@ -19,13 +19,6 @@ config VGA_CONSOLE
+diff -puN drivers/video/Kconfig~nvidiafb-enable-debugging-messages-a-kconfig-option drivers/video/Kconfig
+--- a/drivers/video/Kconfig~nvidiafb-enable-debugging-messages-a-kconfig-option
++++ a/drivers/video/Kconfig
+@@ -796,6 +796,15 @@ config FB_NVIDIA_I2C
+ 	  independently validate video mode parameters, you should say Y
+ 	  here.
  
- 	  Say Y.
++config FB_NVIDIA_DEBUG
++	bool "Lots of debug output"
++	depends on FB_NVIDIA
++	default n
++	help
++	  Say Y here if you want the nVidia driver to output all sorts
++	  of debugging information to provide to the maintainer when
++	  something goes wrong.
++
+ config FB_NVIDIA_BACKLIGHT
+ 	bool "Support for backlight control"
+ 	depends on FB_NVIDIA
+@@ -835,7 +844,7 @@ config FB_RIVA_I2C
+ 	  here.
  
--#	if [ "$CONFIG_PCI" = "y" -a "$CONFIG_VGA_CONSOLE" = "y" ]; then
--#	   bool '   Allow VGA on any bus?' CONFIG_VGA_HOSE
--#	   if [ "$CONFIG_VGA_HOSE" = "y" ]; then
--#	      define_bool CONFIG_DUMMY_CONSOLE y
--#	   fi
--#	fi
--
- config VGACON_SOFT_SCROLLBACK
-        bool "Enable Scrollback Buffer in System RAM"
-        depends on VGA_CONSOLE
+ config FB_RIVA_DEBUG
+-	bool "Lots of debug output from Riva(nVidia) driver"
++	bool "Lots of debug output"
+ 	depends on FB_RIVA
+ 	default n
+ 	help
+diff -puN drivers/video/nvidia/nvidia.c~nvidiafb-enable-debugging-messages-a-kconfig-option drivers/video/nvidia/nvidia.c
+--- a/drivers/video/nvidia/nvidia.c~nvidiafb-enable-debugging-messages-a-kconfig-option
++++ a/drivers/video/nvidia/nvidia.c
+@@ -37,7 +37,6 @@
+ #include "nv_proto.h"
+ #include "nv_dma.h"
+ 
+-#undef CONFIG_FB_NVIDIA_DEBUG
+ #ifdef CONFIG_FB_NVIDIA_DEBUG
+ #define NVTRACE          printk
+ #else
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
 git-alsa.patch
-git-arm.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-avr32.patch
 git-dvb.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
