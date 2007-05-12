@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - uml-tidy-irq-code.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:27 -0700
-Message-ID: <200705120533.l4C5XRVR002105@shell0.pdx.osdl.net>
+Subject: - uml-use-um_thread_size-in-userspace-code.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:33:24 -0700
+Message-ID: <200705120533.l4C5XOKc002102@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53846 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754538AbXELFda (ORCPT
+	by vger.kernel.org with ESMTP id S1752573AbXELFda (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 12 May 2007 01:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,116 +15,66 @@ To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@
 
 
 The patch titled
-     uml: tidy IRQ code
+     uml: use UM_THREAD_SIZE in userspace code
 has been removed from the -mm tree.  Its filename was
-     uml-tidy-irq-code.patch
+     uml-use-um_thread_size-in-userspace-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: tidy IRQ code
+Subject: uml: use UM_THREAD_SIZE in userspace code
 From: Jeff Dike <jdike@addtoit.com>
 
-Some tidying of the irq code before introducing irq stacks.  Mostly
-style fixes, but the timer handler calls the timer code directly
-rather than going through the generic sig_handler_common_skas.
+Now that we have UM_THREAD_SIZE, we can replace the calculations in
+user-space code (an earlier patch took care of the kernel side of the
+house).
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/init_task.c      |   11 -----------
- arch/um/kernel/irq.c            |    4 ++--
- arch/um/os-Linux/signal.c       |   10 +++++++---
- arch/um/os-Linux/skas/process.c |    6 ++++--
- 4 files changed, 13 insertions(+), 18 deletions(-)
+ arch/um/kernel/init_task.c      |    3 +--
+ arch/um/os-Linux/skas/process.c |    7 +++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/kernel/init_task.c~uml-tidy-irq-code arch/um/kernel/init_task.c
---- a/arch/um/kernel/init_task.c~uml-tidy-irq-code
+diff -puN arch/um/kernel/init_task.c~uml-use-um_thread_size-in-userspace-code arch/um/kernel/init_task.c
+--- a/arch/um/kernel/init_task.c~uml-use-um_thread_size-in-userspace-code
 +++ a/arch/um/kernel/init_task.c
-@@ -46,14 +46,3 @@ void unprotect_stack(unsigned long stack
+@@ -44,8 +44,7 @@ __attribute__((__section__(".data.init_t
+ 
+ void unprotect_stack(unsigned long stack)
  {
- 	os_protect_memory((void *) stack, THREAD_SIZE, 1, 1, 0);
- }
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/irq.c~uml-tidy-irq-code arch/um/kernel/irq.c
---- a/arch/um/kernel/irq.c~uml-tidy-irq-code
-+++ a/arch/um/kernel/irq.c
-@@ -1,4 +1,4 @@
--/* 
-+/*
-  * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-  * Licensed under the GPL
-  * Derived (i.e. mostly copied) from arch/i386/kernel/irq.c:
-@@ -53,7 +53,7 @@ int show_interrupts(struct seq_file *p, 
- 	if (i < NR_IRQS) {
- 		spin_lock_irqsave(&irq_desc[i].lock, flags);
- 		action = irq_desc[i].action;
--		if (!action) 
-+		if (!action)
- 			goto skip;
- 		seq_printf(p, "%3d: ",i);
- #ifndef CONFIG_SMP
-diff -puN arch/um/os-Linux/signal.c~uml-tidy-irq-code arch/um/os-Linux/signal.c
---- a/arch/um/os-Linux/signal.c~uml-tidy-irq-code
-+++ a/arch/um/os-Linux/signal.c
-@@ -61,15 +61,19 @@ void sig_handler(int sig, struct sigcont
- 
- static void real_alarm_handler(int sig, struct sigcontext *sc)
- {
-+	union uml_pt_regs regs;
-+
- 	if(sig == SIGALRM)
- 		switch_timers(0);
- 
--	CHOOSE_MODE_PROC(sig_handler_common_tt, sig_handler_common_skas,
--			 sig, sc);
-+	if(sc != NULL)
-+		copy_sc(&regs, sc);
-+	regs.skas.is_user = 0;
-+	unblock_signals();
-+	timer_handler(sig, &regs);
- 
- 	if(sig == SIGALRM)
- 		switch_timers(1);
--
+-	os_protect_memory((void *) stack, (1 << CONFIG_KERNEL_STACK_ORDER) * PAGE_SIZE,
+-		       1, 1, 0);
++	os_protect_memory((void *) stack, THREAD_SIZE, 1, 1, 0);
  }
  
- void alarm_handler(int sig, struct sigcontext *sc)
-diff -puN arch/um/os-Linux/skas/process.c~uml-tidy-irq-code arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-tidy-irq-code
+ /*
+diff -puN arch/um/os-Linux/skas/process.c~uml-use-um_thread_size-in-userspace-code arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-use-um_thread_size-in-userspace-code
 +++ a/arch/um/os-Linux/skas/process.c
-@@ -288,7 +288,8 @@ int start_userspace(unsigned long stub_s
- void userspace(union uml_pt_regs *regs)
+@@ -490,8 +490,8 @@ void map_stub_pages(int fd, unsigned lon
+ void new_thread(void *stack, jmp_buf *buf, void (*handler)(void))
  {
- 	int err, status, op, pid = userspace_pid[0];
--	int local_using_sysemu; /*To prevent races if using_sysemu changes under us.*/
-+	/* To prevent races if using_sysemu changes under us.*/
-+	int local_using_sysemu;
+ 	(*buf)[0].JB_IP = (unsigned long) handler;
+-	(*buf)[0].JB_SP = (unsigned long) stack +
+-		(PAGE_SIZE << UML_CONFIG_KERNEL_STACK_ORDER) - sizeof(void *);
++	(*buf)[0].JB_SP = (unsigned long) stack + UM_THREAD_SIZE -
++		sizeof(void *);
+ }
  
- 	while(1){
- 		restore_registers(pid, regs);
-@@ -296,7 +297,8 @@ void userspace(union uml_pt_regs *regs)
- 		/* Now we set local_using_sysemu to be used for one loop */
- 		local_using_sysemu = get_using_sysemu();
- 
--		op = SELECT_PTRACE_OPERATION(local_using_sysemu, singlestepping(NULL));
-+		op = SELECT_PTRACE_OPERATION(local_using_sysemu,
-+					     singlestepping(NULL));
- 
- 		err = ptrace(op, pid, 0, 0);
- 		if(err)
+ #define INIT_JMP_NEW_THREAD 0
+@@ -533,8 +533,7 @@ int start_idle_thread(void *stack, jmp_b
+ 	case INIT_JMP_NEW_THREAD:
+ 		(*switch_buf)[0].JB_IP = (unsigned long) new_thread_handler;
+ 		(*switch_buf)[0].JB_SP = (unsigned long) stack +
+-			(PAGE_SIZE << UML_CONFIG_KERNEL_STACK_ORDER) -
+-			sizeof(void *);
++			UM_THREAD_SIZE - sizeof(void *);
+ 		break;
+ 	case INIT_JMP_CALLBACK:
+ 		(*cb_proc)(cb_arg);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
