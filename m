@@ -1,79 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - add-hard_irq_disable.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:52 -0700
-Message-ID: <200705120533.l4C5XqOB002146@shell0.pdx.osdl.net>
+Subject: - overrun-in-drivers-char-rio-riocmdc.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:33:57 -0700
+Message-ID: <200705120533.l4C5XviY002153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44427 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43771 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755001AbXELFd7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755127AbXELFeC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:33:59 -0400
+	Sat, 12 May 2007 01:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, paulus@samba.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: snakebyte@gmx.de, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add hard_irq_disable()
+     Overrun in drivers/char/rio/riocmd.c
 has been removed from the -mm tree.  Its filename was
-     add-hard_irq_disable.patch
+     overrun-in-drivers-char-rio-riocmdc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add hard_irq_disable()
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Overrun in drivers/char/rio/riocmd.c
+From: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
 
-Some architectures, like powerpc, implement lazy disabling of interrupts. 
-That means that on those, local_irq_disable() doesn't actually disable
-interrupts on the CPU, but only sets some per CPU flag which cause them to be
-disabled only if an interrupt actually occurs.
+This got somehow lost in the noise.  This fixes coverity bug id #1025, if
+Rup is greater or equal to MAX_RUP, we run past the Mapping Array.
 
-However, in some cases, such as stop_machine, we really want interrupts to be
-fully disabled.  For example, I have code using stop machine to do ECC error
-injection, used to verify operations of the ECC hardware, that sort of thing. 
-It really needs to make sure that nothing is actually writing to memory while
-the injection happens.  Similar examples can be found in other low level bits
-and pieces.
-
-This patch implements a generic hard_irq_disable() function which is meant to
-be called -after- local_irq_disable() and ensures that interrupts are fully
-disabled on that CPU.  The default implementation is a nop, though powerpc
-does already provide an appropriate one.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/char/rio/riocmd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/interrupt.h~add-hard_irq_disable include/linux/interrupt.h
---- a/include/linux/interrupt.h~add-hard_irq_disable
-+++ a/include/linux/interrupt.h
-@@ -241,6 +241,16 @@ static inline void __deprecated save_and
- #define save_and_cli(x)	save_and_cli(&x)
- #endif /* CONFIG_SMP */
+diff -puN drivers/char/rio/riocmd.c~overrun-in-drivers-char-rio-riocmdc drivers/char/rio/riocmd.c
+--- a/drivers/char/rio/riocmd.c~overrun-in-drivers-char-rio-riocmdc
++++ a/drivers/char/rio/riocmd.c
+@@ -402,7 +402,7 @@ static int RIOCommandRup(struct rio_info
+ 		rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: Host number %Zd, name ``%s''\n", HostP - p->RIOHosts, HostP->Name);
+ 		rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: Rup number  0x%x\n", rup);
  
-+/* Some architectures might implement lazy enabling/disabling of
-+ * interrupts. In some cases, such as stop_machine, we might want
-+ * to ensure that after a local_irq_disable(), interrupts have
-+ * really been disabled in hardware. Such architectures need to
-+ * implement the following hook.
-+ */
-+#ifndef hard_irq_disable
-+#define hard_irq_disable()	do { } while(0)
-+#endif
-+
- /* PLEASE, avoid to allocate new softirqs, if you need not _really_ high
-    frequency threaded job scheduling. For almost all the purposes
-    tasklets are more than enough. F.e. all serial device BHs et
+-		if (Rup >= (unsigned short) MAX_RUP) {
++		if (Rup < (unsigned short) MAX_RUP) {
+ 			rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: This is the RUP for RTA ``%s''\n", HostP->Mapping[Rup].Name);
+ 		} else
+ 			rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: This is the RUP for link ``%c'' of host ``%s''\n", ('A' + Rup - MAX_RUP), HostP->Name);
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from snakebyte@gmx.de are
 
 origin.patch
-do-not-select-macintosh-drivers-by-default.patch
+git-ubi.patch
+remove-unnecessary-check-in-drivers-scsi-sgc.patch
