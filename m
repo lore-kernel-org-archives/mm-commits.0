@@ -1,83 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-at91-supports-new-style-i2c-drivers.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:39 -0700
-Message-ID: <200705120515.l4C5FdpK001767@shell0.pdx.osdl.net>
+Subject: - md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:37 -0700
+Message-ID: <200705120515.l4C5FbqI001764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39590 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580AbXELFQy (ORCPT
+	by vger.kernel.org with ESMTP id S1756656AbXELFRA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:16:54 -0400
+	Sat, 12 May 2007 01:17:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, andrew@sanpeople.com, dbrownell@users.sourceforge.net, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c-at91 supports new-style i2c drivers
+     md: avoid a possibility that a read error can wrongly propagate through md/raid1 to a filesystem.
 has been removed from the -mm tree.  Its filename was
-     i2c-at91-supports-new-style-i2c-drivers.patch
+     md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i2c-at91 supports new-style i2c drivers
-From: David Brownell <david-b@pacbell.net>
+Subject: md: avoid a possibility that a read error can wrongly propagate through md/raid1 to a filesystem.
+From: NeilBrown <neilb@suse.de>
 
-Make i2c-at91 register as i2c adapter zero (none of these chips seem to
-have more than one TWI controllers) to let it kick in any board-specific
-device declarations; also make it hotplug/coldplug.
+When a raid1 has only one working drive, we want read error to propagate up
+to the filesystem as there is no point failing the last drive in an array.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Victor <andrew@sanpeople.com>
+Currently the code perform this check is racy.  If a write and a read a
+both submitted to a device on a 2-drive raid1, and the write fails followed
+by the read failing, the read will see that there is only one working drive
+and will pass the failure up, even though the one working drive is actually
+the *other* one.
+
+So, tighten up the locking.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-at91.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/md/raid1.c |   33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers drivers/i2c/busses/i2c-at91.c
---- a/drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers
-+++ a/drivers/i2c/busses/i2c-at91.c
-@@ -226,13 +226,14 @@ static int __devinit at91_i2c_probe(stru
- 	adapter->algo = &at91_algorithm;
- 	adapter->class = I2C_CLASS_HWMON;
- 	adapter->dev.parent = &pdev->dev;
-+	/* adapter->id == 0 ... only one TWI controller for now */
+diff -puN drivers/md/raid1.c~md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-avoid-a-possibility-that-a-read-error-can-wrongly-propagate-through-md-raid1-to-a-filesystem
++++ a/drivers/md/raid1.c
+@@ -271,21 +271,25 @@ static int raid1_end_read_request(struct
+ 	 */
+ 	update_head_pos(mirror, r1_bio);
  
- 	platform_set_drvdata(pdev, adapter);
+-	if (uptodate || (conf->raid_disks - conf->mddev->degraded) <= 1) {
+-		/*
+-		 * Set R1BIO_Uptodate in our master bio, so that
+-		 * we will return a good error code for to the higher
+-		 * levels even if IO on some other mirrored buffer fails.
+-		 *
+-		 * The 'master' represents the composite IO operation to
+-		 * user-side. So if something waits for IO, then it will
+-		 * wait for the 'master' bio.
++	if (uptodate)
++		set_bit(R1BIO_Uptodate, &r1_bio->state);
++	else {
++		/* If all other devices have failed, we want to return
++		 * the error upwards rather than fail the last device.
++		 * Here we redefine "uptodate" to mean "Don't want to retry"
+ 		 */
+-		if (uptodate)
+-			set_bit(R1BIO_Uptodate, &r1_bio->state);
++		unsigned long flags;
++		spin_lock_irqsave(&conf->device_lock, flags);
++		if (r1_bio->mddev->degraded == conf->raid_disks ||
++		    (r1_bio->mddev->degraded == conf->raid_disks-1 &&
++		     !test_bit(Faulty, &conf->mirrors[mirror].rdev->flags)))
++			uptodate = 1;
++		spin_unlock_irqrestore(&conf->device_lock, flags);
++	}
  
- 	clk_enable(twi_clk);		/* enable peripheral clock */
- 	at91_twi_hwinit();		/* initialize TWI controller */
- 
--	rc = i2c_add_adapter(adapter);
-+	rc = i2c_add_numbered_adapter(adapter);
- 	if (rc) {
- 		dev_err(&pdev->dev, "Adapter %s registration failed\n",
- 				adapter->name);
-@@ -295,6 +296,9 @@ static int at91_i2c_resume(struct platfo
- #define at91_i2c_resume		NULL
- #endif
- 
-+/* work with "modprobe at91_i2c" from hotplugging or coldplugging */
-+MODULE_ALIAS("at91_i2c");
-+
- static struct platform_driver at91_i2c_driver = {
- 	.probe		= at91_i2c_probe,
- 	.remove		= __devexit_p(at91_i2c_remove),
++	if (uptodate)
+ 		raid_end_bio_io(r1_bio);
+-	} else {
++	else {
+ 		/*
+ 		 * oops, read error:
+ 		 */
+@@ -992,13 +996,14 @@ static void error(mddev_t *mddev, mdk_rd
+ 		unsigned long flags;
+ 		spin_lock_irqsave(&conf->device_lock, flags);
+ 		mddev->degraded++;
++		set_bit(Faulty, &rdev->flags);
+ 		spin_unlock_irqrestore(&conf->device_lock, flags);
+ 		/*
+ 		 * if recovery is running, make sure it aborts.
+ 		 */
+ 		set_bit(MD_RECOVERY_ERR, &mddev->recovery);
+-	}
+-	set_bit(Faulty, &rdev->flags);
++	} else
++		set_bit(Faulty, &rdev->flags);
+ 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+ 	printk(KERN_ALERT "raid1: Disk failure on %s, disabling device. \n"
+ 		"	Operation continuing on %d devices\n",
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-documentation-gpiotxt-mentions-generic_gpio.patch
-rtc-rs5c313c-error-and-warning-are-fixed.patch
-rtc-rs5c313c-rtc_time-value-are-fixed.patch
-rtc-rs5c313c-add-error-handling-to-avoid-hardware-hangup.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-git-leds.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-use-menuconfig-objects-ii-rtc.patch
+md-improve-the-is_mddev_idle-test.patch
+git-md-accel.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+use-menuconfig-objects-ii-md.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
