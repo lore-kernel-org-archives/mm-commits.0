@@ -1,106 +1,654 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-fix-tme_handler-to-check-_page_present-bit.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:11 -0700
-Message-ID: <200705120533.l4C5XBnS002085@shell0.pdx.osdl.net>
+Subject: - afs-implement-statfs.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:32:52 -0700
+Message-ID: <200705120532.l4C5Wp2G002066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48740 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754620AbXELFdW (ORCPT
+	by vger.kernel.org with ESMTP id S1757289AbXELFdE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:33:22 -0400
+	Sat, 12 May 2007 01:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takata@linux-m32r.org, hitoshiy@linux-m32r.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: fix tme_handler to check _PAGE_PRESENT bit
+     AFS: implement statfs
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-tme_handler-to-check-_page_present-bit.patch
+     afs-implement-statfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: fix tme_handler to check _PAGE_PRESENT bit
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: AFS: implement statfs
+From: David Howells <dhowells@redhat.com>
 
-Fix the tlb-miss handler (tme_handler) to check _PAGE_PRESENT bit
-in order to handle file-mapped or swapped-out pages correctly.
+Implement the statfs() op for AFS.
 
-This patch is required to fix unexpected page errors for m32r.
-
-Signed-off-by: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/mm/mmu.S |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ fs/afs/afs.h      |   23 +++
+ fs/afs/afs_fs.h   |    3 
+ fs/afs/dir.c      |   18 +-
+ fs/afs/fsclient.c |  298 ++++++++++++++++++++++++++++++++++++++++++++
+ fs/afs/internal.h |    6 
+ fs/afs/super.c    |   41 +++++-
+ fs/afs/vnode.c    |   52 +++++++
+ 7 files changed, 426 insertions(+), 15 deletions(-)
 
-diff -puN arch/m32r/mm/mmu.S~m32r-fix-tme_handler-to-check-_page_present-bit arch/m32r/mm/mmu.S
---- a/arch/m32r/mm/mmu.S~m32r-fix-tme_handler-to-check-_page_present-bit
-+++ a/arch/m32r/mm/mmu.S
-@@ -163,7 +163,8 @@ ENTRY(tme_handler)
+diff -puN fs/afs/afs.h~afs-implement-statfs fs/afs/afs.h
+--- a/fs/afs/afs.h~afs-implement-statfs
++++ a/fs/afs/afs.h
+@@ -16,6 +16,9 @@
  
- 	; pte_data = (unsigned long)pte_val(*pte);
- 	ld	r2, @r3			; r2: pte data
--	or3	r2, r2, #2		; _PAGE_PRESENT(=2)
-+	and3	r3, r2, #2		; _PAGE_PRESENT(=2) check
-+	beqz	r3, 3f
+ #define AFS_MAXCELLNAME	64		/* maximum length of a cell name */
+ #define AFS_MAXVOLNAME	64		/* maximum length of a volume name */
++#define AFSNAMEMAX	256		/* maximum length of a filename plus NUL */
++#define AFSPATHMAX	1024		/* maximum length of a pathname plus NUL */
++#define AFSOPAQUEMAX	1024		/* maximum length of an opaque field */
  
- 	.fillinsn
- 5:
-@@ -264,11 +265,8 @@ ENTRY(tme_handler)
- ;
- 	and3	r1, r1, #0xeff
- 	ldi	r4, #611		; _KERNPG_TABLE(=611)
--	beq	r1, r4, 4f		; !pmd_bad(*pmd) ?
--	.fillinsn
--3:
--	ldi	r1, #0			; r1: pte_data = 0
--	bra	5f
-+	bne	r1, r4, 3f		; !pmd_bad(*pmd) ?
+ typedef unsigned			afs_volid_t;
+ typedef unsigned			afs_vnodeid_t;
+@@ -143,4 +146,24 @@ struct afs_volsync {
+ 	time_t			creation;	/* volume creation time */
+ };
+ 
++/*
++ * AFS volume status record
++ */
++struct afs_volume_status {
++	u32			vid;		/* volume ID */
++	u32			parent_id;	/* parent volume ID */
++	u8			online;		/* true if volume currently online and available */
++	u8			in_service;	/* true if volume currently in service */
++	u8			blessed;	/* same as in_service */
++	u8			needs_salvage;	/* true if consistency checking required */
++	u32			type;		/* volume type (afs_voltype_t) */
++	u32			min_quota;	/* minimum space set aside (blocks) */
++	u32			max_quota;	/* maximum space this volume may occupy (blocks) */
++	u32			blocks_in_use;	/* space this volume currently occupies (blocks) */
++	u32			part_blocks_avail; /* space available in volume's partition */
++	u32			part_max_blocks; /* size of volume's partition */
++};
 +
- 	.fillinsn
- 4:
- 	; pte = pte_offset(pmd, address);
-@@ -282,8 +280,10 @@ ENTRY(tme_handler)
- 	add	r4, r3			; r4: pte
- 	; pte_data = (unsigned long)pte_val(*pte);
- 	ld	r1, @r4			; r1: pte_data
--	.fillinsn
-+	and3	r3, r1, #2		; _PAGE_PRESENT(=2) check
-+	beqz	r3, 3f
- 
-+	.fillinsn
- ;; set tlb
- ; r0: address, r1: pte_data, r2: entry
- ; r3,r4: (free)
-@@ -295,8 +295,7 @@ ENTRY(tme_handler)
- 	and3	r4, r4, #(MMU_CONTEXT_ASID_MASK)
- 	or	r3, r4
- 	st	r3, @r2
--	or3	r4, r1, #2		; _PAGE_PRESENT(=2)
--	st	r4, @(4,r2)		; set_tlb_data(entry, pte_data);
-+	st	r1, @(4,r2)		; set_tlb_data(entry, pte_data);
- 
- 	ld	r4, @sp+
- 	ld	r3, @sp+
-@@ -306,6 +305,11 @@ ENTRY(tme_handler)
- 	ld	sp, @sp+
- 	rte
- 
-+	.fillinsn
-+3:
-+	ldi	r1, #2			; r1: pte_data = 0 | _PAGE_PRESENT(=2)
-+	bra	5b
++#define AFS_BLOCK_SIZE	1024
 +
- #else
- #error unknown isa configuration
- #endif
+ #endif /* AFS_H */
+diff -puN fs/afs/afs_fs.h~afs-implement-statfs fs/afs/afs_fs.h
+--- a/fs/afs/afs_fs.h~afs-implement-statfs
++++ a/fs/afs/afs_fs.h
+@@ -28,7 +28,8 @@ enum AFS_FS_Operations {
+ 	FSMAKEDIR		= 141,	/* AFS Create a directory */
+ 	FSREMOVEDIR		= 142,	/* AFS Remove a directory */
+ 	FSGIVEUPCALLBACKS	= 147,	/* AFS Discard callback promises */
+-	FSGETVOLUMEINFO		= 148,	/* AFS Get root volume information */
++	FSGETVOLUMEINFO		= 148,	/* AFS Get information about a volume */
++	FSGETVOLUMESTATUS	= 149,	/* AFS Get volume status information */
+ 	FSGETROOTVOLUME		= 151,	/* AFS Get root volume name */
+ 	FSLOOKUP		= 161,	/* AFS lookup file in directory */
+ 	FSFETCHDATA64		= 65537, /* AFS Fetch file data */
+diff -puN fs/afs/dir.c~afs-implement-statfs fs/afs/dir.c
+--- a/fs/afs/dir.c~afs-implement-statfs
++++ a/fs/afs/dir.c
+@@ -497,7 +497,7 @@ static struct dentry *afs_lookup(struct 
+ 
+ 	ASSERTCMP(dentry->d_inode, ==, NULL);
+ 
+-	if (dentry->d_name.len > 255) {
++	if (dentry->d_name.len >= AFSNAMEMAX) {
+ 		_leave(" = -ENAMETOOLONG");
+ 		return ERR_PTR(-ENAMETOOLONG);
+ 	}
+@@ -736,7 +736,7 @@ static int afs_mkdir(struct inode *dir, 
+ 	       dvnode->fid.vid, dvnode->fid.vnode, dentry->d_name.name, mode);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (dentry->d_name.len > 255)
++	if (dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(dvnode->volume->cell);
+@@ -801,7 +801,7 @@ static int afs_rmdir(struct inode *dir, 
+ 	       dvnode->fid.vid, dvnode->fid.vnode, dentry->d_name.name);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (dentry->d_name.len > 255)
++	if (dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(dvnode->volume->cell);
+@@ -847,7 +847,7 @@ static int afs_unlink(struct inode *dir,
+ 	       dvnode->fid.vid, dvnode->fid.vnode, dentry->d_name.name);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (dentry->d_name.len > 255)
++	if (dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(dvnode->volume->cell);
+@@ -921,7 +921,7 @@ static int afs_create(struct inode *dir,
+ 	       dvnode->fid.vid, dvnode->fid.vnode, dentry->d_name.name, mode);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (dentry->d_name.len > 255)
++	if (dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(dvnode->volume->cell);
+@@ -990,7 +990,7 @@ static int afs_link(struct dentry *from,
+ 	       dentry->d_name.name);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (dentry->d_name.len > 255)
++	if (dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(dvnode->volume->cell);
+@@ -1038,11 +1038,11 @@ static int afs_symlink(struct inode *dir
+ 	       content);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (dentry->d_name.len > 255)
++	if (dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	ret = -EINVAL;
+-	if (strlen(content) > 1023)
++	if (strlen(content) >= AFSPATHMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(dvnode->volume->cell);
+@@ -1112,7 +1112,7 @@ static int afs_rename(struct inode *old_
+ 	       new_dentry->d_name.name);
+ 
+ 	ret = -ENAMETOOLONG;
+-	if (new_dentry->d_name.len > 255)
++	if (new_dentry->d_name.len >= AFSNAMEMAX)
+ 		goto error;
+ 
+ 	key = afs_request_key(orig_dvnode->volume->cell);
+diff -puN fs/afs/fsclient.c~afs-implement-statfs fs/afs/fsclient.c
+--- a/fs/afs/fsclient.c~afs-implement-statfs
++++ a/fs/afs/fsclient.c
+@@ -202,6 +202,29 @@ static void xdr_encode_AFS_StoreStatus(_
+ }
+ 
+ /*
++ * decode an AFSFetchVolumeStatus block
++ */
++static void xdr_decode_AFSFetchVolumeStatus(const __be32 **_bp,
++					    struct afs_volume_status *vs)
++{
++	const __be32 *bp = *_bp;
++
++	vs->vid			= ntohl(*bp++);
++	vs->parent_id		= ntohl(*bp++);
++	vs->online		= ntohl(*bp++);
++	vs->in_service		= ntohl(*bp++);
++	vs->blessed		= ntohl(*bp++);
++	vs->needs_salvage	= ntohl(*bp++);
++	vs->type		= ntohl(*bp++);
++	vs->min_quota		= ntohl(*bp++);
++	vs->max_quota		= ntohl(*bp++);
++	vs->blocks_in_use	= ntohl(*bp++);
++	vs->part_blocks_avail	= ntohl(*bp++);
++	vs->part_max_blocks	= ntohl(*bp++);
++	*_bp = bp;
++}
++
++/*
+  * deliver reply data to an FS.FetchStatus
+  */
+ static int afs_deliver_fs_fetch_status(struct afs_call *call,
+@@ -1450,3 +1473,278 @@ int afs_fs_setattr(struct afs_server *se
+ 
+ 	return afs_make_call(&server->addr, call, GFP_NOFS, wait_mode);
+ }
++
++/*
++ * deliver reply data to an FS.GetVolumeStatus
++ */
++static int afs_deliver_fs_get_volume_status(struct afs_call *call,
++					    struct sk_buff *skb, bool last)
++{
++	const __be32 *bp;
++	char *p;
++	int ret;
++
++	_enter("{%u},{%u},%d", call->unmarshall, skb->len, last);
++
++	switch (call->unmarshall) {
++	case 0:
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the returned status record */
++	case 1:
++		_debug("extract status");
++		ret = afs_extract_data(call, skb, last, call->buffer,
++				       12 * 4);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		bp = call->buffer;
++		xdr_decode_AFSFetchVolumeStatus(&bp, call->reply2);
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the volume name length */
++	case 2:
++		ret = afs_extract_data(call, skb, last, &call->tmp, 4);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		call->count = ntohl(call->tmp);
++		_debug("volname length: %u", call->count);
++		if (call->count >= AFSNAMEMAX)
++			return -EBADMSG;
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the volume name */
++	case 3:
++		_debug("extract volname");
++		if (call->count > 0) {
++			ret = afs_extract_data(call, skb, last, call->reply3,
++					       call->count);
++			switch (ret) {
++			case 0:		break;
++			case -EAGAIN:	return 0;
++			default:	return ret;
++			}
++		}
++
++		p = call->reply3;
++		p[call->count] = 0;
++		_debug("volname '%s'", p);
++
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the volume name padding */
++		if ((call->count & 3) == 0) {
++			call->unmarshall++;
++			goto no_volname_padding;
++		}
++		call->count = 4 - (call->count & 3);
++
++	case 4:
++		ret = afs_extract_data(call, skb, last, call->buffer,
++				       call->count);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		call->offset = 0;
++		call->unmarshall++;
++	no_volname_padding:
++
++		/* extract the offline message length */
++	case 5:
++		ret = afs_extract_data(call, skb, last, &call->tmp, 4);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		call->count = ntohl(call->tmp);
++		_debug("offline msg length: %u", call->count);
++		if (call->count >= AFSNAMEMAX)
++			return -EBADMSG;
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the offline message */
++	case 6:
++		_debug("extract offline");
++		if (call->count > 0) {
++			ret = afs_extract_data(call, skb, last, call->reply3,
++					       call->count);
++			switch (ret) {
++			case 0:		break;
++			case -EAGAIN:	return 0;
++			default:	return ret;
++			}
++		}
++
++		p = call->reply3;
++		p[call->count] = 0;
++		_debug("offline '%s'", p);
++
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the offline message padding */
++		if ((call->count & 3) == 0) {
++			call->unmarshall++;
++			goto no_offline_padding;
++		}
++		call->count = 4 - (call->count & 3);
++
++	case 7:
++		ret = afs_extract_data(call, skb, last, call->buffer,
++				       call->count);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		call->offset = 0;
++		call->unmarshall++;
++	no_offline_padding:
++
++		/* extract the message of the day length */
++	case 8:
++		ret = afs_extract_data(call, skb, last, &call->tmp, 4);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		call->count = ntohl(call->tmp);
++		_debug("motd length: %u", call->count);
++		if (call->count >= AFSNAMEMAX)
++			return -EBADMSG;
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the message of the day */
++	case 9:
++		_debug("extract motd");
++		if (call->count > 0) {
++			ret = afs_extract_data(call, skb, last, call->reply3,
++					       call->count);
++			switch (ret) {
++			case 0:		break;
++			case -EAGAIN:	return 0;
++			default:	return ret;
++			}
++		}
++
++		p = call->reply3;
++		p[call->count] = 0;
++		_debug("motd '%s'", p);
++
++		call->offset = 0;
++		call->unmarshall++;
++
++		/* extract the message of the day padding */
++		if ((call->count & 3) == 0) {
++			call->unmarshall++;
++			goto no_motd_padding;
++		}
++		call->count = 4 - (call->count & 3);
++
++	case 10:
++		ret = afs_extract_data(call, skb, last, call->buffer,
++				       call->count);
++		switch (ret) {
++		case 0:		break;
++		case -EAGAIN:	return 0;
++		default:	return ret;
++		}
++
++		call->offset = 0;
++		call->unmarshall++;
++	no_motd_padding:
++
++	case 11:
++		_debug("trailer %d", skb->len);
++		if (skb->len != 0)
++			return -EBADMSG;
++		break;
++	}
++
++	if (!last)
++		return 0;
++
++	_leave(" = 0 [done]");
++	return 0;
++}
++
++/*
++ * destroy an FS.GetVolumeStatus call
++ */
++static void afs_get_volume_status_call_destructor(struct afs_call *call)
++{
++	kfree(call->reply3);
++	call->reply3 = NULL;
++	afs_flat_call_destructor(call);
++}
++
++/*
++ * FS.GetVolumeStatus operation type
++ */
++static const struct afs_call_type afs_RXFSGetVolumeStatus = {
++	.name		= "FS.GetVolumeStatus",
++	.deliver	= afs_deliver_fs_get_volume_status,
++	.abort_to_error	= afs_abort_to_error,
++	.destructor	= afs_get_volume_status_call_destructor,
++};
++
++/*
++ * fetch the status of a volume
++ */
++int afs_fs_get_volume_status(struct afs_server *server,
++			     struct key *key,
++			     struct afs_vnode *vnode,
++			     struct afs_volume_status *vs,
++			     const struct afs_wait_mode *wait_mode)
++{
++	struct afs_call *call;
++	__be32 *bp;
++	void *tmpbuf;
++
++	_enter("");
++
++	tmpbuf = kmalloc(AFSOPAQUEMAX, GFP_KERNEL);
++	if (!tmpbuf)
++		return -ENOMEM;
++
++	call = afs_alloc_flat_call(&afs_RXFSGetVolumeStatus, 2 * 4, 12 * 4);
++	if (!call) {
++		kfree(tmpbuf);
++		return -ENOMEM;
++	}
++
++	call->key = key;
++	call->reply = vnode;
++	call->reply2 = vs;
++	call->reply3 = tmpbuf;
++	call->service_id = FS_SERVICE;
++	call->port = htons(AFS_FS_PORT);
++
++	/* marshall the parameters */
++	bp = call->request;
++	bp[0] = htonl(FSGETVOLUMESTATUS);
++	bp[1] = htonl(vnode->fid.vid);
++
++	return afs_make_call(&server->addr, call, GFP_NOFS, wait_mode);
++}
+diff -puN fs/afs/internal.h~afs-implement-statfs fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-implement-statfs
++++ a/fs/afs/internal.h
+@@ -506,6 +506,10 @@ extern int afs_fs_store_data(struct afs_
+ extern int afs_fs_setattr(struct afs_server *, struct key *,
+ 			  struct afs_vnode *, struct iattr *,
+ 			  const struct afs_wait_mode *);
++extern int afs_fs_get_volume_status(struct afs_server *, struct key *,
++				    struct afs_vnode *,
++				    struct afs_volume_status *,
++				    const struct afs_wait_mode *);
+ 
+ /*
+  * inode.c
+@@ -672,6 +676,8 @@ extern int afs_vnode_rename(struct afs_v
+ extern int afs_vnode_store_data(struct afs_writeback *, pgoff_t, pgoff_t,
+ 				unsigned, unsigned);
+ extern int afs_vnode_setattr(struct afs_vnode *, struct key *, struct iattr *);
++extern int afs_vnode_get_volume_status(struct afs_vnode *, struct key *,
++				       struct afs_volume_status *);
+ 
+ /*
+  * volume.c
+diff -puN fs/afs/super.c~afs-implement-statfs fs/afs/super.c
+--- a/fs/afs/super.c~afs-implement-statfs
++++ a/fs/afs/super.c
+@@ -21,22 +21,20 @@
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
+ #include <linux/parser.h>
++#include <linux/statfs.h>
+ #include "internal.h"
+ 
+ #define AFS_FS_MAGIC 0x6B414653 /* 'kAFS' */
+ 
+ static void afs_i_init_once(void *foo, struct kmem_cache *cachep,
+ 			    unsigned long flags);
+-
+ static int afs_get_sb(struct file_system_type *fs_type,
+ 		      int flags, const char *dev_name,
+ 		      void *data, struct vfsmount *mnt);
+-
+ static struct inode *afs_alloc_inode(struct super_block *sb);
+-
+ static void afs_put_super(struct super_block *sb);
+-
+ static void afs_destroy_inode(struct inode *inode);
++static int afs_statfs(struct dentry *dentry, struct kstatfs *buf);
+ 
+ struct file_system_type afs_fs_type = {
+ 	.owner		= THIS_MODULE,
+@@ -47,7 +45,7 @@ struct file_system_type afs_fs_type = {
+ };
+ 
+ static const struct super_operations afs_super_ops = {
+-	.statfs		= simple_statfs,
++	.statfs		= afs_statfs,
+ 	.alloc_inode	= afs_alloc_inode,
+ 	.drop_inode	= generic_delete_inode,
+ 	.write_inode	= afs_write_inode,
+@@ -508,3 +506,36 @@ static void afs_destroy_inode(struct ino
+ 	kmem_cache_free(afs_inode_cachep, vnode);
+ 	atomic_dec(&afs_count_active_inodes);
+ }
++
++/*
++ * return information about an AFS volume
++ */
++static int afs_statfs(struct dentry *dentry, struct kstatfs *buf)
++{
++	struct afs_volume_status vs;
++	struct afs_vnode *vnode = AFS_FS_I(dentry->d_inode);
++	struct key *key;
++	int ret;
++
++	key = afs_request_key(vnode->volume->cell);
++	if (IS_ERR(key))
++		return PTR_ERR(key);
++
++	ret = afs_vnode_get_volume_status(vnode, key, &vs);
++	key_put(key);
++	if (ret < 0) {
++		_leave(" = %d", ret);
++		return ret;
++	}
++
++	buf->f_type	= dentry->d_sb->s_magic;
++	buf->f_bsize	= AFS_BLOCK_SIZE;
++	buf->f_namelen	= AFSNAMEMAX - 1;
++
++	if (vs.max_quota == 0)
++		buf->f_blocks = vs.part_max_blocks;
++	else
++		buf->f_blocks = vs.max_quota;
++	buf->f_bavail = buf->f_bfree = buf->f_blocks - vs.blocks_in_use;
++	return 0;
++}
+diff -puN fs/afs/vnode.c~afs-implement-statfs fs/afs/vnode.c
+--- a/fs/afs/vnode.c~afs-implement-statfs
++++ a/fs/afs/vnode.c
+@@ -869,3 +869,55 @@ no_server:
+ 	spin_unlock(&vnode->lock);
+ 	return PTR_ERR(server);
+ }
++
++/*
++ * get the status of a volume
++ */
++int afs_vnode_get_volume_status(struct afs_vnode *vnode, struct key *key,
++				struct afs_volume_status *vs)
++{
++	struct afs_server *server;
++	int ret;
++
++	_enter("%s{%x:%u.%u},%x,",
++	       vnode->volume->vlocation->vldb.name,
++	       vnode->fid.vid,
++	       vnode->fid.vnode,
++	       vnode->fid.unique,
++	       key_serial(key));
++
++	/* this op will fetch the status */
++	spin_lock(&vnode->lock);
++	vnode->update_cnt++;
++	spin_unlock(&vnode->lock);
++
++	do {
++		/* pick a server to query */
++		server = afs_volume_pick_fileserver(vnode);
++		if (IS_ERR(server))
++			goto no_server;
++
++		_debug("USING SERVER: %08x\n", ntohl(server->addr.s_addr));
++
++		ret = afs_fs_get_volume_status(server, key, vnode, vs, &afs_sync_call);
++
++	} while (!afs_volume_release_fileserver(vnode, server, ret));
++
++	/* adjust the flags */
++	if (ret == 0) {
++		afs_vnode_finalise_status_update(vnode, server);
++		afs_put_server(server);
++	} else {
++		afs_vnode_status_update_failed(vnode, ret);
++	}
++
++	_leave(" = %d", ret);
++	return ret;
++
++no_server:
++	spin_lock(&vnode->lock);
++	vnode->update_cnt--;
++	ASSERTCMP(vnode->update_cnt, >=, 0);
++	spin_unlock(&vnode->lock);
++	return PTR_ERR(server);
++}
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+remove-slab_ctor_constructor.patch
+split-usermodehelper-setup-from-execution.patch
+mutex-subsystem-synchro-test-module.patch
