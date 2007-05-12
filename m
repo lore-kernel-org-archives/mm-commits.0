@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch added to -mm tree
-Date: Sat, 12 May 2007 01:28:47 -0700
-Message-ID: <200705120828.l4C8Slf6004772@shell0.pdx.osdl.net>
+Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch added to -mm tree
+Date: Sat, 12 May 2007 01:28:59 -0700
+Message-ID: <200705120828.l4C8Sx3L004778@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48934 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756894AbXELI2y (ORCPT
+	by vger.kernel.org with ESMTP id S1756903AbXELI3E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 04:28:54 -0400
+	Sat, 12 May 2007 04:29:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mikew@google.com
 
 
 The patch titled
-     writeback: fix time-ordering of the per-superblock dirty-inode lists
+     writeback: fix time ordering of the per superblock dirty inode lists 3
 has been added to the -mm tree.  Its filename is
-     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: fix time-ordering of the per-superblock dirty-inode lists
+Subject: writeback: fix time ordering of the per superblock dirty inode lists 3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-When writeback has finished writing back an inode it looks to see if that
-inode is still dirty.  If it is, that means that a process redirtied the inode
-while its writeback was in progress.
+While writeback is working against a dirty inode it does a check after trying
+to write some of the inode's pages:
 
-What we need to do here is to refile the redirtied inode onto the s_dirty
-list.
+"did the lower layers skip some of the inode's dirty pages because they were
+locked (or under writeback, or whatever)"
 
-But we're doing that wrongly: it could be that this inode was redirtied
-_before_ the last inode on s_dirty.  We're blindly appending this inode to the
-list, after an inode which might be less-recently-dirtied, thus violating the
-list's ordering.
+If this turns out to be true, we must move the inode back onto s_dirty and
+redirty it.  The reason for doing this is that fsync() and friends only check
+the s_dirty list, and those functions want to know about those pages which
+were locked, so they can be waited upon and, if necessary, rewritten.
 
-So we must either insertion-sort this inode into the correct place, or we must
-update this inode's dirtied_when field when appending it to the reverse-sorted
-s_dirty list, to preserve the reverse-time-ordering.
+Problem is, that redirtying was putting the inode onto the tail of s_dirty
+without updating its timestamp.  This causes a violation of s_dirty ordering.
 
-This patch does the latter: if this inode was dirtied less recently than the
-tail inode then copy the tail inode's timestamp into this inode.
+Fix this by updating inode->dirtied_when when moving the inode onto s_dirty.
 
-This means that in rare circumstances, some inodes will be writen back later
-than they should have been.  But the time slip will be small.
+But the code is still a bit buggy?  If the inode was _already_ dirty then we
+don't need to move it at all.  Oh well, hopefully it doesn't matter too much,
+as that was a redirtying, which was very recent anwyay.
 
 Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3
 +++ a/fs/fs-writeback.c
-@@ -185,6 +185,32 @@ static int write_inode(struct inode *ino
- }
- 
- /*
-+ * Redirty an inode: set its when-it-was dirtied timestamp to "now" and
-+ * move it to the furthest end of its superblock's dirty-inode list.
-+ *
-+ * Before stamping the inode's ->dirtied_when, we check to see whether it is
-+ * already the most-recently-dirtied inode on the s_dirty list.  If that is
-+ * the case then the inode must have been redirtied while it was being written
-+ * out and we don't reset its dirtied_when.
-+ */
-+static void redirty_tail(struct inode *inode)
-+{
-+	struct super_block *sb = inode->i_sb;
-+
-+	if (list_empty(&sb->s_dirty)) {
-+		inode->dirtied_when = jiffies;
-+	} else {
-+		struct inode *tail_inode;
-+
-+		tail_inode = list_entry(sb->s_dirty.next, struct inode, i_list);
-+		if (!time_after_eq(inode->dirtied_when,
-+				tail_inode->dirtied_when))
-+			inode->dirtied_when = jiffies;
-+	}
-+	list_move(&inode->i_list, &sb->s_dirty);
-+}
-+
-+/*
-  * Write a single inode's dirty pages and inode data out to disk.
-  * If `wait' is set, wait on the writeout.
-  *
-@@ -268,7 +294,7 @@ __sync_single_inode(struct inode *inode,
- 			 * the pages.
+@@ -484,7 +484,7 @@ int generic_sync_sb_inodes(struct super_
+ 			 * buffers.  Skip this inode for now.
  			 */
  			check_dirty_inode(inode);
 -			list_move(&inode->i_list, &sb->s_dirty);
 +			redirty_tail(inode);
  			check_dirty_inode(inode);
- 		} else if (atomic_read(&inode->i_count)) {
- 			/*
+ 		}
+ 		spin_unlock(&inode_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
