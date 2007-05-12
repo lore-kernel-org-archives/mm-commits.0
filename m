@@ -1,108 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - i386-work-around-miscompilation-of-alternatives-code.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:32:17 -0700
-Message-ID: <200705120532.l4C5WHIh002039@shell0.pdx.osdl.net>
+Subject: - x86_64-mm-new-syscall.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:32:42 -0700
+Message-ID: <200705120532.l4C5Wg1r002057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39019 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752314AbXELFci (ORCPT
+	by vger.kernel.org with ESMTP id S1756739AbXELFcs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:32:38 -0400
+	Sat, 12 May 2007 01:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg.roedel@amd.com, ak@suse.de, bhalevy@panasas.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: work around miscompilation of alternatives code
+     x86_64: new syscall
 has been removed from the -mm tree.  Its filename was
-     i386-work-around-miscompilation-of-alternatives-code.patch
+     x86_64-mm-new-syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: work around miscompilation of alternatives code
-From: "Joerg Roedel" <joerg.roedel@amd.com>
+Subject: x86_64: new syscall
+From: Andi Kleen <ak@suse.de>
 
-A recent change makes my Dell 1501 hang on boot.  It's an AMD MK-36.  I use
-an x86_64 kernel.  It is 100% reproducible.
+Add epoll_pwait()
 
-I debugged this problem a bit and my compiler[1]interprets the =A constraint
-as %rax instead of %edx:%eax on x86_64 which causes the problem.  The appended
-patch provides a workaround for this and fixed the hang on my machine.
+(akpm: stolen from Andi's queue, because I want to send the signalfd patches
+which also add syscalls.  Not sure what the __IGNORE_getcpu is for).
 
-[1] gcc version 4.1.3 20070429 (prerelease) (Debian 4.1.2-5)
-
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benny Halevy <bhalevy@panasas.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: "Joerg Roedel" <joerg.roedel@amd.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/alternative.h   |    6 ++++++
- include/asm-i386/tsc.h           |    6 ++++--
- include/asm-x86_64/alternative.h |    6 ++++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ include/asm-x86_64/unistd.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/asm-i386/alternative.h~i386-work-around-miscompilation-of-alternatives-code include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~i386-work-around-miscompilation-of-alternatives-code
-+++ a/include/asm-i386/alternative.h
-@@ -98,6 +98,12 @@ static inline void alternatives_smp_swit
- 		      ".previous" : output : [feat] "i" (feature), ##input)
+diff -puN include/asm-x86_64/unistd.h~x86_64-mm-new-syscall include/asm-x86_64/unistd.h
+--- a/include/asm-x86_64/unistd.h~x86_64-mm-new-syscall
++++ a/include/asm-x86_64/unistd.h
+@@ -621,6 +621,9 @@ __SYSCALL(__NR_vmsplice, sys_vmsplice)
+ __SYSCALL(__NR_move_pages, sys_move_pages)
+ #define __NR_utimensat		280
+ __SYSCALL(__NR_utimensat, sys_utimensat)
++#define __IGNORE_getcpu		/* implemented as a vsyscall */
++#define __NR_epoll_pwait	281
++__SYSCALL(__NR_epoll_pwait, sys_epoll_pwait)
  
- /*
-+ * use this macro(s) if you need more than one output parameter
-+ * in alternative_io
-+ */
-+#define ASM_OUTPUT2(a, b) a, b
-+
-+/*
-  * Alternative inline assembly for SMP.
-  *
-  * The LOCK_PREFIX macro defined here replaces the LOCK and
-diff -puN include/asm-i386/tsc.h~i386-work-around-miscompilation-of-alternatives-code include/asm-i386/tsc.h
---- a/include/asm-i386/tsc.h~i386-work-around-miscompilation-of-alternatives-code
-+++ a/include/asm-i386/tsc.h
-@@ -35,14 +35,16 @@ static inline cycles_t get_cycles(void)
- static __always_inline cycles_t get_cycles_sync(void)
- {
- 	unsigned long long ret;
--	unsigned eax;
-+	unsigned eax, edx;
- 
- 	/*
-   	 * Use RDTSCP if possible; it is guaranteed to be synchronous
-  	 * and doesn't cause a VMEXIT on Hypervisors
- 	 */
- 	alternative_io(ASM_NOP3, ".byte 0x0f,0x01,0xf9", X86_FEATURE_RDTSCP,
--			 	 "=A" (ret), "0" (0ULL) : "ecx", "memory");
-+		       ASM_OUTPUT2("=a" (eax), "=d" (edx)),
-+		       "a" (0U), "d" (0U) : "ecx", "memory");
-+	ret = (((unsigned long long)edx) << 32) | ((unsigned long long)eax);
- 	if (ret)
- 		return ret;
- 
-diff -puN include/asm-x86_64/alternative.h~i386-work-around-miscompilation-of-alternatives-code include/asm-x86_64/alternative.h
---- a/include/asm-x86_64/alternative.h~i386-work-around-miscompilation-of-alternatives-code
-+++ a/include/asm-x86_64/alternative.h
-@@ -103,6 +103,12 @@ static inline void alternatives_smp_swit
- 		      ".previous" : output : [feat] "i" (feature), ##input)
- 
- /*
-+ * use this macro(s) if you need more than one output parameter
-+ * in alternative_io
-+ */
-+#define ASM_OUTPUT2(a, b) a, b
-+
-+/*
-  * Alternative inline assembly for SMP.
-  *
-  * The LOCK_PREFIX macro defined here replaces the LOCK and
+ #ifndef __NO_STUBS
+ #define __ARCH_WANT_OLD_READDIR
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from ak@suse.de are
 
 origin.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
+x86_64-use-signalfd-and-timerfd-compat-syscalls.patch
+remove-pci_dac_dma_-apis.patch
+git-pciseg.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+quicklist-support-for-x86_64.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+x86_64-fix-e820_hole_size-based-on-address-ranges.patch
+x86_64-acpi-disable-srat-when-numa-emulation-succeeds.patch
+x86_64-slit-fake-pxm-to-node-mapping-for-fake-numa-2.patch
+x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-hpet-check-if-the-counter-works.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch
+i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+x86_64-o_excl-on-dev-mcelog.patch
+x86_64-support-poll-on-dev-mcelog.patch
+i386-x86-64-fix-section-mismatch.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-guest-code.patch
+lguest-the-host-code.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+clockevents-fix-resume-logic-updated-version.patch
