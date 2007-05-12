@@ -1,91 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-fix-pte_to_pgoff.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:13 -0700
-Message-ID: <200705120533.l4C5XDwZ002089@shell0.pdx.osdl.net>
+Subject: - uml-tidy-irq-code.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:33:27 -0700
+Message-ID: <200705120533.l4C5XRVR002105@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36512 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754760AbXELFdX (ORCPT
+	by vger.kernel.org with ESMTP id S1754538AbXELFda (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:33:23 -0400
+	Sat, 12 May 2007 01:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takata@linux-m32r.org, hitoshiy@linux-m32r.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: fix pte_to_pgoff(),  pgoff_to_pte() and __swp_type() macros
+     uml: tidy IRQ code
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-pte_to_pgoff.patch
+     uml-tidy-irq-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: fix pte_to_pgoff(),  pgoff_to_pte() and __swp_type() macros
-From: Hirokazu Takata <takata@linux-m32r.org>
+Subject: uml: tidy IRQ code
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch is required to handle file-mapped or swapped-out pages
-correctly.
+Some tidying of the irq code before introducing irq stacks.  Mostly
+style fixes, but the timer handler calls the timer code directly
+rather than going through the generic sig_handler_common_skas.
 
-- Fix pte_to_pgoff() and pgoff_to_pte() macros not to include
-  _PAGE_PROTNONE bit of PTE.
-  Mask value for { ACCESSED, N, (R, W, X), L, G } is not 0xef but 0x7f.
-- Fix __swp_type() macro for MAX_SWAPFILES_SHIFT(=5), which is defined
-  in include/linux/swap.h.
-
-* M32R TLB format
-
-     [0]    [1:19]           [20:23]       [24:31]
-     +-----------------------+----+-------------+
-     |          VPN          |0000|    ASID     |
-     +-----------------------+----+-------------+
-     +-+---------------------+----+-+---+-+-+-+-+
-     |0         PPN          |0000|N|AC |L|G|V| |
-     +-+---------------------+----+-+---+-+-+-+-+
-                                ||   RWX     | |
-* software bits in PTE          ||           | +-- _PAGE_FILE | _PAGE_DIRTY
-                                ||           +---- _PAGE_PRESENT
-                                |+---------------- _PAGE_ACCESSED
-                                +----------------- _PAGE_PROTNONE
-
-Signed-off-by: Hitoshi Yamamoto <hitoshiy@linux-m32r.org>
-Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/pgtable-2level.h |    4 ++--
- include/asm-m32r/pgtable.h        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/um/kernel/init_task.c      |   11 -----------
+ arch/um/kernel/irq.c            |    4 ++--
+ arch/um/os-Linux/signal.c       |   10 +++++++---
+ arch/um/os-Linux/skas/process.c |    6 ++++--
+ 4 files changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN include/asm-m32r/pgtable-2level.h~m32r-fix-pte_to_pgoff include/asm-m32r/pgtable-2level.h
---- a/include/asm-m32r/pgtable-2level.h~m32r-fix-pte_to_pgoff
-+++ a/include/asm-m32r/pgtable-2level.h
-@@ -71,8 +71,8 @@ static inline pmd_t *pmd_offset(pgd_t * 
- #define pfn_pmd(pfn, prot)	__pmd(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+diff -puN arch/um/kernel/init_task.c~uml-tidy-irq-code arch/um/kernel/init_task.c
+--- a/arch/um/kernel/init_task.c~uml-tidy-irq-code
++++ a/arch/um/kernel/init_task.c
+@@ -46,14 +46,3 @@ void unprotect_stack(unsigned long stack
+ {
+ 	os_protect_memory((void *) stack, THREAD_SIZE, 1, 1, 0);
+ }
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/irq.c~uml-tidy-irq-code arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-tidy-irq-code
++++ a/arch/um/kernel/irq.c
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
+  * Licensed under the GPL
+  * Derived (i.e. mostly copied) from arch/i386/kernel/irq.c:
+@@ -53,7 +53,7 @@ int show_interrupts(struct seq_file *p, 
+ 	if (i < NR_IRQS) {
+ 		spin_lock_irqsave(&irq_desc[i].lock, flags);
+ 		action = irq_desc[i].action;
+-		if (!action) 
++		if (!action)
+ 			goto skip;
+ 		seq_printf(p, "%3d: ",i);
+ #ifndef CONFIG_SMP
+diff -puN arch/um/os-Linux/signal.c~uml-tidy-irq-code arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-tidy-irq-code
++++ a/arch/um/os-Linux/signal.c
+@@ -61,15 +61,19 @@ void sig_handler(int sig, struct sigcont
  
- #define PTE_FILE_MAX_BITS	29
--#define pte_to_pgoff(pte)	(((pte_val(pte) >> 2) & 0xef) | (((pte_val(pte) >> 10)) << 7))
--#define pgoff_to_pte(off)	((pte_t) { (((off) & 0xef) << 2) | (((off) >> 7) << 10) | _PAGE_FILE })
-+#define pte_to_pgoff(pte)	(((pte_val(pte) >> 2) & 0x7f) | (((pte_val(pte) >> 10)) << 7))
-+#define pgoff_to_pte(off)	((pte_t) { (((off) & 0x7f) << 2) | (((off) >> 7) << 10) | _PAGE_FILE })
+ static void real_alarm_handler(int sig, struct sigcontext *sc)
+ {
++	union uml_pt_regs regs;
++
+ 	if(sig == SIGALRM)
+ 		switch_timers(0);
  
- #endif /* __KERNEL__ */
- #endif /* _ASM_M32R_PGTABLE_2LEVEL_H */
-diff -puN include/asm-m32r/pgtable.h~m32r-fix-pte_to_pgoff include/asm-m32r/pgtable.h
---- a/include/asm-m32r/pgtable.h~m32r-fix-pte_to_pgoff
-+++ a/include/asm-m32r/pgtable.h
-@@ -366,7 +366,7 @@ static inline void pmd_set(pmd_t * pmdp,
- #define pte_unmap_nested(pte)	do { } while (0)
+-	CHOOSE_MODE_PROC(sig_handler_common_tt, sig_handler_common_skas,
+-			 sig, sc);
++	if(sc != NULL)
++		copy_sc(&regs, sc);
++	regs.skas.is_user = 0;
++	unblock_signals();
++	timer_handler(sig, &regs);
  
- /* Encode and de-code a swap entry */
--#define __swp_type(x)			(((x).val >> 2) & 0x3f)
-+#define __swp_type(x)			(((x).val >> 2) & 0x1f)
- #define __swp_offset(x)			((x).val >> 10)
- #define __swp_entry(type, offset)	\
- 	((swp_entry_t) { ((type) << 2) | ((offset) << 10) })
+ 	if(sig == SIGALRM)
+ 		switch_timers(1);
+-
+ }
+ 
+ void alarm_handler(int sig, struct sigcontext *sc)
+diff -puN arch/um/os-Linux/skas/process.c~uml-tidy-irq-code arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-tidy-irq-code
++++ a/arch/um/os-Linux/skas/process.c
+@@ -288,7 +288,8 @@ int start_userspace(unsigned long stub_s
+ void userspace(union uml_pt_regs *regs)
+ {
+ 	int err, status, op, pid = userspace_pid[0];
+-	int local_using_sysemu; /*To prevent races if using_sysemu changes under us.*/
++	/* To prevent races if using_sysemu changes under us.*/
++	int local_using_sysemu;
+ 
+ 	while(1){
+ 		restore_registers(pid, regs);
+@@ -296,7 +297,8 @@ void userspace(union uml_pt_regs *regs)
+ 		/* Now we set local_using_sysemu to be used for one loop */
+ 		local_using_sysemu = get_using_sysemu();
+ 
+-		op = SELECT_PTRACE_OPERATION(local_using_sysemu, singlestepping(NULL));
++		op = SELECT_PTRACE_OPERATION(local_using_sysemu,
++					     singlestepping(NULL));
+ 
+ 		err = ptrace(op, pid, 0, 0);
+ 		if(err)
 _
 
-Patches currently in -mm which might be from takata@linux-m32r.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
