@@ -1,145 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - arm-stacktrace-fix.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:36:06 -0700
-Message-ID: <200705120536.l4C5a6um002349@shell0.pdx.osdl.net>
+Subject: - sn-validate-smp_affinity-mask-on-intr-redirect.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:36:14 -0700
+Message-ID: <200705120536.l4C5aENo002358@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54872 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757430AbXELFgR (ORCPT
+	by vger.kernel.org with ESMTP id S1757487AbXELFgS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:36:17 -0400
+	Sat, 12 May 2007 01:36:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: jpk@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: stacktrace fix
+     SN: validate smp_affinity mask on intr redirect
 has been removed from the -mm tree.  Its filename was
-     arm-stacktrace-fix.patch
+     sn-validate-smp_affinity-mask-on-intr-redirect.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arm: stacktrace fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SN: validate smp_affinity mask on intr redirect
+From: John Keller <jpk@sgi.com>
 
-ab1b6f03a10ba1f5638188ab06bf46e33ac3a160 said
+On SN, only allow one bit to be set in the smp_affinty mask when
+redirecting an interrupt.  Currently setting multiple bits is allowed, but
+only the first bit is used in determining the CPU to redirect to.  This has
+caused confusion among some customers.
 
- - remove the unused task argument to save_stack_trace, it's always current
-
-then broke arm:
-
-arch/arm/kernel/stacktrace.c:56: error: conflicting types for 'save_stack_trace'
-include/linux/stacktrace.h:11: error: previous declaration of 'save_stack_trace' was here
-arch/arm/kernel/stacktrace.c:56: error: conflicting types for 'save_stack_trace'
-include/linux/stacktrace.h:11: error: previous declaration of 'save_stack_trace' was here
-
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+[akpm@linux-foundation.org: fixes]
+Signed-off-by: John Keller <jpk@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/stacktrace.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ arch/ia64/kernel/irq.c |   11 +++++++++++
+ include/asm-ia64/irq.h |    6 ++++++
+ kernel/irq/proc.c      |    7 +++++++
+ 3 files changed, 24 insertions(+)
 
-diff -puN arch/arm/kernel/stacktrace.c~arm-stacktrace-fix arch/arm/kernel/stacktrace.c
---- a/arch/arm/kernel/stacktrace.c~arm-stacktrace-fix
-+++ a/arch/arm/kernel/stacktrace.c
-@@ -52,21 +52,15 @@ static int save_trace(struct stackframe 
- 	return trace->nr_entries >= trace->max_entries;
+diff -puN arch/ia64/kernel/irq.c~sn-validate-smp_affinity-mask-on-intr-redirect arch/ia64/kernel/irq.c
+--- a/arch/ia64/kernel/irq.c~sn-validate-smp_affinity-mask-on-intr-redirect
++++ a/arch/ia64/kernel/irq.c
+@@ -104,6 +104,17 @@ void set_irq_affinity_info (unsigned int
+ 		irq_redir[irq] = (char) (redir & 0xff);
+ 	}
+ }
++
++bool is_affinity_mask_valid(cpumask_t cpumask)
++{
++	if (ia64_platform_is("sn2")) {
++		/* Only allow one CPU to be specified in the smp_affinity mask */
++		if (cpus_weight(cpumask) != 1)
++			return false;
++	}
++	return true;
++}
++
+ #endif /* CONFIG_SMP */
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+diff -puN include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect include/asm-ia64/irq.h
+--- a/include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect
++++ a/include/asm-ia64/irq.h
+@@ -11,6 +11,9 @@
+  * 02/29/00     D.Mosberger	moved most things into hw_irq.h
+  */
+ 
++#include <linux/types.h>
++#include <linux/cpumask.h>
++
+ #define NR_IRQS		256
+ #define NR_IRQ_VECTORS	NR_IRQS
+ 
+@@ -29,5 +32,8 @@ extern void disable_irq (unsigned int);
+ extern void disable_irq_nosync (unsigned int);
+ extern void enable_irq (unsigned int);
+ extern void set_irq_affinity_info (unsigned int irq, int dest, int redir);
++bool is_affinity_mask_valid(cpumask_t cpumask);
++
++#define is_affinity_mask_valid is_affinity_mask_valid
+ 
+ #endif /* _ASM_IA64_IRQ_H */
+diff -puN kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect kernel/irq/proc.c
+--- a/kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect
++++ a/kernel/irq/proc.c
+@@ -27,6 +27,10 @@ static int irq_affinity_read_proc(char *
+ 	return len;
  }
  
--void save_stack_trace(struct stack_trace *trace, struct task_struct *task)
-+void save_stack_trace(struct stack_trace *trace)
- {
- 	struct stack_trace_data data;
- 	unsigned long fp, base;
++#ifndef is_affinity_mask_valid
++#define is_affinity_mask_valid(val) 1
++#endif
++
+ int no_irq_affinity;
+ static int irq_affinity_write_proc(struct file *file, const char __user *buffer,
+ 				   unsigned long count, void *data)
+@@ -42,6 +46,9 @@ static int irq_affinity_write_proc(struc
+ 	if (err)
+ 		return err;
  
- 	data.trace = trace;
- 	data.skip = trace->skip;
--
--	if (task) {
--		base = (unsigned long)task_stack_page(task);
--		fp = 0; /* FIXME */
--	} else {
--		base = (unsigned long)task_stack_page(current);
--		asm("mov %0, fp" : "=r" (fp));
--	}
-+	base = (unsigned long)task_stack_page(current);
-+	asm("mov %0, fp" : "=r" (fp));
- 
- 	walk_stackframe(fp, base, base + THREAD_SIZE, save_trace, &data);
- }
++	if (!is_affinity_mask_valid(new_value))
++		return -EINVAL;
++
+ 	/*
+ 	 * Do not allow disabling IRQs completely - it's a too easy
+ 	 * way to make the system unusable accidentally :-) At least
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jpk@sgi.com are
 
 origin.patch
-ntfs-use-zero_user_page.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mips-fixup.patch
-fix-race-condition-about-network-device-name-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-git-newsetup-fixup.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
