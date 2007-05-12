@@ -1,56 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-rs5c313c-rtc_time-value-are-fixed.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:34:19 -0700
-Message-ID: <200705120534.l4C5YJHU002192@shell0.pdx.osdl.net>
+Subject: - statically-initialize-struct-pid-for-swapper.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:34:28 -0700
+Message-ID: <200705120534.l4C5YSSf002202@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41893 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756275AbXELFfU (ORCPT
+	by vger.kernel.org with ESMTP id S1755382AbXELFfT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:35:20 -0400
+	Sat, 12 May 2007 01:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kogiidena@eggplant.ddo.jp, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-rs5c313.c: rtc_time value are fixed
+     statically initialize struct pid for swapper
 has been removed from the -mm tree.  Its filename was
-     rtc-rs5c313c-rtc_time-value-are-fixed.patch
+     statically-initialize-struct-pid-for-swapper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-rs5c313.c: rtc_time value are fixed
-From: "kogiidena" <kogiidena@eggplant.ddo.jp>
+Subject: statically initialize struct pid for swapper
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Correct an initial value of suruct rtc_ time.
+Statically initialize a struct pid for the swapper process (pid_t == 0) and
+attach it to init_task.  This is needed so task_pid(), task_pgrp() and
+task_session() interfaces work on the swapper process also.
 
-Signed-off-by: kogiidena <kogiidena@eggplant.ddo.jp>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: <containers@lists.osdl.org>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c313.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/init_task.h |   27 +++++++++++++++++++++++++++
+ include/linux/pid.h       |    2 ++
+ kernel/pid.c              |    2 ++
+ 3 files changed, 31 insertions(+)
 
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-rtc_time-value-are-fixed drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-rtc_time-value-are-fixed
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -331,7 +331,8 @@ static void rs5c313_check_xstp_bit(void)
+diff -puN include/linux/init_task.h~statically-initialize-struct-pid-for-swapper include/linux/init_task.h
+--- a/include/linux/init_task.h~statically-initialize-struct-pid-for-swapper
++++ a/include/linux/init_task.h
+@@ -88,6 +88,28 @@ extern struct nsproxy init_nsproxy;
  
- 		memset(&tm, 0, sizeof(struct rtc_time));
- 		tm.tm_mday 	= 1;
--		tm.tm_mon 	= 1;
-+		tm.tm_mon 	= 1 - 1;
-+		tm.tm_year 	= 2000 - 1900;
+ extern struct group_info init_groups;
  
- 		rs5c313_rtc_set_time(NULL, &tm);
- 		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
++#define INIT_STRUCT_PID {						\
++	.count 		= ATOMIC_INIT(1),				\
++	.nr		= 0, 						\
++	/* Don't put this struct pid in pid_hash */			\
++	.pid_chain	= { .next = NULL, .pprev = NULL },		\
++	.tasks		= {						\
++		{ .first = &init_task.pids[PIDTYPE_PID].node },		\
++		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
++		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
++	},								\
++	.rcu		= RCU_HEAD_INIT,				\
++}
++
++#define INIT_PID_LINK(type) 					\
++{								\
++	.node = {						\
++		.next = NULL,					\
++		.pprev = &init_struct_pid.tasks[type].first,	\
++	},							\
++	.pid = &init_struct_pid,				\
++}
++
+ /*
+  *  INIT_TASK is used to set up the first task table, touch at
+  * your own risk!. Base=0, limit=0x1fffff (=2MB)
+@@ -139,6 +161,11 @@ extern struct group_info init_groups;
+ 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
+ 	.fs_excl	= ATOMIC_INIT(0),				\
+ 	.pi_lock	= __SPIN_LOCK_UNLOCKED(tsk.pi_lock),		\
++	.pids = {							\
++		[PIDTYPE_PID]  = INIT_PID_LINK(PIDTYPE_PID),		\
++		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
++		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
++	},								\
+ 	INIT_TRACE_IRQFLAGS						\
+ 	INIT_LOCKDEP							\
+ }
+diff -puN include/linux/pid.h~statically-initialize-struct-pid-for-swapper include/linux/pid.h
+--- a/include/linux/pid.h~statically-initialize-struct-pid-for-swapper
++++ a/include/linux/pid.h
+@@ -51,6 +51,8 @@ struct pid
+ 	struct rcu_head rcu;
+ };
+ 
++extern struct pid init_struct_pid;
++
+ struct pid_link
+ {
+ 	struct hlist_node node;
+diff -puN kernel/pid.c~statically-initialize-struct-pid-for-swapper kernel/pid.c
+--- a/kernel/pid.c~statically-initialize-struct-pid-for-swapper
++++ a/kernel/pid.c
+@@ -27,11 +27,13 @@
+ #include <linux/bootmem.h>
+ #include <linux/hash.h>
+ #include <linux/pid_namespace.h>
++#include <linux/init_task.h>
+ 
+ #define pid_hashfn(nr) hash_long((unsigned long)nr, pidhash_shift)
+ static struct hlist_head *pid_hash;
+ static int pidhash_shift;
+ static struct kmem_cache *pid_cachep;
++struct pid init_struct_pid = INIT_STRUCT_PID;
+ 
+ int pid_max = PID_MAX_DEFAULT;
+ 
 _
 
-Patches currently in -mm which might be from kogiidena@eggplant.ddo.jp are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
 origin.patch
