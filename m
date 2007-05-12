@@ -1,69 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - fix-i2c-pxa-build.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:19 -0700
-Message-ID: <200705120515.l4C5FJc3001743@shell0.pdx.osdl.net>
+Subject: - acpi-dock-use-dynamically-allocated-platform-device.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:52 -0700
+Message-ID: <200705120515.l4C5FqFt001782@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49611 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756359AbXELFPt (ORCPT
+	by vger.kernel.org with ESMTP id S1756435AbXELFPy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:49 -0400
+	Sat, 12 May 2007 01:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk@arm.linux.org.uk, khali@linux-fr.org, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: fix i2c-pxa build
+     ACPI: dock: use dynamically allocated platform device
 has been removed from the -mm tree.  Its filename was
-     fix-i2c-pxa-build.patch
+     acpi-dock-use-dynamically-allocated-platform-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arm: fix i2c-pxa build
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: ACPI: dock: use dynamically allocated platform device
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-From commit 7d054817b780e664bed6701b2aa637718e1905b7:
-> According to the PXA27x developer's manual, we shall do so.
+Get rid of no release function warnings by switching to dynamically allocating
+the platform_device and using the platform device release routine in the base
+driver.
 
-We shall also at least compile test our changes.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-pxa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/dock.c |   47 ++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 24 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-pxa.c~fix-i2c-pxa-build drivers/i2c/busses/i2c-pxa.c
---- a/drivers/i2c/busses/i2c-pxa.c~fix-i2c-pxa-build
-+++ a/drivers/i2c/busses/i2c-pxa.c
-@@ -548,7 +548,7 @@ static inline void i2c_pxa_stop_message(
- 	 */
- 	icr = readl(_ICR(i2c));
- 	icr &= ~(ICR_STOP | ICR_ACKNAK);
--	writel(icr, _IRC(i2c));
-+	writel(icr, _ICR(i2c));
- }
+diff -puN drivers/acpi/dock.c~acpi-dock-use-dynamically-allocated-platform-device drivers/acpi/dock.c
+--- a/drivers/acpi/dock.c~acpi-dock-use-dynamically-allocated-platform-device
++++ a/drivers/acpi/dock.c
+@@ -41,7 +41,7 @@ MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_DESC
+ MODULE_LICENSE("GPL");
  
- /*
+ static struct atomic_notifier_head dock_notifier_list;
+-static struct platform_device dock_device;
++static struct platform_device *dock_device;
+ static char dock_device_name[] = "dock";
+ 
+ struct dock_station {
+@@ -327,7 +327,7 @@ static void hotplug_dock_devices(struct 
+ 
+ static void dock_event(struct dock_station *ds, u32 event, int num)
+ {
+-	struct device *dev = &dock_device.dev;
++	struct device *dev = &dock_device->dev;
+ 	/*
+ 	 * Indicate that the status of the dock station has
+ 	 * changed.
+@@ -710,37 +710,36 @@ static int dock_add(acpi_handle handle)
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&dock_notifier_list);
+ 
+ 	/* initialize platform device stuff */
+-	dock_device.name = dock_device_name;
+-	ret = platform_device_register(&dock_device);
+-	if (ret) {
+-		printk(KERN_ERR PREFIX "Error %d registering dock device\n", ret);
++	dock_device =
++		platform_device_register_simple(dock_device_name, 0, NULL, 0);
++	if (IS_ERR(dock_device)) {
+ 		kfree(dock_station);
+ 		dock_station = NULL;
+-		return ret;
++		return PTR_ERR(dock_device);
+ 	}
+-	ret = device_create_file(&dock_device.dev, &dev_attr_docked);
++	ret = device_create_file(&dock_device->dev, &dev_attr_docked);
+ 	if (ret) {
+ 		printk("Error %d adding sysfs file\n", ret);
+-		platform_device_unregister(&dock_device);
++		platform_device_unregister(dock_device);
+ 		kfree(dock_station);
+ 		dock_station = NULL;
+ 		return ret;
+ 	}
+-	ret = device_create_file(&dock_device.dev, &dev_attr_undock);
++	ret = device_create_file(&dock_device->dev, &dev_attr_undock);
+ 	if (ret) {
+ 		printk("Error %d adding sysfs file\n", ret);
+-		device_remove_file(&dock_device.dev, &dev_attr_docked);
+-		platform_device_unregister(&dock_device);
++		device_remove_file(&dock_device->dev, &dev_attr_docked);
++		platform_device_unregister(dock_device);
+ 		kfree(dock_station);
+ 		dock_station = NULL;
+ 		return ret;
+ 	}
+-	ret = device_create_file(&dock_device.dev, &dev_attr_uid);
++	ret = device_create_file(&dock_device->dev, &dev_attr_uid);
+ 	if (ret) {
+ 		printk("Error %d adding sysfs file\n", ret);
+-		device_remove_file(&dock_device.dev, &dev_attr_docked);
+-		device_remove_file(&dock_device.dev, &dev_attr_undock);
+-		platform_device_unregister(&dock_device);
++		device_remove_file(&dock_device->dev, &dev_attr_docked);
++		device_remove_file(&dock_device->dev, &dev_attr_undock);
++		platform_device_unregister(dock_device);
+ 		kfree(dock_station);
+ 		dock_station = NULL;
+ 		return ret;
+@@ -779,10 +778,10 @@ static int dock_add(acpi_handle handle)
+ dock_add_err:
+ 	kfree(dd);
+ dock_add_err_unregister:
+-	device_remove_file(&dock_device.dev, &dev_attr_docked);
+-	device_remove_file(&dock_device.dev, &dev_attr_undock);
+-	device_remove_file(&dock_device.dev, &dev_attr_uid);
+-	platform_device_unregister(&dock_device);
++	device_remove_file(&dock_device->dev, &dev_attr_docked);
++	device_remove_file(&dock_device->dev, &dev_attr_undock);
++	device_remove_file(&dock_device->dev, &dev_attr_uid);
++	platform_device_unregister(dock_device);
+ 	kfree(dock_station);
+ 	dock_station = NULL;
+ 	return ret;
+@@ -812,10 +811,10 @@ static int dock_remove(void)
+ 		printk(KERN_ERR "Error removing notify handler\n");
+ 
+ 	/* cleanup sysfs */
+-	device_remove_file(&dock_device.dev, &dev_attr_docked);
+-	device_remove_file(&dock_device.dev, &dev_attr_undock);
+-	device_remove_file(&dock_device.dev, &dev_attr_uid);
+-	platform_device_unregister(&dock_device);
++	device_remove_file(&dock_device->dev, &dev_attr_docked);
++	device_remove_file(&dock_device->dev, &dev_attr_undock);
++	device_remove_file(&dock_device->dev, &dev_attr_uid);
++	platform_device_unregister(dock_device);
+ 
+ 	/* free dock station memory */
+ 	kfree(dock_station);
 _
 
-Patches currently in -mm which might be from rmk@arm.linux.org.uk are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
 origin.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-iop13xx-msi-support-rev6.patch
-arm-remove-useless-config-option-generic_bust_spinlock.patch
-arm-spinlock-initializer-cleanup.patch
-arm-stacktrace-fix.patch
-update-documentation-driver-model-platformtxt.patch
-power-management-remove-some-useless-code-from-arm.patch
-git-md-accel.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
-ucb1x00-do-not-access-input_dev-private-directly.patch
+git-acpi.patch
+libata-check-for-an-support.patch
+genhd-expose-an-to-user-space.patch
+scsi-expose-an-to-user-space.patch
+libata-expose-an-to-user-space.patch
+genhd-send-async-notification-on-media-change.patch
+scsi-save-disk-in-scsi_device.patch
+libata-send-event-when-an-received.patch
+cpci_hotplug-convert-to-use-the-kthread-api.patch
