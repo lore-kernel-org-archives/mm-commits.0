@@ -1,152 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - upper-32-bits.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:03 -0700
-Message-ID: <200705120515.l4C5F3ef001725@shell0.pdx.osdl.net>
+Subject: - ocfs2-kobject-kset-foobar.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:16 -0700
+Message-ID: <200705120515.l4C5FGbM001740@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38196 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50216 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756357AbXELFPX (ORCPT
+	by vger.kernel.org with ESMTP id S1756313AbXELFPW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:23 -0400
+	Sat, 12 May 2007 01:15:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, Mike.Miller@hp.com, Steve.Cameron@hp.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, greg@kroah.com, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add upper-32-bits macro
+     ocfs2: kobject/kset foobar
 has been removed from the -mm tree.  Its filename was
-     upper-32-bits.patch
+     ocfs2-kobject-kset-foobar.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add upper-32-bits macro
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2: kobject/kset foobar
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-We keep on getting "right shift count >= width of type" warnings when doing
-things like
+Fix gcc warning and Oops that it causes:
 
-	sector_t s;
+fs/ocfs2/cluster/masklog.c:161: warning: assignment from incompatible pointer type
+[ 2776.204120] OCFS2 Node Manager 1.3.3
+[ 2776.211729] BUG: spinlock bad magic on CPU#0, modprobe/4424
+[ 2776.214269]  lock: ffff810021c8fe18, .magic: ffffffff, .owner: /6394416, .owner_cpu: 0
+[ 2776.217864] [ 2776.217865] Call Trace:
+[ 2776.219662]  [<ffffffff803426c8>] spin_bug+0x9e/0xe9
+[ 2776.221921]  [<ffffffff803427bf>] _raw_spin_lock+0x23/0xf9
+[ 2776.224417]  [<ffffffff8051acf4>] _spin_lock+0x9/0xb
+[ 2776.226676]  [<ffffffff8033c3b1>] kobject_shadow_add+0x98/0x1ac
+[ 2776.229367]  [<ffffffff8033c4d0>] kobject_add+0xb/0xd
+[ 2776.231665]  [<ffffffff8033c4df>] kset_add+0xd/0xf
+[ 2776.233845]  [<ffffffff8033c5a6>] kset_register+0x23/0x28
+[ 2776.236309]  [<ffffffff8808ccb7>] :ocfs2_nodemanager:mlog_sys_init+0x68/0x6d
+[ 2776.239518]  [<ffffffff8808ccee>] :ocfs2_nodemanager:o2cb_sys_init+0x32/0x4a
+[ 2776.242726]  [<ffffffff880b80a6>] :ocfs2_nodemanager:init_o2nm+0xa6/0xd5
+[ 2776.245772]  [<ffffffff8025266c>] sys_init_module+0x1471/0x15d2
+[ 2776.248465]  [<ffffffff8033f250>] simple_strtoull+0x0/0xdc
+[ 2776.250959]  [<ffffffff8020948e>] system_call+0x7e/0x83
 
-	x = s >> 56;
-
-because with CONFIG_LBD=n, s is only 32-bit.  Similar problems can occur with
-dma_addr_t's.
-
-So add a simple wrapper function which code can use to avoid this warning. 
-The above example would become
-
-	x = upper_32_bits(s) >> 24;
-
-The first user is in fact AFS.
-
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: "Cameron, Steve" <Steve.Cameron@hp.com>
-Cc: "Miller, Mike (OS Dev)" <Mike.Miller@hp.com>
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/ocfs2/cluster/masklog.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~upper-32-bits include/linux/kernel.h
---- a/include/linux/kernel.h~upper-32-bits
-+++ a/include/linux/kernel.h
-@@ -41,6 +41,16 @@ extern const char linux_proc_banner[];
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
- #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
+diff -puN fs/ocfs2/cluster/masklog.c~ocfs2-kobject-kset-foobar fs/ocfs2/cluster/masklog.c
+--- a/fs/ocfs2/cluster/masklog.c~ocfs2-kobject-kset-foobar
++++ a/fs/ocfs2/cluster/masklog.c
+@@ -144,7 +144,8 @@ static struct kobj_type mlog_ktype = {
+ };
  
-+/**
-+ * upper_32_bits - return bits 32-63 of a number
-+ * @n: the number we're accessing
-+ *
-+ * A basic shift-right of a 64- or 32-bit quantity.  Use this to suppress
-+ * the "right shift count >= width of type" warning when that quantity is
-+ * 32-bits.
-+ */
-+#define upper_32_bits(n) ((u32)(((n) >> 16) >> 16))
-+
- #define	KERN_EMERG	"<0>"	/* system is unusable			*/
- #define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
- #define	KERN_CRIT	"<2>"	/* critical conditions			*/
+ static struct kset mlog_kset = {
+-	.kobj   = {.name = "logmask", .ktype = &mlog_ktype},
++	.kobj  = {.name = "logmask"},
++	.ktype = &mlog_ktype
+ };
+ 
+ int mlog_sys_init(struct kset *o2cb_subsys)
+@@ -157,7 +158,7 @@ int mlog_sys_init(struct kset *o2cb_subs
+ 	}
+ 	mlog_attr_ptrs[i] = NULL;
+ 
+-	kobj_set_kset_s(&mlog_kset, o2cb_subsys);
++	kobj_set_kset_s(&mlog_kset, *o2cb_subsys);
+ 	return kset_register(&mlog_kset);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 lib-hexdump.patch
-stop_machine-now-uses-hard_irq_disable.patch
-submitchecklist-add-W-help.patch
-tty-add-compat_ioctl.patch
-use-defines-in-sys_getpriority-sys_setpriority.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-pm3fb-preliminary-24-to-26-port.patch
-ntfs-use-zero_user_page.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-arm-stacktrace-fix.patch
-git-avr32.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect.patch
-git-leds.patch
-git-leds-fixup.patch
-git-libata-all-sata_via-build-fix.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-netxen_nic_main-dont-use-deprecated-irq-flags.patch
-mlx4-dont-use-deprecated-irq-flags.patch
-fix-race-condition-about-network-device-name-fix.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
 git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-kstrndup.patch
+add-argv_split.patch
 add-argv_split-fix.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
 add-common-orderly_poweroff-fix.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+profile-likely-unlikely-macros.patch
