@@ -1,57 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - overrun-in-drivers-char-rio-riocmdc.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:33:57 -0700
-Message-ID: <200705120533.l4C5XviY002153@shell0.pdx.osdl.net>
+Subject: - module_author-dont-advice-putting-in-an-email-address.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:34:02 -0700
+Message-ID: <200705120534.l4C5Y2Sl002161@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43771 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755127AbXELFeC (ORCPT
+	by vger.kernel.org with ESMTP id S1755087AbXELFeL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:34:02 -0400
+	Sat, 12 May 2007 01:34:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: snakebyte@gmx.de, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: rene.herman@gmail.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Overrun in drivers/char/rio/riocmd.c
+     module_author: don't advice putting in an email address
 has been removed from the -mm tree.  Its filename was
-     overrun-in-drivers-char-rio-riocmdc.patch
+     module_author-dont-advice-putting-in-an-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Overrun in drivers/char/rio/riocmd.c
-From: Eric Sesterhenn / Snakebyte <snakebyte@gmx.de>
+Subject: module_author: don't advice putting in an email address
+From: Rene Herman <rene.herman@gmail.com>
 
-This got somehow lost in the noise.  This fixes coverity bug id #1025, if
-Rup is greater or equal to MAX_RUP, we run past the Mapping Array.
+module_author: don't advice putting in an email address
 
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+It's information that's easily outdated and easily mistaken for a driver
+contact which is a problem especially for modules with multiple current and
+non-current authors as well as for modules with a maintainer who may not
+even be a module author.
+
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rio/riocmd.c |    2 +-
+ include/linux/module.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/rio/riocmd.c~overrun-in-drivers-char-rio-riocmdc drivers/char/rio/riocmd.c
---- a/drivers/char/rio/riocmd.c~overrun-in-drivers-char-rio-riocmdc
-+++ a/drivers/char/rio/riocmd.c
-@@ -402,7 +402,7 @@ static int RIOCommandRup(struct rio_info
- 		rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: Host number %Zd, name ``%s''\n", HostP - p->RIOHosts, HostP->Name);
- 		rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: Rup number  0x%x\n", rup);
+diff -puN include/linux/module.h~module_author-dont-advice-putting-in-an-email-address include/linux/module.h
+--- a/include/linux/module.h~module_author-dont-advice-putting-in-an-email-address
++++ a/include/linux/module.h
+@@ -124,7 +124,7 @@ extern struct module __this_module;
+  */
+ #define MODULE_LICENSE(_license) MODULE_INFO(license, _license)
  
--		if (Rup >= (unsigned short) MAX_RUP) {
-+		if (Rup < (unsigned short) MAX_RUP) {
- 			rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: This is the RUP for RTA ``%s''\n", HostP->Mapping[Rup].Name);
- 		} else
- 			rio_dprintk(RIO_DEBUG_CMD, "CONTROL information: This is the RUP for link ``%c'' of host ``%s''\n", ('A' + Rup - MAX_RUP), HostP->Name);
+-/* Author, ideally of form NAME <EMAIL>[, NAME <EMAIL>]*[ and NAME <EMAIL>] */
++/* Author, ideally of form NAME[, NAME]*[ and NAME] */
+ #define MODULE_AUTHOR(_author) MODULE_INFO(author, _author)
+   
+ /* What your module does. */
 _
 
-Patches currently in -mm which might be from snakebyte@gmx.de are
+Patches currently in -mm which might be from rene.herman@gmail.com are
 
 origin.patch
-git-ubi.patch
-remove-unnecessary-check-in-drivers-scsi-sgc.patch
+git-alsa.patch
