@@ -1,76 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-use-zero_user_page.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:36:11 -0700
-Message-ID: <200705120536.l4C5aBJ3002355@shell0.pdx.osdl.net>
+Subject: - netxen_nic_main-dont-use-deprecated-irq-flags.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:37:00 -0700
+Message-ID: <200705120537.l4C5b0xZ002427@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32925 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757430AbXELFgU (ORCPT
+	by vger.kernel.org with ESMTP id S1755025AbXELFhE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:36:20 -0400
+	Sat, 12 May 2007 01:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nate.diller@gmail.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2: use zero_user_page
+     netxen_nic_main don't use deprecated irq flags
 has been removed from the -mm tree.  Its filename was
-     gfs2-use-zero_user_page.patch
+     netxen_nic_main-dont-use-deprecated-irq-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gfs2: use zero_user_page
-From: Nate Diller <nate.diller@gmail.com>
+Subject: netxen_nic_main don't use deprecated irq flags
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use zero_user_page() instead of open-coding it.
+drivers/net/netxen/netxen_nic_main.c: In function 'netxen_nic_open':
+drivers/net/netxen/netxen_nic_main.c:738: warning: 'deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:66)
+drivers/net/netxen/netxen_nic_main.c:738: warning: 'deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:66)
 
-Signed-off-by: Nate Diller <nate.diller@gmail.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/bmap.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/net/netxen/netxen_nic_main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/gfs2/bmap.c~gfs2-use-zero_user_page fs/gfs2/bmap.c
---- a/fs/gfs2/bmap.c~gfs2-use-zero_user_page
-+++ a/fs/gfs2/bmap.c
-@@ -885,7 +885,6 @@ static int gfs2_block_truncate_page(stru
- 	unsigned blocksize, iblock, length, pos;
- 	struct buffer_head *bh;
- 	struct page *page;
--	void *kaddr;
- 	int err;
- 
- 	page = grab_cache_page(mapping, index);
-@@ -933,10 +932,7 @@ static int gfs2_block_truncate_page(stru
- 	if (sdp->sd_args.ar_data == GFS2_DATA_ORDERED || gfs2_is_jdata(ip))
- 		gfs2_trans_add_bh(ip->i_gl, bh, 0);
- 
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, length);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
-+	zero_user_page(page, offset, length, KM_USER0);
- 
- unlock:
- 	unlock_page(page);
+diff -puN drivers/net/netxen/netxen_nic_main.c~netxen_nic_main-dont-use-deprecated-irq-flags drivers/net/netxen/netxen_nic_main.c
+--- a/drivers/net/netxen/netxen_nic_main.c~netxen_nic_main-dont-use-deprecated-irq-flags
++++ a/drivers/net/netxen/netxen_nic_main.c
+@@ -735,7 +735,7 @@ static int netxen_nic_open(struct net_de
+ 		}
+ 		adapter->irq = adapter->ahw.pdev->irq;
+ 		err = request_irq(adapter->ahw.pdev->irq, netxen_intr,
+-				  SA_SHIRQ | SA_SAMPLE_RANDOM, netdev->name,
++				  IRQF_SHARED|IRQF_SAMPLE_RANDOM, netdev->name,
+ 				  adapter);
+ 		if (err) {
+ 			printk(KERN_ERR "request_irq failed with: %d\n", err);
 _
 
-Patches currently in -mm which might be from nate.diller@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 ntfs-use-zero_user_page.patch
-cifs-use-simple_prepare_write-to-zero-page-data.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-arm.patch
+git-avr32.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-gfs2-nmw.patch
-nfs-use-zero_user_page.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
+fix-race-condition-about-network-device-name-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
 git-ocfs2.patch
-xfs-use-zero_user_page.patch
-ext4-use-simple_prepare_write-to-zero-page-data.patch
-ext4-use-zero_user_page.patch
-ecryptfs-use-zero_user_page.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
 reiser4.patch
-reiser4-use-zero_user_page.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
