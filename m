@@ -1,90 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:32:24 -0700
-Message-ID: <200705120532.l4C5WOD8002043@shell0.pdx.osdl.net>
+Subject: - i386-work-around-miscompilation-of-alternatives-code.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:32:17 -0700
+Message-ID: <200705120532.l4C5WHIh002039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47318 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750930AbXELFch (ORCPT
+	by vger.kernel.org with ESMTP id S1752314AbXELFci (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:32:37 -0400
+	Sat, 12 May 2007 01:32:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: joerg.roedel@amd.com, ak@suse.de, bhalevy@panasas.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: display more intuitive error message if kernel is not 2MB aligned
+     i386: work around miscompilation of alternatives code
 has been removed from the -mm tree.  Its filename was
-     x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
+     i386-work-around-miscompilation-of-alternatives-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: display more intuitive error message if kernel is not 2MB aligned
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: i386: work around miscompilation of alternatives code
+From: "Joerg Roedel" <joerg.roedel@amd.com>
 
-o x86_64 kernel needs to be compiled for 2MB aligned addresses. Currently
-  we are using BUILD_BUG_ON() to warn the user if he has not done so. But
-  looks like folks are not finding message very intutive and don't open
-  the respective c file to find problem source. (Bug 8439)
+A recent change makes my Dell 1501 hang on boot.  It's an AMD MK-36.  I use
+an x86_64 kernel.  It is 100% reproducible.
 
-arch/x86_64/kernel/head64.c: In function 'x86_64_start_kernel':
-arch/x86_64/kernel/head64.c:70: error: size of array 'type name' is negative
+I debugged this problem a bit and my compiler[1]interprets the =A constraint
+as %rax instead of %edx:%eax on x86_64 which causes the problem.  The appended
+patch provides a workaround for this and fixed the hang on my machine.
 
-o Using preprocessor directive #error to print a better message if
-  CONFIG_PHYSICAL_START is not aligned to 2MB boundary.
+[1] gcc version 4.1.3 20070429 (prerelease) (Debian 4.1.2-5)
 
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Benny Halevy <bhalevy@panasas.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: "Joerg Roedel" <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/head64.c |    7 -------
- include/asm-x86_64/page.h   |    9 +++++++++
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ include/asm-i386/alternative.h   |    6 ++++++
+ include/asm-i386/tsc.h           |    6 ++++--
+ include/asm-x86_64/alternative.h |    6 ++++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/head64.c~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned arch/x86_64/kernel/head64.c
---- a/arch/x86_64/kernel/head64.c~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned
-+++ a/arch/x86_64/kernel/head64.c
-@@ -62,13 +62,6 @@ void __init x86_64_start_kernel(char * r
- {
- 	int i;
+diff -puN include/asm-i386/alternative.h~i386-work-around-miscompilation-of-alternatives-code include/asm-i386/alternative.h
+--- a/include/asm-i386/alternative.h~i386-work-around-miscompilation-of-alternatives-code
++++ a/include/asm-i386/alternative.h
+@@ -98,6 +98,12 @@ static inline void alternatives_smp_swit
+ 		      ".previous" : output : [feat] "i" (feature), ##input)
  
--	/*
--	 * Make sure kernel is aligned to 2MB address. Catching it at compile
--	 * time is better. Change your config file and compile the kernel
--	 * for a 2MB aligned address (CONFIG_PHYSICAL_START)
--	 */
--	BUILD_BUG_ON(CONFIG_PHYSICAL_START & (__KERNEL_ALIGN - 1));
--
- 	/* clear bss before set_intr_gate with early_idt_handler */
- 	clear_bss();
- 
-diff -puN include/asm-x86_64/page.h~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned include/asm-x86_64/page.h
---- a/include/asm-x86_64/page.h~x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned
-+++ a/include/asm-x86_64/page.h
-@@ -80,6 +80,15 @@ extern unsigned long phys_base;
- #define __PHYSICAL_START	CONFIG_PHYSICAL_START
- #define __KERNEL_ALIGN		0x200000
- 
-+/*
-+ * Make sure kernel is aligned to 2MB address. Catching it at compile
-+ * time is better. Change your config file and compile the kernel
-+ * for a 2MB aligned address (CONFIG_PHYSICAL_START)
+ /*
++ * use this macro(s) if you need more than one output parameter
++ * in alternative_io
 + */
-+#if (CONFIG_PHYSICAL_START % __KERNEL_ALIGN) != 0
-+#error "CONFIG_PHYSICAL_START must be a multiple of 2MB"
-+#endif
++#define ASM_OUTPUT2(a, b) a, b
 +
- #define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
- #define __START_KERNEL_map	_AC(0xffffffff80000000, UL)
- #define __PAGE_OFFSET           _AC(0xffff810000000000, UL)
++/*
+  * Alternative inline assembly for SMP.
+  *
+  * The LOCK_PREFIX macro defined here replaces the LOCK and
+diff -puN include/asm-i386/tsc.h~i386-work-around-miscompilation-of-alternatives-code include/asm-i386/tsc.h
+--- a/include/asm-i386/tsc.h~i386-work-around-miscompilation-of-alternatives-code
++++ a/include/asm-i386/tsc.h
+@@ -35,14 +35,16 @@ static inline cycles_t get_cycles(void)
+ static __always_inline cycles_t get_cycles_sync(void)
+ {
+ 	unsigned long long ret;
+-	unsigned eax;
++	unsigned eax, edx;
+ 
+ 	/*
+   	 * Use RDTSCP if possible; it is guaranteed to be synchronous
+  	 * and doesn't cause a VMEXIT on Hypervisors
+ 	 */
+ 	alternative_io(ASM_NOP3, ".byte 0x0f,0x01,0xf9", X86_FEATURE_RDTSCP,
+-			 	 "=A" (ret), "0" (0ULL) : "ecx", "memory");
++		       ASM_OUTPUT2("=a" (eax), "=d" (edx)),
++		       "a" (0U), "d" (0U) : "ecx", "memory");
++	ret = (((unsigned long long)edx) << 32) | ((unsigned long long)eax);
+ 	if (ret)
+ 		return ret;
+ 
+diff -puN include/asm-x86_64/alternative.h~i386-work-around-miscompilation-of-alternatives-code include/asm-x86_64/alternative.h
+--- a/include/asm-x86_64/alternative.h~i386-work-around-miscompilation-of-alternatives-code
++++ a/include/asm-x86_64/alternative.h
+@@ -103,6 +103,12 @@ static inline void alternatives_smp_swit
+ 		      ".previous" : output : [feat] "i" (feature), ##input)
+ 
+ /*
++ * use this macro(s) if you need more than one output parameter
++ * in alternative_io
++ */
++#define ASM_OUTPUT2(a, b) a, b
++
++/*
+  * Alternative inline assembly for SMP.
+  *
+  * The LOCK_PREFIX macro defined here replaces the LOCK and
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
 origin.patch
-fix-i-oat-for-kexec.patch
