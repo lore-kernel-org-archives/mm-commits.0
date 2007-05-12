@@ -1,93 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - signal-timer-event-timerfd-wire-up-x86-arches.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:35:09 -0700
-Message-ID: <200705120535.l4C5Z96v002260@shell0.pdx.osdl.net>
+Subject: - explicitly-set-pgid-and-sid-of-init-process.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:34:32 -0700
+Message-ID: <200705120534.l4C5YW7a002209@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49222 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756112AbXELFfQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756186AbXELFfT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:35:16 -0400
+	Sat, 12 May 2007 01:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, ak@suse.de, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
+To: sukadev@us.ibm.com, clg@fr.ibm.com, containers@lists.osdl.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal/timer/event: timerfd wire up x86 arches
+     Explicitly set pgid and sid of init process
 has been removed from the -mm tree.  Its filename was
-     signal-timer-event-timerfd-wire-up-x86-arches.patch
+     explicitly-set-pgid-and-sid-of-init-process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: signal/timer/event: timerfd wire up x86 arches
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: Explicitly set pgid and sid of init process
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-This patch wires the timerfd system call to the x86 architectures.
+Explicitly set pgid and sid of init process to 1.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: <containers@lists.osdl.org>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/syscall_table.S |    1 +
- arch/x86_64/ia32/ia32entry.S     |    1 +
- include/asm-i386/unistd.h        |    3 ++-
- include/asm-x86_64/unistd.h      |    2 ++
- 4 files changed, 6 insertions(+), 1 deletion(-)
+ init/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/syscall_table.S~signal-timer-event-timerfd-wire-up-x86-arches arch/i386/kernel/syscall_table.S
---- a/arch/i386/kernel/syscall_table.S~signal-timer-event-timerfd-wire-up-x86-arches
-+++ a/arch/i386/kernel/syscall_table.S
-@@ -321,3 +321,4 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_pwait
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
-+	.long sys_timerfd
-diff -puN arch/x86_64/ia32/ia32entry.S~signal-timer-event-timerfd-wire-up-x86-arches arch/x86_64/ia32/ia32entry.S
---- a/arch/x86_64/ia32/ia32entry.S~signal-timer-event-timerfd-wire-up-x86-arches
-+++ a/arch/x86_64/ia32/ia32entry.S
-@@ -717,4 +717,5 @@ ia32_sys_call_table:
- 	.quad sys_epoll_pwait
- 	.quad compat_sys_utimensat	/* 320 */
- 	.quad sys_signalfd
-+	.quad sys_timerfd
- ia32_syscall_end:		
-diff -puN include/asm-i386/unistd.h~signal-timer-event-timerfd-wire-up-x86-arches include/asm-i386/unistd.h
---- a/include/asm-i386/unistd.h~signal-timer-event-timerfd-wire-up-x86-arches
-+++ a/include/asm-i386/unistd.h
-@@ -327,10 +327,11 @@
- #define __NR_epoll_pwait	319
- #define __NR_utimensat		320
- #define __NR_signalfd		321
-+#define __NR_timerfd		322
+diff -puN init/main.c~explicitly-set-pgid-and-sid-of-init-process init/main.c
+--- a/init/main.c~explicitly-set-pgid-and-sid-of-init-process
++++ a/init/main.c
+@@ -801,6 +801,7 @@ static int __init kernel_init(void * unu
+ 	 */
+ 	init_pid_ns.child_reaper = current;
  
- #ifdef __KERNEL__
++	__set_special_pids(1, 1);
+ 	cad_pid = task_pid(current);
  
--#define NR_syscalls 322
-+#define NR_syscalls 323
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
-diff -puN include/asm-x86_64/unistd.h~signal-timer-event-timerfd-wire-up-x86-arches include/asm-x86_64/unistd.h
---- a/include/asm-x86_64/unistd.h~signal-timer-event-timerfd-wire-up-x86-arches
-+++ a/include/asm-x86_64/unistd.h
-@@ -626,6 +626,8 @@ __SYSCALL(__NR_utimensat, sys_utimensat)
- __SYSCALL(__NR_epoll_pwait, sys_epoll_pwait)
- #define __NR_signalfd		282
- __SYSCALL(__NR_signalfd, sys_signalfd)
-+#define __NR_timerfd		282
-+__SYSCALL(__NR_timerfd, sys_timerfd)
- 
- #ifndef __NO_STUBS
- #define __ARCH_WANT_OLD_READDIR
+ 	smp_prepare_cpus(max_cpus);
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
 origin.patch
-compat-signalfd-and-timerfd-are-cond-syscalls.patch
-x86_64-use-signalfd-and-timerfd-compat-syscalls.patch
