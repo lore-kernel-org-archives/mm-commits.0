@@ -1,127 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-phy.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:36:50 -0700
-Message-ID: <200705120536.l4C5aof5002407@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-ii-netdev-pcmcia.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:36:54 -0700
+Message-ID: <200705120536.l4C5asFm002415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48152 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755015AbXELFhA (ORCPT
+	by vger.kernel.org with ESMTP id S1756537AbXELFhG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:37:00 -0400
+	Sat, 12 May 2007 01:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: PHY
+     Use menuconfig objects II - netdev/pcmcia
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-phy.patch
+     use-menuconfig-objects-ii-netdev-pcmcia.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: PHY
+Subject: Use menuconfig objects II - netdev/pcmcia
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/Kconfig |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ drivers/net/pcmcia/Kconfig |   23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
-diff -puN drivers/net/phy/Kconfig~use-menuconfig-objects-phy drivers/net/phy/Kconfig
---- a/drivers/net/phy/Kconfig~use-menuconfig-objects-phy
-+++ a/drivers/net/phy/Kconfig
-@@ -2,70 +2,61 @@
- # PHY Layer Configuration
+diff -puN drivers/net/pcmcia/Kconfig~use-menuconfig-objects-ii-netdev-pcmcia drivers/net/pcmcia/Kconfig
+--- a/drivers/net/pcmcia/Kconfig~use-menuconfig-objects-ii-netdev-pcmcia
++++ a/drivers/net/pcmcia/Kconfig
+@@ -2,11 +2,9 @@
+ # PCMCIA Network device configuration
  #
  
--menu "PHY device support"
--	depends on !S390
+-menu "PCMCIA network device support"
+-	depends on NETDEVICES && PCMCIA!=n
 -
--config PHYLIB
-+menuconfig PHYLIB
- 	tristate "PHY Device support and infrastructure"
-+	depends on !S390
- 	depends on NET_ETHERNET && (BROKEN || !S390)
+-config NET_PCMCIA
++menuconfig NET_PCMCIA
+ 	bool "PCMCIA network device support"
++	depends on PCMCIA
+ 	---help---
+ 	  Say Y if you would like to include support for any PCMCIA or CardBus
+ 	  network adapters, then say Y to the driver for your particular card
+@@ -21,9 +19,10 @@ config NET_PCMCIA
+ 
+ 	  If unsure, say N.
+ 
++if NET_PCMCIA
++
+ config PCMCIA_3C589
+ 	tristate "3Com 3c589 PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
  	help
- 	  Ethernet controllers are usually attached to PHY
- 	  devices.  This option provides infrastructure for
- 	  managing PHY devices.
+ 	  Say Y here if you intend to attach a 3Com 3c589 or compatible PCMCIA
+ 	  (PC-card) Ethernet card to your computer.
+@@ -33,7 +32,6 @@ config PCMCIA_3C589
  
-+if PHYLIB
-+
- comment "MII PHY device drivers"
--	depends on PHYLIB
+ config PCMCIA_3C574
+ 	tristate "3Com 3c574 PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
+ 	help
+ 	  Say Y here if you intend to attach a 3Com 3c574 or compatible PCMCIA
+ 	  (PC-card) Fast Ethernet card to your computer.
+@@ -43,7 +41,6 @@ config PCMCIA_3C574
  
- config MARVELL_PHY
- 	tristate "Drivers for Marvell PHYs"
--	depends on PHYLIB
- 	---help---
- 	  Currently has a driver for the 88E1011S
- 	
- config DAVICOM_PHY
- 	tristate "Drivers for Davicom PHYs"
--	depends on PHYLIB
- 	---help---
- 	  Currently supports dm9161e and dm9131
+ config PCMCIA_FMVJ18X
+ 	tristate "Fujitsu FMV-J18x PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
+ 	select CRC32
+ 	help
+ 	  Say Y here if you intend to attach a Fujitsu FMV-J18x or compatible
+@@ -54,7 +51,6 @@ config PCMCIA_FMVJ18X
  
- config QSEMI_PHY
- 	tristate "Drivers for Quality Semiconductor PHYs"
--	depends on PHYLIB
- 	---help---
- 	  Currently supports the qs6612
+ config PCMCIA_PCNET
+ 	tristate "NE2000 compatible PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
+ 	select CRC32
+ 	help
+ 	  Say Y here if you intend to attach an NE2000 compatible PCMCIA
+@@ -65,7 +61,6 @@ config PCMCIA_PCNET
  
- config LXT_PHY
- 	tristate "Drivers for the Intel LXT PHYs"
--	depends on PHYLIB
- 	---help---
- 	  Currently supports the lxt970, lxt971
+ config PCMCIA_NMCLAN
+ 	tristate "New Media PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
+ 	help
+ 	  Say Y here if you intend to attach a New Media Ethernet or LiveWire
+ 	  PCMCIA (PC-card) Ethernet card to your computer.
+@@ -75,7 +70,6 @@ config PCMCIA_NMCLAN
  
- config CICADA_PHY
- 	tristate "Drivers for the Cicada PHYs"
--	depends on PHYLIB
- 	---help---
- 	  Currently supports the cis8204
-+
- config VITESSE_PHY
-         tristate "Drivers for the Vitesse PHYs"
--        depends on PHYLIB
-         ---help---
-           Currently supports the vsc8244
+ config PCMCIA_SMC91C92
+ 	tristate "SMC 91Cxx PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
+ 	select CRC32
+ 	select MII
+ 	help
+@@ -87,7 +81,6 @@ config PCMCIA_SMC91C92
  
- config SMSC_PHY
- 	tristate "Drivers for SMSC PHYs"
--	depends on PHYLIB
- 	---help---
- 	  Currently supports the LAN83C185 PHY
+ config PCMCIA_XIRC2PS
+ 	tristate "Xircom 16-bit PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
+ 	help
+ 	  Say Y here if you intend to attach a Xircom 16-bit PCMCIA (PC-card)
+ 	  Ethernet or Fast Ethernet card to your computer.
+@@ -97,7 +90,6 @@ config PCMCIA_XIRC2PS
  
- config BROADCOM_PHY
- 	tristate "Drivers for Broadcom PHYs"
--	depends on PHYLIB
+ config PCMCIA_AXNET
+ 	tristate "Asix AX88190 PCMCIA support"
+-	depends on NET_PCMCIA && PCMCIA
  	---help---
- 	  Currently supports the BCM5411, BCM5421 and BCM5461 PHYs.
+ 	  Say Y here if you intend to attach an Asix AX88190-based PCMCIA
+ 	  (PC-card) Fast Ethernet card to your computer.  These cards are
+@@ -109,7 +101,7 @@ config PCMCIA_AXNET
  
- config FIXED_PHY
- 	tristate "Drivers for PHY emulation on fixed speed/link"
--	depends on PHYLIB
- 	---help---
- 	  Adds the driver to PHY layer to cover the boards that do not have any PHY bound,
- 	  but with the ability to manipulate the speed/link in software. The relevant MII
-@@ -80,5 +71,4 @@ config FIXED_MII_100_FDX
- 	bool "Emulation for 100M Fdx fixed PHY behavior"
- 	depends on FIXED_PHY
+ config ARCNET_COM20020_CS
+ 	tristate "COM20020 ARCnet PCMCIA support"
+-	depends on NET_PCMCIA && ARCNET_COM20020 && PCMCIA
++	depends on ARCNET_COM20020
+ 	help
+ 	  Say Y here if you intend to attach this type of ARCnet PCMCIA card
+ 	  to your computer.
+@@ -119,7 +111,7 @@ config ARCNET_COM20020_CS
+ 
+ config PCMCIA_IBMTR
+ 	tristate "IBM PCMCIA tokenring adapter support"
+-	depends on NET_PCMCIA && IBMTR!=y && TR && PCMCIA && !64BIT
++	depends on IBMTR!=y && TR && !64BIT
+ 	help
+ 	  Say Y here if you intend to attach this type of Token Ring PCMCIA
+ 	  card to your computer. You then also need to say Y to "Token Ring
+@@ -128,5 +120,4 @@ config PCMCIA_IBMTR
+ 	  To compile this driver as a module, choose M here: the module will be
+ 	  called ibmtr_cs.
  
 -endmenu
 -
-+endif # PHYLIB
++endif # NET_PCMCIA
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
