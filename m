@@ -1,80 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - slub-remove-nr_cpu_ids-hack.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:31 -0700
-Message-ID: <200705120515.l4C5FVmK001758@shell0.pdx.osdl.net>
+Subject: - fix-i2c-pxa-build.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:19 -0700
+Message-ID: <200705120515.l4C5FJc3001743@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47157 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756357AbXELFPf (ORCPT
+	by vger.kernel.org with ESMTP id S1756359AbXELFPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:15:35 -0400
+	Sat, 12 May 2007 01:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: rmk@arm.linux.org.uk, khali@linux-fr.org, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: remove nr_cpu_ids hack
+     arm: fix i2c-pxa build
 has been removed from the -mm tree.  Its filename was
-     slub-remove-nr_cpu_ids-hack.patch
+     fix-i2c-pxa-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: remove nr_cpu_ids hack
-From: Christoph Lameter <clameter@sgi.com>
+Subject: arm: fix i2c-pxa build
+From: Russell King <rmk@arm.linux.org.uk>
 
-This was in SLUB in order to head off trouble while the nr_cpu_ids
-functionality was not merged.  Its merged now so no need to still have this.
+From commit 7d054817b780e664bed6701b2aa637718e1905b7:
+> According to the PXA27x developer's manual, we shall do so.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+We shall also at least compile test our changes.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-pxa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-remove-nr_cpu_ids-hack mm/slub.c
---- a/mm/slub.c~slub-remove-nr_cpu_ids-hack
-+++ a/mm/slub.c
-@@ -2445,9 +2445,8 @@ void __init kmem_cache_init(void)
- 	register_cpu_notifier(&slab_notifier);
- #endif
+diff -puN drivers/i2c/busses/i2c-pxa.c~fix-i2c-pxa-build drivers/i2c/busses/i2c-pxa.c
+--- a/drivers/i2c/busses/i2c-pxa.c~fix-i2c-pxa-build
++++ a/drivers/i2c/busses/i2c-pxa.c
+@@ -548,7 +548,7 @@ static inline void i2c_pxa_stop_message(
+ 	 */
+ 	icr = readl(_ICR(i2c));
+ 	icr &= ~(ICR_STOP | ICR_ACKNAK);
+-	writel(icr, _IRC(i2c));
++	writel(icr, _ICR(i2c));
+ }
  
--	if (nr_cpu_ids)	/* Remove when nr_cpu_ids is fixed upstream ! */
--		kmem_size = offsetof(struct kmem_cache, cpu_slab)
--			 + nr_cpu_ids * sizeof(struct page *);
-+	kmem_size = offsetof(struct kmem_cache, cpu_slab) +
-+				nr_cpu_ids * sizeof(struct page *);
- 
- 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
- 		" Processors=%d, Nodes=%d\n",
+ /*
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from rmk@arm.linux.org.uk are
 
 origin.patch
-vm-statistics-make-timer-deferrable.patch
-quicklist-support-for-ia64.patch
-ubi-remove-inverted-check-in-ltree_entry_ctor.patch
-quicklist-support-for-x86_64.patch
-slub-i386-support.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
-remove-slab_ctor_constructor-fix.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+iop13xx-msi-support-rev6.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
+arm-spinlock-initializer-cleanup.patch
+arm-stacktrace-fix.patch
+update-documentation-driver-model-platformtxt.patch
+power-management-remove-some-useless-code-from-arm.patch
+git-md-accel.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
+ucb1x00-do-not-access-input_dev-private-directly.patch
