@@ -1,86 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-rs5c313c-error-and-warning-are-fixed.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:34:15 -0700
-Message-ID: <200705120534.l4C5YFon002189@shell0.pdx.osdl.net>
+Subject: - use-defines-in-sys_getpriority-sys_setpriority.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:34:12 -0700
+Message-ID: <200705120534.l4C5YCKS002186@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44954 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755254AbXELFe1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755242AbXELFeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:34:27 -0400
+	Sat, 12 May 2007 01:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kogiidena@eggplant.ddo.jp, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-rs5c313.c: error and warning are fixed
+     use defines in sys_getpriority/sys_setpriority
 has been removed from the -mm tree.  Its filename was
-     rtc-rs5c313c-error-and-warning-are-fixed.patch
+     use-defines-in-sys_getpriority-sys_setpriority.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-rs5c313.c: error and warning are fixed
-From: "kogiidena" <kogiidena@eggplant.ddo.jp>
+Subject: use defines in sys_getpriority/sys_setpriority
+From: Daniel Walker <dwalker@mvista.com>
 
-Correct a compile error and warning.
+Switch to the defines for these two checks, instead of hard coding the
+values.
 
-Signed-off-by: kogiidena <kogiidena@eggplant.ddo.jp>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+[akpm@linux-foundation.org: add missing include]
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |    2 +-
- drivers/rtc/rtc-rs5c313.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/sys.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-rs5c313c-error-and-warning-are-fixed drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-rs5c313c-error-and-warning-are-fixed
-+++ a/drivers/rtc/Kconfig
-@@ -397,7 +397,7 @@ config RTC_DRV_BFIN
+diff -puN kernel/sys.c~use-defines-in-sys_getpriority-sys_setpriority kernel/sys.c
+--- a/kernel/sys.c~use-defines-in-sys_getpriority-sys_setpriority
++++ a/kernel/sys.c
+@@ -14,6 +14,7 @@
+ #include <linux/prctl.h>
+ #include <linux/highuid.h>
+ #include <linux/fs.h>
++#include <linux/resource.h>
+ #include <linux/kernel.h>
+ #include <linux/kexec.h>
+ #include <linux/workqueue.h>
+@@ -659,7 +660,7 @@ asmlinkage long sys_setpriority(int whic
+ 	int error = -EINVAL;
+ 	struct pid *pgrp;
  
- config RTC_DRV_RS5C313
- 	tristate "Ricoh RS5C313"
--	depends on RTC_CLASS && BROKEN
-+	depends on RTC_CLASS && SH_LANDISK
- 	help
- 	  If you say yes here you get support for the Ricoh RS5C313 RTC chips.
+-	if (which > 2 || which < 0)
++	if (which > PRIO_USER || which < PRIO_PROCESS)
+ 		goto out;
  
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-error-and-warning-are-fixed drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-rs5c313c-error-and-warning-are-fixed
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -126,7 +126,7 @@ static void rs5c313_write_data(unsigned 
- static unsigned char rs5c313_read_data(void)
- {
- 	int i;
--	unsigned char data;
-+	unsigned char data = 0;
+ 	/* normalize: avoid signed division (rounding problems) */
+@@ -723,7 +724,7 @@ asmlinkage long sys_getpriority(int whic
+ 	long niceval, retval = -ESRCH;
+ 	struct pid *pgrp;
  
- 	for (i = 0; i < 8; i++) {
- 		ndelay(700);
-@@ -194,7 +194,7 @@ static void rs5c313_write_reg(unsigned c
- 	return;
- }
+-	if (which > 2 || which < 0)
++	if (which > PRIO_USER || which < PRIO_PROCESS)
+ 		return -EINVAL;
  
--static inline unsigned char rs5c313_read_cntreg(unsigned char addr)
-+static inline unsigned char rs5c313_read_cntreg(void)
- {
- 	return rs5c313_read_reg(RS5C313_ADDR_CNTREG);
- }
-@@ -356,7 +356,7 @@ static int rs5c313_rtc_probe(struct plat
- 
- 	platform_set_drvdata(pdev, rtc);
- 
--	return err;
-+	return 0;
- }
- 
- static int __devexit rs5c313_rtc_remove(struct platform_device *pdev)
+ 	read_lock(&tasklist_lock);
 _
 
-Patches currently in -mm which might be from kogiidena@eggplant.ddo.jp are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
+slim-make-and-config-stuff.patch
+profile-likely-unlikely-macros.patch
