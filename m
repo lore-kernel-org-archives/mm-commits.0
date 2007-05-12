@@ -1,101 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-dock-cleanup-the-uid-patch.patch removed from -mm tree
-Date: Fri, 11 May 2007 22:15:46 -0700
-Message-ID: <200705120515.l4C5FkL7001776@shell0.pdx.osdl.net>
+Subject: - drivers-hwmon-switch-to-using-input_dev-devparent.patch removed from -mm tree
+Date: Fri, 11 May 2007 22:15:34 -0700
+Message-ID: <200705120515.l4C5FYfv001761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57772 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756380AbXELFPx (ORCPT
+	by vger.kernel.org with ESMTP id S1756383AbXELFPx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 12 May 2007 01:15:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, ilya@total-knowledge.com, mm-commits@vger.kernel.org
+To: dtor@insightbb.com, dtor@mail.ru, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: dock: cleanup the uid patch
+     drivers/hwmon: switch to using input_dev->dev.parent
 has been removed from the -mm tree.  Its filename was
-     acpi-dock-cleanup-the-uid-patch.patch
+     drivers-hwmon-switch-to-using-input_dev-devparent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: dock: cleanup the uid patch
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: drivers/hwmon: switch to using input_dev->dev.parent
+From: Dmitry Torokhov <dtor@insightbb.com>
 
-Make uid sysfs file error path free memory, and cleanup sysfs file when
-removing driver.  Also fix CodingStyle violations.
+In preparation for struct class_device -> struct device input core
+conversion, switch to using input_dev->dev.parent when specifying device
+position in sysfs tree.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Illya A. Volynets-Evenbakh <ilya@total-knowledge.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/dock.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/hwmon/ams/ams-input.c |    2 +-
+ drivers/hwmon/applesmc.c      |    2 +-
+ drivers/hwmon/hdaps.c         |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/dock.c~acpi-dock-cleanup-the-uid-patch drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-dock-cleanup-the-uid-patch
-+++ a/drivers/acpi/dock.c
-@@ -675,16 +675,15 @@ static ssize_t show_dock_uid(struct devi
- 			     struct device_attribute *attr, char *buf)
- {
- 	unsigned long lbuf;
--	acpi_status status = acpi_evaluate_integer(dock_station->handle, "_UID", NULL, &lbuf);
--	if(ACPI_FAILURE(status)) {
-+	acpi_status status = acpi_evaluate_integer(dock_station->handle,
-+					"_UID", NULL, &lbuf);
-+	if (ACPI_FAILURE(status))
- 	    return 0;
--	}
-+
- 	return snprintf(buf, PAGE_SIZE, "%lx\n", lbuf);
- }
- DEVICE_ATTR(uid, S_IRUGO, show_dock_uid, NULL);
+diff -puN drivers/hwmon/ams/ams-input.c~drivers-hwmon-switch-to-using-input_dev-devparent drivers/hwmon/ams/ams-input.c
+--- a/drivers/hwmon/ams/ams-input.c~drivers-hwmon-switch-to-using-input_dev-devparent
++++ a/drivers/hwmon/ams/ams-input.c
+@@ -87,7 +87,7 @@ static void ams_input_enable(void)
+ 	ams_info.idev->id.vendor = 0;
+ 	ams_info.idev->open = ams_input_open;
+ 	ams_info.idev->close = ams_input_close;
+-	ams_info.idev->cdev.dev = &ams_info.of_dev->dev;
++	ams_info.idev->dev.parent = &ams_info.of_dev->dev;
  
--
--
- /**
-  * dock_add - add a new dock station
-  * @handle: the dock station handle
-@@ -736,6 +735,8 @@ static int dock_add(acpi_handle handle)
- 	ret = device_create_file(&dock_device.dev, &dev_attr_uid);
- 	if (ret) {
- 		printk("Error %d adding sysfs file\n", ret);
-+		device_remove_file(&dock_device.dev, &dev_attr_docked);
-+		device_remove_file(&dock_device.dev, &dev_attr_undock);
- 		platform_device_unregister(&dock_device);
- 		kfree(dock_station);
- 		return ret;
-@@ -775,6 +776,7 @@ dock_add_err:
- dock_add_err_unregister:
- 	device_remove_file(&dock_device.dev, &dev_attr_docked);
- 	device_remove_file(&dock_device.dev, &dev_attr_undock);
-+	device_remove_file(&dock_device.dev, &dev_attr_uid);
- 	platform_device_unregister(&dock_device);
- 	kfree(dock_station);
- 	return ret;
-@@ -806,6 +808,7 @@ static int dock_remove(void)
- 	/* cleanup sysfs */
- 	device_remove_file(&dock_device.dev, &dev_attr_docked);
- 	device_remove_file(&dock_device.dev, &dev_attr_undock);
-+	device_remove_file(&dock_device.dev, &dev_attr_uid);
- 	platform_device_unregister(&dock_device);
+ 	input_set_abs_params(ams_info.idev, ABS_X, -50, 50, 3, 0);
+ 	input_set_abs_params(ams_info.idev, ABS_Y, -50, 50, 3, 0);
+diff -puN drivers/hwmon/applesmc.c~drivers-hwmon-switch-to-using-input_dev-devparent drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~drivers-hwmon-switch-to-using-input_dev-devparent
++++ a/drivers/hwmon/applesmc.c
+@@ -1100,7 +1100,7 @@ static int applesmc_create_accelerometer
+ 	/* initialize the input class */
+ 	applesmc_idev->name = "applesmc";
+ 	applesmc_idev->id.bustype = BUS_HOST;
+-	applesmc_idev->cdev.dev = &pdev->dev;
++	applesmc_idev->dev.parent = &pdev->dev;
+ 	applesmc_idev->evbit[0] = BIT(EV_ABS);
+ 	applesmc_idev->open = applesmc_idev_open;
+ 	applesmc_idev->close = applesmc_idev_close;
+diff -puN drivers/hwmon/hdaps.c~drivers-hwmon-switch-to-using-input_dev-devparent drivers/hwmon/hdaps.c
+--- a/drivers/hwmon/hdaps.c~drivers-hwmon-switch-to-using-input_dev-devparent
++++ a/drivers/hwmon/hdaps.c
+@@ -574,7 +574,7 @@ static int __init hdaps_init(void)
  
- 	/* free dock station memory */
+ 	/* initialize the input class */
+ 	hdaps_idev->name = "hdaps";
+-	hdaps_idev->cdev.dev = &pdev->dev;
++	hdaps_idev->dev.parent = &pdev->dev;
+ 	hdaps_idev->evbit[0] = BIT(EV_ABS);
+ 	input_set_abs_params(hdaps_idev, ABS_X,
+ 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from dtor@insightbb.com are
 
 origin.patch
-git-acpi.patch
-libata-check-for-an-support.patch
-genhd-expose-an-to-user-space.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-genhd-send-async-notification-on-media-change.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
+git-input.patch
+ucb1x00-do-not-access-input_dev-private-directly.patch
