@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfs-server-cluster-locking-api-fixup.patch added to -mm tree
-Date: Fri, 11 May 2007 22:30:06 -0700
-Message-ID: <200705120530.l4C5U5nW002019@shell0.pdx.osdl.net>
+Subject: + git-newsetup-fixup.patch added to -mm tree
+Date: Fri, 11 May 2007 22:31:03 -0700
+Message-ID: <200705120531.l4C5V2Kx002028@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36306 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750930AbXELFaI (ORCPT
+	by vger.kernel.org with ESMTP id S1752314AbXELFbF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 01:30:08 -0400
+	Sat, 12 May 2007 01:31:05 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5U6Zs024466
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4C5V3bD024501
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:30:07 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 11 May 2007 22:31:04 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-nfs-server-cluster-locking-api-fixup
+     git-newsetup-fixup
 has been added to the -mm tree.  Its filename is
-     git-nfs-server-cluster-locking-api-fixup.patch
+     git-newsetup-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,86 +30,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs-server-cluster-locking-api-fixup
+Subject: git-newsetup-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |   54 ---------------------------------------------------
- 1 file changed, 54 deletions(-)
+ include/asm-x86_64/alternative.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/locks.c~git-nfs-server-cluster-locking-api-fixup fs/locks.c
---- a/fs/locks.c~git-nfs-server-cluster-locking-api-fixup
-+++ a/fs/locks.c
-@@ -1598,59 +1598,6 @@ asmlinkage long sys_flock(unsigned int f
- 	return error;
- }
+diff -puN include/asm-x86_64/alternative.h~git-newsetup-fixup include/asm-x86_64/alternative.h
+--- a/include/asm-x86_64/alternative.h~git-newsetup-fixup
++++ a/include/asm-x86_64/alternative.h
+@@ -138,7 +138,6 @@ static inline void alternatives_smp_swit
+ 		      "663:\n\t" newinstr "\n664:\n"   /* replacement */ \
+ 		      ".previous" : output : [feat] "i" (feature), ##input)
  
--<<<<<<< HEAD/fs/locks.c
--/**
-- * vfs_test_lock - test file byte range lock
-- * @filp: The file to test lock for
-- * @fl: The lock to test
-- * @conf: Place to return a copy of the conflicting lock, if found
-- *
-- * Returns -ERRNO on failure.  Indicates presence of conflicting lock by
-- * setting conf->fl_type to something other than F_UNLCK.
-- */
--int vfs_test_lock(struct file *filp, struct file_lock *fl)
--{
--	if (filp->f_op && filp->f_op->lock)
--		return filp->f_op->lock(filp, F_GETLK, fl);
--	posix_test_lock(filp, fl);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vfs_test_lock);
--
--static int posix_lock_to_flock(struct flock *flock, struct file_lock *fl)
--{
--	flock->l_pid = fl->fl_pid;
--#if BITS_PER_LONG == 32
--	/*
--	 * Make sure we can represent the posix lock via
--	 * legacy 32bit flock.
--	 */
--	if (fl->fl_start > OFFT_OFFSET_MAX)
--		return -EOVERFLOW;
--	if (fl->fl_end != OFFSET_MAX && fl->fl_end > OFFT_OFFSET_MAX)
--		return -EOVERFLOW;
--#endif
--	flock->l_start = fl->fl_start;
--	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
--		fl->fl_end - fl->fl_start + 1;
--	flock->l_whence = 0;
--	flock->l_type = fl->fl_type;
--	return 0;
--}
--
--#if BITS_PER_LONG == 32
--static void posix_lock_to_flock64(struct flock64 *flock, struct file_lock *fl)
--{
--	flock->l_pid = fl->fl_pid;
--	flock->l_start = fl->fl_start;
--	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
--		fl->fl_end - fl->fl_start + 1;
--	flock->l_whence = 0;
--	flock->l_type = fl->fl_type;
--}
--#endif
--
--=======
- /**
-  * vfs_test_lock - test file byte range lock
-  * @filp: The file to test lock for
-@@ -1701,7 +1648,6 @@ static void posix_lock_to_flock64(struct
- }
+-<<<<<<< HEAD/include/asm-x86_64/alternative.h
+ /*
+  * use this macro(s) if you need more than one output parameter
+  * in alternative_io
+@@ -178,8 +177,6 @@ static inline void alternatives_smp_swit
+ #define LOCK_PREFIX ""
  #endif
  
-->>>>>>> /fs/locks.c
- /* Report the first existing lock that would conflict with l.
-  * This implements the F_GETLK command of fcntl().
-  */
+-=======
+->>>>>>> /include/asm-x86_64/alternative.h
+ struct paravirt_patch;
+ #ifdef CONFIG_PARAVIRT
+ void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +97,7 @@ git-wireless-fixup.patch
 i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+git-newsetup-fixup.patch
 xfs-clean-up-shrinker-games.patch
 remove-slab_ctor_constructor-fix.patch
 change-zonelist-order-v6-zonelist-fix.patch
