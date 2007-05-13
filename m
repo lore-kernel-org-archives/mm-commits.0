@@ -1,57 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + git-ubi-fix.patch added to -mm tree
-Date: Sat, 12 May 2007 22:11:57 -0700
-Message-ID: <200705130511.l4D5BuTD022683@shell0.pdx.osdl.net>
+Subject: - git-wireless-fixup.patch removed from -mm tree
+Date: Sat, 12 May 2007 22:13:22 -0700
+Message-ID: <200705130513.l4D5DM8Q022691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46996 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755758AbXEMFMB (ORCPT
+	by vger.kernel.org with ESMTP id S1752306AbXEMFN1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 May 2007 01:12:01 -0400
+	Sun, 13 May 2007 01:13:27 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4D5BxLv013239
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4D5DPSh013270
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 12 May 2007 22:12:00 -0700
+	for <mm-commits@vger.kernel.org>; Sat, 12 May 2007 22:13:26 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ubi-fix
-has been added to the -mm tree.  Its filename is
-     git-ubi-fix.patch
+     git-wireless-fixup
+has been removed from the -mm tree.  Its filename was
+     git-wireless-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-ubi-fix
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/eba.c |    3 ---
+ drivers/misc/Kconfig |    3 ---
  1 file changed, 3 deletions(-)
 
-diff -puN drivers/mtd/ubi/eba.c~git-ubi-fix drivers/mtd/ubi/eba.c
---- a/drivers/mtd/ubi/eba.c~git-ubi-fix
-+++ a/drivers/mtd/ubi/eba.c
-@@ -940,9 +940,6 @@ static void ltree_entry_ctor(void *obj, 
- {
- 	struct ltree_entry *le = obj;
+diff -puN drivers/misc/Kconfig~git-wireless-fixup drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~git-wireless-fixup
++++ a/drivers/misc/Kconfig
+@@ -187,7 +187,6 @@ config THINKPAD_ACPI_BAY
  
--	if (flags & SLAB_CTOR_CONSTRUCTOR)
--		return;
--
- 	le->users = 0;
- 	init_rwsem(&le->mutex);
- }
+ 	  If you are not sure, say Y here.
+ 
+-<<<<<<< HEAD/drivers/misc/Kconfig
+ config BLINK
+ 	tristate "Keyboard blink driver"
+ 	help
+@@ -197,12 +196,10 @@ config BLINK
+ 	  a visual indication that the kernel is doing something.
+ 
+ 
+-=======
+ config EEPROM_93CX6
+ 	tristate "EEPROM 93CX6 support"
+ 	---help---
+ 	  This is a driver for the EEPROM chipsets 93c46 and 93c66.
+ 	  The driver supports both read as well as write commands.
+ 
+->>>>>>> /drivers/misc/Kconfig
+ endmenu
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,14 +74,12 @@ i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-gfs2-nmw.patch
 git-hid-fixup.patch
 git-ieee1394.patch
-git-kvm.patch
 git-leds.patch
 git-leds-fixup.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-mips-fixup.patch
 git-ubi.patch
 git-ubi-fix.patch
-git-e1000.patch
 fix-race-condition-about-network-device-name-fix.patch
 git-battery.patch
 git-nfs-server-cluster-locking-api-fixup.patch
