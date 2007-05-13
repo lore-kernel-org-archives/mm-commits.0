@@ -1,59 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-use-signalfd-and-timerfd-compat-syscalls.patch removed from -mm tree
-Date: Sat, 12 May 2007 10:37:36 -0700
-Message-ID: <200705121737.l4CHbaM9012132@shell0.pdx.osdl.net>
+Subject: - loop_probe-fix-return-value.patch removed from -mm tree
+Date: Sat, 12 May 2007 22:10:11 -0700
+Message-ID: <200705130510.l4D5AEUl022671@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33282 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754368AbXELRhn (ORCPT
+	by vger.kernel.org with ESMTP id S1752306AbXEMFLF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 May 2007 13:37:43 -0400
+	Sun, 13 May 2007 01:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, ak@suse.de, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: kenchen@google.com, a.p.zijlstra@chello.nl, adobriyan@sw.ru, jeremy@goop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: use signalfd and timerfd compat syscalls
+     loop_probe: fix return value
 has been removed from the -mm tree.  Its filename was
-     x86_64-use-signalfd-and-timerfd-compat-syscalls.patch
+     loop_probe-fix-return-value.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: x86_64: use signalfd and timerfd compat syscalls
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: loop_probe: fix return value
+From: "Ken Chen" <kenchen@google.com>
 
-Looks like these two are wired up in a wrong way.
+A BUG is actually triggered by the __module_get(THIS_MODULE) in
+loop_set_fd.
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+It's a mis-understanding on what kobj_probe_t function is suppose to return
+on success.  When we open loop device that has not been initialized, we
+probe it via:
+
+do_open
+  get_gendisk
+    kobj_lookup
+      loop_probe
+
+Notice that in kobj_lookup(), when p->probe() returns non-zero value (I
+presume it is an -ERRNO), it breaks out of the loop and propagate the
+return value, otherwise, loops back to the beginning of the for loop and
+retry, and in there get_disk() will be called via p->lock() to get a ref
+against the module.
+
+kobj_look_up(...) {
+retry:
+        mutex_lock(domain->lock);
+        for (p = domain->probes[MAJOR(dev) % 255]; p; p = p->next) {
+        ...
+        if (kobj)
+                return kobj;
+        goto retry;
+}
+
+So loop_probe() mistakenly returned wrong status and leads to future
+oops on inconsistent module ref count.  The following patch fixes the
+issue.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
+Acked-by: "Jeremy Fitzhardinge" <jeremy@goop.org>
+Cc: "Peter Zijlstra" <a.p.zijlstra@chello.nl>
+Cc: "Alexey Dobriyan" <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/ia32/ia32entry.S |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/loop.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/ia32/ia32entry.S~x86_64-use-signalfd-and-timerfd-compat-syscalls arch/x86_64/ia32/ia32entry.S
---- a/arch/x86_64/ia32/ia32entry.S~x86_64-use-signalfd-and-timerfd-compat-syscalls
-+++ a/arch/x86_64/ia32/ia32entry.S
-@@ -716,7 +716,7 @@ ia32_sys_call_table:
- 	.quad sys_getcpu
- 	.quad sys_epoll_pwait
- 	.quad compat_sys_utimensat	/* 320 */
--	.quad sys_signalfd
--	.quad sys_timerfd
-+	.quad compat_sys_signalfd
-+	.quad compat_sys_timerfd
- 	.quad sys_eventfd
--ia32_syscall_end:		
-+ia32_syscall_end:
+diff -puN drivers/block/loop.c~loop_probe-fix-return-value drivers/block/loop.c
+--- a/drivers/block/loop.c~loop_probe-fix-return-value
++++ a/drivers/block/loop.c
+@@ -1460,6 +1460,7 @@ static void loop_del_one(struct loop_dev
+ 	kfree(lo);
+ }
+ 
++/* return NULL for success, or return non-zero value if there are error */
+ static struct kobject *loop_probe(dev_t dev, int *part, void *data)
+ {
+ 	unsigned int number = dev & MINORMASK;
+@@ -1474,8 +1475,8 @@ static struct kobject *loop_probe(dev_t 
+ 	*part = 0;
+ 	if (IS_ERR(lo))
+ 		return (void *)lo;
+-	else
+-		return &lo->lo_disk->kobj;
++
++	return NULL;
+ }
+ 
+ static int __init loop_init(void)
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
-origin.patch
-compat-signalfd-and-timerfd-are-cond-syscalls.patch
-s390-spinlock-initializer-cleanup.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
