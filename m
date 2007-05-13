@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-comment-use-helper-function.patch added to -mm tree
-Date: Sun, 13 May 2007 03:34:37 -0700
-Message-ID: <200705131034.l4DAYbiA026833@shell0.pdx.osdl.net>
+Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch added to -mm tree
+Date: Sun, 13 May 2007 03:34:41 -0700
+Message-ID: <200705131034.l4DAYf87026836@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32799 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754173AbXEMKer (ORCPT
+	by vger.kernel.org with ESMTP id S1757214AbXEMKeu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 May 2007 06:34:47 -0400
+	Sun, 13 May 2007 06:34:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mikew@google.com
 
 
 The patch titled
-     writeback: fix comment, use helper function
+     writeback: fix time ordering of the per superblock dirty inode lists 5
 has been added to the -mm tree.  Its filename is
-     writeback-fix-comment-use-helper-function.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: fix comment, use helper function
+Subject: writeback: fix time ordering of the per superblock dirty inode lists 5
 From: Andrew Morton <akpm@linux-foundation.org>
 
-There's a comment in there which claims that the inode is left on s_io
-if nfs chickened out of writing some data.
+When the writeback function is operating in writeback-for-flushing mode (as
+opposed to writeback-for-integrity) and it encounters an I_LOCKed inode, it
+will skip writing that inode.  This is done for throughput and latency: move
+on to another inode rather than blocking for this one.
 
-But that's not been true for three years. 
-9290280ced13c85689adeffa587e9a53bd3a5873 fixed a livelock by moving these
-inodes back onto s_dirty.  Fix the comment.
+Writeback skips this inode my moving it off s_io and onto s_dirty, so that
+writeback can proceed with the other inodes on s_io.
 
-In the second leg of the `if', use redirty_tail() rather than open-coding it.
+However that inode movement can corrupt s_dirty's reverse-time-orderedness. 
+Fix that by using the new redirty_tail(), which will update the refiled
+inode's dirtied_when field.
 
-Add weaselly comment indicating lack of confidence in the code and lack of the
-fortitude which would be needed to fiddle with it.
+Note: the behaaviour in here is a bit rude: if kupdate happens to come across
+a locked inode then it will defer writeback of that inode for another 30
+seconds.  We'll address that in the next patch.
 
 Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-comment-use-helper-function fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-comment-use-helper-function
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5
 +++ a/fs/fs-writeback.c
-@@ -253,7 +253,6 @@ __sync_single_inode(struct inode *inode,
- {
- 	unsigned dirty;
- 	struct address_space *mapping = inode->i_mapping;
--	struct super_block *sb = inode->i_sb;
- 	int wait = wbc->sync_mode == WB_SYNC_ALL;
- 	int ret;
+@@ -367,7 +367,7 @@ __writeback_single_inode(struct inode *i
+ 		int ret;
  
-@@ -289,7 +288,16 @@ __sync_single_inode(struct inode *inode,
- 			/*
- 			 * We didn't write back all the pages.  nfs_writepages()
- 			 * sometimes bales out without doing anything. Redirty
--			 * the inode.  It is still on sb->s_io.
-+			 * the inode.  It is moved from s_io onto s_dirty.
-+			 */
-+			/*
-+			 * akpm: if the caller was the kupdate function we put
-+			 * this inode at the head of s_dirty so it gets first
-+			 * consideration.  Otherwise, move it to the tail, for
-+			 * the reasons described there.  I'm not really sure
-+			 * how much sense this makes.  Presumably I had a good
-+			 * reasons for doing it this way, and I'd rather not
-+			 * muck with it at present.
- 			 */
- 			if (wbc->for_kupdate) {
- 				/*
-@@ -312,8 +320,7 @@ __sync_single_inode(struct inode *inode,
- 				 */
- 				inode->i_state |= I_DIRTY_PAGES;
- 				check_dirty_inode(inode);
--				inode->dirtied_when = jiffies;
--				list_move(&inode->i_list, &sb->s_dirty);
-+				redirty_tail(inode);
- 				check_dirty_inode(inode);
- 			}
- 		} else if (inode->i_state & I_DIRTY) {
+ 		check_dirty_inode(inode);
+-		list_move(&inode->i_list, &inode->i_sb->s_dirty);
++		redirty_tail(inode);
+ 		check_dirty_inode(inode);
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
