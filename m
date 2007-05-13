@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-gccbug-fixup.patch added to -mm tree
-Date: Sun, 13 May 2007 00:24:51 -0700
-Message-ID: <200705130724.l4D7OoYZ024472@shell0.pdx.osdl.net>
+Subject: + writeback-fix-comment-use-helper-function.patch added to -mm tree
+Date: Sun, 13 May 2007 03:34:37 -0700
+Message-ID: <200705131034.l4DAYbiA026833@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44263 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757278AbXEMHYx (ORCPT
+	by vger.kernel.org with ESMTP id S1754173AbXEMKer (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 May 2007 03:24:53 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4D7Opsw018251
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 13 May 2007 00:24:52 -0700
+	Sun, 13 May 2007 06:34:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mikew@google.com
 
 
 The patch titled
-     git-gccbug-fixup
+     writeback: fix comment, use helper function
 has been added to the -mm tree.  Its filename is
-     git-gccbug-fixup.patch
+     writeback-fix-comment-use-helper-function.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,31 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-gccbug-fixup
+Subject: writeback: fix comment, use helper function
 From: Andrew Morton <akpm@linux-foundation.org>
 
+There's a comment in there which claims that the inode is left on s_io
+if nfs chickened out of writing some data.
+
+But that's not been true for three years. 
+9290280ced13c85689adeffa587e9a53bd3a5873 fixed a livelock by moving these
+inodes back onto s_dirty.  Fix the comment.
+
+In the second leg of the `if', use redirty_tail() rather than open-coding it.
+
+Add weaselly comment indicating lack of confidence in the code and lack of the
+fortitude which would be needed to fiddle with it.
+
+Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/pcxhr/pcxhr.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/fs-writeback.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN sound/pci/pcxhr/pcxhr.c~git-gccbug-fixup sound/pci/pcxhr/pcxhr.c
---- a/sound/pci/pcxhr/pcxhr.c~git-gccbug-fixup
-+++ a/sound/pci/pcxhr/pcxhr.c
-@@ -637,12 +637,8 @@ static void pcxhr_trigger_tasklet(unsign
-  */
- static int pcxhr_trigger(struct snd_pcm_substream *subs, int cmd)
+diff -puN fs/fs-writeback.c~writeback-fix-comment-use-helper-function fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-comment-use-helper-function
++++ a/fs/fs-writeback.c
+@@ -253,7 +253,6 @@ __sync_single_inode(struct inode *inode,
  {
--<<<<<<< HEAD/sound/pci/pcxhr/pcxhr.c
--	struct pcxhr_stream *stream;
--=======
- 	struct pcxhr_stream *stream = NULL;
- 	struct list_head *pos;
-->>>>>>> /sound/pci/pcxhr/pcxhr.c
- 	struct snd_pcm_substream *s;
+ 	unsigned dirty;
+ 	struct address_space *mapping = inode->i_mapping;
+-	struct super_block *sb = inode->i_sb;
+ 	int wait = wbc->sync_mode == WB_SYNC_ALL;
+ 	int ret;
  
- 	switch (cmd) {
+@@ -289,7 +288,16 @@ __sync_single_inode(struct inode *inode,
+ 			/*
+ 			 * We didn't write back all the pages.  nfs_writepages()
+ 			 * sometimes bales out without doing anything. Redirty
+-			 * the inode.  It is still on sb->s_io.
++			 * the inode.  It is moved from s_io onto s_dirty.
++			 */
++			/*
++			 * akpm: if the caller was the kupdate function we put
++			 * this inode at the head of s_dirty so it gets first
++			 * consideration.  Otherwise, move it to the tail, for
++			 * the reasons described there.  I'm not really sure
++			 * how much sense this makes.  Presumably I had a good
++			 * reasons for doing it this way, and I'd rather not
++			 * muck with it at present.
+ 			 */
+ 			if (wbc->for_kupdate) {
+ 				/*
+@@ -312,8 +320,7 @@ __sync_single_inode(struct inode *inode,
+ 				 */
+ 				inode->i_state |= I_DIRTY_PAGES;
+ 				check_dirty_inode(inode);
+-				inode->dirtied_when = jiffies;
+-				list_move(&inode->i_list, &sb->s_dirty);
++				redirty_tail(inode);
+ 				check_dirty_inode(inode);
+ 			}
+ 		} else if (inode->i_state & I_DIRTY) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,10 +153,14 @@ integrity-new-hooks.patch
 integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
 w1-build-fix.patch
 check_dirty_inode_list.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-git-gccbug-fixup.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
