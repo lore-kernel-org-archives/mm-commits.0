@@ -1,96 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - loop_probe-fix-return-value.patch removed from -mm tree
-Date: Sat, 12 May 2007 22:10:11 -0700
-Message-ID: <200705130510.l4D5AEUl022671@shell0.pdx.osdl.net>
+Subject: + git-ubi-fix.patch added to -mm tree
+Date: Sat, 12 May 2007 22:11:57 -0700
+Message-ID: <200705130511.l4D5BuTD022683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32888 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752306AbXEMFLF (ORCPT
+	by vger.kernel.org with ESMTP id S1755758AbXEMFMB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 May 2007 01:11:05 -0400
+	Sun, 13 May 2007 01:12:01 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4D5BxLv013239
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 12 May 2007 22:12:00 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, a.p.zijlstra@chello.nl, adobriyan@sw.ru, jeremy@goop.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     loop_probe: fix return value
-has been removed from the -mm tree.  Its filename was
-     loop_probe-fix-return-value.patch
+     git-ubi-fix
+has been added to the -mm tree.  Its filename is
+     git-ubi-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: loop_probe: fix return value
-From: "Ken Chen" <kenchen@google.com>
+Subject: git-ubi-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A BUG is actually triggered by the __module_get(THIS_MODULE) in
-loop_set_fd.
-
-It's a mis-understanding on what kobj_probe_t function is suppose to return
-on success.  When we open loop device that has not been initialized, we
-probe it via:
-
-do_open
-  get_gendisk
-    kobj_lookup
-      loop_probe
-
-Notice that in kobj_lookup(), when p->probe() returns non-zero value (I
-presume it is an -ERRNO), it breaks out of the loop and propagate the
-return value, otherwise, loops back to the beginning of the for loop and
-retry, and in there get_disk() will be called via p->lock() to get a ref
-against the module.
-
-kobj_look_up(...) {
-retry:
-        mutex_lock(domain->lock);
-        for (p = domain->probes[MAJOR(dev) % 255]; p; p = p->next) {
-        ...
-        if (kobj)
-                return kobj;
-        goto retry;
-}
-
-So loop_probe() mistakenly returned wrong status and leads to future
-oops on inconsistent module ref count.  The following patch fixes the
-issue.
-
-Signed-off-by: Ken Chen <kenchen@google.com>
-Acked-by: "Jeremy Fitzhardinge" <jeremy@goop.org>
-Cc: "Peter Zijlstra" <a.p.zijlstra@chello.nl>
-Cc: "Alexey Dobriyan" <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mtd/ubi/eba.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/block/loop.c~loop_probe-fix-return-value drivers/block/loop.c
---- a/drivers/block/loop.c~loop_probe-fix-return-value
-+++ a/drivers/block/loop.c
-@@ -1460,6 +1460,7 @@ static void loop_del_one(struct loop_dev
- 	kfree(lo);
- }
- 
-+/* return NULL for success, or return non-zero value if there are error */
- static struct kobject *loop_probe(dev_t dev, int *part, void *data)
+diff -puN drivers/mtd/ubi/eba.c~git-ubi-fix drivers/mtd/ubi/eba.c
+--- a/drivers/mtd/ubi/eba.c~git-ubi-fix
++++ a/drivers/mtd/ubi/eba.c
+@@ -940,9 +940,6 @@ static void ltree_entry_ctor(void *obj, 
  {
- 	unsigned int number = dev & MINORMASK;
-@@ -1474,8 +1475,8 @@ static struct kobject *loop_probe(dev_t 
- 	*part = 0;
- 	if (IS_ERR(lo))
- 		return (void *)lo;
--	else
--		return &lo->lo_disk->kobj;
-+
-+	return NULL;
- }
+ 	struct ltree_entry *le = obj;
  
- static int __init loop_init(void)
+-	if (flags & SLAB_CTOR_CONSTRUCTOR)
+-		return;
+-
+ 	le->users = 0;
+ 	init_rwsem(&le->mutex);
+ }
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
+git-ubi.patch
+git-ubi-fix.patch
+git-e1000.patch
+fix-race-condition-about-network-device-name-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
