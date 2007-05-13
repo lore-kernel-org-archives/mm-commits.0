@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch added to -mm tree
-Date: Sun, 13 May 2007 03:34:41 -0700
-Message-ID: <200705131034.l4DAYf87026836@shell0.pdx.osdl.net>
+Subject: + writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch added to -mm tree
+Date: Sun, 13 May 2007 03:34:45 -0700
+Message-ID: <200705131034.l4DAYjDc026839@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59731 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757214AbXEMKeu (ORCPT
+	by vger.kernel.org with ESMTP id S1757303AbXEMKe4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 May 2007 06:34:50 -0400
+	Sun, 13 May 2007 06:34:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mikew@google.com
 
 
 The patch titled
-     writeback: fix time ordering of the per superblock dirty inode lists 5
+     writebackL fix time ordering of the per superblock dirty inode lists 6
 has been added to the -mm tree.  Its filename is
-     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: fix time ordering of the per superblock dirty inode lists 5
+Subject: writebackL fix time ordering of the per superblock dirty inode lists 6
 From: Andrew Morton <akpm@linux-foundation.org>
 
-When the writeback function is operating in writeback-for-flushing mode (as
-opposed to writeback-for-integrity) and it encounters an I_LOCKed inode, it
-will skip writing that inode.  This is done for throughput and latency: move
-on to another inode rather than blocking for this one.
+Recycling the previous changelog:
 
-Writeback skips this inode my moving it off s_io and onto s_dirty, so that
-writeback can proceed with the other inodes on s_io.
+  When the writeback function is operating in writeback-for-flushing mode
+  (as opposed to writeback-for-integrity) and it encounters an I_LOCKed inode,
+  it will skip writing that inode.  This is done for throughput and latency:
+  move on to another inode rather than blocking for this one.
 
-However that inode movement can corrupt s_dirty's reverse-time-orderedness. 
-Fix that by using the new redirty_tail(), which will update the refiled
-inode's dirtied_when field.
+  Writeback skips this inode my moving it off s_io and onto s_dirty, so that
+  writeback can proceed with the other inodes on s_io.
 
-Note: the behaaviour in here is a bit rude: if kupdate happens to come across
-a locked inode then it will defer writeback of that inode for another 30
-seconds.  We'll address that in the next patch.
+  However that inode movement can corrupt s_dirty's
+  reverse-time-orderedness.  Fix that by using the new redirty_tail(), which
+  will update the refiled inode's dirtied_when field.
+
+  Note: the behaaviour in here is a bit rude: if kupdate happens to come
+  across a locked inode then it will defer writeback of that inode for another
+  30 seconds.  We'll address that in the next patch.
+
+Address that here.  What we do is to move the skipped inode to the _head_ of
+s_dirty, immediately eligible for writeout again.  Instead of deferring that
+writeout for another 30 seconds.
+
+One would think that this might cause a livelock: we keep on trying to write
+the same locked inode.  But it won't because:
+
+a) if that was the case, it would _already_ be happening on the
+   balance_dirty_pages codepath.  Because balance_dirty_pages() doesn't care
+   about inode timestamps.
+
+b) if we skipped this inode then we won't have done any writeback.  The
+   higher-level writeback paths will see that wbc.nr_to_write dodn't change
+   and they'll then back off and take a nap.
 
 Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5 fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6
 +++ a/fs/fs-writeback.c
-@@ -367,7 +367,7 @@ __writeback_single_inode(struct inode *i
+@@ -366,8 +366,15 @@ __writeback_single_inode(struct inode *i
+ 		struct address_space *mapping = inode->i_mapping;
  		int ret;
  
++		/*
++		 * We're skipping this inode because it's locked, and we're not
++		 * doing writeback-for-data-integrity.  Move it to the head of
++		 * s_dirty so that writeback can proceed with the other inodes
++		 * on s_io.  We'll have another go at writing back this inode
++		 * when the s_dirty iodes get moved back onto s_io.
++		 */
  		check_dirty_inode(inode);
--		list_move(&inode->i_list, &inode->i_sb->s_dirty);
-+		redirty_tail(inode);
+-		redirty_tail(inode);
++		redirty_head(inode);
  		check_dirty_inode(inode);
  
  		/*
