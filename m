@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timekeeping-fix-mismerge.patch added to -mm tree
-Date: Mon, 14 May 2007 11:58:54 -0700
-Message-ID: <200705141858.l4EIwsDi023559@shell0.pdx.osdl.net>
+Subject: + let-smp_call_function_single-return-ebusy-on-up.patch added to -mm tree
+Date: Mon, 14 May 2007 12:12:45 -0700
+Message-ID: <200705141912.l4EJCjHH023880@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42718 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753708AbXENTBB (ORCPT
+	by vger.kernel.org with ESMTP id S1751052AbXENTNA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 15:01:01 -0400
+	Mon, 14 May 2007 15:13:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com, stable@kernel.org
+Cc: heiko.carstens@de.ibm.com, ak@suse.de
 
 
 The patch titled
-     timekeeping fix mismerge
+     Let smp_call_function_single return -EBUSY on UP
 has been added to the -mm tree.  Its filename is
-     timekeeping-fix-mismerge.patch
+     let-smp_call_function_single-return-ebusy-on-up.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timekeeping fix mismerge
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Let smp_call_function_single return -EBUSY on UP
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-The time keeping code move to kernel/time/timekeeping.c broke the
-clocksource resume logic patch.  Fix it up and move the
-clocksource_resume() call to the appropriate place.
+All architectures that have an implementation of smp_call_function_single
+let it return -EBUSY if it is asked to execute func on the current cpu. 
+(akpm: except for x86_64).  Therefore the UP version must always return
+-EBUSY.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    2 ++
- kernel/timer.c            |    2 --
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/smp.h |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~timekeeping-fix-mismerge kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-fix-mismerge
-+++ a/kernel/time/timekeeping.c
-@@ -273,6 +273,8 @@ static int timekeeping_resume(struct sys
- 	unsigned long flags;
- 	unsigned long now = read_persistent_clock();
+diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up include/linux/smp.h
+--- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up
++++ a/include/linux/smp.h
+@@ -99,11 +99,9 @@ static inline void smp_send_reschedule(i
+ #define num_booting_cpus()			1
+ #define smp_prepare_boot_cpu()			do {} while (0)
+ static inline int smp_call_function_single(int cpuid, void (*func) (void *info),
+-				void *info, int retry, int wait)
++					   void *info, int retry, int wait)
+ {
+-	/* Disable interrupts here? */
+-	func(info);
+-	return 0;
++	return -EBUSY;
+ }
  
-+	clocksource_resume();
-+
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 
- 	if (now && (now > timekeeping_suspend_time)) {
-diff -puN kernel/timer.c~timekeeping-fix-mismerge kernel/timer.c
---- a/kernel/timer.c~timekeeping-fix-mismerge
-+++ a/kernel/timer.c
-@@ -1499,8 +1499,6 @@ unregister_time_interpolator(struct time
- 		prev = &curr->next;
- 	}
- 
--	clocksource_resume();
--
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 	if (ti == time_interpolator) {
- 		/* we lost the best time-interpolator: */
+ #endif /* !SMP */
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-timekeeping-fix-mismerge.patch
-git-avr32.patch
-drm-spinlock-initializer-cleanup.patch
-git-dvb.patch
 s390-spinlock-initializer-cleanup.patch
-i386-hpet-check-if-the-counter-works.patch
-clockevents-fix-resume-logic-updated-version.patch
+simplify-compat_sys_timerfd.patch
+let-smp_call_function_single-return-ebusy-on-up.patch
