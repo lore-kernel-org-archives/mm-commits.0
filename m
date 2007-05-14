@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dts-kill-hardcoded-phandles.patch added to -mm tree
-Date: Mon, 14 May 2007 14:27:44 -0700
-Message-ID: <200705142127.l4ELRiCa026641@shell0.pdx.osdl.net>
+Subject: + fix-build-failure-for-drivers-ata-pata_sccc.patch added to -mm tree
+Date: Mon, 14 May 2007 14:29:11 -0700
+Message-ID: <200705142129.l4ELTBoG026670@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50243 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757566AbXENV2b (ORCPT
+	by vger.kernel.org with ESMTP id S1753993AbXENV3v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 17:28:31 -0400
+	Mon, 14 May 2007 17:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vitb@kernel.crashing.org, arnd@arndb.de, benh@kernel.crashing.org, galak@gate.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org
+Cc: tony@bakeyournoodle.com, akira2.iguchi@toshiba.co.jp, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jgarzik@pobox.com
 
 
 The patch titled
-     powerpc: dts: kill hardcoded phandles
+     Fix build failure for drivers/ata/pata_scc.c
 has been added to the -mm tree.  Its filename is
-     dts-kill-hardcoded-phandles.patch
+     fix-build-failure-for-drivers-ata-pata_sccc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,446 +26,179 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: dts: kill hardcoded phandles
-From: Vitaly Bordug <vitb@kernel.crashing.org>
+Subject: Fix build failure for drivers/ata/pata_scc.c
+From: tony@bakeyournoodle.com (Tony Breeds)
 
-Removed explicit linux,phandle usage.  Using references and labels now in PQ
-and PQ2 boards currently supported in arch/powerpc.
+The commit d4b2bab4f26345ea1803feb23ea92fbe3f6b77bc added deadline support
+to prereset and reset methods to libbata the pata_scc driver wasn't
+converted.  This patch is a naive attempt to bring this driver up to
+scratch.
 
-Signed-off-by: Vitaly Bordug <vitb@kernel.crashing.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Build failures are:
+drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
+drivers/ata/pata_scc.c:870: error: too few arguments to function 'ata_std_prereset'
+drivers/ata/pata_scc.c: In function 'scc_error_handler':
+drivers/ata/pata_scc.c:916: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_scc.c:916: warning: passing argument 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
+drivers/ata/pata_scc.c:871: warning: control reaches end of non-void function
+
+On a releated note scc_bus_post_reset() is (AFACT) identical to
+ata_bus_post_reset(), would a patch to make ata_bus_post_reset() assesable
+to drivers be accepted?
+
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Akira Iguchi <akira2.iguchi@toshiba.co.jp>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc8272ads.dts |   42 ++++++++---------------
- arch/powerpc/boot/dts/mpc866ads.dts  |   31 ++++++-----------
- arch/powerpc/boot/dts/mpc885ads.dts  |   45 +++++++++----------------
- 3 files changed, 43 insertions(+), 75 deletions(-)
+ drivers/ata/pata_scc.c |   48 +++++++++++++++++++++++----------------
+ 1 files changed, 29 insertions(+), 19 deletions(-)
 
-diff -puN arch/powerpc/boot/dts/mpc8272ads.dts~dts-kill-hardcoded-phandles arch/powerpc/boot/dts/mpc8272ads.dts
---- a/arch/powerpc/boot/dts/mpc8272ads.dts~dts-kill-hardcoded-phandles
-+++ a/arch/powerpc/boot/dts/mpc8272ads.dts
-@@ -14,12 +14,10 @@
-        compatible = "MPC8260ADS";
-        #address-cells = <1>;
-        #size-cells = <1>;
--       linux,phandle = <100>;
+diff -puN drivers/ata/pata_scc.c~fix-build-failure-for-drivers-ata-pata_sccc drivers/ata/pata_scc.c
+--- a/drivers/ata/pata_scc.c~fix-build-failure-for-drivers-ata-pata_sccc
++++ a/drivers/ata/pata_scc.c
+@@ -489,23 +489,26 @@ static unsigned int scc_devchk (struct a
+  *	Note: Original code is ata_bus_post_reset().
+  */
  
-        cpus {
-                #address-cells = <1>;
-                #size-cells = <0>;
--               linux,phandle = <200>;
+-static void scc_bus_post_reset (struct ata_port *ap, unsigned int devmask)
++static int scc_bus_post_reset(struct ata_port *ap, unsigned int devmask,
++                              unsigned long deadline)
+ {
+ 	struct ata_ioports *ioaddr = &ap->ioaddr;
+ 	unsigned int dev0 = devmask & (1 << 0);
+ 	unsigned int dev1 = devmask & (1 << 1);
+-	unsigned long timeout;
++	int rc;
  
-                PowerPC,8272@0 {
-                        device_type = "cpu";
-@@ -32,12 +30,10 @@
-                        bus-frequency = <0>;
-                        clock-frequency = <0>;
-                        32-bit;
--                       linux,phandle = <201>;
-                };
-        };
+ 	/* if device 0 was found in ata_devchk, wait for its
+ 	 * BSY bit to clear
+ 	 */
+-	if (dev0)
+-		ata_busy_sleep(ap, ATA_TMOUT_BOOT_QUICK, ATA_TMOUT_BOOT);
++	if (dev0) {
++		rc = ata_wait_ready(ap, deadline);
++		if (rc && rc != -ENODEV)
++			return rc;
++	}
  
--       interrupt-controller@f8200000 {
--               linux,phandle = <f8200000>;
-+		pci_pic: interrupt-controller@f8200000 {
-                #address-cells = <0>;
-                #interrupt-cells = <2>;
-                interrupt-controller;
-@@ -47,15 +43,13 @@
-        };
-        memory {
-                device_type = "memory";
--               linux,phandle = <300>;
-                reg = <00000000 4000000 f4500000 00000020>;
-        };
+ 	/* if device 1 was found in ata_devchk, wait for
+ 	 * register access, then wait for BSY to clear
+ 	 */
+-	timeout = jiffies + ATA_TMOUT_BOOT;
+ 	while (dev1) {
+ 		u8 nsect, lbal;
  
-        chosen {
-                name = "chosen";
-                linux,platform = <0>;
--               interrupt-controller = <10c00>;
--               linux,phandle = <400>;
-+		interrupt-controller = <&Cpm_pic>;
-        };
+@@ -514,14 +517,15 @@ static void scc_bus_post_reset (struct a
+ 		lbal = in_be32(ioaddr->lbal_addr);
+ 		if ((nsect == 1) && (lbal == 1))
+ 			break;
+-		if (time_after(jiffies, timeout)) {
+-			dev1 = 0;
+-			break;
+-		}
++		if (time_after(jiffies, deadline))
++			return -EBUSY;
+ 		msleep(50);	/* give drive a breather */
+ 	}
+-	if (dev1)
+-		ata_busy_sleep(ap, ATA_TMOUT_BOOT_QUICK, ATA_TMOUT_BOOT);
++	if (dev1) {
++		rc = ata_wait_ready(ap, deadline);
++		if (rc && rc != -ENODEV)
++			return rc;
++	}
  
-        soc8272@f0000000 {
-@@ -70,20 +64,17 @@
-                        device_type = "mdio";
-                        compatible = "fs_enet";
-                        reg = <0 0>;
--                       linux,phandle = <24520>;
-                        #address-cells = <1>;
-                        #size-cells = <0>;
--                       ethernet-phy@0 {
--                               linux,phandle = <2452000>;
--                               interrupt-parent = <10c00>;
-+			phy0:ethernet-phy@0 {
-+				interrupt-parent = <&Cpm_pic>;
-                                interrupts = <17 4>;
-                                reg = <0>;
-                                bitbang = [ 12 12 13 02 02 01 ];
-                                device_type = "ethernet-phy";
-                        };
--                       ethernet-phy@1 {
--                               linux,phandle = <2452001>;
--                               interrupt-parent = <10c00>;
-+			phy1:ethernet-phy@1 {
-+				interrupt-parent = <&Cpm_pic>;
-                                interrupts = <17 4>;
-                                bitbang = [ 12 12 13 02 02 01 ];
-                                reg = <3>;
-@@ -101,8 +92,8 @@
-                        reg = <11300 20 8400 100 11380 30>;
-                        mac-address = [ 00 11 2F 99 43 54 ];
-                        interrupts = <20 2>;
--                       interrupt-parent = <10c00>;
--                       phy-handle = <2452000>;
-+			interrupt-parent = <&Cpm_pic>;
-+			phy-handle = <&Phy0>;
-                        rx-clock = <13>;
-                        tx-clock = <12>;
-                };
-@@ -115,14 +106,13 @@
-                        reg = <11320 20 8500 100 113b0 30>;
-                        mac-address = [ 00 11 2F 99 44 54 ];
-                        interrupts = <21 2>;
--                       interrupt-parent = <10c00>;
--                       phy-handle = <2452001>;
-+			interrupt-parent = <&Cpm_pic>;
-+			phy-handle = <&Phy1>;
-                        rx-clock = <17>;
-                        tx-clock = <18>;
-                };
+ 	/* is all this really necessary? */
+ 	ap->ops->dev_select(ap, 0);
+@@ -529,6 +533,8 @@ static void scc_bus_post_reset (struct a
+ 		ap->ops->dev_select(ap, 1);
+ 	if (dev0)
+ 		ap->ops->dev_select(ap, 0);
++
++	return 0;
+ }
  
-                cpm@f0000000 {
--                       linux,phandle = <f0000000>;
-                        #address-cells = <1>;
-                        #size-cells = <1>;
-                        #interrupt-cells = <2>;
-@@ -142,7 +132,7 @@
-                                reg = <11a00 20 8000 100>;
-                                current-speed = <1c200>;
-                                interrupts = <28 2>;
--                               interrupt-parent = <10c00>;
-+				interrupt-parent = <&Cpm_pic>;
-                                clock-setup = <0 00ffffff>;
-                                rx-clock = <1>;
-                                tx-clock = <1>;
-@@ -156,15 +146,14 @@
-                                reg = <11a60 20 8300 100>;
-                                current-speed = <1c200>;
-                                interrupts = <2b 2>;
--                               interrupt-parent = <10c00>;
-+				interrupt-parent = <&Cpm_pic>;
-                                clock-setup = <1b ffffff00>;
-                                rx-clock = <4>;
-                                tx-clock = <4>;
-                        };
+ /**
+@@ -537,8 +543,8 @@ static void scc_bus_post_reset (struct a
+  *	Note: Original code is ata_bus_softreset().
+  */
  
-                };
--               interrupt-controller@10c00 {
--                       linux,phandle = <10c00>;
-+			cpm_pic:interrupt-controller@10c00 {
-                        #address-cells = <0>;
-                        #interrupt-cells = <2>;
-                        interrupt-controller;
-@@ -174,7 +163,6 @@
- 		       compatible = "CPM2";
-                };
-                pci@0500 {
--                       linux,phandle = <0500>;
-                        #interrupt-cells = <1>;
-                        #size-cells = <2>;
-                        #address-cells = <3>;
-@@ -202,7 +190,7 @@
-                                         c000 0 0 2 f8200000 43 8
-                                         c000 0 0 3 f8200000 40 8
-                                         c000 0 0 4 f8200000 41 8>;
--                       interrupt-parent = <10c00>;
-+			interrupt-parent = <&Cpm_pic>;
-                        interrupts = <14 8>;
-                        bus-range = <0 0>;
-                        ranges = <02000000 0 80000000 80000000 0 40000000
-@@ -216,7 +204,7 @@
-                        compatible = "talitos";
-                        reg = <30000 10000>;
-                        interrupts = <b 2>;
--                       interrupt-parent = <10c00>;
-+			interrupt-parent = <&Cpm_pic>;
-                        num-channels = <4>;
-                        channel-fifo-len = <18>;
-                        exec-units-mask = <0000007e>;
-diff -puN arch/powerpc/boot/dts/mpc866ads.dts~dts-kill-hardcoded-phandles arch/powerpc/boot/dts/mpc866ads.dts
---- a/arch/powerpc/boot/dts/mpc866ads.dts~dts-kill-hardcoded-phandles
-+++ a/arch/powerpc/boot/dts/mpc866ads.dts
-@@ -15,12 +15,10 @@
- 	compatible = "mpc8xx";
- 	#address-cells = <1>;
- 	#size-cells = <1>;
--	linux,phandle = <100>;
+-static unsigned int scc_bus_softreset (struct ata_port *ap,
+-				       unsigned int devmask)
++static unsigned int scc_bus_softreset(struct ata_port *ap, unsigned int devmask,
++                                      unsigned long deadline)
+ {
+ 	struct ata_ioports *ioaddr = &ap->ioaddr;
  
- 	cpus {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--		linux,phandle = <200>;
+@@ -570,7 +576,7 @@ static unsigned int scc_bus_softreset (s
+ 	if (scc_check_status(ap) == 0xFF)
+ 		return 0;
  
- 		PowerPC,866@0 {
- 			device_type = "cpu";
-@@ -34,14 +32,12 @@
- 			clock-frequency = <0>;
- 			32-bit;
- 			interrupts = <f 2>;	// decrementer interrupt
--			interrupt-parent = <ff000000>;
--			linux,phandle = <201>;
-+			interrupt-parent = <&Mpc8xx_pic>;
- 		};
- 	};
+-	scc_bus_post_reset(ap, devmask);
++	scc_bus_post_reset(ap, devmask, deadline);
  
- 	memory {
- 		device_type = "memory";
--		linux,phandle = <300>;
- 		reg = <00000000 800000>;
- 	};
+ 	return 0;
+ }
+@@ -579,11 +585,13 @@ static unsigned int scc_bus_softreset (s
+  *	scc_std_softreset - reset host port via ATA SRST
+  *	@ap: port to reset
+  *	@classes: resulting classes of attached devices
++ *	@deadline: deadline jiffies for the operation
+  *
+  *	Note: Original code is ata_std_softreset().
+  */
  
-@@ -57,11 +53,9 @@
- 			device_type = "mdio";
- 			compatible = "fs_enet";
- 			reg = <e80 8>;
--			linux,phandle = <e80>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			ethernet-phy@f {
--				linux,phandle = <e800f>;
-+			phy: ethernet-phy@f {
- 				reg = <f>;
- 				device_type = "ethernet-phy";
- 			};
-@@ -75,12 +69,11 @@
- 			reg = <e00 188>;
- 			mac-address = [ 00 00 0C 00 01 FD ];
- 			interrupts = <3 1>;
--			interrupt-parent = <ff000000>;
--			phy-handle = <e800f>;
-+			interrupt-parent = <&Mpc8xx_pic>;
-+			phy-handle = <&Phy>;
- 		};
+-static int scc_std_softreset (struct ata_port *ap, unsigned int *classes)
++static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
++                              unsigned long deadline)
+ {
+ 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
+ 	unsigned int devmask = 0, err_mask;
+@@ -607,7 +615,7 @@ static int scc_std_softreset (struct ata
  
--		pic@ff000000 {
--			linux,phandle = <ff000000>;
-+		mpc8xx_pic: pic@ff000000 {
- 			interrupt-controller;
- 			#address-cells = <0>;
- 			#interrupt-cells = <2>;
-@@ -91,7 +84,6 @@
- 		};
+ 	/* issue bus reset */
+ 	DPRINTK("about to softreset, devmask=%x\n", devmask);
+-	err_mask = scc_bus_softreset(ap, devmask);
++	err_mask = scc_bus_softreset(ap, devmask, deadline);
+ 	if (err_mask) {
+ 		ata_port_printk(ap, KERN_ERR, "SRST failed (err_mask=0x%x)\n",
+ 				err_mask);
+@@ -676,10 +684,11 @@ static void scc_bmdma_stop (struct ata_q
  
- 		cpm@ff000000 {
--			linux,phandle = <ff000000>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			#interrupt-cells = <2>;
-@@ -102,15 +94,14 @@
- 			command-proc = <9c0>;
- 			brg-frequency = <0>;
- 			interrupts = <0 2>;	// cpm error interrupt
--			interrupt-parent = <930>;
-+			interrupt-parent = <&Cpm_pic>;
+ 		if (reg & INTSTS_BMSINT) {
+ 			unsigned int classes;
++			unsigned long deadline = jiffies + ATA_TMOUT_BOOT;
+ 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
+ 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
+ 			/* TBD: SW reset */
+-			scc_std_softreset(ap, &classes);
++			scc_std_softreset(ap, &classes, deadline);
+ 			continue;
+ 		}
  
--			pic@930 {
--				linux,phandle = <930>;
-+			cpm_pic: pic@930 {
- 				interrupt-controller;
- 				#address-cells = <0>;
- 				#interrupt-cells = <2>;
- 				interrupts = <5 2 0 2>;
--				interrupt-parent = <ff000000>;
-+				interrupt-parent = <&Mpc8xx_pic>;
- 				reg = <930 20>;
- 				built-in;
- 				device_type = "cpm-pic";
-@@ -128,7 +119,7 @@
- 				tx-clock = <1>;
- 				current-speed = <0>;
- 				interrupts = <4 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
+@@ -862,12 +871,13 @@ static void scc_bmdma_freeze (struct ata
+ /**
+  *	scc_pata_prereset - prepare for reset
+  *	@ap: ATA port to be reset
++ *	@deadline: deadline jiffies for the operation
+  */
  
- 			smc@a90 {
-@@ -142,7 +133,7 @@
- 				tx-clock = <2>;
- 				current-speed = <0>;
- 				interrupts = <3 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
+-static int scc_pata_prereset (struct ata_port *ap)
++static int scc_pata_prereset (struct ata_port *ap, unsigned long deadline)
+ {
+ 	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap);
++	return ata_std_prereset(ap, deadline);
+ }
  
- 			scc@a00 {
-@@ -153,7 +144,7 @@
- 				reg = <a00 18 3c00 80>;
- 				mac-address = [ 00 00 0C 00 03 FD ];
- 				interrupts = <1e 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
- 		};
- 	};
-diff -puN arch/powerpc/boot/dts/mpc885ads.dts~dts-kill-hardcoded-phandles arch/powerpc/boot/dts/mpc885ads.dts
---- a/arch/powerpc/boot/dts/mpc885ads.dts~dts-kill-hardcoded-phandles
-+++ a/arch/powerpc/boot/dts/mpc885ads.dts
-@@ -15,12 +15,10 @@
- 	compatible = "mpc8xx";
- 	#address-cells = <1>;
- 	#size-cells = <1>;
--	linux,phandle = <100>;
- 
- 	cpus {
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--		linux,phandle = <200>;
- 
- 		PowerPC,885@0 {
- 			device_type = "cpu";
-@@ -34,14 +32,12 @@
- 			clock-frequency = <0>;
- 			32-bit;
- 			interrupts = <f 2>;	// decrementer interrupt
--			interrupt-parent = <ff000000>;
--			linux,phandle = <201>;
-+			interrupt-parent = <&Mpc8xx_pic>;
- 		};
- 	};
- 
- 	memory {
- 		device_type = "memory";
--		linux,phandle = <300>;
- 		reg = <00000000 800000>;
- 	};
- 
-@@ -57,21 +53,17 @@
- 			device_type = "mdio";
- 			compatible = "fs_enet";
- 			reg = <e80 8>;
--			linux,phandle = <e80>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
--			ethernet-phy@0 {
--				linux,phandle = <e8000>;
-+			Phy0: ethernet-phy@0 {
- 				reg = <0>;
- 				device_type = "ethernet-phy";
- 			};
--			ethernet-phy@1 {
--				linux,phandle = <e8001>;
-+			Phy1: ethernet-phy@1 {
- 				reg = <1>;
- 				device_type = "ethernet-phy";
- 			};
--			ethernet-phy@2 {
--				linux,phandle = <e8002>;
-+			Phy2: ethernet-phy@2 {
- 				reg = <2>;
- 				device_type = "ethernet-phy";
- 			};
-@@ -85,8 +77,8 @@
- 			reg = <e00 188>;
- 			mac-address = [ 00 00 0C 00 01 FD ];
- 			interrupts = <3 1>;
--			interrupt-parent = <ff000000>;
--			phy-handle = <e8000>;
-+			interrupt-parent = <&Mpc8xx_pic>;
-+			phy-handle = <&Phy1>;
- 		};
- 
- 		fec@1e00 {
-@@ -97,12 +89,11 @@
- 			reg = <1e00 188>;
- 			mac-address = [ 00 00 0C 00 02 FD ];
- 			interrupts = <7 1>;
--			interrupt-parent = <ff000000>;
--			phy-handle = <e8001>;
-+			interrupt-parent = <&Mpc8xx_pic>;
-+			phy-handle = <&Phy2>;
- 		};
- 
--		pic@ff000000 {
--			linux,phandle = <ff000000>;
-+		Mpc8xx_pic: pic@ff000000 {
- 			interrupt-controller;
- 			#address-cells = <0>;
- 			#interrupt-cells = <2>;
-@@ -119,12 +110,11 @@
- 			compatible = "fsl,pq-pcmcia";
- 			device_type = "pcmcia";
- 			reg = <80 80>;
--			interrupt-parent = <ff000000>;
-+			interrupt-parent = <&Mpc8xx_pic>;
- 			interrupts = <d 1>;
- 		};
- 
- 		cpm@ff000000 {
--			linux,phandle = <ff000000>;
- 			#address-cells = <1>;
- 			#size-cells = <1>;
- 			#interrupt-cells = <2>;
-@@ -135,15 +125,14 @@
- 			command-proc = <9c0>;
- 			brg-frequency = <0>;
- 			interrupts = <0 2>;	// cpm error interrupt
--			interrupt-parent = <930>;
-+			interrupt-parent = <&Cpm_pic>;
- 
--			pic@930 {
--				linux,phandle = <930>;
-+			Cpm_pic: pic@930 {
- 				interrupt-controller;
- 				#address-cells = <0>;
- 				#interrupt-cells = <2>;
- 				interrupts = <5 2 0 2>;
--				interrupt-parent = <ff000000>;
-+				interrupt-parent = <&Mpc8xx_pic>;
- 				reg = <930 20>;
- 				built-in;
- 				device_type = "cpm-pic";
-@@ -161,7 +150,7 @@
- 				tx-clock = <1>;
- 				current-speed = <0>;
- 				interrupts = <4 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
- 
- 			smc@a90 {
-@@ -175,7 +164,7 @@
- 				tx-clock = <2>;
- 				current-speed = <0>;
- 				interrupts = <3 3>;
--				interrupt-parent = <930>;
-+				interrupt-parent = <&Cpm_pic>;
- 			};
- 
- 			scc@a40 {
-@@ -186,8 +175,8 @@
- 				reg = <a40 18 3e00 80>;
- 				mac-address = [ 00 00 0C 00 03 FD ];
- 				interrupts = <1c 3>;
--				interrupt-parent = <930>;
--				phy-handle = <e8002>;
-+				interrupt-parent = <&Cpm_pic>;
-+				phy-handle = <&Phy2>;
- 			};
- 		};
- 	};
+ /**
 _
 
-Patches currently in -mm which might be from vitb@kernel.crashing.org are
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
 
-8xx-mpc885ads-pcmcia-support.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-8xx-fix-whitespace-and-indentation.patch
-dts-kill-hardcoded-phandles.patch
+fix-build-failure-for-drivers-ata-pata_sccc.patch
