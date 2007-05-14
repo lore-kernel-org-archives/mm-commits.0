@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 8xx-mpc885ads-pcmcia-support.patch added to -mm tree
-Date: Mon, 14 May 2007 14:27:37 -0700
-Message-ID: <200705142127.l4ELRbNM026632@shell0.pdx.osdl.net>
+Subject: + 8xx-mpc885ads-pcmcia-support-fix.patch added to -mm tree
+Date: Mon, 14 May 2007 14:27:40 -0700
+Message-ID: <200705142127.l4ELRexi026635@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43024 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753999AbXENV1z (ORCPT
+	by vger.kernel.org with ESMTP id S1754737AbXENV2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 17:27:55 -0400
+	Mon, 14 May 2007 17:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vitb@kernel.crashing.org, arnd@arndb.de, benh@kernel.crashing.org, galak@gate.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org
+Cc: akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org, galak@gate.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org, vitb@kernel.crashing.org
 
 
 The patch titled
-     powerpc: 8xx: mpc885ads pcmcia support
+     8xx-mpc885ads-pcmcia-support-fix
 has been added to the -mm tree.  Its filename is
-     8xx-mpc885ads-pcmcia-support.patch
+     8xx-mpc885ads-pcmcia-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,899 +26,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: 8xx: mpc885ads pcmcia support
-From: Vitaly Bordug <vitb@kernel.crashing.org>
+Subject: 8xx-mpc885ads-pcmcia-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Adds support for PowerQuicc on-chip PCMCIA.  The driver is implemented as
-of_device, so only arch/powerpc stuff is capable to use it, which now implies
-only mpc885ads reference board.
+whitespace diddles
 
-To cope with the code that should be hooked inside driver, but is really board
-specific (like set_voltage), global structure mpc8xx_pcmcia_ops holds
-necessary function pointers that are filled in the BSP code.
-
-Signed-off-by: Vitaly Bordug <vitb@kernel.crashing.org>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Olof Johansson <olof@lixom.net>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vitaly Bordug <vitb@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc885ads.dts          |   11 
- arch/powerpc/platforms/8xx/m8xx_setup.c      |    5 
- arch/powerpc/platforms/8xx/mpc885ads_setup.c |   71 +++
- arch/powerpc/sysdev/fsl_soc.c                |   13 
- arch/powerpc/sysdev/mpc8xx_pic.h             |   10 
- drivers/pcmcia/Kconfig                       |    1 
- drivers/pcmcia/m8xx_pcmcia.c                 |  351 ++++++++---------
- include/asm-powerpc/mpc8xx.h                 |    4 
- include/linux/fsl_devices.h                  |    5 
- 9 files changed, 285 insertions(+), 186 deletions(-)
+ arch/powerpc/sysdev/mpc8xx_pic.h |    3 ++-
+ drivers/pcmcia/Kconfig           |   14 +++++++-------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN arch/powerpc/boot/dts/mpc885ads.dts~8xx-mpc885ads-pcmcia-support arch/powerpc/boot/dts/mpc885ads.dts
---- a/arch/powerpc/boot/dts/mpc885ads.dts~8xx-mpc885ads-pcmcia-support
-+++ a/arch/powerpc/boot/dts/mpc885ads.dts
-@@ -112,6 +112,17 @@
- 			compatible = "CPM";
- 		};
- 
-+		pcmcia@0080 {
-+			#address-cells = <3>;
-+			#interrupt-cells = <1>;
-+			#size-cells = <2>;
-+			compatible = "fsl,pq-pcmcia";
-+			device_type = "pcmcia";
-+			reg = <80 80>;
-+			interrupt-parent = <ff000000>;
-+			interrupts = <d 1>;
-+		};
-+
- 		cpm@ff000000 {
- 			linux,phandle = <ff000000>;
- 			#address-cells = <1>;
-diff -puN arch/powerpc/platforms/8xx/m8xx_setup.c~8xx-mpc885ads-pcmcia-support arch/powerpc/platforms/8xx/m8xx_setup.c
---- a/arch/powerpc/platforms/8xx/m8xx_setup.c~8xx-mpc885ads-pcmcia-support
-+++ a/arch/powerpc/platforms/8xx/m8xx_setup.c
-@@ -32,6 +32,7 @@
- #include <linux/root_dev.h>
- #include <linux/time.h>
- #include <linux/rtc.h>
-+#include <linux/fsl_devices.h>
- 
- #include <asm/mmu.h>
- #include <asm/reg.h>
-@@ -49,6 +50,10 @@
- 
- #include "sysdev/mpc8xx_pic.h"
- 
-+#ifdef CONFIG_PCMCIA_M8XX
-+struct mpc8xx_pcmcia_ops m8xx_pcmcia_ops;
-+#endif
-+
- void m8xx_calibrate_decr(void);
- extern void m8xx_wdt_handler_install(bd_t *bp);
- extern int cpm_pic_init(void);
-diff -puN arch/powerpc/platforms/8xx/mpc885ads_setup.c~8xx-mpc885ads-pcmcia-support arch/powerpc/platforms/8xx/mpc885ads_setup.c
---- a/arch/powerpc/platforms/8xx/mpc885ads_setup.c~8xx-mpc885ads-pcmcia-support
-+++ a/arch/powerpc/platforms/8xx/mpc885ads_setup.c
-@@ -22,6 +22,7 @@
- 
- #include <linux/fs_enet_pd.h>
- #include <linux/fs_uart_pd.h>
-+#include <linux/fsl_devices.h>
- #include <linux/mii.h>
- 
- #include <asm/delay.h>
-@@ -51,6 +52,70 @@ static void init_smc1_uart_ioports(struc
- static void init_smc2_uart_ioports(struct fs_uart_platform_info* fpi);
- static void init_scc3_ioports(struct fs_platform_info* ptr);
- 
-+#ifdef CONFIG_PCMCIA_M8XX
-+static void pcmcia_hw_setup(int slot, int enable)
-+{
-+	unsigned *bcsr_io;
-+
-+	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
-+	if (enable)
-+		clrbits32(bcsr_io, BCSR1_PCCEN);
-+	else
-+		setbits32(bcsr_io, BCSR1_PCCEN);
-+
-+	iounmap(bcsr_io);
-+}
-+
-+static int pcmcia_set_voltage(int slot, int vcc, int vpp)
-+{
-+	u32 reg = 0;
-+	unsigned *bcsr_io;
-+
-+	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
-+
-+	switch(vcc) {
-+	case 0:
-+		break;
-+	case 33:
-+		reg |= BCSR1_PCCVCC0;
-+		break;
-+	case 50:
-+		reg |= BCSR1_PCCVCC1;
-+		break;
-+	default:
-+		return 1;
-+	}
-+
-+	switch(vpp) {
-+	case 0:
-+		break;
-+	case 33:
-+	case 50:
-+		if(vcc == vpp)
-+			reg |= BCSR1_PCCVPP1;
-+		else
-+			return 1;
-+		break;
-+	case 120:
-+		if ((vcc == 33) || (vcc == 50))
-+			reg |= BCSR1_PCCVPP0;
-+		else
-+			return 1;
-+	default:
-+		return 1;
-+	}
-+
-+	/* first, turn off all power */
-+	clrbits32(bcsr_io, 0x00610000);
-+
-+	/* enable new powersettings */
-+	setbits32(bcsr_io, reg);
-+
-+	iounmap(bcsr_io);
-+	return 0;
-+}
-+#endif
-+
- void __init mpc885ads_board_setup(void)
- {
- 	cpm8xx_t *cp;
-@@ -115,6 +180,12 @@ void __init mpc885ads_board_setup(void)
- 	immr_unmap(io_port);
- 
- #endif
-+
-+#ifdef CONFIG_PCMCIA_M8XX
-+	/*Set up board specific hook-ups*/
-+	m8xx_pcmcia_ops.hw_ctrl = pcmcia_hw_setup;
-+	m8xx_pcmcia_ops.voltage_set = pcmcia_set_voltage;
-+#endif
- }
- 
- 
-diff -puN arch/powerpc/sysdev/fsl_soc.c~8xx-mpc885ads-pcmcia-support arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~8xx-mpc885ads-pcmcia-support
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -1028,6 +1028,19 @@ err:
- 
- arch_initcall(fs_enet_of_init);
- 
-+static int __init fsl_pcmcia_of_init(void)
-+{
-+	struct device_node *np = NULL;
-+	/*
-+	 * Register all the devices which type is "pcmcia"
-+	 */
-+	while ((np = of_find_compatible_node(np,
-+			"pcmcia", "fsl,pq-pcmcia")) != NULL)
-+			    of_platform_device_create(np, "m8xx-pcmcia", NULL);
-+	return 0;
-+}
-+
-+arch_initcall(fsl_pcmcia_of_init);
- 
- static const char *smc_regs = "regs";
- static const char *smc_pram = "pram";
-diff -puN arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support arch/powerpc/sysdev/mpc8xx_pic.h
---- a/arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support
+diff -puN arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support-fix arch/powerpc/sysdev/mpc8xx_pic.h
+--- a/arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support-fix
 +++ a/arch/powerpc/sysdev/mpc8xx_pic.h
-@@ -4,9 +4,15 @@
- #include <linux/irq.h>
- #include <linux/interrupt.h>
+@@ -11,7 +11,8 @@ unsigned int mpc8xx_get_irq(void);
+  * Some internal interrupt registers use an 8-bit mask for the interrupt
+  * level instead of a number.
+  */
+-static inline uint mk_int_int_mask(uint mask) {
++static inline uint mk_int_int_mask(uint mask)
++{
+ 	return (1 << (7 - (mask/2)));
+ }
  
--extern struct hw_interrupt_type mpc8xx_pic;
--
- int mpc8xx_pic_init(void);
- unsigned int mpc8xx_get_irq(void);
- 
-+/*
-+ * Some internal interrupt registers use an 8-bit mask for the interrupt
-+ * level instead of a number.
-+ */
-+static inline uint mk_int_int_mask(uint mask) {
-+	return (1 << (7 - (mask/2)));
-+}
-+
- #endif /* _PPC_KERNEL_PPC8xx_H */
-diff -puN drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support drivers/pcmcia/Kconfig
---- a/drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support
+diff -puN drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support-fix drivers/pcmcia/Kconfig
+--- a/drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support-fix
 +++ a/drivers/pcmcia/Kconfig
-@@ -183,6 +183,7 @@ config PCMCIA_M8XX
-         tristate "MPC8xx PCMCIA support"
-         depends on PCMCIA && PPC && 8xx 
-         select PCCARD_IODYN
-+	select PCCARD_NONSTATIC
-         help
-         Say Y here to include support for PowerPC 8xx series PCMCIA
-         controller.
-diff -puN drivers/pcmcia/m8xx_pcmcia.c~8xx-mpc885ads-pcmcia-support drivers/pcmcia/m8xx_pcmcia.c
---- a/drivers/pcmcia/m8xx_pcmcia.c~8xx-mpc885ads-pcmcia-support
-+++ a/drivers/pcmcia/m8xx_pcmcia.c
-@@ -10,7 +10,7 @@
-  * Further fixes, v2.6 kernel port
-  *     <marcelo.tosatti@cyclades.com>
-  * 
-- * Some fixes, additions (C) 2005 Montavista Software, Inc. 
-+ * Some fixes, additions (C) 2005-2007 Montavista Software, Inc.
-  *     <vbordug@ru.mvista.com>
-  *
-  * "The ExCA standard specifies that socket controllers should provide
-@@ -40,10 +40,6 @@
- #include <linux/fcntl.h>
- #include <linux/string.h>
- 
--#include <asm/io.h>
--#include <asm/bitops.h>
--#include <asm/system.h>
--
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/slab.h>
-@@ -51,11 +47,18 @@
- #include <linux/ioport.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
--#include <linux/platform_device.h>
-+#include <linux/fsl_devices.h>
- 
-+#include <asm/io.h>
-+#include <asm/bitops.h>
-+#include <asm/system.h>
-+#include <asm/time.h>
- #include <asm/mpc8xx.h>
- #include <asm/8xx_immap.h>
- #include <asm/irq.h>
-+#include <asm/fs_pd.h>
-+#include <asm/of_device.h>
-+#include <asm/of_platform.h>
- 
- #include <pcmcia/version.h>
- #include <pcmcia/cs_types.h>
-@@ -146,27 +149,17 @@ MODULE_LICENSE("Dual MPL/GPL");
- #define PCMCIA_MEM_WIN_BASE 0xe0000000 /* base address for memory window 0   */
- #define PCMCIA_MEM_WIN_SIZE 0x04000000 /* each memory window is 64 MByte     */
- #define PCMCIA_IO_WIN_BASE  _IO_BASE   /* base address for io window 0       */
--
--#define PCMCIA_SCHLVL PCMCIA_INTERRUPT /* Status Change Interrupt Level      */
--
- /* ------------------------------------------------------------------------- */
- 
--/* 2.4.x and newer has this always in HZ */
--#define M8XX_BUSFREQ ((((bd_t *)&(__res))->bi_busfreq))
--
--static int pcmcia_schlvl = PCMCIA_SCHLVL;
-+static int pcmcia_schlvl;
- 
- static DEFINE_SPINLOCK(events_lock);
- 
--
- #define PCMCIA_SOCKET_KEY_5V 1
- #define PCMCIA_SOCKET_KEY_LV 2
- 
- /* look up table for pgcrx registers */
--static u32 *m8xx_pgcrx[2] = {
--	&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pgcra,
--	&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pgcrb
--};
-+static u32 *m8xx_pgcrx[2];
- 
- /*
-  * This structure is used to address each window in the PCMCIA controller.
-@@ -228,11 +221,16 @@ struct event_table {
- 	u32 eventbit;
- };
- 
-+static const char driver_name[] = "m8xx-pcmcia";
-+
- struct socket_info {
- 	void	(*handler)(void *info, u32 events);
- 	void	*info;
- 
- 	u32 slot;
-+	pcmconf8xx_t *pcmcia;
-+	u32 bus_freq;
-+	int hwirq;
- 
- 	socket_state_t state;
- 	struct pccard_mem_map mem_win[PCMCIA_MEM_WIN_NO];
-@@ -408,78 +406,21 @@ static void hardware_disable(int slot)
- #if defined(CONFIG_MPC885ADS)
- 
- #define PCMCIA_BOARD_MSG "MPC885ADS"
-+#define socket_get(_slot_) PCMCIA_SOCKET_KEY_5V
- 
--static int voltage_set(int slot, int vcc, int vpp)
-+static inline void hardware_enable(int slot)
- {
--	u32 reg = 0;
--	unsigned *bcsr_io;
--
--	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
--
--	switch(vcc) {
--		case 0:
--			break;
--		case 33:
--			reg |= BCSR1_PCCVCC0;
--			break;
--		case 50:
--			reg |= BCSR1_PCCVCC1;
--			break;
--		default:
--			goto out_unmap;
--	}
--
--	switch(vpp) {
--		case 0:
--			break;
--		case 33:
--		case 50:
--			if(vcc == vpp)
--				reg |= BCSR1_PCCVPP1;
--			else
--				goto out_unmap;
--			break;
--		case 120:
--			if ((vcc == 33) || (vcc == 50))
--				reg |= BCSR1_PCCVPP0;
--			else
--				goto out_unmap;
--		default:
--			goto out_unmap;
--	}
--
--	/* first, turn off all power */
--	out_be32(bcsr_io, in_be32(bcsr_io) & ~(BCSR1_PCCVCC_MASK | BCSR1_PCCVPP_MASK));
--
--	/* enable new powersettings */
--	out_be32(bcsr_io, in_be32(bcsr_io) | reg);
--
--	iounmap(bcsr_io);
--	return 0;
--
--out_unmap:
--	iounmap(bcsr_io);
--	return 1;
-+	 m8xx_pcmcia_ops.hw_ctrl(slot, 1);
- }
- 
--#define socket_get(_slot_) PCMCIA_SOCKET_KEY_5V
--
--static void hardware_enable(int slot)
-+static inline void hardware_disable(int slot)
- {
--	unsigned *bcsr_io;
--
--	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
--	out_be32(bcsr_io, in_be32(bcsr_io) & ~BCSR1_PCCEN);
--	iounmap(bcsr_io);
-+	m8xx_pcmcia_ops.hw_ctrl(slot, 0);
- }
- 
--static void hardware_disable(int slot)
-+static inline int voltage_set(int slot, int vcc, int vpp)
- {
--	unsigned *bcsr_io;
--
--	bcsr_io = ioremap(BCSR1, sizeof(unsigned long));
--	out_be32(bcsr_io, in_be32(bcsr_io) |  BCSR1_PCCEN);
--	iounmap(bcsr_io);
-+	return m8xx_pcmcia_ops.voltage_set(slot, vcc, vpp);
- }
- 
- #endif
-@@ -604,48 +545,6 @@ static int voltage_set(int slot, int vcc
- 
- #endif /* CONFIG_PRxK */
- 
--static void m8xx_shutdown(void)
--{
--	u32 m, i;
--	struct pcmcia_win *w;
--
--	for(i = 0; i < PCMCIA_SOCKETS_NO; i++){
--		w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
--
--		out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr, M8XX_PCMCIA_MASK(i));
--		out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per, in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per) & ~M8XX_PCMCIA_MASK(i));
--
--		/* turn off interrupt and disable CxOE */
--		out_be32(M8XX_PGCRX(i), M8XX_PGCRX_CXOE);
--
--		/* turn off memory windows */
--		for(m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
--			out_be32(&w->or, 0); /* set to not valid */
--			w++;
--		}
--
--		/* turn off voltage */
--		voltage_set(i, 0, 0);
--
--		/* disable external hardware */
--		hardware_disable(i);
--	}
--
--	free_irq(pcmcia_schlvl, NULL);
--}
--
--static struct device_driver m8xx_driver = {
--        .name = "m8xx-pcmcia",
--        .bus = &platform_bus_type,
--        .suspend = pcmcia_socket_dev_suspend,
--        .resume = pcmcia_socket_dev_resume,
--};
--
--static struct platform_device m8xx_device = {
--        .name = "m8xx-pcmcia",
--        .id = 0,
--};
--
- static u32 pending_events[PCMCIA_SOCKETS_NO];
- static DEFINE_SPINLOCK(pending_event_lock);
- 
-@@ -654,13 +553,14 @@ static irqreturn_t m8xx_interrupt(int ir
- 	struct socket_info *s;
- 	struct event_table *e;
- 	unsigned int i, events, pscr, pipr, per;
-+	pcmconf8xx_t	*pcmcia = socket[0].pcmcia;
- 
- 	dprintk("Interrupt!\n");
- 	/* get interrupt sources */
- 
--	pscr = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr);
--	pipr = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pipr);
--	per = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per);
-+	pscr = in_be32(&pcmcia->pcmc_pscr);
-+	pipr = in_be32(&pcmcia->pcmc_pipr);
-+	per = in_be32(&pcmcia->pcmc_per);
- 
- 	for(i = 0; i < PCMCIA_SOCKETS_NO; i++) {
- 		s = &socket[i];
-@@ -724,7 +624,7 @@ static irqreturn_t m8xx_interrupt(int ir
- 			per &= ~M8XX_PCMCIA_RDY_L(0);
- 			per &= ~M8XX_PCMCIA_RDY_L(1);
- 
--			out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per, per);
-+			out_be32(&pcmcia->pcmc_per, per);
- 
- 			if (events)
- 				pcmcia_parse_events(&socket[i].socket, events);
-@@ -732,7 +632,7 @@ static irqreturn_t m8xx_interrupt(int ir
- 	}
- 
- 	/* clear the interrupt sources */
--	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr, pscr);
-+	out_be32(&pcmcia->pcmc_pscr, pscr);
- 
- 	dprintk("Interrupt done.\n");
- 
-@@ -753,7 +653,7 @@ static u32 m8xx_get_graycode(u32 size)
- 	return k;
- }
- 
--static u32 m8xx_get_speed(u32 ns, u32 is_io)
-+static u32 m8xx_get_speed(u32 ns, u32 is_io, u32 bus_freq)
- {
- 	u32 reg, clocks, psst, psl, psht;
- 
-@@ -781,7 +681,7 @@ static u32 m8xx_get_speed(u32 ns, u32 is
- 
- #define ADJ 180 /* 80 % longer accesstime - to be sure */
- 
--	clocks = ((M8XX_BUSFREQ / 1000) * ns) / 1000;
-+	clocks = ((bus_freq / 1000) * ns) / 1000;
- 	clocks = (clocks * ADJ) / (100*1000);
- 	if(clocks >= PCMCIA_BMT_LIMIT) {
- 		printk( "Max access time limit reached\n");
-@@ -806,8 +706,9 @@ static int m8xx_get_status(struct pcmcia
- 	int lsock = container_of(sock, struct socket_info, socket)->slot;
- 	struct socket_info *s = &socket[lsock];
- 	unsigned int pipr, reg;
-+	pcmconf8xx_t *pcmcia = s->pcmcia;
- 
--	pipr = in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pipr);
-+	pipr = in_be32(&pcmcia->pcmc_pipr);
- 
- 	*value  = ((pipr & (M8XX_PCMCIA_CD1(lsock)
- 			    | M8XX_PCMCIA_CD2(lsock))) == 0) ? SS_DETECT : 0;
-@@ -918,6 +819,7 @@ static int m8xx_set_socket(struct pcmcia
- 	struct event_table *e;
- 	unsigned int reg;
- 	unsigned long flags;
-+	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
- 
- 	dprintk( "SetSocket(%d, flags %#3.3x, Vcc %d, Vpp %d, "
- 	      "io_irq %d, csc_mask %#2.2x)\n", lsock, state->flags,
-@@ -927,6 +829,7 @@ static int m8xx_set_socket(struct pcmcia
- 	if(voltage_set(lsock, state->Vcc, state->Vpp))
- 		return -EINVAL;
- 
-+
- 	/* Take care of reset... */
- 	if(state->flags & SS_RESET)
- 		out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) |  M8XX_PGCRX_CXRESET); /* active high */
-@@ -982,7 +885,8 @@ static int m8xx_set_socket(struct pcmcia
- 		 * If io_irq is non-zero we should enable irq.
- 		 */
- 		if(state->io_irq) {
--			out_be32(M8XX_PGCRX(lsock), in_be32(M8XX_PGCRX(lsock)) | mk_int_int_mask(state->io_irq) << 24);
-+			out_be32(M8XX_PGCRX(lsock),
-+				 in_be32(M8XX_PGCRX(lsock)) | mk_int_int_mask(s->hwirq) << 24);
- 			/*
- 			 * Strange thing here:
- 			 * The manual does not tell us which interrupt
-@@ -1027,7 +931,7 @@ static int m8xx_set_socket(struct pcmcia
- 	 * Writing ones will clear the bits.
- 	 */
- 
--	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr, reg);
-+	out_be32(&pcmcia->pcmc_pscr, reg);
- 
- 	/*
- 	 * Write the mask.
-@@ -1036,15 +940,8 @@ static int m8xx_set_socket(struct pcmcia
- 	 * Ones will enable the interrupt.
- 	 */
- 
--	/*
--	  reg |= ((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per
--	  & M8XX_PCMCIA_MASK(lsock);
--	*/
--
--	reg |= in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per) &
--		(M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
--
--	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per, reg);
-+	reg |= in_be32(&pcmcia->pcmc_per) & (M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
-+	out_be32(&pcmcia->pcmc_per, reg);
- 
- 	spin_unlock_irqrestore(&events_lock, flags);
- 
-@@ -1062,6 +959,8 @@ static int m8xx_set_io_map(struct pcmcia
- 	struct socket_info *s = &socket[lsock];
- 	struct pcmcia_win *w;
- 	unsigned int reg, winnr;
-+	pcmconf8xx_t *pcmcia = s->pcmcia;
-+
- 
- #define M8XX_SIZE (io->stop - io->start + 1)
- #define M8XX_BASE (PCMCIA_IO_WIN_BASE + io->start)
-@@ -1086,7 +985,7 @@ static int m8xx_set_io_map(struct pcmcia
- 
- 		/* setup registers */
- 
--		w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
-+		w = (void *) &pcmcia->pcmc_pbr0;
- 		w += winnr;
- 
- 		out_be32(&w->or, 0); /* turn off window first */
-@@ -1095,12 +994,13 @@ static int m8xx_set_io_map(struct pcmcia
- 		reg <<= 27;
-   		reg |= M8XX_PCMCIA_POR_IO |(lsock << 2);
- 
--		reg |= m8xx_get_speed(io->speed, 1);
-+		reg |= m8xx_get_speed(io->speed, 1, s->bus_freq);
- 
- 		if(io->flags & MAP_WRPROT)
- 			reg |= M8XX_PCMCIA_POR_WRPROT;
- 
--		if(io->flags & (MAP_16BIT | MAP_AUTOSZ))
-+		/*if(io->flags & (MAP_16BIT | MAP_AUTOSZ))*/
-+		if(io->flags & MAP_16BIT)
- 			reg |= M8XX_PCMCIA_POR_16BIT;
- 
- 		if(io->flags & MAP_ACTIVE)
-@@ -1117,7 +1017,7 @@ static int m8xx_set_io_map(struct pcmcia
- 
- 		/* setup registers */
- 
--		w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
-+		w = (void *) &pcmcia->pcmc_pbr0;
- 		w += winnr;
- 
- 		out_be32(&w->or, 0); /* turn off window */
-@@ -1144,6 +1044,7 @@ static int m8xx_set_mem_map(struct pcmci
- 	struct pcmcia_win *w;
- 	struct pccard_mem_map *old;
- 	unsigned int reg, winnr;
-+	pcmconf8xx_t *pcmcia = s->pcmcia;
- 
- 	dprintk( "SetMemMap(%d, %d, %#2.2x, %d ns, "
- 	      "%#5.5lx, %#5.5x)\n", lsock, mem->map, mem->flags,
-@@ -1166,12 +1067,12 @@ static int m8xx_set_mem_map(struct pcmci
- 
- 	/* Setup the window in the pcmcia controller */
- 
--	w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
-+	w = (void *) &pcmcia->pcmc_pbr0;
- 	w += winnr;
- 
- 	reg |= lsock << 2;
- 
--	reg |= m8xx_get_speed(mem->speed, 0);
-+	reg |= m8xx_get_speed(mem->speed, 0, s->bus_freq);
- 
- 	if(mem->flags & MAP_ATTRIB)
- 		reg |=  M8XX_PCMCIA_POR_ATTRMEM;
-@@ -1236,60 +1137,69 @@ static int m8xx_sock_init(struct pcmcia_
- 
- }
- 
--static int m8xx_suspend(struct pcmcia_socket *sock)
-+static int m8xx_sock_suspend(struct pcmcia_socket *sock)
- {
- 	return m8xx_set_socket(sock, &dead_socket);
- }
- 
- static struct pccard_operations m8xx_services = {
- 	.init	= m8xx_sock_init,
--	.suspend = m8xx_suspend,
-+	.suspend = m8xx_sock_suspend,
- 	.get_status = m8xx_get_status,
- 	.set_socket = m8xx_set_socket,
- 	.set_io_map = m8xx_set_io_map,
- 	.set_mem_map = m8xx_set_mem_map,
- };
- 
--static int __init m8xx_init(void)
-+static int __init m8xx_probe(struct of_device *ofdev, const struct of_device_id *match)
- {
- 	struct pcmcia_win *w;
--	unsigned int i,m;
-+	unsigned int i, m, hwirq;
-+	pcmconf8xx_t *pcmcia;
-+	int status;
-+	struct device_node *np = ofdev->node;
- 
- 	pcmcia_info("%s\n", version);
- 
--	if (driver_register(&m8xx_driver))
--		return -1;
-+	pcmcia = of_iomap(np, 0);
-+	if(pcmcia == NULL)
-+		return -EINVAL;
-+
-+	pcmcia_schlvl = irq_of_parse_and_map(np, 0);
-+	hwirq  = irq_map[pcmcia_schlvl].hwirq;
-+	if (pcmcia_schlvl < 0)
-+		return -EINVAL;
-+
-+	m8xx_pgcrx[0] = &pcmcia->pcmc_pgcra;
-+	m8xx_pgcrx[1] = &pcmcia->pcmc_pgcrb;
-+
- 
- 	pcmcia_info(PCMCIA_BOARD_MSG " using " PCMCIA_SLOT_MSG
--		    " with IRQ %u.\n", pcmcia_schlvl);
-+		    " with IRQ %u  (%d). \n", pcmcia_schlvl, hwirq);
- 
- 	/* Configure Status change interrupt */
- 
--	if(request_irq(pcmcia_schlvl, m8xx_interrupt, 0,
--			  "m8xx_pcmcia", NULL)) {
-+	if(request_irq(pcmcia_schlvl, m8xx_interrupt, IRQF_SHARED,
-+			  driver_name, socket)) {
- 		pcmcia_error("Cannot allocate IRQ %u for SCHLVL!\n",
- 			     pcmcia_schlvl);
- 		return -1;
- 	}
- 
--	w = (void *) &((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pbr0;
--
--	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_pscr,
--		M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1));
-+	w = (void *) &pcmcia->pcmc_pbr0;
- 
--	out_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per,
--		in_be32(&((immap_t *)IMAP_ADDR)->im_pcmcia.pcmc_per) &
--		~(M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1)));
-+	out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(0)| M8XX_PCMCIA_MASK(1));
-+	clrbits32(&pcmcia->pcmc_per, M8XX_PCMCIA_MASK(0) | M8XX_PCMCIA_MASK(1));
- 
--/* connect interrupt and disable CxOE */
-+	/* connect interrupt and disable CxOE */
- 
--	out_be32(M8XX_PGCRX(0), M8XX_PGCRX_CXOE | (mk_int_int_mask(pcmcia_schlvl) << 16));
--	out_be32(M8XX_PGCRX(1), M8XX_PGCRX_CXOE | (mk_int_int_mask(pcmcia_schlvl) << 16));
-+	out_be32(M8XX_PGCRX(0), M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
-+	out_be32(M8XX_PGCRX(1), M8XX_PGCRX_CXOE | (mk_int_int_mask(hwirq) << 16));
- 
--/* intialize the fixed memory windows */
-+	/* intialize the fixed memory windows */
- 
- 	for(i = 0; i < PCMCIA_SOCKETS_NO; i++){
--		for(m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
-+		for (m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
- 			out_be32(&w->br, PCMCIA_MEM_WIN_BASE +
- 				(PCMCIA_MEM_WIN_SIZE
- 				 * (m + i * PCMCIA_MEM_WIN_NO)));
-@@ -1300,16 +1210,14 @@ static int __init m8xx_init(void)
- 		}
- 	}
- 
--/* turn off voltage */
-+	/* turn off voltage */
- 	voltage_set(0, 0, 0);
- 	voltage_set(1, 0, 0);
- 
--/* Enable external hardware */
-+	/* Enable external hardware */
- 	hardware_enable(0);
- 	hardware_enable(1);
- 
--	platform_device_register(&m8xx_device);
--
- 	for (i = 0 ; i < PCMCIA_SOCKETS_NO; i++) {
- 		socket[i].slot = i;
- 		socket[i].socket.owner = THIS_MODULE;
-@@ -1317,30 +1225,105 @@ static int __init m8xx_init(void)
- 		socket[i].socket.irq_mask = 0x000;
- 		socket[i].socket.map_size = 0x1000;
- 		socket[i].socket.io_offset = 0;
--		socket[i].socket.pci_irq = i  ? 7 : 9;
-+		socket[i].socket.pci_irq = pcmcia_schlvl;
- 		socket[i].socket.ops = &m8xx_services;
--		socket[i].socket.resource_ops = &pccard_iodyn_ops;
-+		socket[i].socket.resource_ops = &pccard_nonstatic_ops;
- 		socket[i].socket.cb_dev = NULL;
--		socket[i].socket.dev.parent = &m8xx_device.dev;
-+		socket[i].socket.dev.parent = &ofdev->dev;
-+		socket[i].pcmcia = pcmcia;
-+		socket[i].bus_freq = ppc_proc_freq;
-+		socket[i].hwirq = hwirq;
-+
-+
- 	}
- 
--	for (i = 0; i < PCMCIA_SOCKETS_NO; i++)
--		pcmcia_register_socket(&socket[i].socket);
-+	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
-+		status = pcmcia_register_socket(&socket[i].socket);
-+		if (status < 0)
-+			pcmcia_error("Socket register failed\n");
-+	}
- 
- 	return 0;
- }
- 
--static void __exit m8xx_exit(void)
-+static int m8xx_remove(struct of_device* ofdev)
- {
--	int i;
-+	u32 m, i;
-+	struct pcmcia_win *w;
-+	pcmconf8xx_t *pcmcia = socket[0].pcmcia;
-+
-+	for (i = 0; i < PCMCIA_SOCKETS_NO; i++) {
-+		w = (void *) &pcmcia->pcmc_pbr0;
-+
-+		out_be32(&pcmcia->pcmc_pscr, M8XX_PCMCIA_MASK(i));
-+		out_be32(&pcmcia->pcmc_per,
-+			in_be32(&pcmcia->pcmc_per) & ~M8XX_PCMCIA_MASK(i));
- 
-+		/* turn off interrupt and disable CxOE */
-+		out_be32(M8XX_PGCRX(i), M8XX_PGCRX_CXOE);
-+
-+		/* turn off memory windows */
-+		for (m = 0; m < PCMCIA_MEM_WIN_NO; m++) {
-+			out_be32(&w->or, 0); /* set to not valid */
-+			w++;
-+		}
-+
-+		/* turn off voltage */
-+		voltage_set(i, 0, 0);
-+
-+		/* disable external hardware */
-+		hardware_disable(i);
-+	}
- 	for (i = 0; i < PCMCIA_SOCKETS_NO; i++)
- 		pcmcia_unregister_socket(&socket[i].socket);
- 
--	m8xx_shutdown();
-+	free_irq(pcmcia_schlvl, NULL);
- 
--	platform_device_unregister(&m8xx_device);
--	driver_unregister(&m8xx_driver);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int m8xx_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	return pcmcia_socket_dev_suspend(&pdev->dev, state);
-+}
-+
-+static int m8xx_resume(struct platform_device *pdev)
-+{
-+	return pcmcia_socket_dev_resume(&pdev->dev);
-+}
-+#else
-+#define m8xx_suspend NULL
-+#define m8xx_resume NULL
-+#endif
-+
-+static struct of_device_id m8xx_pcmcia_match[] = {
-+	{
-+		.type = "pcmcia",
-+		.compatible = "fsl,pq-pcmcia",
-+	},
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(of, m8xx_pcmcia_match);
-+
-+static struct of_platform_driver m8xx_pcmcia_driver = {
-+	.name		= (char *) driver_name,
-+	.match_table	= m8xx_pcmcia_match,
-+	.probe		= m8xx_probe,
-+	.remove		= m8xx_remove,
-+	.suspend	= m8xx_suspend,
-+	.resume		= m8xx_resume,
-+};
-+
-+static int __init m8xx_init(void)
-+{
-+	return of_register_platform_driver(&m8xx_pcmcia_driver);
-+}
-+
-+static void __exit m8xx_exit(void)
-+{
-+	of_unregister_platform_driver(&m8xx_pcmcia_driver);
- }
- 
- module_init(m8xx_init);
-diff -puN include/asm-powerpc/mpc8xx.h~8xx-mpc885ads-pcmcia-support include/asm-powerpc/mpc8xx.h
---- a/include/asm-powerpc/mpc8xx.h~8xx-mpc885ads-pcmcia-support
-+++ a/include/asm-powerpc/mpc8xx.h
-@@ -23,6 +23,10 @@
- #include <platforms/8xx/mpc885ads.h>
- #endif
- 
-+#ifdef CONFIG_PCMCIA_M8XX
-+extern struct mpc8xx_pcmcia_ops m8xx_pcmcia_ops;
-+#endif
-+
- #endif /* CONFIG_8xx */
- #endif /* __CONFIG_8xx_DEFS */
- #endif /* __KERNEL__ */
-diff -puN include/linux/fsl_devices.h~8xx-mpc885ads-pcmcia-support include/linux/fsl_devices.h
---- a/include/linux/fsl_devices.h~8xx-mpc885ads-pcmcia-support
-+++ a/include/linux/fsl_devices.h
-@@ -120,5 +120,10 @@ struct fsl_spi_platform_data {
- 	u32	sysclk;
- };
- 
-+struct mpc8xx_pcmcia_ops {
-+	void(*hw_ctrl)(int slot, int enable);
-+	int(*voltage_set)(int slot, int vcc, int vpp);
-+};
-+
- #endif /* _FSL_DEVICE_H_ */
- #endif /* __KERNEL__ */
+@@ -180,15 +180,15 @@ config TCIC
+ 	  PCMCIA cards are plugged into. If unsure, say N.
+ 
+ config PCMCIA_M8XX
+-        tristate "MPC8xx PCMCIA support"
+-        depends on PCMCIA && PPC && 8xx 
+-        select PCCARD_IODYN
++	tristate "MPC8xx PCMCIA support"
++	depends on PCMCIA && PPC && 8xx
++	select PCCARD_IODYN
+ 	select PCCARD_NONSTATIC
+-        help
+-        Say Y here to include support for PowerPC 8xx series PCMCIA
+-        controller.
++	help
++	  Say Y here to include support for PowerPC 8xx series PCMCIA
++	  controller.
+ 
+-        This driver is also available as a module called m8xx_pcmcia.
++	  This driver is also available as a module called m8xx_pcmcia.
+ 
+ config HD64465_PCMCIA
+ 	tristate "HD64465 host bridge support"
 _
 
-Patches currently in -mm which might be from vitb@kernel.crashing.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-8xx-mpc885ads-pcmcia-support.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
 8xx-mpc885ads-pcmcia-support-fix.patch
-8xx-fix-whitespace-and-indentation.patch
-dts-kill-hardcoded-phandles.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+x86_64-fix-smp_call_function_single-return-value.patch
