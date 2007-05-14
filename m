@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-check-for-allocated-memory-for-inode-data-v2.patch added to -mm tree
-Date: Mon, 14 May 2007 14:37:02 -0700
-Message-ID: <200705142137.l4ELb2Ex026787@shell0.pdx.osdl.net>
+Subject: + fix-stop_machine_run-problem-with-naughty-real-time-process.patch added to -mm tree
+Date: Mon, 14 May 2007 14:39:40 -0700
+Message-ID: <200705142139.l4ELde9R026835@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34783 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754418AbXENVhp (ORCPT
+	by vger.kernel.org with ESMTP id S1754488AbXENVkI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 17:37:45 -0400
+	Mon, 14 May 2007 17:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, hch@lst.de, jack@ucw.cz
+Cc: takeuchi_satoru@jp.fujitsu.com, ashok.raj@intel.com, ego@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, rusty@rustcorp.com.au
 
 
 The patch titled
-     UDF: check for allocated memory for inode data
+     Fix stop_machine_run problem with naughty real time process
 has been added to the -mm tree.  Its filename is
-     udf-check-for-allocated-memory-for-inode-data-v2.patch
+     fix-stop_machine_run-problem-with-naughty-real-time-process.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,163 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: UDF: check for allocated memory for inode data
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: Fix stop_machine_run problem with naughty real time process
+From: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
 
-This patch adds checking for granted memory while filling up inode data to
-prevent possible NULL pointer usage.  If there is not enough memory to fill
-inode data we just mark it as "bad".  Also some whitespace cleanup.
+stop_machine_run() does its work on "kstopmachine" thread having max
+priority.  However that thread get such priority after woken up. 
+Therefore, in the following case ...
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Christoph Hellwig <hch@lst.de>
+  - "kstopmachine" try to run on CPU1
+
+  - There is a real time process which doesn't relinquish CPU time
+    voluntary on CPU1
+
+...  "kstopmachine" can't start to run and the CPU on which
+    stop_machine_run() is runing hangs up.  To fix this problem, call
+    sched_setscheduler() before waking up that thread.
+
+Signed-off-by: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c |   51 +++++++++++++++++++++++++++++++++++------------
- 1 files changed, 39 insertions(+), 12 deletions(-)
+ kernel/stop_machine.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-check-for-allocated-memory-for-inode-data-v2 fs/udf/inode.c
---- a/fs/udf/inode.c~udf-check-for-allocated-memory-for-inode-data-v2
-+++ a/fs/udf/inode.c
-@@ -49,6 +49,7 @@ MODULE_LICENSE("GPL");
- static mode_t udf_convert_permissions(struct fileEntry *);
- static int udf_update_inode(struct inode *, int);
- static void udf_fill_inode(struct inode *, struct buffer_head *);
-+static int udf_alloc_i_data(struct inode *inode, size_t size);
- static struct buffer_head *inode_getblk(struct inode *, sector_t, int *,
- 	long *, int *);
- static int8_t udf_insert_aext(struct inode *, struct extent_position,
-@@ -721,7 +722,7 @@ static void udf_split_extents(struct ino
- 			(*c) ++;
- 			(*endnum) ++;
- 		}
--		
-+
- 		laarr[curr].extLocation.logicalBlockNum = newblocknum;
- 		if (etype == (EXT_NOT_RECORDED_NOT_ALLOCATED >> 30))
- 			laarr[curr].extLocation.partitionReferenceNum =
-@@ -823,7 +824,7 @@ static void udf_prealloc_extents(struct 
- 				{
- 					numalloc -= elen;
- 					if (*endnum > (i+1))
--						memmove(&laarr[i], &laarr[i+1], 
-+						memmove(&laarr[i], &laarr[i+1],
- 							sizeof(long_ad) * (*endnum - (i+1)));
- 					i --;
- 					(*endnum) --;
-@@ -1011,7 +1012,7 @@ void udf_truncate(struct inode * inode)
- 	{
- 		block_truncate_page(inode->i_mapping, inode->i_size, udf_get_block);
- 		udf_truncate_extents(inode);
--	}	
-+	}
- 
- 	inode->i_mtime = inode->i_ctime = current_fs_time(inode->i_sb);
- 	if (IS_SYNC(inode))
-@@ -1074,10 +1075,10 @@ __udf_read_inode(struct inode *inode)
- 			{
- 				kernel_lb_addr loc;
- 				ie = (struct indirectEntry *)ibh->b_data;
--	
-+
- 				loc = lelb_to_cpu(ie->indirectICB.extLocation);
--	
--				if (ie->indirectICB.extLength && 
-+
-+				if (ie->indirectICB.extLength &&
- 					(nbh = udf_read_ptagged(inode->i_sb, loc, 0, &ident)))
- 				{
- 					if (ident == TAG_IDENT_FE ||
-@@ -1143,14 +1144,22 @@ static void udf_fill_inode(struct inode 
- 	{
- 		UDF_I_EFE(inode) = 1;
- 		UDF_I_USE(inode) = 0;
--		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry), GFP_KERNEL);
-+		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry)))
-+		{
-+			make_bad_inode(inode);
-+			return;
-+		}
- 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
- 	}
- 	else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE)
- 	{
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_USE(inode) = 0;
--		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct fileEntry), GFP_KERNEL);
-+		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct fileEntry)))
-+		{
-+			make_bad_inode(inode);
-+			return;
-+		}
- 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct fileEntry), inode->i_sb->s_blocksize - sizeof(struct fileEntry));
- 	}
- 	else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_USE)
-@@ -1160,7 +1169,11 @@ static void udf_fill_inode(struct inode 
- 		UDF_I_LENALLOC(inode) =
- 			le32_to_cpu(
- 				((struct unallocSpaceEntry *)bh->b_data)->lengthAllocDescs);
--		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry), GFP_KERNEL);
-+		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry)))
-+		{
-+			make_bad_inode(inode);
-+			return;
-+		}
- 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct unallocSpaceEntry), inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry));
- 		return;
- 	}
-@@ -1178,7 +1191,7 @@ static void udf_fill_inode(struct inode 
- 	inode->i_nlink = le16_to_cpu(fe->fileLinkCount);
- 	if (!inode->i_nlink)
- 		inode->i_nlink = 1;
--	
-+
- 	inode->i_size = le64_to_cpu(fe->informationLength);
- 	UDF_I_LENEXTENTS(inode) = inode->i_size;
- 
-@@ -1230,7 +1243,7 @@ static void udf_fill_inode(struct inode 
- 	}
- 	else
- 	{
--		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) << 
-+		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) <<
- 			(inode->i_sb->s_blocksize_bits - 9);
- 
- 		if ( udf_stamp_to_time(&convtime, &convtime_usec,
-@@ -1361,6 +1374,20 @@ static void udf_fill_inode(struct inode 
- 	}
- }
- 
-+static int udf_alloc_i_data(struct inode *inode, size_t size)
-+{
-+	UDF_I_DATA(inode) = kmalloc(size, GFP_KERNEL);
-+
-+	if (!UDF_I_DATA(inode))
-+	{
-+		printk(KERN_ERR "udf:udf_alloc_i_data (ino %ld) no free memory\n",
-+		       inode->i_ino);
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
- static mode_t
- udf_convert_permissions(struct fileEntry *fe)
+diff -puN kernel/stop_machine.c~fix-stop_machine_run-problem-with-naughty-real-time-process kernel/stop_machine.c
+--- a/kernel/stop_machine.c~fix-stop_machine_run-problem-with-naughty-real-time-process
++++ a/kernel/stop_machine.c
+@@ -93,10 +93,6 @@ static void stopmachine_set_state(enum s
+ static int stop_machine(void)
  {
-@@ -2059,7 +2086,7 @@ int8_t udf_delete_aext(struct inode *ino
- 			mark_buffer_dirty_inode(oepos.bh, inode);
- 		}
- 	}
--	
+ 	int i, ret = 0;
+-	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+-
+-	/* One high-prio thread per cpu.  We'll do this one. */
+-	sched_setscheduler(current, SCHED_FIFO, &param);
+ 
+ 	atomic_set(&stopmachine_thread_ack, 0);
+ 	stopmachine_num_threads = 0;
+@@ -189,6 +185,10 @@ struct task_struct *__stop_machine_run(i
+ 
+ 	p = kthread_create(do_stop, &smdata, "kstopmachine");
+ 	if (!IS_ERR(p)) {
++		struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 +
- 	brelse(epos.bh);
- 	brelse(oepos.bh);
- 	return (elen >> 30);
++		/* One high-prio thread per cpu.  We'll do this one. */
++		sched_setscheduler(p, SCHED_FIFO, &param);
+ 		kthread_bind(p, cpu);
+ 		wake_up_process(p);
+ 		wait_for_completion(&smdata.done);
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from takeuchi_satoru@jp.fujitsu.com are
 
-udf-check-for-allocated-memory-for-data-of-new-inodes.patch
-udf-check-for-allocated-memory-for-inode-data-v2.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
