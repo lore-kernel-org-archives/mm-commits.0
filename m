@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-build-failure-for-drivers-ata-pata_sccc.patch added to -mm tree
-Date: Mon, 14 May 2007 14:29:11 -0700
-Message-ID: <200705142129.l4ELTBoG026670@shell0.pdx.osdl.net>
+Subject: + udf-check-for-allocated-memory-for-inode-data-v2.patch added to -mm tree
+Date: Mon, 14 May 2007 14:37:02 -0700
+Message-ID: <200705142137.l4ELb2Ex026787@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39567 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753993AbXENV3v (ORCPT
+	by vger.kernel.org with ESMTP id S1754418AbXENVhp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 17:29:51 -0400
+	Mon, 14 May 2007 17:37:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tony@bakeyournoodle.com, akira2.iguchi@toshiba.co.jp, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jgarzik@pobox.com
+Cc: gorcunov@gmail.com, hch@lst.de, jack@ucw.cz
 
 
 The patch titled
-     Fix build failure for drivers/ata/pata_scc.c
+     UDF: check for allocated memory for inode data
 has been added to the -mm tree.  Its filename is
-     fix-build-failure-for-drivers-ata-pata_sccc.patch
+     udf-check-for-allocated-memory-for-inode-data-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,179 +26,163 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix build failure for drivers/ata/pata_scc.c
-From: tony@bakeyournoodle.com (Tony Breeds)
+Subject: UDF: check for allocated memory for inode data
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-The commit d4b2bab4f26345ea1803feb23ea92fbe3f6b77bc added deadline support
-to prereset and reset methods to libbata the pata_scc driver wasn't
-converted.  This patch is a naive attempt to bring this driver up to
-scratch.
+This patch adds checking for granted memory while filling up inode data to
+prevent possible NULL pointer usage.  If there is not enough memory to fill
+inode data we just mark it as "bad".  Also some whitespace cleanup.
 
-Build failures are:
-drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
-drivers/ata/pata_scc.c:870: error: too few arguments to function 'ata_std_prereset'
-drivers/ata/pata_scc.c: In function 'scc_error_handler':
-drivers/ata/pata_scc.c:916: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:916: warning: passing argument 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
-drivers/ata/pata_scc.c:871: warning: control reaches end of non-void function
-
-On a releated note scc_bus_post_reset() is (AFACT) identical to
-ata_bus_post_reset(), would a patch to make ata_bus_post_reset() assesable
-to drivers be accepted?
-
-Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Akira Iguchi <akira2.iguchi@toshiba.co.jp>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_scc.c |   48 +++++++++++++++++++++++----------------
- 1 files changed, 29 insertions(+), 19 deletions(-)
+ fs/udf/inode.c |   51 +++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 39 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/pata_scc.c~fix-build-failure-for-drivers-ata-pata_sccc drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~fix-build-failure-for-drivers-ata-pata_sccc
-+++ a/drivers/ata/pata_scc.c
-@@ -489,23 +489,26 @@ static unsigned int scc_devchk (struct a
-  *	Note: Original code is ata_bus_post_reset().
-  */
- 
--static void scc_bus_post_reset (struct ata_port *ap, unsigned int devmask)
-+static int scc_bus_post_reset(struct ata_port *ap, unsigned int devmask,
-+                              unsigned long deadline)
- {
- 	struct ata_ioports *ioaddr = &ap->ioaddr;
- 	unsigned int dev0 = devmask & (1 << 0);
- 	unsigned int dev1 = devmask & (1 << 1);
--	unsigned long timeout;
-+	int rc;
- 
- 	/* if device 0 was found in ata_devchk, wait for its
- 	 * BSY bit to clear
- 	 */
--	if (dev0)
--		ata_busy_sleep(ap, ATA_TMOUT_BOOT_QUICK, ATA_TMOUT_BOOT);
-+	if (dev0) {
-+		rc = ata_wait_ready(ap, deadline);
-+		if (rc && rc != -ENODEV)
-+			return rc;
+diff -puN fs/udf/inode.c~udf-check-for-allocated-memory-for-inode-data-v2 fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-check-for-allocated-memory-for-inode-data-v2
++++ a/fs/udf/inode.c
+@@ -49,6 +49,7 @@ MODULE_LICENSE("GPL");
+ static mode_t udf_convert_permissions(struct fileEntry *);
+ static int udf_update_inode(struct inode *, int);
+ static void udf_fill_inode(struct inode *, struct buffer_head *);
++static int udf_alloc_i_data(struct inode *inode, size_t size);
+ static struct buffer_head *inode_getblk(struct inode *, sector_t, int *,
+ 	long *, int *);
+ static int8_t udf_insert_aext(struct inode *, struct extent_position,
+@@ -721,7 +722,7 @@ static void udf_split_extents(struct ino
+ 			(*c) ++;
+ 			(*endnum) ++;
+ 		}
+-		
++
+ 		laarr[curr].extLocation.logicalBlockNum = newblocknum;
+ 		if (etype == (EXT_NOT_RECORDED_NOT_ALLOCATED >> 30))
+ 			laarr[curr].extLocation.partitionReferenceNum =
+@@ -823,7 +824,7 @@ static void udf_prealloc_extents(struct 
+ 				{
+ 					numalloc -= elen;
+ 					if (*endnum > (i+1))
+-						memmove(&laarr[i], &laarr[i+1], 
++						memmove(&laarr[i], &laarr[i+1],
+ 							sizeof(long_ad) * (*endnum - (i+1)));
+ 					i --;
+ 					(*endnum) --;
+@@ -1011,7 +1012,7 @@ void udf_truncate(struct inode * inode)
+ 	{
+ 		block_truncate_page(inode->i_mapping, inode->i_size, udf_get_block);
+ 		udf_truncate_extents(inode);
+-	}	
 +	}
  
- 	/* if device 1 was found in ata_devchk, wait for
- 	 * register access, then wait for BSY to clear
- 	 */
--	timeout = jiffies + ATA_TMOUT_BOOT;
- 	while (dev1) {
- 		u8 nsect, lbal;
- 
-@@ -514,14 +517,15 @@ static void scc_bus_post_reset (struct a
- 		lbal = in_be32(ioaddr->lbal_addr);
- 		if ((nsect == 1) && (lbal == 1))
- 			break;
--		if (time_after(jiffies, timeout)) {
--			dev1 = 0;
--			break;
--		}
-+		if (time_after(jiffies, deadline))
-+			return -EBUSY;
- 		msleep(50);	/* give drive a breather */
+ 	inode->i_mtime = inode->i_ctime = current_fs_time(inode->i_sb);
+ 	if (IS_SYNC(inode))
+@@ -1074,10 +1075,10 @@ __udf_read_inode(struct inode *inode)
+ 			{
+ 				kernel_lb_addr loc;
+ 				ie = (struct indirectEntry *)ibh->b_data;
+-	
++
+ 				loc = lelb_to_cpu(ie->indirectICB.extLocation);
+-	
+-				if (ie->indirectICB.extLength && 
++
++				if (ie->indirectICB.extLength &&
+ 					(nbh = udf_read_ptagged(inode->i_sb, loc, 0, &ident)))
+ 				{
+ 					if (ident == TAG_IDENT_FE ||
+@@ -1143,14 +1144,22 @@ static void udf_fill_inode(struct inode 
+ 	{
+ 		UDF_I_EFE(inode) = 1;
+ 		UDF_I_USE(inode) = 0;
+-		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry), GFP_KERNEL);
++		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry)))
++		{
++			make_bad_inode(inode);
++			return;
++		}
+ 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
  	}
--	if (dev1)
--		ata_busy_sleep(ap, ATA_TMOUT_BOOT_QUICK, ATA_TMOUT_BOOT);
-+	if (dev1) {
-+		rc = ata_wait_ready(ap, deadline);
-+		if (rc && rc != -ENODEV)
-+			return rc;
-+	}
+ 	else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE)
+ 	{
+ 		UDF_I_EFE(inode) = 0;
+ 		UDF_I_USE(inode) = 0;
+-		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct fileEntry), GFP_KERNEL);
++		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct fileEntry)))
++		{
++			make_bad_inode(inode);
++			return;
++		}
+ 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct fileEntry), inode->i_sb->s_blocksize - sizeof(struct fileEntry));
+ 	}
+ 	else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_USE)
+@@ -1160,7 +1169,11 @@ static void udf_fill_inode(struct inode 
+ 		UDF_I_LENALLOC(inode) =
+ 			le32_to_cpu(
+ 				((struct unallocSpaceEntry *)bh->b_data)->lengthAllocDescs);
+-		UDF_I_DATA(inode) = kmalloc(inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry), GFP_KERNEL);
++		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry)))
++		{
++			make_bad_inode(inode);
++			return;
++		}
+ 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct unallocSpaceEntry), inode->i_sb->s_blocksize - sizeof(struct unallocSpaceEntry));
+ 		return;
+ 	}
+@@ -1178,7 +1191,7 @@ static void udf_fill_inode(struct inode 
+ 	inode->i_nlink = le16_to_cpu(fe->fileLinkCount);
+ 	if (!inode->i_nlink)
+ 		inode->i_nlink = 1;
+-	
++
+ 	inode->i_size = le64_to_cpu(fe->informationLength);
+ 	UDF_I_LENEXTENTS(inode) = inode->i_size;
  
- 	/* is all this really necessary? */
- 	ap->ops->dev_select(ap, 0);
-@@ -529,6 +533,8 @@ static void scc_bus_post_reset (struct a
- 		ap->ops->dev_select(ap, 1);
- 	if (dev0)
- 		ap->ops->dev_select(ap, 0);
+@@ -1230,7 +1243,7 @@ static void udf_fill_inode(struct inode 
+ 	}
+ 	else
+ 	{
+-		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) << 
++		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) <<
+ 			(inode->i_sb->s_blocksize_bits - 9);
+ 
+ 		if ( udf_stamp_to_time(&convtime, &convtime_usec,
+@@ -1361,6 +1374,20 @@ static void udf_fill_inode(struct inode 
+ 	}
+ }
+ 
++static int udf_alloc_i_data(struct inode *inode, size_t size)
++{
++	UDF_I_DATA(inode) = kmalloc(size, GFP_KERNEL);
++
++	if (!UDF_I_DATA(inode))
++	{
++		printk(KERN_ERR "udf:udf_alloc_i_data (ino %ld) no free memory\n",
++		       inode->i_ino);
++		return -ENOMEM;
++	}
 +
 +	return 0;
- }
- 
- /**
-@@ -537,8 +543,8 @@ static void scc_bus_post_reset (struct a
-  *	Note: Original code is ata_bus_softreset().
-  */
- 
--static unsigned int scc_bus_softreset (struct ata_port *ap,
--				       unsigned int devmask)
-+static unsigned int scc_bus_softreset(struct ata_port *ap, unsigned int devmask,
-+                                      unsigned long deadline)
++}
++
+ static mode_t
+ udf_convert_permissions(struct fileEntry *fe)
  {
- 	struct ata_ioports *ioaddr = &ap->ioaddr;
- 
-@@ -570,7 +576,7 @@ static unsigned int scc_bus_softreset (s
- 	if (scc_check_status(ap) == 0xFF)
- 		return 0;
- 
--	scc_bus_post_reset(ap, devmask);
-+	scc_bus_post_reset(ap, devmask, deadline);
- 
- 	return 0;
- }
-@@ -579,11 +585,13 @@ static unsigned int scc_bus_softreset (s
-  *	scc_std_softreset - reset host port via ATA SRST
-  *	@ap: port to reset
-  *	@classes: resulting classes of attached devices
-+ *	@deadline: deadline jiffies for the operation
-  *
-  *	Note: Original code is ata_std_softreset().
-  */
- 
--static int scc_std_softreset (struct ata_port *ap, unsigned int *classes)
-+static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
-+                              unsigned long deadline)
- {
- 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
- 	unsigned int devmask = 0, err_mask;
-@@ -607,7 +615,7 @@ static int scc_std_softreset (struct ata
- 
- 	/* issue bus reset */
- 	DPRINTK("about to softreset, devmask=%x\n", devmask);
--	err_mask = scc_bus_softreset(ap, devmask);
-+	err_mask = scc_bus_softreset(ap, devmask, deadline);
- 	if (err_mask) {
- 		ata_port_printk(ap, KERN_ERR, "SRST failed (err_mask=0x%x)\n",
- 				err_mask);
-@@ -676,10 +684,11 @@ static void scc_bmdma_stop (struct ata_q
- 
- 		if (reg & INTSTS_BMSINT) {
- 			unsigned int classes;
-+			unsigned long deadline = jiffies + ATA_TMOUT_BOOT;
- 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
- 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
- 			/* TBD: SW reset */
--			scc_std_softreset(ap, &classes);
-+			scc_std_softreset(ap, &classes, deadline);
- 			continue;
+@@ -2059,7 +2086,7 @@ int8_t udf_delete_aext(struct inode *ino
+ 			mark_buffer_dirty_inode(oepos.bh, inode);
  		}
- 
-@@ -862,12 +871,13 @@ static void scc_bmdma_freeze (struct ata
- /**
-  *	scc_pata_prereset - prepare for reset
-  *	@ap: ATA port to be reset
-+ *	@deadline: deadline jiffies for the operation
-  */
- 
--static int scc_pata_prereset (struct ata_port *ap)
-+static int scc_pata_prereset (struct ata_port *ap, unsigned long deadline)
- {
- 	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap);
-+	return ata_std_prereset(ap, deadline);
- }
- 
- /**
+ 	}
+-	
++
+ 	brelse(epos.bh);
+ 	brelse(oepos.bh);
+ 	return (elen >> 30);
 _
 
-Patches currently in -mm which might be from tony@bakeyournoodle.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-fix-build-failure-for-drivers-ata-pata_sccc.patch
+udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+udf-check-for-allocated-memory-for-inode-data-v2.patch
