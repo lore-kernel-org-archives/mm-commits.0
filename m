@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-ppc64-needs-64-bit-ioaddr_t.patch added to -mm tree
-Date: Mon, 14 May 2007 15:08:21 -0700
-Message-ID: <200705142208.l4EM8LdD027384@shell0.pdx.osdl.net>
+Subject: + nf_conntrack-fix-use-after-free-in-helper-destroy-callback.patch added to -mm tree
+Date: Mon, 14 May 2007 15:14:38 -0700
+Message-ID: <200705142214.l4EMEcmd027484@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46595 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758AbXENWI7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755155AbXENWPP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 18:08:59 -0400
+	Mon, 14 May 2007 18:15:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olof@lixom.net, benh@kernel.crashing.org, linux@dominikbrodowski.net, paulus@samba.org
+Cc: kaber@trash.net, buga@buvoshetes.hu
 
 
 The patch titled
-     pcmcia: ppc64 needs 64-bit ioaddr_t
+     nf_conntrack: fix use-after-free in helper destroy callback
 has been added to the -mm tree.  Its filename is
-     pcmcia-ppc64-needs-64-bit-ioaddr_t.patch
+     nf_conntrack-fix-use-after-free-in-helper-destroy-callback.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia: ppc64 needs 64-bit ioaddr_t
-From: Olof Johansson <olof@lixom.net>
+Subject: nf_conntrack: fix use-after-free in helper destroy callback
+From: Patrick McHardy <kaber@trash.net>
 
-ppc64 really needs ioaddr_t to be 64-bit, since I/O addresses really
-are MMIO addresses, and remapped to a high range.
+When the helper module is removed for a master connection that has a
+fulfilled expectation, but has already timed out and got removed from the
+hash tables, nf_conntrack_helper_unregister can't find the master
+connection to unset the helper, causing a use-after-free when the expected
+connection is destroyed and releases the last reference to the master.
 
-While the type is exported to userspace, there hasn't been any platforms
-with PCMCIA on 64-bit powerpc until now, so changing it won't regress
-any existing users.
+The helper destroy callback was introduced for the PPtP helper to clean up
+expectations and expected connections when the master connection times out,
+but doing this from the destroy_conntrack only works for unfulfilled
+expectations since expected connections hold a reference to the master and
+it is not destroyed.  Move the destroy callback to the timeout function,
+which fixes both problems.
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Cc: Gabor Burjan <buga@buvoshetes.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/pcmcia/cs_types.h |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_core.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/pcmcia/cs_types.h~pcmcia-ppc64-needs-64-bit-ioaddr_t include/pcmcia/cs_types.h
---- a/include/pcmcia/cs_types.h~pcmcia-ppc64-needs-64-bit-ioaddr_t
-+++ a/include/pcmcia/cs_types.h
-@@ -21,12 +21,16 @@
- #include <sys/types.h>
- #endif
+diff -puN net/netfilter/nf_conntrack_core.c~nf_conntrack-fix-use-after-free-in-helper-destroy-callback net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c~nf_conntrack-fix-use-after-free-in-helper-destroy-callback
++++ a/net/netfilter/nf_conntrack_core.c
+@@ -298,7 +298,6 @@ static void
+ destroy_conntrack(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+-	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_l4proto *l4proto;
+ 	typeof(nf_conntrack_destroyed) destroyed;
  
--#if defined(__arm__) || defined(__mips__)
-+#if defined(__powerpc64__)
-+/* I/O addresses are really MMIO addresses on PPC, and can thus be 64 bits */
-+typedef unsigned long ioaddr_t;
-+#elif defined(__arm__) || defined(__mips__)
- /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
- typedef u_int   ioaddr_t;
- #else
- typedef u_short	ioaddr_t;
- #endif
+@@ -309,9 +308,6 @@ destroy_conntrack(struct nf_conntrack *n
+ 	nf_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+ 
+-	if (help && help->helper && help->helper->destroy)
+-		help->helper->destroy(ct);
+-
+ 	/* To make sure we don't get any weird locking issues here:
+ 	 * destroy_conntrack() MUST NOT be called with a write lock
+ 	 * to nf_conntrack_lock!!! -HW */
+@@ -353,6 +349,10 @@ destroy_conntrack(struct nf_conntrack *n
+ static void death_by_timeout(unsigned long ul_conntrack)
+ {
+ 	struct nf_conn *ct = (void *)ul_conntrack;
++	struct nf_conn_help *help = nfct_help(ct);
 +
- typedef unsigned long kio_addr_t;
++	if (help && help->helper && help->helper->destroy)
++		help->helper->destroy(ct);
  
- typedef u_short	socket_t;
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	/* Inside lock so preempt is disabled on module removal path.
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from kaber@trash.net are
 
-8xx-mpc885ads-pcmcia-support.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-8xx-fix-whitespace-and-indentation.patch
-dts-kill-hardcoded-phandles.patch
-pcmcia-ppc64-needs-64-bit-ioaddr_t.patch
+networking-fix-sending-netlink-message-when-replace-route.patch
+nf_conntrack-fix-use-after-free-in-helper-destroy-callback.patch
