@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + implement-file-posix-capabilities-update.patch added to -mm tree
-Date: Mon, 14 May 2007 13:20:28 -0700
-Message-ID: <200705142020.l4EKKSCN025338@shell0.pdx.osdl.net>
+Subject: + m68k-implement-__clear_user.patch added to -mm tree
+Date: Mon, 14 May 2007 13:48:30 -0700
+Message-ID: <200705142048.l4EKmUdc025905@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57184 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755657AbXENUV5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755805AbXENUsk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 16:21:57 -0400
+	Mon, 14 May 2007 16:48:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serge@hallyn.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: geert@linux-m68k.org, davidel@xmailserver.org
 
 
 The patch titled
-     implement-file-posix-capabilities update
+     m68k: implement __clear_user()
 has been added to the -mm tree.  Its filename is
-     implement-file-posix-capabilities-update.patch
+     m68k-implement-__clear_user.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: implement-file-posix-capabilities update
-From: "Serge E. Hallyn" <serge@hallyn.com>
+Subject: m68k: implement __clear_user()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-So here is a new consolidated patch without the STRICTXATTR config
-option.
+m68k: implement __clear_user(), which is needed by fs/signalfd.c
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
+Since we always let the MMU do all checking, clear_user() and __clear_user()
+are identical. The old clear_user() is renamed to __clear_user() for
+consistency.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/Kconfig     |   10 --------
- security/commoncap.c |   51 ++---------------------------------------
- 2 files changed, 3 insertions(+), 58 deletions(-)
+ arch/m68k/lib/uaccess.c    |    4 ++--
+ include/asm-m68k/uaccess.h |    4 +++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN security/Kconfig~implement-file-posix-capabilities-update security/Kconfig
---- a/security/Kconfig~implement-file-posix-capabilities-update
-+++ a/security/Kconfig
-@@ -90,16 +90,6 @@ config SECURITY_FILE_CAPABILITIES
+diff -puN arch/m68k/lib/uaccess.c~m68k-implement-__clear_user arch/m68k/lib/uaccess.c
+--- a/arch/m68k/lib/uaccess.c~m68k-implement-__clear_user
++++ a/arch/m68k/lib/uaccess.c
+@@ -181,7 +181,7 @@ EXPORT_SYMBOL(strnlen_user);
+  * Zero Userspace
+  */
  
- 	  If in doubt, answer N.
- 
--config SECURITY_FILE_CAPABILITIES_STRICTXATTR
--	bool "Refuse to run files with unknown caps"
--	depends on SECURITY_FILE_CAPABILITIES
--	default y
--	help
--	  Refuse to run files which have unknown capabilities set
--	  in the security.capability xattr.  This could prevent
--	  running important binaries from an updated distribution
--	  on an older kernel.
--
- config SECURITY_ROOTPLUG
- 	tristate "Root Plug Support"
- 	depends on USB && SECURITY
-diff -puN security/commoncap.c~implement-file-posix-capabilities-update security/commoncap.c
---- a/security/commoncap.c~implement-file-posix-capabilities-update
-+++ a/security/commoncap.c
-@@ -111,51 +111,10 @@ void cap_capset_set (struct task_struct 
- 
- #ifdef CONFIG_SECURITY_FILE_CAPABILITIES
- 
--#ifdef CONFIG_SECURITY_FILE_CAPABILITIES_STRICTXATTR
--static int check_cap_sanity(struct vfs_cap_data_disk *dcap, int size)
--{
--	int word, bit;
--	u32 eff, inh, perm;
--	int sz = (size-1)/3;
--
--	word = CAP_NUMCAPS / 32;
--	bit = CAP_NUMCAPS % 32;
--
--	eff  = le32_to_cpu(dcap->data[3*word]);
--	perm = le32_to_cpu(dcap->data[3*word+1]);
--	inh  = le32_to_cpu(dcap->data[3*word+2]);
--
--	while (word < sz) {
--		if (bit == 32) {
--			bit = 0;
--			word++;
--			if (word >= sz)
--				break;
--			eff  = le32_to_cpu(dcap->data[3*word]);
--			perm = le32_to_cpu(dcap->data[3*word+1]);
--			inh  = le32_to_cpu(dcap->data[3*word+2]);
--			continue;
--		}
--		if (eff & CAP_TO_MASK(bit))
--			return -EINVAL;
--		if (inh & CAP_TO_MASK(bit))
--			return -EINVAL;
--		if (perm & CAP_TO_MASK(bit))
--			return -EINVAL;
--		bit++;
--	}
--
--	return 0;
--}
--#else
--static int check_cap_sanity(struct vfs_cap_data_disk *dcap, int sz)
--{ return 0; }
--#endif
--
- static inline int cap_from_disk(struct vfs_cap_data_disk *dcap,
- 					struct linux_binprm *bprm, int size)
+-unsigned long clear_user(void __user *to, unsigned long n)
++unsigned long __clear_user(void __user *to, unsigned long n)
  {
--	int rc, version;
-+	int version;
+ 	unsigned long res;
  
- 	version = le32_to_cpu(dcap->version);
- 	if (version != _LINUX_CAPABILITY_VERSION)
-@@ -163,15 +122,11 @@ static inline int cap_from_disk(struct v
+@@ -219,4 +219,4 @@ unsigned long clear_user(void __user *to
  
- 	size /= sizeof(u32);
- 	if ((size-1)%3) {
--		printk(KERN_WARNING "%s: size is an invalid size (%d)\n",
--						__FUNCTION__, size);
-+		printk(KERN_WARNING "%s: size is an invalid size %d for %s\n",
-+						__FUNCTION__, size, bprm->filename);
- 		return -EINVAL;
- 	}
+     return res;
+ }
+-EXPORT_SYMBOL(clear_user);
++EXPORT_SYMBOL(__clear_user);
+diff -puN include/asm-m68k/uaccess.h~m68k-implement-__clear_user include/asm-m68k/uaccess.h
+--- a/include/asm-m68k/uaccess.h~m68k-implement-__clear_user
++++ a/include/asm-m68k/uaccess.h
+@@ -361,7 +361,9 @@ __constant_copy_to_user(void __user *to,
  
--	rc = check_cap_sanity(dcap, size);
--	if (rc)
--		return rc;
--
- 	bprm->cap_effective = le32_to_cpu(dcap->data[0]);
- 	bprm->cap_permitted = le32_to_cpu(dcap->data[1]);
- 	bprm->cap_inheritable = le32_to_cpu(dcap->data[2]);
+ long strncpy_from_user(char *dst, const char __user *src, long count);
+ long strnlen_user(const char __user *src, long n);
+-unsigned long clear_user(void __user *to, unsigned long n);
++unsigned long __clear_user(void __user *to, unsigned long n);
++
++#define clear_user	__clear_user
+ 
+ #define strlen_user(str) strnlen_user(str, 32767)
+ 
 _
 
-Patches currently in -mm which might be from serge@hallyn.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-implement-file-posix-capabilities-update.patch
+m68k-implement-__clear_user.patch
+git-dvb.patch
