@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-add-ioremap_page_range.patch added to -mm tree
-Date: Mon, 14 May 2007 11:52:26 -0700
-Message-ID: <200705141852.l4EIqQOO023466@shell0.pdx.osdl.net>
+Subject: + fix-race-condition-about-network-device-name-allocation.patch added to -mm tree
+Date: Mon, 14 May 2007 11:53:23 -0700
+Message-ID: <200705141853.l4EIrNns023479@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58984 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753689AbXENSxB (ORCPT
+	by vger.kernel.org with ESMTP id S1754471AbXENSxs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 14:53:01 -0400
+	Mon, 14 May 2007 14:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, dhowells@redhat.com
+Cc: shemminger@linux-foundation.org, kaneshige.kenji@jp.fujitsu.com
 
 
 The patch titled
-     nommu: add ioremap_page_range()
+     Fix race condition about network device name allocation
 has been added to the -mm tree.  Its filename is
-     nommu-add-ioremap_page_range.patch
+     fix-race-condition-about-network-device-name-allocation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nommu: add ioremap_page_range()
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: Fix race condition about network device name allocation
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-lib/ioremap.c is presently only built in if CONFIG_MMU is set.  While this
-is reasonable, platforms that support both CONFIG_MMU=y or n need to be
-able to call in to this regardless.
+Kenji Kaneshige found this race between device removal and registration. 
+On unregister it is possible for the old device to exist, because sysfs
+file is still open.  A new device with 'eth%d' will select the same name,
+but sysfs kobject register will fial.
 
-As none of the current nommu platforms do anything special with ioremap(),
-we assume that it's always successful.
+The following changes the shutdown order slightly.  It hold a removes the
+sysfs entries earlier (on unregister_netdevice), but holds a kobject
+reference.  Then when todo runs the actual last put free happens.
 
-This fixes the SH-4 build with CONFIG_MMU=n.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ net/core/dev.c       |   10 ++++++----
+ net/core/net-sysfs.c |    8 +++++++-
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/io.h~nommu-add-ioremap_page_range include/linux/io.h
---- a/include/linux/io.h~nommu-add-ioremap_page_range
-+++ a/include/linux/io.h
-@@ -27,8 +27,16 @@ struct device;
- void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+diff -puN net/core/dev.c~fix-race-condition-about-network-device-name-allocation net/core/dev.c
+--- a/net/core/dev.c~fix-race-condition-about-network-device-name-allocation
++++ a/net/core/dev.c
+@@ -3258,7 +3258,6 @@ void netdev_run_todo(void)
+ 			continue;
+ 		}
  
-+#ifdef CONFIG_MMU
- int ioremap_page_range(unsigned long addr, unsigned long end,
- 		       unsigned long phys_addr, pgprot_t prot);
-+#else
-+static inline int ioremap_page_range(unsigned long addr, unsigned long end,
-+				     unsigned long phys_addr, pgprot_t prot)
-+{
-+	return 0;
-+}
-+#endif
+-		netdev_unregister_sysfs(dev);
+ 		dev->reg_state = NETREG_UNREGISTERED;
  
- /*
-  * Managed iomap interface
+ 		netdev_wait_allrefs(dev);
+@@ -3269,11 +3268,11 @@ void netdev_run_todo(void)
+ 		BUG_TRAP(!dev->ip6_ptr);
+ 		BUG_TRAP(!dev->dn_ptr);
+ 
+-		/* It must be the very last action,
+-		 * after this 'dev' may point to freed up memory.
+-		 */
+ 		if (dev->destructor)
+ 			dev->destructor(dev);
++
++		/* Free network device */
++		kobject_put(&dev->dev.kobj);
+ 	}
+ 
+ out:
+@@ -3424,6 +3423,9 @@ void unregister_netdevice(struct net_dev
+ 	/* Notifier chain MUST detach us from master device. */
+ 	BUG_TRAP(!dev->master);
+ 
++	/* Remove entries from sysfs */
++	netdev_unregister_sysfs(dev);
++
+ 	/* Finish processing unregister after unlock */
+ 	net_set_todo(dev);
+ 
+diff -puN net/core/net-sysfs.c~fix-race-condition-about-network-device-name-allocation net/core/net-sysfs.c
+--- a/net/core/net-sysfs.c~fix-race-condition-about-network-device-name-allocation
++++ a/net/core/net-sysfs.c
+@@ -456,9 +456,15 @@ static struct class net_class = {
+ #endif
+ };
+ 
++/* Delete sysfs entries but hold kobject reference until after all
++ * netdev references are gone.
++ */
+ void netdev_unregister_sysfs(struct net_device * net)
+ {
+-	device_del(&(net->dev));
++	struct device *dev = &(net->dev);
++
++	kobject_get(&dev->kobj);
++	device_del(dev);
+ }
+ 
+ /* Create sysfs entries for network device. */
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-nommu-add-ioremap_page_range.patch
-git-infiniband.patch
-git-sh.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
-slab-allocators-drop-support-for-destructors.patch
+fix-race-condition-about-network-device-name-allocation.patch
+git-wireless.patch
