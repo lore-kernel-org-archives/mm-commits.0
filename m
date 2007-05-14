@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + let-smp_call_function_single-return-ebusy-on-up.patch added to -mm tree
-Date: Mon, 14 May 2007 12:12:45 -0700
-Message-ID: <200705141912.l4EJCjHH023880@shell0.pdx.osdl.net>
+Subject: + x86_64-fix-smp_call_function_single-return-value.patch added to -mm tree
+Date: Mon, 14 May 2007 12:20:03 -0700
+Message-ID: <200705141920.l4EJK4xJ024025@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47233 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751052AbXENTNA (ORCPT
+	by vger.kernel.org with ESMTP id S1754339AbXENTUR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 15:13:00 -0400
+	Mon, 14 May 2007 15:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, ak@suse.de
+Cc: akpm@linux-foundation.org, ak@suse.de, heiko.carstens@de.ibm.com
 
 
 The patch titled
-     Let smp_call_function_single return -EBUSY on UP
+     x86_64: fix smp_call_function_single() return value
 has been added to the -mm tree.  Its filename is
-     let-smp_call_function_single-return-ebusy-on-up.patch
+     x86_64-fix-smp_call_function_single-return-value.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,115 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Let smp_call_function_single return -EBUSY on UP
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: x86_64: fix smp_call_function_single() return value
+From: Andrew Morton <akpm@linux-foundation.org>
 
-All architectures that have an implementation of smp_call_function_single
-let it return -EBUSY if it is asked to execute func on the current cpu. 
-(akpm: except for x86_64).  Therefore the UP version must always return
--EBUSY.
+It's supposed to return -EBUSY when asked to execute the callback on the
+current CPU.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ arch/x86_64/kernel/smp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up include/linux/smp.h
---- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up
-+++ a/include/linux/smp.h
-@@ -99,11 +99,9 @@ static inline void smp_send_reschedule(i
- #define num_booting_cpus()			1
- #define smp_prepare_boot_cpu()			do {} while (0)
- static inline int smp_call_function_single(int cpuid, void (*func) (void *info),
--				void *info, int retry, int wait)
-+					   void *info, int retry, int wait)
- {
--	/* Disable interrupts here? */
--	func(info);
--	return 0;
-+	return -EBUSY;
- }
+diff -puN arch/x86_64/kernel/smp.c~x86_64-fix-smp_call_function_single-return-value arch/x86_64/kernel/smp.c
+--- a/arch/x86_64/kernel/smp.c~x86_64-fix-smp_call_function_single-return-value
++++ a/arch/x86_64/kernel/smp.c
+@@ -363,7 +363,7 @@ __smp_call_function_single(int cpu, void
+  * @nonatomic: Currently unused.
+  * @wait: If true, wait until function has completed on other CPUs.
+  *
+- * Retrurns 0 on success, else a negative status code.
++ * Returns 0 on success, else a negative status code.
+  *
+  * Does not return until the remote CPU is nearly ready to execute <func>
+  * or is or has executed.
+@@ -376,7 +376,7 @@ int smp_call_function_single (int cpu, v
+ 	int me = get_cpu();
+ 	if (cpu == me) {
+ 		put_cpu();
+-		return 0;
++		return -EBUSY;
+ 	}
  
- #endif /* !SMP */
+ 	/* Can deadlock when called with interrupts disabled */
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-s390-spinlock-initializer-cleanup.patch
-simplify-compat_sys_timerfd.patch
-let-smp_call_function_single-return-ebusy-on-up.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+x86_64-fix-smp_call_function_single-return-value.patch
