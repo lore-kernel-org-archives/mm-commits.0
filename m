@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-fix-smp_call_function_single-return-value.patch added to -mm tree
-Date: Mon, 14 May 2007 12:20:03 -0700
-Message-ID: <200705141920.l4EJK4xJ024025@shell0.pdx.osdl.net>
+Subject: + alpha-fix-hard_smp_processor_id-compile-error.patch added to -mm tree
+Date: Mon, 14 May 2007 12:19:38 -0700
+Message-ID: <200705141919.l4EJJcDC023999@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54772 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754339AbXENTUR (ORCPT
+	by vger.kernel.org with ESMTP id S1754726AbXENTUp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 15:20:17 -0400
+	Mon, 14 May 2007 15:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, heiko.carstens@de.ibm.com
+Cc: horms@verge.net.au, fernando@oss.ntt.co.jp, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     x86_64: fix smp_call_function_single() return value
+     alpha: fix hard_smp_processor_id compile error
 has been added to the -mm tree.  Its filename is
-     x86_64-fix-smp_call_function_single-return-value.patch
+     alpha-fix-hard_smp_processor_id-compile-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,115 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fix smp_call_function_single() return value
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha: fix hard_smp_processor_id compile error
+From: Simon Horman <horms@verge.net.au>
 
-It's supposed to return -EBUSY when asked to execute the callback on the
-current CPU.
+"Remove hardcoding of hard_smp_processor_id on UP systems",
+2f4dfe206a2fc07099dfad77a8ea2f4b4ae2140f in Linus' tree, moved
+the definition of hard_smp_processor_id linux/smp.h to asm/smp.h
+for UP systems. This causes a regression on Alpha.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+cc1: warnings being treated as errors
+arch/alpha/kernel/setup.c: In function 'setup_arch':
+arch/alpha/kernel/setup.c:506: warning: implicit declaration of function 'hard_smp_processor_id'
+make[1]: *** [arch/alpha/kernel/setup.o] error 1
+make: *** [arch/alpha/kernel] error 2
+
+By including asm/smp.h non-conditionally in asm/mmu_context.h
+the problem appears to be resolved.
+
+Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/smp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-alpha/mmu_context.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/smp.c~x86_64-fix-smp_call_function_single-return-value arch/x86_64/kernel/smp.c
---- a/arch/x86_64/kernel/smp.c~x86_64-fix-smp_call_function_single-return-value
-+++ a/arch/x86_64/kernel/smp.c
-@@ -363,7 +363,7 @@ __smp_call_function_single(int cpu, void
-  * @nonatomic: Currently unused.
-  * @wait: If true, wait until function has completed on other CPUs.
-  *
-- * Retrurns 0 on success, else a negative status code.
-+ * Returns 0 on success, else a negative status code.
-  *
-  * Does not return until the remote CPU is nearly ready to execute <func>
-  * or is or has executed.
-@@ -376,7 +376,7 @@ int smp_call_function_single (int cpu, v
- 	int me = get_cpu();
- 	if (cpu == me) {
- 		put_cpu();
--		return 0;
-+		return -EBUSY;
- 	}
+diff -puN include/asm-alpha/mmu_context.h~alpha-fix-hard_smp_processor_id-compile-error include/asm-alpha/mmu_context.h
+--- a/include/asm-alpha/mmu_context.h~alpha-fix-hard_smp_processor_id-compile-error
++++ a/include/asm-alpha/mmu_context.h
+@@ -85,8 +85,8 @@ __reload_thread(struct pcb_struct *pcb)
+  * +-------------+----------------+--------------+
+  */
  
- 	/* Can deadlock when called with interrupts disabled */
+-#ifdef CONFIG_SMP
+ #include <asm/smp.h>
++#ifdef CONFIG_SMP
+ #define cpu_last_asn(cpuid)	(cpu_data[cpuid].last_asn)
+ #else
+ extern unsigned long last_asn;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mips-fixup.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-git-newsetup-fixup.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-tglx-debug.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-x86_64-fix-smp_call_function_single-return-value.patch
+alpha-fix-hard_smp_processor_id-compile-error.patch
+git-ia64.patch
+use-menuconfig-objects-ipvs.patch
