@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-race-condition-about-network-device-name-allocation.patch added to -mm tree
-Date: Mon, 14 May 2007 11:53:23 -0700
-Message-ID: <200705141853.l4EIrNns023479@shell0.pdx.osdl.net>
+Subject: + h8300-atomich-update.patch added to -mm tree
+Date: Mon, 14 May 2007 11:54:23 -0700
+Message-ID: <200705141854.l4EIsNip023492@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39461 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754471AbXENSxs (ORCPT
+	by vger.kernel.org with ESMTP id S1753689AbXENSy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 14:53:48 -0400
+	Mon, 14 May 2007 14:54:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, kaneshige.kenji@jp.fujitsu.com
+Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     Fix race condition about network device name allocation
+     h8300 atomic.h update
 has been added to the -mm tree.  Its filename is
-     fix-race-condition-about-network-device-name-allocation.patch
+     h8300-atomich-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,86 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix race condition about network device name allocation
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: h8300 atomic.h update
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-Kenji Kaneshige found this race between device removal and registration. 
-On unregister it is possible for the old device to exist, because sysfs
-file is still open.  A new device with 'eth%d' will select the same name,
-but sysfs kobject register will fial.
+add atomic_sub_and_test define.
 
-The following changes the shutdown order slightly.  It hold a removes the
-sysfs entries earlier (on unregister_netdevice), but holds a kobject
-reference.  Then when todo runs the actual last put free happens.
-
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c       |   10 ++++++----
- net/core/net-sysfs.c |    8 +++++++-
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ include/asm-h8300/atomic.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN net/core/dev.c~fix-race-condition-about-network-device-name-allocation net/core/dev.c
---- a/net/core/dev.c~fix-race-condition-about-network-device-name-allocation
-+++ a/net/core/dev.c
-@@ -3258,7 +3258,6 @@ void netdev_run_todo(void)
- 			continue;
- 		}
- 
--		netdev_unregister_sysfs(dev);
- 		dev->reg_state = NETREG_UNREGISTERED;
- 
- 		netdev_wait_allrefs(dev);
-@@ -3269,11 +3268,11 @@ void netdev_run_todo(void)
- 		BUG_TRAP(!dev->ip6_ptr);
- 		BUG_TRAP(!dev->dn_ptr);
- 
--		/* It must be the very last action,
--		 * after this 'dev' may point to freed up memory.
--		 */
- 		if (dev->destructor)
- 			dev->destructor(dev);
-+
-+		/* Free network device */
-+		kobject_put(&dev->dev.kobj);
- 	}
- 
- out:
-@@ -3424,6 +3423,9 @@ void unregister_netdevice(struct net_dev
- 	/* Notifier chain MUST detach us from master device. */
- 	BUG_TRAP(!dev->master);
- 
-+	/* Remove entries from sysfs */
-+	netdev_unregister_sysfs(dev);
-+
- 	/* Finish processing unregister after unlock */
- 	net_set_todo(dev);
- 
-diff -puN net/core/net-sysfs.c~fix-race-condition-about-network-device-name-allocation net/core/net-sysfs.c
---- a/net/core/net-sysfs.c~fix-race-condition-about-network-device-name-allocation
-+++ a/net/core/net-sysfs.c
-@@ -456,9 +456,15 @@ static struct class net_class = {
- #endif
- };
- 
-+/* Delete sysfs entries but hold kobject reference until after all
-+ * netdev references are gone.
-+ */
- void netdev_unregister_sysfs(struct net_device * net)
- {
--	device_del(&(net->dev));
-+	struct device *dev = &(net->dev);
-+
-+	kobject_get(&dev->kobj);
-+	device_del(dev);
+diff -puN include/asm-h8300/atomic.h~h8300-atomich-update include/asm-h8300/atomic.h
+--- a/include/asm-h8300/atomic.h~h8300-atomich-update
++++ a/include/asm-h8300/atomic.h
+@@ -37,6 +37,7 @@ static __inline__ int atomic_sub_return(
  }
  
- /* Create sysfs entries for network device. */
+ #define atomic_sub(i, v) atomic_sub_return(i, v)
++#define atomic_sub_and_test(i,v) (atomic_sub_return(i, v) == 0)
+ 
+ static __inline__ int atomic_inc_return(atomic_t *v)
+ {
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-fix-race-condition-about-network-device-name-allocation.patch
-git-wireless.patch
+h8300-atomich-update.patch
