@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-fix-lock-order-in-the-resume-path.patch added to -mm tree
-Date: Mon, 14 May 2007 15:02:11 -0700
-Message-ID: <200705142202.l4EM2B7f027283@shell0.pdx.osdl.net>
+Subject: + pcmcia-ppc64-needs-64-bit-ioaddr_t.patch added to -mm tree
+Date: Mon, 14 May 2007 15:08:21 -0700
+Message-ID: <200705142208.l4EM8LdD027384@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32868 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244AbXENWCT (ORCPT
+	by vger.kernel.org with ESMTP id S1754758AbXENWI7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 18:02:19 -0400
+	Mon, 14 May 2007 18:08:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com
+Cc: olof@lixom.net, benh@kernel.crashing.org, linux@dominikbrodowski.net, paulus@samba.org
 
 
 The patch titled
-     clocksource: fix lock order in the resume path
+     pcmcia: ppc64 needs 64-bit ioaddr_t
 has been added to the -mm tree.  Its filename is
-     clocksource-fix-lock-order-in-the-resume-path.patch
+     pcmcia-ppc64-needs-64-bit-ioaddr_t.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource: fix lock order in the resume path
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: pcmcia: ppc64 needs 64-bit ioaddr_t
+From: Olof Johansson <olof@lixom.net>
 
-lockdep complains about the lock nesting of clocksource and watchdog lock
-in the resume path.
+ppc64 really needs ioaddr_t to be 64-bit, since I/O addresses really
+are MMIO addresses, and remapped to a high range.
 
-Change the resume marker to a bit operation and remove the lock from this
-path.
+While the type is exported to userspace, there hasn't been any platforms
+with PCMCIA on 64-bit powerpc until now, so changing it won't regress
+any existing users.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clocksource.c |   10 +++-------
- 1 files changed, 3 insertions(+), 7 deletions(-)
+ include/pcmcia/cs_types.h |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/clocksource.c~clocksource-fix-lock-order-in-the-resume-path kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-fix-lock-order-in-the-resume-path
-+++ a/kernel/time/clocksource.c
-@@ -74,7 +74,7 @@ static struct clocksource *watchdog;
- static struct timer_list watchdog_timer;
- static DEFINE_SPINLOCK(watchdog_lock);
- static cycle_t watchdog_last;
--static int watchdog_resumed;
-+static unsigned long watchdog_resumed;
+diff -puN include/pcmcia/cs_types.h~pcmcia-ppc64-needs-64-bit-ioaddr_t include/pcmcia/cs_types.h
+--- a/include/pcmcia/cs_types.h~pcmcia-ppc64-needs-64-bit-ioaddr_t
++++ a/include/pcmcia/cs_types.h
+@@ -21,12 +21,16 @@
+ #include <sys/types.h>
+ #endif
  
- /*
-  * Interval: 0.5sec Threshold: 0.0625s
-@@ -104,9 +104,7 @@ static void clocksource_watchdog(unsigne
+-#if defined(__arm__) || defined(__mips__)
++#if defined(__powerpc64__)
++/* I/O addresses are really MMIO addresses on PPC, and can thus be 64 bits */
++typedef unsigned long ioaddr_t;
++#elif defined(__arm__) || defined(__mips__)
+ /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
+ typedef u_int   ioaddr_t;
+ #else
+ typedef u_short	ioaddr_t;
+ #endif
++
+ typedef unsigned long kio_addr_t;
  
- 	spin_lock(&watchdog_lock);
- 
--	resumed = watchdog_resumed;
--	if (unlikely(resumed))
--		watchdog_resumed = 0;
-+	resumed = test_and_clear_bit(0, &watchdog_resumed);
- 
- 	wdnow = watchdog->read();
- 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
-@@ -151,9 +149,7 @@ static void clocksource_watchdog(unsigne
- }
- static void clocksource_resume_watchdog(void)
- {
--	spin_lock(&watchdog_lock);
--	watchdog_resumed = 1;
--	spin_unlock(&watchdog_lock);
-+	set_bit(0, &watchdog_resumed);
- }
- 
- static void clocksource_check_watchdog(struct clocksource *cs)
+ typedef u_short	socket_t;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from olof@lixom.net are
 
-timekeeping-fix-mismerge.patch
-clocksource-fix-lock-order-in-the-resume-path.patch
-git-avr32.patch
-drm-spinlock-initializer-cleanup.patch
-git-dvb.patch
-s390-spinlock-initializer-cleanup.patch
-i386-hpet-check-if-the-counter-works.patch
-clockevents-fix-resume-logic-updated-version.patch
+8xx-mpc885ads-pcmcia-support.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+8xx-fix-whitespace-and-indentation.patch
+dts-kill-hardcoded-phandles.patch
+pcmcia-ppc64-needs-64-bit-ioaddr_t.patch
