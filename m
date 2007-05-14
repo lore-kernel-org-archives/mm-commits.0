@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + refine-screen_info-sanity-check-for-vgacon-initialization.patch added to -mm tree
-Date: Mon, 14 May 2007 14:45:20 -0700
-Message-ID: <200705142145.l4ELjKpA026949@shell0.pdx.osdl.net>
+Subject: + mm-swap-prefetch-improvements.patch added to -mm tree
+Date: Mon, 14 May 2007 15:00:43 -0700
+Message-ID: <200705142200.l4EM0hqw027249@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41587 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756651AbXENVpu (ORCPT
+	by vger.kernel.org with ESMTP id S1759922AbXENWAy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 17:45:50 -0400
+	Mon, 14 May 2007 18:00:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kraxel@redhat.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au
+Cc: kernel@kolivas.org
 
 
 The patch titled
-     Refine SCREEN_INFO sanity check for vgacon initialization
+     mm: swap prefetch improvements
 has been added to the -mm tree.  Its filename is
-     refine-screen_info-sanity-check-for-vgacon-initialization.patch
+     mm-swap-prefetch-improvements.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,427 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Refine SCREEN_INFO sanity check for vgacon initialization
-From: Gerd Hoffmann <kraxel@redhat.com>
+Subject: mm: swap prefetch improvements
+From: Con Kolivas <kernel@kolivas.org>
 
-Refine SCREEN_INFO sanity check for vgacon initialization.
+Numerous improvements to swap prefetch.
 
-Checking video mode field only to see whenever SCREEN_INFO is
-initialized is not enougth, in some cases it is zero although
-a vga card is present.  Lets additionally check cols and lines.
+It was possible for kprefetchd to go to sleep indefinitely before/after
+changing the /proc value of swap prefetch. Fix that.
 
-Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Alan <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+The cost of remove_from_swapped_list() can be removed from every page swapin
+by moving it to be done entirely by kprefetchd lazily.
+
+The call site for add_to_swapped_list need only be at one place.
+
+Wakeups can occur much less frequently if swap prefetch is disabled.
+
+Make it possible to enable swap prefetch explicitly via /proc when laptop_mode
+is enabled by changing the value of the sysctl to 2.
+
+The complicated iteration over every entry can be consolidated by using
+list_for_each_safe.
+
+Fix potential irq problem by converting read_lock_irq to irqsave etc.
+
+Code style fixes.
+
+Change the ioprio from IOPRIO_CLASS_IDLE to normal lower priority to ensure
+that bio requests are not starved if other I/O begins during prefetching.
+
+Signed-off-by: Con Kolivas <kernel@kolivas.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ Documentation/sysctl/vm.txt |    4 
+ mm/page_io.c                |    2 
+ mm/swap_prefetch.c          |  158 ++++++++++++++--------------------
+ mm/swap_state.c             |    2 
+ mm/vmscan.c                 |    1 
+ 5 files changed, 74 insertions(+), 93 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~refine-screen_info-sanity-check-for-vgacon-initialization drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~refine-screen_info-sanity-check-for-vgacon-initialization
-+++ a/drivers/video/console/vgacon.c
-@@ -368,9 +368,14 @@ static const char *vgacon_startup(void)
- #endif
+diff -puN Documentation/sysctl/vm.txt~mm-swap-prefetch-improvements Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-swap-prefetch-improvements
++++ a/Documentation/sysctl/vm.txt
+@@ -272,6 +272,8 @@ swap_prefetch
+ This enables or disables the swap prefetching feature. When the virtual
+ memory subsystem has been extremely idle for at least 5 seconds it will start
+ copying back pages from swap into the swapcache and keep a copy in swap. In
+-practice it can take many minutes before the vm is idle enough.
++practice it can take many minutes before the vm is idle enough. A value of 0
++disables swap prefetching, 1 enables it unless laptop_mode is enabled, and 2
++enables it even in the presence of laptop_mode.
+ 
+ The default value is 1.
+diff -puN mm/page_io.c~mm-swap-prefetch-improvements mm/page_io.c
+--- a/mm/page_io.c~mm-swap-prefetch-improvements
++++ a/mm/page_io.c
+@@ -17,6 +17,7 @@
+ #include <linux/bio.h>
+ #include <linux/swapops.h>
+ #include <linux/writeback.h>
++#include <linux/swap-prefetch.h>
+ #include <asm/pgtable.h>
+ 
+ static struct bio *get_swap_bio(gfp_t gfp_flags, pgoff_t index,
+@@ -118,6 +119,7 @@ int swap_writepage(struct page *page, st
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
++	add_to_swapped_list(page);
+ 	if (wbc->sync_mode == WB_SYNC_ALL)
+ 		rw |= (1 << BIO_RW_SYNC);
+ 	count_vm_event(PSWPOUT);
+diff -puN mm/swap_prefetch.c~mm-swap-prefetch-improvements mm/swap_prefetch.c
+--- a/mm/swap_prefetch.c~mm-swap-prefetch-improvements
++++ a/mm/swap_prefetch.c
+@@ -27,7 +27,8 @@
+  * needs to be at least this duration of idle time meaning in practice it can
+  * be much longer
+  */
+-#define PREFETCH_DELAY	(HZ * 5)
++#define PREFETCH_DELAY		(HZ * 5)
++#define DISABLED_PREFETCH_DELAY	(HZ * 60)
+ 
+ /* sysctl - enable/disable swap prefetching */
+ int swap_prefetch __read_mostly = 1;
+@@ -61,19 +62,30 @@ inline void delay_swap_prefetch(void)
+ }
+ 
+ /*
++ * If laptop_mode is enabled don't prefetch to avoid hard drives
++ * doing unnecessary spin-ups unless swap_prefetch is explicitly
++ * set to a higher value.
++ */
++static inline int prefetch_enabled(void)
++{
++	if (swap_prefetch <= laptop_mode)
++		return 0;
++	return 1;
++}
++
++static int wakeup_kprefetchd;
++
++/*
+  * Drop behind accounting which keeps a list of the most recently used swap
+- * entries.
++ * entries. Entries are removed lazily by kprefetchd.
+  */
+ void add_to_swapped_list(struct page *page)
+ {
+ 	struct swapped_entry *entry;
+ 	unsigned long index, flags;
+-	int wakeup;
+-
+-	if (!swap_prefetch)
+-		return;
+ 
+-	wakeup = 0;
++	if (!prefetch_enabled())
++		goto out;
+ 
+ 	spin_lock_irqsave(&swapped.lock, flags);
+ 	if (swapped.count >= swapped.maxcount) {
+@@ -103,23 +115,15 @@ void add_to_swapped_list(struct page *pa
+ 	store_swap_entry_node(entry, page);
+ 
+ 	if (likely(!radix_tree_insert(&swapped.swap_tree, index, entry))) {
+-		/*
+-		 * If this is the first entry, kprefetchd needs to be
+-		 * (re)started.
+-		 */
+-		if (!swapped.count)
+-			wakeup = 1;
+ 		list_add(&entry->swapped_list, &swapped.list);
+ 		swapped.count++;
  	}
  
-+	/* SCREEN_INFO initialized? */
-+	if ((ORIG_VIDEO_MODE  == 0) &&
-+	    (ORIG_VIDEO_LINES == 0) &&
-+	    (ORIG_VIDEO_COLS  == 0))
-+		goto no_vga;
-+
- 	/* VGA16 modes are not handled by VGACON */
--	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
--	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
-+	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
- 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
+ out_locked:
+ 	spin_unlock_irqrestore(&swapped.lock, flags);
+-
+-	/* Do the wakeup outside the lock to shorten lock hold time. */
+-	if (wakeup)
++out:
++	if (wakeup_kprefetchd)
+ 		wake_up_process(kprefetchd_task);
+-
+ 	return;
+ }
+ 
+@@ -139,7 +143,7 @@ void remove_from_swapped_list(const unsi
+ 	spin_lock_irqsave(&swapped.lock, flags);
+ 	entry = radix_tree_delete(&swapped.swap_tree, index);
+ 	if (likely(entry)) {
+-		list_del_init(&entry->swapped_list);
++		list_del(&entry->swapped_list);
+ 		swapped.count--;
+ 		kmem_cache_free(swapped.cache, entry);
+ 	}
+@@ -153,18 +157,18 @@ enum trickle_return {
+ };
+ 
+ struct node_stats {
+-	unsigned long	last_free;
+ 	/* Free ram after a cycle of prefetching */
+-	unsigned long	current_free;
++	unsigned long	last_free;
+ 	/* Free ram on this cycle of checking prefetch_suitable */
+-	unsigned long	prefetch_watermark;
++	unsigned long	current_free;
+ 	/* Maximum amount we will prefetch to */
+-	unsigned long	highfree[MAX_NR_ZONES];
++	unsigned long	prefetch_watermark;
+ 	/* The amount of free ram before we start prefetching */
+-	unsigned long	lowfree[MAX_NR_ZONES];
++	unsigned long	highfree[MAX_NR_ZONES];
+ 	/* The amount of free ram where we will stop prefetching */
+-	unsigned long	*pointfree[MAX_NR_ZONES];
++	unsigned long	lowfree[MAX_NR_ZONES];
+ 	/* highfree or lowfree depending on whether we've hit a watermark */
++	unsigned long	*pointfree[MAX_NR_ZONES];
+ };
+ 
+ /*
+@@ -172,10 +176,10 @@ struct node_stats {
+  * determine if a node is suitable for prefetching into.
+  */
+ struct prefetch_stats {
+-	nodemask_t	prefetch_nodes;
+ 	/* Which nodes are currently suited to prefetching */
+-	unsigned long	prefetched_pages;
++	nodemask_t	prefetch_nodes;
+ 	/* Total pages we've prefetched on this wakeup of kprefetchd */
++	unsigned long	prefetched_pages;
+ 	struct node_stats node[MAX_NUMNODES];
+ };
+ 
+@@ -189,16 +193,15 @@ static enum trickle_return trickle_swap_
+ 	const int node)
+ {
+ 	enum trickle_return ret = TRICKLE_FAILED;
++	unsigned long flags;
+ 	struct page *page;
+ 
+-	read_lock_irq(&swapper_space.tree_lock);
++	read_lock_irqsave(&swapper_space.tree_lock, flags);
+ 	/* Entry may already exist */
+ 	page = radix_tree_lookup(&swapper_space.page_tree, entry.val);
+-	read_unlock_irq(&swapper_space.tree_lock);
+-	if (page) {
+-		remove_from_swapped_list(entry.val);
++	read_unlock_irqrestore(&swapper_space.tree_lock, flags);
++	if (page)
+ 		goto out;
+-	}
+ 
+ 	/*
+ 	 * Get a new page to read from swap. We have already checked the
+@@ -217,10 +220,8 @@ static enum trickle_return trickle_swap_
+ 
+ 	/* Add them to the tail of the inactive list to preserve LRU order */
+ 	lru_cache_add_tail(page);
+-	if (unlikely(swap_readpage(NULL, page))) {
+-		ret = TRICKLE_DELAY;
++	if (unlikely(swap_readpage(NULL, page)))
+ 		goto out_release;
+-	}
+ 
+ 	sp_stat.prefetched_pages++;
+ 	sp_stat.node[node].last_free--;
+@@ -229,6 +230,12 @@ static enum trickle_return trickle_swap_
+ out_release:
+ 	page_cache_release(page);
+ out:
++	/*
++	 * All entries are removed here lazily. This avoids the cost of
++	 * remove_from_swapped_list during normal swapin. Thus there are
++	 * usually many stale entries.
++	 */
++	remove_from_swapped_list(entry.val);
+ 	return ret;
+ }
+ 
+@@ -414,17 +421,6 @@ out:
+ }
+ 
+ /*
+- * Get previous swapped entry when iterating over all entries. swapped.lock
+- * should be held and we should already ensure that entry exists.
+- */
+-static inline struct swapped_entry *prev_swapped_entry
+-	(struct swapped_entry *entry)
+-{
+-	return list_entry(entry->swapped_list.prev->prev,
+-		struct swapped_entry, swapped_list);
+-}
+-
+-/*
+  * trickle_swap is the main function that initiates the swap prefetching. It
+  * first checks to see if the busy flag is set, and does not prefetch if it
+  * is, as the flag implied we are low on memory or swapping in currently.
+@@ -435,70 +431,49 @@ static inline struct swapped_entry *prev
+ static enum trickle_return trickle_swap(void)
+ {
+ 	enum trickle_return ret = TRICKLE_DELAY;
+-	struct swapped_entry *entry;
++	struct list_head *p, *next;
+ 	unsigned long flags;
+ 
+-	/*
+-	 * If laptop_mode is enabled don't prefetch to avoid hard drives
+-	 * doing unnecessary spin-ups
+-	 */
+-	if (!swap_prefetch || laptop_mode)
++	if (!prefetch_enabled())
+ 		return ret;
+ 
+ 	examine_free_limits();
+-	entry = NULL;
++	if (!prefetch_suitable())
++		return ret;
++	if (list_empty(&swapped.list))
++		return TRICKLE_FAILED;
+ 
+-	for ( ; ; ) {
++	spin_lock_irqsave(&swapped.lock, flags);
++	list_for_each_safe(p, next, &swapped.list) {
++		struct swapped_entry *entry;
+ 		swp_entry_t swp_entry;
+ 		int node;
+ 
++		spin_unlock_irqrestore(&swapped.lock, flags);
++		might_sleep();
+ 		if (!prefetch_suitable())
+-			break;
++			goto out_unlocked;
+ 
+ 		spin_lock_irqsave(&swapped.lock, flags);
+-		if (list_empty(&swapped.list)) {
+-			ret = TRICKLE_FAILED;
+-			spin_unlock_irqrestore(&swapped.lock, flags);
+-			break;
+-		}
+-
+-		if (!entry) {
+-			/*
+-			 * This sets the entry for the first iteration. It
+-			 * also is a safeguard against the entry disappearing
+-			 * while the lock is not held.
+-			 */
+-			entry = list_entry(swapped.list.prev,
+-				struct swapped_entry, swapped_list);
+-		} else if (entry->swapped_list.prev == swapped.list.next) {
+-			/*
+-			 * If we have iterated over all entries and there are
+-			 * still entries that weren't swapped out there may
+-			 * be a reason we could not swap them back in so
+-			 * delay attempting further prefetching.
+-			 */
+-			spin_unlock_irqrestore(&swapped.lock, flags);
+-			break;
+-		}
+-
++		entry = list_entry(p, struct swapped_entry, swapped_list);
+ 		node = get_swap_entry_node(entry);
+ 		if (!node_isset(node, sp_stat.prefetch_nodes)) {
+ 			/*
+ 			 * We found an entry that belongs to a node that is
+ 			 * not suitable for prefetching so skip it.
+ 			 */
+-			entry = prev_swapped_entry(entry);
+-			spin_unlock_irqrestore(&swapped.lock, flags);
+ 			continue;
+ 		}
+ 		swp_entry = entry->swp_entry;
+-		entry = prev_swapped_entry(entry);
+ 		spin_unlock_irqrestore(&swapped.lock, flags);
+ 
+ 		if (trickle_swap_cache_async(swp_entry, node) == TRICKLE_DELAY)
+-			break;
++			goto out_unlocked;
++		spin_lock_irqsave(&swapped.lock, flags);
+ 	}
++	spin_unlock_irqrestore(&swapped.lock, flags);
+ 
++out_unlocked:
+ 	if (sp_stat.prefetched_pages) {
+ 		lru_add_drain();
+ 		sp_stat.prefetched_pages = 0;
+@@ -513,13 +488,14 @@ static int kprefetchd(void *__unused)
+ 	sched_setscheduler(current, SCHED_BATCH, &param);
+ 	set_user_nice(current, 19);
+ 	/* Set ioprio to lowest if supported by i/o scheduler */
+-	sys_ioprio_set(IOPRIO_WHO_PROCESS, 0, IOPRIO_CLASS_IDLE);
++	sys_ioprio_set(IOPRIO_WHO_PROCESS, IOPRIO_BE_NR - 1, IOPRIO_CLASS_BE);
+ 
+ 	/* kprefetchd has nothing to do until it is woken up the first time */
++	wakeup_kprefetchd = 1;
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 	schedule();
+ 
+-	do {
++	while (!kthread_should_stop()) {
+ 		try_to_freeze();
+ 
+ 		/*
+@@ -527,13 +503,17 @@ static int kprefetchd(void *__unused)
+ 		 * a wakeup, and further delay the next one.
+ 		 */
+ 		if (trickle_swap() == TRICKLE_FAILED) {
++			wakeup_kprefetchd = 1;
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule();
+-		}
++		} else
++			wakeup_kprefetchd = 0;
+ 		clear_last_prefetch_free();
+-		schedule_timeout_interruptible(PREFETCH_DELAY);
+-	} while (!kthread_should_stop());
+-
++		if (!prefetch_enabled())
++			schedule_timeout_interruptible(DISABLED_PREFETCH_DELAY);
++		else
++			schedule_timeout_interruptible(PREFETCH_DELAY);
++	}
+ 	return 0;
+ }
+ 
+diff -puN mm/swap_state.c~mm-swap-prefetch-improvements mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-prefetch-improvements
++++ a/mm/swap_state.c
+@@ -83,7 +83,6 @@ static int __add_to_swap_cache(struct pa
+ 		error = radix_tree_insert(&swapper_space.page_tree,
+ 						entry.val, page);
+ 		if (!error) {
+-			remove_from_swapped_list(entry.val);
+ 			page_cache_get(page);
+ 			SetPageLocked(page);
+ 			SetPageSwapCache(page);
+@@ -102,7 +101,6 @@ int add_to_swap_cache(struct page *page,
+ 	int error;
+ 
+ 	if (!swap_duplicate(entry)) {
+-		remove_from_swapped_list(entry.val);
+ 		INC_CACHE_INFO(noent_race);
+ 		return -ENOENT;
+ 	}
+diff -puN mm/vmscan.c~mm-swap-prefetch-improvements mm/vmscan.c
+--- a/mm/vmscan.c~mm-swap-prefetch-improvements
++++ a/mm/vmscan.c
+@@ -403,7 +403,6 @@ int remove_mapping(struct address_space 
+ 
+ 	if (PageSwapCache(page)) {
+ 		swp_entry_t swap = { .val = page_private(page) };
+-		add_to_swapped_list(page);
+ 		__delete_from_swap_cache(page);
+ 		write_unlock_irq(&mapping->tree_lock);
+ 		swap_free(swap);
 _
 
-Patches currently in -mm which might be from kraxel@redhat.com are
+Patches currently in -mm which might be from kernel@kolivas.org are
 
-refine-screen_info-sanity-check-for-vgacon-initialization.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+swap-prefetch-avoid-repeating-entry.patch
+mm-swap-prefetch-improvements.patch
+mm-swap-prefetch-more-improvements.patch
