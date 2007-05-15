@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-battery-warning-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 15:21:57 -0700
-Message-ID: <200705152225.l4FMP2Wi019509@shell0.pdx.osdl.net>
+Subject: + ds2760_battery-warning-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 15:23:10 -0700
+Message-ID: <200705152226.l4FMQFD8019523@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37341 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244AbXEOW0h (ORCPT
+	by vger.kernel.org with ESMTP id S1755244AbXEOW1u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 18:26:37 -0400
+	Tue, 15 May 2007 18:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, cbou@mail.ru
 
 
 The patch titled
-     git-battery-warning-fix
+     ds2760_battery warning fix
 has been added to the -mm tree.  Its filename is
-     git-battery-warning-fix.patch
+     ds2760_battery-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-battery-warning-fix
+Subject: ds2760_battery warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/power/power_supply_sysfs.c:253: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
-
-It is strange that this field has type size_t.
+drivers/power/ds2760_battery.c: In function 'ds2760_battery_read_status':
+drivers/power/ds2760_battery.c:125: warning: cast from pointer to integer of different size
 
 Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/power/ds2760_battery.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/power/power_supply_sysfs.c~git-battery-warning-fix drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~git-battery-warning-fix
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -250,7 +250,7 @@ int power_supply_uevent(struct device *d
- 			goto out;
+diff -puN drivers/power/ds2760_battery.c~ds2760_battery-warning-fix drivers/power/ds2760_battery.c
+--- a/drivers/power/ds2760_battery.c~ds2760_battery-warning-fix
++++ a/drivers/power/ds2760_battery.c
+@@ -122,8 +122,8 @@ static int ds2760_battery_read_status(st
+ 
+ 	ret = w1_ds2760_read(di->w1_dev, di->raw + start, start, count);
+ 	if (ret != count) {
+-		dev_warn(di->dev, "call to w1_ds2760_read failed (0x%08x)\n",
+-		         (unsigned int)di->w1_dev);
++		dev_warn(di->dev, "call to w1_ds2760_read failed (0x%p)\n",
++		         di->w1_dev);
+ 		return 1;
  	}
  
--	dev_dbg(dev, "%d dynamic props\n", psy->num_properties);
-+	dev_dbg(dev, "%zd dynamic props\n", psy->num_properties);
- 
- 	for (j = 0; j < psy->num_properties; j++) {
- 		struct device_attribute *attr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -147,3 +148,4 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
+ds2760_battery-warning-fix.patch
