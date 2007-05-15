@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slab-warn-on-zero-length-allocations.patch added to -mm tree
-Date: Tue, 15 May 2007 12:02:55 -0700
-Message-ID: <200705151902.l4FJ2tgu015229@shell0.pdx.osdl.net>
+Subject: + slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size.patch added to -mm tree
+Date: Tue, 15 May 2007 12:03:47 -0700
+Message-ID: <200705151903.l4FJ3lYr015244@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50742 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755947AbXEOTDD (ORCPT
+	by vger.kernel.org with ESMTP id S1754710AbXEOTD5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:03:03 -0400
+	Tue, 15 May 2007 15:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slab: warn on zero-length allocations
+     SLUB: It is legit to allocate a slab of the maximum permitted size
 has been added to the -mm tree.  Its filename is
-     slab-warn-on-zero-length-allocations.patch
+     slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab: warn on zero-length allocations
+Subject: SLUB: It is legit to allocate a slab of the maximum permitted size
 From: Christoph Lameter <clameter@sgi.com>
 
-slub warns on this, and we're working on making kmalloc(0) return NULL. 
-Let's make slab warn as well so our testers detect such callers more
-rapidly.
+Sorry I screwed up the comparison. It is only an error if we attempt
+to allocate a slab larger than the maximum allowed size.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/slub_def.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-warn-on-zero-length-allocations mm/slab.c
---- a/mm/slab.c~slab-warn-on-zero-length-allocations
-+++ a/mm/slab.c
-@@ -789,6 +789,7 @@ static inline struct kmem_cache *__find_
+diff -puN include/linux/slub_def.h~slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size
++++ a/include/linux/slub_def.h
+@@ -88,7 +88,7 @@ static inline int kmalloc_index(int size
  	 */
- 	BUG_ON(malloc_sizes[INDEX_AC].cs_cachep == NULL);
- #endif
-+	WARN_ON_ONCE(size == 0);
- 	while (size > csizep->cs_size)
- 		csizep++;
+ 	WARN_ON_ONCE(size == 0);
  
+-	if (size >= (1 << KMALLOC_SHIFT_HIGH))
++	if (size > (1 << KMALLOC_SHIFT_HIGH))
+ 		return -1;
+ 
+ 	if (size > 64 && size <= 96)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size.patch
 git-ubi.patch
 quicklist-support-for-x86_64.patch
 slab-allocators-drop-support-for-destructors.patch
