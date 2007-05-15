@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-core-hubc-loops-forever-on-resume-from-ram-due-to.patch added to -mm tree
-Date: Mon, 14 May 2007 22:42:24 -0700
-Message-ID: <200705150542.l4F5gNLB002491@shell0.pdx.osdl.net>
+Subject: + parport-mailing-list-is-subscribers-only.patch added to -mm tree
+Date: Mon, 14 May 2007 22:42:55 -0700
+Message-ID: <200705150542.l4F5gsrK002498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54450 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755836AbXEOFma (ORCPT
+	by vger.kernel.org with ESMTP id S1755836AbXEOFnd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:42:30 -0400
+	Tue, 15 May 2007 01:43:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lkml@rtr.ca, greg@kroah.com, mlord@pobox.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     usb/core/hub.c loops forever on resume from ram due to  bluetooth
+     parport: mailing list is subscribers-only
 has been added to the -mm tree.  Its filename is
-     usb-core-hubc-loops-forever-on-resume-from-ram-due-to.patch
+     parport-mailing-list-is-subscribers-only.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb/core/hub.c loops forever on resume from ram due to  bluetooth
-From: Mark Lord <lkml@rtr.ca>
+Subject: parport: mailing list is subscribers-only
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The root cause here was a missing CONFIG_USB_SUSPEND=y, which means the
-hci_usb device never got marked as USB_STATE_SUSPENDED, which then caused
-the loop to go on forever.
+linux-parport is subscribers-only:
 
-The system works fine now with CONFIG_USB_SUSPEND=y in the .config.
+Your mail to 'Linux-parport' with the subject
+    Re: [QUESTION] parallel console configuration
+Is being held until the list moderator can review it for approval.
+The reason it is being held:
+    Post by non-member to a members-only list
 
-Here's the patch to prevent future lockups for this or other causes.  I no
-longer need it, but it does still seem a good idea.
-
-Signed-off-by:  Mark Lord <mlord@pobox.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/core/hub.c~usb-core-hubc-loops-forever-on-resume-from-ram-due-to drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~usb-core-hubc-loops-forever-on-resume-from-ram-due-to
-+++ a/drivers/usb/core/hub.c
-@@ -400,9 +400,10 @@ static void hub_tt_kevent (struct work_s
- 	struct usb_hub		*hub =
- 		container_of(work, struct usb_hub, tt.kevent);
- 	unsigned long		flags;
-+	int			limit = 100;
+diff -puN MAINTAINERS~parport-mailing-list-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~parport-mailing-list-is-subscribers-only
++++ a/MAINTAINERS
+@@ -2717,13 +2717,13 @@ L:	i2c@lm-sensors.org
+ S:	Maintained
  
- 	spin_lock_irqsave (&hub->tt.lock, flags);
--	while (!list_empty (&hub->tt.clear_list)) {
-+	while (--limit && !list_empty (&hub->tt.clear_list)) {
- 		struct list_head	*temp;
- 		struct usb_tt_clear	*clear;
- 		struct usb_device	*hdev = hub->hdev;
+ PARALLEL PORT SUPPORT
+-L:	linux-parport@lists.infradead.org
++L:	linux-parport@lists.infradead.org (subscribers-only)
+ S:	Orphan
+ 
+ PARIDE DRIVERS FOR PARALLEL PORT IDE DEVICES
+ P:	Tim Waugh
+ M:	tim@cyberelk.net
+-L:	linux-parport@lists.infradead.org
++L:	linux-parport@lists.infradead.org (subscribers-only)
+ W:	http://www.torque.net/linux-pp.html
+ S:	Maintained
+ 
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-usb-core-hubc-loops-forever-on-resume-from-ram-due-to.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+parport-mailing-list-is-subscribers-only.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-kstrndup.patch
+add-argv_split.patch
+add-argv_split-fix.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
+add-common-orderly_poweroff-fix.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+profile-likely-unlikely-macros.patch
