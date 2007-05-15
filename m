@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-capi-20-driver.patch added to -mm tree
-Date: Mon, 14 May 2007 20:00:47 -0700
-Message-ID: <200705150300.l4F30lJi032700@shell0.pdx.osdl.net>
+Subject: + use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch added to -mm tree
+Date: Mon, 14 May 2007 20:00:51 -0700
+Message-ID: <200705150300.l4F30pJ0032703@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48999 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754298AbXEODBC (ORCPT
+	by vger.kernel.org with ESMTP id S1754331AbXEODBL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 23:01:02 -0400
+	Mon, 14 May 2007 23:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, kkeil@suse.de
+Cc: matthias.kaehlcke@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     Use mutex instead of semaphore in CAPI 2.0 driver
+     Use mutex instead of semaphore in the MTD ST M25Pxx driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use mutex instead of semaphore in CAPI 2.0 driver
+Subject: Use mutex instead of semaphore in the MTD ST M25Pxx driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The CAPI 2.0 driver uses a semaphore as mutex.  Use the mutex API instead of
-the (binary) semaphore.
+The MTD ST M25Pxx driver uses a semaphore as mutex.  Use the mutex API instead
+of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/kcapi.c  |    6 +++---
- include/linux/kernelcapi.h |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/mtd/devices/m25p80.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/isdn/capi/kcapi.c~use-mutex-instead-of-semaphore-in-capi-20-driver drivers/isdn/capi/kcapi.c
---- a/drivers/isdn/capi/kcapi.c~use-mutex-instead-of-semaphore-in-capi-20-driver
-+++ a/drivers/isdn/capi/kcapi.c
-@@ -258,7 +258,7 @@ static void recv_handler(struct work_str
- 	if ((!ap) || (ap->release_in_progress))
- 		return;
+diff -puN drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver
++++ a/drivers/mtd/devices/m25p80.c
+@@ -24,8 +24,7 @@
+ #include <linux/mtd/partitions.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/flash.h>
+-
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
  
--	down(&ap->recv_sem);
-+	mutex_lock(&ap->recv_mtx);
- 	while ((skb = skb_dequeue(&ap->recv_queue))) {
- 		if (CAPIMSG_CMD(skb->data) == CAPI_DATA_B3_IND)
- 			ap->nrecvdatapkt++;
-@@ -267,7 +267,7 @@ static void recv_handler(struct work_str
  
- 		ap->recv_message(ap, skb);
+ /* NOTE: AT 25F and SST 25LF series are very similar,
+@@ -201,13 +200,13 @@ static int m25p80_erase(struct mtd_info 
+ 	addr = instr->addr;
+ 	len = instr->len;
+ 
+-  	down(&flash->lock);
++	mutex_lock(&flash->lock);
+ 
+ 	/* now erase those sectors */
+ 	while (len) {
+ 		if (erase_sector(flash, addr)) {
+ 			instr->state = MTD_ERASE_FAILED;
+-			up(&flash->lock);
++			mutex_unlock(&flash->lock);
+ 			return -EIO;
+ 		}
+ 
+@@ -215,7 +214,7 @@ static int m25p80_erase(struct mtd_info 
+ 		len -= mtd->erasesize;
  	}
--	up(&ap->recv_sem);
-+	mutex_unlock(&ap->recv_mtx);
- }
  
- void capi_ctr_handle_message(struct capi_ctr * card, u16 appl, struct sk_buff *skb)
-@@ -547,7 +547,7 @@ u16 capi20_register(struct capi20_appl *
- 	ap->nsentctlpkt = 0;
- 	ap->nsentdatapkt = 0;
- 	ap->callback = NULL;
--	init_MUTEX(&ap->recv_sem);
-+	mutex_init(&ap->recv_mtx);
- 	skb_queue_head_init(&ap->recv_queue);
- 	INIT_WORK(&ap->recv_work, recv_handler);
- 	ap->release_in_progress = 0;
-diff -puN include/linux/kernelcapi.h~use-mutex-instead-of-semaphore-in-capi-20-driver include/linux/kernelcapi.h
---- a/include/linux/kernelcapi.h~use-mutex-instead-of-semaphore-in-capi-20-driver
-+++ a/include/linux/kernelcapi.h
-@@ -64,7 +64,7 @@ struct capi20_appl {
- 	unsigned long nrecvdatapkt;
- 	unsigned long nsentctlpkt;
- 	unsigned long nsentdatapkt;
--	struct semaphore recv_sem;
-+	struct mutex recv_mtx;
- 	struct sk_buff_head recv_queue;
- 	struct work_struct recv_work;
- 	int release_in_progress;
+-  	up(&flash->lock);
++	mutex_unlock(&flash->lock);
+ 
+ 	instr->state = MTD_ERASE_DONE;
+ 	mtd_erase_callback(instr);
+@@ -260,12 +259,12 @@ static int m25p80_read(struct mtd_info *
+ 	if (retlen)
+ 		*retlen = 0;
+ 
+-	down(&flash->lock);
++	mutex_lock(&flash->lock);
+ 
+ 	/* Wait till previous write/erase is done. */
+ 	if (wait_till_ready(flash)) {
+ 		/* REVISIT status return?? */
+-		up(&flash->lock);
++		mutex_unlock(&flash->lock);
+ 		return 1;
+ 	}
+ 
+@@ -281,7 +280,7 @@ static int m25p80_read(struct mtd_info *
+ 
+ 	*retlen = m.actual_length - sizeof(flash->command);
+ 
+-  	up(&flash->lock);
++	mutex_unlock(&flash->lock);
+ 
+ 	return 0;
+ }
+@@ -323,7 +322,7 @@ static int m25p80_write(struct mtd_info 
+ 	t[1].tx_buf = buf;
+ 	spi_message_add_tail(&t[1], &m);
+ 
+-  	down(&flash->lock);
++	mutex_lock(&flash->lock);
+ 
+ 	/* Wait until finished previous write command. */
+ 	if (wait_till_ready(flash))
+@@ -384,7 +383,7 @@ static int m25p80_write(struct mtd_info 
+ 	        }
+  	}
+ 
+-	up(&flash->lock);
++	mutex_unlock(&flash->lock);
+ 
+ 	return 0;
+ }
+@@ -456,7 +455,7 @@ static int __devinit m25p_probe(struct s
+ 		return -ENOMEM;
+ 
+ 	flash->spi = spi;
+-	init_MUTEX(&flash->lock);
++	mutex_init(&flash->lock);
+ 	dev_set_drvdata(&spi->dev, flash);
+ 
+ 	if (data->name)
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
