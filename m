@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-kconfig-clarification.patch added to -mm tree
-Date: Mon, 14 May 2007 22:56:54 -0700
-Message-ID: <200705150556.l4F5urhn002712@shell0.pdx.osdl.net>
+Subject: + gpio-interface-loosens-call-restrictions.patch added to -mm tree
+Date: Mon, 14 May 2007 22:56:51 -0700
+Message-ID: <200705150556.l4F5up7T002706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45236 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756111AbXEOF5V (ORCPT
+	by vger.kernel.org with ESMTP id S1756224AbXEOF5w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:57:21 -0400
+	Tue, 15 May 2007 01:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     rtc kconfig clarification
+     gpio interface loosens call restrictions
 has been added to the -mm tree.  Its filename is
-     rtc-kconfig-clarification.patch
+     gpio-interface-loosens-call-restrictions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc kconfig clarification
+Subject: gpio interface loosens call restrictions
 From: David Brownell <david-b@pacbell.net>
 
-Make drivers/rtc/Kconfig be clearer about what the various "interfaces"
-actually mean, by showing path names.
+Loosen gpio_{request,free}() and gpio_direction_{in,out}put() call context
+restrictions slightly, so a common idiom is no longer an error: board init
+code setting up spinlock-safe GPIOs before tasking is enabled.
+
+The issue was caught by some paranoid code with might_sleep() checks.  The
+legacy platform-specific GPIO interfaces stick to spinlock-safe GPIOs, so this
+change reflects current implementations and won't break anything.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/gpio.txt |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-kconfig-clarification drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-kconfig-clarification
-+++ a/drivers/rtc/Kconfig
-@@ -59,7 +59,7 @@ comment "RTC interfaces"
- 	depends on RTC_CLASS
+diff -puN Documentation/gpio.txt~gpio-interface-loosens-call-restrictions Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpio-interface-loosens-call-restrictions
++++ a/Documentation/gpio.txt
+@@ -111,7 +111,9 @@ setting up a platform_device using the G
  
- config RTC_INTF_SYSFS
--	boolean "sysfs"
-+	boolean "/sys/class/rtc/rtcN (sysfs)"
- 	depends on RTC_CLASS && SYSFS
- 	default RTC_CLASS
- 	help
-@@ -70,7 +70,7 @@ config RTC_INTF_SYSFS
- 	  will be called rtc-sysfs.
+ The return value is zero for success, else a negative errno.  It should
+ be checked, since the get/set calls don't have error returns and since
+-misconfiguration is possible.  (These calls could sleep.)
++misconfiguration is possible.  You should normally issue these calls from
++a task context.  However, for spinlock-safe GPIOs it's OK to use them
++before tasking is enabled, as part of early board setup.
  
- config RTC_INTF_PROC
--	boolean "proc"
-+	boolean "/proc/driver/rtc (procfs for rtc0)"
- 	depends on RTC_CLASS && PROC_FS
- 	default RTC_CLASS
- 	help
-@@ -82,7 +82,7 @@ config RTC_INTF_PROC
- 	  will be called rtc-proc.
+ For output GPIOs, the value provided becomes the initial output value.
+ This helps avoid signal glitching during system startup.
+@@ -197,7 +199,9 @@ However, many platforms don't currently 
  
- config RTC_INTF_DEV
--	boolean "dev"
-+	boolean "/dev/rtcN (character devices)"
- 	depends on RTC_CLASS
- 	default RTC_CLASS
- 	help
+ Passing invalid GPIO numbers to gpio_request() will fail, as will requesting
+ GPIOs that have already been claimed with that call.  The return value of
+-gpio_request() must be checked.  (These calls could sleep.)
++gpio_request() must be checked.  You should normally issue these calls from
++a task context.  However, for spinlock-safe GPIOs it's OK to request GPIOs
++before tasking is enabled, as part of early board setup.
+ 
+ These calls serve two basic purposes.  One is marking the signals which
+ are actually in use as GPIOs, for better diagnostics; systems may have
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
