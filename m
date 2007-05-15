@@ -1,62 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - git-hid-fixup.patch removed from -mm tree
-Date: Tue, 15 May 2007 01:44:24 -0700
-Message-ID: <200705150844.l4F8iNDb005434@shell0.pdx.osdl.net>
+Subject: + git-ubi-fixup.patch added to -mm tree
+Date: Tue, 15 May 2007 01:45:21 -0700
+Message-ID: <200705150845.l4F8jK2P005476@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55054 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759156AbXEOIo0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758527AbXEOIpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 04:44:26 -0400
+	Tue, 15 May 2007 04:45:23 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4F8iOhl001195
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4F8jLgN001226
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 01:44:25 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 01:45:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-hid-fixup
-has been removed from the -mm tree.  Its filename was
-     git-hid-fixup.patch
+     git-ubi-fixup
+has been added to the -mm tree.  Its filename is
+     git-ubi-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-hid-fixup
+Subject: git-ubi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/Kconfig |    5 -----
- 1 files changed, 5 deletions(-)
+ drivers/mtd/ubi/eba.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/hid/Kconfig~git-hid-fixup drivers/hid/Kconfig
---- a/drivers/hid/Kconfig~git-hid-fixup
-+++ a/drivers/hid/Kconfig
-@@ -36,10 +36,8 @@ config HID_DEBUG
+diff -puN drivers/mtd/ubi/eba.c~git-ubi-fixup drivers/mtd/ubi/eba.c
+--- a/drivers/mtd/ubi/eba.c~git-ubi-fixup
++++ a/drivers/mtd/ubi/eba.c
+@@ -940,9 +940,6 @@ static void ltree_entry_ctor(void *obj, 
+ {
+ 	struct ltree_entry *le = obj;
  
- 	If unsure, say N
- 
--<<<<<<< HEAD/drivers/hid/Kconfig
- source "drivers/hid/usbhid/Kconfig"
- 
--=======
- config HIDRAW
- 	bool "/dev/hidraw raw HID device support"
- 	depends on HID
-@@ -59,7 +57,4 @@ config HIDRAW
- 
- 	If unsure, say Y.
- 
+-	if (flags & SLAB_CTOR_CONSTRUCTOR)
+-		return;
 -
-->>>>>>> /drivers/hid/Kconfig
- endmenu
--
+ 	le->users = 0;
+ 	init_rwsem(&le->mutex);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +66,6 @@ git-dvb.patch
 cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-gfs2-nmw.patch
-git-hid-fixup.patch
 git-ieee1394.patch
 git-input.patch
 git-kvm.patch
@@ -81,6 +75,7 @@ pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
 git-mips-fixup.patch
 git-ubi.patch
+git-ubi-fixup.patch
 git-e1000.patch
 git-battery.patch
 git-nfs-server-cluster-locking-api-fixup.patch
