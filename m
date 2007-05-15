@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-make-kernel-locking-table-readable.patch added to -mm tree
-Date: Mon, 14 May 2007 22:45:07 -0700
-Message-ID: <200705150545.l4F5j7TE002554@shell0.pdx.osdl.net>
+Subject: + lguest-the-guest-code-tidyups-update.patch added to -mm tree
+Date: Mon, 14 May 2007 22:55:39 -0700
+Message-ID: <200705150555.l4F5tdQq002687@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37009 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756224AbXEOFpS (ORCPT
+	by vger.kernel.org with ESMTP id S1758394AbXEOF4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:45:18 -0400
+	Tue, 15 May 2007 01:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: rusty@rustcorp.com.au, jeff@garzik.org
 
 
 The patch titled
-     docbook: make kernel-locking table readable
+     lguest: guest tidyups
 has been added to the -mm tree.  Its filename is
-     docbook-make-kernel-locking-table-readable.patch
+     lguest-the-guest-code-tidyups-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,236 +26,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: docbook: make kernel-locking table readable
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: lguest: guest tidyups
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Andi Kleen pointed out to me that the kernel locking cheat sheet
-table entries are unreadable.
+Jeff Garzik argued forcefully that __pa() should not appear in
+drivers, and that struct netdevice's irq field should not be used.
+Christoph Hellwig suggested that I run sparse, and provide an
+lguest-specific wrapper for mapping/unmapping virtual device memory.
 
-Make table entries smaller so that pdf and ps output is readable
-(columns were being overwritten and garbled) by using abbreviations.
-This allows the tables to fit on one page cleanly.
-Add a Legend for the abbreviations:
-  SLIS: spin_lock_irqsave
-  SLI:  spin_lock_irq
-  SL:   spin_lock
-  SLBH: spin_lock_bh
-  DI:   down_interruptible
+Results:
+1) send-dma and bind-dma hypercall wrappers for drivers to use,
+2) formalization of the convention that devices can use the irq
+   corresponding to their index on the lguest_bus.
+3) Helper to map and unmap virtual device memory (not classic __iomem).
+4) lguest.c should include "lguest_bus.h" for lguest_devices declaration.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl |  123 ++++++++++++--------
- 1 file changed, 78 insertions(+), 45 deletions(-)
+ drivers/lguest/lguest.c     |   13 +++++++++++++
+ drivers/lguest/lguest_bus.c |    2 +-
+ include/linux/lguest_bus.h  |    4 ++++
+ 3 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~docbook-make-kernel-locking-table-readable Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~docbook-make-kernel-locking-table-readable
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -551,10 +551,12 @@
- 	<function>spin_lock_irqsave()</function>, which is a superset
- 	of all other spinlock primitives.
-    </para>
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-tidyups-update drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-tidyups-update
++++ a/drivers/lguest/lguest.c
+@@ -36,6 +36,7 @@
+ #include <asm/setup.h>
+ #include <asm/e820.h>
+ #include <asm/mce.h>
++#include <asm/io.h>
+ 
+ /* Declarations for definitions in lguest_guest.S */
+ extern char lguest_noirq_start[], lguest_noirq_end[];
+@@ -122,6 +123,18 @@ void lguest_unbind_dma(unsigned long key
+ 	hcall(LHCALL_BIND_DMA, key, __pa(dmas), 0);
+ }
+ 
++/* For guests, device memory can be used as normal memory, so we cast away the
++ * __iomem to quieten sparse. */
++void *lguest_map(unsigned long phys_addr, unsigned long pages)
++{
++	return (__force void *)ioremap(phys_addr, PAGE_SIZE*pages);
++}
 +
-    <table>
- <title>Table of Locking Requirements</title>
- <tgroup cols="11">
- <tbody>
++void lguest_unmap(void *addr)
++{
++	iounmap((__force void __iomem *)addr);
++}
 +
- <row>
- <entry></entry>
- <entry>IRQ Handler A</entry>
-@@ -576,97 +578,128 @@
+ static unsigned long save_fl(void)
+ {
+ 	return lguest_data.irq_enabled;
+diff -puN drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups-update drivers/lguest/lguest_bus.c
+--- a/drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups-update
++++ a/drivers/lguest/lguest_bus.c
+@@ -136,7 +136,7 @@ static int __init lguest_bus_init(void)
+ 		return 0;
  
- <row>
- <entry>IRQ Handler B</entry>
--<entry>spin_lock_irqsave</entry>
-+<entry>SLIS</entry>
- <entry>None</entry>
- </row>
+ 	/* Devices are in page above top of "normal" mem. */
+-	lguest_devices = (__force void*)ioremap(max_pfn<<PAGE_SHIFT,PAGE_SIZE);
++	lguest_devices = lguest_map(max_pfn<<PAGE_SHIFT, 1);
  
- <row>
- <entry>Softirq A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
- </row>
+ 	if (bus_register(&lguest_bus.bus) != 0
+ 	    || device_register(&lguest_bus.dev) != 0)
+diff -puN include/linux/lguest_bus.h~lguest-the-guest-code-tidyups-update include/linux/lguest_bus.h
+--- a/include/linux/lguest_bus.h~lguest-the-guest-code-tidyups-update
++++ a/include/linux/lguest_bus.h
+@@ -27,6 +27,10 @@ int lguest_bind_dma(unsigned long key, s
+ 		    unsigned int num, u8 irq);
+ void lguest_unbind_dma(unsigned long key, struct lguest_dma *dmas);
  
- <row>
- <entry>Softirq B</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- </row>
- 
- <row>
- <entry>Tasklet A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Tasklet B</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Timer A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Timer B</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>User Context A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>User Context B</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>DI</entry>
-+<entry>None</entry>
-+</row>
++/* Map the virtual device space */
++void *lguest_map(unsigned long phys_addr, unsigned long pages);
++void lguest_unmap(void *);
 +
-+</tbody>
-+</tgroup>
-+</table>
-+
-+   <table>
-+<title>Legend for Locking Requirements Table</title>
-+<tgroup cols="2">
-+<tbody>
-+
-+<row>
-+<entry>SLIS</entry>
-+<entry>spin_lock_irqsave</entry>
-+</row>
-+<row>
-+<entry>SLI</entry>
- <entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
-+</row>
-+<row>
-+<entry>SL</entry>
-+<entry>spin_lock</entry>
-+</row>
-+<row>
-+<entry>SLBH</entry>
- <entry>spin_lock_bh</entry>
-+</row>
-+<row>
-+<entry>DI</entry>
- <entry>down_interruptible</entry>
--<entry>None</entry>
- </row>
- 
- </tbody>
- </tgroup>
- </table>
-+
- </sect1>
- </chapter>
- 
+ struct lguest_driver {
+ 	const char *name;
+ 	struct module *owner;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-parport-mailing-list-is-subscribers-only.patch
-docbook-make-kernel-locking-table-readable.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-kstrndup.patch
-add-argv_split.patch
-add-argv_split-fix.patch
+xfs-clean-up-shrinker-games.patch
+refine-screen_info-sanity-check-for-vgacon-initialization.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+use-menuconfig-objects-ii-module-menu.patch
 split-usermodehelper-setup-from-execution.patch
-add-common-orderly_poweroff.patch
-add-common-orderly_poweroff-fix.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-profile-likely-unlikely-macros.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
+lguest-the-guest-code-tidyups.patch
+lguest-the-guest-code-tidyups-update.patch
+lguest-the-host-code.patch
+lguest-the-host-code-tidyups.patch
+lguest-the-host-code-tidyups-update.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-makefile-and-kconfig-tidyups.patch
+lguest-the-console-driver.patch
+lguest-the-console-driver-tidyups.patch
+lguest-the-net-driver.patch
+lguest-the-net-driver-tidyups.patch
+lguest-the-net-driver-tidyups-update.patch
+lguest-the-block-driver.patch
+lguest-the-block-driver-tidyups.patch
+lguest-the-block-driver-tidyups-update.patch
+lguest-the-documentation-example-launcher.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
