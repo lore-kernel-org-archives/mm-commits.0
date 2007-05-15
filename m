@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch added to -mm tree
-Date: Tue, 15 May 2007 15:11:01 -0700
-Message-ID: <200705152214.l4FME6L9019235@shell0.pdx.osdl.net>
+Subject: + git-battery-warning-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 15:21:57 -0700
+Message-ID: <200705152225.l4FMP2Wi019509@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755720AbXEOWQD (ORCPT
+	by vger.kernel.org with ESMTP id S1755244AbXEOW0h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 18:16:03 -0400
+	Tue, 15 May 2007 18:26:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, htejun@gmail.com
+Cc: akpm@linux-foundation.org, cbou@mail.ru
 
 
 The patch titled
-     gregkh-driver-sysfs-fix-error-handling-in-binattr-write-fix
+     git-battery-warning-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+     git-battery-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gregkh-driver-sysfs-fix-error-handling-in-binattr-write-fix
+Subject: git-battery-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/sysfs/bin.c: In function 'read':
-fs/sysfs/bin.c:58: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
+drivers/power/power_supply_sysfs.c:253: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
 
-How many times have we fixed this??
+It is strange that this field has type size_t.
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |    2 +-
+ drivers/power/power_supply_sysfs.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
-+++ a/fs/sysfs/bin.c
-@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
- 		goto out_unlock;
+diff -puN drivers/power/power_supply_sysfs.c~git-battery-warning-fix drivers/power/power_supply_sysfs.c
+--- a/drivers/power/power_supply_sysfs.c~git-battery-warning-fix
++++ a/drivers/power/power_supply_sysfs.c
+@@ -250,7 +250,7 @@ int power_supply_uevent(struct device *d
+ 			goto out;
  	}
  
--	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
-+	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
+-	dev_dbg(dev, "%d dynamic props\n", psy->num_properties);
++	dev_dbg(dev, "%zd dynamic props\n", psy->num_properties);
  
- 	*off = offs + count;
- 
+ 	for (j = 0; j < psy->num_properties; j++) {
+ 		struct device_attribute *attr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +77,7 @@ use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
 git-ubi.patch
 git-ubi-fixup.patch
 git-battery.patch
+git-battery-warning-fix.patch
 git-nfs.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 git-ocfs2.patch
