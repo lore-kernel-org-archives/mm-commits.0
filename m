@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + let-smp_call_function_single-return-ebusy-on-up-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 14:10:23 -0700
-Message-ID: <200705152113.l4FLDT8G018164@shell0.pdx.osdl.net>
+Subject: + i386-fix-machine-rebooting-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 14:11:26 -0700
+Message-ID: <200705152114.l4FLEVtM018190@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754046AbXEOVPY (ORCPT
+	by vger.kernel.org with ESMTP id S1754722AbXEOVRf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:15:24 -0400
+	Tue, 15 May 2007 17:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, heiko.carstens@de.ibm.com
+Cc: akpm@linux-foundation.org, ak@suse.de, lee-in-berlin@web.de, trux@truxton.com
 
 
 The patch titled
-     let-smp_call_function_single-return-ebusy-on-up-fix
+     i386-fix-machine-rebooting-fix
 has been added to the -mm tree.  Its filename is
-     let-smp_call_function_single-return-ebusy-on-up-fix.patch
+     i386-fix-machine-rebooting-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: let-smp_call_function_single-return-ebusy-on-up-fix
+Subject: i386-fix-machine-rebooting-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/i386/mach-default/setup.c:5:
-include/linux/smp.h: In function 'smp_call_function_single':
-include/linux/smp.h:104: error: 'EBUSY' undeclared (first use in this function)
-include/linux/smp.h:104: error: (Each undeclared identifier is reported only once
-include/linux/smp.h:104: error: for each function it appears in.)
-
 Cc: Andi Kleen <ak@suse.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Lee Garrett <lee-in-berlin@web.de>
+Cc: Truxton Fulton <trux@truxton.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    3 +++
- 1 file changed, 3 insertions(+)
+ include/asm-i386/mach-default/mach_reboot.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix include/linux/smp.h
---- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix
-+++ a/include/linux/smp.h
-@@ -9,12 +9,15 @@
- 
- extern void cpu_idle(void);
- 
-+#include <linux/errno.h>
+diff -puN include/asm-i386/mach-default/mach_reboot.h~i386-fix-machine-rebooting-fix include/asm-i386/mach-default/mach_reboot.h
+--- a/include/asm-i386/mach-default/mach_reboot.h~i386-fix-machine-rebooting-fix
++++ a/include/asm-i386/mach-default/mach_reboot.h
+@@ -35,6 +35,8 @@ static inline void mach_reboot(void)
+ 	 * system flag
+ 	 */
+ 	for (i = 0; i < 10; i++) {
++		int cmd;
 +
- #ifdef CONFIG_SMP
- 
- #include <linux/preempt.h>
- #include <linux/kernel.h>
- #include <linux/compiler.h>
- #include <linux/thread_info.h>
-+
- #include <asm/smp.h>
- 
- /*
+ 		outb(0x20, 0x64);	/* read Controller Command Byte */
+ 		udelay(50);
+ 		kb_wait();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +90,7 @@ i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
 x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
 git-newsetup-fixup.patch
 xfs-clean-up-shrinker-games.patch
 remove-slab_ctor_constructor-fix.patch
