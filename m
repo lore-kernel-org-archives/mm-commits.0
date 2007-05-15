@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch added to -mm tree
-Date: Mon, 14 May 2007 20:00:51 -0700
-Message-ID: <200705150300.l4F30pJ0032703@shell0.pdx.osdl.net>
+Subject: + use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch added to -mm tree
+Date: Mon, 14 May 2007 20:00:55 -0700
+Message-ID: <200705150300.l4F30t8O032712@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37876 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754331AbXEODBL (ORCPT
+	by vger.kernel.org with ESMTP id S1754558AbXEODBR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 23:01:11 -0400
+	Mon, 14 May 2007 23:01:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: matthias.kaehlcke@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     Use mutex instead of semaphore in the MTD ST M25Pxx driver
+     Use mutex instead of semaphore in the MTD DataFlash driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+     use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use mutex instead of semaphore in the MTD ST M25Pxx driver
+Subject: Use mutex instead of semaphore in the MTD DataFlash driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The MTD ST M25Pxx driver uses a semaphore as mutex.  Use the mutex API instead
+The MTD DataFlash driver uses a semaphore as mutex.  Use the mutex API instead
 of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
@@ -37,98 +37,92 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/mtd/devices/mtd_dataflash.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -24,8 +24,7 @@
- #include <linux/mtd/partitions.h>
+diff -puN drivers/mtd/devices/mtd_dataflash.c~use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver drivers/mtd/devices/mtd_dataflash.c
+--- a/drivers/mtd/devices/mtd_dataflash.c~use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver
++++ a/drivers/mtd/devices/mtd_dataflash.c
+@@ -14,6 +14,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/device.h>
++#include <linux/mutex.h>
  #include <linux/spi/spi.h>
  #include <linux/spi/flash.h>
--
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
  
+@@ -89,7 +90,7 @@ struct dataflash {
+ 	unsigned short		page_offset;	/* offset in flash address */
+ 	unsigned int		page_size;	/* of bytes per page */
  
- /* NOTE: AT 25F and SST 25LF series are very similar,
-@@ -201,13 +200,13 @@ static int m25p80_erase(struct mtd_info 
- 	addr = instr->addr;
- 	len = instr->len;
+-	struct semaphore	lock;
++	struct mutex		lock;
+ 	struct spi_device	*spi;
  
--  	down(&flash->lock);
-+	mutex_lock(&flash->lock);
+ 	struct mtd_info		mtd;
+@@ -167,7 +168,7 @@ static int dataflash_erase(struct mtd_in
+ 	x.len = 4;
+ 	spi_message_add_tail(&x, &msg);
  
- 	/* now erase those sectors */
- 	while (len) {
- 		if (erase_sector(flash, addr)) {
- 			instr->state = MTD_ERASE_FAILED;
--			up(&flash->lock);
-+			mutex_unlock(&flash->lock);
- 			return -EIO;
+-	down(&priv->lock);
++	mutex_lock(&priv->lock);
+ 	while (instr->len > 0) {
+ 		unsigned int	pageaddr;
+ 		int		status;
+@@ -210,7 +211,7 @@ static int dataflash_erase(struct mtd_in
+ 			instr->len -= priv->page_size;
  		}
- 
-@@ -215,7 +214,7 @@ static int m25p80_erase(struct mtd_info 
- 		len -= mtd->erasesize;
  	}
+-	up(&priv->lock);
++	mutex_unlock(&priv->lock);
  
--  	up(&flash->lock);
-+	mutex_unlock(&flash->lock);
- 
+ 	/* Inform MTD subsystem that erase is complete */
  	instr->state = MTD_ERASE_DONE;
- 	mtd_erase_callback(instr);
-@@ -260,12 +259,12 @@ static int m25p80_read(struct mtd_info *
- 	if (retlen)
- 		*retlen = 0;
+@@ -266,7 +267,7 @@ static int dataflash_read(struct mtd_inf
+ 	x[1].len = len;
+ 	spi_message_add_tail(&x[1], &msg);
  
--	down(&flash->lock);
-+	mutex_lock(&flash->lock);
+-	down(&priv->lock);
++	mutex_lock(&priv->lock);
  
- 	/* Wait till previous write/erase is done. */
- 	if (wait_till_ready(flash)) {
- 		/* REVISIT status return?? */
--		up(&flash->lock);
-+		mutex_unlock(&flash->lock);
- 		return 1;
+ 	/* Continuous read, max clock = f(car) which may be less than
+ 	 * the peak rate available.  Some chips support commands with
+@@ -279,7 +280,7 @@ static int dataflash_read(struct mtd_inf
+ 	/* plus 4 "don't care" bytes */
+ 
+ 	status = spi_sync(priv->spi, &msg);
+-	up(&priv->lock);
++	mutex_unlock(&priv->lock);
+ 
+ 	if (status >= 0) {
+ 		*retlen = msg.actual_length - 8;
+@@ -336,7 +337,7 @@ static int dataflash_write(struct mtd_in
+ 	else
+ 		writelen = len;
+ 
+-	down(&priv->lock);
++	mutex_lock(&priv->lock);
+ 	while (remaining > 0) {
+ 		DEBUG(MTD_DEBUG_LEVEL3, "write @ %i:%i len=%i\n",
+ 			pageaddr, offset, writelen);
+@@ -441,7 +442,7 @@ static int dataflash_write(struct mtd_in
+ 		else
+ 			writelen = remaining;
  	}
+-	up(&priv->lock);
++	mutex_unlock(&priv->lock);
  
-@@ -281,7 +280,7 @@ static int m25p80_read(struct mtd_info *
- 
- 	*retlen = m.actual_length - sizeof(flash->command);
- 
--  	up(&flash->lock);
-+	mutex_unlock(&flash->lock);
- 
- 	return 0;
+ 	return status;
  }
-@@ -323,7 +322,7 @@ static int m25p80_write(struct mtd_info 
- 	t[1].tx_buf = buf;
- 	spi_message_add_tail(&t[1], &m);
- 
--  	down(&flash->lock);
-+	mutex_lock(&flash->lock);
- 
- 	/* Wait until finished previous write command. */
- 	if (wait_till_ready(flash))
-@@ -384,7 +383,7 @@ static int m25p80_write(struct mtd_info 
- 	        }
-  	}
- 
--	up(&flash->lock);
-+	mutex_unlock(&flash->lock);
- 
- 	return 0;
- }
-@@ -456,7 +455,7 @@ static int __devinit m25p_probe(struct s
+@@ -463,7 +464,7 @@ add_dataflash(struct spi_device *spi, ch
+ 	if (!priv)
  		return -ENOMEM;
  
- 	flash->spi = spi;
--	init_MUTEX(&flash->lock);
-+	mutex_init(&flash->lock);
- 	dev_set_drvdata(&spi->dev, flash);
- 
- 	if (data->name)
+-	init_MUTEX(&priv->lock);
++	mutex_init(&priv->lock);
+ 	priv->spi = spi;
+ 	priv->page_size = pagesize;
+ 	priv->page_offset = pageoffset;
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
