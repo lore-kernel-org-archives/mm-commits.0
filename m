@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch added to -mm tree
-Date: Mon, 14 May 2007 21:47:28 -0700
-Message-ID: <200705150447.l4F4lRoO001677@shell0.pdx.osdl.net>
+Subject: + slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch added to -mm tree
+Date: Mon, 14 May 2007 21:54:30 -0700
+Message-ID: <200705150454.l4F4sUU1001791@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48987 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756016AbXEOErc (ORCPT
+	by vger.kernel.org with ESMTP id S1760710AbXEOEyd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 00:47:32 -0400
+	Tue, 15 May 2007 00:54:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     SLAB: Move two remaining SLAB specific definitions to slab_def.h
+     slub-define-functions-for-cpu-slab-handling-instead-of-using-fix
 has been added to the -mm tree.  Its filename is
-     slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
+     slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,115 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLAB: Move two remaining SLAB specific definitions to slab_def.h
-From: Christoph Lameter <clameter@sgi.com>
+Subject: slub-define-functions-for-cpu-slab-handling-instead-of-using-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Two definitions remained in slab.h that are particular to the SLAB allocator.
-Move to slab_def.h
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h     |    3 ---
- include/linux/slab_def.h |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/slab_def.h~slab-move-two-remaining-slab-specific-definitions-to-slab_defh include/linux/slab_def.h
---- a/include/linux/slab_def.h~slab-move-two-remaining-slab-specific-definitions-to-slab_defh
-+++ a/include/linux/slab_def.h
-@@ -109,4 +109,7 @@ found:
+diff -puN mm/slub.c~slub-define-functions-for-cpu-slab-handling-instead-of-using-fix mm/slub.c
+--- a/mm/slub.c~slub-define-functions-for-cpu-slab-handling-instead-of-using-fix
++++ a/mm/slub.c
+@@ -78,7 +78,7 @@
+  *
+  * Overloading of page flags that are otherwise used for LRU management.
+  *
+- * PageActive 		The slab is frozen and excempt from list processing.
++ * PageActive 		The slab is frozen and exempt from list processing.
+  * 			This means that the slab is dedicated to a purpose
+  * 			such as satisfying allocations for a specific
+  * 			processor. Objects may be freed in the slab while
+@@ -111,7 +111,7 @@ static inline void SetSlabFrozen(struct 
  
- #endif	/* CONFIG_NUMA */
+ static inline void ClearSlabFrozen(struct page *page)
+ {
+-	__ClearPageActive(page);
++	ClearPageActive(page);
+ }
  
-+extern const struct seq_operations slabinfo_op;
-+ssize_t slabinfo_write(struct file *, const char __user *, size_t, loff_t *);
-+
- #endif	/* _LINUX_SLAB_DEF_H */
-diff -puN include/linux/slab.h~slab-move-two-remaining-slab-specific-definitions-to-slab_defh include/linux/slab.h
---- a/include/linux/slab.h~slab-move-two-remaining-slab-specific-definitions-to-slab_defh
-+++ a/include/linux/slab.h
-@@ -230,9 +230,6 @@ extern void *__kmalloc_node_track_caller
- 
- #endif /* DEBUG_SLAB */
- 
--extern const struct seq_operations slabinfo_op;
--ssize_t slabinfo_write(struct file *, const char __user *, size_t, loff_t *);
--
- #endif	/* __KERNEL__ */
- #endif	/* _LINUX_SLAB_H */
- 
+ static inline int SlabDebug(struct page *page)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slub-config_large_allocs-must-consider-max_order-limit.patch
 slub-config_large_allocs-must-consider-max_order-limit-fix.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+revert-input-alps-handle-errors-from-input_register_device.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
 git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
 remove-slab_ctor_constructor-fix.patch
-slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
-slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
 change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
