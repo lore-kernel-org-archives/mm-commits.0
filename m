@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-x-pci-express-read-control-interfaces-e1000.patch added to -mm tree
-Date: Tue, 15 May 2007 12:38:48 -0700
-Message-ID: <200705151938.l4FJcmWa015923@shell0.pdx.osdl.net>
+Subject: + wrong-memory-access-in-i2o_block_device_lock.patch added to -mm tree
+Date: Tue, 15 May 2007 12:49:46 -0700
+Message-ID: <200705151949.l4FJnkXG016206@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39829 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46847 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762444AbXEOTjO (ORCPT
+	by vger.kernel.org with ESMTP id S1754123AbXEOTuj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:39:14 -0400
+	Tue, 15 May 2007 15:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.oruba@amd.com, auke-jan.h.kok@intel.com, jeff@garzik.org, shemminger@linux-foundation.org
+Cc: vvs@sw.ru, Markus.Lidel@shadowconnect.com, alan@lxorguk.ukuu.org.uk, dev@openvz.org
 
 
 The patch titled
-     PCI-X/PCI-Express read control interfaces: use them in e1000
+     wrong memory access in i2o_block_device_lock()
 has been added to the -mm tree.  Its filename is
-     pci-x-pci-express-read-control-interfaces-e1000.patch
+     wrong-memory-access-in-i2o_block_device_lock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,111 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PCI-X/PCI-Express read control interfaces: use them in e1000
-From: "Peter Oruba" <peter.oruba@amd.com>
+Subject: wrong memory access in i2o_block_device_lock()
+From: Vasily Averin <vvs@sw.ru>
 
-These driver changes incorporate the proposed PCI-X / PCI-Express read byte
-count interface.  Reading and setting those valuse doesn't take place
-"manually", instead wrapping functions are called to allow quirks for some
-PCI bridges.
+This patch fixes access to memory that has not been allocated:
+i2o_msg_get_wait() can returns errors different from I2O_QUEUE_EMPTY.  But the
+result is checked only against this code.  If it is not I2O_QUEUE_EMPTY then
+we dereference the error code as the pointer later.
 
-Signed-off by: Peter Oruba <peter.oruba@amd.com>
-Based on work by Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Vasily Averin <vvs@sw.ru>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Acked-by: Kirill Korotaev <dev@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_hw.c   |   25 +++----------------------
- drivers/net/e1000/e1000_hw.h   |    2 ++
- drivers/net/e1000/e1000_main.c |   14 ++++++++++++++
- 3 files changed, 19 insertions(+), 22 deletions(-)
+ drivers/message/i2o/i2o_block.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.c
---- a/drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000
-+++ a/drivers/net/e1000/e1000_hw.c
-@@ -865,10 +865,6 @@ e1000_init_hw(struct e1000_hw *hw)
-     uint32_t ctrl;
-     uint32_t i;
-     int32_t ret_val;
--    uint16_t pcix_cmd_word;
--    uint16_t pcix_stat_hi_word;
--    uint16_t cmd_mmrbc;
--    uint16_t stat_mmrbc;
-     uint32_t mta_size;
-     uint32_t reg_data;
-     uint32_t ctrl_ext;
-@@ -958,24 +954,9 @@ e1000_init_hw(struct e1000_hw *hw)
-         break;
-     default:
-         /* Workaround for PCI-X problem when BIOS sets MMRBC incorrectly. */
--        if (hw->bus_type == e1000_bus_type_pcix) {
--            e1000_read_pci_cfg(hw, PCIX_COMMAND_REGISTER, &pcix_cmd_word);
--            e1000_read_pci_cfg(hw, PCIX_STATUS_REGISTER_HI,
--                &pcix_stat_hi_word);
--            cmd_mmrbc = (pcix_cmd_word & PCIX_COMMAND_MMRBC_MASK) >>
--                PCIX_COMMAND_MMRBC_SHIFT;
--            stat_mmrbc = (pcix_stat_hi_word & PCIX_STATUS_HI_MMRBC_MASK) >>
--                PCIX_STATUS_HI_MMRBC_SHIFT;
--            if (stat_mmrbc == PCIX_STATUS_HI_MMRBC_4K)
--                stat_mmrbc = PCIX_STATUS_HI_MMRBC_2K;
--            if (cmd_mmrbc > stat_mmrbc) {
--                pcix_cmd_word &= ~PCIX_COMMAND_MMRBC_MASK;
--                pcix_cmd_word |= stat_mmrbc << PCIX_COMMAND_MMRBC_SHIFT;
--                e1000_write_pci_cfg(hw, PCIX_COMMAND_REGISTER,
--                    &pcix_cmd_word);
--            }
--        }
--        break;
-+	if (hw->bus_type == e1000_bus_type_pcix && e1000_pcix_get_mmrbc(hw) > 2048)
-+		e1000_pcix_set_mmrbc(hw, 2048);
-+	break;
-     }
+diff -puN drivers/message/i2o/i2o_block.c~wrong-memory-access-in-i2o_block_device_lock drivers/message/i2o/i2o_block.c
+--- a/drivers/message/i2o/i2o_block.c~wrong-memory-access-in-i2o_block_device_lock
++++ a/drivers/message/i2o/i2o_block.c
+@@ -215,7 +215,7 @@ static int i2o_block_device_lock(struct 
+ 	struct i2o_message *msg;
  
-     /* More time needed for PHY to initialize */
-diff -puN drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.h
---- a/drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000
-+++ a/drivers/net/e1000/e1000_hw.h
-@@ -424,6 +424,8 @@ void e1000_pci_clear_mwi(struct e1000_hw
- void e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
- void e1000_write_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
- int32_t e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value);
-+void e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc);
-+int e1000_pcix_get_mmrbc(struct e1000_hw *hw);
- /* Port I/O is only supported on 82544 and newer */
- void e1000_io_write(struct e1000_hw *hw, unsigned long port, uint32_t value);
- int32_t e1000_disable_pciex_master(struct e1000_hw *hw);
-diff -puN drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -4912,6 +4912,20 @@ e1000_write_pci_cfg(struct e1000_hw *hw,
- 	pci_write_config_word(adapter->pdev, reg, *value);
- }
+ 	msg = i2o_msg_get_wait(dev->iop, I2O_TIMEOUT_MESSAGE_GET);
+-	if (IS_ERR(msg) == I2O_QUEUE_EMPTY)
++	if (IS_ERR(msg))
+ 		return PTR_ERR(msg);
  
-+int
-+e1000_pcix_get_mmrbc(struct e1000_hw *hw)
-+{
-+	struct e1000_adapter *adapter = hw->back;
-+	return pcix_get_mmrbc(adapter->pdev);
-+}
-+
-+void
-+e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc)
-+{
-+	struct e1000_adapter *adapter = hw->back;
-+	pcix_set_mmrbc(adapter->pdev, mmrbc);
-+}
-+
- int32_t
- e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
- {
+ 	msg->u.head[0] = cpu_to_le32(FIVE_WORD_MSG_SIZE | SGL_OFFSET_0);
 _
 
-Patches currently in -mm which might be from peter.oruba@amd.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-pci-x-pci-express-read-control-interfaces.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
