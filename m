@@ -1,94 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - slub-config_large_allocs-must-consider-max_order-limit.patch removed from -mm tree
-Date: Tue, 15 May 2007 11:07:29 -0700
-Message-ID: <200705151807.l4FI7S9l014168@shell0.pdx.osdl.net>
+Subject: - remove-cpu-hotplug-defines-for-__init-__initdata.patch removed from -mm tree
+Date: Tue, 15 May 2007 11:07:21 -0700
+Message-ID: <200705151807.l4FI7Kon014159@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51710 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755427AbXEOSHw (ORCPT
+	by vger.kernel.org with ESMTP id S1755616AbXEOSHw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 15 May 2007 14:07:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: prarit@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: CONFIG_LARGE_ALLOCS must consider MAX_ORDER limit
+     Remove cpu hotplug defines for __INIT & __INITDATA
 has been removed from the -mm tree.  Its filename was
-     slub-config_large_allocs-must-consider-max_order-limit.patch
+     remove-cpu-hotplug-defines-for-__init-__initdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: CONFIG_LARGE_ALLOCS must consider MAX_ORDER limit
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Remove cpu hotplug defines for __INIT & __INITDATA
+From: Prarit Bhargava <prarit@redhat.com>
 
-Take MAX_ORDER into consideration when determining KMALLOC_SHIFT_HIGH. 
-Otherwise we may run into a situation where we attempt to create general
-slabs larger than MAX_ORDER.
+After examining what was checked in and the code base I discovered that most
+of 86c0baf123e474b6eb404798926ecf62b426bf3a wasn't necessary anymore....
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+So here's a patch that reverts the last part of that changeset:
+
+Revert part of 86c0baf123e474b6eb404798926ecf62b426bf3a.
+
+The kernel has moved forward to a state where the original change is not
+necessary.  After porting forward, this final version of the patch was
+applied and broke non-x86 architectures.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/init.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-config_large_allocs-must-consider-max_order-limit include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-config_large_allocs-must-consider-max_order-limit
-+++ a/include/linux/slub_def.h
-@@ -60,7 +60,8 @@ struct kmem_cache {
- #define KMALLOC_SHIFT_LOW 3
+diff -puN include/linux/init.h~remove-cpu-hotplug-defines-for-__init-__initdata include/linux/init.h
+--- a/include/linux/init.h~remove-cpu-hotplug-defines-for-__init-__initdata
++++ a/include/linux/init.h
+@@ -52,14 +52,9 @@
+ #endif
  
- #ifdef CONFIG_LARGE_ALLOCS
--#define KMALLOC_SHIFT_HIGH 25
-+#define KMALLOC_SHIFT_HIGH ((MAX_ORDER + PAGE_SHIFT) =< 25 ? \
-+				(MAX_ORDER + PAGE_SHIFT - 1) : 25)
- #else
- #if !defined(CONFIG_MMU) || NR_CPUS > 512 || MAX_NUMNODES > 256
- #define KMALLOC_SHIFT_HIGH 20
-@@ -87,6 +88,9 @@ static inline int kmalloc_index(int size
- 	 */
- 	WARN_ON_ONCE(size == 0);
+ /* For assembly routines */
+-#ifdef CONFIG_HOTPLUG_CPU
+-#define __INIT		.section	".text","ax"
+-#define __INITDATA	.section	".data","aw"
+-#else
+ #define __INIT		.section	".init.text","ax"
+-#define __INITDATA	.section	".init.data","aw"
+-#endif
+ #define __FINIT		.previous
++#define __INITDATA	.section	".init.data","aw"
  
-+	if (size >= (1 << KMALLOC_SHIFT_HIGH))
-+		return -1;
-+
- 	if (size > 64 && size <= 96)
- 		return 1;
- 	if (size > 128 && size <= 192)
+ #ifndef __ASSEMBLY__
+ /*
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from prarit@redhat.com are
 
 origin.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
-remove-slab_ctor_constructor-fix.patch
-slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
-slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
