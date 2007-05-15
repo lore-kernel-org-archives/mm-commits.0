@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 14:55:59 -0700
-Message-ID: <200705152159.l4FLx41s018939@shell0.pdx.osdl.net>
+Subject: + use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 14:57:59 -0700
+Message-ID: <200705152201.l4FM15nB019014@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755024AbXEOV7p (ORCPT
+	by vger.kernel.org with ESMTP id S1755218AbXEOWDg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:59:45 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4FM19US001286
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 15:01:46 -0700
+	Tue, 15 May 2007 18:03:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org, matthias.kaehlcke@gmail.com
 
 
 The patch titled
-     reiser4-fix
+     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
 has been added to the -mm tree.  Its filename is
-     reiser4-fix.patch
+     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,29 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiser4-fix
+Subject: use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/mtd/devices/m25p80.c: In function 'm25p80_erase':
+drivers/mtd/devices/m25p80.c:203: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:209: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:217: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c: In function 'm25p80_read':
+drivers/mtd/devices/m25p80.c:262: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:267: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:283: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c: In function 'm25p80_write':
+drivers/mtd/devices/m25p80.c:325: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:386: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c: In function 'm25p_probe':
+drivers/mtd/devices/m25p80.c:458: warning: passing argument 1 of '__mutex_init' from incompatible pointer type
 
+eh?
 
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/super.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mtd/devices/m25p80.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiser4/super.h~reiser4-fix fs/reiser4/super.h
---- a/fs/reiser4/super.h~reiser4-fix
-+++ a/fs/reiser4/super.h
-@@ -6,6 +6,8 @@
- #if !defined( __REISER4_SUPER_H__ )
- #define __REISER4_SUPER_H__
+diff -puN drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
++++ a/drivers/mtd/devices/m25p80.c
+@@ -64,7 +64,7 @@
  
-+#include <linux/exportfs.h>
-+
- #include "tree.h"
- #include "entd.h"
- #include "wander.h"
+ struct m25p {
+ 	struct spi_device	*spi;
+-	struct semaphore	lock;
++	struct mutex		lock;
+ 	struct mtd_info		mtd;
+ 	unsigned		partitioned;
+ 	u8			command[4];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +85,7 @@ git-leds-fixup.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
 git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
 git-ubi.patch
 git-ubi-fixup.patch
 git-battery.patch
