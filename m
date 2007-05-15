@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + let-smp_call_function_single-return-ebusy-on-up-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 14:02:20 -0700
-Message-ID: <200705152105.l4FL5RrY018046@shell0.pdx.osdl.net>
+Date: Tue, 15 May 2007 14:10:23 -0700
+Message-ID: <200705152113.l4FLDT8G018164@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54441 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbXEOVHW (ORCPT
+	by vger.kernel.org with ESMTP id S1754046AbXEOVPY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:07:22 -0400
+	Tue, 15 May 2007 17:15:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -40,17 +40,24 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/smp.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
 diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix include/linux/smp.h
 --- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix
 +++ a/include/linux/smp.h
-@@ -15,6 +15,8 @@ extern void cpu_idle(void);
+@@ -9,12 +9,15 @@
+ 
+ extern void cpu_idle(void);
+ 
++#include <linux/errno.h>
++
+ #ifdef CONFIG_SMP
+ 
+ #include <linux/preempt.h>
  #include <linux/kernel.h>
  #include <linux/compiler.h>
  #include <linux/thread_info.h>
-+#include <linux/errno.h>
 +
  #include <asm/smp.h>
  
