@@ -1,91 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + i386-fix-machine-rebooting.patch added to -mm tree
-Date: Mon, 14 May 2007 15:55:48 -0700
-Message-ID: <200705142255.l4EMtmbT028487@shell0.pdx.osdl.net>
+Subject: - pcmcia-ppc64-needs-64-bit-ioaddr_t.patch removed from -mm tree
+Date: Mon, 14 May 2007 17:05:21 -0700
+Message-ID: <200705150005.l4F05LLL029678@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58122 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756367AbXENWz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754259AbXEOAFm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 18:55:56 -0400
+	Mon, 14 May 2007 20:05:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: trux@truxton.com, ak@suse.de, lee-in-berlin@web.de
+To: olof@lixom.net, benh@kernel.crashing.org, linux@dominikbrodowski.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: fix machine rebooting
-has been added to the -mm tree.  Its filename is
-     i386-fix-machine-rebooting.patch
+     pcmcia: ppc64 needs 64-bit ioaddr_t
+has been removed from the -mm tree.  Its filename was
+     pcmcia-ppc64-needs-64-bit-ioaddr_t.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: i386: fix machine rebooting
-From: Truxton Fulton <trux@truxton.com>
+Subject: pcmcia: ppc64 needs 64-bit ioaddr_t
+From: Olof Johansson <olof@lixom.net>
 
-59f4e7d572980a521b7bdba74ab71b21f5995538 fixed machine rebooting on Truxton's
-machine (when no keyboard was present).  But it broke it on Lee's machine.
+ppc64 really needs ioaddr_t to be 64-bit, since I/O addresses really
+are MMIO addresses, and remapped to a high range.
 
-The patch reinstates the old (pre-59f4e7d572980a521b7bdba74ab71b21f5995538)
-code and if that doesn't work out, try the new,
-post-59f4e7d572980a521b7bdba74ab71b21f5995538 code instead.
+While the type is exported to userspace, there hasn't been any platforms
+with PCMCIA on 64-bit powerpc until now, so changing it won't regress
+any existing users.
 
-Cc: Lee Garrett <lee-in-berlin@web.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/mach-default/mach_reboot.h |   23 +++++++++++++++++-
- 1 files changed, 22 insertions(+), 1 deletion(-)
+ include/pcmcia/cs_types.h |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/mach-default/mach_reboot.h~i386-fix-machine-rebooting include/asm-i386/mach-default/mach_reboot.h
---- a/include/asm-i386/mach-default/mach_reboot.h~i386-fix-machine-rebooting
-+++ a/include/asm-i386/mach-default/mach_reboot.h
-@@ -19,14 +19,35 @@ static inline void kb_wait(void)
- static inline void mach_reboot(void)
- {
- 	int i;
+diff -puN include/pcmcia/cs_types.h~pcmcia-ppc64-needs-64-bit-ioaddr_t include/pcmcia/cs_types.h
+--- a/include/pcmcia/cs_types.h~pcmcia-ppc64-needs-64-bit-ioaddr_t
++++ a/include/pcmcia/cs_types.h
+@@ -21,12 +21,16 @@
+ #include <sys/types.h>
+ #endif
+ 
+-#if defined(__arm__) || defined(__mips__)
++#if defined(__powerpc64__)
++/* I/O addresses are really MMIO addresses on PPC, and can thus be 64 bits */
++typedef unsigned long ioaddr_t;
++#elif defined(__arm__) || defined(__mips__)
+ /* This (ioaddr_t) is exposed to userspace & hence cannot be changed. */
+ typedef u_int   ioaddr_t;
+ #else
+ typedef u_short	ioaddr_t;
+ #endif
 +
-+	/* old method, works on most machines */
-+	for (i = 0; i < 10; i++) {
-+		kb_wait();
-+		udelay(50);
-+		outb(0xfe, 0x64);	/* pulse reset low */
-+		udelay(50);
-+	}
-+
-+	/* New method: sets the "System flag" which, when set, indicates
-+	 * successful completion of the keyboard controller self-test (Basic
-+	 * Assurance Test, BAT).  This is needed for some machines with no
-+	 * keyboard plugged in.  This read-modify-write sequence sets only the
-+	 * system flag
-+	 */
- 	for (i = 0; i < 10; i++) {
-+		outb(0x20, 0x64);	/* read Controller Command Byte */
-+		udelay(50);
-+		kb_wait();
-+		udelay(50);
-+		cmd = inb(0x60);
-+		udelay(50);
- 		kb_wait();
- 		udelay(50);
- 		outb(0x60, 0x64);	/* write Controller Command Byte */
- 		udelay(50);
- 		kb_wait();
- 		udelay(50);
--		outb(0x14, 0x60);	/* set "System flag" */
-+		outb(cmd | 0x04, 0x60);	/* set "System flag" */
- 		udelay(50);
- 		kb_wait();
- 		udelay(50);
+ typedef unsigned long kio_addr_t;
+ 
+ typedef u_short	socket_t;
 _
 
-Patches currently in -mm which might be from trux@truxton.com are
+Patches currently in -mm which might be from olof@lixom.net are
 
-i386-fix-machine-rebooting.patch
+8xx-mpc885ads-pcmcia-support.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+8xx-fix-whitespace-and-indentation.patch
+dts-kill-hardcoded-phandles.patch
+pcmcia-ppc64-needs-64-bit-ioaddr_t.patch
