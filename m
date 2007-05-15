@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ds2760_battery-warning-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 15:23:10 -0700
-Message-ID: <200705152226.l4FMQFD8019523@shell0.pdx.osdl.net>
+Subject: + alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch added to -mm tree
+Date: Tue, 15 May 2007 15:48:40 -0700
+Message-ID: <200705152251.l4FMplt2020264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40807 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33069 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244AbXEOW1u (ORCPT
+	by vger.kernel.org with ESMTP id S1756513AbXEOWyj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 18:27:50 -0400
+	Tue, 15 May 2007 18:54:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbou@mail.ru
+Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
 
 
 The patch titled
-     ds2760_battery warning fix
+     alpha-support-graphics-on-non-zero-pci-domains-fix-2
 has been added to the -mm tree.  Its filename is
-     ds2760_battery-warning-fix.patch
+     alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ds2760_battery warning fix
+Subject: alpha-support-graphics-on-non-zero-pci-domains-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/power/ds2760_battery.c: In function 'ds2760_battery_read_status':
-drivers/power/ds2760_battery.c:125: warning: cast from pointer to integer of different size
+In file included from arch/alpha/kernel/process.c:42:
+arch/alpha/kernel/proto.h: In function 'locate_and_init_vga':
+arch/alpha/kernel/proto.h:117: error: parameter name omitted
 
-Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/ds2760_battery.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/proto.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/power/ds2760_battery.c~ds2760_battery-warning-fix drivers/power/ds2760_battery.c
---- a/drivers/power/ds2760_battery.c~ds2760_battery-warning-fix
-+++ a/drivers/power/ds2760_battery.c
-@@ -122,8 +122,8 @@ static int ds2760_battery_read_status(st
+diff -puN arch/alpha/kernel/proto.h~alpha-support-graphics-on-non-zero-pci-domains-fix-2 arch/alpha/kernel/proto.h
+--- a/arch/alpha/kernel/proto.h~alpha-support-graphics-on-non-zero-pci-domains-fix-2
++++ a/arch/alpha/kernel/proto.h
+@@ -114,7 +114,7 @@ extern void find_console_vga_hose(void);
+ extern void locate_and_init_vga(void *(*)(void *, void *));
+ #else
+ static inline void find_console_vga_hose(void) { }
+-static inline void locate_and_init_vga(void *(*)(void *, void *)) { }
++static inline void locate_and_init_vga(void *(*sel_func)(void *, void *)) { }
+ #endif
  
- 	ret = w1_ds2760_read(di->w1_dev, di->raw + start, start, count);
- 	if (ret != count) {
--		dev_warn(di->dev, "call to w1_ds2760_read failed (0x%08x)\n",
--		         (unsigned int)di->w1_dev);
-+		dev_warn(di->dev, "call to w1_ds2760_read failed (0x%p)\n",
-+		         di->w1_dev);
- 		return 1;
- 	}
- 
+ /* setup.c */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +80,7 @@ git-ubi.patch
 git-ubi-fixup.patch
 git-battery.patch
 git-battery-warning-fix.patch
+ds2760_battery-warning-fix.patch
 git-nfs.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 git-ocfs2.patch
@@ -114,6 +116,7 @@ maps2-move-the-page-walker-code-to-lib.patch
 maps2-add-proc-pid-pagemap-interface.patch
 freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
 add-lzo1x-compression-support-to-the-kernel-fix.patch
@@ -148,4 +151,3 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
-ds2760_battery-warning-fix.patch
