@@ -1,55 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fixup.patch removed from -mm tree
-Date: Tue, 15 May 2007 01:44:14 -0700
-Message-ID: <200705150844.l4F8iErE005431@shell0.pdx.osdl.net>
+Subject: - git-hid-fixup.patch removed from -mm tree
+Date: Tue, 15 May 2007 01:44:24 -0700
+Message-ID: <200705150844.l4F8iNDb005434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44830 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757380AbXEOIoR (ORCPT
+	by vger.kernel.org with ESMTP id S1759156AbXEOIo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 04:44:17 -0400
+	Tue, 15 May 2007 04:44:26 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4F8iF3G001166
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4F8iOhl001195
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 01:44:16 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 01:44:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-fixup
+     git-hid-fixup
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fixup.patch
+     git-hid-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-hid-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/Kconfig |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/hid/Kconfig |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-fixup drivers/media/video/em28xx/Kconfig
---- a/drivers/media/video/em28xx/Kconfig~git-dvb-fixup
-+++ a/drivers/media/video/em28xx/Kconfig
-@@ -1,11 +1,6 @@
- config VIDEO_EM28XX
- 	tristate "Empia EM2800/2820/2840 USB video capture support"
--<<<<<<< HEAD/drivers/media/video/em28xx/Kconfig
- 	depends on VIDEO_V4L1 && I2C
--	select VIDEO_BUF
+diff -puN drivers/hid/Kconfig~git-hid-fixup drivers/hid/Kconfig
+--- a/drivers/hid/Kconfig~git-hid-fixup
++++ a/drivers/hid/Kconfig
+@@ -36,10 +36,8 @@ config HID_DEBUG
+ 
+ 	If unsure, say N
+ 
+-<<<<<<< HEAD/drivers/hid/Kconfig
+ source "drivers/hid/usbhid/Kconfig"
+ 
 -=======
--	depends on VIDEO_V4L1 && I2C
-->>>>>>> /drivers/media/video/em28xx/Kconfig
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
+ config HIDRAW
+ 	bool "/dev/hidraw raw HID device support"
+ 	depends on HID
+@@ -59,7 +57,4 @@ config HIDRAW
+ 
+ 	If unsure, say Y.
+ 
+-
+->>>>>>> /drivers/hid/Kconfig
+ endmenu
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,7 +68,6 @@ git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 8xx-mpc885ads-pcmcia-support-fix.patch
 git-dvb.patch
-git-dvb-fixup.patch
 cinergyt2-fix-file-release-handler.patch
 i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
 git-gfs2-nmw.patch
