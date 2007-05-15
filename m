@@ -1,336 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - add-ability-to-keep-track-of-callers-of-symbol_getput.patch removed from -mm tree
-Date: Tue, 15 May 2007 01:49:19 -0700
-Message-ID: <200705150849.l4F8nJ3m005524@shell0.pdx.osdl.net>
+Subject: - v4l-saa7134-add-support-for-10moons-tm300-card.patch removed from -mm tree
+Date: Tue, 15 May 2007 01:49:47 -0700
+Message-ID: <200705150849.l4F8nlLc005540@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38834 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759258AbXEOItm (ORCPT
+	by vger.kernel.org with ESMTP id S1758527AbXEOIt6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 04:49:42 -0400
+	Tue, 15 May 2007 04:49:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xyzzy@speakeasy.org, dwmw2@infradead.org, mchehab@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: wankai@sjtu.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add ability to keep track of callers of symbol_(get|put)
+     v4l: saa7134: add support for 10moons TM300 card
 has been removed from the -mm tree.  Its filename was
-     add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+     v4l-saa7134-add-support-for-10moons-tm300-card.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add ability to keep track of callers of symbol_(get|put)
-From: Trent Piepho <xyzzy@speakeasy.org>
+Subject: v4l: saa7134: add support for 10moons TM300 card
+From: Tony Wan <wankai@sjtu.org>
 
-When a module uses symbol_get() to increase the ref count of another module,
-there is no record what module called symbol_get().  A module can show up as
-having other users, but there is no way to tell who those users are.
+Support the 10moons TM300 TV card (so called TV Master 3), which is a 10moons
+saa7130 based board.  Here not include features for the IR-remote.
 
-This adds that ability to symbol_put() and symbol_get().
+It has been tested using TVTIME.  The card was auto-detected and all the input
+sources worked correct with sound.
 
-__symbol_get() and __symbol_put() get another parameter, which specifies the
-module that is doing the getting or putting.  symbol_put_addr() is renamed to
-__symbol_put_addr() and has the same parameter added.  The module can be NULL,
-in which case the symbol's owner's refcount is incremented without recording
-who did it, as was the case before.
-
-The macros symbol_get(), symbol_put(), and symbol_put_addr() will use
-THIS_MODULE as the getter/putter and so don't have an extra parameter.  A
-macro symbol_put_user() is added that allows specifying the putting module.
-
-The module_use structure that keeps track of one modules use of another gains
-a count member.  The module_use will not go away until the count goes down to
-zero.  The count wasn't necessary before because a module could only use
-another module once, when the module is linked in, and un-use that module
-once, when it is unloaded.
-
-When a module calls symbol_get() to get a symbol from module that owns the
-symbol, the ref count of the owning module is _not_ incremented if the getting
-module was already listed as using the owning module.  Rather, the count of
-that module_use is incremented.
-
-When a module is loaded and the kernel module linker is resolving symbols, it
-will not increment the module_use count for each symbol used, but will just
-leave it at one.  We don't count each symbol resolved, because during module
-unloading we wouldn't know how many times to decrement the module_use count.
-
-When the module is unloaded, the module_use count will only be decremented by
-one, which should bring it to zero.  If it's not zero, then the remaining
-count is the number of symbol_get()s the module did that were unmatched with a
-symbol_put().
-
-Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Tony Wan <wankai@sjtu.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |   13 ++--
- kernel/module.c        |  120 ++++++++++++++++++++++++++++++++-------
- 2 files changed, 108 insertions(+), 25 deletions(-)
+ drivers/media/video/saa7134/saa7134-cards.c |   38 ++++++++++++++++++
+ drivers/media/video/saa7134/saa7134.h       |    1 
+ 2 files changed, 39 insertions(+)
 
-diff -puN include/linux/module.h~add-ability-to-keep-track-of-callers-of-symbol_getput include/linux/module.h
---- a/include/linux/module.h~add-ability-to-keep-track-of-callers-of-symbol_getput
-+++ a/include/linux/module.h
-@@ -167,9 +167,10 @@ struct notifier_block;
- #ifdef CONFIG_MODULES
- 
- /* Get/put a kernel symbol (calls must be symmetric) */
--void *__symbol_get(const char *symbol);
-+void *__symbol_get(const char *symbol, struct module *user);
- void *__symbol_get_gpl(const char *symbol);
--#define symbol_get(x) ((typeof(&x))(__symbol_get(MODULE_SYMBOL_PREFIX #x)))
-+#define symbol_get(x) ((typeof(&x))(__symbol_get(MODULE_SYMBOL_PREFIX #x, \
-+			THIS_MODULE)))
- 
- #ifndef __GENKSYMS__
- #ifdef CONFIG_MODVERSIONS
-@@ -387,9 +388,11 @@ extern void __module_put_and_exit(struct
- 
- #ifdef CONFIG_MODULE_UNLOAD
- unsigned int module_refcount(struct module *mod);
--void __symbol_put(const char *symbol);
--#define symbol_put(x) __symbol_put(MODULE_SYMBOL_PREFIX #x)
--void symbol_put_addr(void *addr);
-+void __symbol_put(const char *symbol, struct module *user);
-+#define symbol_put(x) __symbol_put(MODULE_SYMBOL_PREFIX #x, THIS_MODULE)
-+#define symbol_put_user(x,u) __symbol_put(MODULE_SYMBOL_PREFIX #x, (u))
-+void __symbol_put_addr(void *addr, struct module *user);
-+#define symbol_put_addr(x) __symbol_put_addr((x), THIS_MODULE)
- 
- /* Sometimes we know we already have a refcount, and it's easier not
-    to handle the error case (which only happens with rmmod --wait). */
-diff -puN kernel/module.c~add-ability-to-keep-track-of-callers-of-symbol_getput kernel/module.c
---- a/kernel/module.c~add-ability-to-keep-track-of-callers-of-symbol_getput
-+++ a/kernel/module.c
-@@ -518,30 +518,54 @@ struct module_use
- {
- 	struct list_head list;
- 	struct module *module_which_uses;
-+	int count;
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-add-support-for-10moons-tm300-card drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~v4l-saa7134-add-support-for-10moons-tm300-card
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -3502,6 +3502,38 @@ struct saa7134_board saa7134_boards[] = 
+ 			.amux = TV,
+ 		},
+ 	},
++	[SAA7134_BOARD_10MOONSTVMASTER3] = {
++		/* Tony Wan <aloha_cn@hotmail.com> */
++		.name           = "10MOONS TM300 TV Card",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_LG_PAL_NEW_TAPC,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.gpiomask       = 0x7000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = LINE2,
++			.gpio = 0x0000,
++			.tv   = 1,
++		},{
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE1,
++			.gpio = 0x2000,
++		},{
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++			.gpio = 0x2000,
++		}},
++		.mute = {
++			.name = name_mute,
++			.amux = LINE2,
++			.gpio = 0x3000,
++		},
++	},
  };
  
--/* Does a already use b? */
--static int already_uses(struct module *a, struct module *b)
-+/*
-+ * Does a already use b?  Return NULL if it doesn't, a pointer to the
-+ * relevant module_use structure if it does.
-+ */
-+static struct module_use *already_uses(struct module *a, struct module *b)
- {
- 	struct module_use *use;
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -4219,6 +4251,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 		.subdevice    = 0x2003, /* OEM cardbus */
+ 		.driver_data  = SAA7134_BOARD_SABRENT_TV_PCB05,
+ 	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = PCI_VENDOR_ID_PHILIPS,
++		.subdevice    = 0x2304,
++		.driver_data  = SAA7134_BOARD_10MOONSTVMASTER3,
++	},{
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+diff -puN drivers/media/video/saa7134/saa7134.h~v4l-saa7134-add-support-for-10moons-tm300-card drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~v4l-saa7134-add-support-for-10moons-tm300-card
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -238,6 +238,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_ECS_TVP3XP_4CB6  113
+ #define SAA7134_BOARD_KWORLD_DVBT_210 114
+ #define SAA7134_BOARD_SABRENT_TV_PCB05     115
++#define SAA7134_BOARD_10MOONSTVMASTER3     116
  
- 	list_for_each_entry(use, &b->modules_which_use_me, list) {
- 		if (use->module_which_uses == a) {
- 			DEBUGP("%s uses %s!\n", a->name, b->name);
--			return 1;
-+			return use;
- 		}
- 	}
- 	DEBUGP("%s does not use %s!\n", a->name, b->name);
--	return 0;
-+	return NULL;
- }
- 
--/* Module a uses b */
--static int use_module(struct module *a, struct module *b)
-+/*
-+ * Module a uses b.  If module a is a _new_ user of module b, module b's ref
-+ * count will be incremented.  If a is not a new user of b, and inc is true,
-+ * then the use count (i.e.  how many times a uses b) will be incremented.  If a
-+ * is NULL, then the ref count will just always be incremented.
-+ */
-+static int use_module(struct module *a, struct module *b, bool inc)
- {
- 	struct module_use *use;
- 	int no_warn;
- 
--	if (b == NULL || already_uses(a, b)) return 1;
-+	if (b == NULL)
-+		return 1;
-+
-+	DEBUGP("%s: %s uses %s\n", __FUNCTION__, a?a->name:"(unknown)",
-+	       b->name);
-+	if (a == NULL)
-+		return strong_try_module_get(b);
-+
-+	use = already_uses(a, b);
-+	if (use) {
-+		if (inc)
-+			use->count++;
-+		DEBUGP("%s: %s already used %s, count now at %d\n",
-+		       __FUNCTION__, a->name, b->name, use->count);
-+		return 1;
-+	}
- 
- 	if (!strong_try_module_get(b))
- 		return 0;
-@@ -555,11 +579,50 @@ static int use_module(struct module *a, 
- 	}
- 
- 	use->module_which_uses = a;
-+	use->count = 1;
- 	list_add(&use->list, &b->modules_which_use_me);
- 	no_warn = sysfs_create_link(b->holders_dir, &a->mkobj.kobj, a->name);
- 	return 1;
- }
- 
-+/*
-+ * Module a is "un-using" module b.  The use count is decremented, and if
-+ * it reaches zero the module_use is removed and module b's ref-count is
-+ * decremented.  Returns number of remaining uses.  If a is NULL, then
-+ * just decrement b's ref count.
-+ */
-+static int unuse_module(struct module *a, struct module *b)
-+{
-+	struct module_use *use;
-+
-+	DEBUGP("%s: unuse %s by %s\n", __FUNCTION__, b->name,
-+	       a?a->name:"(unknown)");
-+	if (!a) {
-+		module_put(b);
-+		return 0;
-+	}
-+
-+	use = already_uses(a, b);
-+	if (!use) {
-+	    printk(KERN_ERR "module %s trying to un-use a module, %s, which "
-+	           "it is not using", a->name, b->name);
-+            BUG();
-+	}
-+
-+	DEBUGP("%s: %s used %s %d time(s)\n", __FUNCTION__,
-+	       a->name, b->name, use->count);
-+	if (!--(use->count)) {
-+		DEBUGP("%s: removing module_use structure and sysfs link\n",
-+		       __FUNCTION__);
-+		list_del(&use->list);
-+		kfree(use);
-+		sysfs_remove_link(b->holders_dir, a->name);
-+		module_put(b);
-+		return 0;
-+	}
-+	return use->count;
-+}
-+
- /* Clear the unload stuff of the module. */
- static void module_unload_free(struct module *mod)
- {
-@@ -571,10 +634,14 @@ static void module_unload_free(struct mo
- 		list_for_each_entry(use, &i->modules_which_use_me, list) {
- 			if (use->module_which_uses == mod) {
- 				DEBUGP("%s unusing %s\n", mod->name, i->name);
--				module_put(i);
--				list_del(&use->list);
--				kfree(use);
--				sysfs_remove_link(i->holders_dir, mod->name);
-+				if (unuse_module(mod, i)) {
-+					/* Someone messed up! */
-+					printk(KERN_ERR "module %s unloading "
-+					       "but still has uses of %s\n",
-+					       mod->name, i->name);
-+					while (unuse_module(mod, i))
-+						;
-+				}
- 				/* There can be at most one match. */
- 				break;
- 			}
-@@ -757,32 +824,41 @@ static void print_unload_info(struct seq
- 		seq_printf(m, "-");
- }
- 
--void __symbol_put(const char *symbol)
-+void __symbol_put(const char *symbol, struct module *user)
- {
- 	struct module *owner;
- 	unsigned long flags;
- 	const unsigned long *crc;
- 
-+	DEBUGP("%s: putting symbol %s by %s\n", __FUNCTION__, symbol,
-+	       user?user->name:"(unknown)");
- 	spin_lock_irqsave(&modlist_lock, flags);
- 	if (!__find_symbol(symbol, &owner, &crc, 1))
- 		BUG();
--	module_put(owner);
-+
-+	if (owner)
-+		unuse_module(user, owner);
- 	spin_unlock_irqrestore(&modlist_lock, flags);
- }
- EXPORT_SYMBOL(__symbol_put);
- 
--void symbol_put_addr(void *addr)
-+void __symbol_put_addr(void *addr, struct module *user)
- {
- 	struct module *modaddr;
-+	unsigned long flags;
- 
-+	DEBUGP("%s: putting %p by %s\n", __FUNCTION__, addr,
-+	       user?user->name:"(unknown)");
- 	if (core_kernel_text((unsigned long)addr))
- 		return;
- 
- 	if (!(modaddr = module_text_address((unsigned long)addr)))
- 		BUG();
--	module_put(modaddr);
-+	spin_lock_irqsave(&modlist_lock, flags);
-+	unuse_module(user, modaddr);
-+	spin_unlock_irqrestore(&modlist_lock, flags);
- }
--EXPORT_SYMBOL_GPL(symbol_put_addr);
-+EXPORT_SYMBOL_GPL(__symbol_put_addr);
- 
- static ssize_t show_refcnt(struct module_attribute *mattr,
- 			   struct module *mod, char *buffer)
-@@ -820,7 +896,7 @@ static inline void module_unload_free(st
- {
- }
- 
--static inline int use_module(struct module *a, struct module *b)
-+static inline int use_module(struct module *a, struct module *b, bool inc)
- {
- 	return strong_try_module_get(b);
- }
-@@ -963,7 +1039,7 @@ static unsigned long resolve_symbol(Elf_
- 	if (ret) {
- 		/* use_module can fail due to OOM, or module unloading */
- 		if (!check_version(sechdrs, versindex, name, mod, crc) ||
--		    !use_module(mod, owner))
-+		    !use_module(mod, owner, false))
- 			ret = 0;
- 	}
- 	return ret;
-@@ -1225,15 +1301,19 @@ static void free_module(struct module *m
- 	module_free(mod, mod->module_core);
- }
- 
--void *__symbol_get(const char *symbol)
-+void *__symbol_get(const char *symbol, struct module *user)
- {
- 	struct module *owner;
- 	unsigned long value, flags;
- 	const unsigned long *crc;
- 
-+	DEBUGP("%s: get symbol %s by %s\n", __FUNCTION__, symbol,
-+	       user?user->name:"(unknown)");
- 	spin_lock_irqsave(&modlist_lock, flags);
- 	value = __find_symbol(symbol, &owner, &crc, 1);
--	if (value && !strong_try_module_get(owner))
-+	DEBUGP("%s: symbol %s is 0WN3D by %s\n", __FUNCTION__, symbol,
-+	       value?(owner?owner->name:"yer mom"):"no one");
-+	if (value && owner && !use_module(user, owner, true))
- 		value = 0;
- 	spin_unlock_irqrestore(&modlist_lock, flags);
- 
+ #define SAA7134_MAXBOARDS 8
+ #define SAA7134_INPUT_MAX 8
 _
 
-Patches currently in -mm which might be from xyzzy@speakeasy.org are
+Patches currently in -mm which might be from wankai@sjtu.org are
 
 git-dvb.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
