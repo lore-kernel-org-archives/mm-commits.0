@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-dont-try-to-kzalloc-0-bytes.patch added to -mm tree
-Date: Tue, 15 May 2007 14:47:57 -0700
-Message-ID: <200705152147.l4FLlvPe018808@shell0.pdx.osdl.net>
+Subject: + knfsd-exportfs-add-exportfsh-header-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 14:49:14 -0700
+Message-ID: <200705152152.l4FLqJsV018874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52686 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755770AbXEOVtw (ORCPT
+	by vger.kernel.org with ESMTP id S1754996AbXEOV4K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:49:52 -0400
+	Tue, 15 May 2007 17:56:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, greg@kroah.com
+Cc: akpm@linux-foundation.org, hch@infradead.org, hch@lst.de, neilb@suse.de
 
 
 The patch titled
-     USB: don't try to kzalloc 0 bytes
+     knfsd-exportfs-add-exportfsh-header-fix
 has been added to the -mm tree.  Its filename is
-     usb-dont-try-to-kzalloc-0-bytes.patch
+     knfsd-exportfs-add-exportfsh-header-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: USB: don't try to kzalloc 0 bytes
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: knfsd-exportfs-add-exportfsh-header-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch (as907) prevents us from trying to allocate 0 bytes
-when an interface has no endpoint descriptors.
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/config.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ fs/cifs/export.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/core/config.c~usb-dont-try-to-kzalloc-0-bytes drivers/usb/core/config.c
---- a/drivers/usb/core/config.c~usb-dont-try-to-kzalloc-0-bytes
-+++ a/drivers/usb/core/config.c
-@@ -185,10 +185,12 @@ static int usb_parse_interface(struct de
- 		num_ep = USB_MAXENDPOINTS;
- 	}
+diff -puN fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix fs/cifs/export.c
+--- a/fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix
++++ a/fs/cifs/export.c
+@@ -29,7 +29,8 @@
+   */
  
--	len = sizeof(struct usb_host_endpoint) * num_ep;
--	alt->endpoint = kzalloc(len, GFP_KERNEL);
--	if (!alt->endpoint)
--		return -ENOMEM;
-+	if (num_ep > 0) {	/* Can't allocate 0 bytes */
-+		len = sizeof(struct usb_host_endpoint) * num_ep;
-+		alt->endpoint = kzalloc(len, GFP_KERNEL);
-+		if (!alt->endpoint)
-+			return -ENOMEM;
-+	}
- 
- 	/* Parse all the endpoint descriptors */
- 	n = 0;
+ #include <linux/fs.h>
+- 
++#include <linux/exportfs.h>
++
+ #ifdef CONFIG_CIFS_EXPERIMENTAL
+  
+ static struct dentry *cifs_get_parent(struct dentry *dentry)
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-usb-dont-try-to-kzalloc-0-bytes.patch
+origin.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+fix-agk-dm-dm-io-fix-panic-on-large-request.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+git-mips-fixup.patch
+git-ubi.patch
+git-ubi-fixup.patch
+git-battery.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-sh64.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+let-smp_call_function_single-return-ebusy-on-up-fix.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+compat_core_sys_select-avoid-kmalloc0.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
