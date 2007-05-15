@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-exportfs-add-exportfsh-header-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 14:49:14 -0700
-Message-ID: <200705152152.l4FLqJsV018874@shell0.pdx.osdl.net>
+Subject: + reiser4-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 14:55:59 -0700
+Message-ID: <200705152159.l4FLx41s018939@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47052 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754996AbXEOV4K (ORCPT
+	by vger.kernel.org with ESMTP id S1755024AbXEOV7p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:56:10 -0400
+	Tue, 15 May 2007 17:59:45 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4FM19US001286
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 15:01:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@infradead.org, hch@lst.de, neilb@suse.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     knfsd-exportfs-add-exportfsh-header-fix
+     reiser4-fix
 has been added to the -mm tree.  Its filename is
-     knfsd-exportfs-add-exportfsh-header-fix.patch
+     reiser4-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +30,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd-exportfs-add-exportfsh-header-fix
+Subject: reiser4-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Neil Brown <neilb@suse.de>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/export.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/reiser4/super.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix fs/cifs/export.c
---- a/fs/cifs/export.c~knfsd-exportfs-add-exportfsh-header-fix
-+++ a/fs/cifs/export.c
-@@ -29,7 +29,8 @@
-   */
+diff -puN fs/reiser4/super.h~reiser4-fix fs/reiser4/super.h
+--- a/fs/reiser4/super.h~reiser4-fix
++++ a/fs/reiser4/super.h
+@@ -6,6 +6,8 @@
+ #if !defined( __REISER4_SUPER_H__ )
+ #define __REISER4_SUPER_H__
  
- #include <linux/fs.h>
-- 
 +#include <linux/exportfs.h>
 +
- #ifdef CONFIG_CIFS_EXPERIMENTAL
-  
- static struct dentry *cifs_get_parent(struct dentry *dentry)
+ #include "tree.h"
+ #include "entd.h"
+ #include "wander.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,6 +138,7 @@ lguest-the-host-code.patch
 lguest-the-host-code-borkages.patch
 tglx-debug.patch
 reiser4.patch
+reiser4-fix.patch
 integrity-new-hooks.patch
 integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
