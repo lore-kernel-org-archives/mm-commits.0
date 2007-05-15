@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-dont-confuse-ctor-and-dtor.patch added to -mm tree
-Date: Tue, 15 May 2007 12:06:03 -0700
-Message-ID: <200705151906.l4FJ63RC015296@shell0.pdx.osdl.net>
+Subject: + pci-x-pci-express-read-control-interfaces-mthca.patch added to -mm tree
+Date: Tue, 15 May 2007 12:38:02 -0700
+Message-ID: <200705151938.l4FJc2b9015897@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756157AbXEOTGQ (ORCPT
+	by vger.kernel.org with ESMTP id S1759950AbXEOTiT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:06:16 -0400
+	Tue, 15 May 2007 15:38:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, clameter@sgi.com
+Cc: peter.oruba@amd.com, mst@mellanox.co.il, rolandd@cisco.com, shemminger@linux-foundation.org
 
 
 The patch titled
-     slub: don't confuse ctor and dtor
+     PCI-X/PCI-Express read control interfaces: use them in mthca
 has been added to the -mm tree.  Its filename is
-     slub-dont-confuse-ctor-and-dtor.patch
+     pci-x-pci-express-read-control-interfaces-mthca.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: don't confuse ctor and dtor
-From: Hugh Dickins <hugh@veritas.com>
+Subject: PCI-X/PCI-Express read control interfaces: use them in mthca
+From: "Peter Oruba" <peter.oruba@amd.com>
 
-kmem_cache_create() was swapping ctor and dtor in calling find_mergeable():
-though it caused no bug, and probably never would, even if destructors are
-retained; but fix it so as not to generate anxiety ;)
+These driver changes incorporate the proposed PCI-X / PCI-Express read byte
+count interface.  Reading and setting those valuse doesn't take place
+"manually", instead wrapping functions are called to allow quirks for some
+PCI bridges.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off by: Peter Oruba <peter.oruba@amd.com>
+Based on work by Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Michael S. Tsirkin <mst@mellanox.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mthca/mthca_main.c |   38 +++++----------------
+ 1 files changed, 10 insertions(+), 28 deletions(-)
 
-diff -puN mm/slub.c~slub-dont-confuse-ctor-and-dtor mm/slub.c
---- a/mm/slub.c~slub-dont-confuse-ctor-and-dtor
-+++ a/mm/slub.c
-@@ -2522,7 +2522,7 @@ struct kmem_cache *kmem_cache_create(con
- 	struct kmem_cache *s;
+diff -puN drivers/infiniband/hw/mthca/mthca_main.c~pci-x-pci-express-read-control-interfaces-mthca drivers/infiniband/hw/mthca/mthca_main.c
+--- a/drivers/infiniband/hw/mthca/mthca_main.c~pci-x-pci-express-read-control-interfaces-mthca
++++ a/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -137,45 +137,27 @@ static const char mthca_version[] __devi
  
- 	down_write(&slub_lock);
--	s = find_mergeable(size, align, flags, dtor, ctor);
-+	s = find_mergeable(size, align, flags, ctor, dtor);
- 	if (s) {
- 		s->refcount++;
- 		/*
+ static int mthca_tune_pci(struct mthca_dev *mdev)
+ {
+-	int cap;
+-	u16 val;
+-
+ 	if (!tune_pci)
+ 		return 0;
+ 
+ 	/* First try to max out Read Byte Count */
+-	cap = pci_find_capability(mdev->pdev, PCI_CAP_ID_PCIX);
+-	if (cap) {
+-		if (pci_read_config_word(mdev->pdev, cap + PCI_X_CMD, &val)) {
+-			mthca_err(mdev, "Couldn't read PCI-X command register, "
+-				  "aborting.\n");
+-			return -ENODEV;
+-		}
+-		val = (val & ~PCI_X_CMD_MAX_READ) | (3 << 2);
+-		if (pci_write_config_word(mdev->pdev, cap + PCI_X_CMD, val)) {
+-			mthca_err(mdev, "Couldn't write PCI-X command register, "
+-				  "aborting.\n");
++	if (pci_find_capability(mdev->pdev, PCI_CAP_ID_PCIX)) {
++		if (pcix_set_mmrbc(mdev->pdev, pcix_get_max_mmrbc(mdev->pdev))) {
++			mthca_err(mdev, "Couldn't set PCI-X max read count, "
++				"aborting.\n");
+ 			return -ENODEV;
+ 		}
+ 	} else if (!(mdev->mthca_flags & MTHCA_FLAG_PCIE))
+ 		mthca_info(mdev, "No PCI-X capability, not setting RBC.\n");
+ 
+-	cap = pci_find_capability(mdev->pdev, PCI_CAP_ID_EXP);
+-	if (cap) {
+-		if (pci_read_config_word(mdev->pdev, cap + PCI_EXP_DEVCTL, &val)) {
+-			mthca_err(mdev, "Couldn't read PCI Express device control "
+-				  "register, aborting.\n");
+-			return -ENODEV;
+-		}
+-		val = (val & ~PCI_EXP_DEVCTL_READRQ) | (5 << 12);
+-		if (pci_write_config_word(mdev->pdev, cap + PCI_EXP_DEVCTL, val)) {
+-			mthca_err(mdev, "Couldn't write PCI Express device control "
+-				  "register, aborting.\n");
++	if (pci_find_capability(mdev->pdev, PCI_CAP_ID_EXP)) {
++		if (pcie_set_readrq(mdev->pdev, 4096)) {
++			mthca_err(mdev, "Couldn't write PCI Express read request, "
++				"aborting.\n");
+ 			return -ENODEV;
+ 		}
+-	} else if (mdev->mthca_flags & MTHCA_FLAG_PCIE)
+-		mthca_info(mdev, "No PCI Express capability, "
+-			   "not setting Max Read Request Size.\n");
++	} else if (!(mdev->mthca_flags & MTHCA_FLAG_PCIE))
++		mthca_info(mdev, "No PCI-X capability, not setting RBC.\n");
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from peter.oruba@amd.com are
 
-slub-dont-confuse-ctor-and-dtor.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
-lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-mm-more-rmap-checking.patch
-mm-more-rmap-checking-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio-tree-debugging.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
