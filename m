@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-cpu-hotplug-defines-for-__init-__initdata.patch added to -mm tree
-Date: Mon, 14 May 2007 17:48:06 -0700
-Message-ID: <200705150048.l4F0m6mr030403@shell0.pdx.osdl.net>
+Subject: + saa7111-fix-picture-settings-cache-bug.patch added to -mm tree
+Date: Mon, 14 May 2007 17:50:14 -0700
+Message-ID: <200705150050.l4F0oEdx030453@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60991 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755945AbXEOAsZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752443AbXEOAut (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 20:48:25 -0400
+	Mon, 14 May 2007 20:50:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: prarit@redhat.com, rmk@arm.linux.org.uk
+Cc: rmk@arm.linux.org.uk, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     Remove cpu hotplug defines for __INIT & __INITDATA
+     saa7111: fix picture settings cache bug
 has been added to the -mm tree.  Its filename is
-     remove-cpu-hotplug-defines-for-__init-__initdata.patch
+     saa7111-fix-picture-settings-cache-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,121 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove cpu hotplug defines for __INIT & __INITDATA
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: saa7111: fix picture settings cache bug
+From: Russell King <rmk@arm.linux.org.uk>
 
-After examining what was checked in and the code base I discovered that most
-of 86c0baf123e474b6eb404798926ecf62b426bf3a wasn't necessary anymore....
+If the SAA7111 device is powered down, and requires re-initialisation when
+the V4L device is opened (as on the NetWinder), the SAA7111 driver gets
+completely confused about the current settings.
 
-So here's a patch that reverts the last part of that changeset:
+The problem is centred around the way the driver keeps _two_ cached copies
+of the current settings - one of the struct video_picture settings, and one
+of the registers.
 
-Revert part of 86c0baf123e474b6eb404798926ecf62b426bf3a.
+When the decoder is re-initailised, the cached register settings are
+overwritten, as are the values in the hardware registers.  However, the
+cached video_picture settings are not.
 
-The kernel has moved forward to a state where the original change is not
-necessary.  After porting forward, this final version of the patch was
-applied and broke non-x86 architectures.
+Resolve this by removing the useless and buggy second level of caching for
+video_picture.  Instead, provide a function which updates register values
+if and only if the value we are going to write to the register has changed.
 
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    7 +------
- 1 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/media/video/saa7111.c |   49 ++++++++++++--------------------
+ 1 files changed, 19 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/init.h~remove-cpu-hotplug-defines-for-__init-__initdata include/linux/init.h
---- a/include/linux/init.h~remove-cpu-hotplug-defines-for-__init-__initdata
-+++ a/include/linux/init.h
-@@ -52,14 +52,9 @@
- #endif
+diff -puN drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug drivers/media/video/saa7111.c
+--- a/drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug
++++ a/drivers/media/video/saa7111.c
+@@ -75,10 +75,6 @@ struct saa7111 {
+ 	int norm;
+ 	int input;
+ 	int enable;
+-	int bright;
+-	int contrast;
+-	int hue;
+-	int sat;
+ };
  
- /* For assembly routines */
--#ifdef CONFIG_HOTPLUG_CPU
--#define __INIT		.section	".text","ax"
--#define __INITDATA	.section	".data","aw"
--#else
- #define __INIT		.section	".init.text","ax"
--#define __INITDATA	.section	".init.data","aw"
--#endif
- #define __FINIT		.previous
-+#define __INITDATA	.section	".init.data","aw"
+ #define   I2C_SAA7111        0x48
+@@ -96,6 +92,17 @@ saa7111_write (struct i2c_client *client
+ 	return i2c_smbus_write_byte_data(client, reg, value);
+ }
  
- #ifndef __ASSEMBLY__
- /*
++static inline void
++saa7111_write_if_changed(struct i2c_client *client, u8 reg, u8 value)
++{
++	struct saa7111 *decoder = i2c_get_clientdata(client);
++
++	if (decoder->reg[reg] != value) {
++		decoder->reg[reg] = value;
++		i2c_smbus_write_byte_data(client, reg, value);
++	}
++}
++
+ static int
+ saa7111_write_block (struct i2c_client *client,
+ 		     const u8          *data,
+@@ -439,28 +446,14 @@ saa7111_command (struct i2c_client *clie
+ 	{
+ 		struct video_picture *pic = arg;
+ 
+-		if (decoder->bright != pic->brightness) {
+-			/* We want 0 to 255 we get 0-65535 */
+-			decoder->bright = pic->brightness;
+-			saa7111_write(client, 0x0a, decoder->bright >> 8);
+-		}
+-		if (decoder->contrast != pic->contrast) {
+-			/* We want 0 to 127 we get 0-65535 */
+-			decoder->contrast = pic->contrast;
+-			saa7111_write(client, 0x0b,
+-				      decoder->contrast >> 9);
+-		}
+-		if (decoder->sat != pic->colour) {
+-			/* We want 0 to 127 we get 0-65535 */
+-			decoder->sat = pic->colour;
+-			saa7111_write(client, 0x0c, decoder->sat >> 9);
+-		}
+-		if (decoder->hue != pic->hue) {
+-			/* We want -128 to 127 we get 0-65535 */
+-			decoder->hue = pic->hue;
+-			saa7111_write(client, 0x0d,
+-				      (decoder->hue - 32768) >> 8);
+-		}
++		/* We want 0 to 255 we get 0-65535 */
++		saa7111_write_if_changed(client, 0x0a, pic->brightness >> 8);
++		/* We want 0 to 127 we get 0-65535 */
++		saa7111_write(client, 0x0b, pic->contrast >> 9);
++		/* We want 0 to 127 we get 0-65535 */
++		saa7111_write(client, 0x0c, pic->colour >> 9);
++		/* We want -128 to 127 we get 0-65535 */
++		saa7111_write(client, 0x0d, (pic->hue - 32768) >> 8);
+ 	}
+ 		break;
+ 
+@@ -524,10 +517,6 @@ saa7111_detect_client (struct i2c_adapte
+ 	decoder->norm = VIDEO_MODE_NTSC;
+ 	decoder->input = 0;
+ 	decoder->enable = 1;
+-	decoder->bright = 32768;
+-	decoder->contrast = 32768;
+-	decoder->hue = 32768;
+-	decoder->sat = 32768;
+ 	i2c_set_clientdata(client, decoder);
+ 
+ 	i = i2c_attach_client(client);
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from rmk@arm.linux.org.uk are
 
 remove-cpu-hotplug-defines-for-__init-__initdata.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+update-documentation-driver-model-platformtxt.patch
+saa7111-fix-picture-settings-cache-bug.patch
+git-md-accel.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
