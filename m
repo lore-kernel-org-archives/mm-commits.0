@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-config_large_allocs-must-consider-max_order-limit.patch added to -mm tree
-Date: Mon, 14 May 2007 17:16:29 -0700
-Message-ID: <200705150016.l4F0GTvd029884@shell0.pdx.osdl.net>
+Subject: + revert-input-alps-handle-errors-from-input_register_device.patch added to -mm tree
+Date: Mon, 14 May 2007 17:38:49 -0700
+Message-ID: <200705150038.l4F0cn3p030242@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57788 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756968AbXEOAQw (ORCPT
+	by vger.kernel.org with ESMTP id S1753999AbXEOAi4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 20:16:52 -0400
+	Mon, 14 May 2007 20:38:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, davem@davemloft.net
+Cc: akpm@linux-foundation.org, dtor@insightbb.com, ejr@EECS.Berkeley.EDU, remi.colinet@free.fr
 
 
 The patch titled
-     SLUB: CONFIG_LARGE_ALLOCS must consider MAX_ORDER limit
+     revert "Input: ALPS - handle errors from input_register_device()"
 has been added to the -mm tree.  Its filename is
-     slub-config_large_allocs-must-consider-max_order-limit.patch
+     revert-input-alps-handle-errors-from-input_register_device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: CONFIG_LARGE_ALLOCS must consider MAX_ORDER limit
-From: Christoph Lameter <clameter@sgi.com>
+Subject: revert "Input: ALPS - handle errors from input_register_device()"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Take MAX_ORDER into consideration when determining KMALLOC_SHIFT_HIGH. 
-Otherwise we may run into a situation where we attempt to create general
-slabs larger than MAX_ORDER.
+f42649e84831efc69d5f621f1c36a39b4e384a99 broke Jason's machine.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jason Riedy <ejr@EECS.Berkeley.EDU>
+Cc: Dmitry Torokhov <dtor@insightbb.com>
+Cc: Remi Colinet <remi.colinet@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/input/mouse/alps.c |   13 ++++---------
+ drivers/input/mouse/alps.h |    1 +
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-config_large_allocs-must-consider-max_order-limit include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-config_large_allocs-must-consider-max_order-limit
-+++ a/include/linux/slub_def.h
-@@ -60,7 +60,8 @@ struct kmem_cache {
- #define KMALLOC_SHIFT_LOW 3
+diff -puN drivers/input/mouse/alps.c~revert-input-alps-handle-errors-from-input_register_device drivers/input/mouse/alps.c
+--- a/drivers/input/mouse/alps.c~revert-input-alps-handle-errors-from-input_register_device
++++ a/drivers/input/mouse/alps.c
+@@ -424,15 +424,14 @@ int alps_init(struct psmouse *psmouse)
+ 	struct input_dev *dev1 = psmouse->dev, *dev2;
+ 	int version;
  
- #ifdef CONFIG_LARGE_ALLOCS
--#define KMALLOC_SHIFT_HIGH 25
-+#define KMALLOC_SHIFT_HIGH ((MAX_ORDER + PAGE_SHIFT) =< 25 ? \
-+				MAX_ORDER + PAGE_SHIFT - 1 : 25)
- #else
- #if !defined(CONFIG_MMU) || NR_CPUS > 512 || MAX_NUMNODES > 256
- #define KMALLOC_SHIFT_HIGH 20
-@@ -87,6 +88,9 @@ static inline int kmalloc_index(int size
- 	 */
- 	WARN_ON_ONCE(size == 0);
+-	priv = kzalloc(sizeof(struct alps_data), GFP_KERNEL);
++	psmouse->private = priv = kzalloc(sizeof(struct alps_data), GFP_KERNEL);
+ 	dev2 = input_allocate_device();
+ 	if (!priv || !dev2)
+ 		goto init_fail;
  
-+	if (size >= (1UL << KMALLOC_SHIFT_HIGH))
-+		return -1;
-+
- 	if (size > 64 && size <= 96)
- 		return 1;
- 	if (size > 128 && size <= 192)
+ 	priv->dev2 = dev2;
+ 
+-	priv->i = alps_get_model(psmouse, &version);
+-	if (!priv->i)
++	if (!(priv->i = alps_get_model(psmouse, &version)))
+ 		goto init_fail;
+ 
+ 	if ((priv->i->flags & ALPS_PASS) && alps_passthrough_mode(psmouse, 1))
+@@ -481,8 +480,7 @@ int alps_init(struct psmouse *psmouse)
+ 	dev2->relbit[LONG(REL_X)] |= BIT(REL_X) | BIT(REL_Y);
+ 	dev2->keybit[LONG(BTN_LEFT)] |= BIT(BTN_LEFT) | BIT(BTN_MIDDLE) | BIT(BTN_RIGHT);
+ 
+-	if (input_register_device(priv->dev2))
+-		goto init_fail;
++	input_register_device(priv->dev2);
+ 
+ 	psmouse->protocol_handler = alps_process_byte;
+ 	psmouse->poll = alps_poll;
+@@ -493,11 +491,9 @@ int alps_init(struct psmouse *psmouse)
+ 	/* We are having trouble resyncing ALPS touchpads so disable it for now */
+ 	psmouse->resync_time = 0;
+ 
+-	psmouse->private = priv;
+ 	return 0;
+ 
+ init_fail:
+-	psmouse_reset(psmouse);
+ 	input_free_device(dev2);
+ 	kfree(priv);
+ 	return -1;
+@@ -508,8 +504,7 @@ int alps_detect(struct psmouse *psmouse,
+ 	int version;
+ 	const struct alps_model_info *model;
+ 
+-	model = alps_get_model(psmouse, &version);
+-	if (!model)
++	if (!(model = alps_get_model(psmouse, &version)))
+ 		return -1;
+ 
+ 	if (set_properties) {
+diff -puN drivers/input/mouse/alps.h~revert-input-alps-handle-errors-from-input_register_device drivers/input/mouse/alps.h
+--- a/drivers/input/mouse/alps.h~revert-input-alps-handle-errors-from-input_register_device
++++ a/drivers/input/mouse/alps.h
+@@ -20,6 +20,7 @@ struct alps_model_info {
+ 
+ struct alps_data {
+ 	struct input_dev *dev2;		/* Relative device */
++	char name[32];			/* Name */
+ 	char phys[32];			/* Phys */
+ 	const struct alps_model_info *i;/* Info */
+ 	int prev_fin;			/* Finger bit from previous packet */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slub-config_large_allocs-must-consider-max_order-limit.patch
 slub-config_large_allocs-must-consider-max_order-limit-fix.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+revert-input-alps-handle-errors-from-input_register_device.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
 git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
 remove-slab_ctor_constructor-fix.patch
-slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
 change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
