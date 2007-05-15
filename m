@@ -1,103 +1,390 @@
 From: akpm@linux-foundation.org
-Subject: + have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch added to -mm tree
-Date: Mon, 14 May 2007 22:58:44 -0700
-Message-ID: <200705150558.l4F5whN2002727@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-ii-rtc.patch removed from -mm tree
+Date: Mon, 14 May 2007 23:00:15 -0700
+Message-ID: <200705150600.l4F60F99002783@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58318 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756111AbXEOF7o (ORCPT
+	by vger.kernel.org with ESMTP id S1758992AbXEOGBQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:59:44 -0400
+	Tue, 15 May 2007 02:01:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, apw@shadowen.org, mel@csn.ul.ie
+To: jengelh@linux01.gwdg.de, a.zummo@towertech.it, david-b@pacbell.net, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     have-kswapd-keep-a-minimum-order-free-other-than-order-0 fix
-has been added to the -mm tree.  Its filename is
-     have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+     Use menuconfig objects II - RTC
+has been removed from the -mm tree.  Its filename was
+     use-menuconfig-objects-ii-rtc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because other stuff trashed it
 
 ------------------------------------------------------
-Subject: have-kswapd-keep-a-minimum-order-free-other-than-order-0 fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Use menuconfig objects II - RTC
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-On third thought: The trouble with this solution is that we will now set
-the order to that used by the largest kmalloc cache.  Bad...  this could be
-6 on i386 to 13 if CONFIG_LARGE_ALLOCs is set.  The large kmalloc caches
-are rarely used and we are used to OOMing if those are utilized to
-frequently.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
-I guess we should only set this for non kmalloc caches then.  So move the
-call into kmem_cache_create?  Would make the min order 3 on most of my mm
-machines.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/rtc/Kconfig |   70 +++++++++++++++++-------------------------
+ 1 file changed, 29 insertions(+), 41 deletions(-)
 
-diff -puN mm/slub.c~have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix mm/slub.c
---- a/mm/slub.c~have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix
-+++ a/mm/slub.c
-@@ -2006,8 +2006,6 @@ static int kmem_cache_open(struct kmem_c
- #ifdef CONFIG_NUMA
- 	s->defrag_ratio = 100;
- #endif
--	raise_kswapd_order(s->order);
+diff -puN drivers/rtc/Kconfig~use-menuconfig-objects-ii-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~use-menuconfig-objects-ii-rtc
++++ a/drivers/rtc/Kconfig
+@@ -2,15 +2,13 @@
+ # RTC class/drivers configuration
+ #
+ 
+-menu "Real Time Clock"
+-	depends on !S390
 -
- 	if (init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
- 		return 1;
- error:
-@@ -2561,6 +2559,7 @@ struct kmem_cache *kmem_cache_create(con
- 				goto err;
- 			}
- 			list_add(&s->list, &slab_caches);
-+			raise_kswapd_order(s->order);
- 		} else
- 			kfree(s);
- 	}
+ config RTC_LIB
+ 	tristate
+ 
+-config RTC_CLASS
+-	tristate "RTC class"
++menuconfig RTC_CLASS
++	tristate "Real Time Clock class"
+ 	depends on EXPERIMENTAL
++	depends on !S390
+ 	default n
+ 	select RTC_LIB
+ 	help
+@@ -21,6 +19,8 @@ config RTC_CLASS
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-class.
+ 
++if RTC_CLASS
++
+ config RTC_HCTOSYS
+ 	bool "Set system time from RTC on startup and resume"
+ 	depends on RTC_CLASS = y
+@@ -56,11 +56,10 @@ config RTC_DEBUG
+ 	  and individual RTC drivers.
+ 
+ comment "RTC interfaces"
+-	depends on RTC_CLASS
+ 
+ config RTC_INTF_SYSFS
+ 	boolean "sysfs"
+-	depends on RTC_CLASS && SYSFS
++	depends on SYSFS
+ 	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your RTCs using sysfs interfaces,
+@@ -71,7 +70,7 @@ config RTC_INTF_SYSFS
+ 
+ config RTC_INTF_PROC
+ 	boolean "proc"
+-	depends on RTC_CLASS && PROC_FS
++	depends on PROC_FS
+ 	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your first RTC through the proc
+@@ -83,7 +82,6 @@ config RTC_INTF_PROC
+ 
+ config RTC_INTF_DEV
+ 	boolean "dev"
+-	depends on RTC_CLASS
+ 	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your RTCs using the /dev
+@@ -105,7 +103,6 @@ config RTC_INTF_DEV_UIE_EMUL
+ 
+ config RTC_DRV_TEST
+ 	tristate "Test driver/device"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+ 	  RTC test driver. It's a software RTC which can be
+@@ -119,11 +116,10 @@ config RTC_DRV_TEST
+ 	  will be called rtc-test.
+ 
+ comment "I2C RTC drivers"
+-	depends on RTC_CLASS
+ 
+ config RTC_DRV_DS1307
+ 	tristate "Dallas/Maxim DS1307/37/38/39/40, ST M41T00"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for various compatible RTC
+ 	  chips (often with battery backup) connected with I2C.  This driver
+@@ -141,7 +137,7 @@ config RTC_DRV_DS1307
+ 
+ config RTC_DRV_DS1672
+ 	tristate "Dallas/Maxim DS1672"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Dallas/Maxim DS1672 timekeeping chip.
+@@ -151,7 +147,7 @@ config RTC_DRV_DS1672
+ 
+ config RTC_DRV_MAX6900
+ 	tristate "Maxim 6900"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  Maxim MAX6900 I2C RTC chip.
+@@ -161,7 +157,7 @@ config RTC_DRV_MAX6900
+ 
+ config RTC_DRV_RS5C372
+ 	tristate "Ricoh RS5C372A/B"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Ricoh RS5C372A and RS5C372B RTC chips.
+@@ -171,7 +167,7 @@ config RTC_DRV_RS5C372
+ 
+ config RTC_DRV_ISL1208
+ 	tristate "Intersil 1208"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Intersil 1208 RTC chip.
+@@ -181,7 +177,7 @@ config RTC_DRV_ISL1208
+ 
+ config RTC_DRV_X1205
+ 	tristate "Xicor/Intersil X1205"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Xicor/Intersil X1205 RTC chip.
+@@ -191,7 +187,7 @@ config RTC_DRV_X1205
+ 
+ config RTC_DRV_PCF8563
+ 	tristate "Philips PCF8563/Epson RTC8564"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Philips PCF8563 RTC chip. The Epson RTC8564
+@@ -202,7 +198,7 @@ config RTC_DRV_PCF8563
+ 
+ config RTC_DRV_PCF8583
+ 	tristate "Philips PCF8583"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for the Philips PCF8583
+ 	  RTC chip found on Acorn RiscPCs. This driver supports the
+@@ -214,11 +210,10 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
+ 
+ comment "SPI RTC drivers"
+-	depends on RTC_CLASS
+ 
+ config RTC_DRV_RS5C348
+ 	tristate "Ricoh RS5C348A/B"
+-	depends on RTC_CLASS && SPI
++	depends on SPI
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Ricoh RS5C348A and RS5C348B RTC chips.
+@@ -228,7 +223,7 @@ config RTC_DRV_RS5C348
+ 
+ config RTC_DRV_MAX6902
+ 	tristate "Maxim 6902"
+-	depends on RTC_CLASS && SPI
++	depends on SPI
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  Maxim MAX6902 SPI RTC chip.
+@@ -237,7 +232,6 @@ config RTC_DRV_MAX6902
+ 	  will be called rtc-max6902.
+ 
+ comment "Platform RTC drivers"
+-	depends on RTC_CLASS
+ 
+ # this 'CMOS' RTC driver is arch dependent because <asm-generic/rtc.h>
+ # requires <asm/mc146818rtc.h> defining CMOS_READ/CMOS_WRITE, and a
+@@ -245,8 +239,8 @@ comment "Platform RTC drivers"
+ 
+ config RTC_DRV_CMOS
+ 	tristate "PC-style 'CMOS'"
+-	depends on RTC_CLASS && (X86 || ALPHA || ARM26 || ARM \
+-		|| M32R || ATARI || POWERPC || MIPS)
++	depends on X86 || ALPHA || ARM26 || ARM \
++		|| M32R || ATARI || POWERPC || MIPS
+ 	help
+ 	  Say "yes" here to get direct support for the real time clock
+ 	  found in every PC or ACPI-based system, and some other boards.
+@@ -264,7 +258,6 @@ config RTC_DRV_CMOS
+ 
+ config RTC_DRV_DS1553
+ 	tristate "Dallas DS1553"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Dallas DS1553 timekeeping chip.
+@@ -274,7 +267,6 @@ config RTC_DRV_DS1553
+ 
+ config RTC_DRV_DS1742
+ 	tristate "Dallas DS1742/1743"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Dallas DS1742/1743 timekeeping chip.
+@@ -284,7 +276,6 @@ config RTC_DRV_DS1742
+ 
+ config RTC_DRV_M48T86
+ 	tristate "ST M48T86/Dallas DS12887"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say Y here you will get support for the
+ 	  ST M48T86 and Dallas DS12887 RTC chips.
+@@ -294,7 +285,6 @@ config RTC_DRV_M48T86
+ 
+ config RTC_DRV_V3020
+ 	tristate "EM Microelectronic V3020"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  EM Microelectronic v3020 RTC chip.
+@@ -303,19 +293,17 @@ config RTC_DRV_V3020
+ 	  will be called rtc-v3020.
+ 
+ comment "on-CPU RTC drivers"
+-	depends on RTC_CLASS
+ 
+ config RTC_DRV_OMAP
+ 	tristate "TI OMAP1"
+-	depends on RTC_CLASS && ( \
+-		ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 )
++	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730
+ 	help
+ 	  Say "yes" here to support the real time clock on TI OMAP1 chips.
+ 	  This driver can also be built as a module called rtc-omap.
+ 
+ config RTC_DRV_S3C
+ 	tristate "Samsung S3C series SoC RTC"
+-	depends on RTC_CLASS && ARCH_S3C2410
++	depends on ARCH_S3C2410
+ 	help
+ 	  RTC (Realtime Clock) driver for the clock inbuilt into the
+ 	  Samsung S3C24XX series of SoCs. This can provide periodic
+@@ -331,7 +319,7 @@ config RTC_DRV_S3C
+ 
+ config RTC_DRV_EP93XX
+ 	tristate "Cirrus Logic EP93XX"
+-	depends on RTC_CLASS && ARCH_EP93XX
++	depends on ARCH_EP93XX
+ 	help
+ 	  If you say yes here you get support for the
+ 	  RTC embedded in the Cirrus Logic EP93XX processors.
+@@ -341,7 +329,7 @@ config RTC_DRV_EP93XX
+ 
+ config RTC_DRV_SA1100
+ 	tristate "SA11x0/PXA2xx"
+-	depends on RTC_CLASS && (ARCH_SA1100 || ARCH_PXA)
++	depends on ARCH_SA1100 || ARCH_PXA
+ 	help
+ 	  If you say Y here you will get access to the real time clock
+ 	  built into your SA11x0 or PXA2xx CPU.
+@@ -351,7 +339,7 @@ config RTC_DRV_SA1100
+ 
+ config RTC_DRV_SH
+ 	tristate "SuperH On-Chip RTC"
+-	depends on RTC_CLASS && SUPERH
++	depends on SUPERH
+ 	help
+ 	  Say Y here to enable support for the on-chip RTC found in
+ 	  most SuperH processors.
+@@ -361,7 +349,7 @@ config RTC_DRV_SH
+ 
+ config RTC_DRV_VR41XX
+ 	tristate "NEC VR41XX"
+-	depends on RTC_CLASS && CPU_VR41XX
++	depends on CPU_VR41XX
+ 	help
+ 	  If you say Y here you will get access to the real time clock
+ 	  built into your NEC VR41XX CPU.
+@@ -371,7 +359,7 @@ config RTC_DRV_VR41XX
+ 
+ config RTC_DRV_PL031
+ 	tristate "ARM AMBA PL031 RTC"
+-	depends on RTC_CLASS && ARM_AMBA
++	depends on ARM_AMBA
+ 	help
+ 	  If you say Y here you will get access to ARM AMBA
+ 	  PrimeCell PL031 RTC found on certain ARM SOCs.
+@@ -381,13 +369,13 @@ config RTC_DRV_PL031
+ 
+ config RTC_DRV_AT91RM9200
+ 	tristate "AT91RM9200"
+-	depends on RTC_CLASS && ARCH_AT91RM9200
++	depends on ARCH_AT91RM9200
+ 	help
+ 	  Driver for the Atmel AT91RM9200's internal RTC (Realtime Clock).
+ 
+ config RTC_DRV_BFIN
+ 	tristate "Blackfin On-Chip RTC"
+-	depends on RTC_CLASS && BFIN
++	depends on BFIN
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  Blackfin On-Chip Real Time Clock.
+@@ -401,4 +389,4 @@ config RTC_DRV_RS5C313
+ 	help
+ 	  If you say yes here you get support for the Ricoh RS5C313 RTC chips.
+ 
+-endmenu
++endif # RTC_CLASS
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-slub-config_large_allocs-must-consider-max_order-limit.patch
-slub-config_large_allocs-must-consider-max_order-limit-fix.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
-remove-slab_ctor_constructor-fix.patch
-slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
-slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-ii-sound.patch
+git-dvb.patch
+git-ieee1394.patch
+use-menuconfig-objects-ii-infiniband.patch
+use-menuconfig-objects-ii-kvm-virt.patch
+use-menuconfig-objects-ide.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-usb.patch
+use-menuconfig-objects-crypto.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-rtc.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
