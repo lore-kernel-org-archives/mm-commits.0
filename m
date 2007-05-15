@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 14:57:59 -0700
-Message-ID: <200705152201.l4FM15nB019014@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch added to -mm tree
+Date: Tue, 15 May 2007 15:11:01 -0700
+Message-ID: <200705152214.l4FME6L9019235@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51655 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755218AbXEOWDg (ORCPT
+	by vger.kernel.org with ESMTP id S1755720AbXEOWQD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 18:03:36 -0400
+	Tue, 15 May 2007 18:16:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, matthias.kaehlcke@gmail.com
+Cc: akpm@linux-foundation.org, gregkh@suse.de, htejun@gmail.com
 
 
 The patch titled
-     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
+     gregkh-driver-sysfs-fix-error-handling-in-binattr-write-fix
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
+Subject: gregkh-driver-sysfs-fix-error-handling-in-binattr-write-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/devices/m25p80.c: In function 'm25p80_erase':
-drivers/mtd/devices/m25p80.c:203: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c:209: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c:217: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c: In function 'm25p80_read':
-drivers/mtd/devices/m25p80.c:262: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c:267: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c:283: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c: In function 'm25p80_write':
-drivers/mtd/devices/m25p80.c:325: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c:386: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
-drivers/mtd/devices/m25p80.c: In function 'm25p_probe':
-drivers/mtd/devices/m25p80.c:458: warning: passing argument 1 of '__mutex_init' from incompatible pointer type
+fs/sysfs/bin.c: In function 'read':
+fs/sysfs/bin.c:58: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
 
-eh?
+How many times have we fixed this??
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/m25p80.c |    2 +-
+ fs/sysfs/bin.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -64,7 +64,7 @@
+diff -puN fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
++++ a/fs/sysfs/bin.c
+@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
+ 		goto out_unlock;
+ 	}
  
- struct m25p {
- 	struct spi_device	*spi;
--	struct semaphore	lock;
-+	struct mutex		lock;
- 	struct mtd_info		mtd;
- 	unsigned		partitioned;
- 	u8			command[4];
+-	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
++	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
+ 
+ 	*off = offs + count;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +63,7 @@ git-acpi-export-acpi_set_cstate_limit.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 fix-agk-dm-dm-io-fix-panic-on-large-request.patch
 8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 git-dvb.patch
 cinergyt2-fix-file-release-handler.patch
 git-gfs2-nmw.patch
