@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-define-functions-for-cpu-slab-handling-instead-of-using.patch added to -mm tree
-Date: Mon, 14 May 2007 21:54:29 -0700
-Message-ID: <200705150454.l4F4sSpQ001788@shell0.pdx.osdl.net>
+Subject: + ibmasm-dont-use-extern-in-function-declarations.patch added to -mm tree
+Date: Mon, 14 May 2007 22:06:12 -0700
+Message-ID: <200705150506.l4F56CfI001958@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42093 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760393AbXEOEyc (ORCPT
+	by vger.kernel.org with ESMTP id S1754351AbXEOFGh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 00:54:32 -0400
+	Tue, 15 May 2007 01:06:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: dtor@insightbb.com, dtor@mail.ru, masbock@us.ibm.com, vernux@us.ibm.com
 
 
 The patch titled
-     SLUB: Define functions for cpu slab handling instead of using PageActive
+     IBMASM: dont use extern in function declarations
 has been added to the -mm tree.  Its filename is
-     slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
+     ibmasm-dont-use-extern-in-function-declarations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,188 +26,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Define functions for cpu slab handling instead of using PageActive
-From: Christoph Lameter <clameter@sgi.com>
+Subject: IBMASM: dont use extern in function declarations
+From: Dmitry Torokhov <dtor@insightbb.com>
 
-Use inline functions to access the per cpu bit.  Intoduce the notion of
-"freezing" a slab to make things more understandable.
+IBMASM: don't use extern in function declarations
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+We normally don't use extern in function declarations located in header files.
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Vernon Mauery <vernux@us.ibm.com>
+Cc: Max Asbock <masbock@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   57 ++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 38 insertions(+), 19 deletions(-)
+ drivers/misc/ibmasm/ibmasm.h |   64 ++++++++++++++++-----------------
+ 1 file changed, 32 insertions(+), 32 deletions(-)
 
-diff -puN mm/slub.c~slub-define-functions-for-cpu-slab-handling-instead-of-using mm/slub.c
---- a/mm/slub.c~slub-define-functions-for-cpu-slab-handling-instead-of-using
-+++ a/mm/slub.c
-@@ -78,10 +78,18 @@
-  *
-  * Overloading of page flags that are otherwise used for LRU management.
-  *
-- * PageActive 		The slab is used as a cpu cache. Allocations
-- * 			may be performed from the slab. The slab is not
-- * 			on any slab list and cannot be moved onto one.
-- * 			The cpu slab may be equipped with an additioanl
-+ * PageActive 		The slab is frozen and excempt from list processing.
-+ * 			This means that the slab is dedicated to a purpose
-+ * 			such as satisfying allocations for a specific
-+ * 			processor. Objects may be freed in the slab while
-+ * 			it is frozen but slab_free will then skip the usual
-+ * 			list operations. It is up to the processor holding
-+ * 			the slab to integrate the slab into the slab lists
-+ * 			when the slab is no longer needed.
-+ *
-+ * 			One use of this flag is to mark slabs that are
-+ * 			used for allocations. Then such a slab becomes a cpu
-+ * 			slab. The cpu slab may be equipped with an additional
-  * 			lockless_freelist that allows lockless access to
-  * 			free objects in addition to the regular freelist
-  * 			that requires the slab lock.
-@@ -91,6 +99,21 @@
-  * 			the fast path and disables lockless freelists.
-  */
+diff -puN drivers/misc/ibmasm/ibmasm.h~ibmasm-dont-use-extern-in-function-declarations drivers/misc/ibmasm/ibmasm.h
+--- a/drivers/misc/ibmasm/ibmasm.h~ibmasm-dont-use-extern-in-function-declarations
++++ a/drivers/misc/ibmasm/ibmasm.h
+@@ -163,55 +163,55 @@ struct service_processor {
+ };
  
-+static inline int SlabFrozen(struct page *page)
-+{
-+	return PageActive(page);
-+}
-+
-+static inline void SetSlabFrozen(struct page *page)
-+{
-+	SetPageActive(page);
-+}
-+
-+static inline void ClearSlabFrozen(struct page *page)
-+{
-+	__ClearPageActive(page);
-+}
-+
- static inline int SlabDebug(struct page *page)
- {
- #ifdef CONFIG_SLUB_DEBUG
-@@ -1135,11 +1158,12 @@ static void remove_partial(struct kmem_c
-  *
-  * Must hold list_lock.
-  */
--static int lock_and_del_slab(struct kmem_cache_node *n, struct page *page)
-+static inline int lock_and_freeze_slab(struct kmem_cache_node *n, struct page *page)
- {
- 	if (slab_trylock(page)) {
- 		list_del(&page->lru);
- 		n->nr_partial--;
-+		SetSlabFrozen(page);
- 		return 1;
- 	}
- 	return 0;
-@@ -1163,7 +1187,7 @@ static struct page *get_partial_node(str
+ /* command processing */
+-extern struct command *ibmasm_new_command(struct service_processor *sp, size_t buffer_size);
+-extern void ibmasm_exec_command(struct service_processor *sp, struct command *cmd);
+-extern void ibmasm_wait_for_response(struct command *cmd, int timeout);
+-extern void ibmasm_receive_command_response(struct service_processor *sp, void *response,  size_t size);
++struct command *ibmasm_new_command(struct service_processor *sp, size_t buffer_size);
++void ibmasm_exec_command(struct service_processor *sp, struct command *cmd);
++void ibmasm_wait_for_response(struct command *cmd, int timeout);
++void ibmasm_receive_command_response(struct service_processor *sp, void *response,  size_t size);
  
- 	spin_lock(&n->list_lock);
- 	list_for_each_entry(page, &n->partial, lru)
--		if (lock_and_del_slab(n, page))
-+		if (lock_and_freeze_slab(n, page))
- 			goto out;
- 	page = NULL;
- out:
-@@ -1242,10 +1266,11 @@ static struct page *get_partial(struct k
-  *
-  * On exit the slab lock will have been dropped.
-  */
--static void putback_slab(struct kmem_cache *s, struct page *page)
-+static void unfreeze_slab(struct kmem_cache *s, struct page *page)
- {
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+ /* event processing */
+-extern int ibmasm_event_buffer_init(struct service_processor *sp);
+-extern void ibmasm_event_buffer_exit(struct service_processor *sp);
+-extern void ibmasm_receive_event(struct service_processor *sp, void *data,  unsigned int data_size);
+-extern void ibmasm_event_reader_register(struct service_processor *sp, struct event_reader *reader);
+-extern void ibmasm_event_reader_unregister(struct service_processor *sp, struct event_reader *reader);
+-extern int ibmasm_get_next_event(struct service_processor *sp, struct event_reader *reader);
+-extern void ibmasm_cancel_next_event(struct event_reader *reader);
++int ibmasm_event_buffer_init(struct service_processor *sp);
++void ibmasm_event_buffer_exit(struct service_processor *sp);
++void ibmasm_receive_event(struct service_processor *sp, void *data,  unsigned int data_size);
++void ibmasm_event_reader_register(struct service_processor *sp, struct event_reader *reader);
++void ibmasm_event_reader_unregister(struct service_processor *sp, struct event_reader *reader);
++int ibmasm_get_next_event(struct service_processor *sp, struct event_reader *reader);
++void ibmasm_cancel_next_event(struct event_reader *reader);
  
-+	ClearSlabFrozen(page);
- 	if (page->inuse) {
+ /* heartbeat - from SP to OS */
+-extern void ibmasm_register_panic_notifier(void);
+-extern void ibmasm_unregister_panic_notifier(void);
+-extern int ibmasm_heartbeat_init(struct service_processor *sp);
+-extern void ibmasm_heartbeat_exit(struct service_processor *sp);
+-extern void ibmasm_receive_heartbeat(struct service_processor *sp,  void *message, size_t size);
++void ibmasm_register_panic_notifier(void);
++void ibmasm_unregister_panic_notifier(void);
++int ibmasm_heartbeat_init(struct service_processor *sp);
++void ibmasm_heartbeat_exit(struct service_processor *sp);
++void ibmasm_receive_heartbeat(struct service_processor *sp,  void *message, size_t size);
  
- 		if (page->freelist)
-@@ -1296,9 +1321,7 @@ static void deactivate_slab(struct kmem_
- 		page->inuse--;
- 	}
- 	s->cpu_slab[cpu] = NULL;
--	ClearPageActive(page);
--
--	putback_slab(s, page);
-+	unfreeze_slab(s, page);
- }
+ /* reverse heartbeat - from OS to SP */
+-extern void ibmasm_init_reverse_heartbeat(struct service_processor *sp, struct reverse_heartbeat *rhb);
+-extern int ibmasm_start_reverse_heartbeat(struct service_processor *sp, struct reverse_heartbeat *rhb);
+-extern void ibmasm_stop_reverse_heartbeat(struct reverse_heartbeat *rhb);
++void ibmasm_init_reverse_heartbeat(struct service_processor *sp, struct reverse_heartbeat *rhb);
++int ibmasm_start_reverse_heartbeat(struct service_processor *sp, struct reverse_heartbeat *rhb);
++void ibmasm_stop_reverse_heartbeat(struct reverse_heartbeat *rhb);
  
- static void flush_slab(struct kmem_cache *s, struct page *page, int cpu)
-@@ -1389,9 +1412,7 @@ another_slab:
- new_slab:
- 	page = get_partial(s, gfpflags, node);
- 	if (page) {
--have_slab:
- 		s->cpu_slab[cpu] = page;
--		SetPageActive(page);
- 		goto load_freelist;
- 	}
+ /* dot commands */
+-extern void ibmasm_receive_message(struct service_processor *sp, void *data, int data_size);
+-extern int ibmasm_send_driver_vpd(struct service_processor *sp);
+-extern int ibmasm_send_os_state(struct service_processor *sp, int os_state);
++void ibmasm_receive_message(struct service_processor *sp, void *data, int data_size);
++int ibmasm_send_driver_vpd(struct service_processor *sp);
++int ibmasm_send_os_state(struct service_processor *sp, int os_state);
  
-@@ -1421,7 +1442,9 @@ have_slab:
- 			flush_slab(s, s->cpu_slab[cpu], cpu);
- 		}
- 		slab_lock(page);
--		goto have_slab;
-+		SetSlabFrozen(page);
-+		s->cpu_slab[cpu] = page;
-+		goto load_freelist;
- 	}
- 	return NULL;
- debug:
-@@ -1508,11 +1531,7 @@ checks_ok:
- 	page->freelist = object;
- 	page->inuse--;
+ /* low level message processing */
+-extern int ibmasm_send_i2o_message(struct service_processor *sp);
+-extern irqreturn_t ibmasm_interrupt_handler(int irq, void * dev_id);
++int ibmasm_send_i2o_message(struct service_processor *sp);
++irqreturn_t ibmasm_interrupt_handler(int irq, void * dev_id);
  
--	if (unlikely(PageActive(page)))
--		/*
--		 * Cpu slabs are never on partial lists and are
--		 * never freed.
--		 */
-+	if (unlikely(SlabFrozen(page)))
- 		goto out_unlock;
+ /* remote console */
+-extern void ibmasm_handle_mouse_interrupt(struct service_processor *sp);
+-extern int ibmasm_init_remote_input_dev(struct service_processor *sp);
+-extern void ibmasm_free_remote_input_dev(struct service_processor *sp);
++void ibmasm_handle_mouse_interrupt(struct service_processor *sp);
++int ibmasm_init_remote_input_dev(struct service_processor *sp);
++void ibmasm_free_remote_input_dev(struct service_processor *sp);
  
- 	if (unlikely(!page->inuse))
-@@ -1544,7 +1563,7 @@ slab_empty:
- debug:
- 	if (!free_object_checks(s, page, x))
- 		goto out_unlock;
--	if (!PageActive(page) && !page->freelist)
-+	if (!SlabFrozen(page) && !page->freelist)
- 		remove_full(s, page);
- 	if (s->flags & SLAB_STORE_USER)
- 		set_track(s, x, TRACK_FREE, addr);
+ /* file system */
+-extern int ibmasmfs_register(void);
+-extern void ibmasmfs_unregister(void);
+-extern void ibmasmfs_add_sp(struct service_processor *sp);
++int ibmasmfs_register(void);
++void ibmasmfs_unregister(void);
++void ibmasmfs_add_sp(struct service_processor *sp);
+ 
+ /* uart */
+ #ifdef CONFIG_SERIAL_8250
+-extern void ibmasm_register_uart(struct service_processor *sp);
+-extern void ibmasm_unregister_uart(struct service_processor *sp);
++void ibmasm_register_uart(struct service_processor *sp);
++void ibmasm_unregister_uart(struct service_processor *sp);
+ #else
+ #define ibmasm_register_uart(sp)	do { } while(0)
+ #define ibmasm_unregister_uart(sp)	do { } while(0)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from dtor@insightbb.com are
 
-slub-config_large_allocs-must-consider-max_order-limit.patch
-slub-config_large_allocs-must-consider-max_order-limit-fix.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
-remove-slab_ctor_constructor-fix.patch
-slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
-slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+git-input.patch
+revert-input-alps-handle-errors-from-input_register_device.patch
+ibmasm-whitespace-cleanup.patch
+ibmasm-dont-use-extern-in-function-declarations.patch
+ibmasm-miscellaneous-fixes.patch
+ibmasm-must-depend-on-config_input.patch
