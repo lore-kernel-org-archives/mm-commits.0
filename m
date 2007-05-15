@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch added to -mm tree
-Date: Tue, 15 May 2007 11:59:17 -0700
-Message-ID: <200705151859.l4FIxHXg015116@shell0.pdx.osdl.net>
+Subject: + knfsd-exportfs-add-find_disconnected_root-helper.patch added to -mm tree
+Date: Tue, 15 May 2007 11:59:22 -0700
+Message-ID: <200705151859.l4FIxM82015124@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45622 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54047 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760936AbXEOTAN (ORCPT
+	by vger.kernel.org with ESMTP id S1756295AbXEOTAT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:00:13 -0400
+	Tue, 15 May 2007 15:00:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hch@infradead.org, hch@lst.de, neilb@suse.de
 
 
 The patch titled
-     knfsd: exportfs: move acceptable check into find_acceptable_alias
+     knfsd: exportfs: add find_disconnected_root helper
 has been added to the -mm tree.  Its filename is
-     knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
+     knfsd-exportfs-add-find_disconnected_root-helper.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: exportfs: move acceptable check into find_acceptable_alias
+Subject: knfsd: exportfs: add find_disconnected_root helper
 From: Christoph Hellwig <hch@infradead.org>
 
-All callers of find_acceptable_alias check if the current dentry is acceptable
-before looking for other acceptable aliases using find_acceptable_alias.  Move
-the check into find_acceptable_alias to make the code a little more dense and
-add a comment to find_acceptable_alias that documents its intent.
+Break the loop that finds the root of a disconnected subtree into a helper of
+its own to make reading easier and document the intent.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exportfs/expfs.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ fs/exportfs/expfs.c |   39 +++++++++++++++++++++++----------------
+ 1 files changed, 23 insertions(+), 16 deletions(-)
 
-diff -puN fs/exportfs/expfs.c~knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias fs/exportfs/expfs.c
---- a/fs/exportfs/expfs.c~knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias
+diff -puN fs/exportfs/expfs.c~knfsd-exportfs-add-find_disconnected_root-helper fs/exportfs/expfs.c
+--- a/fs/exportfs/expfs.c~knfsd-exportfs-add-find_disconnected_root-helper
 +++ a/fs/exportfs/expfs.c
-@@ -37,6 +37,9 @@ static int exportfs_get_name(struct dent
- 		return get_name(dir, name, child);
+@@ -70,6 +70,27 @@ find_acceptable_alias(struct dentry *res
+ 	return NULL;
  }
  
 +/*
-+ * Check if the dentry or any of it's aliases is acceptable.
++ * Find root of a disconnected subtree and return a reference to it.
 + */
- static struct dentry *
- find_acceptable_alias(struct dentry *result,
- 		int (*acceptable)(void *context, struct dentry *dentry),
-@@ -44,6 +47,9 @@ find_acceptable_alias(struct dentry *res
- {
- 	struct dentry *dentry, *toput = NULL;
- 
-+	if (acceptable(context, result))
-+		return result;
++static struct dentry *
++find_disconnected_root(struct dentry *dentry)
++{
++	dget(dentry);
++	spin_lock(&dentry->d_lock);
++	while (!IS_ROOT(dentry) &&
++	       (dentry->d_parent->d_flags & DCACHE_DISCONNECTED)) {
++		struct dentry *parent = dentry->d_parent;
++		dget(parent);
++		spin_unlock(&dentry->d_lock);
++		dput(dentry);
++		dentry = parent;
++		spin_lock(&dentry->d_lock);
++	}
++	spin_unlock(&dentry->d_lock);
++	return dentry;
++}
 +
- 	spin_lock(&dcache_lock);
- 	list_for_each_entry(dentry, &result->d_inode->i_dentry, d_alias) {
- 		dget_locked(dentry);
-@@ -126,9 +132,6 @@ find_exported_dentry(struct super_block 
- 
- 		target_dir = dget(result);
- 	} else {
--		if (acceptable(context, result))
--			return result;
+ /**
+  * find_exported_dentry - helper routine to implement export_operations->decode_fh
+  * @sb:		The &super_block identifying the filesystem
+@@ -164,23 +185,9 @@ find_exported_dentry(struct super_block 
+ 	 * the noprogress counter.  If we go through the loop 10 times (2 is
+ 	 * probably enough) without getting anywhere, we just give up
+ 	 */
+-	noprogress= 0;
++	noprogress = 0;
+ 	while (target_dir->d_flags & DCACHE_DISCONNECTED && noprogress++ < 10) {
+-		struct dentry *pd = target_dir;
 -
- 		alias = find_acceptable_alias(result, acceptable, context);
- 		if (alias)
- 			return alias;
-@@ -289,9 +292,6 @@ find_exported_dentry(struct super_block 
- 		}
- 	}
- 	dput(target_dir);
--	/* now result is properly connected, it is our best bet */
--	if (acceptable(context, result))
--		return result;
+-		dget(pd);
+-		spin_lock(&pd->d_lock);
+-		while (!IS_ROOT(pd) &&
+-				(pd->d_parent->d_flags&DCACHE_DISCONNECTED)) {
+-			struct dentry *parent = pd->d_parent;
+-
+-			dget(parent);
+-			spin_unlock(&pd->d_lock);
+-			dput(pd);
+-			pd = parent;
+-			spin_lock(&pd->d_lock);
+-		}
+-		spin_unlock(&pd->d_lock);
++		struct dentry *pd = find_disconnected_root(target_dir);
  
- 	alias = find_acceptable_alias(result, acceptable, context);
- 	if (alias)
+ 		if (!IS_ROOT(pd)) {
+ 			/* must have found a connected parent - great */
 _
 
 Patches currently in -mm which might be from hch@infradead.org are
