@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport_pc-needs-dma-mappingh.patch added to -mm tree
-Date: Tue, 15 May 2007 15:57:08 -0700
-Message-ID: <200705152300.l4FN0EGG020420@shell0.pdx.osdl.net>
+Subject: + slub-fix-handling-of-oversized-slabs.patch added to -mm tree
+Date: Tue, 15 May 2007 16:16:23 -0700
+Message-ID: <200705152319.l4FNJTaw020651@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39943 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36831 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758250AbXEOXA4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756746AbXEOXUt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 19:00:56 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4FN2IQn003319
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 16:02:55 -0700
+	Tue, 15 May 2007 19:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     parport_pc needs dma-mapping.h
+     slub: fix handling of oversized slabs
 has been added to the -mm tree.  Its filename is
-     parport_pc-needs-dma-mappingh.patch
+     slub-fix-handling-of-oversized-slabs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,35 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parport_pc needs dma-mapping.h
+Subject: slub: fix handling of oversized slabs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+I'm getting zillions of undefined references to __kmalloc_size_too_large on
+alpha.  For some reason alpha is building out-of-line copies of kmalloc_slab()
+into lots of compilation units.
 
-drivers/parport/parport_pc.c: In function 'parport_pc_fifo_write_block_dma':
-drivers/parport/parport_pc.c:636: warning: implicit declaration of function 'dma_map_single'
-drivers/parport/parport_pc.c:637: error: 'DMA_TO_DEVICE' undeclared (first use in this function)
-drivers/parport/parport_pc.c:637: error: (Each undeclared identifier is reported only once
-drivers/parport/parport_pc.c:637: error: for each function it appears in.)
+It turns out that gcc just isn't smart enough to work out that
+__builtin_contant_p(size)==true implies that __builtin_contant_p(index)==true.
 
+So let's give it a bit of help.
 
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/slub_def.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-needs-dma-mappingh drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-needs-dma-mappingh
-+++ a/drivers/parport/parport_pc.c
-@@ -51,6 +51,7 @@
- #include <linux/ioport.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
-+#include <linux/dma-mapping.h>
- #include <linux/pci.h>
- #include <linux/pnp.h>
- #include <linux/platform_device.h>
+diff -puN include/linux/slub_def.h~slub-fix-handling-of-oversized-slabs include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-fix-handling-of-oversized-slabs
++++ a/include/linux/slub_def.h
+@@ -145,7 +145,12 @@ static inline struct kmem_cache *kmalloc
+ 	if (index == 0)
+ 		return NULL;
+ 
+-	if (index < 0) {
++	/*
++	 * This function only gets expanded if __builtin_constant_p(size), so
++	 * testing it here shouldn't be needed.  But some versions of gcc need
++	 * help.
++	 */
++	if (__builtin_constant_p(size) && index < 0) {
+ 		/*
+ 		 * Generate a link failure. Would be great if we could
+ 		 * do something to stop the compile here.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,3 +160,4 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
+slub-fix-handling-of-oversized-slabs.patch
