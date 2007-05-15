@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-x-pci-express-read-control-interfaces-qla2xxx.patch added to -mm tree
-Date: Tue, 15 May 2007 12:39:45 -0700
-Message-ID: <200705151939.l4FJdjeN015959@shell0.pdx.osdl.net>
+Subject: + pci-x-pci-express-read-control-interfaces-e1000.patch added to -mm tree
+Date: Tue, 15 May 2007 12:38:48 -0700
+Message-ID: <200705151938.l4FJcmWa015923@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759364AbXEOTkD (ORCPT
+	by vger.kernel.org with ESMTP id S1762444AbXEOTjO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:40:03 -0400
+	Tue, 15 May 2007 15:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.oruba@amd.com, andrew.vasquez@qlogic.com, shemminger@linux-foundation.org
+Cc: peter.oruba@amd.com, auke-jan.h.kok@intel.com, jeff@garzik.org, shemminger@linux-foundation.org
 
 
 The patch titled
-     PCI-X/PCI-Express read control interfaces: use them in qla2xxx
+     PCI-X/PCI-Express read control interfaces: use them in e1000
 has been added to the -mm tree.  Its filename is
-     pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+     pci-x-pci-express-read-control-interfaces-e1000.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PCI-X/PCI-Express read control interfaces: use them in qla2xxx
+Subject: PCI-X/PCI-Express read control interfaces: use them in e1000
 From: "Peter Oruba" <peter.oruba@amd.com>
 
 These driver changes incorporate the proposed PCI-X / PCI-Express read byte
@@ -36,35 +36,94 @@ PCI bridges.
 
 Signed-off by: Peter Oruba <peter.oruba@amd.com>
 Based on work by Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_init.c |   12 +++---------
- 1 files changed, 3 insertions(+), 9 deletions(-)
+ drivers/net/e1000/e1000_hw.c   |   25 +++----------------------
+ drivers/net/e1000/e1000_hw.h   |    2 ++
+ drivers/net/e1000/e1000_main.c |   14 ++++++++++++++
+ 3 files changed, 19 insertions(+), 22 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_init.c~pci-x-pci-express-read-control-interfaces-qla2xxx drivers/scsi/qla2xxx/qla_init.c
---- a/drivers/scsi/qla2xxx/qla_init.c~pci-x-pci-express-read-control-interfaces-qla2xxx
-+++ a/drivers/scsi/qla2xxx/qla_init.c
-@@ -281,15 +281,9 @@ qla24xx_pci_config(scsi_qla_host_t *ha)
+diff -puN drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.c
+--- a/drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000
++++ a/drivers/net/e1000/e1000_hw.c
+@@ -865,10 +865,6 @@ e1000_init_hw(struct e1000_hw *hw)
+     uint32_t ctrl;
+     uint32_t i;
+     int32_t ret_val;
+-    uint16_t pcix_cmd_word;
+-    uint16_t pcix_stat_hi_word;
+-    uint16_t cmd_mmrbc;
+-    uint16_t stat_mmrbc;
+     uint32_t mta_size;
+     uint32_t reg_data;
+     uint32_t ctrl_ext;
+@@ -958,24 +954,9 @@ e1000_init_hw(struct e1000_hw *hw)
+         break;
+     default:
+         /* Workaround for PCI-X problem when BIOS sets MMRBC incorrectly. */
+-        if (hw->bus_type == e1000_bus_type_pcix) {
+-            e1000_read_pci_cfg(hw, PCIX_COMMAND_REGISTER, &pcix_cmd_word);
+-            e1000_read_pci_cfg(hw, PCIX_STATUS_REGISTER_HI,
+-                &pcix_stat_hi_word);
+-            cmd_mmrbc = (pcix_cmd_word & PCIX_COMMAND_MMRBC_MASK) >>
+-                PCIX_COMMAND_MMRBC_SHIFT;
+-            stat_mmrbc = (pcix_stat_hi_word & PCIX_STATUS_HI_MMRBC_MASK) >>
+-                PCIX_STATUS_HI_MMRBC_SHIFT;
+-            if (stat_mmrbc == PCIX_STATUS_HI_MMRBC_4K)
+-                stat_mmrbc = PCIX_STATUS_HI_MMRBC_2K;
+-            if (cmd_mmrbc > stat_mmrbc) {
+-                pcix_cmd_word &= ~PCIX_COMMAND_MMRBC_MASK;
+-                pcix_cmd_word |= stat_mmrbc << PCIX_COMMAND_MMRBC_SHIFT;
+-                e1000_write_pci_cfg(hw, PCIX_COMMAND_REGISTER,
+-                    &pcix_cmd_word);
+-            }
+-        }
+-        break;
++	if (hw->bus_type == e1000_bus_type_pcix && e1000_pcix_get_mmrbc(hw) > 2048)
++		e1000_pcix_set_mmrbc(hw, 2048);
++	break;
+     }
  
- 	/* PCIe -- adjust Maximum Read Request Size (2048). */
- 	pcie_dctl_reg = pci_find_capability(ha->pdev, PCI_CAP_ID_EXP);
--	if (pcie_dctl_reg) {
--		uint16_t pcie_dctl;
--
--		pcie_dctl_reg += PCI_EXP_DEVCTL;
--		pci_read_config_word(ha->pdev, pcie_dctl_reg, &pcie_dctl);
--		pcie_dctl &= ~PCI_EXP_DEVCTL_READRQ;
--		pcie_dctl |= 0x4000;
--		pci_write_config_word(ha->pdev, pcie_dctl_reg, pcie_dctl);
--	}
-+	if (pcie_dctl_reg)
-+		if (pcie_set_readrq(ha->pdev, 2048))
-+			DEBUG2(printk("Couldn't write PCI Express read request\n"));
+     /* More time needed for PHY to initialize */
+diff -puN drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.h
+--- a/drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000
++++ a/drivers/net/e1000/e1000_hw.h
+@@ -424,6 +424,8 @@ void e1000_pci_clear_mwi(struct e1000_hw
+ void e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
+ void e1000_write_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
+ int32_t e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value);
++void e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc);
++int e1000_pcix_get_mmrbc(struct e1000_hw *hw);
+ /* Port I/O is only supported on 82544 and newer */
+ void e1000_io_write(struct e1000_hw *hw, unsigned long port, uint32_t value);
+ int32_t e1000_disable_pciex_master(struct e1000_hw *hw);
+diff -puN drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000
++++ a/drivers/net/e1000/e1000_main.c
+@@ -4912,6 +4912,20 @@ e1000_write_pci_cfg(struct e1000_hw *hw,
+ 	pci_write_config_word(adapter->pdev, reg, *value);
+ }
  
- 	/* Reset expansion ROM address decode enable */
- 	pci_read_config_dword(ha->pdev, PCI_ROM_ADDRESS, &d);
++int
++e1000_pcix_get_mmrbc(struct e1000_hw *hw)
++{
++	struct e1000_adapter *adapter = hw->back;
++	return pcix_get_mmrbc(adapter->pdev);
++}
++
++void
++e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc)
++{
++	struct e1000_adapter *adapter = hw->back;
++	pcix_set_mmrbc(adapter->pdev, mmrbc);
++}
++
+ int32_t
+ e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
+ {
 _
 
 Patches currently in -mm which might be from peter.oruba@amd.com are
