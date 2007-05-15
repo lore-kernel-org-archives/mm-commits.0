@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-net-driver-tidyups-update.patch added to -mm tree
-Date: Mon, 14 May 2007 22:55:46 -0700
-Message-ID: <200705150555.l4F5tkKB002693@shell0.pdx.osdl.net>
+Subject: + lguest-the-block-driver-tidyups-update.patch added to -mm tree
+Date: Mon, 14 May 2007 22:55:50 -0700
+Message-ID: <200705150555.l4F5tool002696@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45007 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758659AbXEOF4a (ORCPT
+	by vger.kernel.org with ESMTP id S1756224AbXEOF4u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:56:30 -0400
+	Tue, 15 May 2007 01:56:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, jeff@garzik.org
+Cc: rusty@rustcorp.com.au, ak@suse.de, jens.axboe@oracle.com
 
 
 The patch titled
-     lguest: netdriver tidyups and a bugfix
+     lguest: block driver tidyups
 has been added to the -mm tree.  Its filename is
-     lguest-the-net-driver-tidyups-update.patch
+     lguest-the-block-driver-tidyups-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: netdriver tidyups and a bugfix
+Subject: lguest: block driver tidyups
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Feedback from Jeff Garzik:
-1) Use netdev_priv instead of dev->priv.
-2) Check for ioremap failure
-3) iounmap on failure.
-4) Wrap SEND_DMA and BIND_DMA calls
-5) Don't set NETIF_F_SG unless we set NETIF_F_NO_CSUM
-6) Use SET_NETDEV_DEV()
-7) Don't set dev->irq, mem_start & mem_end (deprecated)
-
-Feedback from Chrisoph Hellwig:
-8) Use lguest_map()/lguest_unmap() helpers instead of ioremap/iounmap.
+1) Use new dma wrapper functions, and handle bind failure (may happen
+   in future)
+2) Use new lgdev_irq() "get me a good interrupt number" function.
+3) Use new lguest_map()/lguest_unmap() instead of ioremap/iounmap.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/lguest_net.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/block/lguest_blk.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-tidyups-update drivers/net/lguest_net.c
---- a/drivers/net/lguest_net.c~lguest-the-net-driver-tidyups-update
-+++ a/drivers/net/lguest_net.c
-@@ -22,7 +22,6 @@
- #include <linux/module.h>
- #include <linux/mm_types.h>
- #include <linux/lguest_bus.h>
--#include <asm/io.h>
+diff -puN drivers/block/lguest_blk.c~lguest-the-block-driver-tidyups-update drivers/block/lguest_blk.c
+--- a/drivers/block/lguest_blk.c~lguest-the-block-driver-tidyups-update
++++ a/drivers/block/lguest_blk.c
+@@ -37,7 +37,7 @@ struct blockdev
+ 	int irq;
  
- #define SHARED_SIZE		PAGE_SIZE
- #define MAX_LANS		4
-@@ -301,7 +300,7 @@ static int lguestnet_probe(struct lguest
- 	info->mapsize = PAGE_SIZE * desc->num_pages;
- 	info->peer_phys = ((unsigned long)desc->pfn << PAGE_SHIFT);
- 	info->lgdev = lgdev;
--	info->peer = (__force void *)ioremap(info->peer_phys, info->mapsize);
-+	info->peer = lguest_map(info->peer_phys, desc->num_pages);
- 	if (!info->peer) {
+ 	unsigned long phys_addr;
+-	/* The ioremap'ed block page. */
++	/* The mapped block page. */
+ 	struct lguest_block_page *lb_page;
+ 
+ 	/* We only have a single request outstanding at a time. */
+@@ -189,7 +189,7 @@ static int lguestblk_probe(struct lguest
+ 	bd->dma.len[0] = 0;
+ 	bd->phys_addr = (lguest_devices[lgdev->index].pfn << PAGE_SHIFT);
+ 
+-	bd->lb_page = (__force void *)ioremap(bd->phys_addr, PAGE_SIZE);
++	bd->lb_page = lguest_map(bd->phys_addr, 1);
+ 	if (!bd->lb_page) {
  		err = -ENOMEM;
- 		goto free;
-@@ -331,7 +330,7 @@ static int lguestnet_probe(struct lguest
- unregister:
- 	unregister_netdev(dev);
- unmap:
--	iounmap((__force void __iomem *)info->peer);
-+	lguest_unmap(info->peer);
- free:
- 	free_netdev(dev);
+ 		goto out_free_bd;
+@@ -252,7 +252,7 @@ out_put_disk:
+ out_unregister_blkdev:
+ 	unregister_blkdev(bd->major, "lguestblk");
+ out_unmap:
+-	iounmap((__force void *__iomem)bd->lb_page);
++	lguest_unmap(bd->lb_page);
+ out_free_bd:
+ 	kfree(bd);
  	return err;
 _
 
