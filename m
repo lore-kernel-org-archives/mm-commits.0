@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1307-cleanups.patch added to -mm tree
-Date: Mon, 14 May 2007 22:32:19 -0700
-Message-ID: <200705150532.l4F5WIW1002362@shell0.pdx.osdl.net>
+Subject: + i386-fix-voyager-build.patch added to -mm tree
+Date: Mon, 14 May 2007 22:38:56 -0700
+Message-ID: <200705150538.l4F5ctkH002423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39787 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755057AbXEOFcd (ORCPT
+	by vger.kernel.org with ESMTP id S1757956AbXEOFjG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:32:33 -0400
+	Tue, 15 May 2007 01:39:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: jeremy@goop.org, James.Bottomley@HansenPartnership.com, ak@suse.de, ebiederm@xmission.com, jeremy@xensource.com
 
 
 The patch titled
-     rtc-ds1307 cleanups
+     i386: fix voyager build
 has been added to the -mm tree.  Its filename is
-     rtc-ds1307-cleanups.patch
+     i386-fix-voyager-build.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,344 +26,283 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-ds1307 cleanups
-From: David Brownell <david-b@pacbell.net>
+Subject: i386: fix voyager build
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This updates the rtc-ds1307 driver so that converting it to a "new style"
-driver (driver model, not legacy i2c model) will involve fewer changes.
+This adds an smp_ops for voyager, and hooks things up appropriately.  This is
+the first baby-step to making subarch runtime switchable.
 
- - Use pointer to i2c_client almost everywhere, so that it's easy
-   to let the i2c core create that object;
-
- - Avoid using i2c_client.adapter, since that field is redundant and
-   thus may go away (same object as i2c_client.dev.parent).
-
- - Extend type enum to include various RTCs this is expected to
-   work with, and include register support for them.
-
-It also cleans up the support for multiple chip types, and fixes a
-glitch that could appear with an un-initialized RTC.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |  176 ++++++++++++++++++++++++++-----------
- 1 file changed, 124 insertions(+), 52 deletions(-)
+ arch/i386/mach-voyager/voyager_smp.c |  106 +++++++++----------------
+ 1 file changed, 41 insertions(+), 65 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-cleanups drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-cleanups
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -24,15 +24,22 @@
-  * setting the date and time), Linux can ignore the non-clock features.
-  * That's a natural job for a factory or repair bench.
-  *
-+ * This is currently a simple no-alarms driver.  If your board has the
-+ * alarm irq wired up on a ds1337 or ds1339, and you want to use that,
-+ * then look at the rtc-rs5c372 driver for code to steal...
-+ *
-  * If the I2C "force" mechanism is used, we assume the chip is a ds1337.
-  * (Much better would be board-specific tables of I2C devices, along with
-  * the platform_data drivers would use to sort such issues out.)
-  */
- enum ds_type {
- 	unknown = 0,
--	ds_1307,		/* or ds1338, ... */
--	ds_1337,		/* or ds1339, ... */
--	ds_1340,		/* or st m41t00, ... */
-+	ds_1307,
-+	ds_1337,
-+	ds_1338,
-+	ds_1339,
-+	ds_1340,
-+	m41t00,
- 	// rs5c372 too?  different address...
- };
+diff -puN arch/i386/mach-voyager/voyager_smp.c~i386-fix-voyager-build arch/i386/mach-voyager/voyager_smp.c
+--- a/arch/i386/mach-voyager/voyager_smp.c~i386-fix-voyager-build
++++ a/arch/i386/mach-voyager/voyager_smp.c
+@@ -27,7 +27,6 @@
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include <asm/arch_hooks.h>
+-#include <asm/pda.h>
  
-@@ -56,11 +63,12 @@ I2C_CLIENT_INSMOD;
- #define DS1307_REG_YEAR		0x06	/* 00-99 */
+ /* TLB state -- visible externally, indexed physically */
+ DEFINE_PER_CPU(struct tlb_state, cpu_tlbstate) ____cacheline_aligned = { &init_mm, 0 };
+@@ -422,7 +421,7 @@ find_smp_config(void)
+ 	     VOYAGER_SUS_IN_CONTROL_PORT);
  
- /* Other registers (control, status, alarms, trickle charge, NVRAM, etc)
-- * start at 7, and they differ a lot. Only control and status matter for RTC;
-- * be careful using them.
-+ * start at 7, and they differ a LOT. Only control and status matter for
-+ * basic RTC date and time functionality; be careful using them.
-  */
--#define DS1307_REG_CONTROL	0x07
-+#define DS1307_REG_CONTROL	0x07		/* or ds1338 */
- #	define DS1307_BIT_OUT		0x80
-+#	define DS1338_BIT_STOP		0x20
- #	define DS1307_BIT_SQWE		0x10
- #	define DS1307_BIT_RS1		0x02
- #	define DS1307_BIT_RS0		0x01
-@@ -71,6 +79,13 @@ I2C_CLIENT_INSMOD;
- #	define DS1337_BIT_INTCN		0x04
- #	define DS1337_BIT_A2IE		0x02
- #	define DS1337_BIT_A1IE		0x01
-+#define DS1340_REG_CONTROL	0x07
-+#	define DS1340_BIT_OUT		0x80
-+#	define DS1340_BIT_FT		0x40
-+#	define DS1340_BIT_CALIB_SIGN	0x20
-+#	define DS1340_M_CALIBRATION	0x1f
-+#define DS1338_REG_FLAG		0x09
-+#	define DS1338_BIT_OSF		0x80
- #define DS1337_REG_STATUS	0x0f
- #	define DS1337_BIT_OSF		0x80
- #	define DS1337_BIT_A2I		0x02
-@@ -84,21 +99,63 @@ struct ds1307 {
- 	u8			regs[8];
- 	enum ds_type		type;
- 	struct i2c_msg		msg[2];
--	struct i2c_client	client;
-+	struct i2c_client	*client;
-+	struct i2c_client	dev;
- 	struct rtc_device	*rtc;
- };
- 
-+struct chip_desc {
-+	char			name[9];
-+	unsigned		nvram56:1;
-+	unsigned		alarm:1;
-+	enum ds_type		type;
-+};
-+
-+static const struct chip_desc chips[] = { {
-+	.name		= "ds1307",
-+	.type		= ds_1307,
-+	.nvram56	= 1,
-+}, {
-+	.name		= "ds1337",
-+	.type		= ds_1337,
-+	.alarm		= 1,
-+}, {
-+	.name		= "ds1338",
-+	.type		= ds_1338,
-+	.nvram56	= 1,
-+}, {
-+	.name		= "ds1339",
-+	.type		= ds_1339,
-+	.alarm		= 1,
-+}, {
-+	.name		= "ds1340",
-+	.type		= ds_1340,
-+}, {
-+	.name		= "m41t00",
-+	.type		= m41t00,
-+}, };
-+
-+static inline const struct chip_desc *find_chip(const char *s)
-+{
-+	unsigned i;
-+
-+	for (i = 0; i < ARRAY_SIZE(chips); i++)
-+		if (strnicmp(s, chips[i].name, sizeof chips[i].name) == 0)
-+			return &chips[i];
-+	return NULL;
-+}
- 
- static int ds1307_get_time(struct device *dev, struct rtc_time *t)
- {
- 	struct ds1307	*ds1307 = dev_get_drvdata(dev);
- 	int		tmp;
- 
--	/* read the RTC registers all at once */
-+	/* read the RTC date and time registers all at once */
- 	ds1307->msg[1].flags = I2C_M_RD;
- 	ds1307->msg[1].len = 7;
- 
--	tmp = i2c_transfer(ds1307->client.adapter, ds1307->msg, 2);
-+	tmp = i2c_transfer(to_i2c_adapter(ds1307->client->dev.parent),
-+			ds1307->msg, 2);
- 	if (tmp != 2) {
- 		dev_err(dev, "%s error %d\n", "read", tmp);
- 		return -EIO;
-@@ -129,7 +186,8 @@ static int ds1307_get_time(struct device
- 		t->tm_hour, t->tm_mday,
- 		t->tm_mon, t->tm_year, t->tm_wday);
- 
--	return 0;
-+	/* initial clock setting can be undefined */
-+	return rtc_valid_tm(t);
+ 	current_thread_info()->cpu = boot_cpu_id;
+-	write_pda(cpu_number, boot_cpu_id);
++	x86_write_percpu(cpu_number, boot_cpu_id);
  }
  
- static int ds1307_set_time(struct device *dev, struct rtc_time *t)
-@@ -170,7 +228,8 @@ static int ds1307_set_time(struct device
- 		"write", buf[0], buf[1], buf[2], buf[3],
- 		buf[4], buf[5], buf[6]);
+ /*
+@@ -435,7 +434,7 @@ smp_store_cpu_info(int id)
  
--	result = i2c_transfer(ds1307->client.adapter, &ds1307->msg[1], 1);
-+	result = i2c_transfer(to_i2c_adapter(ds1307->client->dev.parent),
-+			&ds1307->msg[1], 1);
- 	if (result != 1) {
- 		dev_err(dev, "%s error %d\n", "write", tmp);
- 		return -EIO;
-@@ -192,18 +251,34 @@ ds1307_detect(struct i2c_adapter *adapte
- 	int			err = -ENODEV;
- 	struct i2c_client	*client;
- 	int			tmp;
-+	const struct chip_desc	*chip;
+ 	*c = boot_cpu_data;
  
- 	if (!(ds1307 = kzalloc(sizeof(struct ds1307), GFP_KERNEL))) {
- 		err = -ENOMEM;
- 		goto exit;
+-	identify_cpu(c);
++	identify_secondary_cpu(c);
+ }
+ 
+ /* set up the trampoline and return the physical address of the code */
+@@ -459,7 +458,7 @@ start_secondary(void *unused)
+ 	/* external functions not defined in the headers */
+ 	extern void calibrate_delay(void);
+ 
+-	secondary_cpu_init();
++	cpu_init();
+ 
+ 	/* OK, we're in the routine */
+ 	ack_CPI(VIC_CPU_BOOT_CPI);
+@@ -572,7 +571,9 @@ do_boot_cpu(__u8 cpu)
+ 	/* init_tasks (in sched.c) is indexed logically */
+ 	stack_start.esp = (void *) idle->thread.esp;
+ 
+-	init_gdt(cpu, idle);
++	init_gdt(cpu);
++ 	per_cpu(current_task, cpu) = idle;
++	early_gdt_descr.address = (unsigned long)get_cpu_gdt_table(cpu);
+ 	irq_ctx_init(cpu);
+ 
+ 	/* Note: Don't modify initial ss override */
+@@ -859,8 +860,8 @@ smp_invalidate_interrupt(void)
+ 
+ /* This routine is called with a physical cpu mask */
+ static void
+-flush_tlb_others (unsigned long cpumask, struct mm_struct *mm,
+-						unsigned long va)
++voyager_flush_tlb_others (unsigned long cpumask, struct mm_struct *mm,
++			  unsigned long va)
+ {
+ 	int stuck = 50000;
+ 
+@@ -912,7 +913,7 @@ flush_tlb_current_task(void)
+ 	cpu_mask = cpus_addr(mm->cpu_vm_mask)[0] & ~(1 << smp_processor_id());
+ 	local_flush_tlb();
+ 	if (cpu_mask)
+-		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
++		voyager_flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
+ 
+ 	preempt_enable();
+ }
+@@ -934,7 +935,7 @@ flush_tlb_mm (struct mm_struct * mm)
+ 			leave_mm(smp_processor_id());
+ 	}
+ 	if (cpu_mask)
+-		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
++		voyager_flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
+ 
+ 	preempt_enable();
+ }
+@@ -955,7 +956,7 @@ void flush_tlb_page(struct vm_area_struc
  	}
  
--	client = &ds1307->client;
-+	/* REVISIT:  pending driver model conversion, set up "client"
-+	 * ourselves, and use a hack to determine the RTC type (instead
-+	 * of reading the client->name we're given)
-+	 */
-+	client = &ds1307->dev;
- 	client->addr = address;
- 	client->adapter = adapter;
- 	client->driver = &ds1307_driver;
--	client->flags = 0;
+ 	if (cpu_mask)
+-		flush_tlb_others(cpu_mask, mm, va);
++		voyager_flush_tlb_others(cpu_mask, mm, va);
  
-+	/* HACK: "force" implies "needs ds1337-style-oscillator setup", and
-+	 * that's the only kind of chip setup we'll know about.  Until the
-+	 * driver model conversion, here's where to add any board-specific
-+	 * code to say what kind of chip is present...
-+	 */
-+	if (kind >= 0)
-+		chip = find_chip("ds1337");
-+	else
-+		chip = find_chip("ds1307");
-+	strlcpy(client->name, chip->name, I2C_NAME_SIZE);
-+
-+	ds1307->client = client;
- 	i2c_set_clientdata(client, ds1307);
+ 	preempt_enable();
+ }
+@@ -1044,10 +1045,12 @@ smp_call_function_interrupt(void)
+ }
  
- 	ds1307->msg[0].addr = client->addr;
-@@ -216,14 +291,17 @@ ds1307_detect(struct i2c_adapter *adapte
- 	ds1307->msg[1].len = sizeof(ds1307->regs);
- 	ds1307->msg[1].buf = ds1307->regs;
+ static int
+-__smp_call_function_mask (void (*func) (void *info), void *info, int retry,
+-			  int wait, __u32 mask)
++voyager_smp_call_function_mask (cpumask_t cpumask,
++				void (*func) (void *info), void *info,
++				int wait)
+ {
+ 	struct call_data_struct data;
++	u32 mask = cpus_addr(cpumask)[0];
  
--	/* HACK: "force" implies "needs ds1337-style-oscillator setup" */
--	if (kind >= 0) {
-+	ds1307->type = chip->type;
-+
-+	switch (ds1307->type) {
-+	case ds_1337:
-+	case ds_1339:
- 		ds1307->type = ds_1337;
+ 	mask &= ~(1<<smp_processor_id());
  
- 		ds1307->reg_addr = DS1337_REG_CONTROL;
- 		ds1307->msg[1].len = 2;
+@@ -1083,47 +1086,6 @@ __smp_call_function_mask (void (*func) (
+ 	return 0;
+ }
  
--		tmp = i2c_transfer(client->adapter, ds1307->msg, 2);
-+		tmp = i2c_transfer(adapter, ds1307->msg, 2);
- 		if (tmp != 2) {
- 			pr_debug("read error %d\n", tmp);
- 			err = -EIO;
-@@ -236,16 +314,20 @@ ds1307_detect(struct i2c_adapter *adapte
- 		/* oscillator is off; need to turn it on */
- 		if ((ds1307->regs[0] & DS1337_BIT_nEOSC)
- 				|| (ds1307->regs[1] & DS1337_BIT_OSF)) {
--			printk(KERN_ERR "no ds1337 oscillator code\n");
-+no_osc_start:
-+			printk(KERN_ERR "no %s oscillator code\n",
-+				chip->name);
- 			goto exit_free;
- 		}
--	} else
--		ds1307->type = ds_1307;
-+		break;
-+	default:
-+		break;
-+	}
- 
- read_rtc:
- 	/* read RTC registers */
- 
--	tmp = i2c_transfer(client->adapter, ds1307->msg, 2);
-+	tmp = i2c_transfer(adapter, ds1307->msg, 2);
- 	if (tmp != 2) {
- 		pr_debug("read error %d\n", tmp);
- 		err = -EIO;
-@@ -257,20 +339,27 @@ read_rtc:
- 	 * still a few values that are clearly out-of-range.
- 	 */
- 	tmp = ds1307->regs[DS1307_REG_SECS];
--	if (tmp & DS1307_BIT_CH) {
--		if (ds1307->type && ds1307->type != ds_1307) {
--			pr_debug("not a ds1307?\n");
--			goto exit_free;
-+	switch (ds1307->type) {
-+	case ds_1307:
-+	case ds_1338:
-+	case m41t00:
-+		if (tmp & DS1307_BIT_CH) {
-+			i2c_smbus_write_byte_data(client, 0, 0);
-+			dev_warn(&client->dev,
-+				"oscillator started; SET TIME!\n");
-+			goto read_rtc;
- 		}
--		ds1307->type = ds_1307;
+-/* Call this function on all CPUs using the function_interrupt above
+-    <func> The function to run. This must be fast and non-blocking.
+-    <info> An arbitrary pointer to pass to the function.
+-    <retry> If true, keep retrying until ready.
+-    <wait> If true, wait until function has completed on other CPUs.
+-    [RETURNS] 0 on success, else a negative status code. Does not return until
+-    remote CPUs are nearly ready to execute <<func>> or are or have executed.
+-*/
+-int
+-smp_call_function(void (*func) (void *info), void *info, int retry,
+-		   int wait)
+-{
+-	__u32 mask = cpus_addr(cpu_online_map)[0];
 -
--		/* this partial initialization should work for ds1307,
--		 * ds1338, ds1340, st m41t00, and more.
--		 */
--		dev_warn(&client->dev, "oscillator started; SET TIME!\n");
--		i2c_smbus_write_byte_data(client, 0, 0);
--		goto read_rtc;
-+		break;
-+	case ds_1340:
-+		/* FIXME write code to start the oscillator */
-+		if (tmp & DS1307_BIT_CH)
-+			goto no_osc_start;
-+		break;
-+	default:
-+		break;
- 	}
+-	return __smp_call_function_mask(func, info, retry, wait, mask);
+-}
+-EXPORT_SYMBOL(smp_call_function);
+-
+-/*
+- * smp_call_function_single - Run a function on another CPU
+- * @func: The function to run. This must be fast and non-blocking.
+- * @info: An arbitrary pointer to pass to the function.
+- * @nonatomic: Currently unused.
+- * @wait: If true, wait until function has completed on other CPUs.
+- *
+- * Retrurns 0 on success, else a negative status code.
+- *
+- * Does not return until the remote CPU is nearly ready to execute <func>
+- * or is or has executed.
+- */
+-
+-int
+-smp_call_function_single(int cpu, void (*func) (void *info), void *info,
+-			 int nonatomic, int wait)
+-{
+-	__u32 mask = 1 << cpu;
+-
+-	return __smp_call_function_mask(func, info, nonatomic, wait, mask);
+-}
+-EXPORT_SYMBOL(smp_call_function_single);
+-
+ /* Sorry about the name.  In an APIC based system, the APICs
+  * themselves are programmed to send a timer interrupt.  This is used
+  * by linux to reschedule the processor.  Voyager doesn't have this,
+@@ -1237,8 +1199,8 @@ smp_alloc_memory(void)
+ }
+ 
+ /* send a reschedule CPI to one CPU by physical CPU number*/
+-void
+-smp_send_reschedule(int cpu)
++static void
++voyager_smp_send_reschedule(int cpu)
+ {
+ 	send_one_CPI(cpu, VIC_RESCHEDULE_CPI);
+ }
+@@ -1267,8 +1229,8 @@ safe_smp_processor_id(void)
+ }
+ 
+ /* broadcast a halt to all other CPUs */
+-void
+-smp_send_stop(void)
++static void
++voyager_smp_send_stop(void)
+ {
+ 	smp_call_function(smp_stop_cpu_function, NULL, 1, 1);
+ }
+@@ -1930,23 +1892,26 @@ smp_voyager_power_off(void *dummy)
+ 		smp_stop_cpu_function(NULL);
+ }
+ 
+-void __init
+-smp_prepare_cpus(unsigned int max_cpus)
++static void __init
++voyager_smp_prepare_cpus(unsigned int max_cpus)
+ {
+ 	/* FIXME: ignore max_cpus for now */
+ 	smp_boot_cpus();
+ }
+ 
+-void __devinit smp_prepare_boot_cpu(void)
++static void __devinit voyager_smp_prepare_boot_cpu(void)
+ {
++	init_gdt(smp_processor_id());
++	switch_to_new_gdt();
 +
-+	tmp = ds1307->regs[DS1307_REG_SECS];
- 	tmp = BCD2BIN(tmp & 0x7f);
- 	if (tmp > 60)
- 		goto exit_free;
-@@ -288,6 +377,9 @@ read_rtc:
+ 	cpu_set(smp_processor_id(), cpu_online_map);
+ 	cpu_set(smp_processor_id(), cpu_callout_map);
+ 	cpu_set(smp_processor_id(), cpu_possible_map);
+ 	cpu_set(smp_processor_id(), cpu_present_map);
+ }
  
- 	/* force into in 24 hour mode (most chips) or
- 	 * disable century bit (ds1340)
-+	 *
-+	 * REVISIT forcing 24 hour mode can prevent multi-master
-+	 * configs from sharing this RTC ... don't do this.
- 	 */
- 	tmp = ds1307->regs[DS1307_REG_HOUR];
- 	if (tmp & (1 << 6)) {
-@@ -300,26 +392,6 @@ read_rtc:
- 				BIN2BCD(tmp));
- 	}
+-int __devinit
+-__cpu_up(unsigned int cpu)
++static int __devinit
++voyager_cpu_up(unsigned int cpu)
+ {
+ 	/* This only works at boot for x86.  See "rewrite" above. */
+ 	if (cpu_isset(cpu, smp_commenced_mask))
+@@ -1962,8 +1927,8 @@ __cpu_up(unsigned int cpu)
+ 	return 0;
+ }
  
--	/* FIXME chips like 1337 can generate alarm irqs too; those are
--	 * worth exposing through the API (especially when the irq is
--	 * wakeup-capable).
--	 */
--
--	switch (ds1307->type) {
--	case unknown:
--		strlcpy(client->name, "unknown", I2C_NAME_SIZE);
--		break;
--	case ds_1307:
--		strlcpy(client->name, "ds1307", I2C_NAME_SIZE);
--		break;
--	case ds_1337:
--		strlcpy(client->name, "ds1337", I2C_NAME_SIZE);
--		break;
--	case ds_1340:
--		strlcpy(client->name, "ds1340", I2C_NAME_SIZE);
--		break;
--	}
--
- 	/* Tell the I2C layer a new client has arrived */
- 	if ((err = i2c_attach_client(client)))
- 		goto exit_free;
+-void __init 
+-smp_cpus_done(unsigned int max_cpus)
++static void __init
++voyager_smp_cpus_done(unsigned int max_cpus)
+ {
+ 	zap_low_mappings();
+ }
+@@ -1972,5 +1937,16 @@ void __init
+ smp_setup_processor_id(void)
+ {
+ 	current_thread_info()->cpu = hard_smp_processor_id();
+-	write_pda(cpu_number, hard_smp_processor_id());
++	x86_write_percpu(cpu_number, hard_smp_processor_id());
+ }
++
++struct smp_ops smp_ops = {
++	.smp_prepare_boot_cpu = voyager_smp_prepare_boot_cpu,
++	.smp_prepare_cpus = voyager_smp_prepare_cpus,
++	.cpu_up = voyager_cpu_up,
++	.smp_cpus_done = voyager_smp_cpus_done,
++
++	.smp_send_stop = voyager_smp_send_stop,
++	.smp_send_reschedule = voyager_smp_send_reschedule,
++	.smp_call_function_mask = voyager_smp_call_function_mask,
++};
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-git-leds.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-rtc-ds1307-cleanups.patch
-use-menuconfig-objects-ii-rtc.patch
+i386-move-common-parts-of-smp-into-their-own-file.patch
+i386-fix-voyager-build.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+add-kstrndup.patch
+add-kstrndup-fix.patch
+add-argv_split.patch
+add-argv_split-fix.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
+add-common-orderly_poweroff-fix.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+tidy-up-usermode-helper-waiting-a-bit-fix.patch
+lguest-the-guest-code.patch
