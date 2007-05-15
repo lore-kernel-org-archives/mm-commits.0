@@ -1,107 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - call-percpu-smp-cacheline-algin-interface.patch removed from -mm tree
-Date: Tue, 15 May 2007 16:40:28 -0700
-Message-ID: <200705152343.l4FNhY5N021128@shell0.pdx.osdl.net>
+Subject: + ocfs2-fix-type-borkage.patch added to -mm tree
+Date: Tue, 15 May 2007 16:44:16 -0700
+Message-ID: <200705152347.l4FNlL5b021240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53986 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46891 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758391AbXEOXql (ORCPT
+	by vger.kernel.org with ESMTP id S1757558AbXEOXsd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 19:46:41 -0400
+	Tue, 15 May 2007 19:48:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fenghua.yu@intel.com, clameter@sgi.com, kiran@scalex86.org, linux-arch@vger.kernel.org, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
 
 
 The patch titled
-     Call percpu smp cacheline algin interface
-has been removed from the -mm tree.  Its filename was
-     call-percpu-smp-cacheline-algin-interface.patch
+     ocfs2: fix type borkage
+has been added to the -mm tree.  Its filename is
+     ocfs2-fix-type-borkage.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Call percpu smp cacheline algin interface
-From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: ocfs2: fix type borkage
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Call percpu smp cacheline align interface.
+fs/ocfs2/file.c: In function `ocfs2_file_buffered_write':
+fs/ocfs2/file.c:1417: warning: comparison of distinct pointer types lacks a cast
+fs/ocfs2/file.c:1420: warning: comparison of distinct pointer types lacks a cast
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ravikiran G Thirumalai <kiran@scalex86.org>
+size_t is opaque.  You do not know what type was used to implement it..
+
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/init_task.c   |    2 +-
- arch/i386/kernel/irq.c         |    2 +-
- arch/ia64/kernel/smp.c         |    2 +-
- arch/x86_64/kernel/init_task.c |    2 +-
- kernel/sched.c                 |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ fs/ocfs2/file.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/init_task.c~call-percpu-smp-cacheline-algin-interface arch/i386/kernel/init_task.c
---- a/arch/i386/kernel/init_task.c~call-percpu-smp-cacheline-algin-interface
-+++ a/arch/i386/kernel/init_task.c
-@@ -42,5 +42,5 @@ EXPORT_SYMBOL(init_task);
-  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
-  * no more per-task TSS's.
-  */ 
--DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
-+DEFINE_PER_CPU_SHARED_CACHELINE_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
+diff -puN fs/ocfs2/file.c~ocfs2-fix-type-borkage fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-type-borkage
++++ a/fs/ocfs2/file.c
+@@ -1414,10 +1414,9 @@ static ssize_t ocfs2_file_buffered_write
+ 		bytes = min((PAGE_CACHE_SIZE - ((unsigned long)pos & ~PAGE_CACHE_MASK)),
+ 			    (PAGE_CACHE_SIZE - ((unsigned long)buf & ~PAGE_CACHE_MASK)));
+ 		/* Stay within the vector boundary */
+-		bytes = min(bytes,
+-			    (unsigned long)(cur_iov->iov_len - iov_offset));
++		bytes = min_t(size_t, bytes, cur_iov->iov_len - iov_offset);
+ 		/* Stay within count */
+-		bytes = min(bytes, (unsigned long)count);
++		bytes = min(bytes, count);
  
-diff -puN arch/i386/kernel/irq.c~call-percpu-smp-cacheline-algin-interface arch/i386/kernel/irq.c
---- a/arch/i386/kernel/irq.c~call-percpu-smp-cacheline-algin-interface
-+++ a/arch/i386/kernel/irq.c
-@@ -21,7 +21,7 @@
- #include <asm/apic.h>
- #include <asm/uaccess.h>
- 
--DEFINE_PER_CPU(irq_cpustat_t, irq_stat) ____cacheline_internodealigned_in_smp;
-+DEFINE_PER_CPU_SHARED_CACHELINE_ALIGNED(irq_cpustat_t, irq_stat);
- EXPORT_PER_CPU_SYMBOL(irq_stat);
- 
- DEFINE_PER_CPU(struct pt_regs *, irq_regs);
-diff -puN arch/ia64/kernel/smp.c~call-percpu-smp-cacheline-algin-interface arch/ia64/kernel/smp.c
---- a/arch/ia64/kernel/smp.c~call-percpu-smp-cacheline-algin-interface
-+++ a/arch/ia64/kernel/smp.c
-@@ -82,7 +82,7 @@ static volatile struct call_data_struct 
- #define IPI_KDUMP_CPU_STOP	3
- 
- /* This needs to be cacheline aligned because it is written to by *other* CPUs.  */
--static DEFINE_PER_CPU(u64, ipi_operation) ____cacheline_aligned;
-+static DEFINE_PER_CPU_SHARED_CACHELINE_ALIGNED(u64, ipi_operation);
- 
- extern void cpu_halt (void);
- 
-diff -puN arch/x86_64/kernel/init_task.c~call-percpu-smp-cacheline-algin-interface arch/x86_64/kernel/init_task.c
---- a/arch/x86_64/kernel/init_task.c~call-percpu-smp-cacheline-algin-interface
-+++ a/arch/x86_64/kernel/init_task.c
-@@ -44,7 +44,7 @@ EXPORT_SYMBOL(init_task);
-  * section. Since TSS's are completely CPU-local, we want them
-  * on exact cacheline boundaries, to eliminate cacheline ping-pong.
-  */ 
--DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
-+DEFINE_PER_CPU_SHARED_CACHELINE_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
- 
- /* Copies of the original ist values from the tss are only accessed during
-  * debugging, no special alignment required.
-diff -puN kernel/sched.c~call-percpu-smp-cacheline-algin-interface kernel/sched.c
---- a/kernel/sched.c~call-percpu-smp-cacheline-algin-interface
-+++ a/kernel/sched.c
-@@ -304,7 +304,7 @@ struct rq {
- 	struct lock_class_key rq_lock_key;
- };
- 
--static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
-+static DEFINE_PER_CPU_SHARED_CACHELINE_ALIGNED(struct rq, runqueues);
- static DEFINE_MUTEX(sched_hotcpu_mutex);
- 
- static inline int cpu_of(struct rq *rq)
+ 		page = NULL;
+ 		ret = ocfs2_write_begin(file, file->f_mapping, pos, bytes, 0,
 _
 
-Patches currently in -mm which might be from fenghua.yu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-call-percpu-smp-cacheline-algin-interface.patch
+origin.patch
+parport_pc-needs-dma-mappingh.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+fix-agk-dm-dm-io-fix-panic-on-large-request.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+git-battery.patch
+git-battery-warning-fix.patch
+ds2760_battery-warning-fix.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-sh64.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+let-smp_call_function_single-return-ebusy-on-up-fix.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+slub-fix-handling-of-oversized-slabs.patch
+compat_core_sys_select-avoid-kmalloc0.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+tglx-debug.patch
+reiser4.patch
+reiser4-fix.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
+ocfs2-fix-type-borkage.patch
