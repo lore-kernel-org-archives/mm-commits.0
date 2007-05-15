@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swsusp-fix-sysfs-interface.patch added to -mm tree
-Date: Tue, 15 May 2007 14:01:20 -0700
-Message-ID: <200705152101.l4FL1KOZ017984@shell0.pdx.osdl.net>
+Subject: + let-smp_call_function_single-return-ebusy-on-up-fix.patch added to -mm tree
+Date: Tue, 15 May 2007 14:02:20 -0700
+Message-ID: <200705152105.l4FL5RrY018046@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54441 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbXEOVEM (ORCPT
+	by vger.kernel.org with ESMTP id S1751669AbXEOVHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:04:12 -0400
+	Tue, 15 May 2007 17:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, Peter.Moulder@infotech.monash.edu.au, pavel@ucw.cz
+Cc: akpm@linux-foundation.org, ak@suse.de, heiko.carstens@de.ibm.com
 
 
 The patch titled
-     swsusp: fix sysfs interface
+     let-smp_call_function_single-return-ebusy-on-up-fix
 has been added to the -mm tree.  Its filename is
-     swsusp-fix-sysfs-interface.patch
+     let-smp_call_function_single-return-ebusy-on-up-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +26,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swsusp: fix sysfs interface
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: let-smp_call_function_single-return-ebusy-on-up-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The sysfs files /sys/power/disk and /sys/power/state do not work as
-documented, since they allow the user to write only a few initial
-characters of the input string to trigger the option (eg.  'echo pl >
-/sys/power/disk' activates the platform mode of hibernation).  Fix it.
+In file included from arch/i386/mach-default/setup.c:5:
+include/linux/smp.h: In function 'smp_call_function_single':
+include/linux/smp.h:104: error: 'EBUSY' undeclared (first use in this function)
+include/linux/smp.h:104: error: (Each undeclared identifier is reported only once
+include/linux/smp.h:104: error: for each function it appears in.)
 
-Special thanks to Peter Moulder <Peter.Moulder@infotech.monash.edu.au> for
-pointing out the problem.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |    3 ++-
- kernel/power/main.c |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/smp.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/power/disk.c~swsusp-fix-sysfs-interface kernel/power/disk.c
---- a/kernel/power/disk.c~swsusp-fix-sysfs-interface
-+++ a/kernel/power/disk.c
-@@ -416,7 +416,8 @@ static ssize_t disk_store(struct kset *k
+diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix include/linux/smp.h
+--- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix
++++ a/include/linux/smp.h
+@@ -15,6 +15,8 @@ extern void cpu_idle(void);
+ #include <linux/kernel.h>
+ #include <linux/compiler.h>
+ #include <linux/thread_info.h>
++#include <linux/errno.h>
++
+ #include <asm/smp.h>
  
- 	mutex_lock(&pm_mutex);
- 	for (i = HIBERNATION_FIRST; i <= HIBERNATION_MAX; i++) {
--		if (!strncmp(buf, hibernation_modes[i], len)) {
-+		if (len == strlen(hibernation_modes[i])
-+		    && !strncmp(buf, hibernation_modes[i], len)) {
- 			mode = i;
- 			break;
- 		}
-diff -puN kernel/power/main.c~swsusp-fix-sysfs-interface kernel/power/main.c
---- a/kernel/power/main.c~swsusp-fix-sysfs-interface
-+++ a/kernel/power/main.c
-@@ -289,13 +289,13 @@ static ssize_t state_store(struct kset *
- 	len = p ? p - buf : n;
- 
- 	/* First, check if we are requested to hibernate */
--	if (!strncmp(buf, "disk", len)) {
-+	if (len == 4 && !strncmp(buf, "disk", len)) {
- 		error = hibernate();
- 		return error ? error : n;
- 	}
- 
- 	for (s = &pm_states[state]; state < PM_SUSPEND_MAX; s++, state++) {
--		if (*s && !strncmp(buf, *s, len))
-+		if (*s && len == strlen(*s) && !strncmp(buf, *s, len))
- 			break;
- 	}
- 	if (state < PM_SUSPEND_MAX && *s)
+ /*
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-make-freezeable-workqueues-singlethread.patch
-swsusp-fix-sysfs-interface.patch
-freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
+origin.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+fix-agk-dm-dm-io-fix-panic-on-large-request.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+git-mips-fixup.patch
+git-ubi.patch
+git-ubi-fixup.patch
+git-battery.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-sh64.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+let-smp_call_function_single-return-ebusy-on-up-fix.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+compat_core_sys_select-avoid-kmalloc0.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
 freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-freezer-fix-pf_nofreeze-vs-freezeable-race.patch
-freezer-move-frozen_process-to-kernel-power-processc.patch
-add-common-orderly_poweroff.patch
-add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
-shrink_slab-handle-bad-shrinkers.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
