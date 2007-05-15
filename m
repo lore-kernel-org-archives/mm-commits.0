@@ -1,138 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + git-ubi-fixup.patch added to -mm tree
-Date: Tue, 15 May 2007 01:45:21 -0700
-Message-ID: <200705150845.l4F8jK2P005476@shell0.pdx.osdl.net>
+Subject: - update-dvb-use-of-symbol_getput.patch removed from -mm tree
+Date: Tue, 15 May 2007 01:49:26 -0700
+Message-ID: <200705150849.l4F8nPGp005532@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59552 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758527AbXEOIpX (ORCPT
+	by vger.kernel.org with ESMTP id S1757902AbXEOItk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 04:45:23 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4F8jLgN001226
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 01:45:22 -0700
+	Tue, 15 May 2007 04:49:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: xyzzy@speakeasy.org, dwmw2@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ubi-fixup
-has been added to the -mm tree.  Its filename is
-     git-ubi-fixup.patch
+     Update dvb use of symbol_(get|put)
+has been removed from the -mm tree.  Its filename was
+     update-dvb-use-of-symbol_getput.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: git-ubi-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Update dvb use of symbol_(get|put)
+From: Trent Piepho <xyzzy@speakeasy.org>
 
+Make the dvb sub-system use the ability of symbol_(put|get) to keep track of
+what module did the putting or getting.  In the dvb sub-system, symbol_put is
+called through the macro dvb_attach().  A driver for a bridge or card will
+attach frontends, tuners, or other helper drivers, and this card driver will
+be listed as the user of the helper drivers.
+
+When the card driver unloads, a single function in dvb-core,
+dvb_frontend_detach(), will release all the helper drivers.  Since the get()
+happened in the card driver, but the put() is happening in dvb-core, it is
+necessary to use __symbol_put_addr() so that a user other than THIS_MODULE
+(which would be dvb-core, while we want the card driver) can be specified.
+
+Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/eba.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/dvb/bt8xx/dst.c             |    2 +-
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mtd/ubi/eba.c~git-ubi-fixup drivers/mtd/ubi/eba.c
---- a/drivers/mtd/ubi/eba.c~git-ubi-fixup
-+++ a/drivers/mtd/ubi/eba.c
-@@ -940,9 +940,6 @@ static void ltree_entry_ctor(void *obj, 
+diff -puN drivers/media/dvb/bt8xx/dst.c~update-dvb-use-of-symbol_getput drivers/media/dvb/bt8xx/dst.c
+--- a/drivers/media/dvb/bt8xx/dst.c~update-dvb-use-of-symbol_getput
++++ a/drivers/media/dvb/bt8xx/dst.c
+@@ -1718,7 +1718,7 @@ static void dst_release(struct dvb_front
+ 	if (state->dst_ca) {
+ 		dvb_unregister_device(state->dst_ca);
+ #ifdef CONFIG_DVB_CORE_ATTACH
+-		symbol_put(dst_ca_attach);
++		symbol_put_user(dst_ca_attach, fe->dvb->module);
+ #endif
+ 	}
+ 	kfree(state);
+diff -puN drivers/media/dvb/dvb-core/dvb_frontend.c~update-dvb-use-of-symbol_getput drivers/media/dvb/dvb-core/dvb_frontend.c
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c~update-dvb-use-of-symbol_getput
++++ a/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1122,19 +1122,20 @@ EXPORT_SYMBOL(dvb_unregister_frontend);
+ void dvb_frontend_detach(struct dvb_frontend* fe)
  {
- 	struct ltree_entry *le = obj;
+ 	void *ptr;
++	struct module *mod = fe->dvb->module;
  
--	if (flags & SLAB_CTOR_CONSTRUCTOR)
--		return;
--
- 	le->users = 0;
- 	init_rwsem(&le->mutex);
+ 	if (fe->ops.release_sec) {
+ 		fe->ops.release_sec(fe);
+-		symbol_put_addr(fe->ops.release_sec);
++		__symbol_put_addr(fe->ops.release_sec, mod);
+ 	}
+ 	if (fe->ops.tuner_ops.release) {
+ 		fe->ops.tuner_ops.release(fe);
+-		symbol_put_addr(fe->ops.tuner_ops.release);
++		__symbol_put_addr(fe->ops.tuner_ops.release, mod);
+ 	}
+ 	ptr = (void*)fe->ops.release;
+ 	if (ptr) {
+-		fe->ops.release(fe);
+-		symbol_put_addr(ptr);
++		fe->ops.release(fe); /* This call will de-allocate fe! */
++		__symbol_put_addr(ptr, mod);
+ 	}
  }
+ #else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xyzzy@speakeasy.org are
 
-origin.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
 git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
-git-mips-fixup.patch
-git-ubi.patch
-git-ubi-fixup.patch
-git-e1000.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh64.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-tglx-debug.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+update-dvb-use-of-symbol_getput.patch
