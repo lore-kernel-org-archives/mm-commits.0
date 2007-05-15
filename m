@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-fix-spidev-for-sizeoflong-32-devices.patch added to -mm tree
-Date: Tue, 15 May 2007 13:42:28 -0700
-Message-ID: <200705152042.l4FKgShM017603@shell0.pdx.osdl.net>
+Subject: + circular-locking-dependency-found-in-quota-off.patch added to -mm tree
+Date: Tue, 15 May 2007 13:45:17 -0700
+Message-ID: <200705152045.l4FKjHuw017674@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38424 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751980AbXEOUoz (ORCPT
+	by vger.kernel.org with ESMTP id S1758826AbXEOUqe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 16:44:55 -0400
+	Tue, 15 May 2007 16:46:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: domen@coderock.org, dbrownell@users.sourceforge.net, domen.puncer@telargo.com
+Cc: jack@suse.cz
 
 
 The patch titled
-     spi: fix spidev for >sizeof(long)/32 devices
+     circular locking dependency found in QUOTA OFF
 has been added to the -mm tree.  Its filename is
-     spi-fix-spidev-for-sizeoflong-32-devices.patch
+     circular-locking-dependency-found-in-quota-off.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi: fix spidev for >sizeof(long)/32 devices
-From: Domen Puncer <domen@coderock.org>
+Subject: circular locking dependency found in QUOTA OFF
+From: Jan Kara <jack@suse.cz>
 
-find_first_zero_bit accepts number of bits, not longs.
+i_mutex on quota files is special.  Unlike i_mutexes for other inodes it is
+acquired under dqonoff_mutex.  Tell lockdep about this lock ranking.  Also
+comment and code in quota_sync_sb() seem to be bogus (as i_mutex for quota
+file can be acquired under dqonoff_mutex).  Move truncate_inode_pages()
+call under dqonoff_mutex and save some problems with races...
 
-Signed-off-by: Domen Puncer <domen.puncer@telargo.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/dquot.c |    2 +-
+ fs/quota.c |   23 +++++++----------------
+ 2 files changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/spi/spidev.c~spi-fix-spidev-for-sizeoflong-32-devices drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spi-fix-spidev-for-sizeoflong-32-devices
-+++ a/drivers/spi/spidev.c
-@@ -484,7 +484,7 @@ static int spidev_probe(struct spi_devic
- 	 * Reusing minors is fine so long as udev or mdev is working.
- 	 */
- 	mutex_lock(&device_list_lock);
--	minor = find_first_zero_bit(minors, ARRAY_SIZE(minors));
-+	minor = find_first_zero_bit(minors, N_SPI_MINORS);
- 	if (minor < N_SPI_MINORS) {
- 		spidev->dev.parent = &spi->dev;
- 		spidev->dev.class = &spidev_class;
+diff -puN fs/dquot.c~circular-locking-dependency-found-in-quota-off fs/dquot.c
+--- a/fs/dquot.c~circular-locking-dependency-found-in-quota-off
++++ a/fs/dquot.c
+@@ -1421,7 +1421,7 @@ int vfs_quota_off(struct super_block *sb
+ 			/* If quota was reenabled in the meantime, we have
+ 			 * nothing to do */
+ 			if (!sb_has_quota_enabled(sb, cnt)) {
+-				mutex_lock(&toputinode[cnt]->i_mutex);
++				mutex_lock_nested(&toputinode[cnt]->i_mutex, I_MUTEX_QUOTA);
+ 				toputinode[cnt]->i_flags &= ~(S_IMMUTABLE |
+ 				  S_NOATIME | S_NOQUOTA);
+ 				truncate_inode_pages(&toputinode[cnt]->i_data, 0);
+diff -puN fs/quota.c~circular-locking-dependency-found-in-quota-off fs/quota.c
+--- a/fs/quota.c~circular-locking-dependency-found-in-quota-off
++++ a/fs/quota.c
+@@ -157,7 +157,6 @@ static int check_quotactl_valid(struct s
+ static void quota_sync_sb(struct super_block *sb, int type)
+ {
+ 	int cnt;
+-	struct inode *discard[MAXQUOTAS];
+ 
+ 	sb->s_qcop->quota_sync(sb, type);
+ 	/* This is not very clever (and fast) but currently I don't know about
+@@ -167,29 +166,21 @@ static void quota_sync_sb(struct super_b
+ 		sb->s_op->sync_fs(sb, 1);
+ 	sync_blockdev(sb->s_bdev);
+ 
+-	/* Now when everything is written we can discard the pagecache so
+-	 * that userspace sees the changes. We need i_mutex and so we could
+-	 * not do it inside dqonoff_mutex. Moreover we need to be carefull
+-	 * about races with quotaoff() (that is the reason why we have own
+-	 * reference to inode). */
++	/*
++	 * Now when everything is written we can discard the pagecache so
++	 * that userspace sees the changes.
++	 */
+ 	mutex_lock(&sb_dqopt(sb)->dqonoff_mutex);
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+-		discard[cnt] = NULL;
+ 		if (type != -1 && cnt != type)
+ 			continue;
+ 		if (!sb_has_quota_enabled(sb, cnt))
+ 			continue;
+-		discard[cnt] = igrab(sb_dqopt(sb)->files[cnt]);
++		mutex_lock_nested(&sb_dqopt(sb)->files[cnt]->i_mutex, I_MUTEX_QUOTA);
++		truncate_inode_pages(&sb_dqopt(sb)->files[cnt]->i_data, 0);
++		mutex_unlock(&sb_dqopt(sb)->files[cnt]->i_mutex);
+ 	}
+ 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
+-	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+-		if (discard[cnt]) {
+-			mutex_lock(&discard[cnt]->i_mutex);
+-			truncate_inode_pages(&discard[cnt]->i_data, 0);
+-			mutex_unlock(&discard[cnt]->i_mutex);
+-			iput(discard[cnt]);
+-		}
+-	}
+ }
+ 
+ void sync_dquots(struct super_block *sb, int type)
 _
 
-Patches currently in -mm which might be from domen@coderock.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-spi-fix-spidev-for-sizeoflong-32-devices.patch
+circular-locking-dependency-found-in-quota-off.patch
+ext4-copy-i_flags-to-inode-flags-on-write.patch
