@@ -1,609 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: + ibmasm-whitespace-cleanup.patch added to -mm tree
-Date: Mon, 14 May 2007 22:06:08 -0700
-Message-ID: <200705150506.l4F568Zo001955@shell0.pdx.osdl.net>
+Subject: - revert-input-alps-handle-errors-from-input_register_device.patch removed from -mm tree
+Date: Mon, 14 May 2007 22:14:27 -0700
+Message-ID: <200705150514.l4F5ERVr002082@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59887 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755928AbXEOFHF (ORCPT
+	by vger.kernel.org with ESMTP id S1754351AbXEOFOd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:07:05 -0400
+	Tue, 15 May 2007 01:14:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dtor@insightbb.com, dtor@mail.ru, masbock@us.ibm.com, vernux@us.ibm.com
+To: akpm@linux-foundation.org, dtor@insightbb.com, ejr@EECS.Berkeley.EDU, remi.colinet@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IBMASM: whitespace cleanup
-has been added to the -mm tree.  Its filename is
-     ibmasm-whitespace-cleanup.patch
+     revert "Input: ALPS - handle errors from input_register_device()"
+has been removed from the -mm tree.  Its filename was
+     revert-input-alps-handle-errors-from-input_register_device.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: IBMASM: whitespace cleanup
-=46rom: Dmitry Torokhov <dtor@insightbb.com>
+Subject: revert "Input: ALPS - handle errors from input_register_device()"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-IBMASM: whitespace cleanup
+f42649e84831efc69d5f621f1c36a39b4e384a99 broke Jason's machine.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Vernon Mauery <vernux@us.ibm.com>
-Cc: Max Asbock <masbock@us.ibm.com>
+Cc: Jason Riedy <ejr@EECS.Berkeley.EDU>
+Cc: Dmitry Torokhov <dtor@insightbb.com>
+Cc: Remi Colinet <remi.colinet@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ibmasm/command.c     |   14 +++++++-------
- drivers/misc/ibmasm/dot_command.c |   10 +++++-----
- drivers/misc/ibmasm/dot_command.h |    2 +-
- drivers/misc/ibmasm/event.c       |    8 ++++----
- drivers/misc/ibmasm/heartbeat.c   |    2 +-
- drivers/misc/ibmasm/i2o.h         |   10 +++++-----
- drivers/misc/ibmasm/ibmasm.h      |    6 +++---
- drivers/misc/ibmasm/ibmasmfs.c    |   24 ++++++++++++------------
- drivers/misc/ibmasm/lowlevel.c    |    2 +-
- drivers/misc/ibmasm/lowlevel.h    |   16 ++++++++--------
- drivers/misc/ibmasm/module.c      |   10 +++++-----
- drivers/misc/ibmasm/r_heartbeat.c |   10 +++++-----
- drivers/misc/ibmasm/remote.h      |    8 ++++----
- drivers/misc/ibmasm/uart.c        |    2 +-
- 14 files changed, 62 insertions(+), 62 deletions(-)
+ drivers/input/mouse/alps.c |   13 ++++---------
+ drivers/input/mouse/alps.h |    1 +
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/ibmasm/command.c~ibmasm-whitespace-cleanup drive=
-rs/misc/ibmasm/command.c
---- a/drivers/misc/ibmasm/command.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/command.c
-@@ -18,7 +18,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -72,7 +72,7 @@ struct command *ibmasm_new_command(struc
- static void free_command(struct kobject *kobj)
- {
- 	struct command *cmd =3D to_command(kobj);
--=20
-+
- 	list_del(&cmd->queue_node);
- 	atomic_dec(&command_count);
- 	dbg("command count: %d\n", atomic_read(&command_count));
-@@ -113,14 +113,14 @@ static inline void do_exec_command(struc
- 		exec_next_command(sp);
- 	}
- }
--=09
-+
- /**
-  * exec_command
-  * send a command to a service processor
-  * Commands are executed sequentially. One command (sp->current_comman=
-d)
-  * is sent to the service processor. Once the interrupt handler gets a
-  * message of type command_response, the message is copied into
-- * the current commands buffer,=20
-+ * the current commands buffer,
-  */
- void ibmasm_exec_command(struct service_processor *sp, struct command =
-*cmd)
- {
-@@ -160,7 +160,7 @@ static void exec_next_command(struct ser
- 	}
- }
-=20
--/**=20
-+/**
-  * Sleep until a command has failed or a response has been received
-  * and the command status been updated by the interrupt handler.
-  * (see receive_response).
-@@ -182,8 +182,8 @@ void ibmasm_receive_command_response(str
- {
- 	struct command *cmd =3D sp->current_command;
-=20
--	if (!sp->current_command)=20
--		return;=20
-+	if (!sp->current_command)
-+		return;
-=20
- 	memcpy_fromio(cmd->buffer, response, min(size, cmd->buffer_size));
- 	cmd->status =3D IBMASM_CMD_COMPLETE;
-diff -puN drivers/misc/ibmasm/dot_command.c~ibmasm-whitespace-cleanup d=
-rivers/misc/ibmasm/dot_command.c
---- a/drivers/misc/ibmasm/dot_command.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/dot_command.c
-@@ -17,7 +17,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -44,11 +44,11 @@ void ibmasm_receive_message(struct servi
- 		size =3D message_size;
-=20
- 	switch (header->type) {
--	case sp_event:=20
-+	case sp_event:
- 		ibmasm_receive_event(sp, message, size);
- 		break;
- 	case sp_command_response:
--		ibmasm_receive_command_response(sp, message, size);=20
-+		ibmasm_receive_command_response(sp, message, size);
- 		break;
- 	case sp_heartbeat:
- 		ibmasm_receive_heartbeat(sp, message, size);
-@@ -95,7 +95,7 @@ int ibmasm_send_driver_vpd(struct servic
- 	strcat(vpd_data, IBMASM_DRIVER_VPD);
- 	vpd_data[10] =3D 0;
- 	vpd_data[15] =3D 0;
--=09
-+
- 	ibmasm_exec_command(sp, command);
- 	ibmasm_wait_for_response(command, IBMASM_CMD_TIMEOUT_NORMAL);
-=20
-@@ -118,7 +118,7 @@ struct os_state_command {
-  * During driver init this function is called with os state "up".
-  * This causes the service processor to start sending heartbeats the
-  * driver.
-- * During driver exit the function is called with os state "down",=20
-+ * During driver exit the function is called with os state "down",
-  * causing the service processor to stop the heartbeats.
-  */
- int ibmasm_send_os_state(struct service_processor *sp, int os_state)
-diff -puN drivers/misc/ibmasm/dot_command.h~ibmasm-whitespace-cleanup d=
-rivers/misc/ibmasm/dot_command.h
---- a/drivers/misc/ibmasm/dot_command.h~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/dot_command.h
-@@ -17,7 +17,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-diff -puN drivers/misc/ibmasm/event.c~ibmasm-whitespace-cleanup drivers=
-/misc/ibmasm/event.c
---- a/drivers/misc/ibmasm/event.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/event.c
-@@ -18,7 +18,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -51,7 +51,7 @@ static void wake_up_event_readers(struct
-  * event readers.
-  * There is no reader marker in the buffer, therefore readers are
-  * responsible for keeping up with the writer, or they will loose even=
-ts.
-- */=20
-+ */
- void ibmasm_receive_event(struct service_processor *sp, void *data, un=
-signed int data_size)
- {
- 	struct event_buffer *buffer =3D sp->event_buffer;
-@@ -77,13 +77,13 @@ void ibmasm_receive_event(struct service
-=20
- static inline int event_available(struct event_buffer *b, struct event=
-_reader *r)
- {
--	return 	(r->next_serial_number < b->next_serial_number);
-+	return (r->next_serial_number < b->next_serial_number);
- }
-=20
- /**
-  * get_next_event
-  * Called by event readers (initiated from user space through the file
-- * system).=20
-+ * system).
-  * Sleeps until a new event is available.
-  */
- int ibmasm_get_next_event(struct service_processor *sp, struct event_r=
-eader *reader)
-diff -puN drivers/misc/ibmasm/heartbeat.c~ibmasm-whitespace-cleanup dri=
-vers/misc/ibmasm/heartbeat.c
---- a/drivers/misc/ibmasm/heartbeat.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/heartbeat.c
-@@ -18,7 +18,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-diff -puN drivers/misc/ibmasm/i2o.h~ibmasm-whitespace-cleanup drivers/m=
-isc/ibmasm/i2o.h
---- a/drivers/misc/ibmasm/i2o.h~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/i2o.h
-@@ -17,7 +17,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -26,9 +26,9 @@ struct i2o_header {
- 	u8	version;
- 	u8	message_flags;
- 	u16	message_size;
--	u8	target;          =20
-+	u8	target;
- 	u8	initiator_and_target;
--	u8	initiator;       =20
-+	u8	initiator;
- 	u8	function;
- 	u32	initiator_context;
- };
-@@ -64,12 +64,12 @@ static inline unsigned short outgoing_me
- 	size =3D sizeof(struct i2o_header) + data_size;
-=20
- 	i2o_size =3D size / sizeof(u32);
--=09
-+
- 	if (size % sizeof(u32))
- 	       i2o_size++;
-=20
- 	return i2o_size;
--}=09
-+}
-=20
- static inline u32 incoming_data_size(struct i2o_message *i2o_message)
- {
-diff -puN drivers/misc/ibmasm/ibmasm.h~ibmasm-whitespace-cleanup driver=
-s/misc/ibmasm/ibmasm.h
---- a/drivers/misc/ibmasm/ibmasm.h~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/ibmasm.h
-@@ -18,7 +18,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -58,8 +58,8 @@ static inline char *get_timestamp(char *
- 	return buf;
- }
-=20
--#define IBMASM_CMD_PENDING	0=09
--#define IBMASM_CMD_COMPLETE	1=09
-+#define IBMASM_CMD_PENDING	0
-+#define IBMASM_CMD_COMPLETE	1
- #define IBMASM_CMD_FAILED	2
-=20
- #define IBMASM_CMD_TIMEOUT_NORMAL	45
-diff -puN drivers/misc/ibmasm/ibmasmfs.c~ibmasm-whitespace-cleanup driv=
-ers/misc/ibmasm/ibmasmfs.c
---- a/drivers/misc/ibmasm/ibmasmfs.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/ibmasmfs.c
-@@ -17,12 +17,12 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
- /*
-- * Parts of this code are based on an article by Jonathan Corbet=20
-+ * Parts of this code are based on an article by Jonathan Corbet
-  * that appeared in Linux Weekly News.
-  */
-=20
-@@ -55,22 +55,22 @@
-  * For each service processor the following files are created:
-  *
-  * command: execute dot commands
-- * 	write: execute a dot command on the service processor
-- * 	read: return the result of a previously executed dot command
-+ *	write: execute a dot command on the service processor
-+ *	read: return the result of a previously executed dot command
-  *
-  * events: listen for service processor events
-- * 	read: sleep (interruptible) until an event occurs
-+ *	read: sleep (interruptible) until an event occurs
-  *      write: wakeup sleeping event listener
-  *
-  * reverse_heartbeat: send a heartbeat to the service processor
-- * 	read: sleep (interruptible) until the reverse heartbeat fails
-+ *	read: sleep (interruptible) until the reverse heartbeat fails
-  *      write: wakeup sleeping heartbeat listener
-  *
-  * remote_video/width
-  * remote_video/height
-  * remote_video/width: control remote display settings
-- * 	write: set value
-- * 	read: read value
-+ *	write: set value
-+ *	read: read value
-  */
-=20
- #include <linux/fs.h>
-@@ -155,7 +155,7 @@ static struct inode *ibmasmfs_make_inode
-=20
- static struct dentry *ibmasmfs_create_file (struct super_block *sb,
- 			struct dentry *parent,
--		       	const char *name,
-+			const char *name,
- 			const struct file_operations *fops,
- 			void *data,
- 			int mode)
-@@ -261,7 +261,7 @@ static int command_file_close(struct ino
- 	struct ibmasmfs_command_data *command_data =3D file->private_data;
-=20
- 	if (command_data->command)
--		command_put(command_data->command);=09
-+		command_put(command_data->command);
-=20
- 	kfree(command_data);
+diff -puN drivers/input/mouse/alps.c~revert-input-alps-handle-errors-from-input_register_device drivers/input/mouse/alps.c
+--- a/drivers/input/mouse/alps.c~revert-input-alps-handle-errors-from-input_register_device
++++ a/drivers/input/mouse/alps.c
+@@ -424,15 +424,14 @@ int alps_init(struct psmouse *psmouse)
+ 	struct input_dev *dev1 = psmouse->dev, *dev2;
+ 	int version;
+ 
+-	priv = kzalloc(sizeof(struct alps_data), GFP_KERNEL);
++	psmouse->private = priv = kzalloc(sizeof(struct alps_data), GFP_KERNEL);
+ 	dev2 = input_allocate_device();
+ 	if (!priv || !dev2)
+ 		goto init_fail;
+ 
+ 	priv->dev2 = dev2;
+ 
+-	priv->i = alps_get_model(psmouse, &version);
+-	if (!priv->i)
++	if (!(priv->i = alps_get_model(psmouse, &version)))
+ 		goto init_fail;
+ 
+ 	if ((priv->i->flags & ALPS_PASS) && alps_passthrough_mode(psmouse, 1))
+@@ -481,8 +480,7 @@ int alps_init(struct psmouse *psmouse)
+ 	dev2->relbit[LONG(REL_X)] |= BIT(REL_X) | BIT(REL_Y);
+ 	dev2->keybit[LONG(BTN_LEFT)] |= BIT(BTN_LEFT) | BIT(BTN_MIDDLE) | BIT(BTN_RIGHT);
+ 
+-	if (input_register_device(priv->dev2))
+-		goto init_fail;
++	input_register_device(priv->dev2);
+ 
+ 	psmouse->protocol_handler = alps_process_byte;
+ 	psmouse->poll = alps_poll;
+@@ -493,11 +491,9 @@ int alps_init(struct psmouse *psmouse)
+ 	/* We are having trouble resyncing ALPS touchpads so disable it for now */
+ 	psmouse->resync_time = 0;
+ 
+-	psmouse->private = priv;
  	return 0;
-@@ -348,7 +348,7 @@ static ssize_t command_file_write(struct
- static int event_file_open(struct inode *inode, struct file *file)
- {
- 	struct ibmasmfs_event_data *event_data;
--	struct service_processor *sp;=20
-+	struct service_processor *sp;
-=20
- 	if (!inode->i_private)
- 		return -ENODEV;
-@@ -573,7 +573,7 @@ static ssize_t remote_settings_file_writ
- 		kfree(buff);
- 		return -EFAULT;
- 	}
--=09
-+
- 	value =3D simple_strtoul(buff, NULL, 10);
- 	writel(value, address);
- 	kfree(buff);
-diff -puN drivers/misc/ibmasm/lowlevel.c~ibmasm-whitespace-cleanup driv=
-ers/misc/ibmasm/lowlevel.c
---- a/drivers/misc/ibmasm/lowlevel.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/lowlevel.c
-@@ -17,7 +17,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-diff -puN drivers/misc/ibmasm/lowlevel.h~ibmasm-whitespace-cleanup driv=
-ers/misc/ibmasm/lowlevel.h
---- a/drivers/misc/ibmasm/lowlevel.h~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/lowlevel.h
-@@ -17,7 +17,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -48,9 +48,9 @@
- #define INTR_CONTROL_REGISTER  0x13A4
-=20
- #define SCOUT_COM_A_BASE         0x0000
--#define SCOUT_COM_B_BASE         0x0100  =20
--#define SCOUT_COM_C_BASE         0x0200  =20
--#define SCOUT_COM_D_BASE         0x0300  =20
-+#define SCOUT_COM_B_BASE         0x0100
-+#define SCOUT_COM_C_BASE         0x0200
-+#define SCOUT_COM_D_BASE         0x0300
-=20
- static inline int sp_interrupt_pending(void __iomem *base_address)
- {
-@@ -86,12 +86,12 @@ static inline void disable_sp_interrupts
-=20
- static inline void enable_uart_interrupts(void __iomem *base_address)
- {
--	ibmasm_enable_interrupts(base_address, UART_INTR_MASK);=20
-+	ibmasm_enable_interrupts(base_address, UART_INTR_MASK);
- }
-=20
- static inline void disable_uart_interrupts(void __iomem *base_address)
- {
--	ibmasm_disable_interrupts(base_address, UART_INTR_MASK);=20
-+	ibmasm_disable_interrupts(base_address, UART_INTR_MASK);
- }
-=20
- #define valid_mfa(mfa)	( (mfa) !=3D NO_MFAS_AVAILABLE )
-@@ -111,7 +111,7 @@ static inline u32 get_mfa_outbound(void=20
-=20
- static inline void set_mfa_outbound(void __iomem *base_address, u32 mf=
-a)
- {
--   	writel(mfa, base_address + OUTBOUND_QUEUE_PORT);
-+	writel(mfa, base_address + OUTBOUND_QUEUE_PORT);
- }
-=20
- static inline u32 get_mfa_inbound(void __iomem *base_address)
-@@ -126,7 +126,7 @@ static inline u32 get_mfa_inbound(void _
-=20
- static inline void set_mfa_inbound(void __iomem *base_address, u32 mfa=
-)
- {
--   	writel(mfa, base_address + INBOUND_QUEUE_PORT);
-+	writel(mfa, base_address + INBOUND_QUEUE_PORT);
- }
-=20
- static inline struct i2o_message *get_i2o_message(void __iomem *base_a=
-ddress, u32 mfa)
-diff -puN drivers/misc/ibmasm/module.c~ibmasm-whitespace-cleanup driver=
-s/misc/ibmasm/module.c
---- a/drivers/misc/ibmasm/module.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/module.c
-@@ -18,9 +18,9 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-- * This driver is based on code originally written by Pete Reynolds=20
-+ * This driver is based on code originally written by Pete Reynolds
-  * and others.
-  *
-  */
-@@ -30,13 +30,13 @@
-  *
-  * 1) When loaded it sends a message to the service processor,
-  * indicating that an OS is * running. This causes the service process=
-or
-- * to send periodic heartbeats to the OS.=20
-+ * to send periodic heartbeats to the OS.
-  *
-  * 2) Answers the periodic heartbeats sent by the service processor.
-  * Failure to do so would result in system reboot.
-  *
-  * 3) Acts as a pass through for dot commands sent from user applicati=
-ons.
-- * The interface for this is the ibmasmfs file system.=20
-+ * The interface for this is the ibmasmfs file system.
-  *
-  * 4) Allows user applications to register for event notification. Eve=
-nts
-  * are sent to the driver through interrupts. They can be read from us=
-er
-@@ -105,7 +105,7 @@ static int __devinit ibmasm_init_one(str
- 	}
-=20
- 	sp->irq =3D pdev->irq;
--	sp->base_address =3D ioremap(pci_resource_start(pdev, 0),=20
-+	sp->base_address =3D ioremap(pci_resource_start(pdev, 0),
- 					pci_resource_len(pdev, 0));
- 	if (sp->base_address =3D=3D 0) {
- 		dev_err(sp->dev, "Failed to ioremap pci memory\n");
-diff -puN drivers/misc/ibmasm/r_heartbeat.c~ibmasm-whitespace-cleanup d=
-rivers/misc/ibmasm/r_heartbeat.c
---- a/drivers/misc/ibmasm/r_heartbeat.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/r_heartbeat.c
-@@ -16,7 +16,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
-@@ -36,10 +36,10 @@ static struct {
- 	unsigned char			command[3];
- } rhb_dot_cmd =3D {
- 	.header =3D {
--		.type =3D 	sp_read,
-+		.type =3D		sp_read,
- 		.command_size =3D 3,
- 		.data_size =3D	0,
--		.status =3D 	0
-+		.status =3D	0
- 	},
- 	.command =3D { 4, 3, 6 }
- };
-@@ -76,9 +76,9 @@ int ibmasm_start_reverse_heartbeat(struc
- 		if (cmd->status !=3D IBMASM_CMD_COMPLETE)
- 			times_failed++;
-=20
--		wait_event_interruptible_timeout(rhb->wait,=20
-+		wait_event_interruptible_timeout(rhb->wait,
- 			rhb->stopped,
--			REVERSE_HEARTBEAT_TIMEOUT * HZ); =09
-+			REVERSE_HEARTBEAT_TIMEOUT * HZ);
-=20
- 		if (signal_pending(current) || rhb->stopped) {
- 			result =3D -EINTR;
-diff -puN drivers/misc/ibmasm/remote.h~ibmasm-whitespace-cleanup driver=
-s/misc/ibmasm/remote.h
---- a/drivers/misc/ibmasm/remote.h~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/remote.h
-@@ -18,7 +18,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  * Orignally written by Pete Reynolds
-  */
-@@ -73,7 +73,7 @@ struct keyboard_input {
-=20
-=20
-=20
--struct remote_input {=20
-+struct remote_input {
- 	union {
- 		struct mouse_input	mouse;
- 		struct keyboard_input	keyboard;
-@@ -85,7 +85,7 @@ struct remote_input {=20
- 	unsigned char	pad3;
- };
-=20
--#define mouse_addr(sp) 		(sp->base_address + CONDOR_MOUSE_DATA)
-+#define mouse_addr(sp)		(sp->base_address + CONDOR_MOUSE_DATA)
- #define display_width(sp)	(mouse_addr(sp) + CONDOR_INPUT_DISPLAY_RESX)
- #define display_height(sp)	(mouse_addr(sp) + CONDOR_INPUT_DISPLAY_RESY=
-)
- #define display_depth(sp)	(mouse_addr(sp) + CONDOR_INPUT_DISPLAY_BITS)
-@@ -93,7 +93,7 @@ struct remote_input {=20
- #define vnc_status(sp)		(mouse_addr(sp) + CONDOR_OUTPUT_VNC_STATUS)
- #define isr_control(sp)		(mouse_addr(sp) + CONDOR_MOUSE_ISR_CONTROL)
-=20
--#define mouse_interrupt_pending(sp) 	readl(mouse_addr(sp) + CONDOR_MOU=
-SE_ISR_STATUS)
-+#define mouse_interrupt_pending(sp)	readl(mouse_addr(sp) + CONDOR_MOUS=
-E_ISR_STATUS)
- #define clear_mouse_interrupt(sp)	writel(0, mouse_addr(sp) + CONDOR_MO=
-USE_ISR_STATUS)
- #define enable_mouse_interrupts(sp)	writel(1, mouse_addr(sp) + CONDOR_=
-MOUSE_ISR_CONTROL)
- #define disable_mouse_interrupts(sp)	writel(0, mouse_addr(sp) + CONDOR=
-_MOUSE_ISR_CONTROL)
-diff -puN drivers/misc/ibmasm/uart.c~ibmasm-whitespace-cleanup drivers/=
-misc/ibmasm/uart.c
---- a/drivers/misc/ibmasm/uart.c~ibmasm-whitespace-cleanup
-+++ a/drivers/misc/ibmasm/uart.c
-@@ -18,7 +18,7 @@
-  *
-  * Copyright (C) IBM Corporation, 2004
-  *
-- * Author: Max Asb=F6ck <amax@us.ibm.com>=20
-+ * Author: Max Asb=F6ck <amax@us.ibm.com>
-  *
-  */
-=20
+ 
+ init_fail:
+-	psmouse_reset(psmouse);
+ 	input_free_device(dev2);
+ 	kfree(priv);
+ 	return -1;
+@@ -508,8 +504,7 @@ int alps_detect(struct psmouse *psmouse,
+ 	int version;
+ 	const struct alps_model_info *model;
+ 
+-	model = alps_get_model(psmouse, &version);
+-	if (!model)
++	if (!(model = alps_get_model(psmouse, &version)))
+ 		return -1;
+ 
+ 	if (set_properties) {
+diff -puN drivers/input/mouse/alps.h~revert-input-alps-handle-errors-from-input_register_device drivers/input/mouse/alps.h
+--- a/drivers/input/mouse/alps.h~revert-input-alps-handle-errors-from-input_register_device
++++ a/drivers/input/mouse/alps.h
+@@ -20,6 +20,7 @@ struct alps_model_info {
+ 
+ struct alps_data {
+ 	struct input_dev *dev2;		/* Relative device */
++	char name[32];			/* Name */
+ 	char phys[32];			/* Phys */
+ 	const struct alps_model_info *i;/* Info */
+ 	int prev_fin;			/* Finger bit from previous packet */
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-input.patch
+slub-config_large_allocs-must-consider-max_order-limit-fix.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+i2c-add-driver-for-dallas-ds1682-elapsed-time-recorder.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
 revert-input-alps-handle-errors-from-input_register_device.patch
-ibmasm-whitespace-cleanup.patch
-ibmasm-dont-use-extern-in-function-declarations.patch
-ibmasm-miscellaneous-fixes.patch
-ibmasm-must-depend-on-config_input.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mips-fixup.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-newsetup-fixup.patch
+xfs-clean-up-shrinker-games.patch
+remove-slab_ctor_constructor-fix.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+crc7-support-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+tglx-debug.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
