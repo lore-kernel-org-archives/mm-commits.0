@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch added to -mm tree
-Date: Mon, 14 May 2007 23:44:26 -0700
-Message-ID: <200705150647.l4F6lU2g003507@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-borkages.patch added to -mm tree
+Date: Mon, 14 May 2007 23:59:37 -0700
+Message-ID: <200705150702.l4F72fb6003737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58611 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752004AbXEOGsy (ORCPT
+	by vger.kernel.org with ESMTP id S1754418AbXEOHCv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 02:48:54 -0400
+	Tue, 15 May 2007 03:02:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org, pchen@nvidia.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix
+     lguest-the-host-code borkages
 has been added to the -mm tree.  Its filename is
-     drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+     lguest-the-host-code-borkages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix
+Subject: lguest-the-host-code borkages
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <stable@kernel.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Peer Chen <pchen@nvidia.com>
+drivers/lguest/lguest.c: In function 'lguest_init':
+drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__constant_memcpy'
+drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__memcpy'
+drivers/lguest/lguest.c:447: error: invalid operands to binary +
+drivers/lguest/lguest.c:447: error: invalid operands to binary +
+
+Dunno if this is right, worried.
+
+Are those memcpys back-assward?
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/lguest/lguest.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix
-+++ a/drivers/ata/sata_nv.c
-@@ -1613,7 +1613,7 @@ static void nv_remove_one (struct pci_de
- 	struct nv_host_priv *hpriv = host->private_data;
+diff -puN drivers/lguest/lguest.c~lguest-the-host-code-borkages drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-host-code-borkages
++++ a/drivers/lguest/lguest.c
+@@ -443,9 +443,9 @@ static unsigned lguest_patch(u8 type, u1
+ __init void lguest_init(void *boot)
+ {
+ 	/* Copy boot parameters first. */
+-	memcpy(boot_params, boot, PARAM_SIZE);
++	memcpy(&boot_params, boot, PARAM_SIZE);
+ 	memcpy(boot_command_line,
+-	       __va(*(unsigned long *)(boot_params + NEW_CL_POINTER)),
++	       __va(*(unsigned long *)((void *)&boot_params + NEW_CL_POINTER)),
+ 	       COMMAND_LINE_SIZE);
  
- 	ata_pci_remove_one(pdev);
--	devm_kfree(&pci_dev->dev, hpriv);
-+	devm_kfree(&pdev->dev, hpriv);
- }
- 
- #ifdef CONFIG_PM
+ 	paravirt_ops.name = "lguest";
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +134,7 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 crc7-support-fix.patch
 revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
 tglx-debug.patch
 reiser4.patch
 integrity-new-hooks.patch
