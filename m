@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-dont-check_pgt_cache-in-flush_tlb_mm.patch added to -mm tree
-Date: Tue, 15 May 2007 12:04:51 -0700
-Message-ID: <200705151904.l4FJ4pgr015273@shell0.pdx.osdl.net>
+Subject: + slub-dont-confuse-ctor-and-dtor.patch added to -mm tree
+Date: Tue, 15 May 2007 12:06:03 -0700
+Message-ID: <200705151906.l4FJ63RC015296@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33890 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755634AbXEOTFJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756157AbXEOTGQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:05:09 -0400
+	Tue, 15 May 2007 15:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ak@suse.de, clameter@sgi.com, davem@davemloft.net, wli@holomorphy.com
+Cc: hugh@veritas.com, clameter@sgi.com
 
 
 The patch titled
-     i386: don't check_pgt_cache in flush_tlb_mm
+     slub: don't confuse ctor and dtor
 has been added to the -mm tree.  Its filename is
-     i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
+     slub-dont-confuse-ctor-and-dtor.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: don't check_pgt_cache in flush_tlb_mm
+Subject: slub: don't confuse ctor and dtor
 From: Hugh Dickins <hugh@veritas.com>
 
-No other architecture calls check_pgt_cache() from within flush_tlb_mm(),
-and i386 is already calling check_pgt_cache() from the usual places,
-tlb_finish_mmu() and cpu_idle() (the latter being odd, but not unusual). 
-flush_tlb_mm() has no business to be freeing pages: remove that line, which
-sneaked in with slub's i386 support.
+kmem_cache_create() was swapping ctor and dtor in calling find_mergeable():
+though it caused no bug, and probably never would, even if destructors are
+retained; but fix it so as not to generate anxiety ;)
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Andi Kleen <ak@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c |    2 +-
+ mm/slub.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/smp.c~i386-dont-check_pgt_cache-in-flush_tlb_mm arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~i386-dont-check_pgt_cache-in-flush_tlb_mm
-+++ a/arch/i386/kernel/smp.c
-@@ -421,7 +421,7 @@ void flush_tlb_mm (struct mm_struct * mm
- 	}
- 	if (!cpus_empty(cpu_mask))
- 		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
--	check_pgt_cache();
-+
- 	preempt_enable();
- }
+diff -puN mm/slub.c~slub-dont-confuse-ctor-and-dtor mm/slub.c
+--- a/mm/slub.c~slub-dont-confuse-ctor-and-dtor
++++ a/mm/slub.c
+@@ -2522,7 +2522,7 @@ struct kmem_cache *kmem_cache_create(con
+ 	struct kmem_cache *s;
  
+ 	down_write(&slub_lock);
+-	s = find_mergeable(size, align, flags, dtor, ctor);
++	s = find_mergeable(size, align, flags, ctor, dtor);
+ 	if (s) {
+ 		s->refcount++;
+ 		/*
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
 
+slub-dont-confuse-ctor-and-dtor.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
 lazy-freeing-of-memory-through-madv_free.patch
