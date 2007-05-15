@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-x-pci-express-read-control-interfaces-fix.patch added to -mm tree
-Date: Tue, 15 May 2007 12:39:07 -0700
-Message-ID: <200705151939.l4FJd7Bg015936@shell0.pdx.osdl.net>
+Subject: + pci-x-pci-express-read-control-interfaces.patch added to -mm tree
+Date: Tue, 15 May 2007 12:39:01 -0700
+Message-ID: <200705151939.l4FJd17T015930@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762210AbXEOTjT (ORCPT
+	by vger.kernel.org with ESMTP id S1760628AbXEOTjs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 15:39:19 -0400
+	Tue, 15 May 2007 15:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, peter.oruba@amd.com, rolandd@cisco.com
+Cc: peter.oruba@amd.com, andrew.vasquez@qlogic.com, auke-jan.h.kok@intel.com, greg@kroah.com, jeff@garzik.org, mst@mellanox.co.il, rolandd@cisco.com, shemminger@linux-foundation.org
 
 
 The patch titled
-     pci-x-pci-express-read-control-interfaces-fix
+     PCI-X/PCI-Express read control interfaces
 has been added to the -mm tree.  Its filename is
-     pci-x-pci-express-read-control-interfaces-fix.patch
+     pci-x-pci-express-read-control-interfaces.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,140 +26,271 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-x-pci-express-read-control-interfaces-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PCI-X/PCI-Express read control interfaces
+From: "Peter Oruba" <peter.oruba@amd.com>
 
-Cc: "Peter Oruba" <peter.oruba@amd.com>
+This patch set introduces a PCI-X / PCI-Express read byte count control
+interface.  Instead of letting every driver to directly read/write to PCI
+config space for that, an interface is provided.  The interface functions then
+can be used for quirks since some PCI bridges require that read byte count
+values are set by the BIOS and left unchanged by device drivers.
+
+
+This patch:
+
+Introduce an interface to read and write PCI-X / PCI-Express maximum read byte
+count values from PCI config space.  There is a second function that returns
+the maximum _designed_ read byte count, which marks the maximum value for a
+device, since some drivers try to set MMRBC to the highest allowed value and
+rely on such a function.
+
+Signed-off by: Peter Oruba <peter.oruba@amd.com>
+Based on patch set by Stephen Hemminger <shemminger@linux-foundation.org>
 Cc: Greg KH <greg@kroah.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Michael S. Tsirkin <mst@mellanox.co.il>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c    |    6 ++----
- drivers/pci/quirks.c |    6 +++---
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/pci/pci.c    |  164 +++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/quirks.c |   16 ++++
+ include/linux/pci.h  |    7 +
+ 3 files changed, 186 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/pci.c~pci-x-pci-express-read-control-interfaces-fix drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-x-pci-express-read-control-interfaces-fix
+diff -puN drivers/pci/pci.c~pci-x-pci-express-read-control-interfaces drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-x-pci-express-read-control-interfaces
 +++ a/drivers/pci/pci.c
-@@ -1403,7 +1403,7 @@ pci_set_consistent_dma_mask(struct pci_d
- int
- pcix_get_max_mmrbc(struct pci_dev *dev)
- {
--	int ret, err, cap;
-+	int err, cap;
- 	u32 stat;
+@@ -1394,6 +1394,170 @@ pci_set_consistent_dma_mask(struct pci_d
+ #endif
  
- 	cap = pci_find_capability(dev, PCI_CAP_ID_PCIX);
-@@ -1414,9 +1414,7 @@ pcix_get_max_mmrbc(struct pci_dev *dev)
- 	if (err)
- 		return -EINVAL;
- 
--	ret = (stat & PCI_X_STATUS_MAX_READ) >> 12;
--
--	return ret;
-+	return (stat & PCI_X_STATUS_MAX_READ) >> 12;
- }
- EXPORT_SYMBOL(pcix_get_max_mmrbc);
- 
-diff -puN drivers/pci/quirks.c~pci-x-pci-express-read-control-interfaces-fix drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-x-pci-express-read-control-interfaces-fix
+ /**
++ * pcix_get_max_mmrbc - get PCI-X maximum designed memory read byte count
++ * @dev: PCI device to query
++ *
++ * Returns mmrbc: maximum designed memory read count in bytes
++ *    or appropriate error value.
++ */
++int
++pcix_get_max_mmrbc(struct pci_dev *dev)
++{
++	int ret, err, cap;
++	u32 stat;
++
++	cap = pci_find_capability(dev, PCI_CAP_ID_PCIX);
++	if (!cap)
++		return -EINVAL;
++
++	err = pci_read_config_dword(dev, cap + PCI_X_STATUS, &stat);
++	if (err)
++		return -EINVAL;
++
++	ret = (stat & PCI_X_STATUS_MAX_READ) >> 12;
++
++	return ret;
++}
++EXPORT_SYMBOL(pcix_get_max_mmrbc);
++
++/**
++ * pcix_get_mmrbc - get PCI-X maximum memory read byte count
++ * @dev: PCI device to query
++ *
++ * Returns mmrbc: maximum memory read count in bytes
++ *    or appropriate error value.
++ */
++int
++pcix_get_mmrbc(struct pci_dev *dev)
++{
++	int ret, cap;
++	u32 cmd;
++
++	cap = pci_find_capability(dev, PCI_CAP_ID_PCIX);
++	if (!cap)
++		return -EINVAL;
++
++	ret = pci_read_config_dword(dev, cap + PCI_X_CMD, &cmd);
++	if (!ret)
++		ret = 512 << ((cmd & PCI_X_CMD_MAX_READ) >> 2);
++
++	return ret;
++}
++EXPORT_SYMBOL(pcix_get_mmrbc);
++
++/**
++ * pcix_set_mmrbc - set PCI-X maximum memory read byte count
++ * @dev: PCI device to query
++ * @mmrbc: maximum memory read count in bytes
++ *    valid values are 512, 1024, 2048, 4096
++ *
++ * If possible sets maximum memory read byte count, some bridges have erratas
++ * that prevent this.
++ */
++int
++pcix_set_mmrbc(struct pci_dev *dev, int mmrbc)
++{
++	int cap, err = -EINVAL;
++	u32 stat, cmd, v, o;
++
++	if (mmrbc < 512 || mmrbc > 4096 || (mmrbc & (mmrbc-1)))
++		goto out;
++
++	v = ffs(mmrbc) - 10;
++
++	cap = pci_find_capability(dev, PCI_CAP_ID_PCIX);
++	if (!cap)
++		goto out;
++
++	err = pci_read_config_dword(dev, cap + PCI_X_STATUS, &stat);
++	if (err)
++		goto out;
++
++	if (v > (stat & PCI_X_STATUS_MAX_READ) >> 21)
++		return -E2BIG;
++
++	err = pci_read_config_dword(dev, cap + PCI_X_CMD, &cmd);
++	if (err)
++		goto out;
++
++	o = (cmd & PCI_X_CMD_MAX_READ) >> 2;
++	if (o != v) {
++		if (v > o && dev->bus &&
++		   (dev->bus->bus_flags & PCI_BUS_FLAGS_NO_MMRBC))
++			return -EIO;
++
++		cmd &= ~PCI_X_CMD_MAX_READ;
++		cmd |= v << 2;
++		err = pci_write_config_dword(dev, cap + PCI_X_CMD, cmd);
++	}
++out:
++	return err;
++}
++EXPORT_SYMBOL(pcix_set_mmrbc);
++
++/**
++ * pcie_get_readrq - get PCI Express read request size
++ * @dev: PCI device to query
++ *
++ * Returns maximum memory read request in bytes
++ *    or appropriate error value.
++ */
++int pcie_get_readrq(struct pci_dev *dev)
++{
++	int ret, cap;
++	u16 ctl;
++
++	cap = pci_find_capability(dev, PCI_CAP_ID_EXP);
++	if (!cap)
++		return -EINVAL;
++
++	ret = pci_read_config_word(dev, cap + PCI_EXP_DEVCTL, &ctl);
++	if (!ret)
++	ret = 128 << ((ctl & PCI_EXP_DEVCTL_READRQ) >> 12);
++
++	return ret;
++}
++EXPORT_SYMBOL(pcie_get_readrq);
++
++/**
++ * pcie_set_readrq - set PCI Express maximum memory read request
++ * @dev: PCI device to query
++ * @count: maximum memory read count in bytes
++ *    valid values are 128, 256, 512, 1024, 2048, 4096
++ *
++ * If possible sets maximum read byte count
++ */
++int
++pcie_set_readrq(struct pci_dev *dev, int rq)
++{
++	int cap, err = -EINVAL;
++	u16 ctl, v;
++
++	if (rq < 128 || rq > 4096 || (rq & (rq-1)))
++		goto out;
++
++	v = (ffs(rq) - 8) << 12;
++
++	cap = pci_find_capability(dev, PCI_CAP_ID_EXP);
++	if (!cap)
++		goto out;
++
++	err = pci_read_config_word(dev, cap + PCI_EXP_DEVCTL, &ctl);
++	if (err)
++		goto out;
++
++	if ((ctl & PCI_EXP_DEVCTL_READRQ) != v) {
++		ctl &= ~PCI_EXP_DEVCTL_READRQ;
++		ctl |= v;
++		err = pci_write_config_dword(dev, cap + PCI_EXP_DEVCTL, ctl);
++	}
++
++out:
++	return err;
++}
++EXPORT_SYMBOL(pcie_set_readrq);
++
++/**
+  * pci_select_bars - Make BAR mask from the type of resource
+  * @dev: the PCI device for which BAR mask is made
+  * @flags: resource type mask to be selected
+diff -puN drivers/pci/quirks.c~pci-x-pci-express-read-control-interfaces drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-x-pci-express-read-control-interfaces
 +++ a/drivers/pci/quirks.c
-@@ -637,9 +637,9 @@ static void __init quirk_amd_8131_mmrbc(
+@@ -627,6 +627,22 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AM
+ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_8131_BRIDGE, quirk_amd_8131_ioapic);
+ #endif /* CONFIG_X86_IO_APIC */
  
- 	pci_read_config_byte(dev, PCI_REVISION_ID, &revid);
- 	if (dev->subordinate && revid <= 0x12) {
--        	printk(KERN_INFO "AMD8131 rev %x detected, disabling PCI-X MMRBC\n",
--        		revid);
--        	dev->subordinate->bus_flags |= PCI_BUS_FLAGS_NO_MMRBC;
-+		printk(KERN_INFO "AMD8131 rev %x detected, disabling PCI-X "
-+				"MMRBC\n", revid);
-+		dev->subordinate->bus_flags |= PCI_BUS_FLAGS_NO_MMRBC;
- 	}
- }
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_8131_BRIDGE, quirk_amd_8131_mmrbc);
++/*
++ * Some settings of MMRBC can lead to data corruption so block changes.
++ * See AMD 8131 HyperTransport PCI-X Tunnel Revision Guide
++ */
++static void __init quirk_amd_8131_mmrbc(struct pci_dev *dev)
++{
++	unsigned char revid;
++
++	pci_read_config_byte(dev, PCI_REVISION_ID, &revid);
++	if (dev->subordinate && revid <= 0x12) {
++        	printk(KERN_INFO "AMD8131 rev %x detected, disabling PCI-X MMRBC\n",
++        		revid);
++        	dev->subordinate->bus_flags |= PCI_BUS_FLAGS_NO_MMRBC;
++	}
++}
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_8131_BRIDGE, quirk_amd_8131_mmrbc);
+ 
+ /*
+  * FIXME: it is questionable that quirk_via_acpi
+diff -puN include/linux/pci.h~pci-x-pci-express-read-control-interfaces include/linux/pci.h
+--- a/include/linux/pci.h~pci-x-pci-express-read-control-interfaces
++++ a/include/linux/pci.h
+@@ -111,7 +111,8 @@ enum pcie_reset_state {
+ 
+ typedef unsigned short __bitwise pci_bus_flags_t;
+ enum pci_bus_flags {
+-	PCI_BUS_FLAGS_NO_MSI = (__force pci_bus_flags_t) 1,
++	PCI_BUS_FLAGS_NO_MSI   = (__force pci_bus_flags_t) 1,
++	PCI_BUS_FLAGS_NO_MMRBC = (__force pci_bus_flags_t) 2,
+ };
+ 
+ struct pci_cap_saved_state {
+@@ -550,6 +551,10 @@ void pci_intx(struct pci_dev *dev, int e
+ void pci_msi_off(struct pci_dev *dev);
+ int pci_set_dma_mask(struct pci_dev *dev, u64 mask);
+ int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask);
++int pcix_get_max_mmrbc(struct pci_dev *dev);
++int pcix_get_mmrbc(struct pci_dev *dev);
++int pcix_set_mmrbc(struct pci_dev *dev, int mmrbc);
++int pcie_set_readrq(struct pci_dev *dev, int rq);
+ void pci_update_resource(struct pci_dev *dev, struct resource *res, int resno);
+ int __must_check pci_assign_resource(struct pci_dev *dev, int i);
+ int __must_check pci_assign_resource_fixed(struct pci_dev *dev, int i);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from peter.oruba@amd.com are
 
-origin.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-fix-agk-dm-dm-io-fix-panic-on-large-request.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
-git-mips-fixup.patch
-git-ubi.patch
-git-ubi-fixup.patch
-git-battery.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-git-sh64.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-git-newsetup-fixup.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-compat_core_sys_select-avoid-kmalloc0.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-tglx-debug.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
