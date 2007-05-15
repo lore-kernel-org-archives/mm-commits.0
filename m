@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + saa7111-fix-picture-settings-cache-bug.patch added to -mm tree
-Date: Mon, 14 May 2007 17:50:14 -0700
-Message-ID: <200705150050.l4F0oEdx030453@shell0.pdx.osdl.net>
+Subject: + saa7134-tvaudio-kthread-conversion.patch added to -mm tree
+Date: Mon, 14 May 2007 17:50:43 -0700
+Message-ID: <200705150050.l4F0ohg6030462@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41748 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752443AbXEOAut (ORCPT
+	by vger.kernel.org with ESMTP id S1752573AbXEOAvY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2007 20:50:49 -0400
+	Mon, 14 May 2007 20:51:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rmk@arm.linux.org.uk, rmk+kernel@arm.linux.org.uk
+Cc: hch@lst.de
 
 
 The patch titled
-     saa7111: fix picture settings cache bug
+     saa7134-tvaudio: kthread conversion
 has been added to the -mm tree.  Its filename is
-     saa7111-fix-picture-settings-cache-bug.patch
+     saa7134-tvaudio-kthread-conversion.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,121 +26,199 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: saa7111: fix picture settings cache bug
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: saa7134-tvaudio: kthread conversion
+From: Christoph Hellwig <hch@lst.de>
 
-If the SAA7111 device is powered down, and requires re-initialisation when
-the V4L device is opened (as on the NetWinder), the SAA7111 driver gets
-completely confused about the current settings.
-
-The problem is centred around the way the driver keeps _two_ cached copies
-of the current settings - one of the struct video_picture settings, and one
-of the registers.
-
-When the decoder is re-initailised, the cached register settings are
-overwritten, as are the values in the hardware registers.  However, the
-cached video_picture settings are not.
-
-Resolve this by removing the useless and buggy second level of caching for
-video_picture.  Instead, provide a function which updates register values
-if and only if the value we are going to write to the register has changed.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7111.c |   49 ++++++++++++--------------------
- 1 files changed, 19 insertions(+), 30 deletions(-)
+ drivers/media/video/saa7134/saa7134-tvaudio.c |   42 ++++++----------
+ drivers/media/video/saa7134/saa7134.h         |    5 -
+ 2 files changed, 17 insertions(+), 30 deletions(-)
 
-diff -puN drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug drivers/media/video/saa7111.c
---- a/drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug
-+++ a/drivers/media/video/saa7111.c
-@@ -75,10 +75,6 @@ struct saa7111 {
- 	int norm;
- 	int input;
- 	int enable;
--	int bright;
--	int contrast;
--	int hue;
--	int sat;
- };
+diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-tvaudio-kthread-conversion drivers/media/video/saa7134/saa7134-tvaudio.c
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-tvaudio-kthread-conversion
++++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -25,6 +25,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/kernel.h>
++#include <linux/kthread.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <asm/div64.h>
+@@ -341,10 +342,8 @@ static void tvaudio_setmode(struct saa71
  
- #define   I2C_SAA7111        0x48
-@@ -96,6 +92,17 @@ saa7111_write (struct i2c_client *client
- 	return i2c_smbus_write_byte_data(client, reg, value);
+ static int tvaudio_sleep(struct saa7134_dev *dev, int timeout)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	add_wait_queue(&dev->thread.wq, &wait);
+-	if (dev->thread.scan1 == dev->thread.scan2 && !dev->thread.shutdown) {
++	if (dev->thread.scan1 == dev->thread.scan2 &&
++	    !kthread_should_stop()) {
+ 		if (timeout < 0) {
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule();
+@@ -353,7 +352,6 @@ static int tvaudio_sleep(struct saa7134_
+ 						(msecs_to_jiffies(timeout));
+ 		}
+ 	}
+-	remove_wait_queue(&dev->thread.wq, &wait);
+ 	return dev->thread.scan1 != dev->thread.scan2;
  }
  
-+static inline void
-+saa7111_write_if_changed(struct i2c_client *client, u8 reg, u8 value)
-+{
-+	struct saa7111 *decoder = i2c_get_clientdata(client);
-+
-+	if (decoder->reg[reg] != value) {
-+		decoder->reg[reg] = value;
-+		i2c_smbus_write_byte_data(client, reg, value);
-+	}
-+}
-+
- static int
- saa7111_write_block (struct i2c_client *client,
- 		     const u8          *data,
-@@ -439,28 +446,14 @@ saa7111_command (struct i2c_client *clie
- 	{
- 		struct video_picture *pic = arg;
+@@ -505,11 +503,10 @@ static int tvaudio_thread(void *data)
+ 	unsigned int i, audio, nscan;
+ 	int max1,max2,carrier,rx,mode,lastmode,default_carrier;
  
--		if (decoder->bright != pic->brightness) {
--			/* We want 0 to 255 we get 0-65535 */
--			decoder->bright = pic->brightness;
--			saa7111_write(client, 0x0a, decoder->bright >> 8);
--		}
--		if (decoder->contrast != pic->contrast) {
--			/* We want 0 to 127 we get 0-65535 */
--			decoder->contrast = pic->contrast;
--			saa7111_write(client, 0x0b,
--				      decoder->contrast >> 9);
--		}
--		if (decoder->sat != pic->colour) {
--			/* We want 0 to 127 we get 0-65535 */
--			decoder->sat = pic->colour;
--			saa7111_write(client, 0x0c, decoder->sat >> 9);
--		}
--		if (decoder->hue != pic->hue) {
--			/* We want -128 to 127 we get 0-65535 */
--			decoder->hue = pic->hue;
--			saa7111_write(client, 0x0d,
--				      (decoder->hue - 32768) >> 8);
--		}
-+		/* We want 0 to 255 we get 0-65535 */
-+		saa7111_write_if_changed(client, 0x0a, pic->brightness >> 8);
-+		/* We want 0 to 127 we get 0-65535 */
-+		saa7111_write(client, 0x0b, pic->contrast >> 9);
-+		/* We want 0 to 127 we get 0-65535 */
-+		saa7111_write(client, 0x0c, pic->colour >> 9);
-+		/* We want -128 to 127 we get 0-65535 */
-+		saa7111_write(client, 0x0d, (pic->hue - 32768) >> 8);
+-	daemonize("%s", dev->name);
+ 	allow_signal(SIGTERM);
+ 	for (;;) {
+ 		tvaudio_sleep(dev,-1);
+-		if (dev->thread.shutdown || signal_pending(current))
++		if (kthread_should_stop() || signal_pending(current))
+ 			goto done;
+ 
+ 	restart:
+@@ -618,7 +615,7 @@ static int tvaudio_thread(void *data)
+ 		for (;;) {
+ 			if (tvaudio_sleep(dev,5000))
+ 				goto restart;
+-			if (dev->thread.shutdown || signal_pending(current))
++			if (kthread_should_stop() || signal_pending(current))
+ 				break;
+ 			if (UNSET == dev->thread.mode) {
+ 				rx = tvaudio_getstereo(dev,&tvaudio[i]);
+@@ -634,7 +631,6 @@ static int tvaudio_thread(void *data)
  	}
+ 
+  done:
+-	complete_and_exit(&dev->thread.exit, 0);
+ 	return 0;
+ }
+ 
+@@ -782,7 +778,6 @@ static int tvaudio_thread_ddep(void *dat
+ 	struct saa7134_dev *dev = data;
+ 	u32 value, norms, clock;
+ 
+-	daemonize("%s", dev->name);
+ 	allow_signal(SIGTERM);
+ 
+ 	clock = saa7134_boards[dev->board].audio_clock;
+@@ -796,7 +791,7 @@ static int tvaudio_thread_ddep(void *dat
+ 
+ 	for (;;) {
+ 		tvaudio_sleep(dev,-1);
+-		if (dev->thread.shutdown || signal_pending(current))
++		if (kthread_should_stop() || signal_pending(current))
+ 			goto done;
+ 
+ 	restart:
+@@ -876,7 +871,6 @@ static int tvaudio_thread_ddep(void *dat
+ 	}
+ 
+  done:
+-	complete_and_exit(&dev->thread.exit, 0);
+ 	return 0;
+ }
+ 
+@@ -973,7 +967,6 @@ int saa7134_tvaudio_getstereo(struct saa
+ 
+ int saa7134_tvaudio_init2(struct saa7134_dev *dev)
+ {
+-	DECLARE_MUTEX_LOCKED(sem);
+ 	int (*my_thread)(void *data) = NULL;
+ 
+ 	switch (dev->pci->device) {
+@@ -986,15 +979,15 @@ int saa7134_tvaudio_init2(struct saa7134
  		break;
+ 	}
  
-@@ -524,10 +517,6 @@ saa7111_detect_client (struct i2c_adapte
- 	decoder->norm = VIDEO_MODE_NTSC;
- 	decoder->input = 0;
- 	decoder->enable = 1;
--	decoder->bright = 32768;
--	decoder->contrast = 32768;
--	decoder->hue = 32768;
--	decoder->sat = 32768;
- 	i2c_set_clientdata(client, decoder);
+-	dev->thread.pid = -1;
++	dev->thread.thread = NULL;
+ 	if (my_thread) {
+ 		/* start tvaudio thread */
+-		init_waitqueue_head(&dev->thread.wq);
+-		init_completion(&dev->thread.exit);
+-		dev->thread.pid = kernel_thread(my_thread,dev,0);
+-		if (dev->thread.pid < 0)
++		dev->thread.thread = kthread_run(my_thread, dev, "%s", dev->name);
++		if (IS_ERR(dev->thread.thread)) {
+ 			printk(KERN_WARNING "%s: kernel_thread() failed\n",
+ 			       dev->name);
++			/* XXX: missing error handling here */
++		}
+ 		saa7134_tvaudio_do_scan(dev);
+ 	}
  
- 	i = i2c_attach_client(client);
+@@ -1004,12 +997,9 @@ int saa7134_tvaudio_init2(struct saa7134
+ 
+ int saa7134_tvaudio_fini(struct saa7134_dev *dev)
+ {
+-	/* shutdown tvaudio thread */
+-	if (dev->thread.pid >= 0) {
+-		dev->thread.shutdown = 1;
+-		wake_up_interruptible(&dev->thread.wq);
+-		wait_for_completion(&dev->thread.exit);
+-	}
++	if (dev->thread.thread)
++		kthread_stop(dev->thread.thread);
++
+ 	saa_andorb(SAA7134_ANALOG_IO_SELECT, 0x07, 0x00); /* LINE1 */
+ 	return 0;
+ }
+@@ -1020,10 +1010,10 @@ int saa7134_tvaudio_do_scan(struct saa71
+ 		dprintk("sound IF not in use, skipping scan\n");
+ 		dev->automute = 0;
+ 		saa7134_tvaudio_setmute(dev);
+-	} else if (dev->thread.pid >= 0) {
++	} else if (dev->thread.thread) {
+ 		dev->thread.mode = UNSET;
+ 		dev->thread.scan2++;
+-		wake_up_interruptible(&dev->thread.wq);
++		wake_up_process(dev->thread.thread);
+ 	} else {
+ 		dev->automute = 0;
+ 		saa7134_tvaudio_setmute(dev);
+diff -puN drivers/media/video/saa7134/saa7134.h~saa7134-tvaudio-kthread-conversion drivers/media/video/saa7134/saa7134.h
+--- a/drivers/media/video/saa7134/saa7134.h~saa7134-tvaudio-kthread-conversion
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -328,10 +328,7 @@ struct saa7134_pgtable {
+ 
+ /* tvaudio thread status */
+ struct saa7134_thread {
+-	pid_t                      pid;
+-	struct completion          exit;
+-	wait_queue_head_t          wq;
+-	unsigned int               shutdown;
++	struct task_struct	   *thread;
+ 	unsigned int               scan1;
+ 	unsigned int               scan2;
+ 	unsigned int               mode;
 _
 
-Patches currently in -mm which might be from rmk@arm.linux.org.uk are
+Patches currently in -mm which might be from hch@lst.de are
 
-remove-cpu-hotplug-defines-for-__init-__initdata.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-update-documentation-driver-model-platformtxt.patch
-saa7111-fix-picture-settings-cache-bug.patch
-git-md-accel.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
+saa7134-tvaudio-kthread-conversion.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+cpci_hotplug-convert-to-use-the-kthread-api.patch
+remove-slab_ctor_constructor.patch
+udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+udf-check-for-allocated-memory-for-inode-data-v2.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
