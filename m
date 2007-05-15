@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-tidyups-update.patch added to -mm tree
-Date: Mon, 14 May 2007 22:55:42 -0700
-Message-ID: <200705150555.l4F5tg8C002690@shell0.pdx.osdl.net>
+Subject: + lguest-the-net-driver-tidyups-update.patch added to -mm tree
+Date: Mon, 14 May 2007 22:55:46 -0700
+Message-ID: <200705150555.l4F5tkKB002693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40980 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758600AbXEOF4Z (ORCPT
+	by vger.kernel.org with ESMTP id S1758659AbXEOF4a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 01:56:25 -0400
+	Tue, 15 May 2007 01:56:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, hch@lst.de
+Cc: rusty@rustcorp.com.au, jeff@garzik.org
 
 
 The patch titled
-     lguest: host code tidyups
+     lguest: netdriver tidyups and a bugfix
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-tidyups-update.patch
+     lguest-the-net-driver-tidyups-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,296 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: host code tidyups
+Subject: lguest: netdriver tidyups and a bugfix
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Christoph Hellwig said runs sparse:
-1) page_tables.c unnecessary initialization
-2) Change prototype of run_lguest and do cast in caller instead (when we add
-   __user to cast, it runs over another line).
-Al Viro pointed out the ugly cast in push_lguest_stack():
-3) Stick with unsigned long for arg, removes 4 casts in total.
+Feedback from Jeff Garzik:
+1) Use netdev_priv instead of dev->priv.
+2) Check for ioremap failure
+3) iounmap on failure.
+4) Wrap SEND_DMA and BIND_DMA calls
+5) Don't set NETIF_F_SG unless we set NETIF_F_NO_CSUM
+6) Use SET_NETDEV_DEV()
+7) Don't set dev->irq, mem_start & mem_end (deprecated)
 
-Most importantly, I now realize that Christoph's incorrect ranting
-about lgread_u32 et al was in fact a subtle ploy to make me diagnose
-the real issue: sparse 0.3 complains about casting a __user pointer
-to/from u32, but not an "unsigned long".  They are (currently)
-equivalent for lguest, but this is a much better solution than __force.
-
-Kudos, Christoph, for such masterful manipulation!
+Feedback from Chrisoph Hellwig:
+8) Use lguest_map()/lguest_unmap() helpers instead of ioremap/iounmap.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c                 |   27 +++++++++---------
- drivers/lguest/hypercalls.c           |   10 ++----
- drivers/lguest/interrupts_and_traps.c |   13 ++++----
- drivers/lguest/io.c                   |    2 -
- drivers/lguest/lg.h                   |   35 +++++++++++-------------
- drivers/lguest/segments.c             |    6 ++--
- include/linux/lguest_launcher.h       |    2 -
- 7 files changed, 47 insertions(+), 48 deletions(-)
+ drivers/net/lguest_net.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/lguest/core.c~lguest-the-host-code-tidyups-update drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/core.c
-@@ -212,39 +212,40 @@ int lguest_address_ok(const struct lgues
- }
+diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-tidyups-update drivers/net/lguest_net.c
+--- a/drivers/net/lguest_net.c~lguest-the-net-driver-tidyups-update
++++ a/drivers/net/lguest_net.c
+@@ -22,7 +22,6 @@
+ #include <linux/module.h>
+ #include <linux/mm_types.h>
+ #include <linux/lguest_bus.h>
+-#include <asm/io.h>
  
- /* Just like get_user, but don't let guest access lguest binary. */
--u32 lgread_u32(struct lguest *lg, u32 addr)
-+u32 lgread_u32(struct lguest *lg, unsigned long addr)
- {
- 	u32 val = 0;
- 
- 	/* Don't let them access lguest binary */
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || get_user(val, (__force u32 __user *)addr) != 0)
--		kill_guest(lg, "bad read address %u", addr);
-+	    || get_user(val, (u32 __user *)addr) != 0)
-+		kill_guest(lg, "bad read address %#lx", addr);
- 	return val;
- }
- 
--void lgwrite_u32(struct lguest *lg, u32 addr, u32 val)
-+void lgwrite_u32(struct lguest *lg, unsigned long addr, u32 val)
- {
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || put_user(val, (__force u32 __user *)addr) != 0)
--		kill_guest(lg, "bad write address %u", addr);
-+	    || put_user(val, (u32 __user *)addr) != 0)
-+		kill_guest(lg, "bad write address %#lx", addr);
- }
- 
--void lgread(struct lguest *lg, void *b, u32 addr, unsigned bytes)
-+void lgread(struct lguest *lg, void *b, unsigned long addr, unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_from_user(b, (__force void __user *)addr, bytes) != 0) {
-+	    || copy_from_user(b, (void __user *)addr, bytes) != 0) {
- 		/* copy_from_user should do this, but as we rely on it... */
- 		memset(b, 0, bytes);
--		kill_guest(lg, "bad read address %u len %u", addr, bytes);
-+		kill_guest(lg, "bad read address %#lx len %u", addr, bytes);
- 	}
- }
- 
--void lgwrite(struct lguest *lg, u32 addr, const void *b, unsigned bytes)
-+void lgwrite(struct lguest *lg, unsigned long addr, const void *b,
-+	     unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_to_user((__force void __user *)addr, b, bytes) != 0)
--		kill_guest(lg, "bad write address %u len %u", addr, bytes);
-+	    || copy_to_user((void __user *)addr, b, bytes) != 0)
-+		kill_guest(lg, "bad write address %#lx len %u", addr, bytes);
- }
- 
- static void set_ts(void)
-@@ -367,7 +368,7 @@ int run_guest(struct lguest *lg, unsigne
- 		if (deliver_trap(lg, lg->regs->trapnum))
- 			continue;
- 
--		kill_guest(lg, "unhandled trap %i at %#x (%#x)",
-+		kill_guest(lg, "unhandled trap %li at %#lx (%#lx)",
- 			   lg->regs->trapnum, lg->regs->eip,
- 			   lg->regs->trapnum == 14 ? cr2 : lg->regs->errcode);
- 	}
-diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups-update drivers/lguest/hypercalls.c
---- a/drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/hypercalls.c
-@@ -83,8 +83,7 @@ static void do_hcall(struct lguest *lg, 
- 		guest_set_pmd(lg, regs->edx, regs->ebx);
- 		break;
- 	case LHCALL_LOAD_TLS:
--		guest_load_tls(lg,
--			       (__force struct desc_struct __user*)regs->edx);
-+		guest_load_tls(lg, regs->edx);
- 		break;
- 	case LHCALL_TS:
- 		lg->ts = regs->edx;
-@@ -93,7 +92,7 @@ static void do_hcall(struct lguest *lg, 
- 		lg->halted = 1;
- 		break;
- 	default:
--		kill_guest(lg, "Bad hypercall %i\n", regs->eax);
-+		kill_guest(lg, "Bad hypercall %li\n", regs->eax);
- 	}
- }
- 
-@@ -138,15 +137,14 @@ static void do_async_hcalls(struct lgues
- static void initialize(struct lguest *lg)
- {
- 	if (lg->regs->eax != LHCALL_LGUEST_INIT) {
--		kill_guest(lg, "hypercall %i before LGUEST_INIT",
-+		kill_guest(lg, "hypercall %li before LGUEST_INIT",
- 			   lg->regs->eax);
- 		return;
- 	}
- 
- 	lg->lguest_data = (struct lguest_data __user *)lg->regs->edx;
- 	/* We check here so we can simply copy_to_user/from_user */
--	if (!lguest_address_ok(lg, (long)lg->lguest_data,
--			       sizeof(*lg->lguest_data))) {
-+	if (!lguest_address_ok(lg, lg->regs->edx, sizeof(*lg->lguest_data))) {
- 		kill_guest(lg, "bad guest page %p", lg->lguest_data);
- 		return;
- 	}
-diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups-update drivers/lguest/interrupts_and_traps.c
---- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/interrupts_and_traps.c
-@@ -16,24 +16,25 @@ static int idt_present(u32 lo, u32 hi)
- 	return (hi & 0x8000);
- }
- 
--static void push_guest_stack(struct lguest *lg, u32 __user **gstack, u32 val)
-+static void push_guest_stack(struct lguest *lg, unsigned long *gstack, u32 val)
- {
--	lgwrite_u32(lg, (__force u32)--(*gstack), val);
-+	*gstack -= 4;
-+	lgwrite_u32(lg, *gstack, val);
- }
- 
- static void set_guest_interrupt(struct lguest *lg, u32 lo, u32 hi, int has_err)
- {
--	u32 __user *gstack;
-+	unsigned long gstack;
- 	u32 eflags, ss, irq_enable;
- 
- 	/* If they want a ring change, we use new stack and push old ss/esp */
- 	if ((lg->regs->ss&0x3) != GUEST_PL) {
--		gstack = (u32 __user *)guest_pa(lg, lg->esp1);
-+		gstack = guest_pa(lg, lg->esp1);
- 		ss = lg->ss1;
- 		push_guest_stack(lg, &gstack, lg->regs->ss);
- 		push_guest_stack(lg, &gstack, lg->regs->esp);
- 	} else {
--		gstack = (u32 __user *)guest_pa(lg, lg->regs->esp);
-+		gstack = guest_pa(lg, lg->regs->esp);
- 		ss = lg->regs->ss;
- 	}
- 
-@@ -53,7 +54,7 @@ static void set_guest_interrupt(struct l
- 
- 	/* Change the real stack so switcher returns to trap handler */
- 	lg->regs->ss = ss;
--	lg->regs->esp = (__force u32)gstack + lg->page_offset;
-+	lg->regs->esp = gstack + lg->page_offset;
- 	lg->regs->cs = (__KERNEL_CS|GUEST_PL);
- 	lg->regs->eip = idt_address(lo, hi);
- 
-diff -puN drivers/lguest/io.c~lguest-the-host-code-tidyups-update drivers/lguest/io.c
---- a/drivers/lguest/io.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/io.c
-@@ -52,7 +52,7 @@ static int check_dma_list(struct lguest 
- 	return 1;
- 
- kill:
--	kill_guest(lg, "bad DMA entry: %u@%#x", dma->len[i], dma->addr[i]);
-+	kill_guest(lg, "bad DMA entry: %u@%#lx", dma->len[i], dma->addr[i]);
- 	return 0;
- }
- 
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-tidyups-update drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/lg.h
-@@ -25,18 +25,18 @@
- struct lguest_regs
- {
- 	/* Manually saved part. */
--	u32 ebx, ecx, edx;
--	u32 esi, edi, ebp;
--	u32 gs;
--	u32 eax;
--	u32 fs, ds, es;
--	u32 trapnum, errcode;
-+	unsigned long ebx, ecx, edx;
-+	unsigned long esi, edi, ebp;
-+	unsigned long gs;
-+	unsigned long eax;
-+	unsigned long fs, ds, es;
-+	unsigned long trapnum, errcode;
- 	/* Trap pushed part */
--	u32 eip;
--	u32 cs;
--	u32 eflags;
--	u32 esp;
--	u32 ss;
-+	unsigned long eip;
-+	unsigned long cs;
-+	unsigned long eflags;
-+	unsigned long esp;
-+	unsigned long ss;
- };
- 
- void free_pagetables(void);
-@@ -175,10 +175,10 @@ extern struct lguest lguests[];
- extern struct mutex lguest_lock;
- 
- /* core.c: */
--u32 lgread_u32(struct lguest *lg, u32 addr);
--void lgwrite_u32(struct lguest *lg, u32 val, u32 addr);
--void lgread(struct lguest *lg, void *buf, u32 addr, unsigned bytes);
--void lgwrite(struct lguest *lg, u32 addr, const void *buf, unsigned bytes);
-+u32 lgread_u32(struct lguest *lg, unsigned long addr);
-+void lgwrite_u32(struct lguest *lg, unsigned long addr, u32 val);
-+void lgread(struct lguest *lg, void *buf, unsigned long addr, unsigned len);
-+void lgwrite(struct lguest *lg, unsigned long, const void *buf, unsigned len);
- int find_free_guest(void);
- int lguest_address_ok(const struct lguest *lg,
- 		      unsigned long addr, unsigned long len);
-@@ -199,9 +199,8 @@ void copy_traps(const struct lguest *lg,
- /* segments.c: */
- void setup_default_gdt_entries(struct lguest_ro_state *state);
- void setup_guest_gdt(struct lguest *lg);
--void load_guest_gdt(struct lguest *lg, u32 table, u32 num);
--void guest_load_tls(struct lguest *lg,
--		    const struct desc_struct __user *tls_array);
-+void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num);
-+void guest_load_tls(struct lguest *lg, unsigned long tls_array);
- void copy_gdt(const struct lguest *lg, struct desc_struct *gdt);
- 
- /* page_tables.c: */
-diff -puN drivers/lguest/segments.c~lguest-the-host-code-tidyups-update drivers/lguest/segments.c
---- a/drivers/lguest/segments.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/segments.c
-@@ -95,7 +95,7 @@ void copy_gdt(const struct lguest *lg, s
- 			gdt[i] = lg->gdt[i];
- }
- 
--void load_guest_gdt(struct lguest *lg, u32 table, u32 num)
-+void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num)
- {
- 	if (num > ARRAY_SIZE(lg->gdt))
- 		kill_guest(lg, "too many gdt entries %i", num);
-@@ -105,11 +105,11 @@ void load_guest_gdt(struct lguest *lg, u
- 	lg->changed |= CHANGED_GDT;
- }
- 
--void guest_load_tls(struct lguest *lg, const struct desc_struct __user *gtls)
-+void guest_load_tls(struct lguest *lg, unsigned long gtls)
- {
- 	struct desc_struct *tls = &lg->gdt[GDT_ENTRY_TLS_MIN];
- 
--	lgread(lg, tls, (u32)gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
-+	lgread(lg, tls, gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
- 	fixup_gdt_table(lg);
- 	lg->changed |= CHANGED_GDT;
- }
-diff -puN include/linux/lguest_launcher.h~lguest-the-host-code-tidyups-update include/linux/lguest_launcher.h
---- a/include/linux/lguest_launcher.h~lguest-the-host-code-tidyups-update
-+++ a/include/linux/lguest_launcher.h
-@@ -13,7 +13,7 @@ struct lguest_dma
- {
- 	/* 0 if free to be used, filled by hypervisor. */
-  	u32 used_len;
--	u32 addr[LGUEST_MAX_DMA_SECTIONS];
-+	unsigned long addr[LGUEST_MAX_DMA_SECTIONS];
- 	u16 len[LGUEST_MAX_DMA_SECTIONS];
- };
- 
+ #define SHARED_SIZE		PAGE_SIZE
+ #define MAX_LANS		4
+@@ -301,7 +300,7 @@ static int lguestnet_probe(struct lguest
+ 	info->mapsize = PAGE_SIZE * desc->num_pages;
+ 	info->peer_phys = ((unsigned long)desc->pfn << PAGE_SHIFT);
+ 	info->lgdev = lgdev;
+-	info->peer = (__force void *)ioremap(info->peer_phys, info->mapsize);
++	info->peer = lguest_map(info->peer_phys, desc->num_pages);
+ 	if (!info->peer) {
+ 		err = -ENOMEM;
+ 		goto free;
+@@ -331,7 +330,7 @@ static int lguestnet_probe(struct lguest
+ unregister:
+ 	unregister_netdev(dev);
+ unmap:
+-	iounmap((__force void __iomem *)info->peer);
++	lguest_unmap(info->peer);
+ free:
+ 	free_netdev(dev);
+ 	return err;
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
