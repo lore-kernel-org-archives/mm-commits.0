@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-add-ioremap_page_range.patch removed from -mm tree
-Date: Tue, 15 May 2007 11:07:01 -0700
-Message-ID: <200705151807.l4FI70Q2014136@shell0.pdx.osdl.net>
+Subject: - m68k-implement-__clear_user.patch removed from -mm tree
+Date: Tue, 15 May 2007 11:07:13 -0700
+Message-ID: <200705151807.l4FI7Cgw014150@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755102AbXEOSHP (ORCPT
+	by vger.kernel.org with ESMTP id S1755329AbXEOSH0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 14:07:15 -0400
+	Tue, 15 May 2007 14:07:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu: add ioremap_page_range()
+     m68k: implement __clear_user()
 has been removed from the -mm tree.  Its filename was
-     nommu-add-ioremap_page_range.patch
+     m68k-implement-__clear_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nommu: add ioremap_page_range()
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: m68k: implement __clear_user()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-lib/ioremap.c is presently only built in if CONFIG_MMU is set.  While this
-is reasonable, platforms that support both CONFIG_MMU=y or n need to be
-able to call in to this regardless.
+m68k: implement __clear_user(), which is needed by fs/signalfd.c
 
-As none of the current nommu platforms do anything special with ioremap(),
-we assume that it's always successful.
+Since we always let the MMU do all checking, clear_user() and __clear_user()
+are identical. The old clear_user() is renamed to __clear_user() for
+consistency.
 
-This fixes the SH-4 build with CONFIG_MMU=n.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/m68k/lib/uaccess.c    |    4 ++--
+ include/asm-m68k/uaccess.h |    4 +++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/io.h~nommu-add-ioremap_page_range include/linux/io.h
---- a/include/linux/io.h~nommu-add-ioremap_page_range
-+++ a/include/linux/io.h
-@@ -27,8 +27,16 @@ struct device;
- void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+diff -puN arch/m68k/lib/uaccess.c~m68k-implement-__clear_user arch/m68k/lib/uaccess.c
+--- a/arch/m68k/lib/uaccess.c~m68k-implement-__clear_user
++++ a/arch/m68k/lib/uaccess.c
+@@ -181,7 +181,7 @@ EXPORT_SYMBOL(strnlen_user);
+  * Zero Userspace
+  */
  
-+#ifdef CONFIG_MMU
- int ioremap_page_range(unsigned long addr, unsigned long end,
- 		       unsigned long phys_addr, pgprot_t prot);
-+#else
-+static inline int ioremap_page_range(unsigned long addr, unsigned long end,
-+				     unsigned long phys_addr, pgprot_t prot)
-+{
-+	return 0;
-+}
-+#endif
+-unsigned long clear_user(void __user *to, unsigned long n)
++unsigned long __clear_user(void __user *to, unsigned long n)
+ {
+ 	unsigned long res;
  
- /*
-  * Managed iomap interface
+@@ -219,4 +219,4 @@ unsigned long clear_user(void __user *to
+ 
+     return res;
+ }
+-EXPORT_SYMBOL(clear_user);
++EXPORT_SYMBOL(__clear_user);
+diff -puN include/asm-m68k/uaccess.h~m68k-implement-__clear_user include/asm-m68k/uaccess.h
+--- a/include/asm-m68k/uaccess.h~m68k-implement-__clear_user
++++ a/include/asm-m68k/uaccess.h
+@@ -361,7 +361,9 @@ __constant_copy_to_user(void __user *to,
+ 
+ long strncpy_from_user(char *dst, const char __user *src, long count);
+ long strnlen_user(const char __user *src, long n);
+-unsigned long clear_user(void __user *to, unsigned long n);
++unsigned long __clear_user(void __user *to, unsigned long n);
++
++#define clear_user	__clear_user
+ 
+ #define strlen_user(str) strnlen_user(str, 32767)
+ 
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-git-sh.patch
-git-sh64.patch
-slab-allocators-drop-support-for-destructors.patch
+git-dvb.patch
