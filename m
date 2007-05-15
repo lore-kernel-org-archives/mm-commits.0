@@ -1,85 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - prio-tree-debugging.patch removed from -mm tree
-Date: Tue, 15 May 2007 14:35:27 -0700
-Message-ID: <200705152135.l4FLZREK018566@shell0.pdx.osdl.net>
+Subject: + prio_tree-debugging-patch.patch added to -mm tree
+Date: Tue, 15 May 2007 14:35:55 -0700
+Message-ID: <200705152135.l4FLZtu7018579@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49695 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56486 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751743AbXEOVgs (ORCPT
+	by vger.kernel.org with ESMTP id S1751669AbXEOViM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 17:36:48 -0400
+	Tue, 15 May 2007 17:38:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hugh@veritas.com, jaysonsantos2003@yahoo.com.br
 
 
 The patch titled
-     prio-tree debugging
-has been removed from the -mm tree.  Its filename was
-     prio-tree-debugging.patch
+     prio_tree: debugging patch
+has been added to the -mm tree.  Its filename is
+     prio_tree-debugging-patch.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: prio-tree debugging
+Subject: prio_tree: debugging patch
 From: Hugh Dickins <hugh@veritas.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=8446
+Jayson Santos has sighted mm/prio_tree.c:78,79 BUGs (kernel bugzilla 8446),
+and one was sighted a couple of years ago.  No reason yet to suppose
+they're prio_tree bugs, but we can't tell much about them without seeing
+the vmas.
 
-------- Additional Comments From hugh@veritas.com  2007-05-11 13:56 -------
-Thanks for the report, and for retrying without that nvidia driver.
+So dump vma and the one it's supposed to resemble: I had expected to use
+print_hex_dump(), but that's designed for u8 dumps, whereas almost every
+field of vm_area_struct is either a pointer or an unsigned long - which
+look nonsense dumped as u8s.
 
-This is likely to be caused one of three things: either bad RAM
-- please try running memtest86+ overnight; or corruption from
-somewhere else in the kernel; or a bug in the prio_tree code.
+Replace the two BUG_ONs by a single WARN_ON; and if it fires, just keep
+this vma out of the tree (truncation and swapout won't be able to find it).
+ How safe this is depends on what the error really is; but we hold a file's
+i_mmap_lock here, so it may be impossible to recover from BUG_ON.
 
-We've had no report of a prio_tree bug in two and a half years,
-though originally there was one which triggered just like this.
-I see we attacked that by dumping the vma structures passed to
-the failing function vma_prio_tree_add(): let's try that again.
-
-Please apply the patch below to your kernel source, rebuild and
-reboot that kernel, and mail me the dump and oops outputs when
-this strikes again.  Four or more different examples would be
-very helpful, we may then be able to detect a pattern to it.
-
-I wish I could have left out that BUG() and let you run with
-less trouble: this must be very frustrating each time it occurs.
-But once that prio_tree is messed up, I don't know what we could
-do about it, safer just to BUG() as it was doing.
-
-
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Jayson Santos <jaysonsantos2003@yahoo.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/prio_tree.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ mm/prio_tree.c |   33 ++++++++++++++++++++++++++++-----
+ 1 files changed, 28 insertions(+), 5 deletions(-)
 
-diff -puN mm/prio_tree.c~prio-tree-debugging mm/prio_tree.c
---- a/mm/prio_tree.c~prio-tree-debugging
+diff -puN mm/prio_tree.c~prio_tree-debugging-patch mm/prio_tree.c
+--- a/mm/prio_tree.c~prio_tree-debugging-patch
 +++ a/mm/prio_tree.c
-@@ -75,8 +75,18 @@
+@@ -67,6 +67,20 @@
+  * 	vma->shared.vm_set.head == NULL ==> a list node
+  */
+ 
++static void dump_vma(struct vm_area_struct *vma)
++{
++	void **ptr = (void **) vma;
++	int i;
++
++	printk("vm_area_struct at %p:", ptr);
++	for (i = 0; i < sizeof(*vma)/sizeof(*ptr); i++, ptr++) {
++		if (!(i & 3))
++			printk("\n");
++		printk(" %p", *ptr);
++	}
++	printk("\n");
++}
++
+ /*
+  * Add a new vma known to map the same set of pages as the old vma:
+  * useful for fork's dup_mmap as well as vma_prio_tree_insert below.
+@@ -74,14 +88,23 @@
+  */
  void vma_prio_tree_add(struct vm_area_struct *vma, struct vm_area_struct *old)
  {
- 	/* Leave these BUG_ONs till prio_tree patch stabilizes */
+-	/* Leave these BUG_ONs till prio_tree patch stabilizes */
 -	BUG_ON(RADIX_INDEX(vma) != RADIX_INDEX(old));
 -	BUG_ON(HEAP_INDEX(vma) != HEAP_INDEX(old));
-+	if (RADIX_INDEX(vma) != RADIX_INDEX(old) ||
-+	    HEAP_INDEX(vma)  != HEAP_INDEX(old)) {
-+		unsigned long *ptr;
-+		int i;
-+		ptr = (unsigned long *) vma;
-+		for (i = 0; i < sizeof(*vma)/sizeof(*ptr); i += 2)
-+			printk(KERN_EMERG "%p: %016lx %016lx\n", ptr+i, ptr[i], ptr[i+1]);
-+		ptr = (unsigned long *) old;
-+		for (i = 0; i < sizeof(*vma)/sizeof(*ptr); i += 2)
-+			printk(KERN_EMERG "%p: %016lx %016lx\n", ptr+i, ptr[i], ptr[i+1]);
-+		BUG();
-+	}
- 
+-
  	vma->shared.vm_set.head = NULL;
  	vma->shared.vm_set.parent = NULL;
+ 
+-	if (!old->shared.vm_set.parent)
++	if (WARN_ON(RADIX_INDEX(vma) != RADIX_INDEX(old) ||
++		    HEAP_INDEX(vma)  != HEAP_INDEX(old))) {
++		/*
++		 * This should never happen, yet it has been seen a few times:
++		 * we cannot say much about it without seeing the vma contents.
++		 */
++		dump_vma(vma);
++		dump_vma(old);
++		/*
++		 * Don't try to link this (corrupt?) vma into the (corrupt?)
++		 * prio_tree, but arrange for its removal to succeed later.
++		 */
++		INIT_LIST_HEAD(&vma->shared.vm_set.list);
++	} else if (!old->shared.vm_set.parent)
+ 		list_add(&vma->shared.vm_set.list,
+ 				&old->shared.vm_set.list);
+ 	else if (old->shared.vm_set.head)
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
@@ -95,5 +120,4 @@ add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-m
 ext2-reservations.patch
 ext2-balloc-use-io_error-label.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio-tree-debugging.patch
 prio_tree-debugging-patch.patch
