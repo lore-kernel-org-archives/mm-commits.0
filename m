@@ -1,70 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-borkages.patch added to -mm tree
-Date: Mon, 14 May 2007 23:59:37 -0700
-Message-ID: <200705150702.l4F72fb6003737@shell0.pdx.osdl.net>
+Subject: - slub-config_large_allocs-must-consider-max_order-limit-fix.patch removed from -mm tree
+Date: Tue, 15 May 2007 01:18:54 -0700
+Message-ID: <200705150818.l4F8IvNq004933@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53939 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754418AbXEOHCv (ORCPT
+	by vger.kernel.org with ESMTP id S1755886AbXEOITG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 03:02:51 -0400
+	Tue, 15 May 2007 04:19:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest-the-host-code borkages
-has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-borkages.patch
+     slub-config_large_allocs-must-consider-max_order-limit-fix
+has been removed from the -mm tree.  Its filename was
+     slub-config_large_allocs-must-consider-max_order-limit-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into slub-config_large_allocs-must-consider-max_order-limit.patch
 
 ------------------------------------------------------
-Subject: lguest-the-host-code borkages
+Subject: slub-config_large_allocs-must-consider-max_order-limit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/lguest/lguest.c: In function 'lguest_init':
-drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__constant_memcpy'
-drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__memcpy'
-drivers/lguest/lguest.c:447: error: invalid operands to binary +
-drivers/lguest/lguest.c:447: error: invalid operands to binary +
-
-Dunno if this is right, worried.
-
-Are those memcpys back-assward?
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/slub_def.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-host-code-borkages drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-host-code-borkages
-+++ a/drivers/lguest/lguest.c
-@@ -443,9 +443,9 @@ static unsigned lguest_patch(u8 type, u1
- __init void lguest_init(void *boot)
- {
- 	/* Copy boot parameters first. */
--	memcpy(boot_params, boot, PARAM_SIZE);
-+	memcpy(&boot_params, boot, PARAM_SIZE);
- 	memcpy(boot_command_line,
--	       __va(*(unsigned long *)(boot_params + NEW_CL_POINTER)),
-+	       __va(*(unsigned long *)((void *)&boot_params + NEW_CL_POINTER)),
- 	       COMMAND_LINE_SIZE);
+diff -puN include/linux/slub_def.h~slub-config_large_allocs-must-consider-max_order-limit-fix include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-config_large_allocs-must-consider-max_order-limit-fix
++++ a/include/linux/slub_def.h
+@@ -61,7 +61,7 @@ struct kmem_cache {
  
- 	paravirt_ops.name = "lguest";
+ #ifdef CONFIG_LARGE_ALLOCS
+ #define KMALLOC_SHIFT_HIGH ((MAX_ORDER + PAGE_SHIFT) =< 25 ? \
+-				MAX_ORDER + PAGE_SHIFT - 1 : 25)
++				(MAX_ORDER + PAGE_SHIFT - 1) : 25)
+ #else
+ #if !defined(CONFIG_MMU) || NR_CPUS > 512 || MAX_NUMNODES > 256
+ #define KMALLOC_SHIFT_HIGH 20
+@@ -88,7 +88,7 @@ static inline int kmalloc_index(int size
+ 	 */
+ 	WARN_ON_ONCE(size == 0);
+ 
+-	if (size >= (1UL << KMALLOC_SHIFT_HIGH))
++	if (size >= (1 << KMALLOC_SHIFT_HIGH))
+ 		return -1;
+ 
+ 	if (size > 64 && size <= 96)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slub-config_large_allocs-must-consider-max_order-limit.patch
 slub-config_large_allocs-must-consider-max_order-limit-fix.patch
 git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
@@ -99,7 +93,6 @@ i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
 x86_64-fix-smp_call_function_single-return-value.patch
-git-newsetup-fixup.patch
 xfs-clean-up-shrinker-games.patch
 remove-slab_ctor_constructor-fix.patch
 slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
