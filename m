@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-slabinfo-fixes.patch added to -mm tree
-Date: Tue, 15 May 2007 22:41:20 -0700
-Message-ID: <200705160541.l4G5fK0K027196@shell0.pdx.osdl.net>
+Subject: + slub-simplify-debug-code.patch added to -mm tree
+Date: Tue, 15 May 2007 22:41:28 -0700
+Message-ID: <200705160541.l4G5fRsF027202@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54172 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759516AbXEPFmu (ORCPT
+	by vger.kernel.org with ESMTP id S1760172AbXEPFmz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 01:42:50 -0400
+	Wed, 16 May 2007 01:42:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: slabinfo fixes
+     SLUB: Simplify debug code
 has been added to the -mm tree.  Its filename is
-     slub-slabinfo-fixes.patch
+     slub-simplify-debug-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,229 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: slabinfo fixes
+Subject: SLUB: Simplify debug code
 From: Christoph Lameter <clameter@sgi.com>
 
-Align the output of % with K/M/G of sizes.
+Consolidate functionality into the #ifdef section.
 
-Check for empty NUMA information to avoid segfault on !NUMA.
+Extract tracing into one subroutine.
 
--r should work directly not only if we match a single slab
-   without additional options.
+Move object debug processing into the #ifdef section so that the
+code in __slab_alloc and __slab_free becomes minimal.
+
+Reduce number of functions we need to provide stubs for in the !SLUB_DEBUG case.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slabinfo.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/slub.c |  112 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 57 insertions(+), 55 deletions(-)
 
-diff -puN Documentation/vm/slabinfo.c~slub-slabinfo-fixes Documentation/vm/slabinfo.c
---- a/Documentation/vm/slabinfo.c~slub-slabinfo-fixes
-+++ a/Documentation/vm/slabinfo.c
-@@ -242,6 +242,9 @@ void decode_numa_list(int *numa, char *t
- 
- 	memset(numa, 0, MAX_NODES * sizeof(int));
- 
-+	if (!t)
-+		return;
-+
- 	while (*t == 'N') {
- 		t++;
- 		node = strtoul(t, &t, 10);
-@@ -386,7 +389,9 @@ void report(struct slabinfo *s)
- {
- 	if (strcmp(s->name, "*") == 0)
- 		return;
--	printf("\nSlabcache: %-20s  Aliases: %2d Order : %2d\n", s->name, s->aliases, s->order);
-+
-+	printf("\nSlabcache: %-20s  Aliases: %2d Order : %2d Objects: %d\n",
-+		s->name, s->aliases, s->order, s->objects);
- 	if (s->hwcache_align)
- 		printf("** Hardware cacheline aligned\n");
- 	if (s->cache_dma)
-@@ -791,11 +796,11 @@ void totals(void)
- 
- 	store_size(b1, total_size);store_size(b2, total_waste);
- 	store_size(b3, total_waste * 100 / total_used);
--	printf("Memory used: %6s   # Loss   : %6s   MRatio: %6s%%\n", b1, b2, b3);
-+	printf("Memory used: %6s   # Loss   : %6s   MRatio:%6s%%\n", b1, b2, b3);
- 
- 	store_size(b1, total_objects);store_size(b2, total_partobj);
- 	store_size(b3, total_partobj * 100 / total_objects);
--	printf("# Objects  : %6s   # PartObj: %6s   ORatio: %6s%%\n", b1, b2, b3);
-+	printf("# Objects  : %6s   # PartObj: %6s   ORatio:%6s%%\n", b1, b2, b3);
- 
- 	printf("\n");
- 	printf("Per Cache    Average         Min         Max       Total\n");
-@@ -818,7 +823,7 @@ void totals(void)
- 	store_size(b1, avg_ppart);store_size(b2, min_ppart);
- 	store_size(b3, max_ppart);
- 	store_size(b4, total_partial * 100  / total_slabs);
--	printf("%%PartSlab %10s%% %10s%% %10s%% %10s%%\n",
-+	printf("%%PartSlab%10s%% %10s%% %10s%% %10s%%\n",
- 			b1,	b2,	b3,	b4);
- 
- 	store_size(b1, avg_partobj);store_size(b2, min_partobj);
-@@ -830,7 +835,7 @@ void totals(void)
- 	store_size(b1, avg_ppartobj);store_size(b2, min_ppartobj);
- 	store_size(b3, max_ppartobj);
- 	store_size(b4, total_partobj * 100 / total_objects);
--	printf("%% PartObj %10s%% %10s%% %10s%% %10s%%\n",
-+	printf("%% PartObj%10s%% %10s%% %10s%% %10s%%\n",
- 			b1,	b2,	b3,	b4);
- 
- 	store_size(b1, avg_size);store_size(b2, min_size);
-@@ -1100,6 +1105,8 @@ void output_slabs(void)
- 			ops(slab);
- 		else if (show_slab)
- 			slabcache(slab);
-+		else if (show_report)
-+			report(slab);
- 	}
+diff -puN mm/slub.c~slub-simplify-debug-code mm/slub.c
+--- a/mm/slub.c~slub-simplify-debug-code
++++ a/mm/slub.c
+@@ -742,6 +742,22 @@ static int on_freelist(struct kmem_cache
+ 	return search == NULL;
  }
  
++static void trace(struct kmem_cache *s, struct page *page, void *object, int alloc)
++{
++	if (s->flags & SLAB_TRACE) {
++		printk(KERN_INFO "TRACE %s %s 0x%p inuse=%d fp=0x%p\n",
++			s->name,
++			alloc ? "alloc" : "free",
++			object, page->inuse,
++			page->freelist);
++
++		if (!alloc)
++			print_section("Object", (void *)object, s->objsize);
++
++		dump_stack();
++	}
++}
++
+ /*
+  * Tracking of fully allocated slabs for debugging purposes.
+  */
+@@ -766,8 +782,18 @@ static void remove_full(struct kmem_cach
+ 	spin_unlock(&n->list_lock);
+ }
+ 
+-static int alloc_object_checks(struct kmem_cache *s, struct page *page,
+-							void *object)
++static void setup_object_debug(struct kmem_cache *s, struct page *page,
++								void *object)
++{
++	if (!(s->flags & (SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON)))
++		return;
++
++	init_object(s, object, 0);
++	init_tracking(s, object);
++}
++
++static int alloc_debug_processing(struct kmem_cache *s, struct page *page,
++						void *object, void *addr)
+ {
+ 	if (!check_slab(s, page))
+ 		goto bad;
+@@ -782,13 +808,16 @@ static int alloc_object_checks(struct km
+ 		goto bad;
+ 	}
+ 
+-	if (!object)
+-		return 1;
+-
+-	if (!check_object(s, page, object, 0))
++	if (object && !check_object(s, page, object, 0))
+ 		goto bad;
+ 
++	/* Success perform special debug activities for allocs */
++	if (s->flags & SLAB_STORE_USER)
++		set_track(s, object, TRACK_ALLOC, addr);
++	trace(s, page, object, 1);
++	init_object(s, object, 1);
+ 	return 1;
++
+ bad:
+ 	if (PageSlab(page)) {
+ 		/*
+@@ -806,8 +835,8 @@ bad:
+ 	return 0;
+ }
+ 
+-static int free_object_checks(struct kmem_cache *s, struct page *page,
+-							void *object)
++static int free_debug_processing(struct kmem_cache *s, struct page *page,
++						void *object, void *addr)
+ {
+ 	if (!check_slab(s, page))
+ 		goto fail;
+@@ -841,29 +870,22 @@ static int free_object_checks(struct kme
+ 				"to slab %s", object, page->slab->name);
+ 		goto fail;
+ 	}
++
++	/* Special debug activities for freeing objects */
++	if (!SlabFrozen(page) && !page->freelist)
++		remove_full(s, page);
++	if (s->flags & SLAB_STORE_USER)
++		set_track(s, object, TRACK_FREE, addr);
++	trace(s, page, object, 0);
++	init_object(s, object, 0);
+ 	return 1;
++
+ fail:
+ 	printk(KERN_ERR "@@@ SLUB: %s slab 0x%p object at 0x%p not freed.\n",
+ 		s->name, page, object);
+ 	return 0;
+ }
+ 
+-static void trace(struct kmem_cache *s, struct page *page, void *object, int alloc)
+-{
+-	if (s->flags & SLAB_TRACE) {
+-		printk(KERN_INFO "TRACE %s %s 0x%p inuse=%d fp=0x%p\n",
+-			s->name,
+-			alloc ? "alloc" : "free",
+-			object, page->inuse,
+-			page->freelist);
+-
+-		if (!alloc)
+-			print_section("Object", (void *)object, s->objsize);
+-
+-		dump_stack();
+-	}
+-}
+-
+ static int __init setup_slub_debug(char *str)
+ {
+ 	if (!str || *str != '=')
+@@ -932,26 +954,20 @@ static void kmem_cache_open_debug_check(
+ 				s->flags |= slub_debug;
+ }
+ #else
++static inline void setup_object_debug(struct kmem_cache *s,
++			struct page *page, void *object) {}
+ 
+-static inline int alloc_object_checks(struct kmem_cache *s,
+-		struct page *page, void *object) { return 0; }
++static inline int alloc_debug_processing(struct kmem_cache *s,
++	struct page *page, void *object, void *addr) { return 0; }
+ 
+-static inline int free_object_checks(struct kmem_cache *s,
+-		struct page *page, void *object) { return 0; }
++static inline int free_debug_processing(struct kmem_cache *s,
++	struct page *page, void *object, void *addr) { return 0; }
+ 
+-static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
+-static inline void remove_full(struct kmem_cache *s, struct page *page) {}
+-static inline void trace(struct kmem_cache *s, struct page *page,
+-			void *object, int alloc) {}
+-static inline void init_object(struct kmem_cache *s,
+-			void *object, int active) {}
+-static inline void init_tracking(struct kmem_cache *s, void *object) {}
+ static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
+ 			{ return 1; }
+ static inline int check_object(struct kmem_cache *s, struct page *page,
+ 			void *object, int active) { return 1; }
+-static inline void set_track(struct kmem_cache *s, void *object,
+-			enum track_item alloc, void *addr) {}
++static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
+ static inline void kmem_cache_open_debug_check(struct kmem_cache *s) {}
+ #define slub_debug 0
+ #endif
+@@ -988,11 +1004,7 @@ static struct page *allocate_slab(struct
+ static void setup_object(struct kmem_cache *s, struct page *page,
+ 				void *object)
+ {
+-	if (SlabDebug(page)) {
+-		init_object(s, object, 0);
+-		init_tracking(s, object);
+-	}
+-
++	setup_object_debug(s, page, object);
+ 	if (unlikely(s->ctor))
+ 		s->ctor(object, s, 0);
+ }
+@@ -1449,12 +1461,8 @@ new_slab:
+ 	return NULL;
+ debug:
+ 	object = page->freelist;
+-	if (!alloc_object_checks(s, page, object))
++	if (!alloc_debug_processing(s, page, object, addr))
+ 		goto another_slab;
+-	if (s->flags & SLAB_STORE_USER)
+-		set_track(s, object, TRACK_ALLOC, addr);
+-	trace(s, page, object, 1);
+-	init_object(s, object, 1);
+ 
+ 	page->inuse++;
+ 	page->freelist = object[page->offset];
+@@ -1561,14 +1569,8 @@ slab_empty:
+ 	return;
+ 
+ debug:
+-	if (!free_object_checks(s, page, x))
++	if (!free_debug_processing(s, page, x, addr))
+ 		goto out_unlock;
+-	if (!SlabFrozen(page) && !page->freelist)
+-		remove_full(s, page);
+-	if (s->flags & SLAB_STORE_USER)
+-		set_track(s, x, TRACK_FREE, addr);
+-	trace(s, page, object, 0);
+-	init_object(s, object, 0);
+ 	goto checks_ok;
+ }
+ 
+@@ -1805,7 +1807,7 @@ static struct kmem_cache_node * __init e
+ 	page->freelist = get_freepointer(kmalloc_caches, n);
+ 	page->inuse++;
+ 	kmalloc_caches->node[node] = n;
+-	init_object(kmalloc_caches, n, 1);
++	setup_object_debug(kmalloc_caches, page, n);
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+ 	add_partial(n, page);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
