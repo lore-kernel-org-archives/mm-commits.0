@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-type-borkage.patch added to -mm tree
-Date: Tue, 15 May 2007 16:44:16 -0700
-Message-ID: <200705152347.l4FNlL5b021240@shell0.pdx.osdl.net>
+Subject: + fix-find_or_create_page-skips-cpuset-memory-spreading.patch added to -mm tree
+Date: Tue, 15 May 2007 22:30:39 -0700
+Message-ID: <200705160530.l4G5UcV1027035@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46891 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33469 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757558AbXEOXsd (ORCPT
+	by vger.kernel.org with ESMTP id S1760341AbXEPFcI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 May 2007 19:48:33 -0400
+	Wed, 16 May 2007 01:32:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     ocfs2: fix type borkage
+     Fix: find_or_create_page skips cpuset memory spreading.
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-type-borkage.patch
+     fix-find_or_create_page-skips-cpuset-memory-spreading.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,135 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ocfs2: fix type borkage
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix: find_or_create_page skips cpuset memory spreading.
+From: Christoph Lameter <clameter@sgi.com>
 
-fs/ocfs2/file.c: In function `ocfs2_file_buffered_write':
-fs/ocfs2/file.c:1417: warning: comparison of distinct pointer types lacks a cast
-fs/ocfs2/file.c:1420: warning: comparison of distinct pointer types lacks a cast
+We call alloc_page where we should be calling __page_cache_alloc.
 
-size_t is opaque.  You do not know what type was used to implement it..
+__page_cache_alloc performs cpuset memory spreading.  alloc_page does not. 
+There is no reason that pages allocated via find_or_create should be
+exempt.
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/filemap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-type-borkage fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-type-borkage
-+++ a/fs/ocfs2/file.c
-@@ -1414,10 +1414,9 @@ static ssize_t ocfs2_file_buffered_write
- 		bytes = min((PAGE_CACHE_SIZE - ((unsigned long)pos & ~PAGE_CACHE_MASK)),
- 			    (PAGE_CACHE_SIZE - ((unsigned long)buf & ~PAGE_CACHE_MASK)));
- 		/* Stay within the vector boundary */
--		bytes = min(bytes,
--			    (unsigned long)(cur_iov->iov_len - iov_offset));
-+		bytes = min_t(size_t, bytes, cur_iov->iov_len - iov_offset);
- 		/* Stay within count */
--		bytes = min(bytes, (unsigned long)count);
-+		bytes = min(bytes, count);
- 
- 		page = NULL;
- 		ret = ocfs2_write_begin(file, file->f_mapping, pos, bytes, 0,
+diff -puN mm/filemap.c~fix-find_or_create_page-skips-cpuset-memory-spreading mm/filemap.c
+--- a/mm/filemap.c~fix-find_or_create_page-skips-cpuset-memory-spreading
++++ a/mm/filemap.c
+@@ -670,7 +670,8 @@ repeat:
+ 	page = find_lock_page(mapping, index);
+ 	if (!page) {
+ 		if (!cached_page) {
+-			cached_page = alloc_page(gfp_mask);
++			cached_page =
++				__page_cache_alloc(gfp_mask);
+ 			if (!cached_page)
+ 				return NULL;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-parport_pc-needs-dma-mappingh.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-fix-agk-dm-dm-io-fix-panic-on-large-request.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size.patch
+slub-dont-confuse-ctor-and-dtor.patch
+fix-find_or_create_page-skips-cpuset-memory-spreading.patch
 git-ubi.patch
-git-ubi-fixup.patch
-git-battery.patch
-git-battery-warning-fix.patch
-ds2760_battery-warning-fix.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-git-sh64.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-git-newsetup-fixup.patch
-xfs-clean-up-shrinker-games.patch
+quicklist-support-for-x86_64.patch
+slab-allocators-drop-support-for-destructors.patch
+remove-slab_ctor_constructor.patch
+remove-constructor-from-buffer_head.patch
 remove-slab_ctor_constructor-fix.patch
-let-smp_call_function_single-return-ebusy-on-up-fix.patch
+slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
+slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
 slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+slab-warn-on-zero-length-allocations.patch
+i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
 slub-fix-handling-of-oversized-slabs.patch
 compat_core_sys_select-avoid-kmalloc0.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
 change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-tglx-debug.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
-ocfs2-fix-type-borkage.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code.patch
