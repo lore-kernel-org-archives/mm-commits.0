@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-page-allocation-flags-in-grow_dev_page.patch added to -mm tree
-Date: Tue, 15 May 2007 22:32:30 -0700
-Message-ID: <200705160532.l4G5WTaZ027065@shell0.pdx.osdl.net>
+Subject: + slub-do-our-own-flags-based-on-pg_active-and-pg_error.patch added to -mm tree
+Date: Tue, 15 May 2007 22:41:24 -0700
+Message-ID: <200705160541.l4G5fOVh027199@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46441 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55311 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758675AbXEPFer (ORCPT
+	by vger.kernel.org with ESMTP id S1760173AbXEPFmv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 01:34:47 -0400
+	Wed, 16 May 2007 01:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, hugh@veritas.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Fix page allocation flags in grow_dev_page()
+     SLUB: Do our own flags based on PG_active and PG_error
 has been added to the -mm tree.  Its filename is
-     fix-page-allocation-flags-in-grow_dev_page.patch
+     slub-do-our-own-flags-based-on-pg_active-and-pg_error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix page allocation flags in grow_dev_page()
+Subject: SLUB: Do our own flags based on PG_active and PG_error
 From: Christoph Lameter <clameter@sgi.com>
 
-grow_dev_page() simply passes GFP_NOFS to find_or_create_page.  This means
-the allocation of radix tree nodes is done with GFP_NOFS and the allocation
-of a new page is done using GFP_NOFS.
+The atomicity when handling flags in SLUB is not necessary since both flags
+used by SLUB are not updated in a racy way.  Flag updates are either done
+during slab creation or destruction or under slab_lock.  Some of these flags
+do not have the non atomic variants that we need.  So define our own.
 
-The mapping has a flags field that contains the necessary allocation flags
-for the page cache allocation.  These need to be consulted in order to get
-DMA and HIGHMEM allocations etc right.  And yes a blockdev could be
-allowing Highmem allocations if its a ramdisk.
-
-Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/buffer.c~fix-page-allocation-flags-in-grow_dev_page fs/buffer.c
---- a/fs/buffer.c~fix-page-allocation-flags-in-grow_dev_page
-+++ a/fs/buffer.c
-@@ -981,7 +981,8 @@ grow_dev_page(struct block_device *bdev,
- 	struct page *page;
- 	struct buffer_head *bh;
+diff -puN mm/slub.c~slub-do-our-own-flags-based-on-pg_active-and-pg_error mm/slub.c
+--- a/mm/slub.c~slub-do-our-own-flags-based-on-pg_active-and-pg_error
++++ a/mm/slub.c
+@@ -99,42 +99,42 @@
+  * 			the fast path and disables lockless freelists.
+  */
  
--	page = find_or_create_page(inode->i_mapping, index, GFP_NOFS);
-+	page = find_or_create_page(inode->i_mapping, index,
-+		mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
- 	if (!page)
- 		return NULL;
++#define FROZEN (1 << PG_active)
++
++#ifdef CONFIG_SLUB_DEBUG
++#define SLABDEBUG (1 << PG_error)
++#else
++#define SLABDEBUG 0
++#endif
++
+ static inline int SlabFrozen(struct page *page)
+ {
+-	return PageActive(page);
++	return page->flags & FROZEN;
+ }
  
+ static inline void SetSlabFrozen(struct page *page)
+ {
+-	SetPageActive(page);
++	page->flags |= FROZEN;
+ }
+ 
+ static inline void ClearSlabFrozen(struct page *page)
+ {
+-	ClearPageActive(page);
++	page->flags &= ~FROZEN;
+ }
+ 
+ static inline int SlabDebug(struct page *page)
+ {
+-#ifdef CONFIG_SLUB_DEBUG
+-	return PageError(page);
+-#else
+-	return 0;
+-#endif
++	return page->flags & SLABDEBUG;
+ }
+ 
+ static inline void SetSlabDebug(struct page *page)
+ {
+-#ifdef CONFIG_SLUB_DEBUG
+-	SetPageError(page);
+-#endif
++	page->flags |= SLABDEBUG;
+ }
+ 
+ static inline void ClearSlabDebug(struct page *page)
+ {
+-#ifdef CONFIG_SLUB_DEBUG
+-	ClearPageError(page);
+-#endif
++	page->flags &= ~SLABDEBUG;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -81,6 +123,9 @@ slab-warn-on-zero-length-allocations.patch
 i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
 slub-fix-handling-of-oversized-slabs.patch
 fix-page-allocation-flags-in-grow_dev_page.patch
+slub-slabinfo-fixes.patch
+slub-do-our-own-flags-based-on-pg_active-and-pg_error.patch
+slub-simplify-debug-code.patch
 compat_core_sys_select-avoid-kmalloc0.patch
 change-zonelist-order-zonelist-order-selection-logic.patch
 change-zonelist-order-v6-zonelist-fix.patch
