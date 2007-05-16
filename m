@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vxfs-warning-fixes.patch added to -mm tree
-Date: Wed, 16 May 2007 12:43:59 -0700
-Message-ID: <200705161947.l4GJl65b008300@shell0.pdx.osdl.net>
+Subject: + ide-warning-fixes.patch added to -mm tree
+Date: Wed, 16 May 2007 12:46:46 -0700
+Message-ID: <200705161949.l4GJnr7a008342@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36858 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757264AbXEPTsp (ORCPT
+	by vger.kernel.org with ESMTP id S1757309AbXEPTvY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 15:48:45 -0400
+	Wed, 16 May 2007 15:51:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     vxfs warning fixes
+     ide serverworks warning fixes
 has been added to the -mm tree.  Its filename is
-     vxfs-warning-fixes.patch
+     ide-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vxfs warning fixes
+Subject: ide serverworks warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-4.3:
 
-fs/freevxfs/vxfs_lookup.c: In function 'vxfs_find_entry':
-fs/freevxfs/vxfs_lookup.c:139: warning: cast from pointer to integer of different size
-fs/freevxfs/vxfs_lookup.c: In function 'vxfs_readdir':
-fs/freevxfs/vxfs_lookup.c:294: warning: cast from pointer to integer of different size
+drivers/ide/pci/serverworks.c: In function 'svwks_tune_chipset':
+drivers/ide/pci/serverworks.c:176: warning: overflow in implicit constant conversion
+drivers/ide/pci/serverworks.c:190: warning: overflow in implicit constant conversion
+drivers/ide/pci/serverworks.c:211: warning: overflow in implicit constant conversion
+drivers/ide/pci/serverworks.c:212: warning: overflow in implicit constant conversion
 
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_dir.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/pci/serverworks.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes fs/freevxfs/vxfs_dir.h
---- a/fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes
-+++ a/fs/freevxfs/vxfs_dir.h
-@@ -80,7 +80,7 @@ struct vxfs_direct {
-  *	a d_name with size len.
-  */
- #define VXFS_DIRPAD		4
--#define VXFS_NAMEMIN		((int)((struct vxfs_direct *)0)->d_name)
-+#define VXFS_NAMEMIN		((int)(long)((struct vxfs_direct *)0)->d_name)
- #define VXFS_DIRROUND(len)	((VXFS_DIRPAD + (len) - 1) & ~(VXFS_DIRPAD -1))
- #define VXFS_DIRLEN(len)	(VXFS_DIRROUND(VXFS_NAMEMIN + (len)))
+diff -puN drivers/ide/pci/serverworks.c~ide-warning-fixes drivers/ide/pci/serverworks.c
+--- a/drivers/ide/pci/serverworks.c~ide-warning-fixes
++++ a/drivers/ide/pci/serverworks.c
+@@ -173,7 +173,7 @@ dma_pio:
+ 				   ((dma_stat&(1<<(5+unit)))==(1<<(5+unit)))) {
+ 				u8 dmaspeed = dma_timing;
  
+-				dma_timing &= ~0xFF;
++				dma_timing &= ~0xFFU;
+ 				if ((dmaspeed & 0x20) == 0x20)
+ 					dmaspeed = XFER_MW_DMA_2;
+ 				else if ((dmaspeed & 0x21) == 0x21)
+@@ -187,7 +187,7 @@ dma_pio:
+ 			} else if (pio_timing) {
+ 				u8 piospeed = pio_timing;
+ 
+-				pio_timing &= ~0xFF;
++				pio_timing &= ~0xFFU;
+ 				if ((piospeed & 0x20) == 0x20)
+ 					piospeed = XFER_PIO_4;
+ 				else if ((piospeed & 0x22) == 0x22)
+@@ -208,8 +208,8 @@ dma_pio:
+ 
+ oem_setup_failed:
+ 
+-	pio_timing	&= ~0xFF;
+-	dma_timing	&= ~0xFF;
++	pio_timing	&= ~0xFFU;
++	dma_timing	&= ~0xFFU;
+ 	ultra_timing	&= ~(0x0F << (4*unit));
+ 	ultra_enable	&= ~(0x01 << drive->dn);
+ 	csb5_pio	&= ~(0x0F << (4*drive->dn));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,3 +177,4 @@ git-gccbug-fixup.patch
 w1-build-fix.patch
 fuse-warning-fix.patch
 vxfs-warning-fixes.patch
+ide-warning-fixes.patch
