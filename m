@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_counters-use-for_each_online_cpu.patch added to -mm tree
-Date: Wed, 16 May 2007 16:30:00 -0700
-Message-ID: <200705162330.l4GNU0LA012684@shell0.pdx.osdl.net>
+Subject: + fuse-warning-fix.patch added to -mm tree
+Date: Wed, 16 May 2007 16:34:50 -0700
+Message-ID: <200705162334.l4GNYpUW012804@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52845 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934102AbXEPXct (ORCPT
+	by vger.kernel.org with ESMTP id S1757382AbXEPXgn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 19:32:49 -0400
+	Wed, 16 May 2007 19:36:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ego@in.ibm.com, oleg@tv-sign.ru
+Cc: akpm@linux-foundation.org, miklos@szeredi.hu
 
 
 The patch titled
-     percpu_counters: use for_each_online_cpu()
+     fuse warning fix
 has been added to the -mm tree.  Its filename is
-     percpu_counters-use-for_each_online_cpu.patch
+     fuse-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: percpu_counters: use for_each_online_cpu()
+Subject: fuse warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Now that we have implemented hotunplug-time counter spilling,
-percpu_counter_sum() only needs to look at online CPus.
+gcc-4.3:
 
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+fs/fuse/dir.c: In function 'parse_dirfile':
+fs/fuse/dir.c:833: warning: cast from pointer to integer of different size
+fs/fuse/dir.c:835: warning: cast from pointer to integer of different size
+
+[miklos@szeredi.hu: use offsetof]
+Acked-by: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    2 +-
+ include/linux/fuse.h |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu
-+++ a/lib/percpu_counter.c
-@@ -45,7 +45,7 @@ s64 percpu_counter_sum(struct percpu_cou
+diff -puN include/linux/fuse.h~fuse-warning-fix include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-warning-fix
++++ a/include/linux/fuse.h
+@@ -339,7 +339,7 @@ struct fuse_dirent {
+ 	char name[0];
+ };
  
- 	spin_lock(&fbc->lock);
- 	ret = fbc->count;
--	for_each_possible_cpu(cpu) {
-+	for_each_online_cpu(cpu) {
- 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
- 		ret += *pcount;
- 	}
+-#define FUSE_NAME_OFFSET ((unsigned) ((struct fuse_dirent *) 0)->name)
++#define FUSE_NAME_OFFSET offsetof(struct fuse_dirent, name)
+ #define FUSE_DIRENT_ALIGN(x) (((x) + sizeof(__u64) - 1) & ~(sizeof(__u64) - 1))
+ #define FUSE_DIRENT_SIZE(d) \
+ 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
