@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-warning-fix.patch added to -mm tree
-Date: Wed, 16 May 2007 12:49:02 -0700
-Message-ID: <200705161952.l4GJq93G008380@shell0.pdx.osdl.net>
+Subject: + vxfs-warning-fixes.patch added to -mm tree
+Date: Wed, 16 May 2007 12:52:23 -0700
+Message-ID: <200705161955.l4GJtUtw008441@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758990AbXEPTx4 (ORCPT
+	by vger.kernel.org with ESMTP id S1758797AbXEPT5G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 15:53:56 -0400
+	Wed, 16 May 2007 15:57:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, neilb@suse.de
+Cc: akpm@linux-foundation.org, hch@lst.de
 
 
 The patch titled
-     nfsd warning fix
+     vxfs warning fixes
 has been added to the -mm tree.  Its filename is
-     nfsd-warning-fix.patch
+     vxfs-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfsd warning fix
+Subject: vxfs warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-4.3:
 
-fs/nfsd/nfsctl.c: In function 'write_getfs':
-fs/nfsd/nfsctl.c:248: warning: cast from pointer to integer of different size
+fs/freevxfs/vxfs_lookup.c: In function 'vxfs_find_entry':
+fs/freevxfs/vxfs_lookup.c:139: warning: cast from pointer to integer of different size
+fs/freevxfs/vxfs_lookup.c: In function 'vxfs_readdir':
+fs/freevxfs/vxfs_lookup.c:294: warning: cast from pointer to integer of different size
 
-Cc: Neil Brown <neilb@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfsctl.c |    2 +-
+ fs/freevxfs/vxfs_dir.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfsd/nfsctl.c~nfsd-warning-fix fs/nfsd/nfsctl.c
---- a/fs/nfsd/nfsctl.c~nfsd-warning-fix
-+++ a/fs/nfsd/nfsctl.c
-@@ -245,7 +245,7 @@ static ssize_t write_getfs(struct file *
- 	}
- 	exp_readunlock();
- 	if (err == 0)
--		err = res->fh_size + (int)&((struct knfsd_fh*)0)->fh_base;
-+		err = res->fh_size + offsetof(struct knfsd_fh, fh_base);
-  out:
- 	return err;
- }
+diff -puN fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes fs/freevxfs/vxfs_dir.h
+--- a/fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes
++++ a/fs/freevxfs/vxfs_dir.h
+@@ -80,7 +80,7 @@ struct vxfs_direct {
+  *	a d_name with size len.
+  */
+ #define VXFS_DIRPAD		4
+-#define VXFS_NAMEMIN		((int)((struct vxfs_direct *)0)->d_name)
++#define VXFS_NAMEMIN		offsetof(struct vxfs_direct, d_name)
+ #define VXFS_DIRROUND(len)	((VXFS_DIRPAD + (len) - 1) & ~(VXFS_DIRPAD -1))
+ #define VXFS_DIRLEN(len)	(VXFS_DIRROUND(VXFS_NAMEMIN + (len)))
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +77,7 @@ git-leds.patch
 git-leds-fixup.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+ide-warning-fixes.patch
 git-mips-fixup.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
 git-ubi.patch
@@ -128,6 +131,8 @@ use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
 add-argv_split-fix.patch
 add-common-orderly_poweroff-fix.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
 check_dirty_inode_list.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
@@ -141,6 +146,7 @@ crc7-support-fix.patch
 i2o_cfg_passthru-cleanup-fix.patch
 knfsd-exportfs-add-exportfsh-header-fix.patch
 knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
 revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
 lguest-the-host-code-borkages.patch
@@ -152,7 +158,3 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-ide-warning-fixes.patch
-nfsd-warning-fix.patch
