@@ -1,292 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + slub-simplify-debug-code.patch added to -mm tree
-Date: Tue, 15 May 2007 22:41:28 -0700
-Message-ID: <200705160541.l4G5fRsF027202@shell0.pdx.osdl.net>
+Subject: - mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch removed from -mm tree
+Date: Tue, 15 May 2007 23:04:00 -0700
+Message-ID: <200705160604.l4G640ad027488@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54172 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38891 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760172AbXEPFmz (ORCPT
+	by vger.kernel.org with ESMTP id S1756280AbXEPGGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 01:42:55 -0400
+	Wed, 16 May 2007 02:06:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Simplify debug code
-has been added to the -mm tree.  Its filename is
-     slub-simplify-debug-code.patch
+     doc. fixes for readahead
+has been removed from the -mm tree.  Its filename was
+     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 
 ------------------------------------------------------
-Subject: SLUB: Simplify debug code
-From: Christoph Lameter <clameter@sgi.com>
+Subject: doc. fixes for readahead
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Consolidate functionality into the #ifdef section.
+Fix mm/readahead.c & filemap.c kernel-doc warnings (goes with readahead
+patch when it's submitted).
 
-Extract tracing into one subroutine.
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/readahead.c:1633): No description found for parameter 'mapping'
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/readahead.c:1633): No description found for parameter 'ra'
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/readahead.c:1633): No description found for parameter 'filp'
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/readahead.c:1633): No description found for parameter 'offset'
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/readahead.c:1633): No description found for parameter 'req_size'
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/filemap.c:1394): No description found for parameter 'vma'
+Warning(/tester/linsrc/linux-2621-rc7mm2//mm/filemap.c:1394): No description found for parameter 'fdata'
 
-Move object debug processing into the #ifdef section so that the
-code in __slab_alloc and __slab_free becomes minimal.
-
-Reduce number of functions we need to provide stubs for in the !SLUB_DEBUG case.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  112 ++++++++++++++++++++++++++--------------------------
- 1 file changed, 57 insertions(+), 55 deletions(-)
+ mm/filemap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-simplify-debug-code mm/slub.c
---- a/mm/slub.c~slub-simplify-debug-code
-+++ a/mm/slub.c
-@@ -742,6 +742,22 @@ static int on_freelist(struct kmem_cache
- 	return search == NULL;
- }
+diff -puN mm/filemap.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix mm/filemap.c
+--- a/mm/filemap.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix
++++ a/mm/filemap.c
+@@ -1335,7 +1335,8 @@ static int fastcall page_cache_read(stru
  
-+static void trace(struct kmem_cache *s, struct page *page, void *object, int alloc)
-+{
-+	if (s->flags & SLAB_TRACE) {
-+		printk(KERN_INFO "TRACE %s %s 0x%p inuse=%d fp=0x%p\n",
-+			s->name,
-+			alloc ? "alloc" : "free",
-+			object, page->inuse,
-+			page->freelist);
-+
-+		if (!alloc)
-+			print_section("Object", (void *)object, s->objsize);
-+
-+		dump_stack();
-+	}
-+}
-+
- /*
-  * Tracking of fully allocated slabs for debugging purposes.
-  */
-@@ -766,8 +782,18 @@ static void remove_full(struct kmem_cach
- 	spin_unlock(&n->list_lock);
- }
- 
--static int alloc_object_checks(struct kmem_cache *s, struct page *page,
--							void *object)
-+static void setup_object_debug(struct kmem_cache *s, struct page *page,
-+								void *object)
-+{
-+	if (!(s->flags & (SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON)))
-+		return;
-+
-+	init_object(s, object, 0);
-+	init_tracking(s, object);
-+}
-+
-+static int alloc_debug_processing(struct kmem_cache *s, struct page *page,
-+						void *object, void *addr)
- {
- 	if (!check_slab(s, page))
- 		goto bad;
-@@ -782,13 +808,16 @@ static int alloc_object_checks(struct km
- 		goto bad;
- 	}
- 
--	if (!object)
--		return 1;
--
--	if (!check_object(s, page, object, 0))
-+	if (object && !check_object(s, page, object, 0))
- 		goto bad;
- 
-+	/* Success perform special debug activities for allocs */
-+	if (s->flags & SLAB_STORE_USER)
-+		set_track(s, object, TRACK_ALLOC, addr);
-+	trace(s, page, object, 1);
-+	init_object(s, object, 1);
- 	return 1;
-+
- bad:
- 	if (PageSlab(page)) {
- 		/*
-@@ -806,8 +835,8 @@ bad:
- 	return 0;
- }
- 
--static int free_object_checks(struct kmem_cache *s, struct page *page,
--							void *object)
-+static int free_debug_processing(struct kmem_cache *s, struct page *page,
-+						void *object, void *addr)
- {
- 	if (!check_slab(s, page))
- 		goto fail;
-@@ -841,29 +870,22 @@ static int free_object_checks(struct kme
- 				"to slab %s", object, page->slab->name);
- 		goto fail;
- 	}
-+
-+	/* Special debug activities for freeing objects */
-+	if (!SlabFrozen(page) && !page->freelist)
-+		remove_full(s, page);
-+	if (s->flags & SLAB_STORE_USER)
-+		set_track(s, object, TRACK_FREE, addr);
-+	trace(s, page, object, 0);
-+	init_object(s, object, 0);
- 	return 1;
-+
- fail:
- 	printk(KERN_ERR "@@@ SLUB: %s slab 0x%p object at 0x%p not freed.\n",
- 		s->name, page, object);
- 	return 0;
- }
- 
--static void trace(struct kmem_cache *s, struct page *page, void *object, int alloc)
--{
--	if (s->flags & SLAB_TRACE) {
--		printk(KERN_INFO "TRACE %s %s 0x%p inuse=%d fp=0x%p\n",
--			s->name,
--			alloc ? "alloc" : "free",
--			object, page->inuse,
--			page->freelist);
--
--		if (!alloc)
--			print_section("Object", (void *)object, s->objsize);
--
--		dump_stack();
--	}
--}
--
- static int __init setup_slub_debug(char *str)
- {
- 	if (!str || *str != '=')
-@@ -932,26 +954,20 @@ static void kmem_cache_open_debug_check(
- 				s->flags |= slub_debug;
- }
- #else
-+static inline void setup_object_debug(struct kmem_cache *s,
-+			struct page *page, void *object) {}
- 
--static inline int alloc_object_checks(struct kmem_cache *s,
--		struct page *page, void *object) { return 0; }
-+static inline int alloc_debug_processing(struct kmem_cache *s,
-+	struct page *page, void *object, void *addr) { return 0; }
- 
--static inline int free_object_checks(struct kmem_cache *s,
--		struct page *page, void *object) { return 0; }
-+static inline int free_debug_processing(struct kmem_cache *s,
-+	struct page *page, void *object, void *addr) { return 0; }
- 
--static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
--static inline void remove_full(struct kmem_cache *s, struct page *page) {}
--static inline void trace(struct kmem_cache *s, struct page *page,
--			void *object, int alloc) {}
--static inline void init_object(struct kmem_cache *s,
--			void *object, int active) {}
--static inline void init_tracking(struct kmem_cache *s, void *object) {}
- static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
- 			{ return 1; }
- static inline int check_object(struct kmem_cache *s, struct page *page,
- 			void *object, int active) { return 1; }
--static inline void set_track(struct kmem_cache *s, void *object,
--			enum track_item alloc, void *addr) {}
-+static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
- static inline void kmem_cache_open_debug_check(struct kmem_cache *s) {}
- #define slub_debug 0
- #endif
-@@ -988,11 +1004,7 @@ static struct page *allocate_slab(struct
- static void setup_object(struct kmem_cache *s, struct page *page,
- 				void *object)
- {
--	if (SlabDebug(page)) {
--		init_object(s, object, 0);
--		init_tracking(s, object);
--	}
--
-+	setup_object_debug(s, page, object);
- 	if (unlikely(s->ctor))
- 		s->ctor(object, s, 0);
- }
-@@ -1449,12 +1461,8 @@ new_slab:
- 	return NULL;
- debug:
- 	object = page->freelist;
--	if (!alloc_object_checks(s, page, object))
-+	if (!alloc_debug_processing(s, page, object, addr))
- 		goto another_slab;
--	if (s->flags & SLAB_STORE_USER)
--		set_track(s, object, TRACK_ALLOC, addr);
--	trace(s, page, object, 1);
--	init_object(s, object, 1);
- 
- 	page->inuse++;
- 	page->freelist = object[page->offset];
-@@ -1561,14 +1569,8 @@ slab_empty:
- 	return;
- 
- debug:
--	if (!free_object_checks(s, page, x))
-+	if (!free_debug_processing(s, page, x, addr))
- 		goto out_unlock;
--	if (!SlabFrozen(page) && !page->freelist)
--		remove_full(s, page);
--	if (s->flags & SLAB_STORE_USER)
--		set_track(s, x, TRACK_FREE, addr);
--	trace(s, page, object, 0);
--	init_object(s, object, 0);
- 	goto checks_ok;
- }
- 
-@@ -1805,7 +1807,7 @@ static struct kmem_cache_node * __init e
- 	page->freelist = get_freepointer(kmalloc_caches, n);
- 	page->inuse++;
- 	kmalloc_caches->node[node] = n;
--	init_object(kmalloc_caches, n, 1);
-+	setup_object_debug(kmalloc_caches, page, n);
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
- 	add_partial(n, page);
+ /**
+  * filemap_fault - read in file data for page fault handling
+- * @data:	the applicable fault_data
++ * @vma:	user vma (not used)
++ * @fdata:	the applicable fault_data
+  *
+  * filemap_fault() is invoked via the vma operations vector for a
+  * mapped memory region to read in file data during a page fault.
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size.patch
-slub-dont-confuse-ctor-and-dtor.patch
-fix-find_or_create_page-skips-cpuset-memory-spreading.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-allocators-drop-support-for-destructors.patch
-remove-slab_ctor_constructor.patch
-remove-constructor-from-buffer_head.patch
-remove-slab_ctor_constructor-fix.patch
-slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
-slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-slab-warn-on-zero-length-allocations.patch
-i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
-slub-fix-handling-of-oversized-slabs.patch
-fix-page-allocation-flags-in-grow_dev_page.patch
-slub-slabinfo-fixes.patch
-slub-do-our-own-flags-based-on-pg_active-and-pg_error.patch
-slub-simplify-debug-code.patch
-compat_core_sys_select-avoid-kmalloc0.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+parport-mailing-list-is-subscribers-only.patch
+docbook-make-kernel-locking-table-readable.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-kstrndup.patch
+add-argv_split.patch
+add-argv_split-fix.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
+add-common-orderly_poweroff-fix.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+profile-likely-unlikely-macros.patch
