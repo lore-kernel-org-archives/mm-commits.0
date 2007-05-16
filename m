@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-invariant-fix.patch added to -mm tree
-Date: Wed, 16 May 2007 08:40:34 -0700
-Message-ID: <200705161540.l4GFeX51003925@shell0.pdx.osdl.net>
+Subject: + acpi-fix-potential-call-to-a-freed-memory-section.patch added to -mm tree
+Date: Wed, 16 May 2007 09:31:43 -0700
+Message-ID: <200705161631.l4GGVgjk004855@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35183 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52281 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756492AbXEPPmE (ORCPT
+	by vger.kernel.org with ESMTP id S1755753AbXEPQfP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 11:42:04 -0400
+	Wed, 16 May 2007 12:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nickpiggin@yahoo.com.au
+Cc: adurbin@google.com, lenb@kernel.org
 
 
 The patch titled
-     nfs-invariant-fix
+     acpi: fix potential call to a freed memory section.
 has been added to the -mm tree.  Its filename is
-     nfs-invariant-fix.patch
+     acpi-fix-potential-call-to-a-freed-memory-section.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfs-invariant-fix
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: acpi: fix potential call to a freed memory section.
+From: Aaron Durbin <adurbin@google.com>
 
+Strip __cpuinit[data] from Node <-> PXM routines and supporting data
+structures.  Also make pxm_to_node_map and node_to_pxm_map local to the
+numa acpi module.
 
+This fixes a bug triggered by the following conditions:
+- boot on a machine with a SLIT table defined
+- kernel is configured w/ CONFIG_HOTPLUG_CPU=n
+- cat /sys/devices/system/node/node*/distance
+This will cause an oops by calling into a freed memory section.
 
+In particular, on x86_64, __node_distance calls node_to_pxm().
+
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/numa.c      |    8 ++++----
+ include/acpi/acpi_numa.h |    7 ++-----
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/page-writeback.c~nfs-invariant-fix mm/page-writeback.c
---- a/mm/page-writeback.c~nfs-invariant-fix
-+++ a/mm/page-writeback.c
-@@ -826,7 +826,7 @@ int __set_page_dirty_nobuffers(struct pa
- 		mapping2 = page_mapping(page);
- 		if (mapping2) { /* Race with truncate? */
- 			BUG_ON(mapping2 != mapping);
--			WARN_ON(!PageUptodate(page));
-+			WARN_ON(!PagePrivate(page) && !PageUptodate(page));
- 			if (mapping_cap_account_dirty(mapping)) {
- 				__inc_zone_page_state(page, NR_FILE_DIRTY);
- 				task_io_account_write(PAGE_CACHE_SIZE);
+diff -puN drivers/acpi/numa.c~acpi-fix-potential-call-to-a-freed-memory-section drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~acpi-fix-potential-call-to-a-freed-memory-section
++++ a/drivers/acpi/numa.c
+@@ -40,19 +40,19 @@ static nodemask_t nodes_found_map = NODE
+ #define NID_INVAL	-1
+ 
+ /* maps to convert between proximity domain and logical node ID */
+-int __cpuinitdata pxm_to_node_map[MAX_PXM_DOMAINS]
++static int pxm_to_node_map[MAX_PXM_DOMAINS]
+ 				= { [0 ... MAX_PXM_DOMAINS - 1] = NID_INVAL };
+-int __cpuinitdata node_to_pxm_map[MAX_NUMNODES]
++static int node_to_pxm_map[MAX_NUMNODES]
+ 				= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+ 
+-int __cpuinit pxm_to_node(int pxm)
++int pxm_to_node(int pxm)
+ {
+ 	if (pxm < 0)
+ 		return NID_INVAL;
+ 	return pxm_to_node_map[pxm];
+ }
+ 
+-int __cpuinit node_to_pxm(int node)
++int node_to_pxm(int node)
+ {
+ 	if (node < 0)
+ 		return PXM_INVAL;
+diff -puN include/acpi/acpi_numa.h~acpi-fix-potential-call-to-a-freed-memory-section include/acpi/acpi_numa.h
+--- a/include/acpi/acpi_numa.h~acpi-fix-potential-call-to-a-freed-memory-section
++++ a/include/acpi/acpi_numa.h
+@@ -11,11 +11,8 @@
+ #define MAX_PXM_DOMAINS (256)	/* Old pxm spec is defined 8 bit */
+ #endif
+ 
+-extern int __cpuinitdata pxm_to_node_map[MAX_PXM_DOMAINS];
+-extern int __cpuinitdata node_to_pxm_map[MAX_NUMNODES];
+-
+-extern int __cpuinit pxm_to_node(int);
+-extern int __cpuinit node_to_pxm(int);
++extern int pxm_to_node(int);
++extern int node_to_pxm(int);
+ extern int __cpuinit acpi_map_pxm_to_node(int);
+ extern void __cpuinit acpi_unmap_pxm_to_node(int);
+ 
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from adurbin@google.com are
 
-slob-implement-rcu-freeing.patch
-convert-hugetlbfs-to-use-vm_ops-fault.patch
-lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-nfs-invariant-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-sched2-sched-domain-sysctl.patch
+acpi-fix-potential-call-to-a-freed-memory-section.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch
