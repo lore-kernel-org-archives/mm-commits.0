@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-warning-fix.patch added to -mm tree
-Date: Wed, 16 May 2007 12:42:44 -0700
-Message-ID: <200705161945.l4GJjpKV008287@shell0.pdx.osdl.net>
+Subject: + vxfs-warning-fixes.patch added to -mm tree
+Date: Wed, 16 May 2007 12:43:59 -0700
+Message-ID: <200705161947.l4GJl65b008300@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38985 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58294 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755714AbXEPTru (ORCPT
+	by vger.kernel.org with ESMTP id S1757264AbXEPTsp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 15:47:50 -0400
+	Wed, 16 May 2007 15:48:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, miklos@szeredi.hu
+Cc: akpm@linux-foundation.org, hch@lst.de
 
 
 The patch titled
-     fuse warning fix
+     vxfs warning fixes
 has been added to the -mm tree.  Its filename is
-     fuse-warning-fix.patch
+     vxfs-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse warning fix
+Subject: vxfs warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-4.3:
 
-fs/fuse/dir.c: In function 'parse_dirfile':
-fs/fuse/dir.c:833: warning: cast from pointer to integer of different size
-fs/fuse/dir.c:835: warning: cast from pointer to integer of different size
+fs/freevxfs/vxfs_lookup.c: In function 'vxfs_find_entry':
+fs/freevxfs/vxfs_lookup.c:139: warning: cast from pointer to integer of different size
+fs/freevxfs/vxfs_lookup.c: In function 'vxfs_readdir':
+fs/freevxfs/vxfs_lookup.c:294: warning: cast from pointer to integer of different size
 
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fuse.h |    2 +-
+ fs/freevxfs/vxfs_dir.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fuse.h~fuse-warning-fix include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-warning-fix
-+++ a/include/linux/fuse.h
-@@ -339,7 +339,7 @@ struct fuse_dirent {
- 	char name[0];
- };
+diff -puN fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes fs/freevxfs/vxfs_dir.h
+--- a/fs/freevxfs/vxfs_dir.h~vxfs-warning-fixes
++++ a/fs/freevxfs/vxfs_dir.h
+@@ -80,7 +80,7 @@ struct vxfs_direct {
+  *	a d_name with size len.
+  */
+ #define VXFS_DIRPAD		4
+-#define VXFS_NAMEMIN		((int)((struct vxfs_direct *)0)->d_name)
++#define VXFS_NAMEMIN		((int)(long)((struct vxfs_direct *)0)->d_name)
+ #define VXFS_DIRROUND(len)	((VXFS_DIRPAD + (len) - 1) & ~(VXFS_DIRPAD -1))
+ #define VXFS_DIRLEN(len)	(VXFS_DIRROUND(VXFS_NAMEMIN + (len)))
  
--#define FUSE_NAME_OFFSET ((unsigned) ((struct fuse_dirent *) 0)->name)
-+#define FUSE_NAME_OFFSET ((unsigned)(long)((struct fuse_dirent *) 0)->name)
- #define FUSE_DIRENT_ALIGN(x) (((x) + sizeof(__u64) - 1) & ~(sizeof(__u64) - 1))
- #define FUSE_DIRENT_SIZE(d) \
- 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,3 +155,4 @@ integrity-tpm-internal-kernel-interface.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
 fuse-warning-fix.patch
+vxfs-warning-fixes.patch
