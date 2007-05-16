@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + invalidate_mapping_pages-add-cond_resched.patch added to -mm tree
-Date: Wed, 16 May 2007 11:41:04 -0700
-Message-ID: <200705161841.l4GIf4P6007193@shell0.pdx.osdl.net>
+Subject: + fuse-warning-fix.patch added to -mm tree
+Date: Wed, 16 May 2007 12:42:44 -0700
+Message-ID: <200705161945.l4GJjpKV008287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45971 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755639AbXEPSlz (ORCPT
+	by vger.kernel.org with ESMTP id S1755714AbXEPTru (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 14:41:55 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4GIhBG2006375
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 11:43:46 -0700
+	Wed, 16 May 2007 15:47:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, miklos@szeredi.hu
 
 
 The patch titled
-     invalidate_mapping_pages(): add cond_resched
+     fuse warning fix
 has been added to the -mm tree.  Its filename is
-     invalidate_mapping_pages-add-cond_resched.patch
+     fuse-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,108 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: invalidate_mapping_pages(): add cond_resched
+Subject: fuse warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-invalidate_mapping_pages() can sometimes take a long time (millions of pages
-to free).  Long enough for the softlockup detector to trigger.
+gcc-4.3:
 
-We used to have a cond_resched() in there but I took it out because the
-drop_caches code calls invalidate_mapping_pages() under inode_lock.
+fs/fuse/dir.c: In function 'parse_dirfile':
+fs/fuse/dir.c:833: warning: cast from pointer to integer of different size
+fs/fuse/dir.c:835: warning: cast from pointer to integer of different size
 
-The patch adds a nasty flag and puts the cond_resched() back.
-
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c   |    2 +-
- include/linux/fs.h |    3 +++
- mm/truncate.c      |   38 +++++++++++++++++++++++---------------
- 3 files changed, 27 insertions(+), 16 deletions(-)
+ include/linux/fuse.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched fs/drop_caches.c
---- a/fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched
-+++ a/fs/drop_caches.c
-@@ -21,7 +21,7 @@ void drop_pagecache_sb(struct super_bloc
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
- 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
- 			continue;
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
- 	}
- 	spin_unlock(&inode_lock);
- }
-diff -puN include/linux/fs.h~invalidate_mapping_pages-add-cond_resched include/linux/fs.h
---- a/include/linux/fs.h~invalidate_mapping_pages-add-cond_resched
-+++ a/include/linux/fs.h
-@@ -1584,6 +1584,9 @@ extern int __invalidate_device(struct bl
- extern int invalidate_partition(struct gendisk *, int);
- #endif
- extern int invalidate_inodes(struct super_block *);
-+unsigned long __invalidate_mapping_pages(struct address_space *mapping,
-+					pgoff_t start, pgoff_t end,
-+					bool be_atomic);
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 					pgoff_t start, pgoff_t end);
+diff -puN include/linux/fuse.h~fuse-warning-fix include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-warning-fix
++++ a/include/linux/fuse.h
+@@ -339,7 +339,7 @@ struct fuse_dirent {
+ 	char name[0];
+ };
  
-diff -puN mm/truncate.c~invalidate_mapping_pages-add-cond_resched mm/truncate.c
---- a/mm/truncate.c~invalidate_mapping_pages-add-cond_resched
-+++ a/mm/truncate.c
-@@ -263,21 +263,8 @@ void truncate_inode_pages(struct address
- }
- EXPORT_SYMBOL(truncate_inode_pages);
- 
--/**
-- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-- * @start: the offset 'from' which to invalidate
-- * @end: the offset 'to' which to invalidate (inclusive)
-- *
-- * This function only removes the unlocked pages, if you want to
-- * remove all the pages of one inode, you must call truncate_inode_pages.
-- *
-- * invalidate_mapping_pages() will not block on IO activity. It will not
-- * invalidate pages which are dirty, locked, under writeback or mapped into
-- * pagetables.
-- */
--unsigned long invalidate_mapping_pages(struct address_space *mapping,
--				pgoff_t start, pgoff_t end)
-+unsigned long __invalidate_mapping_pages(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end, bool be_atomic)
- {
- 	struct pagevec pvec;
- 	pgoff_t next = start;
-@@ -318,9 +305,30 @@ unlock:
- 				break;
- 		}
- 		pagevec_release(&pvec);
-+		if (likely(!be_atomic))
-+			cond_resched();
- 	}
- 	return ret;
- }
-+
-+/**
-+ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-+ * @mapping: the address_space which holds the pages to invalidate
-+ * @start: the offset 'from' which to invalidate
-+ * @end: the offset 'to' which to invalidate (inclusive)
-+ *
-+ * This function only removes the unlocked pages, if you want to
-+ * remove all the pages of one inode, you must call truncate_inode_pages.
-+ *
-+ * invalidate_mapping_pages() will not block on IO activity. It will not
-+ * invalidate pages which are dirty, locked, under writeback or mapped into
-+ * pagetables.
-+ */
-+unsigned long invalidate_mapping_pages(struct address_space *mapping,
-+				pgoff_t start, pgoff_t end)
-+{
-+	return __invalidate_mapping_pages(mapping, start, end, false);
-+}
- EXPORT_SYMBOL(invalidate_mapping_pages);
- 
- /*
+-#define FUSE_NAME_OFFSET ((unsigned) ((struct fuse_dirent *) 0)->name)
++#define FUSE_NAME_OFFSET ((unsigned)(long)((struct fuse_dirent *) 0)->name)
+ #define FUSE_DIRENT_ALIGN(x) (((x) + sizeof(__u64) - 1) & ~(sizeof(__u64) - 1))
+ #define FUSE_DIRENT_SIZE(d) \
+ 	FUSE_DIRENT_ALIGN(FUSE_NAME_OFFSET + (d)->namelen)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -231,3 +153,4 @@ integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
+fuse-warning-fix.patch
