@@ -1,170 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Tue, 15 May 2007 23:42:12 -0700
-Message-ID: <200705160642.l4G6gB4p028060@shell0.pdx.osdl.net>
+Subject: - arm-fix-hard_smp_processor_id-compile-error.patch removed from -mm tree
+Date: Wed, 16 May 2007 00:32:59 -0700
+Message-ID: <200705160732.l4G7WxfP028927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51223 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762275AbXEPGnG (ORCPT
+	by vger.kernel.org with ESMTP id S1755971AbXEPHgd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 02:43:06 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4G6iFFF015097
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 May 2007 23:44:51 -0700
+	Wed, 16 May 2007 03:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: horms@verge.net.au, fernando@oss.ntt.co.jp, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-fixup
-has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     arm: fix hard_smp_processor_id compile error
+has been removed from the -mm tree.  Its filename was
+     arm-fix-hard_smp_processor_id-compile-error.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm: fix hard_smp_processor_id compile error
+From: Simon Horman <horms@verge.net.au>
 
+"Remove hardcoding of hard_smp_processor_id on UP systems",
+2f4dfe206a2fc07099dfad77a8ea2f4b4ae2140f in Linus' tree, moved the
+definition of hard_smp_processor_id linux/smp.h to asm/smp.h for UP
+systems.  This causes a regression on ARM as the definition was not added
+to asm-arm/smp.h.
+
+Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/Kconfig |    6 +-----
- drivers/media/video/ivtv/Kconfig   |    4 ----
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ arch/arm/mach-integrator/core.c |    1 +
+ include/asm-arm/smp.h           |   10 ++++++----
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-fixup drivers/media/video/em28xx/Kconfig
---- a/drivers/media/video/em28xx/Kconfig~git-dvb-fixup
-+++ a/drivers/media/video/em28xx/Kconfig
-@@ -1,11 +1,7 @@
- config VIDEO_EM28XX
- 	tristate "Empia EM2800/2820/2840 USB video capture support"
--<<<<<<< HEAD/drivers/media/video/em28xx/Kconfig
--	depends on VIDEO_V4L1 && I2C && PCI
--	select VIDEO_BUF
--=======
- 	depends on VIDEO_V4L1 && I2C
-->>>>>>> /drivers/media/video/em28xx/Kconfig
-+	select VIDEO_BUF
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
-diff -puN drivers/media/video/ivtv/Kconfig~git-dvb-fixup drivers/media/video/ivtv/Kconfig
---- a/drivers/media/video/ivtv/Kconfig~git-dvb-fixup
-+++ a/drivers/media/video/ivtv/Kconfig
-@@ -1,10 +1,6 @@
- config VIDEO_IVTV
- 	tristate "Conexant cx23416/cx23415 MPEG encoder/decoder support"
--<<<<<<< HEAD/drivers/media/video/ivtv/Kconfig
--	depends on VIDEO_V4L1 && VIDEO_V4L2 && USB && I2C && EXPERIMENTAL && PCI
--=======
- 	depends on VIDEO_V4L1 && VIDEO_V4L2 && PCI && I2C && EXPERIMENTAL
-->>>>>>> /drivers/media/video/ivtv/Kconfig
- 	select FW_LOADER
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
+diff -puN arch/arm/mach-integrator/core.c~arm-fix-hard_smp_processor_id-compile-error arch/arm/mach-integrator/core.c
+--- a/arch/arm/mach-integrator/core.c~arm-fix-hard_smp_processor_id-compile-error
++++ a/arch/arm/mach-integrator/core.c
+@@ -28,6 +28,7 @@
+ #include <asm/system.h>
+ #include <asm/leds.h>
+ #include <asm/mach/time.h>
++#include <asm/smp.h>
+ 
+ #include "common.h"
+ 
+diff -puN include/asm-arm/smp.h~arm-fix-hard_smp_processor_id-compile-error include/asm-arm/smp.h
+--- a/include/asm-arm/smp.h~arm-fix-hard_smp_processor_id-compile-error
++++ a/include/asm-arm/smp.h
+@@ -10,16 +10,16 @@
+ #ifndef __ASM_ARM_SMP_H
+ #define __ASM_ARM_SMP_H
+ 
++#ifndef CONFIG_SMP
++#define hard_smp_processor_id()		0
++#else
++
+ #include <linux/threads.h>
+ #include <linux/cpumask.h>
+ #include <linux/thread_info.h>
+ 
+ #include <asm/arch/smp.h>
+ 
+-#ifndef CONFIG_SMP
+-# error "<asm-arm/smp.h> included in non-SMP build"
+-#endif
+-
+ #define raw_smp_processor_id() (current_thread_info()->cpu)
+ 
+ /*
+@@ -134,4 +134,6 @@ extern void show_local_irqs(struct seq_f
+  */
+ asmlinkage void do_local_timer(struct pt_regs *);
+ 
++#endif /* CONFIG_SMP */
++
+ #endif /* ifndef __ASM_ARM_SMP_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from horms@verge.net.au are
 
 origin.patch
-parport_pc-needs-dma-mappingh.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-fix-agk-dm-dm-io-fix-panic-on-large-request.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-ubi-fixup.patch
-git-battery.patch
-git-battery-warning-fix.patch
-ds2760_battery-warning-fix.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-ocfs2-fix-type-borkage.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-xfs-clean-up-shrinker-games.patch
-remove-slab_ctor_constructor-fix.patch
-let-smp_call_function_single-return-ebusy-on-up-fix.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
-slub-fix-handling-of-oversized-slabs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-compat_core_sys_select-avoid-kmalloc0.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-check_dirty_inode_list.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+arm-fix-hard_smp_processor_id-compile-error.patch
+git-ia64.patch
+use-menuconfig-objects-ipvs.patch
