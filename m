@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + libata-implement-ata_wait_after_reset.patch added to -mm tree
-Date: Wed, 16 May 2007 11:07:30 -0700
-Message-ID: <200705161807.l4GI7VC7006621@shell0.pdx.osdl.net>
+Subject: + invalidate_mapping_pages-add-cond_resched.patch added to -mm tree
+Date: Wed, 16 May 2007 11:41:04 -0700
+Message-ID: <200705161841.l4GIf4P6007193@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33830 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45971 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761274AbXEPSJD (ORCPT
+	by vger.kernel.org with ESMTP id S1755639AbXEPSlz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 14:09:03 -0400
+	Wed, 16 May 2007 14:41:55 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4GIhBG2006375
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 11:43:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     libata: implement ata_wait_after_reset()
+     invalidate_mapping_pages(): add cond_resched
 has been added to the -mm tree.  Its filename is
-     libata-implement-ata_wait_after_reset.patch
+     invalidate_mapping_pages-add-cond_resched.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,225 +30,204 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: implement ata_wait_after_reset()
-From: Tejun Heo <htejun@gmail.com>
+Subject: invalidate_mapping_pages(): add cond_resched
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On certain device/controller combination, 0xff status is asserted
-after reset and doesn't get cleared during 150ms post-reset wait.  As
-0xff status is interpreted as no device (for good reasons), this can
-lead to misdetection on such cases.
+invalidate_mapping_pages() can sometimes take a long time (millions of pages
+to free).  Long enough for the softlockup detector to trigger.
 
-This patch implements ata_wait_after_reset() which replaces the 150ms
-sleep and waits upto ATA_TMOUT_FF_WAIT if status is 0xff.
-ATA_TMOUT_FF_WAIT is currently 800ms which is enough for
-HHD424020F7SV00 to get detected but not enough for Quantum GoVault
-drive which is known to take upto 2s.
+We used to have a cond_resched() in there but I took it out because the
+drop_caches code calls invalidate_mapping_pages() under inode_lock.
 
-Without parallel probing, spending 2s on 0xff port would incur too
-much delay on ata_piix's which use 0xff to indicate empty port and
-doesn't have SCR register, so GoVault needs to wait till parallel
-probing.
+The patch adds a nasty flag and puts the cond_resched() back.
 
-Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c          |   11 +----
- drivers/ata/libata-core.c   |   67 +++++++++++++++++++++++++++-------
- drivers/ata/pata_scc.c      |   13 +-----
- drivers/ata/sata_inic162x.c |    2 -
- include/linux/libata.h      |    8 ++++
- 5 files changed, 67 insertions(+), 34 deletions(-)
+ fs/drop_caches.c   |    2 +-
+ include/linux/fs.h |    3 +++
+ mm/truncate.c      |   38 +++++++++++++++++++++++---------------
+ 3 files changed, 27 insertions(+), 16 deletions(-)
 
-diff -puN drivers/ata/ahci.c~libata-implement-ata_wait_after_reset drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~libata-implement-ata_wait_after_reset
-+++ a/drivers/ata/ahci.c
-@@ -1001,15 +1001,8 @@ static int ahci_softreset(struct ata_por
- 	writel(1, port_mmio + PORT_CMD_ISSUE);
- 	readl(port_mmio + PORT_CMD_ISSUE);	/* flush */
- 
--	/* spec mandates ">= 2ms" before checking status.
--	 * We wait 150ms, because that was the magic delay used for
--	 * ATAPI devices in Hale Landis's ATADRVR, for the period of time
--	 * between when the ATA command register is written, and then
--	 * status is checked.  Because waiting for "a while" before
--	 * checking status is fine, post SRST, we perform this magic
--	 * delay here as well.
--	 */
--	msleep(150);
-+	/* wait a while before checking status */
-+	ata_wait_after_reset(ap, deadline);
- 
- 	rc = ata_wait_ready(ap, deadline);
- 	/* link occupied, -ENODEV too is an error */
-diff -puN drivers/ata/libata-core.c~libata-implement-ata_wait_after_reset drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-implement-ata_wait_after_reset
-+++ a/drivers/ata/libata-core.c
-@@ -2999,6 +2999,55 @@ int ata_busy_sleep(struct ata_port *ap,
+diff -puN fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched fs/drop_caches.c
+--- a/fs/drop_caches.c~invalidate_mapping_pages-add-cond_resched
++++ a/fs/drop_caches.c
+@@ -21,7 +21,7 @@ void drop_pagecache_sb(struct super_bloc
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
+ 			continue;
+-		invalidate_mapping_pages(inode->i_mapping, 0, -1);
++		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
+ 	}
+ 	spin_unlock(&inode_lock);
  }
+diff -puN include/linux/fs.h~invalidate_mapping_pages-add-cond_resched include/linux/fs.h
+--- a/include/linux/fs.h~invalidate_mapping_pages-add-cond_resched
++++ a/include/linux/fs.h
+@@ -1584,6 +1584,9 @@ extern int __invalidate_device(struct bl
+ extern int invalidate_partition(struct gendisk *, int);
+ #endif
+ extern int invalidate_inodes(struct super_block *);
++unsigned long __invalidate_mapping_pages(struct address_space *mapping,
++					pgoff_t start, pgoff_t end,
++					bool be_atomic);
+ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+ 					pgoff_t start, pgoff_t end);
  
- /**
-+ *	ata_wait_after_reset - wait before checking status after reset
-+ *	@ap: port containing status register to be polled
-+ *	@deadline: deadline jiffies for the operation
-+ *
-+ *	After reset, we need to pause a while before reading status.
-+ *	Also, certain combination of controller and device report 0xff
-+ *	for some duration (e.g. until SATA PHY is up and running)
-+ *	which is interpreted as empty port in ATA world.  This
-+ *	function also waits for such devices to get out of 0xff
-+ *	status.
-+ *
-+ *	LOCKING:
-+ *	Kernel thread context (may sleep).
-+ */
-+void ata_wait_after_reset(struct ata_port *ap, unsigned long deadline)
-+{
-+	unsigned long until = jiffies + ATA_TMOUT_FF_WAIT;
-+
-+	if (time_before(until, deadline))
-+		deadline = until;
-+
-+	/* Spec mandates ">= 2ms" before checking status.  We wait
-+	 * 150ms, because that was the magic delay used for ATAPI
-+	 * devices in Hale Landis's ATADRVR, for the period of time
-+	 * between when the ATA command register is written, and then
-+	 * status is checked.  Because waiting for "a while" before
-+	 * checking status is fine, post SRST, we perform this magic
-+	 * delay here as well.
-+	 *
-+	 * Old drivers/ide uses the 2mS rule and then waits for ready.
-+	 */
-+	msleep(150);
-+
-+	/* Wait for 0xff to clear.  Some SATA devices take a long time
-+	 * to clear 0xff after reset.  For example, HHD424020F7SV00
-+	 * iVDR needs >= 800ms while.  Quantum GoVault needs even more
-+	 * than that.
-+	 */
-+	while (1) {
-+		u8 status = ata_chk_status(ap);
-+
-+		if (status != 0xff || time_after(jiffies, deadline))
-+			return;
-+
-+		msleep(50);
-+	}
-+}
+diff -puN mm/truncate.c~invalidate_mapping_pages-add-cond_resched mm/truncate.c
+--- a/mm/truncate.c~invalidate_mapping_pages-add-cond_resched
++++ a/mm/truncate.c
+@@ -263,21 +263,8 @@ void truncate_inode_pages(struct address
+ }
+ EXPORT_SYMBOL(truncate_inode_pages);
+ 
+-/**
+- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
+- * @mapping: the address_space which holds the pages to invalidate
+- * @start: the offset 'from' which to invalidate
+- * @end: the offset 'to' which to invalidate (inclusive)
+- *
+- * This function only removes the unlocked pages, if you want to
+- * remove all the pages of one inode, you must call truncate_inode_pages.
+- *
+- * invalidate_mapping_pages() will not block on IO activity. It will not
+- * invalidate pages which are dirty, locked, under writeback or mapped into
+- * pagetables.
+- */
+-unsigned long invalidate_mapping_pages(struct address_space *mapping,
+-				pgoff_t start, pgoff_t end)
++unsigned long __invalidate_mapping_pages(struct address_space *mapping,
++				pgoff_t start, pgoff_t end, bool be_atomic)
+ {
+ 	struct pagevec pvec;
+ 	pgoff_t next = start;
+@@ -318,9 +305,30 @@ unlock:
+ 				break;
+ 		}
+ 		pagevec_release(&pvec);
++		if (likely(!be_atomic))
++			cond_resched();
+ 	}
+ 	return ret;
+ }
 +
 +/**
-  *	ata_wait_ready - sleep until BSY clears, or timeout
-  *	@ap: port containing status register to be polled
-  *	@deadline: deadline jiffies for the operation
-@@ -3108,17 +3157,8 @@ static int ata_bus_softreset(struct ata_
- 	udelay(20);	/* FIXME: flush */
- 	iowrite8(ap->ctl, ioaddr->ctl_addr);
++ * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
++ * @mapping: the address_space which holds the pages to invalidate
++ * @start: the offset 'from' which to invalidate
++ * @end: the offset 'to' which to invalidate (inclusive)
++ *
++ * This function only removes the unlocked pages, if you want to
++ * remove all the pages of one inode, you must call truncate_inode_pages.
++ *
++ * invalidate_mapping_pages() will not block on IO activity. It will not
++ * invalidate pages which are dirty, locked, under writeback or mapped into
++ * pagetables.
++ */
++unsigned long invalidate_mapping_pages(struct address_space *mapping,
++				pgoff_t start, pgoff_t end)
++{
++	return __invalidate_mapping_pages(mapping, start, end, false);
++}
+ EXPORT_SYMBOL(invalidate_mapping_pages);
  
--	/* spec mandates ">= 2ms" before checking status.
--	 * We wait 150ms, because that was the magic delay used for
--	 * ATAPI devices in Hale Landis's ATADRVR, for the period of time
--	 * between when the ATA command register is written, and then
--	 * status is checked.  Because waiting for "a while" before
--	 * checking status is fine, post SRST, we perform this magic
--	 * delay here as well.
--	 *
--	 * Old drivers/ide uses the 2mS rule and then waits for ready
--	 */
--	msleep(150);
-+	/* wait a while before checking status */
-+	ata_wait_after_reset(ap, deadline);
- 
- 	/* Before we perform post reset processing we want to see if
- 	 * the bus shows 0xFF because the odd clown forgets the D7
-@@ -3534,8 +3574,8 @@ int sata_std_hardreset(struct ata_port *
- 		return 0;
- 	}
- 
--	/* wait a while before checking status, see SRST for more info */
--	msleep(150);
-+	/* wait a while before checking status */
-+	ata_wait_after_reset(ap, deadline);
- 
- 	rc = ata_wait_ready(ap, deadline);
- 	/* link occupied, -ENODEV too is an error */
-@@ -6906,6 +6946,7 @@ EXPORT_SYMBOL_GPL(ata_port_disable);
- EXPORT_SYMBOL_GPL(ata_ratelimit);
- EXPORT_SYMBOL_GPL(ata_wait_register);
- EXPORT_SYMBOL_GPL(ata_busy_sleep);
-+EXPORT_SYMBOL_GPL(ata_wait_after_reset);
- EXPORT_SYMBOL_GPL(ata_wait_ready);
- EXPORT_SYMBOL_GPL(ata_port_queue_task);
- EXPORT_SYMBOL_GPL(ata_scsi_ioctl);
-diff -puN drivers/ata/pata_scc.c~libata-implement-ata_wait_after_reset drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~libata-implement-ata_wait_after_reset
-+++ a/drivers/ata/pata_scc.c
-@@ -557,17 +557,8 @@ static unsigned int scc_bus_softreset(st
- 	udelay(20);
- 	out_be32(ioaddr->ctl_addr, ap->ctl);
- 
--	/* spec mandates ">= 2ms" before checking status.
--	 * We wait 150ms, because that was the magic delay used for
--	 * ATAPI devices in Hale Landis's ATADRVR, for the period of time
--	 * between when the ATA command register is written, and then
--	 * status is checked.  Because waiting for "a while" before
--	 * checking status is fine, post SRST, we perform this magic
--	 * delay here as well.
--	 *
--	 * Old drivers/ide uses the 2mS rule and then waits for ready
--	 */
--	msleep(150);
-+	/* wait a while before checking status */
-+	ata_wait_after_reset(ap, deadline);
- 
- 	/* Before we perform post reset processing we want to see if
- 	 * the bus shows 0xFF because the odd clown forgets the D7
-diff -puN drivers/ata/sata_inic162x.c~libata-implement-ata_wait_after_reset drivers/ata/sata_inic162x.c
---- a/drivers/ata/sata_inic162x.c~libata-implement-ata_wait_after_reset
-+++ a/drivers/ata/sata_inic162x.c
-@@ -446,7 +446,7 @@ static int inic_hardreset(struct ata_por
- 		struct ata_taskfile tf;
- 
- 		/* wait a while before checking status */
--		msleep(150);
-+		ata_wait_after_reset(ap, deadline);
- 
- 		rc = ata_wait_ready(ap, deadline);
- 		/* link occupied, -ENODEV too is an error */
-diff -puN include/linux/libata.h~libata-implement-ata_wait_after_reset include/linux/libata.h
---- a/include/linux/libata.h~libata-implement-ata_wait_after_reset
-+++ a/include/linux/libata.h
-@@ -221,6 +221,13 @@ enum {
- 	ATA_TMOUT_INTERNAL	= 30 * HZ,
- 	ATA_TMOUT_INTERNAL_QUICK = 5 * HZ,
- 
-+	/* FIXME: GoVault needs 2s but we can't afford that without
-+	 * parallel probing.  800ms is enough for iVDR disk
-+	 * HHD424020F7SV00.  Increase to 2secs when parallel probing
-+	 * is in place.
-+	 */
-+	ATA_TMOUT_FF_WAIT	= 4 * HZ / 5,
-+
- 	/* ATA bus states */
- 	BUS_UNKNOWN		= 0,
- 	BUS_DMA			= 1,
-@@ -737,6 +744,7 @@ extern void ata_host_resume(struct ata_h
- extern int ata_ratelimit(void);
- extern int ata_busy_sleep(struct ata_port *ap,
- 			  unsigned long timeout_pat, unsigned long timeout);
-+extern void ata_wait_after_reset(struct ata_port *ap, unsigned long deadline);
- extern int ata_wait_ready(struct ata_port *ap, unsigned long deadline);
- extern void ata_port_queue_task(struct ata_port *ap, work_func_t fn,
- 				void *data, unsigned long delay);
+ /*
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+parport_pc-needs-dma-mappingh.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+fix-agk-dm-dm-io-fix-panic-on-large-request.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-libata-all.patch
+git-dvb.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-optional-led-trigger-for-libata.patch
-drivers-ata-remove-the-wildcard-from-sata_nv-driver.patch
-libata-add-support-for-ata_16-on-atapi.patch
-fix-build-failure-for-drivers-ata-pata_sccc.patch
-libata-implement-ata_wait_after_reset.patch
-pci-quirks-disable-msi-on-rs400-200-and-rs480.patch
+drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+git-battery.patch
+git-battery-warning-fix.patch
+ds2760_battery-warning-fix.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-ocfs2.patch
+ocfs2-fix-type-borkage.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
+xfs-clean-up-shrinker-games.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+remove-slab_ctor_constructor-fix.patch
+let-smp_call_function_single-return-ebusy-on-up-fix.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+slub-fix-handling-of-oversized-slabs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+compat_core_sys_select-avoid-kmalloc0.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+check_dirty_inode_list.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+reiser4.patch
+reiser4-fix.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
