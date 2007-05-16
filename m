@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_counters-use-cpu-notifiers.patch added to -mm tree
-Date: Wed, 16 May 2007 16:29:58 -0700
-Message-ID: <200705162329.l4GNTwTL012678@shell0.pdx.osdl.net>
+Subject: + percpu_counters-use-for_each_online_cpu.patch added to -mm tree
+Date: Wed, 16 May 2007 16:30:00 -0700
+Message-ID: <200705162330.l4GNU0LA012684@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48101 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37856 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934071AbXEPXcr (ORCPT
+	by vger.kernel.org with ESMTP id S934102AbXEPXct (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 19:32:47 -0400
+	Wed, 16 May 2007 19:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ego@in.ibm.com, oleg@tv-s
 
 
 The patch titled
-     percpu_counters(): use cpu notifiers
+     percpu_counters: use for_each_online_cpu()
 has been added to the -mm tree.  Its filename is
-     percpu_counters-use-cpu-notifiers.patch
+     percpu_counters-use-for_each_online_cpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,21 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: percpu_counters(): use cpu notifiers
+Subject: percpu_counters: use for_each_online_cpu()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-per-cpu counters presently must iterate over all possible CPUs in the
-exhaustive percpu_counter_sum().
-
-But it can be much better to only iterate over the presently-online CPUs.  To
-do this, we must arrange for an offlined CPU's count to be spilled into the
-counter's central count.
-
-We can do this for all percpu_counters in the machine by linking them into a
-single global list and walking that list at CPU_DEAD time.
-
-(I hope.  Might have race windows in which the percpu_counter_sum() count is
-inaccurate?)
+Now that we have implemented hotunplug-time counter spilling,
+percpu_counter_sum() only needs to look at online CPus.
 
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -48,134 +38,21 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |   18 ++------
- lib/percpu_counter.c           |   66 +++++++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+), 12 deletions(-)
+ lib/percpu_counter.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/percpu_counter.h~percpu_counters-use-cpu-notifiers include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~percpu_counters-use-cpu-notifiers
-+++ a/include/linux/percpu_counter.h
-@@ -8,6 +8,7 @@
- 
- #include <linux/spinlock.h>
- #include <linux/smp.h>
-+#include <linux/list.h>
- #include <linux/threads.h>
- #include <linux/percpu.h>
- #include <linux/types.h>
-@@ -17,6 +18,9 @@
- struct percpu_counter {
- 	spinlock_t lock;
- 	s64 count;
-+#ifdef CONFIG_HOTPLUG_CPU
-+	struct list_head list;	/* All percpu_counters are on a list */
-+#endif
- 	s32 *counters;
- };
- 
-@@ -26,18 +30,8 @@ struct percpu_counter {
- #define FBC_BATCH	(NR_CPUS*4)
- #endif
- 
--static inline void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
--{
--	spin_lock_init(&fbc->lock);
--	fbc->count = amount;
--	fbc->counters = alloc_percpu(s32);
--}
--
--static inline void percpu_counter_destroy(struct percpu_counter *fbc)
--{
--	free_percpu(fbc->counters);
--}
--
-+void percpu_counter_init(struct percpu_counter *fbc, s64 amount);
-+void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_mod(struct percpu_counter *fbc, s32 amount);
- s64 percpu_counter_sum(struct percpu_counter *fbc);
- 
-diff -puN lib/percpu_counter.c~percpu_counters-use-cpu-notifiers lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu_counters-use-cpu-notifiers
+diff -puN lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu_counters-use-for_each_online_cpu
 +++ a/lib/percpu_counter.c
-@@ -3,8 +3,17 @@
-  */
+@@ -45,7 +45,7 @@ s64 percpu_counter_sum(struct percpu_cou
  
- #include <linux/percpu_counter.h>
-+#include <linux/notifier.h>
-+#include <linux/mutex.h>
-+#include <linux/init.h>
-+#include <linux/cpu.h>
- #include <linux/module.h>
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+static LIST_HEAD(percpu_counters);
-+static DEFINE_MUTEX(percpu_counters_lock);
-+#endif
-+
- void percpu_counter_mod(struct percpu_counter *fbc, s32 amount)
- {
- 	long count;
-@@ -44,3 +53,60 @@ s64 percpu_counter_sum(struct percpu_cou
- 	return ret < 0 ? 0 : ret;
- }
- EXPORT_SYMBOL(percpu_counter_sum);
-+
-+void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
-+{
-+	spin_lock_init(&fbc->lock);
-+	fbc->count = amount;
-+	fbc->counters = alloc_percpu(s32);
-+#ifdef CONFIG_HOTPLUG_CPU
-+	mutex_lock(&percpu_counters_lock);
-+	list_add(&fbc->list, &percpu_counters);
-+	mutex_unlock(&percpu_counters_lock);
-+#endif
-+}
-+EXPORT_SYMBOL(percpu_counter_init);
-+
-+void percpu_counter_destroy(struct percpu_counter *fbc)
-+{
-+	free_percpu(fbc->counters);
-+#ifdef CONFIG_HOTPLUG_CPU
-+	mutex_lock(&percpu_counters_lock);
-+	list_del(&fbc->list);
-+	mutex_unlock(&percpu_counters_lock);
-+#endif
-+}
-+EXPORT_SYMBOL(percpu_counter_destroy);
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+static int __cpuinit percpu_counter_hotcpu_callback(struct notifier_block *nb,
-+					unsigned long action, void *hcpu)
-+{
-+	unsigned int cpu;
-+	struct percpu_counter *fbc;
-+
-+	if (action != CPU_DEAD)
-+		return NOTIFY_OK;
-+
-+	cpu = (unsigned long)hcpu;
-+	mutex_lock(&percpu_counters_lock);
-+	list_for_each_entry(fbc, &percpu_counters, list) {
-+		s32 *pcount;
-+
-+		spin_lock(&fbc->lock);
-+		pcount = per_cpu_ptr(fbc->counters, cpu);
-+		fbc->count += *pcount;
-+		*pcount = 0;
-+		spin_unlock(&fbc->lock);
-+	}
-+	mutex_unlock(&percpu_counters_lock);
-+	return NOTIFY_OK;
-+}
-+
-+static int __init percpu_counter_startup(void)
-+{
-+	hotcpu_notifier(percpu_counter_hotcpu_callback, 0);
-+	return 0;
-+}
-+module_init(percpu_counter_startup);
-+#endif
+ 	spin_lock(&fbc->lock);
+ 	ret = fbc->count;
+-	for_each_possible_cpu(cpu) {
++	for_each_online_cpu(cpu) {
+ 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
+ 		ret += *pcount;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
