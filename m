@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ide-warning-fixes.patch added to -mm tree
-Date: Wed, 16 May 2007 12:46:46 -0700
-Message-ID: <200705161949.l4GJnr7a008342@shell0.pdx.osdl.net>
+Subject: + nfsd-warning-fix.patch added to -mm tree
+Date: Wed, 16 May 2007 12:49:02 -0700
+Message-ID: <200705161952.l4GJq93G008380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36858 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757309AbXEPTvY (ORCPT
+	by vger.kernel.org with ESMTP id S1758990AbXEPTx4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 15:51:24 -0400
+	Wed, 16 May 2007 15:53:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, neilb@suse.de
 
 
 The patch titled
-     ide serverworks warning fixes
+     nfsd warning fix
 has been added to the -mm tree.  Its filename is
-     ide-warning-fixes.patch
+     nfsd-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide serverworks warning fixes
+Subject: nfsd warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-4.3:
 
-drivers/ide/pci/serverworks.c: In function 'svwks_tune_chipset':
-drivers/ide/pci/serverworks.c:176: warning: overflow in implicit constant conversion
-drivers/ide/pci/serverworks.c:190: warning: overflow in implicit constant conversion
-drivers/ide/pci/serverworks.c:211: warning: overflow in implicit constant conversion
-drivers/ide/pci/serverworks.c:212: warning: overflow in implicit constant conversion
+fs/nfsd/nfsctl.c: In function 'write_getfs':
+fs/nfsd/nfsctl.c:248: warning: cast from pointer to integer of different size
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/serverworks.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nfsd/nfsctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/serverworks.c~ide-warning-fixes drivers/ide/pci/serverworks.c
---- a/drivers/ide/pci/serverworks.c~ide-warning-fixes
-+++ a/drivers/ide/pci/serverworks.c
-@@ -173,7 +173,7 @@ dma_pio:
- 				   ((dma_stat&(1<<(5+unit)))==(1<<(5+unit)))) {
- 				u8 dmaspeed = dma_timing;
- 
--				dma_timing &= ~0xFF;
-+				dma_timing &= ~0xFFU;
- 				if ((dmaspeed & 0x20) == 0x20)
- 					dmaspeed = XFER_MW_DMA_2;
- 				else if ((dmaspeed & 0x21) == 0x21)
-@@ -187,7 +187,7 @@ dma_pio:
- 			} else if (pio_timing) {
- 				u8 piospeed = pio_timing;
- 
--				pio_timing &= ~0xFF;
-+				pio_timing &= ~0xFFU;
- 				if ((piospeed & 0x20) == 0x20)
- 					piospeed = XFER_PIO_4;
- 				else if ((piospeed & 0x22) == 0x22)
-@@ -208,8 +208,8 @@ dma_pio:
- 
- oem_setup_failed:
- 
--	pio_timing	&= ~0xFF;
--	dma_timing	&= ~0xFF;
-+	pio_timing	&= ~0xFFU;
-+	dma_timing	&= ~0xFFU;
- 	ultra_timing	&= ~(0x0F << (4*unit));
- 	ultra_enable	&= ~(0x01 << drive->dn);
- 	csb5_pio	&= ~(0x0F << (4*drive->dn));
+diff -puN fs/nfsd/nfsctl.c~nfsd-warning-fix fs/nfsd/nfsctl.c
+--- a/fs/nfsd/nfsctl.c~nfsd-warning-fix
++++ a/fs/nfsd/nfsctl.c
+@@ -245,7 +245,7 @@ static ssize_t write_getfs(struct file *
+ 	}
+ 	exp_readunlock();
+ 	if (err == 0)
+-		err = res->fh_size + (int)&((struct knfsd_fh*)0)->fh_base;
++		err = res->fh_size + offsetof(struct knfsd_fh, fh_base);
+  out:
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,3 +155,4 @@ w1-build-fix.patch
 fuse-warning-fix.patch
 vxfs-warning-fixes.patch
 ide-warning-fixes.patch
+nfsd-warning-fix.patch
