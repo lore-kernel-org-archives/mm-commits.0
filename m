@@ -1,63 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - let-smp_call_function_single-return-ebusy-on-up-fix.patch removed from -mm tree
-Date: Wed, 16 May 2007 21:40:11 -0700
-Message-ID: <200705170440.l4H4eB0n017272@shell0.pdx.osdl.net>
+Subject: - git-ubi-fixup.patch removed from -mm tree
+Date: Wed, 16 May 2007 22:14:27 -0700
+Message-ID: <200705170514.l4H5ERdr017938@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39945 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55392 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755695AbXEQEmI (ORCPT
+	by vger.kernel.org with ESMTP id S1759317AbXEQFPy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 00:42:08 -0400
+	Thu, 17 May 2007 01:15:54 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H5GaIs026931
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 22:17:10 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     let-smp_call_function_single-return-ebusy-on-up-fix
+     git-ubi-fixup
 has been removed from the -mm tree.  Its filename was
-     let-smp_call_function_single-return-ebusy-on-up-fix.patch
+     git-ubi-fixup.patch
 
-This patch was dropped because it was folded into let-smp_call_function_single-return-ebusy-on-up.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: let-smp_call_function_single-return-ebusy-on-up-fix
+Subject: git-ubi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/i386/mach-default/setup.c:5:
-include/linux/smp.h: In function 'smp_call_function_single':
-include/linux/smp.h:104: error: 'EBUSY' undeclared (first use in this function)
-include/linux/smp.h:104: error: (Each undeclared identifier is reported only once
-include/linux/smp.h:104: error: for each function it appears in.)
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/mtd/ubi/eba.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix include/linux/smp.h
---- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix
-+++ a/include/linux/smp.h
-@@ -9,12 +9,15 @@
+diff -puN drivers/mtd/ubi/eba.c~git-ubi-fixup drivers/mtd/ubi/eba.c
+--- a/drivers/mtd/ubi/eba.c~git-ubi-fixup
++++ a/drivers/mtd/ubi/eba.c
+@@ -940,9 +940,6 @@ static void ltree_entry_ctor(void *obj, 
+ {
+ 	struct ltree_entry *le = obj;
  
- extern void cpu_idle(void);
- 
-+#include <linux/errno.h>
-+
- #ifdef CONFIG_SMP
- 
- #include <linux/preempt.h>
- #include <linux/kernel.h>
- #include <linux/compiler.h>
- #include <linux/thread_info.h>
-+
- #include <asm/smp.h>
- 
- /*
+-	if (flags & SLAB_CTOR_CONSTRUCTOR)
+-		return;
+-
+ 	le->users = 0;
+ 	init_rwsem(&le->mutex);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +56,6 @@ origin.patch
 slub-fix-handling-of-oversized-slabs.patch
 parport_pc-needs-dma-mappingh.patch
 let-smp_call_function_single-return-ebusy-on-up.patch
-let-smp_call_function_single-return-ebusy-on-up-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
 invalidate_mapping_pages-add-cond_resched.patch
