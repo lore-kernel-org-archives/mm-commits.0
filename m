@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-map_vm_area-static.patch added to -mm tree
-Date: Thu, 17 May 2007 11:39:27 -0700
-Message-ID: <200705171839.l4HIdRTC030172@shell0.pdx.osdl.net>
+Subject: + driver-core-coding-style-cleanup.patch added to -mm tree
+Date: Thu, 17 May 2007 11:40:11 -0700
+Message-ID: <200705171840.l4HIeB77030201@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34136 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41205 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755752AbXEQSkk (ORCPT
+	by vger.kernel.org with ESMTP id S1756519AbXEQSlr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 14:40:40 -0400
+	Thu, 17 May 2007 14:41:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org
+Cc: cornelia.huck@de.ibm.com, greg@kroah.com
 
 
 The patch titled
-     Make map_vm_area() static
+     Driver core: coding style cleanup
 has been added to the -mm tree.  Its filename is
-     make-map_vm_area-static.patch
+     driver-core-coding-style-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make map_vm_area() static
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Driver core: coding style cleanup
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-map_vm_area() is only ever used inside of mm/vmalloc.c.  This makes it static
-and removes the prototype.
+This converts code of the form
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+	if ((error = some_func()))
+		goto fixup;
+to
+	error = some_func();
+	if (error)
+		goto fixup;
+
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    2 --
- mm/vmalloc.c            |    3 ++-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/base/bus.c  |    6 ++++--
+ drivers/base/core.c |   12 ++++++++----
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vmalloc.h~make-map_vm_area-static include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~make-map_vm_area-static
-+++ a/include/linux/vmalloc.h
-@@ -66,8 +66,6 @@ extern struct vm_struct *get_vm_area_nod
- 					  gfp_t gfp_mask);
- extern struct vm_struct *remove_vm_area(void *addr);
+diff -puN drivers/base/bus.c~driver-core-coding-style-cleanup drivers/base/bus.c
+--- a/drivers/base/bus.c~driver-core-coding-style-cleanup
++++ a/drivers/base/bus.c
+@@ -608,7 +608,8 @@ int bus_add_driver(struct device_driver 
+ 	if (error)
+ 		goto out_put_bus;
+ 	drv->kobj.kset = &bus->drivers;
+-	if ((error = kobject_register(&drv->kobj)))
++	error = kobject_register(&drv->kobj);
++	if (error)
+ 		goto out_put_bus;
  
--extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
--			struct page ***pages);
- extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+ 	if (drv->bus->drivers_autoprobe) {
+@@ -758,7 +759,8 @@ static int bus_add_attrs(struct bus_type
  
- /*
-diff -puN mm/vmalloc.c~make-map_vm_area-static mm/vmalloc.c
---- a/mm/vmalloc.c~make-map_vm_area-static
-+++ a/mm/vmalloc.c
-@@ -140,7 +140,8 @@ static inline int vmap_pud_range(pgd_t *
- 	return 0;
- }
- 
--int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page ***pages)
-+static int map_vm_area(struct vm_struct *area, pgprot_t prot,
-+		       struct page ***pages)
- {
- 	pgd_t *pgd;
- 	unsigned long next;
+ 	if (bus->bus_attrs) {
+ 		for (i = 0; attr_name(bus->bus_attrs[i]); i++) {
+-			if ((error = bus_create_file(bus,&bus->bus_attrs[i])))
++			error = bus_create_file(bus,&bus->bus_attrs[i]);
++			if (error)
+ 				goto Err;
+ 		}
+ 	}
+diff -puN drivers/base/core.c~driver-core-coding-style-cleanup drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-coding-style-cleanup
++++ a/drivers/base/core.c
+@@ -764,13 +764,17 @@ int device_add(struct device *dev)
+ 		if (error)
+ 			goto ueventattrError;
+ 	}
+-	if ((error = device_add_class_symlinks(dev)))
++	error = device_add_class_symlinks(dev);
++	if (error)
+ 		goto SymlinkError;
+-	if ((error = device_add_attrs(dev)))
++	error = device_add_attrs(dev);
++	if (error)
+ 		goto AttrsError;
+-	if ((error = device_pm_add(dev)))
++	error = device_pm_add(dev);
++	if (error)
+ 		goto PMError;
+-	if ((error = bus_add_device(dev)))
++	error = bus_add_device(dev);
++	if (error)
+ 		goto BusError;
+ 	kobject_uevent(&dev->kobj, KOBJ_ADD);
+ 	bus_attach_device(dev);
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
-make-__vunmap-static.patch
-do-not-select-macintosh-drivers-by-default.patch
-8xx-mpc885ads-pcmcia-support.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-8xx-fix-whitespace-and-indentation.patch
-dts-kill-hardcoded-phandles.patch
-unmap_vm_area-becomes-unmap_kernel_range.patch
-make-map_vm_area-static.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+driver-core-coding-style-cleanup.patch
+git-s390.patch
+partitions-check-the-return-value-of-kobject_add-etc.patch
