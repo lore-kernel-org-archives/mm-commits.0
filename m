@@ -1,60 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - git-newsetup-fixup.patch removed from -mm tree
-Date: Wed, 16 May 2007 20:47:37 -0700
-Message-ID: <200705170347.l4H3laNs016523@shell0.pdx.osdl.net>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Wed, 16 May 2007 20:47:45 -0700
+Message-ID: <200705170347.l4H3litA016537@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34708 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59207 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758571AbXEQDsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758635AbXEQDsR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 23:48:16 -0400
+	Wed, 16 May 2007 23:48:17 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H3nhtY023913
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H3npsS023923
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 20:50:22 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 20:50:23 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-newsetup-fixup
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     git-newsetup-fixup.patch
+     git-block-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/alternative.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/md/dm-io.c |   17 -----------------
+ fs/bio.c           |    5 -----
+ 2 files changed, 22 deletions(-)
 
-diff -puN include/asm-x86_64/alternative.h~git-newsetup-fixup include/asm-x86_64/alternative.h
---- a/include/asm-x86_64/alternative.h~git-newsetup-fixup
-+++ a/include/asm-x86_64/alternative.h
-@@ -138,7 +138,6 @@ static inline void alternatives_smp_swit
- 		      "663:\n\t" newinstr "\n664:\n"   /* replacement */ \
- 		      ".previous" : output : [feat] "i" (feature), ##input)
+diff -puN fs/bio.c~git-block-fixup fs/bio.c
+--- a/fs/bio.c~git-block-fixup
++++ a/fs/bio.c
+@@ -1193,12 +1193,7 @@ static void __init biovec_init_slabs(voi
  
--<<<<<<< HEAD/include/asm-x86_64/alternative.h
- /*
-  * use this macro(s) if you need more than one output parameter
-  * in alternative_io
-@@ -178,8 +177,6 @@ static inline void alternatives_smp_swit
- #define LOCK_PREFIX ""
- #endif
- 
+ static int __init init_bio(void)
+ {
+-<<<<<<< HEAD/fs/bio.c
+ 	bio_slab = KMEM_CACHE(bio, SLAB_HWCACHE_ALIGN|SLAB_PANIC);
 -=======
-->>>>>>> /include/asm-x86_64/alternative.h
- struct paravirt_patch;
- #ifdef CONFIG_PARAVIRT
- void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end);
+-	bio_slab = kmem_cache_create("bio", sizeof(struct bio), 0,
+-				SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL, NULL);
+->>>>>>> /fs/bio.c
+ 
+ 	biovec_init_slabs();
+ 
+diff -puN drivers/md/dm-io.c~git-block-fixup drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~git-block-fixup
++++ a/drivers/md/dm-io.c
+@@ -55,26 +55,9 @@ struct dm_io_client *dm_io_client_create
+ 	if (!client->pool)
+ 		goto bad;
+ 
+-<<<<<<< HEAD/drivers/md/dm-io.c
+ 	client->bios = bioset_create(16, 16);
+ 	if (!client->bios)
+ 		goto bad;
+-=======
+-	} else {
+-		/* create new pool */
+-		_io_pool = mempool_create_kmalloc_pool(new_ios,
+-						       sizeof(struct io));
+-		if (!_io_pool)
+-			return -ENOMEM;
+-
+-		_bios = bioset_create(16, 16);
+-		if (!_bios) {
+-			mempool_destroy(_io_pool);
+-			_io_pool = NULL;
+-			return -ENOMEM;
+-		}
+-	}
+->>>>>>> /drivers/md/dm-io.c
+ 
+ 	return client;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
