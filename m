@@ -1,33 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-add-first-fit-inode-allocator.patch added to -mm tree
-Date: Wed, 16 May 2007 22:48:14 -0700
-Message-ID: <200705170548.l4H5mDop018415@shell0.pdx.osdl.net>
+Subject: - ext3-add-first-fit-inode-allocator.patch removed from -mm tree
+Date: Thu, 17 May 2007 00:08:51 -0700
+Message-ID: <200705170708.l4H78ruP019468@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50667 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49821 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755570AbXEQFsv (ORCPT
+	by vger.kernel.org with ESMTP id S1755570AbXEQHJd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 01:48:51 -0400
+	Thu, 17 May 2007 03:09:33 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H5oLsI027972
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H7B3gO030486
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 22:50:57 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 17 May 2007 00:11:39 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      ext3-add-first-fit-inode-allocator
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ext3-add-first-fit-inode-allocator.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: ext3-add-first-fit-inode-allocator
@@ -226,7 +222,6 @@ writeback-fix-comment-use-helper-function.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-check_dirty_inode_list.patch
 crc7-support-fix.patch
 i2o_cfg_passthru-cleanup-fix.patch
 knfsd-exportfs-add-exportfsh-header-fix.patch
@@ -241,5 +236,6 @@ integrity-new-hooks.patch
 integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
 integrity-tpm-internal-kernel-interface.patch
+check_dirty_inode_list.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
