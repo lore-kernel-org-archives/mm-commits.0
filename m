@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch added to -mm tree
-Date: Thu, 17 May 2007 12:46:27 -0700
-Message-ID: <200705171946.l4HJkRqZ031410@shell0.pdx.osdl.net>
+Subject: + allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch added to -mm tree
+Date: Thu, 17 May 2007 12:49:27 -0700
+Message-ID: <200705171949.l4HJnR0u031435@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40411 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34733 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754072AbXEQTtd (ORCPT
+	by vger.kernel.org with ESMTP id S1754377AbXEQTus (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 15:49:33 -0400
+	Thu, 17 May 2007 15:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, mel@csn.ul.ie
 
 
 The patch titled
-     Mark page cache pages as __GFP_PAGECACHE instead of __GFP_MOVABLE
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix
 has been added to the -mm tree.  Its filename is
-     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,135 +26,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Mark page cache pages as __GFP_PAGECACHE instead of __GFP_MOVABLE
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch marks page cache allocations as __GFP_PAGECACHE instead of
-__GFP_MOVABLE.  To make code easier to read, a set of three GFP flags are
-added called GFP_PAGECACHE, GFP_NOFS_PAGECACHE and GFP_HIGHUSER_PAGECACHE.
-
-grow_dev_page() is changed to use GFP_NOFS_PAGECACHE instead of
-__GFP_RECLAIMABLE.  Marking them as __GFP_RECLAIMABLE was a mistake as they
-should be grouped with other pagecache pages.  bdget() no longer uses mobility
-flags after this patch because it is does not appear that any pages allocated
-on behalf of the mapping are movable so it needs to be revisited separately. 
-The allocations required for radix trees are still treated as RECLAIMABLE
-after this patch is applied.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c      |    2 +-
- fs/buffer.c         |    2 +-
- fs/inode.c          |    4 ++--
- include/linux/gfp.h |    6 ++++++
- 4 files changed, 10 insertions(+), 4 deletions(-)
+ mempolicy.c  |    0 
+ mm/hugetlb.c |    2 +-
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable fs/block_dev.c
---- a/fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable
-+++ a/fs/block_dev.c
-@@ -574,7 +574,7 @@ struct block_device *bdget(dev_t dev)
- 		inode->i_rdev = dev;
- 		inode->i_bdev = bdev;
- 		inode->i_data.a_ops = &def_blk_aops;
--		mapping_set_gfp_mask(&inode->i_data, GFP_USER|__GFP_MOVABLE);
-+		mapping_set_gfp_mask(&inode->i_data, GFP_USER);
- 		inode->i_data.backing_dev_info = &default_backing_dev_info;
- 		spin_lock(&bdev_lock);
- 		list_add(&bdev->bd_list, &all_bdevs);
-diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable fs/buffer.c
---- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable
-+++ a/fs/buffer.c
-@@ -982,7 +982,7 @@ grow_dev_page(struct block_device *bdev,
- 	struct buffer_head *bh;
+diff -puN include/linux/hugetlb.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix include/linux/hugetlb.h
+diff -puN include/linux/mempolicy.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix include/linux/mempolicy.h
+diff -puN include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix include/linux/sysctl.h
+diff -puN kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix kernel/sysctl.c
+diff -puN mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix
++++ a/mm/hugetlb.c
+@@ -27,7 +27,7 @@ unsigned long max_huge_pages;
+ static struct list_head hugepage_freelists[MAX_NUMNODES];
+ static unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ static unsigned int free_huge_pages_node[MAX_NUMNODES];
+-gfp_t htlb_alloc_mask = GFP_HIGHUSER;
++static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
  
- 	page = find_or_create_page(inode->i_mapping, index,
--		mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
-+		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
- 	if (!page)
- 		return NULL;
- 
-diff -puN fs/inode.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable fs/inode.c
---- a/fs/inode.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable
-+++ a/fs/inode.c
-@@ -145,7 +145,7 @@ static struct inode *alloc_inode(struct 
- 		mapping->a_ops = &empty_aops;
-  		mapping->host = inode;
- 		mapping->flags = 0;
--		mapping_set_gfp_mask(mapping, GFP_HIGHUSER_MOVABLE);
-+		mapping_set_gfp_mask(mapping, GFP_HIGHUSER_PAGECACHE);
- 		mapping->assoc_mapping = NULL;
- 		mapping->backing_dev_info = &default_backing_dev_info;
- 
-@@ -520,7 +520,7 @@ repeat:
-  *	@sb: superblock
-  *
-  *	Allocates a new inode for given superblock. The default gfp_mask
-- *	for allocations related to inode->i_mapping is GFP_HIGHUSER_MOVABLE.
-+ *	for allocations related to inode->i_mapping is GFP_HIGHUSER_PAGECACHE.
-  *	If HIGHMEM pages are unsuitable or it is known that pages allocated
-  *	for the page cache are not reclaimable or migratable,
-  *	mapping_set_gfp_mask() must be called with suitable flags on the
-diff -puN include/linux/gfp.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable include/linux/gfp.h
---- a/include/linux/gfp.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable
-+++ a/include/linux/gfp.h
-@@ -73,6 +73,12 @@ struct vm_area_struct;
- #define GFP_HIGHUSER_MOVABLE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
- 				 __GFP_HARDWALL | __GFP_HIGHMEM | \
- 				 __GFP_MOVABLE)
-+#define GFP_NOFS_PAGECACHE	(__GFP_WAIT | __GFP_IO | __GFP_MOVABLE)
-+#define GFP_USER_PAGECACHE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
-+				 __GFP_HARDWALL | __GFP_MOVABLE)
-+#define GFP_HIGHUSER_PAGECACHE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
-+				 __GFP_HARDWALL | __GFP_HIGHMEM | \
-+				 __GFP_MOVABLE)
- 
- #ifdef CONFIG_NUMA
- #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
+ /*
+diff -puN mm/mempolicy.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix mm/mempolicy.c
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+slub-fix-handling-of-oversized-slabs.patch
+parport_pc-needs-dma-mappingh.patch
+let-smp_call_function_single-return-ebusy-on-up.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+fix-agk-dm-dm-io-fix-panic-on-large-request.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-dvb.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
+ide-warning-fixes.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-battery-warning-fix.patch
+ds2760_battery-warning-fix.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
+xfs-clean-up-shrinker-games.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix-alloc_zeroed_user_highpage-on-m68knommu.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-rename-gfp_high_movable-to-gfp_highuser_movable.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-move-free-pages-between-lists-on-steal-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
-group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
-group-high-order-atomic-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
-remove-alloc_zeroed_user_highpage.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-handle-kernelcore=-generic.patch
-lumpy-reclaim-v4.patch
-lumpy-move-to-using-pfn_valid_within.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-ext2-reservations.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+reiser4.patch
+reiser4-fix.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+check_dirty_inode_list.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
