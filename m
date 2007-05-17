@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-fix-the-explanation-of-kconfig-files.patch added to -mm tree
-Date: Thu, 17 May 2007 11:41:33 -0700
-Message-ID: <200705171841.l4HIfXTb030218@shell0.pdx.osdl.net>
+Subject: + avoid-zero-size-allocation-in-cache_k8_northbridges.patch added to -mm tree
+Date: Thu, 17 May 2007 11:47:05 -0700
+Message-ID: <200705171847.l4HIl5Lh030308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40400 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755332AbXEQSnu (ORCPT
+	by vger.kernel.org with ESMTP id S1756146AbXEQSuQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 14:43:50 -0400
+	Thu, 17 May 2007 14:50:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, randy.dunlap@oracle.com
+Cc: ben.collins@ubuntu.com, ak@suse.de, bcollins@ubuntu.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     Documentation: fix the explanation of Kconfig files
+     Avoid zero size allocation in cache_k8_northbridges()
 has been added to the -mm tree.  Its filename is
-     documentation-fix-the-explanation-of-kconfig-files.patch
+     avoid-zero-size-allocation-in-cache_k8_northbridges.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation: fix the explanation of Kconfig files
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: Avoid zero size allocation in cache_k8_northbridges()
+From: Ben Collins <ben.collins@ubuntu.com>
 
-Fix the obvious errors in the explanation of Kconfig files.
+kmalloc for flush_words resulted in zero size allocation when no
+k8_northbridges existed.  Short circuit the code path for this case.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Also remove uneeded zeroing of num_k8_northbridges just after checking if
+it is zero.
+
+Signed-off-by: Ben Collins <bcollins@ubuntu.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |   51 +++++++++++++++++++++---------------
- 1 files changed, 31 insertions(+), 20 deletions(-)
+ arch/x86_64/kernel/k8.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/CodingStyle~documentation-fix-the-explanation-of-kconfig-files Documentation/CodingStyle
---- a/Documentation/CodingStyle~documentation-fix-the-explanation-of-kconfig-files
-+++ a/Documentation/CodingStyle
-@@ -495,29 +495,40 @@ re-formatting you may want to take a loo
- remember: "indent" is not a fix for bad programming.
- 
- 
--		Chapter 10: Configuration-files
-+		Chapter 10: Kconfig configuration files
- 
--For configuration options (arch/xxx/Kconfig, and all the Kconfig files),
--somewhat different indentation is used.
--
--Help text is indented with 2 spaces.
--
--if CONFIG_EXPERIMENTAL
--	tristate CONFIG_BOOM
--	default n
--	help
--	  Apply nitroglycerine inside the keyboard (DANGEROUS)
--	bool CONFIG_CHEER
--	depends on CONFIG_BOOM
--	default y
-+For all of the Kconfig* configuration files throughout the source tree,
-+the indentation is somewhat different.  Lines under a "config" definition
-+are indented with one tab, while help text is indented an additional two
-+spaces.  Example:
+diff -puN arch/x86_64/kernel/k8.c~avoid-zero-size-allocation-in-cache_k8_northbridges arch/x86_64/kernel/k8.c
+--- a/arch/x86_64/kernel/k8.c~avoid-zero-size-allocation-in-cache_k8_northbridges
++++ a/arch/x86_64/kernel/k8.c
+@@ -39,10 +39,10 @@ int cache_k8_northbridges(void)
+ {
+ 	int i;
+ 	struct pci_dev *dev;
 +
-+config AUDIT
-+	bool "Auditing support"
-+	depends on NET
- 	help
--	  Output nice messages when you explode
--endif
-+	  Enable auditing infrastructure that can be used with another
-+	  kernel subsystem, such as SELinux (which requires this for
-+	  logging of avc messages output).  Does not do system-call
-+	  auditing without CONFIG_AUDITSYSCALL.
-+
-+Features that might still be considered unstable should be defined as
-+dependent on "EXPERIMENTAL":
-+
-+config SLUB
-+	depends on EXPERIMENTAL && !ARCH_USES_SLAB_PAGE_STRUCT
-+	bool "SLUB (Unqueued Allocator)"
-+	...
-+
-+while seriously dangerous features (such as write support for certain
-+filesystems) should advertise this prominently in their prompt string:
-+
-+config ADFS_FS_RW
-+	bool "ADFS write support (DANGEROUS)"
-+	depends on ADFS_FS
-+	...
+ 	if (num_k8_northbridges)
+ 		return 0;
  
--Generally, CONFIG_EXPERIMENTAL should surround all options not considered
--stable. All options that are known to trash data (experimental write-
--support for file-systems, for instance) should be denoted (DANGEROUS), other
--experimental options should be denoted (EXPERIMENTAL).
-+For full documentation on the configuration files, see the file
-+Documentation/kbuild/kconfig-language.txt.
+-	num_k8_northbridges = 0;
+ 	dev = NULL;
+ 	while ((dev = next_k8_northbridge(dev)) != NULL)
+ 		num_k8_northbridges++;
+@@ -52,6 +52,11 @@ int cache_k8_northbridges(void)
+ 	if (!k8_northbridges)
+ 		return -ENOMEM;
  
- 
- 		Chapter 11: Data structures
++	if (!num_k8_northbridges) {
++		k8_northbridges[0] = NULL;
++		return 0;
++	}
++
+ 	flush_words = kmalloc(num_k8_northbridges * sizeof(u32), GFP_KERNEL);
+ 	if (!flush_words) {
+ 		kfree(k8_northbridges);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from ben.collins@ubuntu.com are
 
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
+avoid-zero-size-allocation-in-cache_k8_northbridges.patch
