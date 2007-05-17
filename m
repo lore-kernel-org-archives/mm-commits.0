@@ -1,131 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - libata-fix-shutdown-warning-message-printing.patch removed from -mm tree
-Date: Wed, 16 May 2007 20:47:05 -0700
-Message-ID: <200705170347.l4H3l5FY016513@shell0.pdx.osdl.net>
+Subject: - sl82c105-switch-to-ref-counting-api.patch removed from -mm tree
+Date: Wed, 16 May 2007 20:47:32 -0700
+Message-ID: <200705170347.l4H3lVh6016517@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40789 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758614AbXEQDtn (ORCPT
+	by vger.kernel.org with ESMTP id S1758635AbXEQDuC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 23:49:43 -0400
+	Wed, 16 May 2007 23:50:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, James.Bottomley@SteelEye.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: fix shutdown warning message printing
+     sl82c105: Switch to ref counting API
 has been removed from the -mm tree.  Its filename was
-     libata-fix-shutdown-warning-message-printing.patch
+     sl82c105-switch-to-ref-counting-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: fix shutdown warning message printing
-From: Tejun Heo <htejun@gmail.com>
+Subject: sl82c105: Switch to ref counting API
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Unlocking ap->lock and ssleeping don't work because SCSI commands can be
-issued from completion path without context.  Reimplement delayed
-completion by allowing translation functions to override qc->scsidone(),
-storing the original completion function to scmd->scsi_done() and
-overriding qc->scsidone() with a function which schedules delayed
-invocation of scmd->scsi_done().
+Not sure how this one got missed in the great purge some time ago but it
+did.
 
-This isn't pretty at all but all the ugly parts are thankfully contained in
-the stop translation path where the compat feature is implemented.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |   35 +++++++++++++++++++++++++++--------
- 1 files changed, 27 insertions(+), 8 deletions(-)
+ drivers/ide/pci/sl82c105.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-scsi.c~libata-fix-shutdown-warning-message-printing drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata-fix-shutdown-warning-message-printing
-+++ a/drivers/ata/libata-scsi.c
-@@ -896,6 +896,23 @@ int ata_scsi_change_queue_depth(struct s
- 	return queue_depth;
+diff -puN drivers/ide/pci/sl82c105.c~sl82c105-switch-to-ref-counting-api drivers/ide/pci/sl82c105.c
+--- a/drivers/ide/pci/sl82c105.c~sl82c105-switch-to-ref-counting-api
++++ a/drivers/ide/pci/sl82c105.c
+@@ -343,7 +343,7 @@ static unsigned int sl82c105_bridge_revi
+ 	/*
+ 	 * The bridge should be part of the same device, but function 0.
+ 	 */
+-	bridge = pci_find_slot(dev->bus->number,
++	bridge = pci_get_bus_and_slot(dev->bus->number,
+ 			       PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
+ 	if (!bridge)
+ 		return -1;
+@@ -353,13 +353,15 @@ static unsigned int sl82c105_bridge_revi
+ 	 */
+ 	if (bridge->vendor != PCI_VENDOR_ID_WINBOND ||
+ 	    bridge->device != PCI_DEVICE_ID_WINBOND_83C553 ||
+-	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA)
++	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA) {
++	    	pci_dev_put(bridge);
+ 		return -1;
+-
++	}
+ 	/*
+ 	 * We need to find function 0's revision, not function 1
+ 	 */
+ 	pci_read_config_byte(bridge, PCI_REVISION_ID, &rev);
++	pci_dev_put(bridge);
+ 
+ 	return rev;
  }
- 
-+/* XXX: for ata_spindown_compat */
-+static void ata_delayed_done_timerfn(unsigned long arg)
-+{
-+	struct scsi_cmnd *scmd = (void *)arg;
-+
-+	scmd->scsi_done(scmd);
-+}
-+
-+/* XXX: for ata_spindown_compat */
-+static void ata_delayed_done(struct scsi_cmnd *scmd)
-+{
-+	static struct timer_list timer;
-+
-+	setup_timer(&timer, ata_delayed_done_timerfn, (unsigned long)scmd);
-+	mod_timer(&timer, jiffies + 5 * HZ);
-+}
-+
- /**
-  *	ata_scsi_start_stop_xlat - Translate SCSI START STOP UNIT command
-  *	@qc: Storage for translated ATA taskfile
-@@ -955,19 +972,21 @@ static unsigned int ata_scsi_start_stop_
- 		if (ata_spindown_compat &&
- 		    (system_state == SYSTEM_HALT ||
- 		     system_state == SYSTEM_POWER_OFF)) {
--			static int warned = 0;
-+			static unsigned long warned = 0;
- 
--			if (!warned) {
--				spin_unlock_irq(qc->ap->lock);
-+			if (!test_and_set_bit(0, &warned)) {
- 				ata_dev_printk(qc->dev, KERN_WARNING,
- 					"DISK MIGHT NOT BE SPUN DOWN PROPERLY. "
- 					"UPDATE SHUTDOWN UTILITY\n");
- 				ata_dev_printk(qc->dev, KERN_WARNING,
- 					"For more info, visit "
- 					"http://linux-ata.org/shutdown.html\n");
--				warned = 1;
--				ssleep(5);
--				spin_lock_irq(qc->ap->lock);
-+
-+				/* ->scsi_done is not used, use it for
-+				 * delayed completion.
-+				 */
-+				scmd->scsi_done = qc->scsidone;
-+				qc->scsidone = ata_delayed_done;
- 			}
- 			scmd->result = SAM_STAT_GOOD;
- 			return 1;
-@@ -1491,14 +1510,14 @@ static int ata_scsi_translate(struct ata
- 
- early_finish:
-         ata_qc_free(qc);
--	done(cmd);
-+	qc->scsidone(cmd);
- 	DPRINTK("EXIT - early finish (good or error)\n");
- 	return 0;
- 
- err_did:
- 	ata_qc_free(qc);
- 	cmd->result = (DID_ERROR << 16);
--	done(cmd);
-+	qc->scsidone(cmd);
- err_mem:
- 	DPRINTK("EXIT - internal\n");
- 	return 0;
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-libata-all.patch
+origin.patch
+refine-screen_info-sanity-check-for-vgacon-initialization.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-optional-led-trigger-for-libata.patch
-drivers-ata-remove-the-wildcard-from-sata_nv-driver.patch
 libata-add-support-for-ata_16-on-atapi.patch
 fix-build-failure-for-drivers-ata-pata_sccc.patch
-libata-implement-ata_wait_after_reset.patch
-pci-quirks-disable-msi-on-rs400-200-and-rs480.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
+add-pci_try_set_mwi.patch
+fix-pci_find_present.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+watchdog-documentation.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
