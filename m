@@ -1,108 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - aacraid-fix.patch removed from -mm tree
-Date: Wed, 16 May 2007 20:47:43 -0700
-Message-ID: <200705170347.l4H3lga1016534@shell0.pdx.osdl.net>
+Subject: - libata-fix-shutdown-warning-message-printing.patch removed from -mm tree
+Date: Wed, 16 May 2007 20:47:05 -0700
+Message-ID: <200705170347.l4H3l5FY016513@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40789 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757793AbXEQDtX (ORCPT
+	by vger.kernel.org with ESMTP id S1758614AbXEQDtn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 23:49:23 -0400
+	Wed, 16 May 2007 23:49:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark_salyzyn@adaptec.com, malitzke@metronets.com, mm-commits@vger.kernel.org
+To: htejun@gmail.com, James.Bottomley@SteelEye.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aacraid fix
+     libata: fix shutdown warning message printing
 has been removed from the -mm tree.  Its filename was
-     aacraid-fix.patch
+     libata-fix-shutdown-warning-message-printing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: aacraid fix
-From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Subject: libata: fix shutdown warning message printing
+From: Tejun Heo <htejun@gmail.com>
 
-Try to address http://bugzilla.kernel.org/show_bug.cgi?id=3D8469
+Unlocking ap->lock and ssleeping don't work because SCSI commands can be
+issued from completion path without context.  Reimplement delayed
+completion by allowing translation functions to override qc->scsidone(),
+storing the original completion function to scmd->scsi_done() and
+overriding qc->scsidone() with a function which schedules delayed
+invocation of scmd->scsi_done().
 
-As discussed in the bugzilla, I figure you have an 'sa' based RAID
-adapter on the system. Either an HP NetRAID or an Adaptec 5400S. We no
-longer have these cards in test or development, so I can not confirm a
-fix.
+This isn't pretty at all but all the ugly parts are thankfully contained in
+the stop translation path where the compat feature is implemented.
 
-If you have one of these cards in the test machine, please apply the
-enclosed patch to see if the problem goes away.
-
-Cc: "Rainer Malitzke-Goes" <malitzke@metronets.com>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Acked-by: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/aacraid.h |    1 +
- drivers/scsi/aacraid/rx.c      |    2 +-
- drivers/scsi/aacraid/sa.c      |    9 ++++++++-
- 3 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/ata/libata-scsi.c |   35 +++++++++++++++++++++++++++--------
+ 1 files changed, 27 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/aacraid/aacraid.h~aacraid-fix drivers/scsi/aacraid/aacraid.h
---- a/drivers/scsi/aacraid/aacraid.h~aacraid-fix
-+++ a/drivers/scsi/aacraid/aacraid.h
-@@ -1823,6 +1823,7 @@ int aac_send_shutdown(struct aac_dev *de
- int aac_probe_container(struct aac_dev *dev, int cid);
- int _aac_rx_init(struct aac_dev *dev);
- int aac_rx_select_comm(struct aac_dev *dev, int comm);
-+int aac_rx_deliver_producer(struct fib * fib);
- extern int numacb;
- extern int acbsize;
- extern char aac_driver_version[];
-diff -puN drivers/scsi/aacraid/rx.c~aacraid-fix drivers/scsi/aacraid/rx.c
---- a/drivers/scsi/aacraid/rx.c~aacraid-fix
-+++ a/drivers/scsi/aacraid/rx.c
-@@ -378,7 +378,7 @@ static int aac_rx_check_health(struct aa
-  *
-  *	Will send a fib, returning 0 if successful.
-  */
--static int aac_rx_deliver_producer(struct fib * fib)
-+int aac_rx_deliver_producer(struct fib * fib)
- {
- 	struct aac_dev *dev = fib->dev;
- 	struct aac_queue *q = &dev->queues->queue[AdapNormCmdQueue];
-diff -puN drivers/scsi/aacraid/sa.c~aacraid-fix drivers/scsi/aacraid/sa.c
---- a/drivers/scsi/aacraid/sa.c~aacraid-fix
-+++ a/drivers/scsi/aacraid/sa.c
-@@ -5,7 +5,7 @@
-  * based on the old aacraid driver that is..
-  * Adaptec aacraid device driver for Linux.
-  *
-- * Copyright (c) 2000 Adaptec, Inc. (aacraid@adaptec.com)
-+ * Copyright (c) 2000-2007 Adaptec, Inc. (aacraid@adaptec.com)
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -257,6 +257,11 @@ static void aac_sa_start_adapter(struct 
- 			NULL, NULL, NULL, NULL, NULL);
+diff -puN drivers/ata/libata-scsi.c~libata-fix-shutdown-warning-message-printing drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata-fix-shutdown-warning-message-printing
++++ a/drivers/ata/libata-scsi.c
+@@ -896,6 +896,23 @@ int ata_scsi_change_queue_depth(struct s
+ 	return queue_depth;
  }
  
-+static int aac_sa_restart_adapter(struct aac_dev *dev, int bled)
++/* XXX: for ata_spindown_compat */
++static void ata_delayed_done_timerfn(unsigned long arg)
 +{
-+	return -EINVAL;
++	struct scsi_cmnd *scmd = (void *)arg;
++
++	scmd->scsi_done(scmd);
++}
++
++/* XXX: for ata_spindown_compat */
++static void ata_delayed_done(struct scsi_cmnd *scmd)
++{
++	static struct timer_list timer;
++
++	setup_timer(&timer, ata_delayed_done_timerfn, (unsigned long)scmd);
++	mod_timer(&timer, jiffies + 5 * HZ);
 +}
 +
  /**
-  *	aac_sa_check_health
-  *	@dev: device to check if healthy
-@@ -366,7 +371,9 @@ int aac_sa_init(struct aac_dev *dev)
- 	dev->a_ops.adapter_notify = aac_sa_notify_adapter;
- 	dev->a_ops.adapter_sync_cmd = sa_sync_cmd;
- 	dev->a_ops.adapter_check_health = aac_sa_check_health;
-+	dev->a_ops.adapter_restart = aac_sa_restart_adapter;
- 	dev->a_ops.adapter_intr = aac_sa_intr;
-+	dev->a_ops.adapter_deliver = aac_rx_deliver_producer;
- 	dev->a_ops.adapter_ioremap = aac_sa_ioremap;
+  *	ata_scsi_start_stop_xlat - Translate SCSI START STOP UNIT command
+  *	@qc: Storage for translated ATA taskfile
+@@ -955,19 +972,21 @@ static unsigned int ata_scsi_start_stop_
+ 		if (ata_spindown_compat &&
+ 		    (system_state == SYSTEM_HALT ||
+ 		     system_state == SYSTEM_POWER_OFF)) {
+-			static int warned = 0;
++			static unsigned long warned = 0;
  
- 	/*
+-			if (!warned) {
+-				spin_unlock_irq(qc->ap->lock);
++			if (!test_and_set_bit(0, &warned)) {
+ 				ata_dev_printk(qc->dev, KERN_WARNING,
+ 					"DISK MIGHT NOT BE SPUN DOWN PROPERLY. "
+ 					"UPDATE SHUTDOWN UTILITY\n");
+ 				ata_dev_printk(qc->dev, KERN_WARNING,
+ 					"For more info, visit "
+ 					"http://linux-ata.org/shutdown.html\n");
+-				warned = 1;
+-				ssleep(5);
+-				spin_lock_irq(qc->ap->lock);
++
++				/* ->scsi_done is not used, use it for
++				 * delayed completion.
++				 */
++				scmd->scsi_done = qc->scsidone;
++				qc->scsidone = ata_delayed_done;
+ 			}
+ 			scmd->result = SAM_STAT_GOOD;
+ 			return 1;
+@@ -1491,14 +1510,14 @@ static int ata_scsi_translate(struct ata
+ 
+ early_finish:
+         ata_qc_free(qc);
+-	done(cmd);
++	qc->scsidone(cmd);
+ 	DPRINTK("EXIT - early finish (good or error)\n");
+ 	return 0;
+ 
+ err_did:
+ 	ata_qc_free(qc);
+ 	cmd->result = (DID_ERROR << 16);
+-	done(cmd);
++	qc->scsidone(cmd);
+ err_mem:
+ 	DPRINTK("EXIT - internal\n");
+ 	return 0;
 _
 
-Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-git-scsi-rc-fixes.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-libata-all.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+optional-led-trigger-for-libata.patch
+drivers-ata-remove-the-wildcard-from-sata_nv-driver.patch
+libata-add-support-for-ata_16-on-atapi.patch
+fix-build-failure-for-drivers-ata-pata_sccc.patch
+libata-implement-ata_wait_after_reset.patch
+pci-quirks-disable-msi-on-rs400-200-and-rs480.patch
