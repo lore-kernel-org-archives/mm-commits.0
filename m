@@ -1,49 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - remove-slab_ctor_constructor-fix.patch removed from -mm tree
-Date: Wed, 16 May 2007 20:32:35 -0700
-Message-ID: <200705170332.l4H3WZvF016334@shell0.pdx.osdl.net>
+Subject: - git-newsetup-fixup.patch removed from -mm tree
+Date: Wed, 16 May 2007 20:47:37 -0700
+Message-ID: <200705170347.l4H3laNs016523@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38129 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34708 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214AbXEQDdt (ORCPT
+	by vger.kernel.org with ESMTP id S1758571AbXEQDsQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2007 23:33:49 -0400
+	Wed, 16 May 2007 23:48:16 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H3nhtY023913
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 20:50:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove-slab_ctor_constructor-fix
+     git-newsetup-fixup
 has been removed from the -mm tree.  Its filename was
-     remove-slab_ctor_constructor-fix.patch
+     git-newsetup-fixup.patch
 
-This patch was dropped because it was folded into remove-slab_ctor_constructor.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove-slab_ctor_constructor-fix
+Subject: git-newsetup-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-x86_64/alternative.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/slab.c~remove-slab_ctor_constructor-fix mm/slab.c
---- a/mm/slab.c~remove-slab_ctor_constructor-fix
-+++ a/mm/slab.c
-@@ -3074,7 +3074,7 @@ static void *cache_alloc_debugcheck_afte
+diff -puN include/asm-x86_64/alternative.h~git-newsetup-fixup include/asm-x86_64/alternative.h
+--- a/include/asm-x86_64/alternative.h~git-newsetup-fixup
++++ a/include/asm-x86_64/alternative.h
+@@ -138,7 +138,6 @@ static inline void alternatives_smp_swit
+ 		      "663:\n\t" newinstr "\n664:\n"   /* replacement */ \
+ 		      ".previous" : output : [feat] "i" (feature), ##input)
+ 
+-<<<<<<< HEAD/include/asm-x86_64/alternative.h
+ /*
+  * use this macro(s) if you need more than one output parameter
+  * in alternative_io
+@@ -178,8 +177,6 @@ static inline void alternatives_smp_swit
+ #define LOCK_PREFIX ""
  #endif
- 	objp += obj_offset(cachep);
- 	if (cachep->ctor && cachep->flags & SLAB_POISON)
--		cachep->ctor(objp, cachep, SLAB_CTOR_CONSTRUCTOR);
-+		cachep->ctor(objp, cachep, 0);
- #if ARCH_SLAB_MINALIGN
- 	if ((u32)objp & (ARCH_SLAB_MINALIGN-1)) {
- 		printk(KERN_ERR "0x%p: not aligned to ARCH_SLAB_MINALIGN=%d\n",
+ 
+-=======
+->>>>>>> /include/asm-x86_64/alternative.h
+ struct paravirt_patch;
+ #ifdef CONFIG_PARAVIRT
+ void apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -51,8 +62,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
 slub-fix-handling-of-oversized-slabs.patch
-remove-slab_ctor_constructor.patch
-remove-slab_ctor_constructor-fix.patch
 parport_pc-needs-dma-mappingh.patch
 let-smp_call_function_single-return-ebusy-on-up-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
@@ -84,13 +93,10 @@ git-battery-warning-fix.patch
 ds2760_battery-warning-fix.patch
 git-nfs.patch
 git-nfs-server-cluster-locking-api-fixup.patch
-git-ocfs2.patch
-ocfs2-fix-type-borkage.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
 scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
 git-unionfs.patch
 auerswald-fix-file-release-handler.patch
 git-wireless.patch
