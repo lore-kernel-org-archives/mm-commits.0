@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch added to -mm tree
-Date: Thu, 17 May 2007 13:12:47 -0700
-Message-ID: <200705172012.l4HKClK6031823@shell0.pdx.osdl.net>
+Subject: + drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
+Date: Thu, 17 May 2007 13:12:45 -0700
+Message-ID: <200705172012.l4HKCjlP031820@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38786 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757399AbXEQUP7 (ORCPT
+	by vger.kernel.org with ESMTP id S1761535AbXEQUPy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 16:15:59 -0400
+	Thu, 17 May 2007 16:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.co
 
 
 The patch titled
-     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy
+     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 has been added to the -mm tree.  Its filename is
-     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,107 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy
+Subject: drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Kuan Luo <kluo@nvidia.com>
 Cc: Peer Chen <pchen@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |   35 ++++++++++++++---------------------
- 1 files changed, 14 insertions(+), 21 deletions(-)
+ drivers/ata/sata_nv.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy
+diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 +++ a/drivers/ata/sata_nv.c
-@@ -2107,9 +2107,7 @@ static void nv_fill_sg(struct ata_queued
- 	struct ata_port *ap = qc->ap;
- 	struct scatterlist *sg;
- 	unsigned int idx;
--
- 	struct nv_port_priv *pp = ap->private_data;
--
- 	struct ata_prd *prd;
- 
+@@ -2115,7 +2115,7 @@ static void nv_fill_sg(struct ata_queued
  	WARN_ON(qc->__sg == NULL);
-@@ -2194,11 +2192,10 @@ static unsigned int nv_qc_issue_prot(str
- {
- 	struct ata_port *ap = qc->ap;
- 	struct nv_port_priv *pp = ap->private_data;
--
- 	struct ata_taskfile	*tf = &(qc->tf);
- 	struct ata_taskfile *ttf, rtf;
--
- 	u32 fis, stat0, stat1;
-+
- 	ttf = &rtf;
+ 	WARN_ON(qc->n_elem == 0 && qc->pad_len == 0);
  
- 	if (qc->tf.protocol != ATA_PROT_NCQ)
-@@ -2338,32 +2335,29 @@ static void fis_dump(struct ata_port *ap
+-	prd = (struct ata_prd*)((u64)pp->prd + ATA_PRD_TBL_SZ*qc->tag);
++	prd = pp->prd + ATA_PRD_TBL_SZ*qc->tag;
  
- void ncq_hotplug(struct ata_port *ap, u32 fis)
- {
-+	u32 serror;
-+	struct ata_eh_info *ehi = &ap->eh_info;
- 
--		u32 serror;
--		struct ata_eh_info *ehi = &ap->eh_info;
-+	ata_ehi_clear_desc(ehi);
- 
--		ata_ehi_clear_desc(ehi);
--
--		/* AHCI needs SError cleared; otherwise, it might lock up */
--		sata_scr_read(ap, SCR_ERROR, &serror);
--		sata_scr_write(ap, SCR_ERROR, serror);
-+	/* AHCI needs SError cleared; otherwise, it might lock up */
-+	sata_scr_read(ap, SCR_ERROR, &serror);
-+	sata_scr_write(ap, SCR_ERROR, serror);
- 
--		/* analyze @irq_stat */
--		ata_ehi_push_desc(ehi, "fis_stat 0x%08x", fis);
-+	/* analyze @irq_stat */
-+	ata_ehi_push_desc(ehi, "fis_stat 0x%08x", fis);
- 
--		ata_ehi_hotplugged(ehi);
-+	ata_ehi_hotplugged(ehi);
- 
--		/* okay, let's hand over to EH */
--		ehi->serror |= serror;
-+	/* okay, let's hand over to EH */
-+	ehi->serror |= serror;
- 
--		ata_port_freeze(ap);
-+	ata_port_freeze(ap);
- }
- 
--
- static int ncq_interrupt(struct ata_port *ap, u32 fis)
- {
- 	struct nv_port_priv *pp = ap->private_data;
--
- 	u32 rc = 0;
- 	u32 tag;
- 	u8 ata_stat;
-@@ -2371,7 +2365,6 @@ static int ncq_interrupt(struct ata_port
- 	if (!fis)
- 		return 0;
- 
--
- 	ata_stat = ap->ops->check_status(ap);
- 
- 	ap->ops->irq_clear(ap); /* clear bm irq */
-@@ -2398,7 +2391,7 @@ static int ncq_interrupt(struct ata_port
- 		set_back_byte(pp, pp->current_tag);
- 		NPRINTK("BACK OUT FIS:%x \n", fis);
- 		rc = 1;
--	 } /* first handle back out */
-+	} /* first handle back out */
- 
- 	if (fis & NV_INT_SDBFIS_MCP55) {
- 		pp->ops->clear_singlefis(ap, NV_INT_SDBFIS_MCP55 | NV_INT_DEV_MCP55);
+ 	idx = 0;
+ 	ata_for_each_sg(sg, qc) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
