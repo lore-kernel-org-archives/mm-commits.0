@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ns16550a-restore-hs-settings-in-excr2-on-resume.patch added to -mm tree
-Date: Thu, 17 May 2007 12:34:12 -0700
-Message-ID: <200705171934.l4HJYC7O031185@shell0.pdx.osdl.net>
+Subject: + add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch added to -mm tree
+Date: Thu, 17 May 2007 12:40:35 -0700
+Message-ID: <200705171940.l4HJeZLp031286@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57384 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754478AbXEQTgg (ORCPT
+	by vger.kernel.org with ESMTP id S1756745AbXEQTnj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 15:36:36 -0400
+	Thu, 17 May 2007 15:43:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, alan@redhat.com, rmk@arm.linux.org.uk
+Cc: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com
 
 
 The patch titled
-     NS16550A: restore HS settings in EXCR2 on resume
+     Mark bio_alloc() allocations correctly
 has been added to the -mm tree.  Its filename is
-     ns16550a-restore-hs-settings-in-excr2-on-resume.patch
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NS16550A: restore HS settings in EXCR2 on resume
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: Mark bio_alloc() allocations correctly
+From: Mel Gorman <mel@csn.ul.ie>
 
-After a suspend/resume cycle, the UART may have been reset into low-speed
-mode -- either because it's actually been reset, or because the firmware
-pokes at the old-style divisor registers.  If we detected it as a NS16550A
-SuperIO chip in the first place and set baud_base to 921600, then we should
-do so again in the resume path.
+bio_alloc() currently uses __GFP_MOVABLE which is plain wrong.  Objects are
+allocated with that gfp mask via mempool.  The slab that is ultimatly used is
+not reclaimable or movable.
 
-This patch adds that code to serial8250_resume_port(), and also makes
-serial8250_resume() actually call serial8250_resume_port() for each port
-instead of just calling uart_resume_port() directly.  And thus fixes serial
-port operation after suspend/resume.
-
-It also fixes a bogus comment where we write the EXCR2 register with a
-comment saying /* EXCR1 */
-
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ fs/buffer.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250.c~ns16550a-restore-hs-settings-in-excr2-on-resume drivers/serial/8250.c
---- a/drivers/serial/8250.c~ns16550a-restore-hs-settings-in-excr2-on-resume
-+++ a/drivers/serial/8250.c
-@@ -894,7 +894,7 @@ static void autoconfig_16550a(struct uar
- 			quot = serial_dl_read(up);
- 			quot <<= 3;
+diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly fs/buffer.c
+--- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly
++++ a/fs/buffer.c
+@@ -2613,7 +2613,7 @@ int submit_bh(int rw, struct buffer_head
+ 	 * from here on down, it's all bio -- do the initial mapping,
+ 	 * submit_bio -> generic_make_request may further map this bio around
+ 	 */
+-	bio = bio_alloc(GFP_NOIO|__GFP_MOVABLE, 1);
++	bio = bio_alloc(GFP_NOIO, 1);
  
--			status1 = serial_in(up, 0x04); /* EXCR1 */
-+			status1 = serial_in(up, 0x04); /* EXCR2 */
- 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
- 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
- 			serial_outp(up, 0x04, status1);
-@@ -2622,7 +2622,22 @@ void serial8250_suspend_port(int line)
-  */
- void serial8250_resume_port(int line)
- {
--	uart_resume_port(&serial8250_reg, &serial8250_ports[line].port);
-+	struct uart_8250_port *up = &serial8250_ports[line];
-+
-+	if (up->capabilities & UART_NATSEMI) {
-+		unsigned char tmp;
-+
-+		/* Ensure it's still in high speed mode */
-+		serial_outp(up, UART_LCR, 0xE0);
-+
-+		tmp = serial_in(up, 0x04); /* EXCR2 */
-+		tmp &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
-+		tmp |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
-+		serial_outp(up, 0x04, tmp);
-+
-+		serial_outp(up, UART_LCR, 0);
-+	}
-+	uart_resume_port(&serial8250_reg, &up->port);
- }
- 
- /*
-@@ -2700,7 +2715,7 @@ static int serial8250_resume(struct plat
- 		struct uart_8250_port *up = &serial8250_ports[i];
- 
- 		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
--			uart_resume_port(&serial8250_reg, &up->port);
-+			serial8250_resume_port(i);
- 	}
- 
- 	return 0;
+ 	bio->bi_sector = bh->b_blocknr * (bh->b_size >> 9);
+ 	bio->bi_bdev = bh->b_bdev;
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-remove-slab_ctor_constructor.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
-git-ubi.patch
-git-battery.patch
-ns16550a-restore-hs-settings-in-excr2-on-resume.patch
-add-lzo1x-compression-support-to-the-kernel.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix-alloc_zeroed_user_highpage-on-m68knommu.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-anti-fragmentation-switch-over-to-pfn_valid_within.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
+do-not-annotate-shmem-allocations-explicitly.patch
+add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
+rename-gfp_high_movable-to-gfp_highuser_movable.patch
+mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
