@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-rdac_wr-barriers-clean-up.patch added to -mm tree
-Date: Thu, 17 May 2007 12:00:26 -0700
-Message-ID: <200705171900.l4HJ0QJk030585@shell0.pdx.osdl.net>
+Subject: + fbdev-cleanup-of-sparc-fb-options.patch added to -mm tree
+Date: Thu, 17 May 2007 12:00:23 -0700
+Message-ID: <200705171900.l4HJ0NBg030582@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48967 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754483AbXEQTCG (ORCPT
+	by vger.kernel.org with ESMTP id S1756634AbXEQTCK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 15:02:06 -0400
+	Thu, 17 May 2007 15:02:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     pm2fb: RDAC_WR barriers clean up
+     fbdev: cleanup of sparc FB options
 has been added to the -mm tree.  Its filename is
-     pm2fb-rdac_wr-barriers-clean-up.patch
+     fbdev-cleanup-of-sparc-fb-options.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,220 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: RDAC_WR barriers clean up
+Subject: fbdev: cleanup of sparc FB options
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch fixes a possible barriers problem in RDAC_WR functions, then remove
-redudant ones.
+This patch puts all SBUS/UPA selection under one option "SBUS/UPA
+framebuffers" and moves all sparc specific drivers next to them in one group.
 
-It also removes one unneeded register load from blitter function().
-
-Signed-off-by: Krzysztof.Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |   17 +++++------------
- 1 files changed, 5 insertions(+), 12 deletions(-)
+ drivers/video/Kconfig |  176 +++++++++++++++++++---------------------
+ 1 files changed, 86 insertions(+), 90 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-rdac_wr-barriers-clean-up drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-rdac_wr-barriers-clean-up
-+++ a/drivers/video/pm2fb.c
-@@ -183,15 +183,17 @@ static inline void pm2_RDAC_WR(struct pm
- 		index = PM2VR_RD_INDEXED_DATA;
- 		break;
- 	}	
--	mb();
-+	wmb();
- 	pm2_WR(p, index, v);
-+	wmb();
- }
+diff -puN drivers/video/Kconfig~fbdev-cleanup-of-sparc-fb-options drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-cleanup-of-sparc-fb-options
++++ a/drivers/video/Kconfig
+@@ -711,6 +711,91 @@ config FB_CG6
+ 	  This is the frame buffer device driver for the CGsix (GX, TurboGX)
+ 	  frame buffer.
  
- static inline void pm2v_RDAC_WR(struct pm2fb_par* p, s32 idx, u32 v)
- {
- 	pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
--	mb();
-+	wmb();
- 	pm2_WR(p, PM2VR_RD_INDEXED_DATA, v);
-+	wmb();
- }
++config FB_FFB
++	bool "Creator/Creator3D/Elite3D support"
++	depends on FB_SBUS && SPARC64
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the frame buffer device driver for the Creator, Creator3D,
++	  and Elite3D graphics boards.
++
++config FB_TCX
++	bool "TCX (SS4/SS5 only) support"
++	depends on FB_SBUS
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the frame buffer device driver for the TCX 24/8bit frame
++	  buffer.
++
++config FB_CG14
++	bool "CGfourteen (SX) support"
++	depends on FB_SBUS
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the frame buffer device driver for the CGfourteen frame
++	  buffer on Desktop SPARCsystems with the SX graphics option.
++
++config FB_P9100
++	bool "P9100 (Sparcbook 3 only) support"
++	depends on FB_SBUS
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the frame buffer device driver for the P9100 card
++	  supported on Sparcbook 3 machines.
++
++config FB_LEO
++	bool "Leo (ZX) support"
++	depends on FB_SBUS
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the frame buffer device driver for the SBUS-based Sun ZX
++	  (leo) frame buffer cards.
++
++config FB_IGA
++	bool "IGA 168x display support"
++	depends on FB && SPARC32
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the framebuffer device for the INTERGRAPHICS 1680 and
++	  successor frame buffer cards.
++
++config FB_XVR500
++	bool "Sun XVR-500 3DLABS Wildcat support"
++	depends on FB && PCI && SPARC64
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the framebuffer device for the Sun XVR-500 and similar
++	  graphics cards based upon the 3DLABS Wildcat chipset.  The driver
++	  only works on sparc64 systems where the system firwmare has
++	  mostly initialized the card already.  It is treated as a
++	  completely dumb framebuffer device.
++
++config FB_XVR2500
++	bool "Sun XVR-2500 3DLABS Wildcat support"
++	depends on FB && PCI && SPARC64
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	help
++	  This is the framebuffer device for the Sun XVR-2500 and similar
++	  graphics cards based upon the 3DLABS Wildcat chipset.  The driver
++	  only works on sparc64 systems where the system firwmare has
++	  mostly initialized the card already.  It is treated as a
++	  completely dumb framebuffer device.
++
+ config FB_PVR2
+ 	tristate "NEC PowerVR 2 display support"
+ 	depends on FB && SH_DREAMCAST
+@@ -1202,7 +1287,7 @@ config FB_ATY
+ config FB_ATY_CT
+ 	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support"
+ 	depends on PCI && FB_ATY
+-	default y if SPARC64 && FB_PCI
++	default y if SPARC64 && PCI
+ 	help
+ 	  Say Y here to support use of ATI's 64-bit Rage boards (or other
+ 	  boards based on the Mach64 CT, VT, GT, and LT chipsets) as a
+@@ -1491,95 +1576,6 @@ config FB_AU1200
  
- #ifdef CONFIG_FB_PM2_FIFO_DISCONNECT
-@@ -466,11 +468,9 @@ static void set_memclock(struct pm2fb_pa
- 		WAIT_FIFO(par, 8);
- 		pm2_WR(par, PM2VR_RD_INDEX_HIGH, PM2VI_RD_MCLK_CONTROL >> 8);
- 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 0);
--		wmb();
- 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_PRESCALE, m);
- 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_FEEDBACK, n);
- 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_POSTSCALE, p);
--		wmb();
- 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 1);
- 		rmb();
- 		for (i = 256;
-@@ -483,12 +483,9 @@ static void set_memclock(struct pm2fb_pa
- 		pm2_mnp(clk, &m, &n, &p);
- 		WAIT_FIFO(par, 10);
- 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 6);
--		wmb();
- 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_1, m);
- 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_2, n);
--		wmb();
- 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 8|p);
--		wmb();
- 		pm2_RDAC_RD(par, PM2I_RD_MEMORY_CLOCK_STATUS);
- 		rmb();
- 		for (i = 256;
-@@ -509,12 +506,9 @@ static void set_pixclock(struct pm2fb_pa
- 		pm2_mnp(clk, &m, &n, &p);
- 		WAIT_FIFO(par, 8);
- 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A3, 0);
--		wmb();
- 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A1, m);
- 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A2, n);
--		wmb();
- 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A3, 8|p);
--		wmb();
- 		pm2_RDAC_RD(par, PM2I_RD_PIXEL_CLOCK_STATUS);
- 		rmb();
- 		for (i = 256;
-@@ -1066,10 +1060,9 @@ static void pm2fb_block_op(struct fb_inf
+ source "drivers/video/geode/Kconfig"
  
- 	if (!w || !h)
- 		return;
--	WAIT_FIFO(par, 6);
-+	WAIT_FIFO(par, 5);
- 	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
- 		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
--	pm2_WR(par, PM2R_FB_PIXEL_OFFSET, 0);
- 	if (copy)
- 		pm2_WR(par, PM2R_FB_SOURCE_DELTA,
- 			((ysrc-y) & 0xfff) << 16 | ((xsrc-x) & 0xfff));
+-config FB_FFB
+-	bool "Creator/Creator3D/Elite3D support"
+-	depends on FB_SBUS && SPARC64
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the frame buffer device driver for the Creator, Creator3D,
+-	  and Elite3D graphics boards.
+-
+-config FB_TCX
+-	bool "TCX (SS4/SS5 only) support"
+-	depends on FB_SBUS
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the frame buffer device driver for the TCX 24/8bit frame
+-	  buffer.
+-
+-config FB_CG14
+-	bool "CGfourteen (SX) support"
+-	depends on FB_SBUS
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the frame buffer device driver for the CGfourteen frame
+-	  buffer on Desktop SPARCsystems with the SX graphics option.
+-
+-config FB_P9100
+-	bool "P9100 (Sparcbook 3 only) support"
+-	depends on FB_SBUS
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the frame buffer device driver for the P9100 card
+-	  supported on Sparcbook 3 machines.
+-
+-config FB_LEO
+-	bool "Leo (ZX) support"
+-	depends on FB_SBUS
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the frame buffer device driver for the SBUS-based Sun ZX
+-	  (leo) frame buffer cards.
+-
+-config FB_XVR500
+-	bool "Sun XVR-500 3DLABS Wildcat support"
+-	depends on (FB = y) && PCI && SPARC64
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the framebuffer device for the Sun XVR-500 and similar
+-	  graphics cards based upon the 3DLABS Wildcat chipset.  The driver
+-	  only works on sparc64 systems where the system firwmare has
+-	  mostly initialized the card already.  It is treated as a
+-	  completely dumb framebuffer device.
+-
+-config FB_XVR2500
+-	bool "Sun XVR-2500 3DLABS Wildcat support"
+-	depends on (FB = y) && PCI && SPARC64
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the framebuffer device for the Sun XVR-2500 and similar
+-	  graphics cards based upon the 3DLABS Wildcat chipset.  The driver
+-	  only works on sparc64 systems where the system firwmare has
+-	  mostly initialized the card already.  It is treated as a
+-	  completely dumb framebuffer device.
+-
+-config FB_PCI
+-	bool "PCI framebuffers"
+-	depends on (FB = y) && PCI && SPARC
+-
+-config FB_IGA
+-	bool "IGA 168x display support"
+-	depends on SPARC32 && FB_PCI
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the framebuffer device for the INTERGRAPHICS 1680 and
+-	  successor frame buffer cards.
+-
+ config FB_HIT
+ 	tristate "HD64461 Frame Buffer support"
+ 	depends on FB && HD64461
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
