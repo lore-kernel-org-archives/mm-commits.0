@@ -1,67 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch removed from -mm tree
-Date: Wed, 16 May 2007 21:39:10 -0700
-Message-ID: <200705170439.l4H4dD0x017240@shell0.pdx.osdl.net>
+Subject: - let-smp_call_function_single-return-ebusy-on-up-fix.patch removed from -mm tree
+Date: Wed, 16 May 2007 21:40:11 -0700
+Message-ID: <200705170440.l4H4eB0n017272@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39945 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755713AbXEQEk1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755695AbXEQEmI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 00:40:27 -0400
+	Thu, 17 May 2007 00:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-define-functions-for-cpu-slab-handling-instead-of-using-fix
+     let-smp_call_function_single-return-ebusy-on-up-fix
 has been removed from the -mm tree.  Its filename was
-     slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
+     let-smp_call_function_single-return-ebusy-on-up-fix.patch
 
-This patch was dropped because it was folded into slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
+This patch was dropped because it was folded into let-smp_call_function_single-return-ebusy-on-up.patch
 
 ------------------------------------------------------
-Subject: slub-define-functions-for-cpu-slab-handling-instead-of-using-fix
+Subject: let-smp_call_function_single-return-ebusy-on-up-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+In file included from arch/i386/mach-default/setup.c:5:
+include/linux/smp.h: In function 'smp_call_function_single':
+include/linux/smp.h:104: error: 'EBUSY' undeclared (first use in this function)
+include/linux/smp.h:104: error: (Each undeclared identifier is reported only once
+include/linux/smp.h:104: error: for each function it appears in.)
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/smp.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/slub.c~slub-define-functions-for-cpu-slab-handling-instead-of-using-fix mm/slub.c
---- a/mm/slub.c~slub-define-functions-for-cpu-slab-handling-instead-of-using-fix
-+++ a/mm/slub.c
-@@ -78,7 +78,7 @@
-  *
-  * Overloading of page flags that are otherwise used for LRU management.
-  *
-- * PageActive 		The slab is frozen and excempt from list processing.
-+ * PageActive 		The slab is frozen and exempt from list processing.
-  * 			This means that the slab is dedicated to a purpose
-  * 			such as satisfying allocations for a specific
-  * 			processor. Objects may be freed in the slab while
-@@ -111,7 +111,7 @@ static inline void SetSlabFrozen(struct 
+diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix include/linux/smp.h
+--- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up-fix
++++ a/include/linux/smp.h
+@@ -9,12 +9,15 @@
  
- static inline void ClearSlabFrozen(struct page *page)
- {
--	__ClearPageActive(page);
-+	ClearPageActive(page);
- }
+ extern void cpu_idle(void);
  
- static inline int SlabDebug(struct page *page)
++#include <linux/errno.h>
++
+ #ifdef CONFIG_SMP
+ 
+ #include <linux/preempt.h>
+ #include <linux/kernel.h>
+ #include <linux/compiler.h>
+ #include <linux/thread_info.h>
++
+ #include <asm/smp.h>
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
-slub-define-functions-for-cpu-slab-handling-instead-of-using-fix.patch
 slub-fix-handling-of-oversized-slabs.patch
 parport_pc-needs-dma-mappingh.patch
+let-smp_call_function_single-return-ebusy-on-up.patch
 let-smp_call_function_single-return-ebusy-on-up-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
