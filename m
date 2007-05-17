@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-kmalloc0-in-arch-ia64-pci-pcic.patch added to -mm tree
-Date: Thu, 17 May 2007 12:20:15 -0700
-Message-ID: <200705171920.l4HJKFAE030942@shell0.pdx.osdl.net>
+Subject: + x86-early_print-kernel-console-should-send-crlf-not-lfcr.patch added to -mm tree
+Date: Thu, 17 May 2007 12:21:47 -0700
+Message-ID: <200705171921.l4HJLlQe030976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58470 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40952 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755383AbXEQTWJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756745AbXEQTZg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 15:22:09 -0400
+	Thu, 17 May 2007 15:25:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, tony.luck@intel.com
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, rmk@arm.linux.org.uk, rmk@dyn-67.arm.linux.org.uk, yinghai.lu@Sun.COM
 
 
 The patch titled
-     fix kmalloc(0) in arch/ia64/pci/pci.c
+     x86: early_print kernel console should send CRLF not LFCR
 has been added to the -mm tree.  Its filename is
-     fix-kmalloc0-in-arch-ia64-pci-pcic.patch
+     x86-early_print-kernel-console-should-send-crlf-not-lfcr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix kmalloc(0) in arch/ia64/pci/pci.c
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: x86: early_print kernel console should send CRLF not LFCR
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Fix following kmalloc(0) message. patch is agaisnt 2.6.22-rc1-mm1.
+In
+	commit d358788f3f30113e49882187d794832905e42592
+	Author: Russell King <rmk@dyn-67.arm.linux.org.uk>
+	Date:   Mon Mar 20 20:00:09 2006 +0000
 
-==
-BUG: at mm/slab.c:792 __find_general_cachep()
+        Glen Turner reported that writing LFCR rather than the more
+        traditional CRLF causes issues with some terminals.
 
-Call Trace:
- [<a000000100013f20>] show_stack+0x40/0xa0
-                                sp=e000014042227b00 bsp=e000014042220f90
- [<a000000100013fb0>] dump_stack+0x30/0x60
-                                sp=e000014042227cd0 bsp=e000014042220f78
- [<a00000010014fe10>] kmem_find_general_cachep+0x90/0x140
-                                sp=e000014042227cd0 bsp=e000014042220f48
- [<a0000001001504f0>] __kmalloc_node+0x30/0xa0
-                                sp=e000014042227cd0 bsp=e000014042220f18
- [<a0000001004eb700>] pci_acpi_scan_root+0x180/0x4a0
-                                sp=e000014042227cd0 bsp=e000014042220ed0
- [<a000000100361140>] acpi_pci_root_add+0x4e0/0x700
-                                sp=e000014042227cf0 bsp=e000014042220e90
- [<a00000010035b240>] acpi_device_probe+0xa0/0x160
-                                sp=e000014042227d10 bsp=e000014042220e58
- [<a0000001003e4550>] driver_probe_device+0x250/0x380
-                                sp=e000014042227d10 bsp=e000014042220e18
- [<a0000001003e4900>] __driver_attach+0xc0/0x160
-                                sp=e000014042227d10 bsp=e000014042220de0
- [<a0000001003e2980>] bus_for_each_dev+0x80/0x100
-                                sp=e000014042227d10 bsp=e000014042220da8
- [<a0000001003e4120>] driver_attach+0x40/0x60
-                                sp=e000014042227d30 bsp=e000014042220d88
- [<a0000001003e3170>] bus_add_driver+0xf0/0x3c0
-                                sp=e000014042227d30 bsp=e000014042220d48
- [<a0000001003e4e00>] driver_register+0x140/0x160
-                                sp=e000014042227d30 bsp=e000014042220d28
- [<a00000010035ded0>] acpi_bus_register_driver+0x50/0x80
-                                sp=e000014042227d30 bsp=e000014042220d08
- [<a0000001007d6000>] acpi_pci_root_init+0x20/0x60
-                                sp=e000014042227d30 bsp=e000014042220cf0
- [<a0000001007a46b0>] kernel_init+0x450/0x7c0
-                                sp=e000014042227d30 bsp=e000014042220ca8
- [<a000000100012550>] kernel_thread_helper+0x30/0x60
-                                sp=e000014042227e30 bsp=e000014042220c80
- [<a0000001000090c0>] start_kernel_thread+0x20/0x40
-                                sp=e000014042227e30 bsp=e000014042220c80
-==
+        Since this aflicts many serial drivers, extract the common
+        code to a library function (uart_console_write) and arrange for each
+        driver to supply a "putchar" function.
 
-Fix kmalloc(0)
+but early_printk is left out.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/pci/pci.c |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/x86_64/kernel/early_printk.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/pci/pci.c~fix-kmalloc0-in-arch-ia64-pci-pcic arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~fix-kmalloc0-in-arch-ia64-pci-pcic
-+++ a/arch/ia64/pci/pci.c
-@@ -354,6 +354,8 @@ pci_acpi_scan_root(struct acpi_device *d
- 
- 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_window,
- 			&windows);
-+	if (!windows)
-+		goto out2;
- 	controller->window = kmalloc_node(sizeof(*controller->window) * windows,
- 			GFP_KERNEL, controller->node);
- 	if (!controller->window)
+diff -puN arch/x86_64/kernel/early_printk.c~x86-early_print-kernel-console-should-send-crlf-not-lfcr arch/x86_64/kernel/early_printk.c
+--- a/arch/x86_64/kernel/early_printk.c~x86-early_print-kernel-console-should-send-crlf-not-lfcr
++++ a/arch/x86_64/kernel/early_printk.c
+@@ -91,9 +91,9 @@ static int early_serial_putc(unsigned ch
+ static void early_serial_write(struct console *con, const char *s, unsigned n)
+ {
+ 	while (*s && n-- > 0) {
+-		early_serial_putc(*s);
+ 		if (*s == '\n')
+ 			early_serial_putc('\r');
++		early_serial_putc(*s);
+ 		s++;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-fix-kmalloc0-in-arch-ia64-pci-pcic.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-v6-zonelist-fix-2.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
+serial-set-dtr-in-uart-for-kernel-serial-console.patch
+x86-early_print-kernel-console-should-send-crlf-not-lfcr.patch
