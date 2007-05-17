@@ -1,150 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - git-ubi-fixup.patch removed from -mm tree
-Date: Wed, 16 May 2007 22:14:27 -0700
-Message-ID: <200705170514.l4H5ERdr017938@shell0.pdx.osdl.net>
+Subject: + slub-another-slabinfo-fix.patch added to -mm tree
+Date: Wed, 16 May 2007 22:38:33 -0700
+Message-ID: <200705170538.l4H5cWLM018285@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55392 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50275 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759317AbXEQFPy (ORCPT
+	by vger.kernel.org with ESMTP id S1756037AbXEQFjs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 01:15:54 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4H5GaIs026931
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 16 May 2007 22:17:10 -0700
+	Thu, 17 May 2007 01:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     git-ubi-fixup
-has been removed from the -mm tree.  Its filename was
-     git-ubi-fixup.patch
+     slub: another slabinfo fix
+has been added to the -mm tree.  Its filename is
+     slub-another-slabinfo-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-ubi-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slub: another slabinfo fix
+From: Christoph Lameter <clameter@sgi.com>
 
+The slab manipulation functions should not be triggered by slabs
+that are unresovable in the subset of slabs selected on the command line.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/eba.c |    3 ---
- 1 file changed, 3 deletions(-)
+ Documentation/vm/slabinfo.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/mtd/ubi/eba.c~git-ubi-fixup drivers/mtd/ubi/eba.c
---- a/drivers/mtd/ubi/eba.c~git-ubi-fixup
-+++ a/drivers/mtd/ubi/eba.c
-@@ -940,9 +940,6 @@ static void ltree_entry_ctor(void *obj, 
- {
- 	struct ltree_entry *le = obj;
+diff -puN Documentation/vm/slabinfo.c~slub-another-slabinfo-fix Documentation/vm/slabinfo.c
+--- a/Documentation/vm/slabinfo.c~slub-another-slabinfo-fix
++++ a/Documentation/vm/slabinfo.c
+@@ -262,11 +262,17 @@ void decode_numa_list(int *numa, char *t
  
--	if (flags & SLAB_CTOR_CONSTRUCTOR)
--		return;
--
- 	le->users = 0;
- 	init_rwsem(&le->mutex);
+ void slab_validate(struct slabinfo *s)
+ {
++	if (strcmp(s->name, "*") == 0)
++		return;
++
+ 	set_obj(s, "validate", 1);
  }
+ 
+ void slab_shrink(struct slabinfo *s)
+ {
++	if (strcmp(s->name, "*") == 0)
++		return;
++
+ 	set_obj(s, "shrink", 1);
+ }
+ 
+@@ -550,6 +556,9 @@ int slab_empty(struct slabinfo *s)
+ 
+ void slab_debug(struct slabinfo *s)
+ {
++	if (strcmp(s->name, "*") == 0)
++		return;
++
+ 	if (sanity && !s->sanity_checks) {
+ 		set_obj(s, "sanity", 1);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+slub-it-is-legit-to-allocate-a-slab-of-the-maximum-permitted-size.patch
+slub-dont-confuse-ctor-and-dtor.patch
+slab-allocators-drop-support-for-destructors.patch
+slub-remove-depends-on-experimental-and-arch_uses_slab_page_struct.patch
+slab-move-two-remaining-slab-specific-definitions-to-slab_defh.patch
+slub-define-functions-for-cpu-slab-handling-instead-of-using.patch
+slab-warn-on-zero-length-allocations.patch
 slub-fix-handling-of-oversized-slabs.patch
-parport_pc-needs-dma-mappingh.patch
-let-smp_call_function_single-return-ebusy-on-up.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-fix-agk-dm-dm-io-fix-panic-on-large-request.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-correct-a-wrong-free-function-for-sata_nv-driver-fix.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+slub-slabinfo-fixes.patch
+slub-do-our-own-flags-based-on-pg_active-and-pg_error.patch
+remove-slab_ctor_constructor.patch
+slub-simplify-debug-code.patch
+slab-allocators-define-common-size-limitations.patch
+fix-find_or_create_page-skips-cpuset-memory-spreading.patch
+i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
+fix-page-allocation-flags-in-grow_dev_page.patch
+slub-another-slabinfo-fix.patch
 git-ubi.patch
-git-ubi-fixup.patch
-git-battery.patch
-git-battery-warning-fix.patch
-ds2760_battery-warning-fix.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-xfs-clean-up-shrinker-games.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
+quicklist-support-for-x86_64.patch
 compat_core_sys_select-avoid-kmalloc0.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
 change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-check_dirty_inode_list.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code.patch
