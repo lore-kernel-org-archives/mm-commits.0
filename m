@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch added to -mm tree
-Date: Thu, 17 May 2007 12:41:29 -0700
-Message-ID: <200705171941.l4HJfT13031305@shell0.pdx.osdl.net>
+Subject: + group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch added to -mm tree
+Date: Thu, 17 May 2007 12:42:34 -0700
+Message-ID: <200705171942.l4HJgYtQ031325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47062 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754478AbXEQToZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755383AbXEQTpk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 15:44:25 -0400
+	Thu, 17 May 2007 15:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com
 
 
 The patch titled
-     Do not annotate shmem allocations explicitly
+     Add __GFP_TEMPORARY to identify allocations that are short-lived
 has been added to the -mm tree.  Its filename is
-     group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
+     group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,311 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Do not annotate shmem allocations explicitly
+Subject: Add __GFP_TEMPORARY to identify allocations that are short-lived
 From: Mel Gorman <mel@csn.ul.ie>
 
-shmem support allocates pages for two purposes.  Firstly, shmem_dir_alloc()
-allocates pages to track swap vectors.  These are not movable so this patch
-clears all mobility-flags related to the allocation.  Secondly,
-shmem_alloc_pages() allocates pages on behalf of shmem_getpage(), whose flags
-come from a file mapping which already sets the appropriate mobility flags. 
-These allocations do not need to be explicitly flagged so this patch removes
-the unnecessary annotations.
+Currently allocations that are short-lived or reclaimable by the kernel are
+grouped together by specifying __GFP_RECLAIMABLE in the GFP flags.  However,
+it is confusing when reading code to see a temporary allocation using
+__GFP_RECLAIMABLE when it is clearly not reclaimable.
 
+This patch adds __GFP_TEMPORARY, GFP_TEMPORARY and SLAB_TEMPORARY for
+temporary allocations.  The journal_handle, journal_head, revoke_table,
+revoke_record, skbuff_head_cache and skbuff_fclone_cache slabs are converted
+to use SLAB_TEMPORARY instead of flagging the allocation call-sites.  In the
+implementation, reclaimable and temporary allocations are grouped into the
+same blocks but this might change in the future.  This change makes call sites
+for temporary allocations clearer.  Not all temporary allocations were
+previously flagged.  This patch flags a few additional allocations
+appropriately.
+
+Note that some GFP_USER and GFP_KERNEL allocations are both changed to
+GFP_TEMPORARY.  The difference between GFP_USER and GFP_KERNEL is only in how
+cpuset boundaries are handled which is unimportant to temporary allocations.
+
+This patch can be considered as fix to
+group-short-lived-and-reclaimable-kernel-allocations.patch.
+
+Credit goes to Christoph Lameter for identifying the problems in relation to
+temporary allocations during review and providing an illustration-of-concept
+patch to act as a starting point.
+
+[clameter@sgi.com: patch framework]
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Andy Whitcroft <apw@shadowen.org>
 Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/block/acsi_slm.c |    2 +-
+ fs/jbd/journal.c         |   10 ++++------
+ fs/jbd/revoke.c          |   14 ++++++++------
+ fs/proc/base.c           |   12 ++++++------
+ fs/proc/generic.c        |    2 +-
+ include/linux/gfp.h      |    2 ++
+ include/linux/slab.h     |    4 +++-
+ kernel/cpuset.c          |    2 +-
+ mm/slub.c                |    2 +-
+ net/core/skbuff.c        |   19 +++++++++----------
+ 10 files changed, 36 insertions(+), 33 deletions(-)
 
-diff -puN mm/shmem.c~group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly mm/shmem.c
---- a/mm/shmem.c~group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly
-+++ a/mm/shmem.c
-@@ -95,9 +95,9 @@ static inline struct page *shmem_dir_all
- 	 * BLOCKS_PER_PAGE on indirect pages, assume PAGE_CACHE_SIZE:
- 	 * might be reconsidered if it ever diverges from PAGE_SIZE.
- 	 *
--	 * __GFP_MOVABLE is masked out as swap vectors cannot move
-+	 * Mobility flags are masked out as swap vectors cannot move
- 	 */
--	return alloc_pages((gfp_mask & ~__GFP_MOVABLE) | __GFP_ZERO,
-+	return alloc_pages((gfp_mask & ~GFP_MOVABLE_MASK) | __GFP_ZERO,
- 				PAGE_CACHE_SHIFT-PAGE_SHIFT);
- }
+diff -puN drivers/block/acsi_slm.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived drivers/block/acsi_slm.c
+--- a/drivers/block/acsi_slm.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/drivers/block/acsi_slm.c
+@@ -367,7 +367,7 @@ static ssize_t slm_read( struct file *fi
+ 	int length;
+ 	int end;
  
-@@ -1053,9 +1053,7 @@ shmem_alloc_page(gfp_t gfp, struct shmem
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
- 	pvma.vm_pgoff = idx;
- 	pvma.vm_end = PAGE_SIZE;
--	page = alloc_page_vma(
--			set_migrateflags(gfp | __GFP_ZERO, __GFP_RECLAIMABLE),
--								&pvma, 0);
-+	page = alloc_page_vma(gfp | __GFP_ZERO, &pvma, 0);
- 	mpol_free(pvma.vm_policy);
- 	return page;
- }
-@@ -1075,8 +1073,7 @@ shmem_swapin(struct shmem_inode_info *in
- static inline struct page *
- shmem_alloc_page(gfp_t gfp,struct shmem_inode_info *info, unsigned long idx)
- {
--	return alloc_page(
--			set_migrateflags(gfp | __GFP_ZERO, __GFP_RECLAIMABLE));
-+	return alloc_page(gfp | __GFP_ZERO);
- }
+-	if (!(page = __get_free_page( GFP_KERNEL )))
++	if (!(page = __get_free_page(GFP_TEMPORARY)))
+ 		return( -ENOMEM );
+ 	
+ 	length = slm_getstats( (char *)page, iminor(node) );
+diff -puN fs/jbd/journal.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived fs/jbd/journal.c
+--- a/fs/jbd/journal.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/fs/jbd/journal.c
+@@ -1710,7 +1710,7 @@ static int journal_init_journal_head_cac
+ 	journal_head_cache = kmem_cache_create("journal_head",
+ 				sizeof(struct journal_head),
+ 				0,		/* offset */
+-				0,		/* flags */
++				SLAB_TEMPORARY,	/* flags */
+ 				NULL,		/* ctor */
+ 				NULL);		/* dtor */
+ 	retval = 0;
+@@ -1739,8 +1739,7 @@ static struct journal_head *journal_allo
+ #ifdef CONFIG_JBD_DEBUG
+ 	atomic_inc(&nr_journal_heads);
  #endif
+-	ret = kmem_cache_alloc(journal_head_cache,
+-			set_migrateflags(GFP_NOFS, __GFP_RECLAIMABLE));
++	ret = kmem_cache_alloc(journal_head_cache, GFP_NOFS);
+ 	if (ret == 0) {
+ 		jbd_debug(1, "out of memory for journal_head\n");
+ 		if (time_after(jiffies, last_warning + 5*HZ)) {
+@@ -1750,8 +1749,7 @@ static struct journal_head *journal_allo
+ 		}
+ 		while (ret == 0) {
+ 			yield();
+-			ret = kmem_cache_alloc(journal_head_cache,
+-					GFP_NOFS|__GFP_RECLAIMABLE);
++			ret = kmem_cache_alloc(journal_head_cache, GFP_NOFS);
+ 		}
+ 	}
+ 	return ret;
+@@ -2009,7 +2007,7 @@ static int __init journal_init_handle_ca
+ 	jbd_handle_cache = kmem_cache_create("journal_handle",
+ 				sizeof(handle_t),
+ 				0,		/* offset */
+-				0,		/* flags */
++				SLAB_TEMPORARY,	/* flags */
+ 				NULL,		/* ctor */
+ 				NULL);		/* dtor */
+ 	if (jbd_handle_cache == NULL) {
+diff -puN fs/jbd/revoke.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/fs/jbd/revoke.c
+@@ -169,13 +169,17 @@ int __init journal_init_revoke_caches(vo
+ {
+ 	revoke_record_cache = kmem_cache_create("revoke_record",
+ 					   sizeof(struct jbd_revoke_record_s),
+-					   0, SLAB_HWCACHE_ALIGN, NULL, NULL);
++					   0,
++					   SLAB_HWCACHE_ALIGN|SLAB_TEMPORARY,
++					   NULL, NULL);
+ 	if (revoke_record_cache == 0)
+ 		return -ENOMEM;
  
+ 	revoke_table_cache = kmem_cache_create("revoke_table",
+ 					   sizeof(struct jbd_revoke_table_s),
+-					   0, 0, NULL, NULL);
++					   0,
++					   SLAB_TEMPORARY,
++					   NULL, NULL);
+ 	if (revoke_table_cache == 0) {
+ 		kmem_cache_destroy(revoke_record_cache);
+ 		revoke_record_cache = NULL;
+@@ -205,8 +209,7 @@ int journal_init_revoke(journal_t *journ
+ 	while((tmp >>= 1UL) != 0UL)
+ 		shift++;
+ 
+-	journal->j_revoke_table[0] = kmem_cache_alloc(revoke_table_cache,
+-					GFP_KERNEL|__GFP_RECLAIMABLE);
++	journal->j_revoke_table[0] = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
+ 	if (!journal->j_revoke_table[0])
+ 		return -ENOMEM;
+ 	journal->j_revoke = journal->j_revoke_table[0];
+@@ -229,8 +232,7 @@ int journal_init_revoke(journal_t *journ
+ 	for (tmp = 0; tmp < hash_size; tmp++)
+ 		INIT_LIST_HEAD(&journal->j_revoke->hash_table[tmp]);
+ 
+-	journal->j_revoke_table[1] = kmem_cache_alloc(revoke_table_cache,
+-					GFP_KERNEL|__GFP_RECLAIMABLE);
++	journal->j_revoke_table[1] = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
+ 	if (!journal->j_revoke_table[1]) {
+ 		kfree(journal->j_revoke_table[0]->hash_table);
+ 		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
+diff -puN fs/proc/base.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived fs/proc/base.c
+--- a/fs/proc/base.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/fs/proc/base.c
+@@ -487,7 +487,7 @@ static ssize_t proc_info_read(struct fil
+ 		count = PROC_BLOCK_SIZE;
+ 
+ 	length = -ENOMEM;
+-	if (!(page = __get_free_page(GFP_KERNEL|__GFP_RECLAIMABLE)))
++	if (!(page = __get_free_page(GFP_TEMPORARY)))
+ 		goto out;
+ 
+ 	length = PROC_I(inode)->op.proc_read(task, (char*)page);
+@@ -527,7 +527,7 @@ static ssize_t mem_read(struct file * fi
+ 		goto out;
+ 
+ 	ret = -ENOMEM;
+-	page = (char *)__get_free_page(GFP_USER);
++	page = (char *)__get_free_page(GFP_TEMPORARY);
+ 	if (!page)
+ 		goto out;
+ 
+@@ -597,7 +597,7 @@ static ssize_t mem_write(struct file * f
+ 		goto out;
+ 
+ 	copied = -ENOMEM;
+-	page = (char *)__get_free_page(GFP_USER|__GFP_RECLAIMABLE);
++	page = (char *)__get_free_page(GFP_TEMPORARY);
+ 	if (!page)
+ 		goto out;
+ 
+@@ -783,7 +783,7 @@ static ssize_t proc_loginuid_write(struc
+ 		/* No partial writes. */
+ 		return -EINVAL;
+ 	}
+-	page = (char*)__get_free_page(GFP_USER|__GFP_RECLAIMABLE);
++	page = (char*)__get_free_page(GFP_TEMPORARY);
+ 	if (!page)
+ 		return -ENOMEM;
+ 	length = -EFAULT;
+@@ -951,7 +951,7 @@ static int do_proc_readlink(struct dentr
+ 			    char __user *buffer, int buflen)
+ {
+ 	struct inode * inode;
+-	char *tmp = (char*)__get_free_page(GFP_KERNEL|__GFP_RECLAIMABLE);
++	char *tmp = (char*)__get_free_page(GFP_TEMPORARY);
+ 	char *path;
+ 	int len;
+ 
+@@ -1724,7 +1724,7 @@ static ssize_t proc_pid_attr_write(struc
+ 		goto out;
+ 
+ 	length = -ENOMEM;
+-	page = (char*)__get_free_page(GFP_USER|__GFP_RECLAIMABLE);
++	page = (char*)__get_free_page(GFP_TEMPORARY);
+ 	if (!page)
+ 		goto out;
+ 
+diff -puN fs/proc/generic.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived fs/proc/generic.c
+--- a/fs/proc/generic.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/fs/proc/generic.c
+@@ -73,7 +73,7 @@ proc_file_read(struct file *file, char _
+ 		nbytes = MAX_NON_LFS - pos;
+ 
+ 	dp = PDE(inode);
+-	if (!(page = (char*) __get_free_page(GFP_KERNEL|__GFP_RECLAIMABLE)))
++	if (!(page = (char*) __get_free_page(GFP_TEMPORARY)))
+ 		return -ENOMEM;
+ 
+ 	while ((nbytes > 0) && !eof) {
+diff -puN include/linux/gfp.h~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived include/linux/gfp.h
+--- a/include/linux/gfp.h~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/include/linux/gfp.h
+@@ -71,6 +71,8 @@ struct vm_area_struct;
+ #define GFP_NOIO	(__GFP_WAIT)
+ #define GFP_NOFS	(__GFP_WAIT | __GFP_IO)
+ #define GFP_KERNEL	(__GFP_WAIT | __GFP_IO | __GFP_FS)
++#define GFP_TEMPORARY	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
++			 __GFP_RECLAIMABLE)
+ #define GFP_USER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
+ #define GFP_HIGHUSER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL | \
+ 			 __GFP_HIGHMEM)
+diff -puN include/linux/slab.h~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived include/linux/slab.h
+--- a/include/linux/slab.h~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/include/linux/slab.h
+@@ -26,12 +26,14 @@ typedef struct kmem_cache kmem_cache_t _
+ #define SLAB_HWCACHE_ALIGN	0x00002000UL	/* Align objs on cache lines */
+ #define SLAB_CACHE_DMA		0x00004000UL	/* Use GFP_DMA memory */
+ #define SLAB_STORE_USER		0x00010000UL	/* DEBUG: Store the last owner for bug hunting */
+-#define SLAB_RECLAIM_ACCOUNT	0x00020000UL	/* Objects are reclaimable */
+ #define SLAB_PANIC		0x00040000UL	/* Panic if kmem_cache_create() fails */
+ #define SLAB_DESTROY_BY_RCU	0x00080000UL	/* Defer freeing slabs to RCU */
+ #define SLAB_MEM_SPREAD		0x00100000UL	/* Spread some memory over cpuset */
+ #define SLAB_TRACE		0x00200000UL	/* Trace allocations and frees */
+ 
++/* The following flags affect the page allocator grouping pages by mobility */
++#define SLAB_RECLAIM_ACCOUNT	0x00020000UL		/* Objects are reclaimable */
++#define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
+ /*
+  * struct kmem_cache related prototypes
+  */
+diff -puN kernel/cpuset.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived kernel/cpuset.c
+--- a/kernel/cpuset.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/kernel/cpuset.c
+@@ -1445,7 +1445,7 @@ static ssize_t cpuset_common_file_read(s
+ 	ssize_t retval = 0;
+ 	char *s;
+ 
+-	if (!(page = (char *)__get_free_page(GFP_KERNEL)))
++	if (!(page = (char *)__get_free_page(GFP_TEMPORARY)))
+ 		return -ENOMEM;
+ 
+ 	s = page;
+diff -puN mm/slub.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived mm/slub.c
+--- a/mm/slub.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/mm/slub.c
+@@ -2840,7 +2840,7 @@ static int alloc_loc_track(struct loc_tr
+ 
+ 	order = get_order(sizeof(struct location) * max);
+ 
+-	l = (void *)__get_free_pages(GFP_KERNEL, order);
++	l = (void *)__get_free_pages(GFP_TEMPORARY, order);
+ 
+ 	if (!l)
+ 		return 0;
+diff -puN net/core/skbuff.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived net/core/skbuff.c
+--- a/net/core/skbuff.c~group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived
++++ a/net/core/skbuff.c
+@@ -152,7 +152,6 @@ struct sk_buff *__alloc_skb(unsigned int
+ 	u8 *data;
+ 
+ 	cache = fclone ? skbuff_fclone_cache : skbuff_head_cache;
+-	gfp_mask = set_migrateflags(gfp_mask, __GFP_RECLAIMABLE);
+ 
+ 	/* Get the HEAD */
+ 	skb = kmem_cache_alloc_node(cache, gfp_mask & ~__GFP_DMA, node);
+@@ -2002,16 +2001,16 @@ EXPORT_SYMBOL_GPL(skb_segment);
+ void __init skb_init(void)
+ {
+ 	skbuff_head_cache = kmem_cache_create("skbuff_head_cache",
+-					      sizeof(struct sk_buff),
+-					      0,
+-					      SLAB_HWCACHE_ALIGN|SLAB_PANIC,
+-					      NULL, NULL);
++				sizeof(struct sk_buff),
++				0,
++				SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_TEMPORARY,
++				NULL, NULL);
+ 	skbuff_fclone_cache = kmem_cache_create("skbuff_fclone_cache",
+-						(2*sizeof(struct sk_buff)) +
+-						sizeof(atomic_t),
+-						0,
+-						SLAB_HWCACHE_ALIGN|SLAB_PANIC,
+-						NULL, NULL);
++				(2*sizeof(struct sk_buff)) +
++				sizeof(atomic_t),
++				0,
++				SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_TEMPORARY,
++				NULL, NULL);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -101,6 +350,7 @@ group-short-lived-and-reclaimable-kernel-allocations.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
 group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
+group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
 group-high-order-atomic-allocations.patch
 do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
 bias-the-placement-of-kernel-pages-at-lower-pfns.patch
@@ -110,7 +360,6 @@ bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pa
 remove-page_group_by_mobility.patch
 dont-group-high-order-atomic-allocations.patch
 dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
 rename-gfp_high_movable-to-gfp_highuser_movable.patch
 mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
 remove-alloc_zeroed_user_highpage.patch
