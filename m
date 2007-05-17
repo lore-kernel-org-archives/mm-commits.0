@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mismatching-declarations-of-revision-strings-in-hisax.patch added to -mm tree
-Date: Thu, 17 May 2007 15:29:26 -0700
-Message-ID: <200705172229.l4HMTQXI002003@shell0.pdx.osdl.net>
+Subject: + missing-const-from-reiserfs-min_key-declaration.patch added to -mm tree
+Date: Thu, 17 May 2007 15:29:56 -0700
+Message-ID: <200705172229.l4HMTu17002011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756132AbXEQWal (ORCPT
+	by vger.kernel.org with ESMTP id S1756784AbXEQWbX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 18:30:41 -0400
+	Thu, 17 May 2007 18:31:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dwmw2@infradead.org
 
 
 The patch titled
-     Mismatching declarations of revision strings in HiSax
+     Missing 'const' from reiserfs MIN_KEY declaration.
 has been added to the -mm tree.  Its filename is
-     mismatching-declarations-of-revision-strings-in-hisax.patch
+     missing-const-from-reiserfs-min_key-declaration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Mismatching declarations of revision strings in HiSax
+Subject: Missing 'const' from reiserfs MIN_KEY declaration.
 From: David Woodhouse <dwmw2@infradead.org>
 
-The {l1,l2,l3,lli,tei}_revision strings in the HiSax driver are 'const',
-but have a mismatching declaration as 'extern char *' in config.c.
+In stree.c, MIN_KEY is declared const. The extern declaration in dir.c
+doesn't match...
 
 Signed-off-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/config.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ fs/reiserfs/dir.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hisax/config.c~mismatching-declarations-of-revision-strings-in-hisax drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~mismatching-declarations-of-revision-strings-in-hisax
-+++ a/drivers/isdn/hisax/config.c
-@@ -361,11 +361,11 @@ module_param_array(io1, int, NULL, 0);
+diff -puN fs/reiserfs/dir.c~missing-const-from-reiserfs-min_key-declaration fs/reiserfs/dir.c
+--- a/fs/reiserfs/dir.c~missing-const-from-reiserfs-min_key-declaration
++++ a/fs/reiserfs/dir.c
+@@ -10,7 +10,7 @@
+ #include <linux/buffer_head.h>
+ #include <asm/uaccess.h>
  
- int nrcards;
+-extern struct reiserfs_key MIN_KEY;
++extern const struct reiserfs_key MIN_KEY;
  
--extern char *l1_revision;
--extern char *l2_revision;
--extern char *l3_revision;
--extern char *lli_revision;
--extern char *tei_revision;
-+extern const char *l1_revision;
-+extern const char *l2_revision;
-+extern const char *l3_revision;
-+extern const char *lli_revision;
-+extern const char *tei_revision;
- 
- char *HiSax_getrev(const char *revision)
- {
+ static int reiserfs_readdir(struct file *, void *, filldir_t);
+ static int reiserfs_dir_fsync(struct file *filp, struct dentry *dentry,
 _
 
 Patches currently in -mm which might be from dwmw2@infradead.org are
@@ -72,6 +64,7 @@ git-ubi.patch
 fix-incorrect-prototype-for-ipxrtr_route_packet.patch
 git-battery.patch
 ns16550a-restore-hs-settings-in-excr2-on-resume.patch
+missing-const-from-reiserfs-min_key-declaration.patch
 add-lzo1x-compression-support-to-the-kernel.patch
 add-lzo1x-compression-support-to-the-kernel-fix.patch
 mismatching-declarations-of-revision-strings-in-hisax.patch
