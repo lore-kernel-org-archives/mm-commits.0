@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-pci_drivershutdown-while-device-is-still-active.patch added to -mm tree
-Date: Thu, 17 May 2007 15:15:31 -0700
-Message-ID: <200705172215.l4HMFVWI001765@shell0.pdx.osdl.net>
+Subject: + fix-incorrect-prototype-for-ipxrtr_route_packet.patch added to -mm tree
+Date: Thu, 17 May 2007 15:27:59 -0700
+Message-ID: <200705172227.l4HMRx4v001991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46023 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759637AbXEQWTe (ORCPT
+	by vger.kernel.org with ESMTP id S1756665AbXEQW3N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 18:19:34 -0400
+	Thu, 17 May 2007 18:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gbritton@alum.mit.edu, mike.miller@hp.com, stable@kernel.org
+Cc: dwmw2@infradead.org
 
 
 The patch titled
-     cciss: fix pci_driver.shutdown while device is still active
+     Fix incorrect prototype for ipxrtr_route_packet()
 has been added to the -mm tree.  Its filename is
-     cciss-fix-pci_drivershutdown-while-device-is-still-active.patch
+     fix-incorrect-prototype-for-ipxrtr_route_packet.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,106 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cciss: fix pci_driver.shutdown while device is still active
-From: Gerald Britton <gbritton@alum.mit.edu>
+Subject: Fix incorrect prototype for ipxrtr_route_packet()
+From: David Woodhouse <dwmw2@infradead.org>
 
-Fix an Oops in the cciss driver caused by system shutdown while a
-filesystem on a cciss device is still active.  The cciss_remove_one
-function only properly removes the device if the device has been cleanly
-released by its users, which is not the case when the pci_driver.shutdown
-method is called.
+The function ipxrtr_route_packet() takes a 'len' argument of type size_t. 
+However, its prototype in af_ipx.c incorrectly suggests that the
+corresponding argument is of type 'int' instead.
 
-This patch adds a new cciss_shutdown function to better match the pattern
-used by various SCSI drivers: deactivate device interrupts and flush
-caches.  It also alters the cciss_remove_one function to match and readds
-the __devexit annotation that was removed when cciss_remove_one was serving
-as the pci_driver.shutdown method.
+Discovered by building with --combine and letting the compiler see it all
+at once.
 
-Signed-off-by: Gerald Britton <gbritton@alum.mit.edu>
-Acked-by: Mike Miller <mike.miller@hp.com>
-Cc: <stable@kernel.org>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   45 ++++++++++++++++++++++++++--------------
- 1 files changed, 30 insertions(+), 15 deletions(-)
+ net/ipx/af_ipx.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-pci_drivershutdown-while-device-is-still-active drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-pci_drivershutdown-while-device-is-still-active
-+++ a/drivers/block/cciss.c
-@@ -3469,13 +3469,39 @@ static int __devinit cciss_init_one(stru
- 	return -1;
- }
- 
--static void cciss_remove_one(struct pci_dev *pdev)
-+static void cciss_shutdown(struct pci_dev *pdev)
- {
- 	ctlr_info_t *tmp_ptr;
--	int i, j;
-+	int i;
- 	char flush_buf[4];
- 	int return_code;
- 
-+	tmp_ptr = pci_get_drvdata(pdev);
-+	if (tmp_ptr == NULL)
-+		return;
-+	i = tmp_ptr->ctlr;
-+	if (hba[i] == NULL)
-+		return;
-+
-+	/* Turn board interrupts off  and send the flush cache command */
-+	/* sendcmd will turn off interrupt, and send the flush...
-+	 * To write all data in the battery backed cache to disks */
-+	memset(flush_buf, 0, 4);
-+	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
-+			      TYPE_CMD);
-+	if (return_code == IO_OK) {
-+		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
-+	} else {
-+		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
-+	}
-+	free_irq(hba[i]->intr[2], hba[i]);
-+}
-+
-+static void __devexit cciss_remove_one(struct pci_dev *pdev)
-+{
-+	ctlr_info_t *tmp_ptr;
-+	int i, j;
-+
- 	if (pci_get_drvdata(pdev) == NULL) {
- 		printk(KERN_ERR "cciss: Unable to remove device \n");
- 		return;
-@@ -3506,18 +3532,7 @@ static void cciss_remove_one(struct pci_
- 
- 	cciss_unregister_scsi(i);	/* unhook from SCSI subsystem */
- 
--	/* Turn board interrupts off  and send the flush cache command */
--	/* sendcmd will turn off interrupt, and send the flush...
--	 * To write all data in the battery backed cache to disks */
--	memset(flush_buf, 0, 4);
--	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
--			      TYPE_CMD);
--	if (return_code == IO_OK) {
--		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
--	} else {
--		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
--	}
--	free_irq(hba[i]->intr[2], hba[i]);
-+	cciss_shutdown(pdev);
- 
- #ifdef CONFIG_PCI_MSI
- 	if (hba[i]->msix_vector)
-@@ -3550,7 +3565,7 @@ static struct pci_driver cciss_pci_drive
- 	.probe = cciss_init_one,
- 	.remove = __devexit_p(cciss_remove_one),
- 	.id_table = cciss_pci_device_id,	/* id_table */
--	.shutdown = cciss_remove_one,
-+	.shutdown = cciss_shutdown,
- };
- 
- /*
+diff -puN net/ipx/af_ipx.c~fix-incorrect-prototype-for-ipxrtr_route_packet net/ipx/af_ipx.c
+--- a/net/ipx/af_ipx.c~fix-incorrect-prototype-for-ipxrtr_route_packet
++++ a/net/ipx/af_ipx.c
+@@ -87,7 +87,7 @@ extern int ipxrtr_add_route(__be32 netwo
+ 			    unsigned char *node);
+ extern void ipxrtr_del_routes(struct ipx_interface *intrfc);
+ extern int ipxrtr_route_packet(struct sock *sk, struct sockaddr_ipx *usipx,
+-			       struct iovec *iov, int len, int noblock);
++			       struct iovec *iov, size_t len, int noblock);
+ extern int ipxrtr_route_skb(struct sk_buff *skb);
+ extern struct ipx_route *ipxrtr_lookup(__be32 net);
+ extern int ipxrtr_ioctl(unsigned int cmd, void __user *arg);
 _
 
-Patches currently in -mm which might be from gbritton@alum.mit.edu are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
-cciss-fix-pci_drivershutdown-while-device-is-still-active.patch
+remove-slab_ctor_constructor.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+git-ubi.patch
+fix-incorrect-prototype-for-ipxrtr_route_packet.patch
+git-battery.patch
+ns16550a-restore-hs-settings-in-excr2-on-resume.patch
+add-lzo1x-compression-support-to-the-kernel.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
