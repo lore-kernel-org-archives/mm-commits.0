@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-set-dtr-in-uart-for-kernel-serial-console.patch added to -mm tree
-Date: Thu, 17 May 2007 11:33:52 -0700
-Message-ID: <200705171833.l4HIXrh9030072@shell0.pdx.osdl.net>
+Subject: + prohibit-rcutorture-from-being-compiled-into-the-kernel.patch added to -mm tree
+Date: Thu, 17 May 2007 11:35:03 -0700
+Message-ID: <200705171835.l4HIZ3hf030109@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44698 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754439AbXEQSiv (ORCPT
+	by vger.kernel.org with ESMTP id S1755399AbXEQSip (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 14:38:51 -0400
+	Thu, 17 May 2007 14:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
+Cc: paulmck@linux.vnet.ibm.com, josh@kernel.org, rdunlap@xenotime.net
 
 
 The patch titled
-     serial: set DTR in uart for kernel serial console
+     prohibit rcutorture from being compiled into the kernel
 has been added to the -mm tree.  Its filename is
-     serial-set-dtr-in-uart-for-kernel-serial-console.patch
+     prohibit-rcutorture-from-being-compiled-into-the-kernel.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: set DTR in uart for kernel serial console
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: prohibit rcutorture from being compiled into the kernel
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-Some UARTs on other side need host uart DTR is set, otherwise will not
-receive char from the host that kernel is runing during kernel boot stage.
+There have been a number of instances where people have accidentally compiled
+rcutorture into the kernel (CONFIG_RCU_TORTURE_TEST=y), which has never been
+useful, and has often resulted in great frustration.  The attached patch
+prohibits rcutorture from being compiled into the kernel.  It may be excluded
+altogether or compiled as a module.  People wishing to have rcutorture hammer
+their machine immediately upon boot are free to hand-edit lib/Kconfig.debug to
+remove the "depends on m" line.
 
-BTW: earlyprintk and early_uart are hard coded to set DTR/RTS.
+Thanks to Randy Dunlap for the trick that makes this work.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Josh Triplett <josh@kernel.org>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ lib/Kconfig.debug |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-set-dtr-in-uart-for-kernel-serial-console drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-set-dtr-in-uart-for-kernel-serial-console
-+++ a/drivers/serial/8250.c
-@@ -2397,6 +2397,11 @@ static void __init serial8250_isa_init_p
- 		up->mcr_force = ALPHA_KLUDGE_MCR;
+diff -puN lib/Kconfig.debug~prohibit-rcutorture-from-being-compiled-into-the-kernel lib/Kconfig.debug
+--- a/lib/Kconfig.debug~prohibit-rcutorture-from-being-compiled-into-the-kernel
++++ a/lib/Kconfig.debug
+@@ -396,14 +396,13 @@ config FORCED_INLINING
+ config RCU_TORTURE_TEST
+ 	tristate "torture tests for RCU"
+ 	depends on DEBUG_KERNEL
++	depends on m
+ 	default n
+ 	help
+ 	  This option provides a kernel module that runs torture tests
+ 	  on the RCU infrastructure.  The kernel module may be built
+ 	  after the fact on the running kernel to be tested, if desired.
  
- 		up->port.ops = &serial8250_pops;
-+
-+		/* some uarts on other side don't support no flow control. So we set
-+		 * DTR in host uart to make them happy  --- YHLU
-+		 */
-+		up->port.mctrl |= TIOCM_DTR;
- 	}
+-	  Say Y here if you want RCU torture tests to start automatically
+-	  at boot time (you probably don't).
+ 	  Say M if you want the RCU torture tests to build as a module.
+ 	  Say N if you are unsure.
  
- 	for (i = 0, up = serial8250_ports;
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
-serial-set-dtr-in-uart-for-kernel-serial-console.patch
+prohibit-rcutorture-from-being-compiled-into-the-kernel.patch
