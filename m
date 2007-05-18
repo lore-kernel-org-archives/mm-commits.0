@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + make-atm-driver-use-seq_list_xxx-helpers.patch added to -mm tree
-Date: Fri, 18 May 2007 10:37:38 -0700
-Message-ID: <200705181737.l4IHbceQ019851@shell0.pdx.osdl.net>
+Subject: + make-afs-use-seq_list_xxx-helpers.patch added to -mm tree
+Date: Fri, 18 May 2007 10:37:36 -0700
+Message-ID: <200705181737.l4IHbavQ019848@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:50086 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:42704 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753152AbXERRkv (ORCPT
+	by vger.kernel.org with ESMTP id S1754136AbXERRk4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 13:40:51 -0400
+	Fri, 18 May 2007 13:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@sw.ru, xemul@openvz.org
 
 
 The patch titled
-     Make ATM driver use seq_list_xxx helpers
+     Make AFS use seq_list_xxx helpers
 has been added to the -mm tree.  Its filename is
-     make-atm-driver-use-seq_list_xxx-helpers.patch
+     make-afs-use-seq_list_xxx-helpers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,194 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make ATM driver use seq_list_xxx helpers
+Subject: Make AFS use seq_list_xxx helpers
 From: Pavel Emelianov <xemul@sw.ru>
 
-The .show callback receives the list_head pointer now, not the struct
-br2684_dev one.
+These proc files show some header before dumping the list, so the
+seq_list_start_head() is used.
 
 Signed-off-by: Pavel Emelianov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/atm/br2684.c |   22 ++++------------------
- 1 files changed, 4 insertions(+), 18 deletions(-)
+ fs/afs/proc.c |   81 ++++++------------------------------------------
+ 1 files changed, 11 insertions(+), 70 deletions(-)
 
-diff -puN net/atm/br2684.c~make-atm-driver-use-seq_list_xxx-helpers net/atm/br2684.c
---- a/net/atm/br2684.c~make-atm-driver-use-seq_list_xxx-helpers
-+++ a/net/atm/br2684.c
-@@ -699,28 +699,13 @@ static struct atm_ioctl br2684_ioctl_ops
- #ifdef CONFIG_PROC_FS
- static void *br2684_seq_start(struct seq_file *seq, loff_t *pos)
+diff -puN fs/afs/proc.c~make-afs-use-seq_list_xxx-helpers fs/afs/proc.c
+--- a/fs/afs/proc.c~make-afs-use-seq_list_xxx-helpers
++++ a/fs/afs/proc.c
+@@ -200,23 +200,9 @@ static int afs_proc_cells_open(struct in
+  */
+ static void *afs_proc_cells_start(struct seq_file *m, loff_t *_pos)
  {
--	loff_t offs = 0;
--	struct br2684_dev *brd;
+-	struct list_head *_p;
+-	loff_t pos = *_pos;
 -
- 	read_lock(&devs_lock);
+ 	/* lock the list against modification */
+ 	down_read(&afs_proc_cells_sem);
 -
--	list_for_each_entry(brd, &br2684_devs, br2684_devs) {
--		if (offs == *pos)
--			return brd;
--		++offs;
--	}
--	return NULL;
-+	return seq_list_start(&br2684_devs, *pos);
+-	/* allow for the header line */
+-	if (!pos)
+-		return (void *) 1;
+-	pos--;
+-
+-	/* find the n'th element in the list */
+-	list_for_each(_p, &afs_proc_cells)
+-		if (!pos--)
+-			break;
+-
+-	return _p != &afs_proc_cells ? _p : NULL;
++	return seq_list_start_head(&afs_proc_cells, *_pos);
  }
  
- static void *br2684_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ /*
+@@ -224,14 +210,7 @@ static void *afs_proc_cells_start(struct
+  */
+ static void *afs_proc_cells_next(struct seq_file *p, void *v, loff_t *pos)
  {
--	struct br2684_dev *brd = v;
+-	struct list_head *_p;
 -
--	++*pos;
+-	(*pos)++;
 -
--	brd = list_entry(brd->br2684_devs.next,
--			 struct br2684_dev, br2684_devs);
--	return (&brd->br2684_devs != &br2684_devs) ? brd : NULL;
-+	return seq_list_next(v, &br2684_devs, pos);
+-	_p = v;
+-	_p = v == (void *) 1 ? afs_proc_cells.next : _p->next;
+-
+-	return _p != &afs_proc_cells ? _p : NULL;
++	return seq_list_next(v, &afs_proc_cells, pos);
  }
  
- static void br2684_seq_stop(struct seq_file *seq, void *v)
-@@ -730,7 +715,8 @@ static void br2684_seq_stop(struct seq_f
- 
- static int br2684_seq_show(struct seq_file *seq, void *v)
+ /*
+@@ -249,7 +228,7 @@ static int afs_proc_cells_show(struct se
  {
--	const struct br2684_dev *brdev = v;
-+	const struct br2684_dev *brdev = list_entry(v, struct br2684_dev,
-+			br2684_devs);
- 	const struct net_device *net_dev = brdev->net_dev;
- 	const struct br2684_vcc *brvcc;
+ 	struct afs_cell *cell = list_entry(v, struct afs_cell, proc_link);
  
+-	if (v == (void *) 1) {
++	if (v == &afs_proc_cells) {
+ 		/* display header on line 1 */
+ 		seq_puts(m, "USE NAME\n");
+ 		return 0;
+@@ -502,26 +481,13 @@ static int afs_proc_cell_volumes_release
+  */
+ static void *afs_proc_cell_volumes_start(struct seq_file *m, loff_t *_pos)
+ {
+-	struct list_head *_p;
+ 	struct afs_cell *cell = m->private;
+-	loff_t pos = *_pos;
+ 
+ 	_enter("cell=%p pos=%Ld", cell, *_pos);
+ 
+ 	/* lock the list against modification */
+ 	down_read(&cell->vl_sem);
+-
+-	/* allow for the header line */
+-	if (!pos)
+-		return (void *) 1;
+-	pos--;
+-
+-	/* find the n'th element in the list */
+-	list_for_each(_p, &cell->vl_list)
+-		if (!pos--)
+-			break;
+-
+-	return _p != &cell->vl_list ? _p : NULL;
++	return seq_list_start_head(&cell->vl_list, *_pos);
+ }
+ 
+ /*
+@@ -530,17 +496,10 @@ static void *afs_proc_cell_volumes_start
+ static void *afs_proc_cell_volumes_next(struct seq_file *p, void *v,
+ 					loff_t *_pos)
+ {
+-	struct list_head *_p;
+ 	struct afs_cell *cell = p->private;
+ 
+ 	_enter("cell=%p pos=%Ld", cell, *_pos);
+-
+-	(*_pos)++;
+-
+-	_p = v;
+-	_p = (v == (void *) 1) ? cell->vl_list.next : _p->next;
+-
+-	return (_p != &cell->vl_list) ? _p : NULL;
++	return seq_list_next(v, &cell->vl_list, _pos);
+ }
+ 
+ /*
+@@ -568,11 +527,12 @@ const char afs_vlocation_states[][4] = {
+  */
+ static int afs_proc_cell_volumes_show(struct seq_file *m, void *v)
+ {
++	struct afs_cell *cell = m->private;
+ 	struct afs_vlocation *vlocation =
+ 		list_entry(v, struct afs_vlocation, link);
+ 
+ 	/* display header on line 1 */
+-	if (v == (void *) 1) {
++	if (v == &cell->vl_list) {
+ 		seq_puts(m, "USE STT VLID[0]  VLID[1]  VLID[2]  NAME\n");
+ 		return 0;
+ 	}
+@@ -733,26 +693,13 @@ static int afs_proc_cell_servers_release
+ static void *afs_proc_cell_servers_start(struct seq_file *m, loff_t *_pos)
+ 	__acquires(m->private->servers_lock)
+ {
+-	struct list_head *_p;
+ 	struct afs_cell *cell = m->private;
+-	loff_t pos = *_pos;
+ 
+ 	_enter("cell=%p pos=%Ld", cell, *_pos);
+ 
+ 	/* lock the list against modification */
+ 	read_lock(&cell->servers_lock);
+-
+-	/* allow for the header line */
+-	if (!pos)
+-		return (void *) 1;
+-	pos--;
+-
+-	/* find the n'th element in the list */
+-	list_for_each(_p, &cell->servers)
+-		if (!pos--)
+-			break;
+-
+-	return _p != &cell->servers ? _p : NULL;
++	return seq_list_start_head(&cell->servers, *_pos);
+ }
+ 
+ /*
+@@ -761,17 +708,10 @@ static void *afs_proc_cell_servers_start
+ static void *afs_proc_cell_servers_next(struct seq_file *p, void *v,
+ 					loff_t *_pos)
+ {
+-	struct list_head *_p;
+ 	struct afs_cell *cell = p->private;
+ 
+ 	_enter("cell=%p pos=%Ld", cell, *_pos);
+-
+-	(*_pos)++;
+-
+-	_p = v;
+-	_p = v == (void *) 1 ? cell->servers.next : _p->next;
+-
+-	return _p != &cell->servers ? _p : NULL;
++	return seq_list_next(v, &cell->servers, _pos);
+ }
+ 
+ /*
+@@ -790,11 +730,12 @@ static void afs_proc_cell_servers_stop(s
+  */
+ static int afs_proc_cell_servers_show(struct seq_file *m, void *v)
+ {
++	struct afs_cell *cell = m->private;
+ 	struct afs_server *server = list_entry(v, struct afs_server, link);
+ 	char ipaddr[20];
+ 
+ 	/* display header on line 1 */
+-	if (v == (void *) 1) {
++	if (v == &cell->servers) {
+ 		seq_puts(m, "USE ADDR            STATE\n");
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from xemul@sw.ru are
