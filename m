@@ -1,94 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-use-zero_user_page.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:37 -0700
-Message-ID: <200705180706.l4I76axP010193@shell0.pdx.osdl.net>
+Subject: - parport-mailing-list-is-subscribers-only.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:21 -0700
+Message-ID: <200705180706.l4I76Kbn010169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59219 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761986AbXERHIs (ORCPT
+	by vger.kernel.org with ESMTP id S1761063AbXERHIj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:08:48 -0400
+	Fri, 18 May 2007 03:08:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nate.diller@gmail.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: use zero_user_page
+     parport: mailing list is subscribers-only
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-use-zero_user_page.patch
+     parport-mailing-list-is-subscribers-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ecryptfs: use zero_user_page
-From: Nate Diller <nate.diller@gmail.com>
+Subject: parport: mailing list is subscribers-only
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use zero_user_page() instead of open-coding it.
+linux-parport is subscribers-only:
 
-Signed-off-by: Nate Diller <nate.diller@gmail.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Your mail to 'Linux-parport' with the subject
+    Re: [QUESTION] parallel console configuration
+Is being held until the list moderator can review it for approval.
+The reason it is being held:
+    Post by non-member to a members-only list
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-use-zero_user_page fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-use-zero_user_page
-+++ a/fs/ecryptfs/mmap.c
-@@ -364,18 +364,14 @@ static int fill_zeros_to_end_of_page(str
- {
- 	struct inode *inode = page->mapping->host;
- 	int end_byte_in_page;
--	char *page_virt;
+diff -puN MAINTAINERS~parport-mailing-list-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~parport-mailing-list-is-subscribers-only
++++ a/MAINTAINERS
+@@ -2689,13 +2689,13 @@ L:	i2c@lm-sensors.org
+ S:	Maintained
  
- 	if ((i_size_read(inode) / PAGE_CACHE_SIZE) != page->index)
- 		goto out;
- 	end_byte_in_page = i_size_read(inode) % PAGE_CACHE_SIZE;
- 	if (to > end_byte_in_page)
- 		end_byte_in_page = to;
--	page_virt = kmap_atomic(page, KM_USER0);
--	memset((page_virt + end_byte_in_page), 0,
--	       (PAGE_CACHE_SIZE - end_byte_in_page));
--	kunmap_atomic(page_virt, KM_USER0);
--	flush_dcache_page(page);
-+	zero_user_page(page, end_byte_in_page,
-+		PAGE_CACHE_SIZE - end_byte_in_page, KM_USER0);
- out:
- 	return 0;
- }
-@@ -740,7 +736,6 @@ int write_zeros(struct file *file, pgoff
- {
- 	int rc = 0;
- 	struct page *tmp_page;
--	char *tmp_page_virt;
+ PARALLEL PORT SUPPORT
+-L:	linux-parport@lists.infradead.org
++L:	linux-parport@lists.infradead.org (subscribers-only)
+ S:	Orphan
  
- 	tmp_page = ecryptfs_get1page(file, index);
- 	if (IS_ERR(tmp_page)) {
-@@ -757,10 +752,7 @@ int write_zeros(struct file *file, pgoff
- 		page_cache_release(tmp_page);
- 		goto out;
- 	}
--	tmp_page_virt = kmap_atomic(tmp_page, KM_USER0);
--	memset(((char *)tmp_page_virt + start), 0, num_zeros);
--	kunmap_atomic(tmp_page_virt, KM_USER0);
--	flush_dcache_page(tmp_page);
-+	zero_user_page(tmp_page, start, num_zeros, KM_USER0);
- 	rc = ecryptfs_commit_write(file, tmp_page, start, start + num_zeros);
- 	if (rc < 0) {
- 		ecryptfs_printk(KERN_ERR, "Error attempting to write zero's "
+ PARIDE DRIVERS FOR PARALLEL PORT IDE DEVICES
+ P:	Tim Waugh
+ M:	tim@cyberelk.net
+-L:	linux-parport@lists.infradead.org
++L:	linux-parport@lists.infradead.org (subscribers-only)
+ W:	http://www.torque.net/linux-pp.html
+ S:	Maintained
+ 
 _
 
-Patches currently in -mm which might be from nate.diller@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-cifs-use-simple_prepare_write-to-zero-page-data.patch
-git-gfs2-nmw.patch
-git-nfs.patch
-xfs-use-zero_user_page.patch
-ext4-use-simple_prepare_write-to-zero-page-data.patch
-ext4-use-zero_user_page.patch
-reiser4.patch
-reiser4-use-zero_user_page.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+documentation-fix-the-explanation-of-kconfig-files.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-kstrndup.patch
+add-argv_split.patch
+add-argv_split-fix.patch
+split-usermodehelper-setup-from-execution.patch
+add-common-orderly_poweroff.patch
+add-common-orderly_poweroff-fix.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+profile-likely-unlikely-macros.patch
