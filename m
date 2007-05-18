@@ -1,68 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - fix-incorrect-prototype-for-ipxrtr_route_packet.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:07:08 -0700
-Message-ID: <200705180707.l4I777pO010247@shell0.pdx.osdl.net>
+Subject: - add-support-for-squashing-uid-gid-in-gen_initramfs_listsh.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:54 -0700
+Message-ID: <200705180706.l4I76rlw010227@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52418 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46438 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762489AbXERHJT (ORCPT
+	by vger.kernel.org with ESMTP id S1762031AbXERHJP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:09:19 -0400
+	Fri, 18 May 2007 03:09:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix incorrect prototype for ipxrtr_route_packet()
+     add support for squashing uid/gid in gen_initramfs_list.sh
 has been removed from the -mm tree.  Its filename was
-     fix-incorrect-prototype-for-ipxrtr_route_packet.patch
+     add-support-for-squashing-uid-gid-in-gen_initramfs_listsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix incorrect prototype for ipxrtr_route_packet()
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: add support for squashing uid/gid in gen_initramfs_list.sh
+From: Mike Frysinger <vapier@gentoo.org>
 
-The function ipxrtr_route_packet() takes a 'len' argument of type size_t. 
-However, its prototype in af_ipx.c incorrectly suggests that the
-corresponding argument is of type 'int' instead.
+Sometimes it is useful to squash all uid's/gid's to 0:0 regardless of
+current owner.  For example, in build systems that get run as arbitrary
+users (uClinux-dist).  This adds a special "squash" keyword so you can do
+'-g squash -u squash' and have ownership squashed to root.
 
-Discovered by building with --combine and letting the compiler see it all
-at once.
-
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipx/af_ipx.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ scripts/gen_initramfs_list.sh |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN net/ipx/af_ipx.c~fix-incorrect-prototype-for-ipxrtr_route_packet net/ipx/af_ipx.c
---- a/net/ipx/af_ipx.c~fix-incorrect-prototype-for-ipxrtr_route_packet
-+++ a/net/ipx/af_ipx.c
-@@ -87,7 +87,7 @@ extern int ipxrtr_add_route(__be32 netwo
- 			    unsigned char *node);
- extern void ipxrtr_del_routes(struct ipx_interface *intrfc);
- extern int ipxrtr_route_packet(struct sock *sk, struct sockaddr_ipx *usipx,
--			       struct iovec *iov, int len, int noblock);
-+			       struct iovec *iov, size_t len, int noblock);
- extern int ipxrtr_route_skb(struct sk_buff *skb);
- extern struct ipx_route *ipxrtr_lookup(__be32 net);
- extern int ipxrtr_ioctl(unsigned int cmd, void __user *arg);
+diff -puN scripts/gen_initramfs_list.sh~add-support-for-squashing-uid-gid-in-gen_initramfs_listsh scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~add-support-for-squashing-uid-gid-in-gen_initramfs_listsh
++++ a/scripts/gen_initramfs_list.sh
+@@ -19,11 +19,11 @@ $0 [-o <file>] [-u <uid>] [-g <gid>] {-d
+ 	-o <file>      Create gzipped initramfs file named <file> using
+ 		       gen_init_cpio and gzip
+ 	-u <uid>       User ID to map to user ID 0 (root).
+-		       <uid> is only meaningful if <cpio_source>
+-		       is a directory.
++		       <uid> is only meaningful if <cpio_source> is a
++		       directory.  "squash" forces all files to uid 0.
+ 	-g <gid>       Group ID to map to group ID 0 (root).
+-		       <gid> is only meaningful if <cpio_source>
+-		       is a directory.
++		       <gid> is only meaningful if <cpio_source> is a
++		       directory.  "squash" forces all files to gid 0.
+ 	<cpio_source>  File list or directory for cpio archive.
+ 		       If <cpio_source> is a .cpio file it will be used
+ 		       as direct input to initramfs.
+@@ -113,8 +113,8 @@ parse() {
+ 	local gid="$4"
+ 	local ftype=$(filetype "${location}")
+ 	# remap uid/gid to 0 if necessary
+-	[ "$uid" -eq "$root_uid" ] && uid=0
+-	[ "$gid" -eq "$root_gid" ] && gid=0
++	[ "$root_uid" = "squash" ] && uid=0 || [ "$uid" -eq "$root_uid" ] && uid=0
++	[ "$root_gid" = "squash" ] && gid=0 || [ "$gid" -eq "$root_gid" ] && gid=0
+ 	local str="${mode} ${uid} ${gid}"
+ 
+ 	[ "${ftype}" == "invalid" ] && return 0
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-origin.patch
+git-kbuild.patch
 dont-force-uclinux-mtd-map-to-be-root-dev.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
-git-ubi.patch
-git-battery.patch
-missing-const-from-reiserfs-min_key-declaration.patch
-add-lzo1x-compression-support-to-the-kernel.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-mismatching-declarations-of-revision-strings-in-hisax.patch
