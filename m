@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-proc-slabinfo-use-seq_list_xxx-helpers.patch added to -mm tree
-Date: Fri, 18 May 2007 10:38:02 -0700
-Message-ID: <200705181738.l4IHc2r3019887@shell0.pdx.osdl.net>
+Subject: + mm-alloc_large_system_hash-can-free-some-memory-for-non.patch added to -mm tree
+Date: Fri, 18 May 2007 10:42:24 -0700
+Message-ID: <200705181742.l4IHgOAH019939@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:39750 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:33859 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754958AbXERRnL (ORCPT
+	by vger.kernel.org with ESMTP id S1752257AbXERRqU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 13:43:11 -0400
+	Fri, 18 May 2007 13:46:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@sw.ru, clameter@sgi.com, penberg@cs.helsinki.fi, xemul@openvz.org
+Cc: dada1@cosmosbay.com, mel@csn.ul.ie
 
 
 The patch titled
-     Make /proc/slabinfo use seq_list_xxx helpers
+     MM: alloc_large_system_hash() can free some memory for non power-of-two bucketsize
 has been added to the -mm tree.  Its filename is
-     make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+     mm-alloc_large_system_hash-can-free-some-memory-for-non.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,102 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make /proc/slabinfo use seq_list_xxx helpers
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: MM: alloc_large_system_hash() can free some memory for non power-of-two bucketsize
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-This entry prints a header in .start callback.  This is OK, but the more
-elegant solution would be to move this into the .show callback and use
-seq_list_start_head() in .start one.
+alloc_large_system_hash() is called at boot time to allocate space for
+several large hash tables.
 
-I have left it as is in order to make the patch just switch to new API and
-noting more.
+Lately, TCP hash table was changed and its bucketsize is not a power-of-two
+anymore.
 
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+On most setups, alloc_large_system_hash() allocates one big page (order >
+0) with __get_free_pages(GFP_ATOMIC, order).  This single high_order page
+has a power-of-two size, bigger than the needed size.
+
+We can free all pages that wont be used by the hash table.
+
+On a 1GB i386 machine, this patch saves 128 KB of LOWMEM memory.
+
+TCP established hash table entries: 32768 (order: 6, 393216 bytes)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   28 +++++-----------------------
- 1 files changed, 5 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN mm/slab.c~make-proc-slabinfo-use-seq_list_xxx-helpers mm/slab.c
---- a/mm/slab.c~make-proc-slabinfo-use-seq_list_xxx-helpers
-+++ a/mm/slab.c
-@@ -4146,26 +4146,17 @@ static void print_slabinfo_header(struct
- static void *s_start(struct seq_file *m, loff_t *pos)
- {
- 	loff_t n = *pos;
--	struct list_head *p;
+diff -puN mm/page_alloc.c~mm-alloc_large_system_hash-can-free-some-memory-for-non mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-alloc_large_system_hash-can-free-some-memory-for-non
++++ a/mm/page_alloc.c
+@@ -3578,6 +3578,20 @@ void *__init alloc_large_system_hash(con
+ 			for (order = 0; ((1UL << order) << PAGE_SHIFT) < size; order++)
+ 				;
+ 			table = (void*) __get_free_pages(GFP_ATOMIC, order);
++			/*
++			 * If bucketsize is not a power-of-two, we may free
++			 * some pages at the end of hash table.
++			 */
++			if (table) {
++				unsigned long alloc_end = (unsigned long)table +
++						(PAGE_SIZE << order);
++				unsigned long used = (unsigned long)table +
++						PAGE_ALIGN(size);
++				while (used < alloc_end) {
++					free_page(used);
++					used += PAGE_SIZE;
++				}
++			}
+ 		}
+ 	} while (!table && size > PAGE_SIZE && --log2qty);
  
- 	mutex_lock(&cache_chain_mutex);
- 	if (!n)
- 		print_slabinfo_header(m);
--	p = cache_chain.next;
--	while (n--) {
--		p = p->next;
--		if (p == &cache_chain)
--			return NULL;
--	}
--	return list_entry(p, struct kmem_cache, next);
-+
-+	return seq_list_start(&cache_chain, *pos);
- }
- 
- static void *s_next(struct seq_file *m, void *p, loff_t *pos)
- {
--	struct kmem_cache *cachep = p;
--	++*pos;
--	return cachep->next.next == &cache_chain ?
--		NULL : list_entry(cachep->next.next, struct kmem_cache, next);
-+	return seq_list_next(p, &cache_chain, pos);
- }
- 
- static void s_stop(struct seq_file *m, void *p)
-@@ -4175,7 +4166,7 @@ static void s_stop(struct seq_file *m, v
- 
- static int s_show(struct seq_file *m, void *p)
- {
--	struct kmem_cache *cachep = p;
-+	struct kmem_cache *cachep = list_entry(p, struct kmem_cache, next);
- 	struct slab *slabp;
- 	unsigned long active_objs;
- 	unsigned long num_objs;
-@@ -4344,17 +4335,8 @@ ssize_t slabinfo_write(struct file *file
- 
- static void *leaks_start(struct seq_file *m, loff_t *pos)
- {
--	loff_t n = *pos;
--	struct list_head *p;
--
- 	mutex_lock(&cache_chain_mutex);
--	p = cache_chain.next;
--	while (n--) {
--		p = p->next;
--		if (p == &cache_chain)
--			return NULL;
--	}
--	return list_entry(p, struct kmem_cache, next);
-+	return seq_list_start(&cache_chain, *pos);
- }
- 
- static inline int add_caller(unsigned long *n, unsigned long v)
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-make-common-helpers-for-seq_files-that-work-with-list_head-s.patch
-make-afs-use-seq_list_xxx-helpers.patch
-make-atm-driver-use-seq_list_xxx-helpers.patch
-make-block-layer-proc-files-use-seq_list_xxx-helpers.patch
-make-crypto-api-use-seq_list_xxx-helpers.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
-make-proc-misc-use-seq_list_xxx-helpers.patch
-make-proc-modules-use-seq_list_xxx-helpers.patch
-make-some-network-related-proc-files-use-seq_list_xxx.patch
-make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
-make-nfs-client-use-seq_list_xxx-helpers.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-self-mountstats-use-seq_list_xxx-helpers.patch
+mm-alloc_large_system_hash-can-free-some-memory-for-non.patch
+lguest-the-host-code.patch
