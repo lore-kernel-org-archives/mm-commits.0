@@ -1,76 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - add-support-for-squashing-uid-gid-in-gen_initramfs_listsh.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:54 -0700
-Message-ID: <200705180706.l4I76rlw010227@shell0.pdx.osdl.net>
+Subject: - gpio-interface-loosens-call-restrictions.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:25 -0700
+Message-ID: <200705180706.l4I76Osc010175@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762031AbXERHJP (ORCPT
+	by vger.kernel.org with ESMTP id S1758023AbXERHJk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:09:15 -0400
+	Fri, 18 May 2007 03:09:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add support for squashing uid/gid in gen_initramfs_list.sh
+     gpio interface loosens call restrictions
 has been removed from the -mm tree.  Its filename was
-     add-support-for-squashing-uid-gid-in-gen_initramfs_listsh.patch
+     gpio-interface-loosens-call-restrictions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add support for squashing uid/gid in gen_initramfs_list.sh
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: gpio interface loosens call restrictions
+From: David Brownell <david-b@pacbell.net>
 
-Sometimes it is useful to squash all uid's/gid's to 0:0 regardless of
-current owner.  For example, in build systems that get run as arbitrary
-users (uClinux-dist).  This adds a special "squash" keyword so you can do
-'-g squash -u squash' and have ownership squashed to root.
+Loosen gpio_{request,free}() and gpio_direction_{in,out}put() call context
+restrictions slightly, so a common idiom is no longer an error: board init
+code setting up spinlock-safe GPIOs before tasking is enabled.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+The issue was caught by some paranoid code with might_sleep() checks.  The
+legacy platform-specific GPIO interfaces stick to spinlock-safe GPIOs, so this
+change reflects current implementations and won't break anything.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/gpio.txt |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN scripts/gen_initramfs_list.sh~add-support-for-squashing-uid-gid-in-gen_initramfs_listsh scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~add-support-for-squashing-uid-gid-in-gen_initramfs_listsh
-+++ a/scripts/gen_initramfs_list.sh
-@@ -19,11 +19,11 @@ $0 [-o <file>] [-u <uid>] [-g <gid>] {-d
- 	-o <file>      Create gzipped initramfs file named <file> using
- 		       gen_init_cpio and gzip
- 	-u <uid>       User ID to map to user ID 0 (root).
--		       <uid> is only meaningful if <cpio_source>
--		       is a directory.
-+		       <uid> is only meaningful if <cpio_source> is a
-+		       directory.  "squash" forces all files to uid 0.
- 	-g <gid>       Group ID to map to group ID 0 (root).
--		       <gid> is only meaningful if <cpio_source>
--		       is a directory.
-+		       <gid> is only meaningful if <cpio_source> is a
-+		       directory.  "squash" forces all files to gid 0.
- 	<cpio_source>  File list or directory for cpio archive.
- 		       If <cpio_source> is a .cpio file it will be used
- 		       as direct input to initramfs.
-@@ -113,8 +113,8 @@ parse() {
- 	local gid="$4"
- 	local ftype=$(filetype "${location}")
- 	# remap uid/gid to 0 if necessary
--	[ "$uid" -eq "$root_uid" ] && uid=0
--	[ "$gid" -eq "$root_gid" ] && gid=0
-+	[ "$root_uid" = "squash" ] && uid=0 || [ "$uid" -eq "$root_uid" ] && uid=0
-+	[ "$root_gid" = "squash" ] && gid=0 || [ "$gid" -eq "$root_gid" ] && gid=0
- 	local str="${mode} ${uid} ${gid}"
+diff -puN Documentation/gpio.txt~gpio-interface-loosens-call-restrictions Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpio-interface-loosens-call-restrictions
++++ a/Documentation/gpio.txt
+@@ -111,7 +111,9 @@ setting up a platform_device using the G
  
- 	[ "${ftype}" == "invalid" ] && return 0
+ The return value is zero for success, else a negative errno.  It should
+ be checked, since the get/set calls don't have error returns and since
+-misconfiguration is possible.  (These calls could sleep.)
++misconfiguration is possible.  You should normally issue these calls from
++a task context.  However, for spinlock-safe GPIOs it's OK to use them
++before tasking is enabled, as part of early board setup.
+ 
+ For output GPIOs, the value provided becomes the initial output value.
+ This helps avoid signal glitching during system startup.
+@@ -197,7 +199,9 @@ However, many platforms don't currently 
+ 
+ Passing invalid GPIO numbers to gpio_request() will fail, as will requesting
+ GPIOs that have already been claimed with that call.  The return value of
+-gpio_request() must be checked.  (These calls could sleep.)
++gpio_request() must be checked.  You should normally issue these calls from
++a task context.  However, for spinlock-safe GPIOs it's OK to request GPIOs
++before tasking is enabled, as part of early board setup.
+ 
+ These calls serve two basic purposes.  One is marking the signals which
+ are actually in use as GPIOs, for better diagnostics; systems may have
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-git-kbuild.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
+origin.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+git-leds.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+rtc-ds1307-cleanups.patch
