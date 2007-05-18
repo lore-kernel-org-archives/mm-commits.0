@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-update-for-mm-simplify-boot_params.patch added to -mm tree
-Date: Thu, 17 May 2007 20:15:08 -0700
-Message-ID: <200705180315.l4I3F84D006646@shell0.pdx.osdl.net>
+Subject: + lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit.patch added to -mm tree
+Date: Thu, 17 May 2007 20:15:58 -0700
+Message-ID: <200705180315.l4I3Fv4X006656@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49518 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58762 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755457AbXERDQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754646AbXERDRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 23:16:29 -0400
+	Thu, 17 May 2007 23:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     lguest update for mm: simplify boot_params
+     lguest update for mm: disable tsc, don't set PGE bit
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-update-for-mm-simplify-boot_params.patch
+     lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest update for mm: simplify boot_params
+Subject: lguest update for mm: disable tsc, don't set PGE bit
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Andrew patched up lguest after the boot parameters became a proper
-structure, but in fact it can be considerably neatened.
+Lguest guests don't use the TSC, and so we must disable it otherwise
+sched-clock.c barfs.
+
+Also, we no longer need to explicitly set the PGE feature bit:
+cpu_detect->cpuid->lguest_cpuid does that for us now that cpu_detect
+uses paravirt_ops (IIRC it used to do a direct cpuid from assembler).
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/lguest/lguest.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-host-code-update-for-mm-simplify-boot_params drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-host-code-update-for-mm-simplify-boot_params
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit
 +++ a/drivers/lguest/lguest.c
-@@ -444,8 +444,7 @@ __init void lguest_init(void *boot)
- {
- 	/* Copy boot parameters first. */
- 	memcpy(&boot_params, boot, PARAM_SIZE);
--	memcpy(boot_command_line,
--	       __va(*(unsigned long *)((void *)&boot_params + NEW_CL_POINTER)),
-+	memcpy(boot_command_line, __va(boot_params.hdr.cmd_line_ptr),
- 	       COMMAND_LINE_SIZE);
+@@ -502,11 +502,11 @@ __init void lguest_init(void)
+ 	reserve_top_address(lguest_data.reserve_mem);
  
- 	paravirt_ops.name = "lguest";
+ 	cpu_detect(&new_cpu_data);
+-	/* Need this before paging_init. */
+-	set_bit(X86_FEATURE_PGE, new_cpu_data.x86_capability);
+ 	/* Math is always hard! */
+ 	new_cpu_data.hard_math = 1;
+ 
++	tsc_disable = 1;
++
+ #ifdef CONFIG_X86_MCE
+ 	mce_disabled = 1;
+ #endif
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -69,6 +77,7 @@ lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
 lguest-the-guest-code-tidyups.patch
 lguest-the-guest-code-tidyups-update.patch
+lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit.patch
 lguest-the-host-code.patch
 lguest-the-host-code-tidyups.patch
 lguest-the-host-code-tidyups-update.patch
@@ -86,5 +95,4 @@ lguest-the-block-driver.patch
 lguest-the-block-driver-tidyups.patch
 lguest-the-block-driver-tidyups-update.patch
 lguest-the-documentation-example-launcher.patch
-lguest-update-for-mm-disable-tsc-dont-set-pge-bit.patch
 mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
