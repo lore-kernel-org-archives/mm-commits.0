@@ -1,69 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - i386-dont-check_pgt_cache-in-flush_tlb_mm.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:39 -0700
-Message-ID: <200705180706.l4I76cmQ010196@shell0.pdx.osdl.net>
+Subject: - refine-screen_info-sanity-check-for-vgacon-initialization.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:15 -0700
+Message-ID: <200705180706.l4I76Ea0010163@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52725 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755285AbXERHKv (ORCPT
+	by vger.kernel.org with ESMTP id S1753278AbXERHLR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:10:51 -0400
+	Fri, 18 May 2007 03:11:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, ak@suse.de, clameter@sgi.com, davem@davemloft.net, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: kraxel@redhat.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, hpa@zytor.com, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: don't check_pgt_cache in flush_tlb_mm
+     Refine SCREEN_INFO sanity check for vgacon initialization
 has been removed from the -mm tree.  Its filename was
-     i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
+     refine-screen_info-sanity-check-for-vgacon-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: don't check_pgt_cache in flush_tlb_mm
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Refine SCREEN_INFO sanity check for vgacon initialization
+From: Gerd Hoffmann <kraxel@redhat.com>
 
-No other architecture calls check_pgt_cache() from within flush_tlb_mm(),
-and i386 is already calling check_pgt_cache() from the usual places,
-tlb_finish_mmu() and cpu_idle() (the latter being odd, but not unusual). 
-flush_tlb_mm() has no business to be freeing pages: remove that line, which
-sneaked in with slub's i386 support.
+Refine SCREEN_INFO sanity check for vgacon initialization.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Checking video mode field only to see whenever SCREEN_INFO is
+initialized is not enougth, in some cases it is zero although
+a vga card is present.  Lets additionally check cols and lines.
+
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: William Lee Irwin III <wli@holomorphy.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: Alan <alan@lxorguk.ukuu.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/console/vgacon.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/smp.c~i386-dont-check_pgt_cache-in-flush_tlb_mm arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~i386-dont-check_pgt_cache-in-flush_tlb_mm
-+++ a/arch/i386/kernel/smp.c
-@@ -421,7 +421,7 @@ void flush_tlb_mm (struct mm_struct * mm
+diff -puN drivers/video/console/vgacon.c~refine-screen_info-sanity-check-for-vgacon-initialization drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~refine-screen_info-sanity-check-for-vgacon-initialization
++++ a/drivers/video/console/vgacon.c
+@@ -368,9 +368,14 @@ static const char *vgacon_startup(void)
+ #endif
  	}
- 	if (!cpus_empty(cpu_mask))
- 		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
--	check_pgt_cache();
-+
- 	preempt_enable();
- }
  
++	/* SCREEN_INFO initialized? */
++	if ((ORIG_VIDEO_MODE  == 0) &&
++	    (ORIG_VIDEO_LINES == 0) &&
++	    (ORIG_VIDEO_COLS  == 0))
++		goto no_vga;
++
+ 	/* VGA16 modes are not handled by VGACON */
+-	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
+-	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
++	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
+ 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
+ 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
+ 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from kraxel@redhat.com are
 
 origin.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio_tree-debugging-patch.patch
