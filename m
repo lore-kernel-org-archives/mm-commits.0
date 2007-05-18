@@ -1,107 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - circular-locking-dependency-found-in-quota-off.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:41 -0700
-Message-ID: <200705180706.l4I76eWT010199@shell0.pdx.osdl.net>
+Subject: - let-smp_call_function_single-return-ebusy-on-up.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:13 -0700
+Message-ID: <200705180706.l4I76CrY010160@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53600 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59478 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752306AbXERH1m (ORCPT
+	by vger.kernel.org with ESMTP id S1754370AbXERH3e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:27:42 -0400
+	Fri, 18 May 2007 03:29:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     circular locking dependency found in QUOTA OFF
+     Let smp_call_function_single return -EBUSY on UP
 has been removed from the -mm tree.  Its filename was
-     circular-locking-dependency-found-in-quota-off.patch
+     let-smp_call_function_single-return-ebusy-on-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: circular locking dependency found in QUOTA OFF
-From: Jan Kara <jack@suse.cz>
+Subject: Let smp_call_function_single return -EBUSY on UP
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-i_mutex on quota files is special.  Unlike i_mutexes for other inodes it is
-acquired under dqonoff_mutex.  Tell lockdep about this lock ranking.  Also
-comment and code in quota_sync_sb() seem to be bogus (as i_mutex for quota
-file can be acquired under dqonoff_mutex).  Move truncate_inode_pages()
-call under dqonoff_mutex and save some problems with races...
+All architectures that have an implementation of smp_call_function_single
+let it return -EBUSY if it is asked to execute func on the current cpu. 
+(akpm: except for x86_64).  Therefore the UP version must always return
+-EBUSY.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |    2 +-
- fs/quota.c |   23 +++++++----------------
- 2 files changed, 8 insertions(+), 17 deletions(-)
+ include/linux/smp.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/dquot.c~circular-locking-dependency-found-in-quota-off fs/dquot.c
---- a/fs/dquot.c~circular-locking-dependency-found-in-quota-off
-+++ a/fs/dquot.c
-@@ -1421,7 +1421,7 @@ int vfs_quota_off(struct super_block *sb
- 			/* If quota was reenabled in the meantime, we have
- 			 * nothing to do */
- 			if (!sb_has_quota_enabled(sb, cnt)) {
--				mutex_lock(&toputinode[cnt]->i_mutex);
-+				mutex_lock_nested(&toputinode[cnt]->i_mutex, I_MUTEX_QUOTA);
- 				toputinode[cnt]->i_flags &= ~(S_IMMUTABLE |
- 				  S_NOATIME | S_NOQUOTA);
- 				truncate_inode_pages(&toputinode[cnt]->i_data, 0);
-diff -puN fs/quota.c~circular-locking-dependency-found-in-quota-off fs/quota.c
---- a/fs/quota.c~circular-locking-dependency-found-in-quota-off
-+++ a/fs/quota.c
-@@ -157,7 +157,6 @@ static int check_quotactl_valid(struct s
- static void quota_sync_sb(struct super_block *sb, int type)
+diff -puN include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up include/linux/smp.h
+--- a/include/linux/smp.h~let-smp_call_function_single-return-ebusy-on-up
++++ a/include/linux/smp.h
+@@ -6,6 +6,7 @@
+  *		Alan Cox. <alan@redhat.com>
+  */
+ 
++#include <linux/errno.h>
+ 
+ extern void cpu_idle(void);
+ 
+@@ -99,11 +100,9 @@ static inline void smp_send_reschedule(i
+ #define num_booting_cpus()			1
+ #define smp_prepare_boot_cpu()			do {} while (0)
+ static inline int smp_call_function_single(int cpuid, void (*func) (void *info),
+-				void *info, int retry, int wait)
++					   void *info, int retry, int wait)
  {
- 	int cnt;
--	struct inode *discard[MAXQUOTAS];
- 
- 	sb->s_qcop->quota_sync(sb, type);
- 	/* This is not very clever (and fast) but currently I don't know about
-@@ -167,29 +166,21 @@ static void quota_sync_sb(struct super_b
- 		sb->s_op->sync_fs(sb, 1);
- 	sync_blockdev(sb->s_bdev);
- 
--	/* Now when everything is written we can discard the pagecache so
--	 * that userspace sees the changes. We need i_mutex and so we could
--	 * not do it inside dqonoff_mutex. Moreover we need to be carefull
--	 * about races with quotaoff() (that is the reason why we have own
--	 * reference to inode). */
-+	/*
-+	 * Now when everything is written we can discard the pagecache so
-+	 * that userspace sees the changes.
-+	 */
- 	mutex_lock(&sb_dqopt(sb)->dqonoff_mutex);
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
--		discard[cnt] = NULL;
- 		if (type != -1 && cnt != type)
- 			continue;
- 		if (!sb_has_quota_enabled(sb, cnt))
- 			continue;
--		discard[cnt] = igrab(sb_dqopt(sb)->files[cnt]);
-+		mutex_lock_nested(&sb_dqopt(sb)->files[cnt]->i_mutex, I_MUTEX_QUOTA);
-+		truncate_inode_pages(&sb_dqopt(sb)->files[cnt]->i_data, 0);
-+		mutex_unlock(&sb_dqopt(sb)->files[cnt]->i_mutex);
- 	}
- 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
--	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
--		if (discard[cnt]) {
--			mutex_lock(&discard[cnt]->i_mutex);
--			truncate_inode_pages(&discard[cnt]->i_data, 0);
--			mutex_unlock(&discard[cnt]->i_mutex);
--			iput(discard[cnt]);
--		}
--	}
+-	/* Disable interrupts here? */
+-	func(info);
+-	return 0;
++	return -EBUSY;
  }
  
- void sync_dquots(struct super_block *sb, int type)
+ #endif /* !SMP */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-ext4-copy-i_flags-to-inode-flags-on-write.patch
+git-s390.patch
+s390-spinlock-initializer-cleanup.patch
+x86_64-fix-smp_call_function_single-return-value.patch
