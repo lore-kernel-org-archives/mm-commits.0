@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timerfd-use-waitqueue-lock.patch added to -mm tree
-Date: Fri, 18 May 2007 12:12:30 -0700
-Message-ID: <200705181912.l4IJCUhT021626@shell0.pdx.osdl.net>
+Subject: + simplify-cleanup_workqueue_thread-fix.patch added to -mm tree
+Date: Fri, 18 May 2007 13:58:40 -0700
+Message-ID: <200705182058.l4IKweqf023389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35945 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755701AbXERTPk (ORCPT
+	by vger.kernel.org with ESMTP id S1752652AbXERVCe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 15:15:40 -0400
+	Fri, 18 May 2007 17:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, davi@haxent.com.br, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ego@in.ibm.com, oleg@tv-sign.ru, rjw@sisk.pl, vatsa@in.ibm.com, zilvinas@wilibox.com
 
 
 The patch titled
-     timerfd: use waitqueue lock
+     simplify-cleanup_workqueue_thread-fix
 has been added to the -mm tree.  Its filename is
-     timerfd-use-waitqueue-lock.patch
+     simplify-cleanup_workqueue_thread-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,124 +26,167 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timerfd: use waitqueue lock
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: simplify-cleanup_workqueue_thread-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The timerfd was using the unlocked waitqueue operations, but it was using a
-different lock, so poll_wait() would race with it.  This patch makes
-timerfd directly use the waitqueue lock.
+we now have:
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Davi Arnaut <davi@haxent.com.br>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+	int foo(..)
+	{
+		if (expr1) {
+			...
+			return x;
+		} else {
+			...
+			return y;
+		}
+	}
+
+but some versions of gcc have a habit of (wrongly) warning about the failure
+to return anything from a non-void-returning function.
+
+Fiddle the code to avoid that.
+
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Zilvinas Valinskas <zilvinas@wilibox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/timerfd.c |   24 +++++++++++-------------
- 1 files changed, 11 insertions(+), 13 deletions(-)
+ kernel/workqueue.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/timerfd.c~timerfd-use-waitqueue-lock fs/timerfd.c
---- a/fs/timerfd.c~timerfd-use-waitqueue-lock
-+++ a/fs/timerfd.c
-@@ -24,7 +24,6 @@
- struct timerfd_ctx {
- 	struct hrtimer tmr;
- 	ktime_t tintv;
--	spinlock_t lock;
- 	wait_queue_head_t wqh;
- 	int expired;
- };
-@@ -39,10 +38,10 @@ static enum hrtimer_restart timerfd_tmrp
- 	struct timerfd_ctx *ctx = container_of(htmr, struct timerfd_ctx, tmr);
- 	unsigned long flags;
+diff -puN kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix kernel/workqueue.c
+--- a/kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix
++++ a/kernel/workqueue.c
+@@ -330,13 +330,15 @@ static void insert_wq_barrier(struct cpu
  
--	spin_lock_irqsave(&ctx->lock, flags);
-+	spin_lock_irqsave(&ctx->wqh.lock, flags);
- 	ctx->expired = 1;
- 	wake_up_locked(&ctx->wqh);
--	spin_unlock_irqrestore(&ctx->lock, flags);
-+	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
- 
- 	return HRTIMER_NORESTART;
- }
-@@ -83,10 +82,10 @@ static unsigned int timerfd_poll(struct 
- 
- 	poll_wait(file, &ctx->wqh, wait);
- 
--	spin_lock_irqsave(&ctx->lock, flags);
-+	spin_lock_irqsave(&ctx->wqh.lock, flags);
- 	if (ctx->expired)
- 		events |= POLLIN;
--	spin_unlock_irqrestore(&ctx->lock, flags);
-+	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
- 
- 	return events;
- }
-@@ -101,7 +100,7 @@ static ssize_t timerfd_read(struct file 
- 
- 	if (count < sizeof(ticks))
- 		return -EINVAL;
--	spin_lock_irq(&ctx->lock);
-+	spin_lock_irq(&ctx->wqh.lock);
- 	res = -EAGAIN;
- 	if (!ctx->expired && !(file->f_flags & O_NONBLOCK)) {
- 		__add_wait_queue(&ctx->wqh, &wait);
-@@ -115,9 +114,9 @@ static ssize_t timerfd_read(struct file 
- 				res = -ERESTARTSYS;
- 				break;
- 			}
--			spin_unlock_irq(&ctx->lock);
-+			spin_unlock_irq(&ctx->wqh.lock);
- 			schedule();
--			spin_lock_irq(&ctx->lock);
-+			spin_lock_irq(&ctx->wqh.lock);
- 		}
- 		__remove_wait_queue(&ctx->wqh, &wait);
- 		__set_current_state(TASK_RUNNING);
-@@ -139,7 +138,7 @@ static ssize_t timerfd_read(struct file 
- 		} else
- 			ticks = 1;
- 	}
--	spin_unlock_irq(&ctx->lock);
-+	spin_unlock_irq(&ctx->wqh.lock);
- 	if (ticks)
- 		res = put_user(ticks, buf) ? -EFAULT: sizeof(ticks);
- 	return res;
-@@ -176,7 +175,6 @@ asmlinkage long sys_timerfd(int ufd, int
- 			return -ENOMEM;
- 
- 		init_waitqueue_head(&ctx->wqh);
--		spin_lock_init(&ctx->lock);
- 
- 		timerfd_setup(ctx, clockid, flags, &ktmr);
- 
-@@ -202,10 +200,10 @@ asmlinkage long sys_timerfd(int ufd, int
- 		 * it to the new values.
- 		 */
- 		for (;;) {
--			spin_lock_irq(&ctx->lock);
-+			spin_lock_irq(&ctx->wqh.lock);
- 			if (hrtimer_try_to_cancel(&ctx->tmr) >= 0)
- 				break;
--			spin_unlock_irq(&ctx->lock);
-+			spin_unlock_irq(&ctx->wqh.lock);
- 			cpu_relax();
- 		}
+ static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
+ {
++	int ret;
++
+ 	if (cwq->thread == current) {
  		/*
-@@ -213,7 +211,7 @@ asmlinkage long sys_timerfd(int ufd, int
+ 		 * Probably keventd trying to flush its own queue. So simply run
+ 		 * it by hand rather than deadlocking.
  		 */
- 		timerfd_setup(ctx, clockid, flags, &ktmr);
+ 		run_workqueue(cwq);
+-		return 1;
++		ret = 1;
+ 	} else {
+ 		struct wq_barrier barr;
+ 		int active = 0;
+@@ -351,8 +353,9 @@ static int flush_cpu_workqueue(struct cp
+ 		if (active)
+ 			wait_for_completion(&barr.done);
  
--		spin_unlock_irq(&ctx->lock);
-+		spin_unlock_irq(&ctx->wqh.lock);
- 		fput(file);
+-		return active;
++		ret = active;
  	}
++	return ret;
+ }
  
+ /**
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-x86_64-fix-oprofile-smp.patch
-eventfd-use-waitqueue-lock.patch
-timerfd-use-waitqueue-lock.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-powerpc.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-dvb.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+ide-warning-fixes.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
+xfs-clean-up-shrinker-games.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+simplify-cleanup_workqueue_thread-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+pie-randomization-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+reiser4.patch
+reiser4-fix.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+check_dirty_inode_list.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
