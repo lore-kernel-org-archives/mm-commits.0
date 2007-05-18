@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-some-netfilter-related-proc-files-use-seq_list_xxx.patch added to -mm tree
-Date: Fri, 18 May 2007 10:37:56 -0700
-Message-ID: <200705181737.l4IHbu4h019876@shell0.pdx.osdl.net>
+Subject: + fix-unused-setup_nr_node_ids.patch added to -mm tree
+Date: Fri, 18 May 2007 10:53:22 -0700
+Message-ID: <200705181753.l4IHrMYP020142@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:47263 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:43706 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754545AbXERRrz (ORCPT
+	by vger.kernel.org with ESMTP id S1753742AbXERRzb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 13:47:55 -0400
+	Fri, 18 May 2007 13:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@sw.ru, davem@davemloft.net, kaber@trash.net, xemul@openvz.org
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     Make some netfilter-related proc files use seq_list_xxx helpers
+     fix unused setup_nr_node_ids
 has been added to the -mm tree.  Its filename is
-     make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
+     fix-unused-setup_nr_node_ids.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make some netfilter-related proc files use seq_list_xxx helpers
-From: Pavel Emelianov <xemul@sw.ru>
+Subject: fix unused setup_nr_node_ids
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-This includes /proc/net/ip_conntrack_expect file.
+mm/page_alloc.c:931: warning: 'setup_nr_node_ids' defined but not used
 
-Although struct nf_conntrack_expect has list_head as the very first element I
-use list_entry in .show callback to emphasize the fact that *v is the
-list_head pointer.
+This is now the only (!) compiler warning I get in my UML build :)
 
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c |   27 +---------
- net/netfilter/nf_conntrack_expect.c                   |   27 +---------
- 2 files changed, 8 insertions(+), 46 deletions(-)
+ mm/page_alloc.c |   45 +++++++++++++++++++++++++--------------------
+ 1 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c~make-some-netfilter-related-proc-files-use-seq_list_xxx net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c~make-some-netfilter-related-proc-files-use-seq_list_xxx
-+++ a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-@@ -208,35 +208,15 @@ static const struct file_operations ct_f
- /* expects */
- static void *exp_seq_start(struct seq_file *s, loff_t *pos)
+diff -puN mm/page_alloc.c~fix-unused-setup_nr_node_ids mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-unused-setup_nr_node_ids
++++ a/mm/page_alloc.c
+@@ -136,6 +136,11 @@ static unsigned long __meminitdata dma_r
+ #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 
++#if MAX_NUMNODES > 1
++int nr_node_ids __read_mostly = MAX_NUMNODES;
++EXPORT_SYMBOL(nr_node_ids);
++#endif
++
+ #ifdef CONFIG_DEBUG_VM
+ static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
  {
--	struct list_head *e = &nf_conntrack_expect_list;
--	loff_t i;
--
- 	/* strange seq_file api calls stop even if we fail,
- 	 * thus we need to grab lock since stop unlocks */
- 	read_lock_bh(&nf_conntrack_lock);
--
--	if (list_empty(e))
--		return NULL;
--
--	for (i = 0; i <= *pos; i++) {
--		e = e->next;
--		if (e == &nf_conntrack_expect_list)
--			return NULL;
--	}
--	return e;
-+	return seq_list_start(&nf_conntrack_expect_list, *pos);
+@@ -669,26 +674,6 @@ static int rmqueue_bulk(struct zone *zon
+ 	return i;
  }
  
- static void *exp_seq_next(struct seq_file *s, void *v, loff_t *pos)
- {
--	struct list_head *e = v;
+-#if MAX_NUMNODES > 1
+-int nr_node_ids __read_mostly = MAX_NUMNODES;
+-EXPORT_SYMBOL(nr_node_ids);
 -
--	++*pos;
--	e = e->next;
+-/*
+- * Figure out the number of possible node ids.
+- */
+-static void __init setup_nr_node_ids(void)
+-{
+-	unsigned int node;
+-	unsigned int highest = 0;
 -
--	if (e == &nf_conntrack_expect_list)
--		return NULL;
+-	for_each_node_mask(node, node_possible_map)
+-		highest = node;
+-	nr_node_ids = highest + 1;
+-}
+-#else
+-static void __init setup_nr_node_ids(void) {}
+-#endif
 -
--	return e;
-+	return seq_list_next(v, &nf_conntrack_expect_list, pos);
+ #ifdef CONFIG_NUMA
+ /*
+  * Called from the vmstat counter updater to drain pagesets of this
+@@ -2733,6 +2718,26 @@ void __meminit free_area_init_node(int n
  }
  
- static void exp_seq_stop(struct seq_file *s, void *v)
-@@ -246,7 +226,8 @@ static void exp_seq_stop(struct seq_file
- 
- static int exp_seq_show(struct seq_file *s, void *v)
- {
--	struct nf_conntrack_expect *exp = v;
-+	struct nf_conntrack_expect *exp = list_entry(v,
-+			struct nf_conntrack_expect, list);
- 
- 	if (exp->tuple.src.l3num != AF_INET)
- 		return 0;
-diff -puN net/netfilter/nf_conntrack_expect.c~make-some-netfilter-related-proc-files-use-seq_list_xxx net/netfilter/nf_conntrack_expect.c
---- a/net/netfilter/nf_conntrack_expect.c~make-some-netfilter-related-proc-files-use-seq_list_xxx
-+++ a/net/netfilter/nf_conntrack_expect.c
-@@ -366,35 +366,15 @@ EXPORT_SYMBOL_GPL(nf_conntrack_expect_re
- #ifdef CONFIG_PROC_FS
- static void *exp_seq_start(struct seq_file *s, loff_t *pos)
- {
--	struct list_head *e = &nf_conntrack_expect_list;
--	loff_t i;
--
- 	/* strange seq_file api calls stop even if we fail,
- 	 * thus we need to grab lock since stop unlocks */
- 	read_lock_bh(&nf_conntrack_lock);
--
--	if (list_empty(e))
--		return NULL;
--
--	for (i = 0; i <= *pos; i++) {
--		e = e->next;
--		if (e == &nf_conntrack_expect_list)
--			return NULL;
--	}
--	return e;
-+	return seq_list_start(&nf_conntrack_expect_list, *pos);
- }
- 
- static void *exp_seq_next(struct seq_file *s, void *v, loff_t *pos)
- {
--	struct list_head *e = v;
--
--	++*pos;
--	e = e->next;
--
--	if (e == &nf_conntrack_expect_list)
--		return NULL;
--
--	return e;
-+	return seq_list_next(v, &nf_conntrack_expect_list, pos);
- }
- 
- static void exp_seq_stop(struct seq_file *s, void *v)
-@@ -404,7 +384,8 @@ static void exp_seq_stop(struct seq_file
- 
- static int exp_seq_show(struct seq_file *s, void *v)
- {
--	struct nf_conntrack_expect *expect = v;
-+	struct nf_conntrack_expect *expect = list_entry(v,
-+			struct nf_conntrack_expect, list);
- 
- 	if (expect->timeout.function)
- 		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
++
++#if MAX_NUMNODES > 1
++/*
++ * Figure out the number of possible node ids.
++ */
++static void __init setup_nr_node_ids(void)
++{
++	unsigned int node;
++	unsigned int highest = 0;
++
++	for_each_node_mask(node, node_possible_map)
++		highest = node;
++	nr_node_ids = highest + 1;
++}
++#else
++static inline void setup_nr_node_ids(void)
++{
++}
++#endif
++
+ /**
+  * add_active_range - Register a range of PFNs backed by physical memory
+  * @nid: The node ID the range resides on
 _
 
-Patches currently in -mm which might be from xemul@sw.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-make-common-helpers-for-seq_files-that-work-with-list_head-s.patch
-make-afs-use-seq_list_xxx-helpers.patch
-make-atm-driver-use-seq_list_xxx-helpers.patch
-make-block-layer-proc-files-use-seq_list_xxx-helpers.patch
-make-crypto-api-use-seq_list_xxx-helpers.patch
-make-input-layer-use-seq_list_xxx-helpers.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
-make-proc-misc-use-seq_list_xxx-helpers.patch
-make-proc-modules-use-seq_list_xxx-helpers.patch
-make-some-network-related-proc-files-use-seq_list_xxx.patch
-make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
-make-nfs-client-use-seq_list_xxx-helpers.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-self-mountstats-use-seq_list_xxx-helpers.patch
+fuse-generic_write_checks-for-direct_io.patch
+fuse-delete-inode-on-drop.patch
+fix-unused-setup_nr_node_ids.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
