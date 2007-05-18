@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k.patch added to -mm tree
-Date: Fri, 18 May 2007 11:01:35 -0700
-Message-ID: <200705181801.l4II1ZwS020282@shell0.pdx.osdl.net>
+Subject: + char-cyclades-fix-sparse-warning.patch added to -mm tree
+Date: Fri, 18 May 2007 11:08:40 -0700
+Message-ID: <200705181808.l4II8efE020400@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:53281 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1760788AbXERSDl (ORCPT
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46056 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755383AbXERSJv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 14:03:41 -0400
+	Fri, 18 May 2007 14:09:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     SLUB Debug: fix check for super sized slabs (>512k 64bit, >256k  32bit)
+     Char: cyclades, fix sparse warning
 has been added to the -mm tree.  Its filename is
-     slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k.patch
+     char-cyclades-fix-sparse-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB Debug: fix check for super sized slabs (>512k 64bit, >256k  32bit)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Char: cyclades, fix sparse warning
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The check for super sized slabs where we can no longer move the free
-pointer behind the object for debugging purposes etc is accessing a field
-that is not setup yet.  We must use objsize here since the size of the slab
-has not been determined yet.
+cyclades, fix sparse warning
 
-The effect of this is that a global slab shrink via "slabinfo -s" will show
-errors about offsets being wrong if booted with slub_debug.  Potentially
-there are other troubles with huge slabs under slub_debug because the
-calculated free pointer offset is truncated.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/cyclades.c |   18 ++++++++----------
+ 1 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN mm/slub.c~slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k mm/slub.c
---- a/mm/slub.c~slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k
-+++ a/mm/slub.c
-@@ -939,7 +939,7 @@ static void kmem_cache_open_debug_check(
- 	 * Debugging or ctor may create a need to move the free
- 	 * pointer. Fail if this happens.
- 	 */
--	if (s->size >= 65535 * sizeof(void *)) {
-+	if (s->objsize >= 65535 * sizeof(void *)) {
- 		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
- 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
- 		BUG_ON(s->ctor);
+diff -puN drivers/char/cyclades.c~char-cyclades-fix-sparse-warning drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-fix-sparse-warning
++++ a/drivers/char/cyclades.c
+@@ -1890,11 +1890,11 @@ static void cyz_poll(unsigned long arg)
+ 	struct cyclades_card *cinfo;
+ 	struct cyclades_port *info;
+ 	struct tty_struct *tty;
+-	static struct FIRM_ID *firm_id;
+-	static struct ZFW_CTRL *zfw_ctrl;
+-	static struct BOARD_CTRL *board_ctrl;
+-	static struct CH_CTRL *ch_ctrl;
+-	static struct BUF_CTRL *buf_ctrl;
++	struct FIRM_ID __iomem *firm_id;
++	struct ZFW_CTRL __iomem *zfw_ctrl;
++	struct BOARD_CTRL __iomem *board_ctrl;
++	struct CH_CTRL __iomem *ch_ctrl;
++	struct BUF_CTRL __iomem *buf_ctrl;
+ 	unsigned long expires = jiffies + HZ;
+ 	int card, port;
+ 
+@@ -2038,7 +2038,6 @@ static int startup(struct cyclades_port 
+ 		struct ZFW_CTRL __iomem *zfw_ctrl;
+ 		struct BOARD_CTRL __iomem *board_ctrl;
+ 		struct CH_CTRL __iomem *ch_ctrl;
+-		int retval;
+ 
+ 		base_addr = card->base_addr;
+ 
+@@ -2410,7 +2409,6 @@ block_til_ready(struct tty_struct *tty, 
+ 		struct ZFW_CTRL __iomem *zfw_ctrl;
+ 		struct BOARD_CTRL __iomem *board_ctrl;
+ 		struct CH_CTRL __iomem *ch_ctrl;
+-		int retval;
+ 
+ 		base_addr = cinfo->base_addr;
+ 		firm_id = base_addr + ID_ADDRESS;
+@@ -4906,7 +4904,7 @@ static int __devinit cyz_load_fw(struct 
+ 	struct FIRM_ID __iomem *fid = base_addr + ID_ADDRESS;
+ 	struct CUSTOM_REG __iomem *cust = base_addr;
+ 	struct ZFW_CTRL __iomem *pt_zfwctrl;
+-	u8 *tmp;
++	void __iomem *tmp;
+ 	u32 mailbox, status;
+ 	unsigned int i;
+ 	int retval;
+@@ -4968,13 +4966,13 @@ static int __devinit cyz_load_fw(struct 
+ 	udelay(100);
+ 
+ 	/* clear memory */
+-	for (tmp = base_addr; (void *)tmp < base_addr + RAM_SIZE; tmp++)
++	for (tmp = base_addr; tmp < base_addr + RAM_SIZE; tmp++)
+ 		cy_writeb(tmp, 255);
+ 	if (mailbox != 0) {
+ 		/* set window to last 512K of RAM */
+ 		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM + RAM_SIZE);
+ 		//sleep(1);
+-		for (tmp = base_addr; (void *)tmp < base_addr + RAM_SIZE; tmp++)
++		for (tmp = base_addr; tmp < base_addr + RAM_SIZE; tmp++)
+ 			cy_writeb(tmp, 255);
+ 		/* set window to beginning of RAM */
+ 		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-slub-another-slabinfo-fix.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-rename-gfp_high_movable-to-gfp_highuser_movable.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
-group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-revoke-core-code.patch
+cinergyt2-fix-file-release-handler.patch
+auerswald-fix-file-release-handler.patch
+char-cyclades-fix-deadlock.patch
+char-cyclades-add-firmware-loading.patch
+char-cyclades-fix-sparse-warning.patch
+shrink_slab-handle-bad-shrinkers.patch
