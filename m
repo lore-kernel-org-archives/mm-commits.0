@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch added to -mm tree
-Date: Fri, 18 May 2007 12:10:43 -0700
-Message-ID: <200705181910.l4IJAhZI021579@shell0.pdx.osdl.net>
+Subject: + eventfd-use-waitqueue-lock.patch added to -mm tree
+Date: Fri, 18 May 2007 12:12:11 -0700
+Message-ID: <200705181912.l4IJCBEx021600@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34959 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45399 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755805AbXERTMd (ORCPT
+	by vger.kernel.org with ESMTP id S1752893AbXERTPb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 15:12:33 -0400
+	Fri, 18 May 2007 15:15:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, lucy@keyspan.com
+Cc: davidel@xmailserver.org, davi@haxent.com.br, tglx@linutronix.de
 
 
 The patch titled
-     usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix
+     eventfd: use waitqueue lock
 has been added to the -mm tree.  Its filename is
-     usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
+     eventfd-use-waitqueue-lock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,459 +26,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: eventfd: use waitqueue lock
+From: Davide Libenzi <davidel@xmailserver.org>
 
-coding style, unneeded casts of void*
+The eventfd was using the unlocked waitqueue operations, but it was using a
+different lock, so poll_wait() would race with it.  This patch makes
+eventfd directly use the waitqueue lock.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Lucy McCoy <lucy@keyspan.com>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Davi Arnaut <davi@haxent.com.br>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/keyspan.c |  123 +++++++++++++++------------------
- 1 files changed, 58 insertions(+), 65 deletions(-)
+ fs/eventfd.c |   26 ++++++++++++--------------
+ 1 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN drivers/usb/serial/keyspan.c~usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix drivers/usb/serial/keyspan.c
---- a/drivers/usb/serial/keyspan.c~usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix
-+++ a/drivers/usb/serial/keyspan.c
-@@ -861,36 +861,34 @@ static void	usa49_indat_callback(struct 
- 		}
+diff -puN fs/eventfd.c~eventfd-use-waitqueue-lock fs/eventfd.c
+--- a/fs/eventfd.c~eventfd-use-waitqueue-lock
++++ a/fs/eventfd.c
+@@ -17,7 +17,6 @@
+ #include <linux/eventfd.h>
+ 
+ struct eventfd_ctx {
+-	spinlock_t lock;
+ 	wait_queue_head_t wqh;
+ 	/*
+ 	 * Every time that a write(2) is performed on an eventfd, the
+@@ -45,13 +44,13 @@ int eventfd_signal(struct file *file, in
+ 
+ 	if (n < 0)
+ 		return -EINVAL;
+-	spin_lock_irqsave(&ctx->lock, flags);
++	spin_lock_irqsave(&ctx->wqh.lock, flags);
+ 	if (ULLONG_MAX - ctx->count < n)
+ 		n = (int) (ULLONG_MAX - ctx->count);
+ 	ctx->count += n;
+ 	if (waitqueue_active(&ctx->wqh))
+ 		wake_up_locked(&ctx->wqh);
+-	spin_unlock_irqrestore(&ctx->lock, flags);
++	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
+ 
+ 	return n;
  }
+@@ -70,14 +69,14 @@ static unsigned int eventfd_poll(struct 
  
--
--static void	usa49wg_indat_callback(struct urb *urb)
-+static void usa49wg_indat_callback(struct urb *urb)
- {
- 	int			i, len, x, err;
--	struct usb_serial		*serial;
--	struct usb_serial_port		*port;
--
-+	struct usb_serial	*serial;
-+	struct usb_serial_port	*port;
- 	struct tty_struct	*tty;
- 	unsigned char 		*data = urb->transfer_buffer;
+ 	poll_wait(file, &ctx->wqh, wait);
  
--
- 	dbg ("%s", __FUNCTION__);
+-	spin_lock_irqsave(&ctx->lock, flags);
++	spin_lock_irqsave(&ctx->wqh.lock, flags);
+ 	if (ctx->count > 0)
+ 		events |= POLLIN;
+ 	if (ctx->count == ULLONG_MAX)
+ 		events |= POLLERR;
+ 	if (ULLONG_MAX - 1 > ctx->count)
+ 		events |= POLLOUT;
+-	spin_unlock_irqrestore(&ctx->lock, flags);
++	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
  
--	serial = (struct usb_serial *) urb->context;
-+	serial = urb->context;
+ 	return events;
+ }
+@@ -92,7 +91,7 @@ static ssize_t eventfd_read(struct file 
  
- 	if (urb->status) {
- 		dbg("%s - nonzero status: %x", __FUNCTION__, urb->status);
- 		return;
- 	}
- 
--	// inbound data is in the form P#, len, status, data */
--
--	i = len = 0;
-+	/* inbound data is in the form P#, len, status, data */
-+	i = 0;
-+	len = 0;
- 
- 	if (urb->actual_length) {
- 		while (i < urb->actual_length) {
- 
- 			/* Check port number from message*/
- 			if (data[i] >= serial->num_ports) {
--				dbg ("%s - Unexpected port number %d", __FUNCTION__, data[i]);
-+				dbg ("%s - Unexpected port number %d",
-+					__FUNCTION__, data[i]);
- 				return;
+ 	if (count < sizeof(ucnt))
+ 		return -EINVAL;
+-	spin_lock_irq(&ctx->lock);
++	spin_lock_irq(&ctx->wqh.lock);
+ 	res = -EAGAIN;
+ 	ucnt = ctx->count;
+ 	if (ucnt > 0)
+@@ -110,9 +109,9 @@ static ssize_t eventfd_read(struct file 
+ 				res = -ERESTARTSYS;
+ 				break;
  			}
- 			port = serial->port[data[i++]];
-@@ -903,12 +901,14 @@ static void	usa49wg_indat_callback(struc
- 				i++;
- 				for (x = 1; x < len ; ++x)
- 					if (port->open_count)
--						tty_insert_flip_char(tty, data[i++], 0);
-+						tty_insert_flip_char(tty,
-+								data[i++], 0);
- 					else
- 						i++;
--			}
--			else {
--				/* some bytes had errors, every byte has status */
-+			} else {
-+				/*
-+				 * some bytes had errors, every byte has status
-+				 */
- 				for (x = 0; x + 1 < len; x += 2) {
- 					int stat = data[i], flag = 0;
- 					if (stat & RXERROR_OVERRUN)
-@@ -919,8 +919,9 @@ static void	usa49wg_indat_callback(struc
- 						flag |= TTY_PARITY;
- 					/* XXX should handle break (0x10) */
- 					if (port->open_count)
--						tty_insert_flip_char(tty, data[i+1], flag);
--					i+=2;
-+						tty_insert_flip_char(tty,
-+							data[i+1], flag);
-+					i += 2;
- 				}
- 			}
- 			if (port->open_count)
-@@ -931,19 +932,18 @@ static void	usa49wg_indat_callback(struc
- 	/* Resubmit urb so we continue receiving */
- 	urb->dev = serial->dev;
- 
--	if ((err = usb_submit_urb(urb, GFP_ATOMIC)) != 0) {
-+	err = usb_submit_urb(urb, GFP_ATOMIC);
-+	if (err != 0)
- 		dbg("%s - resubmit read urb failed. (%d)", __FUNCTION__, err);
--	}
- }
- 
--
- /* not used, usa-49 doesn't have per-port control endpoints */
--static void	usa49_outcont_callback(struct urb *urb)
-+static void usa49_outcont_callback(struct urb *urb)
- {
- 	dbg ("%s", __FUNCTION__);
- }
- 
--static void	usa90_indat_callback(struct urb *urb)
-+static void usa90_indat_callback(struct urb *urb)
- {
- 	int			i, err;
- 	int			endpoint;
-@@ -956,7 +956,6 @@ static void	usa90_indat_callback(struct 
- 
- 	endpoint = usb_pipeendpoint(urb->pipe);
- 
--
- 	if (urb->status) {
- 		dbg("%s - nonzero status: %x on endpoint %d.",
- 		    __FUNCTION__, urb->status, endpoint);
-@@ -1082,8 +1081,6 @@ static void	usa90_outcont_callback(struc
- 	}
- }
- 
--
--
- /* Status messages from the 28xg */
- static void	usa67_instat_callback(struct urb *urb)
- {
-@@ -1097,7 +1094,7 @@ static void	usa67_instat_callback(struct
- 
- 	dbg ("%s", __FUNCTION__);
- 
--	serial = (struct usb_serial *) urb->context;
-+	serial = urb->context;
- 
- 	if (urb->status) {
- 		dbg("%s - nonzero status: %x", __FUNCTION__, urb->status);
-@@ -1137,12 +1134,12 @@ static void	usa67_instat_callback(struct
- 
- 	/* Resubmit urb so we continue receiving */
- 	urb->dev = serial->dev;
--	if ((err = usb_submit_urb(urb, GFP_ATOMIC)) != 0) {
-+	err = usb_submit_urb(urb, GFP_ATOMIC);
-+	if (err != 0)
- 		dbg("%s - resubmit read urb failed. (%d)", __FUNCTION__, err);
--	}
- }
- 
--static void	usa67_glocont_callback(struct urb *urb)
-+static void usa67_glocont_callback(struct urb *urb)
- {
- 	struct usb_serial *serial;
- 	struct usb_serial_port *port;
-@@ -1151,14 +1148,15 @@ static void	usa67_glocont_callback(struc
- 
- 	dbg ("%s", __FUNCTION__);
- 
--	serial = (struct usb_serial *) urb->context;
-+	serial = urb->context;
- 	for (i = 0; i < serial->num_ports; ++i) {
- 		port = serial->port[i];
- 		p_priv = usb_get_serial_port_data(port);
- 
- 		if (p_priv->resend_cont) {
- 			dbg ("%s - sending setup", __FUNCTION__);
--			keyspan_usa67_send_setup(serial, port, p_priv->resend_cont - 1);
-+			keyspan_usa67_send_setup(serial, port,
-+						p_priv->resend_cont - 1);
- 			break;
+-			spin_unlock_irq(&ctx->lock);
++			spin_unlock_irq(&ctx->wqh.lock);
+ 			schedule();
+-			spin_lock_irq(&ctx->lock);
++			spin_lock_irq(&ctx->wqh.lock);
  		}
+ 		__remove_wait_queue(&ctx->wqh, &wait);
+ 		__set_current_state(TASK_RUNNING);
+@@ -122,7 +121,7 @@ static ssize_t eventfd_read(struct file 
+ 		if (waitqueue_active(&ctx->wqh))
+ 			wake_up_locked(&ctx->wqh);
  	}
-@@ -1873,7 +1871,7 @@ static int keyspan_usa26_send_setup(stru
+-	spin_unlock_irq(&ctx->lock);
++	spin_unlock_irq(&ctx->wqh.lock);
+ 	if (res > 0 && put_user(ucnt, (__u64 __user *) buf))
+ 		return -EFAULT;
  
- 	/* Save reset port val for resend.
- 	   Don't overwrite resend for open/close condition. */
--	if ((reset_port+1) > p_priv->resend_cont)
-+	if ((reset_port + 1) > p_priv->resend_cont)
- 		p_priv->resend_cont = reset_port + 1;
- 	if (this_urb->status == -EINPROGRESS) {
- 		/*  dbg ("%s - already writing", __FUNCTION__); */
-@@ -2024,7 +2022,7 @@ static int keyspan_usa28_send_setup(stru
- 
- 	/* Save reset port val for resend.
- 	   Don't overwrite resend for open/close condition. */
--	if ((reset_port+1) > p_priv->resend_cont)
-+	if ((reset_port + 1) > p_priv->resend_cont)
- 		p_priv->resend_cont = reset_port + 1;
- 	if (this_urb->status == -EINPROGRESS) {
- 		dbg ("%s already writing", __FUNCTION__);
-@@ -2135,8 +2133,6 @@ static int keyspan_usa49_send_setup(stru
- 	struct urb				*this_urb;
- 	int 					err, device_port;
- 
--
--
- 	dbg ("%s", __FUNCTION__);
- 
- 	s_priv = usb_get_serial_data(serial);
-@@ -2145,7 +2141,7 @@ static int keyspan_usa49_send_setup(stru
- 
- 	this_urb = s_priv->glocont_urb;
- 
--		/* Work out which port within the device is being setup */
-+	/* Work out which port within the device is being setup */
- 	device_port = port->number - port->serial->minor;
- 
- 	dbg("%s - endpoint %d port %d (%d)",__FUNCTION__, usb_pipeendpoint(this_urb->pipe), port->number, device_port);
-@@ -2156,10 +2152,9 @@ static int keyspan_usa49_send_setup(stru
- 		return -1;
+@@ -143,7 +142,7 @@ static ssize_t eventfd_write(struct file
+ 		return -EFAULT;
+ 	if (ucnt == ULLONG_MAX)
+ 		return -EINVAL;
+-	spin_lock_irq(&ctx->lock);
++	spin_lock_irq(&ctx->wqh.lock);
+ 	res = -EAGAIN;
+ 	if (ULLONG_MAX - ctx->count > ucnt)
+ 		res = sizeof(ucnt);
+@@ -159,9 +158,9 @@ static ssize_t eventfd_write(struct file
+ 				res = -ERESTARTSYS;
+ 				break;
+ 			}
+-			spin_unlock_irq(&ctx->lock);
++			spin_unlock_irq(&ctx->wqh.lock);
+ 			schedule();
+-			spin_lock_irq(&ctx->lock);
++			spin_lock_irq(&ctx->wqh.lock);
+ 		}
+ 		__remove_wait_queue(&ctx->wqh, &wait);
+ 		__set_current_state(TASK_RUNNING);
+@@ -171,7 +170,7 @@ static ssize_t eventfd_write(struct file
+ 		if (waitqueue_active(&ctx->wqh))
+ 			wake_up_locked(&ctx->wqh);
  	}
+-	spin_unlock_irq(&ctx->lock);
++	spin_unlock_irq(&ctx->wqh.lock);
  
--
- 	/* Save reset port val for resend.
- 	   Don't overwrite resend for open/close condition. */
--	if ((reset_port+1) > p_priv->resend_cont)
-+	if ((reset_port + 1) > p_priv->resend_cont)
- 		p_priv->resend_cont = reset_port + 1;
- 
- 	if (this_urb->status == -EINPROGRESS) {
-@@ -2290,9 +2285,8 @@ static int keyspan_usa49_send_setup(stru
- 			     (unsigned char *)dr, s_priv->glocont_buf, sizeof(msg),
- 			     usa49_glocont_callback, serial);
- 
--	}
--	else {
--		memcpy (this_urb->transfer_buffer, &msg, sizeof(msg));
-+	} else {
-+		memcpy(this_urb->transfer_buffer, &msg, sizeof(msg));
- 	
- 		/* send the data out the device on control endpoint */
- 		this_urb->transfer_buffer_length = sizeof(msg);
-@@ -2475,7 +2469,8 @@ static int keyspan_usa67_send_setup(stru
- 
- 	/* Make sure we have an urb then send the message */
- 	if (this_urb == NULL) {
--		dbg("%s - oops no urb for port %d.", __FUNCTION__, port->number);
-+		dbg("%s - oops no urb for port %d.", __FUNCTION__,
-+			port->number);
- 		return -1;
- 	}
- 
-@@ -2489,7 +2484,7 @@ static int keyspan_usa67_send_setup(stru
- 		return(-1);
- 	}
- 
--	memset(&msg, 0, sizeof (struct keyspan_usa67_portControlMessage));
-+	memset(&msg, 0, sizeof(struct keyspan_usa67_portControlMessage));
- 
- 	msg.port = device_port;
- 
-@@ -2509,7 +2504,7 @@ static int keyspan_usa67_send_setup(stru
- 		msg.setPrescaler = 0xff;
- 	}
- 
--	msg.lcr = (p_priv->cflag & CSTOPB)? STOPBITS_678_2: STOPBITS_5678_1;
-+	msg.lcr = (p_priv->cflag & CSTOPB) ? STOPBITS_678_2 : STOPBITS_5678_1;
- 	switch (p_priv->cflag & CSIZE) {
- 	case CS5:
- 		msg.lcr |= USA_DATABITS_5;
-@@ -2538,8 +2533,8 @@ static int keyspan_usa67_send_setup(stru
- 	msg.xonChar = 17;
- 	msg.xoffChar = 19;
- 
--	/* Opening port */
- 	if (reset_port == 1) {
-+		/* Opening port */
- 		msg._txOn = 1;
- 		msg._txOff = 0;
- 		msg.txFlush = 0;
-@@ -2550,10 +2545,8 @@ static int keyspan_usa67_send_setup(stru
- 		msg.rxForward = 0;
- 		msg.returnStatus = 0;
- 		msg.resetDataToggle = 0xff;
--	}
--
--	/* Closing port */
--	else if (reset_port == 2) {
-+	} else if (reset_port == 2) {
-+		/* Closing port */
- 		msg._txOn = 0;
- 		msg._txOff = 1;
- 		msg.txFlush = 0;
-@@ -2564,10 +2557,8 @@ static int keyspan_usa67_send_setup(stru
- 		msg.rxForward = 0;
- 		msg.returnStatus = 0;
- 		msg.resetDataToggle = 0;
--	}
--
--	/* Sending intermediate configs */
--	else {
-+	} else {
-+		/* Sending intermediate configs */
- 		msg._txOn = (! p_priv->break_on);
- 		msg._txOff = 0;
- 		msg.txFlush = 0;
-@@ -2580,7 +2571,7 @@ static int keyspan_usa67_send_setup(stru
- 		msg.resetDataToggle = 0x0;
- 	}
- 
--		/* Do handshaking outputs */
-+	/* Do handshaking outputs */
- 	msg.setTxTriState_setRts = 0xff;
- 	msg.txTriState_rts = p_priv->rts_state;
- 
-@@ -2589,16 +2580,16 @@ static int keyspan_usa67_send_setup(stru
- 
- 	p_priv->resend_cont = 0;
- 
--	memcpy (this_urb->transfer_buffer, &msg, sizeof(msg));
-+	memcpy(this_urb->transfer_buffer, &msg, sizeof(msg));
- 
- 	/* send the data out the device on control endpoint */
- 	this_urb->transfer_buffer_length = sizeof(msg);
- 	this_urb->dev = serial->dev;
- 
--	if ((err = usb_submit_urb(this_urb, GFP_ATOMIC)) != 0) {
--		dbg("%s - usb_submit_urb(setup) failed (%d)", __FUNCTION__, err);
--	}
--
-+	err = usb_submit_urb(this_urb, GFP_ATOMIC);
-+	if (err != 0)
-+		dbg("%s - usb_submit_urb(setup) failed (%d)", __FUNCTION__,
-+				err);
- 	return (0);
+ 	return res;
  }
+@@ -210,7 +209,6 @@ asmlinkage long sys_eventfd(unsigned int
+ 		return -ENOMEM;
  
-@@ -2679,15 +2670,17 @@ static int keyspan_startup (struct usb_s
+ 	init_waitqueue_head(&ctx->wqh);
+-	spin_lock_init(&ctx->lock);
+ 	ctx->count = count;
  
- 	if (s_priv->instat_urb != NULL) {
- 		s_priv->instat_urb->dev = serial->dev;
--		if ((err = usb_submit_urb(s_priv->instat_urb, GFP_KERNEL)) != 0) {
--			dbg("%s - submit instat urb failed %d", __FUNCTION__, err);
--		}
-+		err = usb_submit_urb(s_priv->instat_urb, GFP_KERNEL);
-+		if (err != 0)
-+			dbg("%s - submit instat urb failed %d", __FUNCTION__,
-+				err);
- 	}
- 	if (s_priv->indat_urb != NULL) {
- 		s_priv->indat_urb->dev = serial->dev;
--		if ((err = usb_submit_urb(s_priv->indat_urb, GFP_KERNEL)) != 0) {
--			dbg("%s - submit indat urb failed %d", __FUNCTION__, err);
--		}
-+		err = usb_submit_urb(s_priv->indat_urb, GFP_KERNEL);
-+		if (err != 0)
-+			dbg("%s - submit indat urb failed %d", __FUNCTION__,
-+				err);
- 	}
- 			
- 	return (0);
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-powerpc.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-xfs-clean-up-shrinker-games.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-pie-randomization-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-check_dirty_inode_list.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+x86_64-fix-oprofile-smp.patch
+eventfd-use-waitqueue-lock.patch
+timerfd-use-waitqueue-lock.patch
