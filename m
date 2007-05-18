@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-crypto-api-use-seq_list_xxx-helpers.patch added to -mm tree
-Date: Fri, 18 May 2007 10:37:42 -0700
-Message-ID: <200705181737.l4IHbgB8019857@shell0.pdx.osdl.net>
+Subject: + make-proc-slabinfo-use-seq_list_xxx-helpers.patch added to -mm tree
+Date: Fri, 18 May 2007 10:38:02 -0700
+Message-ID: <200705181738.l4IHc2r3019887@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:51875 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:39750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754985AbXERRnL (ORCPT
+	by vger.kernel.org with ESMTP id S1754958AbXERRnL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 18 May 2007 13:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@sw.ru, herbert@gondor.apana.org.au, xemul@openvz.org
+Cc: xemul@sw.ru, clameter@sgi.com, penberg@cs.helsinki.fi, xemul@openvz.org
 
 
 The patch titled
-     Make crypto API use seq_list_xxx helpers
+     Make /proc/slabinfo use seq_list_xxx helpers
 has been added to the -mm tree.  Its filename is
-     make-crypto-api-use-seq_list_xxx-helpers.patch
+     make-proc-slabinfo-use-seq_list_xxx-helpers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make crypto API use seq_list_xxx helpers
+Subject: Make /proc/slabinfo use seq_list_xxx helpers
 From: Pavel Emelianov <xemul@sw.ru>
 
-Simple and stupid - just use the same code from another place in the kernel.
+This entry prints a header in .start callback.  This is OK, but the more
+elegant solution would be to move this into the .show callback and use
+seq_list_start_head() in .start one.
+
+I have left it as is in order to make the patch just switch to new API and
+noting more.
 
 Signed-off-by: Pavel Emelianov <xemul@openvz.org>
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/proc.c |   17 +++--------------
- 1 files changed, 3 insertions(+), 14 deletions(-)
+ mm/slab.c |   28 +++++-----------------------
+ 1 files changed, 5 insertions(+), 23 deletions(-)
 
-diff -puN crypto/proc.c~make-crypto-api-use-seq_list_xxx-helpers crypto/proc.c
---- a/crypto/proc.c~make-crypto-api-use-seq_list_xxx-helpers
-+++ a/crypto/proc.c
-@@ -23,24 +23,13 @@
- 
- static void *c_start(struct seq_file *m, loff_t *pos)
+diff -puN mm/slab.c~make-proc-slabinfo-use-seq_list_xxx-helpers mm/slab.c
+--- a/mm/slab.c~make-proc-slabinfo-use-seq_list_xxx-helpers
++++ a/mm/slab.c
+@@ -4146,26 +4146,17 @@ static void print_slabinfo_header(struct
+ static void *s_start(struct seq_file *m, loff_t *pos)
  {
--	struct list_head *v;
+ 	loff_t n = *pos;
+-	struct list_head *p;
+ 
+ 	mutex_lock(&cache_chain_mutex);
+ 	if (!n)
+ 		print_slabinfo_header(m);
+-	p = cache_chain.next;
+-	while (n--) {
+-		p = p->next;
+-		if (p == &cache_chain)
+-			return NULL;
+-	}
+-	return list_entry(p, struct kmem_cache, next);
++
++	return seq_list_start(&cache_chain, *pos);
+ }
+ 
+ static void *s_next(struct seq_file *m, void *p, loff_t *pos)
+ {
+-	struct kmem_cache *cachep = p;
+-	++*pos;
+-	return cachep->next.next == &cache_chain ?
+-		NULL : list_entry(cachep->next.next, struct kmem_cache, next);
++	return seq_list_next(p, &cache_chain, pos);
+ }
+ 
+ static void s_stop(struct seq_file *m, void *p)
+@@ -4175,7 +4166,7 @@ static void s_stop(struct seq_file *m, v
+ 
+ static int s_show(struct seq_file *m, void *p)
+ {
+-	struct kmem_cache *cachep = p;
++	struct kmem_cache *cachep = list_entry(p, struct kmem_cache, next);
+ 	struct slab *slabp;
+ 	unsigned long active_objs;
+ 	unsigned long num_objs;
+@@ -4344,17 +4335,8 @@ ssize_t slabinfo_write(struct file *file
+ 
+ static void *leaks_start(struct seq_file *m, loff_t *pos)
+ {
 -	loff_t n = *pos;
+-	struct list_head *p;
 -
- 	down_read(&crypto_alg_sem);
--	list_for_each(v, &crypto_alg_list)
--		if (!n--)
--			return list_entry(v, struct crypto_alg, cra_list);
--	return NULL;
-+	return seq_list_start(&crypto_alg_list, *pos);
+ 	mutex_lock(&cache_chain_mutex);
+-	p = cache_chain.next;
+-	while (n--) {
+-		p = p->next;
+-		if (p == &cache_chain)
+-			return NULL;
+-	}
+-	return list_entry(p, struct kmem_cache, next);
++	return seq_list_start(&cache_chain, *pos);
  }
  
- static void *c_next(struct seq_file *m, void *p, loff_t *pos)
- {
--	struct list_head *v = p;
--	
--	(*pos)++;
--	v = v->next;
--	return (v == &crypto_alg_list) ?
--		NULL : list_entry(v, struct crypto_alg, cra_list);
-+	return seq_list_next(p, &crypto_alg_list, pos);
- }
- 
- static void c_stop(struct seq_file *m, void *p)
-@@ -50,7 +39,7 @@ static void c_stop(struct seq_file *m, v
- 
- static int c_show(struct seq_file *m, void *p)
- {
--	struct crypto_alg *alg = (struct crypto_alg *)p;
-+	struct crypto_alg *alg = list_entry(p, struct crypto_alg, cra_list);
- 	
- 	seq_printf(m, "name         : %s\n", alg->cra_name);
- 	seq_printf(m, "driver       : %s\n", alg->cra_driver_name);
+ static inline int add_caller(unsigned long *n, unsigned long v)
 _
 
 Patches currently in -mm which might be from xemul@sw.ru are
