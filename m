@@ -1,92 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:34 -0700
-Message-ID: <200705180706.l4I76XE7010187@shell0.pdx.osdl.net>
+Subject: - fix-agk-dm-dm-io-fix-panic-on-large-request.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:50 -0700
+Message-ID: <200705180706.l4I76nvu010213@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48202 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762755AbXERHJX (ORCPT
+	by vger.kernel.org with ESMTP id S1755242AbXERHKD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:09:23 -0400
+	Fri, 18 May 2007 03:10:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: da-x@monatomic.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, agk@redhat.com, j-nomura@ce.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make sysctl/kernel/core_pattern and fs/exec.c agree on maximum core filename size
+     fix-agk-dm-dm-io-fix-panic-on-large-request
 has been removed from the -mm tree.  Its filename was
-     make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size.patch
+     fix-agk-dm-dm-io-fix-panic-on-large-request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make sysctl/kernel/core_pattern and fs/exec.c agree on maximum core filename size
-From: Dan Aloni <da-x@monatomic.org>
+Subject: fix-agk-dm-dm-io-fix-panic-on-large-request
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make sysctl/kernel/core_pattern and fs/exec.c agree on maximum core
-filename size and change it to 128, so that extensive patterns such as
-'/local/cores/%e-%h-%s-%t-%p.core' won't result in truncated filename
-generation.
+drivers/md/dm-io.c: In function 'do_region':
+drivers/md/dm-io.c:296: error: 'dm_div_up' undeclared (first use in this function)
+drivers/md/dm-io.c:296: error: (Each undeclared identifier is reported only once
+drivers/md/dm-io.c:296: error: for each function it appears in.)
 
-Signed-off-by: Dan Aloni <da-x@monatomic.org>
+Also, I believe this code should be using dm_sector_div_up().
+
+Cc: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    4 +---
- include/linux/binfmts.h |    2 ++
- kernel/sysctl.c         |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/md/dm-io.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size fs/exec.c
---- a/fs/exec.c~make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size
-+++ a/fs/exec.c
-@@ -60,7 +60,7 @@
- #endif
- 
- int core_uses_pid;
--char core_pattern[128] = "core";
-+char core_pattern[CORENAME_MAX_SIZE] = "core";
- int suid_dumpable = 0;
- 
- EXPORT_SYMBOL(suid_dumpable);
-@@ -1264,8 +1264,6 @@ int set_binfmt(struct linux_binfmt *new)
- 
- EXPORT_SYMBOL(set_binfmt);
- 
--#define CORENAME_MAX_SIZE 64
--
- /* format_corename will inspect the pattern parameter, and output a
-  * name into corename, which must have space for at least
-  * CORENAME_MAX_SIZE bytes plus one byte for the zero terminator.
-diff -puN include/linux/binfmts.h~make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size include/linux/binfmts.h
---- a/include/linux/binfmts.h~make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size
-+++ a/include/linux/binfmts.h
-@@ -17,6 +17,8 @@ struct pt_regs;
- 
- #ifdef __KERNEL__
- 
-+#define CORENAME_MAX_SIZE 128
-+
- /*
-  * This structure is used to hold the arguments that are used when loading binaries.
-  */
-diff -puN kernel/sysctl.c~make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size kernel/sysctl.c
---- a/kernel/sysctl.c~make-sysctl-kernel-core_pattern-and-fs-execc-agree-on-maximum-core-filename-size
-+++ a/kernel/sysctl.c
-@@ -227,7 +227,7 @@ static ctl_table kern_table[] = {
- 		.ctl_name	= KERN_CORE_PATTERN,
- 		.procname	= "core_pattern",
- 		.data		= core_pattern,
--		.maxlen		= 128,
-+		.maxlen		= CORENAME_MAX_SIZE,
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
+diff -puN drivers/md/dm-io.c~fix-agk-dm-dm-io-fix-panic-on-large-request drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~fix-agk-dm-dm-io-fix-panic-on-large-request
++++ a/drivers/md/dm-io.c
+@@ -293,7 +293,8 @@ static void do_region(int rw, unsigned i
+ 		 * bvec for bio_get/set_region() and decrement bi_max_vecs
+ 		 * to hide it from bio_add_page().
+ 		 */
+-		num_bvecs = dm_div_up(remaining / (PAGE_SIZE >> SECTOR_SHIFT));
++		num_bvecs = dm_sector_div_up(remaining,
++					(PAGE_SIZE >> SECTOR_SHIFT));
+ 		num_bvecs = 1 + min_t(int, bio_get_nr_vecs(where->bdev),
+ 				      num_bvecs);
+ 		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, io->client->bios);
 _
 
-Patches currently in -mm which might be from da-x@monatomic.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-i-oat-for-kexec.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-powerpc.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-dvb.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+ide-warning-fixes.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-nfs.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-fix-machine-rebooting-fix.patch
+xfs-clean-up-shrinker-games.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+reiser4.patch
+reiser4-fix.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+check_dirty_inode_list.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
