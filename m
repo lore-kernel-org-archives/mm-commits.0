@@ -1,257 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-make-kernel-locking-table-readable.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:23 -0700
-Message-ID: <200705180706.l4I76MK7010172@shell0.pdx.osdl.net>
+Subject: - i386-x86-64-fix-section-mismatch.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:07 -0700
+Message-ID: <200705180706.l4I766Ba010146@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755981AbXERHIJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756076AbXERHIL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:08:09 -0400
+	Fri, 18 May 2007 03:08:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: make kernel-locking table readable
+     i386/x86-64: fix section mismatch
 has been removed from the -mm tree.  Its filename was
-     docbook-make-kernel-locking-table-readable.patch
+     i386-x86-64-fix-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: docbook: make kernel-locking table readable
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: i386/x86-64: fix section mismatch
+From: Bernhard Walle <bwalle@suse.de>
 
-Andi Kleen pointed out to me that the kernel locking cheat sheet
-table entries are unreadable.
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to
+.init.text:mtrr_bp_init from .text between 'id entify_cpu' (at offset 0x6571)
+and 'IRQ0x20_interrupt'
 
-Make table entries smaller so that pdf and ps output is readable
-(columns were being overwritten and garbled) by using abbreviations.
-This allows the tables to fit on one page cleanly.
-Add a Legend for the abbreviations:
-  SLIS: spin_lock_irqsave
-  SLI:  spin_lock_irq
-  SL:   spin_lock
-  SLBH: spin_lock_bh
-  DI:   down_interruptible
+It's because identify_cpu() which is __cpuinit calls mtrr_bp_init() which is
+__init(). __cpuinit() expands to nothing if CONFIG_HOTPLUG_CPU=y and so the
+call is illegal.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl |  123 ++++++++++++--------
- 1 file changed, 78 insertions(+), 45 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |    2 +-
+ arch/i386/kernel/cpu/mtrr/main.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~docbook-make-kernel-locking-table-readable Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~docbook-make-kernel-locking-table-readable
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -551,10 +551,12 @@
- 	<function>spin_lock_irqsave()</function>, which is a superset
- 	of all other spinlock primitives.
-    </para>
-+
-    <table>
- <title>Table of Locking Requirements</title>
- <tgroup cols="11">
- <tbody>
-+
- <row>
- <entry></entry>
- <entry>IRQ Handler A</entry>
-@@ -576,97 +578,128 @@
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~i386-x86-64-fix-section-mismatch arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~i386-x86-64-fix-section-mismatch
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -78,7 +78,7 @@ static void __cpuinit print_fixed(unsign
+ }
  
- <row>
- <entry>IRQ Handler B</entry>
--<entry>spin_lock_irqsave</entry>
-+<entry>SLIS</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Softirq A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
- </row>
- 
- <row>
- <entry>Softirq B</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- </row>
- 
- <row>
- <entry>Tasklet A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Tasklet B</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Timer A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>Timer B</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
--<entry>spin_lock</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
-+<entry>SL</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>User Context A</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
- <entry>None</entry>
- </row>
- 
- <row>
- <entry>User Context B</entry>
-+<entry>SLI</entry>
-+<entry>SLI</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>SLBH</entry>
-+<entry>DI</entry>
-+<entry>None</entry>
-+</row>
-+
-+</tbody>
-+</tgroup>
-+</table>
-+
-+   <table>
-+<title>Legend for Locking Requirements Table</title>
-+<tgroup cols="2">
-+<tbody>
-+
-+<row>
-+<entry>SLIS</entry>
-+<entry>spin_lock_irqsave</entry>
-+</row>
-+<row>
-+<entry>SLI</entry>
- <entry>spin_lock_irq</entry>
--<entry>spin_lock_irq</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
--<entry>spin_lock_bh</entry>
-+</row>
-+<row>
-+<entry>SL</entry>
-+<entry>spin_lock</entry>
-+</row>
-+<row>
-+<entry>SLBH</entry>
- <entry>spin_lock_bh</entry>
-+</row>
-+<row>
-+<entry>DI</entry>
- <entry>down_interruptible</entry>
--<entry>None</entry>
- </row>
- 
- </tbody>
- </tgroup>
- </table>
-+
- </sect1>
- </chapter>
+ /*  Grab all of the MTRR state for this CPU into *state  */
+-void __init get_mtrr_state(void)
++void get_mtrr_state(void)
+ {
+ 	unsigned int i;
+ 	struct mtrr_var_range *vrs;
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-x86-64-fix-section-mismatch arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~i386-x86-64-fix-section-mismatch
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -639,7 +639,7 @@ static struct sysdev_driver mtrr_sysdev_
+  * initialized (i.e. before smp_init()).
+  * 
+  */
+-void __init mtrr_bp_init(void)
++void mtrr_bp_init(void)
+ {
+ 	init_ifs();
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-kstrndup.patch
-add-argv_split.patch
-add-argv_split-fix.patch
-split-usermodehelper-setup-from-execution.patch
-add-common-orderly_poweroff.patch
-add-common-orderly_poweroff-fix.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-profile-likely-unlikely-macros.patch
+git-r8169.patch
