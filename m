@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + simplify-cleanup_workqueue_thread-fix.patch added to -mm tree
-Date: Fri, 18 May 2007 13:58:40 -0700
-Message-ID: <200705182058.l4IKweqf023389@shell0.pdx.osdl.net>
+Subject: + simplify-cleanup_workqueue_thread.patch added to -mm tree
+Date: Fri, 18 May 2007 13:58:37 -0700
+Message-ID: <200705182058.l4IKwbGU023385@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49693 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752652AbXERVCe (ORCPT
+	by vger.kernel.org with ESMTP id S1754072AbXERVCl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 17:02:34 -0400
+	Fri, 18 May 2007 17:02:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ego@in.ibm.com, oleg@tv-sign.ru, rjw@sisk.pl, vatsa@in.ibm.com, zilvinas@wilibox.com
+Cc: oleg@tv-sign.ru, ego@in.ibm.com, rjw@sisk.pl, vatsa@in.ibm.com, zilvinas@wilibox.com
 
 
 The patch titled
-     simplify-cleanup_workqueue_thread-fix
+     simplify cleanup_workqueue_thread()
 has been added to the -mm tree.  Its filename is
-     simplify-cleanup_workqueue_thread-fix.patch
+     simplify-cleanup_workqueue_thread.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,167 +26,210 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: simplify-cleanup_workqueue_thread-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: simplify cleanup_workqueue_thread()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-we now have:
+cleanup_workqueue_thread() and cwq_should_stop() are overcomplicated. 
+Convert the code to use kthread_should_stop/kthread_stop as was suggested
+by Gautham and Srivatsa.
 
-	int foo(..)
-	{
-		if (expr1) {
-			...
-			return x;
-		} else {
-			...
-			return y;
-		}
-	}
+In particular this patch removes the (unlikely) busy-wait loop from the
+exit path, it was a temporary and ugly kludge (if not a bug).
 
-but some versions of gcc have a habit of (wrongly) warning about the failure
-to return anything from a non-void-returning function.
+Note: the current code was designed to solve another old problem: work->func
+can't share locks with hotplug callbacks. I think this could be done, see
 
-Fiddle the code to avoid that.
+	http://marc.info/?l=linux-kernel&m=116905366428633
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+but this needs some more complications to preserve CPU affinity of
+cwq->thread during cpu_up().  A freezer-based hotplug looks more appealing.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Zilvinas Valinskas <zilvinas@wilibox.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ kernel/workqueue.c |   80 ++++++++++++++++++-------------------------
+ 1 files changed, 34 insertions(+), 46 deletions(-)
 
-diff -puN kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix kernel/workqueue.c
---- a/kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix
+diff -puN kernel/workqueue.c~simplify-cleanup_workqueue_thread kernel/workqueue.c
+--- a/kernel/workqueue.c~simplify-cleanup_workqueue_thread
 +++ a/kernel/workqueue.c
-@@ -330,13 +330,15 @@ static void insert_wq_barrier(struct cpu
+@@ -47,7 +47,6 @@ struct cpu_workqueue_struct {
  
- static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
+ 	struct workqueue_struct *wq;
+ 	struct task_struct *thread;
+-	int should_stop;
+ 
+ 	int run_depth;		/* Detect run_workqueue() recursion depth */
+ } ____cacheline_aligned;
+@@ -71,7 +70,13 @@ static LIST_HEAD(workqueues);
+ 
+ static int singlethread_cpu __read_mostly;
+ static cpumask_t cpu_singlethread_map __read_mostly;
+-/* optimization, we could use cpu_possible_map */
++/*
++ * _cpu_down() first removes CPU from cpu_online_map, then CPU_DEAD
++ * flushes cwq->worklist. This means that flush_workqueue/wait_on_work
++ * which comes in between can't use for_each_online_cpu(). We could
++ * use cpu_possible_map, the cpumask below is more a documentation
++ * than optimization.
++ */
+ static cpumask_t cpu_populated_map __read_mostly;
+ 
+ /* If it's single threaded, it isn't in the list of workqueues. */
+@@ -272,24 +277,6 @@ static void run_workqueue(struct cpu_wor
+ 	spin_unlock_irq(&cwq->lock);
+ }
+ 
+-/*
+- * NOTE: the caller must not touch *cwq if this func returns true
+- */
+-static int cwq_should_stop(struct cpu_workqueue_struct *cwq)
+-{
+-	int should_stop = cwq->should_stop;
+-
+-	if (unlikely(should_stop)) {
+-		spin_lock_irq(&cwq->lock);
+-		should_stop = cwq->should_stop && list_empty(&cwq->worklist);
+-		if (should_stop)
+-			cwq->thread = NULL;
+-		spin_unlock_irq(&cwq->lock);
+-	}
+-
+-	return should_stop;
+-}
+-
+ static int worker_thread(void *__cwq)
  {
-+	int ret;
-+
+ 	struct cpu_workqueue_struct *cwq = __cwq;
+@@ -302,14 +289,15 @@ static int worker_thread(void *__cwq)
+ 
+ 	for (;;) {
+ 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
+-		if (!freezing(current) && !cwq->should_stop
+-		    && list_empty(&cwq->worklist))
++		if (!freezing(current) &&
++		    !kthread_should_stop() &&
++		    list_empty(&cwq->worklist))
+ 			schedule();
+ 		finish_wait(&cwq->more_work, &wait);
+ 
+ 		try_to_freeze();
+ 
+-		if (cwq_should_stop(cwq))
++		if (kthread_should_stop())
+ 			break;
+ 
+ 		run_workqueue(cwq);
+@@ -340,7 +328,7 @@ static void insert_wq_barrier(struct cpu
+ 	insert_work(cwq, &barr->work, tail);
+ }
+ 
+-static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
++static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
+ {
  	if (cwq->thread == current) {
  		/*
- 		 * Probably keventd trying to flush its own queue. So simply run
+@@ -348,6 +336,7 @@ static void flush_cpu_workqueue(struct c
  		 * it by hand rather than deadlocking.
  		 */
  		run_workqueue(cwq);
--		return 1;
-+		ret = 1;
++		return 1;
  	} else {
  		struct wq_barrier barr;
  		int active = 0;
-@@ -351,8 +353,9 @@ static int flush_cpu_workqueue(struct cp
+@@ -361,6 +350,8 @@ static void flush_cpu_workqueue(struct c
+ 
  		if (active)
  			wait_for_completion(&barr.done);
- 
--		return active;
-+		ret = active;
++
++		return active;
  	}
-+	return ret;
+ }
+ 
+@@ -674,7 +665,6 @@ static int create_workqueue_thread(struc
+ 		return PTR_ERR(p);
+ 
+ 	cwq->thread = p;
+-	cwq->should_stop = 0;
+ 
+ 	return 0;
+ }
+@@ -740,29 +730,27 @@ EXPORT_SYMBOL_GPL(__create_workqueue);
+ 
+ static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
+ {
+-	struct wq_barrier barr;
+-	int alive = 0;
+-
+-	spin_lock_irq(&cwq->lock);
+-	if (cwq->thread != NULL) {
+-		insert_wq_barrier(cwq, &barr, 1);
+-		cwq->should_stop = 1;
+-		alive = 1;
+-	}
+-	spin_unlock_irq(&cwq->lock);
++	/*
++	 * Our caller is either destroy_workqueue() or CPU_DEAD,
++	 * workqueue_mutex protects cwq->thread
++	 */
++	if (cwq->thread == NULL)
++		return;
+ 
+-	if (alive) {
+-		wait_for_completion(&barr.done);
++	/*
++	 * If the caller is CPU_DEAD the single flush_cpu_workqueue()
++	 * is not enough, a concurrent flush_workqueue() can insert a
++	 * barrier after us.
++	 * When ->worklist becomes empty it is safe to exit because no
++	 * more work_structs can be queued on this cwq: flush_workqueue
++	 * checks list_empty(), and a "normal" queue_work() can't use
++	 * a dead CPU.
++	 */
++	while (flush_cpu_workqueue(cwq))
++		;
+ 
+-		while (unlikely(cwq->thread != NULL))
+-			cpu_relax();
+-		/*
+-		 * Wait until cwq->thread unlocks cwq->lock,
+-		 * it won't touch *cwq after that.
+-		 */
+-		smp_rmb();
+-		spin_unlock_wait(&cwq->lock);
+-	}
++	kthread_stop(cwq->thread);
++	cwq->thread = NULL;
  }
  
  /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-powerpc.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
+revert-cancel_delayed_work-use-del_timer-instead-of-del_timer_sync.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
 git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-xfs-clean-up-shrinker-games.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+recalc_sigpending_tsk-fixes.patch
+simplify-cleanup_workqueue_thread.patch
 simplify-cleanup_workqueue_thread-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
+freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
 freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
+freezer-fix-pf_nofreeze-vs-freezeable-race.patch
+freezer-move-frozen_process-to-kernel-power-processc.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+tidy-up-usermode-helper-waiting-a-bit.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
-pie-randomization-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-check_dirty_inode_list.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
