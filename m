@@ -1,74 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - simplify-compat_sys_timerfd.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:11 -0700
-Message-ID: <200705180706.l4I76A4T010154@shell0.pdx.osdl.net>
+Subject: - icom-add-new-sub-device-id-to-support-new-adapter.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:32 -0700
+Message-ID: <200705180706.l4I76V8r010184@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756232AbXERHIV (ORCPT
+	by vger.kernel.org with ESMTP id S1755155AbXERHIY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:08:21 -0400
+	Fri, 18 May 2007 03:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: wendyx@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     simplify compat_sys_timerfd
+     icom: add new sub-device-id to support new adapter
 has been removed from the -mm tree.  Its filename was
-     simplify-compat_sys_timerfd.patch
+     icom-add-new-sub-device-id-to-support-new-adapter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: simplify compat_sys_timerfd
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: icom: add new sub-device-id to support new adapter
+From: wendy xiong <wendyx@us.ibm.com>
 
-Just thought this is easier to read.
+This patch add new sub-device-id to support new adapter and changed the
+interrupt irq number for unsigned char to unsigned int.
 
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+[akpm@osdl.org: fix whitespace in device table]
+Signed-off by: Wendy Xiong <wendyx@us.ibm.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/serial/icom.c   |   55 +++++++++++++++++++++-----------------
+ include/linux/pci_ids.h |    1 
+ 2 files changed, 32 insertions(+), 24 deletions(-)
 
-diff -puN fs/compat.c~simplify-compat_sys_timerfd fs/compat.c
---- a/fs/compat.c~simplify-compat_sys_timerfd
-+++ a/fs/compat.c
-@@ -2230,21 +2230,16 @@ asmlinkage long compat_sys_signalfd(int 
- asmlinkage long compat_sys_timerfd(int ufd, int clockid, int flags,
- 				   const struct compat_itimerspec __user *utmr)
- {
--	long res;
- 	struct itimerspec t;
- 	struct itimerspec __user *ut;
+diff -puN drivers/serial/icom.c~icom-add-new-sub-device-id-to-support-new-adapter drivers/serial/icom.c
+--- a/drivers/serial/icom.c~icom-add-new-sub-device-id-to-support-new-adapter
++++ a/drivers/serial/icom.c
+@@ -69,33 +69,40 @@
  
--	res = -EFAULT;
- 	if (get_compat_itimerspec(&t, utmr))
--		goto err_exit;
-+		return -EFAULT;
- 	ut = compat_alloc_user_space(sizeof(*ut));
--	if (copy_to_user(ut, &t, sizeof(t)) )
--		goto err_exit;
-+	if (copy_to_user(ut, &t, sizeof(t)))
-+		return -EFAULT;
+ static const struct pci_device_id icom_pci_table[] = {
+ 	{
+-	      .vendor = PCI_VENDOR_ID_IBM,
+-	      .device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_1,
+-	      .subvendor = PCI_ANY_ID,
+-	      .subdevice = PCI_ANY_ID,
+-	      .driver_data = ADAPTER_V1,
+-	 },
++		.vendor = PCI_VENDOR_ID_IBM,
++		.device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_1,
++		.subvendor = PCI_ANY_ID,
++		.subdevice = PCI_ANY_ID,
++		.driver_data = ADAPTER_V1,
++	},
+ 	{
+-	      .vendor = PCI_VENDOR_ID_IBM,
+-	      .device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
+-	      .subvendor = PCI_VENDOR_ID_IBM,
+-	      .subdevice = PCI_DEVICE_ID_IBM_ICOM_V2_TWO_PORTS_RVX,
+-	      .driver_data = ADAPTER_V2,
+-	 },
++		.vendor = PCI_VENDOR_ID_IBM,
++		.device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
++		.subvendor = PCI_VENDOR_ID_IBM,
++		.subdevice = PCI_DEVICE_ID_IBM_ICOM_V2_TWO_PORTS_RVX,
++		.driver_data = ADAPTER_V2,
++	},
+ 	{
+-	      .vendor = PCI_VENDOR_ID_IBM,
+-	      .device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
+-	      .subvendor = PCI_VENDOR_ID_IBM,
+-	      .subdevice = PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM,
+-	      .driver_data = ADAPTER_V2,
+-	 },
++		.vendor = PCI_VENDOR_ID_IBM,
++		.device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
++		.subvendor = PCI_VENDOR_ID_IBM,
++		.subdevice = PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM,
++		.driver_data = ADAPTER_V2,
++	},
+ 	{
+-	      .vendor = PCI_VENDOR_ID_IBM,
+-	      .device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
+-	      .subvendor = PCI_VENDOR_ID_IBM,
+-	      .subdevice = PCI_DEVICE_ID_IBM_ICOM_FOUR_PORT_MODEL,
+-	      .driver_data = ADAPTER_V2,
+-	 },
++		.vendor = PCI_VENDOR_ID_IBM,
++		.device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
++		.subvendor = PCI_VENDOR_ID_IBM,
++		.subdevice = PCI_DEVICE_ID_IBM_ICOM_FOUR_PORT_MODEL,
++		.driver_data = ADAPTER_V2,
++	},
++	{
++		.vendor = PCI_VENDOR_ID_IBM,
++		.device = PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2,
++		.subvendor = PCI_VENDOR_ID_IBM,
++		.subdevice = PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM_PCIE,
++		.driver_data = ADAPTER_V2,
++	},
+ 	{}
+ };
  
--	res = sys_timerfd(ufd, clockid, flags, ut);
--err_exit:
--	return res;
-+	return sys_timerfd(ufd, clockid, flags, ut);
- }
+diff -puN include/linux/pci_ids.h~icom-add-new-sub-device-id-to-support-new-adapter include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~icom-add-new-sub-device-id-to-support-new-adapter
++++ a/include/linux/pci_ids.h
+@@ -471,6 +471,7 @@
+ #define PCI_DEVICE_ID_IBM_ICOM_DEV_ID_2	0x0219
+ #define PCI_DEVICE_ID_IBM_ICOM_V2_TWO_PORTS_RVX		0x021A
+ #define PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM	0x0251
++#define PCI_DEVICE_ID_IBM_ICOM_V2_ONE_PORT_RVX_ONE_PORT_MDM_PCIE 0x0361
+ #define PCI_DEVICE_ID_IBM_ICOM_FOUR_PORT_MODEL	0x252
  
- #endif /* CONFIG_TIMERFD */
--
+ #define PCI_VENDOR_ID_COMPEX2		0x101a /* pci.ids says "AT&T GIS (NCR)" */
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from wendyx@us.ibm.com are
 
 origin.patch
-git-s390.patch
-s390-spinlock-initializer-cleanup.patch
-x86_64-fix-smp_call_function_single-return-value.patch
