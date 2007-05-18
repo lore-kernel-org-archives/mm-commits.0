@@ -1,77 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - make-freezeable-workqueues-singlethread.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:18 -0700
-Message-ID: <200705180706.l4I76HKm010166@shell0.pdx.osdl.net>
+Subject: - fix-incorrect-prototype-for-ipxrtr_route_packet.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:07:08 -0700
+Message-ID: <200705180707.l4I777pO010247@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39316 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52418 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762726AbXERHJW (ORCPT
+	by vger.kernel.org with ESMTP id S1762489AbXERHJT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:09:22 -0400
+	Fri, 18 May 2007 03:09:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make freezeable workqueues singlethread
+     Fix incorrect prototype for ipxrtr_route_packet()
 has been removed from the -mm tree.  Its filename was
-     make-freezeable-workqueues-singlethread.patch
+     fix-incorrect-prototype-for-ipxrtr_route_packet.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make freezeable workqueues singlethread
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Fix incorrect prototype for ipxrtr_route_packet()
+From: David Woodhouse <dwmw2@infradead.org>
 
-It is a known fact that freezeable multithreaded workqueues doesn't like
-CPU_DEAD. We keep them only for the incoming CPU-hotplug rework.
+The function ipxrtr_route_packet() takes a 'len' argument of type size_t. 
+However, its prototype in af_ipx.c incorrectly suggests that the
+corresponding argument is of type 'int' instead.
 
-Sadly, we can't just kill create_freezeable_workqueue() right now, make
-them singlethread.
+Discovered by building with --combine and letting the compiler see it all
+at once.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/workqueue.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipx/af_ipx.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/workqueue.h~make-freezeable-workqueues-singlethread include/linux/workqueue.h
---- a/include/linux/workqueue.h~make-freezeable-workqueues-singlethread
-+++ a/include/linux/workqueue.h
-@@ -122,7 +122,7 @@ extern struct workqueue_struct *__create
- 						    int singlethread,
- 						    int freezeable);
- #define create_workqueue(name) __create_workqueue((name), 0, 0)
--#define create_freezeable_workqueue(name) __create_workqueue((name), 0, 1)
-+#define create_freezeable_workqueue(name) __create_workqueue((name), 1, 1)
- #define create_singlethread_workqueue(name) __create_workqueue((name), 1, 0)
- 
- extern void destroy_workqueue(struct workqueue_struct *wq);
+diff -puN net/ipx/af_ipx.c~fix-incorrect-prototype-for-ipxrtr_route_packet net/ipx/af_ipx.c
+--- a/net/ipx/af_ipx.c~fix-incorrect-prototype-for-ipxrtr_route_packet
++++ a/net/ipx/af_ipx.c
+@@ -87,7 +87,7 @@ extern int ipxrtr_add_route(__be32 netwo
+ 			    unsigned char *node);
+ extern void ipxrtr_del_routes(struct ipx_interface *intrfc);
+ extern int ipxrtr_route_packet(struct sock *sk, struct sockaddr_ipx *usipx,
+-			       struct iovec *iov, int len, int noblock);
++			       struct iovec *iov, size_t len, int noblock);
+ extern int ipxrtr_route_skb(struct sk_buff *skb);
+ extern struct ipx_route *ipxrtr_lookup(__be32 net);
+ extern int ipxrtr_ioctl(unsigned int cmd, void __user *arg);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
-revert-cancel_delayed_work-use-del_timer-instead-of-del_timer_sync.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-git-nfs.patch
-recalc_sigpending_tsk-fixes.patch
-freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-freezer-fix-pf_nofreeze-vs-freezeable-race.patch
-freezer-move-frozen_process-to-kernel-power-processc.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+git-ubi.patch
+git-battery.patch
+missing-const-from-reiserfs-min_key-declaration.patch
+add-lzo1x-compression-support-to-the-kernel.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+mismatching-declarations-of-revision-strings-in-hisax.patch
