@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm.patch added to -mm tree
-Date: Fri, 18 May 2007 11:56:38 -0700
-Message-ID: <200705181856.l4IIuc2S021321@shell0.pdx.osdl.net>
+Subject: + usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg.patch added to -mm tree
+Date: Fri, 18 May 2007 12:10:41 -0700
+Message-ID: <200705181910.l4IJAfjt021574@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45095 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40637 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757355AbXERS7z (ORCPT
+	by vger.kernel.org with ESMTP id S1754747AbXERTMc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 14:59:55 -0400
+	Fri, 18 May 2007 15:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrianmcmenamin@gmail.com, adrian@mcmen.demon.co.uk, perex@suse.cz, tiwai@suse.de
+Cc: lucy@keyspan.com, greg@kroah.com
 
 
 The patch titled
-     ALSA support for the SEGA Dreamcast Yamaha AICA sound device (pcm)
+     Usb Serial Keyspan: add support for USA-49WG & USA-28XG
 has been added to the -mm tree.  Its filename is
-     alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm.patch
+     usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,850 +26,1129 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA support for the SEGA Dreamcast Yamaha AICA sound device (pcm)
-From: "Adrian McMenamin" <adrianmcmenamin@gmail.com>
+Subject: Usb Serial Keyspan: add support for USA-49WG & USA-28XG
+From: Lucy McCoy <lucy@keyspan.com>
 
-Add ALSA sound support for pcm playback on two channels on the SEGA
-Dreamcast built-in sound device (the Yamaha AICA)
+Add support for Keyspan adapters: USA-49WG and USA-28XG
 
-Add driver for the AICA sound device built into the SEGA Dreamcast
-
-Hook it all up with the build system.
-
-Signed-off-by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: Lucy P. McCoy <lucy@keyspan.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/Kconfig     |    2 
- sound/Makefile    |    2 
- sound/sh/Kconfig  |   14 
- sound/sh/Makefile |    8 
- sound/sh/aica.c   |  675 ++++++++++++++++++++++++++++++++++++++++++++
- sound/sh/aica.h   |   80 +++++
- 6 files changed, 780 insertions(+), 1 deletion(-)
+ drivers/usb/serial/keyspan.c          |  416 ++++++++++++++++++++++--
+ drivers/usb/serial/keyspan.h          |   74 +++-
+ drivers/usb/serial/keyspan_usa67msg.h |  254 ++++++++++++++
+ 3 files changed, 715 insertions(+), 29 deletions(-)
 
-diff -puN /dev/null /dev/null
-diff -puN sound/Kconfig~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm sound/Kconfig
---- a/sound/Kconfig~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm
-+++ a/sound/Kconfig
-@@ -65,6 +65,8 @@ source "sound/arm/Kconfig"
+diff -puN drivers/usb/serial/keyspan.c~usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg drivers/usb/serial/keyspan.c
+--- a/drivers/usb/serial/keyspan.c~usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg
++++ a/drivers/usb/serial/keyspan.c
+@@ -28,6 +28,9 @@
  
- source "sound/mips/Kconfig"
+   Change History
  
-+source "sound/sh/Kconfig"
++    2007may02	LPM (Keyspan) add support for the USA28XG and USA49WG.
 +
- # the following will depend on the order of config.
- # here assuming USB is defined before ALSA
- source "sound/usb/Kconfig"
-diff -puN sound/Makefile~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm sound/Makefile
---- a/sound/Makefile~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm
-+++ a/sound/Makefile
-@@ -5,7 +5,7 @@ obj-$(CONFIG_SOUND) += soundcore.o
- obj-$(CONFIG_SOUND_PRIME) += sound_firmware.o
- obj-$(CONFIG_SOUND_PRIME) += oss/
- obj-$(CONFIG_DMASOUND) += oss/
--obj-$(CONFIG_SND) += core/ i2c/ drivers/ isa/ pci/ ppc/ arm/ synth/ usb/ sparc/ parisc/ pcmcia/ mips/ soc/
-+obj-$(CONFIG_SND) += core/ i2c/ drivers/ isa/ pci/ ppc/ arm/ sh/ synth/ usb/ sparc/ parisc/ pcmcia/ mips/ soc/
- obj-$(CONFIG_SND_AOA) += aoa/
++
+     2003sep04	LPM (Keyspan) add support for new single port product USA19HS.
+ 				Improve setup message handling for all devices.
  
- # This one must be compilable even if sound is configured out
-diff -puN /dev/null sound/sh/Kconfig
---- /dev/null
-+++ a/sound/sh/Kconfig
-@@ -0,0 +1,14 @@
-+# ALSA SH drivers
+@@ -115,12 +118,13 @@ static int debug;
+ /*
+  * Version Information
+  */
+-#define DRIVER_VERSION "v1.1.4"
++#define DRIVER_VERSION "v1.1.5"
+ #define DRIVER_AUTHOR "Hugh Blemings <hugh@misc.nu"
+ #define DRIVER_DESC "Keyspan USB to Serial Converter Driver"
+ 
+ #define INSTAT_BUFLEN	32
+ #define GLOCONT_BUFLEN	64
++#define INDAT49W_BUFLEN	512
+ 
+ 	/* Per device and per port private data */
+ struct keyspan_serial_private {
+@@ -129,9 +133,15 @@ struct keyspan_serial_private {
+ 	struct urb	*instat_urb;
+ 	char		instat_buf[INSTAT_BUFLEN];
+ 
++	/* added to support 49wg, where data from all 4 ports comes in on 1 EP */
++	/* and high-speed supported */
++	struct urb	*indat_urb;
++	char		indat_buf[INDAT49W_BUFLEN];
 +
-+menu "SUPERH devices"
-+	depends on SND!=n && SUPERH
+ 	/* XXX this one probably will need a lock */
+ 	struct urb	*glocont_urb;
+ 	char		glocont_buf[GLOCONT_BUFLEN];
++	char		ctrl_buf[8];			// for EP0 control message
+ };
+ 
+ struct keyspan_port_private {
+@@ -179,12 +189,13 @@ struct keyspan_port_private {
+ 
+ 	
+ /* Include Keyspan message headers.  All current Keyspan Adapters
+-   make use of one of four message formats which are referred
+-   to as USA-26, USA-28 and USA-49, USA-90 by Keyspan and within this driver. */
++   make use of one of five message formats which are referred
++   to as USA-26, USA-28, USA-49, USA-90, USA-67 by Keyspan and within this driver. */
+ #include "keyspan_usa26msg.h"
+ #include "keyspan_usa28msg.h"
+ #include "keyspan_usa49msg.h"
+ #include "keyspan_usa90msg.h"
++#include "keyspan_usa67msg.h"
+ 	
+ 
+ /* Functions used by new usb-serial code. */
+@@ -850,6 +861,82 @@ static void	usa49_indat_callback(struct 
+ 		}
+ }
+ 
 +
-+config SND_AICA
-+	tristate "Dreamcast Yamaha AICA sound"
-+	depends on SH_DREAMCAST && SND
-+	select SND_PCM
-+	help
-+	  ALSA Sound driver for the SEGA Dreamcast console.
-+
-+endmenu
-+
-diff -puN /dev/null sound/sh/Makefile
---- /dev/null
-+++ a/sound/sh/Makefile
-@@ -0,0 +1,8 @@
-+#
-+# Makefile for ALSA
-+#
-+
-+snd-aica-objs := aica.o
-+
-+# Toplevel Module Dependency
-+obj-$(CONFIG_SND_AICA) += snd-aica.o
-diff -puN /dev/null sound/sh/aica.c
---- /dev/null
-+++ a/sound/sh/aica.c
-@@ -0,0 +1,675 @@
-+/*
-+* This code is licenced under
-+* the General Public Licence
-+* version 2
-+*
-+* Copyright Adrian McMenamin 2005, 2006, 2007
-+* <adrian@mcmen.demon.co.uk>
-+* Requires firmware (BSD licenced) available from:
-+* http://linuxdc.cvs.sourceforge.net/linuxdc/linux-sh-dc/sound/oss/aica/firmware/
-+* or the maintainer
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of version 2 of the GNU General Public License as published by
-+* the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*
-+* You should have received a copy of the GNU General Public License
-+* along with this program; if not, write to the Free Software
-+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+*
-+*/
-+
-+#include <linux/init.h>
-+#include <linux/jiffies.h>
-+#include <linux/slab.h>
-+#include <linux/time.h>
-+#include <linux/wait.h>
-+#include <linux/moduleparam.h>
-+#include <linux/platform_device.h>
-+#include <linux/firmware.h>
-+#include <linux/timer.h>
-+#include <linux/delay.h>
-+#include <linux/workqueue.h>
-+#include <sound/driver.h>
-+#include <sound/core.h>
-+#include <sound/control.h>
-+#include <sound/pcm.h>
-+#include <sound/initval.h>
-+#include <sound/info.h>
-+#include <asm/io.h>
-+#include <asm/dma.h>
-+#include <asm/dreamcast/sysasic.h>
-+#include "aica.h"
-+
-+MODULE_AUTHOR("Adrian McMenamin <adrian@mcmen.demon.co.uk>");
-+MODULE_DESCRIPTION("Dreamcast AICA sound (pcm) driver");
-+MODULE_LICENSE("GPL");
-+MODULE_SUPPORTED_DEVICE("{{Yamaha/SEGA, AICA}}");
-+
-+/* module parameters */
-+#define CARD_NAME "AICA"
-+static int index = -1;
-+static char *id;
-+static int enable = 1;
-+module_param(index, int, 0444);
-+MODULE_PARM_DESC(index, "Index value for " CARD_NAME " soundcard.");
-+module_param(id, charp, 0444);
-+MODULE_PARM_DESC(id, "ID string for " CARD_NAME " soundcard.");
-+module_param(enable, bool, 0644);
-+MODULE_PARM_DESC(enable, "Enable " CARD_NAME " soundcard.");
-+
-+/* Use workqueue */
-+
-+static struct spu_work_holder {
-+	struct work_struct spu_dma_work;
-+	void *sspointer;
-+} spu_working;
-+
-+static struct workqueue_struct *aica_queue;
-+
-+/* Simple platform device */
-+static struct platform_device *pd;
-+static struct resource aica_memory_space[2] = {
-+	{
-+	 .name = "AICA ARM CONTROL",
-+	 .start = ARM_RESET_REGISTER,
-+	 .flags = IORESOURCE_MEM,
-+	 .end = ARM_RESET_REGISTER + 3,
-+	 },
-+	{
-+	 .name = "AICA Sound RAM",
-+	 .start = SPU_MEMORY_BASE,
-+	 .flags = IORESOURCE_MEM,
-+	 .end = SPU_MEMORY_BASE + 0x200000 - 1,
-+	 },
-+};
-+
-+/* SPU specific functions */
-+/* spu_write_wait - wait for G2-SH FIFO to clear */
-+static void spu_write_wait(void)
++static void	usa49wg_indat_callback(struct urb *urb)
 +{
-+	int time_count;
-+	time_count = 0;
-+	while (1) {
-+		if (!(readl(G2_FIFO) & 0x11))
-+			break;
-+		/* To ensure hardware failure doesn't wedge kernel */
-+		time_count++;
-+		if (time_count > 0x10000)
-+		{
-+			snd_printk("WARNING: G2 FIFO appears to be blocked.\n");
++	int			i, len, x, err;
++	struct usb_serial		*serial;
++	struct usb_serial_port		*port;
++
++	struct tty_struct	*tty;
++	unsigned char 		*data = urb->transfer_buffer;
++
++
++	dbg ("%s", __FUNCTION__);
++
++	serial = (struct usb_serial *) urb->context;
++
++	if (urb->status) {
++		dbg("%s - nonzero status: %x", __FUNCTION__, urb->status);
++		return;
++	}
++
++	// inbound data is in the form P#, len, status, data */
++
++	i = len = 0;
++
++	if (urb->actual_length) {
++		while (i < urb->actual_length) {
++
++			/* Check port number from message*/
++			if (data[i] >= serial->num_ports) {
++				dbg ("%s - Unexpected port number %d", __FUNCTION__, data[i]);
++				return;
++			}
++			port = serial->port[data[i++]];
++			tty = port->tty;
++			len = data[i++];
++
++			/* 0x80 bit is error flag */
++			if ((data[i] & 0x80) == 0) {
++				/* no error on any byte */
++				i++;
++				for (x = 1; x < len ; ++x)
++					if (port->open_count)
++						tty_insert_flip_char(tty, data[i++], 0);
++					else
++						i++;
++			}
++			else {
++				/* some bytes had errors, every byte has status */
++				for (x = 0; x + 1 < len; x += 2) {
++					int stat = data[i], flag = 0;
++					if (stat & RXERROR_OVERRUN)
++						flag |= TTY_OVERRUN;
++					if (stat & RXERROR_FRAMING)
++						flag |= TTY_FRAME;
++					if (stat & RXERROR_PARITY)
++						flag |= TTY_PARITY;
++					/* XXX should handle break (0x10) */
++					if (port->open_count)
++						tty_insert_flip_char(tty, data[i+1], flag);
++					i+=2;
++				}
++			}
++			if (port->open_count)
++				tty_flip_buffer_push(tty);
++		}
++	}
++
++	/* Resubmit urb so we continue receiving */
++	urb->dev = serial->dev;
++
++	if ((err = usb_submit_urb(urb, GFP_ATOMIC)) != 0) {
++		dbg("%s - resubmit read urb failed. (%d)", __FUNCTION__, err);
++	}
++}
++
++
+ /* not used, usa-49 doesn't have per-port control endpoints */
+ static void	usa49_outcont_callback(struct urb *urb)
+ {
+@@ -995,6 +1082,88 @@ static void	usa90_outcont_callback(struc
+ 	}
+ }
+ 
++
++
++/* Status messages from the 28xg */
++static void	usa67_instat_callback(struct urb *urb)
++{
++	int					err;
++	unsigned char 				*data = urb->transfer_buffer;
++	struct keyspan_usa67_portStatusMessage	*msg;
++	struct usb_serial			*serial;
++	struct usb_serial_port			*port;
++	struct keyspan_port_private	 	*p_priv;
++	int old_dcd_state;
++
++	dbg ("%s", __FUNCTION__);
++
++	serial = (struct usb_serial *) urb->context;
++
++	if (urb->status) {
++		dbg("%s - nonzero status: %x", __FUNCTION__, urb->status);
++		return;
++	}
++
++	if (urb->actual_length != sizeof(struct keyspan_usa67_portStatusMessage)) {
++		dbg("%s - bad length %d", __FUNCTION__, urb->actual_length);
++		return;
++	}
++
++
++	/* Now do something useful with the data */
++	msg = (struct keyspan_usa67_portStatusMessage *)data;
++
++	/* Check port number from message and retrieve private data */
++	if (msg->port >= serial->num_ports) {
++		dbg ("%s - Unexpected port number %d", __FUNCTION__, msg->port);
++		return;
++	}
++
++	port = serial->port[msg->port];
++	p_priv = usb_get_serial_port_data(port);
++
++	/* Update handshaking pin state information */
++	old_dcd_state = p_priv->dcd_state;
++	p_priv->cts_state = ((msg->hskia_cts) ? 1 : 0);
++	p_priv->dcd_state = ((msg->gpia_dcd) ? 1 : 0);
++
++	if (port->tty && !C_CLOCAL(port->tty)
++	    && old_dcd_state != p_priv->dcd_state) {
++		if (old_dcd_state)
++			tty_hangup(port->tty);
++		/*  else */
++		/*	wake_up_interruptible(&p_priv->open_wait); */
++	}
++
++	/* Resubmit urb so we continue receiving */
++	urb->dev = serial->dev;
++	if ((err = usb_submit_urb(urb, GFP_ATOMIC)) != 0) {
++		dbg("%s - resubmit read urb failed. (%d)", __FUNCTION__, err);
++	}
++}
++
++static void	usa67_glocont_callback(struct urb *urb)
++{
++	struct usb_serial *serial;
++	struct usb_serial_port *port;
++	struct keyspan_port_private *p_priv;
++	int i;
++
++	dbg ("%s", __FUNCTION__);
++
++	serial = (struct usb_serial *) urb->context;
++	for (i = 0; i < serial->num_ports; ++i) {
++		port = serial->port[i];
++		p_priv = usb_get_serial_port_data(port);
++
++		if (p_priv->resend_cont) {
++			dbg ("%s - sending setup", __FUNCTION__);
++			keyspan_usa67_send_setup(serial, port, p_priv->resend_cont - 1);
 +			break;
 +		}
 +	}
 +}
 +
-+/* spu_memset - write to memory in SPU address space */
-+static void spu_memset(u32 toi, u32 what, int length)
-+{
-+	int i;
-+	snd_assert(length % 4 == 0, return);
-+	for (i = 0; i < length; i++) {
-+		if (!(i % 8))
-+			spu_write_wait();
-+		writel(what, toi + SPU_MEMORY_BASE);
-+		toi++;
+ static int keyspan_write_room (struct usb_serial_port *port)
+ {
+ 	struct keyspan_port_private	*p_priv;
+@@ -1311,6 +1480,11 @@ static struct urb *keyspan_setup_urb (st
+ 		return NULL;
+ 	}
+ 
++	if (endpoint == 0) {
++		/* control EP filled in when used */
++		return urb;
 +	}
-+}
 +
-+/* spu_memload - write to SPU address space */
-+static void spu_memload(u32 toi, void *from, int length)
-+{
-+	u32 *froml = from;
-+	u32 __iomem *to = (u32 __iomem *) (SPU_MEMORY_BASE + toi);
-+	int i;
-+	u32 val;
-+	length = DIV_ROUND_UP(length, 4);
-+	spu_write_wait();
-+	for (i = 0; i < length; i++) {
-+		if (!(i % 8))
-+			spu_write_wait();
-+		val = *froml;
-+		writel(val, to);
-+		froml++;
-+		to++;
+ 	ep_desc = find_ep(serial, endpoint);
+ 	if (!ep_desc) {
+ 		/* leak the urb, something's wrong and the callers don't care */
+@@ -1380,6 +1554,14 @@ static struct callbacks {
+ 		.outdat_callback =	usa2x_outdat_callback,
+ 		.inack_callback =	usa28_inack_callback,
+ 		.outcont_callback =	usa90_outcont_callback,
++	}, {
++		/* msg_usa67 callbacks */
++		.instat_callback =	usa67_instat_callback,
++		.glocont_callback =	usa67_glocont_callback,
++		.indat_callback =	usa26_indat_callback,
++		.outdat_callback =	usa2x_outdat_callback,
++		.inack_callback =	usa26_inack_callback,
++		.outcont_callback =	usa26_outcont_callback,
+ 	}
+ };
+ 
+@@ -1410,6 +1592,11 @@ static void keyspan_setup_urbs(struct us
+ 		 serial, s_priv->instat_buf, INSTAT_BUFLEN,
+ 		 cback->instat_callback);
+ 
++	s_priv->indat_urb = keyspan_setup_urb
++		(serial, d_details->indat_endpoint, USB_DIR_IN,
++		 serial, s_priv->indat_buf, INDAT49W_BUFLEN,
++		 usa49wg_indat_callback);
++
+ 	s_priv->glocont_urb = keyspan_setup_urb
+ 		(serial, d_details->glocont_endpoint, USB_DIR_OUT,
+ 		 serial, s_priv->glocont_buf, GLOCONT_BUFLEN,
+@@ -1685,8 +1872,8 @@ static int keyspan_usa26_send_setup(stru
+ 	}
+ 
+ 	/* Save reset port val for resend.
+-	Don't overwrite resend for close condition. */
+-	if (p_priv->resend_cont != 3)
++	   Don't overwrite resend for open/close condition. */
++	if ((reset_port+1) > p_priv->resend_cont)
+ 		p_priv->resend_cont = reset_port + 1;
+ 	if (this_urb->status == -EINPROGRESS) {
+ 		/*  dbg ("%s - already writing", __FUNCTION__); */
+@@ -1836,8 +2023,8 @@ static int keyspan_usa28_send_setup(stru
+ 	}
+ 
+ 	/* Save reset port val for resend.
+-	   Don't overwrite resend for close condition. */
+-	if (p_priv->resend_cont != 3)
++	   Don't overwrite resend for open/close condition. */
++	if ((reset_port+1) > p_priv->resend_cont)
+ 		p_priv->resend_cont = reset_port + 1;
+ 	if (this_urb->status == -EINPROGRESS) {
+ 		dbg ("%s already writing", __FUNCTION__);
+@@ -1940,21 +2127,22 @@ static int keyspan_usa49_send_setup(stru
+ 				    struct usb_serial_port *port,
+ 				    int reset_port)
+ {
+-	struct keyspan_usa49_portControlMessage	msg;		
++	struct keyspan_usa49_portControlMessage	msg;
++	struct usb_ctrlrequest 			*dr = NULL;
+ 	struct keyspan_serial_private 		*s_priv;
+ 	struct keyspan_port_private 		*p_priv;
+ 	const struct keyspan_device_details	*d_details;
+-	int 					glocont_urb;
+ 	struct urb				*this_urb;
+ 	int 					err, device_port;
+ 
++
++
+ 	dbg ("%s", __FUNCTION__);
+ 
+ 	s_priv = usb_get_serial_data(serial);
+ 	p_priv = usb_get_serial_port_data(port);
+ 	d_details = s_priv->device_details;
+ 
+-	glocont_urb = d_details->glocont_endpoint;
+ 	this_urb = s_priv->glocont_urb;
+ 
+ 		/* Work out which port within the device is being setup */
+@@ -1968,10 +2156,12 @@ static int keyspan_usa49_send_setup(stru
+ 		return -1;
+ 	}
+ 
++
+ 	/* Save reset port val for resend.
+-	   Don't overwrite resend for close condition. */
+-	if (p_priv->resend_cont != 3)
++	   Don't overwrite resend for open/close condition. */
++	if ((reset_port+1) > p_priv->resend_cont)
+ 		p_priv->resend_cont = reset_port + 1;
++
+ 	if (this_urb->status == -EINPROGRESS) {
+ 		/*  dbg ("%s - already writing", __FUNCTION__); */
+ 		mdelay(5);
+@@ -2083,20 +2273,40 @@ static int keyspan_usa49_send_setup(stru
+ 	msg.dtr = p_priv->dtr_state;
+ 		
+ 	p_priv->resend_cont = 0;
+-	memcpy (this_urb->transfer_buffer, &msg, sizeof(msg));
++
++	/* if the device is a 49wg, we send control message on usb control EP 0 */
++
++	if (d_details->product_id == keyspan_usa49wg_product_id) {
++		dr = (void *)(s_priv->ctrl_buf);
++		dr->bRequestType = USB_TYPE_VENDOR | USB_DIR_OUT;
++		dr->bRequest = 0xB0;	/* 49wg control message */;
++		dr->wValue = 0;
++		dr->wIndex = 0;
++		dr->wLength = cpu_to_le16(sizeof(msg));
++
++		memcpy (s_priv->glocont_buf, &msg, sizeof(msg));
++
++		usb_fill_control_urb(this_urb, serial->dev, usb_sndctrlpipe(serial->dev, 0),
++			     (unsigned char *)dr, s_priv->glocont_buf, sizeof(msg),
++			     usa49_glocont_callback, serial);
++
 +	}
-+}
-+
-+/* spu_disable - set spu registers to stop sound output */
-+static void spu_disable(void)
-+{
-+	int i;
-+	u32 regval;
-+	spu_write_wait();
-+	regval = readl(ARM_RESET_REGISTER);
-+	regval |= 1;
-+	spu_write_wait();
-+	writel(regval, ARM_RESET_REGISTER);
-+	for (i = 0; i < 64; i++) {
-+		spu_write_wait();
-+		regval = readl(SPU_REGISTER_BASE + (i * 0x80));
-+		regval = (regval & ~0x4000) | 0x8000;
-+		spu_write_wait();
-+		writel(regval, SPU_REGISTER_BASE + (i * 0x80));
++	else {
++		memcpy (this_urb->transfer_buffer, &msg, sizeof(msg));
+ 	
+-	/* send the data out the device on control endpoint */
+-	this_urb->transfer_buffer_length = sizeof(msg);
++		/* send the data out the device on control endpoint */
++		this_urb->transfer_buffer_length = sizeof(msg);
+ 
+-	this_urb->dev = serial->dev;
++		this_urb->dev = serial->dev;
 +	}
-+}
-+
-+/* spu_enable - set spu registers to enable sound output */
-+static void spu_enable(void)
+ 	if ((err = usb_submit_urb(this_urb, GFP_ATOMIC)) != 0) {
+ 		dbg("%s - usb_submit_urb(setup) failed (%d)", __FUNCTION__, err);
+ 	}
+ #if 0
+ 	else {
+ 		dbg("%s - usb_submit_urb(%d) OK %d bytes (end %d)", __FUNCTION__,
+-		    outcont_urb, this_urb->transfer_buffer_length,
+-		    usb_pipeendpoint(this_urb->pipe));
++			   outcont_urb, this_urb->transfer_buffer_length,
++			   usb_pipeendpoint(this_urb->pipe));
+ 	}
+ #endif
+ 
+@@ -2241,6 +2451,157 @@ static int keyspan_usa90_send_setup(stru
+ 	return (0);
+ }
+ 
++static int keyspan_usa67_send_setup(struct usb_serial *serial,
++				    struct usb_serial_port *port,
++				    int reset_port)
 +{
-+	u32 regval = readl(ARM_RESET_REGISTER);
-+	regval &= ~1;
-+	spu_write_wait();
-+	writel(regval, ARM_RESET_REGISTER);
-+}
++	struct keyspan_usa67_portControlMessage	msg;
++	struct keyspan_serial_private 		*s_priv;
++	struct keyspan_port_private 		*p_priv;
++	const struct keyspan_device_details	*d_details;
++	struct urb				*this_urb;
++	int 					err, device_port;
 +
-+/*
-+ * Halt the sound processor, clear the memory,
-+ * load some default ARM7 code, and then restart ARM7
-+*/
-+static void spu_reset(void)
-+{
-+	spu_disable();
-+	spu_memset(0, 0, 0x200000 / 4);
-+	/* Put ARM7 in endless loop */
-+	ctrl_outl(0xea000002, SPU_MEMORY_BASE);
-+	spu_enable();
-+}
++	dbg ("%s", __FUNCTION__);
 +
-+/* aica_chn_start - write to spu to start playback */
-+static void aica_chn_start(void)
-+{
-+	spu_write_wait();
-+	writel(AICA_CMD_KICK | AICA_CMD_START, (u32 *) AICA_CONTROL_POINT);
-+}
++	s_priv = usb_get_serial_data(serial);
++	p_priv = usb_get_serial_port_data(port);
++	d_details = s_priv->device_details;
 +
-+/* aica_chn_halt - write to spu to halt playback */
-+static void aica_chn_halt(void)
-+{
-+	spu_write_wait();
-+	writel(AICA_CMD_KICK | AICA_CMD_STOP, (u32 *) AICA_CONTROL_POINT);
-+}
++	this_urb = s_priv->glocont_urb;
 +
-+/* ALSA code below */
-+static struct snd_pcm_hardware snd_pcm_aica_playback_hw = {
-+	.info = (SNDRV_PCM_INFO_NONINTERLEAVED),
-+	.formats =
-+	    (SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE |
-+	     SNDRV_PCM_FMTBIT_IMA_ADPCM),
-+	.rates = SNDRV_PCM_RATE_8000_48000,
-+	.rate_min = 8000,
-+	.rate_max = 48000,
-+	.channels_min = 1,
-+	.channels_max = 2,
-+	.buffer_bytes_max = AICA_BUFFER_SIZE,
-+	.period_bytes_min = AICA_PERIOD_SIZE,
-+	.period_bytes_max = AICA_PERIOD_SIZE,
-+	.periods_min = AICA_PERIOD_NUMBER,
-+	.periods_max = AICA_PERIOD_NUMBER,
-+};
++	/* Work out which port within the device is being setup */
++	device_port = port->number - port->serial->minor;
 +
-+static int aica_dma_transfer(int channels, int buffer_size,
-+			     struct snd_pcm_substream *substream)
-+{
-+	int q, err, period_offset;
-+	struct snd_card_aica *dreamcastcard;
-+	struct snd_pcm_runtime *runtime;
-+	err = 0;
-+	dreamcastcard = substream->pcm->private_data;
-+	period_offset = dreamcastcard->clicks;
-+	period_offset %= (AICA_PERIOD_NUMBER / channels);
-+	runtime = substream->runtime;
-+	for (q = 0; q < channels; q++) {
-+		err = dma_xfer(AICA_DMA_CHANNEL,
-+			       (unsigned long)(runtime->dma_area +
-+					       (AICA_BUFFER_SIZE * q) /
-+					       channels +
-+					       AICA_PERIOD_SIZE *
-+					       period_offset),
-+			       AICA_CHANNEL0_OFFSET + q * CHANNEL_OFFSET +
-+			       AICA_PERIOD_SIZE * period_offset,
-+			       buffer_size / channels, AICA_DMA_MODE);
-+		if (unlikely(err < 0))
-+			break;
-+		dma_wait_for_completion(AICA_DMA_CHANNEL);
++	/* Make sure we have an urb then send the message */
++	if (this_urb == NULL) {
++		dbg("%s - oops no urb for port %d.", __FUNCTION__, port->number);
++		return -1;
 +	}
-+	return err;
-+}
 +
-+static void startup_aica(struct snd_card_aica *dreamcastcard)
-+{
-+	spu_memload(AICA_CHANNEL0_CONTROL_OFFSET,
-+		    dreamcastcard->channel,
-+		    sizeof(struct aica_channel));
-+	aica_chn_start();
-+}
++	/* Save reset port val for resend.
++	   Don't overwrite resend for open/close condition. */
++	if ((reset_port + 1) > p_priv->resend_cont)
++		p_priv->resend_cont = reset_port + 1;
++	if (this_urb->status == -EINPROGRESS) {
++		/*  dbg ("%s - already writing", __FUNCTION__); */
++		mdelay(5);
++		return(-1);
++	}
 +
-+static void run_spu_dma(struct work_struct *work)
-+{
-+	int buffer_size;
-+	struct snd_pcm_substream *substream;
-+	struct snd_pcm_runtime *runtime;
-+	struct snd_card_aica *dreamcastcard;
-+	struct spu_work_holder *holder = container_of(work, struct spu_work_holder, spu_dma_work);
-+	substream = holder-> sspointer;
-+	dreamcastcard = substream->pcm->private_data;
-+	runtime = substream->runtime;
-+	if (unlikely(dreamcastcard->dma_check == 0)) {
-+		buffer_size = frames_to_bytes(runtime, runtime->buffer_size);
-+		if (runtime->channels > 1)
-+			dreamcastcard->channel->flags |= 0x01;
-+		aica_dma_transfer(runtime->channels, buffer_size, substream);
-+		startup_aica(dreamcastcard);
-+		dreamcastcard->clicks =
-+		    buffer_size / (AICA_PERIOD_SIZE * runtime->channels);
-+		return;
-+	} else {
-+		aica_dma_transfer(runtime->channels,
-+				  AICA_PERIOD_SIZE * runtime->channels,
-+				  substream);
-+		snd_pcm_period_elapsed(dreamcastcard->substream);
-+		dreamcastcard->clicks++;
-+		if (unlikely(dreamcastcard->clicks >= AICA_PERIOD_NUMBER))
-+		{
-+			dreamcastcard->clicks %= AICA_PERIOD_NUMBER;
++	memset(&msg, 0, sizeof (struct keyspan_usa67_portControlMessage));
++
++	msg.port = device_port;
++
++	/* Only set baud rate if it's changed */
++	if (p_priv->old_baud != p_priv->baud) {
++		p_priv->old_baud = p_priv->baud;
++		msg.setClocking = 0xff;
++		if (d_details->calculate_baud_rate
++		    (p_priv->baud, d_details->baudclk, &msg.baudHi,
++		     &msg.baudLo, &msg.prescaler, device_port) == KEYSPAN_INVALID_BAUD_RATE ) {
++			dbg("%s - Invalid baud rate %d requested, using 9600.", __FUNCTION__,
++			    p_priv->baud);
++			msg.baudLo = 0;
++			msg.baudHi = 125;	/* Values for 9600 baud */
++			msg.prescaler = 10;
 +		}
-+		mod_timer(&dreamcastcard->timer, jiffies + 1);
++		msg.setPrescaler = 0xff;
 +	}
-+}
 +
-+static void aica_period_elapsed(unsigned long timer_var)
-+{
-+	/*timer function - so cannot sleep */
-+	int play_period;
-+	struct snd_pcm_runtime *runtime;
-+	struct snd_pcm_substream *substream;
-+	struct snd_card_aica *dreamcastcard;
-+	substream = (struct snd_pcm_substream *)timer_var;
-+	runtime = substream->runtime;
-+	dreamcastcard = substream->pcm->private_data;
-+	/* Have we played out an additional period? */
-+	play_period =
-+	    frames_to_bytes(runtime,
-+			    readl
-+			    (AICA_CONTROL_CHANNEL_SAMPLE_NUMBER)) /
-+	    AICA_PERIOD_SIZE;
-+	if (play_period == dreamcastcard->current_period) {
-+		/* reschedule the timer */
-+		mod_timer(&(dreamcastcard->timer), jiffies + 1);
-+		return;
-+	}
-+	if (runtime->channels > 1)
-+		dreamcastcard->current_period = play_period;
-+	if (unlikely(dreamcastcard->dma_check == 0))
-+		dreamcastcard->dma_check = 1;
-+		queue_work(aica_queue, &(spu_working.spu_dma_work));
-+}
-+
-+static void spu_begin_dma(struct snd_pcm_substream *substream)
-+{
-+	/* Must be atomic */
-+	struct snd_card_aica *dreamcastcard;
-+	struct snd_pcm_runtime *runtime;
-+	runtime = substream->runtime;
-+	dreamcastcard = substream->pcm->private_data;
-+	/*  Use queue to do the heavy lifting */
-+	spu_working.sspointer = substream;
-+	INIT_WORK(&(spu_working.spu_dma_work), run_spu_dma);
-+	queue_work(aica_queue, &(spu_working.spu_dma_work));
-+	/* Timer may already be running */
-+	if (unlikely(dreamcastcard->timer.data)) {
-+		mod_timer(&dreamcastcard->timer, jiffies + 4);
-+		return;
-+	}
-+	init_timer(&(dreamcastcard->timer));
-+	dreamcastcard->timer.data = (unsigned long)substream;
-+	dreamcastcard->timer.function = aica_period_elapsed;
-+	dreamcastcard->timer.expires = jiffies + 4;
-+	add_timer(&(dreamcastcard->timer));
-+}
-+
-+static int snd_aicapcm_pcm_open(struct snd_pcm_substream
-+				*substream)
-+{
-+	struct snd_pcm_runtime *runtime;
-+	struct aica_channel *channel;
-+	struct snd_card_aica *dreamcastcard;
-+	if (!enable)
-+		return -ENOENT;
-+	dreamcastcard = substream->pcm->private_data;
-+	channel = kmalloc(sizeof(struct aica_channel), GFP_KERNEL);
-+	if (!channel)
-+		return -ENOMEM;
-+	/* set defaults for channel */
-+	channel->sfmt = SM_8BIT;
-+	channel->cmd = AICA_CMD_START;
-+	channel->vol = dreamcastcard->master_volume;
-+	channel->pan = 0x80;
-+	channel->pos = 0;
-+	channel->flags = 0;	/* default to mono */
-+	dreamcastcard->channel = channel;
-+	runtime = substream->runtime;
-+	runtime->hw = snd_pcm_aica_playback_hw;
-+	spu_enable();
-+	dreamcastcard->clicks = 0;
-+	dreamcastcard->current_period = 0;
-+	dreamcastcard->dma_check = 0;
-+	return 0;
-+}
-+
-+static int snd_aicapcm_pcm_close(struct snd_pcm_substream
-+				 *substream)
-+{
-+	struct snd_card_aica *dreamcastcard = substream->pcm->private_data;
-+	del_timer(&dreamcastcard->timer);
-+	kfree(dreamcastcard->channel);
-+	spu_disable();
-+	return 0;
-+}
-+
-+static int snd_aicapcm_pcm_hw_free(struct snd_pcm_substream
-+				   *substream)
-+{
-+	/* Free the DMA buffer */
-+	return snd_pcm_lib_free_pages(substream);
-+}
-+
-+static int snd_aicapcm_pcm_hw_params(struct snd_pcm_substream
-+				     *substream, struct snd_pcm_hw_params
-+				     *hw_params)
-+{
-+	/* Allocate a DMA buffer using ALSA built-ins */
-+	return
-+	    snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
-+}
-+
-+static int snd_aicapcm_pcm_prepare(struct snd_pcm_substream
-+				   *substream)
-+{
-+	struct snd_card_aica *dreamcastcard = substream->pcm->private_data;
-+	if ((substream->runtime)->format == SNDRV_PCM_FORMAT_S16_LE)
-+		dreamcastcard->channel->sfmt = SM_16BIT;
-+	dreamcastcard->channel->freq = substream->runtime->rate;
-+	dreamcastcard->substream = substream;
-+	return 0;
-+}
-+
-+static int snd_aicapcm_pcm_trigger(struct snd_pcm_substream
-+				   *substream, int cmd)
-+{
-+	struct snd_card_aica *dreamcastcard;
-+	switch (cmd) {
-+	case SNDRV_PCM_TRIGGER_START:
-+		spu_begin_dma(substream);
++	msg.lcr = (p_priv->cflag & CSTOPB)? STOPBITS_678_2: STOPBITS_5678_1;
++	switch (p_priv->cflag & CSIZE) {
++	case CS5:
++		msg.lcr |= USA_DATABITS_5;
 +		break;
-+	case SNDRV_PCM_TRIGGER_STOP:
-+		dreamcastcard = substream->pcm->private_data;
-+		if (dreamcastcard->timer.data)
-+			del_timer(&dreamcastcard->timer);
-+		aica_chn_halt();
++	case CS6:
++		msg.lcr |= USA_DATABITS_6;
 +		break;
-+	default:
-+		return -EINVAL;
++	case CS7:
++		msg.lcr |= USA_DATABITS_7;
++		break;
++	case CS8:
++		msg.lcr |= USA_DATABITS_8;
++		break;
 +	}
-+	return 0;
-+}
-+
-+static unsigned long snd_aicapcm_pcm_pointer(struct snd_pcm_substream
-+					     *substream)
-+{
-+	return readl(AICA_CONTROL_CHANNEL_SAMPLE_NUMBER);
-+}
-+
-+static struct snd_pcm_ops snd_aicapcm_playback_ops = {
-+	.open = snd_aicapcm_pcm_open,
-+	.close = snd_aicapcm_pcm_close,
-+	.ioctl = snd_pcm_lib_ioctl,
-+	.hw_params = snd_aicapcm_pcm_hw_params,
-+	.hw_free = snd_aicapcm_pcm_hw_free,
-+	.prepare = snd_aicapcm_pcm_prepare,
-+	.trigger = snd_aicapcm_pcm_trigger,
-+	.pointer = snd_aicapcm_pcm_pointer,
-+};
-+
-+/* TO DO: set up to handle more than one pcm instance */
-+static int __init snd_aicapcmchip(struct snd_card_aica
-+				  *dreamcastcard, int pcm_index)
-+{
-+	struct snd_pcm *pcm;
-+	int err;
-+	/* AICA has no capture ability */
-+	err =
-+	    snd_pcm_new(dreamcastcard->card, "AICA PCM", pcm_index, 1, 0, &pcm);
-+	if (unlikely(err < 0))
-+		return err;
-+	pcm->private_data = dreamcastcard;
-+	strcpy(pcm->name, "AICA PCM");
-+	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK,
-+			&snd_aicapcm_playback_ops);
-+	/* Allocate the DMA buffers */
-+	err =
-+	    snd_pcm_lib_preallocate_pages_for_all(pcm,
-+						  SNDRV_DMA_TYPE_CONTINUOUS,
-+						  snd_dma_continuous_data
-+						  (GFP_KERNEL),
-+						  AICA_BUFFER_SIZE,
-+						  AICA_BUFFER_SIZE);
-+	return err;
-+}
-+
-+/* Mixer controls */
-+static int aica_pcmswitch_info(struct snd_kcontrol *kcontrol,
-+			       struct snd_ctl_elem_info *uinfo)
-+{
-+	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
-+	uinfo->count = 1;
-+	uinfo->value.integer.min = 0;
-+	uinfo->value.integer.max = 1;
-+	return 0;
-+}
-+
-+static int aica_pcmswitch_get(struct snd_kcontrol *kcontrol,
-+			      struct snd_ctl_elem_value *ucontrol)
-+{
-+	ucontrol->value.integer.value[0] = 1;	/* TO DO: Fix me */
-+	return 0;
-+}
-+
-+static int aica_pcmswitch_put(struct snd_kcontrol *kcontrol,
-+			      struct snd_ctl_elem_value *ucontrol)
-+{
-+	if (ucontrol->value.integer.value[0] == 1)
-+		return 0;	/* TO DO: Fix me */
-+	else
-+		aica_chn_halt();
-+	return 0;
-+}
-+
-+static int aica_pcmvolume_info(struct snd_kcontrol *kcontrol,
-+			       struct snd_ctl_elem_info *uinfo)
-+{
-+	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
-+	uinfo->count = 1;
-+	uinfo->value.integer.min = 0;
-+	uinfo->value.integer.max = 0xFF;
-+	return 0;
-+}
-+
-+static int aica_pcmvolume_get(struct snd_kcontrol *kcontrol,
-+			      struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_card_aica *dreamcastcard;
-+	dreamcastcard = kcontrol->private_data;
-+	if (unlikely(!dreamcastcard->channel))
-+		return -ETXTBSY;	/* we've not yet been set up */
-+	ucontrol->value.integer.value[0] = dreamcastcard->channel->vol;
-+	return 0;
-+}
-+
-+static int aica_pcmvolume_put(struct snd_kcontrol *kcontrol,
-+			      struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_card_aica *dreamcastcard;
-+	dreamcastcard = kcontrol->private_data;
-+	if (unlikely(!dreamcastcard->channel))
-+		return -ETXTBSY;
-+	if (unlikely(dreamcastcard->channel->vol ==
-+		     ucontrol->value.integer.value[0]))
-+		return 0;
-+	dreamcastcard->channel->vol = ucontrol->value.integer.value[0];
-+	dreamcastcard->master_volume = ucontrol->value.integer.value[0];
-+	spu_memload(AICA_CHANNEL0_CONTROL_OFFSET,
-+		    dreamcastcard->channel,
-+		    sizeof(struct aica_channel));
-+
-+	return 1;
-+}
-+
-+static struct snd_kcontrol_new snd_aica_pcmswitch_control __devinitdata = {
-+	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-+	.name = "PCM Playback Switch",
-+	.index = 0,
-+	.info = aica_pcmswitch_info,
-+	.get = aica_pcmswitch_get,
-+	.put = aica_pcmswitch_put
-+};
-+
-+static struct snd_kcontrol_new snd_aica_pcmvolume_control __devinitdata = {
-+	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-+	.name = "PCM Playback Volume",
-+	.index = 0,
-+	.info = aica_pcmvolume_info,
-+	.get = aica_pcmvolume_get,
-+	.put = aica_pcmvolume_put
-+};
-+
-+static int load_aica_firmware(void)
-+{
-+	int err;
-+	const struct firmware *fw_entry;
-+	spu_reset();
-+	err = request_firmware(&fw_entry, "aica_firmware.bin", &pd->dev);
-+	if (unlikely(err))
-+		return err;
-+	/* write firware into memory */
-+	spu_disable();
-+	spu_memload(0, fw_entry->data, fw_entry->size);
-+	spu_enable();
-+	release_firmware(fw_entry);
-+	return err;
-+}
-+
-+static int __devinit add_aicamixer_controls(struct snd_card_aica
-+					    *dreamcastcard)
-+{
-+	int err;
-+	err = snd_ctl_add
-+	    (dreamcastcard->card,
-+	     snd_ctl_new1(&snd_aica_pcmvolume_control, dreamcastcard));
-+	if (unlikely(err < 0))
-+		return err;
-+	err = snd_ctl_add
-+	    (dreamcastcard->card,
-+	     snd_ctl_new1(&snd_aica_pcmswitch_control, dreamcastcard));
-+	if (unlikely(err < 0))
-+		return err;
-+	return 0;
-+}
-+
-+static int snd_aica_remove(struct platform_device *devptr)
-+{
-+	struct snd_card_aica *dreamcastcard;
-+	dreamcastcard = platform_get_drvdata(devptr);
-+	if (unlikely(!dreamcastcard))
-+		return -ENODEV;
-+	snd_card_free(dreamcastcard->card);
-+	kfree(dreamcastcard);
-+	platform_set_drvdata(devptr, NULL);
-+	return 0;
-+}
-+
-+static int __init snd_aica_probe(struct platform_device *devptr)
-+{
-+	int err;
-+	struct snd_card_aica *dreamcastcard;
-+	dreamcastcard = kmalloc(sizeof(struct snd_card_aica), GFP_KERNEL);
-+	if (unlikely(!dreamcastcard))
-+		return -ENOMEM;
-+	dreamcastcard->card =
-+	    snd_card_new(index, SND_AICA_DRIVER, THIS_MODULE, 0);
-+	if (unlikely(!dreamcastcard->card)) {
-+		kfree(dreamcastcard);
-+		return -ENODEV;
++	if (p_priv->cflag & PARENB) {
++		/* note USA_PARITY_NONE == 0 */
++		msg.lcr |= (p_priv->cflag & PARODD)?
++			USA_PARITY_ODD: USA_PARITY_EVEN;
 +	}
-+	strcpy(dreamcastcard->card->driver, "snd_aica");
-+	strcpy(dreamcastcard->card->shortname, SND_AICA_DRIVER);
-+	strcpy(dreamcastcard->card->longname,
-+	       "Yamaha AICA Super Intelligent Sound Processor for SEGA Dreamcast");
-+	/* Load the PCM 'chip' */
-+	err = snd_aicapcmchip(dreamcastcard, 0);
-+	if (unlikely(err < 0))
-+		goto freedreamcast;
-+	snd_card_set_dev(dreamcastcard->card, &devptr->dev);
-+	dreamcastcard->timer.data = 0;
-+	dreamcastcard->channel = NULL;
-+	/* Add basic controls */
-+	err = add_aicamixer_controls(dreamcastcard);
-+	if (unlikely(err < 0))
-+		goto freedreamcast;
-+	/* Register the card with ALSA subsystem */
-+	err = snd_card_register(dreamcastcard->card);
-+	if (unlikely(err < 0))
-+		goto freedreamcast;
-+	platform_set_drvdata(devptr, dreamcastcard);
-+	aica_queue = create_workqueue(CARD_NAME);
-+	if (unlikely(!aica_queue))
-+		goto freedreamcast;
-+	snd_printk
-+	    ("ALSA Driver for Yamaha AICA Super Intelligent Sound Processor\n");
-+	return 0;
-+      freedreamcast:
-+	snd_card_free(dreamcastcard->card);
-+	kfree(dreamcastcard);
-+	return err;
++	msg.setLcr = 0xff;
++
++	msg.ctsFlowControl = (p_priv->flow_control == flow_cts);
++	msg.xonFlowControl = 0;
++	msg.setFlowControl = 0xff;
++	msg.forwardingLength = 16;
++	msg.xonChar = 17;
++	msg.xoffChar = 19;
++
++	/* Opening port */
++	if (reset_port == 1) {
++		msg._txOn = 1;
++		msg._txOff = 0;
++		msg.txFlush = 0;
++		msg.txBreak = 0;
++		msg.rxOn = 1;
++		msg.rxOff = 0;
++		msg.rxFlush = 1;
++		msg.rxForward = 0;
++		msg.returnStatus = 0;
++		msg.resetDataToggle = 0xff;
++	}
++
++	/* Closing port */
++	else if (reset_port == 2) {
++		msg._txOn = 0;
++		msg._txOff = 1;
++		msg.txFlush = 0;
++		msg.txBreak = 0;
++		msg.rxOn = 0;
++		msg.rxOff = 1;
++		msg.rxFlush = 1;
++		msg.rxForward = 0;
++		msg.returnStatus = 0;
++		msg.resetDataToggle = 0;
++	}
++
++	/* Sending intermediate configs */
++	else {
++		msg._txOn = (! p_priv->break_on);
++		msg._txOff = 0;
++		msg.txFlush = 0;
++		msg.txBreak = (p_priv->break_on);
++		msg.rxOn = 0;
++		msg.rxOff = 0;
++		msg.rxFlush = 0;
++		msg.rxForward = 0;
++		msg.returnStatus = 0;
++		msg.resetDataToggle = 0x0;
++	}
++
++		/* Do handshaking outputs */
++	msg.setTxTriState_setRts = 0xff;
++	msg.txTriState_rts = p_priv->rts_state;
++
++	msg.setHskoa_setDtr = 0xff;
++	msg.hskoa_dtr = p_priv->dtr_state;
++
++	p_priv->resend_cont = 0;
++
++	memcpy (this_urb->transfer_buffer, &msg, sizeof(msg));
++
++	/* send the data out the device on control endpoint */
++	this_urb->transfer_buffer_length = sizeof(msg);
++	this_urb->dev = serial->dev;
++
++	if ((err = usb_submit_urb(this_urb, GFP_ATOMIC)) != 0) {
++		dbg("%s - usb_submit_urb(setup) failed (%d)", __FUNCTION__, err);
++	}
++
++	return (0);
 +}
 +
-+static struct platform_driver snd_aica_driver = {
-+	.probe = snd_aica_probe,
-+	.remove = snd_aica_remove,
-+	.driver = {
-+		   .name = SND_AICA_DRIVER},
+ static void keyspan_send_setup(struct usb_serial_port *port, int reset_port)
+ {
+ 	struct usb_serial *serial = port->serial;
+@@ -2265,6 +2626,9 @@ static void keyspan_send_setup(struct us
+ 	case msg_usa90:
+ 		keyspan_usa90_send_setup(serial, port, reset_port);
+ 		break;
++	case msg_usa67:
++		keyspan_usa67_send_setup(serial, port, reset_port);
++		break;
+ 	}
+ }
+ 
+@@ -2313,9 +2677,17 @@ static int keyspan_startup (struct usb_s
+ 
+ 	keyspan_setup_urbs(serial);
+ 
+-	s_priv->instat_urb->dev = serial->dev;
+-	if ((err = usb_submit_urb(s_priv->instat_urb, GFP_KERNEL)) != 0) {
+-		dbg("%s - submit instat urb failed %d", __FUNCTION__, err);
++	if (s_priv->instat_urb != NULL) {
++		s_priv->instat_urb->dev = serial->dev;
++		if ((err = usb_submit_urb(s_priv->instat_urb, GFP_KERNEL)) != 0) {
++			dbg("%s - submit instat urb failed %d", __FUNCTION__, err);
++		}
++	}
++	if (s_priv->indat_urb != NULL) {
++		s_priv->indat_urb->dev = serial->dev;
++		if ((err = usb_submit_urb(s_priv->indat_urb, GFP_KERNEL)) != 0) {
++			dbg("%s - submit indat urb failed %d", __FUNCTION__, err);
++		}
+ 	}
+ 			
+ 	return (0);
+@@ -2335,6 +2707,7 @@ static void keyspan_shutdown (struct usb
+ 	/* Stop reading/writing urbs */
+ 	stop_urb(s_priv->instat_urb);
+ 	stop_urb(s_priv->glocont_urb);
++	stop_urb(s_priv->indat_urb);
+ 	for (i = 0; i < serial->num_ports; ++i) {
+ 		port = serial->port[i];
+ 		p_priv = usb_get_serial_port_data(port);
+@@ -2348,6 +2721,7 @@ static void keyspan_shutdown (struct usb
+ 
+ 	/* Now free them */
+ 	usb_free_urb(s_priv->instat_urb);
++	usb_free_urb(s_priv->indat_urb);
+ 	usb_free_urb(s_priv->glocont_urb);
+ 	for (i = 0; i < serial->num_ports; ++i) {
+ 		port = serial->port[i];
+diff -puN drivers/usb/serial/keyspan.h~usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg drivers/usb/serial/keyspan.h
+--- a/drivers/usb/serial/keyspan.h~usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg
++++ a/drivers/usb/serial/keyspan.h
+@@ -99,6 +99,10 @@ static int  keyspan_usa90_send_setup	(st
+ 					 struct usb_serial_port *port,
+ 					 int reset_port);
+ 
++static int  keyspan_usa67_send_setup	(struct usb_serial *serial,
++					 struct usb_serial_port *port,
++					 int reset_port);
++
+ /* Struct used for firmware - increased size of data section
+    to allow Keyspan's 'C' firmware struct to be used unmodified */
+ struct ezusb_hex_record {
+@@ -229,15 +233,17 @@ struct ezusb_hex_record {
+ #define	keyspan_usa28_product_id		0x010f
+ #define	keyspan_usa28x_product_id		0x0110
+ #define	keyspan_usa28xa_product_id		0x0115
++#define	keyspan_usa28xb_product_id		0x0110
++#define	keyspan_usa28xg_product_id		0x0135
+ #define	keyspan_usa49w_product_id		0x010a
+ #define	keyspan_usa49wlc_product_id		0x012a
+-
++#define	keyspan_usa49wg_product_id		0x0131
+ 
+ struct keyspan_device_details {
+ 	/* product ID value */
+ 	int	product_id;
+ 
+-	enum	{msg_usa26, msg_usa28, msg_usa49, msg_usa90} msg_format;
++	enum	{msg_usa26, msg_usa28, msg_usa49, msg_usa90, msg_usa67} msg_format;
+ 
+ 		/* Number of physical ports */
+ 	int	num_ports;
+@@ -264,6 +270,9 @@ struct keyspan_device_details {
+ 		/* Endpoint used for input status */
+ 	int	instat_endpoint;
+ 
++		/* Endpoint used for input data 49WG only */
++	int	indat_endpoint;
++
+ 		/* Endpoint used for global control functions */
+ 	int	glocont_endpoint;
+ 
+@@ -287,6 +296,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x85},
+ 	.outcont_endpoints	= {0x05},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA18X_BAUDCLK,
+@@ -303,6 +313,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x83},
+ 	.outcont_endpoints	= {0x03},
+ 	.instat_endpoint	= 0x84,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= -1,
+ 	.calculate_baud_rate	= keyspan_usa19_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19_BAUDCLK,
+@@ -319,6 +330,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x83},
+ 	.outcont_endpoints	= {0x03},
+ 	.instat_endpoint	= 0x84,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= -1,
+ 	.calculate_baud_rate	= keyspan_usa28_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19_BAUDCLK,
+@@ -335,6 +347,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x83},
+ 	.outcont_endpoints	= {0x03},
+ 	.instat_endpoint	= 0x84,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= -1,
+ 	.calculate_baud_rate	= keyspan_usa28_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19_BAUDCLK,
+@@ -351,6 +364,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x85},
+ 	.outcont_endpoints	= {0x05},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19W_BAUDCLK,
+@@ -367,6 +381,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x85},
+ 	.outcont_endpoints	= {0x05},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19W_BAUDCLK,
+@@ -383,6 +398,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {-1},
+ 	.outcont_endpoints	= {0x02},
+ 	.instat_endpoint	= 0x82,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= -1,
+ 	.calculate_baud_rate	= keyspan_usa19hs_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19HS_BAUDCLK,
+@@ -399,6 +415,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x85, 0x86},
+ 	.outcont_endpoints	= {0x05, 0x06},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa28_calc_baud,
+ 	.baudclk		= KEYSPAN_USA28_BAUDCLK,		
+@@ -415,6 +432,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x85, 0x86},
+ 	.outcont_endpoints	= {0x05, 0x06},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA28X_BAUDCLK,
+@@ -431,11 +449,28 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {0x85, 0x86},
+ 	.outcont_endpoints	= {0x05, 0x06},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA28X_BAUDCLK,
+ };
+ 
++static const struct keyspan_device_details usa28xg_device_details = {
++	.product_id		= keyspan_usa28xg_product_id,
++	.msg_format		= msg_usa67,
++	.num_ports		= 2,
++	.indat_endp_flip	= 0,
++	.outdat_endp_flip	= 0,
++	.indat_endpoints	= {0x84, 0x88},
++	.outdat_endpoints	= {0x02, 0x06},
++	.inack_endpoints	= {-1, -1},
++	.outcont_endpoints	= {-1, -1},
++	.instat_endpoint	= 0x81,
++	.indat_endpoint		= -1,
++	.glocont_endpoint	= 0x01,
++	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
++	.baudclk		= KEYSPAN_USA28X_BAUDCLK,
++};
+ /* We don't need a separate entry for the usa28xb as it appears as a 28x anyway */
+ 
+ static const struct keyspan_device_details usa49w_device_details = {
+@@ -449,6 +484,7 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {-1, -1, -1, -1},
+ 	.outcont_endpoints	= {-1, -1, -1, -1},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA49W_BAUDCLK,
+@@ -465,11 +501,29 @@ static const struct keyspan_device_detai
+ 	.inack_endpoints	= {-1, -1, -1, -1},
+ 	.outcont_endpoints	= {-1, -1, -1, -1},
+ 	.instat_endpoint	= 0x87,
++	.indat_endpoint		= -1,
+ 	.glocont_endpoint	= 0x07,
+ 	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
+ 	.baudclk		= KEYSPAN_USA19W_BAUDCLK,
+ };
+ 
++static const struct keyspan_device_details usa49wg_device_details = {
++	.product_id		= keyspan_usa49wg_product_id,
++	.msg_format		= msg_usa49,
++	.num_ports		= 4,
++	.indat_endp_flip	= 0,
++	.outdat_endp_flip	= 0,
++	.indat_endpoints	= {-1, -1, -1, -1},		/* single 'global' data in EP */
++	.outdat_endpoints	= {0x01, 0x02, 0x04, 0x06},
++	.inack_endpoints	= {-1, -1, -1, -1},
++	.outcont_endpoints	= {-1, -1, -1, -1},
++	.instat_endpoint	= 0x81,
++	.indat_endpoint		= 0x88,
++	.glocont_endpoint	= 0x00,				/* uses control EP */
++	.calculate_baud_rate	= keyspan_usa19w_calc_baud,
++	.baudclk		= KEYSPAN_USA19W_BAUDCLK,
 +};
 +
-+static int __init aica_init(void)
-+{
-+	int err;
-+	err = platform_driver_register(&snd_aica_driver);
-+	if (unlikely(err < 0))
-+		return err;
-+	pd = platform_device_register_simple(SND_AICA_DRIVER, -1,
-+					     aica_memory_space, 2);
-+	if (unlikely(IS_ERR(pd))) {
-+		platform_driver_unregister(&snd_aica_driver);
-+		return PTR_ERR(pd);
-+	}
-+	/* Load the firmware */
-+	return load_aica_firmware();
-+}
-+
-+static void __exit aica_exit(void)
-+{
-+	/* Destroy the aica kernel thread */
-+	destroy_workqueue(aica_queue);
-+	platform_device_unregister(pd);
-+	platform_driver_unregister(&snd_aica_driver);
-+	/* Kill any sound still playing and reset ARM7 to safe state */
-+	spu_reset();
-+}
-+
-+module_init(aica_init);
-+module_exit(aica_exit);
-diff -puN /dev/null sound/sh/aica.h
+ static const struct keyspan_device_details *keyspan_devices[] = {
+ 	&usa18x_device_details,
+ 	&usa19_device_details,
+@@ -481,9 +535,11 @@ static const struct keyspan_device_detai
+ 	&usa28_device_details,
+ 	&usa28x_device_details,
+ 	&usa28xa_device_details,
++	&usa28xg_device_details,
+ 	/* 28xb not required as it renumerates as a 28x */
+ 	&usa49w_device_details,
+ 	&usa49wlc_device_details,
++	&usa49wg_device_details,
+ 	NULL,
+ };
+ 
+@@ -510,8 +566,11 @@ static struct usb_device_id keyspan_ids_
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28_product_id) },
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28x_product_id) },
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28xa_product_id) },
++	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28xb_product_id) },
++	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28xg_product_id) },
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa49w_product_id)},
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa49wlc_product_id)},
++	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa49wg_product_id)},
+ 	{ } /* Terminating entry */
+ };
+ 
+@@ -557,12 +616,15 @@ static struct usb_device_id keyspan_2por
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28_product_id) },
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28x_product_id) },
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28xa_product_id) },
++	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28xb_product_id) },
++	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa28xg_product_id) },
+ 	{ } /* Terminating entry */
+ };
+ 
+ static struct usb_device_id keyspan_4port_ids[] = {
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa49w_product_id) },
+ 	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa49wlc_product_id)},
++	{ USB_DEVICE(KEYSPAN_VENDOR_ID, keyspan_usa49wg_product_id)},
+ 	{ } /* Terminating entry */
+ };
+ 
+@@ -573,7 +635,6 @@ static struct usb_serial_driver keyspan_
+ 		.name		= "keyspan_no_firm",
+ 	},
+ 	.description		= "Keyspan - (without firmware)",
+-	.usb_driver		= &keyspan_driver,
+ 	.id_table		= keyspan_pre_ids,
+ 	.num_interrupt_in	= NUM_DONT_CARE,
+ 	.num_bulk_in		= NUM_DONT_CARE,
+@@ -588,7 +649,6 @@ static struct usb_serial_driver keyspan_
+ 		.name		= "keyspan_1",
+ 	},
+ 	.description		= "Keyspan 1 port adapter",
+-	.usb_driver		= &keyspan_driver,
+ 	.id_table		= keyspan_1port_ids,
+ 	.num_interrupt_in	= NUM_DONT_CARE,
+ 	.num_bulk_in		= NUM_DONT_CARE,
+@@ -616,7 +676,6 @@ static struct usb_serial_driver keyspan_
+ 		.name		= "keyspan_2",
+ 	},
+ 	.description		= "Keyspan 2 port adapter",
+-	.usb_driver		= &keyspan_driver,
+ 	.id_table		= keyspan_2port_ids,
+ 	.num_interrupt_in	= NUM_DONT_CARE,
+ 	.num_bulk_in		= NUM_DONT_CARE,
+@@ -644,11 +703,10 @@ static struct usb_serial_driver keyspan_
+ 		.name		= "keyspan_4",
+ 	},
+ 	.description		= "Keyspan 4 port adapter",
+-	.usb_driver		= &keyspan_driver,
+ 	.id_table		= keyspan_4port_ids,
+ 	.num_interrupt_in	= NUM_DONT_CARE,
+-	.num_bulk_in		= 5,
+-	.num_bulk_out		= 5,
++	.num_bulk_in		= NUM_DONT_CARE,
++	.num_bulk_out		= NUM_DONT_CARE,
+ 	.num_ports		= 4,
+ 	.open			= keyspan_open,
+ 	.close			= keyspan_close,
+diff -puN /dev/null drivers/usb/serial/keyspan_usa67msg.h
 --- /dev/null
-+++ a/sound/sh/aica.h
-@@ -0,0 +1,80 @@
-+/* aica.h
-+ * Header file for ALSA driver for
-+ * Sega Dreamcast Yamaha AICA sound
-+ * Copyright Adrian McMenamin
-+ * <adrian@mcmen.demon.co.uk>
-+ * 2006
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
++++ a/drivers/usb/serial/keyspan_usa67msg.h
+@@ -0,0 +1,254 @@
++/*
++	usa67msg.h
 +
-+/* SPU memory and register constants etc */
-+#define G2_FIFO 0xa05f688c
-+#define SPU_MEMORY_BASE 0xA0800000
-+#define ARM_RESET_REGISTER 0xA0702C00
-+#define SPU_REGISTER_BASE 0xA0700000
++	Copyright (c) 1998-2007 InnoSys Incorporated.  All Rights Reserved
++	This file is available under a BSD-style copyright
 +
-+/* AICA channels stuff */
-+#define AICA_CONTROL_POINT 0xA0810000
-+#define AICA_CONTROL_CHANNEL_SAMPLE_NUMBER 0xA0810008
-+#define AICA_CHANNEL0_CONTROL_OFFSET 0x10004
++	Keyspan USB Async Firmware to run on Anchor FX1
 +
-+/* Command values */
-+#define AICA_CMD_KICK 0x80000000
-+#define AICA_CMD_NONE 0
-+#define AICA_CMD_START 1
-+#define AICA_CMD_STOP 2
-+#define AICA_CMD_VOL 3
++	Redistribution and use in source and binary forms, with or without
++	modification, are permitted provided that the following conditions are
++	met:
 +
-+/* Sound modes */
-+#define SM_8BIT		1
-+#define SM_16BIT	0
-+#define SM_ADPCM	2
++	1. Redistributions of source code must retain this licence text
++   	without modification, this list of conditions, and the following
++   	disclaimer.  The following copyright notice must appear immediately at
++   	the beginning of all source files:
 +
-+/* Buffer and period size */
-+#define AICA_BUFFER_SIZE 0x8000
-+#define AICA_PERIOD_SIZE 0x800
-+#define AICA_PERIOD_NUMBER 16
++        	Copyright (c) 1998-2007 InnoSys Incorporated.  All Rights Reserved
 +
-+#define AICA_CHANNEL0_OFFSET 0x11000
-+#define AICA_CHANNEL1_OFFSET 0x21000
-+#define CHANNEL_OFFSET 0x10000
++        	This file is available under a BSD-style copyright
 +
-+#define AICA_DMA_CHANNEL 0
-+#define AICA_DMA_MODE 5
++	2. Redistributions in binary form must reproduce the above copyright
++   	notice, this list of conditions and the following disclaimer in the
++   	documentation and/or other materials provided with the distribution.
 +
-+#define SND_AICA_DRIVER "AICA"
++	3. The name of InnoSys Incorprated may not be used to endorse or promote
++   	products derived from this software without specific prior written
++   	permission.
 +
-+struct aica_channel {
-+	uint32_t cmd;		/* Command ID           */
-+	uint32_t pos;		/* Sample position      */
-+	uint32_t length;	/* Sample length        */
-+	uint32_t freq;		/* Frequency            */
-+	uint32_t vol;		/* Volume 0-255         */
-+	uint32_t pan;		/* Pan 0-255            */
-+	uint32_t sfmt;		/* Sound format         */
-+	uint32_t flags;		/* Bit flags            */
-+};
++	THIS SOFTWARE IS PROVIDED BY INNOSYS CORP. ``AS IS'' AND ANY EXPRESS OR
++	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++	NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
++	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++	SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
++	CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++	OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++	SUCH DAMAGE.
 +
-+struct snd_card_aica {
-+	struct snd_card *card;
-+	struct aica_channel *channel;
-+	struct snd_pcm_substream *substream;
-+	int clicks;
-+	int current_period;
-+	struct timer_list timer;
-+	int master_volume;
-+	int dma_check;
-+};
++	Fourth revision: This message format supports the USA28XG
++
++	Buffer formats for RX/TX data messages are not defined by
++	a structure, but are described here:
++
++	USB OUT (host -> USAxx, transmit) messages contain a
++	REQUEST_ACK indicator (set to 0xff to request an ACK at the
++	completion of transmit; 0x00 otherwise), followed by data:
++
++		RQSTACK DAT DAT DAT ...
++
++	with a total data length of up to 63.
++
++	USB IN (USAxx -> host, receive) messages begin with a status
++	byte in which the 0x80 bit is either:
++
++		(a)	0x80 bit clear
++			indicates that the bytes following it are all data
++			bytes:
++
++				STAT DATA DATA DATA DATA DATA ...
++
++			for a total of up to 63 DATA bytes,
++
++	or:
++
++		(b)	0x80 bit set
++			indiates that the bytes following alternate data and
++			status bytes:
++
++				STAT DATA STAT DATA STAT DATA STAT DATA ...
++
++			for a total of up to 32 DATA bytes.
++
++	The valid bits in the STAT bytes are:
++
++		OVERRUN	0x02
++		PARITY	0x04
++		FRAMING	0x08
++		BREAK	0x10
++
++	Notes:
++
++	(1) The OVERRUN bit can appear in either (a) or (b) format
++		messages, but the but the PARITY/FRAMING/BREAK bits
++		only appear in (b) format messages.
++	(2) For the host to determine the exact point at which the
++		overrun occurred (to identify the point in the data
++		stream at which the data was lost), it needs to count
++		128 characters, starting at the first character of the
++		message in which OVERRUN was reported; the lost character(s)
++		would have been received between the 128th and 129th
++		characters.
++	(3)	An RX data message in which the first byte has 0x80 clear
++		serves as a "break off" indicator.
++
++	revision history:
++
++	1999feb10	add reportHskiaChanges to allow us to ignore them
++	1999feb10	add txAckThreshold for fast+loose throughput enhancement
++	1999mar30	beef up support for RX error reporting
++	1999apr14	add resetDataToggle to control message
++	2000jan04	merge with usa17msg.h
++	2000jun01	add extended BSD-style copyright text
++	2001jul05	change message format to improve OVERRUN case
++	2002jun05	update copyright date, improve comments
++	2006feb06	modify for FX1 chip
++
++*/
++
++#ifndef	__USA67MSG__
++#define	__USA67MSG__
++
++
++// all things called "ControlMessage" are sent on the 'control' endpoint
++
++typedef struct keyspan_usa67_portControlMessage
++{
++	u8	port;		// 0 or 1 (selects port)
++	/*
++		there are three types of "commands" sent in the control message:
++
++		1.	configuration changes which must be requested by setting
++			the corresponding "set" flag (and should only be requested
++			when necessary, to reduce overhead on the device):
++	*/
++	u8	setClocking,	// host requests baud rate be set
++		baudLo,			// host does baud divisor calculation
++		baudHi,			// baudHi is only used for first port (gives lower rates)
++		externalClock_txClocking,
++						// 0=internal, other=external
++
++		setLcr,			// host requests lcr be set
++		lcr,			// use PARITY, STOPBITS, DATABITS below
++
++		setFlowControl,	// host requests flow control be set
++		ctsFlowControl,	// 1=use CTS flow control, 0=don't
++		xonFlowControl,	// 1=use XON/XOFF flow control, 0=don't
++		xonChar,		// specified in current character format
++		xoffChar,		// specified in current character format
++
++		setTxTriState_setRts,
++						// host requests TX tri-state be set
++		txTriState_rts,	// 1=active (normal), 0=tristate (off)
++
++		setHskoa_setDtr,
++						// host requests HSKOA output be set
++		hskoa_dtr,		// 1=on, 0=off
++
++		setPrescaler,	// host requests prescalar be set (default: 13)
++		prescaler;		// specified as N/8; values 8-ff are valid
++						// must be set any time internal baud rate is set;
++						// must not be set when external clocking is used
++
++	/*
++		3.	configuration data which is simply used as is (no overhead,
++			but must be specified correctly in every host message).
++	*/
++	u8	forwardingLength,  // forward when this number of chars available
++		reportHskiaChanges_dsrFlowControl,
++						// 1=normal; 0=ignore external clock
++						// 1=use DSR flow control, 0=don't
++		txAckThreshold,	// 0=not allowed, 1=normal, 2-255 deliver ACK faster
++		loopbackMode;	// 0=no loopback, 1=loopback enabled
++
++	/*
++		4.	commands which are flags only; these are processed in order
++			(so that, e.g., if both _txOn and _txOff flags are set, the
++			port ends in a TX_OFF state); any non-zero value is respected
++	*/
++	u8	_txOn,			// enable transmitting (and continue if there's data)
++		_txOff,			// stop transmitting
++		txFlush,		// toss outbound data
++		txBreak,		// turn on break (cleared by _txOn)
++		rxOn,			// turn on receiver
++		rxOff,			// turn off receiver
++		rxFlush,		// toss inbound data
++		rxForward,		// forward all inbound data, NOW (as if fwdLen==1)
++		returnStatus,	// return current status (even if it hasn't changed)
++		resetDataToggle;// reset data toggle state to DATA0
++
++} keyspan_usa67_portControlMessage;
++
++// defines for bits in lcr
++#define	USA_DATABITS_5		0x00
++#define	USA_DATABITS_6		0x01
++#define	USA_DATABITS_7		0x02
++#define	USA_DATABITS_8		0x03
++#define	STOPBITS_5678_1		0x00	// 1 stop bit for all byte sizes
++#define	STOPBITS_5_1p5		0x04	// 1.5 stop bits for 5-bit byte
++#define	STOPBITS_678_2		0x04	// 2 stop bits for 6/7/8-bit byte
++#define	USA_PARITY_NONE		0x00
++#define	USA_PARITY_ODD		0x08
++#define	USA_PARITY_EVEN		0x18
++#define	PARITY_1			0x28
++#define	PARITY_0			0x38
++
++// all things called "StatusMessage" are sent on the status endpoint
++
++typedef struct keyspan_usa67_portStatusMessage	// one for each port
++{
++	u8	port,			// 0=first, 1=second, other=see below
++		hskia_cts,		// reports HSKIA pin
++		gpia_dcd,		// reports GPIA pin
++		_txOff,			// port has been disabled (by host)
++		_txXoff,		// port is in XOFF state (either host or RX XOFF)
++		txAck,			// indicates a TX message acknowledgement
++		rxEnabled,		// as configured by rxOn/rxOff 1=on, 0=off
++		controlResponse;// 1=a control message has been processed
++} keyspan_usa67_portStatusMessage;
++
++// bits in RX data message when STAT byte is included
++#define	RXERROR_OVERRUN	0x02
++#define	RXERROR_PARITY	0x04
++#define	RXERROR_FRAMING	0x08
++#define	RXERROR_BREAK	0x10
++
++typedef struct keyspan_usa67_globalControlMessage
++{
++	u8	port,	 			// 3
++		sendGlobalStatus,	// 2=request for two status responses
++		resetStatusToggle,	// 1=reset global status toggle
++		resetStatusCount;	// a cycling value
++} keyspan_usa67_globalControlMessage;
++
++typedef struct keyspan_usa67_globalStatusMessage
++{
++	u8	port,				// 3
++		sendGlobalStatus,	// from request, decremented
++		resetStatusCount;	// as in request
++} keyspan_usa67_globalStatusMessage;
++
++typedef struct keyspan_usa67_globalDebugMessage
++{
++	u8	port,				// 2
++		a,
++		b,
++		c,
++		d;
++} keyspan_usa67_globalDebugMessage;
++
++// ie: the maximum length of an FX1 endpoint buffer
++#define	MAX_DATA_LEN			64
++
++// update status approx. 60 times a second (16.6666 ms)
++#define	STATUS_UPDATE_INTERVAL	16
++
++// status rationing tuning value (each port gets checked each n ms)
++#define	STATUS_RATION	10
++
++#endif
++
++
 _
 
-Patches currently in -mm which might be from adrianmcmenamin@gmail.com are
+Patches currently in -mm which might be from lucy@keyspan.com are
 
-alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm.patch
+usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg.patch
+usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
