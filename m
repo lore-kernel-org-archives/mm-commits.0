@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-alloc_large_system_hash-can-free-some-memory-for-non.patch added to -mm tree
-Date: Fri, 18 May 2007 10:42:24 -0700
-Message-ID: <200705181742.l4IHgOAH019939@shell0.pdx.osdl.net>
+Subject: + fuse-delete-inode-on-drop.patch added to -mm tree
+Date: Fri, 18 May 2007 10:44:29 -0700
+Message-ID: <200705181744.l4IHiTi7019963@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:33859 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:53752 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752257AbXERRqU (ORCPT
+	by vger.kernel.org with ESMTP id S1753742AbXERRq1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 13:46:20 -0400
+	Fri, 18 May 2007 13:46:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, mel@csn.ul.ie
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     MM: alloc_large_system_hash() can free some memory for non power-of-two bucketsize
+     fuse: delete inode on drop
 has been added to the -mm tree.  Its filename is
-     mm-alloc_large_system_hash-can-free-some-memory-for-non.patch
+     fuse-delete-inode-on-drop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MM: alloc_large_system_hash() can free some memory for non power-of-two bucketsize
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: fuse: delete inode on drop
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-alloc_large_system_hash() is called at boot time to allocate space for
-several large hash tables.
+When inode is dropped (no more references) delete it from cache.
 
-Lately, TCP hash table was changed and its bucketsize is not a power-of-two
-anymore.
+There's not much point in keeping it cached, when a new lookup will refresh
+the attributes anyway.
 
-On most setups, alloc_large_system_hash() allocates one big page (order >
-0) with __get_free_pages(GFP_ATOMIC, order).  This single high_order page
-has a power-of-two size, bigger than the needed size.
-
-We can free all pages that wont be used by the hash table.
-
-On a 1GB i386 machine, this patch saves 128 KB of LOWMEM memory.
-
-TCP established hash table entries: 32768 (order: 6, 393216 bytes)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+)
+ fs/fuse/inode.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-alloc_large_system_hash-can-free-some-memory-for-non mm/page_alloc.c
---- a/mm/page_alloc.c~mm-alloc_large_system_hash-can-free-some-memory-for-non
-+++ a/mm/page_alloc.c
-@@ -3578,6 +3578,20 @@ void *__init alloc_large_system_hash(con
- 			for (order = 0; ((1UL << order) << PAGE_SHIFT) < size; order++)
- 				;
- 			table = (void*) __get_free_pages(GFP_ATOMIC, order);
-+			/*
-+			 * If bucketsize is not a power-of-two, we may free
-+			 * some pages at the end of hash table.
-+			 */
-+			if (table) {
-+				unsigned long alloc_end = (unsigned long)table +
-+						(PAGE_SIZE << order);
-+				unsigned long used = (unsigned long)table +
-+						PAGE_ALIGN(size);
-+				while (used < alloc_end) {
-+					free_page(used);
-+					used += PAGE_SIZE;
-+				}
-+			}
- 		}
- 	} while (!table && size > PAGE_SIZE && --log2qty);
- 
+diff -puN fs/fuse/inode.c~fuse-delete-inode-on-drop fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-delete-inode-on-drop
++++ a/fs/fuse/inode.c
+@@ -453,6 +453,7 @@ static const struct super_operations fus
+ 	.destroy_inode  = fuse_destroy_inode,
+ 	.read_inode	= fuse_read_inode,
+ 	.clear_inode	= fuse_clear_inode,
++	.drop_inode	= generic_delete_inode,
+ 	.remount_fs	= fuse_remount_fs,
+ 	.put_super	= fuse_put_super,
+ 	.umount_begin	= fuse_umount_begin,
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-mm-alloc_large_system_hash-can-free-some-memory-for-non.patch
-lguest-the-host-code.patch
+fuse-generic_write_checks-for-direct_io.patch
+fuse-delete-inode-on-drop.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
