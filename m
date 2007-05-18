@@ -1,85 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc64-symbols-start-with.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:59 -0700
-Message-ID: <200705180706.l4I76wYg010233@shell0.pdx.osdl.net>
+Subject: - rtc-kconfig-clarification.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:30 -0700
+Message-ID: <200705180706.l4I76Tuv010181@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42048 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41711 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761488AbXERHIk (ORCPT
+	by vger.kernel.org with ESMTP id S1755302AbXERHIz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:08:40 -0400
+	Fri, 18 May 2007 03:08:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PowerPC64 symbols start with '.'
+     rtc kconfig clarification
 has been removed from the -mm tree.  Its filename was
-     powerpc64-symbols-start-with.patch
+     rtc-kconfig-clarification.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PowerPC64 symbols start with '.'
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: rtc kconfig clarification
+From: David Brownell <david-b@pacbell.net>
 
-which we want to skip during modpost processing.  We need this to make some
-of the whitelisting work.
+Make drivers/rtc/Kconfig be clearer about what the various "interfaces"
+actually mean, by showing path names.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/rtc/Kconfig |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/mod/modpost.c~powerpc64-symbols-start-with scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~powerpc64-symbols-start-with
-+++ a/scripts/mod/modpost.c
-@@ -164,7 +164,13 @@ static inline unsigned int tdb_hash(cons
- static struct symbol *alloc_symbol(const char *name, unsigned int weak,
- 				   struct symbol *next)
- {
--	struct symbol *s = NOFAIL(malloc(sizeof(*s) + strlen(name) + 1));
-+	struct symbol *s;
-+
-+	/* For our purposes, .foo matches foo.  PPC64 needs this. */
-+	if (name[0] == '.')
-+		name++;
-+
-+	s = NOFAIL(malloc(sizeof(*s) + strlen(name) + 1));
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-clarification drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-clarification
++++ a/drivers/rtc/Kconfig
+@@ -59,7 +59,7 @@ comment "RTC interfaces"
+ 	depends on RTC_CLASS
  
- 	memset(s, 0, sizeof(*s));
- 	strcpy(s->name, name);
-@@ -180,6 +186,10 @@ static struct symbol *new_symbol(const c
- 	unsigned int hash;
- 	struct symbol *new;
+ config RTC_INTF_SYSFS
+-	boolean "sysfs"
++	boolean "/sys/class/rtc/rtcN (sysfs)"
+ 	depends on RTC_CLASS && SYSFS
+ 	default RTC_CLASS
+ 	help
+@@ -70,7 +70,7 @@ config RTC_INTF_SYSFS
+ 	  will be called rtc-sysfs.
  
-+	/* For our purposes, .foo matches foo.  PPC64 needs this. */
-+	if (name[0] == '.')
-+		name++;
-+
- 	hash = tdb_hash(name) % SYMBOL_HASH_SIZE;
- 	new = symbolhash[hash] = alloc_symbol(name, 0, symbolhash[hash]);
- 	new->module = module;
-@@ -684,6 +694,12 @@ static int secref_whitelist(const char *
- 		NULL
- 	};
+ config RTC_INTF_PROC
+-	boolean "proc"
++	boolean "/proc/driver/rtc (procfs for rtc0)"
+ 	depends on RTC_CLASS && PROC_FS
+ 	default RTC_CLASS
+ 	help
+@@ -82,7 +82,7 @@ config RTC_INTF_PROC
+ 	  will be called rtc-proc.
  
-+	/* For our purposes, .foo matches foo.  PPC64 needs this. */
-+	if (atsym[0] == '.')
-+		atsym++;
-+	if (refsymname[0] == '.')
-+		refsymname++;
-+
- 	/* Check for pattern 1 */
- 	if (strcmp(tosec, ".init.data") != 0)
- 		f1 = 0;
+ config RTC_INTF_DEV
+-	boolean "dev"
++	boolean "/dev/rtcN (character devices)"
+ 	depends on RTC_CLASS
+ 	default RTC_CLASS
+ 	help
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-powerpc.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+git-leds.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+rtc-ds1307-cleanups.patch
