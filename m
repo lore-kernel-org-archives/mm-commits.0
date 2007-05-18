@@ -1,110 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - ns16550a-restore-hs-settings-in-excr2-on-resume.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:07:15 -0700
-Message-ID: <200705180707.l4I77Efj010261@shell0.pdx.osdl.net>
+Subject: - i386-dont-check_pgt_cache-in-flush_tlb_mm.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:39 -0700
+Message-ID: <200705180706.l4I76cmQ010196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33852 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754921AbXERHKp (ORCPT
+	by vger.kernel.org with ESMTP id S1755285AbXERHKv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:10:45 -0400
+	Fri, 18 May 2007 03:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwmw2@infradead.org, alan@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: hugh@veritas.com, ak@suse.de, clameter@sgi.com, davem@davemloft.net, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NS16550A: restore HS settings in EXCR2 on resume
+     i386: don't check_pgt_cache in flush_tlb_mm
 has been removed from the -mm tree.  Its filename was
-     ns16550a-restore-hs-settings-in-excr2-on-resume.patch
+     i386-dont-check_pgt_cache-in-flush_tlb_mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NS16550A: restore HS settings in EXCR2 on resume
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: i386: don't check_pgt_cache in flush_tlb_mm
+From: Hugh Dickins <hugh@veritas.com>
 
-After a suspend/resume cycle, the UART may have been reset into low-speed
-mode -- either because it's actually been reset, or because the firmware
-pokes at the old-style divisor registers.  If we detected it as a NS16550A
-SuperIO chip in the first place and set baud_base to 921600, then we should
-do so again in the resume path.
+No other architecture calls check_pgt_cache() from within flush_tlb_mm(),
+and i386 is already calling check_pgt_cache() from the usual places,
+tlb_finish_mmu() and cpu_idle() (the latter being odd, but not unusual). 
+flush_tlb_mm() has no business to be freeing pages: remove that line, which
+sneaked in with slub's i386 support.
 
-This patch adds that code to serial8250_resume_port(), and also makes
-serial8250_resume() actually call serial8250_resume_port() for each port
-instead of just calling uart_resume_port() directly.  And thus fixes serial
-port operation after suspend/resume.
-
-It also fixes a bogus comment where we write the EXCR2 register with a
-comment saying /* EXCR1 */
-
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Andi Kleen <ak@suse.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: William Lee Irwin III <wli@holomorphy.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+ arch/i386/kernel/smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250.c~ns16550a-restore-hs-settings-in-excr2-on-resume drivers/serial/8250.c
---- a/drivers/serial/8250.c~ns16550a-restore-hs-settings-in-excr2-on-resume
-+++ a/drivers/serial/8250.c
-@@ -894,7 +894,7 @@ static void autoconfig_16550a(struct uar
- 			quot = serial_dl_read(up);
- 			quot <<= 3;
- 
--			status1 = serial_in(up, 0x04); /* EXCR1 */
-+			status1 = serial_in(up, 0x04); /* EXCR2 */
- 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
- 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
- 			serial_outp(up, 0x04, status1);
-@@ -2622,7 +2622,22 @@ void serial8250_suspend_port(int line)
-  */
- void serial8250_resume_port(int line)
- {
--	uart_resume_port(&serial8250_reg, &serial8250_ports[line].port);
-+	struct uart_8250_port *up = &serial8250_ports[line];
+diff -puN arch/i386/kernel/smp.c~i386-dont-check_pgt_cache-in-flush_tlb_mm arch/i386/kernel/smp.c
+--- a/arch/i386/kernel/smp.c~i386-dont-check_pgt_cache-in-flush_tlb_mm
++++ a/arch/i386/kernel/smp.c
+@@ -421,7 +421,7 @@ void flush_tlb_mm (struct mm_struct * mm
+ 	}
+ 	if (!cpus_empty(cpu_mask))
+ 		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
+-	check_pgt_cache();
 +
-+	if (up->capabilities & UART_NATSEMI) {
-+		unsigned char tmp;
-+
-+		/* Ensure it's still in high speed mode */
-+		serial_outp(up, UART_LCR, 0xE0);
-+
-+		tmp = serial_in(up, 0x04); /* EXCR2 */
-+		tmp &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
-+		tmp |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
-+		serial_outp(up, 0x04, tmp);
-+
-+		serial_outp(up, UART_LCR, 0);
-+	}
-+	uart_resume_port(&serial8250_reg, &up->port);
+ 	preempt_enable();
  }
  
- /*
-@@ -2700,7 +2715,7 @@ static int serial8250_resume(struct plat
- 		struct uart_8250_port *up = &serial8250_ports[i];
- 
- 		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
--			uart_resume_port(&serial8250_reg, &up->port);
-+			serial8250_resume_port(i);
- 	}
- 
- 	return 0;
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
-git-ubi.patch
-git-battery.patch
-missing-const-from-reiserfs-min_key-declaration.patch
-add-lzo1x-compression-support-to-the-kernel.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-mismatching-declarations-of-revision-strings-in-hisax.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+lazy-freeing-of-memory-through-madv_free.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+prio_tree-debugging-patch.patch
