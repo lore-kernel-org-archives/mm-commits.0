@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-fix-debug-output-of-ark3116.patch added to -mm tree
-Date: Thu, 17 May 2007 16:44:21 -0700
-Message-ID: <200705172344.l4HNiLNw003511@shell0.pdx.osdl.net>
+Subject: + x86_64-mce-poll-at-idle_start-and-printk-fix.patch added to -mm tree
+Date: Thu, 17 May 2007 17:09:31 -0700
+Message-ID: <200705180009.l4I09V7g003933@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55768 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757731AbXEQXqV (ORCPT
+	by vger.kernel.org with ESMTP id S1754646AbXERALg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 19:46:21 -0400
+	Thu, 17 May 2007 20:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de
+Cc: thockin@google.com, ak@suse.de
 
 
 The patch titled
-     usb: fix debug output of ark3116
+     x86_64: mce poll at IDLE_START and printk fix
 has been added to the -mm tree.  Its filename is
-     usb-fix-debug-output-of-ark3116.patch
+     x86_64-mce-poll-at-idle_start-and-printk-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb: fix debug output of ark3116
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: x86_64: mce poll at IDLE_START and printk fix
+From: Tim Hockin <thockin@google.com>
 
-Fix debug output.  Previously, it would output "0xFFFFFFB0" on 32-bit archs
-(and probably "0xFFFFFFFFFFFFFFB0" on 64-bits), because buf is taken as
-signed char, which is promoted to signed int, while %x always expects an
-unsigned int.
+Background:
+ The MCE handler already has an idle-task handler which checks for the
+ TIF_MCE_NOTIFY flag.  Given that the system is idle at that point, we can
+ get even better granularity of MCE logging by polling for MCEs whenever
+ we enter the idle loop.  This exposes a small imperfection in the
+ printk() rate limiting whereby that last "Events Logged" message might
+ not get printed if no more MCEs arrive.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Description:
+ This patch extends the MCE idle notifier callback to poll for MCEs on the
+ current CPU at IDLE_START time.  It also adds one new static variable to
+ track whether any events have been logged since the last printk() and
+ causes a printk at the next rate-limited opportunity.
+
+Result:
+ MCEs are found more rapidly on systems with bad memory.
+
+Alternatives:
+ None.
+
+Testing:
+ I used software to inject correctable and uncorrectable errors.  An
+ application poll()ing /dev/mcelog gets woken up very quickly after error
+ injection.
+
+Signed-off-by: Tim Hockin <thockin@google.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ark3116.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/mce.c |   30 ++++++++++++++++++++++--------
+ 1 files changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/ark3116.c~usb-fix-debug-output-of-ark3116 drivers/usb/serial/ark3116.c
---- a/drivers/usb/serial/ark3116.c~usb-fix-debug-output-of-ark3116
-+++ a/drivers/usb/serial/ark3116.c
-@@ -63,7 +63,8 @@ static inline void ARK3116_RCV(struct us
- 				 request, requesttype, value, index,
- 				 buf, 0x0000001, 1000);
- 	if (result)
--		dbg("%03d < %d bytes [0x%02X]", seq, result, buf[0]);
-+		dbg("%03d < %d bytes [0x%02X]", seq, result,
-+		    ((unsigned char *)buf)[0]);
- 	else
- 		dbg("%03d < 0 bytes", seq);
+diff -puN arch/x86_64/kernel/mce.c~x86_64-mce-poll-at-idle_start-and-printk-fix arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~x86_64-mce-poll-at-idle_start-and-printk-fix
++++ a/arch/x86_64/kernel/mce.c
+@@ -308,10 +308,10 @@ void do_machine_check(struct pt_regs * r
+ 		}
+ 	}
+ 
++ out:
+ 	/* notify userspace ASAP */
+ 	set_thread_flag(TIF_MCE_NOTIFY);
+ 
+- out:
+ 	/* the last thing we do is clear state */
+ 	for (i = 0; i < banks; i++)
+ 		wrmsrl(MSR_IA32_MC0_STATUS+4*i, 0);
+@@ -389,29 +389,43 @@ static void mcheck_timer(struct work_str
+  */
+ int mce_notify_user(void)
+ {
++	static int do_printk;
++	int retval = 0;
++
+ 	clear_thread_flag(TIF_MCE_NOTIFY);
+-	if (test_and_clear_bit(0, &notify_user)) {
+-		static unsigned long last_print;
+-		unsigned long now = jiffies;
+ 
++	/* notify userspace apps as soon as possible */
++	if (test_and_clear_bit(0, &notify_user)) {
+ 		wake_up_interruptible(&mce_wait);
+ 		if (trigger[0])
+ 			call_usermodehelper(trigger, trigger_argv, NULL, -1);
++		do_printk = 1;
++		retval = 1;
++	}
++
++	/* only log a message periodically */
++	if (do_printk) {
++		static unsigned long last_print;
++		unsigned long now = jiffies;
+ 
+ 		if (time_after_eq(now, last_print + (check_interval*HZ))) {
+ 			last_print = now;
+ 			printk(KERN_INFO "Machine check events logged\n");
++			do_printk = 0;
+ 		}
+-
+-		return 1;
+ 	}
+-	return 0;
++
++	return retval;
  }
+ 
+-/* see if the idle task needs to notify userspace */
++/* take advantage of idle time to manage MCEs */
+ static int
+ mce_idle_callback(struct notifier_block *nfb, unsigned long action, void *junk)
+ {
++	/* poll for new MCEs on this CPU */
++	if (action == IDLE_START)
++		mcheck_check_cpu(NULL);
++
+ 	/* IDLE_END should be safe - interrupts are back on */
+ 	if (action == IDLE_END && test_thread_flag(TIF_MCE_NOTIFY))
+ 		mce_notify_user();
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from thockin@google.com are
 
-origin.patch
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-ii-sound.patch
-git-ieee1394.patch
-use-menuconfig-objects-ii-infiniband.patch
-use-menuconfig-objects-ii-kvm-virt.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-usb.patch
-usb-fix-debug-output-of-ark3116.patch
-use-menuconfig-objects-crypto.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-ii-isdn.patch
-use-menuconfig-objects-ii-md.patch
+x86_64-o_excl-on-dev-mcelog.patch
+x86_64-support-poll-on-dev-mcelog.patch
+x86_64-mcelog-tolerant-level-cleanup.patch
+x86_64-mce-poll-at-idle_start-and-printk-fix.patch
