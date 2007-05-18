@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
-Date: Thu, 17 May 2007 20:09:11 -0700
-Message-ID: <200705180309.l4I39ATO006527@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-update-for-mm-simplify-boot_params.patch added to -mm tree
+Date: Thu, 17 May 2007 20:15:08 -0700
+Message-ID: <200705180315.l4I3F84D006646@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49518 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755692AbXERDLJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755457AbXERDQ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 23:11:09 -0400
+	Thu, 17 May 2007 23:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     sched_clock vs tsc_disable
+     lguest update for mm: simplify boot_params
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-sched-clock-share.patch
+     lguest-the-host-code-update-for-mm-simplify-boot_params.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched_clock vs tsc_disable
+Subject: lguest update for mm: simplify boot_params
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-If you set tsc_disable (eg "notsc" on cmdline), sched-clock.c gives a
-divide by zero on boot.
+Andrew patched up lguest after the boot parameters became a proper
+structure, but in fact it can be considerably neatened.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sched-clock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/lguest/lguest.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share arch/i386/kernel/sched-clock.c
---- a/arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share
-+++ a/arch/i386/kernel/sched-clock.c
-@@ -103,7 +103,7 @@ unsigned long long sched_clock(void)
- static void resync_sc_freq(struct sc_data *sc, unsigned int newfreq)
+diff -puN drivers/lguest/lguest.c~lguest-the-host-code-update-for-mm-simplify-boot_params drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-host-code-update-for-mm-simplify-boot_params
++++ a/drivers/lguest/lguest.c
+@@ -444,8 +444,7 @@ __init void lguest_init(void *boot)
  {
- 	sc->sync_base = jiffies;
--	if (!cpu_has_tsc) {
-+	if (!cpu_has_tsc || tsc_disable) {
- 		sc->unstable = 1;
- 		return;
- 	}
+ 	/* Copy boot parameters first. */
+ 	memcpy(&boot_params, boot, PARAM_SIZE);
+-	memcpy(boot_command_line,
+-	       __va(*(unsigned long *)((void *)&boot_params + NEW_CL_POINTER)),
++	memcpy(boot_command_line, __va(boot_params.hdr.cmd_line_ptr),
+ 	       COMMAND_LINE_SIZE);
+ 
+ 	paravirt_ops.name = "lguest";
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -73,6 +73,7 @@ lguest-the-host-code.patch
 lguest-the-host-code-tidyups.patch
 lguest-the-host-code-tidyups-update.patch
 lguest-the-host-code-borkages.patch
+lguest-the-host-code-update-for-mm-simplify-boot_params.patch
 lguest-the-asm-offsets.patch
 lguest-the-makefile-and-kconfig.patch
 lguest-the-makefile-and-kconfig-tidyups.patch
@@ -85,4 +86,5 @@ lguest-the-block-driver.patch
 lguest-the-block-driver-tidyups.patch
 lguest-the-block-driver-tidyups-update.patch
 lguest-the-documentation-example-launcher.patch
+lguest-update-for-mm-disable-tsc-dont-set-pge-bit.patch
 mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
