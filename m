@@ -1,153 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - fix-agk-dm-dm-io-fix-panic-on-large-request.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:50 -0700
-Message-ID: <200705180706.l4I76nvu010213@shell0.pdx.osdl.net>
+Subject: - ns16550a-restore-hs-settings-in-excr2-on-resume.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:07:15 -0700
+Message-ID: <200705180707.l4I77Efj010261@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34927 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33852 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755242AbXERHKD (ORCPT
+	by vger.kernel.org with ESMTP id S1754921AbXERHKp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:10:03 -0400
+	Fri, 18 May 2007 03:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agk@redhat.com, j-nomura@ce.jp.nec.com, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, alan@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-agk-dm-dm-io-fix-panic-on-large-request
+     NS16550A: restore HS settings in EXCR2 on resume
 has been removed from the -mm tree.  Its filename was
-     fix-agk-dm-dm-io-fix-panic-on-large-request.patch
+     ns16550a-restore-hs-settings-in-excr2-on-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-agk-dm-dm-io-fix-panic-on-large-request
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: NS16550A: restore HS settings in EXCR2 on resume
+From: David Woodhouse <dwmw2@infradead.org>
 
-drivers/md/dm-io.c: In function 'do_region':
-drivers/md/dm-io.c:296: error: 'dm_div_up' undeclared (first use in this function)
-drivers/md/dm-io.c:296: error: (Each undeclared identifier is reported only once
-drivers/md/dm-io.c:296: error: for each function it appears in.)
+After a suspend/resume cycle, the UART may have been reset into low-speed
+mode -- either because it's actually been reset, or because the firmware
+pokes at the old-style divisor registers.  If we detected it as a NS16550A
+SuperIO chip in the first place and set baud_base to 921600, then we should
+do so again in the resume path.
 
-Also, I believe this code should be using dm_sector_div_up().
+This patch adds that code to serial8250_resume_port(), and also makes
+serial8250_resume() actually call serial8250_resume_port() for each port
+instead of just calling uart_resume_port() directly.  And thus fixes serial
+port operation after suspend/resume.
 
-Cc: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
-Cc: Alasdair G Kergon <agk@redhat.com>
+It also fixes a bogus comment where we write the EXCR2 register with a
+comment saying /* EXCR1 */
+
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-io.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/8250.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-io.c~fix-agk-dm-dm-io-fix-panic-on-large-request drivers/md/dm-io.c
---- a/drivers/md/dm-io.c~fix-agk-dm-dm-io-fix-panic-on-large-request
-+++ a/drivers/md/dm-io.c
-@@ -293,7 +293,8 @@ static void do_region(int rw, unsigned i
- 		 * bvec for bio_get/set_region() and decrement bi_max_vecs
- 		 * to hide it from bio_add_page().
- 		 */
--		num_bvecs = dm_div_up(remaining / (PAGE_SIZE >> SECTOR_SHIFT));
-+		num_bvecs = dm_sector_div_up(remaining,
-+					(PAGE_SIZE >> SECTOR_SHIFT));
- 		num_bvecs = 1 + min_t(int, bio_get_nr_vecs(where->bdev),
- 				      num_bvecs);
- 		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, io->client->bios);
+diff -puN drivers/serial/8250.c~ns16550a-restore-hs-settings-in-excr2-on-resume drivers/serial/8250.c
+--- a/drivers/serial/8250.c~ns16550a-restore-hs-settings-in-excr2-on-resume
++++ a/drivers/serial/8250.c
+@@ -894,7 +894,7 @@ static void autoconfig_16550a(struct uar
+ 			quot = serial_dl_read(up);
+ 			quot <<= 3;
+ 
+-			status1 = serial_in(up, 0x04); /* EXCR1 */
++			status1 = serial_in(up, 0x04); /* EXCR2 */
+ 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
+ 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
+ 			serial_outp(up, 0x04, status1);
+@@ -2622,7 +2622,22 @@ void serial8250_suspend_port(int line)
+  */
+ void serial8250_resume_port(int line)
+ {
+-	uart_resume_port(&serial8250_reg, &serial8250_ports[line].port);
++	struct uart_8250_port *up = &serial8250_ports[line];
++
++	if (up->capabilities & UART_NATSEMI) {
++		unsigned char tmp;
++
++		/* Ensure it's still in high speed mode */
++		serial_outp(up, UART_LCR, 0xE0);
++
++		tmp = serial_in(up, 0x04); /* EXCR2 */
++		tmp &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
++		tmp |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
++		serial_outp(up, 0x04, tmp);
++
++		serial_outp(up, UART_LCR, 0);
++	}
++	uart_resume_port(&serial8250_reg, &up->port);
+ }
+ 
+ /*
+@@ -2700,7 +2715,7 @@ static int serial8250_resume(struct plat
+ 		struct uart_8250_port *up = &serial8250_ports[i];
+ 
+ 		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
+-			uart_resume_port(&serial8250_reg, &up->port);
++			serial8250_resume_port(i);
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-powerpc.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
 git-ubi.patch
 git-battery.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-xfs-clean-up-shrinker-games.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+missing-const-from-reiserfs-min_key-declaration.patch
+add-lzo1x-compression-support-to-the-kernel.patch
 add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-check_dirty_inode_list.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+mismatching-declarations-of-revision-strings-in-hisax.patch
