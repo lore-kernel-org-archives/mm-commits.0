@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-unused-setup_nr_node_ids.patch added to -mm tree
-Date: Fri, 18 May 2007 10:53:22 -0700
-Message-ID: <200705181753.l4IHrMYP020142@shell0.pdx.osdl.net>
+Subject: + net-core-skbuffc-gcc-323-compilation-error.patch added to -mm tree
+Date: Fri, 18 May 2007 10:56:06 -0700
+Message-ID: <200705181756.l4IHu69L020179@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:43706 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:33140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753742AbXERRzb (ORCPT
+	by vger.kernel.org with ESMTP id S1753742AbXERR6Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 13:55:31 -0400
+	Fri, 18 May 2007 13:58:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mikpe@it.uu.se
 
 
 The patch titled
-     fix unused setup_nr_node_ids
+     net/core/skbuff.c gcc-3.2.3 compilation error
 has been added to the -mm tree.  Its filename is
-     fix-unused-setup_nr_node_ids.patch
+     net-core-skbuffc-gcc-323-compilation-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix unused setup_nr_node_ids
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: net/core/skbuff.c gcc-3.2.3 compilation error
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-mm/page_alloc.c:931: warning: 'setup_nr_node_ids' defined but not used
+Compiling 2.6.22-rc1 with gcc-3.2.3 for i486 fails with:
 
-This is now the only (!) compiler warning I get in my UML build :)
+  gcc -m32 -Wp,-MD,net/core/.skbuff.o.d  -nostdinc -isystem /home/mikpe/pkgs/linux-x86/gnu/lib/gcc-lib/i486-pc-linux-gnu/3.2.3/include -D__KERNEL__ -Iinclude  -include include/linux/autoconf.h -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -O2 -pipe -msoft-float -mregparm=3 -freg-struct-return -mpreferred-stack-boundary=4  -march=i486 -ffreestanding -maccumulate-outgoing-args -DCONFIG_AS_CFI=1  -Iinclude/asm-i386/mach-default -fomit-frame-pointer       -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(skbuff)"  -D"KBUILD_MODNAME=KBUILD_STR(skbuff)" -c -o net/core/skbuff.o net/core/skbuff.c
+net/core/skbuff.c:648:1: directives may not be used inside a macro argument
+net/core/skbuff.c:647:39: unterminated argument list invoking macro "memcpy"
+net/core/skbuff.c: In function `pskb_expand_head':
+net/core/skbuff.c:651: `memcpy' undeclared (first use in this function)
+net/core/skbuff.c:651: (Each undeclared identifier is reported only once
+net/core/skbuff.c:651: for each function it appears in.)
+net/core/skbuff.c:651: syntax error before "skb"
+make[2]: *** [net/core/skbuff.o] Error 1
+make[1]: *** [net/core] Error 2
+make: *** [net] Error 2
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+The patch implements a simple workaround which is to clone the offending
+memcpy() call and specialise it for the two different scenarios.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   45 +++++++++++++++++++++++++--------------------
- 1 files changed, 25 insertions(+), 20 deletions(-)
+ net/core/skbuff.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~fix-unused-setup_nr_node_ids mm/page_alloc.c
---- a/mm/page_alloc.c~fix-unused-setup_nr_node_ids
-+++ a/mm/page_alloc.c
-@@ -136,6 +136,11 @@ static unsigned long __meminitdata dma_r
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+diff -puN net/core/skbuff.c~net-core-skbuffc-gcc-323-compilation-error net/core/skbuff.c
+--- a/net/core/skbuff.c~net-core-skbuffc-gcc-323-compilation-error
++++ a/net/core/skbuff.c
+@@ -644,11 +644,10 @@ int pskb_expand_head(struct sk_buff *skb
  
-+#if MAX_NUMNODES > 1
-+int nr_node_ids __read_mostly = MAX_NUMNODES;
-+EXPORT_SYMBOL(nr_node_ids);
-+#endif
-+
- #ifdef CONFIG_DEBUG_VM
- static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
- {
-@@ -669,26 +674,6 @@ static int rmqueue_bulk(struct zone *zon
- 	return i;
- }
- 
--#if MAX_NUMNODES > 1
--int nr_node_ids __read_mostly = MAX_NUMNODES;
--EXPORT_SYMBOL(nr_node_ids);
--
--/*
-- * Figure out the number of possible node ids.
-- */
--static void __init setup_nr_node_ids(void)
--{
--	unsigned int node;
--	unsigned int highest = 0;
--
--	for_each_node_mask(node, node_possible_map)
--		highest = node;
--	nr_node_ids = highest + 1;
--}
--#else
--static void __init setup_nr_node_ids(void) {}
--#endif
--
- #ifdef CONFIG_NUMA
- /*
-  * Called from the vmstat counter updater to drain pagesets of this
-@@ -2733,6 +2718,26 @@ void __meminit free_area_init_node(int n
- }
- 
- #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
-+
-+#if MAX_NUMNODES > 1
-+/*
-+ * Figure out the number of possible node ids.
-+ */
-+static void __init setup_nr_node_ids(void)
-+{
-+	unsigned int node;
-+	unsigned int highest = 0;
-+
-+	for_each_node_mask(node, node_possible_map)
-+		highest = node;
-+	nr_node_ids = highest + 1;
-+}
-+#else
-+static inline void setup_nr_node_ids(void)
-+{
-+}
-+#endif
-+
- /**
-  * add_active_range - Register a range of PFNs backed by physical memory
-  * @nid: The node ID the range resides on
+ 	/* Copy only real data... and, alas, header. This should be
+ 	 * optimized for the cases when header is void. */
+-	memcpy(data + nhead, skb->head,
+ #ifdef NET_SKBUFF_DATA_USES_OFFSET
+-		skb->tail);
++	memcpy(data + nhead, skb->head, skb->tail);
+ #else
+-		skb->tail - skb->head);
++	memcpy(data + nhead, skb->head, skb->tail - skb->head);
+ #endif
+ 	memcpy(data + size, skb_end_pointer(skb),
+ 	       sizeof(struct skb_shared_info));
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-fuse-generic_write_checks-for-direct_io.patch
-fuse-delete-inode-on-drop.patch
-fix-unused-setup_nr_node_ids.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
+net-core-skbuffc-gcc-323-compilation-error.patch
