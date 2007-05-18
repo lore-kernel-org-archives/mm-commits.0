@@ -1,77 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-interface-loosens-call-restrictions.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:06:25 -0700
-Message-ID: <200705180706.l4I76Osc010175@shell0.pdx.osdl.net>
+Subject: - swsusp-fix-sysfs-interface.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:43 -0700
+Message-ID: <200705180706.l4I76gkA010202@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50133 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758023AbXERHJk (ORCPT
+	by vger.kernel.org with ESMTP id S1758031AbXERHJl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:09:40 -0400
+	Fri, 18 May 2007 03:09:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, Peter.Moulder@infotech.monash.edu.au, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio interface loosens call restrictions
+     swsusp: fix sysfs interface
 has been removed from the -mm tree.  Its filename was
-     gpio-interface-loosens-call-restrictions.patch
+     swsusp-fix-sysfs-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gpio interface loosens call restrictions
-From: David Brownell <david-b@pacbell.net>
+Subject: swsusp: fix sysfs interface
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Loosen gpio_{request,free}() and gpio_direction_{in,out}put() call context
-restrictions slightly, so a common idiom is no longer an error: board init
-code setting up spinlock-safe GPIOs before tasking is enabled.
+The sysfs files /sys/power/disk and /sys/power/state do not work as
+documented, since they allow the user to write only a few initial
+characters of the input string to trigger the option (eg.  'echo pl >
+/sys/power/disk' activates the platform mode of hibernation).  Fix it.
 
-The issue was caught by some paranoid code with might_sleep() checks.  The
-legacy platform-specific GPIO interfaces stick to spinlock-safe GPIOs, so this
-change reflects current implementations and won't break anything.
+Special thanks to Peter Moulder <Peter.Moulder@infotech.monash.edu.au> for
+pointing out the problem.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/power/disk.c |    3 ++-
+ kernel/power/main.c |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpio-interface-loosens-call-restrictions Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpio-interface-loosens-call-restrictions
-+++ a/Documentation/gpio.txt
-@@ -111,7 +111,9 @@ setting up a platform_device using the G
+diff -puN kernel/power/disk.c~swsusp-fix-sysfs-interface kernel/power/disk.c
+--- a/kernel/power/disk.c~swsusp-fix-sysfs-interface
++++ a/kernel/power/disk.c
+@@ -416,7 +416,8 @@ static ssize_t disk_store(struct kset *k
  
- The return value is zero for success, else a negative errno.  It should
- be checked, since the get/set calls don't have error returns and since
--misconfiguration is possible.  (These calls could sleep.)
-+misconfiguration is possible.  You should normally issue these calls from
-+a task context.  However, for spinlock-safe GPIOs it's OK to use them
-+before tasking is enabled, as part of early board setup.
+ 	mutex_lock(&pm_mutex);
+ 	for (i = HIBERNATION_FIRST; i <= HIBERNATION_MAX; i++) {
+-		if (!strncmp(buf, hibernation_modes[i], len)) {
++		if (len == strlen(hibernation_modes[i])
++		    && !strncmp(buf, hibernation_modes[i], len)) {
+ 			mode = i;
+ 			break;
+ 		}
+diff -puN kernel/power/main.c~swsusp-fix-sysfs-interface kernel/power/main.c
+--- a/kernel/power/main.c~swsusp-fix-sysfs-interface
++++ a/kernel/power/main.c
+@@ -290,13 +290,13 @@ static ssize_t state_store(struct kset *
+ 	len = p ? p - buf : n;
  
- For output GPIOs, the value provided becomes the initial output value.
- This helps avoid signal glitching during system startup.
-@@ -197,7 +199,9 @@ However, many platforms don't currently 
+ 	/* First, check if we are requested to hibernate */
+-	if (!strncmp(buf, "disk", len)) {
++	if (len == 4 && !strncmp(buf, "disk", len)) {
+ 		error = hibernate();
+ 		return error ? error : n;
+ 	}
  
- Passing invalid GPIO numbers to gpio_request() will fail, as will requesting
- GPIOs that have already been claimed with that call.  The return value of
--gpio_request() must be checked.  (These calls could sleep.)
-+gpio_request() must be checked.  You should normally issue these calls from
-+a task context.  However, for spinlock-safe GPIOs it's OK to request GPIOs
-+before tasking is enabled, as part of early board setup.
- 
- These calls serve two basic purposes.  One is marking the signals which
- are actually in use as GPIOs, for better diagnostics; systems may have
+ 	for (s = &pm_states[state]; state < PM_SUSPEND_MAX; s++, state++) {
+-		if (*s && !strncmp(buf, *s, len))
++		if (*s && len == strlen(*s) && !strncmp(buf, *s, len))
+ 			break;
+ 	}
+ 	if (state < PM_SUSPEND_MAX && *s)
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-git-leds.patch
 at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-rtc-ds1307-cleanups.patch
+freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+freezer-fix-pf_nofreeze-vs-freezeable-race.patch
+freezer-move-frozen_process-to-kernel-power-processc.patch
+add-common-orderly_poweroff.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
