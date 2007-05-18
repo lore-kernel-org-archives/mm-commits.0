@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-add-firmware-loading.patch added to -mm tree
-Date: Fri, 18 May 2007 11:08:38 -0700
-Message-ID: <200705181808.l4II8cTk020397@shell0.pdx.osdl.net>
+Subject: + alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm.patch added to -mm tree
+Date: Fri, 18 May 2007 11:56:38 -0700
+Message-ID: <200705181856.l4IIuc2S021321@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42655 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757461AbXERSJv (ORCPT
+	by vger.kernel.org with ESMTP id S1757355AbXERS7z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 14:09:51 -0400
+	Fri, 18 May 2007 14:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: adrianmcmenamin@gmail.com, adrian@mcmen.demon.co.uk, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     Char: cyclades, add firmware loading
+     ALSA support for the SEGA Dreamcast Yamaha AICA sound device (pcm)
 has been added to the -mm tree.  Its filename is
-     char-cyclades-add-firmware-loading.patch
+     alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,428 +26,850 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, add firmware loading
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: ALSA support for the SEGA Dreamcast Yamaha AICA sound device (pcm)
+From: "Adrian McMenamin" <adrianmcmenamin@gmail.com>
 
-cyclades, add firmware loading
+Add ALSA sound support for pcm playback on two channels on the SEGA
+Dreamcast built-in sound device (the Yamaha AICA)
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Add driver for the AICA sound device built into the SEGA Dreamcast
+
+Hook it all up with the build system.
+
+Signed-off-by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |  351 +++++++++++++++++++++++++++++++++++---
- 1 files changed, 328 insertions(+), 23 deletions(-)
+ sound/Kconfig     |    2 
+ sound/Makefile    |    2 
+ sound/sh/Kconfig  |   14 
+ sound/sh/Makefile |    8 
+ sound/sh/aica.c   |  675 ++++++++++++++++++++++++++++++++++++++++++++
+ sound/sh/aica.h   |   80 +++++
+ 6 files changed, 780 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-add-firmware-loading drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-add-firmware-loading
-+++ a/drivers/char/cyclades.c
-@@ -646,6 +646,7 @@
- #include <linux/delay.h>
- #include <linux/spinlock.h>
- #include <linux/bitops.h>
+diff -puN /dev/null /dev/null
+diff -puN sound/Kconfig~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm sound/Kconfig
+--- a/sound/Kconfig~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm
++++ a/sound/Kconfig
+@@ -65,6 +65,8 @@ source "sound/arm/Kconfig"
+ 
+ source "sound/mips/Kconfig"
+ 
++source "sound/sh/Kconfig"
++
+ # the following will depend on the order of config.
+ # here assuming USB is defined before ALSA
+ source "sound/usb/Kconfig"
+diff -puN sound/Makefile~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm sound/Makefile
+--- a/sound/Makefile~alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm
++++ a/sound/Makefile
+@@ -5,7 +5,7 @@ obj-$(CONFIG_SOUND) += soundcore.o
+ obj-$(CONFIG_SOUND_PRIME) += sound_firmware.o
+ obj-$(CONFIG_SOUND_PRIME) += oss/
+ obj-$(CONFIG_DMASOUND) += oss/
+-obj-$(CONFIG_SND) += core/ i2c/ drivers/ isa/ pci/ ppc/ arm/ synth/ usb/ sparc/ parisc/ pcmcia/ mips/ soc/
++obj-$(CONFIG_SND) += core/ i2c/ drivers/ isa/ pci/ ppc/ arm/ sh/ synth/ usb/ sparc/ parisc/ pcmcia/ mips/ soc/
+ obj-$(CONFIG_SND_AOA) += aoa/
+ 
+ # This one must be compilable even if sound is configured out
+diff -puN /dev/null sound/sh/Kconfig
+--- /dev/null
++++ a/sound/sh/Kconfig
+@@ -0,0 +1,14 @@
++# ALSA SH drivers
++
++menu "SUPERH devices"
++	depends on SND!=n && SUPERH
++
++config SND_AICA
++	tristate "Dreamcast Yamaha AICA sound"
++	depends on SH_DREAMCAST && SND
++	select SND_PCM
++	help
++	  ALSA Sound driver for the SEGA Dreamcast console.
++
++endmenu
++
+diff -puN /dev/null sound/sh/Makefile
+--- /dev/null
++++ a/sound/sh/Makefile
+@@ -0,0 +1,8 @@
++#
++# Makefile for ALSA
++#
++
++snd-aica-objs := aica.o
++
++# Toplevel Module Dependency
++obj-$(CONFIG_SND_AICA) += snd-aica.o
+diff -puN /dev/null sound/sh/aica.c
+--- /dev/null
++++ a/sound/sh/aica.c
+@@ -0,0 +1,675 @@
++/*
++* This code is licenced under
++* the General Public Licence
++* version 2
++*
++* Copyright Adrian McMenamin 2005, 2006, 2007
++* <adrian@mcmen.demon.co.uk>
++* Requires firmware (BSD licenced) available from:
++* http://linuxdc.cvs.sourceforge.net/linuxdc/linux-sh-dc/sound/oss/aica/firmware/
++* or the maintainer
++*
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of version 2 of the GNU General Public License as published by
++* the Free Software Foundation.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++* You should have received a copy of the GNU General Public License
++* along with this program; if not, write to the Free Software
++* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*
++*/
++
++#include <linux/init.h>
++#include <linux/jiffies.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++#include <linux/wait.h>
++#include <linux/moduleparam.h>
++#include <linux/platform_device.h>
 +#include <linux/firmware.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -680,6 +681,44 @@ static void cy_send_xchar(struct tty_str
- 
- #define STD_COM_FLAGS (0)
- 
-+/* firmware stuff */
-+#define ZL_MAX_BLOCKS	16
-+#define DRIVER_VERSION	0x02010203
-+#define RAM_SIZE 0x80000
++#include <linux/timer.h>
++#include <linux/delay.h>
++#include <linux/workqueue.h>
++#include <sound/driver.h>
++#include <sound/core.h>
++#include <sound/control.h>
++#include <sound/pcm.h>
++#include <sound/initval.h>
++#include <sound/info.h>
++#include <asm/io.h>
++#include <asm/dma.h>
++#include <asm/dreamcast/sysasic.h>
++#include "aica.h"
 +
-+#define Z_FPGA_LOADED(X)	((readl(&(X)->init_ctrl) & (1<<17)) != 0)
++MODULE_AUTHOR("Adrian McMenamin <adrian@mcmen.demon.co.uk>");
++MODULE_DESCRIPTION("Dreamcast AICA sound (pcm) driver");
++MODULE_LICENSE("GPL");
++MODULE_SUPPORTED_DEVICE("{{Yamaha/SEGA, AICA}}");
 +
-+enum zblock_type {
-+	ZBLOCK_PRG = 0,
-+	ZBLOCK_FPGA = 1
++/* module parameters */
++#define CARD_NAME "AICA"
++static int index = -1;
++static char *id;
++static int enable = 1;
++module_param(index, int, 0444);
++MODULE_PARM_DESC(index, "Index value for " CARD_NAME " soundcard.");
++module_param(id, charp, 0444);
++MODULE_PARM_DESC(id, "ID string for " CARD_NAME " soundcard.");
++module_param(enable, bool, 0644);
++MODULE_PARM_DESC(enable, "Enable " CARD_NAME " soundcard.");
++
++/* Use workqueue */
++
++static struct spu_work_holder {
++	struct work_struct spu_dma_work;
++	void *sspointer;
++} spu_working;
++
++static struct workqueue_struct *aica_queue;
++
++/* Simple platform device */
++static struct platform_device *pd;
++static struct resource aica_memory_space[2] = {
++	{
++	 .name = "AICA ARM CONTROL",
++	 .start = ARM_RESET_REGISTER,
++	 .flags = IORESOURCE_MEM,
++	 .end = ARM_RESET_REGISTER + 3,
++	 },
++	{
++	 .name = "AICA Sound RAM",
++	 .start = SPU_MEMORY_BASE,
++	 .flags = IORESOURCE_MEM,
++	 .end = SPU_MEMORY_BASE + 0x200000 - 1,
++	 },
 +};
 +
-+struct zfile_header {
-+	char name[64];
-+	char date[32];
-+	char aux[32];
-+	u32 n_config;
-+	u32 config_offset;
-+	u32 n_blocks;
-+	u32 block_offset;
-+	u32 reserved[9];
-+} __attribute__ ((packed));
-+
-+struct zfile_config {
-+	char name[64];
-+	u32 mailbox;
-+	u32 function;
-+	u32 n_blocks;
-+	u32 block_list[ZL_MAX_BLOCKS];
-+} __attribute__ ((packed));
-+
-+struct zfile_block {
-+	u32 type;
-+	u32 file_offset;
-+	u32 ram_offset;
-+	u32 size;
-+} __attribute__ ((packed));
-+
- static struct tty_driver *cy_serial_driver;
- 
- #ifdef CONFIG_ISA
-@@ -4739,17 +4778,295 @@ static int __init cy_detect_isa(void)
- }				/* cy_detect_isa */
- 
- #ifdef CONFIG_PCI
--static void __devinit plx_init(void __iomem * addr, __u32 initctl)
-+static inline int __devinit cyc_isfwstr(const char *str, unsigned int size)
++/* SPU specific functions */
++/* spu_write_wait - wait for G2-SH FIFO to clear */
++static void spu_write_wait(void)
 +{
-+	unsigned int a;
-+
-+	for (a = 0; a < size && *str; a++, str++)
-+		if (*str & 0x80)
-+			return -EINVAL;
-+
-+	for (; a < size; a++, str++)
-+		if (*str)
-+			return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static inline void __devinit cyz_fpga_copy(void __iomem *fpga, u8 *data,
-+		unsigned int size)
-+{
-+	for (; size > 0; size--) {
-+		cy_writel(fpga, *data++);
-+		udelay(10);
-+	}
-+}
-+
-+static void __devinit plx_init(struct pci_dev *pdev, int irq,
-+		struct RUNTIME_9060 __iomem *addr)
- {
- 	/* Reset PLX */
--	cy_writel(addr + initctl, readl(addr + initctl) | 0x40000000);
-+	cy_writel(&addr->init_ctrl, readl(&addr->init_ctrl) | 0x40000000);
- 	udelay(100L);
--	cy_writel(addr + initctl, readl(addr + initctl) & ~0x40000000);
-+	cy_writel(&addr->init_ctrl, readl(&addr->init_ctrl) & ~0x40000000);
- 
- 	/* Reload Config. Registers from EEPROM */
--	cy_writel(addr + initctl, readl(addr + initctl) | 0x20000000);
-+	cy_writel(&addr->init_ctrl, readl(&addr->init_ctrl) | 0x20000000);
- 	udelay(100L);
--	cy_writel(addr + initctl, readl(addr + initctl) & ~0x20000000);
-+	cy_writel(&addr->init_ctrl, readl(&addr->init_ctrl) & ~0x20000000);
-+
-+	/* For some yet unknown reason, once the PLX9060 reloads the EEPROM,
-+	 * the IRQ is lost and, thus, we have to re-write it to the PCI config.
-+	 * registers. This will remain here until we find a permanent fix.
-+	 */
-+	pci_write_config_byte(pdev, PCI_INTERRUPT_LINE, irq);
-+}
-+
-+static int __devinit __cyz_load_fw(const struct firmware *fw,
-+		const char *name, const u32 mailbox, void __iomem *base,
-+		void __iomem *fpga)
-+{
-+	void *ptr = fw->data;
-+	struct zfile_header *h = ptr;
-+	struct zfile_config *c, *cs;
-+	struct zfile_block *b, *bs;
-+	unsigned int a, tmp, len = fw->size;
-+#define BAD_FW KERN_ERR "Bad firmware: "
-+	if (len < sizeof(*h)) {
-+		printk(BAD_FW "too short: %u<%zu\n", len, sizeof(*h));
-+		return -EINVAL;
-+	}
-+
-+	cs = ptr + h->config_offset;
-+	bs = ptr + h->block_offset;
-+
-+	if ((void *)(cs + h->n_config) > ptr + len ||
-+			(void *)(bs + h->n_blocks) > ptr + len) {
-+		printk(BAD_FW "too short");
-+		return  -EINVAL;
-+	}
-+
-+	if (cyc_isfwstr(h->name, sizeof(h->name)) ||
-+			cyc_isfwstr(h->date, sizeof(h->date))) {
-+		printk(BAD_FW "bad formatted header string\n");
-+		return -EINVAL;
-+	}
-+
-+	if (strncmp(name, h->name, sizeof(h->name))) {
-+		printk(BAD_FW "bad name '%s' (expected '%s')\n", h->name, name);
-+		return -EINVAL;
-+	}
-+
-+	tmp = 0;
-+	for (c = cs; c < cs + h->n_config; c++) {
-+		for (a = 0; a < c->n_blocks; a++)
-+			if (c->block_list[a] > h->n_blocks) {
-+				printk(BAD_FW "bad block ref number in cfgs\n");
-+				return -EINVAL;
-+			}
-+		if (c->mailbox == mailbox && c->function == 0) /* 0 is normal */
-+			tmp++;
-+	}
-+	if (!tmp) {
-+		printk(BAD_FW "nothing appropriate\n");
-+		return -EINVAL;
-+	}
-+
-+	for (b = bs; b < bs + h->n_blocks; b++)
-+		if (b->file_offset + b->size > len) {
-+			printk(BAD_FW "bad block data offset\n");
-+			return -EINVAL;
-+		}
-+
-+	/* everything is OK, let's seek'n'load it */
-+	for (c = cs; c < cs + h->n_config; c++)
-+		if (c->mailbox == mailbox && c->function == 0)
++	int time_count;
++	time_count = 0;
++	while (1) {
++		if (!(readl(G2_FIFO) & 0x11))
 +			break;
-+
-+	for (a = 0; a < c->n_blocks; a++) {
-+		b = &bs[c->block_list[a]];
-+		if (b->type == ZBLOCK_FPGA) {
-+			if (fpga != NULL)
-+				cyz_fpga_copy(fpga, ptr + b->file_offset,
-+						b->size);
-+		} else {
-+			if (base != NULL)
-+				memcpy_toio(base + b->ram_offset,
-+					       ptr + b->file_offset, b->size);
++		/* To ensure hardware failure doesn't wedge kernel */
++		time_count++;
++		if (time_count > 0x10000)
++		{
++			snd_printk("WARNING: G2 FIFO appears to be blocked.\n");
++			break;
 +		}
 +	}
-+#undef BAD_FW
++}
++
++/* spu_memset - write to memory in SPU address space */
++static void spu_memset(u32 toi, u32 what, int length)
++{
++	int i;
++	snd_assert(length % 4 == 0, return);
++	for (i = 0; i < length; i++) {
++		if (!(i % 8))
++			spu_write_wait();
++		writel(what, toi + SPU_MEMORY_BASE);
++		toi++;
++	}
++}
++
++/* spu_memload - write to SPU address space */
++static void spu_memload(u32 toi, void *from, int length)
++{
++	u32 *froml = from;
++	u32 __iomem *to = (u32 __iomem *) (SPU_MEMORY_BASE + toi);
++	int i;
++	u32 val;
++	length = DIV_ROUND_UP(length, 4);
++	spu_write_wait();
++	for (i = 0; i < length; i++) {
++		if (!(i % 8))
++			spu_write_wait();
++		val = *froml;
++		writel(val, to);
++		froml++;
++		to++;
++	}
++}
++
++/* spu_disable - set spu registers to stop sound output */
++static void spu_disable(void)
++{
++	int i;
++	u32 regval;
++	spu_write_wait();
++	regval = readl(ARM_RESET_REGISTER);
++	regval |= 1;
++	spu_write_wait();
++	writel(regval, ARM_RESET_REGISTER);
++	for (i = 0; i < 64; i++) {
++		spu_write_wait();
++		regval = readl(SPU_REGISTER_BASE + (i * 0x80));
++		regval = (regval & ~0x4000) | 0x8000;
++		spu_write_wait();
++		writel(regval, SPU_REGISTER_BASE + (i * 0x80));
++	}
++}
++
++/* spu_enable - set spu registers to enable sound output */
++static void spu_enable(void)
++{
++	u32 regval = readl(ARM_RESET_REGISTER);
++	regval &= ~1;
++	spu_write_wait();
++	writel(regval, ARM_RESET_REGISTER);
++}
++
++/*
++ * Halt the sound processor, clear the memory,
++ * load some default ARM7 code, and then restart ARM7
++*/
++static void spu_reset(void)
++{
++	spu_disable();
++	spu_memset(0, 0, 0x200000 / 4);
++	/* Put ARM7 in endless loop */
++	ctrl_outl(0xea000002, SPU_MEMORY_BASE);
++	spu_enable();
++}
++
++/* aica_chn_start - write to spu to start playback */
++static void aica_chn_start(void)
++{
++	spu_write_wait();
++	writel(AICA_CMD_KICK | AICA_CMD_START, (u32 *) AICA_CONTROL_POINT);
++}
++
++/* aica_chn_halt - write to spu to halt playback */
++static void aica_chn_halt(void)
++{
++	spu_write_wait();
++	writel(AICA_CMD_KICK | AICA_CMD_STOP, (u32 *) AICA_CONTROL_POINT);
++}
++
++/* ALSA code below */
++static struct snd_pcm_hardware snd_pcm_aica_playback_hw = {
++	.info = (SNDRV_PCM_INFO_NONINTERLEAVED),
++	.formats =
++	    (SNDRV_PCM_FMTBIT_S8 | SNDRV_PCM_FMTBIT_S16_LE |
++	     SNDRV_PCM_FMTBIT_IMA_ADPCM),
++	.rates = SNDRV_PCM_RATE_8000_48000,
++	.rate_min = 8000,
++	.rate_max = 48000,
++	.channels_min = 1,
++	.channels_max = 2,
++	.buffer_bytes_max = AICA_BUFFER_SIZE,
++	.period_bytes_min = AICA_PERIOD_SIZE,
++	.period_bytes_max = AICA_PERIOD_SIZE,
++	.periods_min = AICA_PERIOD_NUMBER,
++	.periods_max = AICA_PERIOD_NUMBER,
++};
++
++static int aica_dma_transfer(int channels, int buffer_size,
++			     struct snd_pcm_substream *substream)
++{
++	int q, err, period_offset;
++	struct snd_card_aica *dreamcastcard;
++	struct snd_pcm_runtime *runtime;
++	err = 0;
++	dreamcastcard = substream->pcm->private_data;
++	period_offset = dreamcastcard->clicks;
++	period_offset %= (AICA_PERIOD_NUMBER / channels);
++	runtime = substream->runtime;
++	for (q = 0; q < channels; q++) {
++		err = dma_xfer(AICA_DMA_CHANNEL,
++			       (unsigned long)(runtime->dma_area +
++					       (AICA_BUFFER_SIZE * q) /
++					       channels +
++					       AICA_PERIOD_SIZE *
++					       period_offset),
++			       AICA_CHANNEL0_OFFSET + q * CHANNEL_OFFSET +
++			       AICA_PERIOD_SIZE * period_offset,
++			       buffer_size / channels, AICA_DMA_MODE);
++		if (unlikely(err < 0))
++			break;
++		dma_wait_for_completion(AICA_DMA_CHANNEL);
++	}
++	return err;
++}
++
++static void startup_aica(struct snd_card_aica *dreamcastcard)
++{
++	spu_memload(AICA_CHANNEL0_CONTROL_OFFSET,
++		    dreamcastcard->channel,
++		    sizeof(struct aica_channel));
++	aica_chn_start();
++}
++
++static void run_spu_dma(struct work_struct *work)
++{
++	int buffer_size;
++	struct snd_pcm_substream *substream;
++	struct snd_pcm_runtime *runtime;
++	struct snd_card_aica *dreamcastcard;
++	struct spu_work_holder *holder = container_of(work, struct spu_work_holder, spu_dma_work);
++	substream = holder-> sspointer;
++	dreamcastcard = substream->pcm->private_data;
++	runtime = substream->runtime;
++	if (unlikely(dreamcastcard->dma_check == 0)) {
++		buffer_size = frames_to_bytes(runtime, runtime->buffer_size);
++		if (runtime->channels > 1)
++			dreamcastcard->channel->flags |= 0x01;
++		aica_dma_transfer(runtime->channels, buffer_size, substream);
++		startup_aica(dreamcastcard);
++		dreamcastcard->clicks =
++		    buffer_size / (AICA_PERIOD_SIZE * runtime->channels);
++		return;
++	} else {
++		aica_dma_transfer(runtime->channels,
++				  AICA_PERIOD_SIZE * runtime->channels,
++				  substream);
++		snd_pcm_period_elapsed(dreamcastcard->substream);
++		dreamcastcard->clicks++;
++		if (unlikely(dreamcastcard->clicks >= AICA_PERIOD_NUMBER))
++		{
++			dreamcastcard->clicks %= AICA_PERIOD_NUMBER;
++		}
++		mod_timer(&dreamcastcard->timer, jiffies + 1);
++	}
++}
++
++static void aica_period_elapsed(unsigned long timer_var)
++{
++	/*timer function - so cannot sleep */
++	int play_period;
++	struct snd_pcm_runtime *runtime;
++	struct snd_pcm_substream *substream;
++	struct snd_card_aica *dreamcastcard;
++	substream = (struct snd_pcm_substream *)timer_var;
++	runtime = substream->runtime;
++	dreamcastcard = substream->pcm->private_data;
++	/* Have we played out an additional period? */
++	play_period =
++	    frames_to_bytes(runtime,
++			    readl
++			    (AICA_CONTROL_CHANNEL_SAMPLE_NUMBER)) /
++	    AICA_PERIOD_SIZE;
++	if (play_period == dreamcastcard->current_period) {
++		/* reschedule the timer */
++		mod_timer(&(dreamcastcard->timer), jiffies + 1);
++		return;
++	}
++	if (runtime->channels > 1)
++		dreamcastcard->current_period = play_period;
++	if (unlikely(dreamcastcard->dma_check == 0))
++		dreamcastcard->dma_check = 1;
++		queue_work(aica_queue, &(spu_working.spu_dma_work));
++}
++
++static void spu_begin_dma(struct snd_pcm_substream *substream)
++{
++	/* Must be atomic */
++	struct snd_card_aica *dreamcastcard;
++	struct snd_pcm_runtime *runtime;
++	runtime = substream->runtime;
++	dreamcastcard = substream->pcm->private_data;
++	/*  Use queue to do the heavy lifting */
++	spu_working.sspointer = substream;
++	INIT_WORK(&(spu_working.spu_dma_work), run_spu_dma);
++	queue_work(aica_queue, &(spu_working.spu_dma_work));
++	/* Timer may already be running */
++	if (unlikely(dreamcastcard->timer.data)) {
++		mod_timer(&dreamcastcard->timer, jiffies + 4);
++		return;
++	}
++	init_timer(&(dreamcastcard->timer));
++	dreamcastcard->timer.data = (unsigned long)substream;
++	dreamcastcard->timer.function = aica_period_elapsed;
++	dreamcastcard->timer.expires = jiffies + 4;
++	add_timer(&(dreamcastcard->timer));
++}
++
++static int snd_aicapcm_pcm_open(struct snd_pcm_substream
++				*substream)
++{
++	struct snd_pcm_runtime *runtime;
++	struct aica_channel *channel;
++	struct snd_card_aica *dreamcastcard;
++	if (!enable)
++		return -ENOENT;
++	dreamcastcard = substream->pcm->private_data;
++	channel = kmalloc(sizeof(struct aica_channel), GFP_KERNEL);
++	if (!channel)
++		return -ENOMEM;
++	/* set defaults for channel */
++	channel->sfmt = SM_8BIT;
++	channel->cmd = AICA_CMD_START;
++	channel->vol = dreamcastcard->master_volume;
++	channel->pan = 0x80;
++	channel->pos = 0;
++	channel->flags = 0;	/* default to mono */
++	dreamcastcard->channel = channel;
++	runtime = substream->runtime;
++	runtime->hw = snd_pcm_aica_playback_hw;
++	spu_enable();
++	dreamcastcard->clicks = 0;
++	dreamcastcard->current_period = 0;
++	dreamcastcard->dma_check = 0;
 +	return 0;
 +}
 +
-+static int __devinit cyz_load_fw(struct pci_dev *pdev, void __iomem *base_addr,
-+		struct RUNTIME_9060 __iomem *ctl_addr, int irq)
++static int snd_aicapcm_pcm_close(struct snd_pcm_substream
++				 *substream)
 +{
-+	const struct firmware *fw;
-+	struct FIRM_ID __iomem *fid = base_addr + ID_ADDRESS;
-+	struct CUSTOM_REG __iomem *cust = base_addr;
-+	struct ZFW_CTRL __iomem *pt_zfwctrl;
-+	u8 *tmp;
-+	u32 mailbox, status;
-+	unsigned int i;
-+	int retval;
-+
-+	retval = request_firmware(&fw, "cyzfirm.bin", &pdev->dev);
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't get firmware\n");
-+		goto err;
-+	}
-+
-+	/* Check whether the firmware is already loaded and running. If
-+	   positive, skip this board */
-+	if (Z_FPGA_LOADED(ctl_addr) && readl(&fid->signature) == ZFIRM_ID) {
-+		u32 cntval = readl(base_addr + 0x190);
-+
-+		udelay(100);
-+		if (cntval != readl(base_addr + 0x190)) {
-+			/* FW counter is working, FW is running */
-+			dev_dbg(&pdev->dev, "Cyclades-Z FW already loaded. "
-+					"Skipping board.\n");
-+			retval = 0;
-+			goto err_rel;
-+		}
-+	}
-+
-+	/* start boot */
-+	cy_writel(&ctl_addr->intr_ctrl_stat, readl(&ctl_addr->intr_ctrl_stat) &
-+			~0x00030800UL);
-+
-+	mailbox = readl(&ctl_addr->mail_box_0);
-+
-+	if (mailbox == 0 || Z_FPGA_LOADED(ctl_addr)) {
-+		/* stops CPU and set window to beginning of RAM */
-+		cy_writel(&ctl_addr->loc_addr_base, WIN_CREG);
-+		cy_writel(&cust->cpu_stop, 0);
-+		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM);
-+		udelay(100);
-+	}
-+
-+	plx_init(pdev, irq, ctl_addr);
-+
-+	if (mailbox != 0) {
-+		/* load FPGA */
-+		retval = __cyz_load_fw(fw, "Cyclom-Z", mailbox, NULL,
-+				base_addr);
-+		if (retval)
-+			goto err_rel;
-+		if (!Z_FPGA_LOADED(ctl_addr)) {
-+			dev_err(&pdev->dev, "fw upload successful, but fw is "
-+					"not loaded\n");
-+			goto err_rel;
-+		}
-+	}
-+
-+	/* stops CPU and set window to beginning of RAM */
-+	cy_writel(&ctl_addr->loc_addr_base, WIN_CREG);
-+	cy_writel(&cust->cpu_stop, 0);
-+	cy_writel(&ctl_addr->loc_addr_base, WIN_RAM);
-+	udelay(100);
-+
-+	/* clear memory */
-+	for (tmp = base_addr; (void *)tmp < base_addr + RAM_SIZE; tmp++)
-+		cy_writeb(tmp, 255);
-+	if (mailbox != 0) {
-+		/* set window to last 512K of RAM */
-+		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM + RAM_SIZE);
-+		//sleep(1);
-+		for (tmp = base_addr; (void *)tmp < base_addr + RAM_SIZE; tmp++)
-+			cy_writeb(tmp, 255);
-+		/* set window to beginning of RAM */
-+		cy_writel(&ctl_addr->loc_addr_base, WIN_RAM);
-+		//sleep(1);
-+	}
-+
-+	retval = __cyz_load_fw(fw, "Cyclom-Z", mailbox, base_addr, NULL);
-+	release_firmware(fw);
-+	if (retval)
-+		goto err;
-+
-+	/* finish boot and start boards */
-+	cy_writel(&ctl_addr->loc_addr_base, WIN_CREG);
-+	cy_writel(&cust->cpu_start, 0);
-+	cy_writel(&ctl_addr->loc_addr_base, WIN_RAM);
-+	i = 0;
-+	while ((status = readl(&fid->signature)) != ZFIRM_ID && i++ < 40)
-+		msleep(100);
-+	if (status != ZFIRM_ID) {
-+		if (status == ZFIRM_HLT) {
-+			dev_err(&pdev->dev, "you need an external power supply "
-+				"for this number of ports. Firmware halted and "
-+				"board reset.\n");
-+			retval = -EIO;
-+			goto err;
-+		}
-+		dev_warn(&pdev->dev, "fid->signature = 0x%x... Waiting "
-+				"some more time\n", status);
-+		while ((status = readl(&fid->signature)) != ZFIRM_ID &&
-+				i++ < 200)
-+			msleep(100);
-+		if (status != ZFIRM_ID) {
-+			dev_err(&pdev->dev, "Board not started in 20 seconds! "
-+					"Giving up. (fid->signature = 0x%x)\n",
-+					status);
-+			dev_info(&pdev->dev, "*** Warning ***: if you are "
-+				"upgrading the FW, please power cycle the "
-+				"system before loading the new FW to the "
-+				"Cyclades-Z.\n");
-+
-+			if (Z_FPGA_LOADED(ctl_addr))
-+				plx_init(pdev, irq, ctl_addr);
-+
-+			retval = -EIO;
-+			goto err;
-+		}
-+		dev_dbg(&pdev->dev, "Firmware started after %d seconds.\n",
-+				i / 10);
-+	}
-+	pt_zfwctrl = base_addr + readl(&fid->zfwctrl_addr);
-+
-+	dev_dbg(&pdev->dev, "fid=> %p, zfwctrl_addr=> %x, npt_zfwctrl=> %p\n",
-+			base_addr + ID_ADDRESS, readl(&fid->zfwctrl_addr),
-+			base_addr + readl(&fid->zfwctrl_addr));
-+
-+	dev_info(&pdev->dev, "Cyclades-Z FW loaded: version = %x, ports = %u\n",
-+		readl(&pt_zfwctrl->board_ctrl.fw_version),
-+		readl(&pt_zfwctrl->board_ctrl.n_channel));
-+
-+	if (readl(&pt_zfwctrl->board_ctrl.n_channel) == 0) {
-+		dev_warn(&pdev->dev, "no Cyclades-Z ports were found. Please "
-+			"check the connection between the Z host card and the "
-+			"serial expanders.\n");
-+
-+		if (Z_FPGA_LOADED(ctl_addr))
-+			plx_init(pdev, irq, ctl_addr);
-+
-+		dev_info(&pdev->dev, "Null number of ports detected. Board "
-+				"reset.\n");
-+		retval = 0;
-+		goto err;
-+	}
-+
-+	cy_writel(&pt_zfwctrl->board_ctrl.op_system, C_OS_LINUX);
-+	cy_writel(&pt_zfwctrl->board_ctrl.dr_version, DRIVER_VERSION);
-+
-+	/*
-+	   Early firmware failed to start looking for commands.
-+	   This enables firmware interrupts for those commands.
-+	 */
-+	cy_writel(&ctl_addr->intr_ctrl_stat, readl(&ctl_addr->intr_ctrl_stat) |
-+			(1 << 17));
-+	cy_writel(&ctl_addr->intr_ctrl_stat, readl(&ctl_addr->intr_ctrl_stat) |
-+			0x00030800UL);
-+
-+	plx_init(pdev, irq, ctl_addr);
-+
++	struct snd_card_aica *dreamcastcard = substream->pcm->private_data;
++	del_timer(&dreamcastcard->timer);
++	kfree(dreamcastcard->channel);
++	spu_disable();
 +	return 0;
-+err_rel:
-+	release_firmware(fw);
-+err:
-+	return retval;
- }
- 
- static int __devinit cy_pci_probe(struct pci_dev *pdev,
-@@ -4831,16 +5148,9 @@ static int __devinit cy_pci_probe(struct
- 		}
- 
- 		/* Disable interrupts on the PLX before resetting it */
--		cy_writew(addr0 + 0x68,
--			readw(addr0 + 0x68) & ~0x0900);
-+		cy_writew(addr0 + 0x68, readw(addr0 + 0x68) & ~0x0900);
- 
--		plx_init(addr0, 0x6c);
--		/* For some yet unknown reason, once the PLX9060 reloads
--		   the EEPROM, the IRQ is lost and, thus, we have to
--		   re-write it to the PCI config. registers.
--		   This will remain here until we find a permanent
--		   fix. */
--		pci_write_config_byte(pdev, PCI_INTERRUPT_LINE, irq);
-+		plx_init(pdev, irq, addr0);
- 
- 		mailbox = (u32)readl(&ctl_addr->mail_box_0);
- 
-@@ -4881,6 +5191,9 @@ static int __devinit cy_pci_probe(struct
- 			if ((mailbox == ZO_V1) || (mailbox == ZO_V2))
- 				cy_writel(addr2 + ID_ADDRESS, 0L);
- 
-+			retval = cyz_load_fw(pdev, addr2, addr0, irq);
-+			if (retval)
-+				goto err_unmap;
- 			/* This must be a Cyclades-8Zo/PCI.  The extendable
- 			   version will have a different device_id and will
- 			   be allocated its maximum number of ports. */
-@@ -4957,15 +5270,7 @@ static int __devinit cy_pci_probe(struct
- 		case PLX_9060:
- 		case PLX_9080:
- 		default:	/* Old boards, use PLX_9060 */
--
--			plx_init(addr0, 0x6c);
--		/* For some yet unknown reason, once the PLX9060 reloads
--		   the EEPROM, the IRQ is lost and, thus, we have to
--		   re-write it to the PCI config. registers.
--		   This will remain here until we find a permanent
--		   fix. */
--			pci_write_config_byte(pdev, PCI_INTERRUPT_LINE, irq);
--
-+			plx_init(pdev, irq, addr0);
- 			cy_writew(addr0 + 0x68, readw(addr0 + 0x68) | 0x0900);
- 			break;
- 		}
++}
++
++static int snd_aicapcm_pcm_hw_free(struct snd_pcm_substream
++				   *substream)
++{
++	/* Free the DMA buffer */
++	return snd_pcm_lib_free_pages(substream);
++}
++
++static int snd_aicapcm_pcm_hw_params(struct snd_pcm_substream
++				     *substream, struct snd_pcm_hw_params
++				     *hw_params)
++{
++	/* Allocate a DMA buffer using ALSA built-ins */
++	return
++	    snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
++}
++
++static int snd_aicapcm_pcm_prepare(struct snd_pcm_substream
++				   *substream)
++{
++	struct snd_card_aica *dreamcastcard = substream->pcm->private_data;
++	if ((substream->runtime)->format == SNDRV_PCM_FORMAT_S16_LE)
++		dreamcastcard->channel->sfmt = SM_16BIT;
++	dreamcastcard->channel->freq = substream->runtime->rate;
++	dreamcastcard->substream = substream;
++	return 0;
++}
++
++static int snd_aicapcm_pcm_trigger(struct snd_pcm_substream
++				   *substream, int cmd)
++{
++	struct snd_card_aica *dreamcastcard;
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		spu_begin_dma(substream);
++		break;
++	case SNDRV_PCM_TRIGGER_STOP:
++		dreamcastcard = substream->pcm->private_data;
++		if (dreamcastcard->timer.data)
++			del_timer(&dreamcastcard->timer);
++		aica_chn_halt();
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static unsigned long snd_aicapcm_pcm_pointer(struct snd_pcm_substream
++					     *substream)
++{
++	return readl(AICA_CONTROL_CHANNEL_SAMPLE_NUMBER);
++}
++
++static struct snd_pcm_ops snd_aicapcm_playback_ops = {
++	.open = snd_aicapcm_pcm_open,
++	.close = snd_aicapcm_pcm_close,
++	.ioctl = snd_pcm_lib_ioctl,
++	.hw_params = snd_aicapcm_pcm_hw_params,
++	.hw_free = snd_aicapcm_pcm_hw_free,
++	.prepare = snd_aicapcm_pcm_prepare,
++	.trigger = snd_aicapcm_pcm_trigger,
++	.pointer = snd_aicapcm_pcm_pointer,
++};
++
++/* TO DO: set up to handle more than one pcm instance */
++static int __init snd_aicapcmchip(struct snd_card_aica
++				  *dreamcastcard, int pcm_index)
++{
++	struct snd_pcm *pcm;
++	int err;
++	/* AICA has no capture ability */
++	err =
++	    snd_pcm_new(dreamcastcard->card, "AICA PCM", pcm_index, 1, 0, &pcm);
++	if (unlikely(err < 0))
++		return err;
++	pcm->private_data = dreamcastcard;
++	strcpy(pcm->name, "AICA PCM");
++	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK,
++			&snd_aicapcm_playback_ops);
++	/* Allocate the DMA buffers */
++	err =
++	    snd_pcm_lib_preallocate_pages_for_all(pcm,
++						  SNDRV_DMA_TYPE_CONTINUOUS,
++						  snd_dma_continuous_data
++						  (GFP_KERNEL),
++						  AICA_BUFFER_SIZE,
++						  AICA_BUFFER_SIZE);
++	return err;
++}
++
++/* Mixer controls */
++static int aica_pcmswitch_info(struct snd_kcontrol *kcontrol,
++			       struct snd_ctl_elem_info *uinfo)
++{
++	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
++	uinfo->count = 1;
++	uinfo->value.integer.min = 0;
++	uinfo->value.integer.max = 1;
++	return 0;
++}
++
++static int aica_pcmswitch_get(struct snd_kcontrol *kcontrol,
++			      struct snd_ctl_elem_value *ucontrol)
++{
++	ucontrol->value.integer.value[0] = 1;	/* TO DO: Fix me */
++	return 0;
++}
++
++static int aica_pcmswitch_put(struct snd_kcontrol *kcontrol,
++			      struct snd_ctl_elem_value *ucontrol)
++{
++	if (ucontrol->value.integer.value[0] == 1)
++		return 0;	/* TO DO: Fix me */
++	else
++		aica_chn_halt();
++	return 0;
++}
++
++static int aica_pcmvolume_info(struct snd_kcontrol *kcontrol,
++			       struct snd_ctl_elem_info *uinfo)
++{
++	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
++	uinfo->count = 1;
++	uinfo->value.integer.min = 0;
++	uinfo->value.integer.max = 0xFF;
++	return 0;
++}
++
++static int aica_pcmvolume_get(struct snd_kcontrol *kcontrol,
++			      struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_card_aica *dreamcastcard;
++	dreamcastcard = kcontrol->private_data;
++	if (unlikely(!dreamcastcard->channel))
++		return -ETXTBSY;	/* we've not yet been set up */
++	ucontrol->value.integer.value[0] = dreamcastcard->channel->vol;
++	return 0;
++}
++
++static int aica_pcmvolume_put(struct snd_kcontrol *kcontrol,
++			      struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_card_aica *dreamcastcard;
++	dreamcastcard = kcontrol->private_data;
++	if (unlikely(!dreamcastcard->channel))
++		return -ETXTBSY;
++	if (unlikely(dreamcastcard->channel->vol ==
++		     ucontrol->value.integer.value[0]))
++		return 0;
++	dreamcastcard->channel->vol = ucontrol->value.integer.value[0];
++	dreamcastcard->master_volume = ucontrol->value.integer.value[0];
++	spu_memload(AICA_CHANNEL0_CONTROL_OFFSET,
++		    dreamcastcard->channel,
++		    sizeof(struct aica_channel));
++
++	return 1;
++}
++
++static struct snd_kcontrol_new snd_aica_pcmswitch_control __devinitdata = {
++	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
++	.name = "PCM Playback Switch",
++	.index = 0,
++	.info = aica_pcmswitch_info,
++	.get = aica_pcmswitch_get,
++	.put = aica_pcmswitch_put
++};
++
++static struct snd_kcontrol_new snd_aica_pcmvolume_control __devinitdata = {
++	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
++	.name = "PCM Playback Volume",
++	.index = 0,
++	.info = aica_pcmvolume_info,
++	.get = aica_pcmvolume_get,
++	.put = aica_pcmvolume_put
++};
++
++static int load_aica_firmware(void)
++{
++	int err;
++	const struct firmware *fw_entry;
++	spu_reset();
++	err = request_firmware(&fw_entry, "aica_firmware.bin", &pd->dev);
++	if (unlikely(err))
++		return err;
++	/* write firware into memory */
++	spu_disable();
++	spu_memload(0, fw_entry->data, fw_entry->size);
++	spu_enable();
++	release_firmware(fw_entry);
++	return err;
++}
++
++static int __devinit add_aicamixer_controls(struct snd_card_aica
++					    *dreamcastcard)
++{
++	int err;
++	err = snd_ctl_add
++	    (dreamcastcard->card,
++	     snd_ctl_new1(&snd_aica_pcmvolume_control, dreamcastcard));
++	if (unlikely(err < 0))
++		return err;
++	err = snd_ctl_add
++	    (dreamcastcard->card,
++	     snd_ctl_new1(&snd_aica_pcmswitch_control, dreamcastcard));
++	if (unlikely(err < 0))
++		return err;
++	return 0;
++}
++
++static int snd_aica_remove(struct platform_device *devptr)
++{
++	struct snd_card_aica *dreamcastcard;
++	dreamcastcard = platform_get_drvdata(devptr);
++	if (unlikely(!dreamcastcard))
++		return -ENODEV;
++	snd_card_free(dreamcastcard->card);
++	kfree(dreamcastcard);
++	platform_set_drvdata(devptr, NULL);
++	return 0;
++}
++
++static int __init snd_aica_probe(struct platform_device *devptr)
++{
++	int err;
++	struct snd_card_aica *dreamcastcard;
++	dreamcastcard = kmalloc(sizeof(struct snd_card_aica), GFP_KERNEL);
++	if (unlikely(!dreamcastcard))
++		return -ENOMEM;
++	dreamcastcard->card =
++	    snd_card_new(index, SND_AICA_DRIVER, THIS_MODULE, 0);
++	if (unlikely(!dreamcastcard->card)) {
++		kfree(dreamcastcard);
++		return -ENODEV;
++	}
++	strcpy(dreamcastcard->card->driver, "snd_aica");
++	strcpy(dreamcastcard->card->shortname, SND_AICA_DRIVER);
++	strcpy(dreamcastcard->card->longname,
++	       "Yamaha AICA Super Intelligent Sound Processor for SEGA Dreamcast");
++	/* Load the PCM 'chip' */
++	err = snd_aicapcmchip(dreamcastcard, 0);
++	if (unlikely(err < 0))
++		goto freedreamcast;
++	snd_card_set_dev(dreamcastcard->card, &devptr->dev);
++	dreamcastcard->timer.data = 0;
++	dreamcastcard->channel = NULL;
++	/* Add basic controls */
++	err = add_aicamixer_controls(dreamcastcard);
++	if (unlikely(err < 0))
++		goto freedreamcast;
++	/* Register the card with ALSA subsystem */
++	err = snd_card_register(dreamcastcard->card);
++	if (unlikely(err < 0))
++		goto freedreamcast;
++	platform_set_drvdata(devptr, dreamcastcard);
++	aica_queue = create_workqueue(CARD_NAME);
++	if (unlikely(!aica_queue))
++		goto freedreamcast;
++	snd_printk
++	    ("ALSA Driver for Yamaha AICA Super Intelligent Sound Processor\n");
++	return 0;
++      freedreamcast:
++	snd_card_free(dreamcastcard->card);
++	kfree(dreamcastcard);
++	return err;
++}
++
++static struct platform_driver snd_aica_driver = {
++	.probe = snd_aica_probe,
++	.remove = snd_aica_remove,
++	.driver = {
++		   .name = SND_AICA_DRIVER},
++};
++
++static int __init aica_init(void)
++{
++	int err;
++	err = platform_driver_register(&snd_aica_driver);
++	if (unlikely(err < 0))
++		return err;
++	pd = platform_device_register_simple(SND_AICA_DRIVER, -1,
++					     aica_memory_space, 2);
++	if (unlikely(IS_ERR(pd))) {
++		platform_driver_unregister(&snd_aica_driver);
++		return PTR_ERR(pd);
++	}
++	/* Load the firmware */
++	return load_aica_firmware();
++}
++
++static void __exit aica_exit(void)
++{
++	/* Destroy the aica kernel thread */
++	destroy_workqueue(aica_queue);
++	platform_device_unregister(pd);
++	platform_driver_unregister(&snd_aica_driver);
++	/* Kill any sound still playing and reset ARM7 to safe state */
++	spu_reset();
++}
++
++module_init(aica_init);
++module_exit(aica_exit);
+diff -puN /dev/null sound/sh/aica.h
+--- /dev/null
++++ a/sound/sh/aica.h
+@@ -0,0 +1,80 @@
++/* aica.h
++ * Header file for ALSA driver for
++ * Sega Dreamcast Yamaha AICA sound
++ * Copyright Adrian McMenamin
++ * <adrian@mcmen.demon.co.uk>
++ * 2006
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++/* SPU memory and register constants etc */
++#define G2_FIFO 0xa05f688c
++#define SPU_MEMORY_BASE 0xA0800000
++#define ARM_RESET_REGISTER 0xA0702C00
++#define SPU_REGISTER_BASE 0xA0700000
++
++/* AICA channels stuff */
++#define AICA_CONTROL_POINT 0xA0810000
++#define AICA_CONTROL_CHANNEL_SAMPLE_NUMBER 0xA0810008
++#define AICA_CHANNEL0_CONTROL_OFFSET 0x10004
++
++/* Command values */
++#define AICA_CMD_KICK 0x80000000
++#define AICA_CMD_NONE 0
++#define AICA_CMD_START 1
++#define AICA_CMD_STOP 2
++#define AICA_CMD_VOL 3
++
++/* Sound modes */
++#define SM_8BIT		1
++#define SM_16BIT	0
++#define SM_ADPCM	2
++
++/* Buffer and period size */
++#define AICA_BUFFER_SIZE 0x8000
++#define AICA_PERIOD_SIZE 0x800
++#define AICA_PERIOD_NUMBER 16
++
++#define AICA_CHANNEL0_OFFSET 0x11000
++#define AICA_CHANNEL1_OFFSET 0x21000
++#define CHANNEL_OFFSET 0x10000
++
++#define AICA_DMA_CHANNEL 0
++#define AICA_DMA_MODE 5
++
++#define SND_AICA_DRIVER "AICA"
++
++struct aica_channel {
++	uint32_t cmd;		/* Command ID           */
++	uint32_t pos;		/* Sample position      */
++	uint32_t length;	/* Sample length        */
++	uint32_t freq;		/* Frequency            */
++	uint32_t vol;		/* Volume 0-255         */
++	uint32_t pan;		/* Pan 0-255            */
++	uint32_t sfmt;		/* Sound format         */
++	uint32_t flags;		/* Bit flags            */
++};
++
++struct snd_card_aica {
++	struct snd_card *card;
++	struct aica_channel *channel;
++	struct snd_pcm_substream *substream;
++	int clicks;
++	int current_period;
++	struct timer_list timer;
++	int master_volume;
++	int dma_check;
++};
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from adrianmcmenamin@gmail.com are
 
-cinergyt2-fix-file-release-handler.patch
-auerswald-fix-file-release-handler.patch
-char-cyclades-fix-deadlock.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-shrink_slab-handle-bad-shrinkers.patch
+alsa-support-for-the-sega-dreamcast-yamaha-aica-sound-device-pcm.patch
