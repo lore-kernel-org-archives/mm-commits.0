@@ -1,182 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq.patch removed from -mm tree
-Date: Thu, 17 May 2007 17:22:11 -0700
-Message-ID: <200705180022.l4I0MBfS004122@shell0.pdx.osdl.net>
+Subject: - fix-kmalloc0-in-arch-ia64-pci-pcic.patch removed from -mm tree
+Date: Thu, 17 May 2007 18:29:49 -0700
+Message-ID: <200705180129.l4I1TnTX005141@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44139 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754546AbXERA0Y (ORCPT
+	by vger.kernel.org with ESMTP id S1755362AbXERBbY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2007 20:26:24 -0400
+	Thu, 17 May 2007 21:31:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, ak@suse.de, asit.k.mallick@intel.com, ebiederm@xmission.com, keith.packard@intel.com, nanhai.zou@intel.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64, irq: check remote IRR bit before migrating level triggered irq
+     fix kmalloc(0) in arch/ia64/pci/pci.c
 has been removed from the -mm tree.  Its filename was
-     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq.patch
+     fix-kmalloc0-in-arch-ia64-pci-pcic.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: x86_64, irq: check remote IRR bit before migrating level triggered irq
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: fix kmalloc(0) in arch/ia64/pci/pci.c
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-on x86_64 kernel, level triggered irq migration gets initiated in the context
-of that interrupt(after executing the irq handler) and following steps are
-followed to do the irq migration.
+Fix following kmalloc(0) message. patch is agaisnt 2.6.22-rc1-mm1.
 
-1. mask IOAPIC RTE entry;     // write to IOAPIC RTE
-2. EOI;                       // processor EOI write
-3. reprogram IOAPIC RTE entry // write to IOAPIC RTE with new destination and
-                              // and interrupt vector due to per cpu vector
-                              // allocation.
-4. unmask IOAPIC RTE entry;   // write to IOAPIC RTE
+==
+BUG: at mm/slab.c:792 __find_general_cachep()
 
-Because of the per cpu vector allocation in x86_64 kernels, when the irq
-migrates to a different cpu, new vector(corresponding to the new cpu) will
-get allocated.
+Call Trace:
+ [<a000000100013f20>] show_stack+0x40/0xa0
+                                sp=e000014042227b00 bsp=e000014042220f90
+ [<a000000100013fb0>] dump_stack+0x30/0x60
+                                sp=e000014042227cd0 bsp=e000014042220f78
+ [<a00000010014fe10>] kmem_find_general_cachep+0x90/0x140
+                                sp=e000014042227cd0 bsp=e000014042220f48
+ [<a0000001001504f0>] __kmalloc_node+0x30/0xa0
+                                sp=e000014042227cd0 bsp=e000014042220f18
+ [<a0000001004eb700>] pci_acpi_scan_root+0x180/0x4a0
+                                sp=e000014042227cd0 bsp=e000014042220ed0
+ [<a000000100361140>] acpi_pci_root_add+0x4e0/0x700
+                                sp=e000014042227cf0 bsp=e000014042220e90
+ [<a00000010035b240>] acpi_device_probe+0xa0/0x160
+                                sp=e000014042227d10 bsp=e000014042220e58
+ [<a0000001003e4550>] driver_probe_device+0x250/0x380
+                                sp=e000014042227d10 bsp=e000014042220e18
+ [<a0000001003e4900>] __driver_attach+0xc0/0x160
+                                sp=e000014042227d10 bsp=e000014042220de0
+ [<a0000001003e2980>] bus_for_each_dev+0x80/0x100
+                                sp=e000014042227d10 bsp=e000014042220da8
+ [<a0000001003e4120>] driver_attach+0x40/0x60
+                                sp=e000014042227d30 bsp=e000014042220d88
+ [<a0000001003e3170>] bus_add_driver+0xf0/0x3c0
+                                sp=e000014042227d30 bsp=e000014042220d48
+ [<a0000001003e4e00>] driver_register+0x140/0x160
+                                sp=e000014042227d30 bsp=e000014042220d28
+ [<a00000010035ded0>] acpi_bus_register_driver+0x50/0x80
+                                sp=e000014042227d30 bsp=e000014042220d08
+ [<a0000001007d6000>] acpi_pci_root_init+0x20/0x60
+                                sp=e000014042227d30 bsp=e000014042220cf0
+ [<a0000001007a46b0>] kernel_init+0x450/0x7c0
+                                sp=e000014042227d30 bsp=e000014042220ca8
+ [<a000000100012550>] kernel_thread_helper+0x30/0x60
+                                sp=e000014042227e30 bsp=e000014042220c80
+ [<a0000001000090c0>] start_kernel_thread+0x20/0x40
+                                sp=e000014042227e30 bsp=e000014042220c80
+==
 
-An EOI write to local APIC has a side effect of generating an EOI write
-for level trigger interrupts (normally this is a broadcast to all IOAPICs).
-The EOI broadcast generated as a side effect of EOI write to processor may
-be delayed while the other IOAPIC writes (step 3 and 4) can go through.
+Fix kmalloc(0)
 
-Normally, the EOI generated by local APIC for level trigger interrupt
-contains vector number. The IOAPIC will take this vector number and
-search the IOAPIC RTE entries for an entry with matching vector number and
-clear the remote IRR bit (indicate EOI). However, if the vector number is
-changed (as in step 3) the IOAPIC will not find the RTE entry when the EOI
-is received later. This will cause the remote IRR to get stuck causing the
-interrupt hang (no more interrupt from this RTE).
-
-Current x86_64 kernel assumes that remote IRR bit is cleared by the time
-IOAPIC RTE is reprogrammed. Fix this assumption by checking for remote IRR
-bit and if it still set, delay the irq migration to the next interrupt
-arrival event(hopefully, next time remote IRR bit will get cleared
-before the IOAPIC RTE is reprogrammed).
-
-Initial analysis and patch from Nanhai.
-
-Clean up patch from Suresh.
-
-Signed-off-by: Nanhai Zou <nanhai.zou@intel.com>
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Acked-by: Asit Mallick <asit.k.mallick@intel.com>
-Cc: Keith Packard <keith.packard@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |   33 ++++++++++++++++++++++++++++-----
- include/asm-x86_64/io_apic.h |    2 ++
- kernel/irq/migration.c       |    1 -
- 3 files changed, 30 insertions(+), 6 deletions(-)
+ arch/ia64/pci/pci.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -162,7 +162,7 @@ static inline void io_apic_sync(unsigned
- 	readl(&io_apic->data);
- }
+diff -puN arch/ia64/pci/pci.c~fix-kmalloc0-in-arch-ia64-pci-pcic arch/ia64/pci/pci.c
+--- a/arch/ia64/pci/pci.c~fix-kmalloc0-in-arch-ia64-pci-pcic
++++ a/arch/ia64/pci/pci.c
+@@ -354,6 +354,8 @@ pci_acpi_scan_root(struct acpi_device *d
  
--#define __DO_ACTION(R, ACTION, FINAL)					\
-+#define __DO_ACTION(R, ACTION, FINAL, CHECKREG, VAL)			\
- 									\
- {									\
- 	int pin;							\
-@@ -176,12 +176,18 @@ static inline void io_apic_sync(unsigned
- 			break;						\
- 		reg = io_apic_read(entry->apic, 0x10 + R + pin*2);	\
- 		reg ACTION;						\
--		io_apic_modify(entry->apic, reg);			\
--		FINAL;							\
-+		if (CHECKREG) {						\
-+			if (reg == VAL)					\
-+				return 1;				\
-+		} else {						\
-+			io_apic_modify(entry->apic, reg);		\
-+			FINAL;						\
-+		}							\
- 		if (!entry->next)					\
- 			break;						\
- 		entry = irq_2_pin + entry->next;			\
- 	}								\
-+	return 0;							\
- }
- 
- union entry_union {
-@@ -240,6 +246,13 @@ static void ioapic_mask_entry(int apic, 
- }
- 
- #ifdef CONFIG_SMP
-+/*
-+ * If its Level triggered and RemoteIRR is still set?
-+ */
-+static int pending_eoi(unsigned int irq)
-+{
-+	__DO_ACTION(0, &= PENDING_EOI, , 1, PENDING_EOI);
-+}
- static void __target_IO_APIC_irq(unsigned int irq, unsigned int dest, u8 vector)
- {
- 	int apic, pin;
-@@ -270,6 +283,16 @@ static void set_ioapic_affinity_irq(unsi
- 	unsigned int dest;
- 	cpumask_t tmp;
- 
-+	/*
-+	 * If the EOI still didn't reach the RTE corresponding to the
-+	 * level triggered irq, postpone the irq migration to the next
-+	 * irq arrival event.
-+	 */
-+	if (pending_eoi(irq)) {
-+		irq_desc[irq].status |= IRQ_MOVE_PENDING;
-+		return;
-+	}
-+
- 	cpus_and(tmp, mask, cpu_online_map);
- 	if (cpus_empty(tmp))
- 		return;
-@@ -319,8 +342,8 @@ static void add_pin_to_irq(unsigned int 
- 
- #define DO_ACTION(name,R,ACTION, FINAL)					\
- 									\
--	static void name##_IO_APIC_irq (unsigned int irq)		\
--	__DO_ACTION(R, ACTION, FINAL)
-+	static int name##_IO_APIC_irq (unsigned int irq)		\
-+	__DO_ACTION(R, ACTION, FINAL, 0, 0)
- 
- DO_ACTION( __mask,             0, |= 0x00010000, io_apic_sync(entry->apic) )
- 						/* mask = 1 */
-diff -puN include/asm-x86_64/io_apic.h~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq include/asm-x86_64/io_apic.h
---- a/include/asm-x86_64/io_apic.h~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq
-+++ a/include/asm-x86_64/io_apic.h
-@@ -90,6 +90,8 @@ struct IO_APIC_route_entry {
- 		dest		:  8;
- } __attribute__ ((packed));
- 
-+#define PENDING_EOI	(1 << 14 | 1 << 15)
-+
- /*
-  * MP-BIOS irq configuration table structures:
-  */
-diff -puN kernel/irq/migration.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq kernel/irq/migration.c
---- a/kernel/irq/migration.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq
-+++ a/kernel/irq/migration.c
-@@ -55,7 +55,6 @@ void move_masked_irq(int irq)
- 	if (likely(!cpus_empty(tmp))) {
- 		desc->chip->set_affinity(irq,tmp);
- 	}
--	cpus_clear(irq_desc[irq].pending_mask);
- }
- 
- void move_native_irq(int irq)
+ 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_window,
+ 			&windows);
++	if (!windows)
++		goto out2;
+ 	controller->window = kmalloc_node(sizeof(*controller->window) * windows,
+ 			GFP_KERNEL, controller->node);
+ 	if (!controller->window)
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq.patch
+fix-kmalloc0-in-arch-ia64-pci-pcic.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-v6-zonelist-fix-2.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
