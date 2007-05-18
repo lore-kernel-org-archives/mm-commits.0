@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misc-phantom-move-to-unlocked_ioctl.patch added to -mm tree
-Date: Fri, 18 May 2007 14:03:21 -0700
-Message-ID: <200705182103.l4IL3LuH023497@shell0.pdx.osdl.net>
+Subject: + dave-broke-gfs2-26-nmwgit.patch added to -mm tree
+Date: Fri, 18 May 2007 14:52:49 -0700
+Message-ID: <200705182152.l4ILqnoT024261@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58751 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44872 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752652AbXERVFk (ORCPT
+	by vger.kernel.org with ESMTP id S1754078AbXERVyL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 17:05:40 -0400
+	Fri, 18 May 2007 17:54:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, xslaby@phantom.fi.muni.cz
+Cc: teigland@redhat.com
 
 
 The patch titled
-     phantom: move to unlocked_ioctl
+     Dave broke gfs2-2.6-nmw.git
 has been added to the -mm tree.  Its filename is
-     misc-phantom-move-to-unlocked_ioctl.patch
+     dave-broke-gfs2-26-nmwgit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,120 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: phantom: move to unlocked_ioctl
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Dave broke gfs2-2.6-nmw.git
+From: David Teigland <teigland@redhat.com>
 
-phantom's ioctl is often (4000 times a sec or so) invoked, don't acquire
-BKL and block other processes.
+Fix compilation that broke when replacing log_error with log_debug.
 
-Signed-off-by: Jiri Slaby <xslaby@phantom.fi.muni.cz>
+Signed-off-by: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/phantom.c |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
+ fs/dlm/lock.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/phantom.c~misc-phantom-move-to-unlocked_ioctl drivers/misc/phantom.c
---- a/drivers/misc/phantom.c~misc-phantom-move-to-unlocked_ioctl
-+++ a/drivers/misc/phantom.c
-@@ -47,6 +47,7 @@ struct phantom_device {
- 	struct cdev cdev;
+diff -puN fs/dlm/lock.c~dave-broke-gfs2-26-nmwgit fs/dlm/lock.c
+--- a/fs/dlm/lock.c~dave-broke-gfs2-26-nmwgit
++++ a/fs/dlm/lock.c
+@@ -1098,8 +1098,8 @@ void dlm_scan_timeout(struct dlm_ls *ls)
+ 		}
  
- 	struct mutex open_lock;
-+	spinlock_t ioctl_lock;
- };
- 
- static unsigned char phantom_devices[PHANTOM_MAX_MINORS];
-@@ -71,8 +72,8 @@ static int phantom_status(struct phantom
-  * File ops
-  */
- 
--static int phantom_ioctl(struct inode *inode, struct file *file, u_int cmd,
--	u_long arg)
-+static long phantom_ioctl(struct file *file, unsigned int cmd,
-+		unsigned long arg)
- {
- 	struct phantom_device *dev = file->private_data;
- 	struct phm_regs rs;
-@@ -92,24 +93,30 @@ static int phantom_ioctl(struct inode *i
- 		if (r.reg > 7)
- 			return -EINVAL;
- 
-+		spin_lock(&dev->ioctl_lock);
- 		if (r.reg == PHN_CONTROL && (r.value & PHN_CTL_IRQ) &&
--				phantom_status(dev, dev->status | PHB_RUNNING))
-+				phantom_status(dev, dev->status | PHB_RUNNING)){
-+			spin_unlock(&dev->ioctl_lock);
- 			return -ENODEV;
-+		}
- 
- 		pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
- 		iowrite32(r.value, dev->iaddr + r.reg);
- 
- 		if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
- 			phantom_status(dev, dev->status & ~PHB_RUNNING);
-+		spin_unlock(&dev->ioctl_lock);
- 		break;
- 	case PHN_SET_REGS:
- 		if (copy_from_user(&rs, argp, sizeof(rs)))
- 			return -EFAULT;
- 
- 		pr_debug("phantom: SRS %u regs %x\n", rs.count, rs.mask);
-+		spin_lock(&dev->ioctl_lock);
- 		for (i = 0; i < min(rs.count, 8U); i++)
- 			if ((1 << i) & rs.mask)
- 				iowrite32(rs.values[i], dev->oaddr + i);
-+		spin_unlock(&dev->ioctl_lock);
- 		break;
- 	case PHN_GET_REG:
- 		if (copy_from_user(&r, argp, sizeof(r)))
-@@ -118,7 +125,9 @@ static int phantom_ioctl(struct inode *i
- 		if (r.reg > 7)
- 			return -EINVAL;
- 
-+		spin_lock(&dev->ioctl_lock);
- 		r.value = ioread32(dev->iaddr + r.reg);
-+		spin_unlock(&dev->ioctl_lock);
- 
- 		if (copy_to_user(argp, &r, sizeof(r)))
- 			return -EFAULT;
-@@ -128,9 +137,11 @@ static int phantom_ioctl(struct inode *i
- 			return -EFAULT;
- 
- 		pr_debug("phantom: GRS %u regs %x\n", rs.count, rs.mask);
-+		spin_lock(&dev->ioctl_lock);
- 		for (i = 0; i < min(rs.count, 8U); i++)
- 			if ((1 << i) & rs.mask)
- 				rs.values[i] = ioread32(dev->iaddr + i);
-+		spin_unlock(&dev->ioctl_lock);
- 
- 		if (copy_to_user(argp, &rs, sizeof(rs)))
- 			return -EFAULT;
-@@ -199,7 +210,7 @@ static unsigned int phantom_poll(struct 
- static struct file_operations phantom_file_ops = {
- 	.open = phantom_open,
- 	.release = phantom_release,
--	.ioctl = phantom_ioctl,
-+	.unlocked_ioctl = phantom_ioctl,
- 	.poll = phantom_poll,
- };
- 
-@@ -282,6 +293,7 @@ static int __devinit phantom_probe(struc
- 	}
- 
- 	mutex_init(&pht->open_lock);
-+	spin_lock_init(&pht->ioctl_lock);
- 	init_waitqueue_head(&pht->wait);
- 	cdev_init(&pht->cdev, &phantom_file_ops);
- 	pht->cdev.owner = THIS_MODULE;
+ 		if (do_cancel) {
+-			log_debug("timeout cancel %x node %d %s", lkb->lkb_id,
+-				  lkb->lkb_nodeid, r->res_name);
++			log_debug(r->res_ls, "timeout cancel %x node %d %s",
++				  lkb->lkb_id, lkb->lkb_nodeid, r->res_name);
+ 			lkb->lkb_flags &= ~DLM_IFL_WATCH_TIMEWARN;
+ 			lkb->lkb_flags |= DLM_IFL_TIMEOUT_CANCEL;
+ 			del_timeout(lkb);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from teigland@redhat.com are
 
-cinergyt2-fix-file-release-handler.patch
-auerswald-fix-file-release-handler.patch
-char-cyclades-fix-deadlock.patch
-misc-phantom-move-to-unlocked_ioctl.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-gfs2-nmw.patch
+dave-broke-gfs2-26-nmwgit.patch
