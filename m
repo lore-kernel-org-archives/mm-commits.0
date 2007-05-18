@@ -1,64 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - afs-write-back-dirty-data-on-unmount.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:05:51 -0700
-Message-ID: <200705180705.l4I75oo2010127@shell0.pdx.osdl.net>
+Subject: - make-__vunmap-static.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:09 -0700
+Message-ID: <200705180706.l4I768M0010149@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48864 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755929AbXERHHi (ORCPT
+	by vger.kernel.org with ESMTP id S1756094AbXERHHm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:07:38 -0400
+	Fri, 18 May 2007 03:07:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AFS: write back dirty data on unmount
+     Make __vunmap static
 has been removed from the -mm tree.  Its filename was
-     afs-write-back-dirty-data-on-unmount.patch
+     make-__vunmap-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: AFS: write back dirty data on unmount
-From: David Howells <dhowells@redhat.com>
+Subject: Make __vunmap static
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Fix AFS to write back dirty on unmounting.  This didn't happen because
-afs_super_ops.drop_inode was pointing to generic_delete_inode.  Now this
-pointer is left set to NULL so that the default behaviour occurs instead.
+__vunmap doesn't seem to be used outside of mm/vmalloc.c, and has
+no prototype in any header so let's make it static
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/super.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/afs/super.c~afs-write-back-dirty-data-on-unmount fs/afs/super.c
---- a/fs/afs/super.c~afs-write-back-dirty-data-on-unmount
-+++ a/fs/afs/super.c
-@@ -47,7 +47,6 @@ struct file_system_type afs_fs_type = {
- static const struct super_operations afs_super_ops = {
- 	.statfs		= afs_statfs,
- 	.alloc_inode	= afs_alloc_inode,
--	.drop_inode	= generic_delete_inode,
- 	.write_inode	= afs_write_inode,
- 	.destroy_inode	= afs_destroy_inode,
- 	.clear_inode	= afs_clear_inode,
+diff -puN mm/vmalloc.c~make-__vunmap-static mm/vmalloc.c
+--- a/mm/vmalloc.c~make-__vunmap-static
++++ a/mm/vmalloc.c
+@@ -311,7 +311,7 @@ struct vm_struct *remove_vm_area(void *a
+ 	return v;
+ }
+ 
+-void __vunmap(void *addr, int deallocate_pages)
++static void __vunmap(void *addr, int deallocate_pages)
+ {
+ 	struct vm_struct *area;
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-revert-cancel_delayed_work-use-del_timer-instead-of-del_timer_sync.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-af_rxrpc-af_rxrpc-depends-on-ipv4.patch
-af_rxrpc-make-call-state-names-available-if-config_proc_fs=n.patch
-split-usermodehelper-setup-from-execution.patch
-mutex-subsystem-synchro-test-module.patch
+git-powerpc.patch
+do-not-select-macintosh-drivers-by-default.patch
+8xx-mpc885ads-pcmcia-support.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+8xx-fix-whitespace-and-indentation.patch
+dts-kill-hardcoded-phandles.patch
+git-libata-all.patch
+unmap_vm_area-becomes-unmap_kernel_range.patch
+make-map_vm_area-static.patch
