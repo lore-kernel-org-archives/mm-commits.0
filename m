@@ -1,164 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - slob-implement-rcu-freeing.patch removed from -mm tree
-Date: Fri, 18 May 2007 00:05:20 -0700
-Message-ID: <200705180705.l4I75JSM010082@shell0.pdx.osdl.net>
+Subject: - ecryptfs-use-zero_user_page.patch removed from -mm tree
+Date: Fri, 18 May 2007 00:06:37 -0700
+Message-ID: <200705180706.l4I76axP010193@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761722AbXERHIl (ORCPT
+	by vger.kernel.org with ESMTP id S1761986AbXERHIs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 03:08:41 -0400
+	Fri, 18 May 2007 03:08:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nickpiggin@yahoo.com.au, mpm@selenic.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: nate.diller@gmail.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slob: implement RCU freeing
+     ecryptfs: use zero_user_page
 has been removed from the -mm tree.  Its filename was
-     slob-implement-rcu-freeing.patch
+     ecryptfs-use-zero_user_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slob: implement RCU freeing
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: ecryptfs: use zero_user_page
+From: Nate Diller <nate.diller@gmail.com>
 
-The SLOB allocator should implement SLAB_DESTROY_BY_RCU correctly, because
-even on UP, RCU freeing semantics are not equivalent to simply freeing
-immediately.  This also allows SLOB to be used on SMP.
+Use zero_user_page() instead of open-coding it.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    7 +-----
- mm/slob.c    |   52 ++++++++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 47 insertions(+), 12 deletions(-)
+ fs/ecryptfs/mmap.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN init/Kconfig~slob-implement-rcu-freeing init/Kconfig
---- a/init/Kconfig~slob-implement-rcu-freeing
-+++ a/init/Kconfig
-@@ -577,14 +577,11 @@ config SLUB
- 	   and has enhanced diagnostics.
- 
- config SLOB
--#
--#	SLOB does not support SMP because SLAB_DESTROY_BY_RCU is unsupported
--#
--	depends on EMBEDDED && !SMP && !SPARSEMEM
-+	depends on EMBEDDED && !SPARSEMEM
- 	bool "SLOB (Simple Allocator)"
- 	help
- 	   SLOB replaces the SLAB allocator with a drastically simpler
--	   allocator.  SLOB is more space efficient that SLAB but does not
-+	   allocator.  SLOB is more space efficient than SLAB but does not
- 	   scale well (single lock for all operations) and is also highly
- 	   susceptible to fragmentation. SLUB can accomplish a higher object
- 	   density. It is usually better to use SLUB instead of SLOB.
-diff -puN mm/slob.c~slob-implement-rcu-freeing mm/slob.c
---- a/mm/slob.c~slob-implement-rcu-freeing
-+++ a/mm/slob.c
-@@ -35,6 +35,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/timer.h>
-+#include <linux/rcupdate.h>
- 
- struct slob_block {
- 	int units;
-@@ -53,6 +54,16 @@ struct bigblock {
- };
- typedef struct bigblock bigblock_t;
- 
-+/*
-+ * struct slob_rcu is inserted at the tail of allocated slob blocks, which
-+ * were created with a SLAB_DESTROY_BY_RCU slab. slob_rcu is used to free
-+ * the block using call_rcu.
-+ */
-+struct slob_rcu {
-+	struct rcu_head head;
-+	int size;
-+};
-+
- static slob_t arena = { .next = &arena, .units = 1 };
- static slob_t *slobfree = &arena;
- static bigblock_t *bigblocks;
-@@ -266,6 +277,7 @@ size_t ksize(const void *block)
- 
- struct kmem_cache {
- 	unsigned int size, align;
-+	unsigned long flags;
- 	const char *name;
- 	void (*ctor)(void *, struct kmem_cache *, unsigned long);
- 	void (*dtor)(void *, struct kmem_cache *, unsigned long);
-@@ -283,6 +295,12 @@ struct kmem_cache *kmem_cache_create(con
- 	if (c) {
- 		c->name = name;
- 		c->size = size;
-+		if (flags & SLAB_DESTROY_BY_RCU) {
-+			BUG_ON(dtor);
-+			/* leave room for rcu footer at the end of object */
-+			c->size += sizeof(struct slob_rcu);
-+		}
-+		c->flags = flags;
- 		c->ctor = ctor;
- 		c->dtor = dtor;
- 		/* ignore alignment unless it's forced */
-@@ -328,15 +346,35 @@ void *kmem_cache_zalloc(struct kmem_cach
- }
- EXPORT_SYMBOL(kmem_cache_zalloc);
- 
--void kmem_cache_free(struct kmem_cache *c, void *b)
-+static void __kmem_cache_free(void *b, int size)
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-use-zero_user_page fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-use-zero_user_page
++++ a/fs/ecryptfs/mmap.c
+@@ -364,18 +364,14 @@ static int fill_zeros_to_end_of_page(str
  {
--	if (c->dtor)
--		c->dtor(b, c, 0);
--
--	if (c->size < PAGE_SIZE)
--		slob_free(b, c->size);
-+	if (size < PAGE_SIZE)
-+		slob_free(b, size);
- 	else
--		free_pages((unsigned long)b, get_order(c->size));
-+		free_pages((unsigned long)b, get_order(size));
-+}
-+
-+static void kmem_rcu_free(struct rcu_head *head)
-+{
-+	struct slob_rcu *slob_rcu = (struct slob_rcu *)head;
-+	void *b = (void *)slob_rcu - (slob_rcu->size - sizeof(struct slob_rcu));
-+
-+	__kmem_cache_free(b, slob_rcu->size);
-+}
-+
-+void kmem_cache_free(struct kmem_cache *c, void *b)
-+{
-+	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
-+		struct slob_rcu *slob_rcu;
-+		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
-+		INIT_RCU_HEAD(&slob_rcu->head);
-+		slob_rcu->size = c->size;
-+		call_rcu(&slob_rcu->head, kmem_rcu_free);
-+	} else {
-+		if (c->dtor)
-+			c->dtor(b, c, 0);
-+		__kmem_cache_free(b, c->size);
-+	}
- }
- EXPORT_SYMBOL(kmem_cache_free);
+ 	struct inode *inode = page->mapping->host;
+ 	int end_byte_in_page;
+-	char *page_virt;
  
+ 	if ((i_size_read(inode) / PAGE_CACHE_SIZE) != page->index)
+ 		goto out;
+ 	end_byte_in_page = i_size_read(inode) % PAGE_CACHE_SIZE;
+ 	if (to > end_byte_in_page)
+ 		end_byte_in_page = to;
+-	page_virt = kmap_atomic(page, KM_USER0);
+-	memset((page_virt + end_byte_in_page), 0,
+-	       (PAGE_CACHE_SIZE - end_byte_in_page));
+-	kunmap_atomic(page_virt, KM_USER0);
+-	flush_dcache_page(page);
++	zero_user_page(page, end_byte_in_page,
++		PAGE_CACHE_SIZE - end_byte_in_page, KM_USER0);
+ out:
+ 	return 0;
+ }
+@@ -740,7 +736,6 @@ int write_zeros(struct file *file, pgoff
+ {
+ 	int rc = 0;
+ 	struct page *tmp_page;
+-	char *tmp_page_virt;
+ 
+ 	tmp_page = ecryptfs_get1page(file, index);
+ 	if (IS_ERR(tmp_page)) {
+@@ -757,10 +752,7 @@ int write_zeros(struct file *file, pgoff
+ 		page_cache_release(tmp_page);
+ 		goto out;
+ 	}
+-	tmp_page_virt = kmap_atomic(tmp_page, KM_USER0);
+-	memset(((char *)tmp_page_virt + start), 0, num_zeros);
+-	kunmap_atomic(tmp_page_virt, KM_USER0);
+-	flush_dcache_page(tmp_page);
++	zero_user_page(tmp_page, start, num_zeros, KM_USER0);
+ 	rc = ecryptfs_commit_write(file, tmp_page, start, start + num_zeros);
+ 	if (rc < 0) {
+ 		ecryptfs_printk(KERN_ERR, "Error attempting to write zero's "
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from nate.diller@gmail.com are
 
 origin.patch
-convert-hugetlbfs-to-use-vm_ops-fault.patch
-lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-nfs-invariant-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-sched2-sched-domain-sysctl.patch
+cifs-use-simple_prepare_write-to-zero-page-data.patch
+git-gfs2-nmw.patch
+git-nfs.patch
+xfs-use-zero_user_page.patch
+ext4-use-simple_prepare_write-to-zero-page-data.patch
+ext4-use-zero_user_page.patch
+reiser4.patch
+reiser4-use-zero_user_page.patch
