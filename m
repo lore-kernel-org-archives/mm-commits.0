@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-proc-misc-use-seq_list_xxx-helpers.patch added to -mm tree
-Date: Fri, 18 May 2007 10:37:50 -0700
-Message-ID: <200705181737.l4IHbo92019866@shell0.pdx.osdl.net>
+Subject: + make-nfs-client-use-seq_list_xxx-helpers.patch added to -mm tree
+Date: Fri, 18 May 2007 10:37:58 -0700
+Message-ID: <200705181737.l4IHbwSC019879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from [207.189.120.14] ([207.189.120.14]:36257 "EHLO
+Received: from [207.189.120.14] ([207.189.120.14]:41116 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1754516AbXERRla (ORCPT
+	by vger.kernel.org with ESMTP id S1754538AbXERRmF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 13:41:30 -0400
+	Fri, 18 May 2007 13:42:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@sw.ru, xemul@openvz.org
+Cc: xemul@sw.ru, trond.myklebust@fys.uio.no, xemul@openvz.org
 
 
 The patch titled
-     Make /proc/misc use seq_list_xxx helpers
+     Make NFS client use seq_list_xxx helpers
 has been added to the -mm tree.  Its filename is
-     make-proc-misc-use-seq_list_xxx-helpers.patch
+     make-nfs-client-use-seq_list_xxx-helpers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make /proc/misc use seq_list_xxx helpers
+Subject: Make NFS client use seq_list_xxx helpers
 From: Pavel Emelianov <xemul@sw.ru>
 
-Simple and stupid - just use the helpers.
+This includes /proc/fs/nfsfs/servers and /proc/fs/nfsfs/volumes entries.
+
+Both need to show the header and use the list_head.
 
 Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |   18 +++---------------
- 1 files changed, 3 insertions(+), 15 deletions(-)
+ fs/nfs/client.c |   54 +++++-----------------------------------------
+ 1 files changed, 6 insertions(+), 48 deletions(-)
 
-diff -puN drivers/char/misc.c~make-proc-misc-use-seq_list_xxx-helpers drivers/char/misc.c
---- a/drivers/char/misc.c~make-proc-misc-use-seq_list_xxx-helpers
-+++ a/drivers/char/misc.c
-@@ -67,25 +67,13 @@ extern int pmu_device_init(void);
- #ifdef CONFIG_PROC_FS
- static void *misc_seq_start(struct seq_file *seq, loff_t *pos)
+diff -puN fs/nfs/client.c~make-nfs-client-use-seq_list_xxx-helpers fs/nfs/client.c
+--- a/fs/nfs/client.c~make-nfs-client-use-seq_list_xxx-helpers
++++ a/fs/nfs/client.c
+@@ -1232,23 +1232,9 @@ static int nfs_server_list_open(struct i
+  */
+ static void *nfs_server_list_start(struct seq_file *m, loff_t *_pos)
  {
--	struct miscdevice *p;
--	loff_t off = 0;
+-	struct list_head *_p;
+-	loff_t pos = *_pos;
 -
- 	mutex_lock(&misc_mtx);
--	list_for_each_entry(p, &misc_list, list) {
--		if (*pos == off++) 
--			return p;
--	}
--	return NULL;
-+	return seq_list_start(&misc_list, *pos);
+ 	/* lock the list against modification */
+ 	spin_lock(&nfs_client_lock);
+-
+-	/* allow for the header line */
+-	if (!pos)
+-		return SEQ_START_TOKEN;
+-	pos--;
+-
+-	/* find the n'th element in the list */
+-	list_for_each(_p, &nfs_client_list)
+-		if (!pos--)
+-			break;
+-
+-	return _p != &nfs_client_list ? _p : NULL;
++	return seq_list_start_head(&nfs_client_list, *_pos);
  }
  
- static void *misc_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+ /*
+@@ -1256,14 +1242,7 @@ static void *nfs_server_list_start(struc
+  */
+ static void *nfs_server_list_next(struct seq_file *p, void *v, loff_t *pos)
  {
--	struct list_head *n = ((struct miscdevice *)v)->list.next;
+-	struct list_head *_p;
 -
--	++*pos;
+-	(*pos)++;
 -
--	return (n != &misc_list) ? list_entry(n, struct miscdevice, list)
--		 : NULL;
-+	return seq_list_next(v, &misc_list, pos);
+-	_p = v;
+-	_p = (v == SEQ_START_TOKEN) ? nfs_client_list.next : _p->next;
+-
+-	return _p != &nfs_client_list ? _p : NULL;
++	return seq_list_next(v, &nfs_client_list, pos);
  }
  
- static void misc_seq_stop(struct seq_file *seq, void *v)
-@@ -95,7 +83,7 @@ static void misc_seq_stop(struct seq_fil
+ /*
+@@ -1282,7 +1261,7 @@ static int nfs_server_list_show(struct s
+ 	struct nfs_client *clp;
  
- static int misc_seq_show(struct seq_file *seq, void *v)
+ 	/* display header on line 1 */
+-	if (v == SEQ_START_TOKEN) {
++	if (v == &nfs_client_list) {
+ 		seq_puts(m, "NV SERVER   PORT USE HOSTNAME\n");
+ 		return 0;
+ 	}
+@@ -1323,23 +1302,9 @@ static int nfs_volume_list_open(struct i
+  */
+ static void *nfs_volume_list_start(struct seq_file *m, loff_t *_pos)
  {
--	const struct miscdevice *p = v;
-+	const struct miscdevice *p = list_entry(v, struct miscdevice, list);
+-	struct list_head *_p;
+-	loff_t pos = *_pos;
+-
+ 	/* lock the list against modification */
+ 	spin_lock(&nfs_client_lock);
+-
+-	/* allow for the header line */
+-	if (!pos)
+-		return SEQ_START_TOKEN;
+-	pos--;
+-
+-	/* find the n'th element in the list */
+-	list_for_each(_p, &nfs_volume_list)
+-		if (!pos--)
+-			break;
+-
+-	return _p != &nfs_volume_list ? _p : NULL;
++	return seq_list_start_head(&nfs_volume_list, *_pos);
+ }
  
- 	seq_printf(seq, "%3i %s\n", p->minor, p->name ? p->name : "");
- 	return 0;
+ /*
+@@ -1347,14 +1312,7 @@ static void *nfs_volume_list_start(struc
+  */
+ static void *nfs_volume_list_next(struct seq_file *p, void *v, loff_t *pos)
+ {
+-	struct list_head *_p;
+-
+-	(*pos)++;
+-
+-	_p = v;
+-	_p = (v == SEQ_START_TOKEN) ? nfs_volume_list.next : _p->next;
+-
+-	return _p != &nfs_volume_list ? _p : NULL;
++	return seq_list_next(v, &nfs_volume_list, pos);
+ }
+ 
+ /*
+@@ -1375,7 +1333,7 @@ static int nfs_volume_list_show(struct s
+ 	char dev[8], fsid[17];
+ 
+ 	/* display header on line 1 */
+-	if (v == SEQ_START_TOKEN) {
++	if (v == &nfs_volume_list) {
+ 		seq_puts(m, "NV SERVER   PORT DEV     FSID\n");
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from xemul@sw.ru are
