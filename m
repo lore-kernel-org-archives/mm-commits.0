@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch added to -mm tree
-Date: Sat, 19 May 2007 00:19:08 -0700
-Message-ID: <200705190719.l4J7JAtH031961@shell0.pdx.osdl.net>
+Subject: + create-the-zone_movable-zone-fix.patch added to -mm tree
+Date: Sat, 19 May 2007 00:24:36 -0700
+Message-ID: <200705190724.l4J7Obp1032011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36499 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32986 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214AbXESHUb (ORCPT
+	by vger.kernel.org with ESMTP id S1755237AbXESHZ4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 May 2007 03:20:31 -0400
+	Sat, 19 May 2007 03:25:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mel@csn.ul.ie
 
 
 The patch titled
-     allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
+     create-the-zone_movable-zone-fix
 has been added to the -mm tree.  Its filename is
-     allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+     create-the-zone_movable-zone-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
+Subject: create-the-zone_movable-zone-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-2 mm/hugetlb.c
---- a/mm/hugetlb.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-2
-+++ a/mm/hugetlb.c
-@@ -267,7 +267,7 @@ int hugetlb_treat_movable_handler(struct
+diff -puN mm/page_alloc.c~create-the-zone_movable-zone-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~create-the-zone_movable-zone-fix
++++ a/mm/page_alloc.c
+@@ -1733,7 +1733,7 @@ unsigned int nr_free_buffer_pages(void)
+  */
+ unsigned int nr_free_pagecache_pages(void)
  {
- 	proc_dointvec(table, write, file, buffer, length, ppos);
- 	if (hugepages_treat_as_movable)
--		htlb_alloc_mask = GFP_HIGH_MOVABLE;
-+		htlb_alloc_mask = GFP_HIGHUSER_MOVABLE;
- 	else
- 		htlb_alloc_mask = GFP_HIGHUSER;
- 	return 0;
+-	return nr_free_zone_pages(gfp_zone(GFP_HIGH_MOVABLE));
++	return nr_free_zone_pages(gfp_zone(GFP_HIGHUSER_MOVABLE));
+ }
+ 
+ static inline void show_node(struct zone *zone)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +104,7 @@ lazy-freeing-of-memory-through-madv_free.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
 maps2-move-the-page-walker-code-to-lib.patch
