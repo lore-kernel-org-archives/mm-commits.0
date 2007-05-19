@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-introduce-pg_readahead.patch added to -mm tree
-Date: Fri, 18 May 2007 23:28:33 -0700
-Message-ID: <200705190628.l4J6SZuK031252@shell0.pdx.osdl.net>
+Subject: + readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch added to -mm tree
+Date: Fri, 18 May 2007 23:28:40 -0700
+Message-ID: <200705190628.l4J6Sdi6031255@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34061 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50672 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754114AbXESGbC (ORCPT
+	by vger.kernel.org with ESMTP id S1754078AbXESGbL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 May 2007 02:31:02 -0400
+	Sat, 19 May 2007 02:31:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wfg@mail.ustc.edu.cn, linuxram@us.ibm.com, slpratt@austin.ibm.com
 
 
 The patch titled
-     readahead: introduce PG_readahead
+     readahead: add look-ahead support to __do_page_cache_readahead()
 has been added to the -mm tree.  Its filename is
-     readahead-introduce-pg_readahead.patch
+     readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,22 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: introduce PG_readahead
+Subject: readahead: add look-ahead support to __do_page_cache_readahead()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Introduce a new page flag: PG_readahead.
+Add look-ahead support to __do_page_cache_readahead().
 
-It acts as a look-ahead mark, which tells the page reader: Hey, it's time to
-invoke the read-ahead logic.  For the sake of I/O pipelining, don't wait until
-it runs out of cached pages!
+It works by
+	- mark the Nth backwards page with PG_readahead,
+	(which instructs the page's first reader to invoke readahead)
+	- and only do the marking for newly allocated pages.
+	(to prevent blindly doing readahead on already cached pages)
+
+Look-ahead is a technique to achieve I/O pipelining:
+
+While the application is working through a chunk of cached pages, the kernel
+reads-ahead the next chunk of pages _before_ time of need.  It effectively
+hides low level I/O latencies to high level applications.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Steven Pratt <slpratt@austin.ibm.com>
@@ -41,45 +49,76 @@ Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 ++++++
- mm/page_alloc.c            |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ mm/readahead.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/page-flags.h~readahead-introduce-pg_readahead include/linux/page-flags.h
---- a/include/linux/page-flags.h~readahead-introduce-pg_readahead
-+++ a/include/linux/page-flags.h
-@@ -92,6 +92,8 @@
- #define PG_lazyfree		19	/* MADV_FREE potential throwaway */
- #define PG_booked		20	/* Has blocks reserved on-disk */
+diff -puN mm/readahead.c~readahead-add-look-ahead-support-to-__do_page_cache_readahead mm/readahead.c
+--- a/mm/readahead.c~readahead-add-look-ahead-support-to-__do_page_cache_readahead
++++ a/mm/readahead.c
+@@ -265,7 +265,8 @@ out:
+  */
+ static int
+ __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+-			pgoff_t offset, unsigned long nr_to_read)
++			pgoff_t offset, unsigned long nr_to_read,
++			unsigned long lookahead_size)
+ {
+ 	struct inode *inode = mapping->host;
+ 	struct page *page;
+@@ -278,7 +279,7 @@ __do_page_cache_readahead(struct address
+ 	if (isize == 0)
+ 		goto out;
  
-+#define PG_readahead		21	/* Reminder to do async read-ahead */
-+
- /* PG_owner_priv_1 users should have descriptive aliases */
- #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+- 	end_index = ((isize - 1) >> PAGE_CACHE_SHIFT);
++	end_index = ((isize - 1) >> PAGE_CACHE_SHIFT);
  
-@@ -205,6 +207,10 @@ static inline void SetPageUptodate(struc
- #define SetPageBooked(page)	set_bit(PG_booked, &(page)->flags)
- #define ClearPageBooked(page)	clear_bit(PG_booked, &(page)->flags)
+ 	/*
+ 	 * Preallocate as many pages as we will need.
+@@ -301,6 +302,8 @@ __do_page_cache_readahead(struct address
+ 			break;
+ 		page->index = page_offset;
+ 		list_add(&page->lru, &page_pool);
++		if (page_idx == nr_to_read - lookahead_size)
++			SetPageReadahead(page);
+ 		ret++;
+ 	}
+ 	read_unlock_irq(&mapping->tree_lock);
+@@ -337,7 +340,7 @@ int force_page_cache_readahead(struct ad
+ 		if (this_chunk > nr_to_read)
+ 			this_chunk = nr_to_read;
+ 		err = __do_page_cache_readahead(mapping, filp,
+-						offset, this_chunk);
++						offset, this_chunk, 0);
+ 		if (err < 0) {
+ 			ret = err;
+ 			break;
+@@ -384,7 +387,7 @@ int do_page_cache_readahead(struct addre
+ 	if (bdi_read_congested(mapping->backing_dev_info))
+ 		return -1;
  
-+#define PageReadahead(page)	test_bit(PG_readahead, &(page)->flags)
-+#define SetPageReadahead(page)	set_bit(PG_readahead, &(page)->flags)
-+#define ClearPageReadahead(page) clear_bit(PG_readahead, &(page)->flags)
-+
- #define PageReclaim(page)	test_bit(PG_reclaim, &(page)->flags)
- #define SetPageReclaim(page)	set_bit(PG_reclaim, &(page)->flags)
- #define ClearPageReclaim(page)	clear_bit(PG_reclaim, &(page)->flags)
-diff -puN mm/page_alloc.c~readahead-introduce-pg_readahead mm/page_alloc.c
---- a/mm/page_alloc.c~readahead-introduce-pg_readahead
-+++ a/mm/page_alloc.c
-@@ -649,7 +649,7 @@ static int prep_new_page(struct page *pa
- 	if (PageReserved(page))
- 		return 1;
+-	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read);
++	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
+ }
  
--	page->flags &= ~(1 << PG_uptodate | 1 << PG_error |
-+	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
- 			1 << PG_referenced | 1 << PG_arch_1 |
- 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
- 	set_page_private(page, 0);
+ /*
+@@ -404,7 +407,7 @@ blockable_page_cache_readahead(struct ad
+ 	if (!block && bdi_read_congested(mapping->backing_dev_info))
+ 		return 0;
+ 
+-	actual = __do_page_cache_readahead(mapping, filp, offset, nr_to_read);
++	actual = __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
+ 
+ 	return check_ra_success(ra, nr_to_read, actual);
+ }
+@@ -449,7 +452,7 @@ static int make_ahead_window(struct addr
+  * @req_size: hint: total size of the read which the caller is performing in
+  *            PAGE_CACHE_SIZE units
+  *
+- * page_cache_readahead() is the main function.  If performs the adaptive
++ * page_cache_readahead() is the main function.  It performs the adaptive
+  * readahead window size management and submits the readahead I/O.
+  *
+  * Note that @filp is purely used for passing on to the ->readpage[s]()
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
