@@ -1,125 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-fix-pci_drivershutdown-while-device-is-still-active.patch removed from -mm tree
-Date: Sat, 19 May 2007 10:18:22 -0700
-Message-ID: <200705191718.l4JHILKW007005@shell0.pdx.osdl.net>
+Subject: - timerfd-use-waitqueue-lock.patch removed from -mm tree
+Date: Sat, 19 May 2007 10:18:28 -0700
+Message-ID: <200705191718.l4JHIRFd007015@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756115AbXESRVx (ORCPT
+	by vger.kernel.org with ESMTP id S1756115AbXESRV5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 May 2007 13:21:53 -0400
+	Sat, 19 May 2007 13:21:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gbritton@alum.mit.edu, mike.miller@hp.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, davi@haxent.com.br, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: fix pci_driver.shutdown while device is still active
+     timerfd: use waitqueue lock
 has been removed from the -mm tree.  Its filename was
-     cciss-fix-pci_drivershutdown-while-device-is-still-active.patch
+     timerfd-use-waitqueue-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cciss: fix pci_driver.shutdown while device is still active
-From: Gerald Britton <gbritton@alum.mit.edu>
+Subject: timerfd: use waitqueue lock
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Fix an Oops in the cciss driver caused by system shutdown while a
-filesystem on a cciss device is still active.  The cciss_remove_one
-function only properly removes the device if the device has been cleanly
-released by its users, which is not the case when the pci_driver.shutdown
-method is called.
+The timerfd was using the unlocked waitqueue operations, but it was using a
+different lock, so poll_wait() would race with it.  This patch makes
+timerfd directly use the waitqueue lock.
 
-This patch adds a new cciss_shutdown function to better match the pattern
-used by various SCSI drivers: deactivate device interrupts and flush
-caches.  It also alters the cciss_remove_one function to match and readds
-the __devexit annotation that was removed when cciss_remove_one was serving
-as the pci_driver.shutdown method.
-
-Signed-off-by: Gerald Britton <gbritton@alum.mit.edu>
-Acked-by: Mike Miller <mike.miller@hp.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Davi Arnaut <davi@haxent.com.br>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   45 ++++++++++++++++++++++++++--------------
- 1 files changed, 30 insertions(+), 15 deletions(-)
+ fs/timerfd.c |   24 +++++++++++-------------
+ 1 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-pci_drivershutdown-while-device-is-still-active drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-pci_drivershutdown-while-device-is-still-active
-+++ a/drivers/block/cciss.c
-@@ -3469,13 +3469,39 @@ static int __devinit cciss_init_one(stru
- 	return -1;
- }
- 
--static void cciss_remove_one(struct pci_dev *pdev)
-+static void cciss_shutdown(struct pci_dev *pdev)
- {
- 	ctlr_info_t *tmp_ptr;
--	int i, j;
-+	int i;
- 	char flush_buf[4];
- 	int return_code;
- 
-+	tmp_ptr = pci_get_drvdata(pdev);
-+	if (tmp_ptr == NULL)
-+		return;
-+	i = tmp_ptr->ctlr;
-+	if (hba[i] == NULL)
-+		return;
-+
-+	/* Turn board interrupts off  and send the flush cache command */
-+	/* sendcmd will turn off interrupt, and send the flush...
-+	 * To write all data in the battery backed cache to disks */
-+	memset(flush_buf, 0, 4);
-+	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
-+			      TYPE_CMD);
-+	if (return_code == IO_OK) {
-+		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
-+	} else {
-+		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
-+	}
-+	free_irq(hba[i]->intr[2], hba[i]);
-+}
-+
-+static void __devexit cciss_remove_one(struct pci_dev *pdev)
-+{
-+	ctlr_info_t *tmp_ptr;
-+	int i, j;
-+
- 	if (pci_get_drvdata(pdev) == NULL) {
- 		printk(KERN_ERR "cciss: Unable to remove device \n");
- 		return;
-@@ -3506,18 +3532,7 @@ static void cciss_remove_one(struct pci_
- 
- 	cciss_unregister_scsi(i);	/* unhook from SCSI subsystem */
- 
--	/* Turn board interrupts off  and send the flush cache command */
--	/* sendcmd will turn off interrupt, and send the flush...
--	 * To write all data in the battery backed cache to disks */
--	memset(flush_buf, 0, 4);
--	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
--			      TYPE_CMD);
--	if (return_code == IO_OK) {
--		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
--	} else {
--		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
--	}
--	free_irq(hba[i]->intr[2], hba[i]);
-+	cciss_shutdown(pdev);
- 
- #ifdef CONFIG_PCI_MSI
- 	if (hba[i]->msix_vector)
-@@ -3550,7 +3565,7 @@ static struct pci_driver cciss_pci_drive
- 	.probe = cciss_init_one,
- 	.remove = __devexit_p(cciss_remove_one),
- 	.id_table = cciss_pci_device_id,	/* id_table */
--	.shutdown = cciss_remove_one,
-+	.shutdown = cciss_shutdown,
+diff -puN fs/timerfd.c~timerfd-use-waitqueue-lock fs/timerfd.c
+--- a/fs/timerfd.c~timerfd-use-waitqueue-lock
++++ a/fs/timerfd.c
+@@ -24,7 +24,6 @@
+ struct timerfd_ctx {
+ 	struct hrtimer tmr;
+ 	ktime_t tintv;
+-	spinlock_t lock;
+ 	wait_queue_head_t wqh;
+ 	int expired;
  };
+@@ -39,10 +38,10 @@ static enum hrtimer_restart timerfd_tmrp
+ 	struct timerfd_ctx *ctx = container_of(htmr, struct timerfd_ctx, tmr);
+ 	unsigned long flags;
  
- /*
+-	spin_lock_irqsave(&ctx->lock, flags);
++	spin_lock_irqsave(&ctx->wqh.lock, flags);
+ 	ctx->expired = 1;
+ 	wake_up_locked(&ctx->wqh);
+-	spin_unlock_irqrestore(&ctx->lock, flags);
++	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
+ 
+ 	return HRTIMER_NORESTART;
+ }
+@@ -83,10 +82,10 @@ static unsigned int timerfd_poll(struct 
+ 
+ 	poll_wait(file, &ctx->wqh, wait);
+ 
+-	spin_lock_irqsave(&ctx->lock, flags);
++	spin_lock_irqsave(&ctx->wqh.lock, flags);
+ 	if (ctx->expired)
+ 		events |= POLLIN;
+-	spin_unlock_irqrestore(&ctx->lock, flags);
++	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
+ 
+ 	return events;
+ }
+@@ -101,7 +100,7 @@ static ssize_t timerfd_read(struct file 
+ 
+ 	if (count < sizeof(ticks))
+ 		return -EINVAL;
+-	spin_lock_irq(&ctx->lock);
++	spin_lock_irq(&ctx->wqh.lock);
+ 	res = -EAGAIN;
+ 	if (!ctx->expired && !(file->f_flags & O_NONBLOCK)) {
+ 		__add_wait_queue(&ctx->wqh, &wait);
+@@ -115,9 +114,9 @@ static ssize_t timerfd_read(struct file 
+ 				res = -ERESTARTSYS;
+ 				break;
+ 			}
+-			spin_unlock_irq(&ctx->lock);
++			spin_unlock_irq(&ctx->wqh.lock);
+ 			schedule();
+-			spin_lock_irq(&ctx->lock);
++			spin_lock_irq(&ctx->wqh.lock);
+ 		}
+ 		__remove_wait_queue(&ctx->wqh, &wait);
+ 		__set_current_state(TASK_RUNNING);
+@@ -139,7 +138,7 @@ static ssize_t timerfd_read(struct file 
+ 		} else
+ 			ticks = 1;
+ 	}
+-	spin_unlock_irq(&ctx->lock);
++	spin_unlock_irq(&ctx->wqh.lock);
+ 	if (ticks)
+ 		res = put_user(ticks, buf) ? -EFAULT: sizeof(ticks);
+ 	return res;
+@@ -176,7 +175,6 @@ asmlinkage long sys_timerfd(int ufd, int
+ 			return -ENOMEM;
+ 
+ 		init_waitqueue_head(&ctx->wqh);
+-		spin_lock_init(&ctx->lock);
+ 
+ 		timerfd_setup(ctx, clockid, flags, &ktmr);
+ 
+@@ -202,10 +200,10 @@ asmlinkage long sys_timerfd(int ufd, int
+ 		 * it to the new values.
+ 		 */
+ 		for (;;) {
+-			spin_lock_irq(&ctx->lock);
++			spin_lock_irq(&ctx->wqh.lock);
+ 			if (hrtimer_try_to_cancel(&ctx->tmr) >= 0)
+ 				break;
+-			spin_unlock_irq(&ctx->lock);
++			spin_unlock_irq(&ctx->wqh.lock);
+ 			cpu_relax();
+ 		}
+ 		/*
+@@ -213,7 +211,7 @@ asmlinkage long sys_timerfd(int ufd, int
+ 		 */
+ 		timerfd_setup(ctx, clockid, flags, &ktmr);
+ 
+-		spin_unlock_irq(&ctx->lock);
++		spin_unlock_irq(&ctx->wqh.lock);
+ 		fput(file);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from gbritton@alum.mit.edu are
+Patches currently in -mm which might be from davidel@xmailserver.org are
+
+x86_64-fix-oprofile-smp.patch
