@@ -1,98 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-crypto.patch removed from -mm tree
-Date: Sat, 19 May 2007 10:18:17 -0700
-Message-ID: <200705191718.l4JHIG3n007000@shell0.pdx.osdl.net>
+Subject: - eventfd-use-waitqueue-lock.patch removed from -mm tree
+Date: Sat, 19 May 2007 10:18:25 -0700
+Message-ID: <200705191718.l4JHIORo007012@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49884 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41994 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756395AbXESRVO (ORCPT
+	by vger.kernel.org with ESMTP id S1756115AbXESRVs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 May 2007 13:21:14 -0400
+	Sat, 19 May 2007 13:21:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, herbert@gondor.apana.org.au, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, davi@haxent.com.br, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: crypto
+     eventfd: use waitqueue lock
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-crypto.patch
+     eventfd-use-waitqueue-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: crypto
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: eventfd: use waitqueue lock
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+The eventfd was using the unlocked waitqueue operations, but it was using a
+different lock, so poll_wait() would race with it.  This patch makes
+eventfd directly use the waitqueue lock.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Davi Arnaut <davi@haxent.com.br>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/Kconfig |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/eventfd.c |   26 ++++++++++++--------------
+ 1 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN crypto/Kconfig~use-menuconfig-objects-crypto crypto/Kconfig
---- a/crypto/Kconfig~use-menuconfig-objects-crypto
-+++ a/crypto/Kconfig
-@@ -2,9 +2,7 @@
- # Cryptographic API Configuration
- #
+diff -puN fs/eventfd.c~eventfd-use-waitqueue-lock fs/eventfd.c
+--- a/fs/eventfd.c~eventfd-use-waitqueue-lock
++++ a/fs/eventfd.c
+@@ -17,7 +17,6 @@
+ #include <linux/eventfd.h>
  
--menu "Cryptographic options"
--
--config CRYPTO
-+menuconfig CRYPTO
- 	bool "Cryptographic API"
- 	help
- 	  This option provides the core Cryptographic API.
-@@ -463,5 +461,3 @@ config CRYPTO_TEST
- source "drivers/crypto/Kconfig"
+ struct eventfd_ctx {
+-	spinlock_t lock;
+ 	wait_queue_head_t wqh;
+ 	/*
+ 	 * Every time that a write(2) is performed on an eventfd, the
+@@ -45,13 +44,13 @@ int eventfd_signal(struct file *file, in
  
- endif	# if CRYPTO
--
--endmenu
+ 	if (n < 0)
+ 		return -EINVAL;
+-	spin_lock_irqsave(&ctx->lock, flags);
++	spin_lock_irqsave(&ctx->wqh.lock, flags);
+ 	if (ULLONG_MAX - ctx->count < n)
+ 		n = (int) (ULLONG_MAX - ctx->count);
+ 	ctx->count += n;
+ 	if (waitqueue_active(&ctx->wqh))
+ 		wake_up_locked(&ctx->wqh);
+-	spin_unlock_irqrestore(&ctx->lock, flags);
++	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
+ 
+ 	return n;
+ }
+@@ -70,14 +69,14 @@ static unsigned int eventfd_poll(struct 
+ 
+ 	poll_wait(file, &ctx->wqh, wait);
+ 
+-	spin_lock_irqsave(&ctx->lock, flags);
++	spin_lock_irqsave(&ctx->wqh.lock, flags);
+ 	if (ctx->count > 0)
+ 		events |= POLLIN;
+ 	if (ctx->count == ULLONG_MAX)
+ 		events |= POLLERR;
+ 	if (ULLONG_MAX - 1 > ctx->count)
+ 		events |= POLLOUT;
+-	spin_unlock_irqrestore(&ctx->lock, flags);
++	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
+ 
+ 	return events;
+ }
+@@ -92,7 +91,7 @@ static ssize_t eventfd_read(struct file 
+ 
+ 	if (count < sizeof(ucnt))
+ 		return -EINVAL;
+-	spin_lock_irq(&ctx->lock);
++	spin_lock_irq(&ctx->wqh.lock);
+ 	res = -EAGAIN;
+ 	ucnt = ctx->count;
+ 	if (ucnt > 0)
+@@ -110,9 +109,9 @@ static ssize_t eventfd_read(struct file 
+ 				res = -ERESTARTSYS;
+ 				break;
+ 			}
+-			spin_unlock_irq(&ctx->lock);
++			spin_unlock_irq(&ctx->wqh.lock);
+ 			schedule();
+-			spin_lock_irq(&ctx->lock);
++			spin_lock_irq(&ctx->wqh.lock);
+ 		}
+ 		__remove_wait_queue(&ctx->wqh, &wait);
+ 		__set_current_state(TASK_RUNNING);
+@@ -122,7 +121,7 @@ static ssize_t eventfd_read(struct file 
+ 		if (waitqueue_active(&ctx->wqh))
+ 			wake_up_locked(&ctx->wqh);
+ 	}
+-	spin_unlock_irq(&ctx->lock);
++	spin_unlock_irq(&ctx->wqh.lock);
+ 	if (res > 0 && put_user(ucnt, (__u64 __user *) buf))
+ 		return -EFAULT;
+ 
+@@ -143,7 +142,7 @@ static ssize_t eventfd_write(struct file
+ 		return -EFAULT;
+ 	if (ucnt == ULLONG_MAX)
+ 		return -EINVAL;
+-	spin_lock_irq(&ctx->lock);
++	spin_lock_irq(&ctx->wqh.lock);
+ 	res = -EAGAIN;
+ 	if (ULLONG_MAX - ctx->count > ucnt)
+ 		res = sizeof(ucnt);
+@@ -159,9 +158,9 @@ static ssize_t eventfd_write(struct file
+ 				res = -ERESTARTSYS;
+ 				break;
+ 			}
+-			spin_unlock_irq(&ctx->lock);
++			spin_unlock_irq(&ctx->wqh.lock);
+ 			schedule();
+-			spin_lock_irq(&ctx->lock);
++			spin_lock_irq(&ctx->wqh.lock);
+ 		}
+ 		__remove_wait_queue(&ctx->wqh, &wait);
+ 		__set_current_state(TASK_RUNNING);
+@@ -171,7 +170,7 @@ static ssize_t eventfd_write(struct file
+ 		if (waitqueue_active(&ctx->wqh))
+ 			wake_up_locked(&ctx->wqh);
+ 	}
+-	spin_unlock_irq(&ctx->lock);
++	spin_unlock_irq(&ctx->wqh.lock);
+ 
+ 	return res;
+ }
+@@ -210,7 +209,6 @@ asmlinkage long sys_eventfd(unsigned int
+ 		return -ENOMEM;
+ 
+ 	init_waitqueue_head(&ctx->wqh);
+-	spin_lock_init(&ctx->lock);
+ 	ctx->count = count;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-ii-sound.patch
-git-ieee1394.patch
-use-menuconfig-objects-ii-infiniband.patch
-use-menuconfig-objects-ii-kvm-virt.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-usb.patch
-usb-fix-debug-output-of-ark3116.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-ii-isdn.patch
-use-menuconfig-objects-ii-md.patch
+x86_64-fix-oprofile-smp.patch
