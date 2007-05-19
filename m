@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + simplify-cleanup_workqueue_thread-fix2.patch added to -mm tree
-Date: Fri, 18 May 2007 15:14:06 -0700
-Message-ID: <200705182214.l4IME62s024604@shell0.pdx.osdl.net>
+Subject: + readahead-min_ra_pages-max_ra_pages-macros.patch added to -mm tree
+Date: Fri, 18 May 2007 23:28:45 -0700
+Message-ID: <200705190628.l4J6Siqt031258@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755050AbXERWPX (ORCPT
+	by vger.kernel.org with ESMTP id S1754483AbXESGa5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 May 2007 18:15:23 -0400
+	Sat, 19 May 2007 02:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru
+Cc: wfg@mail.ustc.edu.cn, linuxram@us.ibm.com, slpratt@austin.ibm.com
 
 
 The patch titled
-     simplify-cleanup_workqueue_thread-fix2
+     readahead: MIN_RA_PAGES/MAX_RA_PAGES macros
 has been added to the -mm tree.  Its filename is
-     simplify-cleanup_workqueue_thread-fix2.patch
+     readahead-min_ra_pages-max_ra_pages-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: simplify-cleanup_workqueue_thread-fix2
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: readahead: MIN_RA_PAGES/MAX_RA_PAGES macros
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-But it is a bit silly to have 2 variables, we need only one.
+Define two convenient macros for read-ahead:
+	- MAX_RA_PAGES: rounded down counterpart of VM_MAX_READAHEAD
+	- MIN_RA_PAGES: rounded _up_ counterpart of VM_MIN_READAHEAD
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Note that the rounded up MIN_RA_PAGES will work flawlessly with _large_
+page sizes like 64k.
+
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Steven Pratt <slpratt@austin.ibm.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ mm/readahead.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix2 kernel/workqueue.c
---- a/kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix2
-+++ a/kernel/workqueue.c
-@@ -330,7 +330,7 @@ static void insert_wq_barrier(struct cpu
+diff -puN mm/readahead.c~readahead-min_ra_pages-max_ra_pages-macros mm/readahead.c
+--- a/mm/readahead.c~readahead-min_ra_pages-max_ra_pages-macros
++++ a/mm/readahead.c
+@@ -21,8 +21,16 @@ void default_unplug_io_fn(struct backing
+ }
+ EXPORT_SYMBOL(default_unplug_io_fn);
  
- static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
- {
--	int ret;
-+	int active;
- 
- 	if (cwq->thread == current) {
- 		/*
-@@ -338,11 +338,11 @@ static int flush_cpu_workqueue(struct cp
- 		 * it by hand rather than deadlocking.
- 		 */
- 		run_workqueue(cwq);
--		ret = 1;
-+		active = 1;
- 	} else {
- 		struct wq_barrier barr;
--		int active = 0;
- 
-+		active = 0;
- 		spin_lock_irq(&cwq->lock);
- 		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
- 			insert_wq_barrier(cwq, &barr, 1);
-@@ -352,10 +352,9 @@ static int flush_cpu_workqueue(struct cp
- 
- 		if (active)
- 			wait_for_completion(&barr.done);
--
--		ret = active;
- 	}
--	return ret;
++/*
++ * Convienent macros for min/max read-ahead pages.
++ * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
++ * The latter is necessary for systems with large page size(i.e. 64k).
++ */
++#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
++#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
 +
-+	return active;
+ struct backing_dev_info default_backing_dev_info = {
+-	.ra_pages	= (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE,
++	.ra_pages	= MAX_RA_PAGES,
+ 	.state		= 0,
+ 	.capabilities	= BDI_CAP_MAP_COPY,
+ 	.unplug_io_fn	= default_unplug_io_fn,
+@@ -51,7 +59,7 @@ static inline unsigned long get_max_read
+ 
+ static inline unsigned long get_min_readahead(struct file_ra_state *ra)
+ {
+-	return (VM_MIN_READAHEAD * 1024) / PAGE_CACHE_SIZE;
++	return MIN_RA_PAGES;
  }
  
- /**
+ static inline void reset_ahead_window(struct file_ra_state *ra)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-origin.patch
-revert-cancel_delayed_work-use-del_timer-instead-of-del_timer_sync.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-git-nfs.patch
-recalc_sigpending_tsk-fixes.patch
-simplify-cleanup_workqueue_thread.patch
-simplify-cleanup_workqueue_thread-fix.patch
-simplify-cleanup_workqueue_thread-fix2.patch
-freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-freezer-fix-pf_nofreeze-vs-freezeable-race.patch
-freezer-move-frozen_process-to-kernel-power-processc.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
