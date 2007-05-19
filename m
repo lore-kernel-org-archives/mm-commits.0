@@ -1,153 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + create-the-zone_movable-zone-fix.patch added to -mm tree
-Date: Sat, 19 May 2007 00:24:36 -0700
-Message-ID: <200705190724.l4J7Obp1032011@shell0.pdx.osdl.net>
+Subject: - mm-alloc_large_system_hash-can-free-some-memory-for-non.patch removed from -mm tree
+Date: Sat, 19 May 2007 01:37:38 -0700
+Message-ID: <200705190837.l4J8bfjY000441@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32986 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755237AbXESHZ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755721AbXESIkI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 May 2007 03:25:56 -0400
+	Sat, 19 May 2007 04:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mel@csn.ul.ie
+To: dada1@cosmosbay.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     create-the-zone_movable-zone-fix
-has been added to the -mm tree.  Its filename is
-     create-the-zone_movable-zone-fix.patch
+     MM: alloc_large_system_hash() can free some memory for non power-of-two bucketsize
+has been removed from the -mm tree.  Its filename was
+     mm-alloc_large_system_hash-can-free-some-memory-for-non.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: create-the-zone_movable-zone-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MM: alloc_large_system_hash() can free some memory for non power-of-two bucketsize
+From: Eric Dumazet <dada1@cosmosbay.com>
 
+alloc_large_system_hash() is called at boot time to allocate space for
+several large hash tables.
+
+Lately, TCP hash table was changed and its bucketsize is not a power-of-two
+anymore.
+
+On most setups, alloc_large_system_hash() allocates one big page (order >
+0) with __get_free_pages(GFP_ATOMIC, order).  This single high_order page
+has a power-of-two size, bigger than the needed size.
+
+We can free all pages that wont be used by the hash table.
+
+On a 1GB i386 machine, this patch saves 128 KB of LOWMEM memory.
+
+TCP established hash table entries: 32768 (order: 6, 393216 bytes)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN mm/page_alloc.c~create-the-zone_movable-zone-fix mm/page_alloc.c
---- a/mm/page_alloc.c~create-the-zone_movable-zone-fix
+diff -puN mm/page_alloc.c~mm-alloc_large_system_hash-can-free-some-memory-for-non mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-alloc_large_system_hash-can-free-some-memory-for-non
 +++ a/mm/page_alloc.c
-@@ -1733,7 +1733,7 @@ unsigned int nr_free_buffer_pages(void)
-  */
- unsigned int nr_free_pagecache_pages(void)
- {
--	return nr_free_zone_pages(gfp_zone(GFP_HIGH_MOVABLE));
-+	return nr_free_zone_pages(gfp_zone(GFP_HIGHUSER_MOVABLE));
- }
+@@ -3578,6 +3578,20 @@ void *__init alloc_large_system_hash(con
+ 			for (order = 0; ((1UL << order) << PAGE_SHIFT) < size; order++)
+ 				;
+ 			table = (void*) __get_free_pages(GFP_ATOMIC, order);
++			/*
++			 * If bucketsize is not a power-of-two, we may free
++			 * some pages at the end of hash table.
++			 */
++			if (table) {
++				unsigned long alloc_end = (unsigned long)table +
++						(PAGE_SIZE << order);
++				unsigned long used = (unsigned long)table +
++						PAGE_ALIGN(size);
++				while (used < alloc_end) {
++					free_page(used);
++					used += PAGE_SIZE;
++				}
++			}
+ 		}
+ 	} while (!table && size > PAGE_SIZE && --log2qty);
  
- static inline void show_node(struct zone *zone)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-powerpc.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
-git-nfs.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-fix-machine-rebooting-fix.patch
-xfs-clean-up-shrinker-games.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-simplify-cleanup_workqueue_thread-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-pie-randomization-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
+mm-alloc_large_system_hash-can-free-some-memory-for-non.patch
 lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-check_dirty_inode_list.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
