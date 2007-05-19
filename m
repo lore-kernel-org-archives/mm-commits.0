@@ -1,157 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - eventfd-use-waitqueue-lock.patch removed from -mm tree
-Date: Sat, 19 May 2007 10:18:25 -0700
-Message-ID: <200705191718.l4JHIORo007012@shell0.pdx.osdl.net>
+Subject: - cciss-fix-pci_drivershutdown-while-device-is-still-active.patch removed from -mm tree
+Date: Sat, 19 May 2007 10:18:22 -0700
+Message-ID: <200705191718.l4JHILKW007005@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41994 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756115AbXESRVs (ORCPT
+	by vger.kernel.org with ESMTP id S1756115AbXESRVx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 19 May 2007 13:21:48 -0400
+	Sat, 19 May 2007 13:21:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, davi@haxent.com.br, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: gbritton@alum.mit.edu, mike.miller@hp.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eventfd: use waitqueue lock
+     cciss: fix pci_driver.shutdown while device is still active
 has been removed from the -mm tree.  Its filename was
-     eventfd-use-waitqueue-lock.patch
+     cciss-fix-pci_drivershutdown-while-device-is-still-active.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eventfd: use waitqueue lock
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: cciss: fix pci_driver.shutdown while device is still active
+From: Gerald Britton <gbritton@alum.mit.edu>
 
-The eventfd was using the unlocked waitqueue operations, but it was using a
-different lock, so poll_wait() would race with it.  This patch makes
-eventfd directly use the waitqueue lock.
+Fix an Oops in the cciss driver caused by system shutdown while a
+filesystem on a cciss device is still active.  The cciss_remove_one
+function only properly removes the device if the device has been cleanly
+released by its users, which is not the case when the pci_driver.shutdown
+method is called.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Davi Arnaut <davi@haxent.com.br>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch adds a new cciss_shutdown function to better match the pattern
+used by various SCSI drivers: deactivate device interrupts and flush
+caches.  It also alters the cciss_remove_one function to match and readds
+the __devexit annotation that was removed when cciss_remove_one was serving
+as the pci_driver.shutdown method.
+
+Signed-off-by: Gerald Britton <gbritton@alum.mit.edu>
+Acked-by: Mike Miller <mike.miller@hp.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventfd.c |   26 ++++++++++++--------------
- 1 files changed, 12 insertions(+), 14 deletions(-)
+ drivers/block/cciss.c |   45 ++++++++++++++++++++++++++--------------
+ 1 files changed, 30 insertions(+), 15 deletions(-)
 
-diff -puN fs/eventfd.c~eventfd-use-waitqueue-lock fs/eventfd.c
---- a/fs/eventfd.c~eventfd-use-waitqueue-lock
-+++ a/fs/eventfd.c
-@@ -17,7 +17,6 @@
- #include <linux/eventfd.h>
- 
- struct eventfd_ctx {
--	spinlock_t lock;
- 	wait_queue_head_t wqh;
- 	/*
- 	 * Every time that a write(2) is performed on an eventfd, the
-@@ -45,13 +44,13 @@ int eventfd_signal(struct file *file, in
- 
- 	if (n < 0)
- 		return -EINVAL;
--	spin_lock_irqsave(&ctx->lock, flags);
-+	spin_lock_irqsave(&ctx->wqh.lock, flags);
- 	if (ULLONG_MAX - ctx->count < n)
- 		n = (int) (ULLONG_MAX - ctx->count);
- 	ctx->count += n;
- 	if (waitqueue_active(&ctx->wqh))
- 		wake_up_locked(&ctx->wqh);
--	spin_unlock_irqrestore(&ctx->lock, flags);
-+	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
- 
- 	return n;
+diff -puN drivers/block/cciss.c~cciss-fix-pci_drivershutdown-while-device-is-still-active drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-pci_drivershutdown-while-device-is-still-active
++++ a/drivers/block/cciss.c
+@@ -3469,13 +3469,39 @@ static int __devinit cciss_init_one(stru
+ 	return -1;
  }
-@@ -70,14 +69,14 @@ static unsigned int eventfd_poll(struct 
  
- 	poll_wait(file, &ctx->wqh, wait);
+-static void cciss_remove_one(struct pci_dev *pdev)
++static void cciss_shutdown(struct pci_dev *pdev)
+ {
+ 	ctlr_info_t *tmp_ptr;
+-	int i, j;
++	int i;
+ 	char flush_buf[4];
+ 	int return_code;
  
--	spin_lock_irqsave(&ctx->lock, flags);
-+	spin_lock_irqsave(&ctx->wqh.lock, flags);
- 	if (ctx->count > 0)
- 		events |= POLLIN;
- 	if (ctx->count == ULLONG_MAX)
- 		events |= POLLERR;
- 	if (ULLONG_MAX - 1 > ctx->count)
- 		events |= POLLOUT;
--	spin_unlock_irqrestore(&ctx->lock, flags);
-+	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
++	tmp_ptr = pci_get_drvdata(pdev);
++	if (tmp_ptr == NULL)
++		return;
++	i = tmp_ptr->ctlr;
++	if (hba[i] == NULL)
++		return;
++
++	/* Turn board interrupts off  and send the flush cache command */
++	/* sendcmd will turn off interrupt, and send the flush...
++	 * To write all data in the battery backed cache to disks */
++	memset(flush_buf, 0, 4);
++	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
++			      TYPE_CMD);
++	if (return_code == IO_OK) {
++		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
++	} else {
++		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
++	}
++	free_irq(hba[i]->intr[2], hba[i]);
++}
++
++static void __devexit cciss_remove_one(struct pci_dev *pdev)
++{
++	ctlr_info_t *tmp_ptr;
++	int i, j;
++
+ 	if (pci_get_drvdata(pdev) == NULL) {
+ 		printk(KERN_ERR "cciss: Unable to remove device \n");
+ 		return;
+@@ -3506,18 +3532,7 @@ static void cciss_remove_one(struct pci_
  
- 	return events;
- }
-@@ -92,7 +91,7 @@ static ssize_t eventfd_read(struct file 
+ 	cciss_unregister_scsi(i);	/* unhook from SCSI subsystem */
  
- 	if (count < sizeof(ucnt))
- 		return -EINVAL;
--	spin_lock_irq(&ctx->lock);
-+	spin_lock_irq(&ctx->wqh.lock);
- 	res = -EAGAIN;
- 	ucnt = ctx->count;
- 	if (ucnt > 0)
-@@ -110,9 +109,9 @@ static ssize_t eventfd_read(struct file 
- 				res = -ERESTARTSYS;
- 				break;
- 			}
--			spin_unlock_irq(&ctx->lock);
-+			spin_unlock_irq(&ctx->wqh.lock);
- 			schedule();
--			spin_lock_irq(&ctx->lock);
-+			spin_lock_irq(&ctx->wqh.lock);
- 		}
- 		__remove_wait_queue(&ctx->wqh, &wait);
- 		__set_current_state(TASK_RUNNING);
-@@ -122,7 +121,7 @@ static ssize_t eventfd_read(struct file 
- 		if (waitqueue_active(&ctx->wqh))
- 			wake_up_locked(&ctx->wqh);
- 	}
--	spin_unlock_irq(&ctx->lock);
-+	spin_unlock_irq(&ctx->wqh.lock);
- 	if (res > 0 && put_user(ucnt, (__u64 __user *) buf))
- 		return -EFAULT;
+-	/* Turn board interrupts off  and send the flush cache command */
+-	/* sendcmd will turn off interrupt, and send the flush...
+-	 * To write all data in the battery backed cache to disks */
+-	memset(flush_buf, 0, 4);
+-	return_code = sendcmd(CCISS_CACHE_FLUSH, i, flush_buf, 4, 0, 0, 0, NULL,
+-			      TYPE_CMD);
+-	if (return_code == IO_OK) {
+-		printk(KERN_INFO "Completed flushing cache on controller %d\n", i);
+-	} else {
+-		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
+-	}
+-	free_irq(hba[i]->intr[2], hba[i]);
++	cciss_shutdown(pdev);
  
-@@ -143,7 +142,7 @@ static ssize_t eventfd_write(struct file
- 		return -EFAULT;
- 	if (ucnt == ULLONG_MAX)
- 		return -EINVAL;
--	spin_lock_irq(&ctx->lock);
-+	spin_lock_irq(&ctx->wqh.lock);
- 	res = -EAGAIN;
- 	if (ULLONG_MAX - ctx->count > ucnt)
- 		res = sizeof(ucnt);
-@@ -159,9 +158,9 @@ static ssize_t eventfd_write(struct file
- 				res = -ERESTARTSYS;
- 				break;
- 			}
--			spin_unlock_irq(&ctx->lock);
-+			spin_unlock_irq(&ctx->wqh.lock);
- 			schedule();
--			spin_lock_irq(&ctx->lock);
-+			spin_lock_irq(&ctx->wqh.lock);
- 		}
- 		__remove_wait_queue(&ctx->wqh, &wait);
- 		__set_current_state(TASK_RUNNING);
-@@ -171,7 +170,7 @@ static ssize_t eventfd_write(struct file
- 		if (waitqueue_active(&ctx->wqh))
- 			wake_up_locked(&ctx->wqh);
- 	}
--	spin_unlock_irq(&ctx->lock);
-+	spin_unlock_irq(&ctx->wqh.lock);
+ #ifdef CONFIG_PCI_MSI
+ 	if (hba[i]->msix_vector)
+@@ -3550,7 +3565,7 @@ static struct pci_driver cciss_pci_drive
+ 	.probe = cciss_init_one,
+ 	.remove = __devexit_p(cciss_remove_one),
+ 	.id_table = cciss_pci_device_id,	/* id_table */
+-	.shutdown = cciss_remove_one,
++	.shutdown = cciss_shutdown,
+ };
  
- 	return res;
- }
-@@ -210,7 +209,6 @@ asmlinkage long sys_eventfd(unsigned int
- 		return -ENOMEM;
- 
- 	init_waitqueue_head(&ctx->wqh);
--	spin_lock_init(&ctx->lock);
- 	ctx->count = count;
- 
- 	/*
+ /*
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
-
-x86_64-fix-oprofile-smp.patch
+Patches currently in -mm which might be from gbritton@alum.mit.edu are
