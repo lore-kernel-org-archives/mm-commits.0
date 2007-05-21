@@ -1,137 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + git-kbuild-fixup.patch added to -mm tree
-Date: Mon, 21 May 2007 13:07:24 -0700
-Message-ID: <200705212007.l4LK7QDb018705@shell0.pdx.osdl.net>
+Subject: - git-dvb-fixup.patch removed from -mm tree
+Date: Mon, 21 May 2007 13:09:15 -0700
+Message-ID: <200705212009.l4LK9EBn018754@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759115AbXEUUIG (ORCPT
+	by vger.kernel.org with ESMTP id S934618AbXEUUJw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:08:06 -0400
+	Mon, 21 May 2007 16:09:52 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4LK7RFO011908
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4LK9GsU011966
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 21 May 2007 13:08:04 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 21 May 2007 13:09:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kbuild-fixup
-has been added to the -mm tree.  Its filename is
-     git-kbuild-fixup.patch
+     git-dvb-fixup
+has been removed from the -mm tree.  Its filename was
+     git-dvb-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-kbuild-fixup
+Subject: git-dvb-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h  |   16 ----------------
- scripts/mod/modpost.c |   27 ---------------------------
- 2 files changed, 43 deletions(-)
+ drivers/media/video/em28xx/Kconfig |    6 +-----
+ drivers/media/video/ivtv/Kconfig   |    4 ----
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN include/linux/init.h~git-kbuild-fixup include/linux/init.h
---- a/include/linux/init.h~git-kbuild-fixup
-+++ a/include/linux/init.h
-@@ -45,21 +45,6 @@
- #define __exitdata	__attribute__ ((__section__(".exit.data")))
- #define __exit_call	__attribute_used__ __attribute__ ((__section__ (".exitcall.exit")))
- 
--<<<<<<< HEAD/include/linux/init.h
--/* modpost check for section mismatches during the kernel build.
-- * A section mismatch happens when there are references from a
-- * code or data section to an init section (both code or data).
-- * The init sections are (for most archs) discarded by the kernel
-- * when early init has completed so all such references are potential bugs.
-- * For exit sections the same issue exists.
-- * The following markers are used for the cases where the reference to
-- * the init/exit section (code or data) is valid and will teach modpost
-- * not to issue a warning.
-- * The markers follow same syntax rules as __init / __initdata. */
--#define __init_refok     noinline __attribute__ ((__section__ (".text.init.refok")))
--#define __initdata_refok          __attribute__ ((__section__ (".data.init.refok")))
--
+diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-fixup drivers/media/video/em28xx/Kconfig
+--- a/drivers/media/video/em28xx/Kconfig~git-dvb-fixup
++++ a/drivers/media/video/em28xx/Kconfig
+@@ -1,11 +1,7 @@
+ config VIDEO_EM28XX
+ 	tristate "Empia EM2800/2820/2840 USB video capture support"
+-<<<<<<< HEAD/drivers/media/video/em28xx/Kconfig
+-	depends on VIDEO_V4L1 && I2C && PCI
+-	select VIDEO_BUF
 -=======
- /* modpost check for section mismatches during the kernel build.
-  * A section mismatch happens when there are references from a
-  * code or data section to an init section (both code or data).
-@@ -73,7 +58,6 @@
- #define __init_refok     noinline __attribute__ ((__section__ (".text.init.refok")))
- #define __initdata_refok          __attribute__ ((__section__ (".data.init.refok")))
- 
-->>>>>>> /include/linux/init.h
- #ifdef MODULE
- #define __exit		__attribute__ ((__section__(".exit.text")))
- #else
-diff -puN scripts/mod/modpost.c~git-kbuild-fixup scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~git-kbuild-fixup
-+++ a/scripts/mod/modpost.c
-@@ -873,55 +873,28 @@ static void warn_sec_mismatch(const char
- 		return;
- 
- 	if (before && after) {
--<<<<<<< HEAD/scripts/mod/modpost.c
--		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s "
--		     "(between '%s' and '%s')\n",
--		     modname, fromsec, (unsigned long long)r.r_offset,
--		     secname, refsymname,
+ 	depends on VIDEO_V4L1 && I2C
+->>>>>>> /drivers/media/video/em28xx/Kconfig
++	select VIDEO_BUF
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select VIDEO_IR
+diff -puN drivers/media/video/ivtv/Kconfig~git-dvb-fixup drivers/media/video/ivtv/Kconfig
+--- a/drivers/media/video/ivtv/Kconfig~git-dvb-fixup
++++ a/drivers/media/video/ivtv/Kconfig
+@@ -1,10 +1,6 @@
+ config VIDEO_IVTV
+ 	tristate "Conexant cx23416/cx23415 MPEG encoder/decoder support"
+-<<<<<<< HEAD/drivers/media/video/ivtv/Kconfig
+-	depends on VIDEO_V4L1 && VIDEO_V4L2 && USB && I2C && EXPERIMENTAL && PCI
 -=======
- 		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s "
- 		     "(between '%s' and '%s')\n",
- 		     modname, fromsec, (long long)r.r_offset,
- 		     secname, refsymname,
-->>>>>>> /scripts/mod/modpost.c
- 		     elf->strtab + before->st_name,
- 		     elf->strtab + after->st_name);
- 	} else if (before) {
--<<<<<<< HEAD/scripts/mod/modpost.c
--		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s "
--		     "(after '%s')\n",
--		     modname, fromsec, (unsigned long long)r.r_offset,
--		     secname, refsymname,
--		     elf->strtab + before->st_name);
--=======
- 		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s "
- 		     "(after '%s')\n",
- 		     modname, fromsec, (long long)r.r_offset,
- 		     secname, refsymname,
- 		     elf->strtab + before->st_name);
-->>>>>>> /scripts/mod/modpost.c
- 	} else if (after) {
- 		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s "
- 		     "before '%s' (at offset -0x%llx)\n",
--<<<<<<< HEAD/scripts/mod/modpost.c
--		     modname, fromsec, (unsigned long long)r.r_offset,
--		     secname, refsymname,
--		     elf->strtab + after->st_name);
--=======
- 		     modname, fromsec, (long long)r.r_offset,
- 		     secname, refsymname,
- 		     elf->strtab + after->st_name);
-->>>>>>> /scripts/mod/modpost.c
- 	} else {
--<<<<<<< HEAD/scripts/mod/modpost.c
--		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s\n",
--		     modname, fromsec, (unsigned long long)r.r_offset,
--		     secname, refsymname);
--=======
- 		warn("%s(%s+0x%llx): Section mismatch: reference to %s:%s\n",
- 		     modname, fromsec, (long long)r.r_offset,
- 		     secname, refsymname);
-->>>>>>> /scripts/mod/modpost.c
- 	}
- }
- 
+ 	depends on VIDEO_V4L1 && VIDEO_V4L2 && PCI && I2C && EXPERIMENTAL
+->>>>>>> /drivers/media/video/ivtv/Kconfig
+ 	select FW_LOADER
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
