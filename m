@@ -1,70 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - fix-compiler-warning-in-ddc.patch removed from -mm tree
-Date: Mon, 21 May 2007 13:28:36 -0700
-Message-ID: <200705212028.l4LKSaJC019243@shell0.pdx.osdl.net>
+Subject: + update-zilog-timeout.patch added to -mm tree
+Date: Mon, 21 May 2007 13:35:31 -0700
+Message-ID: <200705212035.l4LKZV0K019422@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45639 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755451AbXEUUaZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755080AbXEUUkH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:30:25 -0400
+	Mon, 21 May 2007 16:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: denver@ossguy.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ths@networkno.de, alan@lxorguk.ukuu.org.uk, pf@net.alphadv.de, ralf@linux-mips.org, rmk@arm.linux.org.uk, tbm@cyrius.com
 
 
 The patch titled
-     fix compiler warning in dd.c
-has been removed from the -mm tree.  Its filename was
-     fix-compiler-warning-in-ddc.patch
+     Update zilog timeout
+has been added to the -mm tree.  Its filename is
+     update-zilog-timeout.patch
 
-This patch was dropped because I already had it
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix compiler warning in dd.c
-From: "Denver Gingerich" <denver@ossguy.com>
+Subject: Update zilog timeout
+From: Thiemo Seufer <ths@networkno.de>
 
-Correct the following compiler warning:
-warning: 'device_probe_drivers' defined but not used
+Update zilog timeout, thanks Peter Fuerst.
 
-Verified that there are no device_probe_drivers() calls in the kernel tree.
-
-Signed-off-by: Denver Gingerich <denver@ossguy.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Thiemo Seufer <ths@networkno.de>
+Cc: Martin Michlmayr <tbm@cyrius.com>
+Cc: Peter Fuerst <pf@net.alphadv.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dd.c |   13 -------------
- 1 files changed, 13 deletions(-)
+ drivers/serial/ip22zilog.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/base/dd.c~fix-compiler-warning-in-ddc drivers/base/dd.c
---- a/drivers/base/dd.c~fix-compiler-warning-in-ddc
-+++ a/drivers/base/dd.c
-@@ -207,19 +207,6 @@ static int __device_attach(struct device
- 	return driver_probe_device(drv, dev);
+diff -puN drivers/serial/ip22zilog.c~update-zilog-timeout drivers/serial/ip22zilog.c
+--- a/drivers/serial/ip22zilog.c~update-zilog-timeout
++++ a/drivers/serial/ip22zilog.c
+@@ -862,6 +862,7 @@ ip22zilog_set_termios(struct uart_port *
+ 	up->cflag = termios->c_cflag;
+ 
+ 	ip22zilog_maybe_update_regs(up, ZILOG_CHANNEL_FROM_PORT(port));
++	uart_update_timeout(port, termios->c_cflag, baud);
+ 
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ }
+@@ -1017,6 +1018,8 @@ ip22serial_console_termios(struct consol
+ 	}
+ 
+ 	con->cflag = cflag | CS8;			/* 8N1 */
++
++	uart_update_timeout(&ip22zilog_port_table[con->index].port, cflag, baud);
  }
  
--static int device_probe_drivers(void *data)
--{
--	struct device *dev = data;
--	int ret = 0;
--
--	if (dev->bus) {
--		down(&dev->sem);
--		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
--		up(&dev->sem);
--	}
--	return ret;
--}
--
- /**
-  *	device_attach - try to attach device to a driver.
-  *	@dev:	device.
+ static int __init ip22zilog_console_setup(struct console *con, char *options)
 _
 
-Patches currently in -mm which might be from denver@ossguy.com are
+Patches currently in -mm which might be from ths@networkno.de are
 
-fix-compiler-warning-in-ddc.patch
-fix-compiler-warning-in-fixedc.patch
-fix-compiler-warnings-in-acornc.patch
+update-zilog-timeout.patch
