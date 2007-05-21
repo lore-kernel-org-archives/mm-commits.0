@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name.patch added to -mm tree
-Date: Mon, 21 May 2007 14:41:12 -0700
-Message-ID: <200705212141.l4LLfCDQ020692@shell0.pdx.osdl.net>
+Subject: + nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client.patch added to -mm tree
+Date: Mon, 21 May 2007 14:41:14 -0700
+Message-ID: <200705212141.l4LLfECA020695@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57299 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755185AbXEUVnr (ORCPT
+	by vger.kernel.org with ESMTP id S1755302AbXEUVnz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 17:43:47 -0400
+	Mon, 21 May 2007 17:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: chuck.lever@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     SUNRPC: rename rpcb_getport to be consistent with new rpcb_getport_sync name
+     NFS: remake nfsroot_mount as a permanent part of NFS client
 has been added to the -mm tree.  Its filename is
-     sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name.patch
+     nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SUNRPC: rename rpcb_getport to be consistent with new rpcb_getport_sync name
+Subject: NFS: remake nfsroot_mount as a permanent part of NFS client
 From: Chuck Lever <chuck.lever@oracle.com>
 
-Clean up, for consistency.  Rename rpcb_getport as rpcb_getport_async, to
-match the naming scheme of rpcb_getport_sync.
+In preparation for supporting NFSv2 and NFSv3 mount option handling in the
+kernel NFS client, convert mount_clnt.c to be a permanent part of the NFS
+client, instead of built only when CONFIG_ROOT_NFS is enabled.
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -38,144 +39,82 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/clnt.h |    2 -
- net/sunrpc/rpcb_clnt.c      |   37 +++++++++++++++++-----------------
- net/sunrpc/xprtsock.c       |    4 +--
- 3 files changed, 22 insertions(+), 21 deletions(-)
+ fs/nfs/Makefile        |    4 ++--
+ fs/nfs/mount_clnt.c    |   18 +++++++++++++-----
+ fs/nfs/nfsroot.c       |    2 +-
+ include/linux/nfs_fs.h |    4 +---
+ 4 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/sunrpc/clnt.h~sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name include/linux/sunrpc/clnt.h
---- a/include/linux/sunrpc/clnt.h~sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name
-+++ a/include/linux/sunrpc/clnt.h
-@@ -124,8 +124,8 @@ int		rpc_destroy_client(struct rpc_clnt 
- void		rpc_release_client(struct rpc_clnt *);
+diff -puN fs/nfs/Makefile~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client fs/nfs/Makefile
+--- a/fs/nfs/Makefile~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client
++++ a/fs/nfs/Makefile
+@@ -6,8 +6,8 @@ obj-$(CONFIG_NFS_FS) += nfs.o
  
- int		rpcb_register(u32, u32, int, unsigned short, int *);
--void		rpcb_getport(struct rpc_task *);
- int		rpcb_getport_sync(struct sockaddr_in *, __u32, __u32, int);
-+void		rpcb_getport_async(struct rpc_task *);
+ nfs-y 			:= client.o dir.o file.o getroot.o inode.o super.o nfs2xdr.o \
+ 			   pagelist.o proc.o read.o symlink.o unlink.o \
+-			   write.o namespace.o
+-nfs-$(CONFIG_ROOT_NFS)	+= nfsroot.o mount_clnt.o      
++			   write.o namespace.o mount_clnt.o
++nfs-$(CONFIG_ROOT_NFS)	+= nfsroot.o
+ nfs-$(CONFIG_NFS_V3)	+= nfs3proc.o nfs3xdr.o
+ nfs-$(CONFIG_NFS_V3_ACL)	+= nfs3acl.o
+ nfs-$(CONFIG_NFS_V4)	+= nfs4proc.o nfs4xdr.o nfs4state.o nfs4renewd.o \
+diff -puN fs/nfs/mount_clnt.c~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client fs/nfs/mount_clnt.c
+--- a/fs/nfs/mount_clnt.c~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client
++++ a/fs/nfs/mount_clnt.c
+@@ -37,12 +37,20 @@ struct mnt_fhstatus {
+ 	struct nfs_fh *		fh;
+ };
  
- void		rpc_call_setup(struct rpc_task *, struct rpc_message *, int);
- 
-diff -puN net/sunrpc/rpcb_clnt.c~sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name net/sunrpc/rpcb_clnt.c
---- a/net/sunrpc/rpcb_clnt.c~sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name
-+++ a/net/sunrpc/rpcb_clnt.c
-@@ -298,13 +298,13 @@ int rpcb_getport_sync(struct sockaddr_in
- EXPORT_SYMBOL_GPL(rpcb_getport_sync);
- 
- /**
-- * rpcb_getport - obtain the port for a given RPC service on a given host
-+ * rpcb_getport_async - obtain the port for a given RPC service on a given host
-  * @task: task that is waiting for portmapper request
-  *
-  * This one can be called for an ongoing RPC request, and can be used in
-  * an async (rpciod) context.
+-/*
+- * Obtain an NFS file handle for the given host and path
++/**
++ * nfs_mount - Obtain an NFS file handle for the given host and path
++ * @addr: pointer to server's address
++ * @path: pointer to string containing export path to mount
++ * @fh: pointer to location to place returned file handle
++ * @version: mount version to use for this request
++ * @protocol: transport protocol to use for thie request
++ *
++ * Uses default timeout parameters specified by underlying transport.
++ *
++ * XXX: Needs to support IPv6
   */
--void rpcb_getport(struct rpc_task *task)
-+void rpcb_getport_async(struct rpc_task *task)
+-int
+-nfsroot_mount(struct sockaddr_in *addr, char *path, struct nfs_fh *fh,
+-		int version, int protocol)
++int nfs_mount(struct sockaddr_in *addr, char *path, struct nfs_fh *fh,
++	      int version, int protocol)
  {
- 	struct rpc_clnt *clnt = task->tk_client;
- 	int bind_version;
-@@ -315,17 +315,17 @@ void rpcb_getport(struct rpc_task *task)
- 	struct sockaddr addr;
- 	int status;
+ 	struct rpc_clnt		*mnt_clnt;
+ 	struct mnt_fhstatus	result = {
+diff -puN fs/nfs/nfsroot.c~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client fs/nfs/nfsroot.c
+--- a/fs/nfs/nfsroot.c~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client
++++ a/fs/nfs/nfsroot.c
+@@ -496,7 +496,7 @@ static int __init root_nfs_get_handle(vo
+ 					NFS_MNT3_VERSION : NFS_MNT_VERSION;
  
--	dprintk("RPC: %5u rpcb_getport(%s, %u, %u, %d)\n",
--			task->tk_pid, clnt->cl_server,
--			clnt->cl_prog, clnt->cl_vers, xprt->prot);
-+	dprintk("RPC: %5u %s(%s, %u, %u, %d)\n",
-+		task->tk_pid, __FUNCTION__,
-+		clnt->cl_server, clnt->cl_prog, clnt->cl_vers, xprt->prot);
+ 	set_sockaddr(&sin, servaddr, htons(mount_port));
+-	status = nfsroot_mount(&sin, nfs_path, &fh, version, protocol);
++	status = nfs_mount(&sin, nfs_path, &fh, version, protocol);
+ 	if (status < 0)
+ 		printk(KERN_ERR "Root-NFS: Server returned error %d "
+ 				"while mounting %s\n", status, nfs_path);
+diff -puN include/linux/nfs_fs.h~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client include/linux/nfs_fs.h
+--- a/include/linux/nfs_fs.h~nfs-remake-nfsroot_mount-as-a-permanent-part-of-nfs-client
++++ a/include/linux/nfs_fs.h
+@@ -497,10 +497,8 @@ static inline void nfs3_forget_cached_ac
  
- 	/* Autobind on cloned rpc clients is discouraged */
- 	BUG_ON(clnt->cl_parent != clnt);
+ /*
+  * linux/fs/mount_clnt.c
+- * (Used only by nfsroot module)
+  */
+-extern int  nfsroot_mount(struct sockaddr_in *, char *, struct nfs_fh *,
+-		int, int);
++extern int  nfs_mount(struct sockaddr_in *, char *, struct nfs_fh *, int, int);
  
- 	if (xprt_test_and_set_binding(xprt)) {
- 		status = -EACCES;		/* tell caller to check again */
--		dprintk("RPC: %5u rpcb_getport waiting for another binder\n",
--				task->tk_pid);
-+		dprintk("RPC: %5u %s: waiting for another binder\n",
-+			task->tk_pid, __FUNCTION__);
- 		goto bailout_nowake;
- 	}
- 
-@@ -336,27 +336,28 @@ void rpcb_getport(struct rpc_task *task)
- 	/* Someone else may have bound if we slept */
- 	if (xprt_bound(xprt)) {
- 		status = 0;
--		dprintk("RPC: %5u rpcb_getport already bound\n", task->tk_pid);
-+		dprintk("RPC: %5u %s: already bound\n",
-+			task->tk_pid, __FUNCTION__);
- 		goto bailout_nofree;
- 	}
- 
- 	if (rpcb_next_version[xprt->bind_index].rpc_proc == NULL) {
- 		xprt->bind_index = 0;
- 		status = -EACCES;	/* tell caller to try again later */
--		dprintk("RPC: %5u rpcb_getport no more getport versions "
--				"available\n", task->tk_pid);
-+ 		dprintk("RPC: %5u %s: no more getport versions available\n",
-+ 			task->tk_pid, __FUNCTION__);
- 		goto bailout_nofree;
- 	}
- 	bind_version = rpcb_next_version[xprt->bind_index].rpc_vers;
- 
--	dprintk("RPC: %5u rpcb_getport trying rpcbind version %u\n",
--			task->tk_pid, bind_version);
-+ 	dprintk("RPC: %5u %s: trying rpcbind version %u\n",
-+ 		task->tk_pid, __FUNCTION__, bind_version);
- 
- 	map = kzalloc(sizeof(struct rpcbind_args), GFP_ATOMIC);
- 	if (!map) {
- 		status = -ENOMEM;
--		dprintk("RPC: %5u rpcb_getport no memory available\n",
--				task->tk_pid);
-+ 		dprintk("RPC: %5u %s: no memory available\n",
-+ 			task->tk_pid, __FUNCTION__);
- 		goto bailout_nofree;
- 	}
- 	map->r_prog = clnt->cl_prog;
-@@ -374,16 +375,16 @@ void rpcb_getport(struct rpc_task *task)
- 	rpcb_clnt = rpcb_create(clnt->cl_server, &addr, xprt->prot, bind_version, 0);
- 	if (IS_ERR(rpcb_clnt)) {
- 		status = PTR_ERR(rpcb_clnt);
--		dprintk("RPC: %5u rpcb_getport rpcb_create failed, error %ld\n",
--				task->tk_pid, PTR_ERR(rpcb_clnt));
-+		dprintk("RPC: %5u %s: rpcb_create failed, error %ld\n",
-+			task->tk_pid, __FUNCTION__, PTR_ERR(rpcb_clnt));
- 		goto bailout;
- 	}
- 
- 	child = rpc_run_task(rpcb_clnt, RPC_TASK_ASYNC, &rpcb_getport_ops, map);
- 	if (IS_ERR(child)) {
- 		status = -EIO;
--		dprintk("RPC: %5u rpcb_getport rpc_run_task failed\n",
--				task->tk_pid);
-+		dprintk("RPC: %5u %s: rpc_run_task failed\n",
-+			task->tk_pid, __FUNCTION__);
- 		goto bailout_nofree;
- 	}
- 	rpc_put_task(child);
-diff -puN net/sunrpc/xprtsock.c~sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~sunrpc-rename-rpcb_getport-to-be-consistent-with-new-rpcb_getport_sync-name
-+++ a/net/sunrpc/xprtsock.c
-@@ -1476,7 +1476,7 @@ static struct rpc_xprt_ops xs_udp_ops = 
- 	.set_buffer_size	= xs_udp_set_buffer_size,
- 	.reserve_xprt		= xprt_reserve_xprt_cong,
- 	.release_xprt		= xprt_release_xprt_cong,
--	.rpcbind		= rpcb_getport,
-+	.rpcbind		= rpcb_getport_async,
- 	.set_port		= xs_set_port,
- 	.connect		= xs_connect,
- 	.buf_alloc		= rpc_malloc,
-@@ -1493,7 +1493,7 @@ static struct rpc_xprt_ops xs_udp_ops = 
- static struct rpc_xprt_ops xs_tcp_ops = {
- 	.reserve_xprt		= xprt_reserve_xprt,
- 	.release_xprt		= xs_tcp_release_xprt,
--	.rpcbind		= rpcb_getport,
-+	.rpcbind		= rpcb_getport_async,
- 	.set_port		= xs_set_port,
- 	.connect		= xs_connect,
- 	.buf_alloc		= rpc_malloc,
+ /*
+  * inline functions
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
