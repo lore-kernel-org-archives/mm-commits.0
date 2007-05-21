@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - cxacru-add-documentation-file.patch removed from -mm tree
-Date: Mon, 21 May 2007 16:17:08 -0700
-Message-ID: <200705212317.l4LNH7sG022445@shell0.pdx.osdl.net>
+Subject: - cxacru-create-sysfs-attributes-in-atm_start-instead-of-bind.patch removed from -mm tree
+Date: Mon, 21 May 2007 16:17:13 -0700
+Message-ID: <200705212317.l4LNHCuB022451@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50193 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756932AbXEUXUP (ORCPT
+	by vger.kernel.org with ESMTP id S1756955AbXEUXUP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 21 May 2007 19:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,20 +15,29 @@ To: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, gregkh@suse.de, mm-commits@v
 
 
 The patch titled
-     cxacru: add Documentation file
+     cxacru: create sysfs attributes in atm_start instead of bind
 has been removed from the -mm tree.  Its filename was
-     cxacru-add-documentation-file.patch
+     cxacru-create-sysfs-attributes-in-atm_start-instead-of-bind.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxacru: add Documentation file
+Subject: cxacru: create sysfs attributes in atm_start instead of bind
 From: Simon Arlott <simon@fire.lp0.eu>
 
-The sysfs attributes for exposing cxacru statistics/status information with
-possible values is now explained in Documentation/networking/cxacru.txt
-including information on the writable adsl_state attribute's commands and a
-sample of the kernel log format.
+Since usbatm doesn't set the usb_interface driver data until after calling
+bind and heavy_init, it would be NULL when the sysfs attributes are read. 
+Reading the MAC address from atm_dev before atm_dev exists would have been
+be possible too.
+
+Calling create_device_file in atm_start will avoid this problem, and the
+data is useless until the first status poll runs.  However, it must be
+ready before a status poll does a printk on line status change otherwise
+userspace could react before the files exist.
+
+For completeness I've moved remove_device_file to atm_stop so it's not
+called in unbind when it's not needed.  There's no point starting ADSL if
+atm_start could still fail either.
 
 Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
@@ -36,110 +45,110 @@ Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/00-INDEX   |    2 
- Documentation/networking/cxacru.txt |   84 ++++++++++++++++++++++++++
- 2 files changed, 86 insertions(+)
+ drivers/usb/atm/cxacru.c |   45 ++++++++++++++++++++-----------------
+ 1 file changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/networking/00-INDEX~cxacru-add-documentation-file Documentation/networking/00-INDEX
---- a/Documentation/networking/00-INDEX~cxacru-add-documentation-file
-+++ a/Documentation/networking/00-INDEX
-@@ -32,6 +32,8 @@ cops.txt
- 	- info on the COPS LocalTalk Linux driver
- cs89x0.txt
- 	- the Crystal LAN (CS8900/20-based) Ethernet ISA adapter driver
-+cxacru.txt
-+	- Conexant AccessRunner USB ADSL Modem
- de4x5.txt
- 	- the Digital EtherWORKS DE4?? and DE5?? PCI Ethernet driver
- decnet.txt
-diff -puN /dev/null Documentation/networking/cxacru.txt
---- /dev/null
-+++ a/Documentation/networking/cxacru.txt
-@@ -0,0 +1,84 @@
-+Firmware is required for this device: http://accessrunner.sourceforge.net/
+diff -puN drivers/usb/atm/cxacru.c~cxacru-create-sysfs-attributes-in-atm_start-instead-of-bind drivers/usb/atm/cxacru.c
+--- a/drivers/usb/atm/cxacru.c~cxacru-create-sysfs-attributes-in-atm_start-instead-of-bind
++++ a/drivers/usb/atm/cxacru.c
+@@ -618,10 +618,22 @@ static int cxacru_card_status(struct cxa
+ 	return 0;
+ }
+ 
++static void cxacru_remove_device_files(struct usbatm_data *usbatm_instance,
++		struct atm_dev *atm_dev)
++{
++	struct usb_interface *intf = usbatm_instance->usb_intf;
 +
-+While it is capable of managing/maintaining the ADSL connection without the
-+module loaded, the device will sometimes stop responding after unloading the
-+driver and it is necessary to unplug/remove power to the device to fix this.
++	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
++		device_remove_file(&intf->dev, &dev_attr_##_name);
++	CXACRU_ALL_FILES(REMOVE);
++	#undef CXACRU_DEVICE_REMOVE_FILE
++}
 +
-+Detected devices will appear as ATM devices named "cxacru". In /sys/class/atm/
-+these are directories named cxacruN where N is the device number. A symlink
-+named device points to the USB interface device's directory which contains
-+several sysfs attribute files for retrieving device statistics:
+ static int cxacru_atm_start(struct usbatm_data *usbatm_instance,
+ 		struct atm_dev *atm_dev)
+ {
+ 	struct cxacru_data *instance = usbatm_instance->driver_data;
++	struct usb_interface *intf = usbatm_instance->usb_intf;
+ 	/*
+ 	struct atm_dev *atm_dev = usbatm_instance->atm_dev;
+ 	*/
+@@ -638,6 +650,13 @@ static int cxacru_atm_start(struct usbat
+ 		return ret;
+ 	}
+ 
++	#define CXACRU_DEVICE_CREATE_FILE(_name) \
++		ret = device_create_file(&intf->dev, &dev_attr_##_name); \
++		if (unlikely(ret)) \
++			goto fail_sysfs;
++	CXACRU_ALL_FILES(CREATE);
++	#undef CXACRU_DEVICE_CREATE_FILE
 +
-+* adsl_controller_version
+ 	/* start ADSL */
+ 	mutex_lock(&instance->adsl_state_serialize);
+ 	ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_START, NULL, 0, NULL, 0);
+@@ -669,6 +688,11 @@ static int cxacru_atm_start(struct usbat
+ 	if (start_polling)
+ 		cxacru_poll_status(&instance->poll_work.work);
+ 	return 0;
 +
-+* adsl_headend
-+* adsl_headend_environment
-+	Information about the remote headend.
-+
-+* downstream_attenuation (dB)
-+* downstream_bits_per_frame
-+* downstream_rate (kbps)
-+* downstream_snr_margin (dB)
-+	Downstream stats.
-+
-+* upstream_attenuation (dB)
-+* upstream_bits_per_frame
-+* upstream_rate (kbps)
-+* upstream_snr_margin (dB)
-+* transmitter_power (dBm/Hz)
-+	Upstream stats.
-+
-+* downstream_crc_errors
-+* downstream_fec_errors
-+* downstream_hec_errors
-+* upstream_crc_errors
-+* upstream_fec_errors
-+* upstream_hec_errors
-+	Error counts.
-+
-+* line_startable
-+	Indicates that ADSL support on the device
-+	is/can be enabled, see adsl_start.
-+
-+* line_status
-+	"initialising"
-+	"down"
-+	"attempting to activate"
-+	"training"
-+	"channel analysis"
-+	"exchange"
-+	"waiting"
-+	"up"
-+
-+	Changes between "down" and "attempting to activate"
-+	if there is no signal.
-+
-+* link_status
-+	"not connected"
-+	"connected"
-+	"lost"
-+
-+* mac_address
-+
-+* modulation
-+	"ANSI T1.413"
-+	"ITU-T G.992.1 (G.DMT)"
-+	"ITU-T G.992.2 (G.LITE)"
-+
-+* startup_attempts
-+	Count of total attempts to initialise ADSL.
-+
-+To enable/disable ADSL, the following can be written to the adsl_state file:
-+	"start"
-+	"stop
-+	"restart" (stops, waits 1.5s, then starts)
-+	"poll" (used to resume status polling if it was disabled due to failure)
-+
-+Changes in adsl/line state are reported via kernel log messages:
-+	[4942145.150704] ATM dev 0: ADSL state: running
-+	[4942243.663766] ATM dev 0: ADSL line: down
-+	[4942249.665075] ATM dev 0: ADSL line: attempting to activate
-+	[4942253.654954] ATM dev 0: ADSL line: training
-+	[4942255.666387] ATM dev 0: ADSL line: channel analysis
-+	[4942259.656262] ATM dev 0: ADSL line: exchange
-+	[2635357.696901] ATM dev 0: ADSL line: up (8128 kb/s down | 832 kb/s up)
++fail_sysfs:
++	usb_err(usbatm_instance, "cxacru_atm_start: device_create_file failed (%d)\n", ret);
++	cxacru_remove_device_files(usbatm_instance, atm_dev);
++	return ret;
+ }
+ 
+ static void cxacru_poll_status(struct work_struct *work)
+@@ -1054,13 +1078,6 @@ static int cxacru_bind(struct usbatm_dat
+ 		goto fail;
+ 	}
+ 
+-	#define CXACRU_DEVICE_CREATE_FILE(_name) \
+-		ret = device_create_file(&intf->dev, &dev_attr_##_name); \
+-		if (unlikely(ret)) \
+-			goto fail_sysfs;
+-	CXACRU_ALL_FILES(CREATE);
+-	#undef CXACRU_DEVICE_CREATE_FILE
+-
+ 	usb_fill_int_urb(instance->rcv_urb,
+ 			usb_dev, usb_rcvintpipe(usb_dev, CXACRU_EP_CMD),
+ 			instance->rcv_buf, PAGE_SIZE,
+@@ -1081,14 +1098,6 @@ static int cxacru_bind(struct usbatm_dat
+ 
+ 	return 0;
+ 
+- fail_sysfs:
+-	dbg("cxacru_bind: device_create_file failed (%d)\n", ret);
+-
+-	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
+-		device_remove_file(&intf->dev, &dev_attr_##_name);
+-	CXACRU_ALL_FILES(REMOVE);
+-	#undef CXACRU_DEVICE_REVOVE_FILE
+-
+  fail:
+ 	free_page((unsigned long) instance->snd_buf);
+ 	free_page((unsigned long) instance->rcv_buf);
+@@ -1135,11 +1144,6 @@ static void cxacru_unbind(struct usbatm_
+ 	free_page((unsigned long) instance->snd_buf);
+ 	free_page((unsigned long) instance->rcv_buf);
+ 
+-	#define CXACRU_DEVICE_REMOVE_FILE(_name) \
+-		device_remove_file(&intf->dev, &dev_attr_##_name);
+-	CXACRU_ALL_FILES(REMOVE);
+-	#undef CXACRU_DEVICE_REVOVE_FILE
+-
+ 	kfree(instance);
+ 
+ 	usbatm_instance->driver_data = NULL;
+@@ -1220,6 +1224,7 @@ static struct usbatm_driver cxacru_drive
+ 	.heavy_init	= cxacru_heavy_init,
+ 	.unbind		= cxacru_unbind,
+ 	.atm_start	= cxacru_atm_start,
++	.atm_stop	= cxacru_remove_device_files,
+ 	.bulk_in	= CXACRU_EP_DATA,
+ 	.bulk_out	= CXACRU_EP_DATA,
+ 	.rx_padding	= 3,
 _
 
 Patches currently in -mm which might be from simon@fire.lp0.eu are
