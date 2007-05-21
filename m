@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fix-compiler-warning-in-ddc.patch added to -mm tree
-Date: Mon, 21 May 2007 13:24:27 -0700
-Message-ID: <200705212024.l4LKOR15019161@shell0.pdx.osdl.net>
+Subject: - fix-compiler-warning-in-ddc.patch removed from -mm tree
+Date: Mon, 21 May 2007 13:28:36 -0700
+Message-ID: <200705212028.l4LKSaJC019243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45639 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934970AbXEUU0R (ORCPT
+	by vger.kernel.org with ESMTP id S1755451AbXEUUaZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:26:17 -0400
+	Mon, 21 May 2007 16:30:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: denver@ossguy.com, greg@kroah.com
+To: denver@ossguy.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      fix compiler warning in dd.c
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fix-compiler-warning-in-ddc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I already had it
 
 ------------------------------------------------------
 Subject: fix compiler warning in dd.c
