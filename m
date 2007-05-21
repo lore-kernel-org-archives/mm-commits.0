@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ide-add-seagate-stt20000a-to-dma-blacklist.patch added to -mm tree
-Date: Mon, 21 May 2007 15:31:29 -0700
-Message-ID: <200705212231.l4LMVTdR021578@shell0.pdx.osdl.net>
+Subject: + kbuild-fix-and-improve-mips-rel-handling.patch added to -mm tree
+Date: Mon, 21 May 2007 15:32:42 -0700
+Message-ID: <200705212232.l4LMWgaP021613@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56787 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39986 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755997AbXEUWeL (ORCPT
+	by vger.kernel.org with ESMTP id S1754954AbXEUWfU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 18:34:11 -0400
+	Mon, 21 May 2007 18:35:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com
+Cc: anemo@mba.ocn.ne.jp, ralf@linux-mips.org, sam@ravnborg.org
 
 
 The patch titled
-     ide: add Seagate STT20000A to DMA blacklist
+     kbuild: fix and improve MIPS REL handling
 has been added to the -mm tree.  Its filename is
-     ide-add-seagate-stt20000a-to-dma-blacklist.patch
+     kbuild-fix-and-improve-mips-rel-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide: add Seagate STT20000A to DMA blacklist
-From: Dave Jones <davej@redhat.com>
+Subject: kbuild: fix and improve MIPS REL handling
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=1044 has been open for _four_
-years with a patch available.  Here's a rediffed version of the same.
+Add R_MIPS_32 relocation case.
+And there is no need to do sign-extention on calculation of addend.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-dma.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ scripts/mod/modpost.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/ide-dma.c~ide-add-seagate-stt20000a-to-dma-blacklist drivers/ide/ide-dma.c
---- a/drivers/ide/ide-dma.c~ide-add-seagate-stt20000a-to-dma-blacklist
-+++ a/drivers/ide/ide-dma.c
-@@ -127,7 +127,8 @@ static const struct drive_list_entry dri
- 	{ "SAMSUNG CD-ROM SC",	"ALL"		},
- 	{ "SanDisk SDP3B-64"	,	"ALL"		},
- 	{ "ATAPI CD-ROM DRIVE 40X MAXIMUM",	"ALL"		},
--	{ "_NEC DV5800A",               "ALL"           },  
-+	{ "_NEC DV5800A",               "ALL"           },
-+	{ "Seagate STT20000A",          "ALL"           },
- 	{ NULL			,	NULL		}
- 
- };
+diff -puN scripts/mod/modpost.c~kbuild-fix-and-improve-mips-rel-handling scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~kbuild-fix-and-improve-mips-rel-handling
++++ a/scripts/mod/modpost.c
+@@ -951,11 +951,14 @@ static int addend_mips_rel(struct elf_in
+ 	inst = TO_NATIVE(*location);
+ 	switch (r_typ) {
+ 	case R_MIPS_LO16:
+-		r->r_addend = ((inst & 0xffff) ^ 0x8000) - 0x8000;
++		r->r_addend = inst & 0xffff;
+ 		break;
+ 	case R_MIPS_26:
+ 		r->r_addend = (inst & 0x03ffffff) << 2;
+ 		break;
++	case R_MIPS_32:
++		r->r_addend = inst;
++		break;
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-git-cpufreq.patch
-ide-add-seagate-stt20000a-to-dma-blacklist.patch
+origin.patch
+git-kbuild.patch
+kbuild-fix-and-improve-mips-rel-handling.patch
+git-mips.patch
+mips-make-resources-for-ds1742-static-__initdata.patch
