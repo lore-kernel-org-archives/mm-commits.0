@@ -1,216 +1,374 @@
 From: akpm@linux-foundation.org
-Subject: - serial-make-early_uart-to-use-early_prarm-instead-of-fix.patch removed from -mm tree
-Date: Sun, 20 May 2007 21:47:19 -0700
-Message-ID: <200705210447.l4L4lKcW002642@shell0.pdx.osdl.net>
+Subject: - serial-make-early_uart-to-use-early_prarm-instead-of.patch removed from -mm tree
+Date: Sun, 20 May 2007 21:47:49 -0700
+Message-ID: <200705210447.l4L4lnp5002662@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47514 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36104 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbXEUEtN (ORCPT
+	by vger.kernel.org with ESMTP id S1754403AbXEUEvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 00:49:13 -0400
+	Mon, 21 May 2007 00:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial-make-early_uart-to-use-early_prarm-instead-of-fix
+     serial: make early_uart use early_param instead of console_initcall
 has been removed from the -mm tree.  Its filename was
-     serial-make-early_uart-to-use-early_prarm-instead-of-fix.patch
+     serial-make-early_uart-to-use-early_prarm-instead-of.patch
 
-This patch was dropped because it was folded into serial-make-early_uart-to-use-early_prarm-instead-of.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: serial-make-early_uart-to-use-early_prarm-instead-of-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial: make early_uart use early_param instead of console_initcall
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Make early_uart to use early_param, so uart console can be used earlier. 
+Make it to be bootconsole with CON_BOOT flag, so can use console handover
+feature.  and it will switch to corresponding normal serial console
+automatically.  new command line will be
+
+earlycon=uart,io,0x3f8,9600n8
+earlycon=uart,io,0x3f8,9600n8 console=tty0
+
+it will print in very early stage
+
+Early serial console at I/O port 0x3f8 (options '9600n8')
+
+later for console it will print
+
+console handover: boot [uart0] -> real [ttyS0]
+
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig       |    7 ++++---
- drivers/serial/serial_core.c |    2 +-
- include/linux/console.h      |    3 ++-
- kernel/printk.c              |    8 +++++---
- 4 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/serial/8250.c        |   23 --------
+ drivers/serial/8250_early.c  |   86 ++++++++++++++++-----------------
+ drivers/serial/Kconfig       |    7 ++
+ drivers/serial/serial_core.c |    5 +
+ include/linux/console.h      |    2 
+ include/linux/serial.h       |    6 --
+ include/linux/serial_8250.h  |    3 +
+ include/linux/serial_core.h  |    5 +
+ kernel/printk.c              |   17 ++++++
+ 9 files changed, 84 insertions(+), 70 deletions(-)
 
-diff -puN drivers/serial/Kconfig~serial-make-early_uart-to-use-early_prarm-instead-of-fix drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~serial-make-early_uart-to-use-early_prarm-instead-of-fix
+diff -puN drivers/serial/8250.c~serial-make-early_uart-to-use-early_prarm-instead-of drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-make-early_uart-to-use-early_prarm-instead-of
++++ a/drivers/serial/8250.c
+@@ -2367,6 +2367,7 @@ static struct uart_ops serial8250_pops =
+ 	.request_port	= serial8250_request_port,
+ 	.config_port	= serial8250_config_port,
+ 	.verify_port	= serial8250_verify_port,
++	.find_port_for_earlycon = serial8250_find_port_for_earlycon,
+ };
+ 
+ static struct uart_8250_port serial8250_ports[UART_NR];
+@@ -2533,7 +2534,7 @@ static int __init serial8250_console_ini
+ }
+ console_initcall(serial8250_console_init);
+ 
+-static int __init find_port(struct uart_port *p)
++int __init find_port_serial8250(struct uart_port *p)
+ {
+ 	int line;
+ 	struct uart_port *port;
+@@ -2546,26 +2547,6 @@ static int __init find_port(struct uart_
+ 	return -ENODEV;
+ }
+ 
+-int __init serial8250_start_console(struct uart_port *port, char *options)
+-{
+-	int line;
+-
+-	line = find_port(port);
+-	if (line < 0)
+-		return -ENODEV;
+-
+-	add_preferred_console("ttyS", line, options);
+-	printk("Adding console on ttyS%d at %s 0x%lx (options '%s')\n",
+-		line, port->iotype == UPIO_MEM ? "MMIO" : "I/O port",
+-		port->iotype == UPIO_MEM ? (unsigned long) port->mapbase :
+-		    (unsigned long) port->iobase, options);
+-	if (!(serial8250_console.flags & CON_ENABLED)) {
+-		serial8250_console.flags &= ~CON_PRINTBUFFER;
+-		register_console(&serial8250_console);
+-	}
+-	return line;
+-}
+-
+ #define SERIAL8250_CONSOLE	&serial8250_console
+ #else
+ #define SERIAL8250_CONSOLE	NULL
+diff -puN drivers/serial/8250_early.c~serial-make-early_uart-to-use-early_prarm-instead-of drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-make-early_uart-to-use-early_prarm-instead-of
++++ a/drivers/serial/8250_early.c
+@@ -17,13 +17,9 @@
+  * we locate the device directly by its MMIO or I/O port address.
+  *
+  * The user can specify the device directly, e.g.,
+- *	console=uart,io,0x3f8,9600n8
+- *	console=uart,mmio,0xff5e0000,115200n8
+- * or platform code can call early_uart_console_init() to set
+- * the early UART device.
++ *	earlycon=uart,io,0x3f8,9600n8
++ *	earlycon=uart,mmio,0xff5e0000,115200n8
+  *
+- * After the normal serial driver starts, we try to locate the
+- * matching ttyS device and start a console there.
+  */
+ 
+ #include <linux/tty.h>
+@@ -32,6 +28,7 @@
+ #include <linux/serial_core.h>
+ #include <linux/serial_reg.h>
+ #include <linux/serial.h>
++#include <linux/serial_8250.h>
+ #include <asm/io.h>
+ #include <asm/serial.h>
+ 
+@@ -42,7 +39,6 @@ struct early_uart_device {
+ };
+ 
+ static struct early_uart_device early_device __initdata;
+-static int early_uart_registered __initdata;
+ 
+ static unsigned int __init serial_in(struct uart_port *port, int offset)
+ {
+@@ -175,6 +171,13 @@ static int __init parse_options(struct e
+ 	return 0;
+ }
+ 
++static struct console early_uart_console __initdata = {
++	.name	= "uart",
++	.write	= early_uart_write,
++	.flags	= CON_PRINTBUFFER,
++	.index	= -1,
++};
++
+ static int __init early_uart_setup(struct console *console, char *options)
+ {
+ 	struct early_uart_device *device = &early_device;
+@@ -190,61 +193,60 @@ static int __init early_uart_setup(struc
+ 	return 0;
+ }
+ 
+-static struct console early_uart_console __initdata = {
+-	.name	= "uart",
+-	.write	= early_uart_write,
+-	.setup	= early_uart_setup,
+-	.flags	= CON_PRINTBUFFER,
+-	.index	= -1,
+-};
+-
+-static int __init early_uart_console_init(void)
+-{
+-	if (!early_uart_registered) {
+-		register_console(&early_uart_console);
+-		early_uart_registered = 1;
+-	}
+-	return 0;
+-}
+-console_initcall(early_uart_console_init);
+-
+-int __init early_serial_console_init(char *cmdline)
++static int __init setup_early_serial_console(char *cmdline)
+ {
+ 	char *options;
+ 	int err;
+ 
+-	options = strstr(cmdline, "console=uart,");
++	options = strstr(cmdline, "uart,");
+ 	if (!options)
+ 		return -ENODEV;
+ 
+ 	options = strchr(cmdline, ',') + 1;
+ 	if ((err = early_uart_setup(NULL, options)) < 0)
+ 		return err;
+-	return early_uart_console_init();
++
++	early_uart_console.flags |= CON_BOOT;
++	register_console(&early_uart_console);
++
++	/* add one dummy entry in console_cmdline*/
++	add_preferred_console("ttyS", 255, early_device.options);
++
++	return 0;
+ }
+ 
+-static int __init early_uart_console_switch(void)
++int serial8250_find_port_for_earlycon(void)
+ {
+ 	struct early_uart_device *device = &early_device;
+ 	struct uart_port *port = &device->port;
+-	int mmio, line;
++	int line;
+ 
+-	if (!(early_uart_console.flags & CON_ENABLED))
+-		return 0;
++	line = find_port_serial8250(port);
+ 
+-	/* Try to start the normal driver on a matching line.  */
+-	mmio = (port->iotype == UPIO_MEM);
+-	line = serial8250_start_console(port, device->options);
+ 	if (line < 0)
+-		printk("No ttyS device at %s 0x%lx for console\n",
+-			mmio ? "MMIO" : "I/O port",
+-			mmio ? port->mapbase :
+-			    (unsigned long) port->iobase);
++		return -ENODEV;
++
++	/* update the dummy entry to what we want console type */
++	update_console_cmdline_console_index("ttyS", 255, line);
++
++	return 0;
++
++}
+ 
+-	unregister_console(&early_uart_console);
+-	if (mmio)
++early_param("earlycon", setup_early_serial_console);
++
++static int __init early_uart_console_post(void)
++{
++	struct early_uart_device *device = &early_device;
++	struct uart_port *port = &device->port;
++
++	if (!(early_uart_console.flags & CON_ENABLED))
++		return 0;
++
++	if (port->iotype == UPIO_MEM)
+ 		iounmap(port->membase);
+ 
+ 	return 0;
+ }
+-late_initcall(early_uart_console_switch);
++
++late_initcall(early_uart_console_post);
+diff -puN drivers/serial/Kconfig~serial-make-early_uart-to-use-early_prarm-instead-of drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~serial-make-early_uart-to-use-early_prarm-instead-of
 +++ a/drivers/serial/Kconfig
-@@ -62,11 +62,12 @@ config SERIAL_8250_CONSOLE
+@@ -62,6 +62,13 @@ config SERIAL_8250_CONSOLE
  	  kernel will automatically use the first serial line, /dev/ttyS0, as
  	  system console.
  
--	  you can set that using a kernel command line option such as
 +	  Early console may be specified using a kernel command line option
 +	  such as
- 	  "earlycon=uart,io,0x3f8,9600n8" or
- 	  "earlycon=uart,mem,0xfe000008,115200n8".
--	  and it will switch to normal serial console when correponding port is
--	  ready.
++	  "earlycon=uart,io,0x3f8,9600n8" or
++	  "earlycon=uart,mem,0xfe000008,115200n8".
 +	  and it will switch to the normal serial console when the
 +	  corresponding port is ready.
- 
++
  	  If unsure, say N.
  
-diff -puN drivers/serial/serial_core.c~serial-make-early_uart-to-use-early_prarm-instead-of-fix drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-make-early_uart-to-use-early_prarm-instead-of-fix
+ config SERIAL_8250_GSC
+diff -puN drivers/serial/serial_core.c~serial-make-early_uart-to-use-early_prarm-instead-of drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-make-early_uart-to-use-early_prarm-instead-of
 +++ a/drivers/serial/serial_core.c
-@@ -2304,7 +2304,7 @@ int uart_add_one_port(struct uart_driver
+@@ -2303,8 +2303,11 @@ int uart_add_one_port(struct uart_driver
+ 	 * It may be that the port was not available.
  	 */
  	if (port->type != PORT_UNKNOWN &&
- 	    port->cons && !(port->cons->flags & CON_ENABLED)) {
--		if(port->ops && port->ops->find_port_for_earlycon)
+-	    port->cons && !(port->cons->flags & CON_ENABLED))
++	    port->cons && !(port->cons->flags & CON_ENABLED)) {
 +		if (port->ops && port->ops->find_port_for_earlycon)
- 			port->ops->find_port_for_earlycon();
++			port->ops->find_port_for_earlycon();
  		register_console(port->cons);
- 	}
-diff -puN include/linux/console.h~serial-make-early_uart-to-use-early_prarm-instead-of-fix include/linux/console.h
---- a/include/linux/console.h~serial-make-early_uart-to-use-early_prarm-instead-of-fix
++	}
+ 
+ 	/*
+ 	 * Ensure UPF_DEAD is not set.
+diff -puN include/linux/console.h~serial-make-early_uart-to-use-early_prarm-instead-of include/linux/console.h
+--- a/include/linux/console.h~serial-make-early_uart-to-use-early_prarm-instead-of
 +++ a/include/linux/console.h
-@@ -107,7 +107,8 @@ struct console {
+@@ -107,6 +107,8 @@ struct console {
  };
  
  extern int add_preferred_console(char *name, int idx, char *options);
--extern int update_console_cmdline_console_index(char *name, int idx_old, int idx_new);
 +extern int update_console_cmdline_console_index(char *name, int idx_old,
 +						int idx_new);
  extern void register_console(struct console *);
  extern int unregister_console(struct console *);
  extern struct console *console_drivers;
-diff -puN kernel/printk.c~serial-make-early_uart-to-use-early_prarm-instead-of-fix kernel/printk.c
---- a/kernel/printk.c~serial-make-early_uart-to-use-early_prarm-instead-of-fix
+diff -puN include/linux/serial.h~serial-make-early_uart-to-use-early_prarm-instead-of include/linux/serial.h
+--- a/include/linux/serial.h~serial-make-early_uart-to-use-early_prarm-instead-of
++++ a/include/linux/serial.h
+@@ -177,11 +177,5 @@ struct serial_icounter_struct {
+ #ifdef __KERNEL__
+ #include <linux/compiler.h>
+ 
+-/* Allow architectures to override entries in serial8250_ports[] at run time: */
+-struct uart_port;	/* forward declaration */
+-extern int early_serial_setup(struct uart_port *port);
+-extern int early_serial_console_init(char *options);
+-extern int serial8250_start_console(struct uart_port *port, char *options);
+-
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_SERIAL_H */
+diff -puN include/linux/serial_8250.h~serial-make-early_uart-to-use-early_prarm-instead-of include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~serial-make-early_uart-to-use-early_prarm-instead-of
++++ a/include/linux/serial_8250.h
+@@ -60,4 +60,7 @@ void serial8250_unregister_port(int line
+ void serial8250_suspend_port(int line);
+ void serial8250_resume_port(int line);
+ 
++extern int find_port_serial8250(struct uart_port *p);
++extern int serial8250_find_port_for_earlycon(void);
++
+ #endif
+diff -puN include/linux/serial_core.h~serial-make-early_uart-to-use-early_prarm-instead-of include/linux/serial_core.h
+--- a/include/linux/serial_core.h~serial-make-early_uart-to-use-early_prarm-instead-of
++++ a/include/linux/serial_core.h
+@@ -199,6 +199,11 @@ struct uart_ops {
+ 	void		(*config_port)(struct uart_port *, int);
+ 	int		(*verify_port)(struct uart_port *, struct serial_struct *);
+ 	int		(*ioctl)(struct uart_port *, unsigned int, unsigned long);
++
++	/*
++	 * for earlycon to console switch
++	 */
++	int		(*find_port_for_earlycon)(void);
+ };
+ 
+ #define UART_CONFIG_TYPE	(1 << 0)
+diff -puN kernel/printk.c~serial-make-early_uart-to-use-early_prarm-instead-of kernel/printk.c
+--- a/kernel/printk.c~serial-make-early_uart-to-use-early_prarm-instead-of
 +++ a/kernel/printk.c
-@@ -726,21 +726,23 @@ int __init add_preferred_console(char *n
+@@ -726,6 +726,23 @@ int __init add_preferred_console(char *n
  	return 0;
  }
  
--int __init update_console_cmdline_console_index(char *name, int idx_old, int idx_new)
 +int __init update_console_cmdline_console_index(char *name, int idx_old,
 +						int idx_new)
- {
- 	int i;
- 
--	for(i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
++{
++	int i;
++
 +	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0];
 +			i++) {
- 		if (strcmp(console_cmdline[i].name, name) == 0 &&
- 			  console_cmdline[i].index == idx_old) {
- 			  	console_cmdline[i].index = idx_new;
- 				return 0;
- 		}
++		if (strcmp(console_cmdline[i].name, name) == 0 &&
++			  console_cmdline[i].index == idx_old) {
++			  	console_cmdline[i].index = idx_new;
++				return 0;
++		}
 +	}
- 
- 	return 0;
- }
- 
--
++
++	return 0;
++}
++
  #ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
  /**
   * suspend_console - suspend the console subsystem
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
 serial-make-early_uart-to-use-early_prarm-instead-of.patch
-serial-make-early_uart-to-use-early_prarm-instead-of-fix.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-usb-serial-keyspan-add-support-for-usa-49wg-usa-28xg-fix.patch
-git-wireless.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-simplify-cleanup_workqueue_thread-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-pie-randomization-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-vdso-print-fatal-signals.patch
-check_dirty_inode_list.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+serial-set-dtr-in-uart-for-kernel-serial-console.patch
+x86-early_print-kernel-console-should-send-crlf-not-lfcr.patch
