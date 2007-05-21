@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-share-pg_readahead-and-pg_reclaim-fix.patch added to -mm tree
-Date: Sun, 20 May 2007 21:36:22 -0700
-Message-ID: <200705210436.l4L4aLmP002496@shell0.pdx.osdl.net>
+Subject: + md-avoid-overflow-in-raid0-calculation-with-large-components.patch added to -mm tree
+Date: Sun, 20 May 2007 21:34:46 -0700
+Message-ID: <200705210434.l4L4YjhC002470@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60282 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754305AbXEUEhc (ORCPT
+	by vger.kernel.org with ESMTP id S1754305AbXEUEiS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 00:37:32 -0400
+	Mon, 21 May 2007 00:38:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn
+Cc: neilb@suse.de, Jeff.Zheng@endace.com, stable@kernel.org
 
 
 The patch titled
-     mm-share-pg_readahead-and-pg_reclaim fix
+     md: avoid overflow in raid0 calculation with large components
 has been added to the -mm tree.  Its filename is
-     mm-share-pg_readahead-and-pg_reclaim-fix.patch
+     md-avoid-overflow-in-raid0-calculation-with-large-components.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-share-pg_readahead-and-pg_reclaim fix
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: md: avoid overflow in raid0 calculation with large components
+From: NeilBrown <neilb@suse.de>
 
-We should first check (page!=NULL) before PageWriteback(page).
+If a raid0 has a component device larger than 4TB, and is accessed on a 32bit
+machines, then as 'chunk' is unsigned lock,
 
+   chunk << chunksize_bits
+
+can overflow (this can be as high as the size of the device in KB).  chunk
+itself will not overflow (without triggering a BUG).
+
+So change 'chunk' to be 'sector_t, and get rid of the 'BUG' as it becomes
+impossible to hit.
+
+Cc: "Jeff Zheng" <Jeff.Zheng@endace.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/md/raid0.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/readahead.c~mm-share-pg_readahead-and-pg_reclaim-fix mm/readahead.c
---- a/mm/readahead.c~mm-share-pg_readahead-and-pg_reclaim-fix
-+++ a/mm/readahead.c
-@@ -447,11 +447,13 @@ page_cache_readahead_ondemand(struct add
- 	if (!ra->ra_pages)
- 		return 0;
+diff -puN drivers/md/raid0.c~md-avoid-overflow-in-raid0-calculation-with-large-components drivers/md/raid0.c
+--- a/drivers/md/raid0.c~md-avoid-overflow-in-raid0-calculation-with-large-components
++++ a/drivers/md/raid0.c
+@@ -415,7 +415,7 @@ static int raid0_make_request (request_q
+ 	raid0_conf_t *conf = mddev_to_conf(mddev);
+ 	struct strip_zone *zone;
+ 	mdk_rdev_t *tmp_dev;
+-	unsigned long chunk;
++	sector_t chunk;
+ 	sector_t block, rsect;
+ 	const int rw = bio_data_dir(bio);
  
--	/* It's PG_reclaim! */
--	if (PageWriteback(page))
--		return 0;
--
- 	if (page) {
-+		/*
-+		 * It can be PG_reclaim.
-+		 */
-+		if (PageWriteback(page))
-+			return 0;
-+
- 		ClearPageReadahead(page);
+@@ -470,7 +470,6 @@ static int raid0_make_request (request_q
  
- 		/*
+ 		sector_div(x, zone->nb_dev);
+ 		chunk = x;
+-		BUG_ON(x != (sector_t)chunk);
+ 
+ 		x = block >> chunksize_bits;
+ 		tmp_dev = zone->dev[sector_div(x, zone->nb_dev)];
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from neilb@suse.de are
 
-readahead-introduce-pg_readahead.patch
-readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
-readahead-min_ra_pages-max_ra_pages-macros.patch
-readahead-data-structure-and-routines.patch
-readahead-on-demand-readahead-logic.patch
-readahead-convert-filemap-invocations.patch
-readahead-convert-splice-invocations.patch
-readahead-convert-ext3-ext4-invocations.patch
-readahead-remove-the-old-algorithm.patch
-mm-share-pg_readahead-and-pg_reclaim.patch
-mm-share-pg_readahead-and-pg_reclaim-fix.patch
+git-md-accel.patch
+md-avoid-overflow-in-raid0-calculation-with-large-components.patch
+md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap.patch
+md-fix-bug-with-linear-hot-add-and-elsewhere.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+knfsd-exportfs-add-procedural-interface-for-nfsd.patch
+knfsd-exportfs-remove-call-macro.patch
+knfsd-exportfs-untangle-isdir-logic-in-find_exported_dentry.patch
+knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
+knfsd-exportfs-add-find_disconnected_root-helper.patch
+knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch
+nfsd-warning-fix.patch
+use-menuconfig-objects-ii-md.patch
+md-improve-message-about-invalid-superblock-during-autodetect.patch
+md-improve-the-is_mddev_idle-test-fix.patch
+md-check-that-internal-bitmap-does-not-overlap-other-data.patch
+md-change-bitmap_unplug-and-others-to-void-functions.patch
