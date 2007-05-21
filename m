@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ldm-fix-for-windows-vista-dynamic-disks.patch added to -mm tree
-Date: Mon, 21 May 2007 14:58:42 -0700
-Message-ID: <200705212158.l4LLwgjn020994@shell0.pdx.osdl.net>
+Subject: + signalfd-retrieve-multiple-signals-with-one-read-call-tidy.patch added to -mm tree
+Date: Mon, 21 May 2007 15:00:00 -0700
+Message-ID: <200705212200.l4LM00FG021011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59909 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756249AbXEUWBr (ORCPT
+	by vger.kernel.org with ESMTP id S1756664AbXEUWDG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 18:01:47 -0400
+	Mon, 21 May 2007 18:03:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aia21@cam.ac.uk, aia21@cantab.net, ldm@flatcap.org
+Cc: davi@haxent.com.br, davidel@xmailserver.org, oleg@tv-sign.ru
 
 
 The patch titled
-     Fix "LDM: Fix for Windows Vista dynamic disks"
+     signalfd-retrieve-multiple-signals-with-one-read-call tidy
 has been added to the -mm tree.  Its filename is
-     fix-ldm-fix-for-windows-vista-dynamic-disks.patch
+     signalfd-retrieve-multiple-signals-with-one-read-call-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix "LDM: Fix for Windows Vista dynamic disks"
-From: Anton Altaparmakov <aia21@cam.ac.uk>
+Subject: signalfd-retrieve-multiple-signals-with-one-read-call tidy
+From: Davi Arnaut <davi@haxent.com.br>
 
-Fix the finger trouble that caused the previous LDM patch to break
-compilation...
+Simplify signalfd locking following suggestions by Oleg Nesterov.
 
-CC: Richard Russon <ldm@flatcap.org>
-Signed-off-by: Anton Altaparmakov <aia21@cantab.net>
+Signed-off-by: Davi E. M. Arnaut <davi@haxent.com.br>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/ldm.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/signalfd.c |   17 ++++++-----------
+ 1 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN fs/partitions/ldm.c~fix-ldm-fix-for-windows-vista-dynamic-disks fs/partitions/ldm.c
---- a/fs/partitions/ldm.c~fix-ldm-fix-for-windows-vista-dynamic-disks
-+++ a/fs/partitions/ldm.c
-@@ -158,7 +158,7 @@ static bool ldm_parse_privhead(const u8 
- 		/* Warn the user and continue, carefully. */
- 		ldm_info("Database is normally %u bytes, it claims to "
- 			"be %llu bytes.", LDM_DB_SIZE,
--			udunsigned long long)ph->config_size);
-+			(unsigned long long)ph->config_size);
+diff -puN fs/signalfd.c~signalfd-retrieve-multiple-signals-with-one-read-call-tidy fs/signalfd.c
+--- a/fs/signalfd.c~signalfd-retrieve-multiple-signals-with-one-read-call-tidy
++++ a/fs/signalfd.c
+@@ -211,13 +211,11 @@ static int signalfd_copyinfo(struct sign
+ static ssize_t signalfd_dequeue(struct signalfd_ctx *ctx, siginfo_t *info,
+ 				int nonblock)
+ {
+-	int locked;
+ 	ssize_t ret;
+ 	struct signalfd_lockctx lk;
+ 	DECLARE_WAITQUEUE(wait, current);
+ 
+-	locked = signalfd_lock(ctx, &lk);
+-	if (!locked)
++	if (!signalfd_lock(ctx, &lk))
+ 		return 0;
+ 
+ 	ret = dequeue_signal(lk.tsk, &ctx->sigmask, info);
+@@ -235,24 +233,24 @@ static ssize_t signalfd_dequeue(struct s
+ 	for (;;) {
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 		ret = dequeue_signal(lk.tsk, &ctx->sigmask, info);
++		signalfd_unlock(&lk);
+ 		if (ret != 0)
+ 			break;
+ 		if (signal_pending(current)) {
+ 			ret = -ERESTARTSYS;
+ 			break;
+ 		}
+-		signalfd_unlock(&lk);
+ 		schedule();
+-		locked = signalfd_lock(ctx, &lk);
+-		if (unlikely(!locked)) {
++		ret = signalfd_lock(ctx, &lk);
++		if (unlikely(!ret)) {
+ 			/*
+ 			 * Let the caller read zero byte, ala socket
+ 			 * recv() when the peer disconnect. This test
+ 			 * must be done before doing a dequeue_signal(),
+ 			 * because if the sighand has been orphaned,
+-			 * the dequeue_signal() call is going to crash.
++			 * the dequeue_signal() call is going to crash
++			 * because ->sighand will be long gone.
+ 			 */
+-			 ret = 0;
+ 			 break;
+ 		}
  	}
- 	if ((ph->logical_disk_size == 0) || (ph->logical_disk_start +
- 			ph->logical_disk_size > ph->config_start)) {
+@@ -260,9 +258,6 @@ static ssize_t signalfd_dequeue(struct s
+ 	remove_wait_queue(&ctx->wqh, &wait);
+ 	__set_current_state(TASK_RUNNING);
+ 
+-	if (likely(locked))
+-		signalfd_unlock(&lk);
+-
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from aia21@cam.ac.uk are
+Patches currently in -mm which might be from davi@haxent.com.br are
 
-fix-ldm-fix-for-windows-vista-dynamic-disks.patch
+signalfd-retrieve-multiple-signals-with-one-read-call.patch
+signalfd-retrieve-multiple-signals-with-one-read-call-tidy.patch
