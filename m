@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wistron_btns-reduce-polling-frequency-to-save-power.patch added to -mm tree
-Date: Sun, 20 May 2007 21:12:37 -0700
-Message-ID: <200705210412.l4L4Ca9v002083@shell0.pdx.osdl.net>
+Subject: + i2o-destroy-event-queue-only-when-drv-event-is-set.patch added to -mm tree
+Date: Sun, 20 May 2007 21:13:34 -0700
+Message-ID: <200705210413.l4L4DXBW002089@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33311 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbXEUEO2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754303AbXEUEPb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 00:14:28 -0400
+	Mon, 21 May 2007 00:15:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.piel@tremplin-utc.net, dtor@mail.ru
+Cc: akinobu.mita@gmail.com, Markus.Lidel@shadowconnect.com
 
 
 The patch titled
-     wistron_btns: reduce polling frequency (to save power)
+     i2o: destroy event queue only when drv->event is set
 has been added to the -mm tree.  Its filename is
-     wistron_btns-reduce-polling-frequency-to-save-power.patch
+     i2o-destroy-event-queue-only-when-drv-event-is-set.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,82 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wistron_btns: reduce polling frequency (to save power)
-From: Eric Piel <eric.piel@tremplin-utc.net>
+Subject: i2o: destroy event queue only when drv->event is set
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-wriston_btns: Reduce polling frequency
+i2o_driver_register() initalizes event queue for driver only when
+drv->event is set.  So similarly the event queue should be destroyed only
+when drv->event is set in the error path.  Otherwise destroy_workqueue()
+will called with NULL.
 
-Reduces the polling frequency from 10 Hz to 2 Hz, which should be less a
-burden for laptops wrt energy saving.  As it is multimedia keys, 500ms
-(maximum) of latency should be still fine for the user.  In order to keep
-fluent the feeling when the user is pressing several keys in a raw (such as
-changing the volume), the frequency is increased for a short duration after
-a key is pressed.
-
-Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/wistron_btns.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ drivers/message/i2o/driver.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/misc/wistron_btns.c~wistron_btns-reduce-polling-frequency-to-save-power drivers/input/misc/wistron_btns.c
---- a/drivers/input/misc/wistron_btns.c~wistron_btns-reduce-polling-frequency-to-save-power
-+++ a/drivers/input/misc/wistron_btns.c
-@@ -22,6 +22,7 @@
- #include <linux/init.h>
- #include <linux/input.h>
- #include <linux/interrupt.h>
-+#include <linux/jiffies.h>
- #include <linux/kernel.h>
- #include <linux/mc146818rtc.h>
- #include <linux/module.h>
-@@ -38,9 +39,10 @@
-  */
- #define MAX_POLL_ITERATIONS 64
- 
--#define POLL_FREQUENCY 10 /* Number of polls per second */
-+#define POLL_FREQUENCY 2 /* Number of polls per second when idle */
-+#define POLL_FREQUENCY_BURST 10 /* Polls per second when a key was recently pressed */
- 
--#if POLL_FREQUENCY > HZ
-+#if POLL_FREQUENCY_BURST > HZ
- #error "POLL_FREQUENCY too high"
- #endif
- 
-@@ -1161,6 +1163,8 @@ static void handle_key(u8 code)
- 
- static void poll_bios(unsigned long discard)
- {
-+	static unsigned long jiffies_last_press;
-+	unsigned long jiffies_now = jiffies;
- 	u8 qlen;
- 	u16 val;
- 
-@@ -1169,11 +1173,17 @@ static void poll_bios(unsigned long disc
- 		if (qlen == 0)
- 			break;
- 		val = bios_pop_queue();
--		if (val != 0 && !discard)
-+		if (val != 0 && !discard) {
- 			handle_key((u8)val);
-+			jiffies_last_press = jiffies_now;
-+		}
+diff -puN drivers/message/i2o/driver.c~i2o-destroy-event-queue-only-when-drv-event-is-set drivers/message/i2o/driver.c
+--- a/drivers/message/i2o/driver.c~i2o-destroy-event-queue-only-when-drv-event-is-set
++++ a/drivers/message/i2o/driver.c
+@@ -123,8 +123,12 @@ int i2o_driver_register(struct i2o_drive
  	}
  
--	mod_timer(&poll_timer, jiffies + HZ / POLL_FREQUENCY);
-+	/* Increase precision if user is currently pressing keys (< 2s ago) */
-+	if (time_after(jiffies_last_press, jiffies_now - (HZ * 2)))
-+		mod_timer(&poll_timer, jiffies_now + HZ / POLL_FREQUENCY_BURST);
-+	else
-+		mod_timer(&poll_timer, jiffies_now + HZ / POLL_FREQUENCY);
- }
+ 	rc = driver_register(&drv->driver);
+-	if (rc)
+-		destroy_workqueue(drv->event_queue);
++	if (rc) {
++		if (drv->event) {
++			destroy_workqueue(drv->event_queue);
++			drv->event_queue = NULL;
++		}
++	}
  
- static int __devinit wistron_probe(struct platform_device *dev)
+ 	return rc;
+ };
 _
 
-Patches currently in -mm which might be from eric.piel@tremplin-utc.net are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-wistron_btns-add-led-support.patch
-wistron_btns-reduce-polling-frequency-to-save-power.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+i2o-destroy-event-queue-only-when-drv-event-is-set.patch
+add-kstrndup.patch
