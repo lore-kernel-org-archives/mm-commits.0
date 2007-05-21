@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap.patch added to -mm tree
-Date: Sun, 20 May 2007 21:31:24 -0700
-Message-ID: <200705210431.l4L4VNPL002407@shell0.pdx.osdl.net>
+Subject: + md-improve-message-about-invalid-superblock-during-autodetect.patch added to -mm tree
+Date: Sun, 20 May 2007 21:33:20 -0700
+Message-ID: <200705210433.l4L4XJNT002442@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42898 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40217 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbXEUEe3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753191AbXEUEed (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 00:34:29 -0400
+	Mon, 21 May 2007 00:34:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, stable@kernel.org
+Cc: neilb@suse.de
 
 
 The patch titled
-     md: don't write more than is required of the last page of a bitmap
+     md: improve message about invalid superblock during autodetect
 has been added to the -mm tree.  Its filename is
-     md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap.patch
+     md-improve-message-about-invalid-superblock-during-autodetect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: don't write more than is required of the last page of a bitmap
+Subject: md: improve message about invalid superblock during autodetect
 From: NeilBrown <neilb@suse.de>
 
-It is possible that real data or metadata follows the bitmap without full page
-alignment.
+People try to use raid auto-detect with version-1 superblocks (which is not
+supported) and get confused when they are told they have an invalid
+superblock.
 
-So limit the last write to be only the required number of bytes, rounded up to
-the hard sector size of the device.
+So be more explicit, and say it it is not a valid v0.90 superblock.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c         |   17 ++++++++++++-----
- include/linux/raid/bitmap.h |    1 +
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/md/md.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/bitmap.c~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap
-+++ a/drivers/md/bitmap.c
-@@ -255,19 +255,25 @@ static struct page *read_sb_page(mddev_t
- 
- }
- 
--static int write_sb_page(mddev_t *mddev, long offset, struct page *page, int wait)
-+static int write_sb_page(struct bitmap *bitmap, struct page *page, int wait)
- {
- 	mdk_rdev_t *rdev;
- 	struct list_head *tmp;
-+	mddev_t *mddev = bitmap->mddev;
- 
- 	ITERATE_RDEV(mddev, rdev, tmp)
- 		if (test_bit(In_sync, &rdev->flags)
--		    && !test_bit(Faulty, &rdev->flags))
-+		    && !test_bit(Faulty, &rdev->flags)) {
-+			int size = PAGE_SIZE;
-+			if (page->index == bitmap->file_pages-1)
-+				size = roundup(bitmap->last_page_size,
-+					       bdev_hardsect_size(rdev->bdev));
- 			md_super_write(mddev, rdev,
--				       (rdev->sb_offset<<1) + offset
-+				       (rdev->sb_offset<<1) + bitmap->offset
- 				       + page->index * (PAGE_SIZE/512),
--				       PAGE_SIZE,
-+				       size,
- 				       page);
-+		}
- 
- 	if (wait)
- 		md_super_wait(mddev);
-@@ -282,7 +288,7 @@ static int write_page(struct bitmap *bit
- 	struct buffer_head *bh;
- 
- 	if (bitmap->file == NULL)
--		return write_sb_page(bitmap->mddev, bitmap->offset, page, wait);
-+		return write_sb_page(bitmap, page, wait);
- 
- 	bh = page_buffers(page);
- 
-@@ -923,6 +929,7 @@ static int bitmap_init_from_disk(struct 
- 			}
- 
- 			bitmap->filemap[bitmap->file_pages++] = page;
-+			bitmap->last_page_size = count;
+diff -puN drivers/md/md.c~md-improve-message-about-invalid-superblock-during-autodetect drivers/md/md.c
+--- a/drivers/md/md.c~md-improve-message-about-invalid-superblock-during-autodetect
++++ a/drivers/md/md.c
+@@ -2073,9 +2073,11 @@ static mdk_rdev_t *md_import_device(dev_
+ 		err = super_types[super_format].
+ 			load_super(rdev, NULL, super_minor);
+ 		if (err == -EINVAL) {
+-			printk(KERN_WARNING 
+-				"md: %s has invalid sb, not importing!\n",
+-				bdevname(rdev->bdev,b));
++			printk(KERN_WARNING
++				"md: %s does not have a valid v%d.%d "
++			       "superblock, not importing!\n",
++				bdevname(rdev->bdev,b),
++			       super_format, super_minor);
+ 			goto abort_free;
  		}
- 		paddr = kmap_atomic(page, KM_USER0);
- 		if (bitmap->flags & BITMAP_HOSTENDIAN)
-diff -puN include/linux/raid/bitmap.h~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap
-+++ a/include/linux/raid/bitmap.h
-@@ -232,6 +232,7 @@ struct bitmap {
- 	struct page **filemap; /* list of cache pages for the file */
- 	unsigned long *filemap_attr; /* attributes associated w/ filemap pages */
- 	unsigned long file_pages; /* number of pages in the file */
-+	int last_page_size; /* bytes in the last page */
+ 		if (err < 0) {
+@@ -5772,7 +5774,7 @@ static void autostart_arrays(int part)
+ 	for (i = 0; i < dev_cnt; i++) {
+ 		dev_t dev = detected_devices[i];
  
- 	unsigned long flags;
+-		rdev = md_import_device(dev,0, 0);
++		rdev = md_import_device(dev,0, 90);
+ 		if (IS_ERR(rdev))
+ 			continue;
  
 _
 
