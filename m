@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-directory-entry-cleanup.patch added to -mm tree
-Date: Sun, 20 May 2007 20:41:02 -0700
-Message-ID: <200705210341.l4L3f1BH001692@shell0.pdx.osdl.net>
+Subject: + x86-fix-section-mismatch-warnings-in-mtrr.patch added to -mm tree
+Date: Sun, 20 May 2007 20:42:45 -0700
+Message-ID: <200705210342.l4L3giM7001718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40531 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46799 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbXEUDmP (ORCPT
+	by vger.kernel.org with ESMTP id S1752864AbXEUDoa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 May 2007 23:42:15 -0400
+	Sun, 20 May 2007 23:44:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaosuo@gmail.com
+Cc: sam@ravnborg.org
 
 
 The patch titled
-     procfs directory entry cleanup
+     x86: fix section mismatch warnings in mtrr
 has been added to the -mm tree.  Its filename is
-     procfs-directory-entry-cleanup.patch
+     x86-fix-section-mismatch-warnings-in-mtrr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: procfs directory entry cleanup
-From: "Changli Gao" <xiaosuo@gmail.com>
+Subject: x86: fix section mismatch warnings in mtrr
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Function proc_register() will assign proc_dir_operations and
-proc_dir_inode_operations to ent's members proc_fops and proc_iops
-correctly if ent is a directory. So the early assignment isn't
-necessary.
+Following section mismatch warnings were reported by Andrey Borzenkov:
 
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:amd_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x967a) and 'mtrr_attrib_to_str'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:cyrix_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x967f) and 'mtrr_attrib_to_str'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:centaur_init_mtrr from .text between 'mtrr_bp_init' (at offset 0x9684) and 'mtrr_attrib_to_str'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa735) and 'generic_get_mtrr'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa749) and 'generic_get_mtrr'
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text: from .text between 'get_mtrr_state' (at offset 0xa770) and 'generic_get_mtrr'
 
+It was tracked down to a few functions missing __init tag.
+Compile tested only.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |    2 +-
+ arch/i386/kernel/cpu/mtrr/main.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/generic.c~procfs-directory-entry-cleanup fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-directory-entry-cleanup
-+++ a/fs/proc/generic.c
-@@ -649,9 +649,6 @@ struct proc_dir_entry *proc_mkdir_mode(c
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~x86-fix-section-mismatch-warnings-in-mtrr arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~x86-fix-section-mismatch-warnings-in-mtrr
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -78,7 +78,7 @@ static void __cpuinit print_fixed(unsign
+ }
  
- 	ent = proc_create(&parent, name, S_IFDIR | mode, 2);
- 	if (ent) {
--		ent->proc_fops = &proc_dir_operations;
--		ent->proc_iops = &proc_dir_inode_operations;
--
- 		if (proc_register(parent, ent) < 0) {
- 			kfree(ent);
- 			ent = NULL;
-@@ -686,10 +683,6 @@ struct proc_dir_entry *create_proc_entry
+ /*  Grab all of the MTRR state for this CPU into *state  */
+-void get_mtrr_state(void)
++void __init get_mtrr_state(void)
+ {
+ 	unsigned int i;
+ 	struct mtrr_var_range *vrs;
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~x86-fix-section-mismatch-warnings-in-mtrr arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~x86-fix-section-mismatch-warnings-in-mtrr
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -639,7 +639,7 @@ static struct sysdev_driver mtrr_sysdev_
+  * initialized (i.e. before smp_init()).
+  * 
+  */
+-void mtrr_bp_init(void)
++void __init mtrr_bp_init(void)
+ {
+ 	init_ifs();
  
- 	ent = proc_create(&parent,name,mode,nlink);
- 	if (ent) {
--		if (S_ISDIR(mode)) {
--			ent->proc_fops = &proc_dir_operations;
--			ent->proc_iops = &proc_dir_inode_operations;
--		}
- 		if (proc_register(parent, ent) < 0) {
- 			kfree(ent);
- 			ent = NULL;
 _
 
-Patches currently in -mm which might be from xiaosuo@gmail.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-procfs-directory-entry-cleanup.patch
+git-kbuild.patch
+x86-fix-section-mismatch-warnings-in-mtrr.patch
