@@ -1,207 +1,372 @@
 From: akpm@linux-foundation.org
-Subject: - add-kstrndup.patch removed from -mm tree
-Date: Mon, 21 May 2007 16:17:44 -0700
-Message-ID: <200705212317.l4LNHhtt022504@shell0.pdx.osdl.net>
+Subject: - add-common-orderly_poweroff.patch removed from -mm tree
+Date: Mon, 21 May 2007 16:17:54 -0700
+Message-ID: <200705212317.l4LNHriJ022513@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35740 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765336AbXEUXYx (ORCPT
+	by vger.kernel.org with ESMTP id S1765634AbXEUX0S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 19:24:53 -0400
+	Mon, 21 May 2007 19:26:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, acme@mandriva.com, akinobu.mita@gmail.com, chrisw@sous-sol.org, jeremy@xensource.com, randy.dunlap@oracle.com, takis@issaris.org, viro@ftp.linux.org.uk, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, arnd@arndb.de, chrisw@sous-sol.org, davem@davemloft.net, jeremy@xensource.com, lenb@kernel.org, randy.dunlap@oracle.com, rjw@sisk.pl, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add kstrndup
+     Add common orderly_poweroff()
 has been removed from the -mm tree.  Its filename was
-     add-kstrndup.patch
+     add-common-orderly_poweroff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add kstrndup
+Subject: Add common orderly_poweroff()
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add a kstrndup function, modelled on strndup.  Like strndup this returns a
-string copied into its own allocated memory, but it copies no more than the
-specified number of bytes from the source.
+Various pieces of code around the kernel want to be able to trigger an orderly
+poweroff.  This pulls them together into a single implementation.
 
-Remove private strndup() from irda code.
+By default the poweroff command is /sbin/poweroff, but it can be set via
+sysctl: kernel/poweroff_cmd.  This is split at whitespace, so it can include
+command-line arguments.
+
+This patch replaces four other instances of invoking either "poweroff" or
+"shutdown -h now": one sparc64, two sbus drivers, and acpi thermal management.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Acked-by: Len Brown <lenb@kernel.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Arnaldo Carvalho de Melo <acme@mandriva.com>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Cc: Panagiotis Issaris <takis@issaris.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h  |    1 
- mm/util.c               |   30 +++++++++++++++++++++++---
- net/irda/irias_object.c |   43 ++++----------------------------------
- 3 files changed, 33 insertions(+), 41 deletions(-)
+ arch/sparc64/kernel/power.c     |   40 +-------------------
+ drivers/acpi/thermal.c          |   24 +-----------
+ drivers/sbus/char/bbc_envctrl.c |    5 +-
+ drivers/sbus/char/envctrl.c     |    7 +--
+ include/linux/reboot.h          |    5 ++
+ include/linux/sysctl.h          |    1 
+ kernel/sys.c                    |   58 ++++++++++++++++++++++++++++++
+ kernel/sysctl.c                 |   10 +++++
+ 8 files changed, 82 insertions(+), 68 deletions(-)
 
-diff -puN include/linux/string.h~add-kstrndup include/linux/string.h
---- a/include/linux/string.h~add-kstrndup
-+++ a/include/linux/string.h
-@@ -105,6 +105,7 @@ extern void * memchr(const void *,int,__
- #endif
+diff -puN arch/sparc64/kernel/power.c~add-common-orderly_poweroff arch/sparc64/kernel/power.c
+--- a/arch/sparc64/kernel/power.c~add-common-orderly_poweroff
++++ a/arch/sparc64/kernel/power.c
+@@ -13,6 +13,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/pm.h>
+ #include <linux/syscalls.h>
++#include <linux/reboot.h>
  
- extern char *kstrdup(const char *s, gfp_t gfp);
-+extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
- extern void *kmemdup(const void *src, size_t len, gfp_t gfp);
+ #include <asm/system.h>
+ #include <asm/auxio.h>
+@@ -32,14 +33,13 @@ int scons_pwroff = 1; 
+ #include <linux/pci.h>
+ static void __iomem *power_reg;
  
- #ifdef __cplusplus
-diff -puN mm/util.c~add-kstrndup mm/util.c
---- a/mm/util.c~add-kstrndup
-+++ a/mm/util.c
-@@ -18,9 +18,8 @@ void *__kzalloc(size_t size, gfp_t flags
- }
- EXPORT_SYMBOL(__kzalloc);
+-static DECLARE_WAIT_QUEUE_HEAD(powerd_wait);
+ static int button_pressed;
  
--/*
-+/**
-  * kstrdup - allocate space for and copy an existing string
-- *
-  * @s: the string to duplicate
-  * @gfp: the GFP mask used in the kmalloc() call when allocating memory
-  */
-@@ -41,6 +40,32 @@ char *kstrdup(const char *s, gfp_t gfp)
- EXPORT_SYMBOL(kstrdup);
+ static irqreturn_t power_handler(int irq, void *dev_id)
+ {
+ 	if (button_pressed == 0) {
+ 		button_pressed = 1;
+-		wake_up(&powerd_wait);
++		orderly_poweroff(true);
+ 	}
  
- /**
-+ * kstrndup - allocate space for and copy an existing string
-+ * @s: the string to duplicate
-+ * @max: read at most @max chars from @s
-+ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
-+ */
-+char *kstrndup(const char *s, size_t max, gfp_t gfp)
-+{
-+	size_t len;
-+	char *buf;
-+
-+	if (!s)
-+		return NULL;
-+
-+	len = strlen(s);
-+	if (len > max)
-+		len = max;
-+	buf = kmalloc_track_caller(len+1, gfp);
-+ 	if (buf) {
-+		memcpy(buf, s, len);
-+		buf[len] = '\0';
-+	}
-+	return buf;
-+}
-+EXPORT_SYMBOL(kstrndup);
-+
-+/**
-  * kmemdup - duplicate region of memory
-  *
-  * @src: memory region to duplicate
-@@ -60,7 +85,6 @@ EXPORT_SYMBOL(kmemdup);
+ 	/* FIXME: Check registers for status... */
+@@ -75,36 +75,6 @@ void (*pm_power_off)(void) = machine_pow
+ EXPORT_SYMBOL(pm_power_off);
  
- /*
-  * strndup_user - duplicate an existing string from user space
-- *
-  * @s: The string to duplicate
-  * @n: Maximum number of bytes to copy, including the trailing NUL.
-  */
-diff -puN net/irda/irias_object.c~add-kstrndup net/irda/irias_object.c
---- a/net/irda/irias_object.c~add-kstrndup
-+++ a/net/irda/irias_object.c
-@@ -36,39 +36,6 @@ hashbin_t *irias_objects;
-  */
- struct ias_value irias_missing = { IAS_MISSING, 0, 0, 0, {0}};
- 
--/*
-- * Function strndup (str, max)
-- *
-- *    My own kernel version of strndup!
-- *
-- * Faster, check boundary... Jean II
-- */
--static char *strndup(char *str, size_t max)
+ #ifdef CONFIG_PCI
+-static int powerd(void *__unused)
 -{
--	char *new_str;
--	int len;
+-	static char *envp[] = { "HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
+-	char *argv[] = { "/sbin/shutdown", "-h", "now", NULL };
+-	DECLARE_WAITQUEUE(wait, current);
 -
--	/* Check string */
--	if (str == NULL)
--		return NULL;
--	/* Check length, truncate */
--	len = strlen(str);
--	if(len > max)
--		len = max;
+-	daemonize("powerd");
 -
--	/* Allocate new string */
--	new_str = kmalloc(len + 1, GFP_ATOMIC);
--	if (new_str == NULL) {
--		IRDA_WARNING("%s: Unable to kmalloc!\n", __FUNCTION__);
--		return NULL;
+-	add_wait_queue(&powerd_wait, &wait);
+-again:
+-	for (;;) {
+-		set_task_state(current, TASK_INTERRUPTIBLE);
+-		if (button_pressed)
+-			break;
+-		flush_signals(current);
+-		schedule();
 -	}
+-	__set_current_state(TASK_RUNNING);
+-	remove_wait_queue(&powerd_wait, &wait);
 -
--	/* Copy and truncate */
--	memcpy(new_str, str, len);
--	new_str[len] = '\0';
--
--	return new_str;
+-	/* Ok, down we go... */
+-	button_pressed = 0;
+-	if (kernel_execve("/sbin/shutdown", argv, envp) < 0) {
+-		printk("powerd: shutdown execution failed\n");
+-		add_wait_queue(&powerd_wait, &wait);
+-		goto again;
+-	}
+-	return 0;
 -}
+-
+ static int __init has_button_interrupt(unsigned int irq, struct device_node *dp)
+ {
+ 	if (irq == PCI_IRQ_NONE)
+@@ -128,12 +98,6 @@ static int __devinit power_probe(struct 
+ 	poweroff_method = machine_halt;  /* able to use the standard halt */
  
+ 	if (has_button_interrupt(irq, op->node)) {
+-		if (kernel_thread(powerd, NULL, CLONE_FS) < 0) {
+-			printk("Failed to start power daemon.\n");
+-			return 0;
+-		}
+-		printk("powerd running.\n");
+-
+ 		if (request_irq(irq,
+ 				power_handler, 0, "power", NULL) < 0)
+ 			printk("power: Error, cannot register IRQ handler.\n");
+diff -puN drivers/acpi/thermal.c~add-common-orderly_poweroff drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c~add-common-orderly_poweroff
++++ a/drivers/acpi/thermal.c
+@@ -40,6 +40,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/kmod.h>
+ #include <linux/seq_file.h>
++#include <linux/reboot.h>
+ #include <asm/uaccess.h>
+ 
+ #include <acpi/acpi_bus.h>
+@@ -59,7 +60,6 @@
+ #define ACPI_THERMAL_NOTIFY_CRITICAL	0xF0
+ #define ACPI_THERMAL_NOTIFY_HOT		0xF1
+ #define ACPI_THERMAL_MODE_ACTIVE	0x00
+-#define ACPI_THERMAL_PATH_POWEROFF	"/sbin/poweroff"
+ 
+ #define ACPI_THERMAL_MAX_ACTIVE	10
+ #define ACPI_THERMAL_MAX_LIMIT_STR_LEN 65
+@@ -419,26 +419,6 @@ static int acpi_thermal_get_devices(stru
+ 	return 0;
+ }
+ 
+-static int acpi_thermal_call_usermode(char *path)
+-{
+-	char *argv[2] = { NULL, NULL };
+-	char *envp[3] = { NULL, NULL, NULL };
+-
+-
+-	if (!path)
+-		return -EINVAL;
+-
+-	argv[0] = path;
+-
+-	/* minimal command environment */
+-	envp[0] = "HOME=/";
+-	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
+-
+-	call_usermodehelper(argv[0], argv, envp, 0);
+-
+-	return 0;
+-}
+-
+ static int acpi_thermal_critical(struct acpi_thermal *tz)
+ {
+ 	if (!tz || !tz->trips.critical.flags.valid)
+@@ -456,7 +436,7 @@ static int acpi_thermal_critical(struct 
+ 	acpi_bus_generate_event(tz->device, ACPI_THERMAL_NOTIFY_CRITICAL,
+ 				tz->trips.critical.flags.enabled);
+ 
+-	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
++	orderly_poweroff(true);
+ 
+ 	return 0;
+ }
+diff -puN drivers/sbus/char/bbc_envctrl.c~add-common-orderly_poweroff drivers/sbus/char/bbc_envctrl.c
+--- a/drivers/sbus/char/bbc_envctrl.c~add-common-orderly_poweroff
++++ a/drivers/sbus/char/bbc_envctrl.c
+@@ -7,6 +7,7 @@
+ #include <linux/kthread.h>
+ #include <linux/delay.h>
+ #include <linux/kmod.h>
++#include <linux/reboot.h>
+ #include <asm/oplib.h>
+ #include <asm/ebus.h>
+ 
+@@ -170,8 +171,6 @@ static void get_current_temps(struct bbc
+ static void do_envctrl_shutdown(struct bbc_cpu_temperature *tp)
+ {
+ 	static int shutting_down = 0;
+-	static char *envp[] = { "HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
+-	char *argv[] = { "/sbin/shutdown", "-h", "now", NULL };
+ 	char *type = "???";
+ 	s8 val = -1;
+ 
+@@ -195,7 +194,7 @@ static void do_envctrl_shutdown(struct b
+ 	printk(KERN_CRIT "kenvctrld: Shutting down the system now.\n");
+ 
+ 	shutting_down = 1;
+-	if (call_usermodehelper("/sbin/shutdown", argv, envp, 0) < 0)
++	if (orderly_poweroff(true) < 0)
+ 		printk(KERN_CRIT "envctrl: shutdown execution failed\n");
+ }
+ 
+diff -puN drivers/sbus/char/envctrl.c~add-common-orderly_poweroff drivers/sbus/char/envctrl.c
+--- a/drivers/sbus/char/envctrl.c~add-common-orderly_poweroff
++++ a/drivers/sbus/char/envctrl.c
+@@ -26,6 +26,7 @@
+ #include <linux/ioport.h>
+ #include <linux/miscdevice.h>
+ #include <linux/kmod.h>
++#include <linux/reboot.h>
+ 
+ #include <asm/ebus.h>
+ #include <asm/uaccess.h>
+@@ -966,10 +967,6 @@ static struct i2c_child_t *envctrl_get_i
+ static void envctrl_do_shutdown(void)
+ {
+ 	static int inprog = 0;
+-	static char *envp[] = {	
+-		"HOME=/", "TERM=linux", "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
+-	char *argv[] = { 
+-		"/sbin/shutdown", "-h", "now", NULL };	
+ 	int ret;
+ 
+ 	if (inprog != 0)
+@@ -977,7 +974,7 @@ static void envctrl_do_shutdown(void)
+ 
+ 	inprog = 1;
+ 	printk(KERN_CRIT "kenvctrld: WARNING: Shutting down the system now.\n");
+-	ret = call_usermodehelper("/sbin/shutdown", argv, envp, 0);
++	ret = orderly_poweroff(true);
+ 	if (ret < 0) {
+ 		printk(KERN_CRIT "kenvctrld: WARNING: system shutdown failed!\n"); 
+ 		inprog = 0;  /* unlikely to succeed, but we could try again */
+diff -puN include/linux/reboot.h~add-common-orderly_poweroff include/linux/reboot.h
+--- a/include/linux/reboot.h~add-common-orderly_poweroff
++++ a/include/linux/reboot.h
+@@ -67,6 +67,11 @@ extern void kernel_power_off(void);
+ 
+ void ctrl_alt_del(void);
+ 
++#define POWEROFF_CMD_PATH_LEN	256
++extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
++
++extern int orderly_poweroff(bool force);
++
  /*
-  * Function ias_new_object (name, id)
-@@ -90,7 +57,7 @@ struct ias_object *irias_new_object( cha
+  * Emergency restart, callable from an interrupt handler.
+  */
+diff -puN include/linux/sysctl.h~add-common-orderly_poweroff include/linux/sysctl.h
+--- a/include/linux/sysctl.h~add-common-orderly_poweroff
++++ a/include/linux/sysctl.h
+@@ -165,6 +165,7 @@ enum
+ 	KERN_MAX_LOCK_DEPTH=74,
+ 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
+ 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
++	KERN_POWEROFF_CMD=77,	/* string: poweroff command line */
+ };
+ 
+ 
+diff -puN kernel/sys.c~add-common-orderly_poweroff kernel/sys.c
+--- a/kernel/sys.c~add-common-orderly_poweroff
++++ a/kernel/sys.c
+@@ -2277,3 +2277,61 @@ asmlinkage long sys_getcpu(unsigned __us
  	}
+ 	return err ? -EFAULT : 0;
+ }
++
++char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
++
++static void argv_cleanup(char **argv, char **envp)
++{
++	argv_free(argv);
++}
++
++/**
++ * Trigger an orderly system poweroff
++ * @force: force poweroff if command execution fails
++ *
++ * This may be called from any context to trigger a system shutdown.
++ * If the orderly shutdown fails, it will force an immediate shutdown.
++ */
++int orderly_poweroff(bool force)
++{
++	int argc;
++	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
++	static char *envp[] = {
++		"HOME=/",
++		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
++		NULL
++	};
++	int ret = -ENOMEM;
++	struct subprocess_info *info;
++
++	if (argv == NULL) {
++		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
++		       __func__, poweroff_cmd);
++		goto out;
++	}
++
++	info = call_usermodehelper_setup(argv[0], argv, envp);
++	if (info == NULL) {
++		argv_free(argv);
++		goto out;
++	}
++
++	call_usermodehelper_setcleanup(info, argv_cleanup);
++
++	ret = call_usermodehelper_exec(info, -1);
++
++  out:
++	if (ret && force) {
++		printk(KERN_WARNING "Failed to start orderly shutdown: "
++		       "forcing the issue\n");
++
++		/* I guess this should try to kick off some daemon to
++		   sync and poweroff asap.  Or not even bother syncing
++		   if we're doing an emergency shutdown? */
++		emergency_sync();
++		kernel_power_off();
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(orderly_poweroff);
+diff -puN kernel/sysctl.c~add-common-orderly_poweroff kernel/sysctl.c
+--- a/kernel/sysctl.c~add-common-orderly_poweroff
++++ a/kernel/sysctl.c
+@@ -45,6 +45,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/nfs_fs.h>
+ #include <linux/acpi.h>
++#include <linux/reboot.h>
  
- 	obj->magic = IAS_OBJECT_MAGIC;
--	obj->name = strndup(name, IAS_MAX_CLASSNAME);
-+	obj->name = kstrndup(name, IAS_MAX_CLASSNAME, GFP_ATOMIC);
- 	if (!obj->name) {
- 		IRDA_WARNING("%s(), Unable to allocate name!\n",
- 			     __FUNCTION__);
-@@ -360,7 +327,7 @@ void irias_add_integer_attrib(struct ias
- 	}
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+@@ -615,6 +616,15 @@ static ctl_table kern_table[] = {
+ 		.proc_handler   = &proc_dointvec,
+ 	},
+ #endif
++	{
++		.ctl_name	= KERN_POWEROFF_CMD,
++		.procname	= "poweroff_cmd",
++		.data		= &poweroff_cmd,
++		.maxlen		= POWEROFF_CMD_PATH_LEN,
++		.mode		= 0644,
++		.proc_handler	= &proc_dostring,
++		.strategy	= &sysctl_string,
++	},
  
- 	attrib->magic = IAS_ATTRIB_MAGIC;
--	attrib->name = strndup(name, IAS_MAX_ATTRIBNAME);
-+	attrib->name = kstrndup(name, IAS_MAX_ATTRIBNAME, GFP_ATOMIC);
- 
- 	/* Insert value */
- 	attrib->value = irias_new_integer_value(value);
-@@ -404,7 +371,7 @@ void irias_add_octseq_attrib(struct ias_
- 	}
- 
- 	attrib->magic = IAS_ATTRIB_MAGIC;
--	attrib->name = strndup(name, IAS_MAX_ATTRIBNAME);
-+	attrib->name = kstrndup(name, IAS_MAX_ATTRIBNAME, GFP_ATOMIC);
- 
- 	attrib->value = irias_new_octseq_value( octets, len);
- 	if (!attrib->name || !attrib->value) {
-@@ -446,7 +413,7 @@ void irias_add_string_attrib(struct ias_
- 	}
- 
- 	attrib->magic = IAS_ATTRIB_MAGIC;
--	attrib->name = strndup(name, IAS_MAX_ATTRIBNAME);
-+	attrib->name = kstrndup(name, IAS_MAX_ATTRIBNAME, GFP_ATOMIC);
- 
- 	attrib->value = irias_new_string_value(value);
- 	if (!attrib->name || !attrib->value) {
-@@ -506,7 +473,7 @@ struct ias_value *irias_new_string_value
- 
- 	value->type = IAS_STRING;
- 	value->charset = CS_ASCII;
--	value->t.string = strndup(string, IAS_MAX_STRING);
-+	value->t.string = kstrndup(string, IAS_MAX_STRING, GFP_ATOMIC);
- 	if (!value->t.string) {
- 		IRDA_WARNING("%s: Unable to kmalloc!\n", __FUNCTION__);
- 		kfree(value);
+ 	{ .ctl_name = 0 }
+ };
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
