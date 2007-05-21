@@ -1,73 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - dont-force-uclinux-mtd-map-to-be-root-dev.patch removed from -mm tree
-Date: Mon, 21 May 2007 13:09:26 -0700
-Message-ID: <200705212009.l4LK9PFD018768@shell0.pdx.osdl.net>
+Subject: - vsyscall-time-fix.patch removed from -mm tree
+Date: Mon, 21 May 2007 13:09:49 -0700
+Message-ID: <200705212009.l4LK9mBK018787@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51955 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44981 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763006AbXEUUMF (ORCPT
+	by vger.kernel.org with ESMTP id S1765349AbXEUUMn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:12:05 -0400
+	Mon, 21 May 2007 16:12:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dwmw2@infradead.org, hch@lst.de, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, sripathi@in.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     don't force uclinux mtd map to be root dev
+     vsyscall time() fix
 has been removed from the -mm tree.  Its filename was
-     dont-force-uclinux-mtd-map-to-be-root-dev.patch
+     vsyscall-time-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: don't force uclinux mtd map to be root dev
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: vsyscall time() fix
+From: john stultz <johnstul@us.ibm.com>
 
-The cheesy uclinux mtd maps can be used for more than just the root device, so
-I think we should drop the forcing.
+The vsyscall time() function basically returns the second portion of xtime
+directly.  This however means that there is about a ticks worth of time each
+second where time() will return a second value less then what gettimeofday()
+does.
 
-Also, I feel like this is a policy decision that shouldnt be in the kernel in
-the first place.  People who have been lazy and boot with uclinux mtd maps and
-dont put root= into their commandline can simply add the appropriate root=
-line either into their bootloader or into the compiled in bootargs.
+Additionally, this window where vtime() is behind vgettimeofday() grows when
+dynticks is enabled.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Big thanks to Sripathi for noticing this issue and creating a test case to
+work with!
+
+
+This patch changes the vtime() implementation to call vgettimeofday(), much as
+syscall time() implementation calls gettimeofday().
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Sripathi Kodi <sripathi@in.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/uclinux.c |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/uclinux.c~dont-force-uclinux-mtd-map-to-be-root-dev drivers/mtd/maps/uclinux.c
---- a/drivers/mtd/maps/uclinux.c~dont-force-uclinux-mtd-map-to-be-root-dev
-+++ a/drivers/mtd/maps/uclinux.c
-@@ -16,7 +16,6 @@
- #include <linux/kernel.h>
- #include <linux/fs.h>
- #include <linux/major.h>
--#include <linux/root_dev.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/map.h>
- #include <linux/mtd/partitions.h>
-@@ -89,10 +88,6 @@ int __init uclinux_mtd_init(void)
- 	uclinux_ram_mtdinfo = mtd;
- 	add_mtd_partitions(mtd, uclinux_romfs, NUM_PARTITIONS);
- 
--	printk("uclinux[mtd]: set %s to be root filesystem\n",
--	     	uclinux_romfs[0].name);
--	ROOT_DEV = MKDEV(MTD_BLOCK_MAJOR, 0);
--
- 	return(0);
- }
- 
+diff -puN arch/x86_64/kernel/vsyscall.c~vsyscall-time-fix arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~vsyscall-time-fix
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -161,10 +161,13 @@ int __vsyscall(0) vgettimeofday(struct t
+  * unlikely */
+ time_t __vsyscall(1) vtime(time_t *t)
+ {
++	struct timeval tv;
+ 	time_t result;
+ 	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
+ 		return time_syscall(t);
+-	result = __vsyscall_gtod_data.wall_time_sec;
++
++	vgettimeofday(&tv, 0);
++	result = tv.tv_sec;
+ 	if (t)
+ 		*t = result;
+ 	return result;
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
-git-kbuild.patch
-git-mtd.patch
+i386-hpet-check-if-the-counter-works.patch
+introduce-boot-based-time.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix-2.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix-3.patch
+use-boot-based-time-for-uptime-in-proc.patch
