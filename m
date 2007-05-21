@@ -1,59 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - fix-fs-convert-core-functions-to-zero_user_page.patch removed from -mm tree
-Date: Mon, 21 May 2007 13:09:11 -0700
-Message-ID: <200705212009.l4LK9B2i018750@shell0.pdx.osdl.net>
+Subject: - arm-at91_adc-parenthesis-balance.patch removed from -mm tree
+Date: Mon, 21 May 2007 13:09:55 -0700
+Message-ID: <200705212009.l4LK9s1i018795@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50752 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52907 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935741AbXEUULO (ORCPT
+	by vger.kernel.org with ESMTP id S933911AbXEUULM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:11:14 -0400
+	Mon, 21 May 2007 16:11:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, nate.diller@gmail.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix "fs: convert core functions to zero_user_page"
+     arm: at91_adc parenthesis balance
 has been removed from the -mm tree.  Its filename was
-     fix-fs-convert-core-functions-to-zero_user_page.patch
+     arm-at91_adc-parenthesis-balance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix "fs: convert core functions to zero_user_page"
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: arm: at91_adc parenthesis balance
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-The bug introduced by 01f2705daf5a36208e69d7cf95db9c330f843af6.
-It misses to convert the first argument, it should be "new_page".
+unbalanced parenthesis macro fix.
 
-This became the cause of fatfs corruption.
-
-Cc: Nate Diller <nate.diller@gmail.com>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 +-
+ include/asm-arm/arch-at91/at91_adc.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~fix-fs-convert-core-functions-to-zero_user_page fs/buffer.c
---- a/fs/buffer.c~fix-fs-convert-core-functions-to-zero_user_page
-+++ a/fs/buffer.c
-@@ -2101,7 +2101,7 @@ int cont_prepare_write(struct page *page
- 						PAGE_CACHE_SIZE, get_block);
- 		if (status)
- 			goto out_unmap;
--		zero_user_page(page, zerofrom, PAGE_CACHE_SIZE - zerofrom,
-+		zero_user_page(new_page, zerofrom, PAGE_CACHE_SIZE - zerofrom,
- 				KM_USER0);
- 		generic_commit_write(NULL, new_page, zerofrom, PAGE_CACHE_SIZE);
- 		unlock_page(new_page);
+diff -puN include/asm-arm/arch-at91/at91_adc.h~arm-at91_adc-parenthesis-balance include/asm-arm/arch-at91/at91_adc.h
+--- a/include/asm-arm/arch-at91/at91_adc.h~arm-at91_adc-parenthesis-balance
++++ a/include/asm-arm/arch-at91/at91_adc.h
+@@ -55,7 +55,7 @@
+ #define AT91_ADC_IDR		0x28		/* Interrupt Disable Register */
+ #define AT91_ADC_IMR		0x2C		/* Interrupt Mask Register */
+ 
+-#define AT91_ADC_CHR(n)		(0x30 + ((n) * 4)	/* Channel Data Register N */
++#define AT91_ADC_CHR(n)		(0x30 + ((n) * 4))	/* Channel Data Register N */
+ #define		AT91_ADC_DATA		(0x3ff)
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-power-fix-sizeofpage_size-typo.patch
-fat-gcc-43-warning-fix.patch
