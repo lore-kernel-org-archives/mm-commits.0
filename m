@@ -1,53 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - arm-at91_adc-parenthesis-balance.patch removed from -mm tree
-Date: Mon, 21 May 2007 13:09:55 -0700
-Message-ID: <200705212009.l4LK9s1i018795@shell0.pdx.osdl.net>
+Subject: - nf_conntrack-fix-use-after-free-in-helper-destroy-callback.patch removed from -mm tree
+Date: Mon, 21 May 2007 13:09:32 -0700
+Message-ID: <200705212009.l4LK9VmO018774@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52907 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46547 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933911AbXEUULM (ORCPT
+	by vger.kernel.org with ESMTP id S965650AbXEUULZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:11:12 -0400
+	Mon, 21 May 2007 16:11:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: kaber@trash.net, buga@buvoshetes.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: at91_adc parenthesis balance
+     nf_conntrack: fix use-after-free in helper destroy callback
 has been removed from the -mm tree.  Its filename was
-     arm-at91_adc-parenthesis-balance.patch
+     nf_conntrack-fix-use-after-free-in-helper-destroy-callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arm: at91_adc parenthesis balance
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: nf_conntrack: fix use-after-free in helper destroy callback
+From: Patrick McHardy <kaber@trash.net>
 
-unbalanced parenthesis macro fix.
+When the helper module is removed for a master connection that has a
+fulfilled expectation, but has already timed out and got removed from the
+hash tables, nf_conntrack_helper_unregister can't find the master
+connection to unset the helper, causing a use-after-free when the expected
+connection is destroyed and releases the last reference to the master.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+The helper destroy callback was introduced for the PPtP helper to clean up
+expectations and expected connections when the master connection times out,
+but doing this from the destroy_conntrack only works for unfulfilled
+expectations since expected connections hold a reference to the master and
+it is not destroyed.  Move the destroy callback to the timeout function,
+which fixes both problems.
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Cc: Gabor Burjan <buga@buvoshetes.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-at91/at91_adc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_core.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-arm/arch-at91/at91_adc.h~arm-at91_adc-parenthesis-balance include/asm-arm/arch-at91/at91_adc.h
---- a/include/asm-arm/arch-at91/at91_adc.h~arm-at91_adc-parenthesis-balance
-+++ a/include/asm-arm/arch-at91/at91_adc.h
-@@ -55,7 +55,7 @@
- #define AT91_ADC_IDR		0x28		/* Interrupt Disable Register */
- #define AT91_ADC_IMR		0x2C		/* Interrupt Mask Register */
+diff -puN net/netfilter/nf_conntrack_core.c~nf_conntrack-fix-use-after-free-in-helper-destroy-callback net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c~nf_conntrack-fix-use-after-free-in-helper-destroy-callback
++++ a/net/netfilter/nf_conntrack_core.c
+@@ -298,7 +298,6 @@ static void
+ destroy_conntrack(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+-	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_l4proto *l4proto;
+ 	typeof(nf_conntrack_destroyed) destroyed;
  
--#define AT91_ADC_CHR(n)		(0x30 + ((n) * 4)	/* Channel Data Register N */
-+#define AT91_ADC_CHR(n)		(0x30 + ((n) * 4))	/* Channel Data Register N */
- #define		AT91_ADC_DATA		(0x3ff)
+@@ -309,9 +308,6 @@ destroy_conntrack(struct nf_conntrack *n
+ 	nf_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
  
- #endif
+-	if (help && help->helper && help->helper->destroy)
+-		help->helper->destroy(ct);
+-
+ 	/* To make sure we don't get any weird locking issues here:
+ 	 * destroy_conntrack() MUST NOT be called with a write lock
+ 	 * to nf_conntrack_lock!!! -HW */
+@@ -353,6 +349,10 @@ destroy_conntrack(struct nf_conntrack *n
+ static void death_by_timeout(unsigned long ul_conntrack)
+ {
+ 	struct nf_conn *ct = (void *)ul_conntrack;
++	struct nf_conn_help *help = nfct_help(ct);
++
++	if (help && help->helper && help->helper->destroy)
++		help->helper->destroy(ct);
+ 
+ 	write_lock_bh(&nf_conntrack_lock);
+ 	/* Inside lock so preempt is disabled on module removal path.
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from kaber@trash.net are
 
 origin.patch
+networking-fix-sending-netlink-message-when-replace-route.patch
+make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
