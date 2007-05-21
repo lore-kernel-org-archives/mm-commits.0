@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-new-infrastructure-for-nfs-client-in-kernel-mount-option-parsing.patch added to -mm tree
-Date: Mon, 21 May 2007 14:41:20 -0700
-Message-ID: <200705212141.l4LLfKxZ020704@shell0.pdx.osdl.net>
+Subject: + nfs-improve-debugging-output-in-nfs-in-kernel-mount-client.patch added to -mm tree
+Date: Mon, 21 May 2007 14:41:18 -0700
+Message-ID: <200705212141.l4LLfIbR020701@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757010AbXEUVoL (ORCPT
+	by vger.kernel.org with ESMTP id S1760996AbXEUVoa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 17:44:11 -0400
+	Mon, 21 May 2007 17:44:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: chuck.lever@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     NFS: new infrastructure for NFS client in-kernel mount option parsing
+     NFS: improve debugging output in NFS in-kernel mount client
 has been added to the -mm tree.  Its filename is
-     nfs-new-infrastructure-for-nfs-client-in-kernel-mount-option-parsing.patch
+     nfs-improve-debugging-output-in-nfs-in-kernel-mount-client.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NFS: new infrastructure for NFS client in-kernel mount option parsing
+Subject: NFS: improve debugging output in NFS in-kernel mount client
 From: Chuck Lever <chuck.lever@oracle.com>
-
-Add some data structures and definitions to support parsing NFS mount
-options in the kernel NFS client.
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -38,105 +35,65 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |   79 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 79 insertions(+)
+ fs/nfs/mount_clnt.c    |   18 +++++++++++++-----
+ include/linux/nfs_fs.h |    1 +
+ 2 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN fs/nfs/super.c~nfs-new-infrastructure-for-nfs-client-in-kernel-mount-option-parsing fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-new-infrastructure-for-nfs-client-in-kernel-mount-option-parsing
-+++ a/fs/nfs/super.c
-@@ -45,6 +45,7 @@
- #include <linux/inet.h>
- #include <linux/nfs_xdr.h>
- #include <linux/magic.h>
-+#include <linux/parser.h>
+diff -puN fs/nfs/mount_clnt.c~nfs-improve-debugging-output-in-nfs-in-kernel-mount-client fs/nfs/mount_clnt.c
+--- a/fs/nfs/mount_clnt.c~nfs-improve-debugging-output-in-nfs-in-kernel-mount-client
++++ a/fs/nfs/mount_clnt.c
+@@ -16,7 +16,7 @@
+ #include <linux/nfs_fs.h>
  
- #include <asm/system.h>
- #include <asm/uaccess.h>
-@@ -57,6 +58,84 @@
+ #ifdef RPC_DEBUG
+-# define NFSDBG_FACILITY	NFSDBG_ROOT
++# define NFSDBG_FACILITY	NFSDBG_MOUNT
+ #endif
  
- #define NFSDBG_FACILITY		NFSDBG_VFS
+ static struct rpc_program	mnt_program;
+@@ -72,8 +72,8 @@ int nfs_mount(struct sockaddr_in *addr, 
+ 	char			hostname[32];
+ 	int			status;
  
-+
-+struct nfs_mount_args {
-+	struct nfs_mount_data nmd;
-+	unsigned int nfsprog;
-+	unsigned use_mnthost;
-+	struct sockaddr_in mnthost;
-+	unsigned int mntprog;
-+	unsigned int mntvers;
-+	unsigned short mntport;
-+};
-+
-+struct nfs4_mount_args {
-+	struct nfs4_mount_data nmd;
-+	struct sockaddr_in addr;
-+	char clientaddr[16];
-+	int authflavor;
-+};
-+
-+enum {
-+	/* Mount options that take no arguments */
-+	Opt_soft, Opt_hard,
-+	Opt_intr, Opt_nointr,
-+	Opt_posix, Opt_noposix,
-+	Opt_cto, Opt_nocto,
-+	Opt_ac, Opt_noac,
-+	Opt_lock, Opt_nolock,
-+	Opt_v2, Opt_v3,
-+	Opt_udp, Opt_tcp,
-+	Opt_acl, Opt_noacl,
-+
-+	/* Mount options that take integer arguments */
-+	Opt_port,
-+	Opt_rsize, Opt_wsize,
-+	Opt_timeo, Opt_retrans,
-+	Opt_acregmin, Opt_acregmax,
-+	Opt_acdirmin, Opt_acdirmax,
-+	Opt_actimeo,
-+	Opt_namelen,
-+	Opt_mountport,
-+	Opt_mountprog, Opt_mountvers,
-+	Opt_nfsprog, Opt_nfsvers,
-+
-+	/* Mount options that take string arguments */
-+	Opt_sec, Opt_proto, Opt_addr,
-+	Opt_mounthost, Opt_clientaddr, Opt_context,
-+
-+	/* Mount options that are ignored */
-+	Opt_userspace, Opt_deprecated,
-+
-+	Opt_err,
-+};
-+
-+enum {
-+	Opt_sec_none, Opt_sec_sys,
-+	Opt_sec_krb5, Opt_sec_krb5i, Opt_sec_krb5p,
-+	Opt_sec_lkey, Opt_sec_lkeyi, Opt_sec_lkeyp,
-+	Opt_sec_spkm, Opt_sec_spkmi, Opt_sec_spkmp,
-+
-+	Opt_sec_err,
-+};
-+
-+static match_table_t nfs_sec_tokens = {
-+	{Opt_sec_none, "none"},
-+	{Opt_sec_none, "null"},
-+	{Opt_sec_sys, "sys"},
-+
-+	{Opt_sec_krb5, "krb5"},
-+	{Opt_sec_krb5i, "krb5i"},
-+	{Opt_sec_krb5p, "krb5p"},
-+
-+	{Opt_sec_lkey, "lkey"},
-+	{Opt_sec_lkeyi, "lkeyi"},
-+	{Opt_sec_lkeyp, "lkeyp"},
-+
-+	{Opt_sec_err, NULL},
-+};
-+
-+
- static void nfs_umount_begin(struct vfsmount *, int);
- static int  nfs_statfs(struct dentry *, struct kstatfs *);
- static int  nfs_show_options(struct seq_file *, struct vfsmount *);
+-	dprintk("NFS:      nfs_mount(%08x:%s)\n",
+-			(unsigned)ntohl(addr->sin_addr.s_addr), path);
++	dprintk("NFS: %s: mounting" NIPQUAD_FMT ":%s\n",
++		__FUNCTION__, NIPQUAD(addr->sin_addr.s_addr), path);
+ 
+ 	sprintf(hostname, NIPQUAD_FMT, NIPQUAD(addr->sin_addr.s_addr));
+ 	mnt_clnt = mnt_create(hostname, addr, version, protocol);
+@@ -86,10 +86,18 @@ int nfs_mount(struct sockaddr_in *addr, 
+ 		msg.rpc_proc = &mnt_clnt->cl_procinfo[MNTPROC_MNT];
+ 
+ 	status = rpc_call_sync(mnt_clnt, &msg, 0);
+-	if (status < 0)
++	if (status < 0) {
++		dprintk("NFS: %s: rpc_call_sync returned %d\n",
++			__FUNCTION__, status);
+ 		return status;
+-	if (result.status != 0)
++	}
++	if (result.status != 0) {
++		dprintk("NFS: %s: server returned %d\n",
++			__FUNCTION__, result.status);
+ 		return -EACCES;
++	}
++	dprintk("NFS: %s: mount request succeeded\n",
++		__FUNCTION__);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/nfs_fs.h~nfs-improve-debugging-output-in-nfs-in-kernel-mount-client include/linux/nfs_fs.h
+--- a/include/linux/nfs_fs.h~nfs-improve-debugging-output-in-nfs-in-kernel-mount-client
++++ a/include/linux/nfs_fs.h
+@@ -556,6 +556,7 @@ extern void * nfs_root_data(void);
+ #define NFSDBG_ROOT		0x0080
+ #define NFSDBG_CALLBACK		0x0100
+ #define NFSDBG_CLIENT		0x0200
++#define NFSDBG_MOUNT		0x0400
+ #define NFSDBG_ALL		0xFFFF
+ 
+ #ifdef __KERNEL__
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
