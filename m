@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + touchscreen-fujitsu-touchscreen-driver.patch added to -mm tree
-Date: Mon, 21 May 2007 14:52:37 -0700
-Message-ID: <200705212152.l4LLqbm4020912@shell0.pdx.osdl.net>
+Subject: + slub-use-ilog2-instead-of-series-of-constant-comparisons.patch added to -mm tree
+Date: Mon, 21 May 2007 14:54:17 -0700
+Message-ID: <200705212154.l4LLsHir020937@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38702 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39861 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757537AbXEUVxs (ORCPT
+	by vger.kernel.org with ESMTP id S1757596AbXEUVz1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 17:53:48 -0400
+	Mon, 21 May 2007 17:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, dtor@mail.ru
+Cc: clameter@sgi.com
 
 
 The patch titled
-     touchscreen: Fujitsu touchscreen driver
+     SLUB: use ilog2 instead of series of constant comparisons
 has been added to the -mm tree.  Its filename is
-     touchscreen-fujitsu-touchscreen-driver.patch
+     slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,282 +26,168 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: touchscreen: Fujitsu touchscreen driver
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: SLUB: use ilog2 instead of series of constant comparisons
+From: Christoph Lameter <clameter@sgi.com>
 
-Dmitry wrote this, I just cleaned it up and tried on a B6210 laptop. 
-Serial touchscreen are found on some Fujitsu lifebook P-series laptops, and
-the B6210.  The data stream looks correct but there appear to be
-calibration issues with both mouse emulation and the evtouch driver.
+I finally found a way to get rid of the nasty list of comparisions in
+slub_def.h. ilog2 seems to work right for constants.
 
-Using this requires a new version of inputattach and doing
- inputattach -fjt /dev/ttyS0
+Also update comments
 
-It should be possible to automatically do this with udev rules.
+Drop the generation of an unresolved symbol for the case that the size is
+too big. A simple BUG_ON sufficies now that we can alloc up to MAX_ORDER
+size slab objects.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/Kconfig      |   13 +
- drivers/input/touchscreen/Makefile     |    1 
- drivers/input/touchscreen/fujitsu_ts.c |  195 +++++++++++++++++++++++
- include/linux/serio.h                  |    1 
- 4 files changed, 210 insertions(+)
+ include/linux/slub_def.h |   66 +++++++++++--------------------------
+ 1 files changed, 20 insertions(+), 46 deletions(-)
 
-diff -puN drivers/input/touchscreen/Kconfig~touchscreen-fujitsu-touchscreen-driver drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~touchscreen-fujitsu-touchscreen-driver
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -54,6 +54,19 @@ config TOUCHSCREEN_CORGI
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called corgi_ts.
+diff -puN include/linux/slub_def.h~slub-use-ilog2-instead-of-series-of-constant-comparisons include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-use-ilog2-instead-of-series-of-constant-comparisons
++++ a/include/linux/slub_def.h
+@@ -10,6 +10,7 @@
+ #include <linux/gfp.h>
+ #include <linux/workqueue.h>
+ #include <linux/kobject.h>
++#include <linux/log2.h>
  
-+config TOUCHSCREEN_FUJITSU
-+	tristate "Fujitsu serial touchscreen"
-+	select SERIO
-+	help
-+	  Say Y here if you have the Fujitsu touchscreen (such as one
-+	  installed in Lifebook P series laptop) connected to your
-+	  system.
+ struct kmem_cache_node {
+ 	spinlock_t list_lock;	/* Protect partial list and nr_partial */
+@@ -58,6 +59,8 @@ struct kmem_cache {
+  */
+ #define KMALLOC_SHIFT_LOW 3
+ 
++#define KMALLOC_MIN_SIZE (1UL << KMALLOC_SHIFT_LOW)
 +
-+	  If unsure, say N.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called fujitsu-ts.
-+
- config TOUCHSCREEN_GUNZE
- 	tristate "Gunze AHL-51S touchscreen"
- 	select SERIO
-diff -puN drivers/input/touchscreen/Makefile~touchscreen-fujitsu-touchscreen-driver drivers/input/touchscreen/Makefile
---- a/drivers/input/touchscreen/Makefile~touchscreen-fujitsu-touchscreen-driver
-+++ a/drivers/input/touchscreen/Makefile
-@@ -9,6 +9,7 @@ obj-$(CONFIG_TOUCHSCREEN_BITSY)		+= h360
- obj-$(CONFIG_TOUCHSCREEN_CORGI)		+= corgi_ts.o
- obj-$(CONFIG_TOUCHSCREEN_GUNZE)		+= gunze.o
- obj-$(CONFIG_TOUCHSCREEN_ELO)		+= elo.o
-+obj-$(CONFIG_TOUCHSCREEN_FUJITSU)	+= fujitsu_ts.o
- obj-$(CONFIG_TOUCHSCREEN_MTOUCH)	+= mtouch.o
- obj-$(CONFIG_TOUCHSCREEN_MK712)		+= mk712.o
- obj-$(CONFIG_TOUCHSCREEN_HP600)		+= hp680_ts_input.o
-diff -puN /dev/null drivers/input/touchscreen/fujitsu_ts.c
---- /dev/null
-+++ a/drivers/input/touchscreen/fujitsu_ts.c
-@@ -0,0 +1,195 @@
-+/*
-+ * Fujitsu serial touchscreen driver
+ /*
+  * We keep the general caches in an array of slab caches that are used for
+  * 2^x bytes of allocations.
+@@ -65,56 +68,36 @@ struct kmem_cache {
+ extern struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1];
+ 
+ /*
+- * Sorry that the following has to be that ugly but some versions of GCC
+- * have trouble with constant propagation and loops.
++ * Determine the kmalloc array index given the object size.
 + *
-+ * Copyright (c) Dmitry Torokhov <dtor@mail.ru>
-+ */
-+
-+/*
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published
-+ * by the Free Software Foundation.
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/input.h>
-+#include <linux/serio.h>
-+#include <linux/init.h>
-+
-+#define DRIVER_DESC	"Fujitsu serial touchscreen driver"
-+
-+MODULE_AUTHOR("Dmitry Torokhov <dtor@mail.ru>");
-+MODULE_DESCRIPTION(DRIVER_DESC);
-+MODULE_LICENSE("GPL");
-+
-+#define FUJITSU_LENGTH 5
-+
-+#define X_AXIS_MIN	90
-+#define X_AXIS_MAX	4000
-+#define Y_AXIS_MIN	185
-+#define Y_AXIS_MAX	4000
-+
-+/*
-+ * Per-touchscreen data.
-+ */
-+
-+struct fujitsu {
-+	struct input_dev *dev;
-+	struct serio *serio;
-+	int idx;
-+	unsigned char data[FUJITSU_LENGTH];
-+	char phys[32];
-+};
-+
-+/*
-+ * Decode serial data
-+ */
-+
-+static irqreturn_t fujitsu_interrupt(struct serio *serio,
-+				     unsigned char data, unsigned int flags)
-+{
-+	struct fujitsu *fujitsu = serio_get_drvdata(serio);
-+	struct input_dev *dev = fujitsu->dev;
-+
-+	if (fujitsu->idx == 0) {
-+		/* resync skip until start of frame */
-+		if (!(data & 0x80))
-+			return IRQ_HANDLED;
-+	} else {
-+		/* resync skip garbage */
-+		if (data & 0x80) {
-+			fujitsu->idx = 0;
-+			return IRQ_HANDLED;
-+		}
-+	}
-+
-+	fujitsu->data[fujitsu->idx++] = data;
-+	if (fujitsu->idx == FUJITSU_LENGTH) {
-+		input_report_abs(dev, ABS_X,
-+				 (fujitsu->data[2] << 7) | fujitsu->data[1]);
-+		input_report_abs(dev, ABS_Y,
-+				 (fujitsu->data[4] << 7) | fujitsu->data[3]);
-+		input_report_key(dev, BTN_TOUCH,
-+				 (fujitsu->data[0] & 0x03) != 2);
-+		input_sync(dev);
-+		fujitsu->idx = 0;
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * fujitsu_disconnect() is the opposite of fujitsu_connect()
-+ */
-+
-+static void fujitsu_disconnect(struct serio *serio)
-+{
-+	struct fujitsu *fujitsu = serio_get_drvdata(serio);
-+
-+	input_get_device(fujitsu->dev);
-+	input_unregister_device(fujitsu->dev);
-+	serio_close(serio);
-+	serio_set_drvdata(serio, NULL);
-+	input_put_device(fujitsu->dev);
-+	kfree(fujitsu);
-+}
-+
-+/*
-+ * fujitsu_connect() is the routine that is called when someone adds a
-+ * new serio device that supports the Fujitsu protocol and registers it
-+ * as input device.
-+ */
-+
-+static int fujitsu_connect(struct serio *serio, struct serio_driver *drv)
-+{
-+	struct fujitsu *fujitsu;
-+	struct input_dev *input_dev;
-+	int err;
-+
-+	fujitsu = kzalloc(sizeof(struct fujitsu), GFP_KERNEL);
-+	input_dev = input_allocate_device();
-+	if (!fujitsu || !input_dev) {
-+		err = -ENOMEM;
-+		goto fail1;
-+	}
-+
-+	fujitsu->serio = serio;
-+	fujitsu->dev = input_dev;
-+	snprintf(fujitsu->phys, sizeof(fujitsu->phys),
-+		 "%s/input0", serio->phys);
-+
-+	input_dev->name = "Fujitsu Serial Touchscreen";
-+	input_dev->phys = fujitsu->phys;
-+	input_dev->id.bustype = BUS_RS232;
-+	input_dev->id.vendor = SERIO_FUJITSU;
-+	input_dev->id.product = 0;
-+	input_dev->id.version = 0x0100;
-+	input_dev->evbit[0] = BIT(EV_KEY) | BIT(EV_ABS);
-+	input_dev->keybit[LONG(BTN_TOUCH)] = BIT(BTN_TOUCH);
-+
-+	input_set_abs_params(input_dev, ABS_X, X_AXIS_MIN, X_AXIS_MAX, 0, 0);
-+	input_set_abs_params(input_dev, ABS_Y, Y_AXIS_MIN, Y_AXIS_MAX, 0, 0);
-+	serio_set_drvdata(serio, fujitsu);
-+
-+	err = serio_open(serio, drv);
-+	if (err)
-+		goto fail2;
-+
-+	err = input_register_device(fujitsu->dev);
-+	if (err)
-+		goto fail3;
-+
-+	return 0;
-+
-+ fail3:	serio_close(serio);
-+ fail2:	serio_set_drvdata(serio, NULL);
-+ fail1:	input_free_device(input_dev);
-+	kfree(fujitsu);
-+	return err;
-+}
-+
-+/*
-+ * The serio driver structure.
-+ */
-+
-+static struct serio_device_id fujitsu_serio_ids[] = {
-+	{
-+		.type	= SERIO_RS232,
-+		.proto	= SERIO_FUJITSU,
-+		.id	= SERIO_ANY,
-+		.extra	= SERIO_ANY,
-+	},
-+	{ 0 }
-+};
-+
-+MODULE_DEVICE_TABLE(serio, fujitsu_serio_ids);
-+
-+static struct serio_driver fujitsu_drv = {
-+	.driver		= {
-+		.name	= "fujitsu_ts",
-+	},
-+	.description	= DRIVER_DESC,
-+	.id_table	= fujitsu_serio_ids,
-+	.interrupt	= fujitsu_interrupt,
-+	.connect	= fujitsu_connect,
-+	.disconnect	= fujitsu_disconnect,
-+};
-+
-+/*
-+ * The functions for inserting/removing us as a module.
-+ */
-+
-+static int __init fujitsu_init(void)
-+{
-+	return serio_register_driver(&fujitsu_drv);
-+}
-+
-+static void __exit fujitsu_exit(void)
-+{
-+	serio_unregister_driver(&fujitsu_drv);
-+}
-+
-+module_init(fujitsu_init);
-+module_exit(fujitsu_exit);
-diff -puN include/linux/serio.h~touchscreen-fujitsu-touchscreen-driver include/linux/serio.h
---- a/include/linux/serio.h~touchscreen-fujitsu-touchscreen-driver
-+++ a/include/linux/serio.h
-@@ -209,5 +209,6 @@ static inline void serio_unpin_driver(st
- #define SERIO_PENMOUNT	0x31
- #define SERIO_TOUCHRIGHT	0x32
- #define SERIO_TOUCHWIN	0x33
-+#define SERIO_FUJITSU	0x34
++ * Return -1 if the object size is not supported.
+  */
+ static inline int kmalloc_index(size_t size)
+ {
+ 	/*
+-	 * We should return 0 if size == 0 but we use the smallest object
+-	 * here for SLAB legacy reasons.
++	 * We should return 0 if size == 0 (which would result in the
++	 * kmalloc caller to get NULL) but we use the smallest object
++	 * here for legacy reasons. Just issue a warning so that
++	 * we can discover locations where we do 0 sized allocations.
+ 	 */
+ 	WARN_ON_ONCE(size == 0);
  
- #endif
+ 	if (size > KMALLOC_MAX_SIZE)
+ 		return -1;
+ 
++	if (size <= KMALLOC_MIN_SIZE)
++		return KMALLOC_SHIFT_LOW;
++
++	/*
++	 * We map the non power of two slabs to the unused
++	 * log2 values in the kmalloc array.
++	 */
+ 	if (size > 64 && size <= 96)
+ 		return 1;
+ 	if (size > 128 && size <= 192)
+ 		return 2;
+-	if (size <=          8) return 3;
+-	if (size <=         16) return 4;
+-	if (size <=         32) return 5;
+-	if (size <=         64) return 6;
+-	if (size <=        128) return 7;
+-	if (size <=        256) return 8;
+-	if (size <=        512) return 9;
+-	if (size <=       1024) return 10;
+-	if (size <=   2 * 1024) return 11;
+-	if (size <=   4 * 1024) return 12;
+-	if (size <=   8 * 1024) return 13;
+-	if (size <=  16 * 1024) return 14;
+-	if (size <=  32 * 1024) return 15;
+-	if (size <=  64 * 1024) return 16;
+-	if (size <= 128 * 1024) return 17;
+-	if (size <= 256 * 1024) return 18;
+-	if (size <=  512 * 1024) return 19;
+-	if (size <= 1024 * 1024) return 20;
+-	if (size <=  2 * 1024 * 1024) return 21;
+-	if (size <=  4 * 1024 * 1024) return 22;
+-	if (size <=  8 * 1024 * 1024) return 23;
+-	if (size <= 16 * 1024 * 1024) return 24;
+-	if (size <= 32 * 1024 * 1024) return 25;
+-	return -1;
+ 
+-/*
+- * What we really wanted to do and cannot do because of compiler issues is:
+- *	int i;
+- *	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
+- *		if (size <= (1 << i))
+- *			return i;
+- */
++	return ilog2(size - 1) + 1;
+ }
+ 
+ /*
+@@ -131,18 +114,9 @@ static inline struct kmem_cache *kmalloc
+ 		return NULL;
+ 
+ 	/*
+-	 * This function only gets expanded if __builtin_constant_p(size), so
+-	 * testing it here shouldn't be needed.  But some versions of gcc need
+-	 * help.
++	 * If this triggers then the amount of memory requested was too large.
+ 	 */
+-	if (__builtin_constant_p(size) && index < 0) {
+-		/*
+-		 * Generate a link failure. Would be great if we could
+-		 * do something to stop the compile here.
+-		 */
+-		extern void __kmalloc_size_too_large(void);
+-		__kmalloc_size_too_large();
+-	}
++	BUG_ON(index < 0);
+ 	return &kmalloc_caches[index];
+ }
+ 
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
-touchscreen-fujitsu-touchscreen-driver.patch
-git-wireless.patch
-pci-x-pci-express-read-control-interfaces.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+slub-debug-fix-object-size-calculation.patch
+git-ubi.patch
+quicklist-support-for-x86_64.patch
+slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-rename-gfp_high_movable-to-gfp_highuser_movable.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
+group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
