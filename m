@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-improve-the-is_mddev_idle-test-fix.patch added to -mm tree
-Date: Sun, 20 May 2007 21:33:38 -0700
-Message-ID: <200705210433.l4L4XbPe002445@shell0.pdx.osdl.net>
+Subject: + md-check-that-internal-bitmap-does-not-overlap-other-data.patch added to -mm tree
+Date: Sun, 20 May 2007 21:34:00 -0700
+Message-ID: <200705210433.l4L4XxXl002451@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47104 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754556AbXEUEet (ORCPT
+	by vger.kernel.org with ESMTP id S1754540AbXEUEfE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 00:34:49 -0400
+	Mon, 21 May 2007 00:35:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: improve the is_mddev_idle test fix
+     md: check that internal bitmap does not overlap other data
 has been added to the -mm tree.  Its filename is
-     md-improve-the-is_mddev_idle-test-fix.patch
+     md-check-that-internal-bitmap-does-not-overlap-other-data.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: improve the is_mddev_idle test fix
+Subject: md: check that internal bitmap does not overlap other data
 From: NeilBrown <neilb@suse.de>
 
-Don't use 'unsigned' variable to track sync vs non-sync IO, as the only thing
-we want to do with them is a signed comparison, and fix up the comment which
-had become quite wrong.
+We current completely trust user-space to set up metadata describing an
+consistant array.  In particlar, that the metadata, data, and bitmap do not
+overlap.
+
+But userspace can be buggy, and it is better to report an error than corrupt
+data.  So put in some appropriate checks.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c           |   35 ++++++++++++++++++++++-------------
- include/linux/raid/md_k.h |    2 +-
- 2 files changed, 23 insertions(+), 14 deletions(-)
+ drivers/md/bitmap.c |   35 +++++++++++++++++++++++++++++++++--
+ drivers/md/md.c     |   22 +++++++++++++++++++++-
+ 2 files changed, 54 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/md.c~md-improve-the-is_mddev_idle-test-fix drivers/md/md.c
---- a/drivers/md/md.c~md-improve-the-is_mddev_idle-test-fix
+diff -puN drivers/md/bitmap.c~md-check-that-internal-bitmap-does-not-overlap-other-data drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-check-that-internal-bitmap-does-not-overlap-other-data
++++ a/drivers/md/bitmap.c
+@@ -268,6 +268,31 @@ static int write_sb_page(struct bitmap *
+ 			if (page->index == bitmap->file_pages-1)
+ 				size = roundup(bitmap->last_page_size,
+ 					       bdev_hardsect_size(rdev->bdev));
++			/* Just make sure we aren't corrupting data or
++			 * metadata
++			 */
++			if (bitmap->offset < 0) {
++				/* DATA  BITMAP METADATA  */
++				if (bitmap->offset
++				    + page->index * (PAGE_SIZE/512)
++				    + size/512 > 0)
++					/* bitmap runs in to metadata */
++					return -EINVAL;
++				if (rdev->data_offset + mddev->size*2
++				    > rdev->sb_offset*2 + bitmap->offset)
++					/* data runs in to bitmap */
++					return -EINVAL;
++			} else if (rdev->sb_offset*2 < rdev->data_offset) {
++				/* METADATA BITMAP DATA */
++				if (rdev->sb_offset*2
++				    + bitmap->offset
++				    + page->index*(PAGE_SIZE/512) + size/512
++				    > rdev->data_offset)
++					/* bitmap runs in to data */
++					return -EINVAL;
++			} else {
++				/* DATA METADATA BITMAP - no problems */
++			}
+ 			md_super_write(mddev, rdev,
+ 				       (rdev->sb_offset<<1) + bitmap->offset
+ 				       + page->index * (PAGE_SIZE/512),
+@@ -287,8 +312,14 @@ static int write_page(struct bitmap *bit
+ {
+ 	struct buffer_head *bh;
+ 
+-	if (bitmap->file == NULL)
+-		return write_sb_page(bitmap, page, wait);
++	if (bitmap->file == NULL) {
++		switch (write_sb_page(bitmap, page, wait)) {
++		case -EINVAL:
++			bitmap->flags |= BITMAP_WRITE_ERROR;
++			return -EIO;
++		}
++		return 0;
++	}
+ 
+ 	bh = page_buffers(page);
+ 
+diff -puN drivers/md/md.c~md-check-that-internal-bitmap-does-not-overlap-other-data drivers/md/md.c
+--- a/drivers/md/md.c~md-check-that-internal-bitmap-does-not-overlap-other-data
 +++ a/drivers/md/md.c
-@@ -5092,7 +5092,7 @@ static int is_mddev_idle(mddev_t *mddev)
- 	mdk_rdev_t * rdev;
- 	struct list_head *tmp;
- 	int idle;
--	unsigned long curr_events;
-+	long curr_events;
- 
- 	idle = 1;
+@@ -3176,13 +3176,33 @@ static int do_md_run(mddev_t * mddev)
+ 	 * Drop all container device buffers, from now on
+ 	 * the only valid external interface is through the md
+ 	 * device.
+-	 * Also find largest hardsector size
+ 	 */
  	ITERATE_RDEV(mddev,rdev,tmp) {
-@@ -5100,20 +5100,29 @@ static int is_mddev_idle(mddev_t *mddev)
- 		curr_events = disk_stat_read(disk, sectors[0]) + 
- 				disk_stat_read(disk, sectors[1]) - 
- 				atomic_read(&disk->sync_io);
--		/* The difference between curr_events and last_events
--		 * will be affected by any new non-sync IO (making
--		 * curr_events bigger) and any difference in the amount of
--		 * in-flight syncio (making current_events bigger or smaller)
--		 * The amount in-flight is currently limited to
--		 * 32*64K in raid1/10 and 256*PAGE_SIZE in raid5/6
--		 * which is at most 4096 sectors.
--		 * These numbers are fairly fragile and should be made
--		 * more robust, probably by enforcing the
--		 * 'window size' that md_do_sync sort-of uses.
-+		/* sync IO will cause sync_io to increase before the disk_stats
-+		 * as sync_io is counted when a request starts, and
-+		 * disk_stats is counted when it completes.
-+		 * So resync activity will cause curr_events to be smaller than
-+		 * when there was no such activity.
-+		 * non-sync IO will cause disk_stat to increase without
-+		 * increasing sync_io so curr_events will (eventually)
-+		 * be larger than it was before.  Once it becomes
-+		 * substantially larger, the test below will cause
-+		 * the array to appear non-idle, and resync will slow
-+		 * down.
-+		 * If there is a lot of outstanding resync activity when
-+		 * we set last_event to curr_events, then all that activity
-+		 * completing might cause the array to appear non-idle
-+		 * and resync will be slowed down even though there might
-+		 * not have been non-resync activity.  This will only
-+		 * happen once though.  'last_events' will soon reflect
-+		 * the state where there is little or no outstanding
-+		 * resync requests, and further resync activity will
-+		 * always make curr_events less than last_events.
- 		 *
--		 * Note: the following is an unsigned comparison.
- 		 */
--		if ((long)curr_events - (long)rdev->last_events > 4096) {
-+		if (curr_events - rdev->last_events > 4096) {
- 			rdev->last_events = curr_events;
- 			idle = 0;
- 		}
-diff -puN include/linux/raid/md_k.h~md-improve-the-is_mddev_idle-test-fix include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-improve-the-is_mddev_idle-test-fix
-+++ a/include/linux/raid/md_k.h
-@@ -51,7 +51,7 @@ struct mdk_rdev_s
+ 		if (test_bit(Faulty, &rdev->flags))
+ 			continue;
+ 		sync_blockdev(rdev->bdev);
+ 		invalidate_bdev(rdev->bdev);
++
++		/* perform some consistency tests on the device.
++		 * We don't want the data to overlap the metadata,
++		 * Internal Bitmap issues has handled elsewhere.
++		 */
++		if (rdev->data_offset < rdev->sb_offset) {
++			if (mddev->size &&
++			    rdev->data_offset + mddev->size*2
++			    > rdev->sb_offset*2) {
++				printk("md: %s: data overlaps metadata\n",
++				       mdname(mddev));
++				return -EINVAL;
++			}
++		} else {
++			if (rdev->sb_offset*2 + rdev->sb_size/512
++			    > rdev->data_offset) {
++				printk("md: %s: metadata overlaps data\n",
++				       mdname(mddev));
++				return -EINVAL;
++			}
++		}
+ 	}
  
- 	sector_t size;			/* Device size (in blocks) */
- 	mddev_t *mddev;			/* RAID array if running */
--	unsigned long last_events;	/* IO event timestamp */
-+	long last_events;		/* IO event timestamp */
- 
- 	struct block_device *bdev;	/* block device handle */
- 
+ 	md_probe(mddev->unit, NULL, NULL);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
