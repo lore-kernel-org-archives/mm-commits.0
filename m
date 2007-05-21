@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-pci_try_set_mwi-prism54pci.patch added to -mm tree
-Date: Mon, 21 May 2007 15:22:30 -0700
-Message-ID: <200705212222.l4LMMUMC021398@shell0.pdx.osdl.net>
+Subject: + applesmc-sensors-patch-missing-from-2622-rc2.patch added to -mm tree
+Date: Mon, 21 May 2007 15:26:16 -0700
+Message-ID: <200705212226.l4LMQGPs021450@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40378 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758574AbXEUW0a (ORCPT
+	by vger.kernel.org with ESMTP id S1759164AbXEUW2J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 18:26:30 -0400
+	Mon, 21 May 2007 18:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: nicolas@boichat.ch, kernel@nn7.de
 
 
 The patch titled
-     add pci_try_set_mwi
+     applesmc - sensors patch missing from 2.6.22-rc2
 has been added to the -mm tree.  Its filename is
-     add-pci_try_set_mwi-prism54pci.patch
+     applesmc-sensors-patch-missing-from-2622-rc2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add pci_try_set_mwi
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: applesmc - sensors patch missing from 2.6.22-rc2
+From: Nicolas Boichat <nicolas@boichat.ch>
 
-As suggested by Andrew, add pci_try_set_mwi(), which does not require
-return-value checking.
-
-- add pci_try_set_mwi() without __must_check
-- make it return 0 on success, errno if the "try" failed or error
-- review callers
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Soeren Sonnenburg <kernel@nn7.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/mac80211/p54/prism54pci.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/applesmc.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
-diff -puN drivers/net/wireless/mac80211/p54/prism54pci.c~add-pci_try_set_mwi-prism54pci drivers/net/wireless/mac80211/p54/prism54pci.c
---- a/drivers/net/wireless/mac80211/p54/prism54pci.c~add-pci_try_set_mwi-prism54pci
-+++ a/drivers/net/wireless/mac80211/p54/prism54pci.c
-@@ -540,7 +540,7 @@ static int __devinit p54p_probe(struct p
+diff -puN drivers/hwmon/applesmc.c~applesmc-sensors-patch-missing-from-2622-rc2 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-sensors-patch-missing-from-2622-rc2
++++ a/drivers/hwmon/applesmc.c
+@@ -491,6 +491,12 @@ out:
+ 
+ /* Sysfs Files */
+ 
++static ssize_t applesmc_name_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "applesmc\n");
++}
++
+ static ssize_t applesmc_position_show(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+@@ -913,6 +919,8 @@ static struct led_classdev applesmc_back
+ 	.brightness_set		= applesmc_brightness_set,
+ };
+ 
++static DEVICE_ATTR(name, 0444, applesmc_name_show, NULL);
++
+ static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
+ static DEVICE_ATTR(calibrate, 0644,
+ 			applesmc_calibrate_show, applesmc_calibrate_store);
+@@ -1197,6 +1205,8 @@ static int __init applesmc_init(void)
+ 		goto out_driver;
  	}
  
- 	pci_set_master(pdev);
--	pci_set_mwi(pdev);
-+	pci_try_set_mwi(pdev);
- 
- 	pci_write_config_byte(pdev, 0x40, 0);
- 	pci_write_config_byte(pdev, 0x41, 0);
++	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_name.attr);
++
+ 	/* Create key enumeration sysfs files */
+ 	ret = sysfs_create_group(&pdev->dev.kobj, &key_enumeration_group);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from nicolas@boichat.ch are
 
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-update-dontdiff-file.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-kstrndup.patch
-add-argv_split.patch
-add-argv_split-fix.patch
-split-usermodehelper-setup-from-execution.patch
-add-common-orderly_poweroff.patch
-add-common-orderly_poweroff-fix.patch
-tidy-up-usermode-helper-waiting-a-bit.patch
-profile-likely-unlikely-macros.patch
+applesmc-sensors-patch-missing-from-2622-rc2.patch
