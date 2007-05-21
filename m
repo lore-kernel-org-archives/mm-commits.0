@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-clean-up-in-kernel-nfs-mount.patch added to -mm tree
-Date: Mon, 21 May 2007 14:41:16 -0700
-Message-ID: <200705212141.l4LLfGlo020698@shell0.pdx.osdl.net>
+Subject: + sunrpc-rename-rpcb_getport_external-routine.patch added to -mm tree
+Date: Mon, 21 May 2007 14:41:10 -0700
+Message-ID: <200705212141.l4LLfA32020689@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755326AbXEUVn6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755326AbXEUVoD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 17:43:58 -0400
+	Mon, 21 May 2007 17:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: chuck.lever@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     NFS: clean up in-kernel NFS mount
+     SUNRPC: rename rpcb_getport_external routine
 has been added to the -mm tree.  Its filename is
-     nfs-clean-up-in-kernel-nfs-mount.patch
+     sunrpc-rename-rpcb_getport_external-routine.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NFS: clean up in-kernel NFS mount
+Subject: SUNRPC: rename rpcb_getport_external routine
 From: Chuck Lever <chuck.lever@oracle.com>
 
-Clean up white space and coding conventions.
+In preparation for handling NFS mount option parsing in the kernel, rename
+rpcb_getport_external as rpcb_get_port_sync, and make it available always
+(instead of only when CONFIG_ROOT_NFS is enabled).
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -37,220 +39,110 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/mount_clnt.c |  132 ++++++++++++++++++++----------------------
- 1 files changed, 63 insertions(+), 69 deletions(-)
+ fs/nfs/nfsroot.c            |    2 +-
+ include/linux/sunrpc/clnt.h |    7 ++-----
+ net/sunrpc/rpcb_clnt.c      |   21 +++++++++++----------
+ 3 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN fs/nfs/mount_clnt.c~nfs-clean-up-in-kernel-nfs-mount fs/nfs/mount_clnt.c
---- a/fs/nfs/mount_clnt.c~nfs-clean-up-in-kernel-nfs-mount
-+++ a/fs/nfs/mount_clnt.c
-@@ -1,7 +1,5 @@
- /*
-- * linux/fs/nfs/mount_clnt.c
-- *
-- * MOUNT client to support NFSroot.
-+ * In-kernel MOUNT protocol client
-  *
-  * Copyright (C) 1997, Olaf Kirch <okir@monad.swb.de>
-  */
-@@ -21,22 +19,33 @@
- # define NFSDBG_FACILITY	NFSDBG_ROOT
- #endif
+diff -puN fs/nfs/nfsroot.c~sunrpc-rename-rpcb_getport_external-routine fs/nfs/nfsroot.c
+--- a/fs/nfs/nfsroot.c~sunrpc-rename-rpcb_getport_external-routine
++++ a/fs/nfs/nfsroot.c
+@@ -428,7 +428,7 @@ static int __init root_nfs_getport(int p
+ 	printk(KERN_NOTICE "Looking up port of RPC %d/%d on %u.%u.%u.%u\n",
+ 		program, version, NIPQUAD(servaddr));
+ 	set_sockaddr(&sin, servaddr, 0);
+-	return rpcb_getport_external(&sin, program, version, proto);
++	return rpcb_getport_sync(&sin, program, version, proto);
+ }
+ 
+ 
+diff -puN include/linux/sunrpc/clnt.h~sunrpc-rename-rpcb_getport_external-routine include/linux/sunrpc/clnt.h
+--- a/include/linux/sunrpc/clnt.h~sunrpc-rename-rpcb_getport_external-routine
++++ a/include/linux/sunrpc/clnt.h
+@@ -122,8 +122,10 @@ struct rpc_clnt *rpc_clone_client(struct
+ int		rpc_shutdown_client(struct rpc_clnt *);
+ int		rpc_destroy_client(struct rpc_clnt *);
+ void		rpc_release_client(struct rpc_clnt *);
++
+ int		rpcb_register(u32, u32, int, unsigned short, int *);
+ void		rpcb_getport(struct rpc_task *);
++int		rpcb_getport_sync(struct sockaddr_in *, __u32, __u32, int);
+ 
+ void		rpc_call_setup(struct rpc_task *, struct rpc_message *, int);
+ 
+@@ -142,10 +144,5 @@ int		rpc_ping(struct rpc_clnt *clnt, int
+ size_t		rpc_peeraddr(struct rpc_clnt *, struct sockaddr *, size_t);
+ char *		rpc_peeraddr2str(struct rpc_clnt *, enum rpc_display_format_t);
  
 -/*
--#define MOUNT_PROGRAM		100005
--#define MOUNT_VERSION		1
--#define MOUNT_MNT		1
--#define MOUNT_UMNT		3
+- * Helper function for NFSroot support
 - */
+-int		rpcb_getport_external(struct sockaddr_in *, __u32, __u32, int);
 -
--static struct rpc_clnt *	mnt_create(char *, struct sockaddr_in *,
--								int, int);
- static struct rpc_program	mnt_program;
- 
- struct mnt_fhstatus {
--	unsigned int		status;
--	struct nfs_fh *		fh;
-+	u32 status;
-+	struct nfs_fh *fh;
- };
- 
-+static struct rpc_clnt *mnt_create(char *hostname,
-+				   struct sockaddr_in *srvaddr,
-+				   int version,
-+				   int protocol)
-+{
-+	struct rpc_create_args args = {
-+		.protocol	= protocol,
-+		.address	= (struct sockaddr *)srvaddr,
-+		.addrsize	= sizeof(*srvaddr),
-+		.servername	= hostname,
-+		.program	= &mnt_program,
-+		.version	= version,
-+		.authflavor	= RPC_AUTH_UNIX,
-+		.flags		= (RPC_CLNT_CREATE_ONESHOT |
-+				   RPC_CLNT_CREATE_INTR),
-+	};
-+
-+	return rpc_create(&args);
-+}
-+
- /**
-  * nfs_mount - Obtain an NFS file handle for the given host and path
-  * @addr: pointer to server's address
-@@ -66,7 +75,7 @@ int nfs_mount(struct sockaddr_in *addr, 
- 	dprintk("NFS:      nfs_mount(%08x:%s)\n",
- 			(unsigned)ntohl(addr->sin_addr.s_addr), path);
- 
--	sprintf(hostname, "%u.%u.%u.%u", NIPQUAD(addr->sin_addr.s_addr));
-+	sprintf(hostname, NIPQUAD_FMT, NIPQUAD(addr->sin_addr.s_addr));
- 	mnt_clnt = mnt_create(hostname, addr, version, protocol);
- 	if (IS_ERR(mnt_clnt))
- 		return PTR_ERR(mnt_clnt);
-@@ -77,33 +86,18 @@ int nfs_mount(struct sockaddr_in *addr, 
- 		msg.rpc_proc = &mnt_clnt->cl_procinfo[MNTPROC_MNT];
- 
- 	status = rpc_call_sync(mnt_clnt, &msg, 0);
--	return status < 0? status : (result.status? -EACCES : 0);
--}
--
--static struct rpc_clnt *
--mnt_create(char *hostname, struct sockaddr_in *srvaddr, int version,
--		int protocol)
--{
--	struct rpc_create_args args = {
--		.protocol	= protocol,
--		.address	= (struct sockaddr *)srvaddr,
--		.addrsize	= sizeof(*srvaddr),
--		.servername	= hostname,
--		.program	= &mnt_program,
--		.version	= version,
--		.authflavor	= RPC_AUTH_UNIX,
--		.flags		= (RPC_CLNT_CREATE_ONESHOT |
--				   RPC_CLNT_CREATE_INTR),
--	};
--
--	return rpc_create(&args);
-+	if (status < 0)
-+		return status;
-+	if (result.status != 0)
-+		return -EACCES;
-+	return 0;
- }
- 
- /*
-  * XDR encode/decode functions for MOUNT
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_SUNRPC_CLNT_H */
+diff -puN net/sunrpc/rpcb_clnt.c~sunrpc-rename-rpcb_getport_external-routine net/sunrpc/rpcb_clnt.c
+--- a/net/sunrpc/rpcb_clnt.c~sunrpc-rename-rpcb_getport_external-routine
++++ a/net/sunrpc/rpcb_clnt.c
+@@ -12,6 +12,8 @@
+  *  Copyright (C) 1996, Olaf Kirch <okir@monad.swb.de>
   */
--static int
--xdr_encode_dirpath(struct rpc_rqst *req, __be32 *p, const char *path)
-+static int xdr_encode_dirpath(struct rpc_rqst *req, __be32 *p,
-+			      const char *path)
- {
- 	p = xdr_encode_string(p, path);
  
-@@ -111,8 +105,8 @@ xdr_encode_dirpath(struct rpc_rqst *req,
- 	return 0;
++#include <linux/module.h>
++
+ #include <linux/types.h>
+ #include <linux/socket.h>
+ #include <linux/kernel.h>
+@@ -246,21 +248,20 @@ int rpcb_register(u32 prog, u32 vers, in
+ 	return error;
  }
  
--static int
--xdr_decode_fhstatus(struct rpc_rqst *req, __be32 *p, struct mnt_fhstatus *res)
-+static int xdr_decode_fhstatus(struct rpc_rqst *req, __be32 *p,
-+			       struct mnt_fhstatus *res)
+-#ifdef CONFIG_ROOT_NFS
+ /**
+- * rpcb_getport_external - obtain the port for an RPC service on a given host
++ * rpcb_getport_sync - obtain the port for an RPC service on a given host
+  * @sin: address of remote peer
+  * @prog: RPC program number to bind
+  * @vers: RPC version number to bind
+  * @prot: transport protocol to use to make this request
+  *
+  * Called from outside the RPC client in a synchronous task context.
++ * Uses default timeout parameters specified by underlying transport.
+  *
+- * For now, this supports only version 2 queries, but is used only by
+- * mount_clnt for NFS_ROOT.
++ * XXX: Needs to support IPv6, and rpcbind versions 3 and 4
+  */
+-int rpcb_getport_external(struct sockaddr_in *sin, __u32 prog,
+-				__u32 vers, int prot)
++int rpcb_getport_sync(struct sockaddr_in *sin, __u32 prog,
++		      __u32 vers, int prot)
  {
- 	struct nfs_fh *fh = res->fh;
+ 	struct rpcbind_args map = {
+ 		.r_prog		= prog,
+@@ -277,10 +278,10 @@ int rpcb_getport_external(struct sockadd
+ 	char hostname[40];
+ 	int status;
  
-@@ -123,8 +117,8 @@ xdr_decode_fhstatus(struct rpc_rqst *req
- 	return 0;
+-	dprintk("RPC:       rpcb_getport_external(%u.%u.%u.%u, %u, %u, %d)\n",
+-			NIPQUAD(sin->sin_addr.s_addr), prog, vers, prot);
++	dprintk("RPC:       %s(" NIPQUAD_FMT ", %u, %u, %d)\n",
++		__FUNCTION__, NIPQUAD(sin->sin_addr.s_addr), prog, vers, prot);
+ 
+-	sprintf(hostname, "%u.%u.%u.%u", NIPQUAD(sin->sin_addr.s_addr));
++	sprintf(hostname, NIPQUAD_FMT, NIPQUAD(sin->sin_addr.s_addr));
+ 	rpcb_clnt = rpcb_create(hostname, (struct sockaddr *)sin, prot, 2, 0);
+ 	if (IS_ERR(rpcb_clnt))
+ 		return PTR_ERR(rpcb_clnt);
+@@ -294,7 +295,7 @@ int rpcb_getport_external(struct sockadd
+ 	}
+ 	return status;
  }
+-#endif
++EXPORT_SYMBOL_GPL(rpcb_getport_sync);
  
--static int
--xdr_decode_fhstatus3(struct rpc_rqst *req, __be32 *p, struct mnt_fhstatus *res)
-+static int xdr_decode_fhstatus3(struct rpc_rqst *req, __be32 *p,
-+				struct mnt_fhstatus *res)
- {
- 	struct nfs_fh *fh = res->fh;
- 
-@@ -143,53 +137,53 @@ xdr_decode_fhstatus3(struct rpc_rqst *re
- #define MNT_fhstatus_sz		(1 + 8)
- #define MNT_fhstatus3_sz	(1 + 16)
- 
--static struct rpc_procinfo	mnt_procedures[] = {
--[MNTPROC_MNT] = {
--	  .p_proc		= MNTPROC_MNT,
--	  .p_encode		= (kxdrproc_t) xdr_encode_dirpath,	
--	  .p_decode		= (kxdrproc_t) xdr_decode_fhstatus,
--	  .p_arglen		= MNT_dirpath_sz,
--	  .p_replen		= MNT_fhstatus_sz,
--	  .p_statidx		= MNTPROC_MNT,
--	  .p_name		= "MOUNT",
-+static struct rpc_procinfo mnt_procedures[] = {
-+	[MNTPROC_MNT] = {
-+		.p_proc		= MNTPROC_MNT,
-+		.p_encode	= (kxdrproc_t) xdr_encode_dirpath,
-+		.p_decode	= (kxdrproc_t) xdr_decode_fhstatus,
-+		.p_arglen	= MNT_dirpath_sz,
-+		.p_replen	= MNT_fhstatus_sz,
-+		.p_statidx	= MNTPROC_MNT,
-+		.p_name		= "MOUNT",
- 	},
- };
- 
- static struct rpc_procinfo mnt3_procedures[] = {
--[MOUNTPROC3_MNT] = {
--	  .p_proc		= MOUNTPROC3_MNT,
--	  .p_encode		= (kxdrproc_t) xdr_encode_dirpath,
--	  .p_decode		= (kxdrproc_t) xdr_decode_fhstatus3,
--	  .p_arglen		= MNT_dirpath_sz,
--	  .p_replen		= MNT_fhstatus3_sz,
--	  .p_statidx		= MOUNTPROC3_MNT,
--	  .p_name		= "MOUNT",
-+	[MOUNTPROC3_MNT] = {
-+		.p_proc		= MOUNTPROC3_MNT,
-+		.p_encode	= (kxdrproc_t) xdr_encode_dirpath,
-+		.p_decode	= (kxdrproc_t) xdr_decode_fhstatus3,
-+		.p_arglen	= MNT_dirpath_sz,
-+		.p_replen	= MNT_fhstatus3_sz,
-+		.p_statidx	= MOUNTPROC3_MNT,
-+		.p_name		= "MOUNT",
- 	},
- };
- 
- 
--static struct rpc_version	mnt_version1 = {
--		.number		= 1,
--		.nrprocs 	= 2,
--		.procs 		= mnt_procedures
-+static struct rpc_version mnt_version1 = {
-+	.number		= 1,
-+	.nrprocs	= 2,
-+	.procs		= mnt_procedures,
- };
- 
--static struct rpc_version       mnt_version3 = {
--		.number		= 3,
--		.nrprocs	= 2,
--		.procs		= mnt3_procedures
-+static struct rpc_version mnt_version3 = {
-+	.number		= 3,
-+	.nrprocs	= 2,
-+	.procs		= mnt3_procedures,
- };
- 
--static struct rpc_version *	mnt_version[] = {
-+static struct rpc_version *mnt_version[] = {
- 	NULL,
- 	&mnt_version1,
- 	NULL,
- 	&mnt_version3,
- };
- 
--static struct rpc_stat		mnt_stats;
-+static struct rpc_stat mnt_stats;
- 
--static struct rpc_program	mnt_program = {
-+static struct rpc_program mnt_program = {
- 	.name		= "mount",
- 	.number		= NFS_MNT_PROGRAM,
- 	.nrvers		= ARRAY_SIZE(mnt_version),
+ /**
+  * rpcb_getport - obtain the port for a given RPC service on a given host
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
