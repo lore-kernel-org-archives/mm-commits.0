@@ -1,70 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - x86-early_print-kernel-console-should-send-crlf-not-lfcr.patch removed from -mm tree
-Date: Mon, 21 May 2007 13:09:44 -0700
-Message-ID: <200705212009.l4LK9h99018783@shell0.pdx.osdl.net>
+Subject: - x86_64-fix-oprofile-smp.patch removed from -mm tree
+Date: Mon, 21 May 2007 13:09:52 -0700
+Message-ID: <200705212009.l4LK9pwI018792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59871 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51983 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756591AbXEUUNV (ORCPT
+	by vger.kernel.org with ESMTP id S1765555AbXEUUOG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 16:13:21 -0400
+	Mon, 21 May 2007 16:14:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, rmk@arm.linux.org.uk, rmk@dyn-67.arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, ak@suse.de, bcrl@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: early_print kernel console should send CRLF not LFCR
+     x86_64: fix oprofile SMP
 has been removed from the -mm tree.  Its filename was
-     x86-early_print-kernel-console-should-send-crlf-not-lfcr.patch
+     x86_64-fix-oprofile-smp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: early_print kernel console should send CRLF not LFCR
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: x86_64: fix oprofile SMP
+From: Davide Libenzi <davidel@xmailserver.org>
 
-In
-	commit d358788f3f30113e49882187d794832905e42592
-	Author: Russell King <rmk@dyn-67.arm.linux.org.uk>
-	Date:   Mon Mar 20 20:00:09 2006 +0000
+This fixes oprofile being broken on x86-64 SMP.  The current reservation
+runs on all CPUs, but the ones following the first, will fail since the
+reservation bitmap has an 1 in the MSR entry.
 
-        Glen Turner reported that writing LFCR rather than the more
-        traditional CRLF causes issues with some terminals.
+The reservation code should really run once, and their addresses used on
+other CPUs.  There are other solutions to this, but this is the simplest
+and shorter one that came in my mind.  Tested in my dual Opteron 252, and
+working fine here.
 
-        Since this aflicts many serial drivers, extract the common
-        code to a library function (uart_console_write) and arrange for each
-        driver to supply a "putchar" function.
-
-but early_printk is left out.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Benjamin LaHaise <bcrl@redhat.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/early_printk.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/oprofile/nmi_int.c |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/early_printk.c~x86-early_print-kernel-console-should-send-crlf-not-lfcr arch/x86_64/kernel/early_printk.c
---- a/arch/x86_64/kernel/early_printk.c~x86-early_print-kernel-console-should-send-crlf-not-lfcr
-+++ a/arch/x86_64/kernel/early_printk.c
-@@ -91,9 +91,9 @@ static int early_serial_putc(unsigned ch
- static void early_serial_write(struct console *con, const char *s, unsigned n)
+diff -puN arch/i386/oprofile/nmi_int.c~x86_64-fix-oprofile-smp arch/i386/oprofile/nmi_int.c
+--- a/arch/i386/oprofile/nmi_int.c~x86_64-fix-oprofile-smp
++++ a/arch/i386/oprofile/nmi_int.c
+@@ -130,8 +130,19 @@ static void nmi_cpu_save_registers(struc
+ static void nmi_save_registers(void * dummy)
  {
- 	while (*s && n-- > 0) {
--		early_serial_putc(*s);
- 		if (*s == '\n')
- 			early_serial_putc('\r');
-+		early_serial_putc(*s);
- 		s++;
- 	}
+ 	int cpu = smp_processor_id();
+-	struct op_msrs * msrs = &cpu_msrs[cpu];
+-	model->fill_in_addresses(msrs);
++	struct op_msrs *msrs = &cpu_msrs[cpu];
++
++	/*
++	 * Use the CPU#0 already allocated addresses as reference.
++	 */
++	if (cpu != 0) {
++		const struct op_msrs *rmsrs = &cpu_msrs[0];
++
++		memcpy(msrs->counters, rmsrs->counters,
++		       model->num_counters * sizeof(msrs->counters[0]));
++		memcpy(msrs->controls, rmsrs->controls,
++		       model->num_controls * sizeof(msrs->controls[0]));
++	}
+ 	nmi_cpu_save_registers(msrs);
  }
+ 
+@@ -195,6 +206,7 @@ static struct notifier_block profile_exc
+ static int nmi_setup(void)
+ {
+ 	int err=0;
++	struct op_msrs *msrs;
+ 
+ 	if (!allocate_msrs())
+ 		return -ENOMEM;
+@@ -203,6 +215,14 @@ static int nmi_setup(void)
+ 		free_msrs();
+ 		return err;
+ 	}
++	/*
++	 * MSR reservation should happen only once with the current API,
++	 * otherwise CPU other then the first would fail to allocate.
++	 * We do it here, and then we propagate the CPU#0 addresses to
++	 * other CPUs.
++	 */
++	msrs = &cpu_msrs[0];
++	model->fill_in_addresses(msrs);
+ 
+ 	/* We need to serialize save and setup for HT because the subset
+ 	 * of msrs are distinct for save and setup operations
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-origin.patch
-serial-set-dtr-in-uart-for-kernel-serial-console.patch
+signalfd-retrieve-multiple-signals-with-one-read-call.patch
