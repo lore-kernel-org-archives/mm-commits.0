@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-at91_adc-parenthesis-balance.patch added to -mm tree
-Date: Sun, 20 May 2007 20:09:12 -0700
-Message-ID: <200705210309.l4L39BuZ001289@shell0.pdx.osdl.net>
+Subject: + acpi-bay-send-envp-with-uevent.patch added to -mm tree
+Date: Sun, 20 May 2007 20:08:35 -0700
+Message-ID: <200705210308.l4L38YLs001279@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37154 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33991 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754338AbXEUDK1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752702AbXEUDK1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 20 May 2007 23:10:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: kristen.c.accardi@intel.com, s.berberig@arcor.de
 
 
 The patch titled
-     arm: at91_adc parenthesis balance
+     ACPI: bay: send envp with uevent
 has been added to the -mm tree.  Its filename is
-     arm-at91_adc-parenthesis-balance.patch
+     acpi-bay-send-envp-with-uevent.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm: at91_adc parenthesis balance
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: ACPI: bay: send envp with uevent
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-unbalanced parenthesis macro fix.
+Make the bay driver send env information on bay events.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Upon any bay event, we will send the string "BAY_EVENT=%d" along with the
+KOBJ_CHANGE, and report the event number.  What the event number means will
+be platform specific.  Event 3 is always an eject request, but an insert
+may be either event 1, or it may be event 0.  Event 1 may also be a
+remove request.  It would be best if you check the number of your event
+with udevmonitor before writing any udev scripts for inserting and
+removing drive bays.
+
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Stephan Berberig <s.berberig@arcor.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-at91/at91_adc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/bay.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN include/asm-arm/arch-at91/at91_adc.h~arm-at91_adc-parenthesis-balance include/asm-arm/arch-at91/at91_adc.h
---- a/include/asm-arm/arch-at91/at91_adc.h~arm-at91_adc-parenthesis-balance
-+++ a/include/asm-arm/arch-at91/at91_adc.h
-@@ -55,7 +55,7 @@
- #define AT91_ADC_IDR		0x28		/* Interrupt Disable Register */
- #define AT91_ADC_IMR		0x2C		/* Interrupt Mask Register */
+diff -puN drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent drivers/acpi/bay.c
+--- a/drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent
++++ a/drivers/acpi/bay.c
+@@ -333,18 +333,12 @@ static void bay_notify(acpi_handle handl
+ {
+ 	struct bay *bay_dev = (struct bay *)data;
+ 	struct device *dev = &bay_dev->pdev->dev;
++	char event_string[12];
++	char *envp[] = { event_string, NULL };
  
--#define AT91_ADC_CHR(n)		(0x30 + ((n) * 4)	/* Channel Data Register N */
-+#define AT91_ADC_CHR(n)		(0x30 + ((n) * 4))	/* Channel Data Register N */
- #define		AT91_ADC_DATA		(0x3ff)
+ 	bay_dprintk(handle, "Bay event");
+-
+-	switch(event) {
+-	case ACPI_NOTIFY_BUS_CHECK:
+-	case ACPI_NOTIFY_DEVICE_CHECK:
+-	case ACPI_NOTIFY_EJECT_REQUEST:
+-		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
+-		break;
+-	default:
+-		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
+-	}
++	sprintf(event_string, "BAY_EVENT=%d\n", event);
++	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
+ }
  
- #endif
+ static acpi_status
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-arm-at91_adc-parenthesis-balance.patch
+git-acpi.patch
+acpi-bay-send-envp-with-uevent.patch
+libata-check-for-an-support.patch
+genhd-expose-an-to-user-space.patch
+scsi-expose-an-to-user-space.patch
+libata-expose-an-to-user-space.patch
+genhd-send-async-notification-on-media-change.patch
+scsi-save-disk-in-scsi_device.patch
+libata-send-event-when-an-received.patch
+cpci_hotplug-convert-to-use-the-kthread-api.patch
