@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unnecessary-includes-of-spinlockh-under-include-linux.patch added to -mm tree
-Date: Sun, 20 May 2007 20:46:39 -0700
-Message-ID: <200705210346.l4L3kcYF001770@shell0.pdx.osdl.net>
+Subject: + bug-in-i386-mtrr-initialization.patch added to -mm tree
+Date: Sun, 20 May 2007 20:46:01 -0700
+Message-ID: <200705210346.l4L3k0a0001764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191AbXEUDsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754357AbXEUDs0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 20 May 2007 23:48:16 -0400
+	Sun, 20 May 2007 23:48:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: righiandr@users.sourceforge.net, a.righi@cineca.it
 
 
 The patch titled
-     Remove unnecessary includes of spinlock.h under include/linux
+     bug in i386 MTRR initialization
 has been added to the -mm tree.  Its filename is
-     remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+     bug-in-i386-mtrr-initialization.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,169 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unnecessary includes of spinlock.h under include/linux
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: bug in i386 MTRR initialization
+From: Andrea Righi <righiandr@users.sourceforge.net>
 
-Remove the obviously unnecessary includes of <linux/spinlock.h> under the
-include/linux/ directory, and fix the couple errors that are introduced as
-a result of that.
+BUG: at include/linux/slub_def.h:77 kmalloc_index()
+ [<c0168eb0>] get_slab+0x1d0/0x260
+ [<c0169056>] __kmalloc+0x16/0x70
+ [<c042b0ff>] sysenter_setup+0x6f/0x330
+ [<c010baed>] mtrr_bp_init+0xcd/0x270
+ [<c041a480>] unknown_bootoption+0x0/0x250
+ [<c041a480>] unknown_bootoption+0x0/0x250
+ [<c0423f78>] check_bugs+0x8/0x160
+ [<c01a644c>] proc_sys_init+0xc/0x30
+ [<c041a8ef>] start_kernel+0x21f/0x2b0
+ [<c041a480>] unknown_bootoption+0x0/0x250
+ =======================
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Reproduced running 2.6.22-rc2 (using SLUB) in a virtual machine with qemu
+0.9.0 + kqemu 1.3.0pre11.  It occurs only using "-kernel-kqemu" option (full
+virtualization mode).
+
+In this case mtrr is supported by the real cpu, but no mtrr range is found,
+resulting in a kmalloc(0, GFP_KERNEL) in get_mtrr_state() and init_table().
+
+Signed-off-by: Andrea Righi <a.righi@cineca.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/attribute_container.h |    1 -
- include/linux/capability.h          |    1 -
- include/linux/console.h             |    1 -
- include/linux/ds17287rtc.h          |    1 -
- include/linux/ipc.h                 |    1 +
- include/linux/leds.h                |    1 -
- include/linux/module.h              |    1 -
- include/linux/percpu.h              |    2 +-
- include/linux/scx200_gpio.h         |    2 --
- include/linux/signal.h              |    1 -
- include/linux/smp_lock.h            |    1 -
- include/linux/timer.h               |    1 -
- 12 files changed, 2 insertions(+), 12 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |    3 +++
+ arch/i386/kernel/cpu/mtrr/main.c    |    5 +++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN include/linux/attribute_container.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/attribute_container.h
---- a/include/linux/attribute_container.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/attribute_container.h
-@@ -12,7 +12,6 @@
- #include <linux/device.h>
- #include <linux/list.h>
- #include <linux/klist.h>
--#include <linux/spinlock.h>
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~bug-in-i386-mtrr-initialization arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~bug-in-i386-mtrr-initialization
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -84,6 +84,9 @@ void __init get_mtrr_state(void)
+ 	struct mtrr_var_range *vrs;
+ 	unsigned lo, dummy;
  
- struct attribute_container {
- 	struct list_head	node;
-diff -puN include/linux/capability.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/capability.h
---- a/include/linux/capability.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/capability.h
-@@ -70,7 +70,6 @@ struct vfs_cap_data_disk_v1 {
++	if (!num_var_ranges)
++		return;
++
+ 	if (!mtrr_state.var_ranges) {
+ 		mtrr_state.var_ranges = kmalloc(num_var_ranges * sizeof (struct mtrr_var_range), 
+ 						GFP_KERNEL);
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~bug-in-i386-mtrr-initialization arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~bug-in-i386-mtrr-initialization
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -120,6 +120,11 @@ static void __init init_table(void)
+ {
+ 	int i, max;
  
- #ifdef __KERNEL__
- 
--#include <linux/spinlock.h>
- #include <asm/current.h>
- 
- struct vfs_cap_data {
-diff -puN include/linux/console.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/console.h
---- a/include/linux/console.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/console.h
-@@ -15,7 +15,6 @@
- #define _LINUX_CONSOLE_H_ 1
- 
- #include <linux/types.h>
--#include <linux/spinlock.h>
- 
- struct vc_data;
- struct console_font_op;
-diff -puN include/linux/ds17287rtc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/ds17287rtc.h
---- a/include/linux/ds17287rtc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/ds17287rtc.h
-@@ -11,7 +11,6 @@
- #define __LINUX_DS17287RTC_H
- 
- #include <linux/rtc.h>			/* get the user-level API */
--#include <linux/spinlock.h>		/* spinlock_t */
- #include <linux/mc146818rtc.h>
- 
- /* Register A */
-diff -puN include/linux/ipc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/ipc.h
---- a/include/linux/ipc.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/ipc.h
-@@ -52,6 +52,7 @@ struct ipc_perm
- #ifdef __KERNEL__
- 
- #include <linux/kref.h>
-+#include <linux/spinlock.h>
- 
- #define IPCMNI 32768  /* <= MAX_INT limit for ipc arrays (including sysctl changes) */
- 
-diff -puN include/linux/leds.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/leds.h
---- a/include/linux/leds.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/leds.h
-@@ -13,7 +13,6 @@
- #define __LINUX_LEDS_H_INCLUDED
- 
- #include <linux/list.h>
--#include <linux/spinlock.h>
- 
- struct device;
- struct class_device;
-diff -puN include/linux/module.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/module.h
---- a/include/linux/module.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/module.h
-@@ -6,7 +6,6 @@
-  * Rewritten by Richard Henderson <rth@tamu.edu> Dec 1996
-  * Rewritten again by Rusty Russell, 2002
-  */
--#include <linux/spinlock.h>
- #include <linux/list.h>
- #include <linux/stat.h>
- #include <linux/compiler.h>
-diff -puN include/linux/percpu.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/percpu.h
---- a/include/linux/percpu.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/percpu.h
-@@ -1,7 +1,7 @@
- #ifndef __LINUX_PERCPU_H
- #define __LINUX_PERCPU_H
- 
--#include <linux/spinlock.h> /* For preempt_disable() */
-+#include <linux/preempt.h>
- #include <linux/slab.h> /* For kmalloc() */
- #include <linux/smp.h>
- #include <linux/string.h> /* For memset() */
-diff -puN include/linux/scx200_gpio.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/scx200_gpio.h
---- a/include/linux/scx200_gpio.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/scx200_gpio.h
-@@ -1,5 +1,3 @@
--#include <linux/spinlock.h>
--
- u32 scx200_gpio_configure(unsigned index, u32 set, u32 clear);
- 
- extern unsigned scx200_gpio_base;
-diff -puN include/linux/signal.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/signal.h
---- a/include/linux/signal.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/signal.h
-@@ -6,7 +6,6 @@
- 
- #ifdef __KERNEL__
- #include <linux/list.h>
--#include <linux/spinlock.h>
- 
- /*
-  * Real Time signals may be queued.
-diff -puN include/linux/smp_lock.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/smp_lock.h
---- a/include/linux/smp_lock.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/smp_lock.h
-@@ -3,7 +3,6 @@
- 
- #ifdef CONFIG_LOCK_KERNEL
- #include <linux/sched.h>
--#include <linux/spinlock.h>
- 
- #define kernel_locked()		(current->lock_depth >= 0)
- 
-diff -puN include/linux/timer.h~remove-unnecessary-includes-of-spinlockh-under-include-linux include/linux/timer.h
---- a/include/linux/timer.h~remove-unnecessary-includes-of-spinlockh-under-include-linux
-+++ a/include/linux/timer.h
-@@ -3,7 +3,6 @@
- 
- #include <linux/list.h>
- #include <linux/ktime.h>
--#include <linux/spinlock.h>
- #include <linux/stddef.h>
- 
- struct tvec_t_base_s;
++        if (!num_var_ranges) {
++		printk(KERN_ERR "mtrr: no MTRR range found.\n");
++		return;
++        }
++
+ 	max = num_var_ranges;
+ 	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
+ 	    == NULL) {
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from righiandr@users.sourceforge.net are
 
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+bug-in-i386-mtrr-initialization.patch
+vdso-print-fatal-signals-fix.patch
