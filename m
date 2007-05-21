@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-implement-nfsv2-3-in-kernel-mount-option-parsing.patch added to -mm tree
-Date: Mon, 21 May 2007 14:41:24 -0700
-Message-ID: <200705212141.l4LLfO5T020710@shell0.pdx.osdl.net>
+Subject: + nfs-refactor-ip-address-sanity-checks-in-nfs-client.patch added to -mm tree
+Date: Mon, 21 May 2007 14:41:07 -0700
+Message-ID: <200705212141.l4LLf7d4020686@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49476 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41366 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757419AbXEUVoz (ORCPT
+	by vger.kernel.org with ESMTP id S1757010AbXEUVow (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 17:44:55 -0400
+	Mon, 21 May 2007 17:44:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chuck.lever@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: chuck.lever@oracle.com, aurelien.charbon@ext.bull.net, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     NFS: implement NFSv2/3 in-kernel mount option parsing
+     NFS: refactor IP address sanity checks in NFS client
 has been added to the -mm tree.  Its filename is
-     nfs-implement-nfsv2-3-in-kernel-mount-option-parsing.patch
+     nfs-refactor-ip-address-sanity-checks-in-nfs-client.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,219 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NFS: implement NFSv2/3 in-kernel mount option parsing
+Subject: NFS: refactor IP address sanity checks in NFS client
 From: Chuck Lever <chuck.lever@oracle.com>
 
+Provide mechanism for adding IPv6 address support at some later point.
+
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Cc: Aurelien Charbon <aurelien.charbon@ext.bull.net>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |  132 +++++++++++++++++++++++++++++------------------
- 1 files changed, 83 insertions(+), 49 deletions(-)
+ fs/nfs/super.c |   39 ++++++++++++++++++++++++++++-----------
+ 1 files changed, 28 insertions(+), 11 deletions(-)
 
-diff -puN fs/nfs/super.c~nfs-implement-nfsv2-3-in-kernel-mount-option-parsing fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-implement-nfsv2-3-in-kernel-mount-option-parsing
+diff -puN fs/nfs/super.c~nfs-refactor-ip-address-sanity-checks-in-nfs-client fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-refactor-ip-address-sanity-checks-in-nfs-client
 +++ a/fs/nfs/super.c
-@@ -934,8 +934,6 @@ static struct nfs_mount_data *nfs_conver
- 	if (args == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	args->nmd.version = 7;
--
- 	args->nmd.flags = (NFS_MOUNT_VER3 | NFS_MOUNT_TCP);
- 	args->nmd.rsize = NFS_MAX_FILE_IO_SIZE;
- 	args->nmd.wsize = NFS_MAX_FILE_IO_SIZE;
-@@ -988,71 +986,74 @@ out_invalid:
-  * Validate the NFS2/NFS3 mount data
-  * - fills in the mount root filehandle
-  */
--static int nfs_validate_mount_data(struct nfs_mount_data *data,
--				   struct nfs_fh *mntfh)
--{
--	if (data == NULL) {
--		dprintk("%s: missing data argument\n", __FUNCTION__);
--		return -EINVAL;
--	}
-+static int nfs_validate_mount_data(struct nfs_mount_data **options,
-+				   struct nfs_fh *mntfh,
-+				   const char *dev_name)
-+{
-+	struct nfs_mount_data *data = *options;
-+	unsigned int len;
-+	char *c;
-+	int status;
- 
--	if (data->version <= 0 || data->version > NFS_MOUNT_VERSION) {
--		dprintk("%s: bad mount version\n", __FUNCTION__);
--		return -EINVAL;
--	}
-+	if (data == NULL)
-+		goto out_no_data;
- 
- 	switch (data->version) {
--		case 1:
--			data->namlen = 0;
--		case 2:
--			data->bsize  = 0;
--		case 3:
--			if (data->flags & NFS_MOUNT_VER3) {
--				dprintk("%s: mount structure version %d does not support NFSv3\n",
--						__FUNCTION__,
--						data->version);
--				return -EINVAL;
--			}
--			data->root.size = NFS2_FHSIZE;
--			memcpy(data->root.data, data->old_root.data, NFS2_FHSIZE);
--		case 4:
--			if (data->flags & NFS_MOUNT_SECFLAVOUR) {
--				dprintk("%s: mount structure version %d does not support strong security\n",
--						__FUNCTION__,
--						data->version);
--				return -EINVAL;
--			}
--		case 5:
--			memset(data->context, 0, sizeof(data->context));
-+	case 1:
-+		data->namlen = 0;
-+	case 2:
-+		data->bsize  = 0;
-+	case 3:
-+		if (data->flags & NFS_MOUNT_VER3)
-+			goto out_no_v3;
-+		data->root.size = NFS2_FHSIZE;
-+		memcpy(data->root.data, data->old_root.data, NFS2_FHSIZE);
-+	case 4:
-+		if (data->flags & NFS_MOUNT_SECFLAVOUR)
-+			goto out_no_sec;
-+	case 5:
-+		memset(data->context, 0, sizeof(data->context));
-+	case 6:
-+		break;
-+	default:
-+		data = nfs_convert_mount_opts((char *) data);
-+		if (IS_ERR(data))
-+			return PTR_ERR(data);
-+		*options = data;
-+
-+		c = strchr(dev_name, ':');
-+		if (c == NULL)
-+			return -EINVAL;
-+		len = c - dev_name - 1;
-+		if (len > 256)
-+			return -EINVAL;
-+		strncpy(data->hostname, dev_name, len);
-+
-+		status = nfs_try_mount(data, ++c);
-+		if (status)
-+			return -EINVAL;
- 	}
- 
--	/* Set the pseudoflavor */
- 	if (!(data->flags & NFS_MOUNT_SECFLAVOUR))
- 		data->pseudoflavor = RPC_AUTH_UNIX;
- 
- #ifndef CONFIG_NFS_V3
--	/* If NFSv3 is not compiled in, return -EPROTONOSUPPORT */
--	if (data->flags & NFS_MOUNT_VER3) {
--		dprintk("%s: NFSv3 not compiled into kernel\n", __FUNCTION__);
--		return -EPROTONOSUPPORT;
--	}
--#endif /* CONFIG_NFS_V3 */
-+	if (data->flags & NFS_MOUNT_VER3)
-+		goto out_v3_not_compiled;
-+#endif /* !CONFIG_NFS_V3 */
- 
- 	/* We now require that the mount process passes the remote address */
- 	if (!nfs_verify_server_address((struct sockaddr *) &data->addr,
- 						sizeof(data->addr)))
-  		return -EINVAL;
- 
--	/* Prepare the root filehandle */
- 	if (data->flags & NFS_MOUNT_VER3)
- 		mntfh->size = data->root.size;
- 	else
- 		mntfh->size = NFS2_FHSIZE;
- 
--	if (mntfh->size > sizeof(mntfh->data)) {
--		dprintk("%s: invalid root filehandle\n", __FUNCTION__);
--		return -EINVAL;
--	}
-+	if (mntfh->size > sizeof(mntfh->data))
-+		goto out_invalid_fh;
- 
- 	memcpy(mntfh->data, data->root.data, mntfh->size);
- 	if (mntfh->size < sizeof(mntfh->data))
-@@ -1060,6 +1061,30 @@ static int nfs_validate_mount_data(struc
- 		       sizeof(mntfh->data) - mntfh->size);
- 
- 	return 0;
-+
-+out_no_data:
-+	dprintk("NFS: mount program didn't pass any mount data\n");
-+	return -EINVAL;
-+
-+out_no_v3:
-+	dprintk("NFS: nfs_mount_data version %d does not support NFSv3\n",
-+		data->version);
-+	return -EINVAL;
-+
-+out_no_sec:
-+	dprintk("NFS: nfs_mount_data version %d supports only AUTH_SYS\n",
-+		data->version);
-+	return -EINVAL;
-+
-+#ifndef CONFIG_NFS_V3
-+out_v3_not_compiled:
-+	dprintk("NFS: NFSv3 is not compiled into kernel\n");
-+	return -EPROTONOSUPPORT;
-+#endif /* !CONFIG_NFS_V3 */
-+
-+out_invalid_fh:
-+	dprintk("NFS: invalid root filehandle\n");
-+	return -EINVAL;
+@@ -435,6 +435,28 @@ static void nfs_umount_begin(struct vfsm
  }
  
  /*
-@@ -1206,9 +1231,12 @@ static int nfs_get_sb(struct file_system
- 	int error;
- 
- 	/* Validate the mount data */
--	error = nfs_validate_mount_data(data, &mntfh);
--	if (error < 0)
-+	error = nfs_validate_mount_data(&data, &mntfh, dev_name);
-+	if (error < 0) {
-+		if (data != raw_data)
-+			kfree(data);
- 		return error;
++ * Sanity-check a server address provided by the mount command
++ */
++static int nfs_verify_server_address(struct sockaddr *addr, size_t len)
++{
++	if (len > sizeof(struct sockaddr))
++		goto out_invalid;
++
++	switch (addr->sa_family) {
++	case AF_INET: {
++		struct sockaddr_in *sa = (struct sockaddr_in *) addr;
++		if (sa->sin_addr.s_addr != INADDR_ANY)
++			return 1;
++		break;
 +	}
++	}
++
++out_invalid:
++	dprintk("NFS: mount program passed an invalid remote address\n");
++	return 0;
++}
++
++/*
+  * Validate the NFS2/NFS3 mount data
+  * - fills in the mount root filehandle
+  */
+@@ -489,11 +511,9 @@ static int nfs_validate_mount_data(struc
+ #endif /* CONFIG_NFS_V3 */
  
- 	/* Get a volume representation */
- 	server = nfs_create_server(data, &mntfh);
-@@ -1250,16 +1278,22 @@ static int nfs_get_sb(struct file_system
- 	s->s_flags |= MS_ACTIVE;
- 	mnt->mnt_sb = s;
- 	mnt->mnt_root = mntroot;
-+	if (data != raw_data)
-+		kfree(data);
- 	return 0;
+ 	/* We now require that the mount process passes the remote address */
+-	if (data->addr.sin_addr.s_addr == INADDR_ANY) {
+-		dprintk("%s: mount program didn't pass remote address!\n",
+-			__FUNCTION__);
+-		return -EINVAL;
+-	}
++	if (!nfs_verify_server_address((struct sockaddr *) &data->addr,
++						sizeof(data->addr)))
++ 		return -EINVAL;
  
- out_err_nosb:
- 	nfs_free_server(server);
- out_err_noserver:
-+	if (data != raw_data)
-+		kfree(data);
- 	return error;
+ 	/* Prepare the root filehandle */
+ 	if (data->flags & NFS_MOUNT_VER3)
+@@ -877,13 +897,10 @@ static int nfs4_get_sb(struct file_syste
+ 	if (copy_from_user(&addr, data->host_addr, sizeof(addr)))
+ 		return -EFAULT;
  
- error_splat_super:
- 	up_write(&s->s_umount);
- 	deactivate_super(s);
-+	if (data != raw_data)
-+		kfree(data);
- 	return error;
- }
- 
+-	if (addr.sin_family != AF_INET ||
+-	    addr.sin_addr.s_addr == INADDR_ANY
+-	    ) {
+-		dprintk("%s: mount program didn't pass remote IP address!\n",
+-				__FUNCTION__);
++	if (!nfs_verify_server_address((struct sockaddr *) &addr,
++					data->host_addrlen))
+ 		return -EINVAL;
+-	}
++
+ 	/* RFC3530: The default port for NFS is 2049 */
+ 	if (addr.sin_port == 0)
+ 		addr.sin_port = htons(NFS_PORT);
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
