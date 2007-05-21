@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sch_htb-fix-event-cache-time-calculation.patch added to -mm tree
-Date: Mon, 21 May 2007 15:02:50 -0700
-Message-ID: <200705212202.l4LM2o4L021090@shell0.pdx.osdl.net>
+Subject: + prevent-going-idle-with-softirq-pending.patch added to -mm tree
+Date: Mon, 21 May 2007 15:05:49 -0700
+Message-ID: <200705212205.l4LM5nrf021138@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43370 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756823AbXEUWEc (ORCPT
+	by vger.kernel.org with ESMTP id S1761897AbXEUWJd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 21 May 2007 18:04:32 -0400
+	Mon, 21 May 2007 18:09:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kaber@trash.net, kernel@prachanda.info
+Cc: tglx@linutronix.de, mingo@elte.hu, stable@kernel.org
 
 
 The patch titled
-     sch_htb: fix event cache time calculation
+     Prevent going idle with softirq pending
 has been added to the -mm tree.  Its filename is
-     sch_htb-fix-event-cache-time-calculation.patch
+     prevent-going-idle-with-softirq-pending.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sch_htb: fix event cache time calculation
-From: Patrick McHardy <kaber@trash.net>
+Subject: Prevent going idle with softirq pending
+From: Thomas Gleixner <tglx@linutronix.de>
 
-The event cache time must be an absolute value, when no event exists it is
-incorrectly set to 1s instead of 1s in the future.
+The NOHZ patch contains a check for softirqs pending when a CPU goes idle. 
+The BUG is unrelated to NOHZ, it just was made visible by the NOHZ patch. 
+The BUG showed up mainly on P4 / hyperthreading enabled machines which lead
+the investigations into the wrong direction in the first place.  The real
+cause is in cond_resched_softirq():
 
-Should fix excessive load reported by Anant Nitya <kernel@prachanda.info>.
+cond_resched_softirq() is enabling softirqs without invoking the softirq
+daemon when softirqs are pending.  This leads to the warning message in the
+NOHZ idle code:
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+t1 runs softirq disabled code on CPU#0
+interrupt happens, softirq is raised, but deferred (softirqs disabled)
+t1 calls cond_resched_softirq()
+	enables softirqs via _local_bh_enable()
+	calls schedule()
+t2 runs
+t1 is migrated to CPU#1
+t2 is done and invokes idle()
+NOHZ detects the pending softirq
+
+Fix: change _local_bh_enable() to local_bh_enable() so the softirq
+daemon is invoked.
+
+Thanks to Anant Nitya for debugging this with great patience !
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sched/sch_htb.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sched/sch_htb.c~sch_htb-fix-event-cache-time-calculation net/sched/sch_htb.c
---- a/net/sched/sch_htb.c~sch_htb-fix-event-cache-time-calculation
-+++ a/net/sched/sch_htb.c
-@@ -976,8 +976,9 @@ static struct sk_buff *htb_dequeue(struc
+diff -puN kernel/sched.c~prevent-going-idle-with-softirq-pending kernel/sched.c
+--- a/kernel/sched.c~prevent-going-idle-with-softirq-pending
++++ a/kernel/sched.c
+@@ -4776,7 +4776,7 @@ int __sched cond_resched_softirq(void)
  
- 		if (q->now >= q->near_ev_cache[level]) {
- 			event = htb_do_events(q, level);
--			q->near_ev_cache[level] = event ? event :
--							  PSCHED_TICKS_PER_SEC;
-+			if (!event)
-+				event = q->now + PSCHED_TICKS_PER_SEC;
-+			q->near_ev_cache[level] = event;
- 		} else
- 			event = q->near_ev_cache[level];
- 
+ 	if (need_resched() && system_state == SYSTEM_RUNNING) {
+ 		raw_local_irq_disable();
+-		_local_bh_enable();
++		local_bh_enable();
+ 		raw_local_irq_enable();
+ 		__cond_resched();
+ 		local_bh_disable();
 _
 
-Patches currently in -mm which might be from kaber@trash.net are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-origin.patch
-networking-fix-sending-netlink-message-when-replace-route.patch
-make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
-sch_htb-fix-event-cache-time-calculation.patch
+ignore-bogus-acpi-info-for-offline-cpus.patch
+nohz-rate-limit-the-local-softirq-pending-warning-output.patch
+prevent-going-idle-with-softirq-pending.patch
+drm-spinlock-initializer-cleanup.patch
+s390-spinlock-initializer-cleanup.patch
+i386-hpet-check-if-the-counter-works.patch
