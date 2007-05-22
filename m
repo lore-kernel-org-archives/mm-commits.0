@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-move-the-page-walker-code-to-lib-fix.patch added to -mm tree
-Date: Mon, 21 May 2007 23:53:03 -0700
-Message-ID: <200705220656.l4M6uHNY029221@shell0.pdx.osdl.net>
+Subject: + git-md-accel-build-fix.patch added to -mm tree
+Date: Tue, 22 May 2007 00:02:08 -0700
+Message-ID: <200705220705.l4M75MWW029365@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60293 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757480AbXEVG4z (ORCPT
+	by vger.kernel.org with ESMTP id S1756335AbXEVHGc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 02:56:55 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4M6uHV9000628
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 21 May 2007 23:56:53 -0700
+	Tue, 22 May 2007 03:06:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com
 
 
 The patch titled
-     maps2-move-the-page-walker-code-to-lib fix
+     git-md-accel build fix
 has been added to the -mm tree.  Its filename is
-     maps2-move-the-page-walker-code-to-lib-fix.patch
+     git-md-accel-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,25 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps2-move-the-page-walker-code-to-lib fix
+Subject: git-md-accel build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: "page_address" [async_tx/async_memset.ko] undefined!
+
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/pagewalk.c |    1 +
+ async_tx/async_memset.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix lib/pagewalk.c
---- a/lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix
-+++ a/lib/pagewalk.c
-@@ -1,5 +1,6 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
-+#include <linux/sched.h>
- 
- static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk, void *private)
+diff -puN async_tx/async_memset.c~git-md-accel-build-fix async_tx/async_memset.c
+--- a/async_tx/async_memset.c~git-md-accel-build-fix
++++ a/async_tx/async_memset.c
+@@ -25,6 +25,7 @@
+  * file called COPYING.
+  */
+ #include <linux/kernel.h>
++#include <linux/mm.h>
+ #include <linux/interrupt.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/async_tx.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,3 +156,4 @@ vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
+git-md-accel-build-fix.patch
