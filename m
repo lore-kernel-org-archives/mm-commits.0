@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86_64-vdso-vmac-needs-schedh.patch added to -mm tree
-Date: Mon, 21 May 2007 23:15:48 -0700
-Message-ID: <200705220619.l4M6J2kM028733@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch added to -mm tree
+Date: Mon, 21 May 2007 23:24:40 -0700
+Message-ID: <200705220627.l4M6RsHC028879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33996 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755827AbXEVGUP (ORCPT
+	by vger.kernel.org with ESMTP id S1755004AbXEVG3u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 02:20:15 -0400
+	Tue, 22 May 2007 02:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, ak@suse.de, rientjes@google.com
 
 
 The patch titled
-     arch/x86_64/vdso/vma.c needs sched.h
+     fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
 has been added to the -mm tree.  Its filename is
-     arch-x86_64-vdso-vmac-needs-schedh.patch
+     fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/x86_64/vdso/vma.c needs sched.h
+Subject: fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/vdso/vma.c: In function 'arch_setup_additional_pages':
-arch/x86_64/vdso/vma.c:103: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:111: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:112: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:127: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:129: error: dereferencing pointer to incomplete type
+arch/x86_64/mm/srat.c: In function 'acpi_fake_nodes':
+arch/x86_64/mm/srat.c:503: error: invalid application of 'sizeof' to incomplete type 'unsigned char[]' 
+arch/x86_64/mm/srat.c:503: error: invalid application of 'sizeof' to incomplete type 'unsigned char[]' 
 
 Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/vdso/vma.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-x86_64/numa.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh arch/x86_64/vdso/vma.c
---- a/arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh
-+++ a/arch/x86_64/vdso/vma.c
-@@ -4,6 +4,7 @@
-  * Subject to the GPL, v.2
-  */
- #include <linux/mm.h>
-+#include <linux/sched.h>
- #include <linux/init.h>
- #include <linux/random.h>
- #include <asm/vsyscall.h>
+diff -puN include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2 include/asm-x86_64/numa.h
+--- a/include/asm-x86_64/numa.h~fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2
++++ a/include/asm-x86_64/numa.h
+@@ -2,6 +2,7 @@
+ #define _ASM_X8664_NUMA_H 1
+ 
+ #include <linux/nodemask.h>
++#include <asm/apicdef.h>
+ 
+ struct bootnode {
+ 	u64 start,end; 
+@@ -19,7 +20,7 @@ extern void numa_set_node(int cpu, int n
+ extern void srat_reserve_add_area(int nodeid);
+ extern int hotadd_percent;
+ 
+-extern unsigned char apicid_to_node[];
++extern unsigned char apicid_to_node[MAX_LOCAL_APIC];
+ #ifdef CONFIG_NUMA
+ extern void __init init_cpu_to_node(void);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +102,7 @@ scsi-fix-config_scsi_wait_scan=m.patch
 git-unionfs.patch
 revert-gregkh-usb-usb-make-the-autosuspend-workqueue-thread-freezable.patch
 git-wireless.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
