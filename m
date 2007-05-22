@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + doc-clocksources.patch added to -mm tree
-Date: Mon, 21 May 2007 21:07:50 -0700
-Message-ID: <200705220407.l4M47oO4027000@shell0.pdx.osdl.net>
+Subject: + forcedeth-fix-power-management-support.patch added to -mm tree
+Date: Mon, 21 May 2007 21:09:54 -0700
+Message-ID: <200705220409.l4M49sN6027020@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48208 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755288AbXEVELR (ORCPT
+	by vger.kernel.org with ESMTP id S1755288AbXEVELh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 00:11:17 -0400
+	Tue, 22 May 2007 00:11:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, tglx@linutronix.de
+Cc: aabdulla@nvidia.com
 
 
 The patch titled
-     document clocksources
+     forcedeth: fix power management support
 has been added to the -mm tree.  Its filename is
-     doc-clocksources.patch
+     forcedeth-fix-power-management-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,188 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: document clocksources
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: forcedeth: fix power management support
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-Document the available clocksources per platform and move clocksource= into
-the correct (alpha) location in the file.
+This patch fixes the power management functions.  It includes lowering the phy
+speed to conserve power.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ drivers/net/forcedeth.c |  123 ++++++++++++++++++++++++++++++++++----
+ 1 file changed, 111 insertions(+), 12 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~doc-clocksources Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-clocksources
-+++ a/Documentation/kernel-parameters.txt
-@@ -396,6 +396,26 @@ and is between 256 and 4096 characters. 
- 			clocksource is not available, it defaults to PIT.
- 			Format: { pit | tsc | cyclone | pmtmr }
+diff -puN drivers/net/forcedeth.c~forcedeth-fix-power-management-support drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-fix-power-management-support
++++ a/drivers/net/forcedeth.c
+@@ -812,6 +812,10 @@ struct fe_priv {
  
-+	clocksource=	[GENERIC_TIME] Override the default clocksource
-+			Format: <string>
-+			Override the default clocksource and use the clocksource
-+			with the name specified.
-+			Some clocksource names to choose from, depending on
-+			the platform:
-+			[all] jiffies (this is the base, fallback clocksource)
-+			[ACPI] acpi_pm
-+			[ARM] imx_timer1,OSTS,netx_timer,mpu_timer2,
-+				pxa_timer,timer3,32k_counter,timer0_1
-+			[AVR32] avr32
-+			[IA-32] pit,hpet,tsc,vmi-timer;
-+				scx200_hrt on Geode; cyclone on IBM x440
-+			[MIPS] MIPS
-+			[PARISC] cr16
-+			[S390] tod
-+			[SH] SuperH
-+			[SPARC64] tick
-+			[X86-64] hpet,tsc
+ 	/* flow control */
+ 	u32 pause_flags;
 +
- 	code_bytes	[IA32] How many bytes of object code to print in an
- 			oops report.
- 			Range: 0 - 8192
-@@ -1807,10 +1827,6 @@ and is between 256 and 4096 characters. 
++	/* power saved state */
++	u32 saved_config_space[64];
++	u32 saved_phyinterface;
+ };
  
- 	time		Show timing data prefixed to each printk message line
+ /*
+@@ -5348,42 +5352,137 @@ static void __devexit nv_remove(struct p
+ }
  
--	clocksource=	[GENERIC_TIME] Override the default clocksource
--			Override the default clocksource and use the clocksource
--			with the name specified.
+ #ifdef CONFIG_PM
++static void nv_set_low_speed(struct net_device *dev)
++{
++	struct fe_priv *np = netdev_priv(dev);
++	int adv = 0;
++	int lpa = 0;
++	int adv_lpa, bmcr, tries = 0;
++	int mii_status;
++	u32 control_1000;
++
++	/* lower the speed if we are in 1000Mbps autoneg */
++	if (np->autoneg == 0 || ((np->linkspeed & 0xFFF) != NVREG_LINKSPEED_1000))
++		return;
++
++	adv = mii_rw(dev, np->phyaddr, MII_ADVERTISE, MII_READ);
++	lpa = mii_rw(dev, np->phyaddr, MII_LPA, MII_READ);
++	control_1000 = mii_rw(dev, np->phyaddr, MII_CTRL1000, MII_READ);
++
++	adv_lpa = lpa & adv;
++
++	/* lower the speed if partner has advertised other speeds */
++	if ((adv_lpa & LPA_10FULL) || (adv_lpa & LPA_10HALF)) {
++		adv &= ~(ADVERTISE_100BASE4 | ADVERTISE_100FULL | ADVERTISE_100HALF);
++		control_1000 &= ~ADVERTISE_1000FULL;
++	} else if ((adv_lpa & LPA_100FULL) || (adv_lpa & LPA_100HALF)) {
++		control_1000 &= ~ADVERTISE_1000FULL;
++	} else
++		return;
++
++	/* set new advertisements */
++	mii_rw(dev, np->phyaddr, MII_ADVERTISE, adv);
++	mii_rw(dev, np->phyaddr, MII_CTRL1000, control_1000);
++
++	bmcr = mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ);
++	if (np->phy_model == PHY_MODEL_MARVELL_E3016) {
++		bmcr |= BMCR_ANENABLE;
++		/* reset the phy in order for settings to stick,
++		 * and cause autoneg to start */
++		if (phy_reset(dev, bmcr)) {
++			printk(KERN_INFO "%s: phy reset failed\n", dev->name);
++			return;
++		}
++	} else {
++		bmcr |= (BMCR_ANENABLE | BMCR_ANRESTART);
++		mii_rw(dev, np->phyaddr, MII_BMCR, bmcr);
++	}
++	mii_rw(dev, np->phyaddr, MII_BMSR, MII_READ);
++	mii_status = mii_rw(dev, np->phyaddr, MII_BMSR, MII_READ);
++	while (!(mii_status & BMSR_ANEGCOMPLETE)) {
++		msleep(100);
++		mii_status = mii_rw(dev, np->phyaddr, MII_BMSR, MII_READ);
++		if (tries++ > 50)
++			break;
++	}
++
++	nv_update_linkspeed(dev);
++
++	return;
++}
++
+ static int nv_suspend(struct pci_dev *pdev, pm_message_t state)
+ {
+ 	struct net_device *dev = pci_get_drvdata(pdev);
+ 	struct fe_priv *np = netdev_priv(dev);
++	u8 __iomem *base = get_hwbase(dev);
++	int i;
+ 
+-	if (!netif_running(dev))
+-		goto out;
++	dprintk(KERN_DEBUG "forcedeth: nv_suspend\n");
++
++	if (netif_running(dev)) {
++		netif_device_detach(dev);
+ 
+-	netif_device_detach(dev);
++		/* bring down the adapter */
++		nv_close(dev);
++	}
+ 
+-	// Gross.
+-	nv_close(dev);
++	/* set phy to a lower speed to conserve power */
++	if (!np->mac_in_use)
++		nv_set_low_speed(dev);
+ 
+ 	pci_save_state(pdev);
++
++	/* save any device state */
++	np->saved_phyinterface = readl(base + NvRegPhyInterface);
++	for (i = 0; i < 64; i++) {
++		pci_read_config_dword(pdev, i*4, &np->saved_config_space[i]);
++	}
++
+ 	pci_enable_wake(pdev, pci_choose_state(pdev, state), np->wolenabled);
+ 	pci_set_power_state(pdev, pci_choose_state(pdev, state));
+-out:
++
+ 	return 0;
+ }
+ 
+ static int nv_resume(struct pci_dev *pdev)
+ {
+ 	struct net_device *dev = pci_get_drvdata(pdev);
++	struct fe_priv *np = netdev_priv(dev);
++	u8 __iomem *base = get_hwbase(dev);
+ 	int rc = 0;
++	int i;
++	u32 txreg;
+ 
+-	if (!netif_running(dev))
+-		goto out;
 -
- 	tipar.timeout=	[HW,PPT]
- 			Set communications timeout in tenths of a second
- 			(default 15).
+-	netif_device_attach(dev);
++	dprintk(KERN_DEBUG "forcedeth: nv_resume\n");
+ 
+ 	pci_set_power_state(pdev, PCI_D0);
+ 	pci_restore_state(pdev);
++
++	/* restore saved config space */
++	for (i = 0; i < 64; i++) {
++		pci_write_config_dword(pdev, i*4, np->saved_config_space[i]);
++	}
++
+ 	pci_enable_wake(pdev, PCI_D0, 0);
+ 
+-	rc = nv_open(dev);
+-out:
++	/* restore saved driver state */
++	txreg = readl(base + NvRegTransmitPoll);
++	txreg |= NVREG_TRANSMITPOLL_MAC_ADDR_REV;
++	writel(txreg, base + NvRegTransmitPoll);
++	writel(np->saved_phyinterface, base + NvRegPhyInterface);
++	writel(np->orig_mac[0], base + NvRegMacAddrA);
++	writel(np->orig_mac[1], base + NvRegMacAddrB);
++
++	/* re-initialize the phy */
++	phy_init(dev);
++
++	if (netif_running(dev)) {
++		netif_device_attach(dev);
++
++		/* bring up the adapter */
++		rc = nv_open(dev);
++	}
+ 	return rc;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-update-dontdiff-file.patch
-doc-clocksources.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-profile-likely-unlikely-macros.patch
+forcedeth-add-vitesse-phy.patch
+forcedeth-fix-power-management-support.patch
+forcedeth-fix-cpu-irq-mask.patch
+forcedeth-version-bump.patch
