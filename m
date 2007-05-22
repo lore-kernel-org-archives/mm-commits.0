@@ -1,62 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - ada-add-seagate-stt20000a-to-dma-blacklist.patch removed from -mm tree
-Date: Mon, 21 May 2007 22:56:49 -0700
-Message-ID: <200705220556.l4M5um51028413@shell0.pdx.osdl.net>
+Subject: + applesmc-sensors-patch-missing-from-2622-rc2.patch added to -mm tree
+Date: Mon, 21 May 2007 22:57:49 -0700
+Message-ID: <200705220601.l4M613Ng028503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756515AbXEVGAm (ORCPT
+	by vger.kernel.org with ESMTP id S1756017AbXEVGDv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 02:00:42 -0400
+	Tue, 22 May 2007 02:03:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, alan@redhat.com, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nicolas@boichat.ch, kernel@nn7.de, khali@linux-fr.org
 
 
 The patch titled
-     ata: add Seagate STT20000A to DMA blacklist.
-has been removed from the -mm tree.  Its filename was
-     ada-add-seagate-stt20000a-to-dma-blacklist.patch
+     applesmc - sensors patch missing from 2.6.22-rc2
+has been added to the -mm tree.  Its filename is
+     applesmc-sensors-patch-missing-from-2622-rc2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ata: add Seagate STT20000A to DMA blacklist.
-From: Dave Jones <davej@redhat.com>
+Subject: applesmc - sensors patch missing from 2.6.22-rc2
+From: Nicolas Boichat <nicolas@boichat.ch>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=1044 points out an additional
-hard disk that doesn't handle DMA transfers correctly.  This patch is the
-libata variant of the earlier patch to drivers/ide/
+Add name file needed by lm_sensors user-space applications in applesmc
+sysfs tree.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Robert Hancock <hancockr@shaw.ca>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Soeren Sonnenburg <kernel@nn7.de>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/hwmon/applesmc.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~ada-add-seagate-stt20000a-to-dma-blacklist drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~ada-add-seagate-stt20000a-to-dma-blacklist
-+++ a/drivers/ata/libata-core.c
-@@ -3860,6 +3860,7 @@ static const struct ata_blacklist_entry 
- 	{ "ATAPI CD-ROM DRIVE 40X MAXIMUM",NULL,ATA_HORKAGE_NODMA },
- 	{ "_NEC DV5800A", 	NULL,		ATA_HORKAGE_NODMA },
- 	{ "SAMSUNG CD-ROM SN-124","N001",	ATA_HORKAGE_NODMA },
-+	{ "Seagate STT20000A", NULL,		ATA_HORKAGE_NODMA },
+diff -puN drivers/hwmon/applesmc.c~applesmc-sensors-patch-missing-from-2622-rc2 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-sensors-patch-missing-from-2622-rc2
++++ a/drivers/hwmon/applesmc.c
+@@ -491,6 +491,12 @@ out:
  
- 	/* Weird ATAPI devices */
- 	{ "TORiSAN DVD-ROM DRD-N216", NULL,	ATA_HORKAGE_MAX_SEC_128 |
+ /* Sysfs Files */
+ 
++static ssize_t applesmc_name_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "applesmc\n");
++}
++
+ static ssize_t applesmc_position_show(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+@@ -913,6 +919,8 @@ static struct led_classdev applesmc_back
+ 	.brightness_set		= applesmc_brightness_set,
+ };
+ 
++static DEVICE_ATTR(name, 0444, applesmc_name_show, NULL);
++
+ static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
+ static DEVICE_ATTR(calibrate, 0644,
+ 			applesmc_calibrate_show, applesmc_calibrate_store);
+@@ -1197,6 +1205,8 @@ static int __init applesmc_init(void)
+ 		goto out_driver;
+ 	}
+ 
++	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_name.attr);
++
+ 	/* Create key enumeration sysfs files */
+ 	ret = sysfs_create_group(&pdev->dev.kobj, &key_enumeration_group);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from nicolas@boichat.ch are
 
-origin.patch
-git-cpufreq.patch
-ide-add-seagate-stt20000a-to-dma-blacklist.patch
-fix-confusion-in-fusion-driver-update.patch
-fix-up-codingstyle-in-isofs.patch
+applesmc-sensors-patch-missing-from-2622-rc2.patch
