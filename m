@@ -1,159 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: + git-md-accel-build-fix.patch added to -mm tree
-Date: Tue, 22 May 2007 00:02:08 -0700
-Message-ID: <200705220705.l4M75MWW029365@shell0.pdx.osdl.net>
+Subject: - clean-up-the-contents-of-moduleh-and-moduleparamh.patch removed from -mm tree
+Date: Tue, 22 May 2007 00:09:49 -0700
+Message-ID: <200705220709.l4M79pdv029429@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60293 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42372 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756335AbXEVHGc (ORCPT
+	by vger.kernel.org with ESMTP id S1763832AbXEVHLB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 03:06:32 -0400
+	Tue, 22 May 2007 03:11:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-md-accel build fix
-has been added to the -mm tree.  Its filename is
-     git-md-accel-build-fix.patch
+     Clean up the contents of module.h and moduleparam.h
+has been removed from the -mm tree.  Its filename was
+     clean-up-the-contents-of-moduleh-and-moduleparamh.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: git-md-accel build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Clean up the contents of module.h and moduleparam.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-ERROR: "page_address" [async_tx/async_memset.ko] undefined!
+Shift the contents of module.h and moduleparam.h so that generic
+module content is exclusively in module.h, while parameter-specific
+content is in moduleparam.h.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- async_tx/async_memset.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/module.h      |   19 +++++++++++++------
+ include/linux/moduleparam.h |   16 +++++-----------
+ 2 files changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN async_tx/async_memset.c~git-md-accel-build-fix async_tx/async_memset.c
---- a/async_tx/async_memset.c~git-md-accel-build-fix
-+++ a/async_tx/async_memset.c
-@@ -25,6 +25,7 @@
-  * file called COPYING.
-  */
+diff -puN include/linux/module.h~clean-up-the-contents-of-moduleh-and-moduleparamh include/linux/module.h
+--- a/include/linux/module.h~clean-up-the-contents-of-moduleh-and-moduleparamh
++++ a/include/linux/module.h
+@@ -14,7 +14,7 @@
+ #include <linux/elf.h>
+ #include <linux/stringify.h>
+ #include <linux/kobject.h>
+-#include <linux/moduleparam.h>
++#include <linux/moduleparam.h>	/* In a perfect world, this wouldn't be here. */
+ #include <asm/local.h>
+ 
+ #include <asm/module.h>
+@@ -87,6 +87,17 @@ extern struct module __this_module;
+ #define THIS_MODULE ((struct module *)0)
+ #endif
+ 
++#ifdef MODULE
++#define ___module_cat(a,b) __mod_ ## a ## b
++#define __module_cat(a,b) ___module_cat(a,b)
++#define __MODULE_INFO(tag, name, info)					\
++static const char __module_cat(name,__LINE__)[]				\
++  __maybe_unused							\
++  __attribute__((section(".modinfo"))) = __stringify(tag) "=" info
++#else  /* !MODULE */
++#define __MODULE_INFO(tag, name, info)
++#endif
++
+ /* Generic info of form tag = "info" */
+ #define MODULE_INFO(tag, info) __MODULE_INFO(tag, tag, info)
+ 
+@@ -129,11 +140,6 @@ extern struct module __this_module;
+ /* What your module does. */
+ #define MODULE_DESCRIPTION(_description) MODULE_INFO(description, _description)
+ 
+-/* One for each parameter, describing how to use it.  Some files do
+-   multiple of these per line, so can't just use MODULE_INFO. */
+-#define MODULE_PARM_DESC(_parm, desc) \
+-	__MODULE_INFO(parm, _parm, #_parm ":" desc)
+-
+ #define MODULE_DEVICE_TABLE(type,name)		\
+   MODULE_GENERIC_TABLE(type##_device,name)
+ 
+@@ -575,6 +581,7 @@ struct device_driver;
+ struct module;
+ 
+ extern struct kset module_subsys;
++struct kernel_param;
+ 
+ int mod_sysfs_init(struct module *mod);
+ int mod_sysfs_setup(struct module *mod,
+diff -puN include/linux/moduleparam.h~clean-up-the-contents-of-moduleh-and-moduleparamh include/linux/moduleparam.h
+--- a/include/linux/moduleparam.h~clean-up-the-contents-of-moduleh-and-moduleparamh
++++ a/include/linux/moduleparam.h
+@@ -4,6 +4,7 @@
+ #include <linux/init.h>
+ #include <linux/stringify.h>
  #include <linux/kernel.h>
-+#include <linux/mm.h>
- #include <linux/interrupt.h>
- #include <linux/dma-mapping.h>
- #include <linux/async_tx.h>
++#include <linux/module.h>
+ 
+ /* You can override this manually, but generally this should match the
+    module name. */
+@@ -13,19 +14,12 @@
+ #define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
+ #endif
+ 
+-#ifdef MODULE
+-#define ___module_cat(a,b) __mod_ ## a ## b
+-#define __module_cat(a,b) ___module_cat(a,b)
+-#define __MODULE_INFO(tag, name, info)					  \
+-static const char __module_cat(name,__LINE__)[]				  \
+-  __attribute_used__							  \
+-  __attribute__((section(".modinfo"),unused)) = __stringify(tag) "=" info
+-#else  /* !MODULE */
+-#define __MODULE_INFO(tag, name, info)
+-#endif
+-#define __MODULE_PARM_TYPE(name, _type)					  \
++#define __MODULE_PARM_TYPE(name, _type)			\
+   __MODULE_INFO(parmtype, name##type, #name ":" _type)
+ 
++#define MODULE_PARM_DESC(_parm, desc)			\
++  __MODULE_INFO(parm, _parm, #_parm ":" desc)
++
+ struct kernel_param;
+ 
+ /* Returns 0, or -errno.  arg is in kp->arg. */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
 git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-revert-gregkh-usb-usb-make-the-autosuspend-workqueue-thread-freezable.patch
-git-wireless.patch
-arch-x86_64-vdso-vmac-needs-schedh.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-simplify-cleanup_workqueue_thread-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-pie-randomization-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-reiser4.patch
-reiser4-fix.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-vdso-print-fatal-signals.patch
-check_dirty_inode_list.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
-git-md-accel-build-fix.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+documentation-fix-the-explanation-of-kconfig-files.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+clean-up-the-contents-of-moduleh-and-moduleparamh.patch
