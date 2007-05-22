@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mpu401-warning-fixes.patch added to -mm tree
-Date: Tue, 22 May 2007 15:20:59 -0700
-Message-ID: <200705222224.l4MMOEtp011113@shell0.pdx.osdl.net>
+Subject: + capifunc-warning-fixes.patch added to -mm tree
+Date: Tue, 22 May 2007 15:23:29 -0700
+Message-ID: <200705222226.l4MMQieh011155@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54384 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754430AbXEVW0t (ORCPT
+	by vger.kernel.org with ESMTP id S1756821AbXEVW2B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 18:26:49 -0400
+	Tue, 22 May 2007 18:28:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, kkeil@suse.de
 
 
 The patch titled
-     mpu401 warning fixes
+     capifunc warning fixes
 has been added to the -mm tree.  Its filename is
-     mpu401-warning-fixes.patch
+     capifunc-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mpu401 warning fixes
+Subject: capifunc warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix these:
+squish these:
 
-sound/oss/mpu401.c: In function 'attach_mpu401':
-sound/oss/mpu401.c:1006: warning: cast to pointer from integer of different size
-sound/oss/mpu401.c:1115: warning: cast to pointer from integer of different size
-sound/oss/mpu401.c: In function 'unload_mpu401':
-sound/oss/mpu401.c:1230: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferSet':
+drivers/isdn/hardware/eicon/capifunc.c:192: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferGet':
+drivers/isdn/hardware/eicon/capifunc.c:197: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:198: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:200: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferFree':
+drivers/isdn/hardware/eicon/capifunc.c:205: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:206: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'sendf':
+drivers/isdn/hardware/eicon/capifunc.c:304: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:304: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:321: warning: cast to pointer from integer of different size
 
-by making it implement the request_irq()/free_irq() cookies correctly.
-
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/mpu401.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/isdn/hardware/eicon/capifunc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN sound/oss/mpu401.c~mpu401-warning-fixes sound/oss/mpu401.c
---- a/sound/oss/mpu401.c~mpu401-warning-fixes
-+++ a/sound/oss/mpu401.c
-@@ -1003,7 +1003,8 @@ int attach_mpu401(struct address_info *h
- 		}
- 		if (!devc->shared_irq)
- 		{
--			if (request_irq(devc->irq, mpuintr, 0, "mpu401", (void *)m) < 0)
-+			if (request_irq(devc->irq, mpuintr, 0, "mpu401",
-+					hw_config) < 0)
- 			{
- 				printk(KERN_WARNING "mpu401: Failed to allocate IRQ%d\n", devc->irq);
- 				ret = -ENOMEM;
-@@ -1112,7 +1113,7 @@ int attach_mpu401(struct address_info *h
- 	return 0;
+diff -puN drivers/isdn/hardware/eicon/capifunc.c~capifunc-warning-fixes drivers/isdn/hardware/eicon/capifunc.c
+--- a/drivers/isdn/hardware/eicon/capifunc.c~capifunc-warning-fixes
++++ a/drivers/isdn/hardware/eicon/capifunc.c
+@@ -189,21 +189,21 @@ void *TransmitBufferSet(APPL * appl, dwo
+ {
+ 	appl->xbuffer_used[ref] = true;
+ 	DBG_PRV1(("%d:xbuf_used(%d)", appl->Id, ref + 1))
+-	    return (void *) ref;
++	    return (void *)(long)ref;
+ }
  
- out_irq:
--	free_irq(devc->irq, (void *)m);
-+	free_irq(devc->irq, hw_config);
- out_mididev:
- 	sound_unload_mididev(m);
- out_err:
-@@ -1227,7 +1228,7 @@ void unload_mpu401(struct address_info *
- 	if (n != -1) {
- 		release_region(hw_config->io_base, 2);
- 		if (hw_config->always_detect == 0 && hw_config->irq > 0)
--			free_irq(hw_config->irq, (void *)n);
-+			free_irq(hw_config->irq, hw_config);
- 		p=mpu401_synth_operations[n];
- 		sound_unload_mididev(n);
- 		sound_unload_timerdev(hw_config->slots[2]);
+ void *TransmitBufferGet(APPL * appl, void *p)
+ {
+-	if (appl->xbuffer_internal[(dword) p])
+-		return appl->xbuffer_internal[(dword) p];
++	if (appl->xbuffer_internal[(dword)(long)p])
++		return appl->xbuffer_internal[(dword)(long)p];
+ 
+-	return appl->xbuffer_ptr[(dword) p];
++	return appl->xbuffer_ptr[(dword)(long)p];
+ }
+ 
+ void TransmitBufferFree(APPL * appl, void *p)
+ {
+-	appl->xbuffer_used[(dword) p] = false;
+-	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword) p) + 1))
++	appl->xbuffer_used[(dword)(long)p] = false;
++	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword)(long)p) + 1))
+ }
+ 
+ void *ReceiveBufferGet(APPL * appl, int Num)
+@@ -301,7 +301,7 @@ void sendf(APPL * appl, word command, dw
+ 	/* if DATA_B3_IND, copy data too */
+ 	if (command == _DATA_B3_I) {
+ 		dword data = GET_DWORD(&msg.info.data_b3_ind.Data);
+-		memcpy(write + length, (void *) data, dlength);
++		memcpy(write + length, (void *)(long)data, dlength);
+ 	}
+ 
+ #ifndef DIVA_NO_DEBUGLIB
+@@ -318,7 +318,7 @@ void sendf(APPL * appl, word command, dw
+ 			if (myDriverDebugHandle.dbgMask & DL_BLK) {
+ 				xlog("\x00\x02", &msg, 0x81, length);
+ 				for (i = 0; i < dlength; i += 256) {
+-				  DBG_BLK((((char *) GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
++				  DBG_BLK((((char *)(long)GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
+ 				  	((dlength - i) < 256) ? (dlength - i) : 256))
+ 				  if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
+ 					  break; /* not more if not explicitely requested */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,3 +210,4 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+capifunc-warning-fixes.patch
