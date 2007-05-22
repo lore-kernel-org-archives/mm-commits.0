@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-driver-block-device.patch added to -mm tree
-Date: Tue, 22 May 2007 13:50:42 -0700
-Message-ID: <200705222050.l4MKofaZ009498@shell0.pdx.osdl.net>
+Subject: - revert-gregkh-driver-block-device.patch removed from -mm tree
+Date: Tue, 22 May 2007 13:52:28 -0700
+Message-ID: <200705222052.l4MKqRHX009518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54440 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41246 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755872AbXEVUwd (ORCPT
+	by vger.kernel.org with ESMTP id S1755773AbXEVUyR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 16:52:33 -0400
+	Tue, 22 May 2007 16:54:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      revert gregkh-driver-block-device
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-gregkh-driver-block-device.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because can't revert it - just drop gregkh-driver-block-device instead
 
 ------------------------------------------------------
 Subject: revert gregkh-driver-block-device
