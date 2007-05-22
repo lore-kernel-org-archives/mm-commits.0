@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch added to -mm tree
-Date: Mon, 21 May 2007 21:51:30 -0700
-Message-ID: <200705220454.l4M4sj3R027623@shell0.pdx.osdl.net>
+Subject: + git-libata-all-pata_sil680-fix.patch added to -mm tree
+Date: Mon, 21 May 2007 21:53:34 -0700
+Message-ID: <200705220456.l4M4umdn027633@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36875 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757296AbXEVE4u (ORCPT
+	by vger.kernel.org with ESMTP id S1754914AbXEVE6C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 00:56:50 -0400
+	Tue, 22 May 2007 00:58:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@stusta.de, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices fix
+     git-libata-all-pata_sil680-fix
 has been added to the -mm tree.  Its filename is
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+     git-libata-all-pata_sil680-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nommu-make-it-possible-for-romfs-to-use-mtd-devices fix
+Subject: git-libata-all-pata_sil680-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: David Howells <dhowells@redhat.com>
+nfi
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/super.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/ata/pata_sil680.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/romfs/super.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix fs/romfs/super.c
---- a/fs/romfs/super.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix
-+++ a/fs/romfs/super.c
-@@ -594,8 +594,7 @@ static void romfs_i_init_once(void *_ino
+diff -puN drivers/ata/pata_sil680.c~git-libata-all-pata_sil680-fix drivers/ata/pata_sil680.c
+--- a/drivers/ata/pata_sil680.c~git-libata-all-pata_sil680-fix
++++ a/drivers/ata/pata_sil680.c
+@@ -431,7 +431,9 @@ use_ioports:
+ #ifdef CONFIG_PM
+ static int sil680_reinit_one(struct pci_dev *pdev)
  {
- 	struct romfs_inode_info *inode = _inode;
- 
--	if (flags & SLAB_CTOR_CONSTRUCTOR)
--		inode_init_once(&inode->vfs_inode);
-+	inode_init_once(&inode->vfs_inode);
+-	sil680_init_chip(pdev);
++	int try_mmio;
++
++	sil680_init_chip(pdev, &try_mmio);
+ 	return ata_pci_device_resume(pdev);
  }
- 
- /*
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,3 +156,4 @@ vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
+git-libata-all-pata_sil680-fix.patch
