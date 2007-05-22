@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-cpufreq-fix.patch added to -mm tree
-Date: Mon, 21 May 2007 21:58:56 -0700
-Message-ID: <200705220502.l4M529gL027717@shell0.pdx.osdl.net>
+Subject: + fix-rmmod-read-write-races-in-proc-entries-fix.patch added to -mm tree
+Date: Mon, 21 May 2007 22:14:53 -0700
+Message-ID: <200705220514.l4M5EsS6027917@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60688 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37436 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756106AbXEVFDb (ORCPT
+	by vger.kernel.org with ESMTP id S1752449AbXEVFQr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 01:03:31 -0400
+	Tue, 22 May 2007 01:16:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, adobriyan@sw.ru
 
 
 The patch titled
-     git-cpufreq-fix
+     fix-rmmod-read-write-races-in-proc-entries-fix
 has been added to the -mm tree.  Its filename is
-     git-cpufreq-fix.patch
+     fix-rmmod-read-write-races-in-proc-entries-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-cpufreq-fix
+Subject: fix-rmmod-read-write-races-in-proc-entries-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it compile on UP.
+fs/proc/inode.c: In function 'pde_users_dec':
+fs/proc/inode.c:148: warning: implicit declaration of function 'complete'
 
-What's that divide in there for?  Looks odd.
-
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/powernow-k8.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/proc/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix arch/i386/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix
-+++ a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
-@@ -1322,16 +1322,21 @@ static struct cpufreq_driver cpufreq_amd
- static int __cpuinit powernowk8_init(void)
- {
- 	unsigned int i, supported_cpus = 0;
-+	unsigned int booted_cores = 1;
- 
- 	for_each_online_cpu(i) {
- 		if (check_supported_cpu(i))
- 			supported_cpus++;
- 	}
- 
-+#ifdef CONFIG_SMP
-+	booted_cores = cpu_data[0].booted_cores;
-+#endif
-+
- 	if (supported_cpus == num_online_cpus()) {
- 		printk(KERN_INFO PFX "Found %d %s "
- 			"processors (%d cpu cores) (" VERSION ")\n",
--			supported_cpus/cpu_data[0].booted_cores,
-+			supported_cpus/booted_cores,
- 			boot_cpu_data.x86_model_id, supported_cpus);
- 		return cpufreq_register_driver(&cpufreq_amd64_driver);
- 	}
+diff -puN fs/proc/inode.c~fix-rmmod-read-write-races-in-proc-entries-fix fs/proc/inode.c
+--- a/fs/proc/inode.c~fix-rmmod-read-write-races-in-proc-entries-fix
++++ a/fs/proc/inode.c
+@@ -10,6 +10,7 @@
+ #include <linux/mm.h>
+ #include <linux/string.h>
+ #include <linux/stat.h>
++#include <linux/completion.h>
+ #include <linux/file.h>
+ #include <linux/limits.h>
+ #include <linux/init.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,6 +116,7 @@ fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
 add-lzo1x-compression-support-to-the-kernel-fix.patch
 use-no_pci_devices-in-pci-searchc.patch
