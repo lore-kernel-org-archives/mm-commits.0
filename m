@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-fix-early-usage-of-atomic_add_return-and.patch added to -mm tree
-Date: Tue, 22 May 2007 09:59:23 -0700
-Message-ID: <200705221659.l4MGxNe0005933@shell0.pdx.osdl.net>
+Subject: + fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch added to -mm tree
+Date: Tue, 22 May 2007 09:58:35 -0700
+Message-ID: <200705221658.l4MGwZdU005902@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758341AbXEVRB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1758368AbXEVRDZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 13:01:27 -0400
+	Tue, 22 May 2007 13:03:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de
+Cc: bwalle@suse.de, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, tglx@linutronix.de, vgoyal@in.ibm.com
 
 
 The patch titled
-     i386: fix early usage of atomic_add_return and local_add_return on real i386
+     Fix crash with irqpoll due to the IRQF_IRQPOLL flag
 has been added to the -mm tree.  Its filename is
-     i386-fix-early-usage-of-atomic_add_return-and.patch
+     fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: fix early usage of atomic_add_return and local_add_return on real i386
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Fix crash with irqpoll due to the IRQF_IRQPOLL flag
+From: Bernhard Walle <bwalle@suse.de>
 
-The check (boot_cpu_data.x86 == 3) in atomic_add_return() and
-local_add_return() fails, when those operations are used before
-boot_cpu_data is filled in.
+o System crashes if booted with irqpoll command line option.
 
-Change the check to (boot_cpu_data.x86 <= 3) to fix this.
+o Problem happens because Inside note_interrupt() we are accessing
+  desc->action->flag without taking the desc->lock. While accessing it
+  somebody goes ahead and unregisters the irq handler hence desc->action
+  is NULL. By the time note_interrupt() checks it, it crashes.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+o In that system it is irq 4 serving the serial driver.
+
+o Take the desc->lock before accessing desc->action->flag.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/atomic.h |    2 +-
- include/asm-i386/local.h  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/irq/spurious.c |   23 ++++++++++++++++++++---
+ 1 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-i386/atomic.h~i386-fix-early-usage-of-atomic_add_return-and include/asm-i386/atomic.h
---- a/include/asm-i386/atomic.h~i386-fix-early-usage-of-atomic_add_return-and
-+++ a/include/asm-i386/atomic.h
-@@ -182,7 +182,7 @@ static __inline__ int atomic_add_return(
- 	int __i;
- #ifdef CONFIG_M386
- 	unsigned long flags;
--	if(unlikely(boot_cpu_data.x86==3))
-+	if(unlikely(boot_cpu_data.x86 <= 3))
- 		goto no_xadd;
- #endif
- 	/* Modern 486+ processor */
-diff -puN include/asm-i386/local.h~i386-fix-early-usage-of-atomic_add_return-and include/asm-i386/local.h
---- a/include/asm-i386/local.h~i386-fix-early-usage-of-atomic_add_return-and
-+++ a/include/asm-i386/local.h
-@@ -135,7 +135,7 @@ static __inline__ long local_add_return(
- 	long __i;
- #ifdef CONFIG_M386
- 	unsigned long flags;
--	if(unlikely(boot_cpu_data.x86==3))
-+	if(unlikely(boot_cpu_data.x86 <= 3))
- 		goto no_xadd;
- #endif
- 	/* Modern 486+ processor */
+diff -puN kernel/irq/spurious.c~fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag
++++ a/kernel/irq/spurious.c
+@@ -138,6 +138,8 @@ report_bad_irq(unsigned int irq, struct 
+ void note_interrupt(unsigned int irq, struct irq_desc *desc,
+ 		    irqreturn_t action_ret)
+ {
++	int call_misrouted_irq = 0;
++
+ 	if (unlikely(action_ret != IRQ_HANDLED)) {
+ 		desc->irqs_unhandled++;
+ 		if (unlikely(action_ret != IRQ_NONE))
+@@ -146,9 +148,24 @@ void note_interrupt(unsigned int irq, st
+ 
+ 	if (unlikely(irqfixup)) {
+ 		/* Don't punish working computers */
+-		if ((irqfixup == 2 && ((irq == 0) ||
+-				(desc->action->flags & IRQF_IRQPOLL))) ||
+-				action_ret == IRQ_NONE) {
++		if (action_ret == IRQ_NONE)
++			/* Nobody handled irq. Possibly a misrouted one. */
++			call_misrouted_irq = 1;
++		else if (irqfixup == 2) {
++			/* irqpoll is enabled. Is this the irq driving
++			 * polling.
++			 */
++			if (irq == 0)
++				call_misrouted_irq = 1;
++			else {
++				spin_lock(&desc->lock);
++				if (desc->action &&
++					(desc->action->flags & IRQF_IRQPOLL))
++					call_misrouted_irq = 1;
++				spin_unlock(&desc->lock);
++			}
++		}
++		if (call_misrouted_irq) {
+ 			int ok = misrouted_irq(irq);
+ 			if (action_ret == IRQ_NONE)
+ 				desc->irqs_unhandled -= ok;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-ignore-bogus-acpi-info-for-offline-cpus.patch
-nohz-rate-limit-the-local-softirq-pending-warning-output.patch
-drm-spinlock-initializer-cleanup.patch
-s390-spinlock-initializer-cleanup.patch
-i386-hpet-check-if-the-counter-works.patch
-doc-clocksources.patch
-prevent-going-idle-with-softirq-pending.patch
+git-r8169.patch
+scsi-remove-__gfp_dma.patch
 fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
-i386-fix-early-usage-of-atomic_add_return-and.patch
