@@ -1,35 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - slim-documentation.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:28 -0700
-Message-ID: <200705222124.l4MLOS1f010106@shell0.pdx.osdl.net>
+Subject: - slim-debug-output.patch removed from -mm tree
+Date: Tue, 22 May 2007 14:24:22 -0700
+Message-ID: <200705222124.l4MLOMeS010100@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54144 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48526 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762918AbXEVV3K (ORCPT
+	by vger.kernel.org with ESMTP id S1760990AbXEVV3Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:29:10 -0400
+	Tue, 22 May 2007 17:29:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kjhall@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: kjhall@us.ibm.com, bunk@stusta.de, chrisw@sous-sol.org, jmorris@namei.org, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLIM: documentation
+     SLIM: debug output
 has been removed from the -mm tree.  Its filename was
-     slim-documentation.patch
+     slim-debug-output.patch
 
 This patch was dropped because this work seems to be stalled
 
 ------------------------------------------------------
-Subject: SLIM: documentation
-=46rom: Kylene Jo Hall <kjhall@us.ibm.com>
+Subject: SLIM: debug output
+From: Kylene Jo Hall <kjhall@us.ibm.com>
 
-Documentation.
+This patch contains all the necessary pieces to add debugging output to SLIM.
 
+[bunk@stusta.de: slm_set_taskperm(): remove horrible error handling code]
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
 Cc: Dave Safford <safford@us.ibm.com>
@@ -38,163 +36,847 @@ Cc: Serge Hallyn <sergeh@us.ibm.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Cc: James Morris <jmorris@namei.org>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/slim.txt |  136 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 136 insertions(+)
+ security/slim/slim.h      |   15 +
+ security/slim/slm_main.c  |  374 ++++++++++++++++++++++++++++++------
+ security/slim/slm_secfs.c |  103 +++++++++
+ 3 files changed, 435 insertions(+), 57 deletions(-)
 
-diff -puN /dev/null Documentation/slim.txt
---- /dev/null
-+++ a/Documentation/slim.txt
-@@ -0,0 +1,136 @@
-+Simple Linux Integrity Model (SLIM)
+diff -puN security/slim/slim.h~slim-debug-output security/slim/slim.h
+--- a/security/slim/slim.h~slim-debug-output
++++ a/security/slim/slim.h
+@@ -87,3 +87,18 @@ extern int slm_init_config(void);
+ 
+ extern __init int slm_init_secfs(void);
+ extern __exit void slm_cleanup_secfs(void);
 +
-+SLIM is an LSM module which provides an enhanced low water-mark
-+integrity and high water-mark secrecy mandatory access control
-+model. It also is a consumer of the new integrity subsystem,
-+using the integrity_verify_data(), integrity_verify_metadata(),
-+and integrity_measure() calls to base mandatory access control
-+decisions on the verified integrity status of the involved objects.
-+SLIM is an extension of several prior models, including Biba[1],
-+Lowmac[2], and Caernarvon[3], which provide excellent background.
++extern __init int slm_init_debugfs(void);
++extern __exit void slm_cleanup_debugfs(void);
 +
-+SLIM's specific model is:
++extern unsigned int slm_debug;
++enum slm_debug_level {
++	SLM_BASE = 1,
++	SLM_INTEGRITY = 2,
++	SLM_VERBOSE = 8,
++};
 +
-+	All objects (files) are labeled with extended attributes to indicate:
-+		Integrity Access Class (IAC)
-+			(one of SYSTEM, USER, UNTRUSTED)
-+		Secrecy Access Class (SAC)
-+			(one of PUBLIC, USER, USER_SENSITIVE,
-+				SYSTEM_SENSITIVE)
++#undef dprintk
++#define dprintk(level, format, a...) \
++	if (slm_debug & level) \
++		printk(KERN_INFO format, ##a)
+diff -puN security/slim/slm_main.c~slim-debug-output security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-debug-output
++++ a/security/slim/slm_main.c
+@@ -29,6 +29,9 @@
+ 
+ #include "slim.h"
+ 
++extern struct security_operations dummy_security_ops;
 +
-+	All processes inherit from their parents:
-+		Integrity Read Access Class (IRAC)
-+		Integrity Write/Execute Access Class (IWXAC)
-+		Secrecy Write Access Class (SWAC)
-+		Secrecy Read/Execute Access Class (SRXAC)
++unsigned int slm_debug = SLM_BASE;
+ #define XATTR_NAME "security.slim.level"
+ 
+ #define ZERO_STR "0"
+@@ -123,8 +126,13 @@ static inline int mark_has_file_wperm(st
+ 
+ 	isec = inode->i_security;
+ 	spin_lock(&isec->lock);
+-	if (is_lower_integrity(cur_level, &isec->level))
++	if (is_lower_integrity(cur_level, &isec->level)) {
+ 		rc = 1;
++		if (file->f_dentry->d_name.name)
++			dprintk(SLM_BASE, "pid %d - has write perm "
++				"for %s\n", current->pid,
++				file->f_dentry->d_name.name);
++	}
+ 	spin_unlock(&isec->lock);
+ 	return rc;
+ }
+@@ -167,11 +175,18 @@ static inline void do_revoke_mmap_wperm(
+ 	unsigned long start = mpnt->vm_start;
+ 	unsigned long end = mpnt->vm_end;
+ 	size_t len = end - start;
++ 	struct dentry *dentry = mpnt->vm_file->f_dentry;
+ 
+ 	if ((mpnt->vm_flags & (VM_WRITE | VM_MAYWRITE))
+ 	    && (mpnt->vm_flags & VM_SHARED)
+-	    && (cur_level->iac_level < isec->level.iac_level))
+-		do_mprotect(start, len, PROT_READ);
++	    && (cur_level->iac_level < isec->level.iac_level)) {
++		dprintk(SLM_BASE,
++			"%s: pid %d - revoking write"
++			" perm for %s\n", __FUNCTION__,
++			current->pid, dentry->d_name.name);
++		if (do_mprotect(start, len, PROT_READ) < 0)
++			dprintk(SLM_BASE, "do_mprotect failed");
++ 	}
+ }
+ 
+ /*
+@@ -298,11 +313,22 @@ static int slm_get_xattr(struct dentry *
+ 	rc = integrity_verify_metadata(dentry, XATTR_NAME,
+ 				       &xattr_value, &xattr_len, status);
+ 
+-	if (rc >=0 && *status == INTEGRITY_PASS && xattr_value) {
++	if (rc < 0 && rc != -EOPNOTSUPP) {
++		dprintk(SLM_BASE,
++			"%s integrity_verify_metadata failed "
++			"(rc: %d - status: %d)\n",
++			dentry->d_name.name, rc, *status);
 +
-+	SLIM enforces the following Mandatory Access Control Rules:
-+		Read:
-+			IRAC(process) <=3D IAC(object)
-+			SRXAC(process) >=3D SAC(object)
-+		Write:
-+			IWXAC(process) >=3D IAC(object)
-+			SWAC(process) <=3D SAC(process)
-+		Execute:
-+			IWXAC(process) <=3D IAC(object)
-+			SRXAC(process) >=3D SAC(object)
++	} else if (rc >=0 && *status == INTEGRITY_PASS && xattr_value) {
+ 		rc = slm_parse_xattr(xattr_value, xattr_len, level);
+ 		kfree(xattr_value);
+-		if (rc == 0 && level->iac_level != SLM_IAC_UNTRUSTED)
++		if (rc == 0 && level->iac_level != SLM_IAC_UNTRUSTED) {
+ 			rc = integrity_verify_data(dentry, status);
++			if ((rc < 0) || (*status != INTEGRITY_PASS))
++				dprintk(SLM_BASE, "%s integrity_verify_data failed "
++				" (rc: %d status: %d)\n", dentry->d_name.name,
++					rc, *status);
++		}
+ 	}
+ 	return rc;
+ }
+@@ -341,9 +367,12 @@ static void update_sock_level(struct den
+ 	int rc, status = 0;
+ 
+ 	rc = slm_get_xattr(dentry, level, &status);
+-	if (rc == -EOPNOTSUPP)
++	if (rc == -EOPNOTSUPP) {
++		dprintk(SLM_INTEGRITY, "%s:%s - slm_get_xattr "
++			"not supported pid %d\n", __FUNCTION__,
++			dentry->d_name.name, current->pid);
+ 		set_level_exempt(level);
+-	else
++	} else
+ 		set_level_tsec_read(level, cur_tsec);
+ }
+ 
+@@ -366,6 +395,8 @@ static void update_level(struct dentry *
+ 		switch(status) {
+ 			case INTEGRITY_FAIL:
+ 			case INTEGRITY_NOLABEL:
++				dprintk(SLM_INTEGRITY, "%s: %s FAIL/NOLABEL (%d)\n",
++				__FUNCTION__, dentry->d_name.name, rc);
+ 				set_level_untrusted(level);
+ 				break;
+ 		}
+@@ -410,6 +441,8 @@ static void slm_get_level(struct dentry 
+ 		spin_lock(&isec->lock);
+ 		memcpy(level, &isec->level, sizeof(struct slm_file_xattr));
+ 		spin_unlock(&isec->lock);
++		dprintk(SLM_VERBOSE, "%s: %s level %d \n", __FUNCTION__,
++			dentry->d_name.name, level->iac_level);
+ 		return;
+ 	}
+ 
+@@ -438,6 +471,9 @@ static struct slm_tsec_data *slm_init_ta
+ 		return NULL;
+ 	tsec->lock = SPIN_LOCK_UNLOCKED;
+ 	if (!cur_tsec) {
++		dprintk(SLM_VERBOSE,
++			"%s: pid %d current->pid %d cur_tsec\n",
++			__FUNCTION__, tsk->pid, current->pid);
+ 		tsec->iac_r = SLM_IAC_HIGHEST - 1;
+ 		tsec->iac_wx = SLM_IAC_HIGHEST - 1;
+ 	} else
+@@ -474,7 +510,10 @@ static int is_iac_greater_than_or_exempt
+  * Permit process to read file of equal or greater integrity
+  * otherwise, demote the process.
+  */
+-static int enforce_integrity_read(struct slm_file_xattr *level)
++static int enforce_integrity_read(struct slm_file_xattr *level,
++				   const unsigned char *name,
++				   struct task_struct *parent_tsk,
++				   struct slm_tsec_data *parent_tsec)
+ {
+ 	struct slm_tsec_data *cur_tsec = current->security;
+ 	int rc = 0;
+@@ -484,10 +523,31 @@ static int enforce_integrity_read(struct
+ 		rc = has_file_wperm(level);
+ 		if (current->mm && atomic_read(&current->mm->mm_users) != 1)
+ 			rc = 1;
+-		if (rc)
++		if (rc) {
++			dprintk(SLM_BASE, "ppid %d(%s p=%d-%s) "
++				" pid %d(%s p=%d-%s) can't revoke, not demoting\n",
++				parent_tsk->pid, parent_tsk->comm,
++				parent_tsec->iac_r,
++				(parent_tsec->iac_wx != parent_tsec->iac_r)
++				? "GUARD" : slm_iac_str[parent_tsec-> iac_r],
++				current->pid, current->comm,
++				cur_tsec->iac_r, (cur_tsec->iac_wx != cur_tsec->iac_r)
++				? "GUARD" : slm_iac_str[cur_tsec->iac_r]);
+ 			spin_unlock(&cur_tsec->lock);
+-		else {
++		} else {
+ 			/* Reading lower integrity, demote process */
++			dprintk(SLM_BASE, "ppid %d(%s p=%d-%s) "
++				" pid %d(%s p=%d-%s) demoting integrity to"
++				" iac=%d-%s(%s)\n",
++				parent_tsk->pid, parent_tsk->comm,
++				parent_tsec->iac_r,
++				(parent_tsec->iac_wx != parent_tsec->iac_r)
++				? "GUARD" : slm_iac_str[parent_tsec-> iac_r],
++				current->pid, current->comm,
++				cur_tsec->iac_r, (cur_tsec->iac_wx != cur_tsec->iac_r)
++				? "GUARD" : slm_iac_str[cur_tsec->iac_r],
++				level->iac_level, slm_iac_str[level->iac_level], name);
 +
-+In the low water-mark model, rather than blocking attempted
-+reads of lower integrity objects, the reading process is demoted
-+to the integrity level of the object, so that the read is allowed.
-+In a Linux client, this provides a much more usable environment,
-+in which applications run more transparently, while being demoted
-+as needed to protect the integrity of the system.
+ 			/* Even in the case of a integrity guard process. */
+ 			cur_tsec->iac_r = level->iac_level;
+ 			cur_tsec->iac_wx = level->iac_level;
+@@ -500,42 +560,69 @@ static int enforce_integrity_read(struct
+ 	return 0;
+ }
+ 
+-static int do_task_may_read(struct slm_file_xattr *level)
++static int do_task_may_read(struct slm_file_xattr *level,
++			     const unsigned char *name,
++			     struct task_struct *parent_tsk,
++			     struct slm_tsec_data *parent_tsec)
+ {
+-	return enforce_integrity_read(level);
++	return enforce_integrity_read(level, name, parent_tsk, parent_tsec);
+ }
+ 
+ /*
+  * enforce: IWXAC(process) >= IAC(object)
+  * Permit process to write a file of equal or lesser integrity.
+  */
+-static int enforce_integrity_write(struct slm_file_xattr *level)
++static int enforce_integrity_write(struct slm_file_xattr *level,
++				   const unsigned char *name,
++				   struct task_struct *parent_tsk,
++				   struct slm_tsec_data *parent_tsec)
+ {
+ 	struct slm_tsec_data *cur_tsec = current->security;
+ 	int rc = 0;
+ 
+ 	spin_lock(&cur_tsec->lock);
+ 	if (!(is_iac_greater_than_or_exempt(level, cur_tsec->iac_wx)
+-	      || (level->iac_level == SLM_IAC_NOTDEFINED)))
++	      || (level->iac_level == SLM_IAC_NOTDEFINED))) {
+ 		/* can't write higher integrity */
++		dprintk(SLM_BASE, "ppid %d(%s p=%d-%s) "
++			"pid %d(%s p=%d-%s) can't write higher "
++			"integrity iac=%d-%s(%s)\n",
++			parent_tsk->pid, parent_tsk->comm,
++			parent_tsec->iac_wx,
++			(parent_tsec->iac_wx != parent_tsec->iac_r)
++			? "GUARD" : slm_iac_str[parent_tsec->
++						iac_wx],
++			current->pid, current->comm,
++			cur_tsec->iac_wx, (cur_tsec->iac_wx != cur_tsec->iac_r)
++			? "GUARD" : slm_iac_str[cur_tsec->iac_wx],
++			level->iac_level, slm_iac_str[level->iac_level], name);
+ 		rc = -EACCES;
++	}
+ 	spin_unlock(&cur_tsec->lock);
+ 	return rc;
+ }
+ 
+-static int do_task_may_write(struct slm_file_xattr *level)
++static int do_task_may_write(struct slm_file_xattr *level,
++			     const unsigned char *name,
++			     struct task_struct *parent_tsk,
++			     struct slm_tsec_data *parent_tsec)
+ {
+-	return enforce_integrity_write(level);
++	return enforce_integrity_write(level, name, parent_tsk, parent_tsec);
+ }
+ 
+-static int slm_set_taskperm(int mask, struct slm_file_xattr *level)
++static int slm_set_taskperm(int mask, struct slm_file_xattr *level,
++			    const unsigned char *name)
+ {
++	struct task_struct *parent_tsk = current->parent;
++	struct slm_tsec_data *parent_tsec;
+ 	int rc = 0;
+ 
++	parent_tsec = parent_tsk->security;
 +
-+When the process is demoted, it may have objects open for write
-+of now higher integrity level, and these objects have to have their
-+write access revoked. This revocation of write privilege must
-+occur for normal and mmap'ed file writes.  Similarly, when reading
-+an object of higher secrecy, the process is promoted to the higher
-+secrecy level, and write access to now lower secrecy objects is revoke=
-d.
+ 	if (mask & MAY_READ)
+-		rc = do_task_may_read(level);
++		rc = do_task_may_read(level, name, parent_tsk, parent_tsec);
+ 	if ((mask & MAY_WRITE) || (mask & MAY_APPEND))
+-		rc |= do_task_may_write(level);
++		rc |= do_task_may_write(level, name, parent_tsk, parent_tsec);
+ 
+ 	return rc;
+ }
+@@ -555,15 +642,21 @@ static int slm_file_permission(struct fi
+ 	return 0;
+ }
+ 
+-static int is_untrusted_blk_access(struct inode *inode)
++static int is_untrusted_blk_access(struct inode *inode,
++				   const unsigned char *fname)
+ {
+ 	struct slm_tsec_data *cur_tsec = current->security;
+ 	int rc = 0;
+ 
+ 	spin_lock(&cur_tsec->lock);
+ 	if (cur_tsec && (cur_tsec->iac_wx == SLM_IAC_UNTRUSTED)
+-	    && S_ISBLK(inode->i_mode))
++	    && S_ISBLK(inode->i_mode)) {
++		dprintk(SLM_BASE, "pid %d(%s p=%d-%s) deny access %s\n",
++			current->pid, current->comm,
++			cur_tsec->iac_wx, (cur_tsec->iac_wx != cur_tsec->iac_r)
++			? "GUARD" : slm_iac_str[cur_tsec->iac_wx], fname);
+ 		rc = 1;
++	}
+ 	spin_unlock(&cur_tsec->lock);
+ 	return rc;
+ }
+@@ -576,8 +669,11 @@ static int is_untrusted_blk_access(struc
+ static int slm_inode_permission(struct inode *inode, int mask,
+ 				struct nameidata *nd)
+ {
++	char *path = NULL;
++	const unsigned char *fname = NULL;
+ 	struct dentry *dentry = NULL;
+ 	struct slm_file_xattr level;
++	int rc = 0;
+ 
+ 	if (S_ISDIR(inode->i_mode) && (mask & MAY_WRITE))
+ 		return 0;
+@@ -586,16 +682,33 @@ static int slm_inode_permission(struct i
+ 	if (!dentry)
+ 		return 0;
+ 
+-	if (is_untrusted_blk_access(inode))
+-		return -EPERM;
++	if (nd) {		/* preferably use fullname */
++		path = (char *)__get_free_page(GFP_KERNEL);
++		if (path)
++			fname = d_path(nd->dentry, nd->mnt, path, PAGE_SIZE);
++	}
 +
-+SLIM performs a generic revocation operation, including revoking
-+mmap and shared memory access. Note that during demotion or promotion
-+of a process, SLIM needs only revoke write access to files with higher
-+integrity, or lower secrecy.
++	if (!fname)		/* no choice, use short name */
++		fname = (!dentry->d_name.name) ? dentry->d_iname :
++		    dentry->d_name.name;
 +
-+SLIM inherently deals with dynamic task labels, which is a feature
-+not currently available in selinux. While it might be possible to
-+add support for this to selinux, it would not appear to be simple,
-+and it is not clear if the added complexity would be desirable
-+just to support this one model.
++	if (is_untrusted_blk_access(inode, fname)) {
++		rc = -EPERM;
++		goto out;
++	}
+ 
+ 	slm_get_level(dentry, &level);
+ 
+ 	/* measure all SYSTEM level integrity objects */
+ 	if (level.iac_level == SLM_IAC_SYSTEM)
+-		integrity_measure(dentry, NULL, mask);
++		integrity_measure(dentry, fname, mask);
 +
-+Comments on the model:
++	rc = slm_set_taskperm(mask, &level, fname);
+ 
+-	return slm_set_taskperm(mask, &level);
++out:
++	if (path)
++		free_page((unsigned long)path);
++	return rc;
+ }
+ 
+ /*
+@@ -609,7 +722,7 @@ static int slm_inode_unlink(struct inode
+ 		return 0;
+ 
+ 	slm_get_level(dentry, &level);
+-	return slm_set_taskperm(MAY_WRITE, &level);
++	return slm_set_taskperm(MAY_WRITE, &level, dentry->d_name.name);
+ }
+ 
+ static void slm_inode_free_security(struct inode *inode)
+@@ -637,8 +750,15 @@ static int slm_inode_create(struct inode
+ 	 */
+ 	spin_lock(&cur_tsec->lock);
+ 	spin_lock(&parent_isec->lock);
+-	if (!is_iac_greater_than_or_exempt(parent_level, cur_tsec->iac_wx))
++	if (!is_iac_greater_than_or_exempt(parent_level, cur_tsec->iac_wx)) {
++		dprintk(SLM_INTEGRITY, "%s: prohibit current %s level "
++			"process writing into %s (%s level directory)\n",
++			__FUNCTION__, slm_iac_str[cur_tsec->iac_wx],
++			(!dentry->d_name.name)
++			? " " : (char *)dentry->d_name.name,
++			slm_iac_str[parent_level->iac_level]);
+ 		rc = -EPERM;
++	}
+ 	spin_unlock(&parent_isec->lock);
+ 	spin_unlock(&cur_tsec->lock);
+ 	return rc;
+@@ -706,6 +826,8 @@ static int slm_inode_init_security(struc
+ 		spin_lock(&parent_isec->lock);
+ 		memcpy(&level, &parent_isec->level,
+ 		       sizeof(struct slm_file_xattr));
++		dprintk(SLM_VERBOSE, "%s: level %d\n", __FUNCTION__,
++			parent_isec->level.iac_level);
+ 		spin_unlock(&parent_isec->lock);
+ 	}
+ 
+@@ -786,9 +908,17 @@ static int slm_inode_mkdir(struct inode 
+ 
+ 	spin_lock(&cur_tsec->lock);
+ 	spin_lock(&parent_isec->lock);
+-	if (cur_tsec->iac_wx < parent_level->iac_level
+-	    && parent_level->iac_level == SLM_IAC_SYSTEM)
+-		rc = -EACCES;
++	if (cur_tsec->iac_wx < parent_level->iac_level) {
++		if (parent_level->iac_level == SLM_IAC_SYSTEM)
++			rc = -EACCES;
++		else
++			dprintk(SLM_VERBOSE, "%s:ppid %d (%s) %s - creating"
++				" lower integrity directory, than parent\n",
++				__FUNCTION__, current->pid, current->comm,
++				(!dentry->d_name.name)
++				? "" : (char *)dentry->d_name.name);
 +
-+Some of the prior comments questioned the usefulness of the
-+low water-mark model itself. Two major questions raised concerned
-+a potential progression of the entire system to a fully demoted
-+state, and the security issues surrounding the guard processes.
++	}
+ 	spin_unlock(&parent_isec->lock);
+ 	spin_unlock(&cur_tsec->lock);
+ 	return rc;
+@@ -810,8 +940,13 @@ static int slm_inode_rename(struct inode
+ 	slm_get_level(parent_dentry, &parent_level);
+ 	dput(parent_dentry);
+ 
+-	if (is_lower_integrity(&old_level, &parent_level))
++	if (is_lower_integrity(&old_level, &parent_level)) {
++		dprintk(SLM_BASE, "%s: prohibit rename of %s (low"
++			" integrity) into %s (higher level directory)\n",
++			__FUNCTION__, old_dentry->d_name.name,
++			parent_dentry->d_name.name);
+ 		return -EPERM;
++	}
+ 	return 0;
+ }
+ 
+@@ -833,6 +968,10 @@ static int slm_inode_setxattr(struct den
+ 	if (!value)
+ 		return -EINVAL;
+ 
++	dprintk(SLM_VERBOSE, "%s: name %s value %s process:iac_r %s "
++		"iac_wx %s\n", __FUNCTION__, name, (char *)value,
++		slm_iac_str[cur_tsec->iac_r], slm_iac_str[cur_tsec->iac_wx]);
 +
-+In normal operation, the system seems to stabilize with a roughly
-+equal mixture of SYSTEM, USER, and UNTRUSTED processes. Most
-+applications seem to do a fixed set of operations in a fixed domain,
-+and stabilize at their appropriate level. Some applications, like
-+firefox and evolution, which inherently deal with untrusted data,
-+immediately go to the UNTRUSTED level, which is where they belong.
-+In a couple of cases, including cups and Notes, the applications
-+did not handle their demotions well, as they occurred well into their
-+startup. For these applications, we simply force them to start up
-+as UNTRUSTED, so demotion is not an issue. The one application type
-+that does tend to get demoted over time is shells, such as bash.
-+These are not problems, as new ones can be created with the
-+windowing system, or with su, as needed. To help with the associated
-+user interface issue, the user space package[4] README shows how to
-+display the SLIM level in window titles, so it is always clear at
-+what level the process is currently running.
+ 	spin_lock(&cur_tsec->lock);
+ 	iac = cur_tsec->iac_wx;
+ 	spin_unlock(&cur_tsec->lock);
+@@ -943,9 +1082,18 @@ static int slm_socket_create(int family,
+ 			if (current->mm && atomic_read(&current->mm->mm_users) != 1)
+ 				rc = 1;
+ 			if (rc) {
++				dprintk(SLM_BASE,
++					"%s: ppid %d pid %d can't revoke, refusing socket\n",
++					__FUNCTION__, parent_tsk->pid, current->pid);
+ 				spin_unlock(&cur_tsec->lock);
+ 				return -EPERM;
+ 			} else {
++				dprintk(SLM_INTEGRITY,
++					"%s: ppid %d pid %d demoting "
++					"family %d type %d protocol %d kern %d"
++					" to untrusted.\n", __FUNCTION__,
++					parent_tsk->pid, current->pid, family,
++					type, protocol, kern);
+ 				cur_tsec->iac_r = SLM_IAC_UNTRUSTED;
+ 				cur_tsec->iac_wx = SLM_IAC_UNTRUSTED;
+ 				spin_unlock(&cur_tsec->lock);
+@@ -1030,27 +1178,54 @@ static int slm_task_post_setuid(uid_t ol
+ 				uid_t old_suid, int flags)
+ {
+ 	struct slm_tsec_data *cur_tsec = current->security;
++	int rc;
+ 
+-	if (cur_tsec && flags == LSM_SETID_ID) {
+-		/*set process to USER level integrity for everything but root */
+-		spin_lock(&cur_tsec->lock);
+-		if ((cur_tsec->iac_r == cur_tsec->iac_wx)
+-		    && (cur_tsec->iac_r == SLM_IAC_UNTRUSTED));
+-		else if (current->suid != 0) {
+-			cur_tsec->iac_r = SLM_IAC_USER;
+-			cur_tsec->iac_wx = SLM_IAC_USER;
+-		} else if ((current->uid == 0) && (old_ruid != 0)) {
+-			cur_tsec->iac_r = SLM_IAC_SYSTEM;
+-			cur_tsec->iac_wx = SLM_IAC_SYSTEM;
+-		}
+-		spin_unlock(&cur_tsec->lock);
+-	}
+-	return 0;
++	/*set process to USER level integrity for everything but root */
++	dprintk(SLM_VERBOSE, "ruid %d euid %d suid %d "
++			"cur: uid %d euid %d suid %d "
++			"permitted %x effective %x\n",
++			old_ruid, old_euid, old_suid,
++			current->uid, current->euid, current->suid,
++			current->cap_permitted, current->cap_effective);
++	rc = dummy_security_ops.task_post_setuid(old_ruid, old_euid,
++						 old_suid, flags);
++	spin_lock(&cur_tsec->lock);
++	if ((cur_tsec->iac_r == cur_tsec->iac_wx)
++	    && (cur_tsec->iac_r == SLM_IAC_UNTRUSTED)) {
++		dprintk(SLM_INTEGRITY,
++			"Integrity: pid %d iac_r %d "
++			" iac_wx %d remains UNTRUSTED\n",
++			current->pid, cur_tsec->iac_r,
++			cur_tsec->iac_wx);
++		current->cap_permitted = 0;
++		current->cap_effective = 0;
++	} else if (current->suid != 0) {
++		dprintk(SLM_INTEGRITY, "setting: pid %d iac_r %d "
++			" iac_wx %d to USER\n",
++			current->pid, cur_tsec->iac_r,
++			cur_tsec->iac_wx);
++		cur_tsec->iac_r = SLM_IAC_USER;
++		cur_tsec->iac_wx = SLM_IAC_USER;
++	} else if ((current->uid == 0) && (old_ruid != 0)) {
++		dprintk(SLM_INTEGRITY, "setting: pid %d iac_r %d "
++			" iac_wx %d to SYSTEM\n",
++			current->pid, cur_tsec->iac_r,
++			cur_tsec->iac_wx);
++		cur_tsec->iac_r = SLM_IAC_SYSTEM;
++		cur_tsec->iac_wx = SLM_IAC_SYSTEM;
++	} else
++		dprintk(SLM_INTEGRITY, "%s: pid %d iac_r %d "
++			" iac_wx %d \n", __FUNCTION__,
++			current->pid, cur_tsec->iac_r,
++			cur_tsec->iac_wx);
++	spin_unlock(&cur_tsec->lock);
++	return rc;
+ }
+ 
+ static int slm_setprocattr(struct task_struct *tsk,
+ 				  char *name, void *value, size_t size)
+ {
++	dprintk(SLM_BASE, "%s: %s \n", __FUNCTION__, name);
+ 	return -EACCES;
+ 
+ }
+@@ -1094,16 +1269,60 @@ static int enforce_integrity_execute(str
+ 	int rc = 0;
+ 
+ 	spin_lock(&cur_tsec->lock);
+-	if (is_iac_less_than_or_exempt(level, cur_tsec->iac_wx))
++	if (is_iac_less_than_or_exempt(level, cur_tsec->iac_wx)) {
++		dprintk(SLM_INTEGRITY,
++			"%s: ppid %d(%s %d-%s) pid %d(%s %d-%s)"
++			" %s executing\n",
++			__FUNCTION__, parent_tsk->pid,
++			parent_tsk->comm,
++			(!parent_tsec) ? 0 : parent_tsec->iac_wx,
++			(parent_tsec->iac_wx != parent_tsec->iac_r)
++			? "GUARD" : slm_iac_str[parent_tsec->
++						iac_wx],
++			current->pid, current->comm,
++			cur_tsec->iac_wx,
++			(cur_tsec->iac_wx != cur_tsec->iac_r)
++			? "GUARD" : slm_iac_str[cur_tsec->iac_wx],
++			bprm->filename);
 +
-+As for the issue of guard processes, SLIM defines three types of
-+guard processes: Unlimited Guards, Limited Guards, and Untrusted
-+Guards.  Unlimited Guards are the most security sensitive, as they
-+allow less trusted process to acquire a higher level of trust.
-+On my current system there are two unlimited guards, passwd and
-+userhelper. These two applications inherently have to be trusted
-+this way regardless of the MAC model used. In SLIM, the policy
-+clearly and simply labels them as having this level of trust.
+ 		/* Being a guard process is not inherited */
+ 		cur_tsec->iac_r = cur_tsec->iac_wx;
+-	else {
++	} else {
+ 		rc = has_file_wperm(level);
+ 		if (current->mm && atomic_read(&current->mm->mm_users) != 1)
+ 			rc = 1;
+-		if (rc)
++		if (rc) {
++			dprintk(SLM_BASE,
++				"%s: ppid %d(%s %d-%s) pid %d(%s %d-%s)"
++				" %s can't revoke, deny execution\n",
++				__FUNCTION__, parent_tsk->pid,
++				parent_tsk->comm, parent_tsec->iac_wx,
++				(parent_tsec->iac_wx != parent_tsec->iac_r)
++				? "GUARD" : slm_iac_str[parent_tsec->
++						iac_wx],
++				current->pid, current->comm,
++				cur_tsec->iac_wx,
++				(cur_tsec->iac_wx != cur_tsec->iac_r)
++				? "GUARD" : slm_iac_str[cur_tsec->iac_wx],
++				bprm->filename);
+ 			spin_unlock(&cur_tsec->lock);
+-		else {
++		} else {
++			dprintk(SLM_BASE,
++				"%s: ppid %d(%s %d-%s) pid %d(%s %d-%s)"
++				" %s executing, demoting integrity to "
++				" iac=%d-%s\n",
++				__FUNCTION__, parent_tsk->pid,
++				parent_tsk->comm, parent_tsec->iac_wx,
++				(parent_tsec->iac_wx != parent_tsec->iac_r)
++				? "GUARD" : slm_iac_str[parent_tsec->
++						iac_wx],
++				current->pid, current->comm,
++				cur_tsec->iac_wx,
++				(cur_tsec->iac_wx != cur_tsec->iac_r)
++				? "GUARD" : slm_iac_str[cur_tsec->iac_wx],
++				bprm->filename, level->iac_level,
++				slm_iac_str[level->iac_level]);
 +
-+Limited Guards are programs which cannot give away higher
-+trust, but which can keep their existing level despite reading
-+less trusted data. On my system I have seven limited guards:
-+yum, which is trusted to verify the signature on an (untrusted)
-+downloaded RPM file, and to install it, login and sshd, which read
-+untrusted user supplied login data, for authentication, dhclient
-+which reads untrusted network data, and updates they system
-+file /etc/resolv.conf, dbus-daemon, which accepts data from
-+potentially untrusted processes, Xorg, which has to accept data
-+from all Xwindow clients, regardless of level, and postfix which
-+delivers untrusted mail. Again, these applications inherently
-+must cross trust levels, and SLIM properly identifies them.
+ 			cur_tsec->iac_r = level->iac_level;
+ 			cur_tsec->iac_wx = level->iac_level;
+ 			spin_unlock(&cur_tsec->lock);
+@@ -1119,9 +1338,25 @@ static void enforce_guard_integrity_exec
+ 					    struct slm_file_xattr *level,
+ 					    struct slm_tsec_data *cur_tsec)
+ {
++	struct task_struct *parent_tsk = current->parent;
 +
-+As mentioned earlier, cupsd and Notes are applications which are
-+always run directly in untrusted mode, regardless of the level of
-+the invoking process.
+ 	if ((strcmp(bprm->filename, bprm->interp) != 0)
+-	    && (level->guard.unlimited))
++	    && (level->guard.unlimited)) {
++		dprintk(SLM_INTEGRITY, "%s:pid %d %s prohibiting "
++			"script from being an unlimited guard\n",
++			__FUNCTION__, current->pid, bprm->filename);
+ 		level->guard.unlimited = 0;
++	}
 +
-+The bottom line is that SLIM guard programs inherently do security
-+sensitive things, and have to be trusted. There are only a small
-+number of them, and they are clearly identified by their labels.
++	dprintk(SLM_INTEGRITY,
++		"%s: ppid %d pid %d %s (integrity guard)"
++		"cur: r %s wx %s new: r %s wx %s %s\n",
++		__FUNCTION__, parent_tsk->pid, current->pid,
++		bprm->filename, slm_iac_str[cur_tsec->iac_r],
++		slm_iac_str[cur_tsec->iac_wx],
++		slm_iac_str[level->guard.iac_r],
++		slm_iac_str[level->guard.iac_wx],
++		(level->guard.unlimited ? "unlimited" : "limited"));
+ 
+ 	spin_lock(&cur_tsec->lock);
+ 	if (level->guard.unlimited) {
+@@ -1151,7 +1386,13 @@ static int slm_bprm_check_security(struc
+ 	/* Special case interpreters */
+ 	spin_lock(&cur_tsec->lock);
+ 	if (strcmp(bprm->filename, bprm->interp) != 0) {
++		dprintk(SLM_INTEGRITY,
++			"%s: executing %s (interp: %s)\n",
++			__FUNCTION__, bprm->filename, bprm->interp);
+ 		if (!cur_tsec->script_dentry) {
++			dprintk(SLM_INTEGRITY,
++				"%s: NULL script_dentry %s\n",
++				__FUNCTION__, bprm->filename);
+ 			spin_unlock(&cur_tsec->lock);
+ 			return 0;
+ 		} else
+@@ -1163,6 +1404,9 @@ static int slm_bprm_check_security(struc
+ 	spin_unlock(&cur_tsec->lock);
+ 
+ 	slm_get_level(dentry, &level);
++	dprintk(SLM_INTEGRITY, "%s: %s level iac %d - %s\n",
++		__FUNCTION__, bprm->filename, level.iac_level,
++		slm_iac_str[level.iac_level]);
+ 
+ 	/* slm_inode_permission measured all SYSTEM level integrity objects */
+ 	if (level.iac_level != SLM_IAC_SYSTEM)
+@@ -1175,10 +1419,17 @@ static int slm_bprm_check_security(struc
+ 
+ 	switch(status) {
+ 	case INTEGRITY_FAIL:
+-		if (!is_kernel_thread(current))
++		if (!is_kernel_thread(current)) {
++			dprintk(SLM_BASE,
++				"%s: %s (Integrity status: FAIL)\n",
++				__FUNCTION__, bprm->filename);
+ 			return -EACCES;
++		}
+ 		break;
+ 	case INTEGRITY_NOLABEL:
++		dprintk(SLM_BASE,
++			"%s: %s (Integrity status: NOLABEL)\n",
++			__FUNCTION__, bprm->filename);
+ 		level.iac_level = SLM_IAC_UNTRUSTED;
+ 	}
+ 
+@@ -1213,9 +1464,12 @@ static int slm_capable(struct task_struc
+ 	/* Derived from include/linux/sched.h:capable. */
+ 	if (cap_raised(tsk->cap_effective, cap)) {
+ 		spin_lock(&tsec->lock);
+-		if (tsec->iac_wx == SLM_IAC_UNTRUSTED &&
+-		    cap == CAP_SYS_ADMIN)
+-			rc = -EACCES;
++		if (tsec->iac_wx == SLM_IAC_UNTRUSTED) {
++			dprintk(SLM_VERBOSE, "%s: pid %d %s requested cap %d\n",
++				__FUNCTION__, tsk->pid, tsk->comm, cap);
++			if (cap == CAP_SYS_ADMIN)
++				rc = -EACCES;
++		}
+ 		spin_unlock(&tsec->lock);
+ 		return rc;
+ 	}
+@@ -1253,6 +1507,8 @@ static int slm_shm_alloc_security(struct
+ 		set_level_tsec_write(&isec->level, cur_tsec);
+ 	spin_unlock(&cur_tsec->lock);
+ 	perm->security = isec;
++	dprintk(SLM_INTEGRITY, "%s: level %d \n", __FUNCTION__,
++		isec->level.iac_level);
+ 
+ 	return 0;
+ }
+@@ -1288,7 +1544,7 @@ static int slm_shm_shmctl(struct shmid_k
+ 	inode = dentry->d_inode;
+ 
+ 	spin_lock(&perm_isec->lock);
+-	rc = slm_set_taskperm(MAY_READ | MAY_WRITE, &perm_isec->level);
++	rc = slm_set_taskperm(MAY_READ | MAY_WRITE, &perm_isec->level, NULL);
+ 	spin_unlock(&perm_isec->lock);
+ 	return rc;
+ }
+@@ -1312,8 +1568,12 @@ static int slm_shm_shmat(struct shmid_ke
+ 		mask |= MAY_WRITE;
+ 
+ 	spin_lock(&perm_isec->lock);
+-	rc = slm_set_taskperm(mask, &perm_isec->level);
++	rc = slm_set_taskperm(mask, &perm_isec->level, NULL);
+ 
++	dprintk(SLM_INTEGRITY,
++		"%s: %d mask %d level %d replace %d\n",
++		__FUNCTION__, shp->id, mask,
++		perm_isec->level.iac_level, isec->level.iac_level);
+ 	spin_lock(&isec->lock);
+ 	memcpy(&isec->level, &perm_isec->level, sizeof(struct slm_file_xattr));
+ 	spin_unlock(&perm_isec->lock);
+diff -puN security/slim/slm_secfs.c~slim-debug-output security/slim/slm_secfs.c
+--- a/security/slim/slm_secfs.c~slim-debug-output
++++ a/security/slim/slm_secfs.c
+@@ -18,6 +18,7 @@
+ #include "slim.h"
+ 
+ static struct dentry *slim_sec_dir, *slim_level;
++static struct dentry *slim_debug_dir, *slim_integrity, *slim_verbose;
+ 
+ static ssize_t slm_read_level(struct file *file, char __user *buf,
+ 			      size_t buflen, loff_t *ppos)
+@@ -41,10 +42,76 @@ static ssize_t slm_read_level(struct fil
+ 	return simple_read_from_buffer(buf, buflen, ppos, data, len);
+ }
+ 
++static int slm_open_debug(struct inode *inode, struct file *file)
++{
++	if (inode->i_private)
++		file->private_data = inode->i_private;
++	return 0;
++}
 +
-+Userspace Tools:
++static ssize_t slm_read_debug(struct file *file, char __user * buf,
++			      size_t buflen, loff_t * ppos)
++{
++	ssize_t len = 0;
++	enum slm_debug_level type = (enum slm_debug_level)file->private_data;
++	char *page = (char *)__get_free_page(GFP_KERNEL);
 +
-+Papers and slides on SLIM, along with source code for the needed
-+userspace tools, and installation instructions are available at:
++	if (!page)
++		return -ENOMEM;
 +
-+[4]	http://www.research.ibm.com/gsal/tcpa
++	switch(type) {
++	case SLM_INTEGRITY:
++		len = sprintf(page, "slm_debug: integrity %s\n",
++			      ((slm_debug & SLM_INTEGRITY) == SLM_INTEGRITY)
++			      ? "ON" : "OFF");
++		break;
++	case SLM_VERBOSE:
++		len = sprintf(page, "evm_debug: verbose %s\n",
++			      ((slm_debug & SLM_VERBOSE) == SLM_VERBOSE)
++			      ? "ON" : "OFF");
++		break;
++	default:
++		break;
++	}
++	len = simple_read_from_buffer(buf, buflen, ppos, page, len);
++	free_page((unsigned long)page);
++	return len;
++}
 +
-+References:
++static ssize_t slm_write_debug(struct file *file, const char __user * buf,
++			       size_t buflen, loff_t * ppos)
++{
++	char flag;
++	enum slm_debug_level type = (enum slm_debug_level)file->private_data;
 +
-+[1 Biba]: K. J. Biba. =E2=80=9CIntegrity Considerations for Secure Com=
-puter Systems=E2=80=9D
-+Technical Report ESD-TR-76-372, USAF Electronic Systems Division, Hans=
-com Air
-+Force Base, Bedford, Massachusetts, April 1977.
++	if (copy_from_user(&flag, buf, 1))
++		return -EFAULT;
 +
-+[2 Lomac]: T. Fraser, "LOMAC: Low Water-Mark Integrity Protection for =
-COTS
-+Environments,"  Proceedings of the 2000 IEEE Symposium on Security and
-+Privacy, Oakland, California, USA, 2000.
++	switch(type) {
++	case SLM_INTEGRITY:
++		slm_debug = (flag == '0') ? slm_debug & ~SLM_INTEGRITY :
++		    slm_debug | SLM_INTEGRITY;
++		break;
++	case SLM_VERBOSE:
++		slm_debug = (flag == '0') ? slm_debug & ~SLM_VERBOSE :
++		    slm_debug | SLM_VERBOSE;
++		break;
++	default:
++		break;
++	}
++	return buflen;
++}
 +
-+[3 Caernarvon]: P. Karger, V. Austel, and D. Toll. =E2=80=9CUsing a Ma=
-ndatory Secrecy
-+and Integrity Policy on Smart Cards and Mobile Devices=E2=80=9D EUROSM=
-ART Security
-+Conference. 13-15 June 2000, Marseilles, France p. 134-148.
+ static struct file_operations slm_level_ops = {
+ 	.read = slm_read_level,
+ };
+ 
++static struct file_operations slm_debug_ops = {
++	.read = slm_read_debug,
++	.write = slm_write_debug,
++	.open = slm_open_debug,
++};
++
+ int __init slm_init_secfs(void)
+ {
+ 	if (!slim_enabled)
+@@ -64,9 +131,45 @@ int __init slm_init_secfs(void)
+ 
+ __initcall(slm_init_secfs);
+ 
++int __init slm_init_debugfs(void)
++{
++	if (!slim_enabled)
++		return 0;
++
++	slim_debug_dir = debugfs_create_dir("slim", NULL);
++	if (!slim_debug_dir || IS_ERR(slim_debug_dir))
++		return -EFAULT;
++
++	slim_integrity = debugfs_create_file("integrity", S_IRUSR | S_IRGRP,
++					     slim_debug_dir, (void *)SLM_INTEGRITY,
++					     &slm_debug_ops);
++	if (!slim_integrity || IS_ERR(slim_integrity))
++		goto out_del_debugdir;
++	slim_verbose = debugfs_create_file("verbose", S_IRUSR | S_IRGRP,
++					   slim_debug_dir, (void *)SLM_VERBOSE,
++					   &slm_debug_ops);
++	if (!slim_verbose || IS_ERR(slim_verbose))
++		goto out_del_integrity;
++	return 0;
++
++out_del_integrity:
++	debugfs_remove(slim_integrity);
++out_del_debugdir:
++	debugfs_remove(slim_debug_dir);
++	return -EFAULT;
++}
++
++__initcall(slm_init_debugfs);
++
+ void __exit slm_cleanup_secfs(void)
+ {
+ 	securityfs_remove(slim_level);
+ 	securityfs_remove(slim_sec_dir);
+ }
+ 
++void __exit slm_cleanup_debugfs(void)
++{
++	debugfs_remove(slim_verbose);
++	debugfs_remove(slim_integrity);
++	debugfs_remove(slim_debug_dir);
++}
 _
 
 Patches currently in -mm which might be from kjhall@us.ibm.com are
 
 use-menuconfig-objects-ii-tpm.patch
+slim-debug-output.patch
 slim-documentation.patch
 integrity-new-hooks.patch
 integrity-fs-hook-placement.patch
