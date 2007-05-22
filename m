@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-version-bump.patch added to -mm tree
-Date: Mon, 21 May 2007 21:09:56 -0700
-Message-ID: <200705220409.l4M49uL1027026@shell0.pdx.osdl.net>
+Subject: + fix-confusion-in-fusion-driver-update.patch added to -mm tree
+Date: Mon, 21 May 2007 21:11:40 -0700
+Message-ID: <200705220411.l4M4Bdxh027048@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53065 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755728AbXEVELj (ORCPT
+	by vger.kernel.org with ESMTP id S1755150AbXEVEOn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 00:11:39 -0400
+	Tue, 22 May 2007 00:14:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aabdulla@nvidia.com
+Cc: davej@redhat.com, James.Bottomley@SteelEye.com, eric.moore@lsi.com
 
 
 The patch titled
-     forcedeth: version bump
+     Fix |/|| confusion in fusion driver (update)
 has been added to the -mm tree.  Its filename is
-     forcedeth-version-bump.patch
+     fix-confusion-in-fusion-driver-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: version bump
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: Fix |/|| confusion in fusion driver (update)
+From: Dave Jones <davej@redhat.com>
 
-This patch bumps up the version.
+The last time this was posted, Eric picked up on some other flaws in the
+same area.  James asked him to followup with a patch, but unless I'm
+mistaken, that never arrived.  This diff should replace the one in your
+tree until Eric has an equivalent or better.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Eric Moore <eric.moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/message/fusion/mptbase.h  |    2 +-
+ drivers/message/fusion/mptscsih.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-version-bump drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-version-bump
-+++ a/drivers/net/forcedeth.c
-@@ -112,6 +112,7 @@
-  *	0.58: 30 Oct 2006: Added support for sideband management unit.
-  *	0.59: 30 Oct 2006: Added support for recoverable error.
-  *	0.60: 20 Jan 2007: Code optimizations for rings, rx & tx data paths, and stats.
-+ *	0.61: 21 May 2007: Fix power management code, cpu mask, and added vitesse phy.
-  *
-  * Known bugs:
-  * We suspect that on some hardware no TX done interrupts are generated.
-@@ -128,7 +129,7 @@
- #else
- #define DRIVERNAPI
- #endif
--#define FORCEDETH_VERSION		"0.60"
-+#define FORCEDETH_VERSION		"0.61"
- #define DRV_NAME			"forcedeth"
+diff -puN drivers/message/fusion/mptbase.h~fix-confusion-in-fusion-driver-update drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~fix-confusion-in-fusion-driver-update
++++ a/drivers/message/fusion/mptbase.h
+@@ -436,7 +436,7 @@ typedef struct _MPT_SAS_MGMT {
+ typedef struct _mpt_ioctl_events {
+ 	u32	event;		/* Specified by define above */
+ 	u32	eventContext;	/* Index or counter */
+-	int	data[2];	/* First 8 bytes of Event Data */
++	u32	data[2];	/* First 8 bytes of Event Data */
+ } MPT_IOCTL_EVENTS;
  
- #include <linux/module.h>
-@@ -5638,6 +5639,7 @@ MODULE_PARM_DESC(dma_64bit, "High DMA is
- MODULE_AUTHOR("Manfred Spraul <manfred@colorfullife.com>");
- MODULE_DESCRIPTION("Reverse Engineered nForce ethernet driver");
- MODULE_LICENSE("GPL");
-+MODULE_VERSION(FORCEDETH_VERSION);
+ /*
+diff -puN drivers/message/fusion/mptscsih.c~fix-confusion-in-fusion-driver-update drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~fix-confusion-in-fusion-driver-update
++++ a/drivers/message/fusion/mptscsih.c
+@@ -2467,7 +2467,7 @@ mptscsih_copy_sense_data(struct scsi_cmn
+ 					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) |
+ 					(sc->device->channel << 8) | sc->device->id;
  
- MODULE_DEVICE_TABLE(pci, pci_tbl);
+-				ioc->events[idx].data[1] = (sense_data[13] << 8) || sense_data[12];
++				ioc->events[idx].data[1] = (sense_data[13] << 8) | sense_data[12];
  
+ 				ioc->eventContext++;
+ 				if (hd->ioc->pcidev->vendor ==
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
-forcedeth-add-vitesse-phy.patch
-forcedeth-fix-power-management-support.patch
-forcedeth-fix-cpu-irq-mask.patch
-forcedeth-version-bump.patch
+git-cpufreq.patch
+ada-add-seagate-stt20000a-to-dma-blacklist.patch
+ide-add-seagate-stt20000a-to-dma-blacklist.patch
+fix-confusion-in-fusion-driver-update.patch
+fix-up-codingstyle-in-isofs.patch
