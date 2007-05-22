@@ -1,137 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-the-contents-of-moduleh-and-moduleparamh.patch removed from -mm tree
-Date: Tue, 22 May 2007 00:09:49 -0700
-Message-ID: <200705220709.l4M79pdv029429@shell0.pdx.osdl.net>
+Subject: + rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch added to -mm tree
+Date: Tue, 22 May 2007 09:47:07 -0700
+Message-ID: <200705221647.l4MGl7uA005728@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42372 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48163 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763832AbXEVHLB (ORCPT
+	by vger.kernel.org with ESMTP id S1757812AbXEVQsS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 03:11:01 -0400
+	Tue, 22 May 2007 12:48:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     Clean up the contents of module.h and moduleparam.h
-has been removed from the -mm tree.  Its filename was
-     clean-up-the-contents-of-moduleh-and-moduleparamh.patch
+     rd: Mark ramdisk buffer heads dirty in ramdisk_set_page_dirty
+has been added to the -mm tree.  Its filename is
+     rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up the contents of module.h and moduleparam.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: rd: Mark ramdisk buffer heads dirty in ramdisk_set_page_dirty
+From: Eric W. Biederman <ebiederm@xmission.com
 
-Shift the contents of module.h and moduleparam.h so that generic
-module content is exclusively in module.h, while parameter-specific
-content is in moduleparam.h.
+The problem: When we are trying to free buffers try_to_free_buffers will look
+at ramdisk pages with clean buffer heads and remove the dirty bit from the
+page.  Resulting in ramdisk pages with data that get removed from the page
+cache.  Ouch!
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+When we mark a ramdisk page dirty we call set_page_dirty which then calls
+ramdisk_set_page_dirty.  Currently we don't mark the buffer heads dirty
+leaving us susceptible to the problem above.
+
+So to fix the mismatch between buffer head state and page state this patch
+modifies ramdisk_set_page_dirty to set the dirty bit on all of the buffers a
+page may posses.
+
+I set the uptodate bit on the buffer head so that later we can use
+simple_commit_write, and because it is trivially safe.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h      |   19 +++++++++++++------
- include/linux/moduleparam.h |   16 +++++-----------
- 2 files changed, 18 insertions(+), 17 deletions(-)
+ drivers/block/rd.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+)
 
-diff -puN include/linux/module.h~clean-up-the-contents-of-moduleh-and-moduleparamh include/linux/module.h
---- a/include/linux/module.h~clean-up-the-contents-of-moduleh-and-moduleparamh
-+++ a/include/linux/module.h
-@@ -14,7 +14,7 @@
- #include <linux/elf.h>
- #include <linux/stringify.h>
- #include <linux/kobject.h>
--#include <linux/moduleparam.h>
-+#include <linux/moduleparam.h>	/* In a perfect world, this wouldn't be here. */
- #include <asm/local.h>
- 
- #include <asm/module.h>
-@@ -87,6 +87,17 @@ extern struct module __this_module;
- #define THIS_MODULE ((struct module *)0)
- #endif
- 
-+#ifdef MODULE
-+#define ___module_cat(a,b) __mod_ ## a ## b
-+#define __module_cat(a,b) ___module_cat(a,b)
-+#define __MODULE_INFO(tag, name, info)					\
-+static const char __module_cat(name,__LINE__)[]				\
-+  __maybe_unused							\
-+  __attribute__((section(".modinfo"))) = __stringify(tag) "=" info
-+#else  /* !MODULE */
-+#define __MODULE_INFO(tag, name, info)
-+#endif
+diff -puN drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty drivers/block/rd.c
+--- a/drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty
++++ a/drivers/block/rd.c
+@@ -184,6 +184,21 @@ static int ramdisk_writepages(struct add
+  */
+ static int ramdisk_set_page_dirty(struct page *page)
+ {
++	struct address_space * const mapping = page_mapping(page);
 +
- /* Generic info of form tag = "info" */
- #define MODULE_INFO(tag, info) __MODULE_INFO(tag, tag, info)
- 
-@@ -129,11 +140,6 @@ extern struct module __this_module;
- /* What your module does. */
- #define MODULE_DESCRIPTION(_description) MODULE_INFO(description, _description)
- 
--/* One for each parameter, describing how to use it.  Some files do
--   multiple of these per line, so can't just use MODULE_INFO. */
--#define MODULE_PARM_DESC(_parm, desc) \
--	__MODULE_INFO(parm, _parm, #_parm ":" desc)
--
- #define MODULE_DEVICE_TABLE(type,name)		\
-   MODULE_GENERIC_TABLE(type##_device,name)
- 
-@@ -575,6 +581,7 @@ struct device_driver;
- struct module;
- 
- extern struct kset module_subsys;
-+struct kernel_param;
- 
- int mod_sysfs_init(struct module *mod);
- int mod_sysfs_setup(struct module *mod,
-diff -puN include/linux/moduleparam.h~clean-up-the-contents-of-moduleh-and-moduleparamh include/linux/moduleparam.h
---- a/include/linux/moduleparam.h~clean-up-the-contents-of-moduleh-and-moduleparamh
-+++ a/include/linux/moduleparam.h
-@@ -4,6 +4,7 @@
- #include <linux/init.h>
- #include <linux/stringify.h>
- #include <linux/kernel.h>
-+#include <linux/module.h>
- 
- /* You can override this manually, but generally this should match the
-    module name. */
-@@ -13,19 +14,12 @@
- #define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
- #endif
- 
--#ifdef MODULE
--#define ___module_cat(a,b) __mod_ ## a ## b
--#define __module_cat(a,b) ___module_cat(a,b)
--#define __MODULE_INFO(tag, name, info)					  \
--static const char __module_cat(name,__LINE__)[]				  \
--  __attribute_used__							  \
--  __attribute__((section(".modinfo"),unused)) = __stringify(tag) "=" info
--#else  /* !MODULE */
--#define __MODULE_INFO(tag, name, info)
--#endif
--#define __MODULE_PARM_TYPE(name, _type)					  \
-+#define __MODULE_PARM_TYPE(name, _type)			\
-   __MODULE_INFO(parmtype, name##type, #name ":" _type)
- 
-+#define MODULE_PARM_DESC(_parm, desc)			\
-+  __MODULE_INFO(parm, _parm, #_parm ":" desc)
++	spin_lock(&mapping->private_lock);
++	if (page_has_buffers(page)) {
++		struct buffer_head *head = page_buffers(page);
++		struct buffer_head *bh = head;
 +
- struct kernel_param;
- 
- /* Returns 0, or -errno.  arg is in kp->arg. */
++		do {
++			set_buffer_uptodate(bh);
++			set_buffer_dirty(bh);
++			bh = bh->b_this_page;
++		} while (bh != head);
++	}
++	spin_unlock(&mapping->private_lock);
++
+ 	if (!TestSetPageDirty(page))
+ 		return 1;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-origin.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-clean-up-the-contents-of-moduleh-and-moduleparamh.patch
+freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+freezer-fix-pf_nofreeze-vs-freezeable-race.patch
+freezer-move-frozen_process-to-kernel-power-processc.patch
+dvb_en_50221-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+x86_64-build-and-use-gdt-on-copied-compressed-kernel.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+preserve-the-dirty-bit-in-init_page_buffers.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch
+rd-simplify-by-using-the-same-helper-functions-in-libfs.patch
