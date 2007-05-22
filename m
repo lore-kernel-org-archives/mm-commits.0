@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - libata-kiss-post_set_mode-goodbye.patch removed from -mm tree
-Date: Mon, 21 May 2007 22:56:47 -0700
-Message-ID: <200705220556.l4M5ukqu028410@shell0.pdx.osdl.net>
+Subject: - ata_piix-clean-up.patch removed from -mm tree
+Date: Mon, 21 May 2007 22:56:45 -0700
+Message-ID: <200705220556.l4M5uiT2028407@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51421 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48153 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756383AbXEVF7h (ORCPT
+	by vger.kernel.org with ESMTP id S1756156AbXEVF7f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 01:59:37 -0400
+	Tue, 22 May 2007 01:59:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: Kiss post_set_mode goodbye
+     ata_piix: clean up
 has been removed from the -mm tree.  Its filename was
-     libata-kiss-post_set_mode-goodbye.patch
+     ata_piix-clean-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: Kiss post_set_mode goodbye
+Subject: ata_piix: clean up
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-As of the -mm tree we don't have post_set_mode users any more.
+With cable methods in place we don't need a custom error handler for SATA so
+get rid of it
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -33,35 +34,42 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    3 ---
- include/linux/libata.h    |    2 --
- 2 files changed, 5 deletions(-)
+ drivers/ata/ata_piix.c |    9 +--------
+ 1 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-kiss-post_set_mode-goodbye drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-kiss-post_set_mode-goodbye
-+++ a/drivers/ata/libata-core.c
-@@ -2945,9 +2945,6 @@ int ata_do_set_mode(struct ata_port *ap,
- 	if (used_dma && (ap->host->flags & ATA_HOST_SIMPLEX))
- 		ap->host->simplex_claimed = ap;
+diff -puN drivers/ata/ata_piix.c~ata_piix-clean-up drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ata_piix-clean-up
++++ a/drivers/ata/ata_piix.c
+@@ -155,7 +155,6 @@ struct piix_host_priv {
+ static int piix_init_one (struct pci_dev *pdev,
+ 				    const struct pci_device_id *ent);
+ static void piix_pata_error_handler(struct ata_port *ap);
+-static void piix_sata_error_handler(struct ata_port *ap);
+ static void piix_set_piomode (struct ata_port *ap, struct ata_device *adev);
+ static void piix_set_dmamode (struct ata_port *ap, struct ata_device *adev);
+ static void ich_set_dmamode (struct ata_port *ap, struct ata_device *adev);
+@@ -364,7 +363,7 @@ static const struct ata_port_operations 
  
--	/* step5: chip specific finalisation */
--	if (ap->ops->post_set_mode)
--		ap->ops->post_set_mode(ap);
-  out:
- 	if (rc)
- 		*r_failed_dev = dev;
-diff -puN include/linux/libata.h~libata-kiss-post_set_mode-goodbye include/linux/libata.h
---- a/include/linux/libata.h~libata-kiss-post_set_mode-goodbye
-+++ a/include/linux/libata.h
-@@ -582,8 +582,6 @@ struct ata_port_operations {
- 	void (*phy_reset) (struct ata_port *ap); /* obsolete */
- 	int  (*set_mode) (struct ata_port *ap, struct ata_device **r_failed_dev);
+ 	.freeze			= ata_bmdma_freeze,
+ 	.thaw			= ata_bmdma_thaw,
+-	.error_handler		= piix_sata_error_handler,
++	.error_handler		= ata_bmdma_error_handler,
+ 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
  
--	void (*post_set_mode) (struct ata_port *ap);
+ 	.irq_handler		= ata_interrupt,
+@@ -641,12 +640,6 @@ static void piix_pata_error_handler(stru
+ 			   ata_std_postreset);
+ }
+ 
+-static void piix_sata_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, ata_std_prereset, ata_std_softreset, NULL,
+-			   ata_std_postreset);
+-}
 -
- 	int (*cable_detect) (struct ata_port *ap);
- 
- 	int  (*check_atapi_dma) (struct ata_queued_cmd *qc);
+ /**
+  *	piix_set_piomode - Initialize host controller PATA PIO timings
+  *	@ap: Port whose timings we are configuring
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
