@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-core-check-return-code-of-sysfs_create_link-fix.patch added to -mm tree
-Date: Tue, 22 May 2007 14:35:29 -0700
-Message-ID: <200705222138.l4MLcjXb010352@shell0.pdx.osdl.net>
+Subject: + rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch added to -mm tree
+Date: Tue, 22 May 2007 15:00:58 -0700
+Message-ID: <200705222204.l4MM4DEA010810@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38888 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762014AbXEVVkj (ORCPT
+	by vger.kernel.org with ESMTP id S1757749AbXEVWF0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:40:39 -0400
+	Tue, 22 May 2007 18:05:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, greg@kroah.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com
 
 
 The patch titled
-     driver-core-check-return-code-of-sysfs_create_link-fix
+     rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix
 has been added to the -mm tree.  Its filename is
-     driver-core-check-return-code-of-sysfs_create_link-fix.patch
+     rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-core-check-return-code-of-sysfs_create_link-fix
+Subject: rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/base/core.c: In function 'device_add_class_symlinks':
-drivers/base/core.c:649: warning: unused variable 'class_name'
-drivers/base/core.c: In function 'device_remove_class_symlinks':
-drivers/base/core.c:699: warning: unused variable 'class_name'
+modpost complains about missing swapper_space.
 
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ drivers/block/rd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix drivers/base/core.c
---- a/drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix
-+++ a/drivers/base/core.c
-@@ -646,7 +646,6 @@ static int setup_parent(struct device *d
- static int device_add_class_symlinks(struct device *dev)
+diff -puN drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix drivers/block/rd.c
+--- a/drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix
++++ a/drivers/block/rd.c
+@@ -184,7 +184,7 @@ static int ramdisk_writepages(struct add
+  */
+ static int ramdisk_set_page_dirty(struct page *page)
  {
- 	int error;
--	char *class_name;
+-	struct address_space * const mapping = page_mapping(page);
++	struct address_space * const mapping = page->mapping;
  
- 	if (!dev->class)
- 		return 0;
-@@ -670,13 +669,16 @@ static int device_add_class_symlinks(str
- 		if (error)
- 			goto out_busid;
- #ifdef CONFIG_SYSFS_DEPRECATED
--		class_name = make_class_name(dev->class->name, &dev->kobj);
--		if (class_name)
--			error = sysfs_create_link(&dev->parent->kobj,
--						  &dev->kobj, class_name);
--		kfree(class_name);
--		if (error)
--			goto out_device;
-+		{
-+			char * class_name = make_class_name(dev->class->name,
-+								&dev->kobj);
-+			if (class_name)
-+				error = sysfs_create_link(&dev->parent->kobj,
-+							&dev->kobj, class_name);
-+			kfree(class_name);
-+			if (error)
-+				goto out_device;
-+		}
- #endif
- 	}
- 	return 0;
-@@ -696,12 +698,12 @@ out:
- 
- static void device_remove_class_symlinks(struct device *dev)
- {
--	char *class_name;
--
- 	if (!dev->class)
- 		return;
- 	if (dev->parent) {
- #ifdef CONFIG_SYSFS_DEPRECATED
-+		char *class_name;
-+
- 		class_name = make_class_name(dev->class->name, &dev->kobj);
- 		if (class_name) {
- 			sysfs_remove_link(&dev->parent->kobj, class_name);
+ 	spin_lock(&mapping->private_lock);
+ 	if (page_has_buffers(page)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -176,6 +134,7 @@ vxfs-warning-fixes.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
 pie-randomization-fix.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
