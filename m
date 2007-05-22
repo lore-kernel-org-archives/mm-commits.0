@@ -1,59 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-service-api-and-dummy-provider.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:09 -0700
-Message-ID: <200705222124.l4MLO9qb010087@shell0.pdx.osdl.net>
+Subject: - slim-documentation.patch removed from -mm tree
+Date: Tue, 22 May 2007 14:24:28 -0700
+Message-ID: <200705222124.l4MLOS1f010106@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54144 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757023AbXEVV2i (ORCPT
+	by vger.kernel.org with ESMTP id S1762918AbXEVV3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:28:38 -0400
+	Tue, 22 May 2007 17:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kjhall@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Integrity Service API and dummy provider
+     SLIM: documentation
 has been removed from the -mm tree.  Its filename was
-     integrity-service-api-and-dummy-provider.patch
+     slim-documentation.patch
 
 This patch was dropped because this work seems to be stalled
 
 ------------------------------------------------------
-Subject: Integrity Service API and dummy provider
-From: Kylene Jo Hall <kjhall@us.ibm.com>
+Subject: SLIM: documentation
+=46rom: Kylene Jo Hall <kjhall@us.ibm.com>
 
-This patch provides a framework and dummy provider for an integrity service. 
-The three integrity functions provided are:
+Documentation.
 
-	integrity_verify_metadata
-	integrity_verity_data
-	integrity_measure
-
-(Details on the calls and their exact arguments are in linux/integrity.h,
-included in the patch.)
-
-Normally these functions would be called by an LSM module during
-d_instantiate.  The first function is used to retrieve a requested dentry's
-label (xattr, such as security.selinux, or security.slim.level), along with
-the result of integrity verification of the label.
-
-Based on the result of this call, the LSM module may also choose to use
-integrity_verify_data to request a verification of the file's data, and
-integrity_measure, to commit the file's measurement to some form of
-logging/attestation service, such as a TPM.
-
-The latter two functions are separate calls, so that the LSM module can
-optimize performance by using them only as needed.  For example, if the
-integrity_verify_metadata call shows that the label is not trustworthy, it is
-probably not necessary to hash and measure the file, as the current LSM check
-will likely be denied anyway.
-
-Updated to use more standard error returning per comments.
-
-[zohar@linux.vnet.ibm.com: fix use-uninitialised bug]
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
 Cc: Dave Safford <safford@us.ibm.com>
@@ -62,310 +38,163 @@ Cc: Serge Hallyn <sergeh@us.ibm.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Cc: James Morris <jmorris@namei.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- include/linux/integrity.h  |  112 +++++++++++++++++++++++++++++++++++
- security/Kconfig           |    8 ++
- security/Makefile          |    1 
- security/integrity.c       |   44 +++++++++++++
- security/integrity_dummy.c |   70 +++++++++++++++++++++
- security/integrity_dummy.h |   12 +++
- 6 files changed, 247 insertions(+)
+ Documentation/slim.txt |  136 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 136 insertions(+)
 
-diff -puN /dev/null include/linux/integrity.h
+diff -puN /dev/null Documentation/slim.txt
 --- /dev/null
-+++ a/include/linux/integrity.h
-@@ -0,0 +1,112 @@
-+/*
-+ * integrity.h
-+ *
-+ * Copyright (C) 2005,2006 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
++++ a/Documentation/slim.txt
+@@ -0,0 +1,136 @@
++Simple Linux Integrity Model (SLIM)
 +
-+#ifndef _LINUX_INTEGRITY_H
-+#define _LINUX_INTEGRITY_H
++SLIM is an LSM module which provides an enhanced low water-mark
++integrity and high water-mark secrecy mandatory access control
++model. It also is a consumer of the new integrity subsystem,
++using the integrity_verify_data(), integrity_verify_metadata(),
++and integrity_measure() calls to base mandatory access control
++decisions on the verified integrity status of the involved objects.
++SLIM is an extension of several prior models, including Biba[1],
++Lowmac[2], and Caernarvon[3], which provide excellent background.
 +
-+#include <linux/fs.h>
++SLIM's specific model is:
 +
-+/*
-+ * struct integrity_operations - main integrity structure
-+ *
-+ * @verify_data:
-+ *	Verify the integrity of a dentry.
-+ *	@dentry contains the dentry structure to be verified.
-+ *	@status contains INTEGRITY_PASS, INTEGRITY_FAIL, or
-+ * 		INTEGRITY_NOLABEL
-+ *	Return 0 on success or errno values
-+ *
-+ * @verify_metadata:
-+ *	Verify the integrity of a dentry's metadata; return the value
-+ * 	of the requested xattr_name and the verification result of the
-+ *	dentry's metadata.
-+ *	@dentry contains the dentry structure of the metadata to be verified.
-+ *	@xattr_name, if not null, contains the name of the xattr
-+ *		 being requested.
-+ *	@xattr_value, if not null, is a pointer for the xattr value.
-+ *	@xattr_val_len will be set to the length of the xattr value.
-+ *	@status contains INTEGRITY_PASS, INTEGRITY_FAIL, or
-+ * 		INTEGRITY_NOLABEL
-+ *	Return 0 on success or errno values
-+ *
-+ * @measure:
-+ *	Update an aggregate integrity value with the inode's measurement.
-+ *	The aggregate integrity value is maintained in secure storage such
-+ *	as in a TPM PCR.
-+ *	@dentry contains the dentry structure of the inode to be measured.
-+ *	@filename either contains the full pathname/short file name.
-+ *	@mask contains the filename permission status(i.e. read, write, append).
-+ *
-+ */
++	All objects (files) are labeled with extended attributes to indicate:
++		Integrity Access Class (IAC)
++			(one of SYSTEM, USER, UNTRUSTED)
++		Secrecy Access Class (SAC)
++			(one of PUBLIC, USER, USER_SENSITIVE,
++				SYSTEM_SENSITIVE)
 +
-+#define PASS_STR "INTEGRITY_PASS"
-+#define FAIL_STR "INTEGRITY_FAIL"
-+#define NOLABEL_STR "INTEGRITY_NOLABEL"
++	All processes inherit from their parents:
++		Integrity Read Access Class (IRAC)
++		Integrity Write/Execute Access Class (IWXAC)
++		Secrecy Write Access Class (SWAC)
++		Secrecy Read/Execute Access Class (SRXAC)
 +
-+struct integrity_operations {
-+	int (*verify_metadata) (struct dentry *dentry, char *xattr_name,
-+			char **xattr_value, int *xattr_val_len, int *status);
-+	int (*verify_data) (struct dentry *dentry, int *status);
-+	void (*measure) (struct dentry *dentry,
-+			const unsigned char *filename, int mask);
-+};
-+extern int register_integrity(struct integrity_operations *ops);
-+extern int unregister_integrity(struct integrity_operations *ops);
++	SLIM enforces the following Mandatory Access Control Rules:
++		Read:
++			IRAC(process) <=3D IAC(object)
++			SRXAC(process) >=3D SAC(object)
++		Write:
++			IWXAC(process) >=3D IAC(object)
++			SWAC(process) <=3D SAC(process)
++		Execute:
++			IWXAC(process) <=3D IAC(object)
++			SRXAC(process) >=3D SAC(object)
 +
-+/* global variables */
-+extern struct integrity_operations *integrity_ops;
-+enum integrity_verify_status {
-+	INTEGRITY_PASS = 0, INTEGRITY_FAIL = -1, INTEGRITY_NOLABEL = -2
-+};
++In the low water-mark model, rather than blocking attempted
++reads of lower integrity objects, the reading process is demoted
++to the integrity level of the object, so that the read is allowed.
++In a Linux client, this provides a much more usable environment,
++in which applications run more transparently, while being demoted
++as needed to protect the integrity of the system.
 +
-+/* inline stuff */
-+#ifdef CONFIG_INTEGRITY
-+static inline int integrity_verify_metadata(struct dentry *dentry,
-+			char *xattr_name, char **xattr_value,
-+			int *xattr_val_len, int *status)
-+{
-+	return integrity_ops->verify_metadata(dentry, xattr_name,
-+			xattr_value, xattr_val_len, status);
-+}
++When the process is demoted, it may have objects open for write
++of now higher integrity level, and these objects have to have their
++write access revoked. This revocation of write privilege must
++occur for normal and mmap'ed file writes.  Similarly, when reading
++an object of higher secrecy, the process is promoted to the higher
++secrecy level, and write access to now lower secrecy objects is revoke=
+d.
 +
-+static inline int integrity_verify_data(struct dentry *dentry,
-+					int *status)
-+{
-+	return integrity_ops->verify_data(dentry, status);
-+}
++SLIM performs a generic revocation operation, including revoking
++mmap and shared memory access. Note that during demotion or promotion
++of a process, SLIM needs only revoke write access to files with higher
++integrity, or lower secrecy.
 +
-+static inline void integrity_measure(struct dentry *dentry,
-+			const unsigned char *filename, int mask)
-+{
-+	integrity_ops->measure(dentry, filename, mask);
-+}
-+#else
-+static inline int integrity_verify_metadata(struct dentry *dentry,
-+			char *xattr_name, char **xattr_value,
-+			int *xattr_val_len, int *status)
-+{
-+	status = INTEGRITY_PASS;
-+	return 0;
-+}
++SLIM inherently deals with dynamic task labels, which is a feature
++not currently available in selinux. While it might be possible to
++add support for this to selinux, it would not appear to be simple,
++and it is not clear if the added complexity would be desirable
++just to support this one model.
 +
-+static inline int integrity_verify_data(struct dentry *dentry,
-+					int *status)
-+{
-+	status = INTEGRITY_PASS;
-+	return 0;
-+}
++Comments on the model:
 +
-+static inline void integrity_measure(struct dentry *dentry,
-+			const unsigned char *filename, int mask)
-+{
-+}
-+#endif
-+#endif
-diff -puN security/Kconfig~integrity-service-api-and-dummy-provider security/Kconfig
---- a/security/Kconfig~integrity-service-api-and-dummy-provider
-+++ a/security/Kconfig
-@@ -39,6 +39,14 @@ config KEYS_DEBUG_PROC_KEYS
- 
- 	  If you are unsure as to whether this is required, answer N.
- 
-+config INTEGRITY
-+	bool "Enable different integrity models"
-+	help
-+	  This allows you to choose different integrity modules to be
-+	  configured into your kernel.
++Some of the prior comments questioned the usefulness of the
++low water-mark model itself. Two major questions raised concerned
++a potential progression of the entire system to a fully demoted
++state, and the security issues surrounding the guard processes.
 +
-+	  If you are unsure how to answer this question, answer N.
++In normal operation, the system seems to stabilize with a roughly
++equal mixture of SYSTEM, USER, and UNTRUSTED processes. Most
++applications seem to do a fixed set of operations in a fixed domain,
++and stabilize at their appropriate level. Some applications, like
++firefox and evolution, which inherently deal with untrusted data,
++immediately go to the UNTRUSTED level, which is where they belong.
++In a couple of cases, including cups and Notes, the applications
++did not handle their demotions well, as they occurred well into their
++startup. For these applications, we simply force them to start up
++as UNTRUSTED, so demotion is not an issue. The one application type
++that does tend to get demoted over time is shells, such as bash.
++These are not problems, as new ones can be created with the
++windowing system, or with su, as needed. To help with the associated
++user interface issue, the user space package[4] README shows how to
++display the SLIM level in window titles, so it is always clear at
++what level the process is currently running.
 +
- config SECURITY
- 	bool "Enable different security models"
- 	depends on SYSFS
-diff -puN security/Makefile~integrity-service-api-and-dummy-provider security/Makefile
---- a/security/Makefile~integrity-service-api-and-dummy-provider
-+++ a/security/Makefile
-@@ -12,6 +12,7 @@ endif
- 
- # Object file lists
- obj-$(CONFIG_SECURITY)			+= security.o dummy.o inode.o
-+obj-$(CONFIG_INTEGRITY)		+= integrity.o integrity_dummy.o
- # Must precede capability.o in order to stack properly.
- obj-$(CONFIG_SECURITY_SELINUX)		+= selinux/built-in.o
- obj-$(CONFIG_SECURITY_CAPABILITIES)	+= commoncap.o capability.o
-diff -puN /dev/null security/integrity.c
---- /dev/null
-+++ a/security/integrity.c
-@@ -0,0 +1,44 @@
-+/*
-+ * integrity.c
-+ *
-+ * register integrity subsystem
-+ *
-+ * Copyright (C) 2005,2006 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
++As for the issue of guard processes, SLIM defines three types of
++guard processes: Unlimited Guards, Limited Guards, and Untrusted
++Guards.  Unlimited Guards are the most security sensitive, as they
++allow less trusted process to acquire a higher level of trust.
++On my current system there are two unlimited guards, passwd and
++userhelper. These two applications inherently have to be trusted
++this way regardless of the MAC model used. In SLIM, the policy
++clearly and simply labels them as having this level of trust.
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/sched.h>
-+#include <linux/integrity.h>
++Limited Guards are programs which cannot give away higher
++trust, but which can keep their existing level despite reading
++less trusted data. On my system I have seven limited guards:
++yum, which is trusted to verify the signature on an (untrusted)
++downloaded RPM file, and to install it, login and sshd, which read
++untrusted user supplied login data, for authentication, dhclient
++which reads untrusted network data, and updates they system
++file /etc/resolv.conf, dbus-daemon, which accepts data from
++potentially untrusted processes, Xorg, which has to accept data
++from all Xwindow clients, regardless of level, and postfix which
++delivers untrusted mail. Again, these applications inherently
++must cross trust levels, and SLIM properly identifies them.
 +
-+#include "integrity_dummy.h"
++As mentioned earlier, cupsd and Notes are applications which are
++always run directly in untrusted mode, regardless of the level of
++the invoking process.
 +
-+struct integrity_operations *integrity_ops = &dummy_integrity_ops;
++The bottom line is that SLIM guard programs inherently do security
++sensitive things, and have to be trusted. There are only a small
++number of them, and they are clearly identified by their labels.
 +
-+int register_integrity(struct integrity_operations *ops)
-+{
-+	if (integrity_ops != &dummy_integrity_ops)
-+		return -EAGAIN;
++Userspace Tools:
 +
-+	integrity_ops = ops;
-+	return 0;
-+}
++Papers and slides on SLIM, along with source code for the needed
++userspace tools, and installation instructions are available at:
 +
-+int unregister_integrity(struct integrity_operations *ops)
-+{
-+	if (ops != integrity_ops)
-+		return -EINVAL;
++[4]	http://www.research.ibm.com/gsal/tcpa
 +
-+	integrity_ops = &dummy_integrity_ops;
-+	return 0;
-+}
++References:
 +
-+EXPORT_SYMBOL_GPL(register_integrity);
-+EXPORT_SYMBOL_GPL(unregister_integrity);
-+EXPORT_SYMBOL_GPL(integrity_ops);
-diff -puN /dev/null security/integrity_dummy.c
---- /dev/null
-+++ a/security/integrity_dummy.c
-@@ -0,0 +1,70 @@
-+/*
-+ * integrity_dummy.c
-+ *
-+ * Instantiate integrity subsystem
-+ *
-+ * Copyright (C) 2005,2006 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
++[1 Biba]: K. J. Biba. =E2=80=9CIntegrity Considerations for Secure Com=
+puter Systems=E2=80=9D
++Technical Report ESD-TR-76-372, USAF Electronic Systems Division, Hans=
+com Air
++Force Base, Bedford, Massachusetts, April 1977.
 +
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/integrity.h>
-+#include <linux/xattr.h>
++[2 Lomac]: T. Fraser, "LOMAC: Low Water-Mark Integrity Protection for =
+COTS
++Environments,"  Proceedings of the 2000 IEEE Symposium on Security and
++Privacy, Oakland, California, USA, 2000.
 +
-+/*
-+ *  Return the extended attribute, if requested.
-+ */
-+static int dummy_verify_metadata(struct dentry *dentry, char *xattr_name,
-+				 char **xattr_value, int *xattr_value_len,
-+				 int *status)
-+{
-+	char *value = NULL;
-+	int size = 0;
-+	int error = 0;
-+
-+	if (!xattr_value || !xattr_value_len || !status)
-+		return -EINVAL;
-+
-+	size = vfs_getxattr(dentry, xattr_name, NULL, 0);
-+	if (size < 0) {
-+		if (size == -ENODATA)
-+			*status = INTEGRITY_NOLABEL;
-+		return size;
-+	}
-+
-+	value = kzalloc(size + 1, GFP_KERNEL);
-+	if (!value)
-+		return -ENOMEM;
-+	error = vfs_getxattr(dentry, xattr_name, value, size);
-+
-+	*xattr_value_len = size;
-+	*xattr_value = value;
-+	*status = INTEGRITY_PASS;
-+	return error;
-+}
-+
-+static int dummy_verify_data(struct dentry *dentry, int *status)
-+{
-+	if (status)
-+		*status = INTEGRITY_PASS;
-+	return 0;
-+}
-+
-+static void dummy_measure(struct dentry *dentry,
-+			  const unsigned char *filename, int mask)
-+{
-+	return;
-+}
-+
-+struct integrity_operations dummy_integrity_ops = {
-+	.verify_metadata = dummy_verify_metadata,
-+	.verify_data = dummy_verify_data,
-+	.measure = dummy_measure
-+};
-+
-diff -puN /dev/null security/integrity_dummy.h
---- /dev/null
-+++ a/security/integrity_dummy.h
-@@ -0,0 +1,12 @@
-+/*
-+ * integrity_dummy.h
-+ *
-+ * Copyright (C) 2005,2006 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+extern struct integrity_operations dummy_integrity_ops;
++[3 Caernarvon]: P. Karger, V. Austel, and D. Toll. =E2=80=9CUsing a Ma=
+ndatory Secrecy
++and Integrity Policy on Smart Cards and Mobile Devices=E2=80=9D EUROSM=
+ART Security
++Conference. 13-15 June 2000, Marseilles, France p. 134-148.
 _
 
 Patches currently in -mm which might be from kjhall@us.ibm.com are
 
 use-menuconfig-objects-ii-tpm.patch
-integrity-service-api-and-dummy-provider.patch
-slim-main-patch.patch
-slim-secfs-patch.patch
-slim-make-and-config-stuff.patch
-slim-debug-output.patch
 slim-documentation.patch
 integrity-new-hooks.patch
 integrity-fs-hook-placement.patch
