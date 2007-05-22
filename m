@@ -1,82 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-lpfc-lpfc_initc-remove-unused-variable.patch removed from -mm tree
-Date: Tue, 22 May 2007 13:56:55 -0700
-Message-ID: <200705222056.l4MKusGY009595@shell0.pdx.osdl.net>
+Subject: - usb-fix-debug-output-of-ark3116.patch removed from -mm tree
+Date: Tue, 22 May 2007 13:57:00 -0700
+Message-ID: <200705222056.l4MKux9u009602@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58367 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755873AbXEVU6k (ORCPT
+	by vger.kernel.org with ESMTP id S1755873AbXEVU6s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 16:58:40 -0400
+	Tue, 22 May 2007 16:58:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi/lpfc/lpfc_init.c: remove unused variable
+     usb: fix debug output of ark3116
 has been removed from the -mm tree.  Its filename was
-     scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+     usb-fix-debug-output-of-ark3116.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi/lpfc/lpfc_init.c: remove unused variable
-From: Adrian Bunk <bunk@stusta.de>
+Subject: usb: fix debug output of ark3116
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Fix debug output.  Previously, it would output "0xFFFFFFB0" on 32-bit archs
+(and probably "0xFFFFFFFFFFFFFFB0" on 64-bits), because buf is taken as
+signed char, which is promoted to signed int, while %x always expects an
+unsigned int.
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/ark3116.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -1512,7 +1512,7 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
- 	struct lpfc_sli  *psli;
- 	struct lpfc_iocbq *iocbq_entry = NULL, *iocbq_next = NULL;
- 	unsigned long bar0map_len, bar2map_len;
--	int error = -ENODEV, retval;
-+	int error = -ENODEV;
- 	int i;
- 	uint16_t iotag;
- 
+diff -puN drivers/usb/serial/ark3116.c~usb-fix-debug-output-of-ark3116 drivers/usb/serial/ark3116.c
+--- a/drivers/usb/serial/ark3116.c~usb-fix-debug-output-of-ark3116
++++ a/drivers/usb/serial/ark3116.c
+@@ -63,7 +63,8 @@ static inline void ARK3116_RCV(struct us
+ 				 request, requesttype, value, index,
+ 				 buf, 0x0000001, 1000);
+ 	if (result)
+-		dbg("%03d < %d bytes [0x%02X]", seq, result, buf[0]);
++		dbg("%03d < %d bytes [0x%02X]", seq, result,
++		    ((unsigned char *)buf)[0]);
+ 	else
+ 		dbg("%03d < 0 bytes", seq);
+ }
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-git-battery.patch
-unexport-pci_proc_attach_device.patch
-git-scsi-rc-fixes.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-ii-sound.patch
+git-ieee1394.patch
+use-menuconfig-objects-ii-infiniband.patch
+use-menuconfig-objects-ii-kvm-virt.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
