@@ -1,62 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - fix-headers-check-fallout.patch removed from -mm tree
-Date: Mon, 21 May 2007 22:56:38 -0700
-Message-ID: <200705220556.l4M5ubH5028395@shell0.pdx.osdl.net>
+Subject: - fix-ldm-fix-for-windows-vista-dynamic-disks.patch removed from -mm tree
+Date: Mon, 21 May 2007 22:56:30 -0700
+Message-ID: <200705220556.l4M5uYuW028392@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36137 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37174 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756044AbXEVF6W (ORCPT
+	by vger.kernel.org with ESMTP id S1756106AbXEVF6x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 01:58:22 -0400
+	Tue, 22 May 2007 01:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: aia21@cam.ac.uk, aia21@cantab.net, ldm@flatcap.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix headers check fallout
+     Fix "LDM: Fix for Windows Vista dynamic disks"
 has been removed from the -mm tree.  Its filename was
-     fix-headers-check-fallout.patch
+     fix-ldm-fix-for-windows-vista-dynamic-disks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix headers check fallout
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Fix "LDM: Fix for Windows Vista dynamic disks"
+From: Anton Altaparmakov <aia21@cam.ac.uk>
 
-commit e8edc6e03a5c8562dc70a6d969f732bdb355a7e7 added an include of
-linux/jiffies.h in linux/smb_fs.h outside the ifdef __KERNEL__.
+Fix the finger trouble that caused the previous LDM patch to break
+compilation...
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+CC: Richard Russon <ldm@flatcap.org>
+Signed-off-by: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smb_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/partitions/ldm.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/smb_fs.h~fix-headers-check-fallout include/linux/smb_fs.h
---- a/include/linux/smb_fs.h~fix-headers-check-fallout
-+++ a/include/linux/smb_fs.h
-@@ -9,7 +9,6 @@
- #ifndef _LINUX_SMB_FS_H
- #define _LINUX_SMB_FS_H
- 
--#include <linux/jiffies.h>
- #include <linux/smb.h>
- 
- /*
-@@ -30,6 +29,7 @@
- #include <linux/pagemap.h>
- #include <linux/vmalloc.h>
- #include <linux/smb_mount.h>
-+#include <linux/jiffies.h>
- #include <asm/unaligned.h>
- 
- static inline struct smb_sb_info *SMB_SB(struct super_block *sb)
+diff -puN fs/partitions/ldm.c~fix-ldm-fix-for-windows-vista-dynamic-disks fs/partitions/ldm.c
+--- a/fs/partitions/ldm.c~fix-ldm-fix-for-windows-vista-dynamic-disks
++++ a/fs/partitions/ldm.c
+@@ -158,7 +158,7 @@ static bool ldm_parse_privhead(const u8 
+ 		/* Warn the user and continue, carefully. */
+ 		ldm_info("Database is normally %u bytes, it claims to "
+ 			"be %llu bytes.", LDM_DB_SIZE,
+-			udunsigned long long)ph->config_size);
++			(unsigned long long)ph->config_size);
+ 	}
+ 	if ((ph->logical_disk_size == 0) || (ph->logical_disk_start +
+ 			ph->logical_disk_size > ph->config_start)) {
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
-
-origin.patch
+Patches currently in -mm which might be from aia21@cam.ac.uk are
