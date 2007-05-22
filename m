@@ -1,90 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - usb-fix-debug-output-of-ark3116.patch removed from -mm tree
-Date: Tue, 22 May 2007 13:57:00 -0700
-Message-ID: <200705222056.l4MKux9u009602@shell0.pdx.osdl.net>
+Subject: - usb-fix-suspend-to-ram.patch removed from -mm tree
+Date: Tue, 22 May 2007 13:57:05 -0700
+Message-ID: <200705222057.l4MKv4N5009610@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58367 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49123 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755873AbXEVU6s (ORCPT
+	by vger.kernel.org with ESMTP id S1756353AbXEVU6t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 16:58:48 -0400
+	Tue, 22 May 2007 16:58:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: fix debug output of ark3116
+     usb: fix suspend-to-RAM
 has been removed from the -mm tree.  Its filename was
-     usb-fix-debug-output-of-ark3116.patch
+     usb-fix-suspend-to-ram.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: fix debug output of ark3116
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: usb: fix suspend-to-RAM
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Fix debug output.  Previously, it would output "0xFFFFFFB0" on 32-bit archs
-(and probably "0xFFFFFFFFFFFFFFB0" on 64-bits), because buf is taken as
-signed char, which is promoted to signed int, while %x always expects an
-unsigned int.
+unchangelogged.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ark3116.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/core/usb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/ark3116.c~usb-fix-debug-output-of-ark3116 drivers/usb/serial/ark3116.c
---- a/drivers/usb/serial/ark3116.c~usb-fix-debug-output-of-ark3116
-+++ a/drivers/usb/serial/ark3116.c
-@@ -63,7 +63,8 @@ static inline void ARK3116_RCV(struct us
- 				 request, requesttype, value, index,
- 				 buf, 0x0000001, 1000);
- 	if (result)
--		dbg("%03d < %d bytes [0x%02X]", seq, result, buf[0]);
-+		dbg("%03d < %d bytes [0x%02X]", seq, result,
-+		    ((unsigned char *)buf)[0]);
- 	else
- 		dbg("%03d < 0 bytes", seq);
- }
+diff -puN drivers/usb/core/usb.c~usb-fix-suspend-to-ram drivers/usb/core/usb.c
+--- a/drivers/usb/core/usb.c~usb-fix-suspend-to-ram
++++ a/drivers/usb/core/usb.c
+@@ -205,7 +205,7 @@ struct device_type usb_device_type = {
+ 
+ static int ksuspend_usb_init(void)
+ {
+-	ksuspend_usb_wq = create_singlethread_workqueue("ksuspend_usbd");
++	ksuspend_usb_wq = create_freezeable_workqueue("ksuspend_usbd");
+ 	if (!ksuspend_usb_wq)
+ 		return -ENOMEM;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-ii-sound.patch
-git-ieee1394.patch
-use-menuconfig-objects-ii-infiniband.patch
-use-menuconfig-objects-ii-kvm-virt.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-ii-isdn.patch
-use-menuconfig-objects-ii-md.patch
+git-scsi-rc-fixes.patch
+hisax-fix-error-checking-for-hisax_register.patch
