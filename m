@@ -1,256 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: - ibac-patch.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:47 -0700
-Message-ID: <200705222124.l4MLOlUT010130@shell0.pdx.osdl.net>
+Subject: - slim-integrity-patch.patch removed from -mm tree
+Date: Tue, 22 May 2007 14:24:25 -0700
+Message-ID: <200705222124.l4MLOPci010103@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758468AbXEVV00 (ORCPT
+	by vger.kernel.org with ESMTP id S1759150AbXEVV0D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:26:26 -0400
+	Tue, 22 May 2007 17:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IBAC Patch
+     SLIM Integrity Patch
 has been removed from the -mm tree.  Its filename was
-     ibac-patch.patch
+     slim-integrity-patch.patch
 
 This patch was dropped because this work seems to be stalled
 
 ------------------------------------------------------
-Subject: IBAC Patch
+Subject: SLIM Integrity Patch
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-This is a new Integrity Based Access Control(IBAC) LSM module which bases
-access control decisions on the new integrity framework services.  IBAC is a
-sample LSM module to help clarify the interaction between LSM and Linux
-Integrity Modules(LIM).
-
-   - Updated Kconfig SECURITY_IBAC description
-     and SECURITY_IBAC_BOOTPARAM default value
-   - Prefixed all log messages with "ibac:"
-   - Redefined a couple of 'int' variables as 'static int'
+This is a minor patch to SLIM that only addresses the integrity service
+issues, to be reviewed in conjuction with the integrity service framework
+and provider that were just posted.
 
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/Kconfig          |    1 
- security/Makefile         |    1 
- security/ibac/Kconfig     |   41 ++++++++++++
- security/ibac/Makefile    |    6 +
- security/ibac/ibac_main.c |  123 ++++++++++++++++++++++++++++++++++++
- 5 files changed, 172 insertions(+)
+ security/slim/Kconfig    |    4 -
+ security/slim/slm_main.c |   98 +++++++++++++++++++++++--------------
+ 2 files changed, 65 insertions(+), 37 deletions(-)
 
-diff -puN security/Kconfig~ibac-patch security/Kconfig
---- a/security/Kconfig~ibac-patch
-+++ a/security/Kconfig
-@@ -115,5 +115,6 @@ config SECURITY_ROOTPLUG
- source security/selinux/Kconfig
- 
- source security/slim/Kconfig
-+source security/ibac/Kconfig
- endmenu
- 
-diff -puN security/Makefile~ibac-patch security/Makefile
---- a/security/Makefile~ibac-patch
-+++ a/security/Makefile
-@@ -14,6 +14,7 @@ endif
- obj-$(CONFIG_SECURITY)			+= security.o dummy.o inode.o
- obj-$(CONFIG_INTEGRITY)		+= integrity.o integrity_dummy.o
- obj-$(CONFIG_INTEGRITY_EVM)		+= evm/
-+obj-$(CONFIG_SECURITY_IBAC)		+= ibac/
- # Must precede capability.o in order to stack properly.
- obj-$(CONFIG_SECURITY_SLIM)		+= slim/
- obj-$(CONFIG_SECURITY_SELINUX)		+= selinux/built-in.o
-diff -puN /dev/null security/ibac/Kconfig
---- /dev/null
-+++ a/security/ibac/Kconfig
-@@ -0,0 +1,41 @@
-+config SECURITY_IBAC
-+	boolean "IBAC support"
-+	depends on SECURITY && SECURITY_NETWORK && INTEGRITY
-+	help
-+	  Integrity Based Access Control(IBAC) uses the Linux
-+	  Integrity Module(LIM) API calls to verify an executable's
-+	  metadata and data's integrity.  Based on the results,
-+	  execution permission is permitted/denied.  Integrity
-+	  providers may implement the LIM hooks differently.  For
-+	  more information on integrity verification refer to the
-+	  specific integrity provider documentation.
-+
-+config SECURITY_IBAC_BOOTPARAM
-+	bool "IBAC boot parameter"
-+	depends on SECURITY_IBAC
-+	default n
-+	help
-+	  This option adds a kernel parameter 'ibac', which allows IBAC
-+	  to be disabled at boot.  If this option is selected, IBAC
-+	  functionality can be disabled with ibac=0 on the kernel
-+	  command line.  The purpose of this option is to allow a
-+	  single kernel image to be distributed with IBAC built in,
-+	  but not necessarily enabled.
-+
-+	  If you are unsure how to answer this question, answer N.
-+
-+config SECURITY_IBAC_BOOTPARAM_VALUE
-+	int "IBAC boot parameter default value"
-+	depends on SECURITY_IBAC_BOOTPARAM
-+	range 0 1
+diff -puN security/slim/Kconfig~slim-integrity-patch security/slim/Kconfig
+--- a/security/slim/Kconfig~slim-integrity-patch
++++ a/security/slim/Kconfig
+@@ -23,7 +23,7 @@ config SECURITY_SLIM_BOOTPARAM_VALUE
+ 	int "SLIM boot parameter default value"
+ 	depends on SECURITY_SLIM_BOOTPARAM
+ 	range 0 1
+-	default 1
 +	default 0
-+	help
-+	  This option sets the default value for the kernel parameter
-+	  'ibac', which allows IBAC to be disabled at boot.  If this
-+	  option is set to 0 (zero), the IBAC kernel parameter will
-+	  default to 0, disabling IBAC at bootup.  If this option is
-+	  set to 1 (one), the IBAC kernel parameter will default to 1,
-+	  enabling IBAC at bootup.
-+
+ 	help
+ 	  This option sets the default value for the kernel parameter
+ 	  'slim', which allows SLIM to be disabled at boot.  If this
+@@ -32,5 +32,5 @@ config SECURITY_SLIM_BOOTPARAM_VALUE
+ 	  set to 1 (one), the SLIM kernel parameter will default to 1,
+ 	  enabling SLIM at bootup.
+ 
+-	  If you are unsure how to answer this question, answer 1.
 +	  If you are unsure how to answer this question, answer 0.
+ 
+diff -puN security/slim/slm_main.c~slim-integrity-patch security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-integrity-patch
++++ a/security/slim/slm_main.c
+@@ -1,7 +1,7 @@
+ /*
+  * SLIM - Simple Linux Integrity Module
+  *
+- * Copyright (C) 2005,2006 IBM Corporation
++ * Copyright (C) 2005,2006,2007 IBM Corporation
+  * Author: Mimi Zohar <zohar@us.ibm.com>
+  * 	   Kylene Hall <kjhall@us.ibm.com>
+  *
+@@ -32,6 +32,29 @@
+ extern struct security_operations dummy_security_ops;
+ 
+ unsigned int slm_debug = SLM_BASE;
 +
-diff -puN /dev/null security/ibac/Makefile
---- /dev/null
-+++ a/security/ibac/Makefile
-@@ -0,0 +1,6 @@
-+#
-+# Makefile for building IBAC
-+#
++#ifdef CONFIG_SECURITY_SLIM_BOOTPARAM
++int slim_enabled = CONFIG_SECURITY_SLIM_BOOTPARAM_VALUE;
 +
-+obj-$(CONFIG_SECURITY_IBAC) += ibac.o
-+ibac-y 	:= ibac_main.o
-diff -puN /dev/null security/ibac/ibac_main.c
---- /dev/null
-+++ a/security/ibac/ibac_main.c
-@@ -0,0 +1,123 @@
-+/*
-+ * Integrity Based Access Control(IBAC) sample LSM module calling LIM hooks
-+ *
-+ * Copyright (C) 2007 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/kernel.h>
-+#include <linux/security.h>
-+#include <linux/integrity.h>
-+
-+#ifdef CONFIG_SECURITY_IBAC_BOOTPARAM
-+static int ibac_enabled = CONFIG_SECURITY_IBAC_BOOTPARAM_VALUE;
-+
-+static int __init ibac_enabled_setup(char *str)
++static int __init slim_enabled_setup(char *str)
 +{
-+	ibac_enabled = simple_strtol(str, NULL, 0);
++	slim_enabled = simple_strtol(str, NULL, 0);
 +	return 1;
 +}
-+
-+__setup("ibac=", ibac_enabled_setup);
++__setup("slim=", slim_enabled_setup);
 +#else
-+static int ibac_enabled = 1;
++int slim_enabled = 1;
 +#endif
 +
-+static unsigned int integrity_enforce;
++unsigned int integrity_enforce = 0;
 +static int __init integrity_enforce_setup(char *str)
 +{
 +	integrity_enforce = simple_strtol(str, NULL, 0);
 +	return 1;
 +}
 +
-+__setup("ibac_enforce=", integrity_enforce_setup);
++__setup("slim_integrity_enforce=", integrity_enforce_setup);
 +
-+static inline int is_kernel_thread(struct task_struct *tsk)
-+{
-+	return (!tsk->mm) ? 1 : 0;
-+}
-+
-+static int ibac_bprm_check_security(struct linux_binprm *bprm)
-+{
-+	struct dentry *dentry = bprm->file->f_dentry;
-+	char *xattr_value = NULL;
-+	int rc, status;
-+
-+	rc = integrity_verify_metadata(dentry, NULL, NULL, NULL, &status);
-+	if (rc == -EOPNOTSUPP) {
-+		kfree(xattr_value);
-+		return 0;
-+	}
-+
-+	if (rc < 0) {
-+		printk(KERN_INFO "ibac: verify_metadata %s failed "
-+		       "(rc: %d - status: %d)\n", bprm->filename, rc, status);
+ #define XATTR_NAME "security.slim.level"
+ 
+ #define ZERO_STR "0"
+@@ -319,16 +342,13 @@ static int slm_get_xattr(struct dentry *
+ 			"(rc: %d - status: %d)\n",
+ 			dentry->d_name.name, rc, *status);
+ 
+-	} else if (rc >=0 && *status == INTEGRITY_PASS && xattr_value) {
+-		rc = slm_parse_xattr(xattr_value, xattr_len, level);
++	} else {
 +		if (!integrity_enforce)
-+			rc = 0;
-+		goto out;
-+	}
-+	if (status != INTEGRITY_PASS) {	/* FAIL | NO_LABEL */
-+		if (!is_kernel_thread(current)) {
-+			printk(KERN_INFO "ibac: verify_metadata %s "
-+			       "(Integrity status: %s)\n", bprm->filename,
-+				status == INTEGRITY_FAIL ? "FAIL" : "NOLABEL");
-+			if (integrity_enforce) {
-+				rc = -EACCES;
-+				goto out;
-+			}
++			*status = INTEGRITY_PASS;
++
++		if (rc >= 0 && xattr_value && *status != INTEGRITY_FAIL)
++			rc = slm_parse_xattr(xattr_value, xattr_len, level);
+ 		kfree(xattr_value);
+-		if (rc == 0 && level->iac_level != SLM_IAC_UNTRUSTED) {
+-			rc = integrity_verify_data(dentry, status);
+-			if ((rc < 0) || (*status != INTEGRITY_PASS))
+-				dprintk(SLM_BASE, "%s integrity_verify_data failed "
+-				" (rc: %d status: %d)\n", dentry->d_name.name,
+-					rc, *status);
+-		}
+ 	}
+ 	return rc;
+ }
+@@ -392,13 +412,12 @@ static void update_level(struct dentry *
+ 			break;
+ 		}
+ 	} else {
+-		switch(status) {
+-			case INTEGRITY_FAIL:
+-			case INTEGRITY_NOLABEL:
+-				dprintk(SLM_INTEGRITY, "%s: %s FAIL/NOLABEL (%d)\n",
++		switch (status) {
++		case INTEGRITY_FAIL:
++			dprintk(SLM_INTEGRITY, "%s: %s FAIL(%d)\n",
+ 				__FUNCTION__, dentry->d_name.name, rc);
+-				set_level_untrusted(level);
+-				break;
++			set_level_untrusted(level);
++			break;
+ 		}
+ 	}
+ }
+@@ -699,8 +718,28 @@ static int slm_inode_permission(struct i
+ 
+ 	slm_get_level(dentry, &level);
+ 
+-	/* measure all SYSTEM level integrity objects */
+-	if (level.iac_level == SLM_IAC_SYSTEM)
++	/* verify data for all trusted integrity objects */
++	if (level.iac_level != SLM_IAC_UNTRUSTED) {
++		int status;
++
++		rc = integrity_verify_data(dentry, &status);
++		switch (status) {
++		case INTEGRITY_FAIL:
++			dprintk(SLM_INTEGRITY, "%s: %s (Integrity status: "
++				" FAIL)\n", __FUNCTION__, fname);
++			if (integrity_enforce)
++				set_level_untrusted(&level);
++			break;
++		case INTEGRITY_NOLABEL:
++			dprintk(SLM_INTEGRITY, "%s: %s (Integrity status: "
++				" NOLABEL)\n", __FUNCTION__, fname);
++		default:
++			break;
 +		}
 +	}
 +
-+	rc = integrity_verify_data(dentry, &status);
-+	if (rc < 0) {
-+		printk(KERN_INFO "ibac: %s verify_data failed "
-+		       "(rc: %d - status: %d)\n", bprm->filename, rc, status);
-+		if (!integrity_enforce)
-+			rc = 0;
-+		goto out;
-+	}
-+	if (status != INTEGRITY_PASS) {
-+		if (!is_kernel_thread(current)) {
-+			printk(KERN_INFO "ibac: verify_data %s "
-+			       "(Integrity status: FAIL)\n", bprm->filename);
-+			if (integrity_enforce) {
-+				rc = -EACCES;
-+				goto out;
-+			}
-+		}
-+	}
-+
-+	kfree(xattr_value);
-+
-+	/* measure all executables */
-+	integrity_measure(dentry, bprm->filename, MAY_EXEC);
-+	return 0;
-+out:
-+	kfree(xattr_value);
-+	return rc;
-+}
-+
-+static struct security_operations ibac_security_ops = {
-+	.bprm_check_security = ibac_bprm_check_security
-+};
-+
-+static int __init init_ibac(void)
-+{
-+	int rc;
-+
-+	if (!ibac_enabled)
-+		return 0;
-+
-+	rc = register_security(&ibac_security_ops);
-+	if (rc != 0)
-+		panic("ibac: unable to register with kernel\n");
-+	return rc;
-+}
-+
-+security_initcall(init_ibac);
++	/* measure all SYSTEM level integrity objects to be read */
++	if ((level.iac_level == SLM_IAC_SYSTEM) && (mask == MAY_READ))
+ 		integrity_measure(dentry, fname, mask);
+ 
+ 	rc = slm_set_taskperm(mask, &level, fname);
+@@ -789,7 +828,6 @@ static int slm_set_xattr(struct slm_file
+ 		memcpy(bufp, slm_iac_str[level->iac_level], len);
+ 		bufp += len;
+ 	}
+-	*bufp++ = ' ';
+ 	xattr_len = bufp - buf;
+ 
+ 	/* point after 'security.' */
+@@ -1414,23 +1452,25 @@ static int slm_bprm_check_security(struc
+ 
+ 	/* Possible return codes: PERMIT, DENY, NOLABEL */
+ 	rc = integrity_verify_data(dentry, &status);
+-	if (rc < 0)
++	if ((rc < 0) && integrity_enforce)
+ 		return rc;
+ 
+-	switch(status) {
++	switch (status) {
+ 	case INTEGRITY_FAIL:
+ 		if (!is_kernel_thread(current)) {
+ 			dprintk(SLM_BASE,
+ 				"%s: %s (Integrity status: FAIL)\n",
+ 				__FUNCTION__, bprm->filename);
+-			return -EACCES;
++			if (integrity_enforce)
++				return -EACCES;
+ 		}
+ 		break;
+ 	case INTEGRITY_NOLABEL:
+ 		dprintk(SLM_BASE,
+ 			"%s: %s (Integrity status: NOLABEL)\n",
+ 			__FUNCTION__, bprm->filename);
+-		level.iac_level = SLM_IAC_UNTRUSTED;
++		if (integrity_enforce)
++			level.iac_level = SLM_IAC_UNTRUSTED;
+ 	}
+ 
+ 	rc = enforce_integrity_execute(bprm, &level, cur_tsec);
+@@ -1613,18 +1653,6 @@ static struct security_operations slm_se
+ 	.d_instantiate = slm_d_instantiate
+ };
+ 
+-#ifdef CONFIG_SECURITY_SLIM_BOOTPARAM
+-int slim_enabled = CONFIG_SECURITY_SLIM_BOOTPARAM_VALUE;
+-
+-static int __init slim_enabled_setup(char *str)
+-{
+-	slim_enabled = simple_strtol(str, NULL, 0);
+-	return 1;
+-}
+-__setup("slim=", slim_enabled_setup);
+-#else
+-int slim_enabled = 1;
+-#endif
+ static int __init init_slm(void)
+ {
+ 	int rc;
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
+slim-integrity-patch.patch
+integrity-new-hooks.patch
+integrity-fs-hook-placement.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-ima-identifiers.patch
+integrity-ima-cleanup.patch
+integrity-tpm-internal-kernel-interface.patch
 ibac-patch.patch
