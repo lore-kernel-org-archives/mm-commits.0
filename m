@@ -1,34 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - mprotect-patch-for-use-by-slim.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:04 -0700
-Message-ID: <200705222124.l4MLO5ph010084@shell0.pdx.osdl.net>
+Subject: - slim-secfs-patch.patch removed from -mm tree
+Date: Tue, 22 May 2007 14:24:16 -0700
+Message-ID: <200705222124.l4MLOGqo010093@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50287 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756559AbXEVV2a (ORCPT
+	by vger.kernel.org with ESMTP id S1755127AbXEVV2h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:28:30 -0400
+	Tue, 22 May 2007 17:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kjhall@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mprotect patch for use by SLIM
+     SLIM: secfs patch
 has been removed from the -mm tree.  Its filename was
-     mprotect-patch-for-use-by-slim.patch
+     slim-secfs-patch.patch
 
 This patch was dropped because this work seems to be stalled
 
 ------------------------------------------------------
-Subject: mprotect patch for use by SLIM
+Subject: SLIM: secfs patch
 From: Kylene Jo Hall <kjhall@us.ibm.com>
 
-This small patch makes mprotect available for use by SLIM for write
-revocation.
-
-Updated to allow the usage locking to work properly.
+This patch provides the securityfs used by SLIM.
 
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
@@ -41,82 +38,102 @@ Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/mprotect.c      |   22 ++++++++++++++++------
- 2 files changed, 18 insertions(+), 6 deletions(-)
+ security/slim/slm_main.c  |    1 
+ security/slim/slm_secfs.c |   72 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mprotect-patch-for-use-by-slim include/linux/mm.h
---- a/include/linux/mm.h~mprotect-patch-for-use-by-slim
-+++ a/include/linux/mm.h
-@@ -141,6 +141,8 @@ extern unsigned int kobjsize(const void 
- #define VM_EXEC		0x00000004
- #define VM_SHARED	0x00000008
- 
-+extern int do_mprotect(unsigned long start, size_t len, unsigned long prot);
-+
- /* mprotect() hardcodes VM_MAYREAD >> 4 == VM_READ, and so for r/w/x bits. */
- #define VM_MAYREAD	0x00000010	/* limits for mprotect() etc */
- #define VM_MAYWRITE	0x00000020
-diff -puN mm/mprotect.c~mprotect-patch-for-use-by-slim mm/mprotect.c
---- a/mm/mprotect.c~mprotect-patch-for-use-by-slim
-+++ a/mm/mprotect.c
-@@ -19,6 +19,7 @@
- #include <linux/mempolicy.h>
- #include <linux/personality.h>
- #include <linux/syscalls.h>
-+#include <linux/module.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <asm/uaccess.h>
-@@ -213,9 +214,10 @@ fail:
- 	vm_unacct_memory(charged);
- 	return error;
- }
--
--asmlinkage long
--sys_mprotect(unsigned long start, size_t len, unsigned long prot)
+diff -puN /dev/null security/slim/slm_secfs.c
+--- /dev/null
++++ a/security/slim/slm_secfs.c
+@@ -0,0 +1,72 @@
 +/*
-+ * Call holding the current->mm->mmap_sem for writing
++ * SLIM securityfs support: debugging control files
++ *
++ * Copyright (C) 2005, 2006 IBM Corporation
++ * Author: Mimi Zohar <zohar@us.ibm.com>
++ *	   Kylene Hall <kjhall@us.ibm.com>
++ *
++ *      This program is free software; you can redistribute it and/or modify
++ *      it under the terms of the GNU General Public License as published by
++ *      the Free Software Foundation, version 2 of the License.
 + */
-+int do_mprotect(unsigned long start, size_t len, unsigned long prot)
- {
- 	unsigned long vm_flags, nstart, end, tmp, reqprot;
- 	struct vm_area_struct *vma, *prev;
-@@ -245,8 +247,6 @@ sys_mprotect(unsigned long start, size_t
- 
- 	vm_flags = calc_vm_prot_bits(prot);
- 
--	down_write(&current->mm->mmap_sem);
--
- 	vma = find_vma_prev(current->mm, start, &prev);
- 	error = -ENOMEM;
- 	if (!vma)
-@@ -309,6 +309,16 @@ sys_mprotect(unsigned long start, size_t
- 		}
- 	}
- out:
--	up_write(&current->mm->mmap_sem);
- 	return error;
- }
 +
-+asmlinkage long
-+sys_mprotect(unsigned long start, size_t len, unsigned long prot)
++#include <asm/uaccess.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/security.h>
++#include <linux/debugfs.h>
++#include "slim.h"
++
++static struct dentry *slim_sec_dir, *slim_level;
++
++static ssize_t slm_read_level(struct file *file, char __user *buf,
++			      size_t buflen, loff_t *ppos)
 +{
-+	int ret;
-+
-+	down_write(&current->mm->mmap_sem);
-+	ret = do_mprotect(start, len, prot);
-+	up_write(&current->mm->mmap_sem);
-+	return ret;
++	struct slm_tsec_data *cur_tsec = current->security;
++	ssize_t len;
++	char data[28];
++	if (is_kernel_thread(current))
++		len = scnprintf(data, sizeof(data), "KERNEL\n");
++	else if (!cur_tsec)
++		len = scnprintf(data, sizeof(data), "UNKNOWN\n");
++	else {
++		if (cur_tsec->iac_wx != cur_tsec->iac_r)
++			len = scnprintf(data, sizeof(data), "GUARD wx:%s r:%s\n",
++				      slm_iac_str[cur_tsec->iac_wx],
++				      slm_iac_str[cur_tsec->iac_r]);
++		else
++			len = scnprintf(data, sizeof(data), "%s\n",
++				      slm_iac_str[cur_tsec->iac_wx]);
++	}
++	return simple_read_from_buffer(buf, buflen, ppos, data, len);
 +}
++
++static struct file_operations slm_level_ops = {
++	.read = slm_read_level,
++};
++
++int __init slm_init_secfs(void)
++{
++	if (!slim_enabled)
++		return 0;
++
++	slim_sec_dir = securityfs_create_dir("slim", NULL);
++	if (!slim_sec_dir || IS_ERR(slim_sec_dir))
++		return -EFAULT;
++	slim_level = securityfs_create_file("level", S_IRUGO,
++					    slim_sec_dir, NULL, &slm_level_ops);
++	if (!slim_level || IS_ERR(slim_level)) {
++		securityfs_remove(slim_sec_dir);
++		return -EFAULT;
++	}
++	return 0;
++}
++
++__initcall(slm_init_secfs);
++
++void __exit slm_cleanup_secfs(void)
++{
++	securityfs_remove(slim_level);
++	securityfs_remove(slim_sec_dir);
++}
++
+diff -puN security/slim/slm_main.c~slim-secfs-patch security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-secfs-patch
++++ a/security/slim/slm_main.c
+@@ -11,7 +11,6 @@
+  */
+ 
+ #include <linux/mman.h>
+-#include <linux/config.h>
+ #include <linux/kernel.h>
+ #include <linux/security.h>
+ #include <linux/integrity.h>
 _
 
 Patches currently in -mm which might be from kjhall@us.ibm.com are
 
 use-menuconfig-objects-ii-tpm.patch
-mprotect-patch-for-use-by-slim.patch
-integrity-service-api-and-dummy-provider.patch
-slim-main-patch.patch
 slim-secfs-patch.patch
 slim-make-and-config-stuff.patch
 slim-debug-output.patch
