@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + cfs-scheduler-warning-fixes.patch added to -mm tree
-Date: Tue, 22 May 2007 16:03:01 -0700
-Message-ID: <200705222306.l4MN6GQq011795@shell0.pdx.osdl.net>
+Subject: + capabilityh-warning-fix.patch added to -mm tree
+Date: Tue, 22 May 2007 16:03:54 -0700
+Message-ID: <200705222307.l4MN79uO011814@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59966 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756625AbXEVXHf (ORCPT
+	by vger.kernel.org with ESMTP id S1756869AbXEVXHl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 19:07:35 -0400
+	Tue, 22 May 2007 19:07:41 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4MN79jB006222
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 22 May 2007 16:07:40 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     cfs-scheduler-warning-fixes
+     capability.h warning fix
 has been added to the -mm tree.  Its filename is
-     cfs-scheduler-warning-fixes.patch
+     capabilityh-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +30,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cfs-scheduler-warning-fixes
+Subject: capability.h warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64:
+include/linux/capability.h:397: warning: "struct task_struct" declared inside parameter list
+include/linux/capability.h:397: warning: its scope is only this definition or declaration, which
 
-kernel/sched_debug.c: In function `print_task':
-kernel/sched_debug.c:40: warning: long long int format, long unsigned int arg (arg 6)
-kernel/sched_debug.c:40: warning: long long int format, long unsigned int arg (arg 5)
-kernel/sched_debug.c: In function `print_rq_runtime_sum':
-kernel/sched_debug.c:96: warning: long long int format, s64 arg (arg 4)
-kernel/sched_debug.c:96: warning: long long int format, s64 arg (arg 3)
-kernel/sched_debug.c: In function `proc_sched_show_task':
-kernel/sched_debug.c:215: warning: long long int format, long unsigned int arg (arg 4)
-kernel/sched_debug.c:215: warning: long long int format, long unsigned int arg (arg 3)
-
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_debug.c |    7 ++++---
- sysctl.c             |    0 
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/capability.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~cfs-scheduler-warning-fixes Documentation/kernel-parameters.txt
-diff -puN Documentation/sched-design-CFS.txt~cfs-scheduler-warning-fixes Documentation/sched-design-CFS.txt
-diff -puN arch/i386/kernel/smpboot.c~cfs-scheduler-warning-fixes arch/i386/kernel/smpboot.c
-diff -puN arch/i386/kernel/syscall_table.S~cfs-scheduler-warning-fixes arch/i386/kernel/syscall_table.S
-diff -puN arch/i386/kernel/tsc.c~cfs-scheduler-warning-fixes arch/i386/kernel/tsc.c
-diff -puN arch/ia64/kernel/setup.c~cfs-scheduler-warning-fixes arch/ia64/kernel/setup.c
-diff -puN arch/mips/kernel/smp.c~cfs-scheduler-warning-fixes arch/mips/kernel/smp.c
-diff -puN arch/sparc/kernel/smp.c~cfs-scheduler-warning-fixes arch/sparc/kernel/smp.c
-diff -puN arch/sparc64/kernel/smp.c~cfs-scheduler-warning-fixes arch/sparc64/kernel/smp.c
-diff -puN drivers/char/drm/radeon_cp.c~cfs-scheduler-warning-fixes drivers/char/drm/radeon_cp.c
-diff -puN fs/proc/array.c~cfs-scheduler-warning-fixes fs/proc/array.c
-diff -puN fs/proc/base.c~cfs-scheduler-warning-fixes fs/proc/base.c
-diff -puN include/asm-generic/bitops/sched.h~cfs-scheduler-warning-fixes include/asm-generic/bitops/sched.h
-diff -puN include/asm-i386/unistd.h~cfs-scheduler-warning-fixes include/asm-i386/unistd.h
-diff -puN include/asm-x86_64/unistd.h~cfs-scheduler-warning-fixes include/asm-x86_64/unistd.h
-diff -puN include/linux/hardirq.h~cfs-scheduler-warning-fixes include/linux/hardirq.h
-diff -puN include/linux/sched.h~cfs-scheduler-warning-fixes include/linux/sched.h
-diff -puN include/linux/topology.h~cfs-scheduler-warning-fixes include/linux/topology.h
-diff -puN init/main.c~cfs-scheduler-warning-fixes init/main.c
-diff -puN kernel/exit.c~cfs-scheduler-warning-fixes kernel/exit.c
-diff -puN kernel/fork.c~cfs-scheduler-warning-fixes kernel/fork.c
-diff -puN kernel/posix-cpu-timers.c~cfs-scheduler-warning-fixes kernel/posix-cpu-timers.c
-diff -puN kernel/sched.c~cfs-scheduler-warning-fixes kernel/sched.c
-diff -puN kernel/sched_debug.c~cfs-scheduler-warning-fixes kernel/sched_debug.c
---- a/kernel/sched_debug.c~cfs-scheduler-warning-fixes
-+++ a/kernel/sched_debug.c
-@@ -40,7 +40,8 @@ print_task(struct seq_file *m, struct rq
- 	SEQ_printf(m, "%15s %5d %15Ld %13Ld %13Ld %9Ld %5d "
- 		      "%15Ld %15Ld %15Ld %15Ld %15Ld\n",
- 		p->comm, p->pid,
--		(long long)p->fair_key, (long long)p->fair_key - rq->fair_clock,
-+		(long long)p->fair_key,
-+		(long long)(p->fair_key - rq->fair_clock),
- 		(long long)p->wait_runtime,
- 		(long long)p->nr_switches,
- 		p->prio,
-@@ -94,7 +95,7 @@ static void print_rq_runtime_sum(struct 
- 	spin_unlock_irqrestore(&rq->lock, flags);
+diff -puN include/linux/capability.h~capabilityh-warning-fix include/linux/capability.h
+--- a/include/linux/capability.h~capabilityh-warning-fix
++++ a/include/linux/capability.h
+@@ -16,6 +16,8 @@
+ #include <linux/types.h>
+ #include <linux/compiler.h>
  
- 	SEQ_printf(m, "  .%-22s: %Ld\n", "wait_runtime_rq_sum",
--		wait_runtime_rq_sum);
-+		(long long)wait_runtime_rq_sum);
- }
- 
- static void print_cpu(struct seq_file *m, int cpu, u64 now)
-@@ -212,7 +213,7 @@ void proc_sched_show_task(struct task_st
- 
- 		t0 = sched_clock();
- 		t1 = sched_clock();
--		SEQ_printf(m, "%-25s:%20Ld\n", "clock-delta", (long long)t1-t0);
-+		SEQ_printf(m, "%-25s:%20Ld\n", "clock-delta", (long long)(t1-t0));
- 	}
- }
- 
-diff -puN kernel/sched_fair.c~cfs-scheduler-warning-fixes kernel/sched_fair.c
-diff -puN kernel/sched_rt.c~cfs-scheduler-warning-fixes kernel/sched_rt.c
-diff -puN kernel/sched_stats.h~cfs-scheduler-warning-fixes kernel/sched_stats.h
-diff -puN kernel/sysctl.c~cfs-scheduler-warning-fixes kernel/sysctl.c
++struct task_struct;
++
+ /* User-level do most of the mapping between kernel and user
+    capabilities based on the version tag given by the kernel. The
+    kernel might be somewhat backwards compatible, but don't bet on
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -219,3 +166,4 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+capabilityh-warning-fix.patch
