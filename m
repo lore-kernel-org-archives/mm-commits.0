@@ -1,1930 +1,310 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-evm-as-an-integrity-service-provider.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:35 -0700
-Message-ID: <200705222124.l4MLOZ6O010115@shell0.pdx.osdl.net>
+Subject: - integrity-ima-identifiers.patch removed from -mm tree
+Date: Tue, 22 May 2007 14:24:41 -0700
+Message-ID: <200705222124.l4MLOfga010121@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49946 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757726AbXEVV1A (ORCPT
+	by vger.kernel.org with ESMTP id S1758983AbXEVV1C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:27:00 -0400
+	Tue, 22 May 2007 17:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, kjhall@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity: EVM as an integrity service provider
+     integrity: ima identifiers
 has been removed from the -mm tree.  Its filename was
-     integrity-evm-as-an-integrity-service-provider.patch
+     integrity-ima-identifiers.patch
 
 This patch was dropped because this work seems to be stalled
 
 ------------------------------------------------------
-Subject: integrity: EVM as an integrity service provider
+Subject: integrity: ima identifiers
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-This is a re-release of EVM as an integrity service provider.  The initial EVM
-release was as an LSM module.  It has been substantially rewritten to provide
-support for the new integrity service framework API, which permits
-applications, such as LSM modules, to verify the integrity of the metadata and
-data of a file.
+This patch corrects the naming of global and other identifiers.
 
-EVM maintains an HMAC-sha1 associated with each file across an extensible set
-of extended attributes, ensuring that the extended attributes are protected
-against integrity attacks.  The HMAC-sha1 is stored as an extended attribute
-security.evm.hmac.  EVM depends on the Kernel Key Retention System to provide
-it with the kernel master key for the HMAC operation.  The kernel master key
-is loaded onto the root's keyring by 'loadkernkey', which either uses the TPM
-sealed secrect key, if available, or a password requested from the console.
-
-The integrity measurement of the file data, stored in the extended attribute
-security.evm.hash (md5) or security.evm.sha1, is protected by the HMAC.  EVM
-maintains the integrity measurement of the file data, unless the file is
-defined as either FIXED or NOHASH.
-
-The integrity service framework API defines three calls:
-integrity_verify_metadata(), integrity_verify_data(), and integrity_measure().
- For integrity_verify_metadata(), EVM determines whether or not the HMAC
-calculated for the set of extended attributes matches the HMAC stored as an
-extended attribute; for integrity_verify_data(), EVM determines whether or not
-the integrity measurement of the file data matches the value stored as an
-extended attribute; and for integrity_measure(), if IMA is configured and
-enabled, EVM passes the integrity measurement to it.
-
-[akpm@linux-foundation.org: build fixes]
-[akpm@linux-foundation.org: printk fixes]
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c                |   22 
- fs/sysfs/mount.c          |    4 
- include/linux/magic.h     |    1 
- include/linux/namei.h     |    1 
- security/Kconfig          |    1 
- security/Makefile         |    1 
- security/evm/Kconfig      |   17 
- security/evm/Makefile     |    5 
- security/evm/evm.h        |   83 +++
- security/evm/evm_config.c |  130 +++++
- security/evm/evm_crypto.c |  348 +++++++++++++
- security/evm/evm_main.c   |  929 ++++++++++++++++++++++++++++++++++++
- security/evm/evm_secfs.c  |  201 +++++++
- 13 files changed, 1740 insertions(+), 3 deletions(-)
+ security/evm/ima/ima.h       |   24 ++++++++++++------------
+ security/evm/ima/ima_fs.c    |   18 +++++++++---------
+ security/evm/ima/ima_init.c  |   10 +++++-----
+ security/evm/ima/ima_main.c  |    8 ++++----
+ security/evm/ima/ima_queue.c |   24 ++++++++++++------------
+ 5 files changed, 42 insertions(+), 42 deletions(-)
 
-diff -puN fs/namei.c~integrity-evm-as-an-integrity-service-provider fs/namei.c
---- a/fs/namei.c~integrity-evm-as-an-integrity-service-provider
-+++ a/fs/namei.c
-@@ -2646,6 +2646,27 @@ int generic_readlink(struct dentry *dent
- 	return PTR_ERR(cookie);
+diff -puN security/evm/ima/ima.h~integrity-ima-identifiers security/evm/ima/ima.h
+--- a/security/evm/ima/ima.h~integrity-ima-identifiers
++++ a/security/evm/ima/ima.h
+@@ -34,26 +34,26 @@
+ 
+ /* digest size for IMA, fits SHA1 or MD5 */
+ #define IMA_DIGEST_SIZE		20
+-#define TCG_EVENT_NAME_LEN_MAX	255
++#define IMA_EVENT_NAME_LEN_MAX	255
+ 
+ #define IMA_HASH_BITS 9
+-#define MEASURE_HTABLE_SIZE (1 << IMA_HASH_BITS)
+-#define HASH_KEY(digest) (hash_long( \
++#define IMA_MEASURE_HTABLE_SIZE (1 << IMA_HASH_BITS)
++#define IMA_HASH_KEY(digest) (hash_long( \
+ 	(unsigned long)(*digest), IMA_HASH_BITS));
+ 
+ /* set during initialization */
+ extern int ima_used_chip;
+ 
+-struct measure_entry {
++struct ima_measure_entry {
+ 	u32 measure_flags;
+ 	u8 digest[IMA_DIGEST_SIZE];	/* sha1 or md5 measurement hash */
+-	char file_name[TCG_EVENT_NAME_LEN_MAX + 1];	/* name + \0 */
++	char file_name[IMA_EVENT_NAME_LEN_MAX + 1];	/* name + \0 */
+ };
+ 
+-struct queue_entry {
++struct ima_queue_entry {
+ 	struct hlist_node hnext;	/* place in hash collision list */
+ 	struct list_head later;	/* place in ima_measurements list */
+-	struct measure_entry *entry;
++	struct ima_measure_entry *entry;
+ };
+ 
+ extern struct list_head ima_measurements;	/* list of all measurements */
+@@ -61,10 +61,10 @@ extern struct list_head ima_measurements
+ /* declarations */
+ int ima_fs_init(void);
+ void ima_fs_cleanup(void);
+-void create_htable(void);
++void ima_create_htable(void);
+ void ima_invalidate_pcr(char *);
+-int ima_add_measure_entry(struct measure_entry *entry);
+-struct queue_entry *ima_lookup_digest_entry(u8 * digest);
++int ima_add_measure_entry(struct ima_measure_entry *entry);
++struct ima_queue_entry *ima_lookup_digest_entry(u8 * digest);
+ 
+ /*
+  * used to protect h_table and sha_table
+@@ -75,8 +75,8 @@ struct ima_h_table {
+ 	atomic_t len;	/* number of stored measurements in the list */
+ 	atomic_t violations;
+ 	unsigned int max_htable_size;
+-	struct hlist_head queue[MEASURE_HTABLE_SIZE];
+-	atomic_t queue_len[MEASURE_HTABLE_SIZE];
++	struct hlist_head queue[IMA_MEASURE_HTABLE_SIZE];
++	atomic_t queue_len[IMA_MEASURE_HTABLE_SIZE];
+ };
+ extern struct ima_h_table ima_htable;
+ 
+diff -puN security/evm/ima/ima_fs.c~integrity-ima-identifiers security/evm/ima/ima_fs.c
+--- a/security/evm/ima/ima_fs.c~integrity-ima-identifiers
++++ a/security/evm/ima/ima_fs.c
+@@ -105,15 +105,15 @@ static int ima_measurements_show(struct 
+ {
+ 	/* the list never shrinks, so we don't need a lock here */
+ 	struct list_head *lpos = v;
+-	struct queue_entry *qe;
+-	struct measure_entry *e;
++	struct ima_queue_entry *qe;
++	struct ima_measure_entry *e;
+ 	int filename_len;
+ 	int i;
+ 	u32 pcr = CONFIG_IMA_MEASURE_PCR_IDX;
+ 	char data[4];
+ 
+ 	/* get entry */
+-	qe = list_entry(lpos, struct queue_entry, later);
++	qe = list_entry(lpos, struct ima_queue_entry, later);
+ 	e = qe->entry;
+ 	if (e == NULL)
+ 		return -1;
+@@ -138,8 +138,8 @@ static int ima_measurements_show(struct 
+ 
+ 	/* 4th: eventDataSize */
+ 	filename_len = strlen(e->file_name);
+-	if (filename_len > TCG_EVENT_NAME_LEN_MAX)
+-		filename_len = TCG_EVENT_NAME_LEN_MAX;
++	if (filename_len > IMA_EVENT_NAME_LEN_MAX)
++		filename_len = IMA_EVENT_NAME_LEN_MAX;
+ 
+ 	memcpy(data, &filename_len, 4);
+ 	for (i = 0; i < 4; i++)
+@@ -177,12 +177,12 @@ static int ima_ascii_measurements_show(s
+ {
+ 	/* the list never shrinks, so we don't need a lock here */
+ 	struct list_head *lpos = v;
+-	struct queue_entry *qe;
+-	struct measure_entry *e;
++	struct ima_queue_entry *qe;
++	struct ima_measure_entry *e;
+ 	int i;
+ 
+ 	/* get entry */
+-	qe = list_entry(lpos, struct queue_entry, later);
++	qe = list_entry(lpos, struct ima_queue_entry, later);
+ 	e = qe->entry;
+ 	if (e == NULL)
+ 		return -1;
+@@ -269,7 +269,7 @@ out:
+ 	return -1;
  }
  
-+int kernel_readlink(struct dentry *dentry, char **buffer, int *buflen)
-+{
-+	struct nameidata nd;
-+	void *cookie;
-+
-+	nd.depth = 0;
-+	cookie = dentry->d_inode->i_op->follow_link(dentry, &nd);
-+	if (!IS_ERR(cookie)) {
-+		char *link;
-+
-+		link = nd_get_link(&nd);
-+		if (IS_ERR(link))
-+			return PTR_ERR(link);
-+		*buffer = kstrdup(link, GFP_KERNEL);
-+		*buflen = (*buffer == NULL) ? 0 : strlen(*buffer);
-+		if (dentry->d_inode->i_op->put_link)
-+			dentry->d_inode->i_op->put_link(dentry, &nd, cookie);
-+	}
-+	return PTR_ERR(cookie);
-+}
-+
- int vfs_follow_link(struct nameidata *nd, const char *link)
+-void ima_fs_cleanup(void)
++void __exit ima_fs_cleanup(void)
  {
- 	return __vfs_follow_link(nd, link);
-@@ -2788,6 +2809,7 @@ EXPORT_SYMBOL(vfs_mkdir);
- EXPORT_SYMBOL(vfs_mknod);
- EXPORT_SYMBOL(generic_permission);
- EXPORT_SYMBOL(vfs_readlink);
-+EXPORT_SYMBOL(kernel_readlink);
- EXPORT_SYMBOL(vfs_rename);
- EXPORT_SYMBOL(vfs_rmdir);
- EXPORT_SYMBOL(vfs_symlink);
-diff -puN security/Kconfig~integrity-evm-as-an-integrity-service-provider security/Kconfig
---- a/security/Kconfig~integrity-evm-as-an-integrity-service-provider
-+++ a/security/Kconfig
-@@ -46,6 +46,7 @@ config INTEGRITY
- 	  configured into your kernel.
- 
- 	  If you are unsure how to answer this question, answer N.
-+source security/evm/Kconfig
- 
- config SECURITY
- 	bool "Enable different security models"
-diff -puN security/Makefile~integrity-evm-as-an-integrity-service-provider security/Makefile
---- a/security/Makefile~integrity-evm-as-an-integrity-service-provider
-+++ a/security/Makefile
-@@ -13,6 +13,7 @@ endif
- # Object file lists
- obj-$(CONFIG_SECURITY)			+= security.o dummy.o inode.o
- obj-$(CONFIG_INTEGRITY)		+= integrity.o integrity_dummy.o
-+obj-$(CONFIG_INTEGRITY_EVM)		+= evm/
- # Must precede capability.o in order to stack properly.
- obj-$(CONFIG_SECURITY_SLIM)		+= slim/
- obj-$(CONFIG_SECURITY_SELINUX)		+= selinux/built-in.o
-diff -puN /dev/null security/evm/Kconfig
---- /dev/null
-+++ a/security/evm/Kconfig
-@@ -0,0 +1,17 @@
-+config INTEGRITY_EVM
-+	boolean "EVM support"
-+	depends on INTEGRITY && KEYS
-+	select CRYPTO_HMAC
-+	select CRYPTO_MD5
-+	select CRYPTO_SHA1
-+	default 0
-+	help
-+	  The Extended Verification Module is an integrity provider.
-+	  An extensible set of extended attributes, as defined in
-+	  /etc/evm.conf, are HMAC protected against modification
-+	  using the TPM's KERNEL ROOT KEY, if configured, or with a
-+	  pass-phrase.  Possible extended attributes include authenticity,
-+	  integrity, and revision level.
-+
-+	  If you are unsure how to answer this question, answer N.
-+
-diff -puN /dev/null security/evm/Makefile
---- /dev/null
-+++ a/security/evm/Makefile
-@@ -0,0 +1,5 @@
-+
-+obj-$(CONFIG_INTEGRITY_EVM) += evm.o
-+
-+evm-y := evm_main.o evm_config.o evm_crypto.o evm_secfs.o
-+
-diff -puN /dev/null security/evm/evm.h
---- /dev/null
-+++ a/security/evm/evm.h
-@@ -0,0 +1,83 @@
-+/*
-+ *  evm.h - extended verification module
-+ */
-+
-+#include <linux/security.h>
-+#include <linux/security.h>
-+#include <linux/version.h>
-+#include <linux/spinlock_types.h>
-+#include <linux/integrity.h>
-+
-+#define MAX_DIGEST_SIZE 	20	/* 160-bits */
-+
-+extern char *evm_hmac, *evm_hash;
-+extern char *evm_hmac_name;
-+extern int evm_hmac_size;
-+
-+extern unsigned int evm_enable_ima;
-+/*
-+ * EVM configuration policies as defined in /etc/evm.config are
-+ * stored in struct evm_config *evm_config_data.
-+ */
-+enum evm_configtype {
-+	EVM_TYPE_MD5, EVM_TYPE_SHA1
-+};
-+
-+struct evm_xattr_config {
-+	char xattr_name[XATTR_NAME_MAX + 1];
-+};
-+
-+/*
-+ * The extended attribute verification results are memory cached in
-+ * inode->i_integrity, preceeded by a header (structure evm_iint_cache),
-+ * with the following format:
-+ */
-+#define	EVM_HASH_FIXED		1
-+#define EVM_HASH_NONE		2
-+
-+struct evm_iint_cache {
-+	struct timespec mtime;
-+	char hash[MAX_DIGEST_SIZE + 1];
-+	enum integrity_status hmac_status;
-+	enum integrity_status hash_status;
-+	int hash_flags;		/* no hash, fixed hash */
-+	int measured;
-+	int hashed;
-+	int initialized;
-+	struct mutex mutex;
-+};
-+
-+extern struct evm_xattr_config *evm_parse_config(char *data,
-+						 unsigned long datalen,
-+						 int *datasize);
-+
-+extern int evm_init_config(struct evm_xattr_config *evm_new_data,
-+			   int evm_new_datasize);
-+extern void evm_cleanup_config(void);
-+
-+extern struct evm_xattr_config *evm_config_xattrdata;
-+extern int evm_config_xattrnum;	/* number of extended attributes */
-+
-+#define for_each_xattr(ptr, head, size) \
-+	for (ptr = head; ptr < (head + size); ptr++)
-+
-+extern int evm_init_tpmkernkey(void);
-+extern int evm_calc_hash(struct dentry *d, struct file *file,
-+			 char *digest, int xattrType);
-+extern int evm_init_integrity(struct inode *inode, struct inode *dir,
-+			      char *name, void *value, size_t len,
-+			      char *digest);
-+extern int evm_update_hmac(struct dentry *dentry, int flags);
-+extern int evm_calc_hmac(struct dentry *d, char *digest);
-+extern int evm_init_secfs(void);
-+extern void evm_cleanup_secfs(void);
-+
-+extern unsigned int evm_debug;
-+extern unsigned int evm_install;
-+enum evm_debug_level {
-+	EVM_BASE = 1, EVM_CACHE = 2, EVM_XATTR = 4, EVM_CRYPTO = 8, EVM_IMA = 16
-+};
-+
-+#define dprintk(level, format, a...) \
-+	if (evm_debug & level) \
-+		printk(KERN_INFO format, ##a)
-diff -puN /dev/null security/evm/evm_config.c
---- /dev/null
-+++ a/security/evm/evm_config.c
-@@ -0,0 +1,130 @@
-+/*
-+ * EVM - Extended Verification Module
-+ *
-+ * Copyright (C) 2005,2006,2007 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ * 	   Kylene Hall <kjhall@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include "evm.h"
-+
-+/*
-+ * Configuration data
-+ */
-+struct evm_xattr_config *evm_config_xattrdata;
-+int evm_config_xattrnum;	/* number of extended attributes */
-+
-+/*
-+ * inode->i_integrity information
-+ */
-+static void display_config(const char *name)
-+{
-+	struct evm_xattr_config *config_p;
-+
-+	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum)
-+		printk(KERN_INFO "%s: %s\n", name, config_p->xattr_name);
-+}
-+
-+/*
-+ * Initialize the Extended Verification module
-+ */
-+int evm_init_config(struct evm_xattr_config *evm_data, int evm_datasize)
-+{
-+	ssize_t error = 0;
-+
-+	if (evm_datasize > 0) {
-+		evm_config_xattrdata = evm_data;
-+		evm_config_xattrnum = evm_datasize;
-+		display_config(__FUNCTION__);
-+	} else {
-+		printk(KERN_INFO "%s: config file definition missing\n",
-+		       __FUNCTION__);
-+		return -EINVAL;
-+	}
-+	return error;
-+}
-+
-+static char *get_tag(char *buf_start, char *buf_end, char delimiter,
-+		     int *taglen)
-+{
-+	char *bufp = buf_start;
-+	char *tag;
-+
-+	/* Get start of tag */
-+	while (bufp < buf_end) {
-+		if (*bufp == ' ')	/* skip blanks */
-+			while ((*bufp == ' ') && (bufp++ < buf_end))
-+				;
-+		else if (*bufp == '#') {	/* skip comment */
-+			while ((*bufp != '\n') && (bufp++ < buf_end))
-+				;
-+			bufp++;
-+		} else if (*bufp == '\n')	/* skip newline */
-+			bufp++;
-+		else if (*bufp == '\t')	/* skip tabs */
-+			bufp++;
-+		else
-+			break;
-+	}
-+	if (bufp < buf_end)
-+		tag = bufp;
-+	else
-+		return NULL;
-+
-+	/* Get tag */
-+	*taglen = 0;
-+	while ((bufp < buf_end) && (*taglen == 0)) {
-+		if ((*bufp == delimiter) || (*bufp == '\n'))
-+			*taglen = bufp - tag;
-+		bufp++;
-+	}
-+	if (*taglen == 0)	/* Didn't find end delimiter */
-+		*taglen = bufp - tag;
-+	return tag;
-+}
-+
-+struct evm_xattr_config *evm_parse_config(char *data, unsigned long datalen,
-+					  int *xattrnum)
-+{
-+	char *datap, *dataend, *tag;
-+	int num_xattr = 0;
-+	struct evm_xattr_config *config_xattrdata = NULL, *config_p;
-+	int taglen;
-+
-+	/* Get number of extended attribute definitions */
-+	datap = data;
-+	dataend = data + datalen;
-+
-+	while ((tag = get_tag(datap, dataend, ' ', &taglen)) != NULL) {
-+		datap = tag + taglen;
-+		num_xattr++;
-+	}
-+	*xattrnum = num_xattr;
-+
-+	datap = data;
-+	config_xattrdata = kmalloc(num_xattr * sizeof(struct evm_xattr_config),
-+				GFP_KERNEL);
-+	if (!config_xattrdata)
-+		return NULL;
-+
-+	/* Get the list of hmac protected extended attributes */
-+	config_p = config_xattrdata;
-+	while ((tag = get_tag(datap, dataend, ' ', &taglen)) != NULL) {
-+		datap = tag == NULL ? dataend : tag + taglen;
-+		memset(config_p->xattr_name, 0, sizeof config_p->xattr_name);
-+		memcpy(config_p->xattr_name, tag, taglen);
-+		config_p++;
-+	}
-+	return config_xattrdata;
-+}
-+
-+void evm_cleanup_config(void)
-+{
-+	kfree(evm_config_xattrdata);
-+}
-diff -puN /dev/null security/evm/evm_crypto.c
---- /dev/null
-+++ a/security/evm/evm_crypto.c
-@@ -0,0 +1,348 @@
-+/*
-+ * evm_crypto.c
-+
-+ * Functions which calculate a hash/hmac using root's kernel master key (kmk)
-+ *
-+ * Copyright (C) 2005,2006,2007 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ * 	   Kylene Hall <kjhall@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/file.h>
-+#include <linux/fs.h>
-+#include <linux/namei.h>
-+#include <linux/security.h>
-+#include <linux/mount.h>
-+#include <linux/crypto.h>
-+#include <linux/mm.h>
-+#include <linux/xattr.h>
-+#include <keys/user-type.h>
-+#include <asm/scatterlist.h>
-+#include "evm.h"
-+
-+#define TPMKEY "evm_key"
-+#define MAX_TPMKEY 128
-+static unsigned char tpm_key[MAX_TPMKEY];
-+static int tpm_keylen = MAX_TPMKEY;
-+
-+static int update_file_hash(struct dentry *dentry, struct file *f,
-+		     struct hash_desc *desc)
-+{
-+	struct file *file = f;
-+	struct scatterlist sg[1];
-+	loff_t i_size;
-+	int error = 0;
-+
-+	char *rbuf = NULL;
-+	int rbuf_len = 0;
-+	int offset = 0;
-+
-+	if (!file) {
-+		file = dentry_open(dget(dentry), NULL, O_RDONLY);
-+		if (IS_ERR(file)) {
-+			printk(KERN_INFO "%s: dentry_open failed\n",
-+			       __FUNCTION__);
-+			error = -ENOENT;
-+			dput(dentry);
-+			file = NULL;
-+			goto out;
-+		}
-+	}
-+
-+	rbuf = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!rbuf) {
-+		error = -ENOMEM;
-+		goto out;
-+	}
-+
-+	i_size = i_size_read(file->f_dentry->d_inode);
-+	while (offset < i_size) {
-+		rbuf_len = kernel_read(file, offset, rbuf, PAGE_SIZE);
-+		if (rbuf_len <= 0)
-+			break;
-+		offset += rbuf_len;
-+		sg[0].page = virt_to_page(rbuf);
-+		sg[0].offset = ((long)rbuf & ~PAGE_MASK);
-+		sg[0].length = rbuf_len;
-+
-+		crypto_hash_update(desc, sg, rbuf_len);
-+	}
-+
-+	kfree(rbuf);
-+out:
-+	if (file && !f)
-+		fput(file);	/* clean up dentry_open() */
-+	return error;
-+}
-+
-+int update_link_hash(struct dentry *dentry, struct hash_desc *desc)
-+{
-+	struct scatterlist sg[1];
-+	int error = 0;
-+	char *rbuf = NULL;
-+	int rbuf_len = 0;
-+
-+	if (dentry->d_inode->i_op->readlink == generic_readlink)
-+		error = kernel_readlink(dentry, &rbuf, &rbuf_len);
-+	else {
-+		char *fname;
-+		fname = (!dentry->d_name.name) ? " " :
-+		    (char *)dentry->d_name.name;
-+		dprintk(EVM_CRYPTO, "%s: %s does not use generic_readlink\n",
-+			__FUNCTION__, fname);
-+	}
-+	if (rbuf_len > 0) {
-+		dprintk(EVM_CRYPTO, "%s: link len %d link %s\n",
-+			__FUNCTION__, rbuf_len, rbuf);
-+
-+		sg[0].page = virt_to_page(rbuf);
-+		sg[0].offset = ((long)rbuf & ~PAGE_MASK);
-+		sg[0].length = rbuf_len;
-+
-+		crypto_hash_update(desc, sg, rbuf_len);
-+	} else
-+		error = -EINVAL;
-+	return error;
-+}
-+
-+/*
-+ * Calculate the MD5/SHA1 digest on a file
-+ */
-+int evm_calc_hash(struct dentry *dentry, struct file *file, char *digest,
-+		  int xattr_type)
-+{
-+	struct crypto_hash *tfm;
-+	struct hash_desc desc;
-+	int error = 0;
-+
-+	if (!dentry && !file)
-+		return -ENOENT;
-+
-+	tfm = crypto_alloc_hash(evm_hash, 0, CRYPTO_ALG_ASYNC);
-+	if (!tfm) {
-+		dprintk(EVM_CRYPTO, "%s: failed to load %s transform\n",
-+			__FUNCTION__, evm_hash);
-+		return -ENOSYS;
-+	}
-+	desc.tfm = tfm;
-+	desc.flags = 0;
-+	crypto_hash_init(&desc);
-+
-+	if (dentry && S_ISLNK(dentry->d_inode->i_mode))
-+		error = update_link_hash(dentry, &desc);
-+	else
-+		error = update_file_hash(dentry, file, &desc);
-+
-+	if (!error)
-+		crypto_hash_final(&desc, digest);
-+
-+	crypto_free_hash(tfm);
-+	return error;
-+}
-+
-+/*
-+ * Calculate the HMAC value for the new file/directory based on the xattr
-+ */
-+int evm_init_integrity(struct inode *inode, struct inode *dir, char *name,
-+		       void *value, size_t len, char *digest)
-+{
-+	struct crypto_hash *tfm;
-+	struct scatterlist sg[1];
-+	struct hash_desc desc;
-+	struct h_misc {
-+		unsigned long ino;
-+		__u32 generation;
-+	} misc, *hmac_misc = &misc;
-+	struct evm_xattr_config *config_p;
-+
-+	tfm = crypto_alloc_hash(evm_hmac, 0, CRYPTO_ALG_ASYNC);
-+	if (!tfm) {
-+		dprintk(EVM_CRYPTO, "%s: failed to load %s transform\n",
-+			__FUNCTION__, evm_hmac);
-+		return -ENOSYS;
-+	}
-+
-+	desc.tfm = tfm;
-+	desc.flags = 0;
-+	crypto_hash_setkey(tfm, tpm_key, tpm_keylen);
-+	crypto_hash_init(&desc);
-+	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum) {
-+		if (strcmp(config_p->xattr_name + 9, name) == 0) {
-+			char *xattr_value = NULL;
-+
-+			xattr_value = kzalloc(len + 1, GFP_KERNEL);
-+			if (!xattr_value) {
-+				crypto_free_hash(tfm);
-+				return -ENOMEM;
-+			}
-+			memcpy(xattr_value, value, len);
-+			dprintk(EVM_CRYPTO, "%s: (%s) included (%zd)\n",
-+				__FUNCTION__, config_p->xattr_name, len);
-+			sg[0].page = virt_to_page(xattr_value);
-+			sg[0].offset = ((long)xattr_value & ~PAGE_MASK);
-+			sg[0].length = len;
-+			crypto_hash_update(&desc, sg, len);
-+			kfree(xattr_value);
-+		}
-+	}
-+	memset(hmac_misc, 0, sizeof misc);
-+	hmac_misc->ino = inode->i_ino;
-+	hmac_misc->generation = inode->i_generation;
-+	sg[0].page = virt_to_page(hmac_misc);
-+	sg[0].offset = ((long)hmac_misc & ~PAGE_MASK);
-+	sg[0].length = sizeof misc;
-+	crypto_hash_update(&desc, sg, sizeof misc);
-+	crypto_hash_final(&desc, digest);
-+	crypto_free_hash(tfm);
-+	return 0;
-+}
-+
-+/*
-+ * Calculate the HMAC value across all the extended attributes included
-+ * in the HMAC policy as defined in /etc/evm.conf.
-+ */
-+int evm_calc_hmac(struct dentry *dentry, char *digest)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct crypto_hash *tfm;
-+	struct hash_desc desc;
-+	struct scatterlist sg[1];
-+	char *fname;
-+	int error = 0;
-+	struct evm_xattr_config *config_p;
-+	int xattr_size = 0;
-+	char *xattr_value = NULL;
-+	struct h_misc {
-+		unsigned long ino;
-+		__u32 generation;
-+	} misc, *hmac_misc = &misc;
-+
-+	if (!inode->i_op || !inode->i_op->getxattr)
-+		return -EOPNOTSUPP;
-+
-+	/*  Load evm_hmac, if not already loaded */
-+	tfm = crypto_alloc_hash(evm_hmac, 0, CRYPTO_ALG_ASYNC);
-+	if (!tfm) {
-+		dprintk(EVM_CRYPTO, "%s: failed to load %s transform\n",
-+			__FUNCTION__, evm_hmac);
-+		return -ENOSYS;
-+	}
-+	fname = (!dentry->d_name.name) ? " " : (char *)dentry->d_name.name;
-+
-+	desc.tfm = tfm;
-+	desc.flags = 0;
-+	crypto_hash_setkey(tfm, tpm_key, tpm_keylen);
-+	crypto_hash_init(&desc);
-+
-+	/* Get the HMAC policy extended attribute values  */
-+	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum) {
-+		int size;
-+
-+		size = inode->i_op->getxattr(dentry, config_p->xattr_name,
-+					     NULL, 0);
-+		if (size < 0)
-+			continue;
-+		if (size > xattr_size) {
-+			kfree(xattr_value);
-+			xattr_size = size;
-+			xattr_value = kmalloc(xattr_size + 1, GFP_KERNEL);
-+			if (!xattr_value) {
-+				crypto_free_hash(tfm);
-+				return -ENOMEM;
-+			}
-+		}
-+		error = inode->i_op->getxattr(dentry, config_p->xattr_name,
-+					      xattr_value, xattr_size);
-+		if (error > 0) {
-+			dprintk(EVM_CRYPTO, "%s: %s(%s) included (%d)\n",
-+				__FUNCTION__, fname, config_p->xattr_name,
-+				error);
-+			sg[0].page = virt_to_page(xattr_value);
-+			sg[0].offset = ((long)xattr_value & ~PAGE_MASK);
-+			sg[0].length = error;
-+			crypto_hash_update(&desc, sg, error);
-+		} else {
-+			if (strncmp(dentry->d_name.name, "/",
-+				    dentry->d_name.len) != 0)
-+				dprintk(EVM_CRYPTO, "%s: %s(%s) not found\n",
-+					__FUNCTION__, fname,
-+					config_p->xattr_name);
-+		}
-+	}
-+	kfree(xattr_value);
-+	memset(hmac_misc, 0, sizeof misc);
-+	hmac_misc->ino = inode->i_ino;
-+	hmac_misc->generation = inode->i_generation;
-+	sg[0].page = virt_to_page(hmac_misc);
-+	sg[0].offset = ((long)hmac_misc & ~PAGE_MASK);
-+	sg[0].length = sizeof misc;
-+	crypto_hash_update(&desc, sg, sizeof misc);
-+	crypto_hash_final(&desc, digest);
-+	crypto_free_hash(tfm);
-+	return 0;
-+}
-+
-+/*
-+ * Calculate and update the hmac, assuming the current hmac is valid.
-+ */
-+int evm_update_hmac(struct dentry *dentry, int flags)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct evm_iint_cache *iint = inode->i_integrity;
-+	char hmac_val[MAX_DIGEST_SIZE];
-+	int rc = -1;
-+
-+	if (!evm_install && (iint->hmac_status == INTEGRITY_FAIL)) {
-+		dprintk(EVM_BASE, "%s: %s deny update\n",
-+			__FUNCTION__, dentry->d_name.name);
-+		return -EPERM;
-+	}
-+
-+	memset(hmac_val, 0, sizeof hmac_val);
-+	rc = evm_calc_hmac(dentry, hmac_val);
-+	dprintk(EVM_CRYPTO, "%s: %s update hmac %d\n",
-+		__FUNCTION__, dentry->d_name.name, rc);
-+	if (rc == 0) {
-+		rc = inode->i_op->setxattr(dentry, evm_hmac_name,
-+					   hmac_val, evm_hmac_size, flags);
-+		iint->hmac_status = INTEGRITY_PASS;
-+	}
-+	return rc;
-+}
-+
-+/*
-+ * Get the key from the TPM for the SHA1-HMAC
-+ */
-+int evm_init_tpmkernkey(void)
-+{
-+	struct key *kmk;
-+	struct user_key_payload *ukp;
-+	int len;
-+
-+	kmk = request_key(&key_type_user, TPMKEY, NULL);
-+	if (IS_ERR(kmk)) {
-+		return -1;
-+	} else {
-+		down_read(&kmk->sem);
-+		ukp = kmk->payload.data;
-+		len = ukp->datalen;
-+		if (len > MAX_TPMKEY)
-+			len = MAX_TPMKEY;
-+		tpm_keylen = len;
-+		memcpy(tpm_key, ukp->data, len);
-+
-+		/* burn the original key contents */
-+		memset(ukp->data, 0, len);
-+		up_read(&kmk->sem);
-+		key_put(kmk);
-+		return 0;
-+	}
-+}
-diff -puN /dev/null security/evm/evm_main.c
---- /dev/null
-+++ a/security/evm/evm_main.c
-@@ -0,0 +1,929 @@
-+/*
-+ * EVM - Extended Verification Module
-+ *
-+ * Copyright (C) 2005,2006,2007 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ * 	   Kylene Hall <kjhall@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/kernel.h>
-+#include <linux/fs.h>
-+#include <linux/namei.h>
-+#include <linux/notifier.h>
-+#include <linux/security.h>
-+#include <linux/version.h>
-+#include <linux/integrity.h>
-+#include <linux/crypto.h>
-+#include <linux/init.h>
-+#include <linux/proc_fs.h>
-+#include <linux/xattr.h>
-+#include <linux/file.h>
-+#include <linux/magic.h>
-+#include <linux/writeback.h>
-+#include "evm_integrity.h"
-+#include "evm.h"
-+
-+#define MAX_STR_SIZE 		40	/* String value  */
-+#define SHA1_STR_SIZE 		40	/* String value  */
-+#define SHA1_DIGEST_SIZE 	20	/* SHA1 is 160-bits */
-+
-+#define MD5_STR_SIZE 		32	/* String value  */
-+#define MD5_DIGEST_SIZE 	16	/* MD5 is 128-bits */
-+
-+int evm_initialized = 0;
-+
-+#define FIXED_STR "FIXED"
-+#define FIXED_STR_LEN (sizeof (FIXED_STR) -1)
-+
-+#define XATTR_EVM_SUFFIX "evm."
-+#define XATTR_EVM_SUFFIX_LEN (sizeof (XATTR_EVM_SUFFIX) -1)
-+
-+#define XATTR_MD5_SUFFIX "evm.hash"
-+#define XATTR_MD5_SUFFIX_LEN (sizeof (XATTR_MD5_SUFFIX) -1)
-+
-+#define XATTR_SHA1_SUFFIX "evm.sha1"
-+#define XATTR_SHA1_SUFFIX_LEN (sizeof (XATTR_SHA1_SUFFIX) -1)
-+
-+#define XATTR_HMAC_SUFFIX "evm.hmac"
-+#define XATTR_HMAC_SUFFIX_LEN (sizeof (XATTR_HMAC_SUFFIX) -1)
-+
-+#define XATTR_FLAGS_SUFFIX "evm.flags"
-+#define XATTR_FLAGS_SUFFIX_LEN (sizeof (XATTR_FLAGS_SUFFIX) -1)
-+
-+static int skip_measurement(struct inode *inode, int mask);
-+/*
-+ * Runtime configuration variables
-+ */
-+unsigned int evm_debug = EVM_BASE;
-+static int __init debug_setup(char *str)
-+{
-+	evm_debug = simple_strtol(str, NULL, 0);
-+	return 1;
-+}
-+
-+__setup("evm_debug=", debug_setup);
-+
-+char *evm_hmac = "hmac(sha1)";	/* security.evm.hmac default */
-+int evm_hmac_size = SHA1_DIGEST_SIZE;
-+char *evm_hmac_name = XATTR_SECURITY_PREFIX XATTR_HMAC_SUFFIX;
-+static int __init hmac_setup(char *str)
-+{
-+	evm_hmac = str;
-+	return 1;
-+}
-+
-+__setup("evm_hmac=", hmac_setup);
-+
-+static enum evm_configtype evm_hash_type = EVM_TYPE_MD5;
-+char *evm_hash = "md5";		/* security.evm.hash default (~ rpm header) */
-+static int hash_str_size = MD5_STR_SIZE;
-+static int hash_digest_size = MD5_DIGEST_SIZE;
-+static char *evm_hash_name = XATTR_SECURITY_PREFIX XATTR_MD5_SUFFIX;
-+static int __init hash_setup(char *str)
-+{
-+	evm_hash = str;
-+	return 1;
-+}
-+
-+__setup("evm_hash=", hash_setup);
-+
-+unsigned int evm_enable_ima = 1;
-+static int __init evm_enable_ima_setup(char *str)
-+{
-+	evm_enable_ima = simple_strtol(str, NULL, 0);
-+	return 1;
-+}
-+
-+__setup("evm_enable_ima=", evm_enable_ima_setup);
-+
-+unsigned int evm_install = 0;
-+static int __init install_mode_setup(char *str)
-+{
-+	evm_install = simple_strtol(str, NULL, 0);
-+	return 1;
-+}
-+
-+__setup("evm_install_mode=", install_mode_setup);
-+
-+static void hexdump(unsigned char *buf, unsigned int len)
-+{
-+	while (len--)
-+		printk("%02x", *buf++);
-+
-+	printk("\n");
-+}
-+
-+/*
-+ * Compare an extended attribute value with a kernel value
-+ */
-+ssize_t evm_verify_xattr(struct dentry * dentry, char *kval,
-+			 char *xattr_name, int size)
-+{
-+	ssize_t error;
-+	char *fname;
-+	char *xattr_value;
-+	int xattr_size;
-+
-+	fname = (!dentry->d_name.name) ? " " : (char *)dentry->d_name.name;
-+	xattr_size = vfs_getxattr(dentry, xattr_name, NULL, 0);
-+	if (xattr_size < 0)
-+		return xattr_size;
-+
-+	xattr_value = kzalloc(xattr_size, GFP_KERNEL);
-+	if (!xattr_value) {
-+		dprintk(EVM_XATTR, "%s: %s(%s) null xattr_value\n",
-+			__FUNCTION__, fname, xattr_name);
-+		size = 0;
-+		return -ENOMEM;
-+	}
-+
-+	error = vfs_getxattr(dentry, xattr_name, xattr_value, xattr_size);
-+	if (error > 0) {
-+		if (memcmp(xattr_value, kval, error) != 0) {
-+			error = -EINVAL;
-+			dprintk(EVM_BASE,
-+				"%s: %s(%s) verification failed %d %d\n",
-+				__FUNCTION__, fname, xattr_name, size,
-+				xattr_size);
-+			if (strcmp(xattr_name, "security.evm.hmac") == 0) {
-+				hexdump(kval, MAX_DIGEST_SIZE);
-+				hexdump(xattr_value, MAX_DIGEST_SIZE);
-+			}
-+		} else {
-+			error = 0;
-+			dprintk(EVM_XATTR,
-+				"%s: %s(%s) verification succeeded\n",
-+				__FUNCTION__, fname, xattr_name);
-+		}
-+	} else
-+		dprintk(EVM_XATTR, "%s: %s(%s) rc = %d no extended attribute\n",
-+			__FUNCTION__, fname, xattr_name, error);
-+	kfree(xattr_value);
-+	return error;
-+}
-+
-+
-+/*
-+ * The hmac protects against offline attacks.  Only new files which do not have
-+ * an hmac are acceptable, any other file report as "fail".
-+ */
-+static int evm_verify_hmac(struct dentry *dentry, struct evm_iint_cache *iint)
-+{
-+	int rc = 0;
-+	char hmac_val[MAX_DIGEST_SIZE];
-+	char *fname;
-+
-+	memset(hmac_val, 0, sizeof hmac_val);
-+	rc = evm_calc_hmac(dentry, hmac_val);
-+	if (rc < 0)
-+		return rc;
-+
-+	fname = (!dentry->d_name.name) ? " " : (char *)dentry->d_name.name;
-+	rc = evm_verify_xattr(dentry, hmac_val, evm_hmac_name, evm_hmac_size);
-+	if (rc < 0) {
-+		switch (rc) {
-+		case -ENODATA:	/* file not labelled */
-+		case -EINVAL:
-+			iint->hmac_status = INTEGRITY_FAIL;
-+			dprintk(EVM_BASE, "%s: %s rc = %s\n", __FUNCTION__,
-+				fname, rc == -ENODATA ? "ENODATA" : "EINVAL");
-+			break;
-+		default:
-+			dprintk(EVM_CACHE, "%s: %s rc = %d not EOPNOTSUPP, "
-+				"ENODATA or EPERM\n", __FUNCTION__, fname, rc);
-+			break;
-+		}
-+	} else {
-+		iint->hmac_status = INTEGRITY_PASS;
-+		dprintk(EVM_CACHE, "%s: %s HMAC verification succeeeded\n",
-+			__FUNCTION__, fname);
-+	}
-+	iint->initialized = 1;
-+	return rc;
-+}
-+
-+/*
-+ * Integrity API:
-+ * 	integrity_verify_metadata()
-+ *  	integrity_verify_data()
-+ *  	integrity_measure()
-+ */
-+static int evm_verify_metadata(struct dentry *dentry, char *xattr_name,
-+			       char **xattr_value, int *xattr_value_len,
-+			       int *status)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct evm_iint_cache *iint;
-+	char *value;
-+	int size, error = 0, rc;
-+
-+	if (!status)
-+		return -EINVAL;
-+
-+	/* get requested extended attribute */
-+	if (xattr_name && xattr_value && xattr_value_len) {
-+		size = vfs_getxattr(dentry, xattr_name, NULL, 0);
-+		if (size < 0) {
-+			if (size == -ENODATA) {
-+				*status = INTEGRITY_NOLABEL;
-+				dprintk(EVM_CACHE, "%s: %s -ENODATA \n",
-+					__FUNCTION__, dentry->d_name.name);
-+			}
-+			return size;
-+		}
-+		value = kzalloc(size + 1, GFP_KERNEL);
-+		if (!value)
-+			return -ENOMEM;
-+
-+		error = vfs_getxattr(dentry, xattr_name, value, size);
-+		*xattr_value_len = size;
-+		*xattr_value = value;
-+	}
-+
-+	/* verify metadata integrity and set return status */
-+	if (!evm_initialized)
-+		*status = INTEGRITY_PASS;
-+	else {
-+		iint = inode->i_integrity;
-+		mutex_lock(&iint->mutex);
-+		if (!iint->initialized &&
-+			((iint->mtime.tv_sec != 0) || S_ISDIR(inode->i_mode)))
-+			rc = evm_verify_hmac(dentry, iint);
-+		*status = iint->hmac_status;
-+		mutex_unlock(&iint->mutex);
-+	}
-+	return error;
-+}
-+
-+/*
-+ * Convert memory to a hex string
-+ */
-+int mem2hex(char *mem, char *buffer, int count)
-+{
-+	const char hexchars[] = "0123456789abcdef";
-+	int i;
-+	char *buf = buffer;
-+	int ch;
-+
-+	memset(buffer, 0, count);
-+	for (i = 0; i < count; i++) {
-+		ch = (int)*mem++;
-+		*buf++ = hexchars[(ch >> 4) & 0xf];
-+		*buf++ = hexchars[ch & 0xf];
-+	}
-+	return (buf - buffer);
-+}
-+
-+enum integrity_status evm_verify_hash(struct dentry *dentry, char *hash)
-+{
-+	enum integrity_status hash_status;
-+	char hash_str[MAX_STR_SIZE + 11];
-+	int rc, len;
-+
-+	len = mem2hex(hash, hash_str, hash_digest_size);
-+	rc = evm_verify_xattr(dentry, hash_str, evm_hash_name, hash_str_size);
-+
-+	if (rc < 0) {
-+		switch (rc) {
-+		case -EOPNOTSUPP:
-+			hash_status = INTEGRITY_PASS;
-+			dprintk(EVM_CACHE, "%s: %s -EOPNOTSUPP \n",
-+				__FUNCTION__, dentry->d_name.name);
-+			break;
-+		case -ENODATA:	/* file not labelled */
-+			hash_status = INTEGRITY_NOLABEL;
-+			dprintk(EVM_CACHE, "%s: %s -ENODATA \n",
-+				__FUNCTION__, dentry->d_name.name);
-+			break;
-+		case -EINVAL:
-+		default:
-+			hash_status = INTEGRITY_FAIL;
-+			dprintk(EVM_CACHE, "%s: %s -EINVAL \n",
-+				__FUNCTION__, dentry->d_name.name);
-+			break;
-+		}
-+	} else
-+		hash_status = INTEGRITY_PASS;
-+
-+	dprintk(EVM_CACHE, "%s: %s rc %d\n",
-+		__FUNCTION__, dentry->d_name.name, rc);
-+	return hash_status;
-+}
-+
-+static int evm_verify_data(struct dentry *dentry, int *status)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct evm_iint_cache *iint;
-+	int rc = 0;
-+
-+	if (!S_ISREG(inode->i_mode) && !S_ISLNK(inode->i_mode)) {
-+		if (status)
-+			*status = INTEGRITY_PASS;
-+		return 0;
-+	}
-+	if (!inode->i_op || !inode->i_op->getxattr) {
-+		dprintk(EVM_CACHE, "%s: %s no xattr \n",
-+			__FUNCTION__, dentry->d_name.name);
-+		if (status)
-+			*status = INTEGRITY_PASS;
-+		return 0;
-+	}
-+
-+	iint = inode->i_integrity;
-+	mutex_lock(&iint->mutex);
-+
-+	if (!iint->hashed) {
-+		enum integrity_status hash_status = INTEGRITY_PASS;
-+
-+		iint->hashed = 0;
-+		rc = evm_calc_hash(dentry, NULL, iint->hash, evm_hash_type);
-+		if (rc == 0)
-+			hash_status = evm_verify_hash(dentry, iint->hash);
-+		iint->hashed = 1;
-+		iint->hash_status = hash_status;
-+	}
-+
-+	dprintk(EVM_CACHE, "%s: %s is_hashed status %d\n",
-+		__FUNCTION__, dentry->d_name.name, iint->hash_status);
-+
-+	*status = iint->hash_status;
-+	mutex_unlock(&iint->mutex);
-+	return rc;
-+}
-+
-+/* what could we exclude
-+ *   - non-executable/non-library files ?
-+ *   - /proc /dev ?
-+ * Only measure files opened for read-only or execute
-+ */
-+static int skip_measurement(struct inode *inode, int mask)
-+{
-+	if ((inode->i_sb->s_magic == PROC_SUPER_MAGIC) ||
-+	    (inode->i_sb->s_magic == SYSFS_MAGIC)) {
-+		return 1;	/*can't measure */
-+	}
-+	if (special_file(inode->i_mode) || S_ISLNK(inode->i_mode))
-+		return 1;	/* don't measure */
-+
-+	if (S_ISREG(inode->i_mode)
-+	    && ((mask == MAY_READ) || (mask == MAY_EXEC))
-+	    && (mask != MAY_WRITE) && (mask != MAY_APPEND))
-+		return 0;	/* measure */
-+	return 1;		/* don't measure */
-+}
-+
-+/*
-+ * Must be called with the dentry, as opposed to the inode, as we need to be
-+ * able to open the file, using dentry_open(), in order to calculate the hash.
-+ */
-+static void evm_measure(struct dentry *dentry,
-+			const unsigned char *filename, int mask)
-+{
-+	struct inode *inode;
-+	struct evm_iint_cache *iint;
-+
-+	if (!evm_enable_ima)
-+		return;
-+
-+	if (!dentry || !dentry->d_inode) {
-+		dprintk(EVM_BASE, "%s: %s null dentry or inode\n",
-+			__FUNCTION__, filename);
-+		return;
-+	}
-+
-+	inode = dentry->d_inode;
-+	if (skip_measurement(inode, mask))
-+		return;
-+
-+	iint = inode->i_integrity;
-+	mutex_lock(&iint->mutex);
-+	if (!iint->measured) {
-+		int rc = 0;
-+
-+		dprintk(EVM_IMA, "%s: %s not measured\n",
-+			__FUNCTION__, filename);
-+		if (!iint->hashed) {
-+			enum integrity_status hash_status = INTEGRITY_PASS;
-+
-+			dprintk(EVM_IMA, "%s: %s not hashed\n",
-+				__FUNCTION__, filename);
-+			rc = evm_calc_hash(dentry, NULL, iint->hash,
-+					   evm_hash_type);
-+			iint->hashed = 1;
-+			if (rc == 0)
-+				hash_status =
-+				    evm_verify_hash(dentry, iint->hash);
-+			iint->hash_status = hash_status;
-+		}
-+		evm_ima_measure(filename, SHA1_DIGEST_SIZE, iint->hash);
-+		iint->measured = 1;
-+	}
-+	mutex_unlock(&iint->mutex);
-+	return;
-+}
-+
-+static inline void timespec_set(struct timespec *to, struct timespec *from)
-+{
-+	to->tv_sec = from->tv_sec;
-+	to->tv_nsec = from->tv_nsec;
-+}
-+
-+/*
-+ * HMAC the initial extended attribute from security_inode_init_security.
-+ */
-+static void evm_inode_init_hmac(struct inode *inode, struct inode *dir,
-+			       char **name, void **value, size_t * len)
-+{
-+	char *hmac_name = XATTR_HMAC_SUFFIX;
-+	char hmac_val[MAX_DIGEST_SIZE];
-+	struct evm_iint_cache *iint = inode->i_integrity;
-+
-+	/* Indicate a new file */
-+	mutex_lock(&iint->mutex);
-+	iint->mtime.tv_sec = 0;
-+	iint->hmac_status = INTEGRITY_NOLABEL;
-+
-+	if (!evm_initialized) {	/* Can't calc hmac yet. */
-+		mutex_unlock(&iint->mutex);
-+		return;
-+	}
-+
-+	if (!name || !value || !len) {
-+		mutex_unlock(&iint->mutex);
-+		return;
-+	}
-+
-+	memset(hmac_val, 0, sizeof hmac_val);
-+	evm_init_integrity(inode, dir, *name, *value, *len, hmac_val);
-+
-+	*name = kstrdup(hmac_name, GFP_KERNEL);
-+	*len = MAX_DIGEST_SIZE;
-+	*value = kmalloc(*len, GFP_KERNEL);
-+	memcpy(*value, hmac_val, *len);
-+
-+	mutex_unlock(&iint->mutex);
-+	return;
-+}
-+
-+/*
-+ * For a process to modify any "security.evm." extended attributes
-+ * included in the "security.evm.hmac", as defined in /etc/evm.config,
-+ * the process must have system admin capabilities.  The ability to
-+ * modify other extended attributes included in the hmac, are assumed
-+ * to be controlled by the concerned kernel module's inode_setxattr().
-+ * For example, slim permits a process to write the "security.slim.level"
-+ * extended attribute up to the process' integrity level.
-+ */
-+int evm_inode_setxattr(struct dentry *dentry, char *name, void *value,
-+		       size_t size, int flags)
-+{
-+	int error = 0;
-+	struct evm_xattr_config *config_p;
-+	char *xattr_flags = XATTR_SECURITY_PREFIX XATTR_FLAGS_SUFFIX;
-+	int xattr_flags_len =XATTR_SECURITY_PREFIX_LEN + XATTR_FLAGS_SUFFIX_LEN;
-+	char *xattr_evm = XATTR_SECURITY_PREFIX XATTR_EVM_SUFFIX;
-+	int xattr_evm_len = XATTR_SECURITY_PREFIX_LEN + XATTR_EVM_SUFFIX_LEN;
-+
-+	if (!evm_initialized)	/* Can't calc hmac yet. */
-+		return 0;
-+
-+	if (!name || !value) {
-+		printk(KERN_INFO "%s: name | value is null \n", __FUNCTION__);
-+		return -EINVAL;
-+	}
-+
-+	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum) {
-+		if (strncmp(name, config_p->xattr_name, strlen(name)) != 0)
-+			continue;
-+
-+		if ((!capable(CAP_SYS_ADMIN)) && (evm_install)) {
-+			if ((strncmp(name, XATTR_SECURITY_PREFIX,
-+					XATTR_SECURITY_PREFIX_LEN) != 0))
-+				error = -EPERM;
-+		} else if ((!capable(CAP_SYS_ADMIN))
-+			 && (strncmp(name, xattr_evm, xattr_evm_len) == 0))
-+			error = -EPERM;
-+		else if (strncmp(name, xattr_flags, xattr_flags_len) == 0) {
-+			struct inode *inode = dentry->d_inode;
-+			struct evm_iint_cache *iint;
-+
-+			iint = inode->i_integrity;
-+			mutex_lock(&iint->mutex);
-+			if (strncmp(value, FIXED_STR, FIXED_STR_LEN) == 0)
-+				iint->hash_flags |= EVM_HASH_FIXED;
-+			else
-+				iint->hash_flags |= EVM_HASH_NONE;
-+			mutex_unlock(&iint->mutex);
-+		}
-+		break;
-+	}
-+	dprintk(EVM_XATTR, "%s: %s %s(%d - %s)\n", __FUNCTION__,
-+		(!dentry->d_name.name) ? " " : (char *)dentry->d_name.
-+		name, error == 0 ? "succeeded" : "failed", error, name);
-+	return error;
-+}
-+
-+/*
-+ * After updating/removing an extended attribute defined in /etc/evm.config,
-+ * calculate and save the new hmac, assuming the current hmac is valid.
-+ */
-+void evm_inode_hmacxattr(struct dentry *dentry, char *name)
-+{
-+	struct evm_xattr_config *config_p;
-+
-+	if (!evm_initialized)	/* Can't calc hmac yet. */
-+		return;
-+
-+	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum) {
-+		if (strncmp(name, config_p->xattr_name, strlen(name)) == 0) {
-+			struct inode *inode = dentry->d_inode;
-+			struct evm_iint_cache *iint=inode->i_integrity;
-+			int rc = 0;
-+
-+			mutex_lock(&iint->mutex);
-+			rc = evm_update_hmac(dentry, 0);
-+			mutex_unlock(&iint->mutex);
-+			dprintk(EVM_XATTR, "%s: %s hmac calc %s\n",
-+				__FUNCTION__, (!dentry->d_name.name)
-+				? " " : (char *)dentry->d_name.name,
-+				rc == 0 ? "succeeded" : "failed");
-+			break;
-+		}
-+	}
-+}
-+
-+/*
-+ * Write an extended attribute included in /etc/evm.conf and update
-+ * the security.evm.hmac, assuming the current hmac is valid.
-+ */
-+static int evm_setxattr(struct dentry *dentry, char *name, void *value,
-+			size_t size, int flags)
-+{
-+	struct evm_xattr_config *config_p;
-+	int rc = -1;
-+
-+	if (!evm_initialized)	/* Can't calc hmac yet. */
-+		return 0;
-+
-+	if (!value || !name)
-+		return -EINVAL;
-+
-+	if (!dentry->d_inode || !dentry->d_inode->i_op) {
-+		dprintk(EVM_XATTR, "%s: dentry->d_inode or ->i_op is null \n",
-+			__FUNCTION__);
-+		return -EINVAL;
-+	}
-+
-+	if (!dentry->d_inode->i_op->setxattr) {
-+		dprintk(EVM_XATTR, "%s: i_op->setxattr is null \n",
-+			__FUNCTION__);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	/*
-+	 * Must use setxattr directly, as vfs_setxattr calls
-+	 * integrity_inode_setxattr, which prevents processes without
-+	 * CAP_SYS_ADMIN from updating security.evm.XXXX extended attributes.
-+	 */
-+	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum) {
-+		if (strncmp(name, config_p->xattr_name, strlen(name)) == 0) {
-+			rc = dentry->d_inode->i_op->setxattr(dentry, name,
-+							     value, size,
-+							     flags);
-+			if (!rc)
-+				rc = evm_update_hmac(dentry, flags);
-+
-+			break;
-+		}
-+	}
-+	return rc;
-+}
-+
-+/*
-+ * Convert the hash value to a string and write out the hash extended attribute,
-+ * assuming the file hash is not fixed (immutable) or the file should be
-+ * unhashed.
-+ *
-+ * Call with iint->i_mutex locked.
-+ */
-+static void evm_set_hashxattr(struct dentry *dentry, char *hash)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct evm_iint_cache *iint;
-+	char hash_str[MAX_STR_SIZE + 11];
-+	int len, rc;
-+
-+	iint = inode->i_integrity;
-+
-+	if ((iint->hash_flags & EVM_HASH_FIXED) == EVM_HASH_FIXED) {
-+		enum integrity_status hash_status;
-+
-+		hash_status = evm_verify_hash(dentry, iint->hash);
-+		if (hash_status != INTEGRITY_PASS) {
-+			iint->hash_status = INTEGRITY_FAIL;
-+			dprintk(EVM_CACHE, "%s: %s - hash changed\n",
-+				__FUNCTION__, dentry->d_name.name);
-+		}
-+		return;
-+	} else if ((iint->hash_flags & EVM_HASH_NONE) == EVM_HASH_NONE) {
-+		dprintk(EVM_CACHE, "%s: %s - no hash\n",
-+			__FUNCTION__, dentry->d_name.name);
-+		return;
-+	}
-+
-+	len = mem2hex(hash, hash_str, hash_digest_size);
-+	dprintk(EVM_CACHE, "%s: flags %d len %d %32s\n", __FUNCTION__,
-+		iint->hash_flags, len, hash_str);
-+	rc = evm_setxattr(dentry, evm_hash_name, hash_str, len, 0);
-+	iint->hash_status = INTEGRITY_PASS;
-+
-+	return;
-+}
-+
-+/*
-+ * Calculate the new hash and update the extended attribute.
-+ * Called with iint->i_mutex locked.
-+ */
-+static void evm_update_hash(struct file *file)
-+{
-+	mode_t sav_fmode;
-+	struct inode *inode = file->f_dentry->d_inode;
-+	struct evm_iint_cache *iint;
-+	int rc;
-+
-+	sav_fmode = file->f_mode;
-+	file->f_mode |= FMODE_READ;
-+
-+	iint = inode->i_integrity;
-+	iint->measured = 0;
-+	iint->hashed = 0;
-+	rc = evm_calc_hash(NULL, file, iint->hash, evm_hash_type);
-+	iint->hashed = 1;
-+
-+	file->f_mode = sav_fmode;
-+	if (rc == 0)
-+		evm_set_hashxattr(file->f_dentry, iint->hash);
-+}
-+
-+/*
-+ * When files are opened/closed in quick succession, the mtime
-+ * might not be granular enough, resulting in the mtime remaining
-+ * unchanged.
-+ *
-+ * Use to prevent changes from not being detected.
-+ */
-+static inline int timespec_recent(struct timespec *a)
-+{
-+	return CURRENT_TIME.tv_sec - a->tv_sec <= 1 ? 1 : 0;
-+}
-+
-+/*
-+ * Called on close
-+ *  - Except for fixed hash(immutable), no hash, or invalid integrity files,
-+ *    update the evm.hash extended attribute value and reflect the change in
-+ *    the hmac.
-+ */
-+static void evm_file_free(struct file *file)
-+{
-+	struct inode *inode = NULL;
-+	struct evm_iint_cache *iint;
-+
-+	if (!file->f_dentry)	/* can be NULL */
-+		return;
-+
-+	inode = file->f_dentry->d_inode;
-+	if (S_ISDIR(inode->i_mode))
-+		return;
-+	if ((file->f_mode & FMODE_WRITE) &&
-+		(atomic_read(&inode->i_writecount) == 1)) {
-+		iint = inode->i_integrity;
-+		mutex_lock(&iint->mutex);
-+		if ((!timespec_equal(&iint->mtime, &inode->i_mtime))
-+			|| timespec_recent(&iint->mtime)) {
-+			evm_update_hash(file);
-+			timespec_set(&iint->mtime, &inode->i_mtime);
-+			iint->measured = 0;
-+		}
-+		mutex_unlock(&iint->mutex);
-+	}
-+}
-+
-+static struct evm_iint_cache *evm_alloc_integrity(void)
-+{
-+	struct evm_iint_cache *iint;
-+
-+	iint = kzalloc(sizeof(struct evm_iint_cache), GFP_KERNEL);
-+	if (!iint)
-+		return NULL;
-+
-+	mutex_init(&iint->mutex);
-+	return iint;
-+}
-+
-+static int evm_inode_alloc_integrity(struct inode *inode)
-+{
-+	struct evm_iint_cache *iint;
-+
-+	iint = evm_alloc_integrity();
-+	if (!iint)
-+		return -ENOMEM;
-+
-+	inode->i_integrity = iint;
-+	timespec_set(&iint->mtime, &inode->i_mtime);
-+	return 0;
-+}
-+
-+static void evm_inode_free_integrity(struct inode *inode)
-+{
-+	struct evm_iint_cache *iint = inode->i_integrity;
-+
-+	if (iint){
-+		inode->i_integrity = NULL; /* XXXX */
-+		kfree(iint);
-+	}
-+}
-+
-+/*
-+ * Initialize the flags field based on the security.evm.flags extended
-+ * attribute, which contains either "FIXED" or "UNHASHED". The FIXED flags
-+ * value indicates the file is immutable and that the hash should never
-+ * be updated.  The UNHASHED flags value indicates that the file should
-+ * never be hashed.
-+ */
-+static void evm_update_hashflags(struct dentry *dentry,
-+				 struct evm_iint_cache *iint)
-+{
-+	ssize_t error;
-+	char *xattr_flags = XATTR_SECURITY_PREFIX XATTR_FLAGS_SUFFIX;
-+	char *xattr_value;
-+	int xattr_size;
-+
-+	xattr_size = vfs_getxattr(dentry, xattr_flags, NULL, 0);
-+	if (xattr_size < 0)
-+		return;
-+
-+	xattr_value = kzalloc(xattr_size, GFP_KERNEL);
-+	if (!xattr_value)
-+		return;
-+
-+	error = vfs_getxattr(dentry, xattr_flags, xattr_value, xattr_size);
-+	if (error > 0) {
-+		if (strncmp(xattr_value, FIXED_STR, FIXED_STR_LEN) == 0)
-+			iint->hash_flags |= EVM_HASH_FIXED;
-+		else
-+			iint->hash_flags |= EVM_HASH_NONE;
-+	}
-+	kfree(xattr_value);
-+}
-+
-+/*
-+ * Verify the integrity of the hmac and reflect the result in
-+ * iint->hmac_status.
-+ *
-+ * Exception: new_inodes defined as mtime == 0
-+ */
-+static void evm_d_instantiate(struct dentry *dentry, struct inode *inode)
-+{
-+	struct evm_iint_cache *iint;
-+	ssize_t error;
-+
-+	if (!evm_initialized)	/* Can't calc hmac yet. */
-+		return;
-+
-+	if (!inode)
-+		return;
-+
-+	if (!inode->i_op || !inode->i_op->getxattr)
-+		return;
-+
-+	iint = inode->i_integrity;
-+	mutex_lock(&iint->mutex);
-+	if (!iint->initialized) {
-+		if ((iint->mtime.tv_sec != 0) || S_ISDIR(inode->i_mode))
-+			error = evm_verify_hmac(dentry, iint);
-+		evm_update_hashflags(dentry, iint);
-+	}
-+	mutex_unlock(&iint->mutex);
-+}
-+
-+/*
-+ * For all inodes allocate inode->i_integrity(iint), before the integrity
-+ * subsystem is enabled.
-+ */
-+static void evm_fixup_inodes(void)
-+{
-+	struct super_block *sb;
-+
-+	spin_lock(&sb_lock);
-+	list_for_each_entry(sb, &super_blocks, s_list) {
-+		struct inode *inode;
-+
-+		spin_unlock(&sb_lock);
-+
-+		spin_lock(&inode_lock);
-+		list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-+			spin_unlock(&inode_lock);
-+
-+			spin_lock(&inode->i_lock);
-+			if (!inode->i_integrity)
-+				evm_inode_alloc_integrity(inode);
-+			spin_unlock(&inode->i_lock);
-+
-+			spin_lock(&inode_lock);
-+		}
-+		spin_unlock(&inode_lock);
-+
-+		spin_lock(&sb_lock);
-+	}
-+	spin_unlock(&sb_lock);
-+}
-+
-+static struct integrity_operations evm_integrity_ops = {
-+	.verify_metadata = evm_verify_metadata,
-+	.verify_data = evm_verify_data,
-+	.measure = evm_measure,
-+	.inode_init_integrity = evm_inode_init_hmac,
-+	.inode_setxattr = evm_inode_setxattr,
-+	.inode_post_setxattr = evm_inode_hmacxattr,
-+	.inode_alloc_integrity = evm_inode_alloc_integrity,
-+	.inode_free_integrity = evm_inode_free_integrity,
-+	.file_free_integrity = evm_file_free,
-+	.d_instantiate = evm_d_instantiate
-+};
-+
-+static struct integrity_operations evm_install_ops = {
-+	.inode_post_setxattr = evm_inode_hmacxattr,
-+	.inode_alloc_integrity = evm_inode_alloc_integrity,
-+	.inode_free_integrity = evm_inode_free_integrity
-+};
-+
-+static void evm_enable_integrity(void)
-+{
-+	if (evm_install) {
-+		register_integrity(&evm_install_ops);
-+		dprintk(EVM_BASE, "%s: Enabled EVM install mode\n",
-+			__FUNCTION__);
-+	} else
-+		register_integrity(&evm_integrity_ops);
-+}
-+
-+static void evm_cleanup_integrity(void)
-+{
-+	if (evm_install)
-+		unregister_integrity(&evm_install_ops);
-+	else
-+		unregister_integrity(&evm_integrity_ops);
-+}
-+
-+static struct crypto_hash *tfm_hash, *tfm_hmac; /* preload crypto alg */
-+static int __init init_evm(void)
-+{
-+	int error;
-+
-+	if (strncmp(evm_hash, "sha1", 4) == 0) {
-+		evm_hash_type = EVM_TYPE_SHA1;
-+		hash_digest_size = SHA1_DIGEST_SIZE;
-+		hash_str_size = SHA1_STR_SIZE;
-+		evm_hash_name = XATTR_SECURITY_PREFIX XATTR_SHA1_SUFFIX;
-+	}
-+	tfm_hash = crypto_alloc_hash(evm_hash, 0, CRYPTO_ALG_ASYNC);
-+	tfm_hmac = crypto_alloc_hash(evm_hmac, 0, CRYPTO_ALG_ASYNC);
-+
-+	error = evm_init_secfs();
-+	if (error < 0)
-+		dprintk(EVM_BASE, "%s: Error registering secfs|debugfs\n",
-+			__FUNCTION__);
-+
-+	error = evm_ima_init();
-+	if (error < 0)
-+		dprintk(EVM_BASE, "%s: Error enabling ima\n",
-+			__FUNCTION__);
-+	evm_fixup_inodes();
-+	evm_enable_integrity();
-+
-+	return error;
-+}
-+
-+static void __exit cleanup_evm(void)
-+{
-+	evm_cleanup_secfs();
-+	evm_cleanup_config();
-+	evm_cleanup_integrity();
-+	evm_ima_cleanup();
-+	crypto_free_hash(tfm_hash);
-+	crypto_free_hash(tfm_hmac);
-+	dprintk(EVM_BASE, "%s: %s completed\n", __FUNCTION__,
-+		evm_install ? "install mode" : "");
-+}
-+
-+late_initcall(init_evm);
-+module_exit(cleanup_evm);
-+
-+MODULE_DESCRIPTION("Extended Verification Module");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null security/evm/evm_secfs.c
---- /dev/null
-+++ a/security/evm/evm_secfs.c
-@@ -0,0 +1,201 @@
-+/*
-+ * evm securityfs support for config and debug control
-+ *
-+ * Copyright (C) 2005,2006,2007 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ * 	   Kylene Hall <kjhall@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+#include <asm/uaccess.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/security.h>
-+#include <linux/debugfs.h>
-+#include "evm.h"
-+
-+extern int evm_initialized;
-+
-+static struct dentry *evm_secdir, *evm_config;
-+static struct dentry *evm_dir, *evm_cache, *evm_crypto, *evm_xattr;
-+
-+static int evm_open_debug(struct inode *inode, struct file *file)
-+{
-+	if (inode->i_private)
-+		file->private_data = inode->i_private;
-+	return 0;
-+}
-+
-+/*
-+ * Once EVM is configured, remove option to update it.
-+ */
-+static void evm_disable_config(void)
-+{
-+	securityfs_remove(evm_config);
-+	evm_config = NULL;
-+	securityfs_remove(evm_secdir);
-+	evm_secdir = NULL;
-+}
-+
-+static ssize_t evm_read_debug(struct file *file, char __user * buf,
-+			      size_t buflen, loff_t * ppos)
-+{
-+	ssize_t len;
-+	char *page;
-+
-+	page = (char *)__get_free_page(GFP_KERNEL);
-+	if (!page)
-+		return -ENOMEM;
-+
-+	if (strcmp(file->private_data, "cache") == 0)
-+		len = sprintf(page, "evm_debug: cache: %s\n",
-+			      ((evm_debug & EVM_CACHE) == EVM_CACHE)
-+			      ? "ON" : "OFF");
-+	else if (strcmp(file->private_data, "xattr") == 0)
-+		len = sprintf(page, "evm_debug: xattr: %s\n",
-+			      ((evm_debug & EVM_XATTR) == EVM_XATTR)
-+			      ? "ON" : "OFF");
-+	else if (strcmp(file->private_data, "crypto") == 0)
-+		len = sprintf(page, "evm_debug: crypto: %s\n",
-+			      ((evm_debug & EVM_CRYPTO) == EVM_CRYPTO)
-+			      ? "ON" : "OFF");
-+	else
-+		len = sprintf(page, "unknown evm_debug option\n");
-+
-+	len = simple_read_from_buffer(buf, buflen, ppos, page, len);
-+	free_page((unsigned long)page);
-+	return len;
-+}
-+
-+static ssize_t evm_write_debug(struct file *file, const char __user * buf,
-+			       size_t buflen, loff_t * ppos)
-+{
-+	char flag;
-+
-+	if (copy_from_user(&flag, buf, 1))
-+		return -EFAULT;
-+
-+	if (strcmp(file->private_data, "cache") == 0)
-+		evm_debug = (flag == '0') ? evm_debug & ~EVM_CACHE :
-+		    evm_debug | EVM_CACHE;
-+	else if (strcmp(file->private_data, "xattr") == 0)
-+		evm_debug = (flag == '0') ? evm_debug & ~EVM_XATTR :
-+		    evm_debug | EVM_XATTR;
-+	else if (strcmp(file->private_data, "crypto") == 0)
-+		evm_debug = (flag == '0') ? evm_debug & ~EVM_CRYPTO :
-+		    evm_debug | EVM_CRYPTO;
-+	return buflen;
-+}
-+
-+static ssize_t evm_write_secfs(struct file *file, const char __user * buf,
-+			       size_t buflen, loff_t * ppos)
-+{
-+	size_t rc = buflen;
-+	char *data;
-+	int error;
-+
-+	struct evm_xattr_config *evm_data = NULL;
-+	int evm_datasize;
-+
-+	error = evm_init_tpmkernkey();
-+	if (error < 0) {
-+		dprintk(EVM_BASE, "%s: tpmkernkey initialization failed \n",
-+			__FUNCTION__);
-+		return error;
-+	} else
-+		dprintk(EVM_BASE, "%s: tpmkernkey initialized\n", __FUNCTION__);
-+
-+	data = kmalloc(buflen + 1, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(data, buf, buflen)) {
-+		kfree(data);
-+		return -EFAULT;
-+	}
-+
-+	*(data + buflen) = ' ';
-+	evm_data = evm_parse_config(data, buflen, &evm_datasize);
-+	if (!evm_data) {
-+		kfree(data);
-+		return -ENOMEM;
-+	}
-+
-+	if (evm_init_config(evm_data, evm_datasize) < 0) {
-+		dprintk(EVM_BASE, "%s: invalid config file\n", __FUNCTION__);
-+		rc = -EINVAL;
-+	} else {
-+		evm_disable_config();
-+		evm_initialized = 1;
-+	}
-+
-+	kfree(data);
-+	return rc;
-+}
-+
-+static struct file_operations evm_ops = {
-+	.write = evm_write_secfs,
-+};
-+
-+static struct file_operations evm_debug_ops = {
-+	.read = evm_read_debug,
-+	.write = evm_write_debug,
-+	.open = evm_open_debug,
-+};
-+
-+int __init evm_init_secfs(void)
-+{
-+	evm_secdir = securityfs_create_dir("evm", NULL);
-+	if (!evm_secdir || IS_ERR(evm_secdir))
-+		return -EFAULT;
-+
-+	evm_config = securityfs_create_file("config",
-+					    S_IRUSR | S_IRGRP | S_IWUSR,
-+					    evm_secdir, NULL, &evm_ops);
-+	if (!evm_config || IS_ERR(evm_config))
-+		goto out_del_secdir;
-+	evm_dir = debugfs_create_dir("evm", NULL);
-+	if (!evm_dir || IS_ERR(evm_dir))
-+		goto out_del_config;
-+	evm_cache = debugfs_create_file("cache", S_IRUSR | S_IRGRP,
-+					evm_dir, "cache", &evm_debug_ops);
-+	if (!evm_cache || IS_ERR(evm_cache))
-+		goto out_del_dir;
-+	evm_crypto = debugfs_create_file("crypto", S_IRUSR | S_IRGRP, evm_dir,
-+					 "crypto", &evm_debug_ops);
-+	if (!evm_crypto || IS_ERR(evm_crypto))
-+		goto out_del_cache;
-+
-+	evm_xattr = debugfs_create_file("xattr", S_IRUSR | S_IRGRP, evm_dir,
-+					"xattr", &evm_debug_ops);
-+	if (!evm_xattr || IS_ERR(evm_xattr))
-+		goto out_del_crypto;
-+	return 0;
-+
-+out_del_crypto:
-+	debugfs_remove(evm_crypto);
-+out_del_cache:
-+	debugfs_remove(evm_cache);
-+out_del_dir:
-+	debugfs_remove(evm_dir);
-+out_del_config:
-+	securityfs_remove(evm_config);
-+out_del_secdir:
-+	securityfs_remove(evm_secdir);
-+	return -EFAULT;
-+}
-+
-+void __exit evm_cleanup_secfs(void)
-+{
-+	debugfs_remove(evm_xattr);
-+	debugfs_remove(evm_crypto);
-+	debugfs_remove(evm_cache);
-+	debugfs_remove(evm_dir);
-+	if (evm_config)
-+		securityfs_remove(evm_config);
-+	if (evm_secdir)
-+		securityfs_remove(evm_secdir);
-+}
-diff -puN fs/sysfs/mount.c~integrity-evm-as-an-integrity-service-provider fs/sysfs/mount.c
---- a/fs/sysfs/mount.c~integrity-evm-as-an-integrity-service-provider
-+++ a/fs/sysfs/mount.c
-@@ -6,15 +6,13 @@
- 
- #include <linux/fs.h>
- #include <linux/mount.h>
-+#include <linux/magic.h>
- #include <linux/pagemap.h>
- #include <linux/init.h>
- #include <asm/semaphore.h>
- 
- #include "sysfs.h"
- 
--/* Random magic number */
--#define SYSFS_MAGIC 0x62656572
--
- struct vfsmount *sysfs_mount;
- struct super_block * sysfs_sb = NULL;
- struct kmem_cache *sysfs_dir_cachep;
-diff -puN include/linux/magic.h~integrity-evm-as-an-integrity-service-provider include/linux/magic.h
---- a/include/linux/magic.h~integrity-evm-as-an-integrity-service-provider
-+++ a/include/linux/magic.h
-@@ -21,6 +21,7 @@
- #define MINIX2_SUPER_MAGIC	0x2468		/* minix V2 fs */
- #define MINIX2_SUPER_MAGIC2	0x2478		/* minix V2 fs, 30 char names */
- #define MINIX3_SUPER_MAGIC	0x4d5a		/* minix V3 fs */
-+#define SYSFS_MAGIC		0x62656572
- 
- #define MSDOS_SUPER_MAGIC	0x4d44		/* MD */
- #define NCP_SUPER_MAGIC		0x564c		/* Guess, what 0x564c is :-) */
-diff -puN include/linux/namei.h~integrity-evm-as-an-integrity-service-provider include/linux/namei.h
---- a/include/linux/namei.h~integrity-evm-as-an-integrity-service-provider
-+++ a/include/linux/namei.h
-@@ -97,6 +97,7 @@ extern int follow_up(struct vfsmount **,
- 
- extern struct dentry *lock_rename(struct dentry *, struct dentry *);
- extern void unlock_rename(struct dentry *, struct dentry *);
-+extern int kernel_readlink(struct dentry *dentry, char **buffer, int *buflen);
- 
- static inline void nd_set_link(struct nameidata *nd, char *path)
+ 	securityfs_remove(violations);
+ 	securityfs_remove(runtime_measurements_count);
+diff -puN security/evm/ima/ima_init.c~integrity-ima-identifiers security/evm/ima/ima_init.c
+--- a/security/evm/ima/ima_init.c~integrity-ima-identifiers
++++ a/security/evm/ima/ima_init.c
+@@ -28,18 +28,18 @@ int ima_used_chip;
+ static void ima_add_boot_aggregate(void)
  {
+ 	/* cumulative sha1 over tpm registers 0-7 */
+-	struct measure_entry *entry;
++	struct ima_measure_entry *entry;
+ 	size_t count;
+ 	int err;
+ 
+ 	/* create new entry for boot aggregate */
+-	entry = kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
++	entry = kzalloc(sizeof(struct ima_measure_entry), GFP_ATOMIC);
+ 	if (entry == NULL) {
+ 		ima_invalidate_pcr("error allocating new measurement entry");
+ 		return;
+ 	}
+-	if ((count = strlen(boot_aggregate_name)) > TCG_EVENT_NAME_LEN_MAX)
+-		count = TCG_EVENT_NAME_LEN_MAX;
++	if ((count = strlen(boot_aggregate_name)) > IMA_EVENT_NAME_LEN_MAX)
++		count = IMA_EVENT_NAME_LEN_MAX;
+ 	memcpy(entry->file_name, boot_aggregate_name, count);
+ 	entry->file_name[count] = '\0';
+ 	if (ima_used_chip) {
+@@ -103,7 +103,7 @@ int ima_init(void)
+ 		ima_info("No TPM chip found(rc = %d), activating TPM-bypass!\n",
+ 			rc);
+ 
+-	create_htable();	/* for measurements */
++	ima_create_htable();	/* for measurements */
+ 
+ 	/* boot aggregate must be very first entry */
+ 	ima_add_boot_aggregate();
+diff -puN security/evm/ima/ima_main.c~integrity-ima-identifiers security/evm/ima/ima_main.c
+--- a/security/evm/ima/ima_main.c~integrity-ima-identifiers
++++ a/security/evm/ima/ima_main.c
+@@ -41,7 +41,7 @@
+  */
+ void ima_measure(const unsigned char *name, int hash_len, char *hash)
+ {
+-	struct measure_entry *entry;
++	struct ima_measure_entry *entry;
+ 	u8 digest[IMA_DIGEST_SIZE];
+ 	int err = 0, count;
+ 
+@@ -64,15 +64,15 @@ void ima_measure(const unsigned char *na
+ 		return;
+ 
+ 	/* create new entry and add to measurement list */
+-	entry = kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
++	entry = kzalloc(sizeof(struct ima_measure_entry), GFP_ATOMIC);
+ 	if (!entry) {
+ 		ima_error("Error allocating new measurement entry");
+ 		return;		/* invalidate pcr */
+ 	}
+ 
+ 	entry->measure_flags = 0;
+-	if ((count = strlen(name)) > TCG_EVENT_NAME_LEN_MAX)
+-		count = TCG_EVENT_NAME_LEN_MAX;
++	if ((count = strlen(name)) > IMA_EVENT_NAME_LEN_MAX)
++		count = IMA_EVENT_NAME_LEN_MAX;
+ 
+ 	memcpy(entry->file_name, name, count);
+ 	entry->file_name[count] = '\0';
+diff -puN security/evm/ima/ima_queue.c~integrity-ima-identifiers security/evm/ima/ima_queue.c
+--- a/security/evm/ima/ima_queue.c~integrity-ima-identifiers
++++ a/security/evm/ima/ima_queue.c
+@@ -34,14 +34,14 @@ DEFINE_SPINLOCK(ima_queue_lock);
+  */
+ static DEFINE_MUTEX(ima_extend_list_mutex);
+ 
+-void create_htable(void)
++void ima_create_htable(void)
+ {
+ 	int i;
+ 
+ 	INIT_LIST_HEAD(&ima_measurements);
+ 	atomic_set(&ima_htable.len, 0);
+ 	atomic_set(&ima_htable.violations, 0);
+-	ima_htable.max_htable_size = MEASURE_HTABLE_SIZE;
++	ima_htable.max_htable_size = IMA_MEASURE_HTABLE_SIZE;
+ 
+ 	for (i = 0; i < ima_htable.max_htable_size; i++) {
+ 		INIT_HLIST_HEAD(&ima_htable.queue[i]);
+@@ -51,13 +51,13 @@ void create_htable(void)
+ 	mutex_init(&ima_extend_list_mutex);
+ }
+ 
+-struct queue_entry *ima_lookup_digest_entry(u8 * digest_value)
++struct ima_queue_entry *ima_lookup_digest_entry(u8 * digest_value)
+ {
+-	struct queue_entry *qe, *ret = NULL;
++	struct ima_queue_entry *qe, *ret = NULL;
+ 	unsigned int key;
+ 	struct hlist_node *pos;
+ 
+-	key = HASH_KEY(digest_value);
++	key = IMA_HASH_KEY(digest_value);
+ 	rcu_read_lock();
+ 	hlist_for_each_entry_rcu(qe, pos, &ima_htable.queue[key], hnext) {
+ 		if (memcmp(qe->entry->digest, digest_value, 20) == 0) {
+@@ -70,13 +70,13 @@ struct queue_entry *ima_lookup_digest_en
+ }
+ 
+ /* Called with ima_queue_lock held */
+-static int ima_add_digest_entry(struct measure_entry *entry)
++static int ima_add_digest_entry(struct ima_measure_entry *entry)
+ {
+-	struct queue_entry *qe;
++	struct ima_queue_entry *qe;
+ 	unsigned int key;
+ 
+-	key = HASH_KEY(entry->digest);
+-	qe = kmalloc(sizeof(struct queue_entry), GFP_ATOMIC);
++	key = IMA_HASH_KEY(entry->digest);
++	qe = kmalloc(sizeof(struct ima_queue_entry), GFP_ATOMIC);
+ 	if (qe == NULL) {
+ 		ima_error("OUT OF MEMORY ERROR creating queue entry.\n");
+ 		return -ENOMEM;
+@@ -88,9 +88,9 @@ static int ima_add_digest_entry(struct m
+ 	return 0;
+ }
+ 
+-int ima_add_measure_entry(struct measure_entry *entry)
++int ima_add_measure_entry(struct ima_measure_entry *entry)
+ {
+-	struct queue_entry *qe;
++	struct ima_queue_entry *qe;
+ 	int error = 0;
+ 
+ 	mutex_lock(&ima_extend_list_mutex);
+@@ -100,7 +100,7 @@ int ima_add_measure_entry(struct measure
+ 		spin_unlock(&ima_queue_lock);
+ 		goto out;
+ 	}
+-	qe = kmalloc(sizeof(struct queue_entry), GFP_ATOMIC);
++	qe = kmalloc(sizeof(struct ima_queue_entry), GFP_ATOMIC);
+ 	if (qe == NULL) {
+ 		ima_error("OUT OF MEMORY in %s.\n", __func__);
+ 		error = -ENOMEM;
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
 integrity-ima-identifiers.patch
 integrity-ima-cleanup.patch
 integrity-tpm-internal-kernel-interface.patch
