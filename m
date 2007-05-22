@@ -1,1521 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - slim-main-patch.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:13 -0700
-Message-ID: <200705222124.l4MLODv3010090@shell0.pdx.osdl.net>
+Subject: + driver-core-check-return-code-of-sysfs_create_link-fix.patch added to -mm tree
+Date: Tue, 22 May 2007 14:35:29 -0700
+Message-ID: <200705222138.l4MLcjXb010352@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37707 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48255 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760704AbXEVVaD (ORCPT
+	by vger.kernel.org with ESMTP id S1762014AbXEVVkj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:30:03 -0400
+	Tue, 22 May 2007 17:40:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kjhall@us.ibm.com, bunk@stusta.de, chrisw@sous-sol.org, jmorris@namei.org, safford@us.ibm.com, sds@tycho.nsa.gov, sergeh@us.ibm.com, vlobanov@speakeasy.net, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, greg@kroah.com
 
 
 The patch titled
-     SLIM main patch
-has been removed from the -mm tree.  Its filename was
-     slim-main-patch.patch
+     driver-core-check-return-code-of-sysfs_create_link-fix
+has been added to the -mm tree.  Its filename is
+     driver-core-check-return-code-of-sysfs_create_link-fix.patch
 
-This patch was dropped because this work seems to be stalled
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: SLIM main patch
-From: Kylene Jo Hall <kjhall@us.ibm.com>
+Subject: driver-core-check-return-code-of-sysfs_create_link-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-SLIMCc:  is an LSM module which provides an enhanced low water-mark
-integrity and high water-mark secrecy mandatory access control
-model.
+drivers/base/core.c: In function 'device_add_class_symlinks':
+drivers/base/core.c:649: warning: unused variable 'class_name'
+drivers/base/core.c: In function 'device_remove_class_symlinks':
+drivers/base/core.c:699: warning: unused variable 'class_name'
 
-For simplicity, this version:
-	- does not require stacker
-	- uses the integrity service (dummy provider)
-
-Major fixes based on prior review comments:
-	- more cleanup based on review comments
-	- now only supports builtin
-	- more locking cleanups
-	- cleanups in the demotion code
-
-SLIM now performs a generic revocation operation, including revoking mmap and
-shared memory access.  Note that during demotion or promotion of a process,
-SLIM needs only revoke write access to files with higher integrity, or lower
-secrecy.  Read and execute permissions are blocked as needed, not revoked. 
-SLIM hopefully uses d_instantiate correctly now.
-
-SLIM inherently deals with dynamic labels, which is a feature not currently
-available in selinux.  While it might be possible to add support for this to
-selinux, it would not appear to be simple, and it is not clear if the added
-complexity would be desirable just to support this one model.  (Isn't choice
-what LSM is all about?  :-)
-
-Comments on the model:
-
-Some of the prior comments questioned the usefulness of the low water-mark
-model itself.  Two major questions raised concerned a potential progression of
-the entire system to a fully demoted state, and the security issues
-surrounding the guard processes.
-
-In normal operation, the system seems to stabilize with a roughly equal
-mixture of SYSTEM, USER, and UNTRUSTED processes.  Most applications seem to
-do a fixed set of operations in a fixed domain, and stabilize at their
-appropriate level.  Some applications, like firefox and evolution, which
-inherently deal with untrusted data, immediately go to the UNTRUSTED level,
-which is where they belong.  In a couple of cases, including cups and Notes,
-the applications did not handle their demotions well, as they occured well
-into their startup.  For these applications, we simply force them to start up
-as UNTRUSTED, so demotion is not an issue.  The one application that does tend
-to get demoted over time are shells, such as bash.  These are not problems, as
-new ones can be created with the windowing system, or with su, as needed.  To
-help with the associated user interface issue, the user space package README
-shows how to display the SLIM level in window titles, so it is always clear at
-what level the process is currently running.
-
-As for the issue of guard processes, SLIM defines three types of guard
-processes: Unlimited Guards, Limited Guards, and Untrusted Guards.  Unlimited
-Guards are the most security sensitive, as they allow less trusted process to
-acquire a higher level of trust.  On my current system there are two unlimited
-guards, passwd and userhelper.  These two applications inherently have to be
-trusted this way regardless of the MAC model used.  In SLIM, the policy
-clearly and simply labels them as having this level of trust.
-
-Limited Guards are programs which cannot give away higher trust, but which can
-keep their existing level despite reading less trusted data.  On my system I
-have seven limited guards: yum, which is trusted to verify the signature on an
-(untrusted) downloaded RPM file, and to install it, login and sshd, which read
-untrusted user supplied login data, for authentication, dhclient which reads
-untrusted network data, and updates they system file /etc/resolv.conf,
-dbus-daemon, which accepts data from potentially untrusted processes, Xorg,
-which has to accept data from all Xwindow clients, regardless of level, and
-postfix which delivers untrusted mail.  Again, these applications inherently
-must cross trust levels, and SLIM properly identifies them.
-
-As mentioned earlier, cupsd and notes are applications which are always run
-directly in untrusted mode, regardless of the level of the invoking process.
-
-The bottom line is that SLIM guard programs inherently do security sensitive
-things, and have to be trusted.  There are only a small number of them, and
-they are clearly identified by their labels.
-
-[bunk@stusta.de: security/slim/slm_main.c: make 2 functions static]
-[vlobanov@speakeasy.net: update slim for fdtable-make-fdarray-and-fdsets-equal-in-size.patch]
-[zohar@linux.vnet.ibm.com: LSM getprocattr hook API change]
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
-Cc: Dave Safford <safford@us.ibm.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge Hallyn <sergeh@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Signed-off-by: Vadim Lobanov <vlobanov@speakeasy.net>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/slim/slm_main.c | 1380 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 1380 insertions(+)
+ drivers/base/core.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN /dev/null security/slim/slm_main.c
---- /dev/null
-+++ a/security/slim/slm_main.c
-@@ -0,0 +1,1380 @@
-+/*
-+ * SLIM - Simple Linux Integrity Module
-+ *
-+ * Copyright (C) 2005,2006 IBM Corporation
-+ * Author: Mimi Zohar <zohar@us.ibm.com>
-+ * 	   Kylene Hall <kjhall@us.ibm.com>
-+ *
-+ *      This program is free software; you can redistribute it and/or modify
-+ *      it under the terms of the GNU General Public License as published by
-+ *      the Free Software Foundation, version 2 of the License.
-+ */
-+
-+#include <linux/mman.h>
-+#include <linux/config.h>
-+#include <linux/kernel.h>
-+#include <linux/security.h>
-+#include <linux/integrity.h>
-+#include <linux/proc_fs.h>
-+#include <linux/socket.h>
-+#include <linux/fs.h>
-+#include <linux/file.h>
-+#include <linux/namei.h>
-+#include <linux/mm.h>
-+#include <linux/shm.h>
-+#include <linux/ipc.h>
-+#include <linux/errno.h>
-+#include <linux/xattr.h>
-+#include <net/sock.h>
-+#include <asm/cacheflush.h>
-+
-+#include "slim.h"
-+
-+#define XATTR_NAME "security.slim.level"
-+
-+#define ZERO_STR "0"
-+#define UNTRUSTED_STR "UNTRUSTED"
-+#define USER_STR "USER"
-+#define SYSTEM_STR "SYSTEM"
-+
-+char *slm_iac_str[] = {
-+	ZERO_STR,
-+	UNTRUSTED_STR,
-+	USER_STR,
-+	SYSTEM_STR
-+};
-+
-+static char *get_token(char *buf_start, char *buf_end, char delimiter,
-+		       int *token_len)
-+{
-+	char *bufp = buf_start;
-+	char *token = NULL;
-+
-+	while (!token && (bufp < buf_end)) {	/* Get start of token */
-+		switch (*bufp) {
-+		case ' ':
-+		case '\n':
-+		case '\t':
-+			bufp++;
-+			break;
-+		case '#':
-+			while ((*bufp != '\n') && (bufp++ < buf_end)) ;
-+
-+			bufp++;
-+			break;
-+		default:
-+			token = bufp;
-+			break;
+diff -puN drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix
++++ a/drivers/base/core.c
+@@ -646,7 +646,6 @@ static int setup_parent(struct device *d
+ static int device_add_class_symlinks(struct device *dev)
+ {
+ 	int error;
+-	char *class_name;
+ 
+ 	if (!dev->class)
+ 		return 0;
+@@ -670,13 +669,16 @@ static int device_add_class_symlinks(str
+ 		if (error)
+ 			goto out_busid;
+ #ifdef CONFIG_SYSFS_DEPRECATED
+-		class_name = make_class_name(dev->class->name, &dev->kobj);
+-		if (class_name)
+-			error = sysfs_create_link(&dev->parent->kobj,
+-						  &dev->kobj, class_name);
+-		kfree(class_name);
+-		if (error)
+-			goto out_device;
++		{
++			char * class_name = make_class_name(dev->class->name,
++								&dev->kobj);
++			if (class_name)
++				error = sysfs_create_link(&dev->parent->kobj,
++							&dev->kobj, class_name);
++			kfree(class_name);
++			if (error)
++				goto out_device;
 +		}
-+	}
-+	if (!token)
-+		return NULL;
-+
-+	*token_len = 0;
-+	while ((*token_len == 0) && (bufp <= buf_end)) {
-+		if ((*bufp == delimiter) || (*bufp == '\n'))
-+			*token_len = bufp - token;
-+		if (bufp == buf_end)
-+			*token_len = bufp - token;
-+		bufp++;
-+	}
-+	if (*token_len == 0)
-+		token = NULL;
-+	return token;
-+}
-+
-+static int is_guard_integrity(struct slm_file_xattr *level)
-+{
-+	if ((level->guard.iac_r != SLM_IAC_NOTDEFINED)
-+	    && (level->guard.iac_wx != SLM_IAC_NOTDEFINED))
-+		return 1;
-+	return 0;
-+}
-+
-+static int is_lower_integrity(struct slm_file_xattr *task_level,
-+			      struct slm_file_xattr *obj_level)
-+{
-+	if (task_level->iac_level < obj_level->iac_level)
-+		return 1;
-+	return 0;
-+}
-+static int is_isec_defined(struct slm_isec_data *isec)
-+{
-+	if (isec && isec->level.iac_level != SLM_IAC_NOTDEFINED)
-+		return 1;
-+	return 0;
-+}
-+
-+/*
-+ * Called with current->files->file_lock. There is not a great lock to grab
-+ * for demotion of this type.  The only place f_mode is changed after install
-+ * is in mark_files_ro in the filesystem code.  That function is also changing
-+ * taking away write rights so even if we race the outcome is the same.
-+ */
-+static inline int mark_has_file_wperm(struct file *file,
-+					struct slm_file_xattr *cur_level)
-+{
-+	struct inode *inode;
-+	struct slm_isec_data *isec;
-+	int rc = 0;
-+
-+	inode = file->f_dentry->d_inode;
-+	if (!S_ISREG(inode->i_mode) || !(file->f_mode & FMODE_WRITE))
-+		return 0;
-+
-+	isec = inode->i_security;
-+	spin_lock(&isec->lock);
-+	if (is_lower_integrity(cur_level, &isec->level))
-+		rc = 1;
-+	spin_unlock(&isec->lock);
-+	return rc;
-+}
-+
-+/*
-+ * Determine if a file is opened with write permissions.
-+ */
-+static int has_file_wperm(struct slm_file_xattr *cur_level)
-+{
-+	struct files_struct *files = current->files;
-+	unsigned long fd = 0;
-+	struct fdtable *fdt;
-+	struct file *file;
-+	int rc = 0;
-+
-+	if (is_kernel_thread(current))
-+		return 0;
-+
-+	if (!files || !cur_level)
-+		return 0;
-+
-+	spin_lock(&files->file_lock);
-+	fdt = files_fdtable(files);
-+
-+	while ((fd = find_next_bit(fdt->open_fds->fds_bits,
-+				   fdt->max_fds, fd)) < fdt->max_fds) {
-+		file = fdt->fd[fd++];
-+		if (file)
-+			rc = mark_has_file_wperm(file, cur_level);
-+	}
-+
-+	spin_unlock(&files->file_lock);
-+	return rc;
-+}
-+
-+static inline void do_revoke_mmap_wperm(struct vm_area_struct *mpnt,
-+					struct slm_isec_data *isec,
-+					struct slm_file_xattr *cur_level)
-+{
-+	unsigned long start = mpnt->vm_start;
-+	unsigned long end = mpnt->vm_end;
-+	size_t len = end - start;
-+
-+	if ((mpnt->vm_flags & (VM_WRITE | VM_MAYWRITE))
-+	    && (mpnt->vm_flags & VM_SHARED)
-+	    && (cur_level->iac_level < isec->level.iac_level))
-+		do_mprotect(start, len, PROT_READ);
-+}
-+
-+/*
-+ * Revoke write permission to underlying mmap file (MAP_SHARED)
-+ */
-+static void revoke_mmap_wperm(struct slm_file_xattr *cur_level)
-+{
-+	struct vm_area_struct *mpnt;
-+	struct file *file;
-+	struct dentry *dentry;
-+	struct slm_isec_data *isec;
-+
-+	flush_cache_mm(current->mm);
-+
-+	down_write(&current->mm->mmap_sem);
-+	for (mpnt = current->mm->mmap; mpnt; mpnt = mpnt->vm_next) {
-+		file = mpnt->vm_file;
-+		if (!file)
-+			continue;
-+
-+		dentry = file->f_dentry;
-+		if (!dentry || !dentry->d_inode)
-+			continue;
-+
-+		isec = dentry->d_inode->i_security;
-+		do_revoke_mmap_wperm(mpnt, isec, cur_level);
-+	}
-+	up_write(&current->mm->mmap_sem);
-+}
-+
-+/*
-+ * revoke write permission for shared memory for demoted threads
-+ */
-+static void revoke_permissions(struct slm_file_xattr *cur_level)
-+{
-+	if (!is_kernel_thread(current))
-+		revoke_mmap_wperm(cur_level);
-+}
-+
-+#define EXEMPT_STR "EXEMPT"
-+static enum slm_iac_level parse_iac(char *token)
-+{
-+	int iac;
-+
-+	if (strncmp(token, EXEMPT_STR, strlen(EXEMPT_STR)) == 0)
-+		return SLM_IAC_EXEMPT;
-+	for (iac = 0; iac < ARRAY_SIZE(slm_iac_str); iac++) {
-+		if (strncmp(token, slm_iac_str[iac], strlen(slm_iac_str[iac]))
-+		    == 0)
-+			return iac;
-+	}
-+	return SLM_IAC_ERROR;
-+}
-+
-+#define UNLIMITED_STR "UNLIMITED"
-+static inline int set_bounds(char *token)
-+{
-+	if (strncmp(token, UNLIMITED_STR, strlen(UNLIMITED_STR)) == 0)
-+		return 1;
-+	return 0;
-+}
-+
-+/*
-+ * Get the 7 access class levels from the extended attribute
-+ * Format: INTEGRITY [INTEGRITY_GUARD INTEGRITY_GUARD] [GUARD_TYPE]
-+ */
-+static int slm_parse_xattr(char *xattr_value, int xattr_len,
-+			   struct slm_file_xattr *level)
-+{
-+	char *token;
-+	int token_len;
-+	char *buf, *buf_end;
-+	int fieldno = 0;
-+	int rc = 0;
-+
-+	buf = xattr_value;
-+	buf_end = xattr_value + xattr_len;
-+
-+	while ((token = get_token(buf, buf_end, ' ', &token_len)) != NULL) {
-+		buf = token + token_len;
-+		switch (++fieldno) {
-+		case 1:
-+			level->iac_level = parse_iac(token);
-+			if (level->iac_level == SLM_IAC_ERROR) {
-+				rc = -EINVAL;
-+				level->iac_level = SLM_IAC_UNTRUSTED;
-+			}
-+			break;
-+		case 2:
-+			level->guard.iac_r = parse_iac(token);
-+			if (level->guard.iac_r == SLM_IAC_ERROR) {
-+				rc = -EINVAL;
-+				level->iac_level = SLM_IAC_UNTRUSTED;
-+			}
-+			break;
-+		case 3:
-+			level->guard.iac_wx = parse_iac(token);
-+			if (level->guard.iac_wx == SLM_IAC_ERROR) {
-+				rc = -EINVAL;
-+				level->iac_level = SLM_IAC_UNTRUSTED;
-+			}
-+			break;
-+		case 4:
-+			level->guard.unlimited = set_bounds(token);
-+		default:
-+			break;
-+		}
-+	}
-+	return rc;
-+}
-+
-+/*
-+ *  Possible return codes:  INTEGRITY_PASS, INTEGRITY_FAIL, INTEGRITY_NOLABEL,
-+ * 			 or -EINVAL
-+ */
-+static int slm_get_xattr(struct dentry *dentry,
-+			 struct slm_file_xattr *level, int *status)
-+{
-+	int xattr_len;
-+	char *xattr_value = NULL;
-+	int rc;
-+
-+	memset(level, 0, sizeof(struct slm_file_xattr));
-+	rc = integrity_verify_metadata(dentry, XATTR_NAME,
-+				       &xattr_value, &xattr_len, status);
-+
-+	if (rc >=0 && *status == INTEGRITY_PASS && xattr_value) {
-+		rc = slm_parse_xattr(xattr_value, xattr_len, level);
-+		kfree(xattr_value);
-+		if (rc == 0 && level->iac_level != SLM_IAC_UNTRUSTED)
-+			rc = integrity_verify_data(dentry, status);
-+	}
-+	return rc;
-+}
-+
-+/* Caller responsible for necessary locking */
-+static inline void set_level(struct slm_file_xattr *level,
-+			     enum slm_iac_level iac)
-+{
-+	level->iac_level = iac;
-+}
-+static inline void set_level_exempt(struct slm_file_xattr *level)
-+{
-+	set_level(level, SLM_IAC_EXEMPT);
-+}
-+
-+static inline void set_level_untrusted(struct slm_file_xattr *level)
-+{
-+	set_level(level, SLM_IAC_UNTRUSTED);
-+}
-+
-+static inline void set_level_tsec_write(struct slm_file_xattr *level,
-+					struct slm_tsec_data *tsec)
-+{
-+	set_level(level, tsec->iac_wx);
-+}
-+
-+static inline void set_level_tsec_read(struct slm_file_xattr *level,
-+				       struct slm_tsec_data *tsec)
-+{
-+	set_level(level, tsec->iac_r);
-+}
-+
-+static void update_sock_level(struct dentry *dentry, struct slm_file_xattr *level)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	int rc, status = 0;
-+
-+	rc = slm_get_xattr(dentry, level, &status);
-+	if (rc == -EOPNOTSUPP)
-+		set_level_exempt(level);
-+	else
-+		set_level_tsec_read(level, cur_tsec);
-+}
-+
-+static void update_level(struct dentry *dentry, struct slm_file_xattr *level)
-+{
-+	int rc, status = 0;
-+
-+	rc = slm_get_xattr(dentry, level, &status);
-+	if (rc < 0) {
-+		switch (rc) {
-+		case -EOPNOTSUPP:
-+			set_level_exempt(level);
-+			break;
-+		case -EINVAL:	/* improperly formatted */
-+		default:
-+			set_level_untrusted(level);
-+			break;
-+		}
-+	} else {
-+		switch(status) {
-+			case INTEGRITY_FAIL:
-+			case INTEGRITY_NOLABEL:
-+				set_level_untrusted(level);
-+				break;
-+		}
-+	}
-+}
-+
-+static struct slm_isec_data *slm_alloc_security(gfp_t flags)
-+{
-+	struct slm_isec_data *isec;
-+
-+	isec = kzalloc(sizeof(struct slm_isec_data), flags);
-+	if (!isec)
-+		return NULL;
-+
-+	spin_lock_init(&isec->lock);
-+	return isec;
-+}
-+
-+/*
-+ * Exempt objects without extended attribute support
-+ * for fastpath.  Others will be handled generically
-+ * by the other functions.
-+ */
-+static int is_exempt_fastpath(struct inode *inode)
-+{
-+	if ((inode->i_sb->s_magic == PROC_SUPER_MAGIC)
-+	    || S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
-+		return 1;
-+	return 0;
-+}
-+
-+/*
-+ * All directories with xattr support should be labeled, but just in case
-+ * recursively traverse path (dentry->parent) until level info is found.
-+ */
-+static void slm_get_level(struct dentry *dentry, struct slm_file_xattr *level)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct slm_isec_data *isec = inode->i_security;
-+
-+	if (is_isec_defined(isec)) {
-+		spin_lock(&isec->lock);
-+		memcpy(level, &isec->level, sizeof(struct slm_file_xattr));
-+		spin_unlock(&isec->lock);
-+		return;
-+	}
-+
-+	if (is_exempt_fastpath(inode)) {
-+		memset(level, 0, sizeof(struct slm_file_xattr));
-+		set_level_exempt(level);
-+	} else if (S_ISSOCK(inode->i_mode))
-+		update_sock_level(dentry, level);
-+	else
-+		update_level(dentry, level);
-+
-+	spin_lock(&isec->lock);
-+	memcpy(&isec->level, level, sizeof(struct slm_file_xattr));
-+	spin_unlock(&isec->lock);
-+}
-+
-+/*
-+ * new tsk->security inherits from current->security
-+ */
-+static struct slm_tsec_data *slm_init_task(struct task_struct *tsk, gfp_t flags)
-+{
-+	struct slm_tsec_data *tsec, *cur_tsec = current->security;
-+
-+	tsec = kzalloc(sizeof(struct slm_tsec_data), flags);
-+	if (!tsec)
-+		return NULL;
-+	tsec->lock = SPIN_LOCK_UNLOCKED;
-+	if (!cur_tsec) {
-+		tsec->iac_r = SLM_IAC_HIGHEST - 1;
-+		tsec->iac_wx = SLM_IAC_HIGHEST - 1;
-+	} else
-+		memcpy(tsec, cur_tsec, sizeof(struct slm_tsec_data));
-+
-+	return tsec;
-+}
-+
-+static int is_iac_level_exempt(struct slm_file_xattr *level)
-+{
-+	if (level->iac_level == SLM_IAC_EXEMPT)
-+		return 1;
-+	return 0;
-+}
-+
-+static int is_iac_less_than_or_exempt(struct slm_file_xattr *level,
-+				      enum slm_iac_level iac)
-+{
-+	if (iac <= level->iac_level)
-+		return 1;
-+	return is_iac_level_exempt(level);
-+}
-+
-+static int is_iac_greater_than_or_exempt(struct slm_file_xattr *level,
-+					 enum slm_iac_level iac)
-+{
-+	if (iac >= level->iac_level)
-+		return 1;
-+	return is_iac_level_exempt(level);
-+}
-+
-+/*
-+ * enforce: IRAC(process) <= IAC(object)
-+ * Permit process to read file of equal or greater integrity
-+ * otherwise, demote the process.
-+ */
-+static int enforce_integrity_read(struct slm_file_xattr *level)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	int rc = 0;
-+
-+	spin_lock(&cur_tsec->lock);
-+	if (!is_iac_less_than_or_exempt(level, cur_tsec->iac_r)) {
-+		rc = has_file_wperm(level);
-+		if (current->mm && atomic_read(&current->mm->mm_users) != 1)
-+			rc = 1;
-+		if (rc)
-+			spin_unlock(&cur_tsec->lock);
-+		else {
-+			/* Reading lower integrity, demote process */
-+			/* Even in the case of a integrity guard process. */
-+			cur_tsec->iac_r = level->iac_level;
-+			cur_tsec->iac_wx = level->iac_level;
-+			spin_unlock(&cur_tsec->lock);
-+			revoke_permissions(level);
-+		}
-+		return rc ? -EACCES : 0;
-+	}
-+	spin_unlock(&cur_tsec->lock);
-+	return 0;
-+}
-+
-+static int do_task_may_read(struct slm_file_xattr *level)
-+{
-+	return enforce_integrity_read(level);
-+}
-+
-+/*
-+ * enforce: IWXAC(process) >= IAC(object)
-+ * Permit process to write a file of equal or lesser integrity.
-+ */
-+static int enforce_integrity_write(struct slm_file_xattr *level)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	int rc = 0;
-+
-+	spin_lock(&cur_tsec->lock);
-+	if (!(is_iac_greater_than_or_exempt(level, cur_tsec->iac_wx)
-+	      || (level->iac_level == SLM_IAC_NOTDEFINED)))
-+		/* can't write higher integrity */
-+		rc = -EACCES;
-+	spin_unlock(&cur_tsec->lock);
-+	return rc;
-+}
-+
-+static int do_task_may_write(struct slm_file_xattr *level)
-+{
-+	return enforce_integrity_write(level);
-+}
-+
-+static int slm_set_taskperm(int mask, struct slm_file_xattr *level)
-+{
-+	int rc = 0;
-+
-+	if (mask & MAY_READ)
-+		rc = do_task_may_read(level);
-+	if ((mask & MAY_WRITE) || (mask & MAY_APPEND))
-+		rc |= do_task_may_write(level);
-+
-+	return rc;
-+}
-+
-+/*
-+ * file changes invalidate isec
-+ */
-+static int slm_file_permission(struct file *file, int mask)
-+{
-+	struct slm_isec_data *isec = file->f_dentry->d_inode->i_security;
-+
-+	if (((mask & MAY_WRITE) || (mask & MAY_APPEND)) && isec) {
-+		spin_lock(&isec->lock);
-+		isec->level.iac_level = SLM_IAC_NOTDEFINED;
-+		spin_unlock(&isec->lock);
-+	}
-+	return 0;
-+}
-+
-+static int is_untrusted_blk_access(struct inode *inode)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	int rc = 0;
-+
-+	spin_lock(&cur_tsec->lock);
-+	if (cur_tsec && (cur_tsec->iac_wx == SLM_IAC_UNTRUSTED)
-+	    && S_ISBLK(inode->i_mode))
-+		rc = 1;
-+	spin_unlock(&cur_tsec->lock);
-+	return rc;
-+}
-+
-+/*
-+ * Premise:
-+ * Can't write or execute higher integrity, can't read lower integrity
-+ * Can't read or execute higher secrecy, can't write lower secrecy
-+ */
-+static int slm_inode_permission(struct inode *inode, int mask,
-+				struct nameidata *nd)
-+{
-+	struct dentry *dentry = NULL;
-+	struct slm_file_xattr level;
-+
-+	if (S_ISDIR(inode->i_mode) && (mask & MAY_WRITE))
-+		return 0;
-+
-+	dentry = (!nd || !nd->dentry) ? d_find_alias(inode) : nd->dentry;
-+	if (!dentry)
-+		return 0;
-+
-+	if (is_untrusted_blk_access(inode))
-+		return -EPERM;
-+
-+	slm_get_level(dentry, &level);
-+
-+	/* measure all SYSTEM level integrity objects */
-+	if (level.iac_level == SLM_IAC_SYSTEM)
-+		integrity_measure(dentry, NULL, mask);
-+
-+	return slm_set_taskperm(mask, &level);
-+}
-+
-+/*
-+ * This hook is called holding the inode mutex.
-+ */
-+static int slm_inode_unlink(struct inode *dir, struct dentry *dentry)
-+{
-+	struct slm_file_xattr level;
-+
-+	if (!dentry || !dentry->d_name.name)
-+		return 0;
-+
-+	slm_get_level(dentry, &level);
-+	return slm_set_taskperm(MAY_WRITE, &level);
-+}
-+
-+static void slm_inode_free_security(struct inode *inode)
-+{
-+	struct slm_isec_data *isec = inode->i_security;
-+
-+	inode->i_security = NULL;
-+	kfree(isec);
-+}
-+
-+/*
-+ * Check integrity permission to create a regular file.
-+ */
-+static int slm_inode_create(struct inode *parent_dir,
-+			    struct dentry *dentry, int mask)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct slm_isec_data *parent_isec = parent_dir->i_security;
-+	struct slm_file_xattr *parent_level = &parent_isec->level;
-+	int rc = 0;
-+
-+	/*
-+	 * enforce: IWXAC(process) >= IAC(object)
-+	 * Permit process to write a file of equal or lesser integrity.
-+	 */
-+	spin_lock(&cur_tsec->lock);
-+	spin_lock(&parent_isec->lock);
-+	if (!is_iac_greater_than_or_exempt(parent_level, cur_tsec->iac_wx))
-+		rc = -EPERM;
-+	spin_unlock(&parent_isec->lock);
-+	spin_unlock(&cur_tsec->lock);
-+	return rc;
-+}
-+
-+#define MAX_XATTR_SIZE 76
-+
-+static int slm_set_xattr(struct slm_file_xattr *level,
-+			 char **name, void **value, size_t * value_len)
-+{
-+	int len;
-+	int xattr_len;
-+	char buf[MAX_XATTR_SIZE];
-+	char *bufp = buf;
-+	char *xattr_val = buf;
-+	char *xattr_name;
-+
-+	if (!level)
-+		return 0;
-+
-+	memset(buf, 0, sizeof(buf));
-+
-+	if (is_iac_level_exempt(level)) {
-+		memcpy(bufp, EXEMPT_STR, strlen(EXEMPT_STR));
-+		bufp += strlen(EXEMPT_STR);
-+	} else {
-+		len = strlen(slm_iac_str[level->iac_level]);
-+		memcpy(bufp, slm_iac_str[level->iac_level], len);
-+		bufp += len;
-+	}
-+	*bufp++ = ' ';
-+	xattr_len = bufp - buf;
-+
-+	/* point after 'security.' */
-+	xattr_name = strchr(XATTR_NAME, '.');
-+	if (xattr_name)
-+		*name = kstrdup(xattr_name + 1, GFP_KERNEL);
-+	*value = kmalloc(xattr_len + 1, GFP_KERNEL);
-+	if (!*value) {
-+		kfree(name);
-+		return -ENOMEM;
-+	}
-+	memcpy(*value, xattr_val, xattr_len);
-+	*value_len = xattr_len;
-+	return 0;
-+}
-+
-+/* Create the security.slim.level extended attribute */
-+static int slm_inode_init_security(struct inode *inode, struct inode *dir,
-+				   char **name, void **value, size_t * len)
-+{
-+	struct slm_isec_data *isec = inode->i_security, *parent_isec =
-+	    dir->i_security;
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct slm_file_xattr level;
-+	struct xattr_data *data;
-+	int rc;
-+
-+	if (!name || !value || !len)
-+		return 0;
-+
-+	memset(&level, 0, sizeof(struct slm_file_xattr));
-+
-+	if (is_isec_defined(parent_isec)) {
-+		spin_lock(&parent_isec->lock);
-+		memcpy(&level, &parent_isec->level,
-+		       sizeof(struct slm_file_xattr));
-+		spin_unlock(&parent_isec->lock);
-+	}
-+
-+	spin_lock(&cur_tsec->lock);
-+	/* low integrity process wrote into a higher level directory */
-+	if (cur_tsec->iac_wx < level.iac_level)
-+		set_level_tsec_write(&level, cur_tsec);
-+	/* if directory is exempt, then use process level */
-+	if (is_iac_level_exempt(&level)) {
-+		/* When a guard process creates a directory */
-+		if (S_ISDIR(inode->i_mode)
-+		    && (cur_tsec->iac_wx != cur_tsec->iac_r))
-+			set_level_exempt(&level);
-+		else
-+			set_level_tsec_write(&level, cur_tsec);
-+	}
-+
-+	/* if a guard process creates a UNIX socket, then EXEMPT it */
-+	if (S_ISSOCK(inode->i_mode)
-+	    && (cur_tsec->iac_wx != cur_tsec->iac_r))
-+		set_level_exempt(&level);
-+	spin_unlock(&cur_tsec->lock);
-+
-+	spin_lock(&isec->lock);
-+	memcpy(&isec->level, &level, sizeof(struct slm_file_xattr));
-+	spin_unlock(&isec->lock);
-+
-+	data = kmalloc(sizeof(struct xattr_data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	/* set levels, based on parent */
-+	rc = slm_set_xattr(&level, &data->name, &data->value, &data->len);
-+	if (rc < 0) {
-+		kfree(data);
-+		return rc;
-+	}
-+
-+	*name = data->name;
-+	*value = data->value;
-+	*len = data->len;
-+	return 0;
-+}
-+
-+static void slm_d_instantiate(struct dentry *dentry, struct inode *inode)
-+{
-+	struct slm_isec_data *isec;
-+	struct slm_file_xattr level;
-+
-+	if (!inode)
-+		return;
-+
-+	isec = inode->i_security;
-+	if (is_exempt_fastpath(inode)) {
-+		memset(&level, 0, sizeof(struct slm_file_xattr));
-+		set_level_exempt(&level);
-+	} else if (S_ISSOCK(inode->i_mode))
-+		memset(&level, 0, sizeof(struct slm_file_xattr));
-+	else
-+		update_level(dentry, &level);
-+
-+	spin_lock(&isec->lock);
-+	memcpy(&isec->level, &level, sizeof(struct slm_file_xattr));
-+	spin_unlock(&isec->lock);
-+}
-+
-+/*
-+ * Check permissions to create a new directory in the existing directory
-+ * associated with inode structure @dir.
-+ */
-+static int slm_inode_mkdir(struct inode *parent_dir,
-+			   struct dentry *dentry, int mask)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct slm_isec_data *parent_isec = parent_dir->i_security;
-+	struct slm_file_xattr *parent_level = &parent_isec->level;
-+	int rc = 0;
-+
-+	spin_lock(&cur_tsec->lock);
-+	spin_lock(&parent_isec->lock);
-+	if (cur_tsec->iac_wx < parent_level->iac_level
-+	    && parent_level->iac_level == SLM_IAC_SYSTEM)
-+		rc = -EACCES;
-+	spin_unlock(&parent_isec->lock);
-+	spin_unlock(&cur_tsec->lock);
-+	return rc;
-+}
-+
-+static int slm_inode_rename(struct inode *old_dir,
-+			    struct dentry *old_dentry,
-+			    struct inode *new_dir, struct dentry *new_dentry)
-+{
-+	struct slm_file_xattr old_level, parent_level;
-+	struct dentry *parent_dentry;
-+
-+	if (old_dir == new_dir)
-+		return 0;
-+
-+	slm_get_level(old_dentry, &old_level);
-+
-+	parent_dentry = dget_parent(new_dentry);
-+	slm_get_level(parent_dentry, &parent_level);
-+	dput(parent_dentry);
-+
-+	if (is_lower_integrity(&old_level, &parent_level))
-+		return -EPERM;
-+	return 0;
-+}
-+
-+/*
-+ * Limit the integrity value of an object to be no greater than that
-+ * of the current process. This is especially important for objects
-+ * being promoted.
-+*/
-+static int slm_inode_setxattr(struct dentry *dentry, char *name, void *value,
-+			      size_t size, int flags)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	char *data = value;
-+	enum slm_iac_level iac;
-+
-+	if (strncmp(name, XATTR_NAME, strlen(XATTR_NAME)) != 0)
-+		return 0;
-+
-+	if (!value)
-+		return -EINVAL;
-+
-+	spin_lock(&cur_tsec->lock);
-+	iac = cur_tsec->iac_wx;
-+	spin_unlock(&cur_tsec->lock);
-+
-+	switch (iac) {
-+	case SLM_IAC_USER:
-+		if ((strncmp(data, USER_STR, strlen(USER_STR)) != 0) &&
-+		    (strncmp(data, UNTRUSTED_STR, strlen(UNTRUSTED_STR)) != 0))
-+			return -EPERM;
-+		break;
-+	case SLM_IAC_SYSTEM:
-+		if ((strncmp(data, SYSTEM_STR, strlen(SYSTEM_STR)) != 0) &&
-+		    (strncmp(data, USER_STR, strlen(USER_STR)) != 0) &&
-+		    (strncmp(data, UNTRUSTED_STR, strlen(UNTRUSTED_STR)) != 0)
-+		    && (strncmp(data, EXEMPT_STR, strlen(EXEMPT_STR)) != 0))
-+			return -EPERM;
-+		break;
-+	default:
-+		return -EPERM;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * SLIM extended attribute was modified, update isec.
-+ */
-+static void slm_inode_post_setxattr(struct dentry *dentry, char *name,
-+				    void *value, size_t size, int flags)
-+{
-+	struct slm_isec_data *slm_isec;
-+	struct slm_file_xattr level;
-+	int rc, status = 0;
-+
-+	if (strncmp(name, XATTR_NAME, strlen(XATTR_NAME)) != 0)
-+		return;
-+
-+	rc = slm_get_xattr(dentry, &level, &status);
-+	slm_isec = dentry->d_inode->i_security;
-+	spin_lock(&slm_isec->lock);
-+	memcpy(&slm_isec->level, &level, sizeof(struct slm_file_xattr));
-+	spin_unlock(&slm_isec->lock);
-+}
-+
-+static int slm_inode_removexattr(struct dentry *dentry, char *name)
-+{
-+	struct slm_isec_data *isec = dentry->d_inode->i_security;
-+	struct slm_tsec_data *tsec = current->security;
-+	enum slm_iac_level iac;
-+	int rc = 0;
-+
-+	if (strncmp(name, XATTR_NAME, strlen(XATTR_NAME)) != 0)
-+		return 0;
-+
-+	if (isec) {
-+		spin_lock(&tsec->lock);
-+		iac = tsec->iac_wx;
-+		spin_unlock(&tsec->lock);
-+
-+		spin_lock(&isec->lock);
-+		switch(iac) {
-+		case SLM_IAC_SYSTEM:
-+			isec->level.iac_level = SLM_IAC_NOTDEFINED;
-+			break;
-+		case SLM_IAC_USER:
-+			if (isec->level.iac_level < SLM_IAC_NOTDEFINED ||
-+			    isec->level.iac_level > SLM_IAC_USER)
-+				rc = -EPERM;
-+			else
-+				isec->level.iac_level = SLM_IAC_NOTDEFINED;
-+			break;
-+		default:
-+			rc = -EPERM;
-+		}
-+		spin_unlock(&isec->lock);
-+	}
-+	return rc;
-+}
-+
-+static int slm_inode_alloc_security(struct inode *inode)
-+{
-+	struct slm_isec_data *isec = slm_alloc_security(GFP_KERNEL);
-+	if (!isec)
-+		return -ENOMEM;
-+
-+	inode->i_security = isec;
-+	return 0;
-+}
-+
-+/*
-+ * Opening a socket demotes the integrity of a process to untrusted.
-+ */
-+static int slm_socket_create(int family, int type, int protocol, int kern)
-+{
-+	struct task_struct *parent_tsk;
-+	struct slm_tsec_data *cur_tsec = current->security, *parent_tsec;
-+	struct slm_file_xattr level;
-+	int rc = 0;
-+
-+	/* demoting all but UNIX and NETLINK sockets */
-+	if ((family != AF_UNIX) && (family != AF_NETLINK)) {
-+		spin_lock(&cur_tsec->lock);
-+		if (cur_tsec->iac_r > SLM_IAC_UNTRUSTED) {
-+			parent_tsk = current->parent;
-+			parent_tsec = parent_tsk->security;
-+			memset(&level, 0, sizeof(struct slm_file_xattr));
-+			level.iac_level = SLM_IAC_UNTRUSTED;
-+			rc = has_file_wperm(&level);
-+			if (current->mm && atomic_read(&current->mm->mm_users) != 1)
-+				rc = 1;
-+			if (rc) {
-+				spin_unlock(&cur_tsec->lock);
-+				return -EPERM;
-+			} else {
-+				cur_tsec->iac_r = SLM_IAC_UNTRUSTED;
-+				cur_tsec->iac_wx = SLM_IAC_UNTRUSTED;
-+				spin_unlock(&cur_tsec->lock);
-+
-+				revoke_permissions(&level);
-+				return 0;
-+			}
-+		}
-+		spin_unlock(&cur_tsec->lock);
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Didn't have the family type previously, so update the inode security now.
-+ */
-+static int slm_socket_post_create(struct socket *sock, int family,
-+				   int type, int protocol, int kern)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct inode *inode = SOCK_INODE(sock);
-+	struct slm_isec_data *slm_isec = inode->i_security;
-+
-+	spin_lock(&slm_isec->lock);
-+	if (family == PF_UNIX) {
-+		if (cur_tsec->iac_wx != cur_tsec->iac_r)	/* guard process */
-+			set_level_exempt(&slm_isec->level);
-+		else
-+			set_level_tsec_write(&slm_isec->level, cur_tsec);
-+	} else
-+		set_level_untrusted(&slm_isec->level);
-+	spin_unlock(&slm_isec->lock);
-+	return 0;
-+}
-+
-+/*
-+ * When a task gets allocated, it inherits the current IAC and SAC.
-+ * Set the values and store them in p->security.
-+ */
-+static int slm_task_alloc_security(struct task_struct *tsk)
-+{
-+	struct slm_tsec_data *tsec = tsk->security;
-+
-+	if (!tsec) {
-+		tsec = slm_init_task(tsk, GFP_KERNEL);
-+		if (!tsec)
-+			return -ENOMEM;
-+	}
-+	tsk->security = tsec;
-+	return 0;
-+}
-+
-+static void slm_task_free_security(struct task_struct *tsk)
-+{
-+	struct slm_tsec_data *tsec;
-+
-+	tsec = tsk->security;
-+	tsk->security = NULL;
-+	kfree(tsec);
-+}
-+
-+/* init_task is an integrity guard */
-+static int slm_task_init_alloc_security(struct task_struct *tsk)
-+{
-+	struct slm_tsec_data *tsec = kzalloc(sizeof(struct slm_tsec_data), GFP_KERNEL);
-+
-+	if (!tsec)
-+		return -ENOMEM;
-+
-+	tsec->lock = SPIN_LOCK_UNLOCKED;
-+
-+	tsec->iac_r = SLM_IAC_UNTRUSTED;
-+	tsec->iac_wx = SLM_IAC_SYSTEM;
-+
-+	tsec->unlimited = 1;
-+
-+	tsk->security = tsec;
-+	return 0;
-+}
-+
-+static int slm_task_post_setuid(uid_t old_ruid, uid_t old_euid,
-+				uid_t old_suid, int flags)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+
-+	if (cur_tsec && flags == LSM_SETID_ID) {
-+		/*set process to USER level integrity for everything but root */
-+		spin_lock(&cur_tsec->lock);
-+		if ((cur_tsec->iac_r == cur_tsec->iac_wx)
-+		    && (cur_tsec->iac_r == SLM_IAC_UNTRUSTED));
-+		else if (current->suid != 0) {
-+			cur_tsec->iac_r = SLM_IAC_USER;
-+			cur_tsec->iac_wx = SLM_IAC_USER;
-+		} else if ((current->uid == 0) && (old_ruid != 0)) {
-+			cur_tsec->iac_r = SLM_IAC_SYSTEM;
-+			cur_tsec->iac_wx = SLM_IAC_SYSTEM;
-+		}
-+		spin_unlock(&cur_tsec->lock);
-+	}
-+	return 0;
-+}
-+
-+static int slm_setprocattr(struct task_struct *tsk,
-+				  char *name, void *value, size_t size)
-+{
-+	return -EACCES;
-+
-+}
-+
-+static int slm_getprocattr(struct task_struct *tsk,
-+				  char *name, char **value)
-+{
-+	struct slm_tsec_data *tsec = tsk->security;
-+	size_t len = 0;
-+	int buf_size = 31;
-+	char buf[buf_size];
-+
-+	if (is_kernel_thread(tsk))
-+		len = snprintf(buf, buf_size, "KERNEL");
-+	else {
-+		spin_lock(&tsec->lock);
-+		if (tsec->iac_wx != tsec->iac_r)
-+			len = snprintf(buf, buf_size, "GUARD wx:%s r:%s",
-+				       slm_iac_str[tsec->iac_wx],
-+				       slm_iac_str[tsec->iac_r]);
-+		else
-+			len = snprintf(buf, buf_size, "%s",
-+				       slm_iac_str[tsec->iac_wx]);
-+		spin_unlock(&tsec->lock);
-+	}
-+	*value = kzalloc(len, GFP_KERNEL);
-+	memcpy(*value, buf, len);
-+	return len;
-+}
-+
-+/*
-+ * enforce: IWXAC(process) <= IAC(object)
-+ * Permit process to execute file of equal or greater integrity
-+ */
-+static int enforce_integrity_execute(struct linux_binprm *bprm,
-+				      struct slm_file_xattr *level,
-+				      struct slm_tsec_data *cur_tsec)
-+{
-+	struct task_struct *parent_tsk = current->parent;
-+	struct slm_tsec_data *parent_tsec = parent_tsk->security;
-+	int rc = 0;
-+
-+	spin_lock(&cur_tsec->lock);
-+	if (is_iac_less_than_or_exempt(level, cur_tsec->iac_wx))
-+		/* Being a guard process is not inherited */
-+		cur_tsec->iac_r = cur_tsec->iac_wx;
-+	else {
-+		rc = has_file_wperm(level);
-+		if (current->mm && atomic_read(&current->mm->mm_users) != 1)
-+			rc = 1;
-+		if (rc)
-+			spin_unlock(&cur_tsec->lock);
-+		else {
-+			cur_tsec->iac_r = level->iac_level;
-+			cur_tsec->iac_wx = level->iac_level;
-+			spin_unlock(&cur_tsec->lock);
-+			revoke_permissions(level);
-+		}
-+		return rc ? -EACCES : 0;
-+	}
-+	spin_unlock(&cur_tsec->lock);
-+	return 0;
-+}
-+
-+static void enforce_guard_integrity_execute(struct linux_binprm *bprm,
-+					    struct slm_file_xattr *level,
-+					    struct slm_tsec_data *cur_tsec)
-+{
-+	if ((strcmp(bprm->filename, bprm->interp) != 0)
-+	    && (level->guard.unlimited))
-+		level->guard.unlimited = 0;
-+
-+	spin_lock(&cur_tsec->lock);
-+	if (level->guard.unlimited) {
-+		cur_tsec->iac_r = level->guard.iac_r;
-+		cur_tsec->iac_wx = level->guard.iac_wx;
-+	} else {
-+		if (cur_tsec->iac_r > level->guard.iac_r)
-+			cur_tsec->iac_r = level->guard.iac_r;
-+		if (cur_tsec->iac_wx > level->guard.iac_wx)
-+			cur_tsec->iac_wx = level->guard.iac_wx;
-+	}
-+	spin_unlock(&cur_tsec->lock);
-+}
-+
-+/*
-+ * Enforce process integrity & secrecy levels.
-+ * 	- update integrity process level of integrity guard program
-+ * 	- update secrecy process level of secrecy guard program
-+ */
-+static int slm_bprm_check_security(struct linux_binprm *bprm)
-+{
-+	struct dentry *dentry;
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct slm_file_xattr level;
-+	int rc, status;
-+
-+	/* Special case interpreters */
-+	spin_lock(&cur_tsec->lock);
-+	if (strcmp(bprm->filename, bprm->interp) != 0) {
-+		if (!cur_tsec->script_dentry) {
-+			spin_unlock(&cur_tsec->lock);
-+			return 0;
-+		} else
-+			dentry = cur_tsec->script_dentry;
-+	} else {
-+		dentry = bprm->file->f_dentry;
-+		cur_tsec->script_dentry = dentry;
-+	}
-+	spin_unlock(&cur_tsec->lock);
-+
-+	slm_get_level(dentry, &level);
-+
-+	/* slm_inode_permission measured all SYSTEM level integrity objects */
-+	if (level.iac_level != SLM_IAC_SYSTEM)
-+		integrity_measure(dentry, bprm->filename, MAY_EXEC);
-+
-+	/* Possible return codes: PERMIT, DENY, NOLABEL */
-+	rc = integrity_verify_data(dentry, &status);
-+	if (rc < 0)
-+		return rc;
-+
-+	switch(status) {
-+	case INTEGRITY_FAIL:
-+		if (!is_kernel_thread(current))
-+			return -EACCES;
-+		break;
-+	case INTEGRITY_NOLABEL:
-+		level.iac_level = SLM_IAC_UNTRUSTED;
-+	}
-+
-+	rc = enforce_integrity_execute(bprm, &level, cur_tsec);
-+	if (rc < 0)
-+		return rc;
-+	if (is_guard_integrity(&level))
-+		enforce_guard_integrity_execute(bprm, &level, cur_tsec);
-+
-+	return 0;
-+}
-+
-+static int slm_inode_setattr(struct dentry *dentry, struct iattr *iattr)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct slm_file_xattr level;
-+	int rc = 0;
-+
-+	slm_get_level(dentry, &level);
-+	spin_lock(&cur_tsec->lock);
-+	if (cur_tsec->iac_wx < level.iac_level)
-+			rc = -EACCES;
-+	spin_unlock(&cur_tsec->lock);
-+	return rc;
-+}
-+
-+static int slm_capable(struct task_struct *tsk, int cap)
-+{
-+	struct slm_tsec_data *tsec = tsk->security;
-+	int rc = 0;
-+
-+	/* Derived from include/linux/sched.h:capable. */
-+	if (cap_raised(tsk->cap_effective, cap)) {
-+		spin_lock(&tsec->lock);
-+		if (tsec->iac_wx == SLM_IAC_UNTRUSTED &&
-+		    cap == CAP_SYS_ADMIN)
-+			rc = -EACCES;
-+		spin_unlock(&tsec->lock);
-+		return rc;
-+	}
-+	return -EPERM;
-+}
-+
-+static int slm_ptrace(struct task_struct *parent, struct task_struct *child)
-+{
-+	struct slm_tsec_data *parent_tsec = parent->security,
-+	    *child_tsec = child->security;
-+	int rc = 0;
-+
-+	if (is_kernel_thread(parent))
-+		return 0;
-+	spin_lock(&parent_tsec->lock);
-+	if (parent_tsec->iac_wx < child_tsec->iac_wx)
-+		rc = -EPERM;
-+	spin_unlock(&parent_tsec->lock);
-+	return rc;
-+}
-+
-+static int slm_shm_alloc_security(struct shmid_kernel *shp)
-+{
-+	struct slm_tsec_data *cur_tsec = current->security;
-+	struct kern_ipc_perm *perm = &shp->shm_perm;
-+	struct slm_isec_data *isec = slm_alloc_security(GFP_KERNEL);
-+
-+	if (!isec)
-+		return -ENOMEM;
-+
-+	spin_lock(&cur_tsec->lock);
-+	if (cur_tsec->iac_wx != cur_tsec->iac_r)	/* guard process */
-+		set_level_exempt(&isec->level);
-+	else
-+		set_level_tsec_write(&isec->level, cur_tsec);
-+	spin_unlock(&cur_tsec->lock);
-+	perm->security = isec;
-+
-+	return 0;
-+}
-+
-+static void slm_shm_free_security(struct shmid_kernel *shp)
-+{
-+	struct kern_ipc_perm *perm = &shp->shm_perm;
-+	struct slm_isec_data *isec = perm->security;
-+
-+	perm->security = NULL;
-+	kfree(isec);
-+}
-+
-+/*
-+ *  When shp exists called holding perm->lock
-+ */
-+static int slm_shm_shmctl(struct shmid_kernel *shp, int cmd)
-+{
-+	struct kern_ipc_perm *perm;
-+	struct slm_isec_data *perm_isec;
-+	struct file *file;
-+	struct dentry *dentry;
-+	struct inode *inode;
-+	int rc;
-+
-+	if (!shp)
-+		return 0;
-+
-+	perm = &shp->shm_perm;
-+	perm_isec = perm->security;
-+	file = shp->shm_file;
-+	dentry = file->f_dentry;
-+	inode = dentry->d_inode;
-+
-+	spin_lock(&perm_isec->lock);
-+	rc = slm_set_taskperm(MAY_READ | MAY_WRITE, &perm_isec->level);
-+	spin_unlock(&perm_isec->lock);
-+	return rc;
-+}
-+
-+/*
-+ * Called holding perm->lock
-+ */
-+static int slm_shm_shmat(struct shmid_kernel *shp,
-+			 char __user * shmaddr, int shmflg)
-+{
-+	int mask = MAY_READ;
-+	int rc;
-+	struct kern_ipc_perm *perm = &shp->shm_perm;
-+	struct file *file = shp->shm_file;
-+	struct dentry *dentry = file->f_dentry;
-+	struct inode *inode = dentry->d_inode;
-+	struct slm_isec_data *perm_isec = perm->security,
-+	    *isec = inode->i_security;
-+
-+	if (shmflg != SHM_RDONLY)
-+		mask |= MAY_WRITE;
-+
-+	spin_lock(&perm_isec->lock);
-+	rc = slm_set_taskperm(mask, &perm_isec->level);
-+
-+	spin_lock(&isec->lock);
-+	memcpy(&isec->level, &perm_isec->level, sizeof(struct slm_file_xattr));
-+	spin_unlock(&perm_isec->lock);
-+	spin_unlock(&isec->lock);
-+
-+	return rc;
-+}
-+
-+static struct security_operations slm_security_ops = {
-+	.bprm_check_security = slm_bprm_check_security,
-+	.file_permission = slm_file_permission,
-+	.inode_permission = slm_inode_permission,
-+	.inode_unlink = slm_inode_unlink,
-+	.inode_create = slm_inode_create,
-+	.inode_mkdir = slm_inode_mkdir,
-+	.inode_rename = slm_inode_rename,
-+	.inode_setattr = slm_inode_setattr,
-+	.inode_setxattr = slm_inode_setxattr,
-+	.inode_post_setxattr = slm_inode_post_setxattr,
-+	.inode_removexattr = slm_inode_removexattr,
-+	.inode_alloc_security = slm_inode_alloc_security,
-+	.inode_free_security = slm_inode_free_security,
-+	.inode_init_security = slm_inode_init_security,
-+	.socket_create = slm_socket_create,
-+	.socket_post_create = slm_socket_post_create,
-+	.task_alloc_security = slm_task_alloc_security,
-+	.task_free_security = slm_task_free_security,
-+	.task_post_setuid = slm_task_post_setuid,
-+	.capable = slm_capable,
-+	.ptrace = slm_ptrace,
-+	.shm_alloc_security = slm_shm_alloc_security,
-+	.shm_free_security = slm_shm_free_security,
-+	.shm_shmat = slm_shm_shmat,
-+	.shm_shmctl = slm_shm_shmctl,
-+	.getprocattr = slm_getprocattr,
-+	.setprocattr = slm_setprocattr,
-+	.d_instantiate = slm_d_instantiate
-+};
-+
-+#ifdef CONFIG_SECURITY_SLIM_BOOTPARAM
-+int slim_enabled = CONFIG_SECURITY_SLIM_BOOTPARAM_VALUE;
-+
-+static int __init slim_enabled_setup(char *str)
-+{
-+	slim_enabled = simple_strtol(str, NULL, 0);
-+	return 1;
-+}
-+__setup("slim=", slim_enabled_setup);
-+#else
-+int slim_enabled = 1;
-+#endif
-+static int __init init_slm(void)
-+{
-+	int rc;
-+	if (!slim_enabled)
-+		return 0;
-+	slm_task_init_alloc_security(current);
-+	rc = register_security(&slm_security_ops);
-+	if (rc != 0)
-+		panic("SLIM: Unable to register with kernel\n");
-+	return rc;
-+}
-+security_initcall(init_slm);
+ #endif
+ 	}
+ 	return 0;
+@@ -696,12 +698,12 @@ out:
+ 
+ static void device_remove_class_symlinks(struct device *dev)
+ {
+-	char *class_name;
+-
+ 	if (!dev->class)
+ 		return;
+ 	if (dev->parent) {
+ #ifdef CONFIG_SYSFS_DEPRECATED
++		char *class_name;
++
+ 		class_name = make_class_name(dev->class->name, &dev->kobj);
+ 		if (class_name) {
+ 			sysfs_remove_link(&dev->parent->kobj, class_name);
 _
 
-Patches currently in -mm which might be from kjhall@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-use-menuconfig-objects-ii-tpm.patch
-slim-main-patch.patch
-slim-secfs-patch.patch
-slim-make-and-config-stuff.patch
-slim-debug-output.patch
-slim-documentation.patch
-integrity-new-hooks.patch
-integrity-fs-hook-placement.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-ima-identifiers.patch
-integrity-ima-cleanup.patch
-integrity-tpm-internal-kernel-interface.patch
+origin.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link-fix.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ia64.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+ide-warning-fixes.patch
+git-md-accel-build-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+git-wireless.patch
+arch-x86_64-vdso-vmac-needs-schedh.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+xfs-clean-up-shrinker-games.patch
+git-cryptodev.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+simplify-cleanup_workqueue_thread-fix.patch
+procfs-directory-entry-cleanup-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+pie-randomization-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+reiser4.patch
+reiser4-fix.patch
+vdso-print-fatal-signals.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
