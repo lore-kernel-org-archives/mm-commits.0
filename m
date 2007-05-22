@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt366-enable-bits-are-unreliable-so-dont-use-them.patch removed from -mm tree
-Date: Mon, 21 May 2007 22:56:42 -0700
-Message-ID: <200705220556.l4M5ufex028402@shell0.pdx.osdl.net>
+Subject: - libata-kiss-post_set_mode-goodbye.patch removed from -mm tree
+Date: Mon, 21 May 2007 22:56:47 -0700
+Message-ID: <200705220556.l4M5ukqu028410@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51421 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756203AbXEVF7f (ORCPT
+	by vger.kernel.org with ESMTP id S1756383AbXEVF7h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 01:59:35 -0400
+	Tue, 22 May 2007 01:59:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_hpt366: Enable bits are unreliable so don't use them
+     libata: Kiss post_set_mode goodbye
 has been removed from the -mm tree.  Its filename was
-     pata_hpt366-enable-bits-are-unreliable-so-dont-use-them.patch
+     libata-kiss-post_set_mode-goodbye.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_hpt366: Enable bits are unreliable so don't use them
+Subject: libata: Kiss post_set_mode goodbye
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Various people had problems with both old and new IDE when hpt366 enable bits
-started getting honoured.  It turns out they are not reliable so don't rely on
-them
+As of the -mm tree we don't have post_set_mode users any more.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -35,54 +33,35 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt366.c |   28 +---------------------------
- 1 files changed, 1 insertion(+), 27 deletions(-)
+ drivers/ata/libata-core.c |    3 ---
+ include/linux/libata.h    |    2 --
+ 2 files changed, 5 deletions(-)
 
-diff -puN drivers/ata/pata_hpt366.c~pata_hpt366-enable-bits-are-unreliable-so-dont-use-them drivers/ata/pata_hpt366.c
---- a/drivers/ata/pata_hpt366.c~pata_hpt366-enable-bits-are-unreliable-so-dont-use-them
-+++ a/drivers/ata/pata_hpt366.c
-@@ -220,32 +220,6 @@ static int hpt36x_cable_detect(struct at
- 	return ATA_CBL_PATA80;
- }
+diff -puN drivers/ata/libata-core.c~libata-kiss-post_set_mode-goodbye drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-kiss-post_set_mode-goodbye
++++ a/drivers/ata/libata-core.c
+@@ -2945,9 +2945,6 @@ int ata_do_set_mode(struct ata_port *ap,
+ 	if (used_dma && (ap->host->flags & ATA_HOST_SIMPLEX))
+ 		ap->host->simplex_claimed = ap;
  
--static int hpt36x_pre_reset(struct ata_port *ap, unsigned long deadline)
--{
--	static const struct pci_bits hpt36x_enable_bits[] = {
--		{ 0x50, 1, 0x04, 0x04 },
--		{ 0x54, 1, 0x04, 0x04 }
--	};
--	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
--
--	if (!pci_test_config_bits(pdev, &hpt36x_enable_bits[ap->port_no]))
--		return -ENOENT;
--
--	return ata_std_prereset(ap, deadline);
--}
--
--/**
-- *	hpt36x_error_handler	-	reset the hpt36x bus
-- *	@ap: ATA port to reset
-- *
-- *	Perform the reset handling for the 366/368
-- */
--
--static void hpt36x_error_handler(struct ata_port *ap)
--{
--	ata_bmdma_drive_eh(ap, hpt36x_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
--
- /**
-  *	hpt366_set_piomode		-	PIO setup
-  *	@ap: ATA interface
-@@ -351,7 +325,7 @@ static struct ata_port_operations hpt366
+-	/* step5: chip specific finalisation */
+-	if (ap->ops->post_set_mode)
+-		ap->ops->post_set_mode(ap);
+  out:
+ 	if (rc)
+ 		*r_failed_dev = dev;
+diff -puN include/linux/libata.h~libata-kiss-post_set_mode-goodbye include/linux/libata.h
+--- a/include/linux/libata.h~libata-kiss-post_set_mode-goodbye
++++ a/include/linux/libata.h
+@@ -582,8 +582,6 @@ struct ata_port_operations {
+ 	void (*phy_reset) (struct ata_port *ap); /* obsolete */
+ 	int  (*set_mode) (struct ata_port *ap, struct ata_device **r_failed_dev);
  
- 	.freeze		= ata_bmdma_freeze,
- 	.thaw		= ata_bmdma_thaw,
--	.error_handler	= hpt36x_error_handler,
-+	.error_handler	= ata_bmdma_error_handler,
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
- 	.cable_detect	= hpt36x_cable_detect,
+-	void (*post_set_mode) (struct ata_port *ap);
+-
+ 	int (*cable_detect) (struct ata_port *ap);
  
+ 	int  (*check_atapi_dma) (struct ata_queued_cmd *qc);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
