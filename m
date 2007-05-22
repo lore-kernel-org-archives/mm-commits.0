@@ -1,130 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - pie-randomization-fix.patch removed from -mm tree
-Date: Tue, 22 May 2007 16:12:31 -0700
-Message-ID: <200705222315.l4MNFksI011947@shell0.pdx.osdl.net>
+Subject: + sh-support-older-gccs.patch added to -mm tree
+Date: Tue, 22 May 2007 16:42:57 -0700
+Message-ID: <200705222346.l4MNkCtD012503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56656 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756366AbXEVXTe (ORCPT
+	by vger.kernel.org with ESMTP id S1758045AbXEVXqW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 19:19:34 -0400
+	Tue, 22 May 2007 19:46:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, honza@jikos.cz, jakub@redhat.com, jkosina@suse.cz, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, lethal@linux-sh.org
 
 
 The patch titled
-     pie-randomization-fix
-has been removed from the -mm tree.  Its filename was
-     pie-randomization-fix.patch
+     sh: support older gcc's
+has been added to the -mm tree.  Its filename is
+     sh-support-older-gccs.patch
 
-This patch was dropped because it was folded into pie-randomization.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pie-randomization-fix
+Subject: sh: support older gcc's
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- the compiler knows how to inline things
+Make my version of gcc happy.
 
-- return -EINVAL on zero-size, not -EIO
-
-- reduce scope of local `interp_map_addr', remove unneeded initialisation,
-  add needed comment.
-
-- coding-style repairs
-
-Cc: Jan Kratochvil <honza@jikos.cz>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   26 +++++++++++++++++---------
- 1 files changed, 17 insertions(+), 9 deletions(-)
+ arch/sh/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~pie-randomization-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~pie-randomization-fix
-+++ a/fs/binfmt_elf.c
-@@ -322,17 +322,17 @@ static unsigned long elf_map(struct file
+diff -puN arch/sh/Makefile~sh-support-older-gccs arch/sh/Makefile
+--- a/arch/sh/Makefile~sh-support-older-gccs
++++ a/arch/sh/Makefile
+@@ -39,7 +39,7 @@ cflags-$(CONFIG_CPU_SH2A)		:= -m2a $(cal
+ cflags-$(CONFIG_CPU_SH3)		:= -m3
+ cflags-$(CONFIG_CPU_SH4)		:= -m4 \
+ 	$(call cc-option,-mno-implicit-fp,-m4-nofpu)
+-cflags-$(CONFIG_CPU_SH4A)		:= -m4a $(call cc-option,-m4a-nofpu,)
++cflags-$(CONFIG_CPU_SH4A)		:= $(call cc-option,-m4a,) $(call cc-option,-m4a-nofpu,)
  
- #endif /* !elf_map */
- 
--static inline unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
-+static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
- {
- 	int i, first_idx = -1, last_idx = -1;
- 
--	for (i = 0; i < nr; i++)
-+	for (i = 0; i < nr; i++) {
- 		if (cmds[i].p_type == PT_LOAD) {
- 			last_idx = i;
- 			if (first_idx == -1)
- 				first_idx = i;
- 		}
--
-+	}
- 	if (first_idx == -1)
- 		return 0;
- 
-@@ -396,8 +396,10 @@ static unsigned long load_elf_interp(str
- 	}
- 
- 	total_size = total_mapping_size(elf_phdata, interp_elf_ex->e_phnum);
--	if (!total_size)
-+	if (!total_size) {
-+		error = -EINVAL;
- 		goto out_close;
-+	}
- 
- 	eppnt = elf_phdata;
- 	for (i = 0; i < interp_elf_ex->e_phnum; i++, eppnt++) {
-@@ -586,7 +588,8 @@ static int load_elf_binary(struct linux_
- 	int elf_exec_fileno;
- 	int retval, i;
- 	unsigned int size;
--	unsigned long elf_entry, interp_load_addr = 0, interp_map_addr = 0;
-+	unsigned long elf_entry;
-+	unsigned long interp_load_addr = 0;
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long reloc_func_desc = 0;
- 	char passed_fileno[6];
-@@ -908,7 +911,7 @@ static int load_elf_binary(struct linux_
- 			 * default mmap base, as well as whatever program they
- 			 * might try to exec.  This is because the brk will
- 			 * follow the loader, and is not movable.  */
--#if defined(__i386__) || defined(__x86_64__)
-+#ifdef CONFIG_X86
- 			load_bias = 0;
- #else
- 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
-@@ -992,16 +995,21 @@ static int load_elf_binary(struct linux_
- 	}
- 
- 	if (elf_interpreter) {
--		if (interpreter_type == INTERPRETER_AOUT)
-+		if (interpreter_type == INTERPRETER_AOUT) {
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
--		else {
-+		} else {
-+			unsigned long interp_map_addr;	/* unused */
-+
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
- 						    &interp_map_addr,
- 						    load_bias);
- 			if (!BAD_ADDR(elf_entry)) {
--				/* load_elf_interp() returns relocation adjustment */
-+				/*
-+				 * load_elf_interp() returns relocation
-+				 * adjustment
-+				 */
- 				interp_load_addr = elf_entry;
- 				elf_entry += loc->interp_elf_ex.e_entry;
- 			}
+ cflags-$(CONFIG_CPU_BIG_ENDIAN)		+= -mb
+ cflags-$(CONFIG_CPU_LITTLE_ENDIAN)	+= -ml
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -212,8 +137,6 @@ fuse-warning-fix.patch
 vxfs-warning-fixes.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
-pie-randomization.patch
-pie-randomization-fix.patch
 rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
 mpu401-warning-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
@@ -239,3 +162,4 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+sh-support-older-gccs.patch
