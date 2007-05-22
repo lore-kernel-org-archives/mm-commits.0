@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch added to -mm tree
-Date: Tue, 22 May 2007 09:49:10 -0700
-Message-ID: <200705221649.l4MGnA56005770@shell0.pdx.osdl.net>
+Subject: + prevent-going-idle-with-softirq-pending.patch added to -mm tree
+Date: Tue, 22 May 2007 09:50:54 -0700
+Message-ID: <200705221650.l4MGosgx005792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757466AbXEVQx0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758778AbXEVQzM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 12:53:26 -0400
+	Tue, 22 May 2007 12:55:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: leoli@freescale.com, david-b@pacbell.net, greg@kroah.com, reyems@telkomsa.net
+Cc: tglx@linutronix.de, mingo@elte.hu, stable@kernel.org
 
 
 The patch titled
-     ehci-fsl: fix cache coherency problem on system with large memory
+     Prevent going idle with softirq pending
 has been added to the -mm tree.  Its filename is
-     ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
+     prevent-going-idle-with-softirq-pending.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehci-fsl: fix cache coherency problem on system with large memory
-From: Li Yang <leoli@freescale.com>
+Subject: Prevent going idle with softirq pending
+From: Thomas Gleixner <tglx@linutronix.de>
 
-The patch fix bug http://bugzilla.kernel.org/show_bug.cgi?id=7482.
-It sets USB snooping on 4G space for PowerPC platforms without
-CONFIG_NOT_COHERENT_CACHE defined.
+The NOHZ patch contains a check for softirqs pending when a CPU goes idle. 
+The BUG is unrelated to NOHZ, it just was made visible by the NOHZ patch. 
+The BUG showed up mainly on P4 / hyperthreading enabled machines which lead
+the investigations into the wrong direction in the first place.  The real
+cause is in cond_resched_softirq():
 
-Reported-by: Stefan Meyer <reyems@telkomsa.net>
-Signed-off-by: Li Yang <leoli@freescale.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
+cond_resched_softirq() is enabling softirqs without invoking the softirq
+daemon when softirqs are pending.  This leads to the warning message in the
+NOHZ idle code:
+
+t1 runs softirq disabled code on CPU#0
+interrupt happens, softirq is raised, but deferred (softirqs disabled)
+t1 calls cond_resched_softirq()
+	enables softirqs via _local_bh_enable()
+	calls schedule()
+t2 runs
+t1 is migrated to CPU#1
+t2 is done and invokes idle()
+NOHZ detects the pending softirq
+
+Fix: change _local_bh_enable() to local_bh_enable() so the softirq
+daemon is invoked.
+
+Thanks to Anant Nitya for debugging this with great patience !
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-fsl.c |   13 +++++++++++++
- drivers/usb/host/ehci-fsl.h |    1 +
- 2 files changed, 14 insertions(+)
+ kernel/sched.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.c
---- a/drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
-+++ a/drivers/usb/host/ehci-fsl.c
-@@ -193,6 +193,19 @@ static void mpc83xx_usb_setup(struct usb
- 	out_be32(non_ehci + FSL_SOC_USB_CTRL, 0x00000004);
- 	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0000001b);
+diff -puN kernel/sched.c~prevent-going-idle-with-softirq-pending kernel/sched.c
+--- a/kernel/sched.c~prevent-going-idle-with-softirq-pending
++++ a/kernel/sched.c
+@@ -4775,9 +4775,7 @@ int __sched cond_resched_softirq(void)
+ 	BUG_ON(!in_softirq());
  
-+#if defined(CONFIG_PPC32) && !defined(CONFIG_NOT_COHERENT_CACHE)
-+	/*
-+	 * Turn on cache snooping hardware, since some PowerPC platforms
-+	 * wholly rely on hardware to deal with cache coherent
-+	 */
-+
-+	/* Setup Snooping for all the 4GB space */
-+	/* SNOOP1 starts from 0x0, size 2G */
-+	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0 | SNOOP_SIZE_2GB);
-+	/* SNOOP2 starts from 0x80000000, size 2G */
-+	out_be32(non_ehci + FSL_SOC_USB_SNOOP2, 0x80000000 | SNOOP_SIZE_2GB);
-+#endif
-+
- 	if (pdata->operating_mode == FSL_USB2_DR_HOST)
- 		mpc83xx_setup_phy(ehci, pdata->phy_mode, 0);
- 
-diff -puN drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.h
---- a/drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
-+++ a/drivers/usb/host/ehci-fsl.h
-@@ -34,4 +34,5 @@
- #define FSL_SOC_USB_PRICTRL	0x40c	/* NOTE: big-endian */
- #define FSL_SOC_USB_SICTRL	0x410	/* NOTE: big-endian */
- #define FSL_SOC_USB_CTRL	0x500	/* NOTE: big-endian */
-+#define SNOOP_SIZE_2GB		0x1e
- #endif				/* _EHCI_FSL_H */
+ 	if (need_resched() && system_state == SYSTEM_RUNNING) {
+-		raw_local_irq_disable();
+-		_local_bh_enable();
+-		raw_local_irq_enable();
++		local_bh_enable();
+ 		__cond_resched();
+ 		local_bh_disable();
+ 		return 1;
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-origin.patch
-ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
+ignore-bogus-acpi-info-for-offline-cpus.patch
+nohz-rate-limit-the-local-softirq-pending-warning-output.patch
+drm-spinlock-initializer-cleanup.patch
+s390-spinlock-initializer-cleanup.patch
+i386-hpet-check-if-the-counter-works.patch
+doc-clocksources.patch
+prevent-going-idle-with-softirq-pending.patch
