@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + delete-every-useless-reference-to-noret_type-in-the-tree.patch added to -mm tree
-Date: Tue, 22 May 2007 11:25:01 -0700
-Message-ID: <200705221825.l4MIP1th007275@shell0.pdx.osdl.net>
+Subject: + procfs-directory-entry-cleanup-fix.patch added to -mm tree
+Date: Tue, 22 May 2007 11:30:43 -0700
+Message-ID: <200705221830.l4MIUh3r007371@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50743 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45573 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756185AbXEVS0T (ORCPT
+	by vger.kernel.org with ESMTP id S1757943AbXEVScS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 14:26:19 -0400
+	Tue, 22 May 2007 14:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, xiaosuo@gmail.com
 
 
 The patch titled
-     Delete every useless reference to NORET_TYPE in the tree
+     procfs-directory-entry-cleanup-fix
 has been added to the -mm tree.  Its filename is
-     delete-every-useless-reference-to-noret_type-in-the-tree.patch
+     procfs-directory-entry-cleanup-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,426 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Delete every useless reference to NORET_TYPE in the tree
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: procfs-directory-entry-cleanup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Delete every reference to NORET_TYPE in the tree, based on the
-explanation found here:
-
-  http://www.ussg.iu.edu/hypermail/linux/kernel/9605/1957.html
-
-which shows that that macro hasn't had a value since gcc-2.2.5, when
-it was defined to equal "__volatile__".
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: "Changli Gao" <xiaosuo@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/traps.c                |    2 +-
- arch/arm26/kernel/traps.c              |    2 +-
- arch/avr32/kernel/traps.c              |    2 +-
- arch/i386/kernel/machine_kexec.c       |    2 +-
- arch/ia64/kernel/machine_kexec.c       |    2 +-
- arch/m68k/amiga/config.c               |    2 +-
- arch/mips/kernel/traps.c               |    2 +-
- arch/powerpc/kernel/machine_kexec.c    |    2 +-
- arch/powerpc/kernel/machine_kexec_32.c |    2 +-
- arch/powerpc/kernel/machine_kexec_64.c |    2 +-
- arch/ppc/amiga/config.c                |    2 +-
- arch/ppc/kernel/machine_kexec.c        |    4 ++--
- arch/sh/kernel/machine_kexec.c         |    4 ++--
- arch/x86_64/kernel/machine_kexec.c     |    2 +-
- drivers/s390/s390mach.c                |    2 +-
- include/asm-avr32/system.h             |    2 +-
- include/asm-i386/kexec.h               |    2 +-
- include/asm-mips/ptrace.h              |    2 +-
- include/asm-x86_64/kexec.h             |    2 +-
- include/linux/ext3_fs.h                |    1 -
- include/linux/ext4_fs.h                |    1 -
- include/linux/kernel.h                 |    6 +++---
- include/linux/kexec.h                  |    2 +-
- include/linux/linkage.h                |    1 -
- include/linux/sched.h                  |    2 +-
- kernel/exit.c                          |    6 +++---
- kernel/panic.c                         |    2 +-
- 27 files changed, 30 insertions(+), 33 deletions(-)
+ fs/proc/generic.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/arm/kernel/traps.c
---- a/arch/arm/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/arm/kernel/traps.c
-@@ -228,7 +228,7 @@ DEFINE_SPINLOCK(die_lock);
- /*
-  * This function is protected against re-entrancy.
-  */
--NORET_TYPE void die(const char *str, struct pt_regs *regs, int err)
-+void die(const char *str, struct pt_regs *regs, int err)
- {
- 	struct thread_info *thread = current_thread_info();
+diff -puN fs/proc/generic.c~procfs-directory-entry-cleanup-fix fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-directory-entry-cleanup-fix
++++ a/fs/proc/generic.c
+@@ -529,12 +529,6 @@ static int proc_register(struct proc_dir
+ 		return -EAGAIN;
+ 	dp->low_ino = i;
  
-diff -puN arch/arm26/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/arm26/kernel/traps.c
---- a/arch/arm26/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/arm26/kernel/traps.c
-@@ -175,7 +175,7 @@ DEFINE_SPINLOCK(die_lock);
- /*
-  * This function is protected against re-entrancy.
-  */
--NORET_TYPE void die(const char *str, struct pt_regs *regs, int err)
-+void die(const char *str, struct pt_regs *regs, int err)
- {
- 	struct task_struct *tsk = current;
- 
-diff -puN arch/avr32/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/avr32/kernel/traps.c
---- a/arch/avr32/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/avr32/kernel/traps.c
-@@ -22,7 +22,7 @@
- 
- static DEFINE_SPINLOCK(die_lock);
- 
--void NORET_TYPE die(const char *str, struct pt_regs *regs, long err)
-+void die(const char *str, struct pt_regs *regs, long err)
- {
- 	static int die_counter;
- 
-diff -puN arch/i386/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/i386/kernel/machine_kexec.c
---- a/arch/i386/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/i386/kernel/machine_kexec.c
-@@ -101,7 +101,7 @@ void machine_kexec_cleanup(struct kimage
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	unsigned long page_list[PAGES_NR];
- 	void *control_page;
-diff -puN arch/ia64/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -20,7 +20,7 @@
- #include <asm/delay.h>
- #include <asm/meminit.h>
- 
--typedef NORET_TYPE void (*relocate_new_kernel_t)(
-+typedef void (*relocate_new_kernel_t)(
- 					unsigned long indirection_page,
- 					unsigned long start_address,
- 					struct ia64_boot_param *boot_param,
-diff -puN arch/m68k/amiga/config.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/m68k/amiga/config.c
---- a/arch/m68k/amiga/config.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/m68k/amiga/config.c
-@@ -674,7 +674,7 @@ static unsigned int amiga_get_ss(void)
- 	return s;
- }
- 
--static NORET_TYPE void amiga_reset(void)
-+static void amiga_reset(void)
-     ATTRIB_NORET;
- 
- static void amiga_reset(void)
-diff -puN arch/mips/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/mips/kernel/traps.c
-@@ -310,7 +310,7 @@ void show_registers(struct pt_regs *regs
- 
- static DEFINE_SPINLOCK(die_lock);
- 
--NORET_TYPE void ATTRIB_NORET die(const char * str, struct pt_regs * regs)
-+void ATTRIB_NORET die(const char * str, struct pt_regs * regs)
- {
- 	static int die_counter;
- #ifdef CONFIG_MIPS_MT_SMTC
-diff -puN arch/powerpc/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/powerpc/kernel/machine_kexec.c
---- a/arch/powerpc/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/powerpc/kernel/machine_kexec.c
-@@ -47,7 +47,7 @@ void machine_kexec_cleanup(struct kimage
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	if (ppc_md.machine_kexec)
- 		ppc_md.machine_kexec(image);
-diff -puN arch/powerpc/kernel/machine_kexec_32.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/powerpc/kernel/machine_kexec_32.c
---- a/arch/powerpc/kernel/machine_kexec_32.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/powerpc/kernel/machine_kexec_32.c
-@@ -16,7 +16,7 @@
- #include <asm/hw_irq.h>
- #include <asm/io.h>
- 
--typedef NORET_TYPE void (*relocate_new_kernel_t)(
-+typedef void (*relocate_new_kernel_t)(
- 				unsigned long indirection_page,
- 				unsigned long reboot_code_buffer,
- 				unsigned long start_address) ATTRIB_NORET;
-diff -puN arch/powerpc/kernel/machine_kexec_64.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/powerpc/kernel/machine_kexec_64.c
---- a/arch/powerpc/kernel/machine_kexec_64.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/powerpc/kernel/machine_kexec_64.c
-@@ -253,7 +253,7 @@ union thread_union kexec_stack
- 	__attribute__((__section__(".data.init_task"))) = { };
- 
- /* Our assembly helper, in kexec_stub.S */
--extern NORET_TYPE void kexec_sequence(void *newstack, unsigned long start,
-+extern void kexec_sequence(void *newstack, unsigned long start,
- 					void *image, void *control,
- 					void (*clear_all)(void)) ATTRIB_NORET;
- 
-diff -puN arch/ppc/amiga/config.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/ppc/amiga/config.c
---- a/arch/ppc/amiga/config.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/ppc/amiga/config.c
-@@ -694,7 +694,7 @@ static int amiga_set_clock_mmss (unsigne
+-	spin_lock(&proc_subdir_lock);
+-	dp->next = dir->subdir;
+-	dp->parent = dir;
+-	dir->subdir = dp;
+-	spin_unlock(&proc_subdir_lock);
+-
+ 	if (S_ISDIR(dp->mode)) {
+ 		if (dp->proc_iops == NULL) {
+ 			dp->proc_fops = &proc_dir_operations;
+@@ -550,6 +544,13 @@ static int proc_register(struct proc_dir
+ 		if (dp->proc_iops == NULL)
+ 			dp->proc_iops = &proc_file_inode_operations;
+ 	}
++
++	spin_lock(&proc_subdir_lock);
++	dp->next = dir->subdir;
++	dp->parent = dir;
++	dir->subdir = dp;
++	spin_unlock(&proc_subdir_lock);
++
  	return 0;
  }
  
--static NORET_TYPE void amiga_reset( void )
-+static void amiga_reset( void )
-     ATTRIB_NORET;
- 
- static void amiga_reset (void)
-diff -puN arch/ppc/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/ppc/kernel/machine_kexec.c
---- a/arch/ppc/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/ppc/kernel/machine_kexec.c
-@@ -20,7 +20,7 @@
- #include <asm/cacheflush.h>
- #include <asm/machdep.h>
- 
--typedef NORET_TYPE void (*relocate_new_kernel_t)(
-+typedef void (*relocate_new_kernel_t)(
- 				unsigned long indirection_page,
- 				unsigned long reboot_code_buffer,
- 				unsigned long start_address) ATTRIB_NORET;
-@@ -66,7 +66,7 @@ void machine_kexec_cleanup(struct kimage
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	if (ppc_md.machine_kexec)
- 		ppc_md.machine_kexec(image);
-diff -puN arch/sh/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/sh/kernel/machine_kexec.c
---- a/arch/sh/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/sh/kernel/machine_kexec.c
-@@ -19,7 +19,7 @@
- #include <asm/io.h>
- #include <asm/cacheflush.h>
- 
--typedef NORET_TYPE void (*relocate_new_kernel_t)(
-+typedef void (*relocate_new_kernel_t)(
- 				unsigned long indirection_page,
- 				unsigned long reboot_code_buffer,
- 				unsigned long start_address,
-@@ -70,7 +70,7 @@ static void kexec_info(struct kimage *im
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 
- 	unsigned long page_list;
-diff -puN arch/x86_64/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree arch/x86_64/kernel/machine_kexec.c
---- a/arch/x86_64/kernel/machine_kexec.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/arch/x86_64/kernel/machine_kexec.c
-@@ -178,7 +178,7 @@ void machine_kexec_cleanup(struct kimage
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	unsigned long page_list[PAGES_NR];
- 	void *control_page;
-diff -puN drivers/s390/s390mach.c~delete-every-useless-reference-to-noret_type-in-the-tree drivers/s390/s390mach.c
---- a/drivers/s390/s390mach.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/drivers/s390/s390mach.c
-@@ -26,7 +26,7 @@
- 
- static struct semaphore m_sem;
- 
--static NORET_TYPE void
-+static void
- s390_handle_damage(char *msg)
- {
- #ifdef CONFIG_SMP
-diff -puN include/asm-avr32/system.h~delete-every-useless-reference-to-noret_type-in-the-tree include/asm-avr32/system.h
---- a/include/asm-avr32/system.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/asm-avr32/system.h
-@@ -141,7 +141,7 @@ static inline unsigned long __cmpxchg(vo
- 				   sizeof(*(ptr))))
- 
- struct pt_regs;
--void NORET_TYPE die(const char *str, struct pt_regs *regs, long err);
-+void die(const char *str, struct pt_regs *regs, long err);
- void _exception(long signr, struct pt_regs *regs, int code,
- 		unsigned long addr);
- 
-diff -puN include/asm-i386/kexec.h~delete-every-useless-reference-to-noret_type-in-the-tree include/asm-i386/kexec.h
---- a/include/asm-i386/kexec.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/asm-i386/kexec.h
-@@ -88,7 +88,7 @@ static inline void crash_setup_regs(stru
-                newregs->eip = (unsigned long)current_text_addr();
-        }
- }
--asmlinkage NORET_TYPE void
-+asmlinkage void
- relocate_kernel(unsigned long indirection_page,
- 		unsigned long control_page,
- 		unsigned long start_address,
-diff -puN include/asm-mips/ptrace.h~delete-every-useless-reference-to-noret_type-in-the-tree include/asm-mips/ptrace.h
---- a/include/asm-mips/ptrace.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/asm-mips/ptrace.h
-@@ -86,7 +86,7 @@ struct pt_regs {
- 
- extern asmlinkage void do_syscall_trace(struct pt_regs *regs, int entryexit);
- 
--extern NORET_TYPE void die(const char *, struct pt_regs *);
-+extern void die(const char *, struct pt_regs *);
- 
- static inline void die_if_kernel(const char *str, struct pt_regs *regs)
- {
-diff -puN include/asm-x86_64/kexec.h~delete-every-useless-reference-to-noret_type-in-the-tree include/asm-x86_64/kexec.h
---- a/include/asm-x86_64/kexec.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/asm-x86_64/kexec.h
-@@ -84,7 +84,7 @@ static inline void crash_setup_regs(stru
- 	}
- }
- 
--NORET_TYPE void
-+void
- relocate_kernel(unsigned long indirection_page,
- 		unsigned long page_list,
- 		unsigned long start_address) ATTRIB_NORET;
-diff -puN include/linux/ext3_fs.h~delete-every-useless-reference-to-noret_type-in-the-tree include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/linux/ext3_fs.h
-@@ -753,7 +753,6 @@ ext3_group_first_block_no(struct super_b
-  * Ok, these declarations are also in <linux/kernel.h> but none of the
-  * ext3 source programs needs to include it so they are duplicated here.
-  */
--# define NORET_TYPE    /**/
- # define ATTRIB_NORET  __attribute__((noreturn))
- # define NORET_AND     noreturn,
- 
-diff -puN include/linux/ext4_fs.h~delete-every-useless-reference-to-noret_type-in-the-tree include/linux/ext4_fs.h
---- a/include/linux/ext4_fs.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/linux/ext4_fs.h
-@@ -780,7 +780,6 @@ void ext4_get_group_no_and_offset(struct
-  * Ok, these declarations are also in <linux/kernel.h> but none of the
-  * ext4 source programs needs to include it so they are duplicated here.
-  */
--# define NORET_TYPE    /**/
- # define ATTRIB_NORET  __attribute__((noreturn))
- # define NORET_AND     noreturn,
- 
-diff -puN include/linux/kernel.h~delete-every-useless-reference-to-noret_type-in-the-tree include/linux/kernel.h
---- a/include/linux/kernel.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/linux/kernel.h
-@@ -105,14 +105,14 @@ extern int cond_resched(void);
- 
- extern struct atomic_notifier_head panic_notifier_list;
- extern long (*panic_blink)(long time);
--NORET_TYPE void panic(const char * fmt, ...)
-+void panic(const char * fmt, ...)
- 	__attribute__ ((NORET_AND format (printf, 1, 2)));
- extern void oops_enter(void);
- extern void oops_exit(void);
- extern int oops_may_print(void);
--fastcall NORET_TYPE void do_exit(long error_code)
-+fastcall void do_exit(long error_code)
- 	ATTRIB_NORET;
--NORET_TYPE void complete_and_exit(struct completion *, long)
-+void complete_and_exit(struct completion *, long)
- 	ATTRIB_NORET;
- extern unsigned long simple_strtoul(const char *,char **,unsigned int);
- extern long simple_strtol(const char *,char **,unsigned int);
-diff -puN include/linux/kexec.h~delete-every-useless-reference-to-noret_type-in-the-tree include/linux/kexec.h
---- a/include/linux/kexec.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/linux/kexec.h
-@@ -103,7 +103,7 @@ struct kimage {
- 
- 
- /* kexec interface functions */
--extern NORET_TYPE void machine_kexec(struct kimage *image) ATTRIB_NORET;
-+extern void machine_kexec(struct kimage *image) ATTRIB_NORET;
- extern int machine_kexec_prepare(struct kimage *image);
- extern void machine_kexec_cleanup(struct kimage *image);
- extern asmlinkage long sys_kexec_load(unsigned long entry,
-diff -puN include/linux/linkage.h~delete-every-useless-reference-to-noret_type-in-the-tree include/linux/linkage.h
---- a/include/linux/linkage.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/linux/linkage.h
-@@ -55,7 +55,6 @@
- 
- #endif
- 
--#define NORET_TYPE    /**/
- #define ATTRIB_NORET  __attribute__((noreturn))
- #define NORET_AND     noreturn,
- 
-diff -puN include/linux/sched.h~delete-every-useless-reference-to-noret_type-in-the-tree include/linux/sched.h
---- a/include/linux/sched.h~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/include/linux/sched.h
-@@ -1423,7 +1423,7 @@ extern void __cleanup_signal(struct sign
- extern void __cleanup_sighand(struct sighand_struct *);
- extern void exit_itimers(struct signal_struct *);
- 
--extern NORET_TYPE void do_group_exit(int);
-+extern void do_group_exit(int);
- 
- extern void daemonize(const char *, ...);
- extern int allow_signal(int);
-diff -puN kernel/exit.c~delete-every-useless-reference-to-noret_type-in-the-tree kernel/exit.c
---- a/kernel/exit.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/kernel/exit.c
-@@ -859,7 +859,7 @@ static void exit_notify(struct task_stru
- 		release_task(tsk);
- }
- 
--fastcall NORET_TYPE void do_exit(long code)
-+fastcall void do_exit(long code)
- {
- 	struct task_struct *tsk = current;
- 	int group_dead;
-@@ -985,7 +985,7 @@ fastcall NORET_TYPE void do_exit(long co
- 
- EXPORT_SYMBOL_GPL(do_exit);
- 
--NORET_TYPE void complete_and_exit(struct completion *comp, long code)
-+void complete_and_exit(struct completion *comp, long code)
- {
- 	if (comp)
- 		complete(comp);
-@@ -1004,7 +1004,7 @@ asmlinkage long sys_exit(int error_code)
-  * Take down every thread in the group.  This is called by fatal signals
-  * as well as by sys_exit_group (below).
-  */
--NORET_TYPE void
-+void
- do_group_exit(int exit_code)
- {
- 	BUG_ON(exit_code & 0x80); /* core dumps don't get here */
-diff -puN kernel/panic.c~delete-every-useless-reference-to-noret_type-in-the-tree kernel/panic.c
---- a/kernel/panic.c~delete-every-useless-reference-to-noret_type-in-the-tree
-+++ a/kernel/panic.c
-@@ -57,7 +57,7 @@ EXPORT_SYMBOL(panic_blink);
-  *	This function never returns.
-  */
-  
--NORET_TYPE void panic(const char * fmt, ...)
-+void panic(const char * fmt, ...)
- {
- 	long i;
- 	static char buf[1024];
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-delete-every-useless-reference-to-noret_type-in-the-tree.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+ide-warning-fixes.patch
+git-md-accel-build-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+revert-gregkh-usb-usb-make-the-autosuspend-workqueue-thread-freezable.patch
+git-wireless.patch
+arch-x86_64-vdso-vmac-needs-schedh.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+xfs-clean-up-shrinker-games.patch
+git-cryptodev.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+simplify-cleanup_workqueue_thread-fix.patch
+procfs-directory-entry-cleanup-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+pie-randomization-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+reiser4.patch
+reiser4-fix.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+vdso-print-fatal-signals.patch
+check_dirty_inode_list.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
