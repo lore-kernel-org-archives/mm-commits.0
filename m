@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch added to -mm tree
-Date: Tue, 22 May 2007 15:00:58 -0700
-Message-ID: <200705222204.l4MM4DEA010810@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch added to -mm tree
+Date: Tue, 22 May 2007 15:14:34 -0700
+Message-ID: <200705222217.l4MMHnsM011032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38888 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47732 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757749AbXEVWF0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756408AbXEVWTk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 18:05:26 -0400
+	Tue, 22 May 2007 18:19:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, shimoda.yoshihiro@renesas.com
 
 
 The patch titled
-     rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix
+     fix gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
 has been added to the -mm tree.  Its filename is
-     rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+     fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix
+Subject: fix gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
 From: Andrew Morton <akpm@linux-foundation.org>
 
-modpost complains about missing swapper_space.
+drivers/usb/host/r8a66597-hcd.c: In function 'packet_read':
+drivers/usb/host/r8a66597-hcd.c:1184: warning: cast from pointer to integer of different size
+drivers/usb/host/r8a66597-hcd.c:1184: warning: cast to pointer from integer of different size
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/rd.c |    2 +-
+ drivers/usb/host/r8a66597-hcd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix drivers/block/rd.c
---- a/drivers/block/rd.c~rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix
-+++ a/drivers/block/rd.c
-@@ -184,7 +184,7 @@ static int ramdisk_writepages(struct add
-  */
- static int ramdisk_set_page_dirty(struct page *page)
- {
--	struct address_space * const mapping = page_mapping(page);
-+	struct address_space * const mapping = page->mapping;
- 
- 	spin_lock(&mapping->private_lock);
- 	if (page_has_buffers(page)) {
+diff -puN drivers/usb/host/r8a66597-hcd.c~fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597 drivers/usb/host/r8a66597-hcd.c
+--- a/drivers/usb/host/r8a66597-hcd.c~fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
++++ a/drivers/usb/host/r8a66597-hcd.c
+@@ -1181,7 +1181,7 @@ static void packet_read(struct r8a66597 
+ 				urb->iso_frame_desc[td->iso_cnt].offset);
+ 		urb_len = urb->iso_frame_desc[td->iso_cnt].length;
+ 	} else {
+-		buf = (u16 *)((int)urb->transfer_buffer + urb->actual_length);
++		buf = (void *)urb->transfer_buffer + urb->actual_length;
+ 		urb_len = urb->transfer_buffer_length - urb->actual_length;
+ 	}
+ 	if (rcv_len < bufsize)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,3 +160,4 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
