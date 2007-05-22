@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + preserve-the-dirty-bit-in-init_page_buffers.patch added to -mm tree
-Date: Tue, 22 May 2007 09:47:02 -0700
-Message-ID: <200705221647.l4MGl3hR005723@shell0.pdx.osdl.net>
+Subject: + ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch added to -mm tree
+Date: Tue, 22 May 2007 09:49:10 -0700
+Message-ID: <200705221649.l4MGnA56005770@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49414 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758422AbXEVQsS (ORCPT
+	by vger.kernel.org with ESMTP id S1757466AbXEVQx0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 12:48:18 -0400
+	Tue, 22 May 2007 12:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com
+Cc: leoli@freescale.com, david-b@pacbell.net, greg@kroah.com, reyems@telkomsa.net
 
 
 The patch titled
-     Preserve the dirty bit in init_page_buffers
+     ehci-fsl: fix cache coherency problem on system with large memory
 has been added to the -mm tree.  Its filename is
-     preserve-the-dirty-bit-in-init_page_buffers.patch
+     ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Preserve the dirty bit in init_page_buffers
-From: Eric W. Biederman <ebiederm@xmission.com
+Subject: ehci-fsl: fix cache coherency problem on system with large memory
+From: Li Yang <leoli@freescale.com>
 
-The problem: When we are trying to free buffers try_to_free_buffers will look
-at ramdisk pages with clean buffer heads and remove the dirty bit from the
-page.  Resulting in ramdisk pages with data that get removed from the page
-cache.  Ouch!
+The patch fix bug http://bugzilla.kernel.org/show_bug.cgi?id=7482.
+It sets USB snooping on 4G space for PowerPC platforms without
+CONFIG_NOT_COHERENT_CACHE defined.
 
-Buffer heads appear on ramdisk pages when a filesystem calls getblk, which
-through a series of function calls eventually calls init_page_buffers.
-
-So to fix the mismatch between buffer head state and page state this patch
-modifies init_page_buffers to transfer the dirty bit from the page to the
-buffer heads like we currently do for the uptodate bit.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Reported-by: Stefan Meyer <reyems@telkomsa.net>
+Signed-off-by: Li Yang <leoli@freescale.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/usb/host/ehci-fsl.c |   13 +++++++++++++
+ drivers/usb/host/ehci-fsl.h |    1 +
+ 2 files changed, 14 insertions(+)
 
-diff -puN fs/buffer.c~preserve-the-dirty-bit-in-init_page_buffers fs/buffer.c
---- a/fs/buffer.c~preserve-the-dirty-bit-in-init_page_buffers
-+++ a/fs/buffer.c
-@@ -972,6 +972,7 @@ init_page_buffers(struct page *page, str
- 	struct buffer_head *head = page_buffers(page);
- 	struct buffer_head *bh = head;
- 	int uptodate = PageUptodate(page);
-+	int dirty = PageDirty(page);
+diff -puN drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.c
+--- a/drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
++++ a/drivers/usb/host/ehci-fsl.c
+@@ -193,6 +193,19 @@ static void mpc83xx_usb_setup(struct usb
+ 	out_be32(non_ehci + FSL_SOC_USB_CTRL, 0x00000004);
+ 	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0000001b);
  
- 	do {
- 		if (!buffer_mapped(bh)) {
-@@ -980,6 +981,8 @@ init_page_buffers(struct page *page, str
- 			bh->b_blocknr = block;
- 			if (uptodate)
- 				set_buffer_uptodate(bh);
-+			if (dirty)
-+				set_buffer_dirty(bh);
- 			set_buffer_mapped(bh);
- 		}
- 		block++;
++#if defined(CONFIG_PPC32) && !defined(CONFIG_NOT_COHERENT_CACHE)
++	/*
++	 * Turn on cache snooping hardware, since some PowerPC platforms
++	 * wholly rely on hardware to deal with cache coherent
++	 */
++
++	/* Setup Snooping for all the 4GB space */
++	/* SNOOP1 starts from 0x0, size 2G */
++	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0 | SNOOP_SIZE_2GB);
++	/* SNOOP2 starts from 0x80000000, size 2G */
++	out_be32(non_ehci + FSL_SOC_USB_SNOOP2, 0x80000000 | SNOOP_SIZE_2GB);
++#endif
++
+ 	if (pdata->operating_mode == FSL_USB2_DR_HOST)
+ 		mpc83xx_setup_phy(ehci, pdata->phy_mode, 0);
+ 
+diff -puN drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.h
+--- a/drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
++++ a/drivers/usb/host/ehci-fsl.h
+@@ -34,4 +34,5 @@
+ #define FSL_SOC_USB_PRICTRL	0x40c	/* NOTE: big-endian */
+ #define FSL_SOC_USB_SICTRL	0x410	/* NOTE: big-endian */
+ #define FSL_SOC_USB_CTRL	0x500	/* NOTE: big-endian */
++#define SNOOP_SIZE_2GB		0x1e
+ #endif				/* _EHCI_FSL_H */
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from leoli@freescale.com are
 
-freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-freezer-fix-pf_nofreeze-vs-freezeable-race.patch
-freezer-move-frozen_process-to-kernel-power-processc.patch
-dvb_en_50221-convert-to-kthread-api.patch
-fix-i-oat-for-kexec.patch
-pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
-x86_64-build-and-use-gdt-on-copied-compressed-kernel.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-preserve-the-dirty-bit-in-init_page_buffers.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch
-rd-simplify-by-using-the-same-helper-functions-in-libfs.patch
+origin.patch
+ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
