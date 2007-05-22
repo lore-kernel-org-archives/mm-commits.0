@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch added to -mm tree
-Date: Tue, 22 May 2007 15:14:34 -0700
-Message-ID: <200705222217.l4MMHnsM011032@shell0.pdx.osdl.net>
+Subject: + mpu401-warning-fixes.patch added to -mm tree
+Date: Tue, 22 May 2007 15:20:59 -0700
+Message-ID: <200705222224.l4MMOEtp011113@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47732 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54384 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756408AbXEVWTk (ORCPT
+	by vger.kernel.org with ESMTP id S1754430AbXEVW0t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 18:19:40 -0400
+	Tue, 22 May 2007 18:26:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, shimoda.yoshihiro@renesas.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     fix gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
+     mpu401 warning fixes
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
+     mpu401-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
+Subject: mpu401 warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/host/r8a66597-hcd.c: In function 'packet_read':
-drivers/usb/host/r8a66597-hcd.c:1184: warning: cast from pointer to integer of different size
-drivers/usb/host/r8a66597-hcd.c:1184: warning: cast to pointer from integer of different size
+Fix these:
 
-Cc: Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
-Cc: Greg KH <greg@kroah.com>
+sound/oss/mpu401.c: In function 'attach_mpu401':
+sound/oss/mpu401.c:1006: warning: cast to pointer from integer of different size
+sound/oss/mpu401.c:1115: warning: cast to pointer from integer of different size
+sound/oss/mpu401.c: In function 'unload_mpu401':
+sound/oss/mpu401.c:1230: warning: cast to pointer from integer of different size
+
+by making it implement the request_irq()/free_irq() cookies correctly.
+
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/r8a66597-hcd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/oss/mpu401.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/host/r8a66597-hcd.c~fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597 drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -1181,7 +1181,7 @@ static void packet_read(struct r8a66597 
- 				urb->iso_frame_desc[td->iso_cnt].offset);
- 		urb_len = urb->iso_frame_desc[td->iso_cnt].length;
- 	} else {
--		buf = (u16 *)((int)urb->transfer_buffer + urb->actual_length);
-+		buf = (void *)urb->transfer_buffer + urb->actual_length;
- 		urb_len = urb->transfer_buffer_length - urb->actual_length;
- 	}
- 	if (rcv_len < bufsize)
+diff -puN sound/oss/mpu401.c~mpu401-warning-fixes sound/oss/mpu401.c
+--- a/sound/oss/mpu401.c~mpu401-warning-fixes
++++ a/sound/oss/mpu401.c
+@@ -1003,7 +1003,8 @@ int attach_mpu401(struct address_info *h
+ 		}
+ 		if (!devc->shared_irq)
+ 		{
+-			if (request_irq(devc->irq, mpuintr, 0, "mpu401", (void *)m) < 0)
++			if (request_irq(devc->irq, mpuintr, 0, "mpu401",
++					hw_config) < 0)
+ 			{
+ 				printk(KERN_WARNING "mpu401: Failed to allocate IRQ%d\n", devc->irq);
+ 				ret = -ENOMEM;
+@@ -1112,7 +1113,7 @@ int attach_mpu401(struct address_info *h
+ 	return 0;
+ 
+ out_irq:
+-	free_irq(devc->irq, (void *)m);
++	free_irq(devc->irq, hw_config);
+ out_mididev:
+ 	sound_unload_mididev(m);
+ out_err:
+@@ -1227,7 +1228,7 @@ void unload_mpu401(struct address_info *
+ 	if (n != -1) {
+ 		release_region(hw_config->io_base, 2);
+ 		if (hw_config->always_detect == 0 && hw_config->irq > 0)
+-			free_irq(hw_config->irq, (void *)n);
++			free_irq(hw_config->irq, hw_config);
+ 		p=mpu401_synth_operations[n];
+ 		sound_unload_mididev(n);
+ 		sound_unload_timerdev(hw_config->slots[2]);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +122,7 @@ git-pciseg.patch
 git-scsi-rc-fixes.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 git-unionfs.patch
+fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
 git-wireless.patch
 arch-x86_64-vdso-vmac-needs-schedh.patch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
@@ -138,6 +165,7 @@ percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
 pie-randomization-fix.patch
 rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -160,4 +188,3 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
