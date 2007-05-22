@@ -1,237 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - pie-randomization.patch removed from -mm tree
-Date: Tue, 22 May 2007 16:12:46 -0700
-Message-ID: <200705222316.l4MNG1xU011965@shell0.pdx.osdl.net>
+Subject: - pie-randomization-fix.patch removed from -mm tree
+Date: Tue, 22 May 2007 16:12:31 -0700
+Message-ID: <200705222315.l4MNFksI011947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54010 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756302AbXEVXTs (ORCPT
+	by vger.kernel.org with ESMTP id S1756366AbXEVXTe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 19:19:48 -0400
+	Tue, 22 May 2007 19:19:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: honza@jikos.cz, jakub@redhat.com, jkosina@suse.cz, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, honza@jikos.cz, jakub@redhat.com, jkosina@suse.cz, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PIE randomization
+     pie-randomization-fix
 has been removed from the -mm tree.  Its filename was
-     pie-randomization.patch
+     pie-randomization-fix.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was folded into pie-randomization.patch
 
 ------------------------------------------------------
-Subject: PIE randomization
-From: Jan Kratochvil <honza@jikos.cz>
+Subject: pie-randomization-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch is using mmap()'s randomization functionality in such a way that
-it maps the main executable of (specially compiled/linked -pie/-fpie)
-ET_DYN binaries onto a random address (in cases in which mmap() is allowed
-to perform a randomization).
+- the compiler knows how to inline things
 
-Origin of this patch is in exec-shield
-(http://people.redhat.com/mingo/exec-shield/)
+- return -EINVAL on zero-size, not -EIO
 
-Signed-off-by: Jan Kratochvil <honza@jikos.cz>
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+- reduce scope of local `interp_map_addr', remove unneeded initialisation,
+  add needed comment.
+
+- coding-style repairs
+
+Cc: Jan Kratochvil <honza@jikos.cz>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Roland McGrath <roland@redhat.com>
 Cc: Jakub Jelinek <jakub@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |  109 ++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 86 insertions(+), 23 deletions(-)
+ fs/binfmt_elf.c |   26 +++++++++++++++++---------
+ 1 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN fs/binfmt_elf.c~pie-randomization fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~pie-randomization
+diff -puN fs/binfmt_elf.c~pie-randomization-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pie-randomization-fix
 +++ a/fs/binfmt_elf.c
-@@ -45,7 +45,7 @@
- 
- static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
- static int load_elf_library(struct file *);
--static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int);
-+static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
- 
- /*
-  * If we don't support core dumping, then supply a NULL so we
-@@ -80,7 +80,7 @@ static struct linux_binfmt elf_format = 
- 		.hasvdso	= 1
- };
- 
--#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
-+#define BAD_ADDR(x) ((unsigned long)(x) >= PAGE_MASK)
- 
- static int set_brk(unsigned long start, unsigned long end)
- {
-@@ -285,33 +285,70 @@ create_elf_tables(struct linux_binprm *b
- #ifndef elf_map
- 
- static unsigned long elf_map(struct file *filep, unsigned long addr,
--		struct elf_phdr *eppnt, int prot, int type)
-+		struct elf_phdr *eppnt, int prot, int type,
-+		unsigned long total_size)
- {
- 	unsigned long map_addr;
--	unsigned long pageoffset = ELF_PAGEOFFSET(eppnt->p_vaddr);
-+	unsigned long size = eppnt->p_filesz + ELF_PAGEOFFSET(eppnt->p_vaddr);
-+	unsigned long off = eppnt->p_offset - ELF_PAGEOFFSET(eppnt->p_vaddr);
-+	addr = ELF_PAGESTART(addr);
-+	size = ELF_PAGEALIGN(size);
- 
--	down_write(&current->mm->mmap_sem);
- 	/* mmap() will return -EINVAL if given a zero size, but a
- 	 * segment with zero filesize is perfectly valid */
--	if (eppnt->p_filesz + pageoffset)
--		map_addr = do_mmap(filep, ELF_PAGESTART(addr),
--				   eppnt->p_filesz + pageoffset, prot, type,
--				   eppnt->p_offset - pageoffset);
--	else
--		map_addr = ELF_PAGESTART(addr);
-+	if (!size)
-+		return addr;
-+
-+	down_write(&current->mm->mmap_sem);
-+	/*
-+	* total_size is the size of the ELF (interpreter) image.
-+	* The _first_ mmap needs to know the full size, otherwise
-+	* randomization might put this image into an overlapping
-+	* position with the ELF binary image. (since size < total_size)
-+	* So we first map the 'big' image - and unmap the remainder at
-+	* the end. (which unmap is needed for ELF images with holes.)
-+	*/
-+	if (total_size) {
-+		total_size = ELF_PAGEALIGN(total_size);
-+		map_addr = do_mmap(filep, addr, total_size, prot, type, off);
-+		if (!BAD_ADDR(map_addr))
-+			do_munmap(current->mm, map_addr+size, total_size-size);
-+	} else
-+		map_addr = do_mmap(filep, addr, size, prot, type, off);
-+
- 	up_write(&current->mm->mmap_sem);
- 	return(map_addr);
- }
+@@ -322,17 +322,17 @@ static unsigned long elf_map(struct file
  
  #endif /* !elf_map */
  
+-static inline unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
 +static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
-+{
-+	int i, first_idx = -1, last_idx = -1;
-+
-+	for (i = 0; i < nr; i++) {
-+		if (cmds[i].p_type == PT_LOAD) {
-+			last_idx = i;
-+			if (first_idx == -1)
-+				first_idx = i;
-+		}
-+	}
-+	if (first_idx == -1)
-+		return 0;
-+
-+	return cmds[last_idx].p_vaddr + cmds[last_idx].p_memsz -
-+				ELF_PAGESTART(cmds[first_idx].p_vaddr);
-+}
-+
-+
- /* This is much more generalized than the library routine read function,
-    so we keep this separate.  Technically the library read function
-    is only provided so that we can read a.out libraries that have
-    an ELF header */
- 
- static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
--		struct file *interpreter, unsigned long *interp_load_addr)
-+		struct file *interpreter, unsigned long *interp_map_addr,
-+		unsigned long no_base)
  {
- 	struct elf_phdr *elf_phdata;
- 	struct elf_phdr *eppnt;
-@@ -319,6 +356,7 @@ static unsigned long load_elf_interp(str
- 	int load_addr_set = 0;
- 	unsigned long last_bss = 0, elf_bss = 0;
- 	unsigned long error = ~0UL;
-+	unsigned long total_size;
- 	int retval, i, size;
+ 	int i, first_idx = -1, last_idx = -1;
  
- 	/* First of all, some simple consistency checks */
-@@ -357,6 +395,12 @@ static unsigned long load_elf_interp(str
- 		goto out_close;
+-	for (i = 0; i < nr; i++)
++	for (i = 0; i < nr; i++) {
+ 		if (cmds[i].p_type == PT_LOAD) {
+ 			last_idx = i;
+ 			if (first_idx == -1)
+ 				first_idx = i;
+ 		}
+-
++	}
+ 	if (first_idx == -1)
+ 		return 0;
+ 
+@@ -396,8 +396,10 @@ static unsigned long load_elf_interp(str
  	}
  
-+	total_size = total_mapping_size(elf_phdata, interp_elf_ex->e_phnum);
+ 	total_size = total_mapping_size(elf_phdata, interp_elf_ex->e_phnum);
+-	if (!total_size)
 +	if (!total_size) {
 +		error = -EINVAL;
-+		goto out_close;
+ 		goto out_close;
 +	}
-+
+ 
  	eppnt = elf_phdata;
  	for (i = 0; i < interp_elf_ex->e_phnum; i++, eppnt++) {
- 		if (eppnt->p_type == PT_LOAD) {
-@@ -374,9 +418,14 @@ static unsigned long load_elf_interp(str
- 			vaddr = eppnt->p_vaddr;
- 			if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
- 				elf_type |= MAP_FIXED;
-+			else if (no_base && interp_elf_ex->e_type == ET_DYN)
-+				load_addr = -vaddr;
- 
- 			map_addr = elf_map(interpreter, load_addr + vaddr,
--					   eppnt, elf_prot, elf_type);
-+					   eppnt, elf_prot, elf_type, total_size);
-+			total_size = 0;
-+			if (!*interp_map_addr)
-+				*interp_map_addr = map_addr;
- 			error = map_addr;
- 			if (BAD_ADDR(map_addr))
- 				goto out_close;
-@@ -442,8 +491,7 @@ static unsigned long load_elf_interp(str
- 			goto out_close;
- 	}
- 
--	*interp_load_addr = load_addr;
--	error = ((unsigned long)interp_elf_ex->e_entry) + load_addr;
-+	error = load_addr;
- 
- out_close:
- 	kfree(elf_phdata);
-@@ -540,7 +588,8 @@ static int load_elf_binary(struct linux_
+@@ -586,7 +588,8 @@ static int load_elf_binary(struct linux_
  	int elf_exec_fileno;
  	int retval, i;
  	unsigned int size;
--	unsigned long elf_entry, interp_load_addr = 0;
+-	unsigned long elf_entry, interp_load_addr = 0, interp_map_addr = 0;
 +	unsigned long elf_entry;
 +	unsigned long interp_load_addr = 0;
  	unsigned long start_code, end_code, start_data, end_data;
  	unsigned long reloc_func_desc = 0;
  	char passed_fileno[6];
-@@ -808,9 +857,7 @@ static int load_elf_binary(struct linux_
- 	current->mm->start_stack = bprm->p;
- 
- 	/* Now we do a little grungy work by mmaping the ELF image into
--	   the correct location in memory.  At this point, we assume that
--	   the image should be loaded at fixed address, not at a variable
--	   address. */
-+	   the correct location in memory. */
- 	for(i = 0, elf_ppnt = elf_phdata;
- 	    i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
- 		int elf_prot = 0, elf_flags;
-@@ -864,11 +911,15 @@ static int load_elf_binary(struct linux_
+@@ -908,7 +911,7 @@ static int load_elf_binary(struct linux_
  			 * default mmap base, as well as whatever program they
  			 * might try to exec.  This is because the brk will
  			 * follow the loader, and is not movable.  */
+-#if defined(__i386__) || defined(__x86_64__)
 +#ifdef CONFIG_X86
-+			load_bias = 0;
-+#else
+ 			load_bias = 0;
+ #else
  			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
-+#endif
- 		}
- 
- 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
--				elf_prot, elf_flags);
-+				elf_prot, elf_flags,0);
- 		if (BAD_ADDR(error)) {
- 			send_sig(SIGKILL, current, 0);
- 			retval = IS_ERR((void *)error) ?
-@@ -944,13 +995,25 @@ static int load_elf_binary(struct linux_
+@@ -992,16 +995,21 @@ static int load_elf_binary(struct linux_
  	}
  
  	if (elf_interpreter) {
@@ -239,30 +108,134 @@ diff -puN fs/binfmt_elf.c~pie-randomization fs/binfmt_elf.c
 +		if (interpreter_type == INTERPRETER_AOUT) {
  			elf_entry = load_aout_interp(&loc->interp_ex,
  						     interpreter);
--		else
+-		else {
 +		} else {
 +			unsigned long interp_map_addr;	/* unused */
 +
  			elf_entry = load_elf_interp(&loc->interp_elf_ex,
  						    interpreter,
--						    &interp_load_addr);
-+						    &interp_map_addr,
-+						    load_bias);
-+			if (!BAD_ADDR(elf_entry)) {
+ 						    &interp_map_addr,
+ 						    load_bias);
+ 			if (!BAD_ADDR(elf_entry)) {
+-				/* load_elf_interp() returns relocation adjustment */
 +				/*
 +				 * load_elf_interp() returns relocation
 +				 * adjustment
 +				 */
-+				interp_load_addr = elf_entry;
-+				elf_entry += loc->interp_elf_ex.e_entry;
-+			}
-+		}
- 		if (BAD_ADDR(elf_entry)) {
- 			force_sig(SIGSEGV, current);
- 			retval = IS_ERR((void *)elf_entry) ?
+ 				interp_load_addr = elf_entry;
+ 				elf_entry += loc->interp_elf_ex.e_entry;
+ 			}
 _
 
-Patches currently in -mm which might be from honza@jikos.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+capabilityh-warning-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link-fix.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ia64.patch
+git-ieee1394.patch
 git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+ide-warning-fixes.patch
+git-md-accel-build-fix.patch
+git-mips-fixup.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
+git-wireless.patch
+arch-x86_64-vdso-vmac-needs-schedh.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+xfs-clean-up-shrinker-games.patch
+git-cryptodev.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+simplify-cleanup_workqueue_thread-fix.patch
+procfs-directory-entry-cleanup-fix.patch
+capifunc-warning-fixes.patch
+hardware-eicon-messagec-warning-fixes.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
 pie-randomization.patch
+pie-randomization-fix.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+reiser4.patch
+reiser4-fix.patch
+vdso-print-fatal-signals.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
