@@ -1,245 +1,430 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-fs-hook-placement.patch removed from -mm tree
-Date: Tue, 22 May 2007 14:24:33 -0700
-Message-ID: <200705222124.l4MLOXpL010112@shell0.pdx.osdl.net>
+Subject: - integrity-new-hooks.patch removed from -mm tree
+Date: Tue, 22 May 2007 14:24:31 -0700
+Message-ID: <200705222124.l4MLOVSs010109@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57582 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45736 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757829AbXEVV0y (ORCPT
+	by vger.kernel.org with ESMTP id S1756916AbXEVV0l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 17:26:54 -0400
+	Tue, 22 May 2007 17:26:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, kjhall@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity: fs hook placement
+     integrity: new hooks
 has been removed from the -mm tree.  Its filename was
-     integrity-fs-hook-placement.patch
+     integrity-new-hooks.patch
 
 This patch was dropped because this work seems to be stalled
 
 ------------------------------------------------------
-Subject: integrity: fs hook placement
+Subject: integrity: new hooks
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-This patch places calls to the new integrity hooks in the appropriate places
-in the fs directory.  It is not meant in any way to be viewed as a complete
-set, but used as a basis for an initial discussion.
+This patch adds integrity hooks used to implement an integrity service
+provider and updates the previously submitted dummy provider to support these
+new hooks.
 
+[akpm@linux-foundation.org: build fix]
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c              |    6 ++++++
- fs/ext3/xattr_security.c |    8 ++++++++
- fs/file_table.c          |    3 +++
- fs/inode.c               |   10 ++++++++++
- fs/xattr.c               |    9 +++++++++
- include/linux/fs.h       |    3 +++
- 6 files changed, 39 insertions(+)
+ include/linux/integrity.h  |  149 +++++++++++++++++++++++++++++++++--
+ security/integrity.c       |    3 
+ security/integrity_dummy.c |   99 ++++++++++++++++++++---
+ security/integrity_dummy.h |    3 
+ 4 files changed, 233 insertions(+), 21 deletions(-)
 
-diff -puN fs/dcache.c~integrity-fs-hook-placement fs/dcache.c
---- a/fs/dcache.c~integrity-fs-hook-placement
-+++ a/fs/dcache.c
-@@ -28,6 +28,7 @@
- #include <linux/file.h>
- #include <asm/uaccess.h>
- #include <linux/security.h>
-+#include <linux/integrity.h>
- #include <linux/seqlock.h>
- #include <linux/swap.h>
- #include <linux/bootmem.h>
-@@ -990,6 +991,7 @@ void d_instantiate(struct dentry *entry,
- 	entry->d_inode = inode;
- 	fsnotify_d_instantiate(entry, inode);
- 	spin_unlock(&dcache_lock);
-+	integrity_d_instantiate(entry, inode);
- 	security_d_instantiate(entry, inode);
- }
+diff -puN include/linux/integrity.h~integrity-new-hooks include/linux/integrity.h
+--- a/include/linux/integrity.h~integrity-new-hooks
++++ a/include/linux/integrity.h
+@@ -1,7 +1,7 @@
+ /*
+  * integrity.h
+  *
+- * Copyright (C) 2005,2006 IBM Corporation
++ * Copyright (C) 2005,2006,2007 IBM Corporation
+  * Author: Mimi Zohar <zohar@us.ibm.com>
+  *
+  *      This program is free software; you can redistribute it and/or modify
+@@ -45,6 +45,45 @@
+  *	@filename either contains the full pathname/short file name.
+  *	@mask contains the filename permission status(i.e. read, write, append).
+  *
++ * @inode_setxattr:
++ *	Check permission before permitting an integrity extended attribute
++ * 	to be set.
++ *	@value identified by @name for @dentry.
++ *	Return 0 if permission is granted.
++ *
++ * @inode_post_setxattr:
++ *	Update inode integrity xattr after successful setxattr operation.
++ * 	identified by @name for @dentry.
++ *
++ * @inode_alloc_integrity:
++ *	Allocate and attach an integrity structure to @inode->i_integrity.  The
++ * 	i_integrity field is initialized to NULL when the inode structure is
++ * 	allocated.
++ * 	@inode contains the inode structure.
++ * 	Return 0 if operation was successful.
++ *
++ * @inode_free_integrity:
++ *	@inode contains the inode structure.
++ * 	Deallocate the inode integrity structure and set @inode->i_integrity to
++ * 	NULL.
++ *
++ * @inode_init_integrity:
++ *	Create inode integrity xattr for a new inode based on the new security
++ * 	xattr information.
++ *	@inode contains the inode structure of the newly created inode.
++ *	@dir contains the inode structure of the parent directory.
++ * 	@name contains the security xattr name suffix.
++ *	@value contains the security attribute value.
++ *	@len contains the length of the security attribute value.
++ *
++ * @file_free_integrity:
++ *	Update the integrity xattr value as necessary.
++ * 	*file contains the file structure being closed.
++ *
++ * @d_instantiate:
++ *	Initialize the integrity structure of an inode for a dentry.
++ *	@dentry to complete.
++ *	@inode to attach to this dentry.
+  */
  
-@@ -1054,6 +1056,7 @@ struct dentry *d_instantiate_unique(stru
- 	spin_unlock(&dcache_lock);
+ #define PASS_STR "INTEGRITY_PASS"
+@@ -57,13 +96,22 @@ struct integrity_operations {
+ 	int (*verify_data) (struct dentry *dentry, int *status);
+ 	void (*measure) (struct dentry *dentry,
+ 			const unsigned char *filename, int mask);
++	int (*inode_setxattr) (struct dentry *dentry, char *name, void *value,
++			       size_t size, int flags);
++	void (*inode_post_setxattr) (struct dentry *dentry, char *name);
++	int (*inode_alloc_integrity) (struct inode *inode);
++	void (*inode_free_integrity) (struct inode *inode);
++	void (*inode_init_integrity) (struct inode *inode, struct inode *dir,
++				    char **name, void **value, size_t *len);
++	void (*file_free_integrity) (struct file * file);
++	void (*d_instantiate) (struct dentry *dentry, struct inode *inode);
+ };
+ extern int register_integrity(struct integrity_operations *ops);
+ extern int unregister_integrity(struct integrity_operations *ops);
  
- 	if (!result) {
-+		integrity_d_instantiate(entry, inode);
- 		security_d_instantiate(entry, inode);
- 		return NULL;
- 	}
-@@ -1191,6 +1194,7 @@ struct dentry *d_splice_alias(struct ino
- 			BUG_ON(!(new->d_flags & DCACHE_DISCONNECTED));
- 			fsnotify_d_instantiate(new, inode);
- 			spin_unlock(&dcache_lock);
-+			integrity_d_instantiate(new, inode);
- 			security_d_instantiate(new, inode);
- 			d_rehash(dentry);
- 			d_move(new, dentry);
-@@ -1201,6 +1205,7 @@ struct dentry *d_splice_alias(struct ino
- 			dentry->d_inode = inode;
- 			fsnotify_d_instantiate(dentry, inode);
- 			spin_unlock(&dcache_lock);
-+			integrity_d_instantiate(dentry, inode);
- 			security_d_instantiate(dentry, inode);
- 			d_rehash(dentry);
- 		}
-@@ -1752,6 +1757,7 @@ found:
- 	spin_unlock(&dcache_lock);
- out_nolock:
- 	if (actual == dentry) {
-+		integrity_d_instantiate(dentry, inode);
- 		security_d_instantiate(dentry, inode);
- 		return NULL;
- 	}
-diff -puN fs/ext3/xattr_security.c~integrity-fs-hook-placement fs/ext3/xattr_security.c
---- a/fs/ext3/xattr_security.c~integrity-fs-hook-placement
-+++ a/fs/ext3/xattr_security.c
-@@ -9,6 +9,7 @@
- #include <linux/ext3_jbd.h>
- #include <linux/ext3_fs.h>
- #include <linux/security.h>
-+#include <linux/integrity.h>
- #include "xattr.h"
- 
- static size_t
-@@ -57,12 +58,19 @@ ext3_init_security(handle_t *handle, str
- 
- 	err = security_inode_init_security(inode, dir, &name, &value, &len);
- 	if (err) {
-+		/* Even if creation of the security xattr fails, must
-+		 * indicate this is a new inode. */
-+		integrity_inode_init_integrity(inode, dir, NULL, NULL, NULL);
- 		if (err == -EOPNOTSUPP)
- 			return 0;
- 		return err;
- 	}
- 	err = ext3_xattr_set_handle(handle, inode, EXT3_XATTR_INDEX_SECURITY,
- 				    name, value, len, 0);
-+
-+	integrity_inode_init_integrity(inode, dir, &name, &value, &len);
-+	err = ext3_xattr_set_handle(handle, inode, EXT3_XATTR_INDEX_SECURITY,
-+				    name, value, len, 0);
- 	kfree(name);
- 	kfree(value);
- 	return err;
-diff -puN fs/file_table.c~integrity-fs-hook-placement fs/file_table.c
---- a/fs/file_table.c~integrity-fs-hook-placement
-+++ a/fs/file_table.c
-@@ -12,6 +12,7 @@
- #include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/security.h>
-+#include <linux/integrity.h>
- #include <linux/eventpoll.h>
- #include <linux/rcupdate.h>
- #include <linux/mount.h>
-@@ -168,6 +169,7 @@ void fastcall __fput(struct file *file)
- 	if (file->f_op && file->f_op->release)
- 		file->f_op->release(inode, file);
- 	security_file_free(file);
-+	integrity_file_free(file);
- 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
- 		cdev_put(inode->i_cdev);
- 	fops_put(file->f_op);
-@@ -239,6 +241,7 @@ void put_filp(struct file *file)
- {
- 	if (atomic_dec_and_test(&file->f_count)) {
- 		security_file_free(file);
-+		integrity_file_free(file);
- 		file_kill(file);
- 		file_free(file);
- 	}
-diff -puN fs/inode.c~integrity-fs-hook-placement fs/inode.c
---- a/fs/inode.c~integrity-fs-hook-placement
-+++ a/fs/inode.c
-@@ -17,6 +17,7 @@
- #include <linux/hash.h>
- #include <linux/swap.h>
- #include <linux/security.h>
-+#include <linux/integrity.h>
- #include <linux/pagemap.h>
- #include <linux/cdev.h>
- #include <linux/bootmem.h>
-@@ -142,6 +143,14 @@ static struct inode *alloc_inode(struct 
- 			return NULL;
- 		}
- 
-+		if (integrity_inode_alloc(inode)) {
-+			if (inode->i_sb->s_op->destroy_inode)
-+				inode->i_sb->s_op->destroy_inode(inode);
-+			else
-+				kmem_cache_free(inode_cachep, (inode));
-+			return NULL;
-+		}
-+
- 		mapping->a_ops = &empty_aops;
-  		mapping->host = inode;
- 		mapping->flags = 0;
-@@ -172,6 +181,7 @@ void destroy_inode(struct inode *inode) 
- {
- 	BUG_ON(inode_has_buffers(inode));
- 	security_inode_free(inode);
-+	integrity_inode_free(inode);
- 	if (inode->i_sb->s_op->destroy_inode)
- 		inode->i_sb->s_op->destroy_inode(inode);
- 	else
-diff -puN fs/xattr.c~integrity-fs-hook-placement fs/xattr.c
---- a/fs/xattr.c~integrity-fs-hook-placement
-+++ a/fs/xattr.c
-@@ -13,6 +13,7 @@
- #include <linux/xattr.h>
- #include <linux/namei.h>
- #include <linux/security.h>
-+#include <linux/integrity.h>
- #include <linux/syscalls.h>
- #include <linux/module.h>
- #include <linux/fsnotify.h>
-@@ -83,11 +84,17 @@ vfs_setxattr(struct dentry *dentry, char
- 	error = security_inode_setxattr(dentry, name, value, size, flags);
- 	if (error)
- 		goto out;
-+
-+	error = integrity_inode_setxattr(dentry, name, value, size, flags);
-+	if (error)
-+		goto out;
-+
- 	error = -EOPNOTSUPP;
- 	if (inode->i_op->setxattr) {
- 		error = inode->i_op->setxattr(dentry, name, value, size, flags);
- 		if (!error) {
- 			fsnotify_xattr(dentry);
-+			integrity_inode_post_setxattr(dentry, name);
- 			security_inode_post_setxattr(dentry, name, value,
- 						     size, flags);
- 		}
-@@ -180,6 +187,8 @@ vfs_removexattr(struct dentry *dentry, c
- 
- 	mutex_lock(&inode->i_mutex);
- 	error = inode->i_op->removexattr(dentry, name);
-+	if (!error)
-+		integrity_inode_post_setxattr(dentry, name);
- 	mutex_unlock(&inode->i_mutex);
- 
- 	if (!error)
-diff -puN include/linux/fs.h~integrity-fs-hook-placement include/linux/fs.h
---- a/include/linux/fs.h~integrity-fs-hook-placement
-+++ a/include/linux/fs.h
-@@ -609,6 +609,9 @@ struct inode {
- #ifdef CONFIG_SECURITY
- 	void			*i_security;
- #endif
-+#ifdef CONFIG_INTEGRITY
-+	void			*i_integrity;
-+#endif
- 	void			*i_private; /* fs or device private pointer */
+ /* global variables */
+ extern struct integrity_operations *integrity_ops;
+-enum integrity_verify_status {
++enum integrity_status {
+ 	INTEGRITY_PASS = 0, INTEGRITY_FAIL = -1, INTEGRITY_NOLABEL = -2
  };
  
+@@ -77,8 +125,7 @@ static inline int integrity_verify_metad
+ 			xattr_value, xattr_val_len, status);
+ }
+ 
+-static inline int integrity_verify_data(struct dentry *dentry,
+-					int *status)
++static inline int integrity_verify_data(struct dentry *dentry, int *status)
+ {
+ 	return integrity_ops->verify_data(dentry, status);
+ }
+@@ -88,6 +135,55 @@ static inline void integrity_measure(str
+ {
+ 	integrity_ops->measure(dentry, filename, mask);
+ }
++
++static inline int integrity_inode_setxattr(struct dentry *dentry, char *name,
++					   void *value, size_t size, int flags)
++{
++	if (unlikely (IS_PRIVATE (dentry->d_inode)))
++		return 0;
++	return integrity_ops->inode_setxattr(dentry, name, value, size, flags);
++}
++
++static inline void integrity_inode_post_setxattr(struct dentry *dentry, char *name)
++{
++	if (unlikely (IS_PRIVATE (dentry->d_inode)))
++		return;
++ 	integrity_ops->inode_post_setxattr(dentry, name);
++}
++
++static inline int integrity_inode_alloc(struct inode *inode)
++{
++	return integrity_ops->inode_alloc_integrity(inode);
++}
++
++static inline void integrity_inode_free(struct inode *inode)
++{
++	integrity_ops->inode_free_integrity(inode);
++}
++
++static inline void integrity_inode_init_integrity(struct inode *inode,
++						struct inode *dir,
++						char **name,
++						void **value,
++						size_t *len)
++{
++	if (unlikely (IS_PRIVATE (inode)))
++		return;
++	integrity_ops->inode_init_integrity(inode, dir, name, value, len);
++	return;
++}
++
++static inline void integrity_file_free(struct file *file)
++{
++	integrity_ops->file_free_integrity(file);
++}
++
++static inline void integrity_d_instantiate(struct dentry *dentry, struct inode *inode)
++{
++	if (unlikely (inode && IS_PRIVATE(inode)))
++		return;
++	integrity_ops->d_instantiate(dentry, inode);
++}
+ #else
+ static inline int integrity_verify_metadata(struct dentry *dentry,
+ 			char *xattr_name, char **xattr_value,
+@@ -97,8 +193,7 @@ static inline int integrity_verify_metad
+ 	return 0;
+ }
+ 
+-static inline int integrity_verify_data(struct dentry *dentry,
+-					int *status)
++static inline int integrity_verify_data(struct dentry *dentry, int *status)
+ {
+ 	status = INTEGRITY_PASS;
+ 	return 0;
+@@ -108,5 +203,47 @@ static inline void integrity_measure(str
+ 			const unsigned char *filename, int mask)
+ {
+ }
++
++static inline int integrity_inode_setxattr(struct dentry *dentry, char *name,
++					   void *value, size_t size, int flags)
++{
++	return 0;
++}
++
++static inline void integrity_inode_post_setxattr(struct dentry *dentry, char *name)
++{ }
++
++static inline int integrity_inode_alloc(struct inode *inode)
++{
++	return 0;
++}
++
++static inline void integrity_inode_free(struct inode *inode)
++{ }
++
++static inline int integrity_inode_init_integrity(struct inode *inode,
++						struct inode *dir,
++						char **name,
++						void **value,
++						size_t *len)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline int integrity_file_permission(struct file *file, int mask)
++{
++	return 0;
++}
++
++static inline void integrity_file_free(struct file *file)
++{
++	return;
++}
++
++static inline void integrity_d_instantiate(struct dentry *dentry, struct inode *inode)
++{
++	return;
++}
++
+ #endif
+ #endif
+diff -puN security/integrity.c~integrity-new-hooks security/integrity.c
+--- a/security/integrity.c~integrity-new-hooks
++++ a/security/integrity.c
+@@ -3,7 +3,7 @@
+  *
+  * register integrity subsystem
+  *
+- * Copyright (C) 2005,2006 IBM Corporation
++ * Copyright (C) 2005,2006,2007 IBM Corporation
+  * Author: Mimi Zohar <zohar@us.ibm.com>
+  *
+  *      This program is free software; you can redistribute it and/or modify
+@@ -27,6 +27,7 @@ int register_integrity(struct integrity_
+ 		return -EAGAIN;
+ 
+ 	integrity_ops = ops;
++	integrity_fixup_ops(integrity_ops);
+ 	return 0;
+ }
+ 
+diff -puN security/integrity_dummy.c~integrity-new-hooks security/integrity_dummy.c
+--- a/security/integrity_dummy.c~integrity-new-hooks
++++ a/security/integrity_dummy.c
+@@ -3,7 +3,7 @@
+  *
+  * Instantiate integrity subsystem
+  *
+- * Copyright (C) 2005,2006 IBM Corporation
++ * Copyright (C) 2005,2006,2007 IBM Corporation
+  * Author: Mimi Zohar <zohar@us.ibm.com>
+  *
+  *      This program is free software; you can redistribute it and/or modify
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/capability.h>
+ #include <linux/integrity.h>
+ #include <linux/xattr.h>
+ 
+@@ -28,21 +29,24 @@ static int dummy_verify_metadata(struct 
+ 	int size = 0;
+ 	int error = 0;
+ 
+-	if (!xattr_value || !xattr_value_len || !status)
++	if (!status)
+ 		return -EINVAL;
+ 
+-	size = vfs_getxattr(dentry, xattr_name, NULL, 0);
+-	if (size < 0) {
+-		if (size == -ENODATA)
+-			*status = INTEGRITY_NOLABEL;
+-		return size;
++	/* get requested extended attribute */
++	if (xattr_name && xattr_value && xattr_value_len) {
++		size = vfs_getxattr(dentry, xattr_name, NULL, 0);
++		if (size < 0) {
++			if (size == -ENODATA)
++				*status = INTEGRITY_NOLABEL;
++			return size;
++		}
++
++		value = kzalloc(size + 1, GFP_KERNEL);
++		if (!value)
++			return -ENOMEM;
++		error = vfs_getxattr(dentry, xattr_name, value, size);
+ 	}
+ 
+-	value = kzalloc(size + 1, GFP_KERNEL);
+-	if (!value)
+-		return -ENOMEM;
+-	error = vfs_getxattr(dentry, xattr_name, value, size);
+-
+ 	*xattr_value_len = size;
+ 	*xattr_value = value;
+ 	*status = INTEGRITY_PASS;
+@@ -62,9 +66,78 @@ static void dummy_measure(struct dentry 
+ 	return;
+ }
+ 
++static int dummy_inode_alloc_integrity(struct inode *inode)
++{
++	return 0;
++}
++
++static void dummy_inode_free_integrity(struct inode *inode)
++{
++	return;
++}
++
++static void dummy_inode_init_integrity(struct inode *inode, struct inode *dir,
++				      char **name, void **value, size_t * len)
++{
++	return;
++}
++
++static void dummy_file_free_integrity(struct file *file)
++{
++	return;
++}
++
++static int dummy_inode_setxattr(struct dentry *dentry, char *name, void *value,
++				size_t size, int flags)
++{
++	if (!strncmp(name, XATTR_SECURITY_PREFIX,
++		     sizeof(XATTR_SECURITY_PREFIX) - 1) &&
++	    !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	return 0;
++}
++
++static void dummy_inode_post_setxattr(struct dentry *dentry, char *name)
++{
++}
++
++static void dummy_d_instantiate(struct dentry *dentry, struct inode *inode)
++{
++	return;
++}
++
+ struct integrity_operations dummy_integrity_ops = {
+ 	.verify_metadata = dummy_verify_metadata,
+ 	.verify_data = dummy_verify_data,
+-	.measure = dummy_measure
++	.measure = dummy_measure,
++	.inode_setxattr = dummy_inode_setxattr,
++	.inode_post_setxattr = dummy_inode_post_setxattr,
++	.inode_alloc_integrity = dummy_inode_alloc_integrity,
++	.inode_init_integrity = dummy_inode_init_integrity,
++	.inode_free_integrity = dummy_inode_free_integrity,
++	.file_free_integrity = dummy_file_free_integrity,
++	.d_instantiate = dummy_d_instantiate
+ };
+ 
++#define set_to_dummy_if_null(ops, function)				\
++	do {								\
++		if (!ops->function) {					\
++			ops->function = dummy_##function;		\
++			printk(KERN_INFO "Had to override the " #function \
++			" security operation with the dummy one.\n");\
++			}						\
++	} while (0)
++
++void integrity_fixup_ops(struct integrity_operations *ops)
++{
++	set_to_dummy_if_null(ops, verify_metadata);
++	set_to_dummy_if_null(ops, verify_data);
++	set_to_dummy_if_null(ops, measure);
++	set_to_dummy_if_null(ops, inode_setxattr);
++	set_to_dummy_if_null(ops, inode_post_setxattr);
++	set_to_dummy_if_null(ops, inode_alloc_integrity);
++	set_to_dummy_if_null(ops, inode_init_integrity);
++	set_to_dummy_if_null(ops, inode_free_integrity);
++	set_to_dummy_if_null(ops, file_free_integrity);
++	set_to_dummy_if_null(ops, d_instantiate);
++}
+diff -puN security/integrity_dummy.h~integrity-new-hooks security/integrity_dummy.h
+--- a/security/integrity_dummy.h~integrity-new-hooks
++++ a/security/integrity_dummy.h
+@@ -1,7 +1,7 @@
+ /*
+  * integrity_dummy.h
+  *
+- * Copyright (C) 2005,2006 IBM Corporation
++ * Copyright (C) 2005,2006,2007 IBM Corporation
+  * Author: Mimi Zohar <zohar@us.ibm.com>
+  *
+  *      This program is free software; you can redistribute it and/or modify
+@@ -10,3 +10,4 @@
+  */
+ 
+ extern struct integrity_operations dummy_integrity_ops;
++extern void integrity_fixup_ops(struct integrity_operations *ops);
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
+integrity-new-hooks.patch
 integrity-fs-hook-placement.patch
 integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
