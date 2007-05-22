@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmac-needs-schedh.patch added to -mm tree
-Date: Mon, 21 May 2007 23:15:26 -0700
-Message-ID: <200705220618.l4M6Iegg028727@shell0.pdx.osdl.net>
+Subject: + arch-x86_64-vdso-vmac-needs-schedh.patch added to -mm tree
+Date: Mon, 21 May 2007 23:15:48 -0700
+Message-ID: <200705220619.l4M6J2kM028733@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47867 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755697AbXEVGT4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755827AbXEVGUP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 02:19:56 -0400
+	Tue, 22 May 2007 02:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: akpm@linux-foundation.org, ak@suse.de
 The patch titled
      arch/x86_64/vdso/vma.c needs sched.h
 has been added to the -mm tree.  Its filename is
-     vmac-needs-schedh.patch
+     arch-x86_64-vdso-vmac-needs-schedh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -43,8 +43,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/x86_64/vdso/vma.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/x86_64/vdso/vma.c~vmac-needs-schedh arch/x86_64/vdso/vma.c
---- a/arch/x86_64/vdso/vma.c~vmac-needs-schedh
+diff -puN arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh arch/x86_64/vdso/vma.c
+--- a/arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh
 +++ a/arch/x86_64/vdso/vma.c
 @@ -4,6 +4,7 @@
   * Subject to the GPL, v.2
