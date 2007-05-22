@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + capifunc-warning-fixes.patch added to -mm tree
-Date: Tue, 22 May 2007 15:23:29 -0700
-Message-ID: <200705222226.l4MMQieh011155@shell0.pdx.osdl.net>
+Subject: + hardware-eicon-messagec-warning-fixes.patch added to -mm tree
+Date: Tue, 22 May 2007 15:27:46 -0700
+Message-ID: <200705222231.l4MMV1Q6011235@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46425 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756821AbXEVW2B (ORCPT
+	by vger.kernel.org with ESMTP id S1756714AbXEVWcR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 18:28:01 -0400
+	Tue, 22 May 2007 18:32:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, kkeil@suse.de
 
 
 The patch titled
-     capifunc warning fixes
+     drivers/isdn/hardware/eicon/message.c warning fixes
 has been added to the -mm tree.  Its filename is
-     capifunc-warning-fixes.patch
+     hardware-eicon-messagec-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,81 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: capifunc warning fixes
+Subject: drivers/isdn/hardware/eicon/message.c warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-squish these:
+Squash these:
 
-drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferSet':
-drivers/isdn/hardware/eicon/capifunc.c:192: warning: cast to pointer from integer of different size
-drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferGet':
-drivers/isdn/hardware/eicon/capifunc.c:197: warning: cast from pointer to integer of different size
-drivers/isdn/hardware/eicon/capifunc.c:198: warning: cast from pointer to integer of different size
-drivers/isdn/hardware/eicon/capifunc.c:200: warning: cast from pointer to integer of different size
-drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferFree':
-drivers/isdn/hardware/eicon/capifunc.c:205: warning: cast from pointer to integer of different size
-drivers/isdn/hardware/eicon/capifunc.c:206: warning: cast from pointer to integer of different size
-drivers/isdn/hardware/eicon/capifunc.c: In function 'sendf':
-drivers/isdn/hardware/eicon/capifunc.c:304: warning: cast to pointer from integer of different size
-drivers/isdn/hardware/eicon/capifunc.c:304: warning: cast to pointer from integer of different size
-drivers/isdn/hardware/eicon/capifunc.c:321: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'api_put':
+drivers/isdn/hardware/eicon/message.c:536: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'plci_free_msg_in_queue':
+drivers/isdn/hardware/eicon/message.c:1035: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'data_b3_req':
+drivers/isdn/hardware/eicon/message.c:3121: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c:3154: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'callback':
+drivers/isdn/hardware/eicon/message.c:4060: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'nl_ind':
+drivers/isdn/hardware/eicon/message.c:7137: warning: cast from pointer to integer of different size
 
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/capifunc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/isdn/hardware/eicon/message.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/capifunc.c~capifunc-warning-fixes drivers/isdn/hardware/eicon/capifunc.c
---- a/drivers/isdn/hardware/eicon/capifunc.c~capifunc-warning-fixes
-+++ a/drivers/isdn/hardware/eicon/capifunc.c
-@@ -189,21 +189,21 @@ void *TransmitBufferSet(APPL * appl, dwo
- {
- 	appl->xbuffer_used[ref] = true;
- 	DBG_PRV1(("%d:xbuf_used(%d)", appl->Id, ref + 1))
--	    return (void *) ref;
-+	    return (void *)(long)ref;
- }
+diff -puN drivers/isdn/hardware/eicon/message.c~hardware-eicon-messagec-warning-fixes drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~hardware-eicon-messagec-warning-fixes
++++ a/drivers/isdn/hardware/eicon/message.c
+@@ -1,4 +1,3 @@
+-
+ /*
+  *
+   Copyright (c) Eicon Networks, 2002.
+@@ -533,7 +532,7 @@ word api_put(APPL   * appl, CAPI_MSG   *
+         if (m->header.command == _DATA_B3_R)
+         {
  
- void *TransmitBufferGet(APPL * appl, void *p)
- {
--	if (appl->xbuffer_internal[(dword) p])
--		return appl->xbuffer_internal[(dword) p];
-+	if (appl->xbuffer_internal[(dword)(long)p])
-+		return appl->xbuffer_internal[(dword)(long)p];
+-          m->info.data_b3_req.Data = (dword)(TransmitBufferSet (appl, m->info.data_b3_req.Data));
++          m->info.data_b3_req.Data = (dword)(long)(TransmitBufferSet (appl, m->info.data_b3_req.Data));
  
--	return appl->xbuffer_ptr[(dword) p];
-+	return appl->xbuffer_ptr[(dword)(long)p];
- }
+         }
  
- void TransmitBufferFree(APPL * appl, void *p)
- {
--	appl->xbuffer_used[(dword) p] = false;
--	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword) p) + 1))
-+	appl->xbuffer_used[(dword)(long)p] = false;
-+	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword)(long)p) + 1))
- }
+@@ -1032,7 +1031,7 @@ static void plci_free_msg_in_queue (PLCI
+       {
  
- void *ReceiveBufferGet(APPL * appl, int Num)
-@@ -301,7 +301,7 @@ void sendf(APPL * appl, word command, dw
- 	/* if DATA_B3_IND, copy data too */
- 	if (command == _DATA_B3_I) {
- 		dword data = GET_DWORD(&msg.info.data_b3_ind.Data);
--		memcpy(write + length, (void *) data, dlength);
-+		memcpy(write + length, (void *)(long)data, dlength);
- 	}
+         TransmitBufferFree (plci->appl,
+-          (byte   *)(((CAPI_MSG   *)(&((byte   *)(plci->msg_in_queue))[i]))->info.data_b3_req.Data));
++          (byte *)(long)(((CAPI_MSG *)(&((byte *)(plci->msg_in_queue))[i]))->info.data_b3_req.Data));
  
- #ifndef DIVA_NO_DEBUGLIB
-@@ -318,7 +318,7 @@ void sendf(APPL * appl, word command, dw
- 			if (myDriverDebugHandle.dbgMask & DL_BLK) {
- 				xlog("\x00\x02", &msg, 0x81, length);
- 				for (i = 0; i < dlength; i += 256) {
--				  DBG_BLK((((char *) GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
-+				  DBG_BLK((((char *)(long)GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
- 				  	((dlength - i) < 256) ? (dlength - i) : 256))
- 				  if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
- 					  break; /* not more if not explicitely requested */
+       }
+ 
+@@ -3118,7 +3117,7 @@ byte data_b3_req(dword Id, word Number, 
+        && (((byte   *)(parms[0].info)) < ((byte   *)(plci->msg_in_queue)) + sizeof(plci->msg_in_queue)))
+       {
+ 
+-        data->P = (byte   *)(*((dword   *)(parms[0].info)));
++        data->P = (byte *)(long)(*((dword *)(parms[0].info)));
+ 
+       }
+       else
+@@ -3151,7 +3150,7 @@ byte data_b3_req(dword Id, word Number, 
+        && (((byte   *)(parms[0].info)) < ((byte   *)(plci->msg_in_queue)) + sizeof(plci->msg_in_queue)))
+       {
+ 
+-        TransmitBufferFree (appl, (byte   *)(*((dword   *)(parms[0].info))));
++        TransmitBufferFree (appl, (byte *)(long)(*((dword *)(parms[0].info))));
+ 
+       }
+     }
+@@ -4057,7 +4056,7 @@ capi_callback_suffix:
+     {
+       if (m->header.command == _DATA_B3_R)
+ 
+-        TransmitBufferFree (appl, (byte   *)(m->info.data_b3_req.Data));
++        TransmitBufferFree (appl, (byte *)(long)(m->info.data_b3_req.Data));
+ 
+       dbug(1,dprintf("Error 0x%04x from msg(0x%04x)", i, m->header.command));
+       break;
+@@ -7134,7 +7133,7 @@ void nl_ind(PLCI   * plci)
+   case N_UDATA:
+     if (!(udata_forwarding_table[plci->NL.RBuffer->P[0] >> 5] & (1L << (plci->NL.RBuffer->P[0] & 0x1f))))
+     {
+-      plci->RData[0].P = plci->internal_ind_buffer + (-((int)(plci->internal_ind_buffer)) & 3);
++      plci->RData[0].P = plci->internal_ind_buffer + (-((int)(long)(plci->internal_ind_buffer)) & 3);
+       plci->RData[0].PLength = INTERNAL_IND_BUFFER_SIZE;
+       plci->NL.R = plci->RData;
+       plci->NL.RNum = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,6 +168,7 @@ git-cryptodev.patch
 x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
 simplify-cleanup_workqueue_thread-fix.patch
 procfs-directory-entry-cleanup-fix.patch
+capifunc-warning-fixes.patch
 change-zonelist-order-v6-zonelist-fix.patch
 lazy-freeing-of-memory-through-madv_free.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
@@ -210,4 +222,3 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-capifunc-warning-fixes.patch
