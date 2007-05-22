@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-all-pata_sil680-fix.patch added to -mm tree
-Date: Mon, 21 May 2007 21:53:34 -0700
-Message-ID: <200705220456.l4M4umdn027633@shell0.pdx.osdl.net>
+Subject: + git-cpufreq-fix.patch added to -mm tree
+Date: Mon, 21 May 2007 21:58:56 -0700
+Message-ID: <200705220502.l4M529gL027717@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56274 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754914AbXEVE6C (ORCPT
+	by vger.kernel.org with ESMTP id S1756106AbXEVFDb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 00:58:02 -0400
+	Tue, 22 May 2007 01:03:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk
 
 
 The patch titled
-     git-libata-all-pata_sil680-fix
+     git-cpufreq-fix
 has been added to the -mm tree.  Its filename is
-     git-libata-all-pata_sil680-fix.patch
+     git-cpufreq-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-libata-all-pata_sil680-fix
+Subject: git-cpufreq-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-nfi
+Make it compile on UP.
 
-Cc: Jeff Garzik <jeff@garzik.org>
+What's that divide in there for?  Looks odd.
+
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sil680.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/kernel/cpu/cpufreq/powernow-k8.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_sil680.c~git-libata-all-pata_sil680-fix drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~git-libata-all-pata_sil680-fix
-+++ a/drivers/ata/pata_sil680.c
-@@ -431,7 +431,9 @@ use_ioports:
- #ifdef CONFIG_PM
- static int sil680_reinit_one(struct pci_dev *pdev)
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c~git-cpufreq-fix
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+@@ -1322,16 +1322,21 @@ static struct cpufreq_driver cpufreq_amd
+ static int __cpuinit powernowk8_init(void)
  {
--	sil680_init_chip(pdev);
-+	int try_mmio;
+ 	unsigned int i, supported_cpus = 0;
++	unsigned int booted_cores = 1;
+ 
+ 	for_each_online_cpu(i) {
+ 		if (check_supported_cpu(i))
+ 			supported_cpus++;
+ 	}
+ 
++#ifdef CONFIG_SMP
++	booted_cores = cpu_data[0].booted_cores;
++#endif
 +
-+	sil680_init_chip(pdev, &try_mmio);
- 	return ata_pci_device_resume(pdev);
- }
- #endif
+ 	if (supported_cpus == num_online_cpus()) {
+ 		printk(KERN_INFO PFX "Found %d %s "
+ 			"processors (%d cpu cores) (" VERSION ")\n",
+-			supported_cpus/cpu_data[0].booted_cores,
++			supported_cpus/booted_cores,
+ 			boot_cpu_data.x86_model_id, supported_cpus);
+ 		return cpufreq_register_driver(&cpufreq_amd64_driver);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +78,7 @@ invalidate_mapping_pages-add-cond_resched.patch
 git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support-fix.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 git-dvb.patch
@@ -76,6 +91,7 @@ git-kbuild-fixup.patch
 git-kvm.patch
 git-leds.patch
 git-leds-fixup.patch
+git-libata-all-pata_sil680-fix.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
@@ -156,4 +172,3 @@ vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 git-gccbug-fixup.patch
 w1-build-fix.patch
-git-libata-all-pata_sil680-fix.patch
