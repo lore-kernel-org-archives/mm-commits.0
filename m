@@ -1,467 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + lots-of-architectures-enable-arbitary-speed-tty-support.patch added to -mm tree
-Date: Wed, 23 May 2007 14:09:58 -0700
-Message-ID: <200705232109.l4NL9wvn032093@shell0.pdx.osdl.net>
+Subject: - working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:13:06 -0700
+Message-ID: <200705232113.l4NLD6WJ032183@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53764 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756173AbXEWVMa (ORCPT
+	by vger.kernel.org with ESMTP id S1755981AbXEWVNU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:12:30 -0400
+	Wed, 23 May 2007 17:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bryan.wu@analog.com, chris@zankel.net, dhowells@redhat.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, kkojima@rr.iij4u.or.jp, kyle@mcmartin.ca, lethal@linux-sh.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, schwidefsky@de.ibm.com, spyro@f2s.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, uclinux-v850@lsi.nec.co.jp, willy@debian.org, ysato@users.sourceforge.jp, zippel@linux-m68k.org
+To: akpm@linux-foundation.org, andi@lisas.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lots-of-architectures: enable arbitary speed tty support
-has been added to the -mm tree.  Its filename is
-     lots-of-architectures-enable-arbitary-speed-tty-support.patch
+     working-3d-dri-intel-agpko-resume-for-i815-chip-tidy
+has been removed from the -mm tree.  Its filename was
+     working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 
 ------------------------------------------------------
-Subject: lots-of-architectures: enable arbitary speed tty support
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: working-3d-dri-intel-agpko-resume-for-i815-chip-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add the termios2 structure ready for enabling on most platforms.  One or
-two like Sparc are plain weird so have been left alone.  Most can use the
-same structure as ktermios for termios2 (ie the newer ioctl uses the
-structure matching the current kernel structure)
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Richard Curnow <rc@rc0.org.uk>
-Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/termbits.h      |   11 +++++++++++
- include/asm-arm26/termbits.h    |   12 +++++++++++-
- include/asm-avr32/termbits.h    |   11 +++++++++++
- include/asm-blackfin/termbits.h |   11 +++++++++++
- include/asm-cris/termbits.h     |   11 +++++++++++
- include/asm-frv/termbits.h      |   11 +++++++++++
- include/asm-h8300/termbits.h    |   11 +++++++++++
- include/asm-ia64/termbits.h     |   11 +++++++++++
- include/asm-m32r/termbits.h     |   11 +++++++++++
- include/asm-m68k/termbits.h     |   11 +++++++++++
- include/asm-mips/termbits.h     |   11 +++++++++++
- include/asm-parisc/termbits.h   |   11 +++++++++++
- include/asm-s390/termbits.h     |   11 +++++++++++
- include/asm-sh/termbits.h       |   11 +++++++++++
- include/asm-v850/termbits.h     |   11 +++++++++++
- include/asm-xtensa/termbits.h   |   11 +++++++++++
- 16 files changed, 176 insertions(+), 1 deletion(-)
+ drivers/char/agp/intel-agp.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-arm/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-arm/termbits.h
---- a/include/asm-arm/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-arm/termbits.h
-@@ -15,6 +15,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
+diff -puN drivers/char/agp/intel-agp.c~working-3d-dri-intel-agpko-resume-for-i815-chip-tidy drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~working-3d-dri-intel-agpko-resume-for-i815-chip-tidy
++++ a/drivers/char/agp/intel-agp.c
+@@ -2030,8 +2030,10 @@ static int agp_i815_remember_state(struc
+ 	 * to be able to successfully restore X11 when AGP 3D is enabled
+ 	 * (register values given are after resume vs. before suspend):
+ 	 *
+-	 * I815_GMCHCFG (0x50; we need to set bit 1 (Aperture Access Global Enable) of I815_APCONT (0x51),
+-	 *              thus use I815_GMCHCFG (0x50) as 32bit base register); 0x4fdd0040 instead of 0x4fdd0240
++	 * I815_GMCHCFG (0x50; we need to set bit 1 (Aperture Access Global
++	 *              Enable) of I815_APCONT (0x51),
++	 *              thus use I815_GMCHCFG (0x50) as 32bit base register);
++	 *              0x4fdd0040 instead of 0x4fdd0240
+ 	 * ??? (0x80); 0x07ce1cde instead of 0x07cb94de
+ 	 * I815_SM_RCOMP (0x98); 0x80648064 instead of 0x80548054
+ 	 * I815_SM (0x9c); 0x00c48405 instead of 0x04848405
+@@ -2039,7 +2041,8 @@ static int agp_i815_remember_state(struc
+ 	 * INTEL_AGPCTRL (0xb0); 0x00000000 instead of 0x00000080
+ 	 * INTEL_APSIZE (0xb4);
+ 	 * INTEL_ATTBASE (0xb8); 0x00000000 instead of 0x024b0000
+-	 * I815_ERRSTS?? (0xc8; undocumented for i815, see above); 0x00000000 instead of 0x00000800
++	 * I815_ERRSTS?? (0xc8; undocumented for i815, see above);
++	 *              0x00000000 instead of 0x00000800
+ 	 * ??? (0xe8); 0x1c700000 instead of 0x18500000
+ 	 *
+ 	 * Other machines/chipsets/BIOS versions may require
+@@ -2062,12 +2065,12 @@ static int agp_i815_remember_state(struc
  
-+struct termios_2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-arm26/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-arm26/termbits.h
---- a/include/asm-arm26/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-arm26/termbits.h
-@@ -15,7 +15,7 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
+ 	if (restore) {
+ 		u32 val;
+-		for (p = i815_saved_regs; (p->reg != 0); p++)
+-		{
++		for (p = i815_saved_regs; (p->reg != 0); p++) {
+ 			pci_read_config_dword(pdev, p->reg, &val);
+ 			if (val != p->value) {
+-				printk(KERN_DEBUG "AGP: Writing back config space on "
+-					"device %s at offset %x (was %x, writing %x)\n",
++				printk(KERN_DEBUG "AGP: Writing back config "
++					"space on device %s at offset %x (was "
++					"%x, writing %x)\n",
+ 					pci_name(pdev), p->reg,
+ 					val, p->value);
+ 				pci_write_config_dword(pdev, p->reg,
+@@ -2096,8 +2099,8 @@ static int agp_i815_remember_state(struc
+  * should be cleaned up, probably by implementing a generic Linux
+  * PCI function to save/restore extended PCI config space
+  * by supplying a register array or so...
+- * At this point, it would also be nice to clean up the _suspend()/_resume() functions
+- * to use some non-ugly and nicely generic restore mechanism.
++ * At this point, it would also be nice to clean up the _suspend()/_resume()
++ * functions to use some non-ugly and nicely generic restore mechanism.
+  */
+ #define DEBUG_AGP_PM 0
  
--struct ktermios {
-+struct termios2 {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
- 	tcflag_t c_cflag;		/* control mode flags */
-@@ -26,6 +26,16 @@ struct ktermios {
- 	speed_t c_ospeed;		/* output speed */
- };
- 
-+struct ktermios {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
- 
- /* c_cc characters */
- #define VINTR 0
-diff -puN include/asm-avr32/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-avr32/termbits.h
---- a/include/asm-avr32/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-avr32/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-blackfin/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-blackfin/termbits.h
---- a/include/asm-blackfin/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-blackfin/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];	/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;               /* input mode flags */
-+	tcflag_t c_oflag;               /* output mode flags */
-+	tcflag_t c_cflag;               /* control mode flags */
-+	tcflag_t c_lflag;               /* local mode flags */
-+	cc_t c_line;                    /* line discipline */
-+	cc_t c_cc[NCCS];                /* control characters */
-+	speed_t c_ispeed;               /* input speed */
-+	speed_t c_ospeed;               /* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;               /* input mode flags */
- 	tcflag_t c_oflag;               /* output mode flags */
-diff -puN include/asm-cris/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-cris/termbits.h
---- a/include/asm-cris/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-cris/termbits.h
-@@ -19,6 +19,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-frv/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-frv/termbits.h
---- a/include/asm-frv/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-frv/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-h8300/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-h8300/termbits.h
---- a/include/asm-h8300/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-h8300/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-ia64/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-ia64/termbits.h
---- a/include/asm-ia64/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-ia64/termbits.h
-@@ -26,6 +26,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-m32r/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-m32r/termbits.h
---- a/include/asm-m32r/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-m32r/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-m68k/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-m68k/termbits.h
---- a/include/asm-m68k/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-m68k/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-mips/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-mips/termbits.h
---- a/include/asm-mips/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-mips/termbits.h
-@@ -30,6 +30,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-parisc/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-parisc/termbits.h
---- a/include/asm-parisc/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-parisc/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-s390/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-s390/termbits.h
---- a/include/asm-s390/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-s390/termbits.h
-@@ -25,6 +25,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-sh/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-sh/termbits.h
---- a/include/asm-sh/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-sh/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-v850/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-v850/termbits.h
---- a/include/asm-v850/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-v850/termbits.h
-@@ -17,6 +17,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-diff -puN include/asm-xtensa/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support include/asm-xtensa/termbits.h
---- a/include/asm-xtensa/termbits.h~lots-of-architectures-enable-arbitary-speed-tty-support
-+++ a/include/asm-xtensa/termbits.h
-@@ -30,6 +30,17 @@ struct termios {
- 	cc_t c_cc[NCCS];		/* control characters */
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-arm-enable-arbitary-speed-tty-ioctls-and-split.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+capabilityh-warning-fix.patch
+simplify-cleanup_workqueue_thread.patch
+capifunc-warning-fixes.patch
+hardware-eicon-messagec-warning-fixes.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support-fix.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link-fix.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-libata-add-support-for-ata_16-on-atapi.patch
-fix-build-failure-for-drivers-ata-pata_sccc.patch
-hpt3x2n-correct-revision-boundary.patch
-pata_sis-fix-and-clean-up-some-timing-setups.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-ide-add-seagate-stt20000a-to-dma-blacklist.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
-add-pci_try_set_mwi.patch
-fix-pci_find_present.patch
-git-scsi-misc.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+ide-warning-fixes.patch
+git-mips-fixup.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+scsi-fix-config_scsi_wait_scan=m.patch
 ncr5380-warning-fixes.patch
-watchdog-documentation.patch
-add-pci_try_set_mwi-prism54pci.patch
-fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
+git-wireless.patch
+arch-x86_64-vdso-vmac-needs-schedh.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+xfs-clean-up-shrinker-games.patch
+git-cryptodev.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
 mpu401-warning-fixes.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-i2o_cfg_passthru-cleanup.patch
+procfs-directory-entry-cleanup-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
 i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+reiser4.patch
+reiser4-fix.patch
+vdso-print-fatal-signals.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
