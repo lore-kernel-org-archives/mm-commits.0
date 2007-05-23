@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-fix-unnamed-struct-union-warning.patch added to -mm tree
-Date: Wed, 23 May 2007 10:53:36 -0700
-Message-ID: <200705231753.l4NHrZlk028510@shell0.pdx.osdl.net>
+Subject: + joydevc-automatic-re-calibration.patch added to -mm tree
+Date: Wed, 23 May 2007 11:00:25 -0700
+Message-ID: <200705231800.l4NI0OhA028611@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46119 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756549AbXEWRxi (ORCPT
+	by vger.kernel.org with ESMTP id S1759907AbXEWSAb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 13:53:38 -0400
+	Wed, 23 May 2007 14:00:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: rengolin@gmail.com, dtor@mail.ru
 
 
 The patch titled
-     kernel-doc: fix unnamed struct/union warning
+     joydev.c automatic re-calibration
 has been added to the -mm tree.  Its filename is
-     kernel-doc-fix-unnamed-struct-union-warning.patch
+     joydevc-automatic-re-calibration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +26,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel-doc: fix unnamed struct/union warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: joydev.c automatic re-calibration
+From: "Renato Golin" <rengolin@gmail.com>
 
-Fix kernel-doc warning:
-Warning(linux-2.6.22-rc2-git2/include/linux/skbuff.h:316): No description found for parameter '}'
+Add the automatic recalibration feature without spoiling previously
+calibrated devices.  It's a fix for those joysticks that report faulty
+range, specially Saitek Cyborg Evo Force.
 
-which is caused by nested anonymous structs/unions ending with:
-  };
-};
+File: drivers/input/joydev.c
+Fix:
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+- extracted code from joydev_connect to method
+  joydev_calculate_correction to be able to call it from both joydev_event
+  upon recalibration and joydev_connect during first connection.
+
+- on joydev_connect check ranges and zero calibration if found out of range
+
+- on joydev_event, every time found out of range, update min/max and
+  recalculate the correction
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/input/joydev.c |   41 +++++++++++++++++++++++++++++++--------
+ 1 file changed, 33 insertions(+), 8 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-fix-unnamed-struct-union-warning scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-fix-unnamed-struct-union-warning
-+++ a/scripts/kernel-doc
-@@ -154,6 +154,7 @@ use strict;
+diff -puN drivers/input/joydev.c~joydevc-automatic-re-calibration drivers/input/joydev.c
+--- a/drivers/input/joydev.c~joydevc-automatic-re-calibration
++++ a/drivers/input/joydev.c
+@@ -52,6 +52,8 @@ struct joydev {
+ 	__u8 absmap[ABS_MAX + 1];
+ 	__u8 abspam[ABS_MAX + 1];
+ 	__s16 abs[ABS_MAX + 1];
++	__s16 absmin[ABS_MAX + 1];
++	__s16 absmax[ABS_MAX + 1];
+ };
  
- my $errors = 0;
- my $warnings = 0;
-+my $anon_struct_union = 0;
+ struct joydev_client {
+@@ -66,6 +68,19 @@ struct joydev_client {
  
- # match expressions used to find embedded type information
- my $type_constant = '\%([-_\w]+)';
-@@ -1510,8 +1511,13 @@ sub push_parameter($$$) {
- 	my $param = shift;
- 	my $type = shift;
- 	my $file = shift;
--	my $anon = 0;
+ static struct joydev *joydev_table[JOYDEV_MINORS];
  
-+	if (($anon_struct_union == 1) && ($type eq "") &&
-+	    ($param eq "}")) {
-+		return;		# ignore the ending }; from anon. struct/union
-+	}
++static void joydev_calculate_correction(int min, int max, int axis, struct joydev *joydev)
++{
++	int t, j = joydev->abspam[axis];
++	int flat = joydev->handle.dev->absflat[j];
 +
-+	$anon_struct_union = 0;
- 	my $param_name = $param;
- 	$param_name =~ s/\[.*//;
++	joydev->corr[axis].coef[0] = (max + min) / 2 - flat;
++	joydev->corr[axis].coef[1] = (max + min) / 2 + flat;
++	if (!(t = ((max - min) / 2 - 2 * flat)))
++		return;
++	joydev->corr[axis].coef[2] = (1 << 29) / t;
++	joydev->corr[axis].coef[3] = (1 << 29) / t;
++}
++
+ static int joydev_correct(int value, struct js_corr *corr)
+ {
+ 	switch (corr->type) {
+@@ -102,6 +117,14 @@ static void joydev_event(struct input_ha
+ 		case EV_ABS:
+ 			event.type = JS_EVENT_AXIS;
+ 			event.number = joydev->absmap[code];
++			/* recalibration if needed */
++			if (value < joydev->absmin[code]) {
++				joydev->absmin[code] = value;
++				joydev_calculate_correction(value, joydev->absmax[code], code, joydev);
++			} else if (value > joydev->absmax[code]) {
++				joydev->absmax[code] = value;
++				joydev_calculate_correction(joydev->absmin[code], value, code, joydev);
++			}
+ 			event.value = joydev_correct(value, joydev->corr + event.number);
+ 			if (event.value == joydev->abs[event.number])
+ 				return;
+@@ -483,7 +506,7 @@ static int joydev_connect(struct input_h
+ 	struct joydev *joydev;
+ 	struct class_device *cdev;
+ 	dev_t devt;
+-	int i, j, t, minor;
++	int i, j, minor;
+ 	int error;
  
-@@ -1530,16 +1536,16 @@ sub push_parameter($$$) {
- 	# handle unnamed (anonymous) union or struct:
- 	{
- 		$type = $param;
--		$param = "{unnamed_" . $param. "}";
-+		$param = "{unnamed_" . $param . "}";
- 		$parameterdescs{$param} = "anonymous\n";
--		$anon = 1;
-+		$anon_struct_union = 1;
+ 	for (minor = 0; minor < JOYDEV_MINORS && joydev_table[minor]; minor++);
+@@ -530,19 +553,21 @@ static int joydev_connect(struct input_h
+ 
+ 	for (i = 0; i < joydev->nabs; i++) {
+ 		j = joydev->abspam[i];
+-		if (dev->absmax[j] == dev->absmin[j]) {
++		joydev->absmin[i] = dev->absmin[j];
++		joydev->absmax[i] = dev->absmax[j];
++		if (joydev->absmax[i] == joydev->absmin[i]) {
+ 			joydev->corr[i].type = JS_CORR_NONE;
+ 			joydev->abs[i] = dev->abs[j];
+ 			continue;
+ 		}
+ 		joydev->corr[i].type = JS_CORR_BROKEN;
+ 		joydev->corr[i].prec = dev->absfuzz[j];
+-		joydev->corr[i].coef[0] = (dev->absmax[j] + dev->absmin[j]) / 2 - dev->absflat[j];
+-		joydev->corr[i].coef[1] = (dev->absmax[j] + dev->absmin[j]) / 2 + dev->absflat[j];
+-		if (!(t = ((dev->absmax[j] - dev->absmin[j]) / 2 - 2 * dev->absflat[j])))
+-			continue;
+-		joydev->corr[i].coef[2] = (1 << 29) / t;
+-		joydev->corr[i].coef[3] = (1 << 29) / t;
++
++		if (dev->abs[j] > joydev->absmax[i] || dev->abs[j] < joydev->absmin[i]) {
++			printk("Joydev: Bad axis range, recalibrating automatically\n");
++			joydev_calculate_correction(0, 0, i, joydev);
++		} else
++			joydev_calculate_correction(joydev->absmin[i], joydev->absmax[i], i, joydev);
+ 
+ 		joydev->abs[i] = joydev_correct(dev->abs[j], joydev->corr + i);
  	}
- 
- 	# warn if parameter has no description
- 	# (but ignore ones starting with # as these are not parameters
- 	# but inline preprocessor statements);
- 	# also ignore unnamed structs/unions;
--	if (!$anon) {
-+	if (!$anon_struct_union) {
- 	if (!defined $parameterdescs{$param_name} && $param_name !~ /^#/) {
- 
- 	    $parameterdescs{$param_name} = $undescribed;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rengolin@gmail.com are
 
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-documentation-fix-the-explanation-of-kconfig-files.patch
-update-dontdiff-file.patch
-doc-clocksources.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-add-notime-boot-option.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-profile-likely-unlikely-macros.patch
+joydevc-automatic-re-calibration.patch
