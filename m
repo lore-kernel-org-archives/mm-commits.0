@@ -1,76 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - fix--confusion-in-fusion-driver.patch removed from -mm tree
-Date: Wed, 23 May 2007 13:21:09 -0700
-Message-ID: <200705232021.l4NKL8Vf031011@shell0.pdx.osdl.net>
+Subject: - aic94xx-asd_clear_nexus-should-fail-if-the-cleared-task-does-not-complete.patch removed from -mm tree
+Date: Wed, 23 May 2007 13:21:12 -0700
+Message-ID: <200705232021.l4NKLBAr031016@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37244 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757005AbXEWUVX (ORCPT
+	by vger.kernel.org with ESMTP id S1757432AbXEWUVg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 16:21:23 -0400
+	Wed, 23 May 2007 16:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmueller@suse.de, James.Bottomley@SteelEye.com, davej@redhat.com, eric.moore@lsi.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, Dennis_Tan@adaptec.com, Gilbert_Wu@adaptec.com, alexisb@us.ibm.com, ed_chim@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix |/|| confusion in fusion driver
+     aic94xx: asd_clear_nexus should fail if the cleared task does not complete
 has been removed from the -mm tree.  Its filename was
-     fix--confusion-in-fusion-driver.patch
+     aic94xx-asd_clear_nexus-should-fail-if-the-cleared-task-does-not-complete.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix |/|| confusion in fusion driver
-From: Dirk Mueller <dmueller@suse.de>
+Subject: aic94xx: asd_clear_nexus should fail if the cleared task does not complete
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-This patch corrects a |/|| confusion in mptscsih_copy_sense_data.  Using ||
-means that the data that ends up being written is (almost always) 1,
-instead of being bit-wise or'ed.
+Every so often, the driver will call asd_clear_nexus to clean out a task. 
+It is supposed to be the case that the CLEAR NEXUS does not go on the done
+list until after the task itself has been put on the done list, but for
+some reason this doesn't always happen.  Thus, the
+wait_for_completion_timeout call times out, and we return success.  This
+makes libsas free the task even though the task hasn't completed, leading
+to a BUG_ON message from aic94xx_hwi.c around line 341.
 
-Acked-by: Eric Moore <eric.moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Signed-off-by: Dave Jones <davej@redhat.com>
-[davej@redhat.com: updates]
+We should return failure from asd_clear_nexus so that libsas tries again;
+at a bare minimum it shouldn't be freeing active tasks.  I _think_ this
+will fix one of the SCB timeout crash problems (though I've not been able
+to reproduce it lately...)
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: "Wu, Gilbert" <Gilbert_Wu@adaptec.com>
+Cc: "Tan, Dennis" <Dennis_Tan@adaptec.com>
+Cc: Alexis Bruemmer <alexisb@us.ibm.com>
+Cc: "Chim, Ed" <ed_chim@adaptec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.h  |    2 +-
- drivers/message/fusion/mptscsih.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_tmf.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/message/fusion/mptscsih.c~fix--confusion-in-fusion-driver drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~fix--confusion-in-fusion-driver
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -2463,11 +2463,11 @@ mptscsih_copy_sense_data(struct scsi_cmn
- 				ioc->events[idx].event = MPI_EVENT_SCSI_DEVICE_STATUS_CHANGE;
- 				ioc->events[idx].eventContext = ioc->eventContext;
+diff -puN drivers/scsi/aic94xx/aic94xx_tmf.c~aic94xx-asd_clear_nexus-should-fail-if-the-cleared-task-does-not-complete drivers/scsi/aic94xx/aic94xx_tmf.c
+--- a/drivers/scsi/aic94xx/aic94xx_tmf.c~aic94xx-asd_clear_nexus-should-fail-if-the-cleared-task-does-not-complete
++++ a/drivers/scsi/aic94xx/aic94xx_tmf.c
+@@ -290,6 +290,7 @@ static void asd_tmf_tasklet_complete(str
+ static inline int asd_clear_nexus(struct sas_task *task)
+ {
+ 	int res = TMF_RESP_FUNC_FAILED;
++	int leftover;
+ 	struct asd_ascb *tascb = task->lldd_task;
+ 	unsigned long flags;
  
--				ioc->events[idx].data[0] = (pReq->LUN[1] << 24) ||
--					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) ||
--					(sc->device->channel << 8) || sc->device->id;
-+				ioc->events[idx].data[0] = (pReq->LUN[1] << 24) |
-+					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) |
-+					(sc->device->channel << 8) | sc->device->id;
+@@ -298,10 +299,12 @@ static inline int asd_clear_nexus(struct
+ 		res = asd_clear_nexus_tag(task);
+ 	else
+ 		res = asd_clear_nexus_index(task);
+-	wait_for_completion_timeout(&tascb->completion,
+-				    AIC94XX_SCB_TIMEOUT);
++	leftover = wait_for_completion_timeout(&tascb->completion,
++					       AIC94XX_SCB_TIMEOUT);
+ 	ASD_DPRINTK("came back from clear nexus\n");
+ 	spin_lock_irqsave(&task->task_state_lock, flags);
++	if (leftover < 1)
++		res = TMF_RESP_FUNC_FAILED;
+ 	if (task->task_state_flags & SAS_TASK_STATE_DONE)
+ 		res = TMF_RESP_FUNC_COMPLETE;
+ 	spin_unlock_irqrestore(&task->task_state_lock, flags);
+@@ -350,6 +353,7 @@ int asd_abort_task(struct sas_task *task
+ 	unsigned long flags;
+ 	struct asd_ascb *ascb = NULL;
+ 	struct scb *scb;
++	int leftover;
  
--				ioc->events[idx].data[1] = (sense_data[13] << 8) || sense_data[12];
-+				ioc->events[idx].data[1] = (sense_data[13] << 8) | sense_data[12];
- 
- 				ioc->eventContext++;
- 				if (hd->ioc->pcidev->vendor ==
-diff -puN drivers/message/fusion/mptbase.h~fix--confusion-in-fusion-driver drivers/message/fusion/mptbase.h
---- a/drivers/message/fusion/mptbase.h~fix--confusion-in-fusion-driver
-+++ a/drivers/message/fusion/mptbase.h
-@@ -436,7 +436,7 @@ typedef struct _MPT_SAS_MGMT {
- typedef struct _mpt_ioctl_events {
- 	u32	event;		/* Specified by define above */
- 	u32	eventContext;	/* Index or counter */
--	int	data[2];	/* First 8 bytes of Event Data */
-+	u32	data[2];	/* First 8 bytes of Event Data */
- } MPT_IOCTL_EVENTS;
- 
- /*
+ 	spin_lock_irqsave(&task->task_state_lock, flags);
+ 	if (task->task_state_flags & SAS_TASK_STATE_DONE) {
+@@ -455,9 +459,11 @@ int asd_abort_task(struct sas_task *task
+ 		break;
+ 	case TF_TMF_TASK_DONE + 0xFF00:	/* done but not reported yet */
+ 		res = TMF_RESP_FUNC_FAILED;
+-		wait_for_completion_timeout(&tascb->completion,
+-					    AIC94XX_SCB_TIMEOUT);
++		leftover = wait_for_completion_timeout(&tascb->completion,
++						       AIC94XX_SCB_TIMEOUT);
+ 		spin_lock_irqsave(&task->task_state_lock, flags);
++		if (leftover < 1)
++			res = TMF_RESP_FUNC_FAILED;
+ 		if (task->task_state_flags & SAS_TASK_STATE_DONE)
+ 			res = TMF_RESP_FUNC_COMPLETE;
+ 		spin_unlock_irqrestore(&task->task_state_lock, flags);
 _
 
-Patches currently in -mm which might be from dmueller@suse.de are
+Patches currently in -mm which might be from djwong@us.ibm.com are
+
+git-scsi-rc-fixes.patch
