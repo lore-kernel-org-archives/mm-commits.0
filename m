@@ -1,96 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:51:57 -0700
-Message-ID: <200705232151.l4NLpwfl002083@shell0.pdx.osdl.net>
+Subject: - x86_64-allocate-sparsemem-memmap-above-4g-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:52:18 -0700
+Message-ID: <200705232152.l4NLqIBa002105@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35369 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755439AbXEWVwx (ORCPT
+	by vger.kernel.org with ESMTP id S1756065AbXEWVxi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:52:53 -0400
+	Wed, 23 May 2007 17:53:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, tglx@linutronix.de, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, nanhai.zou@intel.com, stable@kernel.org, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix crash with irqpoll due to the IRQF_IRQPOLL flag
+     x86_64-allocate-sparsemem-memmap-above-4g-fix
 has been removed from the -mm tree.  Its filename was
-     fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
+     x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into x86_64-allocate-sparsemem-memmap-above-4g.patch
 
 ------------------------------------------------------
-Subject: Fix crash with irqpoll due to the IRQF_IRQPOLL flag
-From: Bernhard Walle <bwalle@suse.de>
+Subject: x86_64-allocate-sparsemem-memmap-above-4g-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-o System crashes if booted with irqpoll command line option.
-
-o Problem happens because Inside note_interrupt() we are accessing
-  desc->action->flag without taking the desc->lock. While accessing it
-  somebody goes ahead and unregisters the irq handler hence desc->action
-  is NULL. By the time note_interrupt() checks it, it crashes.
-
-o In that system it is irq 4 serving the serial driver.
-
-o Take the desc->lock before accessing desc->action->flag.
-
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <stable@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Zou Nan hai <nanhai.zou@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/spurious.c |   23 ++++++++++++++++++++---
- 1 files changed, 20 insertions(+), 3 deletions(-)
+ include/linux/bootmem.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/irq/spurious.c~fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag kernel/irq/spurious.c
---- a/kernel/irq/spurious.c~fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag
-+++ a/kernel/irq/spurious.c
-@@ -138,6 +138,8 @@ report_bad_irq(unsigned int irq, struct 
- void note_interrupt(unsigned int irq, struct irq_desc *desc,
- 		    irqreturn_t action_ret)
- {
-+	int call_misrouted_irq = 0;
-+
- 	if (unlikely(action_ret != IRQ_HANDLED)) {
- 		desc->irqs_unhandled++;
- 		if (unlikely(action_ret != IRQ_NONE))
-@@ -146,9 +148,24 @@ void note_interrupt(unsigned int irq, st
+diff -puN include/linux/bootmem.h~x86_64-allocate-sparsemem-memmap-above-4g-fix include/linux/bootmem.h
+--- a/include/linux/bootmem.h~x86_64-allocate-sparsemem-memmap-above-4g-fix
++++ a/include/linux/bootmem.h
+@@ -59,6 +59,7 @@ extern void *__alloc_bootmem_core(struct
+ 				  unsigned long align,
+ 				  unsigned long goal,
+ 				  unsigned long limit);
++extern void *alloc_bootmem_high_node(pg_data_t *pgdat, unsigned long size);
  
- 	if (unlikely(irqfixup)) {
- 		/* Don't punish working computers */
--		if ((irqfixup == 2 && ((irq == 0) ||
--				(desc->action->flags & IRQF_IRQPOLL))) ||
--				action_ret == IRQ_NONE) {
-+		if (action_ret == IRQ_NONE)
-+			/* Nobody handled irq. Possibly a misrouted one. */
-+			call_misrouted_irq = 1;
-+		else if (irqfixup == 2) {
-+			/* irqpoll is enabled. Is this the irq driving
-+			 * polling.
-+			 */
-+			if (irq == 0)
-+				call_misrouted_irq = 1;
-+			else {
-+				spin_lock(&desc->lock);
-+				if (desc->action &&
-+					(desc->action->flags & IRQF_IRQPOLL))
-+					call_misrouted_irq = 1;
-+				spin_unlock(&desc->lock);
-+			}
-+		}
-+		if (call_misrouted_irq) {
- 			int ok = misrouted_irq(irq);
- 			if (action_ret == IRQ_NONE)
- 				desc->irqs_unhandled -= ok;
+ #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
+ extern void reserve_bootmem(unsigned long addr, unsigned long size);
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-r8169.patch
-scsi-remove-__gfp_dma.patch
-fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
+origin.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+capabilityh-warning-fix.patch
+simplify-cleanup_workqueue_thread.patch
+capifunc-warning-fixes.patch
+hardware-eicon-messagec-warning-fixes.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-warning-fixes.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+ncr5380-warning-fixes.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+arch-x86_64-vdso-vmac-needs-schedh.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+xfs-clean-up-shrinker-games.patch
+git-cryptodev.patch
+x86_64-allocate-sparsemem-memmap-above-4g.patch
+x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+reiser4.patch
+reiser4-fix.patch
+vdso-print-fatal-signals.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
