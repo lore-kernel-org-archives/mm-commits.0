@@ -1,145 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - round_up-macro-cleanup-in-drivers-parisc.patch removed from -mm tree
-Date: Wed, 23 May 2007 13:21:06 -0700
-Message-ID: <200705232021.l4NKL5ug031006@shell0.pdx.osdl.net>
+Subject: - simplify-cleanup_workqueue_thread-fix2.patch removed from -mm tree
+Date: Wed, 23 May 2007 13:40:28 -0700
+Message-ID: <200705232040.l4NKeSus031336@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44104 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757101AbXEWUWa (ORCPT
+	by vger.kernel.org with ESMTP id S1755450AbXEWUkm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 16:22:30 -0400
+	Wed, 23 May 2007 16:40:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milindchoudhary@gmail.com, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ROUNDUP macro cleanup in drivers/parisc
+     simplify-cleanup_workqueue_thread-fix2
 has been removed from the -mm tree.  Its filename was
-     round_up-macro-cleanup-in-drivers-parisc.patch
+     simplify-cleanup_workqueue_thread-fix2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into simplify-cleanup_workqueue_thread.patch
 
 ------------------------------------------------------
-Subject: ROUNDUP macro cleanup in drivers/parisc
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: simplify-cleanup_workqueue_thread-fix2
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Clean up ROUNDUP, Use ALIGN where ever appropriate.
+But it is a bit silly to have 2 variables, we need only one.
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Acked-by: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <willy@debian.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/ccio-dma.c      |    8 ++++----
- drivers/parisc/iommu-helpers.h |    4 ++--
- drivers/parisc/sba_iommu.c     |    6 ++----
- 3 files changed, 8 insertions(+), 10 deletions(-)
+ kernel/workqueue.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/parisc/ccio-dma.c~round_up-macro-cleanup-in-drivers-parisc drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~round_up-macro-cleanup-in-drivers-parisc
-+++ a/drivers/parisc/ccio-dma.c
-@@ -32,6 +32,7 @@
- */
+diff -puN kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix2 kernel/workqueue.c
+--- a/kernel/workqueue.c~simplify-cleanup_workqueue_thread-fix2
++++ a/kernel/workqueue.c
+@@ -330,7 +330,7 @@ static void insert_wq_barrier(struct cpu
  
- #include <linux/types.h>
-+#include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/mm.h>
- #include <linux/spinlock.h>
-@@ -292,7 +293,6 @@ static int ioc_count;
- #define PDIR_INDEX(iovp)    ((iovp)>>IOVP_SHIFT)
- #define MKIOVP(pdir_idx)    ((long)(pdir_idx) << IOVP_SHIFT)
- #define MKIOVA(iovp,offset) (dma_addr_t)((long)iovp | (long)offset)
--#define ROUNDUP(x,y) ((x + ((y)-1)) & ~((y)-1))
+ static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
+ {
+-	int ret;
++	int active;
  
- /*
- ** Don't worry about the 150% average search length on a miss.
-@@ -668,7 +668,7 @@ ccio_mark_invalid(struct ioc *ioc, dma_a
- 	size_t saved_byte_cnt;
+ 	if (cwq->thread == current) {
+ 		/*
+@@ -338,11 +338,11 @@ static int flush_cpu_workqueue(struct cp
+ 		 * it by hand rather than deadlocking.
+ 		 */
+ 		run_workqueue(cwq);
+-		ret = 1;
++		active = 1;
+ 	} else {
+ 		struct wq_barrier barr;
+-		int active = 0;
  
- 	/* round up to nearest page size */
--	saved_byte_cnt = byte_cnt = ROUNDUP(byte_cnt, IOVP_SIZE);
-+	saved_byte_cnt = byte_cnt = ALIGN(byte_cnt, IOVP_SIZE);
++		active = 0;
+ 		spin_lock_irq(&cwq->lock);
+ 		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
+ 			insert_wq_barrier(cwq, &barr, 1);
+@@ -352,10 +352,9 @@ static int flush_cpu_workqueue(struct cp
  
- 	while(byte_cnt > 0) {
- 		/* invalidate one page at a time */
-@@ -751,7 +751,7 @@ ccio_map_single(struct device *dev, void
- 	offset = ((unsigned long) addr) & ~IOVP_MASK;
- 
- 	/* round up to nearest IOVP_SIZE */
--	size = ROUNDUP(size + offset, IOVP_SIZE);
-+	size = ALIGN(size + offset, IOVP_SIZE);
- 	spin_lock_irqsave(&ioc->res_lock, flags);
- 
- #ifdef CCIO_MAP_STATS
-@@ -814,7 +814,7 @@ ccio_unmap_single(struct device *dev, dm
- 
- 	iova ^= offset;        /* clear offset bits */
- 	size += offset;
--	size = ROUNDUP(size, IOVP_SIZE);
-+	size = ALIGN(size, IOVP_SIZE);
- 
- 	spin_lock_irqsave(&ioc->res_lock, flags);
- 
-diff -puN drivers/parisc/iommu-helpers.h~round_up-macro-cleanup-in-drivers-parisc drivers/parisc/iommu-helpers.h
---- a/drivers/parisc/iommu-helpers.h~round_up-macro-cleanup-in-drivers-parisc
-+++ a/drivers/parisc/iommu-helpers.h
-@@ -138,7 +138,7 @@ iommu_coalesce_chunks(struct ioc *ioc, s
- 			** exceed DMA_CHUNK_SIZE if we coalesce the
- 			** next entry.
- 			*/   
--			if(unlikely(ROUNDUP(dma_len + dma_offset + startsg->length,
-+			if(unlikely(ALIGN(dma_len + dma_offset + startsg->length,
- 					    IOVP_SIZE) > DMA_CHUNK_SIZE))
- 				break;
- 
-@@ -158,7 +158,7 @@ iommu_coalesce_chunks(struct ioc *ioc, s
- 		** Allocate space for DMA stream.
- 		*/
- 		sg_dma_len(contig_sg) = dma_len;
--		dma_len = ROUNDUP(dma_len + dma_offset, IOVP_SIZE);
-+		dma_len = ALIGN(dma_len + dma_offset, IOVP_SIZE);
- 		sg_dma_address(contig_sg) =
- 			PIDE_FLAG 
- 			| (iommu_alloc_range(ioc, dma_len) << IOVP_SHIFT)
-diff -puN drivers/parisc/sba_iommu.c~round_up-macro-cleanup-in-drivers-parisc drivers/parisc/sba_iommu.c
---- a/drivers/parisc/sba_iommu.c~round_up-macro-cleanup-in-drivers-parisc
-+++ a/drivers/parisc/sba_iommu.c
-@@ -113,8 +113,6 @@ module_param(sba_reserve_agpgart, int, 0
- MODULE_PARM_DESC(sba_reserve_agpgart, "Reserve half of IO pdir as AGPGART");
- #endif
- 
--#define ROUNDUP(x,y) ((x + ((y)-1)) & ~((y)-1))
+ 		if (active)
+ 			wait_for_completion(&barr.done);
 -
+-		ret = active;
+ 	}
+-	return ret;
++
++	return active;
+ }
  
- /************************************
- ** SBA register read and write support
-@@ -352,7 +350,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
- 		** SBA HW features in the unmap path.
- 		*/
- 		unsigned long o = 1 << get_order(bits_wanted << PAGE_SHIFT);
--		uint bitshiftcnt = ROUNDUP(ioc->res_bitshift, o);
-+		uint bitshiftcnt = ALIGN(ioc->res_bitshift, o);
- 		unsigned long mask;
- 
- 		if (bitshiftcnt >= BITS_PER_LONG) {
-@@ -779,7 +777,7 @@ sba_unmap_single(struct device *dev, dma
- 	offset = iova & ~IOVP_MASK;
- 	iova ^= offset;        /* clear offset bits */
- 	size += offset;
--	size = ROUNDUP(size, IOVP_SIZE);
-+	size = ALIGN(size, IOVP_SIZE);
- 
- 	spin_lock_irqsave(&ioc->res_lock, flags);
- 
+ /**
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
+freezer-close-potential-race-between-refrigerator-and-thaw_tasks.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+freezer-fix-pf_nofreeze-vs-freezeable-race.patch
+freezer-move-frozen_process-to-kernel-power-processc.patch
+recalc_sigpending_tsk-fixes.patch
+simplify-cleanup_workqueue_thread.patch
+simplify-cleanup_workqueue_thread-fix2.patch
+signalfd-retrieve-multiple-signals-with-one-read-call-tidy.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+freezer-run-show_state-when-freezing-times-out.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
