@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-enable-arbitary-tty-speed-setting-ioctls.patch added to -mm tree
-Date: Wed, 23 May 2007 11:49:11 -0700
-Message-ID: <200705231849.l4NInAhY029552@shell0.pdx.osdl.net>
+Subject: + v850-enable-arbitary-speed-tty-ioctls.patch added to -mm tree
+Date: Wed, 23 May 2007 11:49:09 -0700
+Message-ID: <200705231849.l4NIn8u7029549@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36405 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755649AbXEWStW (ORCPT
+	by vger.kernel.org with ESMTP id S1757308AbXEWStX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:49:22 -0400
+	Wed, 23 May 2007 14:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, chris@zankel.net
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, uclinux-v850@lsi.nec.co.jp
 
 
 The patch titled
-     Xtensa: enable arbitary tty speed setting ioctls
+     v850: enable arbitary speed tty ioctls
 has been added to the -mm tree.  Its filename is
-     xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+     v850-enable-arbitary-speed-tty-ioctls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xtensa: enable arbitary tty speed setting ioctls
+Subject: v850: enable arbitary speed tty ioctls
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Adding the defines/constants activates the existing code in the tty layer
-and allows arbitary tty speeds to be requested on this platform
+Adding the defines/macros activates the existing code in the tty layer
+and allows this platform to use the arbitary speed ioctl setting layer
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-xtensa/ioctls.h   |    4 ++++
- include/asm-xtensa/termbits.h |    5 ++++-
- include/asm-xtensa/termios.h  |    6 ++++--
+ include/asm-v850/ioctls.h   |    4 ++++
+ include/asm-v850/termbits.h |    5 ++++-
+ include/asm-v850/termios.h  |    6 ++++--
  3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-xtensa/ioctls.h~xtensa-enable-arbitary-tty-speed-setting-ioctls include/asm-xtensa/ioctls.h
---- a/include/asm-xtensa/ioctls.h~xtensa-enable-arbitary-tty-speed-setting-ioctls
-+++ a/include/asm-xtensa/ioctls.h
-@@ -91,6 +91,10 @@
- #define TIOCSBRK	_IO('T', 39) 	     /* BSD compatibility */
- #define TIOCCBRK	_IO('T', 40)	     /* BSD compatibility */
- #define TIOCGSID	_IOR('T', 41, pid_t) /* Return the session ID of FD*/
-+#define TCGETS2		_IOR('T', 42, struct termios2)
-+#define TCSETS2		_IOW('T', 43, struct termios2)
-+#define TCSETSW2	_IOW('T', 44, struct termios2)
-+#define TCSETSF2	_IOW('T', 45, struct termios2)
+diff -puN include/asm-v850/ioctls.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/ioctls.h
+--- a/include/asm-v850/ioctls.h~v850-enable-arbitary-speed-tty-ioctls
++++ a/include/asm-v850/ioctls.h
+@@ -46,6 +46,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x5429  /* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
  #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
  #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-xtensa/termbits.h~xtensa-enable-arbitary-tty-speed-setting-ioctls include/asm-xtensa/termbits.h
---- a/include/asm-xtensa/termbits.h~xtensa-enable-arbitary-tty-speed-setting-ioctls
-+++ a/include/asm-xtensa/termbits.h
-@@ -146,6 +146,7 @@ struct ktermios {
+diff -puN include/asm-v850/termbits.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/termbits.h
+--- a/include/asm-v850/termbits.h~v850-enable-arbitary-speed-tty-ioctls
++++ a/include/asm-v850/termbits.h
+@@ -130,6 +130,7 @@ struct ktermios {
  #define HUPCL	0002000
  #define CLOCAL	0004000
  #define CBAUDEX 0010000
-+#define	   BOTHER 0010000
++#define    BOTHER 0010000
  #define    B57600 0010001
  #define   B115200 0010002
  #define   B230400 0010003
-@@ -161,10 +162,12 @@ struct ktermios {
+@@ -145,10 +146,12 @@ struct ktermios {
  #define  B3000000 0010015
  #define  B3500000 0010016
  #define  B4000000 0010017
@@ -76,15 +76,15 @@ diff -puN include/asm-xtensa/termbits.h~xtensa-enable-arbitary-tty-speed-setting
  #define CMSPAR	  010000000000		/* mark or space (stick) parity */
  #define CRTSCTS	  020000000000		/* flow control */
  
-+#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
++#define	IBSHIFT	16		/* Shifr from CBAUD to CIBAUD */
 +
  /* c_lflag bits */
- 
  #define ISIG	0000001
-diff -puN include/asm-xtensa/termios.h~xtensa-enable-arbitary-tty-speed-setting-ioctls include/asm-xtensa/termios.h
---- a/include/asm-xtensa/termios.h~xtensa-enable-arbitary-tty-speed-setting-ioctls
-+++ a/include/asm-xtensa/termios.h
-@@ -95,8 +95,10 @@ struct termio {
+ #define ICANON	0000002
+diff -puN include/asm-v850/termios.h~v850-enable-arbitary-speed-tty-ioctls include/asm-v850/termios.h
+--- a/include/asm-v850/termios.h~v850-enable-arbitary-speed-tty-ioctls
++++ a/include/asm-v850/termios.h
+@@ -80,8 +80,10 @@ struct termio {
  	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
  
