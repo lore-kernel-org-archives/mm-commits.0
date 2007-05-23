@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + joydevc-automatic-re-calibration.patch added to -mm tree
-Date: Wed, 23 May 2007 11:00:25 -0700
-Message-ID: <200705231800.l4NI0OhA028611@shell0.pdx.osdl.net>
+Subject: + powerpc-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Wed, 23 May 2007 11:01:28 -0700
+Message-ID: <200705231801.l4NI1RRl028634@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60520 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759907AbXEWSAb (ORCPT
+	by vger.kernel.org with ESMTP id S1758852AbXEWSBf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:00:31 -0400
+	Wed, 23 May 2007 14:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rengolin@gmail.com, dtor@mail.ru
+Cc: leoli@freescale.com
 
 
 The patch titled
-     joydev.c automatic re-calibration
+     powerpc: fix Section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     joydevc-automatic-re-calibration.patch
+     powerpc-fix-section-mismatch-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: joydev.c automatic re-calibration
-From: "Renato Golin" <rengolin@gmail.com>
+Subject: powerpc: fix Section mismatch warnings
+From: Li Yang <leoli@freescale.com>
 
-Add the automatic recalibration feature without spoiling previously
-calibrated devices.  It's a fix for those joysticks that report faulty
-range, specially Saitek Cyborg Evo Force.
+This patch fix the following Section mismatch warnings in powerpc code.
 
-File: drivers/input/joydev.c
-Fix:
+WARNING: arch/powerpc/platforms/built-in.o - Section mismatch: reference to .init.data:mv643xx_eth_pd_devs from .text between 'mv643xx_eth_add_pds' (at offset 0x9ed2) and 'gg2_read_config'
+WARNING: arch/powerpc/platforms/built-in.o - Section mismatch: reference to .init.data:mv643xx_eth_pd_devs from .text between 'mv643xx_eth_add_pds' (at offset 0x9ed6) and 'gg2_read_config'
+WARNING: arch/powerpc/platforms/built-in.o - Section mismatch: reference to .init.text:note_scsi_host from __ksymtab between '__ksymtab_note_scsi_host' (at offset 0x8) and '__ksymtab_sys_ctrler'
 
-- extracted code from joydev_connect to method
-  joydev_calculate_correction to be able to call it from both joydev_event
-  upon recalibration and joydev_connect during first connection.
-
-- on joydev_connect check ranges and zero calibration if found out of range
-
-- on joydev_event, every time found out of range, update min/max and
-  recalculate the correction
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joydev.c |   41 +++++++++++++++++++++++++++++++--------
- 1 file changed, 33 insertions(+), 8 deletions(-)
+ arch/powerpc/platforms/chrp/pegasos_eth.c |    2 +-
+ arch/powerpc/platforms/powermac/setup.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/joydev.c~joydevc-automatic-re-calibration drivers/input/joydev.c
---- a/drivers/input/joydev.c~joydevc-automatic-re-calibration
-+++ a/drivers/input/joydev.c
-@@ -52,6 +52,8 @@ struct joydev {
- 	__u8 absmap[ABS_MAX + 1];
- 	__u8 abspam[ABS_MAX + 1];
- 	__s16 abs[ABS_MAX + 1];
-+	__s16 absmin[ABS_MAX + 1];
-+	__s16 absmax[ABS_MAX + 1];
- };
+diff -puN arch/powerpc/platforms/chrp/pegasos_eth.c~powerpc-fix-section-mismatch-warnings arch/powerpc/platforms/chrp/pegasos_eth.c
+--- a/arch/powerpc/platforms/chrp/pegasos_eth.c~powerpc-fix-section-mismatch-warnings
++++ a/arch/powerpc/platforms/chrp/pegasos_eth.c
+@@ -169,7 +169,7 @@ static int Enable_SRAM(void)
  
- struct joydev_client {
-@@ -66,6 +68,19 @@ struct joydev_client {
- 
- static struct joydev *joydev_table[JOYDEV_MINORS];
- 
-+static void joydev_calculate_correction(int min, int max, int axis, struct joydev *joydev)
-+{
-+	int t, j = joydev->abspam[axis];
-+	int flat = joydev->handle.dev->absflat[j];
-+
-+	joydev->corr[axis].coef[0] = (max + min) / 2 - flat;
-+	joydev->corr[axis].coef[1] = (max + min) / 2 + flat;
-+	if (!(t = ((max - min) / 2 - 2 * flat)))
-+		return;
-+	joydev->corr[axis].coef[2] = (1 << 29) / t;
-+	joydev->corr[axis].coef[3] = (1 << 29) / t;
-+}
-+
- static int joydev_correct(int value, struct js_corr *corr)
+ /***********/
+ /***********/
+-int mv643xx_eth_add_pds(void)
++static int __init mv643xx_eth_add_pds(void)
  {
- 	switch (corr->type) {
-@@ -102,6 +117,14 @@ static void joydev_event(struct input_ha
- 		case EV_ABS:
- 			event.type = JS_EVENT_AXIS;
- 			event.number = joydev->absmap[code];
-+			/* recalibration if needed */
-+			if (value < joydev->absmin[code]) {
-+				joydev->absmin[code] = value;
-+				joydev_calculate_correction(value, joydev->absmax[code], code, joydev);
-+			} else if (value > joydev->absmax[code]) {
-+				joydev->absmax[code] = value;
-+				joydev_calculate_correction(joydev->absmin[code], value, code, joydev);
-+			}
- 			event.value = joydev_correct(value, joydev->corr + event.number);
- 			if (event.value == joydev->abs[event.number])
- 				return;
-@@ -483,7 +506,7 @@ static int joydev_connect(struct input_h
- 	struct joydev *joydev;
- 	struct class_device *cdev;
- 	dev_t devt;
--	int i, j, t, minor;
-+	int i, j, minor;
- 	int error;
+ 	int ret = 0;
+ 	static struct pci_device_id pci_marvell_mv64360[] = {
+diff -puN arch/powerpc/platforms/powermac/setup.c~powerpc-fix-section-mismatch-warnings arch/powerpc/platforms/powermac/setup.c
+--- a/arch/powerpc/platforms/powermac/setup.c~powerpc-fix-section-mismatch-warnings
++++ a/arch/powerpc/platforms/powermac/setup.c
+@@ -384,7 +384,7 @@ int boot_part;
+ static dev_t boot_dev;
  
- 	for (minor = 0; minor < JOYDEV_MINORS && joydev_table[minor]; minor++);
-@@ -530,19 +553,21 @@ static int joydev_connect(struct input_h
- 
- 	for (i = 0; i < joydev->nabs; i++) {
- 		j = joydev->abspam[i];
--		if (dev->absmax[j] == dev->absmin[j]) {
-+		joydev->absmin[i] = dev->absmin[j];
-+		joydev->absmax[i] = dev->absmax[j];
-+		if (joydev->absmax[i] == joydev->absmin[i]) {
- 			joydev->corr[i].type = JS_CORR_NONE;
- 			joydev->abs[i] = dev->abs[j];
- 			continue;
- 		}
- 		joydev->corr[i].type = JS_CORR_BROKEN;
- 		joydev->corr[i].prec = dev->absfuzz[j];
--		joydev->corr[i].coef[0] = (dev->absmax[j] + dev->absmin[j]) / 2 - dev->absflat[j];
--		joydev->corr[i].coef[1] = (dev->absmax[j] + dev->absmin[j]) / 2 + dev->absflat[j];
--		if (!(t = ((dev->absmax[j] - dev->absmin[j]) / 2 - 2 * dev->absflat[j])))
--			continue;
--		joydev->corr[i].coef[2] = (1 << 29) / t;
--		joydev->corr[i].coef[3] = (1 << 29) / t;
-+
-+		if (dev->abs[j] > joydev->absmax[i] || dev->abs[j] < joydev->absmin[i]) {
-+			printk("Joydev: Bad axis range, recalibrating automatically\n");
-+			joydev_calculate_correction(0, 0, i, joydev);
-+		} else
-+			joydev_calculate_correction(joydev->absmin[i], joydev->absmax[i], i, joydev);
- 
- 		joydev->abs[i] = joydev_correct(dev->abs[j], joydev->corr + i);
- 	}
+ #ifdef CONFIG_SCSI
+-void __init note_scsi_host(struct device_node *node, void *host)
++void note_scsi_host(struct device_node *node, void *host)
+ {
+ 	int l;
+ 	char *p;
 _
 
-Patches currently in -mm which might be from rengolin@gmail.com are
+Patches currently in -mm which might be from leoli@freescale.com are
 
-joydevc-automatic-re-calibration.patch
+origin.patch
+powerpc-fix-section-mismatch-warnings.patch
+ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
