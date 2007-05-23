@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + ncr5380-warning-fixes.patch added to -mm tree
-Date: Tue, 22 May 2007 17:26:51 -0700
-Message-ID: <200705230030.l4N0U76m013582@shell0.pdx.osdl.net>
+Date: Tue, 22 May 2007 17:30:24 -0700
+Message-ID: <200705230033.l4N0Xefn013639@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44709 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38290 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759051AbXEWAaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757917AbXEWAdp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 20:30:16 -0400
+	Tue, 22 May 2007 20:33:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -46,9 +46,9 @@ Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/NCR5380.c |   11 ++++++-----
+ drivers/scsi/NCR5380.c |   12 +++++++-----
  drivers/scsi/NCR5380.h |    6 +++---
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
 diff -puN drivers/scsi/NCR5380.c~ncr5380-warning-fixes drivers/scsi/NCR5380.c
 --- a/drivers/scsi/NCR5380.c~ncr5380-warning-fixes
@@ -58,20 +58,21 @@ diff -puN drivers/scsi/NCR5380.c~ncr5380-warning-fixes drivers/scsi/NCR5380.c
  	unsigned char value;
  	const char *name;
 -} phases[] = {
-+} phases[] __used = {
++} phases[] __maybe_unused = {
  	{PHASE_DATAOUT, "DATAOUT"}, 
  	{PHASE_DATAIN, "DATAIN"}, 
  	{PHASE_CMDOUT, "CMDOUT"}, 
-@@ -575,7 +575,7 @@ static irqreturn_t __init probe_intr(int
+@@ -575,7 +575,8 @@ static irqreturn_t __init probe_intr(int
   *	Locks: none, irqs must be enabled on entry
   */
  
 -static int __init NCR5380_probe_irq(struct Scsi_Host *instance, int possible)
-+static int __init __used NCR5380_probe_irq(struct Scsi_Host *instance, int possible)
++static int __init __maybe_unused NCR5380_probe_irq(struct Scsi_Host *instance,
++						int possible)
  {
  	NCR5380_local_declare();
  	struct NCR5380_hostdata *hostdata = (struct NCR5380_hostdata *) instance->hostdata;
-@@ -629,7 +629,8 @@ static int __init NCR5380_probe_irq(stru
+@@ -629,7 +630,8 @@ static int __init NCR5380_probe_irq(stru
   *	Locks: none
   */
  
@@ -81,7 +82,7 @@ diff -puN drivers/scsi/NCR5380.c~ncr5380-warning-fixes drivers/scsi/NCR5380.c
  {
  	printk(" generic options"
  #ifdef AUTOPROBE_IRQ
-@@ -703,8 +704,8 @@ char *lprint_command(unsigned char *cmd,
+@@ -703,8 +705,8 @@ char *lprint_command(unsigned char *cmd,
  static
  char *lprint_opcode(int opcode, char *pos, char *buffer, int length);
  
@@ -159,6 +160,7 @@ git-pciseg.patch
 sh-support-older-gccs.patch
 git-scsi-rc-fixes.patch
 scsi-fix-config_scsi_wait_scan=m.patch
+ncr5380-warning-fixes.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
 git-wireless.patch
@@ -228,4 +230,3 @@ reiser4-fix.patch
 vdso-print-fatal-signals.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ncr5380-warning-fixes.patch
