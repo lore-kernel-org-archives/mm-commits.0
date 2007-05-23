@@ -1,181 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:45:59 -0700
-Message-ID: <200705232145.l4NLjxv2001549@shell0.pdx.osdl.net>
+Subject: - x86_64-support-poll-on-dev-mcelog-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:47:03 -0700
+Message-ID: <200705232147.l4NLl3eF001639@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53048 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755407AbXEWVqS (ORCPT
+	by vger.kernel.org with ESMTP id S1755108AbXEWVrY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:46:18 -0400
+	Wed, 23 May 2007 17:47:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adurbin@google.com, ak@suse.de, mm-commits@vger.kernel.org
+To: wli@holomorphy.com, ak@suse.de, bill.irwin@oracle.com, thockin@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix
+     x86_64-support-poll-on-dev-mcelog fix
 has been removed from the -mm tree.  Its filename was
-     mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
+     x86_64-support-poll-on-dev-mcelog-fix.patch
 
-This patch was dropped because it was folded into mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+This patch was dropped because it was folded into x86_64-support-poll-on-dev-mcelog.patch
 
 ------------------------------------------------------
-Subject: mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64-support-poll-on-dev-mcelog fix
+From: William Lee Irwin III <wli@holomorphy.com>
 
-Cc: Aaron Durbin <adurbin@google.com>
+The build fails with the following error when CONFIG_X86_MCE is not set:
+arch/x86_64/kernel/built-in.o: In function `do_notify_resume':
+/mnt/g/mm-2.6.22-rc2/arch/x86_64/kernel/signal.c:478: undefined reference to `mce_notify_user'
+The following patch #ifdef's the offending call as a minimal fix.
+
+Signed-off-by: William Irwin <bill.irwin@oracle.com>
+Cc: Tim Hockin <thockin@google.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/signal.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -25,7 +25,7 @@
- DECLARE_BITMAP(pci_mmcfg_fallback_slots, 32*PCI_MMCFG_MAX_CHECK_BUS);
+diff -puN arch/x86_64/kernel/signal.c~x86_64-support-poll-on-dev-mcelog-fix arch/x86_64/kernel/signal.c
+--- a/arch/x86_64/kernel/signal.c~x86_64-support-poll-on-dev-mcelog-fix
++++ a/arch/x86_64/kernel/signal.c
+@@ -473,9 +473,11 @@ do_notify_resume(struct pt_regs *regs, v
+ 		clear_thread_flag(TIF_SINGLESTEP);
+ 	}
  
- /* Indicate if the mmcfg resources have been placed into the resource table. */
--static int __initdata pci_mmcfg_resources_inserted = 0;
-+static int __initdata pci_mmcfg_resources_inserted;
++#ifdef CONFIG_X86_MCE
+ 	/* notify userspace of pending MCEs */
+ 	if (thread_info_flags & _TIF_MCE_NOTIFY)
+ 		mce_notify_user();
++#endif /* CONFIG_X86_MCE */
  
- /* K8 systems have some devices (typically in the builtin northbridge)
-    that are only accessible using type1
-@@ -275,12 +275,13 @@ void __init pci_mmcfg_init(int type)
- 		if (known_bridge)
- 			pci_mmcfg_insert_resources(IORESOURCE_BUSY);
- 		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
--	} else
-+	} else {
- 		/*
- 		 * Signal not to attempt to insert mmcfg resources because
- 		 * the architecture mmcfg setup could not initialize.
- 		 */
- 		pci_mmcfg_resources_inserted = 1;
-+	}
- }
- 
- static int __init pci_mmcfg_late_insert_resources(void)
-@@ -288,7 +289,7 @@ static int __init pci_mmcfg_late_insert_
- 	/*
- 	 * If resources are already inserted or we are not using MMCONFIG,
- 	 * don't insert the resources.
--	 * */
-+	 */
- 	if ((pci_mmcfg_resources_inserted == 1) ||
- 	    (pci_probe & PCI_PROBE_MMCONF) == 0 ||
- 	    (pci_mmcfg_config_num == 0) ||
+ 	/* deal with pending signal delivery */
+ 	if (thread_info_flags & (_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wli@holomorphy.com are
 
-origin.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-capabilityh-warning-fix.patch
-simplify-cleanup_workqueue_thread.patch
-capifunc-warning-fixes.patch
-hardware-eicon-messagec-warning-fixes.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-ncr5380-warning-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
-git-wireless.patch
-arch-x86_64-vdso-vmac-needs-schedh.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-reiser4.patch
-reiser4-fix.patch
-vdso-print-fatal-signals.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+i386-bigsmp-section-mismatch-fixes.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+quicklist-support-for-x86_64.patch
+x86_64-support-poll-on-dev-mcelog.patch
+x86_64-support-poll-on-dev-mcelog-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
