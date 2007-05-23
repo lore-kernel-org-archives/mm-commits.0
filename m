@@ -1,75 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - make-map_vm_area-static.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:51:48 -0700
-Message-ID: <200705232151.l4NLpm1O002072@shell0.pdx.osdl.net>
+Subject: - fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:51:57 -0700
+Message-ID: <200705232151.l4NLpwfl002083@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44653 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756632AbXEWVvw (ORCPT
+	by vger.kernel.org with ESMTP id S1755439AbXEWVwx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:51:52 -0400
+	Wed, 23 May 2007 17:52:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: bwalle@suse.de, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, tglx@linutronix.de, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make map_vm_area() static
+     Fix crash with irqpoll due to the IRQF_IRQPOLL flag
 has been removed from the -mm tree.  Its filename was
-     make-map_vm_area-static.patch
+     fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Make map_vm_area() static
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Fix crash with irqpoll due to the IRQF_IRQPOLL flag
+From: Bernhard Walle <bwalle@suse.de>
 
-map_vm_area() is only ever used inside of mm/vmalloc.c.  This makes it static
-and removes the prototype.
+o System crashes if booted with irqpoll command line option.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+o Problem happens because Inside note_interrupt() we are accessing
+  desc->action->flag without taking the desc->lock. While accessing it
+  somebody goes ahead and unregisters the irq handler hence desc->action
+  is NULL. By the time note_interrupt() checks it, it crashes.
+
+o In that system it is irq 4 serving the serial driver.
+
+o Take the desc->lock before accessing desc->action->flag.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    2 --
- mm/vmalloc.c            |    3 ++-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ kernel/irq/spurious.c |   23 ++++++++++++++++++++---
+ 1 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/vmalloc.h~make-map_vm_area-static include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~make-map_vm_area-static
-+++ a/include/linux/vmalloc.h
-@@ -66,8 +66,6 @@ extern struct vm_struct *get_vm_area_nod
- 					  gfp_t gfp_mask);
- extern struct vm_struct *remove_vm_area(void *addr);
- 
--extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
--			struct page ***pages);
- extern void unmap_kernel_range(unsigned long addr, unsigned long size);
- 
- /*
-diff -puN mm/vmalloc.c~make-map_vm_area-static mm/vmalloc.c
---- a/mm/vmalloc.c~make-map_vm_area-static
-+++ a/mm/vmalloc.c
-@@ -140,7 +140,8 @@ static inline int vmap_pud_range(pgd_t *
- 	return 0;
- }
- 
--int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page ***pages)
-+static int map_vm_area(struct vm_struct *area, pgprot_t prot,
-+		       struct page ***pages)
+diff -puN kernel/irq/spurious.c~fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag
++++ a/kernel/irq/spurious.c
+@@ -138,6 +138,8 @@ report_bad_irq(unsigned int irq, struct 
+ void note_interrupt(unsigned int irq, struct irq_desc *desc,
+ 		    irqreturn_t action_ret)
  {
- 	pgd_t *pgd;
- 	unsigned long next;
++	int call_misrouted_irq = 0;
++
+ 	if (unlikely(action_ret != IRQ_HANDLED)) {
+ 		desc->irqs_unhandled++;
+ 		if (unlikely(action_ret != IRQ_NONE))
+@@ -146,9 +148,24 @@ void note_interrupt(unsigned int irq, st
+ 
+ 	if (unlikely(irqfixup)) {
+ 		/* Don't punish working computers */
+-		if ((irqfixup == 2 && ((irq == 0) ||
+-				(desc->action->flags & IRQF_IRQPOLL))) ||
+-				action_ret == IRQ_NONE) {
++		if (action_ret == IRQ_NONE)
++			/* Nobody handled irq. Possibly a misrouted one. */
++			call_misrouted_irq = 1;
++		else if (irqfixup == 2) {
++			/* irqpoll is enabled. Is this the irq driving
++			 * polling.
++			 */
++			if (irq == 0)
++				call_misrouted_irq = 1;
++			else {
++				spin_lock(&desc->lock);
++				if (desc->action &&
++					(desc->action->flags & IRQF_IRQPOLL))
++					call_misrouted_irq = 1;
++				spin_unlock(&desc->lock);
++			}
++		}
++		if (call_misrouted_irq) {
+ 			int ok = misrouted_irq(irq);
+ 			if (action_ret == IRQ_NONE)
+ 				desc->irqs_unhandled -= ok;
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-origin.patch
-do-not-select-macintosh-drivers-by-default.patch
-8xx-mpc885ads-pcmcia-support.patch
-8xx-fix-whitespace-and-indentation.patch
-dts-kill-hardcoded-phandles.patch
-git-libata-all.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-fallocate-implementation-on-i86-x86_64-and-powerpc.patch
+git-r8169.patch
+scsi-remove-__gfp_dma.patch
+fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
