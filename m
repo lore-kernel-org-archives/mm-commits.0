@@ -1,68 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:22:32 -0700
-Message-ID: <200705232122.l4NLMXpT032429@shell0.pdx.osdl.net>
+Subject: - drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:24:03 -0700
+Message-ID: <200705232124.l4NLO3jg032461@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46879 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754072AbXEWVWi (ORCPT
+	by vger.kernel.org with ESMTP id S1754980AbXEWVYO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:22:38 -0400
+	Wed, 23 May 2007 17:24:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, pchen@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_acpi-restore-driver versus libata-clean-up-sff-init-mess
+     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 has been removed from the -mm tree.  Its filename was
-     pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 
-This patch was dropped because it was folded into pata_acpi-restore-driver.patch
+This patch was dropped because it was folded into drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
 
 ------------------------------------------------------
-Subject: pata_acpi-restore-driver versus libata-clean-up-sff-init-mess
+Subject: drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-If you apply both libata-clean-up-sff-init-mess.patch and
-pata_acpi-restore-driver.patch, you'll need to add this patch to
-pata_acpi-restore-driver.patch
-
+Cc: Kuan Luo <kluo@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/sata_nv.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix
-+++ a/drivers/ata/pata_acpi.c
-@@ -371,7 +371,7 @@ static const struct ata_port_operations 
+diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
++++ a/drivers/ata/sata_nv.c
+@@ -2115,7 +2115,7 @@ static void nv_fill_sg(struct ata_queued
+ 	WARN_ON(qc->__sg == NULL);
+ 	WARN_ON(qc->n_elem == 0 && qc->pad_len == 0);
  
- static int pacpi_init_one (struct pci_dev *pdev, const struct pci_device_id *id)
- {
--	static struct ata_port_info info = {
-+	static const struct ata_port_info info = {
- 		.sht		= &pacpi_sht,
- 		.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
+-	prd = (struct ata_prd*)((u64)pp->prd + ATA_PRD_TBL_SZ*qc->tag);
++	prd = (struct ata_prd*)((long)pp->prd + ATA_PRD_TBL_SZ*qc->tag);
  
-@@ -381,11 +381,11 @@ static int pacpi_init_one (struct pci_de
- 
- 		.port_ops	= &pacpi_ops,
- 	};
--	struct ata_port_info *port_info[1] = { &info };
-+	const struct ata_port_info *ppi[] = { &info, NULL };
- 
- 	if (!ata_pata_acpi_present(pdev))
- 		return -ENODEV;
--	return ata_pci_init_one(pdev, port_info, 1);
-+	return ata_pci_init_one(pdev, ppi);
- }
- 
- static const struct pci_device_id pacpi_pci_tbl[] = {
+ 	idx = 0;
+ 	ata_for_each_sg(sg, qc) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,8 +75,7 @@ git-input.patch
 git-kvm.patch
 git-leds.patch
 git-leds-fixup.patch
-pata_acpi-restore-driver.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
 ide-warning-fixes.patch
