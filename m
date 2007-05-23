@@ -1,51 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:32:24 -0700
-Message-ID: <200705232132.l4NLWOs2000407@shell0.pdx.osdl.net>
+Subject: - use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:32:43 -0700
+Message-ID: <200705232132.l4NLWi2P000429@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58159 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754854AbXEWVcr (ORCPT
+	by vger.kernel.org with ESMTP id S1757774AbXEWVdE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:32:47 -0400
+	Wed, 23 May 2007 17:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bunk@stusta.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices fix
+     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
 has been removed from the -mm tree.  Its filename was
-     nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
 
-This patch was dropped because it was folded into nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+This patch was dropped because it was folded into use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 
 ------------------------------------------------------
-Subject: nommu-make-it-possible-for-romfs-to-use-mtd-devices fix
+Subject: use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: David Howells <dhowells@redhat.com>
+drivers/mtd/devices/m25p80.c: In function 'm25p80_erase':
+drivers/mtd/devices/m25p80.c:203: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:209: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:217: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c: In function 'm25p80_read':
+drivers/mtd/devices/m25p80.c:262: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:267: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:283: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c: In function 'm25p80_write':
+drivers/mtd/devices/m25p80.c:325: warning: passing argument 1 of 'mutex_lock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c:386: warning: passing argument 1 of 'mutex_unlock' from incompatible pointer type
+drivers/mtd/devices/m25p80.c: In function 'm25p_probe':
+drivers/mtd/devices/m25p80.c:458: warning: passing argument 1 of '__mutex_init' from incompatible pointer type
+
+eh?
+
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/super.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mtd/devices/m25p80.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/romfs/super.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix fs/romfs/super.c
---- a/fs/romfs/super.c~nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix
-+++ a/fs/romfs/super.c
-@@ -594,8 +594,7 @@ static void romfs_i_init_once(void *_ino
- {
- 	struct romfs_inode_info *inode = _inode;
+diff -puN drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix
++++ a/drivers/mtd/devices/m25p80.c
+@@ -64,7 +64,7 @@
  
--	if (flags & SLAB_CTOR_CONSTRUCTOR)
--		inode_init_once(&inode->vfs_inode);
-+	inode_init_once(&inode->vfs_inode);
- }
- 
- /*
+ struct m25p {
+ 	struct spi_device	*spi;
+-	struct semaphore	lock;
++	struct mutex		lock;
+ 	struct mtd_info		mtd;
+ 	unsigned		partitioned;
+ 	u8			command[4];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,8 +93,7 @@ drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
 ide-warning-fixes.patch
 git-mips-fixup.patch
 git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
 git-ubi.patch
 git-battery.patch
