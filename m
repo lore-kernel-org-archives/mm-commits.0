@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rocketc-fix-unchecked-mutex_lock_interruptible.patch added to -mm tree
-Date: Wed, 23 May 2007 11:17:38 -0700
-Message-ID: <200705231817.l4NIHb5J028992@shell0.pdx.osdl.net>
+Subject: + only-send-sigxfsz-when-exceeding-rlimits.patch added to -mm tree
+Date: Wed, 23 May 2007 11:26:53 -0700
+Message-ID: <200705231826.l4NIQqj1029120@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38176 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755042AbXEWSRl (ORCPT
+	by vger.kernel.org with ESMTP id S1758335AbXEWS1S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:17:41 -0400
+	Wed, 23 May 2007 14:27:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam.sharma@gmail.com, jirislaby@gmail.com
+Cc: micah@cowan.name, alan@redhat.com, micahcowan@ubuntu.com, reiserfs-dev@namesys.com
 
 
 The patch titled
-     rocket.c: fix unchecked mutex_lock_interruptible()
+     Only send SIGXFSZ when exceeding rlimits.
 has been added to the -mm tree.  Its filename is
-     rocketc-fix-unchecked-mutex_lock_interruptible.patch
+     only-send-sigxfsz-when-exceeding-rlimits.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rocket.c: fix unchecked mutex_lock_interruptible()
-From: "Satyam Sharma" <satyam.sharma@gmail.com>
+Subject: Only send SIGXFSZ when exceeding rlimits.
+From: Micah Cowan <micah@cowan.name>
 
-Check the return of mutex_lock_interruptible() in drivers/char/rocket.c and
-return ERESTARTSYS if we were interrupted.
+Some users have been having problems with utilities like cp or dd dumping
+core when they try to copy a file that's too large for the destination
+filesystem (typically, > 4gb).  Apparently, some defunct standards required
+SIGXFSZ to be sent in such circumstances, but SUS only requires/allows it
+for when a written file exceeds the process's resource limits.  I'd like to
+limit SIGXFSZs to the bare minimum required by SUS.
 
-Signed-off-by: Satyam Sharma <satyam.sharma@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Patch sent per http://lkml.org/lkml/2007/4/10/302
+
+Signed-off-by: Micah Cowan <micahcowan@ubuntu.com>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ncpfs/file.c    |    2 --
+ fs/reiserfs/file.c |    1 -
+ mm/filemap.c       |    2 --
+ 3 files changed, 5 deletions(-)
 
-diff -puN drivers/char/rocket.c~rocketc-fix-unchecked-mutex_lock_interruptible drivers/char/rocket.c
---- a/drivers/char/rocket.c~rocketc-fix-unchecked-mutex_lock_interruptible
-+++ a/drivers/char/rocket.c
-@@ -1702,7 +1702,8 @@ static int rp_write(struct tty_struct *t
- 	if (count <= 0 || rocket_paranoia_check(info, "rp_write"))
- 		return 0;
+diff -puN fs/ncpfs/file.c~only-send-sigxfsz-when-exceeding-rlimits fs/ncpfs/file.c
+--- a/fs/ncpfs/file.c~only-send-sigxfsz-when-exceeding-rlimits
++++ a/fs/ncpfs/file.c
+@@ -203,7 +203,6 @@ ncp_file_write(struct file *file, const 
  
--	mutex_lock_interruptible(&info->write_mtx);
-+	if (mutex_lock_interruptible(&info->write_mtx))
-+		return -ERESTARTSYS;
- 
- #ifdef ROCKET_DEBUG_WRITE
- 	printk(KERN_INFO "rp_write %d chars...", count);
+ 	if (pos + count > MAX_NON_LFS && !(file->f_flags&O_LARGEFILE)) {
+ 		if (pos >= MAX_NON_LFS) {
+-			send_sig(SIGXFSZ, current, 0);
+ 			return -EFBIG;
+ 		}
+ 		if (count > MAX_NON_LFS - (u32)pos) {
+@@ -212,7 +211,6 @@ ncp_file_write(struct file *file, const 
+ 	}
+ 	if (pos >= inode->i_sb->s_maxbytes) {
+ 		if (count || pos > inode->i_sb->s_maxbytes) {
+-			send_sig(SIGXFSZ, current, 0);
+ 			return -EFBIG;
+ 		}
+ 	}
+diff -puN fs/reiserfs/file.c~only-send-sigxfsz-when-exceeding-rlimits fs/reiserfs/file.c
+--- a/fs/reiserfs/file.c~only-send-sigxfsz-when-exceeding-rlimits
++++ a/fs/reiserfs/file.c
+@@ -1305,7 +1305,6 @@ static ssize_t reiserfs_file_write(struc
+ 	if (get_inode_item_key_version (inode) == KEY_FORMAT_3_5 &&
+ 	    *ppos + count > MAX_NON_LFS) {
+ 		if (*ppos >= MAX_NON_LFS) {
+-			send_sig(SIGXFSZ, current, 0);
+ 			return -EFBIG;
+ 		}
+ 		if (count > MAX_NON_LFS - (unsigned long)*ppos)
+diff -puN mm/filemap.c~only-send-sigxfsz-when-exceeding-rlimits mm/filemap.c
+--- a/mm/filemap.c~only-send-sigxfsz-when-exceeding-rlimits
++++ a/mm/filemap.c
+@@ -1800,7 +1800,6 @@ inline int generic_write_checks(struct f
+ 	if (unlikely(*pos + *count > MAX_NON_LFS &&
+ 				!(file->f_flags & O_LARGEFILE))) {
+ 		if (*pos >= MAX_NON_LFS) {
+-			send_sig(SIGXFSZ, current, 0);
+ 			return -EFBIG;
+ 		}
+ 		if (*count > MAX_NON_LFS - (unsigned long)*pos) {
+@@ -1818,7 +1817,6 @@ inline int generic_write_checks(struct f
+ 	if (likely(!isblk)) {
+ 		if (unlikely(*pos >= inode->i_sb->s_maxbytes)) {
+ 			if (*count || *pos > inode->i_sb->s_maxbytes) {
+-				send_sig(SIGXFSZ, current, 0);
+ 				return -EFBIG;
+ 			}
+ 			/* zero-length writes at ->s_maxbytes are OK */
 _
 
-Patches currently in -mm which might be from satyam.sharma@gmail.com are
+Patches currently in -mm which might be from micah@cowan.name are
 
-git-ubi.patch
-rocketc-fix-unchecked-mutex_lock_interruptible.patch
+only-send-sigxfsz-when-exceeding-rlimits.patch
