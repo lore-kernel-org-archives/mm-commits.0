@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-enable-arbitary-speed-tty-rate-setting.patch added to -mm tree
-Date: Wed, 23 May 2007 11:49:05 -0700
-Message-ID: <200705231849.l4NIn4Gg029544@shell0.pdx.osdl.net>
+Subject: + h8300-enable-arbitary-speed-tty-port-setup.patch added to -mm tree
+Date: Wed, 23 May 2007 11:49:01 -0700
+Message-ID: <200705231849.l4NIn067029537@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:32810 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757448AbXEWSta (ORCPT
+	by vger.kernel.org with ESMTP id S1757390AbXEWSth (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:49:30 -0400
+	Wed, 23 May 2007 14:49:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, takata@linux-m32r.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     m32r: enable arbitary speed tty rate setting
+     h8300: enable arbitary speed tty port setup
 has been added to the -mm tree.  Its filename is
-     m32r-enable-arbitary-speed-tty-rate-setting.patch
+     h8300-enable-arbitary-speed-tty-port-setup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,25 +26,25 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: enable arbitary speed tty rate setting
+Subject: h8300: enable arbitary speed tty port setup
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add the defines and constants needed for the M32R platform to support the
-arbitary speed tty ioctls.
+Add the needed constants and defines to activate the new tty code on this
+platform
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/ioctls.h   |    4 ++++
- include/asm-m32r/termbits.h |    5 ++++-
- include/asm-m32r/termios.h  |    6 ++++--
+ include/asm-h8300/ioctls.h   |    4 ++++
+ include/asm-h8300/termbits.h |    5 ++++-
+ include/asm-h8300/termios.h  |    6 ++++--
  3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/ioctls.h
---- a/include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting
-+++ a/include/asm-m32r/ioctls.h
+diff -puN include/asm-h8300/ioctls.h~h8300-enable-arbitary-speed-tty-port-setup include/asm-h8300/ioctls.h
+--- a/include/asm-h8300/ioctls.h~h8300-enable-arbitary-speed-tty-port-setup
++++ a/include/asm-h8300/ioctls.h
 @@ -47,6 +47,10 @@
  #define TIOCSBRK	0x5427  /* BSD compatibility */
  #define TIOCCBRK	0x5428  /* BSD compatibility */
@@ -56,10 +56,10 @@ diff -puN include/asm-m32r/ioctls.h~m32r-enable-arbitary-speed-tty-rate-setting 
  #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
  #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/termbits.h
---- a/include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-setting
-+++ a/include/asm-m32r/termbits.h
-@@ -129,6 +129,7 @@ struct ktermios {
+diff -puN include/asm-h8300/termbits.h~h8300-enable-arbitary-speed-tty-port-setup include/asm-h8300/termbits.h
+--- a/include/asm-h8300/termbits.h~h8300-enable-arbitary-speed-tty-port-setup
++++ a/include/asm-h8300/termbits.h
+@@ -130,6 +130,7 @@ struct ktermios {
  #define HUPCL	0002000
  #define CLOCAL	0004000
  #define CBAUDEX 0010000
@@ -67,25 +67,24 @@ diff -puN include/asm-m32r/termbits.h~m32r-enable-arbitary-speed-tty-rate-settin
  #define    B57600 0010001
  #define   B115200 0010002
  #define   B230400 0010003
-@@ -144,11 +145,13 @@ struct ktermios {
+@@ -145,10 +146,12 @@ struct ktermios {
  #define  B3000000 0010015
  #define  B3500000 0010016
  #define  B4000000 0010017
 -#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000		/** input baud rate */
- #define CTVB	  004000000000		/* VisioBraille Terminal flow control */
++#define CIBAUD	  002003600000		/* input baud rate */
  #define CMSPAR	  010000000000		/* mark or space (stick) parity */
  #define CRTSCTS	  020000000000		/* flow control */
  
-+#define	IBSHIFT	16			/* Shift from CBAUD to CIBAUD */
++#define IBSHIFT	  16			/* shift from CBAUD to CIBAUD */
 +
  /* c_lflag bits */
  #define ISIG	0000001
  #define ICANON	0000002
-diff -puN include/asm-m32r/termios.h~m32r-enable-arbitary-speed-tty-rate-setting include/asm-m32r/termios.h
---- a/include/asm-m32r/termios.h~m32r-enable-arbitary-speed-tty-rate-setting
-+++ a/include/asm-m32r/termios.h
-@@ -81,8 +81,10 @@ struct termio {
+diff -puN include/asm-h8300/termios.h~h8300-enable-arbitary-speed-tty-port-setup include/asm-h8300/termios.h
+--- a/include/asm-h8300/termios.h~h8300-enable-arbitary-speed-tty-port-setup
++++ a/include/asm-h8300/termios.h
+@@ -82,8 +82,10 @@ struct termio {
  	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
  
