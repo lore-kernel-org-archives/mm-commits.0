@@ -1,109 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - af_rxrpc-make-call-state-names-available-if-config_proc_fs=n.patch removed from -mm tree
-Date: Wed, 23 May 2007 13:21:01 -0700
-Message-ID: <200705232021.l4NKL0an030995@shell0.pdx.osdl.net>
+Subject: - fix--confusion-in-fusion-driver.patch removed from -mm tree
+Date: Wed, 23 May 2007 13:21:09 -0700
+Message-ID: <200705232021.l4NKL8Vf031011@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53747 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757015AbXEWUVJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757005AbXEWUVX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 16:21:09 -0400
+	Wed, 23 May 2007 16:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: dmueller@suse.de, James.Bottomley@SteelEye.com, davej@redhat.com, eric.moore@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AF_RXRPC: Make call state names available if CONFIG_PROC_FS=n
+     Fix |/|| confusion in fusion driver
 has been removed from the -mm tree.  Its filename was
-     af_rxrpc-make-call-state-names-available-if-config_proc_fs=n.patch
+     fix--confusion-in-fusion-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: AF_RXRPC: Make call state names available if CONFIG_PROC_FS=n
-From: David Howells <dhowells@redhat.com>
+Subject: Fix |/|| confusion in fusion driver
+From: Dirk Mueller <dmueller@suse.de>
 
-Make the call state names array available even if CONFIG_PROC_FS is disabled
-as it's used in other places (such as debugging statements) too.
+This patch corrects a |/|| confusion in mptscsih_copy_sense_data.  Using ||
+means that the data that ends up being written is (almost always) 1,
+instead of being bit-wise or'ed.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Eric Moore <eric.moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+[davej@redhat.com: updates]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rxrpc/ar-call.c |   19 +++++++++++++++++++
- net/rxrpc/ar-proc.c |   19 -------------------
- 2 files changed, 19 insertions(+), 19 deletions(-)
+ drivers/message/fusion/mptbase.h  |    2 +-
+ drivers/message/fusion/mptscsih.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN net/rxrpc/ar-call.c~af_rxrpc-make-call-state-names-available-if-config_proc_fs=n net/rxrpc/ar-call.c
---- a/net/rxrpc/ar-call.c~af_rxrpc-make-call-state-names-available-if-config_proc_fs=n
-+++ a/net/rxrpc/ar-call.c
-@@ -15,6 +15,25 @@
- #include <net/af_rxrpc.h>
- #include "ar-internal.h"
+diff -puN drivers/message/fusion/mptscsih.c~fix--confusion-in-fusion-driver drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~fix--confusion-in-fusion-driver
++++ a/drivers/message/fusion/mptscsih.c
+@@ -2463,11 +2463,11 @@ mptscsih_copy_sense_data(struct scsi_cmn
+ 				ioc->events[idx].event = MPI_EVENT_SCSI_DEVICE_STATUS_CHANGE;
+ 				ioc->events[idx].eventContext = ioc->eventContext;
  
-+const char *rxrpc_call_states[] = {
-+	[RXRPC_CALL_CLIENT_SEND_REQUEST]	= "ClSndReq",
-+	[RXRPC_CALL_CLIENT_AWAIT_REPLY]		= "ClAwtRpl",
-+	[RXRPC_CALL_CLIENT_RECV_REPLY]		= "ClRcvRpl",
-+	[RXRPC_CALL_CLIENT_FINAL_ACK]		= "ClFnlACK",
-+	[RXRPC_CALL_SERVER_SECURING]		= "SvSecure",
-+	[RXRPC_CALL_SERVER_ACCEPTING]		= "SvAccept",
-+	[RXRPC_CALL_SERVER_RECV_REQUEST]	= "SvRcvReq",
-+	[RXRPC_CALL_SERVER_ACK_REQUEST]		= "SvAckReq",
-+	[RXRPC_CALL_SERVER_SEND_REPLY]		= "SvSndRpl",
-+	[RXRPC_CALL_SERVER_AWAIT_ACK]		= "SvAwtACK",
-+	[RXRPC_CALL_COMPLETE]			= "Complete",
-+	[RXRPC_CALL_SERVER_BUSY]		= "SvBusy  ",
-+	[RXRPC_CALL_REMOTELY_ABORTED]		= "RmtAbort",
-+	[RXRPC_CALL_LOCALLY_ABORTED]		= "LocAbort",
-+	[RXRPC_CALL_NETWORK_ERROR]		= "NetError",
-+	[RXRPC_CALL_DEAD]			= "Dead    ",
-+};
-+
- struct kmem_cache *rxrpc_call_jar;
- LIST_HEAD(rxrpc_calls);
- DEFINE_RWLOCK(rxrpc_call_lock);
-diff -puN net/rxrpc/ar-proc.c~af_rxrpc-make-call-state-names-available-if-config_proc_fs=n net/rxrpc/ar-proc.c
---- a/net/rxrpc/ar-proc.c~af_rxrpc-make-call-state-names-available-if-config_proc_fs=n
-+++ a/net/rxrpc/ar-proc.c
-@@ -25,25 +25,6 @@ static const char *rxrpc_conn_states[] =
- 	[RXRPC_CONN_NETWORK_ERROR]	= "NetError",
- };
+-				ioc->events[idx].data[0] = (pReq->LUN[1] << 24) ||
+-					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) ||
+-					(sc->device->channel << 8) || sc->device->id;
++				ioc->events[idx].data[0] = (pReq->LUN[1] << 24) |
++					(MPI_EVENT_SCSI_DEV_STAT_RC_SMART_DATA << 16) |
++					(sc->device->channel << 8) | sc->device->id;
  
--const char *rxrpc_call_states[] = {
--	[RXRPC_CALL_CLIENT_SEND_REQUEST]	= "ClSndReq",
--	[RXRPC_CALL_CLIENT_AWAIT_REPLY]		= "ClAwtRpl",
--	[RXRPC_CALL_CLIENT_RECV_REPLY]		= "ClRcvRpl",
--	[RXRPC_CALL_CLIENT_FINAL_ACK]		= "ClFnlACK",
--	[RXRPC_CALL_SERVER_SECURING]		= "SvSecure",
--	[RXRPC_CALL_SERVER_ACCEPTING]		= "SvAccept",
--	[RXRPC_CALL_SERVER_RECV_REQUEST]	= "SvRcvReq",
--	[RXRPC_CALL_SERVER_ACK_REQUEST]		= "SvAckReq",
--	[RXRPC_CALL_SERVER_SEND_REPLY]		= "SvSndRpl",
--	[RXRPC_CALL_SERVER_AWAIT_ACK]		= "SvAwtACK",
--	[RXRPC_CALL_COMPLETE]			= "Complete",
--	[RXRPC_CALL_SERVER_BUSY]		= "SvBusy  ",
--	[RXRPC_CALL_REMOTELY_ABORTED]		= "RmtAbort",
--	[RXRPC_CALL_LOCALLY_ABORTED]		= "LocAbort",
--	[RXRPC_CALL_NETWORK_ERROR]		= "NetError",
--	[RXRPC_CALL_DEAD]			= "Dead    ",
--};
--
+-				ioc->events[idx].data[1] = (sense_data[13] << 8) || sense_data[12];
++				ioc->events[idx].data[1] = (sense_data[13] << 8) | sense_data[12];
+ 
+ 				ioc->eventContext++;
+ 				if (hd->ioc->pcidev->vendor ==
+diff -puN drivers/message/fusion/mptbase.h~fix--confusion-in-fusion-driver drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~fix--confusion-in-fusion-driver
++++ a/drivers/message/fusion/mptbase.h
+@@ -436,7 +436,7 @@ typedef struct _MPT_SAS_MGMT {
+ typedef struct _mpt_ioctl_events {
+ 	u32	event;		/* Specified by define above */
+ 	u32	eventContext;	/* Index or counter */
+-	int	data[2];	/* First 8 bytes of Event Data */
++	u32	data[2];	/* First 8 bytes of Event Data */
+ } MPT_IOCTL_EVENTS;
+ 
  /*
-  * generate a list of extant and dead calls in /proc/net/rxrpc_calls
-  */
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
-
-origin.patch
-documentation-memory-barrierstxt-various-fixes.patch
-git-mtd.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
-romfs-printk-format-warnings.patch
-mutex-subsystem-synchro-test-module.patch
+Patches currently in -mm which might be from dmueller@suse.de are
