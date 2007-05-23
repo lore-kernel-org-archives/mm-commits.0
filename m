@@ -1,236 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:24:06 -0700
-Message-ID: <200705232124.l4NLO65I032465@shell0.pdx.osdl.net>
+Subject: - cleanup-libata-hpa-support-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:25:09 -0700
+Message-ID: <200705232125.l4NLPAOK032500@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54584 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755709AbXEWVYR (ORCPT
+	by vger.kernel.org with ESMTP id S1754854AbXEWVZU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:24:17 -0400
+	Wed, 23 May 2007 17:25:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, pchen@nvidia.com, mm-commits@vger.kernel.org
+To: ben.collins@ubuntu.com, kyle@ubuntu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy
+     Cleanup libata HPA support (fix)
 has been removed from the -mm tree.  Its filename was
-     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
+     cleanup-libata-hpa-support-fix.patch
 
-This patch was dropped because it was folded into drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+This patch was dropped because it was folded into cleanup-libata-hpa-support.patch
 
 ------------------------------------------------------
-Subject: drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Cleanup libata HPA support (fix)
+From: Ben Collins <ben.collins@ubuntu.com>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Kuan Luo <kluo@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Added error check for ata_dev_read_id (Thanks tj)
+
+Also, since hpa is disabled by default, print the native size, even when
+HPA isn't asked for (so users and developers can know that it may need
+to be used).
+
+Cc: Kyle McMartin <kyle@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |   35 ++++++++++++++---------------------
- 1 files changed, 14 insertions(+), 21 deletions(-)
+ drivers/ata/libata-core.c |   28 ++++++++++++++++++----------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy
-+++ a/drivers/ata/sata_nv.c
-@@ -2107,9 +2107,7 @@ static void nv_fill_sg(struct ata_queued
- 	struct ata_port *ap = qc->ap;
- 	struct scatterlist *sg;
- 	unsigned int idx;
--
- 	struct nv_port_priv *pp = ap->private_data;
--
- 	struct ata_prd *prd;
+diff -puN drivers/ata/libata-core.c~cleanup-libata-hpa-support-fix drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~cleanup-libata-hpa-support-fix
++++ a/drivers/ata/libata-core.c
+@@ -1015,20 +1015,19 @@ static u64 ata_id_n_sectors(const u16 *i
+  *	it if required to the full size of the media.
+  */
  
- 	WARN_ON(qc->__sg == NULL);
-@@ -2194,11 +2192,10 @@ static unsigned int nv_qc_issue_prot(str
+-static void ata_hpa_resize(struct ata_device *dev)
++static int ata_hpa_resize(struct ata_device *dev)
  {
- 	struct ata_port *ap = qc->ap;
- 	struct nv_port_priv *pp = ap->private_data;
--
- 	struct ata_taskfile	*tf = &(qc->tf);
- 	struct ata_taskfile *ttf, rtf;
--
- 	u32 fis, stat0, stat1;
+ 	u64 hpa_sectors;
+ 
+-	if (!ata_id_hpa_enabled(dev->id) || !ata_ignore_hpa)
+-		return;
++	if (!ata_id_hpa_enabled(dev->id))
++		return 0;
+ 
+ 	hpa_sectors = ata_hpa_get_native_size(dev);
+ 
+-	/* if no hpa, both should be equal */
+-	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, hpa_sectors = %lld\n",
++	ata_dev_printk(dev, KERN_INFO, "%s: sectors = %lld, hpa_sectors = %lld\n",
+ 		__FUNCTION__, dev->n_sectors, hpa_sectors);
+ 
+-	if (hpa_sectors > dev->n_sectors) {
++	if (ata_ignore_hpa && hpa_sectors > dev->n_sectors) {
+ 		u64 ret_sectors;
+ 
+ 		ata_dev_printk(dev, KERN_INFO,
+@@ -1053,13 +1052,20 @@ static void ata_hpa_resize(struct ata_de
+ 			rc = ata_dev_read_id(dev, &dev->class,
+ 					     ATA_READID_POSTRESET, id);
+ 
+-			dev->n_sectors = ata_id_n_sectors(id);
++			if (rc) {
++				ata_dev_printk(dev, KERN_ERR,
++					"Failed to reread ID after SET_MAX (%d)\n",
++					rc);
++				return -EIO;
++			}
 +
- 	ttf = &rtf;
++			memcpy(dev->id, id, sizeof(id[0]) * ATA_ID_WORDS);
++			dev->n_sectors = ata_id_n_sectors(dev->id);
  
- 	if (qc->tf.protocol != ATA_PROT_NCQ)
-@@ -2338,32 +2335,29 @@ static void fis_dump(struct ata_port *ap
- 
- void ncq_hotplug(struct ata_port *ap, u32 fis)
- {
-+	u32 serror;
-+	struct ata_eh_info *ehi = &ap->eh_info;
- 
--		u32 serror;
--		struct ata_eh_info *ehi = &ap->eh_info;
-+	ata_ehi_clear_desc(ehi);
- 
--		ata_ehi_clear_desc(ehi);
--
--		/* AHCI needs SError cleared; otherwise, it might lock up */
--		sata_scr_read(ap, SCR_ERROR, &serror);
--		sata_scr_write(ap, SCR_ERROR, serror);
-+	/* AHCI needs SError cleared; otherwise, it might lock up */
-+	sata_scr_read(ap, SCR_ERROR, &serror);
-+	sata_scr_write(ap, SCR_ERROR, serror);
- 
--		/* analyze @irq_stat */
--		ata_ehi_push_desc(ehi, "fis_stat 0x%08x", fis);
-+	/* analyze @irq_stat */
-+	ata_ehi_push_desc(ehi, "fis_stat 0x%08x", fis);
- 
--		ata_ehi_hotplugged(ehi);
-+	ata_ehi_hotplugged(ehi);
- 
--		/* okay, let's hand over to EH */
--		ehi->serror |= serror;
-+	/* okay, let's hand over to EH */
-+	ehi->serror |= serror;
- 
--		ata_port_freeze(ap);
-+	ata_port_freeze(ap);
+ 			if (dev->n_sectors == hpa_sectors) {
+ 				ata_dev_printk(dev, KERN_INFO,
+ 					"Native size increased to %llu sectors\n",
+ 					hpa_sectors);
+-				memcpy(dev->id, id, sizeof(id[0]) * ATA_ID_WORDS);
+ 			} else {
+ 				ata_dev_printk(dev, KERN_ERR,
+ 					"Failed to set native size, "
+@@ -1068,7 +1074,7 @@ static void ata_hpa_resize(struct ata_de
+ 			}
+ 		}
+ 	}
+-	return;
++	return 0;
  }
  
--
- static int ncq_interrupt(struct ata_port *ap, u32 fis)
- {
- 	struct nv_port_priv *pp = ap->private_data;
--
- 	u32 rc = 0;
- 	u32 tag;
- 	u8 ata_stat;
-@@ -2371,7 +2365,6 @@ static int ncq_interrupt(struct ata_port
- 	if (!fis)
- 		return 0;
+ static u64 ata_id_n_sectors(const u16 *id)
+@@ -1968,7 +1974,9 @@ int ata_dev_configure(struct ata_device 
+ 			}
  
--
- 	ata_stat = ap->ops->check_status(ap);
+ 			/* Check for HPA, and resize if requested */
+-			ata_hpa_resize(dev);
++			rc = ata_hpa_resize(dev);
++			if (rc)
++				goto err_out_nosup;
  
- 	ap->ops->irq_clear(ap); /* clear bm irq */
-@@ -2398,7 +2391,7 @@ static int ncq_interrupt(struct ata_port
- 		set_back_byte(pp, pp->current_tag);
- 		NPRINTK("BACK OUT FIS:%x \n", fis);
- 		rc = 1;
--	 } /* first handle back out */
-+	} /* first handle back out */
- 
- 	if (fis & NV_INT_SDBFIS_MCP55) {
- 		pp->ops->clear_singlefis(ap, NV_INT_SDBFIS_MCP55 | NV_INT_DEV_MCP55);
+ 			/* config NCQ */
+ 			ata_dev_config_ncq(dev, ncq_desc, sizeof(ncq_desc));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ben.collins@ubuntu.com are
 
 origin.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-capabilityh-warning-fix.patch
-simplify-cleanup_workqueue_thread.patch
-capifunc-warning-fixes.patch
-hardware-eicon-messagec-warning-fixes.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-ncr5380-warning-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
-git-wireless.patch
-arch-x86_64-vdso-vmac-needs-schedh.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-reiser4.patch
-reiser4-fix.patch
-vdso-print-fatal-signals.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+avoid-zero-size-allocation-in-cache_k8_northbridges.patch
+cleanup-libata-hpa-support.patch
+cleanup-libata-hpa-support-fix.patch
