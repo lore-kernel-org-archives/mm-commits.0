@@ -1,59 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - i386-efi-fix-proc-iomem-type-for-kexec-tools.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:45:00 -0700
-Message-ID: <200705232145.l4NLj0NH001475@shell0.pdx.osdl.net>
+Subject: - mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:46:02 -0700
+Message-ID: <200705232146.l4NLk2r9001559@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57114 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755291AbXEWVqD (ORCPT
+	by vger.kernel.org with ESMTP id S1755293AbXEWVqM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:46:03 -0400
+	Wed, 23 May 2007 17:46:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas@m3y3r.de, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: adurbin@google.com, ak@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-efi: fix /proc/iomem type for kexec-tools
+     mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources update
 has been removed from the -mm tree.  Its filename was
-     i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+     mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch
 
-This patch was dropped because Eric had issues
+This patch was dropped because it was folded into mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 
 ------------------------------------------------------
-Subject: i386-efi: fix /proc/iomem type for kexec-tools
-From: Thomas Meyer <thomas@m3y3r.de>
+Subject: mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources update
+From: Aaron Durbin <adurbin@google.com>
 
-The kexec-tools check for "System RAM".
+Updated to reflect comments from rientjes@google.com.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: Aaron Durbin <adurbin@google.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/efi.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/i386/pci/mmconfig-shared.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/efi.c~i386-efi-fix-proc-iomem-type-for-kexec-tools arch/i386/kernel/efi.c
---- a/arch/i386/kernel/efi.c~i386-efi-fix-proc-iomem-type-for-kexec-tools
-+++ a/arch/i386/kernel/efi.c
-@@ -636,7 +636,12 @@ efi_initialize_iomem_resources(struct re
- 			res->name = "Runtime Service Data";
- 			break;
- 		case EFI_CONVENTIONAL_MEMORY:
--			res->name = "Conventional Memory";
-+			if (md->attribute & EFI_MEMORY_WP) {
-+				res->name = "System ROM";
-+				res->flags |= IORESOURCE_READONLY;
-+			} else {
-+				res->name = "System RAM";
-+			}
- 			break;
- 		case EFI_UNUSABLE_MEMORY:
- 			res->name = "Unusable Memory";
+diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -173,7 +173,7 @@ static int __init pci_mmcfg_check_hostbr
+ 	return name != NULL;
+ }
+ 
+-static void __init pci_mmcfg_insert_resources(int resource_flags)
++static void __init pci_mmcfg_insert_resources(unsigned long resource_flags)
+ {
+ #define PCI_MMCFG_RESOURCE_NAME_LEN 19
+ 	int i;
 _
 
-Patches currently in -mm which might be from thomas@m3y3r.de are
+Patches currently in -mm which might be from adurbin@google.com are
 
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-update.patch
