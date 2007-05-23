@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86_64-vdso-vmac-needs-schedh.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:48:04 -0700
-Message-ID: <200705232148.l4NLm4Kd001721@shell0.pdx.osdl.net>
+Subject: + arch-x86_64-vdso-vmac-needs-schedh.patch added to -mm tree
+Date: Wed, 23 May 2007 14:49:07 -0700
+Message-ID: <200705232149.l4NLn7Lr001785@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42672 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754854AbXEWVsK (ORCPT
+	by vger.kernel.org with ESMTP id S1756053AbXEWVtM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:48:10 -0400
+	Wed, 23 May 2007 17:49:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
      arch/x86_64/vdso/vma.c needs sched.h
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      arch-x86_64-vdso-vmac-needs-schedh.patch
 
-This patch was dropped because it was folded into x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: arch/x86_64/vdso/vma.c needs sched.h
@@ -37,7 +41,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/x86_64/vdso/vma.c |    1 +
- 1 file changed, 1 insertion(+)
+ 1 files changed, 1 insertion(+)
 
 diff -puN arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh arch/x86_64/vdso/vma.c
 --- a/arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh
