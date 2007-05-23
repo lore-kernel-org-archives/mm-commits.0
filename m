@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + etrax-enable-arbitary-speed-setting-on-tty-ports.patch added to -mm tree
-Date: Wed, 23 May 2007 11:42:35 -0700
-Message-ID: <200705231842.l4NIgYE6029414@shell0.pdx.osdl.net>
+Subject: + uml-improve-ptrace_sysemu-checking.patch added to -mm tree
+Date: Wed, 23 May 2007 11:43:45 -0700
+Message-ID: <200705231843.l4NIhiAR029434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56995 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755918AbXEWSmw (ORCPT
+	by vger.kernel.org with ESMTP id S1756000AbXEWSnt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:42:52 -0400
+	Wed, 23 May 2007 14:43:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, starvik@axis.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     etrax: enable arbitary speed setting on tty ports
+     uml: improve PTRACE_SYSEMU checking
 has been added to the -mm tree.  Its filename is
-     etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+     uml-improve-ptrace_sysemu-checking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: etrax: enable arbitary speed setting on tty ports
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: uml: improve PTRACE_SYSEMU checking
+From: Jeff Dike <jdike@addtoit.com>
 
-Add the needed constants and bits. The actual code is already in the tty
-layer and turned on by the definitions
+Make the PTRACE_SYSEMU checking more robust.  It will make sure that system
+call numbers are reported correctly.  If there is a problem, it will disable
+PTRACE_SYSEMU use and use PTRACE_SYSCALL instead.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Thanks to Balaji G for helping reproduce this problem.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/ioctls.h   |    4 ++++
- include/asm-cris/termbits.h |    1 +
- include/asm-cris/termios.h  |    6 ++++--
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ arch/um/os-Linux/start_up.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/ioctls.h
---- a/include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports
-+++ a/include/asm-cris/ioctls.h
-@@ -48,6 +48,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
+diff -puN arch/um/os-Linux/start_up.c~uml-improve-ptrace_sysemu-checking arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-improve-ptrace_sysemu-checking
++++ a/arch/um/os-Linux/start_up.c
+@@ -144,9 +144,7 @@ static int stop_ptraced_child(int pid, v
+ 		int exit_with = WEXITSTATUS(status);
+ 		if (exit_with == 2)
+ 			non_fatal("check_ptrace : child exited with status 2. "
+-				  "Serious trouble happening! Try updating "
+-				  "your host skas patch!\nDisabling SYSEMU "
+-				  "support.");
++				  "\nDisabling SYSEMU support.\n");
+ 		non_fatal("check_ptrace : child exited with exitcode %d, while "
+ 			  "expecting %d; status 0x%x\n", exit_with,
+ 			  exitcode, status);
+@@ -209,6 +207,7 @@ __uml_setup("nosysemu", nosysemu_cmd_par
+ static void __init check_sysemu(void)
+ {
+ 	void *stack;
++	unsigned long regs[MAX_REG_NR];
+ 	int pid, n, status, count=0;
  
-diff -puN include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termbits.h
---- a/include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports
-+++ a/include/asm-cris/termbits.h
-@@ -155,6 +155,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define  BOTHER  0010000
- #define  B57600  0010001
- #define  B115200 0010002
- #define  B230400 0010003
-diff -puN include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termios.h
---- a/include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports
-+++ a/include/asm-cris/termios.h
-@@ -81,8 +81,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
+ 	non_fatal("Checking syscall emulation patch for ptrace...");
+@@ -225,11 +224,20 @@ static void __init check_sysemu(void)
+ 		fatal("check_sysemu : expected SIGTRAP, got status = %d",
+ 		      status);
  
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+-	n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET,
+-		   os_getpid());
+-	if(n < 0)
+-		fatal_perror("check_sysemu : failed to modify system call "
+-			     "return");
++	if(ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
++		fatal_perror("check_sysemu : PTRACE_GETREGS failed");
++	if(PT_SYSCALL_NR(regs) != __NR_getpid){
++		non_fatal("check_sysemu got system call number %d, "
++			  "expected %d...", PT_SYSCALL_NR(regs), __NR_getpid);
++		goto fail;
++	}
++
++	n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET, os_getpid());
++	if(n < 0){
++		non_fatal("check_sysemu : failed to modify system call "
++			  "return");
++		goto fail;
++	}
  
- #endif	/* __KERNEL__ */
- 
+ 	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
+ 		goto fail_stopped;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-origin.patch
-arm-enable-arbitary-speed-tty-ioctls-and-split.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-libata-add-support-for-ata_16-on-atapi.patch
-fix-build-failure-for-drivers-ata-pata_sccc.patch
-hpt3x2n-correct-revision-boundary.patch
-pata_sis-fix-and-clean-up-some-timing-setups.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-ide-add-seagate-stt20000a-to-dma-blacklist.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
-add-pci_try_set_mwi.patch
-fix-pci_find_present.patch
-git-scsi-misc.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-ncr5380-warning-fixes.patch
-watchdog-documentation.patch
-add-pci_try_set_mwi-prism54pci.patch
-fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+uml-improve-ptrace_sysemu-checking.patch
+uml-fix-ubd_add-error-reporting.patch
