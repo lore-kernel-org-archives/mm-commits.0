@@ -1,93 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-check-return-code-of-sysfs_create_link-fix.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:18:27 -0700
-Message-ID: <200705232118.l4NLIRYx032340@shell0.pdx.osdl.net>
+Subject: - pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:22:32 -0700
+Message-ID: <200705232122.l4NLMXpT032429@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36044 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754726AbXEWVSd (ORCPT
+	by vger.kernel.org with ESMTP id S1754072AbXEWVWi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:18:33 -0400
+	Wed, 23 May 2007 17:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver-core-check-return-code-of-sysfs_create_link-fix
+     pata_acpi-restore-driver versus libata-clean-up-sff-init-mess
 has been removed from the -mm tree.  Its filename was
-     driver-core-check-return-code-of-sysfs_create_link-fix.patch
+     pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 
-This patch was dropped because it was folded into driver-core-check-return-code-of-sysfs_create_link.patch
+This patch was dropped because it was folded into pata_acpi-restore-driver.patch
 
 ------------------------------------------------------
-Subject: driver-core-check-return-code-of-sysfs_create_link-fix
+Subject: pata_acpi-restore-driver versus libata-clean-up-sff-init-mess
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/base/core.c: In function 'device_add_class_symlinks':
-drivers/base/core.c:649: warning: unused variable 'class_name'
-drivers/base/core.c: In function 'device_remove_class_symlinks':
-drivers/base/core.c:699: warning: unused variable 'class_name'
+If you apply both libata-clean-up-sff-init-mess.patch and
+pata_acpi-restore-driver.patch, you'll need to add this patch to
+pata_acpi-restore-driver.patch
 
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ drivers/ata/pata_acpi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix drivers/base/core.c
---- a/drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix
-+++ a/drivers/base/core.c
-@@ -646,7 +646,6 @@ static int setup_parent(struct device *d
- static int device_add_class_symlinks(struct device *dev)
- {
- 	int error;
--	char *class_name;
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix
++++ a/drivers/ata/pata_acpi.c
+@@ -371,7 +371,7 @@ static const struct ata_port_operations 
  
- 	if (!dev->class)
- 		return 0;
-@@ -670,13 +669,16 @@ static int device_add_class_symlinks(str
- 		if (error)
- 			goto out_busid;
- #ifdef CONFIG_SYSFS_DEPRECATED
--		class_name = make_class_name(dev->class->name, &dev->kobj);
--		if (class_name)
--			error = sysfs_create_link(&dev->parent->kobj,
--						  &dev->kobj, class_name);
--		kfree(class_name);
--		if (error)
--			goto out_device;
-+		{
-+			char * class_name = make_class_name(dev->class->name,
-+								&dev->kobj);
-+			if (class_name)
-+				error = sysfs_create_link(&dev->parent->kobj,
-+							&dev->kobj, class_name);
-+			kfree(class_name);
-+			if (error)
-+				goto out_device;
-+		}
- #endif
- 	}
- 	return 0;
-@@ -696,12 +698,12 @@ out:
- 
- static void device_remove_class_symlinks(struct device *dev)
+ static int pacpi_init_one (struct pci_dev *pdev, const struct pci_device_id *id)
  {
--	char *class_name;
--
- 	if (!dev->class)
- 		return;
- 	if (dev->parent) {
- #ifdef CONFIG_SYSFS_DEPRECATED
-+		char *class_name;
-+
- 		class_name = make_class_name(dev->class->name, &dev->kobj);
- 		if (class_name) {
- 			sysfs_remove_link(&dev->parent->kobj, class_name);
+-	static struct ata_port_info info = {
++	static const struct ata_port_info info = {
+ 		.sht		= &pacpi_sht,
+ 		.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
+ 
+@@ -381,11 +381,11 @@ static int pacpi_init_one (struct pci_de
+ 
+ 		.port_ops	= &pacpi_ops,
+ 	};
+-	struct ata_port_info *port_info[1] = { &info };
++	const struct ata_port_info *ppi[] = { &info, NULL };
+ 
+ 	if (!ata_pata_acpi_present(pdev))
+ 		return -ENODEV;
+-	return ata_pci_init_one(pdev, port_info, 1);
++	return ata_pci_init_one(pdev, ppi);
+ }
+ 
+ static const struct pci_device_id pacpi_pci_tbl[] = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,7 +83,6 @@ git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
-driver-core-check-return-code-of-sysfs_create_link-fix.patch
 git-dvb.patch
 cinergyt2-fix-file-release-handler.patch
 git-gfs2-nmw.patch
@@ -117,6 +91,7 @@ git-input.patch
 git-kvm.patch
 git-leds.patch
 git-leds-fixup.patch
+pata_acpi-restore-driver.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
