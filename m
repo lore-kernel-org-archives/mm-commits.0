@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-support-poll-on-dev-mcelog-fix.patch added to -mm tree
-Date: Wed, 23 May 2007 11:28:41 -0700
-Message-ID: <200705231828.l4NISeo6029146@shell0.pdx.osdl.net>
+Subject: + spi-add-3wire-mode-flag-fix.patch added to -mm tree
+Date: Wed, 23 May 2007 11:31:35 -0700
+Message-ID: <200705231831.l4NIVYAE029234@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34876 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755048AbXEWS2w (ORCPT
+	by vger.kernel.org with ESMTP id S1751366AbXEWSbs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:28:52 -0400
+	Wed, 23 May 2007 14:31:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wli@holomorphy.com, ak@suse.de, bill.irwin@oracle.com, thockin@google.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     x86_64-support-poll-on-dev-mcelog fix
+     SPI: add 3wire mode flag (fix)
 has been added to the -mm tree.  Its filename is
-     x86_64-support-poll-on-dev-mcelog-fix.patch
+     spi-add-3wire-mode-flag-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-support-poll-on-dev-mcelog fix
-From: William Lee Irwin III <wli@holomorphy.com>
+Subject: SPI: add 3wire mode flag (fix)
+From: David Brownell <david-b@pacbell.net>
 
-The build fails with the following error when CONFIG_X86_MCE is not set:
-arch/x86_64/kernel/built-in.o: In function `do_notify_resume':
-/mnt/g/mm-2.6.22-rc2/arch/x86_64/kernel/signal.c:478: undefined reference to `mce_notify_user'
-The following patch #ifdef's the offending call as a minimal fix.
+Add missing parenthesis ... evidently GCC warns inconsistently.
 
-Signed-off-by: William Irwin <bill.irwin@oracle.com>
-Cc: Tim Hockin <thockin@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/signal.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/hwmon/lm70.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/signal.c~x86_64-support-poll-on-dev-mcelog-fix arch/x86_64/kernel/signal.c
---- a/arch/x86_64/kernel/signal.c~x86_64-support-poll-on-dev-mcelog-fix
-+++ a/arch/x86_64/kernel/signal.c
-@@ -473,9 +473,11 @@ do_notify_resume(struct pt_regs *regs, v
- 		clear_thread_flag(TIF_SINGLESTEP);
- 	}
+diff -puN drivers/hwmon/lm70.c~spi-add-3wire-mode-flag-fix drivers/hwmon/lm70.c
+--- a/drivers/hwmon/lm70.c~spi-add-3wire-mode-flag-fix
++++ a/drivers/hwmon/lm70.c
+@@ -97,7 +97,7 @@ static int __devinit lm70_probe(struct s
+ 	int status;
  
-+#ifdef CONFIG_X86_MCE
- 	/* notify userspace of pending MCEs */
- 	if (thread_info_flags & _TIF_MCE_NOTIFY)
- 		mce_notify_user();
-+#endif /* CONFIG_X86_MCE */
+ 	/* signaling is SPI_MODE_0 on a 3-wire link (shared SI/SO) */
+-	if ((spi->mode & (SPI_CPOL|SPI_CPHA)) || !spi->mode & SPI_3WIRE)
++	if ((spi->mode & (SPI_CPOL|SPI_CPHA)) || !(spi->mode & SPI_3WIRE))
+ 		return -EINVAL;
  
- 	/* deal with pending signal delivery */
- 	if (thread_info_flags & (_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK))
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from wli@holomorphy.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-quicklist-support-for-x86_64.patch
-x86_64-support-poll-on-dev-mcelog-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+spi-doc-update-describe-clock-mode-bits.patch
+git-leds.patch
+git-mmc.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
+spi-controller-drivers-check-for-unsupported-modes.patch
+spi-add-3wire-mode-flag.patch
+spi-add-3wire-mode-flag-fix.patch
+rtc-ds1307-cleanups.patch
