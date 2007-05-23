@@ -1,51 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-allocate-sparsemem-memmap-above-4g-fix.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:52:18 -0700
-Message-ID: <200705232152.l4NLqIBa002105@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-dmi-based-module-autoloading.patch added to -mm tree
+Date: Wed, 23 May 2007 15:03:59 -0700
+Message-ID: <200705232203.l4NM3xcl002862@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42655 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756065AbXEWVxi (ORCPT
+	by vger.kernel.org with ESMTP id S1756944AbXEWWEK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:53:38 -0400
+	Wed, 23 May 2007 18:04:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, nanhai.zou@intel.com, stable@kernel.org, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, gregkh@suse.de, kay.sievers@vrfy.org, michal.k.k.piotrowski@gmail.com, mzxreary@0pointer.de
 
 
 The patch titled
-     x86_64-allocate-sparsemem-memmap-above-4g-fix
-has been removed from the -mm tree.  Its filename was
-     x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
+     fix gregkh-driver-dmi-based-module-autoloading
+has been added to the -mm tree.  Its filename is
+     fix-gregkh-driver-dmi-based-module-autoloading.patch
 
-This patch was dropped because it was folded into x86_64-allocate-sparsemem-memmap-above-4g.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-allocate-sparsemem-memmap-above-4g-fix
+Subject: fix gregkh-driver-dmi-based-module-autoloading
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <stable@kernel.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Zou Nan hai <nanhai.zou@intel.com>
+Fix a pretty obvious off-by-one.
+
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/firmware/dmi-id.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bootmem.h~x86_64-allocate-sparsemem-memmap-above-4g-fix include/linux/bootmem.h
---- a/include/linux/bootmem.h~x86_64-allocate-sparsemem-memmap-above-4g-fix
-+++ a/include/linux/bootmem.h
-@@ -59,6 +59,7 @@ extern void *__alloc_bootmem_core(struct
- 				  unsigned long align,
- 				  unsigned long goal,
- 				  unsigned long limit);
-+extern void *alloc_bootmem_high_node(pg_data_t *pgdat, unsigned long size);
+diff -puN drivers/firmware/dmi-id.c~fix-gregkh-driver-dmi-based-module-autoloading drivers/firmware/dmi-id.c
+--- a/drivers/firmware/dmi-id.c~fix-gregkh-driver-dmi-based-module-autoloading
++++ a/drivers/firmware/dmi-id.c
+@@ -94,7 +94,7 @@ static ssize_t get_modalias(char *buffer
+ 		if (!c)
+ 			continue;
  
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
- extern void reserve_bootmem(unsigned long addr, unsigned long size);
+-		t = kmalloc(strlen(c), GFP_KERNEL);
++		t = kmalloc(strlen(c) + 1, GFP_KERNEL);
+ 		if (!t)
+ 			break;
+ 		ascii_filter(t, c);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +72,7 @@ git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
@@ -100,8 +109,6 @@ mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 x86_64-fix-smp_call_function_single-return-value.patch
 xfs-clean-up-shrinker-games.patch
 git-cryptodev.patch
-x86_64-allocate-sparsemem-memmap-above-4g.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
 change-zonelist-order-v6-zonelist-fix.patch
 lazy-freeing-of-memory-through-madv_free.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
