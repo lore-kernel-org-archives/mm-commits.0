@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arm26-enable-arbitary-speed-tty-ioctls-and-split.patch added to -mm tree
-Date: Wed, 23 May 2007 11:37:26 -0700
-Message-ID: <200705231837.l4NIbPoB029314@shell0.pdx.osdl.net>
+Subject: + arm-enable-arbitary-speed-tty-ioctls-and-split.patch added to -mm tree
+Date: Wed, 23 May 2007 11:37:24 -0700
+Message-ID: <200705231837.l4NIbNBC029311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37353 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755450AbXEWSiA (ORCPT
+	by vger.kernel.org with ESMTP id S1754956AbXEWSiM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:38:00 -0400
+	Wed, 23 May 2007 14:38:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk+kernel@arm.linux.org.uk, spyr
 
 
 The patch titled
-     ARM26: enable arbitary speed tty ioctls and split input/output speed
+     ARM: enable arbitary speed tty ioctls and split input/output speed
 has been added to the -mm tree.  Its filename is
-     arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+     arm-enable-arbitary-speed-tty-ioctls-and-split.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ARM26: enable arbitary speed tty ioctls and split input/output speed
+Subject: ARM: enable arbitary speed tty ioctls and split input/output speed
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Add the ioctls and values needed for this to the ARM26/ARM32 ports.  The
@@ -34,20 +34,20 @@ actual code has been in the base kernel for a while and automatically turns
 on when a port sets the required defines.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Cc: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm26/ioctls.h   |    4 ++++
- include/asm-arm26/termbits.h |    5 ++++-
- include/asm-arm26/termios.h  |    6 ++++--
+ include/asm-arm/ioctls.h   |    4 ++++
+ include/asm-arm/termbits.h |    5 ++++-
+ include/asm-arm/termios.h  |    6 ++++--
  3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-arm26/ioctls.h~arm26-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm26/ioctls.h
---- a/include/asm-arm26/ioctls.h~arm26-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm26/ioctls.h
-@@ -47,6 +47,10 @@
+diff -puN include/asm-arm/ioctls.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/ioctls.h
+--- a/include/asm-arm/ioctls.h~arm-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-arm/ioctls.h
+@@ -46,6 +46,10 @@
  #define TIOCSBRK	0x5427  /* BSD compatibility */
  #define TIOCCBRK	0x5428  /* BSD compatibility */
  #define TIOCGSID	0x5429  /* Return the session ID of FD */
@@ -58,14 +58,14 @@ diff -puN include/asm-arm26/ioctls.h~arm26-enable-arbitary-speed-tty-ioctls-and-
  #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
  #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-arm26/termbits.h~arm26-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm26/termbits.h
---- a/include/asm-arm26/termbits.h~arm26-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm26/termbits.h
+diff -puN include/asm-arm/termbits.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/termbits.h
+--- a/include/asm-arm/termbits.h~arm-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-arm/termbits.h
 @@ -128,6 +128,7 @@ struct ktermios {
  #define HUPCL	0002000
  #define CLOCAL	0004000
  #define CBAUDEX 0010000
-+#define   BOTHER  0010000
++#define    BOTHER 0010000
  #define    B57600 0010001
  #define   B115200 0010002
  #define   B230400 0010003
@@ -78,14 +78,14 @@ diff -puN include/asm-arm26/termbits.h~arm26-enable-arbitary-speed-tty-ioctls-an
  #define CMSPAR    010000000000		/* mark or space (stick) parity */
  #define CRTSCTS	  020000000000		/* flow control */
  
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
++#define IBSHIFT	   16
 +
  /* c_lflag bits */
  #define ISIG	0000001
  #define ICANON	0000002
-diff -puN include/asm-arm26/termios.h~arm26-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm26/termios.h
---- a/include/asm-arm26/termios.h~arm26-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm26/termios.h
+diff -puN include/asm-arm/termios.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/termios.h
+--- a/include/asm-arm/termios.h~arm-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-arm/termios.h
 @@ -82,8 +82,10 @@ struct termio {
  	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
