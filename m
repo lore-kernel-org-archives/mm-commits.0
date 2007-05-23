@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-run-show_state-when-freezing-times-out.patch added to -mm tree
-Date: Wed, 23 May 2007 11:45:45 -0700
-Message-ID: <200705231845.l4NIji4h029489@shell0.pdx.osdl.net>
+Subject: + ia64-arbitary-speed-tty-ioctl-support.patch added to -mm tree
+Date: Wed, 23 May 2007 11:49:03 -0700
+Message-ID: <200705231849.l4NIn2p5029541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51504 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755459AbXEWSqM (ORCPT
+	by vger.kernel.org with ESMTP id S1755127AbXEWStP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:46:12 -0400
+	Wed, 23 May 2007 14:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oleg@tv-sign.ru, rjw@sisk.pl, stern@rowland.harvard.edu
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, tony.luck@intel.com
 
 
 The patch titled
-     freezer: run show_state() when freezing times out
+     ia64: arbitary speed tty ioctl support
 has been added to the -mm tree.  Its filename is
-     freezer-run-show_state-when-freezing-times-out.patch
+     ia64-arbitary-speed-tty-ioctl-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,144 +26,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer: run show_state() when freezing times out
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ia64: arbitary speed tty ioctl support
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-To see which tasks are stuck where.
+Add the needed constants and defines to activate this for the IA64
+platform.
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-ia64/ioctls.h   |    4 ++++
+ include/asm-ia64/termbits.h |    5 ++++-
+ include/asm-ia64/termios.h  |    6 ++++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/process.c~freezer-run-show_state-when-freezing-times-out kernel/power/process.c
---- a/kernel/power/process.c~freezer-run-show_state-when-freezing-times-out
-+++ a/kernel/power/process.c
-@@ -147,6 +147,7 @@ static unsigned int try_to_freeze_tasks(
- 				freeze_user_space ? "user space processes" :
- 					"kernel threads",
- 				TIMEOUT / HZ, todo);
-+		show_state();
- 		read_lock(&tasklist_lock);
- 		do_each_thread(g, p) {
- 			if (is_user_space(p) == !freeze_user_space)
+diff -puN include/asm-ia64/ioctls.h~ia64-arbitary-speed-tty-ioctl-support include/asm-ia64/ioctls.h
+--- a/include/asm-ia64/ioctls.h~ia64-arbitary-speed-tty-ioctl-support
++++ a/include/asm-ia64/ioctls.h
+@@ -53,6 +53,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x5429  /* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
+ 
+diff -puN include/asm-ia64/termbits.h~ia64-arbitary-speed-tty-ioctl-support include/asm-ia64/termbits.h
+--- a/include/asm-ia64/termbits.h~ia64-arbitary-speed-tty-ioctl-support
++++ a/include/asm-ia64/termbits.h
+@@ -138,6 +138,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
+ #define CBAUDEX 0010000
++#define    BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -153,10 +154,12 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000		/* input baud rate */
+ #define CMSPAR	  010000000000		/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000		/* flow control */
+ 
++#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
++
+ /* c_lflag bits */
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-ia64/termios.h~ia64-arbitary-speed-tty-ioctl-support include/asm-ia64/termios.h
+--- a/include/asm-ia64/termios.h~ia64-arbitary-speed-tty-ioctl-support
++++ a/include/asm-ia64/termios.h
+@@ -87,8 +87,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC);	\
+ })
+ 
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+ 
+ # endif /* __KERNEL__ */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-capabilityh-warning-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-cifs-oops-fix.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link-fix.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ia64.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
+arm-enable-arbitary-speed-tty-ioctls-and-split.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
 pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix-tidy.patch
-ide-warning-fixes.patch
-git-md-accel-build-fix.patch
-git-mips-fixup.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices-fix.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver-build-fix.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-rc-fixes.patch
-scsi-fix-config_scsi_wait_scan=m.patch
+libata-add-support-for-ata_16-on-atapi.patch
+fix-build-failure-for-drivers-ata-pata_sccc.patch
+hpt3x2n-correct-revision-boundary.patch
+pata_sis-fix-and-clean-up-some-timing-setups.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+ide-add-seagate-stt20000a-to-dma-blacklist.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
+add-pci_try_set_mwi.patch
+fix-pci_find_present.patch
+git-scsi-misc.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
 ncr5380-warning-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
-git-wireless.patch
-arch-x86_64-vdso-vmac-needs-schedh.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-simplify-cleanup_workqueue_thread-fix.patch
-procfs-directory-entry-cleanup-fix.patch
-capifunc-warning-fixes.patch
-hardware-eicon-messagec-warning-fixes.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+watchdog-documentation.patch
+add-pci_try_set_mwi-prism54pci.patch
+fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
 mpu401-warning-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
+i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-reiser4.patch
-reiser4-fix.patch
-vdso-print-fatal-signals.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
