@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + meth-driver-renovation.patch added to -mm tree
-Date: Wed, 23 May 2007 11:10:05 -0700
-Message-ID: <200705231810.l4NIA4v8028850@shell0.pdx.osdl.net>
+Subject: + pie-randomization.patch added to -mm tree
+Date: Wed, 23 May 2007 11:10:52 -0700
+Message-ID: <200705231810.l4NIAp7A028860@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40848 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754956AbXEWSKX (ORCPT
+	by vger.kernel.org with ESMTP id S1757448AbXEWSLp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:10:23 -0400
+	Wed, 23 May 2007 14:11:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, jeff@garzik.org
+Cc: honza@jikos.cz, jakub@redhat.com, jkosina@suse.cz, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     meth driver renovation
+     PIE randomization
 has been added to the -mm tree.  Its filename is
-     meth-driver-renovation.patch
+     pie-randomization.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,194 +26,260 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: meth driver renovation
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: PIE randomization
+From: Jan Kratochvil <honza@jikos.cz>
 
-The meth ethernet driver for the SGI IP32 aka O2 is so far still an old
-style driver which does not use the device driver model.  This is now
-causing issues with some udev based gadgetry in debian-stable.  Fixed by
-converting the meth driver to a platform device.
+This patch is using mmap()'s randomization functionality in such a way that
+it maps the main executable of (specially compiled/linked -pie/-fpie)
+ET_DYN binaries onto a random address (in cases in which mmap() is allowed
+to perform a randomization).
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Origin of this patch is in exec-shield
+(http://people.redhat.com/mingo/exec-shield/)
+
+Signed-off-by: Jan Kratochvil <honza@jikos.cz>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/sgi-ip32/Makefile        |    2 
- arch/mips/sgi-ip32/ip32-platform.c |   20 +++++++
- drivers/net/meth.c                 |   68 +++++++++++++++++----------
- 3 files changed, 66 insertions(+), 24 deletions(-)
+ arch/ia64/ia32/binfmt_elf32.c |    2 
+ fs/binfmt_elf.c               |  109 +++++++++++++++++++++++++-------
+ 2 files changed, 87 insertions(+), 24 deletions(-)
 
-diff -puN /dev/null arch/mips/sgi-ip32/ip32-platform.c
---- /dev/null
-+++ a/arch/mips/sgi-ip32/ip32-platform.c
-@@ -0,0 +1,20 @@
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
+diff -puN arch/ia64/ia32/binfmt_elf32.c~pie-randomization arch/ia64/ia32/binfmt_elf32.c
+--- a/arch/ia64/ia32/binfmt_elf32.c~pie-randomization
++++ a/arch/ia64/ia32/binfmt_elf32.c
+@@ -261,7 +261,7 @@ elf32_set_personality (void)
+ }
+ 
+ static unsigned long
+-elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type)
++elf32_map (struct file *filep, unsigned long addr, struct elf_phdr *eppnt, int prot, int type, unsigned long unused)
+ {
+ 	unsigned long pgoff = (eppnt->p_vaddr) & ~IA32_PAGE_MASK;
+ 
+diff -puN fs/binfmt_elf.c~pie-randomization fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pie-randomization
++++ a/fs/binfmt_elf.c
+@@ -45,7 +45,7 @@
+ 
+ static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
+ static int load_elf_library(struct file *);
+-static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int);
++static unsigned long elf_map (struct file *, unsigned long, struct elf_phdr *, int, int, unsigned long);
+ 
+ /*
+  * If we don't support core dumping, then supply a NULL so we
+@@ -80,7 +80,7 @@ static struct linux_binfmt elf_format = 
+ 		.hasvdso	= 1
+ };
+ 
+-#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
++#define BAD_ADDR(x) ((unsigned long)(x) >= PAGE_MASK)
+ 
+ static int set_brk(unsigned long start, unsigned long end)
+ {
+@@ -285,33 +285,70 @@ create_elf_tables(struct linux_binprm *b
+ #ifndef elf_map
+ 
+ static unsigned long elf_map(struct file *filep, unsigned long addr,
+-		struct elf_phdr *eppnt, int prot, int type)
++		struct elf_phdr *eppnt, int prot, int type,
++		unsigned long total_size)
+ {
+ 	unsigned long map_addr;
+-	unsigned long pageoffset = ELF_PAGEOFFSET(eppnt->p_vaddr);
++	unsigned long size = eppnt->p_filesz + ELF_PAGEOFFSET(eppnt->p_vaddr);
++	unsigned long off = eppnt->p_offset - ELF_PAGEOFFSET(eppnt->p_vaddr);
++	addr = ELF_PAGESTART(addr);
++	size = ELF_PAGEALIGN(size);
+ 
+-	down_write(&current->mm->mmap_sem);
+ 	/* mmap() will return -EINVAL if given a zero size, but a
+ 	 * segment with zero filesize is perfectly valid */
+-	if (eppnt->p_filesz + pageoffset)
+-		map_addr = do_mmap(filep, ELF_PAGESTART(addr),
+-				   eppnt->p_filesz + pageoffset, prot, type,
+-				   eppnt->p_offset - pageoffset);
+-	else
+-		map_addr = ELF_PAGESTART(addr);
++	if (!size)
++		return addr;
 +
-+static __init int meth_devinit(void)
++	down_write(&current->mm->mmap_sem);
++	/*
++	* total_size is the size of the ELF (interpreter) image.
++	* The _first_ mmap needs to know the full size, otherwise
++	* randomization might put this image into an overlapping
++	* position with the ELF binary image. (since size < total_size)
++	* So we first map the 'big' image - and unmap the remainder at
++	* the end. (which unmap is needed for ELF images with holes.)
++	*/
++	if (total_size) {
++		total_size = ELF_PAGEALIGN(total_size);
++		map_addr = do_mmap(filep, addr, total_size, prot, type, off);
++		if (!BAD_ADDR(map_addr))
++			do_munmap(current->mm, map_addr+size, total_size-size);
++	} else
++		map_addr = do_mmap(filep, addr, size, prot, type, off);
++
+ 	up_write(&current->mm->mmap_sem);
+ 	return(map_addr);
+ }
+ 
+ #endif /* !elf_map */
+ 
++static unsigned long total_mapping_size(struct elf_phdr *cmds, int nr)
 +{
-+	struct platform_device *pd;
-+	int ret;
++	int i, first_idx = -1, last_idx = -1;
 +
-+	pd = platform_device_alloc("meth", -1);
-+	if (!pd)
-+		return -ENOMEM;
++	for (i = 0; i < nr; i++) {
++		if (cmds[i].p_type == PT_LOAD) {
++			last_idx = i;
++			if (first_idx == -1)
++				first_idx = i;
++		}
++	}
++	if (first_idx == -1)
++		return 0;
 +
-+	ret = platform_device_add(pd);
-+	if (ret)
-+		platform_device_put(pd);
-+
-+	return ret;
++	return cmds[last_idx].p_vaddr + cmds[last_idx].p_memsz -
++				ELF_PAGESTART(cmds[first_idx].p_vaddr);
 +}
 +
-+device_initcall(meth_devinit);
-diff -puN arch/mips/sgi-ip32/Makefile~meth-driver-renovation arch/mips/sgi-ip32/Makefile
---- a/arch/mips/sgi-ip32/Makefile~meth-driver-renovation
-+++ a/arch/mips/sgi-ip32/Makefile
-@@ -3,5 +3,5 @@
- # under Linux.
- #
++
+ /* This is much more generalized than the library routine read function,
+    so we keep this separate.  Technically the library read function
+    is only provided so that we can read a.out libraries that have
+    an ELF header */
  
--obj-y	+= ip32-berr.o ip32-irq.o ip32-setup.o ip32-reset.o \
-+obj-y	+= ip32-berr.o ip32-irq.o ip32-platform.o ip32-setup.o ip32-reset.o \
- 	   crime.o ip32-memory.o
-diff -puN drivers/net/meth.c~meth-driver-renovation drivers/net/meth.c
---- a/drivers/net/meth.c~meth-driver-renovation
-+++ a/drivers/net/meth.c
-@@ -8,15 +8,16 @@
-  *	as published by the Free Software Foundation; either version
-  *	2 of the License, or (at your option) any later version.
-  */
--#include <linux/module.h>
--#include <linux/init.h>
--
--#include <linux/kernel.h> /* printk() */
- #include <linux/delay.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <linux/slab.h>
--#include <linux/errno.h>  /* error codes */
--#include <linux/types.h>  /* size_t */
--#include <linux/interrupt.h> /* mark_bh */
-+#include <linux/errno.h>
-+#include <linux/types.h>
-+#include <linux/interrupt.h>
- 
- #include <linux/in.h>
- #include <linux/in6.h>
-@@ -33,7 +34,6 @@
- 
- #include <asm/io.h>
- #include <asm/scatterlist.h>
--#include <linux/dma-mapping.h>
- 
- #include "meth.h"
- 
-@@ -51,8 +51,6 @@
- 
- 
- static const char *meth_str="SGI O2 Fast Ethernet";
--MODULE_AUTHOR("Ilya Volynets <ilya@theIlya.com>");
--MODULE_DESCRIPTION("SGI O2 Builtin Fast Ethernet driver");
- 
- #define HAVE_TX_TIMEOUT
- /* The maximum time waited (in jiffies) before assuming a Tx failed. (400ms) */
-@@ -784,15 +782,15 @@ static struct net_device_stats *meth_sta
- /*
-  * The init function.
-  */
--static struct net_device *meth_init(void)
-+static int __init meth_probe(struct platform_device *pdev)
+ static unsigned long load_elf_interp(struct elfhdr *interp_elf_ex,
+-		struct file *interpreter, unsigned long *interp_load_addr)
++		struct file *interpreter, unsigned long *interp_map_addr,
++		unsigned long no_base)
  {
- 	struct net_device *dev;
- 	struct meth_private *priv;
--	int ret;
-+	int err;
+ 	struct elf_phdr *elf_phdata;
+ 	struct elf_phdr *eppnt;
+@@ -319,6 +356,7 @@ static unsigned long load_elf_interp(str
+ 	int load_addr_set = 0;
+ 	unsigned long last_bss = 0, elf_bss = 0;
+ 	unsigned long error = ~0UL;
++	unsigned long total_size;
+ 	int retval, i, size;
  
- 	dev = alloc_etherdev(sizeof(struct meth_private));
- 	if (!dev)
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 
- 	dev->open            = meth_open;
- 	dev->stop            = meth_release;
-@@ -808,11 +806,12 @@ static struct net_device *meth_init(void
- 
- 	priv = netdev_priv(dev);
- 	spin_lock_init(&priv->meth_lock);
-+	SET_NETDEV_DEV(dev, &pdev->dev);
- 
--	ret = register_netdev(dev);
--	if (ret) {
-+	err = register_netdev(dev);
-+	if (err) {
- 		free_netdev(dev);
--		return ERR_PTR(ret);
-+		return err;
+ 	/* First of all, some simple consistency checks */
+@@ -357,6 +395,12 @@ static unsigned long load_elf_interp(str
+ 		goto out_close;
  	}
  
- 	printk(KERN_INFO "%s: SGI MACE Ethernet rev. %d\n",
-@@ -820,21 +819,44 @@ static struct net_device *meth_init(void
- 	return 0;
- }
- 
--static struct net_device *meth_dev;
-+static int __exit meth_remove(struct platform_device *pdev)
-+{
-+	struct net_device *dev = platform_get_drvdata(pdev);
-+
-+	unregister_netdev(dev);
-+	free_netdev(dev);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver meth_driver = {
-+	.probe	= meth_probe,
-+	.remove	= __devexit_p(meth_remove),
-+	.driver = {
-+		.name	= "meth",
++	total_size = total_mapping_size(elf_phdata, interp_elf_ex->e_phnum);
++	if (!total_size) {
++		error = -EINVAL;
++		goto out_close;
 +	}
-+};
- 
- static int __init meth_init_module(void)
- {
--	meth_dev = meth_init();
--	if (IS_ERR(meth_dev))
--		return PTR_ERR(meth_dev);
--	return 0;
-+	int err;
 +
-+	err = platform_driver_register(&meth_driver);
-+	if (err)
-+		printk(KERN_ERR "Driver registration failed\n");
-+
-+	return err;
- }
+ 	eppnt = elf_phdata;
+ 	for (i = 0; i < interp_elf_ex->e_phnum; i++, eppnt++) {
+ 		if (eppnt->p_type == PT_LOAD) {
+@@ -374,9 +418,14 @@ static unsigned long load_elf_interp(str
+ 			vaddr = eppnt->p_vaddr;
+ 			if (interp_elf_ex->e_type == ET_EXEC || load_addr_set)
+ 				elf_type |= MAP_FIXED;
++			else if (no_base && interp_elf_ex->e_type == ET_DYN)
++				load_addr = -vaddr;
  
- static void __exit meth_exit_module(void)
- {
--	unregister_netdev(meth_dev);
--	free_netdev(meth_dev);
-+	platform_driver_register(&meth_driver);
- }
+ 			map_addr = elf_map(interpreter, load_addr + vaddr,
+-					   eppnt, elf_prot, elf_type);
++					   eppnt, elf_prot, elf_type, total_size);
++			total_size = 0;
++			if (!*interp_map_addr)
++				*interp_map_addr = map_addr;
+ 			error = map_addr;
+ 			if (BAD_ADDR(map_addr))
+ 				goto out_close;
+@@ -442,8 +491,7 @@ static unsigned long load_elf_interp(str
+ 			goto out_close;
+ 	}
  
- module_init(meth_init_module);
- module_exit(meth_exit_module);
+-	*interp_load_addr = load_addr;
+-	error = ((unsigned long)interp_elf_ex->e_entry) + load_addr;
++	error = load_addr;
+ 
+ out_close:
+ 	kfree(elf_phdata);
+@@ -540,7 +588,8 @@ static int load_elf_binary(struct linux_
+ 	int elf_exec_fileno;
+ 	int retval, i;
+ 	unsigned int size;
+-	unsigned long elf_entry, interp_load_addr = 0;
++	unsigned long elf_entry;
++	unsigned long interp_load_addr = 0;
+ 	unsigned long start_code, end_code, start_data, end_data;
+ 	unsigned long reloc_func_desc = 0;
+ 	char passed_fileno[6];
+@@ -808,9 +857,7 @@ static int load_elf_binary(struct linux_
+ 	current->mm->start_stack = bprm->p;
+ 
+ 	/* Now we do a little grungy work by mmaping the ELF image into
+-	   the correct location in memory.  At this point, we assume that
+-	   the image should be loaded at fixed address, not at a variable
+-	   address. */
++	   the correct location in memory. */
+ 	for(i = 0, elf_ppnt = elf_phdata;
+ 	    i < loc->elf_ex.e_phnum; i++, elf_ppnt++) {
+ 		int elf_prot = 0, elf_flags;
+@@ -864,11 +911,15 @@ static int load_elf_binary(struct linux_
+ 			 * default mmap base, as well as whatever program they
+ 			 * might try to exec.  This is because the brk will
+ 			 * follow the loader, and is not movable.  */
++#ifdef CONFIG_X86
++			load_bias = 0;
++#else
+ 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
++#endif
+ 		}
+ 
+ 		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
+-				elf_prot, elf_flags);
++				elf_prot, elf_flags,0);
+ 		if (BAD_ADDR(error)) {
+ 			send_sig(SIGKILL, current, 0);
+ 			retval = IS_ERR((void *)error) ?
+@@ -944,13 +995,25 @@ static int load_elf_binary(struct linux_
+ 	}
+ 
+ 	if (elf_interpreter) {
+-		if (interpreter_type == INTERPRETER_AOUT)
++		if (interpreter_type == INTERPRETER_AOUT) {
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+-		else
++		} else {
++			unsigned long interp_map_addr;	/* unused */
 +
-+MODULE_AUTHOR("Ilya Volynets <ilya@theIlya.com>");
-+MODULE_DESCRIPTION("SGI O2 Builtin Fast Ethernet driver");
-+MODULE_LICENSE("GPL");
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
+-						    &interp_load_addr);
++						    &interp_map_addr,
++						    load_bias);
++			if (!BAD_ADDR(elf_entry)) {
++				/*
++				 * load_elf_interp() returns relocation
++				 * adjustment
++				 */
++				interp_load_addr = elf_entry;
++				elf_entry += loc->interp_elf_ex.e_entry;
++			}
++		}
+ 		if (BAD_ADDR(elf_entry)) {
+ 			force_sig(SIGSEGV, current);
+ 			retval = IS_ERR((void *)elf_entry) ?
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from honza@jikos.cz are
 
-git-mips.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
-meth-driver-renovation.patch
-update-zilog-timeout.patch
+git-input.patch
+pie-randomization.patch
