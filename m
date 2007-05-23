@@ -1,85 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - 8xx-mpc885ads-pcmcia-support-fix.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:15:51 -0700
-Message-ID: <200705232115.l4NLFqWg032253@shell0.pdx.osdl.net>
+Subject: - driver-core-check-return-code-of-sysfs_create_link-fix.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:18:27 -0700
+Message-ID: <200705232118.l4NLIRYx032340@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47244 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759170AbXEWVQS (ORCPT
+	by vger.kernel.org with ESMTP id S1754726AbXEWVSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:16:18 -0400
+	Wed, 23 May 2007 17:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org, galak@gate.crashing.org, linux@dominikbrodowski.net, olof@lixom.net, paulus@samba.org, vitb@kernel.crashing.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8xx-mpc885ads-pcmcia-support-fix
+     driver-core-check-return-code-of-sysfs_create_link-fix
 has been removed from the -mm tree.  Its filename was
-     8xx-mpc885ads-pcmcia-support-fix.patch
+     driver-core-check-return-code-of-sysfs_create_link-fix.patch
 
-This patch was dropped because it was folded into 8xx-mpc885ads-pcmcia-support.patch
+This patch was dropped because it was folded into driver-core-check-return-code-of-sysfs_create_link.patch
 
 ------------------------------------------------------
-Subject: 8xx-mpc885ads-pcmcia-support-fix
+Subject: driver-core-check-return-code-of-sysfs_create_link-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-whitespace diddles
+drivers/base/core.c: In function 'device_add_class_symlinks':
+drivers/base/core.c:649: warning: unused variable 'class_name'
+drivers/base/core.c: In function 'device_remove_class_symlinks':
+drivers/base/core.c:699: warning: unused variable 'class_name'
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Vitaly Bordug <vitb@kernel.crashing.org>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/mpc8xx_pic.h |    3 ++-
- drivers/pcmcia/Kconfig           |   14 +++++++-------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/base/core.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support-fix arch/powerpc/sysdev/mpc8xx_pic.h
---- a/arch/powerpc/sysdev/mpc8xx_pic.h~8xx-mpc885ads-pcmcia-support-fix
-+++ a/arch/powerpc/sysdev/mpc8xx_pic.h
-@@ -11,7 +11,8 @@ unsigned int mpc8xx_get_irq(void);
-  * Some internal interrupt registers use an 8-bit mask for the interrupt
-  * level instead of a number.
-  */
--static inline uint mk_int_int_mask(uint mask) {
-+static inline uint mk_int_int_mask(uint mask)
-+{
- 	return (1 << (7 - (mask/2)));
- }
+diff -puN drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-check-return-code-of-sysfs_create_link-fix
++++ a/drivers/base/core.c
+@@ -646,7 +646,6 @@ static int setup_parent(struct device *d
+ static int device_add_class_symlinks(struct device *dev)
+ {
+ 	int error;
+-	char *class_name;
  
-diff -puN drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support-fix drivers/pcmcia/Kconfig
---- a/drivers/pcmcia/Kconfig~8xx-mpc885ads-pcmcia-support-fix
-+++ a/drivers/pcmcia/Kconfig
-@@ -180,15 +180,15 @@ config TCIC
- 	  PCMCIA cards are plugged into. If unsure, say N.
+ 	if (!dev->class)
+ 		return 0;
+@@ -670,13 +669,16 @@ static int device_add_class_symlinks(str
+ 		if (error)
+ 			goto out_busid;
+ #ifdef CONFIG_SYSFS_DEPRECATED
+-		class_name = make_class_name(dev->class->name, &dev->kobj);
+-		if (class_name)
+-			error = sysfs_create_link(&dev->parent->kobj,
+-						  &dev->kobj, class_name);
+-		kfree(class_name);
+-		if (error)
+-			goto out_device;
++		{
++			char * class_name = make_class_name(dev->class->name,
++								&dev->kobj);
++			if (class_name)
++				error = sysfs_create_link(&dev->parent->kobj,
++							&dev->kobj, class_name);
++			kfree(class_name);
++			if (error)
++				goto out_device;
++		}
+ #endif
+ 	}
+ 	return 0;
+@@ -696,12 +698,12 @@ out:
  
- config PCMCIA_M8XX
--        tristate "MPC8xx PCMCIA support"
--        depends on PCMCIA && PPC && 8xx 
--        select PCCARD_IODYN
-+	tristate "MPC8xx PCMCIA support"
-+	depends on PCMCIA && PPC && 8xx
-+	select PCCARD_IODYN
- 	select PCCARD_NONSTATIC
--        help
--        Say Y here to include support for PowerPC 8xx series PCMCIA
--        controller.
-+	help
-+	  Say Y here to include support for PowerPC 8xx series PCMCIA
-+	  controller.
- 
--        This driver is also available as a module called m8xx_pcmcia.
-+	  This driver is also available as a module called m8xx_pcmcia.
- 
- config HD64465_PCMCIA
- 	tristate "HD64465 host bridge support"
+ static void device_remove_class_symlinks(struct device *dev)
+ {
+-	char *class_name;
+-
+ 	if (!dev->class)
+ 		return;
+ 	if (dev->parent) {
+ #ifdef CONFIG_SYSFS_DEPRECATED
++		char *class_name;
++
+ 		class_name = make_class_name(dev->class->name, &dev->kobj);
+ 		if (class_name) {
+ 			sysfs_remove_link(&dev->parent->kobj, class_name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,8 +106,8 @@ git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
 driver-core-check-return-code-of-sysfs_create_link-fix.patch
 git-dvb.patch
 cinergyt2-fix-file-release-handler.patch
