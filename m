@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-enable-arbitary-speed-serial-setting.patch added to -mm tree
-Date: Wed, 23 May 2007 11:41:25 -0700
-Message-ID: <200705231841.l4NIfOaF029389@shell0.pdx.osdl.net>
+Subject: + etrax-enable-arbitary-speed-setting-on-tty-ports.patch added to -mm tree
+Date: Wed, 23 May 2007 11:42:35 -0700
+Message-ID: <200705231842.l4NIgYE6029414@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37592 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762088AbXEWSlj (ORCPT
+	by vger.kernel.org with ESMTP id S1755918AbXEWSmw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:41:39 -0400
+	Wed, 23 May 2007 14:42:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bryan.wu@analog.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, starvik@axis.com
 
 
 The patch titled
-     blackfin: enable arbitary speed serial setting
+     etrax: enable arbitary speed setting on tty ports
 has been added to the -mm tree.  Its filename is
-     blackfin-enable-arbitary-speed-serial-setting.patch
+     etrax-enable-arbitary-speed-setting-on-tty-ports.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin: enable arbitary speed serial setting
+Subject: etrax: enable arbitary speed setting on tty ports
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add the needed definitions to activate arbitary speed support on the
-blackfin platform.
+Add the needed constants and bits. The actual code is already in the tty
+layer and turned on by the definitions
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/ioctls.h   |    4 ++++
- include/asm-blackfin/termbits.h |    5 ++++-
- include/asm-blackfin/termios.h  |    6 ++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ include/asm-cris/ioctls.h   |    4 ++++
+ include/asm-cris/termbits.h |    1 +
+ include/asm-cris/termios.h  |    6 ++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-blackfin/ioctls.h~blackfin-enable-arbitary-speed-serial-setting include/asm-blackfin/ioctls.h
---- a/include/asm-blackfin/ioctls.h~blackfin-enable-arbitary-speed-serial-setting
-+++ a/include/asm-blackfin/ioctls.h
-@@ -47,6 +47,10 @@
- #define TIOCSBRK	0x5427	/* BSD compatibility */
- #define TIOCCBRK	0x5428	/* BSD compatibility */
- #define TIOCGSID	0x5429	/* Return the session ID of FD */
+diff -puN include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/ioctls.h
+--- a/include/asm-cris/ioctls.h~etrax-enable-arbitary-speed-setting-on-tty-ports
++++ a/include/asm-cris/ioctls.h
+@@ -48,6 +48,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x5429  /* Return the session ID of FD */
 +#define TCGETS2		_IOR('T',0x2A, struct termios2)
 +#define TCSETS2		_IOW('T',0x2B, struct termios2)
 +#define TCSETSW2	_IOW('T',0x2C, struct termios2)
 +#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int)	/* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)	/* Lock/unlock Pty */
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-blackfin/termbits.h~blackfin-enable-arbitary-speed-serial-setting include/asm-blackfin/termbits.h
---- a/include/asm-blackfin/termbits.h~blackfin-enable-arbitary-speed-serial-setting
-+++ a/include/asm-blackfin/termbits.h
-@@ -129,6 +129,7 @@ struct ktermios {
+diff -puN include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termbits.h
+--- a/include/asm-cris/termbits.h~etrax-enable-arbitary-speed-setting-on-tty-ports
++++ a/include/asm-cris/termbits.h
+@@ -155,6 +155,7 @@ struct ktermios {
  #define HUPCL	0002000
  #define CLOCAL	0004000
  #define CBAUDEX 0010000
-+#define	   BOTHER 0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -144,10 +145,12 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000	/* input baud rate */
- #define CMSPAR	  010000000000	/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000	/* flow control */
- 
-+#define	IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-blackfin/termios.h~blackfin-enable-arbitary-speed-serial-setting include/asm-blackfin/termios.h
---- a/include/asm-blackfin/termios.h~blackfin-enable-arbitary-speed-serial-setting
-+++ a/include/asm-blackfin/termios.h
-@@ -98,8 +98,10 @@ struct termio {
++#define  BOTHER  0010000
+ #define  B57600  0010001
+ #define  B115200 0010002
+ #define  B230400 0010003
+diff -puN include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports include/asm-cris/termios.h
+--- a/include/asm-cris/termios.h~etrax-enable-arbitary-speed-setting-on-tty-ports
++++ a/include/asm-cris/termios.h
+@@ -81,8 +81,10 @@ struct termio {
  	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
  
@@ -95,7 +81,7 @@ diff -puN include/asm-blackfin/termios.h~blackfin-enable-arbitary-speed-serial-s
 +#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
 +#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
  
- #endif				/* __KERNEL__ */
+ #endif	/* __KERNEL__ */
  
 _
 
@@ -123,6 +109,7 @@ watchdog-documentation.patch
 add-pci_try_set_mwi-prism54pci.patch
 fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
 blackfin-enable-arbitary-speed-serial-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
 doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
 make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
 update-zilog-timeout.patch
