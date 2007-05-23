@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-strip-c99-comments.patch added to -mm tree
-Date: Wed, 23 May 2007 10:53:38 -0700
-Message-ID: <200705231753.l4NHrbPN028513@shell0.pdx.osdl.net>
+Subject: + kernel-doc-add-tools-doc-in-makefile.patch added to -mm tree
+Date: Wed, 23 May 2007 10:53:35 -0700
+Message-ID: <200705231753.l4NHrY1P028507@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57455 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758065AbXEWRxk (ORCPT
+	by vger.kernel.org with ESMTP id S1756433AbXEWRyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 13:53:40 -0400
+	Wed, 23 May 2007 13:54:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     kernel-doc: strip C99 comments
+     kernel-doc: add tools doc in Makefile
 has been added to the -mm tree.  Its filename is
-     kernel-doc-strip-c99-comments.patch
+     kernel-doc-add-tools-doc-in-makefile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel-doc: strip C99 comments
+Subject: kernel-doc: add tools doc in Makefile
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Strip C99-style comments from the input stream.
-/*...*/ comments are already stripped.
-C99 comments confuse the kernel-doc script.
-
-Also update some comments.
+Add kernel-doc tools info in Makefile.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ Documentation/DocBook/Makefile |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-strip-c99-comments scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-strip-c99-comments
-+++ a/scripts/kernel-doc
-@@ -719,6 +719,7 @@ sub output_struct_xml(%) {
- 	    # pointer-to-function
- 	    print "  $1 $parameter) ($2);\n";
- 	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
-+	    # bitfield
- 	    print "  $1 $parameter$2;\n";
- 	} else {
- 	    print "  ".$type." ".$parameter.";\n";
-@@ -1261,6 +1262,7 @@ sub output_struct_text(%) {
- 	    # pointer-to-function
- 	    print "\t$1 $parameter) ($2);\n";
- 	} elsif ($type =~ m/^(.*?)\s*(:.*)/) {
-+	    # bitfield
- 	    print "\t$1 $parameter$2;\n";
- 	} else {
- 	    print "\t".$type." ".$parameter.";\n";
-@@ -1697,6 +1699,8 @@ sub process_state3_function($$) {
-     my $x = shift;
-     my $file = shift;
+diff -puN Documentation/DocBook/Makefile~kernel-doc-add-tools-doc-in-makefile Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~kernel-doc-add-tools-doc-in-makefile
++++ a/Documentation/DocBook/Makefile
+@@ -15,11 +15,11 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
  
-+    $x =~ s@\/\/.*$@@gos; # strip C99-style comments to end of line
-+
-     if ($x =~ m#\s*/\*\s+MACDOC\s*#io || ($x =~ /^#/ && $x !~ /^#define/)) {
- 	# do nothing
-     }
-@@ -1719,6 +1723,8 @@ sub process_state3_type($$) {
-     $x =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
-     $x =~ s@^\s+@@gos; # strip leading spaces
-     $x =~ s@\s+$@@gos; # strip trailing spaces
-+    $x =~ s@\/\/.*$@@gos; # strip C99-style comments to end of line
-+
-     if ($x =~ /^#/) {
- 	# To distinguish preprocessor directive from regular declaration later.
- 	$x .= ";";
-@@ -1802,7 +1808,7 @@ sub process_file($) {
+ ###
+ # The build process is as follows (targets):
+-#              (xmldocs)
+-# file.tmpl --> file.xml +--> file.ps   (psdocs)
+-#                        +--> file.pdf  (pdfdocs)
+-#                        +--> DIR=file  (htmldocs)
+-#                        +--> man/      (mandocs)
++#              (xmldocs) [by docproc]
++# file.tmpl --> file.xml +--> file.ps   (psdocs)   [by db2ps or xmlto]
++#                        +--> file.pdf  (pdfdocs)  [by db2pdf or xmlto]
++#                        +--> DIR=file  (htmldocs) [by xmlto]
++#                        +--> man/      (mandocs)  [by xmlto]
  
- 		$state = 2;
- 		if (/-(.*)/) {
--		    # strip leading/trailing/multiple spaces #RDD:T:
-+		    # strip leading/trailing/multiple spaces
- 		    $descr= $1;
- 		    $descr =~ s/^\s*//;
- 		    $descr =~ s/\s*$//;
+ 
+ # for PDF and PS output you can choose between xmlto and docbook-utils tools
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
