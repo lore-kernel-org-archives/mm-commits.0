@@ -1,166 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86_64-vdso-vmac-needs-schedh.patch added to -mm tree
-Date: Wed, 23 May 2007 14:49:07 -0700
-Message-ID: <200705232149.l4NLn7Lr001785@shell0.pdx.osdl.net>
+Subject: - unmap_vm_area-becomes-unmap_kernel_range.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:51:38 -0700
+Message-ID: <200705232151.l4NLpdNY002061@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50302 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756053AbXEWVtM (ORCPT
+	by vger.kernel.org with ESMTP id S1757714AbXEWVvn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:49:12 -0400
+	Wed, 23 May 2007 17:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+To: benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86_64/vdso/vma.c needs sched.h
-has been added to the -mm tree.  Its filename is
-     arch-x86_64-vdso-vmac-needs-schedh.patch
+     unmap_vm_area becomes unmap_kernel_range
+has been removed from the -mm tree.  Its filename was
+     unmap_vm_area-becomes-unmap_kernel_range.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: arch/x86_64/vdso/vma.c needs sched.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: unmap_vm_area becomes unmap_kernel_range
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-arch/x86_64/vdso/vma.c: In function 'arch_setup_additional_pages':
-arch/x86_64/vdso/vma.c:103: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:111: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:112: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:127: error: dereferencing pointer to incomplete type
-arch/x86_64/vdso/vma.c:129: error: dereferencing pointer to incomplete type
+This patch renames unmap_vm_area to unmap_kernel_range and makes it take an
+explicit range instead of a vm_area struct.  This makes it more versatile
+for code that wants to play with kernel page tables outside of the standard
+vmalloc area.
 
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/vdso/vma.c |    1 +
- 1 files changed, 1 insertion(+)
+ Documentation/cachetlb.txt   |    2 +-
+ arch/powerpc/mm/imalloc.c    |    2 +-
+ arch/powerpc/mm/pgtable_64.c |    1 -
+ include/linux/vmalloc.h      |    3 ++-
+ mm/vmalloc.c                 |   10 +++++-----
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh arch/x86_64/vdso/vma.c
---- a/arch/x86_64/vdso/vma.c~arch-x86_64-vdso-vmac-needs-schedh
-+++ a/arch/x86_64/vdso/vma.c
-@@ -4,6 +4,7 @@
-  * Subject to the GPL, v.2
+diff -puN Documentation/cachetlb.txt~unmap_vm_area-becomes-unmap_kernel_range Documentation/cachetlb.txt
+--- a/Documentation/cachetlb.txt~unmap_vm_area-becomes-unmap_kernel_range
++++ a/Documentation/cachetlb.txt
+@@ -253,7 +253,7 @@ Here are the routines, one by one:
+ 
+ 	The first of these two routines is invoked after map_vm_area()
+ 	has installed the page table entries.  The second is invoked
+-	before unmap_vm_area() deletes the page table entries.
++	before unmap_kernel_range() deletes the page table entries.
+ 
+ There exists another whole class of cpu cache issues which currently
+ require a whole different set of interfaces to handle properly.
+diff -puN arch/powerpc/mm/imalloc.c~unmap_vm_area-becomes-unmap_kernel_range arch/powerpc/mm/imalloc.c
+--- a/arch/powerpc/mm/imalloc.c~unmap_vm_area-becomes-unmap_kernel_range
++++ a/arch/powerpc/mm/imalloc.c
+@@ -301,7 +301,7 @@ void im_free(void * addr)
+ 	for (p = &imlist ; (tmp = *p) ; p = &tmp->next) {
+ 		if (tmp->addr == addr) {
+ 			*p = tmp->next;
+-			unmap_vm_area(tmp);
++			unmap_kernel_range(tmp->addr, tmp->size);
+ 			kfree(tmp);
+ 			mutex_unlock(&imlist_mutex);
+ 			return;
+diff -puN arch/powerpc/mm/pgtable_64.c~unmap_vm_area-becomes-unmap_kernel_range arch/powerpc/mm/pgtable_64.c
+--- a/arch/powerpc/mm/pgtable_64.c~unmap_vm_area-becomes-unmap_kernel_range
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -240,7 +240,6 @@ int __ioremap_explicit(phys_addr_t pa, u
+ /*  
+  * Unmap an IO region and remove it from imalloc'd list.
+  * Access to IO memory should be serialized by driver.
+- * This code is modeled after vmalloc code - unmap_vm_area()
+  *
+  * XXX	what about calls before mem_init_done (ie python_countermeasures())
   */
- #include <linux/mm.h>
-+#include <linux/sched.h>
- #include <linux/init.h>
- #include <linux/random.h>
- #include <asm/vsyscall.h>
+diff -puN include/linux/vmalloc.h~unmap_vm_area-becomes-unmap_kernel_range include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~unmap_vm_area-becomes-unmap_kernel_range
++++ a/include/linux/vmalloc.h
+@@ -65,9 +65,10 @@ extern struct vm_struct *get_vm_area_nod
+ 					  unsigned long flags, int node,
+ 					  gfp_t gfp_mask);
+ extern struct vm_struct *remove_vm_area(void *addr);
++
+ extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
+ 			struct page ***pages);
+-extern void unmap_vm_area(struct vm_struct *area);
++extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+ 
+ /*
+  *	Internals.  Dont't use..
+diff -puN mm/vmalloc.c~unmap_vm_area-becomes-unmap_kernel_range mm/vmalloc.c
+--- a/mm/vmalloc.c~unmap_vm_area-becomes-unmap_kernel_range
++++ a/mm/vmalloc.c
+@@ -68,12 +68,12 @@ static inline void vunmap_pud_range(pgd_
+ 	} while (pud++, addr = next, addr != end);
+ }
+ 
+-void unmap_vm_area(struct vm_struct *area)
++void unmap_kernel_range(unsigned long addr, unsigned long size)
+ {
+ 	pgd_t *pgd;
+ 	unsigned long next;
+-	unsigned long addr = (unsigned long) area->addr;
+-	unsigned long end = addr + area->size;
++	unsigned long start = addr;
++	unsigned long end = addr + size;
+ 
+ 	BUG_ON(addr >= end);
+ 	pgd = pgd_offset_k(addr);
+@@ -84,7 +84,7 @@ void unmap_vm_area(struct vm_struct *are
+ 			continue;
+ 		vunmap_pud_range(pgd, addr, next);
+ 	} while (pgd++, addr = next, addr != end);
+-	flush_tlb_kernel_range((unsigned long) area->addr, end);
++	flush_tlb_kernel_range(start, end);
+ }
+ 
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
+@@ -284,7 +284,7 @@ static struct vm_struct *__remove_vm_are
+ 	return NULL;
+ 
+ found:
+-	unmap_vm_area(tmp);
++	unmap_kernel_range(tmp->addr, tmp->size);
+ 	*p = tmp->next;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-capabilityh-warning-fix.patch
-simplify-cleanup_workqueue_thread.patch
-capifunc-warning-fixes.patch
-hardware-eicon-messagec-warning-fixes.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cpufreq-fix.patch
+do-not-select-macintosh-drivers-by-default.patch
 8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-ncr5380-warning-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-arch-x86_64-vdso-vmac-needs-schedh.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-x86_64-allocate-sparsemem-memmap-above-4g-fix.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-reiser4.patch
-reiser4-fix.patch
-vdso-print-fatal-signals.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+8xx-fix-whitespace-and-indentation.patch
+dts-kill-hardcoded-phandles.patch
+git-libata-all.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+fallocate-implementation-on-i86-x86_64-and-powerpc.patch
