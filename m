@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-arbitary-speed-tty-ioctl-support.patch added to -mm tree
-Date: Wed, 23 May 2007 11:49:03 -0700
-Message-ID: <200705231849.l4NIn2p5029541@shell0.pdx.osdl.net>
+Subject: + xtensa-enable-arbitary-tty-speed-setting-ioctls.patch added to -mm tree
+Date: Wed, 23 May 2007 11:49:11 -0700
+Message-ID: <200705231849.l4NInAhY029552@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59919 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36405 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755127AbXEWStP (ORCPT
+	by vger.kernel.org with ESMTP id S1755649AbXEWStW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:49:15 -0400
+	Wed, 23 May 2007 14:49:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, tony.luck@intel.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, chris@zankel.net
 
 
 The patch titled
-     ia64: arbitary speed tty ioctl support
+     Xtensa: enable arbitary tty speed setting ioctls
 has been added to the -mm tree.  Its filename is
-     ia64-arbitary-speed-tty-ioctl-support.patch
+     xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: arbitary speed tty ioctl support
+Subject: Xtensa: enable arbitary tty speed setting ioctls
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add the needed constants and defines to activate this for the IA64
-platform.
+Adding the defines/constants activates the existing code in the tty layer
+and allows arbitary tty speeds to be requested on this platform
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/ioctls.h   |    4 ++++
- include/asm-ia64/termbits.h |    5 ++++-
- include/asm-ia64/termios.h  |    6 ++++--
+ include/asm-xtensa/ioctls.h   |    4 ++++
+ include/asm-xtensa/termbits.h |    5 ++++-
+ include/asm-xtensa/termios.h  |    6 ++++--
  3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-ia64/ioctls.h~ia64-arbitary-speed-tty-ioctl-support include/asm-ia64/ioctls.h
---- a/include/asm-ia64/ioctls.h~ia64-arbitary-speed-tty-ioctl-support
-+++ a/include/asm-ia64/ioctls.h
-@@ -53,6 +53,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+diff -puN include/asm-xtensa/ioctls.h~xtensa-enable-arbitary-tty-speed-setting-ioctls include/asm-xtensa/ioctls.h
+--- a/include/asm-xtensa/ioctls.h~xtensa-enable-arbitary-tty-speed-setting-ioctls
++++ a/include/asm-xtensa/ioctls.h
+@@ -91,6 +91,10 @@
+ #define TIOCSBRK	_IO('T', 39) 	     /* BSD compatibility */
+ #define TIOCCBRK	_IO('T', 40)	     /* BSD compatibility */
+ #define TIOCGSID	_IOR('T', 41, pid_t) /* Return the session ID of FD*/
++#define TCGETS2		_IOR('T', 42, struct termios2)
++#define TCSETS2		_IOW('T', 43, struct termios2)
++#define TCSETSW2	_IOW('T', 44, struct termios2)
++#define TCSETSF2	_IOW('T', 45, struct termios2)
  #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
  #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-diff -puN include/asm-ia64/termbits.h~ia64-arbitary-speed-tty-ioctl-support include/asm-ia64/termbits.h
---- a/include/asm-ia64/termbits.h~ia64-arbitary-speed-tty-ioctl-support
-+++ a/include/asm-ia64/termbits.h
-@@ -138,6 +138,7 @@ struct ktermios {
+diff -puN include/asm-xtensa/termbits.h~xtensa-enable-arbitary-tty-speed-setting-ioctls include/asm-xtensa/termbits.h
+--- a/include/asm-xtensa/termbits.h~xtensa-enable-arbitary-tty-speed-setting-ioctls
++++ a/include/asm-xtensa/termbits.h
+@@ -146,6 +146,7 @@ struct ktermios {
  #define HUPCL	0002000
  #define CLOCAL	0004000
  #define CBAUDEX 0010000
-+#define    BOTHER 0010000
++#define	   BOTHER 0010000
  #define    B57600 0010001
  #define   B115200 0010002
  #define   B230400 0010003
-@@ -153,10 +154,12 @@ struct ktermios {
+@@ -161,10 +162,12 @@ struct ktermios {
  #define  B3000000 0010015
  #define  B3500000 0010016
  #define  B4000000 0010017
@@ -79,13 +79,13 @@ diff -puN include/asm-ia64/termbits.h~ia64-arbitary-speed-tty-ioctl-support incl
 +#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
 +
  /* c_lflag bits */
+ 
  #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-ia64/termios.h~ia64-arbitary-speed-tty-ioctl-support include/asm-ia64/termios.h
---- a/include/asm-ia64/termios.h~ia64-arbitary-speed-tty-ioctl-support
-+++ a/include/asm-ia64/termios.h
-@@ -87,8 +87,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC);	\
+diff -puN include/asm-xtensa/termios.h~xtensa-enable-arbitary-tty-speed-setting-ioctls include/asm-xtensa/termios.h
+--- a/include/asm-xtensa/termios.h~xtensa-enable-arbitary-tty-speed-setting-ioctls
++++ a/include/asm-xtensa/termios.h
+@@ -95,8 +95,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
  })
  
 -#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
@@ -95,7 +95,7 @@ diff -puN include/asm-ia64/termios.h~ia64-arbitary-speed-tty-ioctl-support inclu
 +#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
 +#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
  
- # endif /* __KERNEL__ */
+ #endif	/* __KERNEL__ */
  
 _
 
