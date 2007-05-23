@@ -1,123 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-build-and-use-gdt-on-copied-compressed-kernel.patch removed from -mm tree
-Date: Wed, 23 May 2007 14:44:57 -0700
-Message-ID: <200705232144.l4NLivnH001469@shell0.pdx.osdl.net>
+Subject: - i386-efi-fix-proc-iomem-type-for-kexec-tools.patch removed from -mm tree
+Date: Wed, 23 May 2007 14:45:00 -0700
+Message-ID: <200705232145.l4NLj0NH001475@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48943 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754963AbXEWVph (ORCPT
+	by vger.kernel.org with ESMTP id S1755291AbXEWVqD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 17:45:37 -0400
+	Wed, 23 May 2007 17:46:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yhlu.kernel@gmail.com, ak@suse.de, ebiederm@xmission.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: thomas@m3y3r.de, ak@suse.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: build and use GDT on copied compressed kernel
+     i386-efi: fix /proc/iomem type for kexec-tools
 has been removed from the -mm tree.  Its filename was
-     x86_64-build-and-use-gdt-on-copied-compressed-kernel.patch
+     i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
 
 This patch was dropped because Eric had issues
 
 ------------------------------------------------------
-Subject: x86_64: build and use GDT on copied compressed kernel
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: i386-efi: fix /proc/iomem type for kexec-tools
+From: Thomas Meyer <thomas@m3y3r.de>
 
-In arch/x86_64/boot/compressed/head.S it switches to 64 bit mode and then
-copies the compressed image to a higher address then jumps to the copied
-image, then decompressed the compressed image to final uncompressed kernel and
-it may overlapped with original loaded compressed kernel image.
+The kexec-tools check for "System RAM".
 
-Before jumping to 64 bit mode, it will create new page table in some place
-higher in copied compressed kernel image.  But it still uses the GDT in place
-of original loaded compressed image.  So the GDT will be overwriten in the
-middle of decompressing.
-
-So we could change to build the GDT like page table together with copied
-compressed kernel.
-
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/boot/compressed/head.S      |   30 ++++++++++++----------
- arch/x86_64/boot/compressed/vmlinux.lds |    2 +
- 2 files changed, 19 insertions(+), 13 deletions(-)
+ arch/i386/kernel/efi.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/boot/compressed/head.S~x86_64-build-and-use-gdt-on-copied-compressed-kernel arch/x86_64/boot/compressed/head.S
---- a/arch/x86_64/boot/compressed/head.S~x86_64-build-and-use-gdt-on-copied-compressed-kernel
-+++ a/arch/x86_64/boot/compressed/head.S
-@@ -94,10 +94,23 @@ startup_32:
-  * Prepare for entering 64 bit mode
-  */
- 
-+/*
-+ * Build early GDT table on copied compressed kernel image position, So GDT
-+ * is not be overwriten when decompressing the compressed kernel.
-+ */
-+	movw	$0x0020, gdt+0x00(%ebx)
-+	movw	$0x0000, gdt+0x06(%ebx)
-+	movl	$0x00000000, gdt+0x08(%ebx) /* NULL descriptor */
-+	movl	$0x00000000, gdt+0x0c(%ebx)
-+	movl	$0x0000ffff, gdt+0x10(%ebx) /* __KERNEL_CS */
-+	movl	$0x00af9a00, gdt+0x14(%ebx)
-+	movl	$0x0000ffff, gdt+0x18(%ebx) /* __KERNEL_DS */
-+	movl	$0x00cf9200, gdt+0x1c(%ebx)
-+
- 	/* Load new GDT with the 64bit segments using 32bit descriptor */
--	leal	gdt(%ebp), %eax
--	movl	%eax, gdt+2(%ebp)
--	lgdt	gdt(%ebp)
-+	leal	gdt(%ebx), %eax
-+	movl	%eax, gdt+2(%ebx)
-+	lgdt	gdt(%ebx)
- 
- 	/* Enable PAE mode */
- 	xorl	%eax, %eax
-@@ -182,7 +195,7 @@ no_longmode:
- 	 * it may change in the future.
- 	 */
- 	.code64
--	.org 0x200
-+	.org 0x400
- ENTRY(startup_64)
- 	/* We come here either from startup_32 or directly from a
- 	 * 64bit bootloader.  If we come here from a bootloader we depend on
-@@ -287,15 +300,6 @@ relocated:
-  */
- 	jmp	*%rbp
- 
--	.data
--gdt:
--	.word	gdt_end - gdt
--	.long	gdt
--	.word	0
--	.quad	0x0000000000000000	/* NULL descriptor */
--	.quad	0x00af9a000000ffff	/* __KERNEL_CS */
--	.quad	0x00cf92000000ffff	/* __KERNEL_DS */
--gdt_end:
- 	.bss
- /* Stack for uncompression */
- 	.balign 4
-diff -puN arch/x86_64/boot/compressed/vmlinux.lds~x86_64-build-and-use-gdt-on-copied-compressed-kernel arch/x86_64/boot/compressed/vmlinux.lds
---- a/arch/x86_64/boot/compressed/vmlinux.lds~x86_64-build-and-use-gdt-on-copied-compressed-kernel
-+++ a/arch/x86_64/boot/compressed/vmlinux.lds
-@@ -36,6 +36,8 @@ SECTIONS
- 		*(COMMON)
- 		. = ALIGN(8);
- 		_end = . ;
-+		gdt = . ;
-+		. = . + 8 * 4;
- 		. = ALIGN(4096);
- 		pgtable = . ;
- 		. = . + 4096 * 6;
+diff -puN arch/i386/kernel/efi.c~i386-efi-fix-proc-iomem-type-for-kexec-tools arch/i386/kernel/efi.c
+--- a/arch/i386/kernel/efi.c~i386-efi-fix-proc-iomem-type-for-kexec-tools
++++ a/arch/i386/kernel/efi.c
+@@ -636,7 +636,12 @@ efi_initialize_iomem_resources(struct re
+ 			res->name = "Runtime Service Data";
+ 			break;
+ 		case EFI_CONVENTIONAL_MEMORY:
+-			res->name = "Conventional Memory";
++			if (md->attribute & EFI_MEMORY_WP) {
++				res->name = "System ROM";
++				res->flags |= IORESOURCE_READONLY;
++			} else {
++				res->name = "System RAM";
++			}
+ 			break;
+ 		case EFI_UNUSABLE_MEMORY:
+ 			res->name = "Unusable Memory";
 _
 
-Patches currently in -mm which might be from yhlu.kernel@gmail.com are
+Patches currently in -mm which might be from thomas@m3y3r.de are
 
-x86_64-build-and-use-gdt-on-copied-compressed-kernel.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
