@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ncr5380-warning-fixes.patch added to -mm tree
-Date: Tue, 22 May 2007 17:30:24 -0700
-Message-ID: <200705230033.l4N0Xefn013639@shell0.pdx.osdl.net>
+Subject: + cifs-oops-fix.patch added to -mm tree
+Date: Tue, 22 May 2007 19:23:08 -0700
+Message-ID: <200705230223.l4N2N7QS015072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757917AbXEWAdp (ORCPT
+	by vger.kernel.org with ESMTP id S1759784AbXEWCXL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2007 20:33:45 -0400
+	Tue, 22 May 2007 22:23:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
 
 
 The patch titled
-     ncr5380 warning fixes
+     cifs-oops-fix
 has been added to the -mm tree.  Its filename is
-     ncr5380-warning-fixes.patch
+     cifs-oops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,96 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ncr5380 warning fixes
+Subject: cifs-oops-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-squish these:
+Might fix something, might not.
 
-drivers/scsi/NCR5380.c:360: warning: 'phases' defined but not used
-drivers/scsi/NCR5380.c:360: warning: 'phases' defined but not used
-drivers/scsi/NCR5380.c:633: warning: 'NCR5380_print_options' defined but not used
-drivers/scsi/NCR5380.c:708: warning: 'NCR5380_proc_info' defined but not used
-drivers/scsi/NCR5380.c:360: warning: 'phases' defined but not used
-drivers/scsi/NCR5380.c:579: warning: 'NCR5380_probe_irq' defined but not used
-drivers/scsi/NCR5380.c:360: warning: 'phases' defined but not used
-drivers/scsi/NCR5380.c:708: warning: 'notyet_generic_proc_info' defined but not used
-drivers/scsi/NCR5380.c:708: warning: 'notyet_generic_proc_info' defined but not used
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/NCR5380.c |   12 +++++++-----
- drivers/scsi/NCR5380.h |    6 +++---
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ fs/cifs/connect.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/NCR5380.c~ncr5380-warning-fixes drivers/scsi/NCR5380.c
---- a/drivers/scsi/NCR5380.c~ncr5380-warning-fixes
-+++ a/drivers/scsi/NCR5380.c
-@@ -357,7 +357,7 @@ static int NCR5380_poll_politely(struct 
- static struct {
- 	unsigned char value;
- 	const char *name;
--} phases[] = {
-+} phases[] __maybe_unused = {
- 	{PHASE_DATAOUT, "DATAOUT"}, 
- 	{PHASE_DATAIN, "DATAIN"}, 
- 	{PHASE_CMDOUT, "CMDOUT"}, 
-@@ -575,7 +575,8 @@ static irqreturn_t __init probe_intr(int
-  *	Locks: none, irqs must be enabled on entry
-  */
- 
--static int __init NCR5380_probe_irq(struct Scsi_Host *instance, int possible)
-+static int __init __maybe_unused NCR5380_probe_irq(struct Scsi_Host *instance,
-+						int possible)
- {
- 	NCR5380_local_declare();
- 	struct NCR5380_hostdata *hostdata = (struct NCR5380_hostdata *) instance->hostdata;
-@@ -629,7 +630,8 @@ static int __init NCR5380_probe_irq(stru
-  *	Locks: none
-  */
- 
--static void __init NCR5380_print_options(struct Scsi_Host *instance)
-+static void __init __maybe_unused
-+NCR5380_print_options(struct Scsi_Host *instance)
- {
- 	printk(" generic options"
- #ifdef AUTOPROBE_IRQ
-@@ -703,8 +705,8 @@ char *lprint_command(unsigned char *cmd,
- static
- char *lprint_opcode(int opcode, char *pos, char *buffer, int length);
- 
--static
--int NCR5380_proc_info(struct Scsi_Host *instance, char *buffer, char **start, off_t offset, int length, int inout)
-+static int __maybe_unused NCR5380_proc_info(struct Scsi_Host *instance,
-+	char *buffer, char **start, off_t offset, int length, int inout)
- {
- 	char *pos = buffer;
- 	struct NCR5380_hostdata *hostdata;
-diff -puN drivers/scsi/NCR5380.h~ncr5380-warning-fixes drivers/scsi/NCR5380.h
---- a/drivers/scsi/NCR5380.h~ncr5380-warning-fixes
-+++ a/drivers/scsi/NCR5380.h
-@@ -299,7 +299,7 @@ static void NCR5380_information_transfer
- static irqreturn_t NCR5380_intr(int irq, void *dev_id);
- #endif
- static void NCR5380_main(struct work_struct *work);
--static void NCR5380_print_options(struct Scsi_Host *instance);
-+static void __maybe_unused NCR5380_print_options(struct Scsi_Host *instance);
- #ifdef NDEBUG
- static void NCR5380_print_phase(struct Scsi_Host *instance);
- static void NCR5380_print(struct Scsi_Host *instance);
-@@ -307,8 +307,8 @@ static void NCR5380_print(struct Scsi_Ho
- static int NCR5380_abort(Scsi_Cmnd * cmd);
- static int NCR5380_bus_reset(Scsi_Cmnd * cmd);
- static int NCR5380_queue_command(Scsi_Cmnd * cmd, void (*done) (Scsi_Cmnd *));
--static int NCR5380_proc_info(struct Scsi_Host *instance, char *buffer, char **start,
--off_t offset, int length, int inout);
-+static int __maybe_unused NCR5380_proc_info(struct Scsi_Host *instance,
-+	char *buffer, char **start, off_t offset, int length, int inout);
- 
- static void NCR5380_reselect(struct Scsi_Host *instance);
- static int NCR5380_select(struct Scsi_Host *instance, Scsi_Cmnd * cmd, int tag);
+diff -puN fs/cifs/connect.c~cifs-oops-fix fs/cifs/connect.c
+--- a/fs/cifs/connect.c~cifs-oops-fix
++++ a/fs/cifs/connect.c
+@@ -2086,7 +2086,6 @@ cifs_mount(struct super_block *sb, struc
+ 					if ((temp_rc == -ESHUTDOWN) &&
+ 					   (pSesInfo->server) && (pSesInfo->server->tsk)) {
+ 						send_sig(SIGKILL,pSesInfo->server->tsk,1);
+-						kthread_stop(pSesInfo->server->tsk);
+ 					}
+ 				} else
+ 					cFYI(1, ("No session or bad tcon"));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +62,7 @@ invalidate_mapping_pages-add-cond_resched.patch
 git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+cifs-oops-fix.patch
 git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support-fix.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
