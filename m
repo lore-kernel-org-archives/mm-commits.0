@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rework-ptep_set_access_flags-and-fix-sun4c.patch added to -mm tree
-Date: Wed, 23 May 2007 10:44:58 -0700
-Message-ID: <200705231744.l4NHivRs028332@shell0.pdx.osdl.net>
+Subject: + use-the-new-percpu-interface-for-shared-data.patch added to -mm tree
+Date: Wed, 23 May 2007 10:48:04 -0700
+Message-ID: <200705231748.l4NHm32M028419@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59124 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755580AbXEWRpT (ORCPT
+	by vger.kernel.org with ESMTP id S1757317AbXEWRsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 13:45:19 -0400
+	Wed, 23 May 2007 13:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, davem@davemloft.net, hugh@veritas.com, mark@mtfhpc.demon.co.uk, wli@holomorphy.com
+Cc: fenghua.yu@intel.com, clameter@sgi.com, rusty@rustcorp.com.au, suresh.b.siddha@intel.com
 
 
 The patch titled
-     Rework ptep_set_access_flags and fix sun4c
+     Use the new percpu interface for shared data
 has been added to the -mm tree.  Its filename is
-     rework-ptep_set_access_flags-and-fix-sun4c.patch
+     use-the-new-percpu-interface-for-shared-data.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,261 +26,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Rework ptep_set_access_flags and fix sun4c
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Use the new percpu interface for shared data
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-This patch reworks ptep_set_access_flags() and the callers so that the
-comparison to the old PTE is done inside that function, which then returns
-wether an update_mmu_cache() is needed.  That allows fixing the sun4c
-situation where update_mmu_cache() needs to be forced, always.
+Currently most of the per cpu data, which is accessed by different cpus, has a
+____cacheline_aligned_in_smp attribute.  Move all this data to the new per cpu
+shared data section: .data.percpu.shared_aligned.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+This will seperate the percpu data which is referenced frequently by other
+cpus from the local only percpu data.
+
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h       |   17 ++++++++++++-----
- include/asm-i386/pgtable.h          |    8 +++++---
- include/asm-powerpc/pgtable-ppc32.h |   12 ++++++++----
- include/asm-powerpc/pgtable-ppc64.h |   12 ++++++++----
- include/asm-ppc/pgtable.h           |   12 ++++++++----
- include/asm-s390/pgtable.h          |    7 ++++++-
- include/asm-sparc/pgtable.h         |   11 +++++++++++
- include/asm-x86_64/pgtable.h        |   14 ++++++++------
- mm/memory.c                         |   13 ++++++-------
- 9 files changed, 72 insertions(+), 34 deletions(-)
+ arch/i386/kernel/init_task.c   |    2 +-
+ arch/i386/kernel/irq.c         |    2 +-
+ arch/ia64/kernel/smp.c         |    2 +-
+ arch/x86_64/kernel/init_task.c |    2 +-
+ kernel/sched.c                 |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-generic/pgtable.h
-@@ -27,13 +27,20 @@ do {				  					\
-  * Largely same as above, but only sets the access flags (dirty,
-  * accessed, and writable). Furthermore, we know it always gets set
-  * to a "more permissive" setting, which allows most architectures
-- * to optimize this.
-+ * to optimize this. We return wether the PTE actually changed, which
-+ * in turn instructs the caller to do things like update__mmu_cache.
-+ * This used to be done in the caller, but sparc needs minor faults to
-+ * force that call on sun4c so we changed this macro slightly
-  */
- #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--do {				  					  \
--	set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry);	  \
--	flush_tlb_page(__vma, __address);				  \
--} while (0)
-+({									  \
-+	int __changed = !pte_same(*(__ptep), __entry);			  \
-+	if (__changed) {						  \
-+		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
-+		flush_tlb_page(__vma, __address);			  \
-+	}								  \
-+	__changed;							  \
-+})
- #endif
+diff -puN arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data arch/i386/kernel/init_task.c
+--- a/arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/i386/kernel/init_task.c
+@@ -42,5 +42,5 @@ EXPORT_SYMBOL(init_task);
+  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
+  * no more per-task TSS's.
+  */ 
+-DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
  
- #ifndef __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
-diff -puN include/asm-i386/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-i386/pgtable.h
-@@ -285,13 +285,15 @@ static inline pte_t native_local_ptep_ge
-  */
- #define  __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- #define ptep_set_access_flags(vma, address, ptep, entry, dirty)		\
--do {									\
--	if (dirty) {							\
-+({									\
-+	int __changed = !pte_same(*(__ptep), __entry);			\
-+	if (__changed && dirty) {					\
- 		(ptep)->pte_low = (entry).pte_low;			\
- 		pte_update_defer((vma)->vm_mm, (address), (ptep));	\
- 		flush_tlb_page(vma, address);				\
- 	}								\
--} while (0)
-+	__changed;							\
-+})
+diff -puN arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data arch/i386/kernel/irq.c
+--- a/arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/i386/kernel/irq.c
+@@ -21,7 +21,7 @@
+ #include <asm/apic.h>
+ #include <asm/uaccess.h>
  
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
- #define ptep_test_and_clear_dirty(vma, addr, ptep) ({			\
-diff -puN include/asm-powerpc/pgtable-ppc32.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-powerpc/pgtable-ppc32.h
---- a/include/asm-powerpc/pgtable-ppc32.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-powerpc/pgtable-ppc32.h
-@@ -673,10 +673,14 @@ static inline void __ptep_set_access_fla
- }
+-DEFINE_PER_CPU(irq_cpustat_t, irq_stat) ____cacheline_internodealigned_in_smp;
++DEFINE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
+ EXPORT_PER_CPU_SYMBOL(irq_stat);
  
- #define  ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--	do {								   \
--		__ptep_set_access_flags(__ptep, __entry, __dirty);	   \
--		flush_tlb_page_nohash(__vma, __address);	       	   \
--	} while(0)
-+({									   \
-+	int __changed = !pte_same(*(__ptep), __entry);			   \
-+	if (__changed) {						   \
-+		__ptep_set_access_flags(__ptep, __entry, __dirty);    	   \
-+		flush_tlb_page_nohash(__vma, __address);		   \
-+	}								   \
-+	__changed;							   \
-+})
+ DEFINE_PER_CPU(struct pt_regs *, irq_regs);
+diff -puN arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data arch/ia64/kernel/smp.c
+--- a/arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/ia64/kernel/smp.c
+@@ -82,7 +82,7 @@ static volatile struct call_data_struct 
+ #define IPI_KDUMP_CPU_STOP	3
  
- /*
-  * Macro to mark a page protection value as "uncacheable".
-diff -puN include/asm-powerpc/pgtable-ppc64.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-powerpc/pgtable-ppc64.h
---- a/include/asm-powerpc/pgtable-ppc64.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-powerpc/pgtable-ppc64.h
-@@ -413,10 +413,14 @@ static inline void __ptep_set_access_fla
- 	:"cc");
- }
- #define  ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--	do {								   \
--		__ptep_set_access_flags(__ptep, __entry, __dirty);	   \
--		flush_tlb_page_nohash(__vma, __address);	       	   \
--	} while(0)
-+({									   \
-+	int __changed = !pte_same(*(__ptep), __entry);			   \
-+	if (__changed) {						   \
-+		__ptep_set_access_flags(__ptep, __entry, __dirty);    	   \
-+		flush_tlb_page_nohash(__vma, __address);		   \
-+	}								   \
-+	__changed;							   \
-+})
+ /* This needs to be cacheline aligned because it is written to by *other* CPUs.  */
+-static DEFINE_PER_CPU(u64, ipi_operation) ____cacheline_aligned;
++static DEFINE_PER_CPU_SHARED_ALIGNED(u64, ipi_operation);
  
- /*
-  * Macro to mark a page protection value as "uncacheable".
-diff -puN include/asm-ppc/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-ppc/pgtable.h
---- a/include/asm-ppc/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-ppc/pgtable.h
-@@ -694,10 +694,14 @@ static inline void __ptep_set_access_fla
- }
+ extern void cpu_halt (void);
  
- #define  ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--	do {								   \
--		__ptep_set_access_flags(__ptep, __entry, __dirty);	   \
--		flush_tlb_page_nohash(__vma, __address);	       	   \
--	} while(0)
-+({									   \
-+	int __changed = !pte_same(*(__ptep), __entry);			   \
-+	if (__changed) {						   \
-+		__ptep_set_access_flags(__ptep, __entry, __dirty);    	   \
-+		flush_tlb_page_nohash(__vma, __address);		   \
-+	}								   \
-+	__changed;							   \
-+})
+diff -puN arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data arch/x86_64/kernel/init_task.c
+--- a/arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/x86_64/kernel/init_task.c
+@@ -44,7 +44,7 @@ EXPORT_SYMBOL(init_task);
+  * section. Since TSS's are completely CPU-local, we want them
+  * on exact cacheline boundaries, to eliminate cacheline ping-pong.
+  */ 
+-DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
  
- /*
-  * Macro to mark a page protection value as "uncacheable".
-diff -puN include/asm-s390/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-s390/pgtable.h
---- a/include/asm-s390/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-s390/pgtable.h
-@@ -744,7 +744,12 @@ ptep_establish(struct vm_area_struct *vm
- }
+ /* Copies of the original ist values from the tss are only accessed during
+  * debugging, no special alignment required.
+diff -puN kernel/sched.c~use-the-new-percpu-interface-for-shared-data kernel/sched.c
+--- a/kernel/sched.c~use-the-new-percpu-interface-for-shared-data
++++ a/kernel/sched.c
+@@ -304,7 +304,7 @@ struct rq {
+ 	struct lock_class_key rq_lock_key;
+ };
  
- #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--	ptep_establish(__vma, __address, __ptep, __entry)
-+({									  \
-+	int __changed = !pte_same(*(__ptep), __entry);			  \
-+	if (__changed)							  \
-+		ptep_establish(__vma, __address, __ptep, __entry);	  \
-+	__changed;							  \
-+})
+-static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+ static DEFINE_MUTEX(sched_hotcpu_mutex);
  
- /*
-  * Test and clear dirty bit in storage key.
-diff -puN include/asm-sparc/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-sparc/pgtable.h
---- a/include/asm-sparc/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-sparc/pgtable.h
-@@ -446,6 +446,17 @@ extern int io_remap_pfn_range(struct vm_
- #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
- #define GET_PFN(pfn)			(pfn & 0x0fffffffUL)
- 
-+#define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
-+#define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
-+({									  \
-+	int __changed = !pte_same(*(__ptep), __entry);			  \
-+	if (__changed) {						  \
-+		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
-+		flush_tlb_page(__vma, __address);			  \
-+	}								  \
-+	(sparc_cpu_model == sun4c) || __changed;			  \
-+})
-+
- #include <asm-generic/pgtable.h>
- 
- #endif /* !(__ASSEMBLY__) */
-diff -puN include/asm-x86_64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c include/asm-x86_64/pgtable.h
---- a/include/asm-x86_64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/include/asm-x86_64/pgtable.h
-@@ -395,12 +395,14 @@ static inline pte_t pte_modify(pte_t pte
-  * bit at the same time. */
- #define  __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
--	do {								  \
--		if (__dirty) {						  \
--			set_pte(__ptep, __entry);			  \
--			flush_tlb_page(__vma, __address);		  \
--		}							  \
--	} while (0)
-+({									  \
-+	int __changed = !pte_same(*(__ptep), __entry);			  \
-+	if (__changed && __dirty) {					  \
-+		set_pte(__ptep, __entry);			  	  \
-+		flush_tlb_page(__vma, __address);		  	  \
-+	}								  \
-+	__changed;							  \
-+})
- 
- /* Encode and de-code a swap entry */
- #define __swp_type(x)			(((x).val >> 1) & 0x3f)
-diff -puN mm/memory.c~rework-ptep_set_access_flags-and-fix-sun4c mm/memory.c
---- a/mm/memory.c~rework-ptep_set_access_flags-and-fix-sun4c
-+++ a/mm/memory.c
-@@ -1697,9 +1697,10 @@ static int do_wp_page(struct mm_struct *
- 		flush_cache_page(vma, address, pte_pfn(orig_pte));
- 		entry = pte_mkyoung(orig_pte);
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--		ptep_set_access_flags(vma, address, page_table, entry, 1);
--		update_mmu_cache(vma, address, entry);
--		lazy_mmu_prot_update(entry);
-+		if (ptep_set_access_flags(vma, address, page_table, entry,1)) {
-+			update_mmu_cache(vma, address, entry);
-+			lazy_mmu_prot_update(entry);
-+		}
- 		ret |= VM_FAULT_WRITE;
- 		goto unlock;
- 	}
-@@ -2508,10 +2509,9 @@ static inline int handle_pte_fault(struc
- 		pte_t *pte, pmd_t *pmd, int write_access)
- {
- 	pte_t entry;
--	pte_t old_entry;
- 	spinlock_t *ptl;
- 
--	old_entry = entry = *pte;
-+	entry = *pte;
- 	if (!pte_present(entry)) {
- 		if (pte_none(entry)) {
- 			if (vma->vm_ops) {
-@@ -2540,8 +2540,7 @@ static inline int handle_pte_fault(struc
- 		entry = pte_mkdirty(entry);
- 	}
- 	entry = pte_mkyoung(entry);
--	if (!pte_same(old_entry, entry)) {
--		ptep_set_access_flags(vma, address, pte, entry, write_access);
-+	if (ptep_set_access_flags(vma, address, pte, entry, write_access)) {
- 		update_mmu_cache(vma, address, entry);
- 		lazy_mmu_prot_update(entry);
- 	} else {
+ static inline int cpu_of(struct rq *rq)
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
-powerpc-fix.patch
-do-not-select-macintosh-drivers-by-default.patch
-8xx-mpc885ads-pcmcia-support.patch
-8xx-mpc885ads-pcmcia-support-fix.patch
-8xx-fix-whitespace-and-indentation.patch
-dts-kill-hardcoded-phandles.patch
-git-libata-all.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-fallocate-implementation-on-i86-x86_64-and-powerpc.patch
+define-new-percpu-interface-for-shared-data.patch
+use-the-new-percpu-interface-for-shared-data.patch
