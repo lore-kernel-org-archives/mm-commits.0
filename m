@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + only-send-sigxfsz-when-exceeding-rlimits.patch added to -mm tree
-Date: Wed, 23 May 2007 11:26:53 -0700
-Message-ID: <200705231826.l4NIQqj1029120@shell0.pdx.osdl.net>
+Subject: + x86_64-support-poll-on-dev-mcelog-fix.patch added to -mm tree
+Date: Wed, 23 May 2007 11:28:41 -0700
+Message-ID: <200705231828.l4NISeo6029146@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55591 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758335AbXEWS1S (ORCPT
+	by vger.kernel.org with ESMTP id S1755048AbXEWS2w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:27:18 -0400
+	Wed, 23 May 2007 14:28:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: micah@cowan.name, alan@redhat.com, micahcowan@ubuntu.com, reiserfs-dev@namesys.com
+Cc: wli@holomorphy.com, ak@suse.de, bill.irwin@oracle.com, thockin@google.com
 
 
 The patch titled
-     Only send SIGXFSZ when exceeding rlimits.
+     x86_64-support-poll-on-dev-mcelog fix
 has been added to the -mm tree.  Its filename is
-     only-send-sigxfsz-when-exceeding-rlimits.patch
+     x86_64-support-poll-on-dev-mcelog-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Only send SIGXFSZ when exceeding rlimits.
-From: Micah Cowan <micah@cowan.name>
+Subject: x86_64-support-poll-on-dev-mcelog fix
+From: William Lee Irwin III <wli@holomorphy.com>
 
-Some users have been having problems with utilities like cp or dd dumping
-core when they try to copy a file that's too large for the destination
-filesystem (typically, > 4gb).  Apparently, some defunct standards required
-SIGXFSZ to be sent in such circumstances, but SUS only requires/allows it
-for when a written file exceeds the process's resource limits.  I'd like to
-limit SIGXFSZs to the bare minimum required by SUS.
+The build fails with the following error when CONFIG_X86_MCE is not set:
+arch/x86_64/kernel/built-in.o: In function `do_notify_resume':
+/mnt/g/mm-2.6.22-rc2/arch/x86_64/kernel/signal.c:478: undefined reference to `mce_notify_user'
+The following patch #ifdef's the offending call as a minimal fix.
 
-Patch sent per http://lkml.org/lkml/2007/4/10/302
-
-Signed-off-by: Micah Cowan <micahcowan@ubuntu.com>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: <reiserfs-dev@namesys.com>
+Signed-off-by: William Irwin <bill.irwin@oracle.com>
+Cc: Tim Hockin <thockin@google.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/file.c    |    2 --
- fs/reiserfs/file.c |    1 -
- mm/filemap.c       |    2 --
- 3 files changed, 5 deletions(-)
+ arch/x86_64/kernel/signal.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ncpfs/file.c~only-send-sigxfsz-when-exceeding-rlimits fs/ncpfs/file.c
---- a/fs/ncpfs/file.c~only-send-sigxfsz-when-exceeding-rlimits
-+++ a/fs/ncpfs/file.c
-@@ -203,7 +203,6 @@ ncp_file_write(struct file *file, const 
+diff -puN arch/x86_64/kernel/signal.c~x86_64-support-poll-on-dev-mcelog-fix arch/x86_64/kernel/signal.c
+--- a/arch/x86_64/kernel/signal.c~x86_64-support-poll-on-dev-mcelog-fix
++++ a/arch/x86_64/kernel/signal.c
+@@ -473,9 +473,11 @@ do_notify_resume(struct pt_regs *regs, v
+ 		clear_thread_flag(TIF_SINGLESTEP);
+ 	}
  
- 	if (pos + count > MAX_NON_LFS && !(file->f_flags&O_LARGEFILE)) {
- 		if (pos >= MAX_NON_LFS) {
--			send_sig(SIGXFSZ, current, 0);
- 			return -EFBIG;
- 		}
- 		if (count > MAX_NON_LFS - (u32)pos) {
-@@ -212,7 +211,6 @@ ncp_file_write(struct file *file, const 
- 	}
- 	if (pos >= inode->i_sb->s_maxbytes) {
- 		if (count || pos > inode->i_sb->s_maxbytes) {
--			send_sig(SIGXFSZ, current, 0);
- 			return -EFBIG;
- 		}
- 	}
-diff -puN fs/reiserfs/file.c~only-send-sigxfsz-when-exceeding-rlimits fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~only-send-sigxfsz-when-exceeding-rlimits
-+++ a/fs/reiserfs/file.c
-@@ -1305,7 +1305,6 @@ static ssize_t reiserfs_file_write(struc
- 	if (get_inode_item_key_version (inode) == KEY_FORMAT_3_5 &&
- 	    *ppos + count > MAX_NON_LFS) {
- 		if (*ppos >= MAX_NON_LFS) {
--			send_sig(SIGXFSZ, current, 0);
- 			return -EFBIG;
- 		}
- 		if (count > MAX_NON_LFS - (unsigned long)*ppos)
-diff -puN mm/filemap.c~only-send-sigxfsz-when-exceeding-rlimits mm/filemap.c
---- a/mm/filemap.c~only-send-sigxfsz-when-exceeding-rlimits
-+++ a/mm/filemap.c
-@@ -1800,7 +1800,6 @@ inline int generic_write_checks(struct f
- 	if (unlikely(*pos + *count > MAX_NON_LFS &&
- 				!(file->f_flags & O_LARGEFILE))) {
- 		if (*pos >= MAX_NON_LFS) {
--			send_sig(SIGXFSZ, current, 0);
- 			return -EFBIG;
- 		}
- 		if (*count > MAX_NON_LFS - (unsigned long)*pos) {
-@@ -1818,7 +1817,6 @@ inline int generic_write_checks(struct f
- 	if (likely(!isblk)) {
- 		if (unlikely(*pos >= inode->i_sb->s_maxbytes)) {
- 			if (*count || *pos > inode->i_sb->s_maxbytes) {
--				send_sig(SIGXFSZ, current, 0);
- 				return -EFBIG;
- 			}
- 			/* zero-length writes at ->s_maxbytes are OK */
++#ifdef CONFIG_X86_MCE
+ 	/* notify userspace of pending MCEs */
+ 	if (thread_info_flags & _TIF_MCE_NOTIFY)
+ 		mce_notify_user();
++#endif /* CONFIG_X86_MCE */
+ 
+ 	/* deal with pending signal delivery */
+ 	if (thread_info_flags & (_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK))
 _
 
-Patches currently in -mm which might be from micah@cowan.name are
+Patches currently in -mm which might be from wli@holomorphy.com are
 
-only-send-sigxfsz-when-exceeding-rlimits.patch
+quicklist-support-for-x86_64.patch
+x86_64-support-poll-on-dev-mcelog-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
