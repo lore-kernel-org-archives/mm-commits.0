@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-xen-xen-smp-guest-support.patch added to -mm tree
-Date: Wed, 23 May 2007 11:40:24 -0700
-Message-ID: <200705231840.l4NIeNqT029370@shell0.pdx.osdl.net>
+Subject: + blackfin-enable-arbitary-speed-serial-setting.patch added to -mm tree
+Date: Wed, 23 May 2007 11:41:25 -0700
+Message-ID: <200705231841.l4NIfOaF029389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39246 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755869AbXEWSlP (ORCPT
+	by vger.kernel.org with ESMTP id S1762088AbXEWSlj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 23 May 2007 14:41:15 -0400
+	Wed, 23 May 2007 14:41:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wli@holomorphy.com, ak@suse.de, bill.irwin@oracle.com, jeremy@goop.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bryan.wu@analog.com
 
 
 The patch titled
-     fix x86_64-mm-xen-xen-smp-guest-support
+     blackfin: enable arbitary speed serial setting
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-xen-xen-smp-guest-support.patch
+     blackfin-enable-arbitary-speed-serial-setting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-xen-xen-smp-guest-support
-From: William Lee Irwin III <wli@holomorphy.com>
+Subject: blackfin: enable arbitary speed serial setting
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This patch silences the following warning:
-WARNING: arch/i386/kernel/built-in.o(.text+0xdba6): Section mismatch: reference to .init.data:cpu_llc_id (between 'set_cpu_sibling_map' and 'initialize_secondary')
-Marking set_cpu_sibling_map() as __cpuinit resolves the section conflict
-with the __cpuinitdata cpu_llc_id[] variable.
+Add the needed definitions to activate arbitary speed support on the
+blackfin platform.
 
-Signed-off-by: William Irwin <bill.irwin@oracle.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smpboot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-blackfin/ioctls.h   |    4 ++++
+ include/asm-blackfin/termbits.h |    5 ++++-
+ include/asm-blackfin/termios.h  |    6 ++++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/smpboot.c~fix-x86_64-mm-xen-xen-smp-guest-support arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~fix-x86_64-mm-xen-xen-smp-guest-support
-+++ a/arch/i386/kernel/smpboot.c
-@@ -308,7 +308,7 @@ cpumask_t cpu_coregroup_map(int cpu)
- /* representing cpus for which sibling maps can be computed */
- static cpumask_t cpu_sibling_setup_map;
+diff -puN include/asm-blackfin/ioctls.h~blackfin-enable-arbitary-speed-serial-setting include/asm-blackfin/ioctls.h
+--- a/include/asm-blackfin/ioctls.h~blackfin-enable-arbitary-speed-serial-setting
++++ a/include/asm-blackfin/ioctls.h
+@@ -47,6 +47,10 @@
+ #define TIOCSBRK	0x5427	/* BSD compatibility */
+ #define TIOCCBRK	0x5428	/* BSD compatibility */
+ #define TIOCGSID	0x5429	/* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int)	/* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)	/* Lock/unlock Pty */
  
--void set_cpu_sibling_map(int cpu)
-+void __cpuinit set_cpu_sibling_map(int cpu)
- {
- 	int i;
- 	struct cpuinfo_x86 *c = cpu_data;
+diff -puN include/asm-blackfin/termbits.h~blackfin-enable-arbitary-speed-serial-setting include/asm-blackfin/termbits.h
+--- a/include/asm-blackfin/termbits.h~blackfin-enable-arbitary-speed-serial-setting
++++ a/include/asm-blackfin/termbits.h
+@@ -129,6 +129,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
+ #define CBAUDEX 0010000
++#define	   BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -144,10 +145,12 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000	/* input baud rate */
+ #define CMSPAR	  010000000000	/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000	/* flow control */
+ 
++#define	IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
++
+ /* c_lflag bits */
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-blackfin/termios.h~blackfin-enable-arbitary-speed-serial-setting include/asm-blackfin/termios.h
+--- a/include/asm-blackfin/termios.h~blackfin-enable-arbitary-speed-serial-setting
++++ a/include/asm-blackfin/termios.h
+@@ -98,8 +98,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ })
+ 
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+ 
+ #endif				/* __KERNEL__ */
+ 
 _
 
-Patches currently in -mm which might be from wli@holomorphy.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-quicklist-support-for-x86_64.patch
-x86_64-support-poll-on-dev-mcelog-fix.patch
-i386-bigsmp-section-mismatch-fixes.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+origin.patch
+arm-enable-arbitary-speed-tty-ioctls-and-split.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+libata-add-support-for-ata_16-on-atapi.patch
+fix-build-failure-for-drivers-ata-pata_sccc.patch
+hpt3x2n-correct-revision-boundary.patch
+pata_sis-fix-and-clean-up-some-timing-setups.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+ide-add-seagate-stt20000a-to-dma-blacklist.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
+add-pci_try_set_mwi.patch
+fix-pci_find_present.patch
+git-scsi-misc.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+ncr5380-warning-fixes.patch
+watchdog-documentation.patch
+add-pci_try_set_mwi-prism54pci.patch
+fix-crash-with-irqpoll-due-to-the-irqf_irqpoll-flag.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
