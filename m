@@ -1,164 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + slub-more-documentation-fix.patch added to -mm tree
-Date: Thu, 24 May 2007 14:40:09 -0700
-Message-ID: <200705242140.l4OLe9pH003882@shell0.pdx.osdl.net>
+Subject: - display-intel-dynamic-acceleration-feature-in-proc-cpuinfo.patch removed from -mm tree
+Date: Thu, 24 May 2007 15:02:43 -0700
+Message-ID: <200705242202.l4OM2hp4004325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43716 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46846 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753258AbXEXVkj (ORCPT
+	by vger.kernel.org with ESMTP id S1754849AbXEXWDY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 17:40:39 -0400
+	Thu, 24 May 2007 18:03:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, rdunlap@xenotime.net
+To: venkatesh.pallipadi@intel.com, ak@suse.de, davej@redhat.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-more-documentation-fix
-has been added to the -mm tree.  Its filename is
-     slub-more-documentation-fix.patch
+     Display Intel Dynamic Acceleration feature in /proc/cpuinfo
+has been removed from the -mm tree.  Its filename was
+     display-intel-dynamic-acceleration-feature-in-proc-cpuinfo.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of patch conflicts
 
 ------------------------------------------------------
-Subject: slub-more-documentation-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Display Intel Dynamic Acceleration feature in /proc/cpuinfo
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Christoph Lameter <clameter@sgi.com>
+Display Intel Dynamic Acceleration feature in /proc/cpuinfo. This feature
+will be enabled automatically by current acpi-cpufreq driver and cpufreq.
+
+Refer to Intel Software Developer's Manual for more details about the feature.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- vm/slub.txt                         |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |   13 ++++++++++++-
+ asm-x86_64/cpufeature.h                     |    0 
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~slub-more-documentation-fix Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~slub-more-documentation-fix
-+++ a/Documentation/kernel-parameters.txt
-@@ -1614,7 +1614,7 @@ and is between 256 and 4096 characters. 
- 	slram=		[HW,MTD]
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -58,6 +58,7 @@ enum {
  
- 	slub_debug	[MM, SLUB]
--			Enabling slub_debug allows to determine the culprit
-+			Enabling slub_debug allows one to determine the culprit
- 			if slab objects become corrupted. Enabling slub_debug
- 			creates guard zones around objects and poisons objects
- 			when not in use. Also tracks the last alloc / free.
-diff -puN Documentation/vm/slub.txt~slub-more-documentation-fix Documentation/vm/slub.txt
+ #define INTEL_MSR_RANGE		(0xffff)
+ #define CPUID_6_ECX_APERFMPERF_CAPABILITY	(0x1)
++#define CPUID_6_EAX_IDA_CAPABILITY		(0x2)
+ 
+ struct acpi_cpufreq_data {
+ 	struct acpi_processor_performance *acpi_data;
+@@ -702,10 +703,20 @@ static int acpi_cpufreq_cpu_init(struct 
+ 
+ 	/* Check for APERF/MPERF support in hardware */
+ 	if (c->x86_vendor == X86_VENDOR_INTEL && c->cpuid_level >= 6) {
+-		unsigned int ecx;
++		unsigned int eax, ecx;
+ 		ecx = cpuid_ecx(6);
+ 		if (ecx & CPUID_6_ECX_APERFMPERF_CAPABILITY)
+ 			acpi_cpufreq_driver.getavg = get_measured_perf;
++
++		eax = cpuid_eax(6);
++		if (eax & CPUID_6_EAX_IDA_CAPABILITY) {
++			unsigned int i;
++
++			for_each_cpu_mask(i, policy->cpus) {
++				struct cpuinfo_x86 *c = &cpu_data[i];
++				set_bit(X86_FEATURE_IDA, c->x86_capability);
++			}
++		}
+ 	}
+ 
+ 	dprintk("CPU%u - ACPI performance management activated.\n", cpu);
+diff -puN arch/i386/kernel/cpu/proc.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo arch/i386/kernel/cpu/proc.c
+diff -puN arch/x86_64/kernel/setup.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo arch/x86_64/kernel/setup.c
+diff -puN include/asm-i386/cpufeature.h~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo include/asm-i386/cpufeature.h
+diff -puN include/asm-x86_64/cpufeature.h~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo include/asm-x86_64/cpufeature.h
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-origin.patch
-freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
-capabilityh-warning-fix.patch
-simplify-cleanup_workqueue_thread.patch
-capifunc-warning-fixes.patch
-hardware-eicon-messagec-warning-fixes.patch
-slub-more-documentation-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-warning-fixes.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-ncr5380-warning-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-arch-x86_64-vdso-vmac-needs-schedh.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-xfs-clean-up-shrinker-games.patch
-git-cryptodev.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+display-intel-dynamic-acceleration-feature-in-proc-cpuinfo.patch
