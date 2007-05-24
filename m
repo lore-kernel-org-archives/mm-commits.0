@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-fix-leading-dot-in-man-mode-output.patch added to -mm tree
-Date: Thu, 24 May 2007 15:19:03 -0700
-Message-ID: <200705242219.l4OMJ3H9004691@shell0.pdx.osdl.net>
+Subject: + unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch added to -mm tree
+Date: Thu, 24 May 2007 15:21:03 -0700
+Message-ID: <200705242221.l4OML37O004738@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45929 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752278AbXEXWTk (ORCPT
+	by vger.kernel.org with ESMTP id S1750885AbXEXWVh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 18:19:40 -0400
+	Thu, 24 May 2007 18:21:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: benh@kernel.crashing.org, hugh@veritas.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     kernel-doc: fix leading dot in man-mode output
+     unmap_vm_area becomes unmap_kernel_range for the public
 has been added to the -mm tree.  Its filename is
-     kernel-doc-fix-leading-dot-in-man-mode-output.patch
+     unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,128 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel-doc: fix leading dot in man-mode output
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: unmap_vm_area becomes unmap_kernel_range for the public
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-If a parameter description begins with a '.', this indicates a "request"
-for "man" mode output (*roff), so it needs special handling.
+This patch makes unmap_vm_area static and a wrapper around a new exported
+unmap_kernel_range that takes an explicit range instead of a vm_area
+struct.
 
-Problem case is in include/asm-i386/atomic.h for function
-atomic_add_unless():
- * @u: ...unless v is equal to u.
-This parameter description is currently not printed in man mode output.
+This makes it more versatile for code that wants to play with kernel page
+tables outside of the standard vmalloc area.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+(One example is some rework of the PowerPC PCI IO space mapping code that
+depends on that patch and removes some code duplication and horrible abuse
+of forged struct vm_struct).
+
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletion(-)
+ Documentation/cachetlb.txt   |    2 +-
+ arch/powerpc/mm/imalloc.c    |    3 ++-
+ arch/powerpc/mm/pgtable_64.c |    1 -
+ include/linux/vmalloc.h      |    3 ++-
+ mm/vmalloc.c                 |   13 +++++++++----
+ 5 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-fix-leading-dot-in-man-mode-output scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-fix-leading-dot-in-man-mode-output
-+++ a/scripts/kernel-doc
-@@ -404,7 +404,12 @@ sub output_highlight {
- 	    print $lineprefix, $blankline;
- 	} else {
- 	    $line =~ s/\\\\\\/\&/g;
--	    print $lineprefix, $line;
-+	    if ($output_mode eq "man" && substr($line, 0, 1) eq ".") {
-+		print "\\&$line";
-+	    }
-+	    else {
-+		print $lineprefix, $line;
-+	    }
- 	}
- 	print "\n";
-     }
+diff -puN Documentation/cachetlb.txt~unmap_vm_area-becomes-unmap_kernel_range-for-the-public Documentation/cachetlb.txt
+--- a/Documentation/cachetlb.txt~unmap_vm_area-becomes-unmap_kernel_range-for-the-public
++++ a/Documentation/cachetlb.txt
+@@ -253,7 +253,7 @@ Here are the routines, one by one:
+ 
+ 	The first of these two routines is invoked after map_vm_area()
+ 	has installed the page table entries.  The second is invoked
+-	before unmap_vm_area() deletes the page table entries.
++	before unmap_kernel_range() deletes the page table entries.
+ 
+ There exists another whole class of cpu cache issues which currently
+ require a whole different set of interfaces to handle properly.
+diff -puN arch/powerpc/mm/imalloc.c~unmap_vm_area-becomes-unmap_kernel_range-for-the-public arch/powerpc/mm/imalloc.c
+--- a/arch/powerpc/mm/imalloc.c~unmap_vm_area-becomes-unmap_kernel_range-for-the-public
++++ a/arch/powerpc/mm/imalloc.c
+@@ -301,7 +301,8 @@ void im_free(void * addr)
+ 	for (p = &imlist ; (tmp = *p) ; p = &tmp->next) {
+ 		if (tmp->addr == addr) {
+ 			*p = tmp->next;
+-			unmap_vm_area(tmp);
++			unmap_kernel_range((unsigned long)tmp->addr,
++					   tmp->size);
+ 			kfree(tmp);
+ 			mutex_unlock(&imlist_mutex);
+ 			return;
+diff -puN arch/powerpc/mm/pgtable_64.c~unmap_vm_area-becomes-unmap_kernel_range-for-the-public arch/powerpc/mm/pgtable_64.c
+--- a/arch/powerpc/mm/pgtable_64.c~unmap_vm_area-becomes-unmap_kernel_range-for-the-public
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -240,7 +240,6 @@ int __ioremap_explicit(phys_addr_t pa, u
+ /*  
+  * Unmap an IO region and remove it from imalloc'd list.
+  * Access to IO memory should be serialized by driver.
+- * This code is modeled after vmalloc code - unmap_vm_area()
+  *
+  * XXX	what about calls before mem_init_done (ie python_countermeasures())
+  */
+diff -puN include/linux/vmalloc.h~unmap_vm_area-becomes-unmap_kernel_range-for-the-public include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~unmap_vm_area-becomes-unmap_kernel_range-for-the-public
++++ a/include/linux/vmalloc.h
+@@ -65,9 +65,10 @@ extern struct vm_struct *get_vm_area_nod
+ 					  unsigned long flags, int node,
+ 					  gfp_t gfp_mask);
+ extern struct vm_struct *remove_vm_area(void *addr);
++
+ extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
+ 			struct page ***pages);
+-extern void unmap_vm_area(struct vm_struct *area);
++extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+ 
+ /* Allocate/destroy a 'vmalloc' VM area. */
+ extern struct vm_struct *alloc_vm_area(unsigned long size);
+diff -puN mm/vmalloc.c~unmap_vm_area-becomes-unmap_kernel_range-for-the-public mm/vmalloc.c
+--- a/mm/vmalloc.c~unmap_vm_area-becomes-unmap_kernel_range-for-the-public
++++ a/mm/vmalloc.c
+@@ -68,12 +68,12 @@ static inline void vunmap_pud_range(pgd_
+ 	} while (pud++, addr = next, addr != end);
+ }
+ 
+-void unmap_vm_area(struct vm_struct *area)
++void unmap_kernel_range(unsigned long addr, unsigned long size)
+ {
+ 	pgd_t *pgd;
+ 	unsigned long next;
+-	unsigned long addr = (unsigned long) area->addr;
+-	unsigned long end = addr + area->size;
++	unsigned long start = addr;
++	unsigned long end = addr + size;
+ 
+ 	BUG_ON(addr >= end);
+ 	pgd = pgd_offset_k(addr);
+@@ -84,7 +84,12 @@ void unmap_vm_area(struct vm_struct *are
+ 			continue;
+ 		vunmap_pud_range(pgd, addr, next);
+ 	} while (pgd++, addr = next, addr != end);
+-	flush_tlb_kernel_range((unsigned long) area->addr, end);
++	flush_tlb_kernel_range(start, end);
++}
++
++static void unmap_vm_area(struct vm_struct *area)
++{
++	unmap_kernel_range((unsigned long)area->addr, area->size);
+ }
+ 
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-documentation-fix-the-explanation-of-kconfig-files.patch
-update-dontdiff-file.patch
-doc-clocksources.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-add-notime-boot-option.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+origin.patch
+do-not-select-macintosh-drivers-by-default.patch
+8xx-mpc885ads-pcmcia-support.patch
+dts-kill-hardcoded-phandles.patch
+git-libata-all.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
+make-map_vm_area-static.patch
+8xx-fix-whitespace-and-indentation.patch
+fallocate-implementation-on-i86-x86_64-and-powerpc.patch
