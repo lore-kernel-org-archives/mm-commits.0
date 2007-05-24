@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-do-not-require-dev-spew-to-get-pm_debug.patch added to -mm tree
-Date: Thu, 24 May 2007 13:46:24 -0700
-Message-ID: <200705242046.l4OKkO9L002207@shell0.pdx.osdl.net>
+Subject: + hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops.patch added to -mm tree
+Date: Thu, 24 May 2007 13:47:07 -0700
+Message-ID: <200705242047.l4OKl7e0002215@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38921 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750811AbXEXUqd (ORCPT
+	by vger.kernel.org with ESMTP id S1753364AbXEXUr3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 16:46:33 -0400
+	Thu, 24 May 2007 16:47:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bcollins@ubuntu.com, greg@kroah.com, pavel@ucw.cz, rjw@sisk.pl, torvalds@linux-foundation.org
+Cc: bcollins@ubuntu.com, marcel@holtmann.org, maxk@qualcomm.com, phillip@ubuntu.com, tim.gardner@ubuntu.com
 
 
 The patch titled
-     PM: Do not require dev spew to get PM_DEBUG
+     HCIUSB: Initialize the Broadcom USB Bluetooth device in Dell laptops
 has been added to the -mm tree.  Its filename is
-     pm-do-not-require-dev-spew-to-get-pm_debug.patch
+     hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Do not require dev spew to get PM_DEBUG
+Subject: HCIUSB: Initialize the Broadcom USB Bluetooth device in Dell laptops
 From: Ben Collins <bcollins@ubuntu.com>
 
-In order to enable things like PM_TRACE, you're required to enable
-PM_DEBUG, which sends a large spew of messages on boot, and often times can
-overflow dmesg buffer.
-
-Create new PM_VERBOSE and shift that to be the option that enables
-drivers/base/power's messages.
-
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Maxim Krasnyansky <maxk@qualcomm.com>
+Signed-off-by: Tim Gardner <tim.gardner@ubuntu.com>
+Signed-off-by: Phillip lougher <phillip@ubuntu.com>
 Signed-off-by: Ben Collins <bcollins@ubuntu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/Makefile |    2 +-
- kernel/power/Kconfig        |   17 ++++++++++++-----
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ drivers/bluetooth/hci_usb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/power/Makefile~pm-do-not-require-dev-spew-to-get-pm_debug drivers/base/power/Makefile
---- a/drivers/base/power/Makefile~pm-do-not-require-dev-spew-to-get-pm_debug
-+++ a/drivers/base/power/Makefile
-@@ -5,6 +5,6 @@ obj-$(CONFIG_PM_TRACE)	+= trace.o
- ifeq ($(CONFIG_DEBUG_DRIVER),y)
- EXTRA_CFLAGS += -DDEBUG
- endif
--ifeq ($(CONFIG_PM_DEBUG),y)
-+ifeq ($(CONFIG_PM_VERBOSE),y)
- EXTRA_CFLAGS += -DDEBUG
- endif
-diff -puN kernel/power/Kconfig~pm-do-not-require-dev-spew-to-get-pm_debug kernel/power/Kconfig
---- a/kernel/power/Kconfig~pm-do-not-require-dev-spew-to-get-pm_debug
-+++ a/kernel/power/Kconfig
-@@ -33,13 +33,20 @@ config PM_DEBUG
- 	bool "Power Management Debug Support"
- 	depends on PM
- 	---help---
--	This option enables verbose debugging support in the Power Management
--	code. This is helpful when debugging and reporting various PM bugs, 
--	like suspend support.
-+	This option enables various debugging support in the Power Management
-+	code. This is helpful when debugging and reporting PM bugs, like
-+	suspend support.
-+
-+config PM_VERBOSE
-+	bool "Verbose Power Management debugging"
-+	depends on PM_DEBUG
-+	default n
-+	---help---
-+	This option enables verbose messages from the Power Management code.
+diff -puN drivers/bluetooth/hci_usb.c~hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops drivers/bluetooth/hci_usb.c
+--- a/drivers/bluetooth/hci_usb.c~hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops
++++ a/drivers/bluetooth/hci_usb.c
+@@ -131,7 +131,7 @@ static struct usb_device_id blacklist_id
+ 	{ USB_DEVICE(0x03f0, 0x171d), .driver_info = HCI_WRONG_SCO_MTU },
  
- config DISABLE_CONSOLE_SUSPEND
- 	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
--	depends on PM && PM_DEBUG
-+	depends on PM_DEBUG
- 	default n
- 	---help---
- 	This option turns off the console suspend mechanism that prevents
-@@ -50,7 +57,7 @@ config DISABLE_CONSOLE_SUSPEND
+ 	/* Dell laptop with Broadcom chip */
+-	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_WRONG_SCO_MTU },
++	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_WRONG_SCO_MTU|HCI_RESET },
  
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
--	depends on PM && PM_DEBUG && X86_32 && EXPERIMENTAL
-+	depends on PM_DEBUG && X86_32 && EXPERIMENTAL
- 	default n
- 	---help---
- 	This enables some cheesy code to save the last PM event point in the
+ 	/* Microsoft Wireless Transceiver for Bluetooth 2.0 */
+ 	{ USB_DEVICE(0x045e, 0x009c), .driver_info = HCI_RESET },
 _
 
 Patches currently in -mm which might be from bcollins@ubuntu.com are
@@ -103,4 +59,5 @@ Patches currently in -mm which might be from bcollins@ubuntu.com are
 origin.patch
 avoid-zero-size-allocation-in-cache_k8_northbridges.patch
 cleanup-libata-hpa-support.patch
+hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops.patch
 pm-do-not-require-dev-spew-to-get-pm_debug.patch
