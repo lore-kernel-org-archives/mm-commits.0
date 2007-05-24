@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - serial-set-dtr-in-uart-for-kernel-serial-console.patch removed from -mm tree
-Date: Thu, 24 May 2007 02:06:43 -0700
-Message-ID: <200705240906.l4O96ksB022982@shell0.pdx.osdl.net>
+Subject: - vdso-print-fatal-signals-fix.patch removed from -mm tree
+Date: Thu, 24 May 2007 09:25:29 -0700
+Message-ID: <200705241625.l4OGPS0I029964@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55882 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755188AbXEXJHE (ORCPT
+	by vger.kernel.org with ESMTP id S1750714AbXEXQZr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 05:07:04 -0400
+	Thu, 24 May 2007 12:25:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: righiandr@users.sourceforge.net, a.righi@cineca.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: set DTR in uart for kernel serial console
+     limit print_fatal_signal() rate
 has been removed from the -mm tree.  Its filename was
-     serial-set-dtr-in-uart-for-kernel-serial-console.patch
+     vdso-print-fatal-signals-fix.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it reduces the usefulness, and it's a root-opt-in thing anyway
 
 ------------------------------------------------------
-Subject: serial: set DTR in uart for kernel serial console
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: limit print_fatal_signal() rate
+From: Andrea Righi <righiandr@users.sourceforge.net>
 
-Some UARTs on other side need host uart DTR is set, otherwise will not
-receive char from the host that kernel is runing during kernel boot stage.
+Limit the rate of print_fatal_signal() to avoid potential denial-of-service
+attacks.
 
-BTW: earlyprintk and early_uart are hard coded to set DTR/RTS.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Andrea Righi <a.righi@cineca.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/signal.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250.c~serial-set-dtr-in-uart-for-kernel-serial-console drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-set-dtr-in-uart-for-kernel-serial-console
-+++ a/drivers/serial/8250.c
-@@ -2397,6 +2397,12 @@ static void __init serial8250_isa_init_p
- 		up->mcr_force = ALPHA_KLUDGE_MCR;
+diff -puN kernel/signal.c~vdso-print-fatal-signals-fix kernel/signal.c
+--- a/kernel/signal.c~vdso-print-fatal-signals-fix
++++ a/kernel/signal.c
+@@ -709,7 +709,10 @@ int print_fatal_signals = 0;
  
- 		up->port.ops = &serial8250_pops;
+ static void print_fatal_signal(struct pt_regs *regs, int signr)
+ {
+-	printk("%s/%d: potentially unexpected fatal signal %d.\n",
++	if (unlikely(!printk_ratelimit()))
++		return;
 +
-+		/*
-+		 * Some uarts on other side don't support no flow control.  So
-+		 * we set DTR in host uart to make them happy  --- YHLU
-+		 */
-+		up->port.mctrl |= TIOCM_DTR;
- 	}
++	printk(KERN_WARNING "%s/%d: potentially unexpected fatal signal %d.\n",
+ 		current->comm, current->pid, signr);
  
- 	for (i = 0, up = serial8250_ports;
+ #ifdef __i386__
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from righiandr@users.sourceforge.net are
 
-origin.patch
-serial-set-dtr-in-uart-for-kernel-serial-console.patch
+avr32-ratelimit-segfault-reporting-rate.patch
+bug-in-i386-mtrr-initialization.patch
+x86_64-ratelimit-segfault-reporting-rate.patch
+vdso-print-fatal-signals-fix.patch
