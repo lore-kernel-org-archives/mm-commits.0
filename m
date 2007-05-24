@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wrong-timeout-value-in-sk_wait_data-v2.patch added to -mm tree
-Date: Thu, 24 May 2007 15:27:46 -0700
-Message-ID: <200705242227.l4OMRkPv004894@shell0.pdx.osdl.net>
+Subject: + input-reduce-raciness-when-input-handlers-disconnect.patch added to -mm tree
+Date: Thu, 24 May 2007 15:56:38 -0700
+Message-ID: <200705242256.l4OMucBC005638@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59066 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752985AbXEXWdp (ORCPT
+	by vger.kernel.org with ESMTP id S1752111AbXEXW5D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 18:33:45 -0400
+	Thu, 24 May 2007 18:57:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vvs@sw.ru, davem@davemloft.net
+Cc: dtor@insightbb.com, dtor@mail.ru
 
 
 The patch titled
-     "wrong timeout value" in sk_wait_data()
+     Input: reduce raciness when input handlers disconnect
 has been added to the -mm tree.  Its filename is
-     wrong-timeout-value-in-sk_wait_data-v2.patch
+     input-reduce-raciness-when-input-handlers-disconnect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: "wrong timeout value" in sk_wait_data()
-From: Vasily Averin <vvs@sw.ru>
+Subject: Input: reduce raciness when input handlers disconnect
+From: Dmitry Torokhov <dtor@insightbb.com>
 
-sys_setsockopt() do not check properly timeout values for
-SO_RCVTIMEO/SO_SNDTIMEO, for example it's possible to set negative timeout
-values.  POSIX do not defines behaviour for sys_setsockopt in case negative
-timeouts, but requires that setsockopt() shall fail with -EDOM if the send
-and receive timeout values are too big to fit into the timeout fields in
-the socket structure.
+There is a race between input handler's release() and disconnect() methods:
+when input handler disconnects it wakes up all regular users and then process
+to walk user list to wake up async.  users.  While disconnect() walks the list
+release() removes elements of the same list causing oopses.
 
-In current implementation negative timeout can lead to error messages like
-"schedule_timeout: wrong timeout value".
+While this is not a substitute for proper locking we can reduce odds of
+getting an oops if we wake up normal readers after walking the list.
 
-Proposed patch:
-
-- checks tv_usec and returns -EDOM if it is wrong
-
-- do not allows to set negative timeout values (sets 0 instead) and
-  outputs ratelimited information message about such attempts.
-
-Signed-off-by: Vasily Averin <vvs@sw.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/sock.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+)
+ drivers/input/evdev.c    |    2 +-
+ drivers/input/joydev.c   |    2 +-
+ drivers/input/mousedev.c |    2 +-
+ drivers/input/tsdev.c    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN net/core/sock.c~wrong-timeout-value-in-sk_wait_data-v2 net/core/sock.c
---- a/net/core/sock.c~wrong-timeout-value-in-sk_wait_data-v2
-+++ a/net/core/sock.c
-@@ -206,7 +206,19 @@ static int sock_set_timeout(long *timeo_
- 		return -EINVAL;
- 	if (copy_from_user(&tv, optval, sizeof(tv)))
- 		return -EFAULT;
-+	if (tv.tv_usec < 0 || tv.tv_usec >= USEC_PER_SEC)
-+		return -EDOM;
+diff -puN drivers/input/evdev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/evdev.c
+--- a/drivers/input/evdev.c~input-reduce-raciness-when-input-handlers-disconnect
++++ a/drivers/input/evdev.c
+@@ -699,9 +699,9 @@ static void evdev_disconnect(struct inpu
+ 	if (evdev->open) {
+ 		input_flush_device(handle, NULL);
+ 		input_close_device(handle);
+-		wake_up_interruptible(&evdev->wait);
+ 		list_for_each_entry(client, &evdev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
++		wake_up_interruptible(&evdev->wait);
+ 	} else
+ 		evdev_free(evdev);
+ }
+diff -puN drivers/input/joydev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/joydev.c
+--- a/drivers/input/joydev.c~input-reduce-raciness-when-input-handlers-disconnect
++++ a/drivers/input/joydev.c
+@@ -619,9 +619,9 @@ static void joydev_disconnect(struct inp
  
-+	if (tv.tv_sec < 0) {
-+		static int warned = 0;
-+		*timeo_p = 0;
-+		if (warned < 10 && net_ratelimit())
-+			warned++;
-+			printk(KERN_INFO "sock_set_timeout: `%s' (pid %d) "
-+			       "tries to set negative timeout\n",
-+			        current->comm, current->pid);
-+		return 0;
-+	}
- 	*timeo_p = MAX_SCHEDULE_TIMEOUT;
- 	if (tv.tv_sec == 0 && tv.tv_usec == 0)
- 		return 0;
+ 	if (joydev->open) {
+ 		input_close_device(handle);
+-		wake_up_interruptible(&joydev->wait);
+ 		list_for_each_entry(client, &joydev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
++		wake_up_interruptible(&joydev->wait);
+ 	} else
+ 		joydev_free(joydev);
+ }
+diff -puN drivers/input/mousedev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~input-reduce-raciness-when-input-handlers-disconnect
++++ a/drivers/input/mousedev.c
+@@ -766,9 +766,9 @@ static void mousedev_disconnect(struct i
+ 
+ 	if (mousedev->open) {
+ 		input_close_device(handle);
+-		wake_up_interruptible(&mousedev->wait);
+ 		list_for_each_entry(client, &mousedev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
++		wake_up_interruptible(&mousedev->wait);
+ 	} else
+ 		mousedev_free(mousedev);
+ }
+diff -puN drivers/input/tsdev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/tsdev.c
+--- a/drivers/input/tsdev.c~input-reduce-raciness-when-input-handlers-disconnect
++++ a/drivers/input/tsdev.c
+@@ -476,9 +476,9 @@ static void tsdev_disconnect(struct inpu
+ 
+ 	if (tsdev->open) {
+ 		input_close_device(handle);
+-		wake_up_interruptible(&tsdev->wait);
+ 		list_for_each_entry(client, &tsdev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
++		wake_up_interruptible(&tsdev->wait);
+ 	} else
+ 		tsdev_free(tsdev);
+ }
 _
 
-Patches currently in -mm which might be from vvs@sw.ru are
+Patches currently in -mm which might be from dtor@insightbb.com are
 
-wrong-timeout-value-in-sk_wait_data-v2.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+origin.patch
+git-dvb.patch
+git-input.patch
+input-reduce-raciness-when-input-handlers-disconnect.patch
+input-convert-from-class-devices-to-standard-devices.patch
+ibmasm-whitespace-cleanup.patch
+ibmasm-dont-use-extern-in-function-declarations.patch
+ibmasm-miscellaneous-fixes.patch
+ibmasm-must-depend-on-config_input.patch
