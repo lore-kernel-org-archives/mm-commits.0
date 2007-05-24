@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-dirty-hack.patch added to -mm tree
-Date: Thu, 24 May 2007 13:21:45 -0700
-Message-ID: <200705242021.l4OKLkFg001689@shell0.pdx.osdl.net>
+Subject: + pm-do-not-require-dev-spew-to-get-pm_debug.patch added to -mm tree
+Date: Thu, 24 May 2007 13:46:24 -0700
+Message-ID: <200705242046.l4OKkO9L002207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35462 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752793AbXEXUV5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750811AbXEXUqd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 16:21:57 -0400
+	Thu, 24 May 2007 16:46:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikem@beardog.cca.cpqcorp.net
+Cc: bcollins@ubuntu.com, greg@kroah.com, pavel@ucw.cz, rjw@sisk.pl, torvalds@linux-foundation.org
 
 
 The patch titled
-     cciss: dirty hack
+     PM: Do not require dev spew to get PM_DEBUG
 has been added to the -mm tree.  Its filename is
-     cciss-dirty-hack.patch
+     pm-do-not-require-dev-spew-to-get-pm_debug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cciss: dirty hack
-From: "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>
+Subject: PM: Do not require dev spew to get PM_DEBUG
+From: Ben Collins <bcollins@ubuntu.com>
 
-Not for merging - just to avoid impacting other -mm testing.
+In order to enable things like PM_TRACE, you're required to enable
+PM_DEBUG, which sends a large spew of messages on boot, and often times can
+overflow dmesg buffer.
 
+Create new PM_VERBOSE and shift that to be the option that enables
+drivers/base/power's messages.
 
+Signed-off-by: Ben Collins <bcollins@ubuntu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Greg KH <greg@kroah.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    2 +-
- drivers/block/cciss.h |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/power/Makefile |    2 +-
+ kernel/power/Kconfig        |   17 ++++++++++++-----
+ 2 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-dirty-hack drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-dirty-hack
-+++ a/drivers/block/cciss.c
-@@ -3494,7 +3494,7 @@ static void cciss_shutdown(struct pci_de
- 	} else {
- 		printk(KERN_WARNING "Error flushing cache on controller %d\n", i);
- 	}
--	free_irq(hba[i]->intr[2], hba[i]);
-+	free_irq(hba[i]->intr[SIMPLE_MODE_INT], hba[i]);
- }
+diff -puN drivers/base/power/Makefile~pm-do-not-require-dev-spew-to-get-pm_debug drivers/base/power/Makefile
+--- a/drivers/base/power/Makefile~pm-do-not-require-dev-spew-to-get-pm_debug
++++ a/drivers/base/power/Makefile
+@@ -5,6 +5,6 @@ obj-$(CONFIG_PM_TRACE)	+= trace.o
+ ifeq ($(CONFIG_DEBUG_DRIVER),y)
+ EXTRA_CFLAGS += -DDEBUG
+ endif
+-ifeq ($(CONFIG_PM_DEBUG),y)
++ifeq ($(CONFIG_PM_VERBOSE),y)
+ EXTRA_CFLAGS += -DDEBUG
+ endif
+diff -puN kernel/power/Kconfig~pm-do-not-require-dev-spew-to-get-pm_debug kernel/power/Kconfig
+--- a/kernel/power/Kconfig~pm-do-not-require-dev-spew-to-get-pm_debug
++++ a/kernel/power/Kconfig
+@@ -33,13 +33,20 @@ config PM_DEBUG
+ 	bool "Power Management Debug Support"
+ 	depends on PM
+ 	---help---
+-	This option enables verbose debugging support in the Power Management
+-	code. This is helpful when debugging and reporting various PM bugs, 
+-	like suspend support.
++	This option enables various debugging support in the Power Management
++	code. This is helpful when debugging and reporting PM bugs, like
++	suspend support.
++
++config PM_VERBOSE
++	bool "Verbose Power Management debugging"
++	depends on PM_DEBUG
++	default n
++	---help---
++	This option enables verbose messages from the Power Management code.
  
- static void __devexit cciss_remove_one(struct pci_dev *pdev)
-diff -puN drivers/block/cciss.h~cciss-dirty-hack drivers/block/cciss.h
---- a/drivers/block/cciss.h~cciss-dirty-hack
-+++ a/drivers/block/cciss.h
-@@ -70,8 +70,8 @@ struct ctlr_info 
- 	int 	highest_lun;
- 	int	usage_count;  /* number of opens all all minor devices */
- #	define DOORBELL_INT	0
--#	define PERF_MODE_INT	1
--#	define SIMPLE_MODE_INT	2
-+#	define PERF_MODE_INT	2
-+#	define SIMPLE_MODE_INT	1
- #	define MEMQ_MODE_INT	3
- 	unsigned int intr[4];
- 	unsigned int msix_vector;
+ config DISABLE_CONSOLE_SUSPEND
+ 	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
+-	depends on PM && PM_DEBUG
++	depends on PM_DEBUG
+ 	default n
+ 	---help---
+ 	This option turns off the console suspend mechanism that prevents
+@@ -50,7 +57,7 @@ config DISABLE_CONSOLE_SUSPEND
+ 
+ config PM_TRACE
+ 	bool "Suspend/resume event tracing"
+-	depends on PM && PM_DEBUG && X86_32 && EXPERIMENTAL
++	depends on PM_DEBUG && X86_32 && EXPERIMENTAL
+ 	default n
+ 	---help---
+ 	This enables some cheesy code to save the last PM event point in the
 _
 
-Patches currently in -mm which might be from mikem@beardog.cca.cpqcorp.net are
+Patches currently in -mm which might be from bcollins@ubuntu.com are
 
-cciss-dirty-hack.patch
+origin.patch
+avoid-zero-size-allocation-in-cache_k8_northbridges.patch
+cleanup-libata-hpa-support.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
