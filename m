@@ -1,85 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - display-intel-dynamic-acceleration-feature-in-proc-cpuinfo.patch removed from -mm tree
-Date: Thu, 24 May 2007 15:02:43 -0700
-Message-ID: <200705242202.l4OM2hp4004325@shell0.pdx.osdl.net>
+Subject: - forcedeth-add-vitesse-phy.patch removed from -mm tree
+Date: Thu, 24 May 2007 15:05:10 -0700
+Message-ID: <200705242205.l4OM5ATR004370@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46846 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754849AbXEXWDY (ORCPT
+	by vger.kernel.org with ESMTP id S1750988AbXEXWFt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 18:03:24 -0400
+	Thu, 24 May 2007 18:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, ak@suse.de, davej@redhat.com, len.brown@intel.com, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Display Intel Dynamic Acceleration feature in /proc/cpuinfo
+     forcedeth: add vitesse phy
 has been removed from the -mm tree.  Its filename was
-     display-intel-dynamic-acceleration-feature-in-proc-cpuinfo.patch
+     forcedeth-add-vitesse-phy.patch
 
-This patch was dropped because of patch conflicts
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Display Intel Dynamic Acceleration feature in /proc/cpuinfo
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: forcedeth: add vitesse phy
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-Display Intel Dynamic Acceleration feature in /proc/cpuinfo. This feature
-will be enabled automatically by current acpi-cpufreq driver and cpufreq.
+This patch adds errata support for the vitesse phy.
 
-Refer to Intel Software Developer's Manual for more details about the feature.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |   13 ++++++++++++-
- asm-x86_64/cpufeature.h                     |    0 
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ drivers/net/forcedeth.c |  108 ++++++++++++++++++++++++++++++++++----
+ 1 files changed, 98 insertions(+), 10 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo
-+++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -58,6 +58,7 @@ enum {
- 
- #define INTEL_MSR_RANGE		(0xffff)
- #define CPUID_6_ECX_APERFMPERF_CAPABILITY	(0x1)
-+#define CPUID_6_EAX_IDA_CAPABILITY		(0x2)
- 
- struct acpi_cpufreq_data {
- 	struct acpi_processor_performance *acpi_data;
-@@ -702,10 +703,20 @@ static int acpi_cpufreq_cpu_init(struct 
- 
- 	/* Check for APERF/MPERF support in hardware */
- 	if (c->x86_vendor == X86_VENDOR_INTEL && c->cpuid_level >= 6) {
--		unsigned int ecx;
-+		unsigned int eax, ecx;
- 		ecx = cpuid_ecx(6);
- 		if (ecx & CPUID_6_ECX_APERFMPERF_CAPABILITY)
- 			acpi_cpufreq_driver.getavg = get_measured_perf;
+diff -puN drivers/net/forcedeth.c~forcedeth-add-vitesse-phy drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-add-vitesse-phy
++++ a/drivers/net/forcedeth.c
+@@ -550,6 +550,7 @@ union ring_type {
+ /* PHY defines */
+ #define PHY_OUI_MARVELL	0x5043
+ #define PHY_OUI_CICADA	0x03f1
++#define PHY_OUI_VITESSE	0x01c1
+ #define PHYID1_OUI_MASK	0x03ff
+ #define PHYID1_OUI_SHFT	6
+ #define PHYID2_OUI_MASK	0xfc00
+@@ -557,12 +558,29 @@ union ring_type {
+ #define PHYID2_MODEL_MASK		0x03f0
+ #define PHY_MODEL_MARVELL_E3016		0x220
+ #define PHY_MARVELL_E3016_INITMASK	0x0300
+-#define PHY_INIT1	0x0f000
+-#define PHY_INIT2	0x0e00
+-#define PHY_INIT3	0x01000
+-#define PHY_INIT4	0x0200
+-#define PHY_INIT5	0x0004
+-#define PHY_INIT6	0x02000
++#define PHY_CICADA_INIT1	0x0f000
++#define PHY_CICADA_INIT2	0x0e00
++#define PHY_CICADA_INIT3	0x01000
++#define PHY_CICADA_INIT4	0x0200
++#define PHY_CICADA_INIT5	0x0004
++#define PHY_CICADA_INIT6	0x02000
++#define PHY_VITESSE_INIT_REG1	0x1f
++#define PHY_VITESSE_INIT_REG2	0x10
++#define PHY_VITESSE_INIT_REG3	0x11
++#define PHY_VITESSE_INIT_REG4	0x12
++#define PHY_VITESSE_INIT_MSK1	0xc
++#define PHY_VITESSE_INIT_MSK2	0x0180
++#define PHY_VITESSE_INIT1	0x52b5
++#define PHY_VITESSE_INIT2	0xaf8a
++#define PHY_VITESSE_INIT3	0x8
++#define PHY_VITESSE_INIT4	0x8f8a
++#define PHY_VITESSE_INIT5	0xaf86
++#define PHY_VITESSE_INIT6	0x8f86
++#define PHY_VITESSE_INIT7	0xaf82
++#define PHY_VITESSE_INIT8	0x0100
++#define PHY_VITESSE_INIT9	0x8f82
++#define PHY_VITESSE_INIT10	0x0
 +
-+		eax = cpuid_eax(6);
-+		if (eax & CPUID_6_EAX_IDA_CAPABILITY) {
-+			unsigned int i;
-+
-+			for_each_cpu_mask(i, policy->cpus) {
-+				struct cpuinfo_x86 *c = &cpu_data[i];
-+				set_bit(X86_FEATURE_IDA, c->x86_capability);
-+			}
-+		}
+ #define PHY_GIGABIT	0x0100
+ 
+ #define PHY_TIMEOUT	0x1
+@@ -1141,14 +1159,14 @@ static int phy_init(struct net_device *d
+ 	/* phy vendor specific configuration */
+ 	if ((np->phy_oui == PHY_OUI_CICADA) && (phyinterface & PHY_RGMII) ) {
+ 		phy_reserved = mii_rw(dev, np->phyaddr, MII_RESV1, MII_READ);
+-		phy_reserved &= ~(PHY_INIT1 | PHY_INIT2);
+-		phy_reserved |= (PHY_INIT3 | PHY_INIT4);
++		phy_reserved &= ~(PHY_CICADA_INIT1 | PHY_CICADA_INIT2);
++		phy_reserved |= (PHY_CICADA_INIT3 | PHY_CICADA_INIT4);
+ 		if (mii_rw(dev, np->phyaddr, MII_RESV1, phy_reserved)) {
+ 			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
+ 			return PHY_ERROR;
+ 		}
+ 		phy_reserved = mii_rw(dev, np->phyaddr, MII_NCONFIG, MII_READ);
+-		phy_reserved |= PHY_INIT5;
++		phy_reserved |= PHY_CICADA_INIT5;
+ 		if (mii_rw(dev, np->phyaddr, MII_NCONFIG, phy_reserved)) {
+ 			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
+ 			return PHY_ERROR;
+@@ -1156,12 +1174,82 @@ static int phy_init(struct net_device *d
  	}
+ 	if (np->phy_oui == PHY_OUI_CICADA) {
+ 		phy_reserved = mii_rw(dev, np->phyaddr, MII_SREVISION, MII_READ);
+-		phy_reserved |= PHY_INIT6;
++		phy_reserved |= PHY_CICADA_INIT6;
+ 		if (mii_rw(dev, np->phyaddr, MII_SREVISION, phy_reserved)) {
+ 			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
+ 			return PHY_ERROR;
+ 		}
+ 	}
++	if (np->phy_oui == PHY_OUI_VITESSE) {
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG1, PHY_VITESSE_INIT1)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG2, PHY_VITESSE_INIT2)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		phy_reserved = mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG4, MII_READ);
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG4, phy_reserved)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		phy_reserved = mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG3, MII_READ);
++		phy_reserved &= ~PHY_VITESSE_INIT_MSK1;
++		phy_reserved |= PHY_VITESSE_INIT3;
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG3, phy_reserved)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG2, PHY_VITESSE_INIT4)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG2, PHY_VITESSE_INIT5)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		phy_reserved = mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG4, MII_READ);
++		phy_reserved &= ~PHY_VITESSE_INIT_MSK1;
++		phy_reserved |= PHY_VITESSE_INIT3;
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG4, phy_reserved)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		phy_reserved = mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG3, MII_READ);
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG3, phy_reserved)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG2, PHY_VITESSE_INIT6)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG2, PHY_VITESSE_INIT7)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		phy_reserved = mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG4, MII_READ);
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG4, phy_reserved)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		phy_reserved = mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG3, MII_READ);
++		phy_reserved &= ~PHY_VITESSE_INIT_MSK2;
++		phy_reserved |= PHY_VITESSE_INIT8;
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG3, phy_reserved)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG2, PHY_VITESSE_INIT9)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++		if (mii_rw(dev, np->phyaddr, PHY_VITESSE_INIT_REG1, PHY_VITESSE_INIT10)) {
++			printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
++			return PHY_ERROR;
++		}
++	}
+ 	/* some phys clear out pause advertisment on reset, set it back */
+ 	mii_rw(dev, np->phyaddr, MII_ADVERTISE, reg);
  
- 	dprintk("CPU%u - ACPI performance management activated.\n", cpu);
-diff -puN arch/i386/kernel/cpu/proc.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo arch/i386/kernel/cpu/proc.c
-diff -puN arch/x86_64/kernel/setup.c~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo arch/x86_64/kernel/setup.c
-diff -puN include/asm-i386/cpufeature.h~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo include/asm-i386/cpufeature.h
-diff -puN include/asm-x86_64/cpufeature.h~display-intel-dynamic-acceleration-feature-in-proc-cpuinfo include/asm-x86_64/cpufeature.h
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-display-intel-dynamic-acceleration-feature-in-proc-cpuinfo.patch
+forcedeth-add-vitesse-phy.patch
+forcedeth-fix-power-management-support.patch
+forcedeth-fix-cpu-irq-mask.patch
+forcedeth-version-bump.patch
