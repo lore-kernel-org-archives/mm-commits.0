@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops.patch added to -mm tree
-Date: Thu, 24 May 2007 13:47:07 -0700
-Message-ID: <200705242047.l4OKl7e0002215@shell0.pdx.osdl.net>
+Subject: + rtc-ratelimit-lost-interrupts-message.patch added to -mm tree
+Date: Thu, 24 May 2007 13:47:44 -0700
+Message-ID: <200705242047.l4OKlioU002235@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38357 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753364AbXEXUr3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751102AbXEXUrr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 May 2007 16:47:29 -0400
+	Thu, 24 May 2007 16:47:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bcollins@ubuntu.com, marcel@holtmann.org, maxk@qualcomm.com, phillip@ubuntu.com, tim.gardner@ubuntu.com
+Cc: bcollins@ubuntu.com
 
 
 The patch titled
-     HCIUSB: Initialize the Broadcom USB Bluetooth device in Dell laptops
+     ] RTC: Ratelimit "lost interrupts" message
 has been added to the -mm tree.  Its filename is
-     hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops.patch
+     rtc-ratelimit-lost-interrupts-message.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HCIUSB: Initialize the Broadcom USB Bluetooth device in Dell laptops
+Subject: ] RTC: Ratelimit "lost interrupts" message
 From: Ben Collins <bcollins@ubuntu.com>
 
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Maxim Krasnyansky <maxk@qualcomm.com>
-Signed-off-by: Tim Gardner <tim.gardner@ubuntu.com>
-Signed-off-by: Phillip lougher <phillip@ubuntu.com>
 Signed-off-by: Ben Collins <bcollins@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/rtc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -131,7 +131,7 @@ static struct usb_device_id blacklist_id
- 	{ USB_DEVICE(0x03f0, 0x171d), .driver_info = HCI_WRONG_SCO_MTU },
+diff -puN drivers/char/rtc.c~rtc-ratelimit-lost-interrupts-message drivers/char/rtc.c
+--- a/drivers/char/rtc.c~rtc-ratelimit-lost-interrupts-message
++++ a/drivers/char/rtc.c
+@@ -1159,7 +1159,8 @@ static void rtc_dropped_irq(unsigned lon
  
- 	/* Dell laptop with Broadcom chip */
--	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_WRONG_SCO_MTU },
-+	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_WRONG_SCO_MTU|HCI_RESET },
+ 	spin_unlock_irq(&rtc_lock);
  
- 	/* Microsoft Wireless Transceiver for Bluetooth 2.0 */
- 	{ USB_DEVICE(0x045e, 0x009c), .driver_info = HCI_RESET },
+-	printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n", freq);
++	if (printk_ratelimit())
++		printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n", freq);
+ 
+ 	/* Now we have new data */
+ 	wake_up_interruptible(&rtc_wait);
 _
 
 Patches currently in -mm which might be from bcollins@ubuntu.com are
@@ -61,3 +58,4 @@ avoid-zero-size-allocation-in-cache_k8_northbridges.patch
 cleanup-libata-hpa-support.patch
 hciusb-initialize-the-broadcom-usb-bluetooth-device-in-dell-laptops.patch
 pm-do-not-require-dev-spew-to-get-pm_debug.patch
+rtc-ratelimit-lost-interrupts-message.patch
