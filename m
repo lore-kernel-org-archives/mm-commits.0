@@ -1,250 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-libata-hpa-support.patch removed from -mm tree
-Date: Thu, 24 May 2007 21:41:58 -0700
-Message-ID: <200705250441.l4P4fv5H011229@shell0.pdx.osdl.net>
+Subject: + ntfs_init_locked_inode-fix-array-indexing.patch added to -mm tree
+Date: Thu, 24 May 2007 22:49:48 -0700
+Message-ID: <200705250549.l4P5nltP012247@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60847 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751439AbXEYEmE (ORCPT
+	by vger.kernel.org with ESMTP id S1752178AbXEYFtx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 May 2007 00:42:04 -0400
+	Fri, 25 May 2007 01:49:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben.collins@ubuntu.com, bcollins@ubuntu.com, kyle@ubuntu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, aia21@cantab.net, clameter@sgi.com, hidave.darkstar@gmail.com
 
 
 The patch titled
-     Cleanup libata HPA support
-has been removed from the -mm tree.  Its filename was
-     cleanup-libata-hpa-support.patch
+     ntfs_init_locked_inode(): fix array indexing
+has been added to the -mm tree.  Its filename is
+     ntfs_init_locked_inode-fix-array-indexing.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Cleanup libata HPA support
-From: Ben Collins <ben.collins@ubuntu.com>
+Subject: ntfs_init_locked_inode(): fix array indexing
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The original HPA patch that Kyle worked on has gone into current git
-without some fixes that we worked through late in the Ubuntu feisty
-release.  Here's the main copy of the notes I sent to Alan a few weeks ago
-in regards to the original patch, and a repatch against current git to fix
-things up.  Note we have released feisty with the patch attached (albeit we
-have HPA enabled by default), and we have not had any reports directly
-attributed to it.  However, in gutsy (devel for next release, based on
-current stock linux-2.6.git), we are already seeing reports of the same
-issues we already fixed.
+Local variable `i' is a byte-counter.  Don't use it as an index into an array
+of le32's.
 
-The issues we saw were mainly that some controllers didn't return the
-correct size from the SET_MAX command (sata_nv is a good example).  So I
-added a re IDENTIFY after the SET_MAX, and compared all the numbers.  If
-re-id was correct, but return value from SET_MAX wasn't we print a warning
-and use the IDENTIFY value regardless (since that's what the device is
-going to use).
-
-ata_hpa_resize() was changed to handle everything in a single call (checks
-for HPA support of the device, and whether ignore_hpa is set or not), and
-it also sets dev->n_sectors before returning.
-
-So far with this patch, we were able to fix all the problems we were seeing
-with it (except the sata_nv issue where we had to revert to not using adma
-for NO_DATA transactions, already reported to libata-dev).  We've not had
-any reports of further problems.
-
-Cc: Kyle McMartin <kyle@ubuntu.com>
-Signed-off-by: Ben Collins <bcollins@ubuntu.com>
+Reported-by: "young dave" <hidave.darkstar@gmail.com>
+Cc: "Christoph Lameter" <clameter@sgi.com>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |  140 +++++++++++++++++++++++++-----------
- 1 files changed, 100 insertions(+), 40 deletions(-)
+ fs/ntfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~cleanup-libata-hpa-support drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~cleanup-libata-hpa-support
-+++ a/drivers/ata/libata-core.c
-@@ -819,16 +819,19 @@ void ata_id_c_string(const u16 *id, unsi
- 
- static u64 ata_tf_to_lba48(struct ata_taskfile *tf)
- {
--	u64 sectors = 0;
-+	u64 sectors;
-+	u32 high, low;
- 
--	sectors |= ((u64)(tf->hob_lbah & 0xff)) << 40;
--	sectors |= ((u64)(tf->hob_lbam & 0xff)) << 32;
--	sectors |= (tf->hob_lbal & 0xff) << 24;
--	sectors |= (tf->lbah & 0xff) << 16;
--	sectors |= (tf->lbam & 0xff) << 8;
--	sectors |= (tf->lbal & 0xff);
-+	high = (tf->hob_lbah << 16) |
-+	       (tf->hob_lbam <<  8) |
-+		tf->hob_lbal;
-+	low  = (tf->lbah << 16) |
-+	       (tf->lbam <<  8) |
-+		tf->lbal;
- 
--	return ++sectors;
-+	sectors = ((u64)high << 24) | low;
-+
-+	return sectors + 1;
- }
- 
- static u64 ata_tf_to_lba(struct ata_taskfile *tf)
-@@ -970,52 +973,107 @@ static u64 ata_set_native_max_address(st
- }
- 
- /**
-+ *	ata_hpa_get_native_size	-	Get the native size of a disk
-+ *	@dev: Device to get the size for
-+ *
-+ *	Read the size of an LBA28 or LBA48 disk with HPA features and
-+ *	return the native size. Caller must check that the drive has HPA
-+ *	feature set enabled.
-+ */
-+static u64 ata_hpa_get_native_size(struct ata_device *dev)
-+{
-+	if (ata_id_has_lba48(dev->id))
-+		return ata_read_native_max_address_ext(dev);
-+	else
-+		return ata_read_native_max_address(dev);
-+}
-+
-+
-+static u64 ata_hpa_set_native_size(struct ata_device *dev, u64 new_sectors)
-+{
-+	if (ata_id_has_lba48(dev->id))
-+		return ata_set_native_max_address_ext(dev, new_sectors);
-+	else
-+		return ata_set_native_max_address(dev, new_sectors);
-+}
-+
-+static unsigned long long sectors_to_MB(unsigned long long n)
-+{
-+	n <<= 9;		/* make it bytes */
-+	do_div(n, 1000000);	/* make it MB */
-+	return n;
-+}
-+
-+static u64 ata_id_n_sectors(const u16 *id);
-+
-+/**
-  *	ata_hpa_resize		-	Resize a device with an HPA set
-  *	@dev: Device to resize
-  *
-  *	Read the size of an LBA28 or LBA48 disk with HPA features and resize
-- *	it if required to the full size of the media. The caller must check
-- *	the drive has the HPA feature set enabled.
-+ *	it if required to the full size of the media.
-  */
- 
--static u64 ata_hpa_resize(struct ata_device *dev)
-+static int ata_hpa_resize(struct ata_device *dev)
- {
--	u64 sectors = dev->n_sectors;
- 	u64 hpa_sectors;
- 
--	if (ata_id_has_lba48(dev->id))
--		hpa_sectors = ata_read_native_max_address_ext(dev);
--	else
--		hpa_sectors = ata_read_native_max_address(dev);
-+	if (!ata_id_hpa_enabled(dev->id))
-+		return 0;
-+
-+	hpa_sectors = ata_hpa_get_native_size(dev);
- 
--	/* if no hpa, both should be equal */
--	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, "
--				"hpa_sectors = %lld\n",
--		__FUNCTION__, (long long)sectors, (long long)hpa_sectors);
-+	ata_dev_printk(dev, KERN_INFO, "%s: sectors = %lld, hpa_sectors = %lld\n",
-+		__FUNCTION__, dev->n_sectors, hpa_sectors);
-+
-+	if (ata_ignore_hpa && hpa_sectors > dev->n_sectors) {
-+		u64 ret_sectors;
- 
--	if (hpa_sectors > sectors) {
- 		ata_dev_printk(dev, KERN_INFO,
--			"Host Protected Area detected:\n"
--			"\tcurrent size: %lld sectors\n"
--			"\tnative size: %lld sectors\n",
--			(long long)sectors, (long long)hpa_sectors);
--
--		if (ata_ignore_hpa) {
--			if (ata_id_has_lba48(dev->id))
--				hpa_sectors = ata_set_native_max_address_ext(dev, hpa_sectors);
--			else
--				hpa_sectors = ata_set_native_max_address(dev,
--								hpa_sectors);
-+			"Host Protected Area detected.\n"
-+			"     current size : %llu sectors (%llu MB)\n"
-+			"     native  size : %llu sectors (%llu MB)\n",
-+			dev->n_sectors, sectors_to_MB(dev->n_sectors),
-+			hpa_sectors, sectors_to_MB(hpa_sectors));
-+
-+		ret_sectors = ata_hpa_set_native_size(dev, hpa_sectors);
-+		if (ret_sectors != hpa_sectors) {
-+			ata_dev_printk(dev, KERN_ERR,
-+				"SET of native returned %llu, expected %llu\n",
-+				ret_sectors, hpa_sectors);
-+		}
-+
-+		if (ret_sectors) {
-+			u16 *id = (void *)dev->ap->sector_buf;
-+			int rc;
-+
-+			/* Re read the IDENTITY to see if the set took */
-+			rc = ata_dev_read_id(dev, &dev->class,
-+					     ATA_READID_POSTRESET, id);
- 
--			if (hpa_sectors) {
--				ata_dev_printk(dev, KERN_INFO, "native size "
--					"increased to %lld sectors\n",
--					(long long)hpa_sectors);
--				return hpa_sectors;
-+			if (rc) {
-+				ata_dev_printk(dev, KERN_ERR,
-+					"Failed to reread ID after SET_MAX (%d)\n",
-+					rc);
-+				return -EIO;
-+			}
-+
-+			memcpy(dev->id, id, sizeof(id[0]) * ATA_ID_WORDS);
-+			dev->n_sectors = ata_id_n_sectors(dev->id);
-+
-+			if (dev->n_sectors == hpa_sectors) {
-+				ata_dev_printk(dev, KERN_INFO,
-+					"Native size increased to %llu sectors\n",
-+					hpa_sectors);
-+			} else {
-+				ata_dev_printk(dev, KERN_ERR,
-+					"Failed to set native size, "
-+					"drive reports %llu sectors\n",
-+					dev->n_sectors);
- 			}
- 		}
+diff -puN fs/ntfs/inode.c~ntfs_init_locked_inode-fix-array-indexing fs/ntfs/inode.c
+--- a/fs/ntfs/inode.c~ntfs_init_locked_inode-fix-array-indexing
++++ a/fs/ntfs/inode.c
+@@ -140,7 +140,7 @@ static int ntfs_init_locked_inode(struct
+ 		if (!ni->name)
+ 			return -ENOMEM;
+ 		memcpy(ni->name, na->name, i);
+-		ni->name[i] = 0;
++		ni->name[na->name_len] = 0;
  	}
--	return sectors;
-+	return 0;
+ 	return 0;
  }
- 
- static u64 ata_id_n_sectors(const u16 *id)
-@@ -1914,8 +1972,10 @@ int ata_dev_configure(struct ata_device 
- 					dev->flags |= ATA_DFLAG_FLUSH_EXT;
- 			}
- 
--			if (ata_id_hpa_enabled(dev->id))
--				dev->n_sectors = ata_hpa_resize(dev);
-+			/* Check for HPA, and resize if requested */
-+			rc = ata_hpa_resize(dev);
-+			if (rc)
-+				goto err_out_nosup;
- 
- 			/* config NCQ */
- 			ata_dev_config_ncq(dev, ncq_desc, sizeof(ncq_desc));
 _
 
-Patches currently in -mm which might be from ben.collins@ubuntu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-avoid-zero-size-allocation-in-cache_k8_northbridges.patch
-cleanup-libata-hpa-support.patch
+freezer-fix-kthread_create-vs-freezer-theoretical-race.patch
+capabilityh-warning-fix.patch
+simplify-cleanup_workqueue_thread.patch
+capifunc-warning-fixes.patch
+hardware-eicon-messagec-warning-fixes.patch
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+ide-warning-fixes.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+ncr5380-warning-fixes.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+arch-x86_64-vdso-vmac-needs-schedh.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+xfs-clean-up-shrinker-games.patch
+git-cryptodev.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
