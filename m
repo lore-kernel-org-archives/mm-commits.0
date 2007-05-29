@@ -1,238 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-ipvs.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:42 -0700
-Message-ID: <200705291854.l4TIsf0f008544@shell0.pdx.osdl.net>
+Subject: - bug-in-i386-mtrr-initialization.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:56:16 -0700
+Message-ID: <200705291856.l4TIuF0F008635@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58783 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757496AbXE2TEO (ORCPT
+	by vger.kernel.org with ESMTP id S1758081AbXE2TES (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 15:04:14 -0400
+	Tue, 29 May 2007 15:04:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, horms@verge.net.au, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: righiandr@users.sourceforge.net, a.righi@cineca.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: IPVS
+     bug in i386 MTRR initialization
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-ipvs.patch
+     bug-in-i386-mtrr-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: IPVS
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: bug in i386 MTRR initialization
+From: Andrea Righi <righiandr@users.sourceforge.net>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+BUG: at include/linux/slub_def.h:77 kmalloc_index()
+ [<c0168eb0>] get_slab+0x1d0/0x260
+ [<c0169056>] __kmalloc+0x16/0x70
+ [<c042b0ff>] sysenter_setup+0x6f/0x330
+ [<c010baed>] mtrr_bp_init+0xcd/0x270
+ [<c041a480>] unknown_bootoption+0x0/0x250
+ [<c041a480>] unknown_bootoption+0x0/0x250
+ [<c0423f78>] check_bugs+0x8/0x160
+ [<c01a644c>] proc_sys_init+0xc/0x30
+ [<c041a8ef>] start_kernel+0x21f/0x2b0
+ [<c041a480>] unknown_bootoption+0x0/0x250
+ =======================
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Acked-by: Simon Horman <horms@verge.net.au>
+Reproduced running 2.6.22-rc2 (using SLUB) in a virtual machine with qemu
+0.9.0 + kqemu 1.3.0pre11.  It occurs only using "-kernel-kqemu" option (full
+virtualization mode).
+
+In this case mtrr is supported by the real cpu, but no mtrr range is found,
+resulting in a kmalloc(0, GFP_KERNEL) in get_mtrr_state() and init_table().
+
+Signed-off-by: Andrea Righi <a.righi@cineca.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ipvs/Kconfig |   30 +++++-------------------------
- 1 files changed, 5 insertions(+), 25 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |    3 +++
+ arch/i386/kernel/cpu/mtrr/main.c    |    5 +++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN net/ipv4/ipvs/Kconfig~use-menuconfig-objects-ipvs net/ipv4/ipvs/Kconfig
---- a/net/ipv4/ipvs/Kconfig~use-menuconfig-objects-ipvs
-+++ a/net/ipv4/ipvs/Kconfig
-@@ -1,10 +1,7 @@
- #
- # IP Virtual Server configuration
- #
--menu	"IP: Virtual Server Configuration"
--	depends on NETFILTER
--
--config	IP_VS
-+menuconfig IP_VS
- 	tristate "IP virtual server support (EXPERIMENTAL)"
- 	depends on NETFILTER
- 	---help---
-@@ -25,9 +22,10 @@ config	IP_VS
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~bug-in-i386-mtrr-initialization arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~bug-in-i386-mtrr-initialization
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -84,6 +84,9 @@ void __init get_mtrr_state(void)
+ 	struct mtrr_var_range *vrs;
+ 	unsigned lo, dummy;
  
-+if IP_VS
++	if (!num_var_ranges)
++		return;
 +
- config	IP_VS_DEBUG
- 	bool "IP virtual server debugging"
--	depends on IP_VS
- 	---help---
- 	  Say Y here if you want to get additional messages useful in
- 	  debugging the IP virtual server code. You can change the debug
-@@ -35,7 +33,6 @@ config	IP_VS_DEBUG
+ 	if (!mtrr_state.var_ranges) {
+ 		mtrr_state.var_ranges = kmalloc(num_var_ranges * sizeof (struct mtrr_var_range), 
+ 						GFP_KERNEL);
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~bug-in-i386-mtrr-initialization arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~bug-in-i386-mtrr-initialization
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -120,6 +120,11 @@ static void __init init_table(void)
+ {
+ 	int i, max;
  
- config	IP_VS_TAB_BITS
- 	int "IPVS connection table size (the Nth power of 2)"
--	depends on IP_VS 
- 	default "12" 
- 	---help---
- 	  The IPVS connection hash table uses the chaining scheme to handle
-@@ -61,42 +58,35 @@ config	IP_VS_TAB_BITS
- 	  needed for your box.
- 
- comment "IPVS transport protocol load balancing support"
--        depends on IP_VS
- 
- config	IP_VS_PROTO_TCP
- 	bool "TCP load balancing support"
--	depends on IP_VS
- 	---help---
- 	  This option enables support for load balancing TCP transport
- 	  protocol. Say Y if unsure.
- 
- config	IP_VS_PROTO_UDP
- 	bool "UDP load balancing support"
--	depends on IP_VS
- 	---help---
- 	  This option enables support for load balancing UDP transport
- 	  protocol. Say Y if unsure.
- 
- config	IP_VS_PROTO_ESP
- 	bool "ESP load balancing support"
--	depends on IP_VS
- 	---help---
- 	  This option enables support for load balancing ESP (Encapsulation
- 	  Security Payload) transport protocol. Say Y if unsure.
- 
- config	IP_VS_PROTO_AH
- 	bool "AH load balancing support"
--	depends on IP_VS
- 	---help---
- 	  This option enables support for load balancing AH (Authentication
- 	  Header) transport protocol. Say Y if unsure.
- 
- comment "IPVS scheduler"
--        depends on IP_VS
- 
- config	IP_VS_RR
- 	tristate "round-robin scheduling"
--	depends on IP_VS
- 	---help---
- 	  The robin-robin scheduling algorithm simply directs network
- 	  connections to different real servers in a round-robin manner.
-@@ -106,7 +96,6 @@ config	IP_VS_RR
-  
- config	IP_VS_WRR
-         tristate "weighted round-robin scheduling" 
--	depends on IP_VS
- 	---help---
- 	  The weighted robin-robin scheduling algorithm directs network
- 	  connections to different real servers based on server weights
-@@ -120,7 +109,6 @@ config	IP_VS_WRR
- 
- config	IP_VS_LC
-         tristate "least-connection scheduling"
--        depends on IP_VS
- 	---help---
- 	  The least-connection scheduling algorithm directs network
- 	  connections to the server with the least number of active 
-@@ -131,7 +119,6 @@ config	IP_VS_LC
- 
- config	IP_VS_WLC
-         tristate "weighted least-connection scheduling"
--        depends on IP_VS
- 	---help---
- 	  The weighted least-connection scheduling algorithm directs network
- 	  connections to the server with the least active connections
-@@ -142,7 +129,6 @@ config	IP_VS_WLC
- 
- config	IP_VS_LBLC
- 	tristate "locality-based least-connection scheduling"
--        depends on IP_VS
- 	---help---
- 	  The locality-based least-connection scheduling algorithm is for
- 	  destination IP load balancing. It is usually used in cache cluster.
-@@ -157,7 +143,6 @@ config	IP_VS_LBLC
- 
- config  IP_VS_LBLCR
- 	tristate "locality-based least-connection with replication scheduling"
--        depends on IP_VS
- 	---help---
- 	  The locality-based least-connection with replication scheduling
- 	  algorithm is also for destination IP load balancing. It is 
-@@ -176,7 +161,6 @@ config  IP_VS_LBLCR
- 
- config	IP_VS_DH
- 	tristate "destination hashing scheduling"
--        depends on IP_VS
- 	---help---
- 	  The destination hashing scheduling algorithm assigns network
- 	  connections to the servers through looking up a statically assigned
-@@ -187,7 +171,6 @@ config	IP_VS_DH
- 
- config	IP_VS_SH
- 	tristate "source hashing scheduling"
--        depends on IP_VS
- 	---help---
- 	  The source hashing scheduling algorithm assigns network
- 	  connections to the servers through looking up a statically assigned
-@@ -198,7 +181,6 @@ config	IP_VS_SH
- 
- config	IP_VS_SED
- 	tristate "shortest expected delay scheduling"
--        depends on IP_VS
- 	---help---
- 	  The shortest expected delay scheduling algorithm assigns network
- 	  connections to the server with the shortest expected delay. The 
-@@ -212,7 +194,6 @@ config	IP_VS_SED
- 
- config	IP_VS_NQ
- 	tristate "never queue scheduling"
--        depends on IP_VS
- 	---help---
- 	  The never queue scheduling algorithm adopts a two-speed model.
- 	  When there is an idle server available, the job will be sent to
-@@ -225,11 +206,10 @@ config	IP_VS_NQ
- 	  module, choose M here. If unsure, say N.
- 
- comment 'IPVS application helper'
--	depends on IP_VS
- 
- config	IP_VS_FTP
-   	tristate "FTP protocol helper"
--        depends on IP_VS && IP_VS_PROTO_TCP
-+        depends on IP_VS_PROTO_TCP
- 	---help---
- 	  FTP is a protocol that transfers IP address and/or port number in
- 	  the payload. In the virtual server via Network Address Translation,
-@@ -241,4 +221,4 @@ config	IP_VS_FTP
- 	  If you want to compile it in kernel, say Y. To compile it as a
- 	  module, choose M here. If unsure, say N.
- 
--endmenu
-+endif # IP_VS
++        if (!num_var_ranges) {
++		printk(KERN_ERR "mtrr: no MTRR range found.\n");
++		return;
++        }
++
+ 	max = num_var_ranges;
+ 	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
+ 	    == NULL) {
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from righiandr@users.sourceforge.net are
 
-use-menuconfig-objects-acpi.patch
-git-hid.patch
-use-menuconfig-objects-ii-infiniband.patch
-git-kvm.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-ii-isdn.patch
-use-menuconfig-objects-ii-md.patch
+avr32-ratelimit-segfault-reporting-rate.patch
+x86_64-ratelimit-segfault-reporting-rate.patch
