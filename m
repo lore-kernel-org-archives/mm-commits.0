@@ -1,54 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - spi-potential-memleak-in-spidev_ioctl.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:51:06 -0700
-Message-ID: <200705291851.l4TIp59X008319@shell0.pdx.osdl.net>
+Subject: - nohz-rate-limit-the-local-softirq-pending-warning-output.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:50:38 -0700
+Message-ID: <200705291850.l4TIobwt008283@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50225 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755813AbXE2Svg (ORCPT
+	by vger.kernel.org with ESMTP id S1754573AbXE2Svf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:36 -0400
+	Tue, 29 May 2007 14:51:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fmalita@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: potential memleak in spidev_ioctl
+     NOHZ: Rate limit the local softirq pending warning output
 has been removed from the -mm tree.  Its filename was
-     spi-potential-memleak-in-spidev_ioctl.patch
+     nohz-rate-limit-the-local-softirq-pending-warning-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: potential memleak in spidev_ioctl
-From: Florin Malita <fmalita@gmail.com>
+Subject: NOHZ: Rate limit the local softirq pending warning output
+From: Thomas Gleixner <tglx@linutronix.de>
 
-'ioc' should be deallocated if __copy_from_user fails (found by Coverity
-- CID 1644).
+The warning in the NOHZ code, which triggers when a CPU goes idle with
+softirqs pending can fill up the logs quite quickly.  Rate limit the output
+until we found the root cause of that problem.
 
-Signed-off-by: Florin Malita <fmalita@gmail.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spidev.c |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/time/tick-sched.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/spidev.c~spi-potential-memleak-in-spidev_ioctl drivers/spi/spidev.c
---- a/drivers/spi/spidev.c~spi-potential-memleak-in-spidev_ioctl
-+++ a/drivers/spi/spidev.c
-@@ -364,6 +364,7 @@ spidev_ioctl(struct inode *inode, struct
- 			break;
- 		}
- 		if (__copy_from_user(ioc, (void __user *)arg, tmp)) {
-+			kfree(ioc);
- 			retval = -EFAULT;
- 			break;
- 		}
+diff -puN kernel/time/tick-sched.c~nohz-rate-limit-the-local-softirq-pending-warning-output kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~nohz-rate-limit-the-local-softirq-pending-warning-output
++++ a/kernel/time/tick-sched.c
+@@ -167,9 +167,15 @@ void tick_nohz_stop_sched_tick(void)
+ 		goto end;
+ 
+ 	cpu = smp_processor_id();
+-	if (unlikely(local_softirq_pending()))
+-		printk(KERN_ERR "NOHZ: local_softirq_pending %02x\n",
+-		       local_softirq_pending());
++	if (unlikely(local_softirq_pending())) {
++		static int ratelimit;
++
++		if (ratelimit < 10) {
++			printk(KERN_ERR "NOHZ: local_softirq_pending %02x\n",
++			       local_softirq_pending());
++			ratelimit++;
++		}
++	}
+ 
+ 	now = ktime_get();
+ 	/*
 _
 
-Patches currently in -mm which might be from fmalita@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-git-ubi.patch
+git-drm.patch
+s390-spinlock-initializer-cleanup.patch
+i386-hpet-check-if-the-counter-works.patch
