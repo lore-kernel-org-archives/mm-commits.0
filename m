@@ -1,161 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + potential-parse-error-in-ifdef.patch added to -mm tree
-Date: Tue, 29 May 2007 13:22:31 -0700
-Message-ID: <200705292022.l4TKMVRt010625@shell0.pdx.osdl.net>
+Subject: - add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch removed from -mm tree
+Date: Tue, 29 May 2007 13:27:23 -0700
+Message-ID: <200705292027.l4TKRO9r010701@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53134 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751823AbXE2UX3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753109AbXE2U2A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 16:23:29 -0400
+	Tue, 29 May 2007 16:28:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: padator@wanadoo.fr, James.Bottomley@steeleye.com, akpm@linux-foundation.org, dwmw2@infradead.org, jeff@garzik.org, matthew@wil.cx, rmk@arm.linux.org.uk, wim@iguana.be
+To: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     potential parse error in ifdef
-has been added to the -mm tree.  Its filename is
-     potential-parse-error-in-ifdef.patch
+     Mark bio_alloc() allocations correctly
+has been removed from the -mm tree.  Its filename was
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 
 ------------------------------------------------------
-Subject: potential parse error in ifdef
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: Mark bio_alloc() allocations correctly
+From: Mel Gorman <mel@csn.ul.ie>
 
-I have made a tool to parse the kernel that does not pre-process the
-source.  That means that my parser tries to parse all the code, including
-code in the #else branch or code that is not often compiled because the
-driver is not very used (or not used at all).  So, my parser sometimes
-reports parse error not originally detected by gcc.  Here is my (first)
-patch.
+bio_alloc() currently uses __GFP_MOVABLE which is plain wrong.  Objects are
+allocated with that gfp mask via mempool.  The slab that is ultimatly used is
+not reclaimable or movable.
 
-Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
-Acked-by: Matthew Wilcox <matthew@wil.cx>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/ixp2000_wdt.c |    2 +-
- drivers/mtd/devices/pmc551.c        |    2 +-
- drivers/mtd/nand/autcpu12.c         |    2 +-
- drivers/mtd/nand/ppchameleonevb.c   |    2 +-
- drivers/net/amd8111e.c              |    2 +-
- drivers/net/skfp/smt.c              |    2 +-
- drivers/scsi/aic7xxx/aic79xx_core.c |    2 +-
- sound/arm/sa11xx-uda1341.c          |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ fs/buffer.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/watchdog/ixp2000_wdt.c~potential-parse-error-in-ifdef drivers/char/watchdog/ixp2000_wdt.c
---- a/drivers/char/watchdog/ixp2000_wdt.c~potential-parse-error-in-ifdef
-+++ a/drivers/char/watchdog/ixp2000_wdt.c
-@@ -205,7 +205,7 @@ static void __exit ixp2000_wdt_exit(void
- module_init(ixp2000_wdt_init);
- module_exit(ixp2000_wdt_exit);
+diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly fs/buffer.c
+--- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly
++++ a/fs/buffer.c
+@@ -2613,7 +2613,7 @@ int submit_bh(int rw, struct buffer_head
+ 	 * from here on down, it's all bio -- do the initial mapping,
+ 	 * submit_bio -> generic_make_request may further map this bio around
+ 	 */
+-	bio = bio_alloc(GFP_NOIO|__GFP_MOVABLE, 1);
++	bio = bio_alloc(GFP_NOIO, 1);
  
--MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net">);
-+MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net>");
- MODULE_DESCRIPTION("IXP2000 Network Processor Watchdog");
- 
- module_param(heartbeat, int, 0);
-diff -puN drivers/mtd/devices/pmc551.c~potential-parse-error-in-ifdef drivers/mtd/devices/pmc551.c
---- a/drivers/mtd/devices/pmc551.c~potential-parse-error-in-ifdef
-+++ a/drivers/mtd/devices/pmc551.c
-@@ -650,7 +650,7 @@ MODULE_DESCRIPTION(PMC551_VERSION);
-  */
- static int msize = 0;
- #if defined(CONFIG_MTD_PMC551_APERTURE_SIZE)
--static int asize = CONFIG_MTD_PMC551_APERTURE_SIZE
-+static int asize = CONFIG_MTD_PMC551_APERTURE_SIZE;
- #else
- static int asize = 0;
- #endif
-diff -puN drivers/mtd/nand/autcpu12.c~potential-parse-error-in-ifdef drivers/mtd/nand/autcpu12.c
---- a/drivers/mtd/nand/autcpu12.c~potential-parse-error-in-ifdef
-+++ a/drivers/mtd/nand/autcpu12.c
-@@ -101,7 +101,7 @@ static void autcpu12_hwcontrol(struct mt
- 	struct nand_chip *chip = mtd->priv;
- 
- 	if (ctrl & NAND_CTRL_CHANGE) {
--		void __iomem *addr
-+		void __iomem *addr;
- 		unsigned char bits;
- 
- 		addr = CS89712_VIRT_BASE + AUTCPU12_SMC_PORT_OFFSET;
-diff -puN drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef drivers/mtd/nand/ppchameleonevb.c
---- a/drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef
-+++ a/drivers/mtd/nand/ppchameleonevb.c
-@@ -81,7 +81,7 @@ __setup("ppchameleonevb_fio_pbase=", ppc
-  */
- static struct mtd_partition partition_info_hi[] = {
-       { .name = "PPChameleon HI Nand Flash",
--	offset = 0,
-+	.offset = 0,
- 	.size = 128 * 1024 * 1024
-       }
- };
-diff -puN drivers/net/amd8111e.c~potential-parse-error-in-ifdef drivers/net/amd8111e.c
---- a/drivers/net/amd8111e.c~potential-parse-error-in-ifdef
-+++ a/drivers/net/amd8111e.c
-@@ -155,7 +155,7 @@ This function will write into PHY regist
- */
- static int amd8111e_write_phy(struct amd8111e_priv* lp,int phy_id, int reg, u32 val)
- {
--	unsigned int repeat = REPEAT_CNT
-+	unsigned int repeat = REPEAT_CNT;
- 	void __iomem *mmio = lp->mmio;
- 	unsigned int reg_val;
- 
-diff -puN drivers/net/skfp/smt.c~potential-parse-error-in-ifdef drivers/net/skfp/smt.c
---- a/drivers/net/skfp/smt.c~potential-parse-error-in-ifdef
-+++ a/drivers/net/skfp/smt.c
-@@ -1748,7 +1748,7 @@ char *addr_to_string(struct fddi_addr *a
- #endif
- 
- #ifdef	AM29K
--smt_ifconfig(int argc, char *argv[])
-+int smt_ifconfig(int argc, char *argv[])
- {
- 	if (argc >= 2 && !strcmp(argv[0],"opt_bypass") &&
- 	    !strcmp(argv[1],"yes")) {
-diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~potential-parse-error-in-ifdef drivers/scsi/aic7xxx/aic79xx_core.c
---- a/drivers/scsi/aic7xxx/aic79xx_core.c~potential-parse-error-in-ifdef
-+++ a/drivers/scsi/aic7xxx/aic79xx_core.c
-@@ -5180,7 +5180,7 @@ ahd_handle_devreset(struct ahd_softc *ah
- 			cur_lun = lun;
- 			max_lun = lun;
- 		}
--		for (cur_lun <= max_lun; cur_lun++) {
-+		for (;cur_lun <= max_lun; cur_lun++) {
- 			struct ahd_tmode_lstate* lstate;
- 
- 			lstate = tstate->enabled_luns[cur_lun];
-diff -puN sound/arm/sa11xx-uda1341.c~potential-parse-error-in-ifdef sound/arm/sa11xx-uda1341.c
---- a/sound/arm/sa11xx-uda1341.c~potential-parse-error-in-ifdef
-+++ a/sound/arm/sa11xx-uda1341.c
-@@ -987,7 +987,7 @@ static int __init sa11xx_uda1341_init(vo
- 		if (platform_get_drvdata(device))
- 			return 0;
- 		platform_device_unregister(device);
--		err = -ENODEV
-+		err = -ENODEV;
- 	} else
- 		err = PTR_ERR(device);
- 	platform_driver_unregister(&sa11xx_uda1341_driver);
+ 	bio->bi_sector = bh->b_blocknr * (bh->b_size >> 9);
+ 	bio->bi_bdev = bh->b_bdev;
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-atari_pamsnetc-old-declaration-ritchie-style-fix.patch
-potential-parse-error-in-ifdef.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-rename-gfp_high_movable-to-gfp_highuser_movable.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-anti-fragmentation-switch-over-to-pfn_valid_within.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
+group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
