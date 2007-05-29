@@ -1,77 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - ignore-bogus-acpi-info-for-offline-cpus.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:50:25 -0700
-Message-ID: <200705291850.l4TIoOdr008259@shell0.pdx.osdl.net>
+Subject: - optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:51:03 -0700
+Message-ID: <200705291851.l4TIp2DN008316@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48075 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752415AbXE2SvY (ORCPT
+	by vger.kernel.org with ESMTP id S1754126AbXE2Sve (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:24 -0400
+	Tue, 29 May 2007 14:51:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Ignore bogus ACPI info for offline CPUs
+     optimize compat_core_sys_select() by a using stack space for small fd sets
 has been removed from the -mm tree.  Its filename was
-     ignore-bogus-acpi-info-for-offline-cpus.patch
+     optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Ignore bogus ACPI info for offline CPUs
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: optimize compat_core_sys_select() by a using stack space for small fd sets
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Booting a SMP kernel with maxcpus=1 on a SMP system leads to a hard hang,
-because ACPI ignores the maxcpus setting and sends timer broadcast info for
-the offline CPUs.  This results in a stuck for ever call to
-smp_call_function_single() on an offline CPU.
+Optimize select by a using stack space for small fd sets. 
+core_sys_select() already has this optimization.  This is for compat
+version.
 
-Ignore the bogus information and print a kernel error to remind ACPI
-folks to fix it.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+ fs/compat.c |   17 +++++++++++------
+ 1 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN kernel/time/tick-broadcast.c~ignore-bogus-acpi-info-for-offline-cpus kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~ignore-bogus-acpi-info-for-offline-cpus
-+++ a/kernel/time/tick-broadcast.c
-@@ -243,11 +243,18 @@ void tick_broadcast_on_off(unsigned long
+diff -puN fs/compat.c~optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets fs/compat.c
+--- a/fs/compat.c~optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets
++++ a/fs/compat.c
+@@ -1544,9 +1544,10 @@ int compat_core_sys_select(int n, compat
+ 	compat_ulong_t __user *outp, compat_ulong_t __user *exp, s64 *timeout)
  {
- 	int cpu = get_cpu();
+ 	fd_set_bits fds;
+-	char *bits;
++	void *bits;
+ 	int size, max_fds, ret = -EINVAL;
+ 	struct fdtable *fdt;
++	long stack_fds[SELECT_STACK_ALLOC/sizeof(long)];
  
--	if (cpu == *oncpu)
--		tick_do_broadcast_on_off(&reason);
--	else
--		smp_call_function_single(*oncpu, tick_do_broadcast_on_off,
--					 &reason, 1, 1);
-+	if (!cpu_isset(*oncpu, cpu_online_map)) {
-+		printk(KERN_ERR "tick-braodcast: ignoring broadcast for "
-+		       "offline CPU #%d\n", *oncpu);
-+	} else {
-+
-+		if (cpu == *oncpu)
-+			tick_do_broadcast_on_off(&reason);
-+		else
-+			smp_call_function_single(*oncpu,
-+						 tick_do_broadcast_on_off,
-+						 &reason, 1, 1);
+ 	if (n < 0)
+ 		goto out_nofds;
+@@ -1564,11 +1565,14 @@ int compat_core_sys_select(int n, compat
+ 	 * since we used fdset we need to allocate memory in units of
+ 	 * long-words.
+ 	 */
+-	ret = -ENOMEM;
+ 	size = FDS_BYTES(n);
+-	bits = kmalloc(6 * size, GFP_KERNEL);
+-	if (!bits)
+-		goto out_nofds;
++	bits = stack_fds;
++	if (size > sizeof(stack_fds) / 6) {
++		bits = kmalloc(6 * size, GFP_KERNEL);
++		ret = -ENOMEM;
++		if (!bits)
++			goto out_nofds;
 +	}
- 	put_cpu();
+ 	fds.in      = (unsigned long *)  bits;
+ 	fds.out     = (unsigned long *) (bits +   size);
+ 	fds.ex      = (unsigned long *) (bits + 2*size);
+@@ -1600,7 +1604,8 @@ int compat_core_sys_select(int n, compat
+ 	    compat_set_fd_set(n, exp, fds.res_ex))
+ 		ret = -EFAULT;
+ out:
+-	kfree(bits);
++	if (bits != stack_fds)
++		kfree(bits);
+ out_nofds:
+ 	return ret;
  }
- 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-git-drm.patch
-s390-spinlock-initializer-cleanup.patch
-i386-hpet-check-if-the-counter-works.patch
+Patches currently in -mm which might be from pbadari@us.ibm.com are
