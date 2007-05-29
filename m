@@ -1,46 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch removed from -mm tree
-Date: Tue, 29 May 2007 13:29:10 -0700
-Message-ID: <200705292029.l4TKTB98010736@shell0.pdx.osdl.net>
+Subject: - group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch removed from -mm tree
+Date: Tue, 29 May 2007 13:29:15 -0700
+Message-ID: <200705292029.l4TKTFaE010743@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51940 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757693AbXE2UaR (ORCPT
+	by vger.kernel.org with ESMTP id S1758686AbXE2UaU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 16:30:17 -0400
+	Tue, 29 May 2007 16:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use SLAB_ACCOUNT_RECLAIM to determine when __GFP_RECLAIMABLE should be used
+     Do not annotate shmem allocations explicitly
 has been removed from the -mm tree.  Its filename was
-     group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
+     group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
 
 This patch was dropped because it was folded into group-short-lived-and-reclaimable-kernel-allocations.patch
 
 ------------------------------------------------------
-Subject: Use SLAB_ACCOUNT_RECLAIM to determine when __GFP_RECLAIMABLE should be used
+Subject: Do not annotate shmem allocations explicitly
 From: Mel Gorman <mel@csn.ul.ie>
 
-A number of slab caches are reclaimable and some of their allocation callsites
-were updated to use the __GFP_RECLAIMABLE flag.  However, slabs that are
-reclaimable specify the SLAB_ACCOUNT_RECLAIM flag at creation time and this
-information is available at the time of page allocation.
-
-This patch uses the SLAB_ACCOUNT_RECLAIM flag in the SLAB and SLUB allocators
-to determine if __GFP_RECLAIMABLE should be used when allocating pages.  The
-SLOB allocator is not updated as it is unlikely to be used on a system where
-grouping pages by mobility is worthwhile and now SLUB is recommended over SLOB
-for smaller systems.  The callsites for reclaimable cache allocations no
-longer specify __GFP_RECLAIMABLE as the information is redundant.  This can be
-considered as fix to
-group-short-lived-and-reclaimable-kernel-allocations.patch.
-
-Credit goes to Christoph Lameter for identifying this problem during review
-and suggesting this fix.
+shmem support allocates pages for two purposes.  Firstly, shmem_dir_alloc()
+allocates pages to track swap vectors.  These are not movable so this patch
+clears all mobility-flags related to the allocation.  Secondly,
+shmem_alloc_pages() allocates pages on behalf of shmem_getpage(), whose flags
+come from a file mapping which already sets the appropriate mobility flags. 
+These allocations do not need to be explicitly flagged so this patch removes
+the unnecessary annotations.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Andy Whitcroft <apw@shadowen.org>
@@ -48,111 +39,45 @@ Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c         |    2 +-
- fs/ext2/super.c     |    3 +--
- fs/ext3/super.c     |    2 +-
- fs/ntfs/inode.c     |    4 ++--
- fs/reiserfs/super.c |    3 +--
- mm/slab.c           |    2 ++
- mm/slub.c           |    3 +++
- 7 files changed, 11 insertions(+), 8 deletions(-)
+ mm/shmem.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN fs/dcache.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used fs/dcache.c
---- a/fs/dcache.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/fs/dcache.c
-@@ -898,7 +898,7 @@ struct dentry *d_alloc(struct dentry * p
- 	struct dentry *dentry;
- 	char *dname;
+diff -puN mm/shmem.c~group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly mm/shmem.c
+--- a/mm/shmem.c~group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly
++++ a/mm/shmem.c
+@@ -95,9 +95,9 @@ static inline struct page *shmem_dir_all
+ 	 * BLOCKS_PER_PAGE on indirect pages, assume PAGE_CACHE_SIZE:
+ 	 * might be reconsidered if it ever diverges from PAGE_SIZE.
+ 	 *
+-	 * __GFP_MOVABLE is masked out as swap vectors cannot move
++	 * Mobility flags are masked out as swap vectors cannot move
+ 	 */
+-	return alloc_pages((gfp_mask & ~__GFP_MOVABLE) | __GFP_ZERO,
++	return alloc_pages((gfp_mask & ~GFP_MOVABLE_MASK) | __GFP_ZERO,
+ 				PAGE_CACHE_SHIFT-PAGE_SHIFT);
+ }
  
--	dentry = kmem_cache_alloc(dentry_cache, GFP_KERNEL|__GFP_RECLAIMABLE);
-+	dentry = kmem_cache_alloc(dentry_cache, GFP_KERNEL);
- 	if (!dentry)
- 		return NULL;
- 
-diff -puN fs/ext2/super.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used fs/ext2/super.c
---- a/fs/ext2/super.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/fs/ext2/super.c
-@@ -140,8 +140,7 @@ static struct kmem_cache * ext2_inode_ca
- static struct inode *ext2_alloc_inode(struct super_block *sb)
+@@ -1053,9 +1053,7 @@ shmem_alloc_page(gfp_t gfp, struct shmem
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
+ 	pvma.vm_pgoff = idx;
+ 	pvma.vm_end = PAGE_SIZE;
+-	page = alloc_page_vma(
+-			set_migrateflags(gfp | __GFP_ZERO, __GFP_RECLAIMABLE),
+-								&pvma, 0);
++	page = alloc_page_vma(gfp | __GFP_ZERO, &pvma, 0);
+ 	mpol_free(pvma.vm_policy);
+ 	return page;
+ }
+@@ -1075,8 +1073,7 @@ shmem_swapin(struct shmem_inode_info *in
+ static inline struct page *
+ shmem_alloc_page(gfp_t gfp,struct shmem_inode_info *info, unsigned long idx)
  {
- 	struct ext2_inode_info *ei;
--	ei = (struct ext2_inode_info *)kmem_cache_alloc(ext2_inode_cachep,
--						GFP_KERNEL|__GFP_RECLAIMABLE);
-+	ei = (struct ext2_inode_info *)kmem_cache_alloc(ext2_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- #ifdef CONFIG_EXT2_FS_POSIX_ACL
-diff -puN fs/ext3/super.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used fs/ext3/super.c
---- a/fs/ext3/super.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/fs/ext3/super.c
-@@ -445,7 +445,7 @@ static struct inode *ext3_alloc_inode(st
- {
- 	struct ext3_inode_info *ei;
- 
--	ei = kmem_cache_alloc(ext3_inode_cachep, GFP_NOFS|__GFP_RECLAIMABLE);
-+	ei = kmem_cache_alloc(ext3_inode_cachep, GFP_NOFS);
- 	if (!ei)
- 		return NULL;
- #ifdef CONFIG_EXT3_FS_POSIX_ACL
-diff -puN fs/ntfs/inode.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used fs/ntfs/inode.c
---- a/fs/ntfs/inode.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/fs/ntfs/inode.c
-@@ -323,7 +323,7 @@ struct inode *ntfs_alloc_big_inode(struc
- 	ntfs_inode *ni;
- 
- 	ntfs_debug("Entering.");
--	ni = kmem_cache_alloc(ntfs_big_inode_cache, GFP_NOFS|__GFP_RECLAIMABLE);
-+	ni = kmem_cache_alloc(ntfs_big_inode_cache, GFP_NOFS);
- 	if (likely(ni != NULL)) {
- 		ni->state = 0;
- 		return VFS_I(ni);
-@@ -348,7 +348,7 @@ static inline ntfs_inode *ntfs_alloc_ext
- 	ntfs_inode *ni;
- 
- 	ntfs_debug("Entering.");
--	ni = kmem_cache_alloc(ntfs_inode_cache, GFP_NOFS|__GFP_RECLAIMABLE);
-+	ni = kmem_cache_alloc(ntfs_inode_cache, GFP_NOFS);
- 	if (likely(ni != NULL)) {
- 		ni->state = 0;
- 		return ni;
-diff -puN fs/reiserfs/super.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/fs/reiserfs/super.c
-@@ -496,8 +496,7 @@ static struct inode *reiserfs_alloc_inod
- {
- 	struct reiserfs_inode_info *ei;
- 	ei = (struct reiserfs_inode_info *)
--	    kmem_cache_alloc(reiserfs_inode_cachep,
--						GFP_KERNEL|__GFP_RECLAIMABLE);
-+	    kmem_cache_alloc(reiserfs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
-diff -puN mm/slab.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used mm/slab.c
---- a/mm/slab.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/mm/slab.c
-@@ -1637,6 +1637,8 @@ static void *kmem_getpages(struct kmem_c
+-	return alloc_page(
+-			set_migrateflags(gfp | __GFP_ZERO, __GFP_RECLAIMABLE));
++	return alloc_page(gfp | __GFP_ZERO);
+ }
  #endif
  
- 	flags |= cachep->gfpflags;
-+	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
-+		flags |= __GFP_RECLAIMABLE;
- 
- 	page = alloc_pages_node(nodeid, flags, cachep->gfporder);
- 	if (!page)
-diff -puN mm/slub.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used mm/slub.c
---- a/mm/slub.c~group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used
-+++ a/mm/slub.c
-@@ -985,6 +985,9 @@ static struct page *allocate_slab(struct
- 	if (s->flags & SLAB_CACHE_DMA)
- 		flags |= SLUB_DMA;
- 
-+	if (s->flags & SLAB_ACCOUNT_RECLAIM)
-+		gfpflags |= __GFP_RECLAIMABLE;
-+
- 	if (node == -1)
- 		page = alloc_pages(flags, s->order);
- 	else
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -166,8 +91,6 @@ add-a-configure-option-to-group-pages-by-mobility.patch
 drain-per-cpu-lists-when-high-order-allocations-fail.patch
 move-free-pages-between-lists-on-steal.patch
 group-short-lived-and-reclaimable-kernel-allocations.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
 group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
 group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
 group-high-order-atomic-allocations.patch
