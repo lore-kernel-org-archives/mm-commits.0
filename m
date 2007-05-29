@@ -1,191 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:36 -0700
-Message-ID: <200705291854.l4TIsZoV008536@shell0.pdx.osdl.net>
+Subject: - fix-build-failure-for-drivers-ata-pata_sccc.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:54:16 -0700
+Message-ID: <200705291854.l4TIsFCm008512@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45973 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760374AbXE2Sz1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752384AbXE2Sy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:55:27 -0400
+	Tue, 29 May 2007 14:54:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
+To: tony@bakeyournoodle.com, akira2.iguchi@toshiba.co.jp, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jgarzik@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of binary semaphore in idt77252 driver
+     Fix build failure for drivers/ata/pata_scc.c
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch
+     fix-build-failure-for-drivers-ata-pata_sccc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutex instead of binary semaphore in idt77252 driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: Fix build failure for drivers/ata/pata_scc.c
+From: Tony Breeds <tony@bakeyournoodle.com>
 
-Use mutex instead of binary semaphore in idt77252 driver.
+The commit d4b2bab4f26345ea1803feb23ea92fbe3f6b77bc added deadline support
+to prereset and reset methods to libbata the pata_scc driver wasn't
+converted.  This patch is a naive attempt to bring this driver up to
+scratch.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: chas williams <chas@cmf.nrl.navy.mil>
+Build failures are:
+drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
+drivers/ata/pata_scc.c:870: error: too few arguments to function 'ata_std_prereset'
+drivers/ata/pata_scc.c: In function 'scc_error_handler':
+drivers/ata/pata_scc.c:916: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_scc.c:916: warning: passing argument 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
+drivers/ata/pata_scc.c:871: warning: control reaches end of non-void function
+
+On a releated note scc_bus_post_reset() is (AFACT) identical to
+ata_bus_post_reset(), would a patch to make ata_bus_post_reset() assesable
+to drivers be accepted?
+
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Akira Iguchi <akira2.iguchi@toshiba.co.jp>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/idt77252.c |   27 ++++++++++++++-------------
- drivers/atm/idt77252.h |    4 ++--
- 2 files changed, 16 insertions(+), 15 deletions(-)
+ drivers/ata/pata_scc.c |   46 +++++++++++++++++++++++----------------
+ 1 files changed, 28 insertions(+), 18 deletions(-)
 
-diff -puN drivers/atm/idt77252.c~use-mutex-instead-of-binary-semaphore-in-idt77252-driver drivers/atm/idt77252.c
---- a/drivers/atm/idt77252.c~use-mutex-instead-of-binary-semaphore-in-idt77252-driver
-+++ a/drivers/atm/idt77252.c
-@@ -47,7 +47,8 @@ static char const rcsid[] =
- #include <linux/bitops.h>
- #include <linux/wait.h>
- #include <linux/jiffies.h>
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
+diff -puN drivers/ata/pata_scc.c~fix-build-failure-for-drivers-ata-pata_sccc drivers/ata/pata_scc.c
+--- a/drivers/ata/pata_scc.c~fix-build-failure-for-drivers-ata-pata_sccc
++++ a/drivers/ata/pata_scc.c
+@@ -489,23 +489,26 @@ static unsigned int scc_devchk (struct a
+  *	Note: Original code is ata_bus_post_reset().
+  */
+ 
+-static void scc_bus_post_reset (struct ata_port *ap, unsigned int devmask)
++static int scc_bus_post_reset(struct ata_port *ap, unsigned int devmask,
++                              unsigned long deadline)
+ {
+ 	struct ata_ioports *ioaddr = &ap->ioaddr;
+ 	unsigned int dev0 = devmask & (1 << 0);
+ 	unsigned int dev1 = devmask & (1 << 1);
+-	unsigned long timeout;
++	int rc;
+ 
+ 	/* if device 0 was found in ata_devchk, wait for its
+ 	 * BSY bit to clear
+ 	 */
+-	if (dev0)
+-		ata_busy_sleep(ap, ATA_TMOUT_BOOT_QUICK, ATA_TMOUT_BOOT);
++	if (dev0) {
++		rc = ata_wait_ready(ap, deadline);
++		if (rc && rc != -ENODEV)
++			return rc;
++	}
+ 
+ 	/* if device 1 was found in ata_devchk, wait for
+ 	 * register access, then wait for BSY to clear
+ 	 */
+-	timeout = jiffies + ATA_TMOUT_BOOT;
+ 	while (dev1) {
+ 		u8 nsect, lbal;
+ 
+@@ -514,14 +517,15 @@ static void scc_bus_post_reset (struct a
+ 		lbal = in_be32(ioaddr->lbal_addr);
+ 		if ((nsect == 1) && (lbal == 1))
+ 			break;
+-		if (time_after(jiffies, timeout)) {
+-			dev1 = 0;
+-			break;
+-		}
++		if (time_after(jiffies, deadline))
++			return -EBUSY;
+ 		msleep(50);	/* give drive a breather */
+ 	}
+-	if (dev1)
+-		ata_busy_sleep(ap, ATA_TMOUT_BOOT_QUICK, ATA_TMOUT_BOOT);
++	if (dev1) {
++		rc = ata_wait_ready(ap, deadline);
++		if (rc && rc != -ENODEV)
++			return rc;
++	}
+ 
+ 	/* is all this really necessary? */
+ 	ap->ops->dev_select(ap, 0);
+@@ -529,6 +533,8 @@ static void scc_bus_post_reset (struct a
+ 		ap->ops->dev_select(ap, 1);
+ 	if (dev0)
+ 		ap->ops->dev_select(ap, 0);
 +
- #include <asm/io.h>
- #include <asm/uaccess.h>
- #include <asm/atomic.h>
-@@ -2435,7 +2436,7 @@ idt77252_open(struct atm_vcc *vcc)
++	return 0;
+ }
  
- 	set_bit(ATM_VF_ADDR, &vcc->flags);
+ /**
+@@ -537,8 +543,8 @@ static void scc_bus_post_reset (struct a
+  *	Note: Original code is ata_bus_softreset().
+  */
  
--	down(&card->mutex);
-+	mutex_lock(&card->mutex);
+-static unsigned int scc_bus_softreset (struct ata_port *ap,
+-				       unsigned int devmask)
++static unsigned int scc_bus_softreset(struct ata_port *ap, unsigned int devmask,
++                                      unsigned long deadline)
+ {
+ 	struct ata_ioports *ioaddr = &ap->ioaddr;
  
- 	OPRINTK("%s: opening vpi.vci: %d.%d\n", card->name, vpi, vci);
+@@ -570,7 +576,7 @@ static unsigned int scc_bus_softreset (s
+ 	if (scc_check_status(ap) == 0xFF)
+ 		return 0;
  
-@@ -2446,7 +2447,7 @@ idt77252_open(struct atm_vcc *vcc)
- 		break;
- 	default:
- 		printk("%s: Unsupported AAL: %d\n", card->name, vcc->qos.aal);
--		up(&card->mutex);
-+		mutex_unlock(&card->mutex);
- 		return -EPROTONOSUPPORT;
- 	}
+-	scc_bus_post_reset(ap, devmask);
++	scc_bus_post_reset(ap, devmask, deadline);
  
-@@ -2455,7 +2456,7 @@ idt77252_open(struct atm_vcc *vcc)
- 		card->vcs[index] = kzalloc(sizeof(struct vc_map), GFP_KERNEL);
- 		if (!card->vcs[index]) {
- 			printk("%s: can't alloc vc in open()\n", card->name);
--			up(&card->mutex);
-+			mutex_unlock(&card->mutex);
- 			return -ENOMEM;
- 		}
- 		card->vcs[index]->card = card;
-@@ -2484,14 +2485,14 @@ idt77252_open(struct atm_vcc *vcc)
- 	if (inuse) {
- 		printk("%s: %s vci already in use.\n", card->name,
- 		       inuse == 1 ? "tx" : inuse == 2 ? "rx" : "tx and rx");
--		up(&card->mutex);
-+		mutex_unlock(&card->mutex);
- 		return -EADDRINUSE;
- 	}
- 
- 	if (vcc->qos.txtp.traffic_class != ATM_NONE) {
- 		error = idt77252_init_tx(card, vc, vcc, &vcc->qos);
- 		if (error) {
--			up(&card->mutex);
-+			mutex_unlock(&card->mutex);
- 			return error;
- 		}
- 	}
-@@ -2499,14 +2500,14 @@ idt77252_open(struct atm_vcc *vcc)
- 	if (vcc->qos.rxtp.traffic_class != ATM_NONE) {
- 		error = idt77252_init_rx(card, vc, vcc, &vcc->qos);
- 		if (error) {
--			up(&card->mutex);
-+			mutex_unlock(&card->mutex);
- 			return error;
- 		}
- 	}
- 
- 	set_bit(ATM_VF_READY, &vcc->flags);
- 
--	up(&card->mutex);
-+	mutex_unlock(&card->mutex);
  	return 0;
  }
+@@ -579,11 +585,13 @@ static unsigned int scc_bus_softreset (s
+  *	scc_std_softreset - reset host port via ATA SRST
+  *	@ap: port to reset
+  *	@classes: resulting classes of attached devices
++ *	@deadline: deadline jiffies for the operation
+  *
+  *	Note: Original code is ata_std_softreset().
+  */
  
-@@ -2520,7 +2521,7 @@ idt77252_close(struct atm_vcc *vcc)
- 	unsigned long addr;
- 	unsigned long timeout;
+-static int scc_std_softreset (struct ata_port *ap, unsigned int *classes)
++static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
++                              unsigned long deadline)
+ {
+ 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
+ 	unsigned int devmask = 0, err_mask;
+@@ -607,7 +615,7 @@ static int scc_std_softreset (struct ata
  
--	down(&card->mutex);
-+	mutex_lock(&card->mutex);
+ 	/* issue bus reset */
+ 	DPRINTK("about to softreset, devmask=%x\n", devmask);
+-	err_mask = scc_bus_softreset(ap, devmask);
++	err_mask = scc_bus_softreset(ap, devmask, deadline);
+ 	if (err_mask) {
+ 		ata_port_printk(ap, KERN_ERR, "SRST failed (err_mask=0x%x)\n",
+ 				err_mask);
+@@ -676,10 +684,11 @@ static void scc_bmdma_stop (struct ata_q
  
- 	IPRINTK("%s: idt77252_close: vc = %d (%d.%d)\n",
- 		card->name, vc->index, vcc->vpi, vcc->vci);
-@@ -2591,7 +2592,7 @@ done:
- 		free_scq(card, vc->scq);
- 	}
+ 		if (reg & INTSTS_BMSINT) {
+ 			unsigned int classes;
++			unsigned long deadline = jiffies + ATA_TMOUT_BOOT;
+ 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
+ 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
+ 			/* TBD: SW reset */
+-			scc_std_softreset(ap, &classes);
++			scc_std_softreset(ap, &classes, deadline);
+ 			continue;
+ 		}
  
--	up(&card->mutex);
-+	mutex_unlock(&card->mutex);
- }
+@@ -862,9 +871,10 @@ static void scc_bmdma_freeze (struct ata
+ /**
+  *	scc_pata_prereset - prepare for reset
+  *	@ap: ATA port to be reset
++ *	@deadline: deadline jiffies for the operation
+  */
  
- static int
-@@ -2602,7 +2603,7 @@ idt77252_change_qos(struct atm_vcc *vcc,
- 	struct vc_map *vc = vcc->dev_data;
- 	int error = 0;
- 
--	down(&card->mutex);
-+	mutex_lock(&card->mutex);
- 
- 	if (qos->txtp.traffic_class != ATM_NONE) {
- 	    	if (!test_bit(VCF_TX, &vc->flags)) {
-@@ -2648,7 +2649,7 @@ idt77252_change_qos(struct atm_vcc *vcc,
- 	set_bit(ATM_VF_HASQOS, &vcc->flags);
- 
- out:
--	up(&card->mutex);
-+	mutex_unlock(&card->mutex);
- 	return error;
- }
- 
-@@ -3709,7 +3710,7 @@ idt77252_init_one(struct pci_dev *pcidev
- 	membase = pci_resource_start(pcidev, 1);
- 	srambase = pci_resource_start(pcidev, 2);
- 
--	init_MUTEX(&card->mutex);
-+	mutex_init(&card->mutex);
- 	spin_lock_init(&card->cmd_lock);
- 	spin_lock_init(&card->tst_lock);
- 
-diff -puN drivers/atm/idt77252.h~use-mutex-instead-of-binary-semaphore-in-idt77252-driver drivers/atm/idt77252.h
---- a/drivers/atm/idt77252.h~use-mutex-instead-of-binary-semaphore-in-idt77252-driver
-+++ a/drivers/atm/idt77252.h
-@@ -37,7 +37,7 @@
- #include <linux/ptrace.h>
- #include <linux/skbuff.h>
- #include <linux/workqueue.h>
--
-+#include <linux/mutex.h>
- 
- /*****************************************************************************/
- /*                                                                           */
-@@ -359,7 +359,7 @@ struct idt77252_dev
- 	unsigned long		srambase;	/* SAR's sram  base address */
- 	void __iomem		*fbq[4];	/* FBQ fill addresses */
- 
--	struct semaphore	mutex;
-+	struct mutex		mutex;
- 	spinlock_t		cmd_lock;	/* for r/w utility/sram */
- 
- 	unsigned long		softstat;
+-static int scc_pata_prereset (struct ata_port *ap, unsigned long deadline)
++static int scc_pata_prereset(struct ata_port *ap, unsigned long deadline)
+ {
+ 	ap->cbl = ATA_CBL_PATA80;
+ 	return ata_std_prereset(ap, deadline);
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
-
-kcopyd-use-mutex-instead-of-semaphore.patch
-power-management-use-mutexes-instead-of-semaphores.patch
-sysdev-use-mutex-instead-of-semaphore.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
-use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
-use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
