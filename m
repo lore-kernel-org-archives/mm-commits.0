@@ -1,110 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - fix-unused-setup_nr_node_ids.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:51:49 -0700
-Message-ID: <200705291851.l4TIpmlW008361@shell0.pdx.osdl.net>
+Subject: - fuse-generic_write_checks-for-direct_io.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:51:42 -0700
+Message-ID: <200705291851.l4TIpfAl008355@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53537 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758017AbXE2SwP (ORCPT
+	by vger.kernel.org with ESMTP id S1757066AbXE2SwI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:52:15 -0400
+	Tue, 29 May 2007 14:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix unused setup_nr_node_ids
+     fuse: generic_write_checks() for direct_io
 has been removed from the -mm tree.  Its filename was
-     fix-unused-setup_nr_node_ids.patch
+     fuse-generic_write_checks-for-direct_io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix unused setup_nr_node_ids
+Subject: fuse: generic_write_checks() for direct_io
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-mm/page_alloc.c:931: warning: 'setup_nr_node_ids' defined but not used
+This fixes O_APPEND in direct IO mode.  Also checks writes against file size
+limits, notably rlimits.
 
-This is now the only (!) compiler warning I get in my UML build :)
+Reported by Greg Bruno.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   45 +++++++++++++++++++++++++--------------------
- 1 files changed, 25 insertions(+), 20 deletions(-)
+ fs/fuse/file.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~fix-unused-setup_nr_node_ids mm/page_alloc.c
---- a/mm/page_alloc.c~fix-unused-setup_nr_node_ids
-+++ a/mm/page_alloc.c
-@@ -136,6 +136,11 @@ static unsigned long __meminitdata dma_r
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
- 
-+#if MAX_NUMNODES > 1
-+int nr_node_ids __read_mostly = MAX_NUMNODES;
-+EXPORT_SYMBOL(nr_node_ids);
-+#endif
-+
- #ifdef CONFIG_DEBUG_VM
- static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
- {
-@@ -669,26 +674,6 @@ static int rmqueue_bulk(struct zone *zon
- 	return i;
+diff -puN fs/fuse/file.c~fuse-generic_write_checks-for-direct_io fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-generic_write_checks-for-direct_io
++++ a/fs/fuse/file.c
+@@ -610,7 +610,9 @@ static ssize_t fuse_direct_write(struct 
+ 	ssize_t res;
+ 	/* Don't allow parallel writes to the same file */
+ 	mutex_lock(&inode->i_mutex);
+-	res = fuse_direct_io(file, buf, count, ppos, 1);
++	res = generic_write_checks(file, ppos, &count, 0);
++	if (!res)
++		res = fuse_direct_io(file, buf, count, ppos, 1);
+ 	mutex_unlock(&inode->i_mutex);
+ 	return res;
  }
- 
--#if MAX_NUMNODES > 1
--int nr_node_ids __read_mostly = MAX_NUMNODES;
--EXPORT_SYMBOL(nr_node_ids);
--
--/*
-- * Figure out the number of possible node ids.
-- */
--static void __init setup_nr_node_ids(void)
--{
--	unsigned int node;
--	unsigned int highest = 0;
--
--	for_each_node_mask(node, node_possible_map)
--		highest = node;
--	nr_node_ids = highest + 1;
--}
--#else
--static void __init setup_nr_node_ids(void) {}
--#endif
--
- #ifdef CONFIG_NUMA
- /*
-  * Called from the vmstat counter updater to drain pagesets of this
-@@ -2733,6 +2718,26 @@ void __meminit free_area_init_node(int n
- }
- 
- #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
-+
-+#if MAX_NUMNODES > 1
-+/*
-+ * Figure out the number of possible node ids.
-+ */
-+static void __init setup_nr_node_ids(void)
-+{
-+	unsigned int node;
-+	unsigned int highest = 0;
-+
-+	for_each_node_mask(node, node_possible_map)
-+		highest = node;
-+	nr_node_ids = highest + 1;
-+}
-+#else
-+static inline void setup_nr_node_ids(void)
-+{
-+}
-+#endif
-+
- /**
-  * add_active_range - Register a range of PFNs backed by physical memory
-  * @nid: The node ID the range resides on
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
