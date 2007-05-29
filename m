@@ -1,86 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-use-irq_handler_t-where-appropriate.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:55:33 -0700
-Message-ID: <200705291855.l4TItWhN008587@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-dccp.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:54:39 -0700
+Message-ID: <200705291854.l4TIsciD008541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57925 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765280AbXE2S4K (ORCPT
+	by vger.kernel.org with ESMTP id S1765280AbXE2S4Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:56:10 -0400
+	Tue, 29 May 2007 14:56:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, andrew.vasquez@qlogic.com, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, acme@conectiva.com.br, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI: use irq_handler_t where appropriate
+     Use menuconfig objects: DCCP
 has been removed from the -mm tree.  Its filename was
-     scsi-use-irq_handler_t-where-appropriate.patch
+     use-menuconfig-objects-dccp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCSI: use irq_handler_t where appropriate
-From: Jeff Garzik <jeff@garzik.org>
+Subject: Use menuconfig objects: DCCP
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
-Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/aacraid.h |    2 +-
- drivers/scsi/qla2xxx/qla_isr.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/dccp/Kconfig |   15 +++++++--------
+ 1 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/aacraid/aacraid.h~scsi-use-irq_handler_t-where-appropriate drivers/scsi/aacraid/aacraid.h
---- a/drivers/scsi/aacraid/aacraid.h~scsi-use-irq_handler_t-where-appropriate
-+++ a/drivers/scsi/aacraid/aacraid.h
-@@ -464,7 +464,7 @@ struct adapter_ops
- 	int  (*adapter_restart)(struct aac_dev *dev, int bled);
- 	/* Transport operations */
- 	int  (*adapter_ioremap)(struct aac_dev * dev, u32 size);
--	irqreturn_t (*adapter_intr)(int irq, void *dev_id);
-+	irq_handler_t adapter_intr;
- 	/* Packet operations */
- 	int  (*adapter_deliver)(struct fib * fib);
- 	int  (*adapter_bounds)(struct aac_dev * dev, struct scsi_cmnd * cmd, u64 lba);
-diff -puN drivers/scsi/qla2xxx/qla_isr.c~scsi-use-irq_handler_t-where-appropriate drivers/scsi/qla2xxx/qla_isr.c
---- a/drivers/scsi/qla2xxx/qla_isr.c~scsi-use-irq_handler_t-where-appropriate
-+++ a/drivers/scsi/qla2xxx/qla_isr.c
-@@ -1633,7 +1633,7 @@ struct qla_init_msix_entry {
- 	uint16_t entry;
- 	uint16_t index;
- 	const char *name;
--	irqreturn_t (*handler)(int, void *);
-+	irq_handler_t handler;
- };
+diff -puN net/dccp/Kconfig~use-menuconfig-objects-dccp net/dccp/Kconfig
+--- a/net/dccp/Kconfig~use-menuconfig-objects-dccp
++++ a/net/dccp/Kconfig
+@@ -1,8 +1,6 @@
+-menu "DCCP Configuration (EXPERIMENTAL)"
+-	depends on INET && EXPERIMENTAL
+-
+-config IP_DCCP
++menuconfig IP_DCCP
+ 	tristate "The DCCP Protocol (EXPERIMENTAL)"
++	depends on INET && EXPERIMENTAL
+ 	---help---
+ 	  Datagram Congestion Control Protocol (RFC 4340)
  
- static struct qla_init_msix_entry imsix_entries[QLA_MSIX_ENTRIES] = {
+@@ -19,19 +17,20 @@ config IP_DCCP
+ 
+ 	  If in doubt, say N.
+ 
++if IP_DCCP
++
+ config INET_DCCP_DIAG
+-	depends on IP_DCCP && INET_DIAG
++	depends on INET_DIAG
+ 	def_tristate y if (IP_DCCP = y && INET_DIAG = y)
+ 	def_tristate m
+ 
+ config IP_DCCP_ACKVEC
+-	depends on IP_DCCP
+ 	bool
+ 
+ source "net/dccp/ccids/Kconfig"
+ 
+ menu "DCCP Kernel Hacking"
+-	depends on IP_DCCP && DEBUG_KERNEL=y
++	depends on DEBUG_KERNEL=y
+ 
+ config IP_DCCP_DEBUG
+ 	bool "DCCP debug messages"
+@@ -61,4 +60,4 @@ config NET_DCCPPROBE
+ 
+ endmenu
+ 
+-endmenu
++endif # IP_DDCP
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-pci-quirks-fix-msi-disabling-on-rs400-200-and-rs480.patch
-git-ieee1394.patch
-git-libata-all.patch
-git-ubi.patch
-git-netdev-all.patch
-8139too-force-media-setting-fix.patch
-blackfin-on-chip-ethernet-mac-controller-driver.patch
+use-menuconfig-objects-acpi.patch
+git-hid.patch
+use-menuconfig-objects-ii-infiniband.patch
+git-kvm.patch
 use-menuconfig-objects-ii-netdev-general100mbit.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-ioat.patch
-remove-pci_dac_dma_-apis.patch
-git-pciseg.patch
-pci-device-ensure-sysdata-initialised-v2.patch
-s390-spinlock-initializer-cleanup.patch
-git-scsi-misc.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-add-select-phylib-to-the-ucc_geth-kconfig-option.patch
-lguest-the-guest-code-tidyups-update.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-tidyups-update.patch
-git-gccbug.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
