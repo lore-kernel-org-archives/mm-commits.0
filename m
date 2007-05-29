@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ams-switch-to-using-input-polldev.patch added to -mm tree
-Date: Tue, 29 May 2007 13:18:25 -0700
-Message-ID: <200705292018.l4TKIP5f010543@shell0.pdx.osdl.net>
+Subject: + potential-parse-error-in-ifdef.patch added to -mm tree
+Date: Tue, 29 May 2007 13:22:31 -0700
+Message-ID: <200705292022.l4TKMVRt010625@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46024 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751875AbXE2UTm (ORCPT
+	by vger.kernel.org with ESMTP id S1751823AbXE2UX3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 16:19:42 -0400
+	Tue, 29 May 2007 16:23:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dtor@insightbb.com, dtor@mail.ru, khali@linux-fr.org, nicolas@boichat.ch, rlove@rlove.org, stelian@popies.net
+Cc: padator@wanadoo.fr, James.Bottomley@steeleye.com, akpm@linux-foundation.org, dwmw2@infradead.org, jeff@garzik.org, matthew@wil.cx, rmk@arm.linux.org.uk, wim@iguana.be
 
 
 The patch titled
-     ams: switch to using input-polldev
+     potential parse error in ifdef
 has been added to the -mm tree.  Its filename is
-     ams-switch-to-using-input-polldev.patch
+     potential-parse-error-in-ifdef.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,190 +26,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ams: switch to using input-polldev
-From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: potential parse error in ifdef
+From: Yoann Padioleau <padator@wanadoo.fr>
 
-Switch to using input-polldev skeleton instead of implementing polling loop by
-itself.
+I have made a tool to parse the kernel that does not pre-process the
+source.  That means that my parser tries to parse all the code, including
+code in the #else branch or code that is not often compiled because the
+driver is not very used (or not used at all).  So, my parser sometimes
+reports parse error not originally detected by gcc.  Here is my (first)
+patch.
 
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Stelian Pop <stelian@popies.net>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
+Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
+Acked-by: Matthew Wilcox <matthew@wil.cx>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/Kconfig         |    1 
- drivers/hwmon/ams/ams-input.c |   82 +++++++++++++-------------------
- drivers/hwmon/ams/ams.h       |    5 -
- 3 files changed, 38 insertions(+), 50 deletions(-)
+ drivers/char/watchdog/ixp2000_wdt.c |    2 +-
+ drivers/mtd/devices/pmc551.c        |    2 +-
+ drivers/mtd/nand/autcpu12.c         |    2 +-
+ drivers/mtd/nand/ppchameleonevb.c   |    2 +-
+ drivers/net/amd8111e.c              |    2 +-
+ drivers/net/skfp/smt.c              |    2 +-
+ drivers/scsi/aic7xxx/aic79xx_core.c |    2 +-
+ sound/arm/sa11xx-uda1341.c          |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/hwmon/Kconfig~ams-switch-to-using-input-polldev drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~ams-switch-to-using-input-polldev
-+++ a/drivers/hwmon/Kconfig
-@@ -131,6 +131,7 @@ config SENSORS_K8TEMP
- config SENSORS_AMS
- 	tristate "Apple Motion Sensor driver"
- 	depends on PPC_PMAC && !PPC64 && INPUT && ((ADB_PMU && I2C = y) || (ADB_PMU && !I2C) || I2C) && EXPERIMENTAL
-+	select INPUT_POLLDEV
- 	help
- 	  Support for the motion sensor included in PowerBooks. Includes
- 	  implementations for PMU and I2C.
-diff -puN drivers/hwmon/ams/ams-input.c~ams-switch-to-using-input-polldev drivers/hwmon/ams/ams-input.c
---- a/drivers/hwmon/ams/ams-input.c~ams-switch-to-using-input-polldev
-+++ a/drivers/hwmon/ams/ams-input.c
-@@ -27,47 +27,32 @@ static unsigned int invert;
- module_param(invert, bool, 0644);
- MODULE_PARM_DESC(invert, "Invert input data on X and Y axis");
+diff -puN drivers/char/watchdog/ixp2000_wdt.c~potential-parse-error-in-ifdef drivers/char/watchdog/ixp2000_wdt.c
+--- a/drivers/char/watchdog/ixp2000_wdt.c~potential-parse-error-in-ifdef
++++ a/drivers/char/watchdog/ixp2000_wdt.c
+@@ -205,7 +205,7 @@ static void __exit ixp2000_wdt_exit(void
+ module_init(ixp2000_wdt_init);
+ module_exit(ixp2000_wdt_exit);
  
--static int ams_input_kthread(void *data)
-+static void ams_idev_poll(struct input_polled_dev *dev)
+-MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net">);
++MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net>");
+ MODULE_DESCRIPTION("IXP2000 Network Processor Watchdog");
+ 
+ module_param(heartbeat, int, 0);
+diff -puN drivers/mtd/devices/pmc551.c~potential-parse-error-in-ifdef drivers/mtd/devices/pmc551.c
+--- a/drivers/mtd/devices/pmc551.c~potential-parse-error-in-ifdef
++++ a/drivers/mtd/devices/pmc551.c
+@@ -650,7 +650,7 @@ MODULE_DESCRIPTION(PMC551_VERSION);
+  */
+ static int msize = 0;
+ #if defined(CONFIG_MTD_PMC551_APERTURE_SIZE)
+-static int asize = CONFIG_MTD_PMC551_APERTURE_SIZE
++static int asize = CONFIG_MTD_PMC551_APERTURE_SIZE;
+ #else
+ static int asize = 0;
+ #endif
+diff -puN drivers/mtd/nand/autcpu12.c~potential-parse-error-in-ifdef drivers/mtd/nand/autcpu12.c
+--- a/drivers/mtd/nand/autcpu12.c~potential-parse-error-in-ifdef
++++ a/drivers/mtd/nand/autcpu12.c
+@@ -101,7 +101,7 @@ static void autcpu12_hwcontrol(struct mt
+ 	struct nand_chip *chip = mtd->priv;
+ 
+ 	if (ctrl & NAND_CTRL_CHANGE) {
+-		void __iomem *addr
++		void __iomem *addr;
+ 		unsigned char bits;
+ 
+ 		addr = CS89712_VIRT_BASE + AUTCPU12_SMC_PORT_OFFSET;
+diff -puN drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef drivers/mtd/nand/ppchameleonevb.c
+--- a/drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef
++++ a/drivers/mtd/nand/ppchameleonevb.c
+@@ -81,7 +81,7 @@ __setup("ppchameleonevb_fio_pbase=", ppc
+  */
+ static struct mtd_partition partition_info_hi[] = {
+       { .name = "PPChameleon HI Nand Flash",
+-	offset = 0,
++	.offset = 0,
+ 	.size = 128 * 1024 * 1024
+       }
+ };
+diff -puN drivers/net/amd8111e.c~potential-parse-error-in-ifdef drivers/net/amd8111e.c
+--- a/drivers/net/amd8111e.c~potential-parse-error-in-ifdef
++++ a/drivers/net/amd8111e.c
+@@ -155,7 +155,7 @@ This function will write into PHY regist
+ */
+ static int amd8111e_write_phy(struct amd8111e_priv* lp,int phy_id, int reg, u32 val)
  {
-+	struct input_dev *idev = dev->input;
- 	s8 x, y, z;
+-	unsigned int repeat = REPEAT_CNT
++	unsigned int repeat = REPEAT_CNT;
+ 	void __iomem *mmio = lp->mmio;
+ 	unsigned int reg_val;
  
--	while (!kthread_should_stop()) {
--		mutex_lock(&ams_info.lock);
--
--		ams_sensors(&x, &y, &z);
--
--		x -= ams_info.xcalib;
--		y -= ams_info.ycalib;
--		z -= ams_info.zcalib;
--
--		input_report_abs(ams_info.idev, ABS_X, invert ? -x : x);
--		input_report_abs(ams_info.idev, ABS_Y, invert ? -y : y);
--		input_report_abs(ams_info.idev, ABS_Z, z);
--
--		input_sync(ams_info.idev);
--
--		mutex_unlock(&ams_info.lock);
-+	mutex_lock(&ams_info.lock);
- 
--		msleep(25);
--	}
-+	ams_sensors(&x, &y, &z);
- 
--	return 0;
--}
-+	x -= ams_info.xcalib;
-+	y -= ams_info.ycalib;
-+	z -= ams_info.zcalib;
-+
-+	input_report_abs(idev, ABS_X, invert ? -x : x);
-+	input_report_abs(idev, ABS_Y, invert ? -y : y);
-+	input_report_abs(idev, ABS_Z, z);
- 
--static int ams_input_open(struct input_dev *dev)
--{
--	ams_info.kthread = kthread_run(ams_input_kthread, NULL, "kams");
--	return IS_ERR(ams_info.kthread) ? PTR_ERR(ams_info.kthread) : 0;
--}
-+	input_sync(idev);
- 
--static void ams_input_close(struct input_dev *dev)
--{
--	kthread_stop(ams_info.kthread);
-+	mutex_unlock(&ams_info.lock);
- }
- 
- /* Call with ams_info.lock held! */
- static void ams_input_enable(void)
- {
-+	struct input_dev *input;
- 	s8 x, y, z;
- 
- 	if (ams_info.idev)
-@@ -78,27 +63,29 @@ static void ams_input_enable(void)
- 	ams_info.ycalib = y;
- 	ams_info.zcalib = z;
- 
--	ams_info.idev = input_allocate_device();
-+	ams_info.idev = input_allocate_polled_device();
- 	if (!ams_info.idev)
- 		return;
- 
--	ams_info.idev->name = "Apple Motion Sensor";
--	ams_info.idev->id.bustype = ams_info.bustype;
--	ams_info.idev->id.vendor = 0;
--	ams_info.idev->open = ams_input_open;
--	ams_info.idev->close = ams_input_close;
--	ams_info.idev->dev.parent = &ams_info.of_dev->dev;
--
--	input_set_abs_params(ams_info.idev, ABS_X, -50, 50, 3, 0);
--	input_set_abs_params(ams_info.idev, ABS_Y, -50, 50, 3, 0);
--	input_set_abs_params(ams_info.idev, ABS_Z, -50, 50, 3, 0);
--
--	set_bit(EV_ABS, ams_info.idev->evbit);
--	set_bit(EV_KEY, ams_info.idev->evbit);
--	set_bit(BTN_TOUCH, ams_info.idev->keybit);
-+	ams_info.idev->poll = ams_idev_poll;
-+	ams_info.idev->poll_interval = 25;
-+
-+	input = ams_info.idev->input;
-+	input->name = "Apple Motion Sensor";
-+	input->id.bustype = ams_info.bustype;
-+	input->id.vendor = 0;
-+	input->dev.parent = &ams_info.of_dev->dev;
-+
-+	input_set_abs_params(input, ABS_X, -50, 50, 3, 0);
-+	input_set_abs_params(input, ABS_Y, -50, 50, 3, 0);
-+	input_set_abs_params(input, ABS_Z, -50, 50, 3, 0);
-+
-+	set_bit(EV_ABS, input->evbit);
-+	set_bit(EV_KEY, input->evbit);
-+	set_bit(BTN_TOUCH, input->keybit);
- 
--	if (input_register_device(ams_info.idev)) {
--		input_free_device(ams_info.idev);
-+	if (input_register_polled_device(ams_info.idev)) {
-+		input_free_polled_device(ams_info.idev);
- 		ams_info.idev = NULL;
- 		return;
- 	}
-@@ -108,7 +95,8 @@ static void ams_input_enable(void)
- static void ams_input_disable(void)
- {
- 	if (ams_info.idev) {
--		input_unregister_device(ams_info.idev);
-+		input_unregister_polled_device(ams_info.idev);
-+		input_free_polled_device(ams_info.idev);
- 		ams_info.idev = NULL;
- 	}
- }
-diff -puN drivers/hwmon/ams/ams.h~ams-switch-to-using-input-polldev drivers/hwmon/ams/ams.h
---- a/drivers/hwmon/ams/ams.h~ams-switch-to-using-input-polldev
-+++ a/drivers/hwmon/ams/ams.h
-@@ -1,5 +1,5 @@
- #include <linux/i2c.h>
--#include <linux/input.h>
-+#include <linux/input-polldev.h>
- #include <linux/kthread.h>
- #include <linux/mutex.h>
- #include <linux/spinlock.h>
-@@ -52,8 +52,7 @@ struct ams {
+diff -puN drivers/net/skfp/smt.c~potential-parse-error-in-ifdef drivers/net/skfp/smt.c
+--- a/drivers/net/skfp/smt.c~potential-parse-error-in-ifdef
++++ a/drivers/net/skfp/smt.c
+@@ -1748,7 +1748,7 @@ char *addr_to_string(struct fddi_addr *a
  #endif
  
- 	/* Joystick emulation */
--	struct task_struct *kthread;
--	struct input_dev *idev;
-+	struct input_polled_dev *idev;
- 	__u16 bustype;
+ #ifdef	AM29K
+-smt_ifconfig(int argc, char *argv[])
++int smt_ifconfig(int argc, char *argv[])
+ {
+ 	if (argc >= 2 && !strcmp(argv[0],"opt_bypass") &&
+ 	    !strcmp(argv[1],"yes")) {
+diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~potential-parse-error-in-ifdef drivers/scsi/aic7xxx/aic79xx_core.c
+--- a/drivers/scsi/aic7xxx/aic79xx_core.c~potential-parse-error-in-ifdef
++++ a/drivers/scsi/aic7xxx/aic79xx_core.c
+@@ -5180,7 +5180,7 @@ ahd_handle_devreset(struct ahd_softc *ah
+ 			cur_lun = lun;
+ 			max_lun = lun;
+ 		}
+-		for (cur_lun <= max_lun; cur_lun++) {
++		for (;cur_lun <= max_lun; cur_lun++) {
+ 			struct ahd_tmode_lstate* lstate;
  
- 	/* calibrated null values */
+ 			lstate = tstate->enabled_luns[cur_lun];
+diff -puN sound/arm/sa11xx-uda1341.c~potential-parse-error-in-ifdef sound/arm/sa11xx-uda1341.c
+--- a/sound/arm/sa11xx-uda1341.c~potential-parse-error-in-ifdef
++++ a/sound/arm/sa11xx-uda1341.c
+@@ -987,7 +987,7 @@ static int __init sa11xx_uda1341_init(vo
+ 		if (platform_get_drvdata(device))
+ 			return 0;
+ 		platform_device_unregister(device);
+-		err = -ENODEV
++		err = -ENODEV;
+ 	} else
+ 		err = PTR_ERR(device);
+ 	platform_driver_unregister(&sa11xx_uda1341_driver);
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from padator@wanadoo.fr are
 
-git-dvb.patch
-hdaps-switch-to-using-input-polldev.patch
-applesmc-switch-to-using-input-polldev.patch
-ams-switch-to-using-input-polldev.patch
-git-input.patch
-input-reduce-raciness-when-input-handlers-disconnect.patch
-input-convert-from-class-devices-to-standard-devices.patch
-ibmasm-whitespace-cleanup.patch
-ibmasm-dont-use-extern-in-function-declarations.patch
-ibmasm-miscellaneous-fixes.patch
-ibmasm-must-depend-on-config_input.patch
+atari_pamsnetc-old-declaration-ritchie-style-fix.patch
+potential-parse-error-in-ifdef.patch
