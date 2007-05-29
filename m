@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-buffered-write-iterator.patch added to -mm tree
-Date: Tue, 29 May 2007 14:19:51 -0700
-Message-ID: <200705292119.l4TLJpNS011718@shell0.pdx.osdl.net>
+Subject: + mm-buffered-write-cleanup.patch added to -mm tree
+Date: Tue, 29 May 2007 14:19:45 -0700
+Message-ID: <200705292119.l4TLJjZX011708@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57155 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752681AbXE2VT5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752409AbXE2VTv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:19:57 -0400
+	Tue, 29 May 2007 17:19:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: buffered write iterator
+     mm: buffered write cleanup
 has been added to the -mm tree.  Its filename is
-     mm-buffered-write-iterator.patch
+     mm-buffered-write-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,403 +26,404 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: buffered write iterator
+Subject: mm: buffered write cleanup
 From: Nick Piggin <npiggin@suse.de>
 
-Add an iterator data structure to operate over an iovec.  Add usercopy
-operators needed by generic_file_buffered_write, and convert that function
-over.
+Quite a bit of code is used in maintaining these "cached pages" that are
+probably pretty unlikely to get used. It would require a narrow race where
+the page is inserted concurrently while this process is allocating a page
+in order to create the spare page. Then a multi-page write into an uncached
+part of the file, to make use of it.
+
+Next, the buffered write path (and others) uses its own LRU pagevec when it
+should be just using the per-CPU LRU pagevec (which will cut down on both data
+and code size cacheline footprint). Also, these private LRU pagevecs are
+emptied after just a very short time, in contrast with the per-CPU pagevecs
+that are persistent. Net result: 7.3 times fewer lru_lock acquisitions required
+to add the pages to pagecache for a bulk write (in 4K chunks).
+
+[this gets rid of some cond_resched() calls in readahead.c and mpage.c due
+ to clashes in -mm. What put them there, and why? ]
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   33 +++++++++
- mm/filemap.c       |  144 ++++++++++++++++++++++++++++++++++---------
- mm/filemap.h       |  103 ------------------------------
- 3 files changed, 150 insertions(+), 130 deletions(-)
+ fs/mpage.c     |   10 ---
+ mm/filemap.c   |  145 ++++++++++++++++++-----------------------------
+ mm/readahead.c |   24 ++-----
+ 3 files changed, 66 insertions(+), 113 deletions(-)
 
-diff -puN include/linux/fs.h~mm-buffered-write-iterator include/linux/fs.h
---- a/include/linux/fs.h~mm-buffered-write-iterator
-+++ a/include/linux/fs.h
-@@ -398,6 +398,39 @@ struct page;
- struct address_space;
- struct writeback_control;
+diff -puN fs/mpage.c~mm-buffered-write-cleanup fs/mpage.c
+--- a/fs/mpage.c~mm-buffered-write-cleanup
++++ a/fs/mpage.c
+@@ -387,31 +387,25 @@ mpage_readpages(struct address_space *ma
+ 	struct bio *bio = NULL;
+ 	unsigned page_idx;
+ 	sector_t last_block_in_bio = 0;
+-	struct pagevec lru_pvec;
+ 	struct buffer_head map_bh;
+ 	unsigned long first_logical_block = 0;
  
-+struct iov_iter {
-+	const struct iovec *iov;
-+	unsigned long nr_segs;
-+	size_t iov_offset;
-+	size_t count;
-+};
-+
-+size_t iov_iter_copy_from_user_atomic(struct page *page,
-+		struct iov_iter *i, unsigned long offset, size_t bytes);
-+size_t iov_iter_copy_from_user(struct page *page,
-+		struct iov_iter *i, unsigned long offset, size_t bytes);
-+void iov_iter_advance(struct iov_iter *i, size_t bytes);
-+int iov_iter_fault_in_readable(struct iov_iter *i);
-+size_t iov_iter_single_seg_count(struct iov_iter *i);
-+
-+static inline void iov_iter_init(struct iov_iter *i,
-+			const struct iovec *iov, unsigned long nr_segs,
-+			size_t count, size_t written)
-+{
-+	i->iov = iov;
-+	i->nr_segs = nr_segs;
-+	i->iov_offset = 0;
-+	i->count = count + written;
-+
-+	iov_iter_advance(i, written);
-+}
-+
-+static inline size_t iov_iter_count(struct iov_iter *i)
-+{
-+	return i->count;
-+}
-+
-+
- struct address_space_operations {
- 	int (*writepage)(struct page *page, struct writeback_control *wbc);
- 	int (*readpage)(struct file *, struct page *);
-diff -puN mm/filemap.c~mm-buffered-write-iterator mm/filemap.c
---- a/mm/filemap.c~mm-buffered-write-iterator
+ 	clear_buffer_mapped(&map_bh);
+-	pagevec_init(&lru_pvec, 0);
+ 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
+ 		struct page *page = list_entry(pages->prev, struct page, lru);
+ 
+ 		prefetchw(&page->flags);
+ 		list_del(&page->lru);
+-		if (!add_to_page_cache(page, mapping,
++		if (!add_to_page_cache_lru(page, mapping,
+ 					page->index, GFP_KERNEL)) {
+ 			bio = do_mpage_readpage(bio, page,
+ 					nr_pages - page_idx,
+ 					&last_block_in_bio, &map_bh,
+ 					&first_logical_block,
+ 					get_block);
+-			if (!pagevec_add(&lru_pvec, page))
+-				__pagevec_lru_add(&lru_pvec);
+-		} else {
+-			page_cache_release(page);
+ 		}
++		page_cache_release(page);
+ 	}
+-	pagevec_lru_add(&lru_pvec);
+ 	BUG_ON(!list_empty(pages));
+ 	if (bio)
+ 		mpage_bio_submit(READ, bio);
+diff -puN mm/filemap.c~mm-buffered-write-cleanup mm/filemap.c
+--- a/mm/filemap.c~mm-buffered-write-cleanup
 +++ a/mm/filemap.c
-@@ -30,7 +30,7 @@
- #include <linux/security.h>
- #include <linux/syscalls.h>
- #include <linux/cpuset.h>
--#include "filemap.h"
-+#include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
- #include "internal.h"
- 
- /*
-@@ -1687,8 +1687,7 @@ int remove_suid(struct dentry *dentry)
- }
- EXPORT_SYMBOL(remove_suid);
- 
--size_t
--__filemap_copy_from_user_iovec_inatomic(char *vaddr,
-+static size_t __iovec_copy_from_user_inatomic(char *vaddr,
- 			const struct iovec *iov, size_t base, size_t bytes)
+@@ -665,27 +665,22 @@ EXPORT_SYMBOL(find_lock_page);
+ struct page *find_or_create_page(struct address_space *mapping,
+ 		unsigned long index, gfp_t gfp_mask)
  {
- 	size_t copied = 0, left = 0;
-@@ -1711,6 +1710,110 @@ __filemap_copy_from_user_iovec_inatomic(
+-	struct page *page, *cached_page = NULL;
++	struct page *page;
+ 	int err;
+ repeat:
+ 	page = find_lock_page(mapping, index);
+ 	if (!page) {
+-		if (!cached_page) {
+-			cached_page =
+-				__page_cache_alloc(gfp_mask);
+-			if (!cached_page)
+-				return NULL;
+-		}
+-		err = add_to_page_cache_lru(cached_page, mapping,
+-					index, gfp_mask);
+-		if (!err) {
+-			page = cached_page;
+-			cached_page = NULL;
+-		} else if (err == -EEXIST)
+-			goto repeat;
++		page = __page_cache_alloc(gfp_mask);
++		if (!page)
++			return NULL;
++		err = add_to_page_cache_lru(page, mapping, index, gfp_mask);
++		if (unlikely(err)) {
++			page_cache_release(page);
++			page = NULL;
++			if (err == -EEXIST)
++				goto repeat;
++		}
+ 	}
+-	if (cached_page)
+-		page_cache_release(cached_page);
+ 	return page;
+ }
+ EXPORT_SYMBOL(find_or_create_page);
+@@ -874,11 +869,9 @@ void do_generic_mapping_read(struct addr
+ 	unsigned long prev_index;
+ 	unsigned int prev_offset;
+ 	loff_t isize;
+-	struct page *cached_page;
+ 	int error;
+ 	struct file_ra_state ra = *_ra;
+ 
+-	cached_page = NULL;
+ 	index = *ppos >> PAGE_CACHE_SHIFT;
+ 	next_index = index;
+ 	prev_index = ra.prev_index;
+@@ -1045,23 +1038,20 @@ no_cached_page:
+ 		 * Ok, it wasn't cached, so we need to create a new
+ 		 * page..
+ 		 */
+-		if (!cached_page) {
+-			cached_page = page_cache_alloc_cold(mapping);
+-			if (!cached_page) {
+-				desc->error = -ENOMEM;
+-				goto out;
+-			}
++		page = page_cache_alloc_cold(mapping);
++		if (!page) {
++			desc->error = -ENOMEM;
++			goto out;
+ 		}
+-		error = add_to_page_cache_lru(cached_page, mapping,
++		error = add_to_page_cache_lru(page, mapping,
+ 						index, GFP_KERNEL);
+ 		if (error) {
++			page_cache_release(page);
+ 			if (error == -EEXIST)
+ 				goto find_page;
+ 			desc->error = error;
+ 			goto out;
+ 		}
+-		page = cached_page;
+-		cached_page = NULL;
+ 		goto readpage;
+ 	}
+ 
+@@ -1069,8 +1059,6 @@ out:
+ 	*_ra = ra;
+ 
+ 	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
+-	if (cached_page)
+-		page_cache_release(cached_page);
+ 	if (filp)
+ 		file_accessed(filp);
+ }
+@@ -1553,35 +1541,28 @@ static struct page *__read_cache_page(st
+ 				int (*filler)(void *,struct page*),
+ 				void *data)
+ {
+-	struct page *page, *cached_page = NULL;
++	struct page *page;
+ 	int err;
+ repeat:
+ 	page = find_get_page(mapping, index);
+ 	if (!page) {
+-		if (!cached_page) {
+-			cached_page = page_cache_alloc_cold(mapping);
+-			if (!cached_page)
+-				return ERR_PTR(-ENOMEM);
+-		}
+-		err = add_to_page_cache_lru(cached_page, mapping,
+-					index, GFP_KERNEL);
+-		if (err == -EEXIST)
+-			goto repeat;
+-		if (err < 0) {
++		page = page_cache_alloc_cold(mapping);
++		if (!page)
++			return ERR_PTR(-ENOMEM);
++		err = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
++		if (unlikely(err)) {
++			page_cache_release(page);
++			if (err == -EEXIST)
++				goto repeat;
+ 			/* Presumably ENOMEM for radix tree node */
+-			page_cache_release(cached_page);
+ 			return ERR_PTR(err);
+ 		}
+-		page = cached_page;
+-		cached_page = NULL;
+ 		err = filler(data, page);
+ 		if (err < 0) {
+ 			page_cache_release(page);
+ 			page = ERR_PTR(err);
+ 		}
+ 	}
+-	if (cached_page)
+-		page_cache_release(cached_page);
+ 	return page;
  }
  
+@@ -1659,40 +1640,6 @@ struct page *read_cache_page(struct addr
+ EXPORT_SYMBOL(read_cache_page);
+ 
  /*
-+ * Copy as much as we can into the page and return the number of bytes which
-+ * were sucessfully copied.  If a fault is encountered then return the number of
-+ * bytes which were copied.
-+ */
-+size_t iov_iter_copy_from_user_atomic(struct page *page,
-+		struct iov_iter *i, unsigned long offset, size_t bytes)
-+{
-+	char *kaddr;
-+	size_t copied;
-+
-+	BUG_ON(!in_atomic());
-+	kaddr = kmap_atomic(page, KM_USER0);
-+	if (likely(i->nr_segs == 1)) {
-+		int left;
-+		char __user *buf = i->iov->iov_base + i->iov_offset;
-+		left = __copy_from_user_inatomic_nocache(kaddr + offset,
-+							buf, bytes);
-+		copied = bytes - left;
-+	} else {
-+		copied = __iovec_copy_from_user_inatomic(kaddr + offset,
-+						i->iov, i->iov_offset, bytes);
-+	}
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	return copied;
-+}
-+
-+/*
-+ * This has the same sideeffects and return value as
-+ * iov_iter_copy_from_user_atomic().
-+ * The difference is that it attempts to resolve faults.
-+ * Page must not be locked.
-+ */
-+size_t iov_iter_copy_from_user(struct page *page,
-+		struct iov_iter *i, unsigned long offset, size_t bytes)
-+{
-+	char *kaddr;
-+	size_t copied;
-+
-+	kaddr = kmap(page);
-+	if (likely(i->nr_segs == 1)) {
-+		int left;
-+		char __user *buf = i->iov->iov_base + i->iov_offset;
-+		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
-+		copied = bytes - left;
-+	} else {
-+		copied = __iovec_copy_from_user_inatomic(kaddr + offset,
-+						i->iov, i->iov_offset, bytes);
-+	}
-+	kunmap(page);
-+	return copied;
-+}
-+
-+static void __iov_iter_advance_iov(struct iov_iter *i, size_t bytes)
-+{
-+	if (likely(i->nr_segs == 1)) {
-+		i->iov_offset += bytes;
-+	} else {
-+		const struct iovec *iov = i->iov;
-+		size_t base = i->iov_offset;
-+
-+		while (bytes) {
-+			int copy = min(bytes, iov->iov_len - base);
-+
-+			bytes -= copy;
-+			base += copy;
-+			if (iov->iov_len == base) {
-+				iov++;
-+				base = 0;
-+			}
-+		}
-+		i->iov = iov;
-+		i->iov_offset = base;
-+	}
-+}
-+
-+void iov_iter_advance(struct iov_iter *i, size_t bytes)
-+{
-+	BUG_ON(i->count < bytes);
-+
-+	__iov_iter_advance_iov(i, bytes);
-+	i->count -= bytes;
-+}
-+
-+int iov_iter_fault_in_readable(struct iov_iter *i)
-+{
-+	size_t seglen = min(i->iov->iov_len - i->iov_offset, i->count);
-+	char __user *buf = i->iov->iov_base + i->iov_offset;
-+	return fault_in_pages_readable(buf, seglen);
-+}
-+
-+/*
-+ * Return the count of just the current iov_iter segment.
-+ */
-+size_t iov_iter_single_seg_count(struct iov_iter *i)
-+{
-+	const struct iovec *iov = i->iov;
-+	if (i->nr_segs == 1)
-+		return i->count;
-+	else
-+		return min(i->count, iov->iov_len - i->iov_offset);
-+}
-+
-+/*
-  * Performs necessary checks before doing a write
+- * If the page was newly created, increment its refcount and add it to the
+- * caller's lru-buffering pagevec.  This function is specifically for
+- * generic_file_write().
+- */
+-static inline struct page *
+-__grab_cache_page(struct address_space *mapping, unsigned long index,
+-			struct page **cached_page, struct pagevec *lru_pvec)
+-{
+-	int err;
+-	struct page *page;
+-repeat:
+-	page = find_lock_page(mapping, index);
+-	if (!page) {
+-		if (!*cached_page) {
+-			*cached_page = page_cache_alloc(mapping);
+-			if (!*cached_page)
+-				return NULL;
+-		}
+-		err = add_to_page_cache(*cached_page, mapping,
+-					index, GFP_KERNEL);
+-		if (err == -EEXIST)
+-			goto repeat;
+-		if (err == 0) {
+-			page = *cached_page;
+-			page_cache_get(page);
+-			if (!pagevec_add(lru_pvec, page))
+-				__pagevec_lru_add(lru_pvec);
+-			*cached_page = NULL;
+-		}
+-	}
+-	return page;
+-}
+-
+-/*
+  * The logic we want is
   *
-  * Can adjust writing position or amount of bytes to write.
-@@ -1870,30 +1973,22 @@ generic_file_buffered_write(struct kiocb
+  *	if suid or (sgid and xgrp)
+@@ -1886,6 +1833,33 @@ generic_file_direct_write(struct kiocb *
+ }
+ EXPORT_SYMBOL(generic_file_direct_write);
+ 
++/*
++ * Find or create a page at the given pagecache position. Return the locked
++ * page. This function is specifically for buffered writes.
++ */
++static struct page *__grab_cache_page(struct address_space *mapping,
++							pgoff_t index)
++{
++	int status;
++	struct page *page;
++repeat:
++	page = find_lock_page(mapping, index);
++	if (likely(page))
++		return page;
++
++	page = page_cache_alloc(mapping);
++	if (!page)
++		return NULL;
++	status = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
++	if (unlikely(status)) {
++		page_cache_release(page);
++		if (status == -EEXIST)
++			goto repeat;
++		return NULL;
++	}
++	return page;
++}
++
+ ssize_t
+ generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
+ 		unsigned long nr_segs, loff_t pos, loff_t *ppos,
+@@ -1896,15 +1870,10 @@ generic_file_buffered_write(struct kiocb
  	const struct address_space_operations *a_ops = mapping->a_ops;
  	struct inode 	*inode = mapping->host;
  	long		status = 0;
--	const struct iovec *cur_iov = iov; /* current iovec */
--	size_t		iov_offset = 0;	   /* offset in the current iovec */
--	char __user	*buf;
-+	struct iov_iter i;
+-	struct page	*page;
+-	struct page	*cached_page = NULL;
+-	struct pagevec	lru_pvec;
+ 	const struct iovec *cur_iov = iov; /* current iovec */
+ 	size_t		iov_offset = 0;	   /* offset in the current iovec */
+ 	char __user	*buf;
  
--	/*
--	 * handle partial DIO write.  Adjust cur_iov if needed.
--	 */
--	filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, written);
-+	iov_iter_init(&i, iov, nr_segs, count, written);
+-	pagevec_init(&lru_pvec, 0);
+-
+ 	/*
+ 	 * handle partial DIO write.  Adjust cur_iov if needed.
+ 	 */
+@@ -1916,6 +1885,7 @@ generic_file_buffered_write(struct kiocb
+ 	}
  
  	do {
- 		struct page *src_page;
- 		struct page *page;
++		struct page *page;
  		pgoff_t index;		/* Pagecache index for current page */
  		unsigned long offset;	/* Offset into pagecache page */
--		unsigned long seglen;	/* Bytes remaining in current iovec */
- 		unsigned long bytes;	/* Bytes to write to page */
- 		size_t copied;		/* Bytes copied from user */
+ 		unsigned long maxlen;	/* Bytes remaining in current iovec */
+@@ -1942,7 +1912,8 @@ generic_file_buffered_write(struct kiocb
+ 		fault_in_pages_readable(buf, maxlen);
+ #endif
  
--		buf = cur_iov->iov_base + iov_offset;
- 		offset = (pos & (PAGE_CACHE_SIZE - 1));
- 		index = pos >> PAGE_CACHE_SHIFT;
--		bytes = PAGE_CACHE_SIZE - offset;
--		if (bytes > count)
--			bytes = count;
-+		bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
-+						iov_iter_count(&i));
- 
- 		/*
- 		 * a non-NULL src_page indicates that we're doing the
-@@ -1901,10 +1996,6 @@ generic_file_buffered_write(struct kiocb
- 		 */
- 		src_page = NULL;
- 
--		seglen = cur_iov->iov_len - iov_offset;
--		if (seglen > bytes)
--			seglen = bytes;
--
- 		/*
- 		 * Bring in the user page that we will copy from _first_.
- 		 * Otherwise there's a nasty deadlock on copying from the
-@@ -1915,7 +2006,7 @@ generic_file_buffered_write(struct kiocb
- 		 * to check that the address is actually valid, when atomic
- 		 * usercopies are used, below.
- 		 */
--		if (unlikely(fault_in_pages_readable(buf, seglen))) {
-+		if (unlikely(iov_iter_fault_in_readable(&i))) {
- 			status = -EFAULT;
+-		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
++
++		page = __grab_cache_page(mapping, index);
+ 		if (!page) {
+ 			status = -ENOMEM;
  			break;
- 		}
-@@ -1946,8 +2037,8 @@ generic_file_buffered_write(struct kiocb
- 			 * same reason as we can't take a page fault with a
- 			 * page locked (as explained below).
- 			 */
--			copied = filemap_copy_from_user(src_page, offset,
--					cur_iov, nr_segs, iov_offset, bytes);
-+			copied = iov_iter_copy_from_user(src_page, &i,
-+								offset, bytes);
- 			if (unlikely(copied == 0)) {
- 				status = -EFAULT;
- 				page_cache_release(page);
-@@ -1993,8 +2084,8 @@ generic_file_buffered_write(struct kiocb
- 			 * really matter.
- 			 */
- 			pagefault_disable();
--			copied = filemap_copy_from_user_atomic(page, offset,
--					cur_iov, nr_segs, iov_offset, bytes);
-+			copied = iov_iter_copy_from_user_atomic(page, &i,
-+								offset, bytes);
- 			pagefault_enable();
- 		} else {
- 			void *src, *dst;
-@@ -2019,10 +2110,9 @@ generic_file_buffered_write(struct kiocb
- 		if (src_page)
- 			page_cache_release(src_page);
- 
-+		iov_iter_advance(&i, copied);
- 		written += copied;
--		count -= copied;
- 		pos += copied;
--		filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, copied);
- 
- 		balance_dirty_pages_ratelimited(mapping);
- 		cond_resched();
-@@ -2046,7 +2136,7 @@ fs_write_aop_error:
- 			continue;
- 		else
- 			break;
--	} while (count);
-+	} while (iov_iter_count(&i));
+@@ -2010,9 +1981,6 @@ fs_write_aop_error:
+ 	} while (count);
  	*ppos = pos;
  
+-	if (cached_page)
+-		page_cache_release(cached_page);
+-
  	/*
-diff -puN mm/filemap.h~mm-buffered-write-iterator /dev/null
---- a/mm/filemap.h
-+++ /dev/null
-@@ -1,103 +0,0 @@
--/*
-- *	linux/mm/filemap.h
-- *
-- * Copyright (C) 1994-1999  Linus Torvalds
-- */
+ 	 * For now, when the user asks for O_SYNC, we'll actually give O_DSYNC
+ 	 */
+@@ -2032,7 +2000,6 @@ fs_write_aop_error:
+ 	if (unlikely(file->f_flags & O_DIRECT) && written)
+ 		status = filemap_write_and_wait(mapping);
+ 
+-	pagevec_lru_add(&lru_pvec);
+ 	return written ? written : status;
+ }
+ EXPORT_SYMBOL(generic_file_buffered_write);
+diff -puN mm/readahead.c~mm-buffered-write-cleanup mm/readahead.c
+--- a/mm/readahead.c~mm-buffered-write-cleanup
++++ a/mm/readahead.c
+@@ -133,28 +133,25 @@ int read_cache_pages(struct address_spac
+ 			int (*filler)(void *, struct page *), void *data)
+ {
+ 	struct page *page;
+-	struct pagevec lru_pvec;
+ 	int ret = 0;
+ 
+-	pagevec_init(&lru_pvec, 0);
 -
--#ifndef __FILEMAP_H
--#define __FILEMAP_H
--
--#include <linux/types.h>
--#include <linux/fs.h>
--#include <linux/mm.h>
--#include <linux/highmem.h>
--#include <linux/uio.h>
--#include <linux/uaccess.h>
--
--size_t
--__filemap_copy_from_user_iovec_inatomic(char *vaddr,
--					const struct iovec *iov,
--					size_t base,
--					size_t bytes);
--
--/*
-- * Copy as much as we can into the page and return the number of bytes which
-- * were sucessfully copied.  If a fault is encountered then return the number of
-- * bytes which were copied.
-- */
--static inline size_t
--filemap_copy_from_user_atomic(struct page *page, unsigned long offset,
--			const struct iovec *iov, unsigned long nr_segs,
--			size_t base, size_t bytes)
--{
--	char *kaddr;
--	size_t copied;
--
--	kaddr = kmap_atomic(page, KM_USER0);
--	if (likely(nr_segs == 1)) {
--		int left;
--		char __user *buf = iov->iov_base + base;
--		left = __copy_from_user_inatomic_nocache(kaddr + offset,
--							buf, bytes);
--		copied = bytes - left;
--	} else {
--		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset,
--							iov, base, bytes);
--	}
--	kunmap_atomic(kaddr, KM_USER0);
--
--	return copied;
--}
--
--/*
-- * This has the same sideeffects and return value as
-- * filemap_copy_from_user_atomic().
-- * The difference is that it attempts to resolve faults.
-- */
--static inline size_t
--filemap_copy_from_user(struct page *page, unsigned long offset,
--			const struct iovec *iov, unsigned long nr_segs,
--			 size_t base, size_t bytes)
--{
--	char *kaddr;
--	size_t copied;
--
--	kaddr = kmap(page);
--	if (likely(nr_segs == 1)) {
--		int left;
--		char __user *buf = iov->iov_base + base;
--		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
--		copied = bytes - left;
--	} else {
--		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset,
--							iov, base, bytes);
--	}
--	kunmap(page);
--	return copied;
--}
--
--static inline void
--filemap_set_next_iovec(const struct iovec **iovp, unsigned long nr_segs,
--						 size_t *basep, size_t bytes)
--{
--	if (likely(nr_segs == 1)) {
--		*basep += bytes;
--	} else {
--		const struct iovec *iov = *iovp;
--		size_t base = *basep;
--
--		while (bytes) {
--			int copy = min(bytes, iov->iov_len - base);
--
--			bytes -= copy;
--			base += copy;
--			if (iov->iov_len == base) {
--				iov++;
--				base = 0;
--			}
--		}
--		*iovp = iov;
--		*basep = base;
--	}
--}
--#endif
+ 	while (!list_empty(pages)) {
+ 		page = list_to_page(pages);
+ 		list_del(&page->lru);
+-		if (add_to_page_cache(page, mapping, page->index, GFP_KERNEL)) {
++		if (add_to_page_cache_lru(page, mapping,
++					page->index, GFP_KERNEL)) {
+ 			page_cache_release(page);
+ 			continue;
+ 		}
++		page_cache_release(page);
++
+ 		ret = filler(data, page);
+-		if (!pagevec_add(&lru_pvec, page))
+-			__pagevec_lru_add(&lru_pvec);
+-		if (ret) {
++		if (unlikely(ret)) {
+ 			put_pages_list(pages);
+ 			break;
+ 		}
+ 		task_io_account_read(PAGE_CACHE_SIZE);
+ 	}
+-	pagevec_lru_add(&lru_pvec);
+ 	return ret;
+ }
+ 
+@@ -164,7 +161,6 @@ static int read_pages(struct address_spa
+ 		struct list_head *pages, unsigned nr_pages)
+ {
+ 	unsigned page_idx;
+-	struct pagevec lru_pvec;
+ 	int ret;
+ 
+ 	if (mapping->a_ops->readpages) {
+@@ -174,19 +170,15 @@ static int read_pages(struct address_spa
+ 		goto out;
+ 	}
+ 
+-	pagevec_init(&lru_pvec, 0);
+ 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
+ 		struct page *page = list_to_page(pages);
+ 		list_del(&page->lru);
+-		if (!add_to_page_cache(page, mapping,
++		if (!add_to_page_cache_lru(page, mapping,
+ 					page->index, GFP_KERNEL)) {
+ 			mapping->a_ops->readpage(filp, page);
+-			if (!pagevec_add(&lru_pvec, page))
+-				__pagevec_lru_add(&lru_pvec);
+-		} else
+-			page_cache_release(page);
++		}
++		page_cache_release(page);
+ 	}
+-	pagevec_lru_add(&lru_pvec);
+ 	ret = 0;
+ out:
+ 	return ret;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
