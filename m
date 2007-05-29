@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-delete-inode-on-drop.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:51:46 -0700
-Message-ID: <200705291851.l4TIpj7v008358@shell0.pdx.osdl.net>
+Subject: - fix-unused-setup_nr_node_ids.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:51:49 -0700
+Message-ID: <200705291851.l4TIpmlW008361@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35870 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757508AbXE2SwP (ORCPT
+	by vger.kernel.org with ESMTP id S1758017AbXE2SwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 29 May 2007 14:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,39 +15,96 @@ To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: delete inode on drop
+     fix unused setup_nr_node_ids
 has been removed from the -mm tree.  Its filename was
-     fuse-delete-inode-on-drop.patch
+     fix-unused-setup_nr_node_ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: delete inode on drop
+Subject: fix unused setup_nr_node_ids
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-When inode is dropped (no more references) delete it from cache.
+mm/page_alloc.c:931: warning: 'setup_nr_node_ids' defined but not used
 
-There's not much point in keeping it cached, when a new lookup will refresh
-the attributes anyway.
+This is now the only (!) compiler warning I get in my UML build :)
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |    1 +
- 1 files changed, 1 insertion(+)
+ mm/page_alloc.c |   45 +++++++++++++++++++++++++--------------------
+ 1 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN fs/fuse/inode.c~fuse-delete-inode-on-drop fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-delete-inode-on-drop
-+++ a/fs/fuse/inode.c
-@@ -454,6 +454,7 @@ static const struct super_operations fus
- 	.destroy_inode  = fuse_destroy_inode,
- 	.read_inode	= fuse_read_inode,
- 	.clear_inode	= fuse_clear_inode,
-+	.drop_inode	= generic_delete_inode,
- 	.remount_fs	= fuse_remount_fs,
- 	.put_super	= fuse_put_super,
- 	.umount_begin	= fuse_umount_begin,
+diff -puN mm/page_alloc.c~fix-unused-setup_nr_node_ids mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-unused-setup_nr_node_ids
++++ a/mm/page_alloc.c
+@@ -136,6 +136,11 @@ static unsigned long __meminitdata dma_r
+ #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 
++#if MAX_NUMNODES > 1
++int nr_node_ids __read_mostly = MAX_NUMNODES;
++EXPORT_SYMBOL(nr_node_ids);
++#endif
++
+ #ifdef CONFIG_DEBUG_VM
+ static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
+ {
+@@ -669,26 +674,6 @@ static int rmqueue_bulk(struct zone *zon
+ 	return i;
+ }
+ 
+-#if MAX_NUMNODES > 1
+-int nr_node_ids __read_mostly = MAX_NUMNODES;
+-EXPORT_SYMBOL(nr_node_ids);
+-
+-/*
+- * Figure out the number of possible node ids.
+- */
+-static void __init setup_nr_node_ids(void)
+-{
+-	unsigned int node;
+-	unsigned int highest = 0;
+-
+-	for_each_node_mask(node, node_possible_map)
+-		highest = node;
+-	nr_node_ids = highest + 1;
+-}
+-#else
+-static void __init setup_nr_node_ids(void) {}
+-#endif
+-
+ #ifdef CONFIG_NUMA
+ /*
+  * Called from the vmstat counter updater to drain pagesets of this
+@@ -2733,6 +2718,26 @@ void __meminit free_area_init_node(int n
+ }
+ 
+ #ifdef CONFIG_ARCH_POPULATES_NODE_MAP
++
++#if MAX_NUMNODES > 1
++/*
++ * Figure out the number of possible node ids.
++ */
++static void __init setup_nr_node_ids(void)
++{
++	unsigned int node;
++	unsigned int highest = 0;
++
++	for_each_node_mask(node, node_possible_map)
++		highest = node;
++	nr_node_ids = highest + 1;
++}
++#else
++static inline void setup_nr_node_ids(void)
++{
++}
++#endif
++
+ /**
+  * add_active_range - Register a range of PFNs backed by physical memory
+  * @nid: The node ID the range resides on
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
