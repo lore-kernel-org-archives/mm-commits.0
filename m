@@ -1,59 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - ide-add-seagate-stt20000a-to-dma-blacklist.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:28 -0700
-Message-ID: <200705291854.l4TIsROt008526@shell0.pdx.osdl.net>
+Subject: - use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:54:36 -0700
+Message-ID: <200705291854.l4TIsZoV008536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51653 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760510AbXE2Sy7 (ORCPT
+	by vger.kernel.org with ESMTP id S1760374AbXE2Sz1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:54:59 -0400
+	Tue, 29 May 2007 14:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: add Seagate STT20000A to DMA blacklist
+     use mutex instead of binary semaphore in idt77252 driver
 has been removed from the -mm tree.  Its filename was
-     ide-add-seagate-stt20000a-to-dma-blacklist.patch
+     use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide: add Seagate STT20000A to DMA blacklist
-From: Dave Jones <davej@redhat.com>
+Subject: use mutex instead of binary semaphore in idt77252 driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=1044 has been open for _four_
-years with a patch available.  Here's a rediffed version of the same.
+Use mutex instead of binary semaphore in idt77252 driver.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-dma.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/atm/idt77252.c |   27 ++++++++++++++-------------
+ drivers/atm/idt77252.h |    4 ++--
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN drivers/ide/ide-dma.c~ide-add-seagate-stt20000a-to-dma-blacklist drivers/ide/ide-dma.c
---- a/drivers/ide/ide-dma.c~ide-add-seagate-stt20000a-to-dma-blacklist
-+++ a/drivers/ide/ide-dma.c
-@@ -127,7 +127,8 @@ static const struct drive_list_entry dri
- 	{ "SAMSUNG CD-ROM SC",	"ALL"		},
- 	{ "SanDisk SDP3B-64"	,	"ALL"		},
- 	{ "ATAPI CD-ROM DRIVE 40X MAXIMUM",	"ALL"		},
--	{ "_NEC DV5800A",               "ALL"           },  
-+	{ "_NEC DV5800A",               "ALL"           },
-+	{ "Seagate STT20000A",          "ALL"           },
- 	{ NULL			,	NULL		}
+diff -puN drivers/atm/idt77252.c~use-mutex-instead-of-binary-semaphore-in-idt77252-driver drivers/atm/idt77252.c
+--- a/drivers/atm/idt77252.c~use-mutex-instead-of-binary-semaphore-in-idt77252-driver
++++ a/drivers/atm/idt77252.c
+@@ -47,7 +47,8 @@ static char const rcsid[] =
+ #include <linux/bitops.h>
+ #include <linux/wait.h>
+ #include <linux/jiffies.h>
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
++
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <asm/atomic.h>
+@@ -2435,7 +2436,7 @@ idt77252_open(struct atm_vcc *vcc)
  
- };
+ 	set_bit(ATM_VF_ADDR, &vcc->flags);
+ 
+-	down(&card->mutex);
++	mutex_lock(&card->mutex);
+ 
+ 	OPRINTK("%s: opening vpi.vci: %d.%d\n", card->name, vpi, vci);
+ 
+@@ -2446,7 +2447,7 @@ idt77252_open(struct atm_vcc *vcc)
+ 		break;
+ 	default:
+ 		printk("%s: Unsupported AAL: %d\n", card->name, vcc->qos.aal);
+-		up(&card->mutex);
++		mutex_unlock(&card->mutex);
+ 		return -EPROTONOSUPPORT;
+ 	}
+ 
+@@ -2455,7 +2456,7 @@ idt77252_open(struct atm_vcc *vcc)
+ 		card->vcs[index] = kzalloc(sizeof(struct vc_map), GFP_KERNEL);
+ 		if (!card->vcs[index]) {
+ 			printk("%s: can't alloc vc in open()\n", card->name);
+-			up(&card->mutex);
++			mutex_unlock(&card->mutex);
+ 			return -ENOMEM;
+ 		}
+ 		card->vcs[index]->card = card;
+@@ -2484,14 +2485,14 @@ idt77252_open(struct atm_vcc *vcc)
+ 	if (inuse) {
+ 		printk("%s: %s vci already in use.\n", card->name,
+ 		       inuse == 1 ? "tx" : inuse == 2 ? "rx" : "tx and rx");
+-		up(&card->mutex);
++		mutex_unlock(&card->mutex);
+ 		return -EADDRINUSE;
+ 	}
+ 
+ 	if (vcc->qos.txtp.traffic_class != ATM_NONE) {
+ 		error = idt77252_init_tx(card, vc, vcc, &vcc->qos);
+ 		if (error) {
+-			up(&card->mutex);
++			mutex_unlock(&card->mutex);
+ 			return error;
+ 		}
+ 	}
+@@ -2499,14 +2500,14 @@ idt77252_open(struct atm_vcc *vcc)
+ 	if (vcc->qos.rxtp.traffic_class != ATM_NONE) {
+ 		error = idt77252_init_rx(card, vc, vcc, &vcc->qos);
+ 		if (error) {
+-			up(&card->mutex);
++			mutex_unlock(&card->mutex);
+ 			return error;
+ 		}
+ 	}
+ 
+ 	set_bit(ATM_VF_READY, &vcc->flags);
+ 
+-	up(&card->mutex);
++	mutex_unlock(&card->mutex);
+ 	return 0;
+ }
+ 
+@@ -2520,7 +2521,7 @@ idt77252_close(struct atm_vcc *vcc)
+ 	unsigned long addr;
+ 	unsigned long timeout;
+ 
+-	down(&card->mutex);
++	mutex_lock(&card->mutex);
+ 
+ 	IPRINTK("%s: idt77252_close: vc = %d (%d.%d)\n",
+ 		card->name, vc->index, vcc->vpi, vcc->vci);
+@@ -2591,7 +2592,7 @@ done:
+ 		free_scq(card, vc->scq);
+ 	}
+ 
+-	up(&card->mutex);
++	mutex_unlock(&card->mutex);
+ }
+ 
+ static int
+@@ -2602,7 +2603,7 @@ idt77252_change_qos(struct atm_vcc *vcc,
+ 	struct vc_map *vc = vcc->dev_data;
+ 	int error = 0;
+ 
+-	down(&card->mutex);
++	mutex_lock(&card->mutex);
+ 
+ 	if (qos->txtp.traffic_class != ATM_NONE) {
+ 	    	if (!test_bit(VCF_TX, &vc->flags)) {
+@@ -2648,7 +2649,7 @@ idt77252_change_qos(struct atm_vcc *vcc,
+ 	set_bit(ATM_VF_HASQOS, &vcc->flags);
+ 
+ out:
+-	up(&card->mutex);
++	mutex_unlock(&card->mutex);
+ 	return error;
+ }
+ 
+@@ -3709,7 +3710,7 @@ idt77252_init_one(struct pci_dev *pcidev
+ 	membase = pci_resource_start(pcidev, 1);
+ 	srambase = pci_resource_start(pcidev, 2);
+ 
+-	init_MUTEX(&card->mutex);
++	mutex_init(&card->mutex);
+ 	spin_lock_init(&card->cmd_lock);
+ 	spin_lock_init(&card->tst_lock);
+ 
+diff -puN drivers/atm/idt77252.h~use-mutex-instead-of-binary-semaphore-in-idt77252-driver drivers/atm/idt77252.h
+--- a/drivers/atm/idt77252.h~use-mutex-instead-of-binary-semaphore-in-idt77252-driver
++++ a/drivers/atm/idt77252.h
+@@ -37,7 +37,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/skbuff.h>
+ #include <linux/workqueue.h>
+-
++#include <linux/mutex.h>
+ 
+ /*****************************************************************************/
+ /*                                                                           */
+@@ -359,7 +359,7 @@ struct idt77252_dev
+ 	unsigned long		srambase;	/* SAR's sram  base address */
+ 	void __iomem		*fbq[4];	/* FBQ fill addresses */
+ 
+-	struct semaphore	mutex;
++	struct mutex		mutex;
+ 	spinlock_t		cmd_lock;	/* for r/w utility/sram */
+ 
+ 	unsigned long		softstat;
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-git-cpufreq.patch
-git-scsi-rc-fixes.patch
-fix-up-codingstyle-in-isofs.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+power-management-use-mutexes-instead-of-semaphores.patch
+sysdev-use-mutex-instead-of-semaphore.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
