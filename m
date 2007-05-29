@@ -1,160 +1,483 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:56:01 -0700
-Message-ID: <200705291856.l4TIu0Nu008620@shell0.pdx.osdl.net>
+Subject: - drivers-scsi-ipsc-remove-kernel-24-code.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:55:39 -0700
+Message-ID: <200705291855.l4TItcLn008599@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40666 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765321AbXE2S41 (ORCPT
+	by vger.kernel.org with ESMTP id S1763499AbXE2S4W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:56:27 -0400
+	Tue, 29 May 2007 14:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, shimoda.yoshihiro@renesas.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, aacraid@adaptec.com, ipslinux@adaptec.com, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
+     drivers/scsi/ips.c: remove kernel 2.4 code
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597.patch
+     drivers-scsi-ipsc-remove-kernel-24-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/scsi/ips.c: remove kernel 2.4 code
+From: Adrian Bunk <bunk@stusta.de>
 
-drivers/usb/host/r8a66597-hcd.c: In function 'packet_read':
-drivers/usb/host/r8a66597-hcd.c:1184: warning: cast from pointer to integer of different size
-drivers/usb/host/r8a66597-hcd.c:1184: warning: cast to pointer from integer of different size
-
-Cc: Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: <aacraid@adaptec.com>
+Cc: <ipslinux@adaptec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/r8a66597-hcd.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/ips.c |  145 +++++--------------------------------------
+ drivers/scsi/ips.h |   44 -------------
+ 2 files changed, 20 insertions(+), 169 deletions(-)
 
-diff -puN drivers/usb/host/r8a66597-hcd.c~fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597 drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~fix-gregkh-usb-usb-r8a66597-hcd-host-controller-driver-for-r8a66597
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -1181,7 +1181,7 @@ static void packet_read(struct r8a66597 
- 				urb->iso_frame_desc[td->iso_cnt].offset);
- 		urb_len = urb->iso_frame_desc[td->iso_cnt].length;
- 	} else {
--		buf = (u16 *)((int)urb->transfer_buffer + urb->actual_length);
-+		buf = (void *)urb->transfer_buffer + urb->actual_length;
- 		urb_len = urb->transfer_buffer_length - urb->actual_length;
+diff -puN drivers/scsi/ips.c~drivers-scsi-ipsc-remove-kernel-24-code drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~drivers-scsi-ipsc-remove-kernel-24-code
++++ a/drivers/scsi/ips.c
+@@ -211,19 +211,6 @@ module_param(ips, charp, 0);
+ #warning "This driver has only been tested on the x86/ia64/x86_64 platforms"
+ #endif
+ 
+-#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,5,0)
+-#include <linux/blk.h>
+-#include "sd.h"
+-#define IPS_LOCK_SAVE(lock,flags) spin_lock_irqsave(&io_request_lock,flags)
+-#define IPS_UNLOCK_RESTORE(lock,flags) spin_unlock_irqrestore(&io_request_lock,flags)
+-#ifndef __devexit_p
+-#define __devexit_p(x) x
+-#endif
+-#else
+-#define IPS_LOCK_SAVE(lock,flags) do{spin_lock(lock);(void)flags;}while(0)
+-#define IPS_UNLOCK_RESTORE(lock,flags) do{spin_unlock(lock);(void)flags;}while(0)
+-#endif
+-
+ #define IPS_DMA_DIR(scb) ((!scb->scsi_cmd || ips_is_passthru(scb->scsi_cmd) || \
+                          DMA_NONE == scb->scsi_cmd->sc_data_direction) ? \
+                          PCI_DMA_BIDIRECTIONAL : \
+@@ -381,24 +368,13 @@ static struct scsi_host_template ips_dri
+ 	.eh_abort_handler	= ips_eh_abort,
+ 	.eh_host_reset_handler	= ips_eh_reset,
+ 	.proc_name		= "ips",
+-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,5,0)
+ 	.proc_info		= ips_proc_info,
+ 	.slave_configure	= ips_slave_configure,
+-#else
+-	.proc_info		= ips_proc24_info,
+-	.select_queue_depths	= ips_select_queue_depth,
+-#endif
+ 	.bios_param		= ips_biosparam,
+ 	.this_id		= -1,
+ 	.sg_tablesize		= IPS_MAX_SG,
+ 	.cmd_per_lun		= 3,
+ 	.use_clustering		= ENABLE_CLUSTERING,
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+-	.use_new_eh_code	= 1,
+-#endif
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,20)  &&  LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+-    .highmem_io          = 1,   
+-#endif
+ };
+ 
+ 
+@@ -731,7 +707,7 @@ ips_release(struct Scsi_Host *sh)
+ 	/* free IRQ */
+ 	free_irq(ha->irq, ha);
+ 
+-	IPS_REMOVE_HOST(sh);
++	scsi_remove_host(sh);
+ 	scsi_host_put(sh);
+ 
+ 	ips_released_controllers++;
+@@ -813,7 +789,6 @@ int ips_eh_abort(struct scsi_cmnd *SC)
+ 	ips_ha_t *ha;
+ 	ips_copp_wait_item_t *item;
+ 	int ret;
+-	unsigned long cpu_flags;
+ 	struct Scsi_Host *host;
+ 
+ 	METHOD_TRACE("ips_eh_abort", 1);
+@@ -830,7 +805,7 @@ int ips_eh_abort(struct scsi_cmnd *SC)
+ 	if (!ha->active)
+ 		return (FAILED);
+ 
+-	IPS_LOCK_SAVE(host->host_lock, cpu_flags);
++	spin_lock(host->host_lock);
+ 
+ 	/* See if the command is on the copp queue */
+ 	item = ha->copp_waitlist.head;
+@@ -851,7 +826,7 @@ int ips_eh_abort(struct scsi_cmnd *SC)
+ 		ret = (FAILED);
  	}
- 	if (rcv_len < bufsize)
+ 
+-	IPS_UNLOCK_RESTORE(host->host_lock, cpu_flags);
++	spin_unlock(host->host_lock);
+ 	return ret;
+ }
+ 
+@@ -1176,18 +1151,10 @@ static int ips_queue(struct scsi_cmnd *S
+ /*   Set bios geometry for the controller                                   */
+ /*                                                                          */
+ /****************************************************************************/
+-static int
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+-ips_biosparam(Disk * disk, kdev_t dev, int geom[])
+-{
+-	ips_ha_t *ha = (ips_ha_t *) disk->device->host->hostdata;
+-	unsigned long capacity = disk->capacity;
+-#else
+-ips_biosparam(struct scsi_device *sdev, struct block_device *bdev,
+-	      sector_t capacity, int geom[])
++static int ips_biosparam(struct scsi_device *sdev, struct block_device *bdev,
++			 sector_t capacity, int geom[])
+ {
+ 	ips_ha_t *ha = (ips_ha_t *) sdev->host->hostdata;
+-#endif
+ 	int heads;
+ 	int sectors;
+ 	int cylinders;
+@@ -1225,70 +1192,6 @@ ips_biosparam(struct scsi_device *sdev, 
+ 	return (0);
+ }
+ 
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+-
+-/* ips_proc24_info is a wrapper around ips_proc_info *
+- * for compatibility with the 2.4 scsi parameters    */
+-static int
+-ips_proc24_info(char *buffer, char **start, off_t offset, int length,
+-		              int hostno, int func)
+-{
+-	int i;
+-
+-	for (i = 0; i < ips_next_controller; i++) {
+-		if (ips_sh[i] && ips_sh[i]->host_no == hostno) {
+-			return ips_proc_info(ips_sh[i], buffer, start,
+-					     offset, length, func);
+-		}
+-	}
+-	return -EINVAL;	
+-}
+-
+-/****************************************************************************/
+-/*                                                                          */
+-/* Routine Name: ips_select_queue_depth                                     */
+-/*                                                                          */
+-/* Routine Description:                                                     */
+-/*                                                                          */
+-/*   Select queue depths for the devices on the contoller                   */
+-/*                                                                          */
+-/****************************************************************************/
+-static void
+-ips_select_queue_depth(struct Scsi_Host *host, struct scsi_device * scsi_devs)
+-{
+-	struct scsi_device *device;
+-	ips_ha_t *ha;
+-	int count = 0;
+-	int min;
+-
+-	ha = IPS_HA(host);
+-	min = ha->max_cmds / 4;
+-
+-	for (device = scsi_devs; device; device = device->next) {
+-		if (device->host == host) {
+-			if ((device->channel == 0) && (device->type == 0))
+-				count++;
+-		}
+-	}
+-
+-	for (device = scsi_devs; device; device = device->next) {
+-		if (device->host == host) {
+-			if ((device->channel == 0) && (device->type == 0)) {
+-				device->queue_depth =
+-				    (ha->max_cmds - 1) / count;
+-				if (device->queue_depth < min)
+-					device->queue_depth = min;
+-			} else {
+-				device->queue_depth = 2;
+-			}
+-
+-			if (device->queue_depth < 2)
+-				device->queue_depth = 2;
+-		}
+-	}
+-}
+-
+-#else
+ /****************************************************************************/
+ /*                                                                          */
+ /* Routine Name: ips_slave_configure                                        */
+@@ -1316,7 +1219,6 @@ ips_slave_configure(struct scsi_device *
+ 	SDptr->skip_ms_page_3f = 1;
+ 	return 0;
+ }
+-#endif
+ 
+ /****************************************************************************/
+ /*                                                                          */
+@@ -1331,7 +1233,6 @@ static irqreturn_t
+ do_ipsintr(int irq, void *dev_id)
+ {
+ 	ips_ha_t *ha;
+-	unsigned long cpu_flags;
+ 	struct Scsi_Host *host;
+ 	int irqstatus;
+ 
+@@ -1347,16 +1248,16 @@ do_ipsintr(int irq, void *dev_id)
+ 		return IRQ_HANDLED;
+ 	}
+ 
+-	IPS_LOCK_SAVE(host->host_lock, cpu_flags);
++	spin_lock(host->host_lock);
+ 
+ 	if (!ha->active) {
+-		IPS_UNLOCK_RESTORE(host->host_lock, cpu_flags);
++		spin_unlock(host->host_lock);
+ 		return IRQ_HANDLED;
+ 	}
+ 
+ 	irqstatus = (*ha->func.intr) (ha);
+ 
+-	IPS_UNLOCK_RESTORE(host->host_lock, cpu_flags);
++	spin_unlock(host->host_lock);
+ 
+ 	/* start the next command */
+ 	ips_next(ha, IPS_INTR_ON);
+@@ -2730,7 +2631,6 @@ ips_next(ips_ha_t * ha, int intr)
+ 	struct scsi_cmnd *q;
+ 	ips_copp_wait_item_t *item;
+ 	int ret;
+-	unsigned long cpu_flags = 0;
+ 	struct Scsi_Host *host;
+ 	METHOD_TRACE("ips_next", 1);
+ 
+@@ -2742,7 +2642,7 @@ ips_next(ips_ha_t * ha, int intr)
+ 	 * this command won't time out
+ 	 */
+ 	if (intr == IPS_INTR_ON)
+-		IPS_LOCK_SAVE(host->host_lock, cpu_flags);
++		spin_lock(host->host_lock);
+ 
+ 	if ((ha->subsys->param[3] & 0x300000)
+ 	    && (ha->scb_activelist.count == 0)) {
+@@ -2769,14 +2669,14 @@ ips_next(ips_ha_t * ha, int intr)
+ 		item = ips_removeq_copp_head(&ha->copp_waitlist);
+ 		ha->num_ioctl++;
+ 		if (intr == IPS_INTR_ON)
+-			IPS_UNLOCK_RESTORE(host->host_lock, cpu_flags);
++			spin_unlock(host->host_lock);
+ 		scb->scsi_cmd = item->scsi_cmd;
+ 		kfree(item);
+ 
+ 		ret = ips_make_passthru(ha, scb->scsi_cmd, scb, intr);
+ 
+ 		if (intr == IPS_INTR_ON)
+-			IPS_LOCK_SAVE(host->host_lock, cpu_flags);
++			spin_lock(host->host_lock);
+ 		switch (ret) {
+ 		case IPS_FAILURE:
+ 			if (scb->scsi_cmd) {
+@@ -2846,7 +2746,7 @@ ips_next(ips_ha_t * ha, int intr)
+ 		SC = ips_removeq_wait(&ha->scb_waitlist, q);
+ 
+ 		if (intr == IPS_INTR_ON)
+-			IPS_UNLOCK_RESTORE(host->host_lock, cpu_flags);	/* Unlock HA after command is taken off queue */
++			spin_unlock(host->host_lock);	/* Unlock HA after command is taken off queue */
+ 
+ 		SC->result = DID_OK;
+ 		SC->host_scribble = NULL;
+@@ -2919,7 +2819,7 @@ ips_next(ips_ha_t * ha, int intr)
+ 			scb->dcdb.transfer_length = 0;
+ 		}
+ 		if (intr == IPS_INTR_ON)
+-			IPS_LOCK_SAVE(host->host_lock, cpu_flags);
++			spin_lock(host->host_lock);
+ 
+ 		ret = ips_send_cmd(ha, scb);
+ 
+@@ -2958,7 +2858,7 @@ ips_next(ips_ha_t * ha, int intr)
+ 	}			/* end while */
+ 
+ 	if (intr == IPS_INTR_ON)
+-		IPS_UNLOCK_RESTORE(host->host_lock, cpu_flags);
++		spin_unlock(host->host_lock);
+ }
+ 
+ /****************************************************************************/
+@@ -7004,7 +6904,6 @@ ips_register_scsi(int index)
+ 	kfree(oldha);
+ 	ips_sh[index] = sh;
+ 	ips_ha[index] = ha;
+-	IPS_SCSI_SET_DEVICE(sh, ha);
+ 
+ 	/* Store away needed values for later use */
+ 	sh->io_port = ha->io_addr;
+@@ -7016,17 +6915,16 @@ ips_register_scsi(int index)
+ 	sh->cmd_per_lun = sh->hostt->cmd_per_lun;
+ 	sh->unchecked_isa_dma = sh->hostt->unchecked_isa_dma;
+ 	sh->use_clustering = sh->hostt->use_clustering;
+-
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,7)
+ 	sh->max_sectors = 128;
+-#endif
+ 
+ 	sh->max_id = ha->ntargets;
+ 	sh->max_lun = ha->nlun;
+ 	sh->max_channel = ha->nbus - 1;
+ 	sh->can_queue = ha->max_cmds - 1;
+ 
+-	IPS_ADD_HOST(sh, NULL);
++	scsi_add_host(sh, NULL);
++	scsi_scan_host(sh);
++
+ 	return 0;
+ }
+ 
+@@ -7069,7 +6967,7 @@ ips_module_init(void)
+ 		return -ENODEV;
+ 	ips_driver_template.module = THIS_MODULE;
+ 	ips_order_controllers();
+-	if (IPS_REGISTER_HOSTS(&ips_driver_template)) {
++	if (!ips_detect(&ips_driver_template)) {
+ 		pci_unregister_driver(&ips_pci_driver);
+ 		return -ENODEV;
+ 	}
+@@ -7087,7 +6985,6 @@ ips_module_init(void)
+ static void __exit
+ ips_module_exit(void)
+ {
+-	IPS_UNREGISTER_HOSTS(&ips_driver_template);
+ 	pci_unregister_driver(&ips_pci_driver);
+ 	unregister_reboot_notifier(&ips_notifier);
+ }
+@@ -7443,15 +7340,9 @@ ips_init_phase2(int index)
+ 	return SUCCESS;
+ }
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,9)
+ MODULE_LICENSE("GPL");
+-#endif
+-
+ MODULE_DESCRIPTION("IBM ServeRAID Adapter Driver " IPS_VER_STRING);
+-
+-#ifdef MODULE_VERSION
+ MODULE_VERSION(IPS_VER_STRING);
+-#endif
+ 
+ 
+ /*
+diff -puN drivers/scsi/ips.h~drivers-scsi-ipsc-remove-kernel-24-code drivers/scsi/ips.h
+--- a/drivers/scsi/ips.h~drivers-scsi-ipsc-remove-kernel-24-code
++++ a/drivers/scsi/ips.h
+@@ -58,10 +58,6 @@
+    /*
+     * Some handy macros
+     */
+-   #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,20) || defined CONFIG_HIGHIO
+-      #define IPS_HIGHIO
+-   #endif
+-
+    #define IPS_HA(x)                   ((ips_ha_t *) x->hostdata)
+    #define IPS_COMMAND_ID(ha, scb)     (int) (scb - ha->scbs)
+    #define IPS_IS_TROMBONE(ha)         (((ha->device_id == IPS_DEVICEID_COPPERHEAD) && \
+@@ -84,38 +80,8 @@
+     #define IPS_SGLIST_SIZE(ha)       (IPS_USE_ENH_SGLIST(ha) ? \
+                                          sizeof(IPS_ENH_SG_LIST) : sizeof(IPS_STD_SG_LIST))
+ 
+-   #if LINUX_VERSION_CODE < KERNEL_VERSION(2,4,4)
+-      #define pci_set_dma_mask(dev,mask) ( mask > 0xffffffff ? 1:0 )
+-      #define scsi_set_pci_device(sh,dev) (0)
+-   #endif
+-
+-   #ifndef IRQ_NONE
+-      typedef void irqreturn_t;
+-      #define IRQ_NONE
+-      #define IRQ_HANDLED
+-      #define IRQ_RETVAL(x)
+-   #endif
+-   
+-   #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+-      #define IPS_REGISTER_HOSTS(SHT)      scsi_register_module(MODULE_SCSI_HA,SHT)
+-      #define IPS_UNREGISTER_HOSTS(SHT)    scsi_unregister_module(MODULE_SCSI_HA,SHT)
+-      #define IPS_ADD_HOST(shost,device)
+-      #define IPS_REMOVE_HOST(shost)
+-      #define IPS_SCSI_SET_DEVICE(sh,ha)   scsi_set_pci_device(sh, (ha)->pcidev)
+-      #define IPS_PRINTK(level, pcidev, format, arg...)                 \
+-            printk(level "%s %s:" format , "ips" ,     \
+-            (pcidev)->slot_name , ## arg)
+-      #define scsi_host_alloc(sh,size)         scsi_register(sh,size)
+-      #define scsi_host_put(sh)             scsi_unregister(sh)
+-   #else
+-      #define IPS_REGISTER_HOSTS(SHT)      (!ips_detect(SHT))
+-      #define IPS_UNREGISTER_HOSTS(SHT)
+-      #define IPS_ADD_HOST(shost,device)   do { scsi_add_host(shost,device); scsi_scan_host(shost); } while (0)
+-      #define IPS_REMOVE_HOST(shost)       scsi_remove_host(shost)
+-      #define IPS_SCSI_SET_DEVICE(sh,ha)   do { } while (0)
+-      #define IPS_PRINTK(level, pcidev, format, arg...)                 \
++  #define IPS_PRINTK(level, pcidev, format, arg...)                 \
+             dev_printk(level , &((pcidev)->dev) , format , ## arg)
+-   #endif
+ 
+    #define MDELAY(n)			\
+ 	do {				\
+@@ -134,7 +100,7 @@
+    #define pci_dma_hi32(a)         ((a >> 16) >> 16)
+    #define pci_dma_lo32(a)         (a & 0xffffffff)
+ 
+-   #if (BITS_PER_LONG > 32) || (defined CONFIG_HIGHMEM64G && defined IPS_HIGHIO)
++   #if (BITS_PER_LONG > 32) || defined(CONFIG_HIGHMEM64G)
+       #define IPS_ENABLE_DMA64        (1)
+    #else
+       #define IPS_ENABLE_DMA64        (0)
+@@ -451,16 +417,10 @@
+    /*
+     * Scsi_Host Template
+     */
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+-   static int ips_proc24_info(char *, char **, off_t, int, int, int);
+-   static void ips_select_queue_depth(struct Scsi_Host *, struct scsi_device *);
+-   static int ips_biosparam(Disk *disk, kdev_t dev, int geom[]);
+-#else
+    static int ips_proc_info(struct Scsi_Host *, char *, char **, off_t, int, int);
+    static int ips_biosparam(struct scsi_device *sdev, struct block_device *bdev,
+ 		sector_t capacity, int geom[]);
+    static int ips_slave_configure(struct scsi_device *SDptr);
+-#endif
+ 
+ /*
+  * Raid Command Formats
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-slub-more-documentation-fix.patch
 ntfs_init_locked_inode-fix-array-indexing.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm-master.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
 git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
 git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
+unexport-pci_proc_attach_device.patch
 git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
 git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-git-xfs.patch
-git-cryptodev.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-add-lzo1x-compression-support-to-the-kernel-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+git-ipwireless_cs.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+mutex-subsystem-synchro-test-module.patch
