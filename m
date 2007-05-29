@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hostfs-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:40 -0700
-Message-ID: <200705292120.l4TLKews011816@shell0.pdx.osdl.net>
+Subject: + fuse-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:38 -0700
+Message-ID: <200705292120.l4TLKcPh011812@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47575 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751078AbXE2VVG (ORCPT
+	by vger.kernel.org with ESMTP id S1751229AbXE2VVK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:21:06 -0400
+	Tue, 29 May 2007 17:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jdike@addtoit.com
+Cc: npiggin@suse.de, mszeredi@suse.cz
 
 
 The patch titled
-     hostfs: convert to new aops
+     fuse: convert to new aops
 has been added to the -mm tree.  Its filename is
-     hostfs-convert-to-new-aops.patch
+     fuse-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,110 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hostfs: convert to new aops
+Subject: fuse: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
-This also gets rid of a lot of useless read_file stuff. And also
-optimises the full page write case by marking a !uptodate page uptodate.
+[mszeredi]
+ - don't send zero length write requests
+ - it is not legal for the filesystem to return with zero written bytes
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |   70 +++++++++++++++-----------------------
- 1 files changed, 28 insertions(+), 42 deletions(-)
+ fs/fuse/file.c |   48 ++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 33 insertions(+), 15 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -466,56 +466,42 @@ int hostfs_readpage(struct file *file, s
- 	return err;
+diff -puN fs/fuse/file.c~fuse-convert-to-new-aops fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-convert-to-new-aops
++++ a/fs/fuse/file.c
+@@ -444,22 +444,25 @@ static size_t fuse_send_write(struct fus
+ 	return outarg.size;
  }
  
--int hostfs_prepare_write(struct file *file, struct page *page,
--			 unsigned int from, unsigned int to)
-+int hostfs_write_begin(struct file *file, struct address_space *mapping,
+-static int fuse_prepare_write(struct file *file, struct page *page,
+-			      unsigned offset, unsigned to)
+-{
+-	/* No op */
++static int fuse_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
- {
--	char *buffer;
--	long long start, tmp;
--	int err;
++{
 +	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
- 
--	start = (long long) page->index << PAGE_CACHE_SHIFT;
--	buffer = kmap(page);
--	if(from != 0){
--		tmp = start;
--		err = read_file(FILE_HOSTFS_I(file)->fd, &tmp, buffer,
--				from);
--		if(err < 0) goto out;
--	}
--	if(to != PAGE_CACHE_SIZE){
--		start += to;
--		err = read_file(FILE_HOSTFS_I(file)->fd, &start, buffer + to,
--				PAGE_CACHE_SIZE - to);
--		if(err < 0) goto out;
--	}
--	err = 0;
-- out:
--	kunmap(page);
--	return err;
++
 +	*pagep = __grab_cache_page(mapping, index);
 +	if (!*pagep)
 +		return -ENOMEM;
-+	return 0;
+ 	return 0;
  }
  
--int hostfs_commit_write(struct file *file, struct page *page, unsigned from,
--		 unsigned to)
-+int hostfs_write_end(struct file *file, struct address_space *mapping,
+-static int fuse_commit_write(struct file *file, struct page *page,
+-			     unsigned offset, unsigned to)
++static int fuse_buffered_write(struct file *file, struct inode *inode,
++			       loff_t pos, unsigned count, struct page *page)
+ {
+ 	int err;
+ 	size_t nres;
+-	unsigned count = to - offset;
+-	struct inode *inode = page->mapping->host;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	loff_t pos = page_offset(page) + offset;
++	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
+ 	struct fuse_req *req;
+ 
+ 	if (is_bad_inode(inode))
+@@ -475,20 +478,35 @@ static int fuse_commit_write(struct file
+ 	nres = fuse_send_write(req, file, inode, pos, count);
+ 	err = req->out.h.error;
+ 	fuse_put_request(fc, req);
+-	if (!err && nres != count)
++	if (!err && !nres)
+ 		err = -EIO;
+ 	if (!err) {
+-		pos += count;
++		pos += nres;
+ 		spin_lock(&fc->lock);
+ 		if (pos > inode->i_size)
+ 			i_size_write(inode, pos);
+ 		spin_unlock(&fc->lock);
+ 
+-		if (offset == 0 && to == PAGE_CACHE_SIZE)
++		if (count == PAGE_CACHE_SIZE)
+ 			SetPageUptodate(page);
+ 	}
+ 	fuse_invalidate_attr(inode);
+-	return err;
++	return err ? err : nres;
++}
++
++static int fuse_write_end(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned copied,
 +			struct page *page, void *fsdata)
- {
--	struct address_space *mapping = page->mapping;
- 	struct inode *inode = mapping->host;
--	char *buffer;
--	long long start;
--	int err = 0;
-+	void *buffer;
-+	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
-+	int err;
- 
--	start = (((long long) page->index) << PAGE_CACHE_SHIFT) + from;
- 	buffer = kmap(page);
--	err = write_file(FILE_HOSTFS_I(file)->fd, &start, buffer + from,
--			 to - from);
--	if(err > 0) err = 0;
--
--	/* Actually, if !err, write_file has added to-from to start, so, despite
--	 * the appearance, we are comparing i_size against the _last_ written
--	 * location, as we should. */
-+	err = write_file(FILE_HOSTFS_I(file)->fd, &pos, buffer + from, copied);
-+	kunmap(page);
- 
--	if(!err && (start > inode->i_size))
--		inode->i_size = start;
-+	if (!PageUptodate(page) && err == PAGE_CACHE_SIZE)
-+		SetPageUptodate(page);
++{
++	struct inode *inode = mapping->host;
++	int res = 0;
++
++	if (copied)
++		res = fuse_buffered_write(file, inode, pos, copied, page);
++
 +	unlock_page(page);
 +	page_cache_release(page);
-+
-+	/* If err > 0, write_file has added err to pos, so we are comparing
-+	 * i_size against the last byte written.
-+	 */
-+	if (err > 0 && (pos > inode->i_size))
-+		inode->i_size = pos;
- 
--	kunmap(page);
- 	return err;
++	return res;
  }
  
-@@ -523,8 +509,8 @@ static const struct address_space_operat
- 	.writepage 	= hostfs_writepage,
- 	.readpage	= hostfs_readpage,
- 	.set_page_dirty = __set_page_dirty_nobuffers,
--	.prepare_write	= hostfs_prepare_write,
--	.commit_write	= hostfs_commit_write
-+	.write_begin	= hostfs_write_begin,
-+	.write_end	= hostfs_write_end,
- };
+ static void fuse_release_user_pages(struct fuse_req *req, int write)
+@@ -819,8 +837,8 @@ static const struct file_operations fuse
  
- static int init_inode(struct inode *inode, struct dentry *dentry)
+ static const struct address_space_operations fuse_file_aops  = {
+ 	.readpage	= fuse_readpage,
+-	.prepare_write	= fuse_prepare_write,
+-	.commit_write	= fuse_commit_write,
++	.write_begin	= fuse_write_begin,
++	.write_end	= fuse_write_end,
+ 	.readpages	= fuse_readpages,
+ 	.set_page_dirty	= fuse_set_page_dirty,
+ 	.bmap		= fuse_bmap,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
