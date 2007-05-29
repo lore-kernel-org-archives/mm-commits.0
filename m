@@ -1,82 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - prevent-going-idle-with-softirq-pending.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:07 -0700
-Message-ID: <200705291853.l4TIr6X3008447@shell0.pdx.osdl.net>
+Subject: - saa7111-fix-picture-settings-cache-bug.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:55 -0700
+Message-ID: <200705291853.l4TIrsZ3008486@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56461 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:32909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765049AbXE2Sxu (ORCPT
+	by vger.kernel.org with ESMTP id S1762038AbXE2Sy1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:53:50 -0400
+	Tue, 29 May 2007 14:54:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: rmk@arm.linux.org.uk, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Prevent going idle with softirq pending
+     saa7111: fix picture settings cache bug
 has been removed from the -mm tree.  Its filename was
-     prevent-going-idle-with-softirq-pending.patch
+     saa7111-fix-picture-settings-cache-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Prevent going idle with softirq pending
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: saa7111: fix picture settings cache bug
+From: Russell King <rmk@arm.linux.org.uk>
 
-The NOHZ patch contains a check for softirqs pending when a CPU goes idle. 
-The BUG is unrelated to NOHZ, it just was made visible by the NOHZ patch. 
-The BUG showed up mainly on P4 / hyperthreading enabled machines which lead
-the investigations into the wrong direction in the first place.  The real
-cause is in cond_resched_softirq():
+If the SAA7111 device is powered down, and requires re-initialisation when
+the V4L device is opened (as on the NetWinder), the SAA7111 driver gets
+completely confused about the current settings.
 
-cond_resched_softirq() is enabling softirqs without invoking the softirq
-daemon when softirqs are pending.  This leads to the warning message in the
-NOHZ idle code:
+The problem is centred around the way the driver keeps _two_ cached copies
+of the current settings - one of the struct video_picture settings, and one
+of the registers.
 
-t1 runs softirq disabled code on CPU#0
-interrupt happens, softirq is raised, but deferred (softirqs disabled)
-t1 calls cond_resched_softirq()
-	enables softirqs via _local_bh_enable()
-	calls schedule()
-t2 runs
-t1 is migrated to CPU#1
-t2 is done and invokes idle()
-NOHZ detects the pending softirq
+When the decoder is re-initailised, the cached register settings are
+overwritten, as are the values in the hardware registers.  However, the
+cached video_picture settings are not.
 
-Fix: change _local_bh_enable() to local_bh_enable() so the softirq
-daemon is invoked.
+Resolve this by removing the useless and buggy second level of caching for
+video_picture.  Instead, provide a function which updates register values
+if and only if the value we are going to write to the register has changed.
 
-Thanks to Anant Nitya for debugging this with great patience !
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/video/saa7111.c |   49 ++++++++++++--------------------
+ 1 files changed, 19 insertions(+), 30 deletions(-)
 
-diff -puN kernel/sched.c~prevent-going-idle-with-softirq-pending kernel/sched.c
---- a/kernel/sched.c~prevent-going-idle-with-softirq-pending
-+++ a/kernel/sched.c
-@@ -4775,9 +4775,7 @@ int __sched cond_resched_softirq(void)
- 	BUG_ON(!in_softirq());
+diff -puN drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug drivers/media/video/saa7111.c
+--- a/drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug
++++ a/drivers/media/video/saa7111.c
+@@ -75,10 +75,6 @@ struct saa7111 {
+ 	int norm;
+ 	int input;
+ 	int enable;
+-	int bright;
+-	int contrast;
+-	int hue;
+-	int sat;
+ };
  
- 	if (need_resched() && system_state == SYSTEM_RUNNING) {
--		raw_local_irq_disable();
--		_local_bh_enable();
--		raw_local_irq_enable();
-+		local_bh_enable();
- 		__cond_resched();
- 		local_bh_disable();
- 		return 1;
+ #define   I2C_SAA7111        0x48
+@@ -96,6 +92,17 @@ saa7111_write (struct i2c_client *client
+ 	return i2c_smbus_write_byte_data(client, reg, value);
+ }
+ 
++static inline void
++saa7111_write_if_changed(struct i2c_client *client, u8 reg, u8 value)
++{
++	struct saa7111 *decoder = i2c_get_clientdata(client);
++
++	if (decoder->reg[reg] != value) {
++		decoder->reg[reg] = value;
++		i2c_smbus_write_byte_data(client, reg, value);
++	}
++}
++
+ static int
+ saa7111_write_block (struct i2c_client *client,
+ 		     const u8          *data,
+@@ -439,28 +446,14 @@ saa7111_command (struct i2c_client *clie
+ 	{
+ 		struct video_picture *pic = arg;
+ 
+-		if (decoder->bright != pic->brightness) {
+-			/* We want 0 to 255 we get 0-65535 */
+-			decoder->bright = pic->brightness;
+-			saa7111_write(client, 0x0a, decoder->bright >> 8);
+-		}
+-		if (decoder->contrast != pic->contrast) {
+-			/* We want 0 to 127 we get 0-65535 */
+-			decoder->contrast = pic->contrast;
+-			saa7111_write(client, 0x0b,
+-				      decoder->contrast >> 9);
+-		}
+-		if (decoder->sat != pic->colour) {
+-			/* We want 0 to 127 we get 0-65535 */
+-			decoder->sat = pic->colour;
+-			saa7111_write(client, 0x0c, decoder->sat >> 9);
+-		}
+-		if (decoder->hue != pic->hue) {
+-			/* We want -128 to 127 we get 0-65535 */
+-			decoder->hue = pic->hue;
+-			saa7111_write(client, 0x0d,
+-				      (decoder->hue - 32768) >> 8);
+-		}
++		/* We want 0 to 255 we get 0-65535 */
++		saa7111_write_if_changed(client, 0x0a, pic->brightness >> 8);
++		/* We want 0 to 127 we get 0-65535 */
++		saa7111_write(client, 0x0b, pic->contrast >> 9);
++		/* We want 0 to 127 we get 0-65535 */
++		saa7111_write(client, 0x0c, pic->colour >> 9);
++		/* We want -128 to 127 we get 0-65535 */
++		saa7111_write(client, 0x0d, (pic->hue - 32768) >> 8);
+ 	}
+ 		break;
+ 
+@@ -524,10 +517,6 @@ saa7111_detect_client (struct i2c_adapte
+ 	decoder->norm = VIDEO_MODE_NTSC;
+ 	decoder->input = 0;
+ 	decoder->enable = 1;
+-	decoder->bright = 32768;
+-	decoder->contrast = 32768;
+-	decoder->hue = 32768;
+-	decoder->sat = 32768;
+ 	i2c_set_clientdata(client, decoder);
+ 
+ 	i = i2c_attach_client(client);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from rmk@arm.linux.org.uk are
 
-git-drm.patch
-s390-spinlock-initializer-cleanup.patch
-i386-hpet-check-if-the-counter-works.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+git-dvb.patch
+git-md-accel.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
+update-zilog-timeout.patch
