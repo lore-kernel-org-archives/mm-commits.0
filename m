@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:17 -0700
-Message-ID: <200705292120.l4TLKHjj011769@shell0.pdx.osdl.net>
+Subject: + bfs-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:21 -0700
+Message-ID: <200705292120.l4TLKLsI011775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33184 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751440AbXE2VUc (ORCPT
+	by vger.kernel.org with ESMTP id S1751370AbXE2VUa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:32 -0400
+	Tue, 29 May 2007 17:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, zippel@linux-m68k.org
+Cc: npiggin@suse.de, tigran@aivazian.fsnet.co.uk
 
 
 The patch titled
-     hfsplus: convert to new aops
+     bfs: convert to new aops
 has been added to the -mm tree.  Its filename is
-     hfsplus-convert-to-new-aops.patch
+     bfs-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,96 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hfsplus: convert to new aops
+Subject: bfs: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/extents.c |   21 +++++++++------------
- fs/hfsplus/inode.c   |   20 ++++++++++++--------
- 2 files changed, 21 insertions(+), 20 deletions(-)
+ fs/bfs/file.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/hfsplus/extents.c~hfsplus-convert-to-new-aops fs/hfsplus/extents.c
---- a/fs/hfsplus/extents.c~hfsplus-convert-to-new-aops
-+++ a/fs/hfsplus/extents.c
-@@ -443,21 +443,18 @@ void hfsplus_file_truncate(struct inode 
- 	if (inode->i_size > HFSPLUS_I(inode).phys_size) {
- 		struct address_space *mapping = inode->i_mapping;
- 		struct page *page;
--		u32 size = inode->i_size - 1;
-+		void *fsdata;
-+		u32 size = inode->i_size;
- 		int res;
- 
--		page = grab_cache_page(mapping, size >> PAGE_CACHE_SHIFT);
--		if (!page)
--			return;
--		size &= PAGE_CACHE_SIZE - 1;
--		size++;
--		res = mapping->a_ops->prepare_write(NULL, page, size, size);
--		if (!res)
--			res = mapping->a_ops->commit_write(NULL, page, size, size);
-+		res = pagecache_write_begin(NULL, mapping, size, 0,
-+						AOP_FLAG_UNINTERRUPTIBLE,
-+						&page, &fsdata);
- 		if (res)
--			inode->i_size = HFSPLUS_I(inode).phys_size;
--		unlock_page(page);
--		page_cache_release(page);
-+			return;
-+		res = pagecache_write_end(NULL, mapping, size, 0, 0, page, fsdata);
-+		if (res < 0)
-+			return;
- 		mark_inode_dirty(inode);
- 		return;
- 	} else if (inode->i_size == HFSPLUS_I(inode).phys_size)
-diff -puN fs/hfsplus/inode.c~hfsplus-convert-to-new-aops fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~hfsplus-convert-to-new-aops
-+++ a/fs/hfsplus/inode.c
-@@ -27,10 +27,14 @@ static int hfsplus_writepage(struct page
- 	return block_write_full_page(page, hfsplus_get_block, wbc);
+diff -puN fs/bfs/file.c~bfs-convert-to-new-aops fs/bfs/file.c
+--- a/fs/bfs/file.c~bfs-convert-to-new-aops
++++ a/fs/bfs/file.c
+@@ -145,9 +145,13 @@ static int bfs_readpage(struct file *fil
+ 	return block_read_full_page(page, bfs_get_block);
  }
  
--static int hfsplus_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
--{
--	return cont_prepare_write(page, from, to, hfsplus_get_block,
--		&HFSPLUS_I(page->mapping->host).phys_size);
-+static int hfsplus_write_begin(struct file *file, struct address_space *mapping,
+-static int bfs_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
++static int bfs_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
-+{
+ {
+-	return block_prepare_write(page, from, to, bfs_get_block);
 +	*pagep = NULL;
-+	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				hfsplus_get_block,
-+				&HFSPLUS_I(mapping->host).phys_size);
++	return block_write_begin(file, mapping, pos, len, flags,
++					pagep, fsdata, bfs_get_block);
  }
  
- static sector_t hfsplus_bmap(struct address_space *mapping, sector_t block)
-@@ -114,8 +118,8 @@ const struct address_space_operations hf
- 	.readpage	= hfsplus_readpage,
- 	.writepage	= hfsplus_writepage,
+ static sector_t bfs_bmap(struct address_space *mapping, sector_t block)
+@@ -159,8 +163,8 @@ const struct address_space_operations bf
+ 	.readpage	= bfs_readpage,
+ 	.writepage	= bfs_writepage,
  	.sync_page	= block_sync_page,
--	.prepare_write	= hfsplus_prepare_write,
+-	.prepare_write	= bfs_prepare_write,
 -	.commit_write	= generic_commit_write,
-+	.write_begin	= hfsplus_write_begin,
++	.write_begin	= bfs_write_begin,
 +	.write_end	= generic_write_end,
- 	.bmap		= hfsplus_bmap,
- 	.releasepage	= hfsplus_releasepage,
+ 	.bmap		= bfs_bmap,
  };
-@@ -124,8 +128,8 @@ const struct address_space_operations hf
- 	.readpage	= hfsplus_readpage,
- 	.writepage	= hfsplus_writepage,
- 	.sync_page	= block_sync_page,
--	.prepare_write	= hfsplus_prepare_write,
--	.commit_write	= generic_commit_write,
-+	.write_begin	= hfsplus_write_begin,
-+	.write_end	= generic_write_end,
- 	.bmap		= hfsplus_bmap,
- 	.direct_IO	= hfsplus_direct_IO,
- 	.writepages	= hfsplus_writepages,
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
