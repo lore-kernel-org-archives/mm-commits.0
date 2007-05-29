@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dm-add-missing-braces-in-driver-debug-code.patch added to -mm tree
-Date: Tue, 29 May 2007 12:50:31 -0700
-Message-ID: <200705291950.l4TJoV4q010009@shell0.pdx.osdl.net>
+Subject: + use-posix-bre-in-headers-install-target.patch added to -mm tree
+Date: Tue, 29 May 2007 12:54:24 -0700
+Message-ID: <200705291954.l4TJsOPu010085@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38019 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751872AbXE2Tus (ORCPT
+	by vger.kernel.org with ESMTP id S1752619AbXE2Ty3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 15:50:48 -0400
+	Tue, 29 May 2007 15:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, agk@redhat.com
+Cc: vapier@gentoo.org, sam@ravnborg.org
 
 
 The patch titled
-     dm: add missing braces in driver debug code
+     use POSIX BRE in headers install target
 has been added to the -mm tree.  Its filename is
-     dm-add-missing-braces-in-driver-debug-code.patch
+     use-posix-bre-in-headers-install-target.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm: add missing braces in driver debug code
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: use POSIX BRE in headers install target
+From: Mike Frysinger <vapier@gentoo.org>
 
-Add missing braces in dm debug macros.
+The sed expression used at the moment in scripts/Makefile.headersinst
+relies on the (handy) GNU extension where you can escape ERE's in an
+otherwise BRE without using the GNU -r option.  The following patch
+replaces this "\+" usage with a functionally equivalent POSIX BRE compliant
+"\{1,\}".  Tested with `make headers_install` against blackfin/x86_64/i386
+targets.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Stupid whiny OS X users and their crappy sed ;)
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ scripts/Makefile.headersinst |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/md/dm.h~dm-add-missing-braces-in-driver-debug-code drivers/md/dm.h
---- a/drivers/md/dm.h~dm-add-missing-braces-in-driver-debug-code
-+++ a/drivers/md/dm.h
-@@ -25,7 +25,7 @@
- 		if (printk_ratelimit())	\
- 			printk(KERN_ERR DM_NAME ": " DM_MSG_PREFIX ": " \
- 			       f "\n", ## arg); \
--	while (0)
-+	} while (0)
+diff -puN scripts/Makefile.headersinst~use-posix-bre-in-headers-install-target scripts/Makefile.headersinst
+--- a/scripts/Makefile.headersinst~use-posix-bre-in-headers-install-target
++++ a/scripts/Makefile.headersinst
+@@ -11,13 +11,13 @@ UNIFDEF := scripts/unifdef -U__KERNEL__
  
- #define DMWARN(f, arg...) \
- 	printk(KERN_WARNING DM_NAME ": " DM_MSG_PREFIX ": " f "\n", ## arg)
-@@ -34,7 +34,7 @@
- 		if (printk_ratelimit())	\
- 			printk(KERN_WARNING DM_NAME ": " DM_MSG_PREFIX ": " \
- 			       f "\n", ## arg); \
--	while (0)
-+	} while (0)
+ # Eliminate the contents of (and inclusions of) compiler.h
+ HDRSED  := sed 	-e "s/ inline / __inline__ /g" \
+-		-e "s/[[:space:]]__user[[:space:]]\+/ /g" \
+-		-e "s/(__user[[:space:]]\+/ (/g" \
+-		-e "s/[[:space:]]__force[[:space:]]\+/ /g" \
+-		-e "s/(__force[[:space:]]\+/ (/g" \
+-		-e "s/[[:space:]]__iomem[[:space:]]\+/ /g" \
+-		-e "s/(__iomem[[:space:]]\+/ (/g" \
+-		-e "s/[[:space:]]__attribute_const__[[:space:]]\+/\ /g" \
++		-e "s/[[:space:]]__user[[:space:]]\{1,\}/ /g" \
++		-e "s/(__user[[:space:]]\{1,\}/ (/g" \
++		-e "s/[[:space:]]__force[[:space:]]\{1,\}/ /g" \
++		-e "s/(__force[[:space:]]\{1,\}/ (/g" \
++		-e "s/[[:space:]]__iomem[[:space:]]\{1,\}/ /g" \
++		-e "s/(__iomem[[:space:]]\{1,\}/ (/g" \
++		-e "s/[[:space:]]__attribute_const__[[:space:]]\{1,\}/\ /g" \
+ 		-e "s/[[:space:]]__attribute_const__$$//" \
+ 		-e "/^\#include <linux\/compiler.h>/d"
  
- #define DMINFO(f, arg...) \
- 	printk(KERN_INFO DM_NAME ": " DM_MSG_PREFIX ": " f "\n", ## arg)
-@@ -43,7 +43,7 @@
- 		if (printk_ratelimit())	\
- 			printk(KERN_INFO DM_NAME ": " DM_MSG_PREFIX ": " f \
- 			       "\n", ## arg); \
--	while (0)
-+	} while (0)
- 
- #ifdef CONFIG_DM_DEBUG
- #  define DMDEBUG(f, arg...) \
-@@ -53,7 +53,7 @@
- 		if (printk_ratelimit())	\
- 			printk(KERN_DEBUG DM_NAME ": " DM_MSG_PREFIX ": " f \
- 			       "\n", ## arg); \
--	while (0)
-+	} while (0)
- #else
- #  define DMDEBUG(f, arg...) do {} while (0)
- #  define DMDEBUG_LIMIT(f, arg...) do {} while (0)
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-dm-add-missing-braces-in-driver-debug-code.patch
-m68k-parenthesis-balance.patch
-arm26-remove-broken-and-unused-macro.patch
+git-kbuild.patch
+use-posix-bre-in-headers-install-target.patch
+git-mtd.patch
