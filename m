@@ -1,54 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-ncr5380c-replacing-yield-with-a.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:55:06 -0700
-Message-ID: <200705291855.l4TIt5ID008577@shell0.pdx.osdl.net>
+Subject: - wrong-timeout-value-in-sk_wait_data-v2.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:54:58 -0700
+Message-ID: <200705291854.l4TIsvwr008562@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36838 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764753AbXE2Szs (ORCPT
+	by vger.kernel.org with ESMTP id S1765081AbXE2Szx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:55:48 -0400
+	Tue, 29 May 2007 14:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amol@verismonetworks.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: vvs@sw.ru, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/NCR5380.c: Replacing yield() with a better alternative
+     "wrong timeout value" in sk_wait_data()
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+     wrong-timeout-value-in-sk_wait_data-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/scsi/NCR5380.c: Replacing yield() with a better alternative
-From: Amol Lad <amol@verismonetworks.com>
+Subject: "wrong timeout value" in sk_wait_data()
+From: Vasily Averin <vvs@sw.ru>
 
-Replaced yield() with cond_resched()
+sys_setsockopt() do not check properly timeout values for
+SO_RCVTIMEO/SO_SNDTIMEO, for example it's possible to set negative timeout
+values.  POSIX do not defines behaviour for sys_setsockopt in case negative
+timeouts, but requires that setsockopt() shall fail with -EDOM if the send
+and receive timeout values are too big to fit into the timeout fields in
+the socket structure.
 
-Signed-off-by: Amol Lad <amol@verismonetworks.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+In current implementation negative timeout can lead to error messages like
+"schedule_timeout: wrong timeout value".
+
+Proposed patch:
+
+- checks tv_usec and returns -EDOM if it is wrong
+
+- do not allows to set negative timeout values (sets 0 instead) and
+  outputs ratelimited information message about such attempts.
+
+Signed-off-by: Vasily Averin <vvs@sw.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/NCR5380.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ net/core/sock.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+)
 
-diff -puN drivers/scsi/NCR5380.c~drivers-scsi-ncr5380c-replacing-yield-with-a drivers/scsi/NCR5380.c
---- a/drivers/scsi/NCR5380.c~drivers-scsi-ncr5380c-replacing-yield-with-a
-+++ a/drivers/scsi/NCR5380.c
-@@ -347,7 +347,7 @@ static int NCR5380_poll_politely(struct 
- 		if((r & bit) == val)
- 			return 0;
- 		if(!in_interrupt())
--			yield();
-+			cond_resched();
- 		else
- 			cpu_relax();
- 	}
+diff -puN net/core/sock.c~wrong-timeout-value-in-sk_wait_data-v2 net/core/sock.c
+--- a/net/core/sock.c~wrong-timeout-value-in-sk_wait_data-v2
++++ a/net/core/sock.c
+@@ -206,7 +206,19 @@ static int sock_set_timeout(long *timeo_
+ 		return -EINVAL;
+ 	if (copy_from_user(&tv, optval, sizeof(tv)))
+ 		return -EFAULT;
++	if (tv.tv_usec < 0 || tv.tv_usec >= USEC_PER_SEC)
++		return -EDOM;
+ 
++	if (tv.tv_sec < 0) {
++		static int warned = 0;
++		*timeo_p = 0;
++		if (warned < 10 && net_ratelimit())
++			warned++;
++			printk(KERN_INFO "sock_set_timeout: `%s' (pid %d) "
++			       "tries to set negative timeout\n",
++			        current->comm, current->pid);
++		return 0;
++	}
+ 	*timeo_p = MAX_SCHEDULE_TIMEOUT;
+ 	if (tv.tv_sec == 0 && tv.tv_usec == 0)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from amol@verismonetworks.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
-git-scsi-misc.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
