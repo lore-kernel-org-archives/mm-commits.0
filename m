@@ -1,200 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-delay-writing-0s-after-llseek-until-write.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:52:58 -0700
-Message-ID: <200705291852.l4TIqvUw008438@shell0.pdx.osdl.net>
+Subject: - cinergyt2-fix-file-release-handler.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:52 -0700
+Message-ID: <200705291853.l4TIrpxs008483@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45692 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764787AbXE2Sxg (ORCPT
+	by vger.kernel.org with ESMTP id S1765287AbXE2SyT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:53:36 -0400
+	Tue, 29 May 2007 14:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jirislaby@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: delay writing 0's after llseek until write
+     cinergyt2: fix file release handler
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-delay-writing-0s-after-llseek-until-write.patch
+     cinergyt2-fix-file-release-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: delay writing 0's after llseek until write
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: cinergyt2: fix file release handler
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Delay writing 0's out in eCryptfs after a seek past the end of the file
-until data is actually written.
+If this mutex_lock_interruptible() does fail due to signal_pending() then the
+state of the driver will get trashed in interesting ways, because userspace
+cannot and will not retry the close().
 
-http://www.opengroup.org/onlinepubs/009695399/functions/lseek.html
-
-``The lseek() function shall not, by itself, extend the size of a
-file.''
-
-Without this fix, applications that lseek() past the end of the file without
-writing will experience unexpected behavior.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/file.c |   59 -------------------------------------------
- fs/ecryptfs/mmap.c |   38 +++++++++++++++++++++++++--
- 2 files changed, 36 insertions(+), 61 deletions(-)
+ drivers/media/dvb/cinergyT2/cinergyT2.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ecryptfs/file.c~ecryptfs-delay-writing-0s-after-llseek-until-write fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-delay-writing-0s-after-llseek-until-write
-+++ a/fs/ecryptfs/file.c
-@@ -33,63 +33,6 @@
- #include "ecryptfs_kernel.h"
+diff -puN drivers/media/dvb/cinergyT2/cinergyT2.c~cinergyt2-fix-file-release-handler drivers/media/dvb/cinergyT2/cinergyT2.c
+--- a/drivers/media/dvb/cinergyT2/cinergyT2.c~cinergyt2-fix-file-release-handler
++++ a/drivers/media/dvb/cinergyT2/cinergyT2.c
+@@ -519,8 +519,7 @@ static int cinergyt2_release (struct ino
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct cinergyt2 *cinergyt2 = dvbdev->priv;
  
- /**
-- * ecryptfs_llseek
-- * @file: File we are seeking in
-- * @offset: The offset to seek to
-- * @origin: 2 - offset from i_size; 1 - offset from f_pos
-- *
-- * Returns the position we have seeked to, or negative on error
-- */
--static loff_t ecryptfs_llseek(struct file *file, loff_t offset, int origin)
--{
--	loff_t rv;
--	loff_t new_end_pos;
--	int rc;
--	int expanding_file = 0;
--	struct inode *inode = file->f_mapping->host;
--
--	/* If our offset is past the end of our file, we're going to
--	 * need to grow it so we have a valid length of 0's */
--	new_end_pos = offset;
--	switch (origin) {
--	case 2:
--		new_end_pos += i_size_read(inode);
--		expanding_file = 1;
--		break;
--	case 1:
--		new_end_pos += file->f_pos;
--		if (new_end_pos > i_size_read(inode)) {
--			ecryptfs_printk(KERN_DEBUG, "new_end_pos(=[0x%.16x]) "
--					"> i_size_read(inode)(=[0x%.16x])\n",
--					new_end_pos, i_size_read(inode));
--			expanding_file = 1;
--		}
--		break;
--	default:
--		if (new_end_pos > i_size_read(inode)) {
--			ecryptfs_printk(KERN_DEBUG, "new_end_pos(=[0x%.16x]) "
--					"> i_size_read(inode)(=[0x%.16x])\n",
--					new_end_pos, i_size_read(inode));
--			expanding_file = 1;
--		}
--	}
--	ecryptfs_printk(KERN_DEBUG, "new_end_pos = [0x%.16x]\n", new_end_pos);
--	if (expanding_file) {
--		rc = ecryptfs_truncate(file->f_path.dentry, new_end_pos);
--		if (rc) {
--			rv = rc;
--			ecryptfs_printk(KERN_ERR, "Error on attempt to "
--					"truncate to (higher) offset [0x%.16x];"
--					" rc = [%d]\n", new_end_pos, rc);
--			goto out;
--		}
--	}
--	rv = generic_file_llseek(file, offset, origin);
--out:
--	return rv;
--}
--
--/**
-  * ecryptfs_read_update_atime
-  *
-  * generic_file_read updates the atime of upper layer inode.  But, it
-@@ -425,7 +368,7 @@ const struct file_operations ecryptfs_di
- };
+-	if (mutex_lock_interruptible(&cinergyt2->sem))
+-		return -ERESTARTSYS;
++	mutex_lock(&cinergyt2->sem);
  
- const struct file_operations ecryptfs_main_fops = {
--	.llseek = ecryptfs_llseek,
-+	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
- 	.aio_read = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-delay-writing-0s-after-llseek-until-write fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-delay-writing-0s-after-llseek-until-write
-+++ a/fs/ecryptfs/mmap.c
-@@ -376,9 +376,31 @@ out:
- 	return 0;
- }
- 
-+/**
-+ * eCryptfs does not currently support holes. When writing after a
-+ * seek past the end of the file, eCryptfs fills in 0's through to the
-+ * current location. The code to fill in the 0's to all the
-+ * intermediate pages calls ecryptfs_prepare_write_no_truncate().
-+ */
-+static int
-+ecryptfs_prepare_write_no_truncate(struct file *file, struct page *page,
-+				   unsigned from, unsigned to)
-+{
-+	int rc = 0;
-+
-+	if (from == 0 && to == PAGE_CACHE_SIZE)
-+		goto out;	/* If we are writing a full page, it will be
-+				   up to date. */
-+	if (!PageUptodate(page))
-+		rc = ecryptfs_do_readpage(file, page, page->index);
-+out:
-+	return rc;
-+}
-+
- static int ecryptfs_prepare_write(struct file *file, struct page *page,
- 				  unsigned from, unsigned to)
- {
-+	loff_t pos;
- 	int rc = 0;
- 
- 	if (from == 0 && to == PAGE_CACHE_SIZE)
-@@ -386,6 +408,16 @@ static int ecryptfs_prepare_write(struct
- 				   up to date. */
- 	if (!PageUptodate(page))
- 		rc = ecryptfs_do_readpage(file, page, page->index);
-+	pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
-+	if (pos > i_size_read(page->mapping->host)) {
-+		rc = ecryptfs_truncate(file->f_path.dentry, pos);
-+		if (rc) {
-+			printk(KERN_ERR "Error on attempt to "
-+			       "truncate to (higher) offset [%lld];"
-+			       " rc = [%d]\n", pos, rc);
-+			goto out;
-+		}
-+	}
- out:
- 	return rc;
- }
-@@ -744,10 +776,10 @@ int write_zeros(struct file *file, pgoff
- 		rc = PTR_ERR(tmp_page);
- 		goto out;
- 	}
--	rc = ecryptfs_prepare_write(file, tmp_page, start, start + num_zeros);
--	if (rc) {
-+	if ((rc = ecryptfs_prepare_write_no_truncate(file, tmp_page, start,
-+						     (start + num_zeros)))) {
- 		ecryptfs_printk(KERN_ERR, "Error preparing to write zero's "
--				"to remainder of page at index [0x%.16x]\n",
-+				"to page at index [0x%.16x]\n",
- 				index);
- 		page_cache_release(tmp_page);
- 		goto out;
+ 	if (!cinergyt2->disconnect_pending && (file->f_flags & O_ACCMODE) != O_RDONLY) {
+ 		cancel_delayed_work(&cinergyt2->query_work);
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm-master.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
 git-unionfs.patch
-couple-fixes-to-fs-ecryptfs-inodec.patch
-ecryptfs-move-ecryptfs-docs-into-documentation-filesystems.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-xfs.patch
+git-cryptodev.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
