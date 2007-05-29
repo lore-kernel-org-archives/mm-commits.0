@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:05 -0700
-Message-ID: <200705292120.l4TLK5Bd011748@shell0.pdx.osdl.net>
+Subject: + ext4-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:07 -0700
+Message-ID: <200705292120.l4TLK715011751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60632 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751218AbXE2VUS (ORCPT
+	by vger.kernel.org with ESMTP id S1752979AbXE2VUR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:18 -0400
+	Tue, 29 May 2007 17:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, pbadari@us.ibm.com
 
 
 The patch titled
-     ext3: convert to new aops
+     ext4: convert to new aops
 has been added to the -mm tree.  Its filename is
-     ext3-convert-to-new-aops.patch
+     ext4-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: convert to new aops
+Subject: ext4: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
-Various fixes and improvements
+Convert ext4 to use write_begin()/write_end() methods.
 
 Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |  136 +++++++++++++++++++++++++++++-----------------
- 1 files changed, 88 insertions(+), 48 deletions(-)
+ fs/ext4/inode.c |  147 +++++++++++++++++++++++++++++-----------------
+ 1 files changed, 93 insertions(+), 54 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-convert-to-new-aops
-+++ a/fs/ext3/inode.c
-@@ -1147,51 +1147,68 @@ static int do_journal_get_write_access(h
- 	return ext3_journal_get_write_access(handle, bh);
+diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-convert-to-new-aops
++++ a/fs/ext4/inode.c
+@@ -1146,34 +1146,50 @@ static int do_journal_get_write_access(h
+ 	return ext4_journal_get_write_access(handle, bh);
  }
  
--static int ext3_prepare_write(struct file *file, struct page *page,
+-static int ext4_prepare_write(struct file *file, struct page *page,
 -			      unsigned from, unsigned to)
-+static int ext3_write_begin(struct file *file, struct address_space *mapping,
++static int ext4_write_begin(struct file *file, struct address_space *mapping,
 +				loff_t pos, unsigned len, unsigned flags,
 +				struct page **pagep, void **fsdata)
  {
 -	struct inode *inode = page->mapping->host;
-+	struct inode *inode = mapping->host;
- 	int ret, needed_blocks = ext3_writepage_trans_blocks(inode);
++ 	struct inode *inode = mapping->host;
+ 	int ret, needed_blocks = ext4_writepage_trans_blocks(inode);
  	handle_t *handle;
  	int retries = 0;
-+	struct page *page;
-+	pgoff_t index;
-+	unsigned from, to;
++ 	struct page *page;
++ 	pgoff_t index;
++ 	unsigned from, to;
 +
-+	index = pos >> PAGE_CACHE_SHIFT;
-+	from = pos & (PAGE_CACHE_SIZE - 1);
-+	to = from + len;
++ 	index = pos >> PAGE_CACHE_SHIFT;
++ 	from = pos & (PAGE_CACHE_SIZE - 1);
++ 	to = from + len;
  
  retry:
-+	page = __grab_cache_page(mapping, index);
-+	if (!page)
-+		return -ENOMEM;
-+	*pagep = page;
+-	handle = ext4_journal_start(inode, needed_blocks);
+-	if (IS_ERR(handle)) {
+-		ret = PTR_ERR(handle);
+-		goto out;
++ 	page = __grab_cache_page(mapping, index);
++ 	if (!page)
++ 		return -ENOMEM;
++ 	*pagep = page;
 +
- 	handle = ext3_journal_start(inode, needed_blocks);
- 	if (IS_ERR(handle)) {
-+		unlock_page(page);
-+		page_cache_release(page);
- 		ret = PTR_ERR(handle);
- 		goto out;
++  	handle = ext4_journal_start(inode, needed_blocks);
++  	if (IS_ERR(handle)) {
++ 		unlock_page(page);
++ 		page_cache_release(page);
++  		ret = PTR_ERR(handle);
++  		goto out;
  	}
--	if (test_opt(inode->i_sb, NOBH) && ext3_should_writeback_data(inode))
--		ret = nobh_prepare_write(page, from, to, ext3_get_block);
+-	if (test_opt(inode->i_sb, NOBH) && ext4_should_writeback_data(inode))
+-		ret = nobh_prepare_write(page, from, to, ext4_get_block);
 -	else
--		ret = block_prepare_write(page, from, to, ext3_get_block);
-+	ret = block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+							ext3_get_block);
- 	if (ret)
+-		ret = block_prepare_write(page, from, to, ext4_get_block);
+-	if (ret)
 -		goto prepare_write_failed;
-+		goto write_begin_failed;
  
- 	if (ext3_should_journal_data(inode)) {
+-	if (ext4_should_journal_data(inode)) {
++	ret = block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++							ext4_get_block);
++
++	if (!ret && ext4_should_journal_data(inode)) {
  		ret = walk_page_buffers(handle, page_buffers(page),
  				from, to, NULL, do_journal_get_write_access);
  	}
 -prepare_write_failed:
 -	if (ret)
-+write_begin_failed:
++
 +	if (ret) {
- 		ext3_journal_stop(handle);
-+		unlock_page(page);
-+		page_cache_release(page);
+ 		ext4_journal_stop(handle);
++ 		unlock_page(page);
++ 		page_cache_release(page);
 +	}
- 	if (ret == -ENOSPC && ext3_should_retry_alloc(inode->i_sb, &retries))
++
+ 	if (ret == -ENOSPC && ext4_should_retry_alloc(inode->i_sb, &retries))
  		goto retry;
  out:
- 	return ret;
- }
- 
-+
- int ext3_journal_dirty_data(handle_t *handle, struct buffer_head *bh)
- {
- 	int err = journal_dirty_data(handle, bh);
+@@ -1185,12 +1201,12 @@ int ext4_journal_dirty_data(handle_t *ha
+ 	int err = jbd2_journal_dirty_data(handle, bh);
  	if (err)
- 		ext3_journal_abort_handle(__FUNCTION__, __FUNCTION__,
+ 		ext4_journal_abort_handle(__FUNCTION__, __FUNCTION__,
 -						bh, handle,err);
 +						bh, handle, err);
  	return err;
@@ -124,18 +124,18 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
  {
  	if (!buffer_mapped(bh) || buffer_freed(bh))
  		return 0;
-@@ -1206,78 +1223,100 @@ static int commit_write_fn(handle_t *han
-  * ext3 never places buffers on inode->i_mapping->private_list.  metadata
+@@ -1205,78 +1221,100 @@ static int commit_write_fn(handle_t *han
+  * ext4 never places buffers on inode->i_mapping->private_list.  metadata
   * buffers are managed internally.
   */
--static int ext3_ordered_commit_write(struct file *file, struct page *page,
+-static int ext4_ordered_commit_write(struct file *file, struct page *page,
 -			     unsigned from, unsigned to)
-+static int ext3_ordered_write_end(struct file *file,
++static int ext4_ordered_write_end(struct file *file,
 +				struct address_space *mapping,
 +				loff_t pos, unsigned len, unsigned copied,
 +				struct page *page, void *fsdata)
  {
- 	handle_t *handle = ext3_journal_current_handle();
+ 	handle_t *handle = ext4_journal_current_handle();
 -	struct inode *inode = page->mapping->host;
 +	struct inode *inode = file->f_mapping->host;
 +	unsigned from, to;
@@ -145,7 +145,7 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
 +	to = from + len;
 +
  	ret = walk_page_buffers(handle, page_buffers(page),
- 		from, to, NULL, ext3_journal_dirty_data);
+ 		from, to, NULL, ext4_journal_dirty_data);
  
  	if (ret == 0) {
  		/*
@@ -158,8 +158,8 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
  
 -		new_i_size = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
 +		new_i_size = pos + copied;
- 		if (new_i_size > EXT3_I(inode)->i_disksize)
- 			EXT3_I(inode)->i_disksize = new_i_size;
+ 		if (new_i_size > EXT4_I(inode)->i_disksize)
+ 			EXT4_I(inode)->i_disksize = new_i_size;
 -		ret = generic_commit_write(file, page, from, to);
 +		copied = generic_write_end(file, mapping, pos, len, copied,
 +							page, fsdata);
@@ -169,21 +169,21 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
 +		unlock_page(page);
 +		page_cache_release(page);
  	}
- 	ret2 = ext3_journal_stop(handle);
+ 	ret2 = ext4_journal_stop(handle);
  	if (!ret)
  		ret = ret2;
 -	return ret;
 +	return ret ? ret : copied;
  }
  
--static int ext3_writeback_commit_write(struct file *file, struct page *page,
+-static int ext4_writeback_commit_write(struct file *file, struct page *page,
 -			     unsigned from, unsigned to)
-+static int ext3_writeback_write_end(struct file *file,
++static int ext4_writeback_write_end(struct file *file,
 +				struct address_space *mapping,
 +				loff_t pos, unsigned len, unsigned copied,
 +				struct page *page, void *fsdata)
  {
- 	handle_t *handle = ext3_journal_current_handle();
+ 	handle_t *handle = ext4_journal_current_handle();
 -	struct inode *inode = page->mapping->host;
 +	struct inode *inode = file->f_mapping->host;
  	int ret = 0, ret2;
@@ -191,10 +191,10 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
  
 -	new_i_size = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
 +	new_i_size = pos + copied;
- 	if (new_i_size > EXT3_I(inode)->i_disksize)
- 		EXT3_I(inode)->i_disksize = new_i_size;
+ 	if (new_i_size > EXT4_I(inode)->i_disksize)
+ 		EXT4_I(inode)->i_disksize = new_i_size;
  
--	if (test_opt(inode->i_sb, NOBH) && ext3_should_writeback_data(inode))
+-	if (test_opt(inode->i_sb, NOBH) && ext4_should_writeback_data(inode))
 -		ret = nobh_commit_write(file, page, from, to);
 -	else
 -		ret = generic_commit_write(file, page, from, to);
@@ -203,21 +203,21 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
 +	if (copied < 0)
 +		ret = copied;
  
- 	ret2 = ext3_journal_stop(handle);
+ 	ret2 = ext4_journal_stop(handle);
  	if (!ret)
  		ret = ret2;
 -	return ret;
 +	return ret ? ret : copied;
  }
  
--static int ext3_journalled_commit_write(struct file *file,
+-static int ext4_journalled_commit_write(struct file *file,
 -			struct page *page, unsigned from, unsigned to)
-+static int ext3_journalled_write_end(struct file *file,
++static int ext4_journalled_write_end(struct file *file,
 +				struct address_space *mapping,
 +				loff_t pos, unsigned len, unsigned copied,
 +				struct page *page, void *fsdata)
  {
- 	handle_t *handle = ext3_journal_current_handle();
+ 	handle_t *handle = ext4_journal_current_handle();
 -	struct inode *inode = page->mapping->host;
 +	struct inode *inode = mapping->host;
  	int ret = 0, ret2;
@@ -249,15 +249,15 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
 +	page_cache_release(page);
 +	if (pos+copied > inode->i_size)
 +		i_size_write(inode, pos+copied);
- 	EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
- 	if (inode->i_size > EXT3_I(inode)->i_disksize) {
- 		EXT3_I(inode)->i_disksize = inode->i_size;
-@@ -1285,10 +1324,11 @@ static int ext3_journalled_commit_write(
+ 	EXT4_I(inode)->i_state |= EXT4_STATE_JDATA;
+ 	if (inode->i_size > EXT4_I(inode)->i_disksize) {
+ 		EXT4_I(inode)->i_disksize = inode->i_size;
+@@ -1284,10 +1322,11 @@ static int ext4_journalled_commit_write(
  		if (!ret)
  			ret = ret2;
  	}
 +
- 	ret2 = ext3_journal_stop(handle);
+ 	ret2 = ext4_journal_stop(handle);
  	if (!ret)
  		ret = ret2;
 -	return ret;
@@ -265,7 +265,7 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
  }
  
  /*
-@@ -1546,7 +1586,7 @@ static int ext3_journalled_writepage(str
+@@ -1545,7 +1584,7 @@ static int ext4_journalled_writepage(str
  			PAGE_CACHE_SIZE, NULL, do_journal_get_write_access);
  
  		err = walk_page_buffers(handle, page_buffers(page), 0,
@@ -273,40 +273,40 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
 +				PAGE_CACHE_SIZE, NULL, write_end_fn);
  		if (ret == 0)
  			ret = err;
- 		EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
-@@ -1706,8 +1746,8 @@ static const struct address_space_operat
- 	.readpages	= ext3_readpages,
- 	.writepage	= ext3_ordered_writepage,
+ 		EXT4_I(inode)->i_state |= EXT4_STATE_JDATA;
+@@ -1705,8 +1744,8 @@ static const struct address_space_operat
+ 	.readpages	= ext4_readpages,
+ 	.writepage	= ext4_ordered_writepage,
  	.sync_page	= block_sync_page,
--	.prepare_write	= ext3_prepare_write,
--	.commit_write	= ext3_ordered_commit_write,
-+	.write_begin	= ext3_write_begin,
-+	.write_end	= ext3_ordered_write_end,
- 	.bmap		= ext3_bmap,
- 	.invalidatepage	= ext3_invalidatepage,
- 	.releasepage	= ext3_releasepage,
-@@ -1720,8 +1760,8 @@ static const struct address_space_operat
- 	.readpages	= ext3_readpages,
- 	.writepage	= ext3_writeback_writepage,
+-	.prepare_write	= ext4_prepare_write,
+-	.commit_write	= ext4_ordered_commit_write,
++	.write_begin	= ext4_write_begin,
++	.write_end	= ext4_ordered_write_end,
+ 	.bmap		= ext4_bmap,
+ 	.invalidatepage	= ext4_invalidatepage,
+ 	.releasepage	= ext4_releasepage,
+@@ -1719,8 +1758,8 @@ static const struct address_space_operat
+ 	.readpages	= ext4_readpages,
+ 	.writepage	= ext4_writeback_writepage,
  	.sync_page	= block_sync_page,
--	.prepare_write	= ext3_prepare_write,
--	.commit_write	= ext3_writeback_commit_write,
-+	.write_begin	= ext3_write_begin,
-+	.write_end	= ext3_writeback_write_end,
- 	.bmap		= ext3_bmap,
- 	.invalidatepage	= ext3_invalidatepage,
- 	.releasepage	= ext3_releasepage,
-@@ -1734,8 +1774,8 @@ static const struct address_space_operat
- 	.readpages	= ext3_readpages,
- 	.writepage	= ext3_journalled_writepage,
+-	.prepare_write	= ext4_prepare_write,
+-	.commit_write	= ext4_writeback_commit_write,
++	.write_begin	= ext4_write_begin,
++	.write_end	= ext4_writeback_write_end,
+ 	.bmap		= ext4_bmap,
+ 	.invalidatepage	= ext4_invalidatepage,
+ 	.releasepage	= ext4_releasepage,
+@@ -1733,8 +1772,8 @@ static const struct address_space_operat
+ 	.readpages	= ext4_readpages,
+ 	.writepage	= ext4_journalled_writepage,
  	.sync_page	= block_sync_page,
--	.prepare_write	= ext3_prepare_write,
--	.commit_write	= ext3_journalled_commit_write,
-+	.write_begin	= ext3_write_begin,
-+	.write_end	= ext3_journalled_write_end,
- 	.set_page_dirty	= ext3_journalled_set_page_dirty,
- 	.bmap		= ext3_bmap,
- 	.invalidatepage	= ext3_invalidatepage,
+-	.prepare_write	= ext4_prepare_write,
+-	.commit_write	= ext4_journalled_commit_write,
++	.write_begin	= ext4_write_begin,
++	.write_end	= ext4_journalled_write_end,
+ 	.set_page_dirty	= ext4_journalled_set_page_dirty,
+ 	.bmap		= ext4_bmap,
+ 	.invalidatepage	= ext4_invalidatepage,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
