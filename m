@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clean-up-buffered-write-code.patch added to -mm tree
-Date: Tue, 29 May 2007 14:19:39 -0700
-Message-ID: <200705292119.l4TLJdqJ011696@shell0.pdx.osdl.net>
+Subject: + mm-debug-write-deadlocks.patch added to -mm tree
+Date: Tue, 29 May 2007 14:19:41 -0700
+Message-ID: <200705292119.l4TLJfn5011700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44621 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752275AbXE2VTr (ORCPT
+	by vger.kernel.org with ESMTP id S1752421AbXE2VTt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:19:47 -0400
+	Tue, 29 May 2007 17:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, npiggin@suse.de
+Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: clean up buffered write code
+     mm: debug write deadlocks
 has been added to the -mm tree.  Its filename is
-     mm-clean-up-buffered-write-code.patch
+     mm-debug-write-deadlocks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,136 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: clean up buffered write code
-From: Andrew Morton <akpm@osdl.org>
+Subject: mm: debug write deadlocks
+From: Nick Piggin <npiggin@suse.de>
 
-Rename some variables and fix some types.
+Allow CONFIG_DEBUG_VM to switch off the prefaulting logic, to simulate the
+Makes the race much easier to hit.
 
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+This is useful for demonstration and testing purposes, but is removed in a
+subsequent patch.
+
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   35 ++++++++++++++++++-----------------
- 1 files changed, 18 insertions(+), 17 deletions(-)
+ mm/filemap.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN mm/filemap.c~mm-clean-up-buffered-write-code mm/filemap.c
---- a/mm/filemap.c~mm-clean-up-buffered-write-code
+diff -puN mm/filemap.c~mm-debug-write-deadlocks mm/filemap.c
+--- a/mm/filemap.c~mm-debug-write-deadlocks
 +++ a/mm/filemap.c
-@@ -1892,16 +1892,15 @@ generic_file_buffered_write(struct kiocb
- 		size_t count, ssize_t written)
- {
- 	struct file *file = iocb->ki_filp;
--	struct address_space * mapping = file->f_mapping;
-+	struct address_space *mapping = file->f_mapping;
- 	const struct address_space_operations *a_ops = mapping->a_ops;
- 	struct inode 	*inode = mapping->host;
- 	long		status = 0;
- 	struct page	*page;
- 	struct page	*cached_page = NULL;
--	size_t		bytes;
- 	struct pagevec	lru_pvec;
- 	const struct iovec *cur_iov = iov; /* current iovec */
--	size_t		iov_base = 0;	   /* offset in the current iovec */
-+	size_t		iov_offset = 0;	   /* offset in the current iovec */
- 	char __user	*buf;
+@@ -1932,6 +1932,7 @@ generic_file_buffered_write(struct kiocb
+ 		if (maxlen > bytes)
+ 			maxlen = bytes;
  
- 	pagevec_init(&lru_pvec, 0);
-@@ -1912,31 +1911,33 @@ generic_file_buffered_write(struct kiocb
- 	if (likely(nr_segs == 1))
- 		buf = iov->iov_base + written;
- 	else {
--		filemap_set_next_iovec(&cur_iov, &iov_base, written);
--		buf = cur_iov->iov_base + iov_base;
-+		filemap_set_next_iovec(&cur_iov, &iov_offset, written);
-+		buf = cur_iov->iov_base + iov_offset;
- 	}
- 
- 	do {
--		unsigned long index;
--		unsigned long offset;
--		unsigned long maxlen;
--		size_t copied;
-+		pgoff_t index;		/* Pagecache index for current page */
-+		unsigned long offset;	/* Offset into pagecache page */
-+		unsigned long maxlen;	/* Bytes remaining in current iovec */
-+		size_t bytes;		/* Bytes to write to page */
-+		size_t copied;		/* Bytes copied from user */
- 
--		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
-+		offset = (pos & (PAGE_CACHE_SIZE - 1));
- 		index = pos >> PAGE_CACHE_SHIFT;
- 		bytes = PAGE_CACHE_SIZE - offset;
- 		if (bytes > count)
- 			bytes = count;
- 
-+		maxlen = cur_iov->iov_len - iov_offset;
-+		if (maxlen > bytes)
-+			maxlen = bytes;
-+
++#ifndef CONFIG_DEBUG_VM
  		/*
  		 * Bring in the user page that we will copy from _first_.
  		 * Otherwise there's a nasty deadlock on copying from the
- 		 * same page as we're writing to, without it being marked
+@@ -1939,6 +1940,7 @@ generic_file_buffered_write(struct kiocb
  		 * up-to-date.
  		 */
--		maxlen = cur_iov->iov_len - iov_base;
--		if (maxlen > bytes)
--			maxlen = bytes;
  		fault_in_pages_readable(buf, maxlen);
++#endif
  
  		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
-@@ -1967,7 +1968,7 @@ generic_file_buffered_write(struct kiocb
- 							buf, bytes);
- 		else
- 			copied = filemap_copy_from_user_iovec(page, offset,
--						cur_iov, iov_base, bytes);
-+						cur_iov, iov_offset, bytes);
- 		flush_dcache_page(page);
- 		status = a_ops->commit_write(file, page, offset, offset+bytes);
- 		if (status == AOP_TRUNCATED_PAGE) {
-@@ -1985,12 +1986,12 @@ generic_file_buffered_write(struct kiocb
- 				buf += status;
- 				if (unlikely(nr_segs > 1)) {
- 					filemap_set_next_iovec(&cur_iov,
--							&iov_base, status);
-+							&iov_offset, status);
- 					if (count)
- 						buf = cur_iov->iov_base +
--							iov_base;
-+							iov_offset;
- 				} else {
--					iov_base += status;
-+					iov_offset += status;
- 				}
- 			}
- 		}
+ 		if (!page) {
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-git-ipwireless_cs.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+git-arm-master.patch
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
 revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
 revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
 mm-clean-up-buffered-write-code.patch
-lumpy-reclaim-v4.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-page-writeback-acounting-out-of-macros.patch
-ext2-reservations.patch
-mm-implement-swap-prefetching.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-slab-leaks3-default-y.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-acpi_format_exception-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+mm-document-fault_data-and-flags.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
