@@ -1,80 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - i386-x86-64-show-that-config_hotplug_cpu-is-required-for-suspend-on-smp.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:52:32 -0700
-Message-ID: <200705291852.l4TIqVFO008414@shell0.pdx.osdl.net>
+Subject: - md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:52:41 -0700
+Message-ID: <200705291852.l4TIqebC008421@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56051 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758396AbXE2SxG (ORCPT
+	by vger.kernel.org with ESMTP id S1758396AbXE2SxK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:53:06 -0400
+	Tue, 29 May 2007 14:53:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefanr@s5r6.in-berlin.de, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386, x86-64: show that CONFIG_HOTPLUG_CPU is required for suspend on SMP
+     md: don't write more than is required of the last page of a bitmap
 has been removed from the -mm tree.  Its filename was
-     i386-x86-64-show-that-config_hotplug_cpu-is-required-for-suspend-on-smp.patch
+     md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386, x86-64: show that CONFIG_HOTPLUG_CPU is required for suspend on SMP
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: md: don't write more than is required of the last page of a bitmap
+From: NeilBrown <neilb@suse.de>
 
-It's not sufficiently documented that CONFIG_HOTPLUG_CPU is required for
-suspend/hibernation on SMP.
+It is possible that real data or metadata follows the bitmap without full page
+alignment.
 
-Point out the non-obvious.
+So limit the last write to be only the required number of bytes, rounded up to
+the hard sector size of the device.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig   |    2 +-
- arch/x86_64/Kconfig |    7 +++++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/md/bitmap.c         |   17 ++++++++++++-----
+ include/linux/raid/bitmap.h |    1 +
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/Kconfig~i386-x86-64-show-that-config_hotplug_cpu-is-required-for-suspend-on-smp arch/i386/Kconfig
---- a/arch/i386/Kconfig~i386-x86-64-show-that-config_hotplug_cpu-is-required-for-suspend-on-smp
-+++ a/arch/i386/Kconfig
-@@ -891,7 +891,7 @@ config PHYSICAL_ALIGN
- 	  Don't change this unless you know what you are doing.
+diff -puN drivers/md/bitmap.c~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap
++++ a/drivers/md/bitmap.c
+@@ -255,19 +255,25 @@ static struct page *read_sb_page(mddev_t
  
- config HOTPLUG_CPU
--	bool "Support for hot-pluggable CPUs (EXPERIMENTAL)"
-+	bool "Support for suspend on SMP and hot-pluggable CPUs (EXPERIMENTAL)"
- 	depends on SMP && HOTPLUG && EXPERIMENTAL && !X86_VOYAGER
- 	---help---
- 	  Say Y here to experiment with turning CPUs off and on, and to
-diff -puN arch/x86_64/Kconfig~i386-x86-64-show-that-config_hotplug_cpu-is-required-for-suspend-on-smp arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~i386-x86-64-show-that-config_hotplug_cpu-is-required-for-suspend-on-smp
-+++ a/arch/x86_64/Kconfig
-@@ -428,12 +428,15 @@ config NR_CPUS
- 	  memory in the static kernel configuration.
+ }
  
- config HOTPLUG_CPU
--	bool "Support for hot-pluggable CPUs (EXPERIMENTAL)"
-+	bool "Support for suspend on SMP and hot-pluggable CPUs (EXPERIMENTAL)"
- 	depends on SMP && HOTPLUG && EXPERIMENTAL
- 	help
- 		Say Y here to experiment with turning CPUs off and on.  CPUs
- 		can be controlled through /sys/devices/system/cpu/cpu#.
--		Say N if you want to disable CPU hotplug.
-+		This is also required for suspend/hibernation on SMP systems.
-+
-+		Say N if you want to disable CPU hotplug and don't need to
-+		suspend.
+-static int write_sb_page(mddev_t *mddev, long offset, struct page *page, int wait)
++static int write_sb_page(struct bitmap *bitmap, struct page *page, int wait)
+ {
+ 	mdk_rdev_t *rdev;
+ 	struct list_head *tmp;
++	mddev_t *mddev = bitmap->mddev;
  
- config ARCH_ENABLE_MEMORY_HOTPLUG
- 	def_bool y
+ 	ITERATE_RDEV(mddev, rdev, tmp)
+ 		if (test_bit(In_sync, &rdev->flags)
+-		    && !test_bit(Faulty, &rdev->flags))
++		    && !test_bit(Faulty, &rdev->flags)) {
++			int size = PAGE_SIZE;
++			if (page->index == bitmap->file_pages-1)
++				size = roundup(bitmap->last_page_size,
++					       bdev_hardsect_size(rdev->bdev));
+ 			md_super_write(mddev, rdev,
+-				       (rdev->sb_offset<<1) + offset
++				       (rdev->sb_offset<<1) + bitmap->offset
+ 				       + page->index * (PAGE_SIZE/512),
+-				       PAGE_SIZE,
++				       size,
+ 				       page);
++		}
+ 
+ 	if (wait)
+ 		md_super_wait(mddev);
+@@ -282,7 +288,7 @@ static int write_page(struct bitmap *bit
+ 	struct buffer_head *bh;
+ 
+ 	if (bitmap->file == NULL)
+-		return write_sb_page(bitmap->mddev, bitmap->offset, page, wait);
++		return write_sb_page(bitmap, page, wait);
+ 
+ 	bh = page_buffers(page);
+ 
+@@ -923,6 +929,7 @@ static int bitmap_init_from_disk(struct 
+ 			}
+ 
+ 			bitmap->filemap[bitmap->file_pages++] = page;
++			bitmap->last_page_size = count;
+ 		}
+ 		paddr = kmap_atomic(page, KM_USER0);
+ 		if (bitmap->flags & BITMAP_HOSTENDIAN)
+diff -puN include/linux/raid/bitmap.h~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap include/linux/raid/bitmap.h
+--- a/include/linux/raid/bitmap.h~md-dont-write-more-than-is-required-of-the-last-page-of-a-bitmap
++++ a/include/linux/raid/bitmap.h
+@@ -232,6 +232,7 @@ struct bitmap {
+ 	struct page **filemap; /* list of cache pages for the file */
+ 	unsigned long *filemap_attr; /* attributes associated w/ filemap pages */
+ 	unsigned long file_pages; /* number of pages in the file */
++	int last_page_size; /* bytes in the last page */
+ 
+ 	unsigned long flags;
+ 
 _
 
-Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
-git-ieee1394.patch
-git-scsi-misc.patch
+git-md-accel.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+knfsd-exportfs-add-procedural-interface-for-nfsd.patch
+knfsd-exportfs-remove-call-macro.patch
+knfsd-exportfs-untangle-isdir-logic-in-find_exported_dentry.patch
+knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
+knfsd-exportfs-add-find_disconnected_root-helper.patch
+knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch
+nfsd-warning-fix.patch
+use-menuconfig-objects-ii-md.patch
+md-improve-message-about-invalid-superblock-during-autodetect.patch
+md-improve-the-is_mddev_idle-test-fix.patch
+md-check-that-internal-bitmap-does-not-overlap-other-data.patch
+md-change-bitmap_unplug-and-others-to-void-functions.patch
+fs-introduce-vfs_path_lookup.patch
+sunrpc-use-vfs_path_lookup.patch
+nfsctl-use-vfs_path_lookup.patch
+fs-mark-link_path_walk-static.patch
+fs-remove-path_walk-export.patch
