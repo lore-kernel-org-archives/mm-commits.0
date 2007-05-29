@@ -1,147 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - spi-doc-update-describe-clock-mode-bits.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:50:36 -0700
-Message-ID: <200705291850.l4TIoZIh008280@shell0.pdx.osdl.net>
+Subject: - prohibit-rcutorture-from-being-compiled-into-the-kernel.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:50:52 -0700
+Message-ID: <200705291850.l4TIop5A008302@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43535 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753207AbXE2SvM (ORCPT
+	by vger.kernel.org with ESMTP id S1752415AbXE2SvT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:12 -0400
+	Tue, 29 May 2007 14:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, josh@kernel.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi doc update: describe clock mode bits
+     prohibit rcutorture from being compiled into the kernel
 has been removed from the -mm tree.  Its filename was
-     spi-doc-update-describe-clock-mode-bits.patch
+     prohibit-rcutorture-from-being-compiled-into-the-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi doc update: describe clock mode bits
-From: David Brownell <david-b@pacbell.net>
+Subject: prohibit rcutorture from being compiled into the kernel
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-Update the SPI documentation to cover a few points that have proven to be
-confusing or unclear; most notably the two clock mode bits.
+There have been a number of instances where people have accidentally compiled
+rcutorture into the kernel (CONFIG_RCU_TORTURE_TEST=y), which has never been
+useful, and has often resulted in great frustration.  The attached patch
+prohibits rcutorture from being compiled into the kernel.  It may be excluded
+altogether or compiled as a module.  People wishing to have rcutorture hammer
+their machine immediately upon boot are free to hand-edit lib/Kconfig.debug to
+remove the "depends on m" line.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Thanks to Randy Dunlap for the trick that makes this work.
+
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Josh Triplett <josh@kernel.org>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/spi/spi-summary |   53 ++++++++++++++++++++++++++++----
- 1 files changed, 48 insertions(+), 5 deletions(-)
+ lib/Kconfig.debug |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/spi/spi-summary~spi-doc-update-describe-clock-mode-bits Documentation/spi/spi-summary
---- a/Documentation/spi/spi-summary~spi-doc-update-describe-clock-mode-bits
-+++ a/Documentation/spi/spi-summary
-@@ -1,26 +1,30 @@
- Overview of Linux kernel SPI support
- ====================================
+diff -puN lib/Kconfig.debug~prohibit-rcutorture-from-being-compiled-into-the-kernel lib/Kconfig.debug
+--- a/lib/Kconfig.debug~prohibit-rcutorture-from-being-compiled-into-the-kernel
++++ a/lib/Kconfig.debug
+@@ -378,14 +378,13 @@ config FORCED_INLINING
+ config RCU_TORTURE_TEST
+ 	tristate "torture tests for RCU"
+ 	depends on DEBUG_KERNEL
++	depends on m
+ 	default n
+ 	help
+ 	  This option provides a kernel module that runs torture tests
+ 	  on the RCU infrastructure.  The kernel module may be built
+ 	  after the fact on the running kernel to be tested, if desired.
  
--02-Dec-2005
-+21-May-2007
+-	  Say Y here if you want RCU torture tests to start automatically
+-	  at boot time (you probably don't).
+ 	  Say M if you want the RCU torture tests to build as a module.
+ 	  Say N if you are unsure.
  
- What is SPI?
- ------------
- The "Serial Peripheral Interface" (SPI) is a synchronous four wire serial
- link used to connect microcontrollers to sensors, memory, and peripherals.
-+It's a simple "de facto" standard, not complicated enough to acquire a
-+standardization body.  SPI uses a master/slave configuration.
- 
- The three signal wires hold a clock (SCK, often on the order of 10 MHz),
- and parallel data lines with "Master Out, Slave In" (MOSI) or "Master In,
- Slave Out" (MISO) signals.  (Other names are also used.)  There are four
- clocking modes through which data is exchanged; mode-0 and mode-3 are most
- commonly used.  Each clock cycle shifts data out and data in; the clock
--doesn't cycle except when there is data to shift.
-+doesn't cycle except when there is a data bit to shift.  Not all data bits
-+are used though; not every protocol uses those full duplex capabilities.
- 
--SPI masters may use a "chip select" line to activate a given SPI slave
-+SPI masters use a fourth "chip select" line to activate a given SPI slave
- device, so those three signal wires may be connected to several chips
--in parallel.  All SPI slaves support chipselects.  Some devices have
-+in parallel.  All SPI slaves support chipselects; they are usually active
-+low signals, labeled nCSx for slave 'x' (e.g. nCS0).  Some devices have
- other signals, often including an interrupt to the master.
- 
--Unlike serial busses like USB or SMBUS, even low level protocols for
-+Unlike serial busses like USB or SMBus, even low level protocols for
- SPI slave functions are usually not interoperable between vendors
- (except for commodities like SPI memory chips).
- 
-@@ -33,6 +37,11 @@ SPI slave functions are usually not inte
-   - Some devices may use eight bit words.  Others may different word
-     lengths, such as streams of 12-bit or 20-bit digital samples.
- 
-+  - Words are usually sent with their most significant bit (MSB) first,
-+    but sometimes the least significant bit (LSB) goes first instead.
-+
-+  - Sometimes SPI is used to daisy-chain devices, like shift registers.
-+
- In the same way, SPI slaves will only rarely support any kind of automatic
- discovery/enumeration protocol.  The tree of slave devices accessible from
- a given SPI master will normally be set up manually, with configuration
-@@ -44,6 +53,14 @@ half-duplex SPI, for request/response pr
- Serial Protocol"), PSP ("Programmable Serial Protocol"), and other
- related protocols.
- 
-+Some chips eliminate a signal line by combining MOSI and MISO, and
-+limiting themselves to half-duplex at the hardware level.  In fact
-+some SPI chips have this signal mode as a strapping option.  These
-+can be accessed using the same programming interface as SPI, but of
-+course they won't handle full duplex transfers.  You may find such
-+chips described as using "three wire" signaling: SCK, data, nCSx.
-+(That data line is sometimes called MOMI or SISO.)
-+
- Microcontrollers often support both master and slave sides of the SPI
- protocol.  This document (and Linux) currently only supports the master
- side of SPI interactions.
-@@ -74,6 +91,32 @@ interfaces with SPI modes.  Given SPI su
- cards without needing a special purpose MMC/SD/SDIO controller.
- 
- 
-+I'm confused.  What are these four SPI "clock modes"?
-+-----------------------------------------------------
-+It's easy to be confused here, and the vendor documentation you'll
-+find isn't necessarily helpful.  The four modes combine two mode bits:
-+
-+ - CPOL indicates the initial clock polarity.  CPOL=0 means the
-+   clock starts low, so the first (leading) edge is rising, and
-+   the second (trailing) edge is falling.  CPOL=1 means the clock
-+   starts high, so the first (leading) edge is falling.
-+
-+ - CPHA indicates the clock phase used to sample data; CPHA=0 says
-+   sample on the leading edge, CPHA=1 means the trailing edge.
-+
-+   Since the signal needs to stablize before it's sampled, CPHA=0
-+   implies that its data is written half a clock before the first
-+   clock edge.  The chipselect may have made it become available.
-+
-+Chip specs won't always say "uses SPI mode X" in as many words,
-+but their timing diagrams will make the CPOL and CPHA modes clear.
-+
-+In the SPI mode number, CPOL is the high order bit and CPHA is the
-+low order bit.  So when a chip's timing diagram shows the clock
-+starting low (CPOL=0) and data stabilized for sampling during the
-+trailing clock edge (CPHA=1), that's SPI mode 1.
-+
-+
- How do these driver programming interfaces work?
- ------------------------------------------------
- The <linux/spi/spi.h> header file includes kerneldoc, as does the
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
-
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
-git-leds.patch
-git-mmc.patch
-spi-controller-drivers-check-for-unsupported-modes.patch
-spi-add-3wire-mode-flag.patch
-spi-add-3wire-mode-flag-fix.patch
-rtc-ds1307-cleanups.patch
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
