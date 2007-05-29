@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-new-cont-helpers.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:11 -0700
-Message-ID: <200705292120.l4TLKBlM011760@shell0.pdx.osdl.net>
+Subject: + ext2-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:03 -0700
+Message-ID: <200705292120.l4TLK3PG011745@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35720 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753161AbXE2VUS (ORCPT
+	by vger.kernel.org with ESMTP id S1752926AbXE2VUR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:18 -0400
+	Tue, 29 May 2007 17:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hirofumi@mail.parknet.co.jp
+Cc: npiggin@suse.de
 
 
 The patch titled
-     fs: new cont helpers
+     ext2: convert to new aops
 has been added to the -mm tree.  Its filename is
-     fs-new-cont-helpers.patch
+     ext2-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,358 +26,225 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs: new cont helpers
+Subject: ext2: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
-Rework the generic block "cont" routines to handle the new aops.  Supporting
-cont_prepare_write would take quite a lot of code to support, so remove it
-instead (and we later convert all filesystems to use it).
-
-write_begin gets passed AOP_FLAG_CONT_EXPAND when called from
-generic_cont_expand, so filesystems can avoid the old hacks they used.
-
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |  198 ++++++++++++++++------------------
- include/linux/buffer_head.h |    5 
- include/linux/fs.h          |    1 
- mm/filemap.c                |    5 
- 4 files changed, 105 insertions(+), 104 deletions(-)
+ fs/ext2/dir.c   |   56 +++++++++++++++++++++++++++++++---------------
+ fs/ext2/ext2.h  |    3 ++
+ fs/ext2/inode.c |   24 ++++++++++---------
+ 3 files changed, 54 insertions(+), 29 deletions(-)
 
-diff -puN fs/buffer.c~fs-new-cont-helpers fs/buffer.c
---- a/fs/buffer.c~fs-new-cont-helpers
-+++ a/fs/buffer.c
-@@ -2125,14 +2125,14 @@ int block_read_full_page(struct page *pa
+diff -puN fs/ext2/dir.c~ext2-convert-to-new-aops fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-convert-to-new-aops
++++ a/fs/ext2/dir.c
+@@ -22,7 +22,9 @@
+  */
+ 
+ #include "ext2.h"
++#include <linux/buffer_head.h>
+ #include <linux/pagemap.h>
++#include <linux/swap.h>
+ 
+ typedef struct ext2_dir_entry_2 ext2_dirent;
+ 
+@@ -61,16 +63,26 @@ ext2_last_byte(struct inode *inode, unsi
+ 	return last_byte;
  }
  
- /* utility function for filesystems that need to do work on expanding
-- * truncates.  Uses prepare/commit_write to allow the filesystem to
-+ * truncates.  Uses filesystem pagecache writes to allow the filesystem to
-  * deal with the hole.  
-  */
--static int __generic_cont_expand(struct inode *inode, loff_t size,
--				 pgoff_t index, unsigned int offset)
-+int generic_cont_expand_simple(struct inode *inode, loff_t size)
+-static int ext2_commit_chunk(struct page *page, unsigned from, unsigned to)
++static int ext2_commit_chunk(struct page *page, loff_t pos, unsigned len)
  {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct page *page;
-+	void *fsdata;
- 	unsigned long limit;
- 	int err;
- 
-@@ -2145,140 +2145,134 @@ static int __generic_cont_expand(struct 
- 	if (size > inode->i_sb->s_maxbytes)
- 		goto out;
- 
--	err = -ENOMEM;
--	page = grab_cache_page(mapping, index);
--	if (!page)
--		goto out;
--	err = mapping->a_ops->prepare_write(NULL, page, offset, offset);
--	if (err) {
--		/*
--		 * ->prepare_write() may have instantiated a few blocks
--		 * outside i_size.  Trim these off again.
--		 */
--		unlock_page(page);
--		page_cache_release(page);
--		vmtruncate(inode, inode->i_size);
-+	err = pagecache_write_begin(NULL, mapping, size, 0,
-+				AOP_FLAG_UNINTERRUPTIBLE|AOP_FLAG_CONT_EXPAND,
-+				&page, &fsdata);
-+	if (err)
- 		goto out;
--	}
- 
--	err = mapping->a_ops->commit_write(NULL, page, offset, offset);
-+	err = pagecache_write_end(NULL, mapping, size, 0, 0, page, fsdata);
-+	BUG_ON(err > 0);
- 
--	unlock_page(page);
--	page_cache_release(page);
--	if (err > 0)
--		err = 0;
- out:
+-	struct inode *dir = page->mapping->host;
++	struct address_space *mapping = page->mapping;
++	struct inode *dir = mapping->host;
+ 	int err = 0;
++
+ 	dir->i_version++;
+-	page->mapping->a_ops->commit_write(NULL, page, from, to);
++	block_write_end(NULL, mapping, pos, len, len, page, NULL);
++
++	if (pos+len > dir->i_size) {
++		i_size_write(dir, pos+len);
++		mark_inode_dirty(dir);
++	}
++
+ 	if (IS_DIRSYNC(dir))
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
++	mark_page_accessed(page);
++
  	return err;
  }
  
- int generic_cont_expand(struct inode *inode, loff_t size)
+@@ -412,16 +424,18 @@ ino_t ext2_inode_by_name(struct inode * 
+ void ext2_set_link(struct inode *dir, struct ext2_dir_entry_2 *de,
+ 			struct page *page, struct inode *inode)
  {
--	pgoff_t index;
- 	unsigned int offset;
+-	unsigned from = (char *) de - (char *) page_address(page);
+-	unsigned to = from + le16_to_cpu(de->rec_len);
++	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
++			(char *) de - (char *) page_address(page);
++	unsigned len = le16_to_cpu(de->rec_len);
+ 	int err;
  
- 	offset = (size & (PAGE_CACHE_SIZE - 1)); /* Within page */
+ 	lock_page(page);
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __ext2_write_begin(NULL, page->mapping, pos, len,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	BUG_ON(err);
+ 	de->inode = cpu_to_le32(inode->i_ino);
+-	ext2_set_de_type (de, inode);
+-	err = ext2_commit_chunk(page, from, to);
++	ext2_set_de_type(de, inode);
++	err = ext2_commit_chunk(page, pos, len);
+ 	ext2_put_page(page);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	EXT2_I(dir)->i_flags &= ~EXT2_BTREE_FL;
+@@ -444,7 +458,7 @@ int ext2_add_link (struct dentry *dentry
+ 	unsigned long npages = dir_pages(dir);
+ 	unsigned long n;
+ 	char *kaddr;
+-	unsigned from, to;
++	loff_t pos;
+ 	int err;
  
- 	/* ugh.  in prepare/commit_write, if from==to==start of block, we
--	** skip the prepare.  make sure we never send an offset for the start
--	** of a block
--	*/
-+	 * skip the prepare.  make sure we never send an offset for the start
-+	 * of a block.
-+	 * XXX: actually, this should be handled in those filesystems by
-+	 * checking for the AOP_FLAG_CONT_EXPAND flag.
-+	 */
- 	if ((offset & (inode->i_sb->s_blocksize - 1)) == 0) {
- 		/* caller must handle this extra byte. */
--		offset++;
-+		size++;
+ 	/*
+@@ -497,9 +511,10 @@ int ext2_add_link (struct dentry *dentry
+ 	return -EINVAL;
+ 
+ got_it:
+-	from = (char*)de - (char*)page_address(page);
+-	to = from + rec_len;
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	pos = (page->index << PAGE_CACHE_SHIFT) +
++		(char*)de - (char*)page_address(page);
++	err = __ext2_write_begin(NULL, page->mapping, pos, rec_len, 0,
++							&page, NULL);
+ 	if (err)
+ 		goto out_unlock;
+ 	if (de->inode) {
+@@ -509,10 +524,10 @@ got_it:
+ 		de = de1;
  	}
--	index = size >> PAGE_CACHE_SHIFT;
--
--	return __generic_cont_expand(inode, size, index, offset);
--}
--
--int generic_cont_expand_simple(struct inode *inode, loff_t size)
--{
--	loff_t pos = size - 1;
--	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
--	unsigned int offset = (pos & (PAGE_CACHE_SIZE - 1)) + 1;
--
--	/* prepare/commit_write can handle even if from==to==start of block. */
--	return __generic_cont_expand(inode, size, index, offset);
-+	return generic_cont_expand_simple(inode, size);
+ 	de->name_len = namelen;
+-	memcpy (de->name, name, namelen);
++	memcpy(de->name, name, namelen);
+ 	de->inode = cpu_to_le32(inode->i_ino);
+ 	ext2_set_de_type (de, inode);
+-	err = ext2_commit_chunk(page, from, to);
++	err = ext2_commit_chunk(page, pos, rec_len);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	EXT2_I(dir)->i_flags &= ~EXT2_BTREE_FL;
+ 	mark_inode_dirty(dir);
+@@ -537,6 +552,7 @@ int ext2_delete_entry (struct ext2_dir_e
+ 	char *kaddr = page_address(page);
+ 	unsigned from = ((char*)dir - kaddr) & ~(ext2_chunk_size(inode)-1);
+ 	unsigned to = ((char*)dir - kaddr) + le16_to_cpu(dir->rec_len);
++	loff_t pos;
+ 	ext2_dirent * pde = NULL;
+ 	ext2_dirent * de = (ext2_dirent *) (kaddr + from);
+ 	int err;
+@@ -553,13 +569,15 @@ int ext2_delete_entry (struct ext2_dir_e
+ 	}
+ 	if (pde)
+ 		from = (char*)pde - (char*)page_address(page);
++	pos = (page->index << PAGE_CACHE_SHIFT) + from;
+ 	lock_page(page);
+-	err = mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __ext2_write_begin(NULL, page->mapping, pos, to - from, 0,
++							&page, NULL);
+ 	BUG_ON(err);
+ 	if (pde)
+-		pde->rec_len = cpu_to_le16(to-from);
++		pde->rec_len = cpu_to_le16(to - from);
+ 	dir->inode = 0;
+-	err = ext2_commit_chunk(page, from, to);
++	err = ext2_commit_chunk(page, pos, to - from);
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME_SEC;
+ 	EXT2_I(inode)->i_flags &= ~EXT2_BTREE_FL;
+ 	mark_inode_dirty(inode);
+@@ -582,7 +600,9 @@ int ext2_make_empty(struct inode *inode,
+ 
+ 	if (!page)
+ 		return -ENOMEM;
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, chunk_size);
++
++	err = __ext2_write_begin(NULL, page->mapping, 0, chunk_size, 0,
++							&page, NULL);
+ 	if (err) {
+ 		unlock_page(page);
+ 		goto fail;
+diff -puN fs/ext2/ext2.h~ext2-convert-to-new-aops fs/ext2/ext2.h
+--- a/fs/ext2/ext2.h~ext2-convert-to-new-aops
++++ a/fs/ext2/ext2.h
+@@ -134,6 +134,9 @@ extern void ext2_truncate (struct inode 
+ extern int ext2_setattr (struct dentry *, struct iattr *);
+ extern void ext2_set_inode_flags(struct inode *inode);
+ extern void ext2_get_inode_flags(struct ext2_inode_info *);
++int __ext2_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata);
+ 
+ /* ioctl.c */
+ extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
+diff -puN fs/ext2/inode.c~ext2-convert-to-new-aops fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext2-convert-to-new-aops
++++ a/fs/ext2/inode.c
+@@ -642,18 +642,21 @@ ext2_readpages(struct file *file, struct
+ 	return mpage_readpages(mapping, pages, nr_pages, ext2_get_block);
  }
  
--/*
-- * For moronic filesystems that do not allow holes in file.
-- * We may have to extend the file.
-- */
--
--int cont_prepare_write(struct page *page, unsigned offset,
--		unsigned to, get_block_t *get_block, loff_t *bytes)
-+int cont_expand_zero(struct file *file, struct address_space *mapping,
-+			loff_t pos, loff_t *bytes)
+-static int
+-ext2_prepare_write(struct file *file, struct page *page,
+-			unsigned from, unsigned to)
++int __ext2_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata)
  {
--	struct address_space *mapping = page->mapping;
- 	struct inode *inode = mapping->host;
--	struct page *new_page;
--	pgoff_t pgpos;
--	long status;
--	unsigned zerofrom;
- 	unsigned blocksize = 1 << inode->i_blkbits;
-+	struct page *page;
-+	void *fsdata;
-+	pgoff_t index, curidx;
-+	loff_t curpos;
-+	unsigned zerofrom, offset, len;
-+	int err = 0;
+-	return block_prepare_write(page,from,to,ext2_get_block);
++	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++							ext2_get_block);
+ }
  
--	while(page->index > (pgpos = *bytes>>PAGE_CACHE_SHIFT)) {
--		status = -ENOMEM;
--		new_page = grab_cache_page(mapping, pgpos);
--		if (!new_page)
--			goto out;
--		/* we might sleep */
--		if (*bytes>>PAGE_CACHE_SHIFT != pgpos) {
--			unlock_page(new_page);
--			page_cache_release(new_page);
--			continue;
--		}
--		zerofrom = *bytes & ~PAGE_CACHE_MASK;
-+	index = pos >> PAGE_CACHE_SHIFT;
-+	offset = pos & ~PAGE_CACHE_MASK;
-+
-+	while (index > (curidx = (curpos = *bytes)>>PAGE_CACHE_SHIFT)) {
-+		zerofrom = curpos & ~PAGE_CACHE_MASK;
- 		if (zerofrom & (blocksize-1)) {
- 			*bytes |= (blocksize-1);
- 			(*bytes)++;
- 		}
--		status = __block_prepare_write(inode, new_page, zerofrom,
--						PAGE_CACHE_SIZE, get_block);
--		if (status)
--			goto out_unmap;
--		zero_user_page(new_page, zerofrom, PAGE_CACHE_SIZE - zerofrom,
--				KM_USER0);
--		generic_commit_write(NULL, new_page, zerofrom, PAGE_CACHE_SIZE);
--		unlock_page(new_page);
--		page_cache_release(new_page);
--	}
-+		len = PAGE_CACHE_SIZE - zerofrom;
- 
--	if (page->index < pgpos) {
--		/* completely inside the area */
--		zerofrom = offset;
--	} else {
--		/* page covers the boundary, find the boundary offset */
--		zerofrom = *bytes & ~PAGE_CACHE_MASK;
-+		err = pagecache_write_begin(file, mapping, curpos, len,
-+						AOP_FLAG_UNINTERRUPTIBLE,
-+						&page, &fsdata);
-+		if (err)
-+			goto out;
-+		zero_user_page(page, zerofrom, len, KM_USER0);
-+		err = pagecache_write_end(file, mapping, curpos, len, len,
-+						page, fsdata);
-+		if (err < 0)
-+			goto out;
-+		BUG_ON(err != len);
-+		err = 0;
-+	}
- 
-+	/* page covers the boundary, find the boundary offset */
-+	if (index == curidx) {
-+		zerofrom = curpos & ~PAGE_CACHE_MASK;
- 		/* if we will expand the thing last block will be filled */
--		if (to > zerofrom && (zerofrom & (blocksize-1))) {
-+		if (offset <= zerofrom) {
-+			goto out;
-+		}
-+		if (zerofrom & (blocksize-1)) {
- 			*bytes |= (blocksize-1);
- 			(*bytes)++;
- 		}
-+		len = offset - zerofrom;
- 
--		/* starting below the boundary? Nothing to zero out */
--		if (offset <= zerofrom)
--			zerofrom = offset;
--	}
--	status = __block_prepare_write(inode, page, zerofrom, to, get_block);
--	if (status)
--		goto out1;
--	if (zerofrom < offset) {
--		zero_user_page(page, zerofrom, offset - zerofrom, KM_USER0);
--		__block_commit_write(inode, page, zerofrom, offset);
-+		err = pagecache_write_begin(file, mapping, curpos, len,
-+						AOP_FLAG_UNINTERRUPTIBLE,
-+						&page, &fsdata);
-+		if (err)
-+			goto out;
-+		zero_user_page(page, zerofrom, len, KM_USER0);
-+		err = pagecache_write_end(file, mapping, curpos, len, len,
-+						page, fsdata);
-+		if (err < 0)
-+			goto out;
-+		BUG_ON(err != len);
-+		err = 0;
- 	}
--	return 0;
--out1:
--	ClearPageUptodate(page);
--	return status;
--
--out_unmap:
--	ClearPageUptodate(new_page);
--	unlock_page(new_page);
--	page_cache_release(new_page);
- out:
--	return status;
-+	return err;
-+}
-+
-+/*
-+ * For moronic filesystems that do not allow holes in file.
-+ * We may have to extend the file.
-+ */
-+int cont_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata,
-+			get_block_t *get_block, loff_t *bytes)
-+{
-+	struct inode *inode = mapping->host;
-+	unsigned blocksize = 1 << inode->i_blkbits;
-+	unsigned zerofrom;
-+	int err;
-+
-+	err = cont_expand_zero(file, mapping, pos, bytes);
-+	if (err)
-+		goto out;
-+
-+	zerofrom = *bytes & ~PAGE_CACHE_MASK;
-+	if (pos+len > *bytes && zerofrom & (blocksize-1)) {
-+		*bytes |= (blocksize-1);
-+		(*bytes)++;
-+	}
-+
+ static int
+-ext2_nobh_prepare_write(struct file *file, struct page *page,
+-			unsigned from, unsigned to)
++ext2_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata)
+ {
+-	return nobh_prepare_write(page,from,to,ext2_get_block);
 +	*pagep = NULL;
-+	err = block_write_begin(file, mapping, pos, len,
-+				flags, pagep, fsdata, get_block);
-+out:
-+	return err;
++	return __ext2_write_begin(file, mapping, pos, len, flags, pagep,fsdata);
  }
  
- int block_prepare_write(struct page *page, unsigned from, unsigned to,
-@@ -3102,7 +3096,7 @@ EXPORT_SYMBOL(block_read_full_page);
- EXPORT_SYMBOL(block_sync_page);
- EXPORT_SYMBOL(block_truncate_page);
- EXPORT_SYMBOL(block_write_full_page);
--EXPORT_SYMBOL(cont_prepare_write);
-+EXPORT_SYMBOL(cont_write_begin);
- EXPORT_SYMBOL(end_buffer_read_sync);
- EXPORT_SYMBOL(end_buffer_write_sync);
- EXPORT_SYMBOL(file_fsync);
-diff -puN include/linux/buffer_head.h~fs-new-cont-helpers include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fs-new-cont-helpers
-+++ a/include/linux/buffer_head.h
-@@ -214,8 +214,9 @@ int generic_write_end(struct file *, str
- 				struct page *, void *);
- void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
- int block_prepare_write(struct page*, unsigned, unsigned, get_block_t*);
--int cont_prepare_write(struct page*, unsigned, unsigned, get_block_t*,
--				loff_t *);
-+int cont_write_begin(struct file *, struct address_space *, loff_t,
-+			unsigned, unsigned, struct page **, void **,
-+			get_block_t *, loff_t *);
- int generic_cont_expand(struct inode *inode, loff_t size);
- int generic_cont_expand_simple(struct inode *inode, loff_t size);
- int block_commit_write(struct page *page, unsigned from, unsigned to);
-diff -puN include/linux/fs.h~fs-new-cont-helpers include/linux/fs.h
---- a/include/linux/fs.h~fs-new-cont-helpers
-+++ a/include/linux/fs.h
-@@ -392,6 +392,7 @@ enum positive_aop_returns {
- };
- 
- #define AOP_FLAG_UNINTERRUPTIBLE	0x0001 /* will not do a short write */
-+#define AOP_FLAG_CONT_EXPAND		0x0002 /* called from cont_expand */
- 
- /*
-  * oh the beauties of C type declarations.
-diff -puN mm/filemap.c~fs-new-cont-helpers mm/filemap.c
---- a/mm/filemap.c~fs-new-cont-helpers
-+++ a/mm/filemap.c
-@@ -1736,6 +1736,7 @@ size_t iov_iter_copy_from_user_atomic(st
- 
- 	return copied;
- }
-+EXPORT_SYMBOL(iov_iter_copy_from_user_atomic);
- 
- /*
-  * This has the same sideeffects and return value as
-@@ -1762,6 +1763,7 @@ size_t iov_iter_copy_from_user(struct pa
- 	kunmap(page);
- 	return copied;
- }
-+EXPORT_SYMBOL(iov_iter_copy_from_user);
- 
- static void __iov_iter_advance_iov(struct iov_iter *i, size_t bytes)
- {
-@@ -1793,12 +1795,14 @@ void iov_iter_advance(struct iov_iter *i
- 	__iov_iter_advance_iov(i, bytes);
- 	i->count -= bytes;
- }
-+EXPORT_SYMBOL(iov_iter_advance);
- 
- int iov_iter_fault_in_readable(struct iov_iter *i, size_t bytes)
- {
- 	char __user *buf = i->iov->iov_base + i->iov_offset;
- 	return fault_in_pages_readable(buf, bytes);
- }
-+EXPORT_SYMBOL(iov_iter_fault_in_readable);
- 
- /*
-  * Return the count of just the current iov_iter segment.
-@@ -1811,6 +1815,7 @@ size_t iov_iter_single_seg_count(struct 
- 	else
- 		return min(i->count, iov->iov_len - i->iov_offset);
- }
-+EXPORT_SYMBOL(iov_iter_single_seg_count);
- 
- /*
-  * Performs necessary checks before doing a write
+ static int ext2_nobh_writepage(struct page *page,
+@@ -689,8 +692,8 @@ const struct address_space_operations ex
+ 	.readpages		= ext2_readpages,
+ 	.writepage		= ext2_writepage,
+ 	.sync_page		= block_sync_page,
+-	.prepare_write		= ext2_prepare_write,
+-	.commit_write		= generic_commit_write,
++	.write_begin		= ext2_write_begin,
++	.write_end		= generic_write_end,
+ 	.bmap			= ext2_bmap,
+ 	.direct_IO		= ext2_direct_IO,
+ 	.writepages		= ext2_writepages,
+@@ -707,8 +710,7 @@ const struct address_space_operations ex
+ 	.readpages		= ext2_readpages,
+ 	.writepage		= ext2_nobh_writepage,
+ 	.sync_page		= block_sync_page,
+-	.prepare_write		= ext2_nobh_prepare_write,
+-	.commit_write		= nobh_commit_write,
++	/* XXX: todo */
+ 	.bmap			= ext2_bmap,
+ 	.direct_IO		= ext2_direct_IO,
+ 	.writepages		= ext2_writepages,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
