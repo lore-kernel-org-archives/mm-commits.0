@@ -1,55 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: - dave-broke-gfs2-26-nmwgit.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:04 -0700
-Message-ID: <200705291854.l4TIs37X008500@shell0.pdx.osdl.net>
+Subject: - hardware-eicon-messagec-warning-fixes.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:30 -0700
+Message-ID: <200705291853.l4TIrTrT008468@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48933 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752977AbXE2Syf (ORCPT
+	by vger.kernel.org with ESMTP id S1763652AbXE2SyG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:54:35 -0400
+	Tue, 29 May 2007 14:54:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: teigland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dave broke gfs2-2.6-nmw.git
+     drivers/isdn/hardware/eicon/message.c warning fixes
 has been removed from the -mm tree.  Its filename was
-     dave-broke-gfs2-26-nmwgit.patch
+     hardware-eicon-messagec-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Dave broke gfs2-2.6-nmw.git
-From: David Teigland <teigland@redhat.com>
+Subject: drivers/isdn/hardware/eicon/message.c warning fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix compilation that broke when replacing log_error with log_debug.
+Squash these:
 
-Signed-off-by: David Teigland <teigland@redhat.com>
+drivers/isdn/hardware/eicon/message.c: In function 'api_put':
+drivers/isdn/hardware/eicon/message.c:536: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'plci_free_msg_in_queue':
+drivers/isdn/hardware/eicon/message.c:1035: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'data_b3_req':
+drivers/isdn/hardware/eicon/message.c:3121: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c:3154: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'callback':
+drivers/isdn/hardware/eicon/message.c:4060: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/message.c: In function 'nl_ind':
+drivers/isdn/hardware/eicon/message.c:7137: warning: cast from pointer to integer of different size
+
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/lock.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/hardware/eicon/message.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/dlm/lock.c~dave-broke-gfs2-26-nmwgit fs/dlm/lock.c
---- a/fs/dlm/lock.c~dave-broke-gfs2-26-nmwgit
-+++ a/fs/dlm/lock.c
-@@ -1098,8 +1098,8 @@ void dlm_scan_timeout(struct dlm_ls *ls)
- 		}
+diff -puN drivers/isdn/hardware/eicon/message.c~hardware-eicon-messagec-warning-fixes drivers/isdn/hardware/eicon/message.c
+--- a/drivers/isdn/hardware/eicon/message.c~hardware-eicon-messagec-warning-fixes
++++ a/drivers/isdn/hardware/eicon/message.c
+@@ -1,4 +1,3 @@
+-
+ /*
+  *
+   Copyright (c) Eicon Networks, 2002.
+@@ -533,7 +532,7 @@ word api_put(APPL   * appl, CAPI_MSG   *
+         if (m->header.command == _DATA_B3_R)
+         {
  
- 		if (do_cancel) {
--			log_debug("timeout cancel %x node %d %s", lkb->lkb_id,
--				  lkb->lkb_nodeid, r->res_name);
-+			log_debug(r->res_ls, "timeout cancel %x node %d %s",
-+				  lkb->lkb_id, lkb->lkb_nodeid, r->res_name);
- 			lkb->lkb_flags &= ~DLM_IFL_WATCH_TIMEWARN;
- 			lkb->lkb_flags |= DLM_IFL_TIMEOUT_CANCEL;
- 			del_timeout(lkb);
+-          m->info.data_b3_req.Data = (dword)(TransmitBufferSet (appl, m->info.data_b3_req.Data));
++          m->info.data_b3_req.Data = (dword)(long)(TransmitBufferSet (appl, m->info.data_b3_req.Data));
+ 
+         }
+ 
+@@ -1032,7 +1031,7 @@ static void plci_free_msg_in_queue (PLCI
+       {
+ 
+         TransmitBufferFree (plci->appl,
+-          (byte   *)(((CAPI_MSG   *)(&((byte   *)(plci->msg_in_queue))[i]))->info.data_b3_req.Data));
++          (byte *)(long)(((CAPI_MSG *)(&((byte *)(plci->msg_in_queue))[i]))->info.data_b3_req.Data));
+ 
+       }
+ 
+@@ -3118,7 +3117,7 @@ byte data_b3_req(dword Id, word Number, 
+        && (((byte   *)(parms[0].info)) < ((byte   *)(plci->msg_in_queue)) + sizeof(plci->msg_in_queue)))
+       {
+ 
+-        data->P = (byte   *)(*((dword   *)(parms[0].info)));
++        data->P = (byte *)(long)(*((dword *)(parms[0].info)));
+ 
+       }
+       else
+@@ -3151,7 +3150,7 @@ byte data_b3_req(dword Id, word Number, 
+        && (((byte   *)(parms[0].info)) < ((byte   *)(plci->msg_in_queue)) + sizeof(plci->msg_in_queue)))
+       {
+ 
+-        TransmitBufferFree (appl, (byte   *)(*((dword   *)(parms[0].info))));
++        TransmitBufferFree (appl, (byte *)(long)(*((dword *)(parms[0].info))));
+ 
+       }
+     }
+@@ -4057,7 +4056,7 @@ capi_callback_suffix:
+     {
+       if (m->header.command == _DATA_B3_R)
+ 
+-        TransmitBufferFree (appl, (byte   *)(m->info.data_b3_req.Data));
++        TransmitBufferFree (appl, (byte *)(long)(m->info.data_b3_req.Data));
+ 
+       dbug(1,dprintf("Error 0x%04x from msg(0x%04x)", i, m->header.command));
+       break;
+@@ -7134,7 +7133,7 @@ void nl_ind(PLCI   * plci)
+   case N_UDATA:
+     if (!(udata_forwarding_table[plci->NL.RBuffer->P[0] >> 5] & (1L << (plci->NL.RBuffer->P[0] & 0x1f))))
+     {
+-      plci->RData[0].P = plci->internal_ind_buffer + (-((int)(plci->internal_ind_buffer)) & 3);
++      plci->RData[0].P = plci->internal_ind_buffer + (-((int)(long)(plci->internal_ind_buffer)) & 3);
+       plci->RData[0].PLength = INTERNAL_IND_BUFFER_SIZE;
+       plci->NL.R = plci->RData;
+       plci->NL.RNum = 1;
 _
 
-Patches currently in -mm which might be from teigland@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm-master.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
 git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-xfs.patch
+git-cryptodev.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
