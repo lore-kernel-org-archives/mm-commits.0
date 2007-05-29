@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-detect-primary-display-device.patch added to -mm tree
-Date: Tue, 29 May 2007 15:52:40 -0700
-Message-ID: <200705292252.l4TMqed4013678@shell0.pdx.osdl.net>
+Subject: + fbcon-allow-fbcon-to-use-the-primary-display-driver.patch added to -mm tree
+Date: Tue, 29 May 2007 15:52:42 -0700
+Message-ID: <200705292252.l4TMqgtb013681@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38493 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753133AbXE2Wwp (ORCPT
+	by vger.kernel.org with ESMTP id S1753157AbXE2Wwq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 18:52:45 -0400
+	Tue, 29 May 2007 18:52:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com, davem@davemloft.net
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: detect primary display device
+     fbcon: allow fbcon to use the primary display driver
 has been added to the -mm tree.  Its filename is
-     fbdev-detect-primary-display-device.patch
+     fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,547 +26,259 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: detect primary display device
+Subject: fbcon: allow fbcon to use the primary display driver
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Add function helper, fb_is_primary_device().  Given struct fb_info, it will
-return a nonzero value if the device is the primary display.
+Allow fbcon to select the primary display adapter using the
+fb_is_primary_device() arch-specific helper.  If a a primary adapter is
+detected, fbcon will unbind the old adapter from the VT layer, then rebind
+using the new adapter.  This requires that bind_/unbind_con_driver() be made
+public.
 
-Currently, only the i386 is supported where the function checks for the
-IORESOURCE_ROM_SHADOW flag.
+Because this feature may produce unexpected behavior (from the user's POV),
+this must be explicitly enabled in Kconfig.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Makefile         |    1 +
- arch/i386/video/Makefile   |    1 +
- arch/i386/video/fbdev.c    |   34 ++++++++++++++++++++++++++++++++++
- include/asm-alpha/fb.h     |    6 ++++++
- include/asm-arm/fb.h       |    6 ++++++
- include/asm-arm26/fb.h     |    6 ++++++
- include/asm-avr32/fb.h     |    6 ++++++
- include/asm-blackfin/fb.h  |    6 ++++++
- include/asm-cris/fb.h      |    6 ++++++
- include/asm-frv/fb.h       |    6 ++++++
- include/asm-h8300/fb.h     |    6 ++++++
- include/asm-i386/fb.h      |    3 +++
- include/asm-ia64/fb.h      |    6 ++++++
- include/asm-m32r/fb.h      |    6 ++++++
- include/asm-m68k/fb.h      |    6 ++++++
- include/asm-m68knommu/fb.h |    6 ++++++
- include/asm-mips/fb.h      |    6 ++++++
- include/asm-parisc/fb.h    |    6 ++++++
- include/asm-powerpc/fb.h   |    6 ++++++
- include/asm-s390/fb.h      |    6 ++++++
- include/asm-sh/fb.h        |    6 ++++++
- include/asm-sh64/fb.h      |    6 ++++++
- include/asm-sparc/fb.h     |    6 ++++++
- include/asm-sparc64/fb.h   |    6 ++++++
- include/asm-v850/fb.h      |    6 ++++++
- include/asm-x86_64/fb.h    |    7 ++++++-
- include/asm-xtensa/fb.h    |    6 ++++++
- 27 files changed, 177 insertions(+), 1 deletion(-)
+ arch/i386/video/fbdev.c       |    4 -
+ drivers/char/vt.c             |    6 --
+ drivers/video/console/Kconfig |   20 ++++++++
+ drivers/video/console/fbcon.c |   80 +++++++++++++++++++++++++++++---
+ include/linux/vt_kern.h       |    4 +
+ 5 files changed, 100 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/Makefile~fbdev-detect-primary-display-device arch/i386/Makefile
---- a/arch/i386/Makefile~fbdev-detect-primary-display-device
-+++ a/arch/i386/Makefile
-@@ -111,6 +111,7 @@ drivers-$(CONFIG_PCI)			+= arch/i386/pci
- # must be linked after kernel/
- drivers-$(CONFIG_OPROFILE)		+= arch/i386/oprofile/
- drivers-$(CONFIG_PM)			+= arch/i386/power/
-+drivers-$(CONFIG_FB)                    += arch/i386/video/
- 
- CFLAGS += $(mflags-y)
- AFLAGS += $(mflags-y)
-diff -puN /dev/null arch/i386/video/Makefile
---- /dev/null
-+++ a/arch/i386/video/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_FB)               += fbdev.o
-diff -puN /dev/null arch/i386/video/fbdev.c
---- /dev/null
+diff -puN arch/i386/video/fbdev.c~fbcon-allow-fbcon-to-use-the-primary-display-driver arch/i386/video/fbdev.c
+--- a/arch/i386/video/fbdev.c~fbcon-allow-fbcon-to-use-the-primary-display-driver
 +++ a/arch/i386/video/fbdev.c
-@@ -0,0 +1,34 @@
-+/*
-+ * arch/i386/video/fbdev.c - i386 Framebuffer
-+ *
-+ * Copyright (C) 2007 Antonino Daplas <adaplas@gmail.com>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file COPYING in the main directory of this archive
-+ * for more details.
-+ *
-+ */
-+#include <linux/fb.h>
-+#include <linux/pci.h>
-+
-+int fb_is_primary_device(struct fb_info *info)
-+{
-+	struct device *device;
-+	struct pci_dev *pci_dev = NULL;
-+	struct resource *res = NULL;
-+	int retval = 0;
-+
-+	device = info->device;
-+
-+	if (device)
-+		pci_dev = to_pci_dev(device);
-+
-+	if (pci_dev)
-+		res = &pci_dev->resource[PCI_ROM_RESOURCE];
-+
-+	if (res && res->flags & IORESOURCE_ROM_SHADOW)
-+		retval = 1;
-+
-+	return retval;
-+}
-+EXPORT_SYMBOL(fb_is_primary_device);
-diff -puN include/asm-alpha/fb.h~fbdev-detect-primary-display-device include/asm-alpha/fb.h
---- a/include/asm-alpha/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-alpha/fb.h
-@@ -1,7 +1,13 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/device.h>
+@@ -13,13 +13,11 @@
  
- /* Caching is off in the I/O space quadrant by design.  */
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-arm/fb.h~fbdev-detect-primary-display-device include/asm-arm/fb.h
---- a/include/asm-arm/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-arm/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -10,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-arm26/fb.h~fbdev-detect-primary-display-device include/asm-arm26/fb.h
---- a/include/asm-arm26/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-arm26/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-avr32/fb.h~fbdev-detect-primary-display-device include/asm-avr32/fb.h
---- a/include/asm-avr32/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-avr32/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -12,4 +13,9 @@ static inline void fb_pgprotect(struct f
- 				     | (_PAGE_BUFFER | _PAGE_DIRTY));
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-blackfin/fb.h~fbdev-detect-primary-display-device include/asm-blackfin/fb.h
---- a/include/asm-blackfin/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-blackfin/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-cris/fb.h~fbdev-detect-primary-display-device include/asm-cris/fb.h
---- a/include/asm-cris/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-cris/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-frv/fb.h~fbdev-detect-primary-display-device include/asm-frv/fb.h
---- a/include/asm-frv/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-frv/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-h8300/fb.h~fbdev-detect-primary-display-device include/asm-h8300/fb.h
---- a/include/asm-h8300/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-h8300/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-i386/fb.h~fbdev-detect-primary-display-device include/asm-i386/fb.h
---- a/include/asm-i386/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-i386/fb.h
-@@ -1,9 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-+extern int fb_is_primary_device(struct fb_info *info);
-+
- static inline void fb_pgprotect(struct file *file, struct vm_area_struct *vma,
- 				unsigned long off)
+ int fb_is_primary_device(struct fb_info *info)
  {
-diff -puN include/asm-ia64/fb.h~fbdev-detect-primary-display-device include/asm-ia64/fb.h
---- a/include/asm-ia64/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-ia64/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
+-	struct device *device;
++	struct device *device = info->device;
+ 	struct pci_dev *pci_dev = NULL;
+ 	struct resource *res = NULL;
+ 	int retval = 0;
  
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -13,4 +14,9 @@ static inline void fb_pgprotect(struct f
- 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-m32r/fb.h~fbdev-detect-primary-display-device include/asm-m32r/fb.h
---- a/include/asm-m32r/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-m32r/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -10,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-m68k/fb.h~fbdev-detect-primary-display-device include/asm-m68k/fb.h
---- a/include/asm-m68k/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-m68k/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- #include <asm/setup.h>
-@@ -24,4 +25,9 @@ static inline void fb_pgprotect(struct f
- }
- #endif /* CONFIG_SUN3 */
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-m68knommu/fb.h~fbdev-detect-primary-display-device include/asm-m68knommu/fb.h
---- a/include/asm-m68knommu/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-m68knommu/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-mips/fb.h~fbdev-detect-primary-display-device include/asm-mips/fb.h
---- a/include/asm-mips/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-mips/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -10,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-parisc/fb.h~fbdev-detect-primary-display-device include/asm-parisc/fb.h
---- a/include/asm-parisc/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-parisc/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -10,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 	pgprot_val(vma->vm_page_prot) |= _PAGE_NO_CACHE;
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-powerpc/fb.h~fbdev-detect-primary-display-device include/asm-powerpc/fb.h
---- a/include/asm-powerpc/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-powerpc/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -12,4 +13,9 @@ static inline void fb_pgprotect(struct f
- 						 vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-s390/fb.h~fbdev-detect-primary-display-device include/asm-s390/fb.h
---- a/include/asm-s390/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-s390/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-sh/fb.h~fbdev-detect-primary-display-device include/asm-sh/fb.h
---- a/include/asm-sh/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-sh/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -10,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-sh64/fb.h~fbdev-detect-primary-display-device include/asm-sh64/fb.h
---- a/include/asm-sh64/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-sh64/fb.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
- 
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -10,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-sparc/fb.h~fbdev-detect-primary-display-device include/asm-sparc/fb.h
---- a/include/asm-sparc/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-sparc/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-sparc64/fb.h~fbdev-detect-primary-display-device include/asm-sparc64/fb.h
---- a/include/asm-sparc64/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-sparc64/fb.h
-@@ -1,5 +1,6 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
- 
-@@ -9,4 +10,9 @@ static inline void fb_pgprotect(struct f
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- }
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-v850/fb.h~fbdev-detect-primary-display-device include/asm-v850/fb.h
---- a/include/asm-v850/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-v850/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-x86_64/fb.h~fbdev-detect-primary-display-device include/asm-x86_64/fb.h
---- a/include/asm-x86_64/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-x86_64/fb.h
-@@ -1,6 +1,6 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
+-	device = info->device;
 -
-+#include <linux/fb.h>
- #include <linux/fs.h>
- #include <asm/page.h>
+ 	if (device)
+ 		pci_dev = to_pci_dev(device);
  
-@@ -11,4 +11,9 @@ static inline void fb_pgprotect(struct f
- 		pgprot_val(vma->vm_page_prot) |= _PAGE_PCD;
+diff -puN drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver drivers/char/vt.c
+--- a/drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver
++++ a/drivers/char/vt.c
+@@ -2863,8 +2863,7 @@ int __init vty_init(void)
+ 
+ static struct class *vtconsole_class;
+ 
+-static int bind_con_driver(const struct consw *csw, int first, int last,
+-			   int deflt)
++int bind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ {
+ 	struct module *owner = csw->owner;
+ 	const char *desc = NULL;
+@@ -2981,8 +2980,7 @@ static int con_is_graphics(const struct 
+ 	return retval;
  }
  
-+static inline int fb_is_primary_device(struct fb_info *info)
+-static int unbind_con_driver(const struct consw *csw, int first, int last,
+-			     int deflt)
++int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
+ {
+ 	struct module *owner = csw->owner;
+ 	const struct consw *defcsw = NULL;
+diff -puN drivers/video/console/Kconfig~fbcon-allow-fbcon-to-use-the-primary-display-driver drivers/video/console/Kconfig
+--- a/drivers/video/console/Kconfig~fbcon-allow-fbcon-to-use-the-primary-display-driver
++++ a/drivers/video/console/Kconfig
+@@ -118,6 +118,26 @@ config FRAMEBUFFER_CONSOLE
+ 	help
+ 	  Low-level framebuffer-based console driver.
+ 
++config FRAMEBUFFER_CONSOLE_DETECT_PRIMARY
++       bool "Map the console to the primary display device"
++       depends on FRAMEBUFFER_CONSOLE && VT_HW_CONSOLE_BINDING
++       default n
++       ---help---
++         If this option is selected, the framebuffer console will
++         automatically select the primary display device (if the architecture
++	 supports this feature).  Otherwise, the framebuffer console will
++         always select the first framebuffer driver that is loaded. The latter
++         is the default behavior.
++
++	 You can always override the automatic selection of the primary device
++	 by using the fbcon=map: boot option.
++
++	 To select this feature, "Support for binding and unbinding console
++         drivers", under "Device Drivers"->"Character Devices" must be set to
++	 y.
++
++	 If unsure, select n.
++
+ config FRAMEBUFFER_CONSOLE_ROTATION
+        bool "Framebuffer Console Rotation"
+        depends on FRAMEBUFFER_CONSOLE
+diff -puN drivers/video/console/fbcon.c~fbcon-allow-fbcon-to-use-the-primary-display-driver drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-allow-fbcon-to-use-the-primary-display-driver
++++ a/drivers/video/console/fbcon.c
+@@ -75,6 +75,7 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/crc32.h> /* For counting font checksums */
++#include <asm/fb.h>
+ #include <asm/irq.h>
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
+@@ -125,6 +126,8 @@ static int first_fb_vc;
+ static int last_fb_vc = MAX_NR_CONSOLES - 1;
+ static int fbcon_is_default = 1; 
+ static int fbcon_has_exited;
++static int primary_device = -1;
++static int map_override;
+ 
+ /* font data */
+ static char fontname[40];
+@@ -497,13 +500,17 @@ static int __init fb_console_setup(char 
+ 		
+ 		if (!strncmp(options, "map:", 4)) {
+ 			options += 4;
+-			if (*options)
++			if (*options) {
+ 				for (i = 0, j = 0; i < MAX_NR_CONSOLES; i++) {
+ 					if (!options[j])
+ 						j = 0;
+ 					con2fb_map_boot[i] =
+ 						(options[j++]-'0') % FB_MAX;
+ 				}
++
++				map_override = 1;
++			}
++
+ 			return 1;
+ 		}
+ 
+@@ -3004,9 +3011,9 @@ static int fbcon_mode_deleted(struct fb_
+ 	return found;
+ }
+ 
+-static int fbcon_fb_unregistered(int idx)
++static int fbcon_fb_unregistered(struct fb_info *info)
+ {
+-	int i;
++	int i, idx = info->node;
+ 
+ 	for (i = first_fb_vc; i <= last_fb_vc; i++) {
+ 		if (con2fb_map[i] == idx)
+@@ -3034,12 +3041,70 @@ static int fbcon_fb_unregistered(int idx
+ 	if (!num_registered_fb)
+ 		unregister_con_driver(&fb_con);
+ 
++
++	if (primary_device == idx)
++		primary_device = -1;
++
+ 	return 0;
+ }
+ 
+-static int fbcon_fb_registered(int idx)
++#ifdef CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY
++static int fbcon_select_primary(struct fb_info *info)
+ {
+-	int ret = 0, i;
++	int ret = 0;
++
++	if (!map_override && primary_device == -1 &&
++	    fb_is_primary_device(info)) {
++		int i, err;
++
++		printk(KERN_INFO "fbcon: %s is primary device\n",
++		       info->fix.id);
++		primary_device = info->node;
++
++		if (!con_is_bound(&fb_con))
++			goto done;
++
++		printk(KERN_INFO "fbcon: Unbinding old driver\n");
++		unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
++				  fbcon_is_default);
++		info_idx = primary_device;
++
++		for (i = first_fb_vc; i <= last_fb_vc; i++) {
++			con2fb_map_boot[i] = primary_device;
++			con2fb_map[i] = primary_device;
++		}
++
++		printk(KERN_INFO "fbcon: Selecting new driver\n");
++		err = bind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
++				      fbcon_is_default);
++
++		if (err) {
++			for (i = first_fb_vc; i <= last_fb_vc; i++)
++				con2fb_map[i] = -1;
++
++			info_idx = -1;
++		}
++
++		ret = 1;
++	}
++
++done:
++	return ret;
++}
++#else
++static inline int fbcon_select_primary(struct fb_info *info)
 +{
 +	return 0;
 +}
++#endif /* CONFIG_FRAMEBUFFER_DETECT_PRIMARY */
 +
- #endif /* _ASM_FB_H_ */
-diff -puN include/asm-xtensa/fb.h~fbdev-detect-primary-display-device include/asm-xtensa/fb.h
---- a/include/asm-xtensa/fb.h~fbdev-detect-primary-display-device
-+++ a/include/asm-xtensa/fb.h
-@@ -1,6 +1,12 @@
- #ifndef _ASM_FB_H_
- #define _ASM_FB_H_
-+#include <linux/fb.h>
- 
- #define fb_pgprotect(...) do {} while (0)
- 
-+static inline int fb_is_primary_device(struct fb_info *info)
++static int fbcon_fb_registered(struct fb_info *info)
 +{
-+	return 0;
-+}
++	int ret = 0, i, idx = info->node;
 +
- #endif /* _ASM_FB_H_ */
++	if (fbcon_select_primary(info))
++		goto done;
++
+ 
+ 	if (info_idx == -1) {
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++) {
+@@ -3059,6 +3124,7 @@ static int fbcon_fb_registered(int idx)
+ 		}
+ 	}
+ 
++done:
+ 	return ret;
+ }
+ 
+@@ -3182,10 +3248,10 @@ static int fbcon_event_notify(struct not
+ 		ret = fbcon_mode_deleted(info, mode);
+ 		break;
+ 	case FB_EVENT_FB_REGISTERED:
+-		ret = fbcon_fb_registered(info->node);
++		ret = fbcon_fb_registered(info);
+ 		break;
+ 	case FB_EVENT_FB_UNREGISTERED:
+-		ret = fbcon_fb_unregistered(info->node);
++		ret = fbcon_fb_unregistered(info);
+ 		break;
+ 	case FB_EVENT_SET_CONSOLE_MAP:
+ 		con2fb = event->data;
+diff -puN include/linux/vt_kern.h~fbcon-allow-fbcon-to-use-the-primary-display-driver include/linux/vt_kern.h
+--- a/include/linux/vt_kern.h~fbcon-allow-fbcon-to-use-the-primary-display-driver
++++ a/include/linux/vt_kern.h
+@@ -75,6 +75,10 @@ int con_copy_unimap(struct vc_data *dst_
+ int vt_waitactive(int vt);
+ void change_console(struct vc_data *new_vc);
+ void reset_vc(struct vc_data *vc);
++extern int bind_con_driver(const struct consw *csw, int first, int last,
++			   int deflt);
++extern int unbind_con_driver(const struct consw *csw, int first, int last,
++			     int deflt);
+ 
+ /*
+  * vc_screen.c shares this temporary buffer with the console write code so that
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
