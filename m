@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-masking-elf-fdpic-enable-core-dump-filtering.patch added to -mm tree
-Date: Tue, 29 May 2007 14:40:26 -0700
-Message-ID: <200705292140.l4TLeQ6R012330@shell0.pdx.osdl.net>
+Subject: + coredump-masking-documentation-for-proc-pid-coredump_filter.patch added to -mm tree
+Date: Tue, 29 May 2007 14:40:28 -0700
+Message-ID: <200705292140.l4TLeSOV012335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43260 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751177AbXE2Vkn (ORCPT
+	by vger.kernel.org with ESMTP id S1751197AbXE2Vkp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:40:43 -0400
+	Tue, 29 May 2007 17:40:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, rdunlap@xenotime.net
 
 
 The patch titled
-     coredump masking: ELF-FDPIC: enable core dump filtering
+     coredump masking: documentation for /proc/pid/coredump_filter
 has been added to the -mm tree.  Its filename is
-     coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+     coredump-masking-documentation-for-proc-pid-coredump_filter.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,157 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coredump masking: ELF-FDPIC: enable core dump filtering
+Subject: coredump masking: documentation for /proc/pid/coredump_filter
 From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-This patch enables core dump filtering for ELF-FDPIC-formatted core file.
+This patch adds the documentation for /proc/<pid>/coredump_filter.
 
 Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   52 ++++++++++++++++++++++++++--------------
- 1 files changed, 35 insertions(+), 17 deletions(-)
+ Documentation/filesystems/proc.txt |   38 +++++++++++++++++++++++++++
+ 1 files changed, 38 insertions(+)
 
-diff -puN fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-enable-core-dump-filtering fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-enable-core-dump-filtering
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1181,8 +1181,10 @@ static int dump_seek(struct file *file, 
-  *
-  * I think we should skip something. But I am not sure how. H.J.
-  */
--static int maydump(struct vm_area_struct *vma)
-+static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
- {
-+	int dump_ok;
+diff -puN Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter
++++ a/Documentation/filesystems/proc.txt
+@@ -42,6 +42,7 @@ Table of Contents
+   2.12	/proc/<pid>/oom_adj - Adjust the oom-killer score
+   2.13	/proc/<pid>/oom_score - Display current oom-killer score
+   2.14	/proc/<pid>/io - Display the IO accounting fields
++  2.15	/proc/<pid>/coredump_filter - Core dump filtering settings
+ 
+ ------------------------------------------------------------------------------
+ Preface
+@@ -2135,4 +2136,41 @@ those 64-bit counters, process A could s
+ More information about this can be found within the taskstats documentation in
+ Documentation/accounting.
+ 
++2.15 /proc/<pid>/coredump_filter - Core dump filtering settings
++---------------------------------------------------------------
++When a process is dumped, all anonymous memory is written to a core file as
++long as the size of the core file isn't limited. But sometimes we don't want
++to dump some memory segments, for example, huge shared memory. Conversely,
++sometimes we want to save file-backed memory segments into a core file, not
++only the individual files.
 +
- 	/* Do not dump I/O mapped devices or special mappings */
- 	if (vma->vm_flags & (VM_IO | VM_RESERVED)) {
- 		kdcore("%08lx: %08lx: no (IO)", vma->vm_start, vma->vm_flags);
-@@ -1197,27 +1199,35 @@ static int maydump(struct vm_area_struct
- 		return 0;
- 	}
- 
--	/* Dump shared memory only if mapped from an anonymous file. */
-+	/* By default, dump shared memory if mapped from an anonymous file. */
- 	if (vma->vm_flags & VM_SHARED) {
- 		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0) {
--			kdcore("%08lx: %08lx: no (share)", vma->vm_start, vma->vm_flags);
--			return 1;
-+			dump_ok = test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
-+			kdcore("%08lx: %08lx: %s (share)", vma->vm_start,
-+			       vma->vm_flags, dump_ok ? "yes" : "no");
-+			return dump_ok;
- 		}
- 
--		kdcore("%08lx: %08lx: no (share)", vma->vm_start, vma->vm_flags);
--		return 0;
-+		dump_ok = test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
-+		kdcore("%08lx: %08lx: %s (share)", vma->vm_start,
-+		       vma->vm_flags, dump_ok ? "yes" : "no");
-+		return dump_ok;
- 	}
- 
- #ifdef CONFIG_MMU
--	/* If it hasn't been written to, don't write it out */
-+	/* By default, if it hasn't been written to, don't write it out */
- 	if (!vma->anon_vma) {
--		kdcore("%08lx: %08lx: no (!anon)", vma->vm_start, vma->vm_flags);
--		return 0;
-+		dump_ok = test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
-+		kdcore("%08lx: %08lx: %s (!anon)", vma->vm_start,
-+		       vma->vm_flags, dump_ok ? "yes" : "no");
-+		return dump_ok;
- 	}
- #endif
- 
--	kdcore("%08lx: %08lx: yes", vma->vm_start, vma->vm_flags);
--	return 1;
-+	dump_ok = test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
-+	kdcore("%08lx: %08lx: %s", vma->vm_start, vma->vm_flags,
-+	       dump_ok ? "yes" : "no");
-+	return dump_ok;
- }
- 
- /* An ELF note in memory */
-@@ -1457,14 +1467,14 @@ static int elf_dump_thread_status(long s
-  */
- #ifdef CONFIG_MMU
- static int elf_fdpic_dump_segments(struct file *file, size_t *size,
--				   unsigned long *limit)
-+			   unsigned long *limit, unsigned long mm_flags)
- {
- 	struct vm_area_struct *vma;
- 
- 	for (vma = current->mm->mmap; vma; vma = vma->vm_next) {
- 		unsigned long addr;
- 
--		if (!maydump(vma))
-+		if (!maydump(vma, mm_flags))
- 			continue;
- 
- 		for (addr = vma->vm_start;
-@@ -1512,14 +1522,14 @@ end_coredump:
-  */
- #ifndef CONFIG_MMU
- static int elf_fdpic_dump_segments(struct file *file, size_t *size,
--				   unsigned long *limit)
-+			   unsigned long *limit, unsigned long mm_flags)
- {
- 	struct vm_list_struct *vml;
- 
- 	for (vml = current->mm->context.vmlist; vml; vml = vml->next) {
- 	struct vm_area_struct *vma = vml->vma;
- 
--		if (!maydump(vma))
-+		if (!maydump(vma, mm_flags))
- 			continue;
- 
- 		if ((*size += PAGE_SIZE) > *limit)
-@@ -1570,6 +1580,7 @@ static int elf_fdpic_core_dump(long sign
- 	struct vm_list_struct *vml;
- #endif
- 	elf_addr_t *auxv;
-+	unsigned long mm_flags;
- 
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -1707,6 +1718,13 @@ static int elf_fdpic_core_dump(long sign
- 	/* Page-align dumped data */
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
- 
-+	/*
-+	 * We must use the same mm->flags while dumping core to avoid
-+	 * inconsistency between the program headers and bodies, otherwise an
-+	 * unusable core file can be generated.
-+	 */
-+	mm_flags = current->mm->flags;
++/proc/<pid>/coredump_filter allows you to customize which memory segments
++will be dumped when the <pid> process is dumped. coredump_filter is a bitmask
++of memory types. If a bit of the bitmask is set, memory segments of the
++corresponding memory type are dumped, otherwise they are not dumped.
 +
- 	/* write program headers for segments dump */
- 	for (
- #ifdef CONFIG_MMU
-@@ -1728,7 +1746,7 @@ static int elf_fdpic_core_dump(long sign
- 		phdr.p_offset = offset;
- 		phdr.p_vaddr = vma->vm_start;
- 		phdr.p_paddr = 0;
--		phdr.p_filesz = maydump(vma) ? sz : 0;
-+		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
- 		phdr.p_memsz = sz;
- 		offset += phdr.p_filesz;
- 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
-@@ -1762,7 +1780,7 @@ static int elf_fdpic_core_dump(long sign
- 
- 	DUMP_SEEK(dataoff);
- 
--	if (elf_fdpic_dump_segments(file, current->mm, &size, &limit) < 0)
-+	if (elf_fdpic_dump_segments(file, &size, &limit, mm_flags) < 0)
- 		goto end_coredump;
- 
- #ifdef ELF_CORE_WRITE_EXTRA_DATA
++The following 4 memory types are supported:
++  - (bit 0) anonymous private memory
++  - (bit 1) anonymous shared memory
++  - (bit 2) file-backed private memory
++  - (bit 3) file-backed shared memory
++
++  Note that MMIO pages such as frame buffer are never dumped and vDSO pages
++  are always dumped regardless of the bitmask status.
++
++Default value of coredump_filter is 0x3; this means all anonymous memory
++segments are dumped.
++
++If you don't want to dump all shared memory segments attached to pid 1234,
++write 1 to the process's proc file.
++
++  $ echo 0x1 > /proc/1234/coredump_filter
++
++When a new process is created, the process inherits the bitmask status from its
++parent. It is useful to set up coredump_filter before the program runs.
++For example:
++
++  $ echo 0x7 > /proc/self/coredump_filter
++  $ ./some_program
++
+ ------------------------------------------------------------------------------
 _
 
 Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
