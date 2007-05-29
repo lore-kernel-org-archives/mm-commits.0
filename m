@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + m68k-parenthesis-balance.patch added to -mm tree
-Date: Tue, 29 May 2007 12:48:06 -0700
-Message-ID: <200705291948.l4TJm6WB009975@shell0.pdx.osdl.net>
+Date: Tue, 29 May 2007 12:48:36 -0700
+Message-ID: <200705291948.l4TJma53009979@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33296 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751999AbXE2TsV (ORCPT
+	by vger.kernel.org with ESMTP id S1754170AbXE2Tst (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 15:48:21 -0400
+	Tue, 29 May 2007 15:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -47,7 +47,7 @@ diff -puN arch/m68k/mac/debug.c~m68k-parenthesis-balance arch/m68k/mac/debug.c
  	/* calculate current offset */
  	pengoffset = (unsigned char *)mac_videobase +
 -		(150+line*2) * mac_rowbytes) + 80 * peng;
-+       (150+line*2) * mac_rowbytes + 80 * peng;
++		(150+line*2) * mac_rowbytes + 80 * peng;
  
  	pptr = pengoffset;
  
