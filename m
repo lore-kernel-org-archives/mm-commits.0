@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-restore-kernel_ds-optimisations.patch added to -mm tree
-Date: Tue, 29 May 2007 14:19:57 -0700
-Message-ID: <200705292119.l4TLJvaJ011729@shell0.pdx.osdl.net>
+Subject: + fs-fix-data-loss-on-error.patch added to -mm tree
+Date: Tue, 29 May 2007 14:19:53 -0700
+Message-ID: <200705292119.l4TLJrjF011723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50837 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751117AbXE2VUD (ORCPT
+	by vger.kernel.org with ESMTP id S1752647AbXE2VT6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:03 -0400
+	Tue, 29 May 2007 17:19:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: restore KERNEL_DS optimisations
+     fs: fix data-loss on error
 has been added to the -mm tree.  Its filename is
-     mm-restore-kernel_ds-optimisations.patch
+     fs-fix-data-loss-on-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: restore KERNEL_DS optimisations
+Subject: fs: fix data-loss on error
 From: Nick Piggin <npiggin@suse.de>
 
-Restore the KERNEL_DS optimisation, especially helpful to the 2copy write
-path.
+New buffers against uptodate pages are simply be marked uptodate, while the
+buffer_new bit remains set.  This causes error-case code to zero out parts of
+those buffers because it thinks they contain stale data: wrong, they are
+actually uptodate so this is a data loss situation.
 
-This may be a pretty questionable gain in most cases, especially after the
-legacy 2copy write path is removed, but it doesn't cost much.
+Fix this by actually clearning buffer_new and marking the buffer dirty.  It
+makes sense to always clear buffer_new before setting a buffer uptodate.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ fs/buffer.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN mm/filemap.c~mm-restore-kernel_ds-optimisations mm/filemap.c
---- a/mm/filemap.c~mm-restore-kernel_ds-optimisations
-+++ a/mm/filemap.c
-@@ -2103,7 +2103,7 @@ static ssize_t generic_perform_write_2co
- 		 * cannot take a pagefault with the destination page locked.
- 		 * So pin the source page to copy it.
- 		 */
--		if (!PageUptodate(page)) {
-+		if (!PageUptodate(page) && !segment_eq(get_fs(), KERNEL_DS)) {
- 			unlock_page(page);
- 
- 			src_page = alloc_page(GFP_KERNEL);
-@@ -2228,6 +2228,13 @@ static ssize_t generic_perform_write(str
- 	const struct address_space_operations *a_ops = mapping->a_ops;
- 	long status = 0;
- 	ssize_t written = 0;
-+	unsigned int flags = 0;
-+
-+	/*
-+	 * Copies from kernel address space cannot fail (NFSD is a big user).
-+	 */
-+	if (segment_eq(get_fs(), KERNEL_DS))
-+		flags |= AOP_FLAG_UNINTERRUPTIBLE;
- 
- 	do {
- 		struct page *page;
-@@ -2259,7 +2266,7 @@ again:
- 			break;
- 		}
- 
--		status = a_ops->write_begin(file, mapping, pos, bytes, 0,
-+		status = a_ops->write_begin(file, mapping, pos, bytes, flags,
- 						&page, &fsdata);
- 		if (unlikely(status))
- 			break;
+diff -puN fs/buffer.c~fs-fix-data-loss-on-error fs/buffer.c
+--- a/fs/buffer.c~fs-fix-data-loss-on-error
++++ a/fs/buffer.c
+@@ -1785,7 +1785,9 @@ static int __block_prepare_write(struct 
+ 				unmap_underlying_metadata(bh->b_bdev,
+ 							bh->b_blocknr);
+ 				if (PageUptodate(page)) {
++					clear_buffer_new(bh);
+ 					set_buffer_uptodate(bh);
++					mark_buffer_dirty(bh);
+ 					continue;
+ 				}
+ 				if (block_end > to || block_start < from) {
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
