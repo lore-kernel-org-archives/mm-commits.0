@@ -1,208 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - add-pm_trace-x86_64-support.patch removed from -mm tree
-Date: Tue, 29 May 2007 15:36:46 -0700
-Message-ID: <200705292236.l4TMalSj013344@shell0.pdx.osdl.net>
+Subject: + fix-compat-futex-code-for-private-futexes.patch added to -mm tree
+Date: Tue, 29 May 2007 15:36:09 -0700
+Message-ID: <200705292236.l4TMa9fu013334@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33481 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750803AbXE2Wgz (ORCPT
+	by vger.kernel.org with ESMTP id S1750884AbXE2Whi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 18:36:55 -0400
+	Tue, 29 May 2007 18:37:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nigel@nigel.suspend2.net, ak@suse.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: drepper@redhat.com, dada1@cosmosbay.com, mingo@elte.hu
 
 
 The patch titled
-     Add PM_TRACE x86_64 support
-has been removed from the -mm tree.  Its filename was
-     add-pm_trace-x86_64-support.patch
+     fix compat futex code for private futexes
+has been added to the -mm tree.  Its filename is
+     fix-compat-futex-code-for-private-futexes.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Add PM_TRACE x86_64 support
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
+Subject: fix compat futex code for private futexes
+From: Ulrich Drepper <drepper@redhat.com>
 
-Add x86_64 support for PM_TRACE, and shift per-arch code to the appropriate
-subdirectories.
+When the private futex support was added the compat code wasn't changed. 
+The result is that code using compat code which fail, e.g., because the
+timeout values are not correctly passed.  The following patch should fix
+that.
 
-Symbol exports are added so tracing can be used from drivers built as
-modules too.
-
-Signed-off-by: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/vmlinux.lds.S  |    7 +++++++
- drivers/base/power/trace.c        |    5 ++++-
- include/asm-i386/resume-trace.h   |   21 +++++++++++++++++++++
- include/asm-x86_64/resume-trace.h |   21 +++++++++++++++++++++
- include/linux/resume-trace.h      |   24 ++++++------------------
- kernel/power/Kconfig              |    2 +-
- 6 files changed, 60 insertions(+), 20 deletions(-)
+ kernel/futex_compat.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/vmlinux.lds.S~add-pm_trace-x86_64-support arch/x86_64/kernel/vmlinux.lds.S
---- a/arch/x86_64/kernel/vmlinux.lds.S~add-pm_trace-x86_64-support
-+++ a/arch/x86_64/kernel/vmlinux.lds.S
-@@ -52,6 +52,13 @@ SECTIONS
+diff -puN kernel/futex_compat.c~fix-compat-futex-code-for-private-futexes kernel/futex_compat.c
+--- a/kernel/futex_compat.c~fix-compat-futex-code-for-private-futexes
++++ a/kernel/futex_compat.c
+@@ -144,20 +144,21 @@ asmlinkage long compat_sys_futex(u32 __u
+ 	struct timespec ts;
+ 	ktime_t t, *tp = NULL;
+ 	int val2 = 0;
++	int cmd = op & FUTEX_CMD_MASK;
  
-   RODATA
+-	if (utime && (op == FUTEX_WAIT || op == FUTEX_LOCK_PI)) {
++	if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI)) {
+ 		if (get_compat_timespec(&ts, utime))
+ 			return -EFAULT;
+ 		if (!timespec_valid(&ts))
+ 			return -EINVAL;
  
-+  . = ALIGN(4);
-+  .tracedata : AT(ADDR(.tracedata) - LOAD_OFFSET) {
-+  	__tracedata_start = .;
-+	*(.tracedata)
-+  	__tracedata_end = .;
-+  }
-+
-   . = ALIGN(PAGE_SIZE);        /* Align data segment to page size boundary */
- 				/* Data */
-   .data : AT(ADDR(.data) - LOAD_OFFSET) {
-diff -puN drivers/base/power/trace.c~add-pm_trace-x86_64-support drivers/base/power/trace.c
---- a/drivers/base/power/trace.c~add-pm_trace-x86_64-support
-+++ a/drivers/base/power/trace.c
-@@ -142,6 +142,7 @@ void set_trace_device(struct device *dev
- {
- 	dev_hash_value = hash_string(DEVSEED, dev->bus_id, DEVHASH);
- }
-+EXPORT_SYMBOL(set_trace_device);
+ 		t = timespec_to_ktime(ts);
+-		if (op == FUTEX_WAIT)
++		if (cmd == FUTEX_WAIT)
+ 			t = ktime_add(ktime_get(), t);
+ 		tp = &t;
+ 	}
+-	if (op == FUTEX_REQUEUE || op == FUTEX_CMP_REQUEUE
+-	    || op == FUTEX_CMP_REQUEUE_PI)
++	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE
++	    || cmd == FUTEX_CMP_REQUEUE_PI)
+ 		val2 = (int) (unsigned long) utime;
  
- /*
-  * We could just take the "tracedata" index into the .tracedata
-@@ -162,6 +163,7 @@ void generate_resume_trace(void *traceda
- 	file_hash_value = hash_string(lineno, file, FILEHASH);
- 	set_magic_time(user_hash_value, file_hash_value, dev_hash_value);
- }
-+EXPORT_SYMBOL(generate_resume_trace);
- 
- extern char __tracedata_start, __tracedata_end;
- static int show_file_hash(unsigned int value)
-@@ -170,7 +172,8 @@ static int show_file_hash(unsigned int v
- 	char *tracedata;
- 
- 	match = 0;
--	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ; tracedata += 6) {
-+	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ;
-+			tracedata += 2 + sizeof(unsigned long)) {
- 		unsigned short lineno = *(unsigned short *)tracedata;
- 		const char *file = *(const char **)(tracedata + 2);
- 		unsigned int hash = hash_string(lineno, file, FILEHASH);
-diff -puN /dev/null include/asm-i386/resume-trace.h
---- /dev/null
-+++ a/include/asm-i386/resume-trace.h
-@@ -0,0 +1,21 @@
-+#ifndef ARCH_RESUME_TRACE_H
-+#define ARCH_RESUME_TRACE_H
-+
-+#ifdef CONFIG_PM_TRACE
-+#define TRACE_RESUME(user) do {					\
-+	if (pm_trace_enabled) {					\
-+		void *tracedata;				\
-+		asm volatile("movl $1f,%0\n"			\
-+			".section .tracedata,\"a\"\n"		\
-+			"1:\t.word %c1\n"			\
-+			"\t.long %c2\n"				\
-+			".previous"				\
-+			:"=r" (tracedata)			\
-+			: "i" (__LINE__), "i" (__FILE__));	\
-+		generate_resume_trace(tracedata, user);		\
-+	}							\
-+} while (0)
-+#else
-+#define TRACE_RESUME(user) do { } while (0)
-+#endif
-+#endif
-diff -puN /dev/null include/asm-x86_64/resume-trace.h
---- /dev/null
-+++ a/include/asm-x86_64/resume-trace.h
-@@ -0,0 +1,21 @@
-+#ifndef ARCH_RESUME_TRACE_H
-+#define ARCH_RESUME_TRACE_H
-+
-+#ifdef CONFIG_PM_TRACE
-+#define TRACE_RESUME(user) do {					\
-+	if (pm_trace_enabled) {					\
-+		void *tracedata;				\
-+		asm volatile("movq $1f,%0\n"			\
-+			".section .tracedata,\"a\"\n"		\
-+			"1:\t.word %c1\n"			\
-+			"\t.quad %c2\n"				\
-+			".previous"				\
-+			:"=r" (tracedata)			\
-+			: "i" (__LINE__), "i" (__FILE__));	\
-+		generate_resume_trace(tracedata, user);		\
-+	}							\
-+} while (0)
-+#else
-+#define TRACE_RESUME(user) do { } while (0)
-+#endif
-+#endif
-diff -puN include/linux/resume-trace.h~add-pm_trace-x86_64-support include/linux/resume-trace.h
---- a/include/linux/resume-trace.h~add-pm_trace-x86_64-support
-+++ a/include/linux/resume-trace.h
-@@ -1,6 +1,8 @@
- #ifndef RESUME_TRACE_H
- #define RESUME_TRACE_H
- 
-+#include <asm/resume-trace.h>
-+
- #ifdef CONFIG_PM_TRACE
- 
- extern int pm_trace_enabled;
-@@ -9,26 +11,12 @@ struct device;
- extern void set_trace_device(struct device *);
- extern void generate_resume_trace(void *tracedata, unsigned int user);
- 
--#define TRACE_DEVICE(dev) set_trace_device(dev)
--#define TRACE_RESUME(user) do {					\
--	if (pm_trace_enabled) {					\
--		void *tracedata;				\
--		asm volatile("movl $1f,%0\n"			\
--			".section .tracedata,\"a\"\n"		\
--			"1:\t.word %c1\n"			\
--			"\t.long %c2\n"				\
--			".previous"				\
--			:"=r" (tracedata)			\
--			: "i" (__LINE__), "i" (__FILE__));	\
--		generate_resume_trace(tracedata, user);		\
--	}							\
--} while (0)
--
-+#define TRACE_DEVICE(dev) do { \
-+	if (pm_trace_enabled) \
-+		set_trace_device(dev); \
-+	} while(0)
- #else
--
- #define TRACE_DEVICE(dev) do { } while (0)
--#define TRACE_RESUME(dev) do { } while (0)
--
- #endif
- 
- #endif
-diff -puN kernel/power/Kconfig~add-pm_trace-x86_64-support kernel/power/Kconfig
---- a/kernel/power/Kconfig~add-pm_trace-x86_64-support
-+++ a/kernel/power/Kconfig
-@@ -50,7 +50,7 @@ config DISABLE_CONSOLE_SUSPEND
- 
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
--	depends on PM && PM_DEBUG && X86_32 && EXPERIMENTAL
-+	depends on PM && PM_DEBUG && X86 && EXPERIMENTAL
- 	default n
- 	---help---
- 	This enables some cheesy code to save the last PM event point in the
+ 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
 _
 
-Patches currently in -mm which might be from nigel@nigel.suspend2.net are
+Patches currently in -mm which might be from drepper@redhat.com are
 
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
+fix-compat-futex-code-for-private-futexes.patch
