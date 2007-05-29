@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + afs-drop-explicit-extern.patch added to -mm tree
-Date: Tue, 29 May 2007 15:44:42 -0700
-Message-ID: <200705292244.l4TMigo6013520@shell0.pdx.osdl.net>
+Subject: + vt8623fb-arkfb-null-pointer-dereference-fix.patch added to -mm tree
+Date: Tue, 29 May 2007 15:51:50 -0700
+Message-ID: <200705292251.l4TMpof6013637@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45669 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750883AbXE2Wq1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751330AbXE2WwC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 18:46:27 -0400
+	Tue, 29 May 2007 18:52:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dhowells@redhat.com
+Cc: santiago@crfreenet.org, adaplas@gmail.com
 
 
 The patch titled
-     AFS: drop explicit extern
+     vt8623fb: arkfb: null pointer dereference fix
 has been added to the -mm tree.  Its filename is
-     afs-drop-explicit-extern.patch
+     vt8623fb-arkfb-null-pointer-dereference-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: AFS: drop explicit extern
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vt8623fb: arkfb: null pointer dereference fix
+From: Ondrej Zajicek <santiago@crfreenet.org>
 
-Don't use explicit extern specifier and quieten sparse warning:
-fs/afs/vnode.c:564:12: warning: function 'afs_vnode_link' with external linkage has definition
+This patch prevents null pointer dereference in arkfb and vt8623fb.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-By: David Howells <dhowells@redhat.com>
+Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/vnode.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/arkfb.c    |    3 ++-
+ drivers/video/vt8623fb.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/afs/vnode.c~afs-drop-explicit-extern fs/afs/vnode.c
---- a/fs/afs/vnode.c~afs-drop-explicit-extern
-+++ a/fs/afs/vnode.c
-@@ -561,7 +561,7 @@ no_server:
- /*
-  * create a hard link
-  */
--extern int afs_vnode_link(struct afs_vnode *dvnode, struct afs_vnode *vnode,
-+int afs_vnode_link(struct afs_vnode *dvnode, struct afs_vnode *vnode,
- 			  struct key *key, const char *name)
+diff -puN drivers/video/arkfb.c~vt8623fb-arkfb-null-pointer-dereference-fix drivers/video/arkfb.c
+--- a/drivers/video/arkfb.c~vt8623fb-arkfb-null-pointer-dereference-fix
++++ a/drivers/video/arkfb.c
+@@ -1055,9 +1055,10 @@ err_enable_device:
+ static void __devexit ark_pci_remove(struct pci_dev *dev)
  {
- 	struct afs_server *server;
+ 	struct fb_info *info = pci_get_drvdata(dev);
+-	struct arkfb_info *par = info->par;
+ 
+ 	if (info) {
++		struct arkfb_info *par = info->par;
++
+ #ifdef CONFIG_MTRR
+ 		if (par->mtrr_reg >= 0) {
+ 			mtrr_del(par->mtrr_reg, 0, 0);
+diff -puN drivers/video/vt8623fb.c~vt8623fb-arkfb-null-pointer-dereference-fix drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~vt8623fb-arkfb-null-pointer-dereference-fix
++++ a/drivers/video/vt8623fb.c
+@@ -778,9 +778,10 @@ err_enable_device:
+ static void __devexit vt8623_pci_remove(struct pci_dev *dev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(dev);
+-	struct vt8623fb_info *par = info->par;
+ 
+ 	if (info) {
++		struct vt8623fb_info *par = info->par;
++
+ #ifdef CONFIG_MTRR
+ 		if (par->mtrr_reg >= 0) {
+ 			mtrr_del(par->mtrr_reg, 0, 0);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from santiago@crfreenet.org are
 
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+vt8623fb-arkfb-null-pointer-dereference-fix.patch
