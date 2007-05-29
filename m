@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:32 -0700
-Message-ID: <200705292120.l4TLKWcS011794@shell0.pdx.osdl.net>
+Subject: + fat-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:13 -0700
+Message-ID: <200705292120.l4TLKD5S011763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37562 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401AbXE2VUh (ORCPT
+	by vger.kernel.org with ESMTP id S1751370AbXE2VUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:37 -0400
+	Tue, 29 May 2007 17:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: npiggin@suse.de, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     With reiserfs no longer using the weird generic_cont_expand, remove it completely.
+     fat: convert to new aops
 has been added to the -mm tree.  Its filename is
-     with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+     fat-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: With reiserfs no longer using the weird generic_cont_expand, remove it completely.
+Subject: fat: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   20 --------------------
- include/linux/buffer_head.h |    1 -
- 2 files changed, 21 deletions(-)
+ fs/fat/inode.c |   27 ++++++++++++++++-----------
+ 1 files changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN fs/buffer.c~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely fs/buffer.c
---- a/fs/buffer.c~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely
-+++ a/fs/buffer.c
-@@ -2158,25 +2158,6 @@ out:
- 	return err;
+diff -puN fs/fat/inode.c~fat-convert-to-new-aops fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-convert-to-new-aops
++++ a/fs/fat/inode.c
+@@ -140,19 +140,24 @@ static int fat_readpages(struct file *fi
+ 	return mpage_readpages(mapping, pages, nr_pages, fat_get_block);
  }
  
--int generic_cont_expand(struct inode *inode, loff_t size)
--{
--	unsigned int offset;
--
--	offset = (size & (PAGE_CACHE_SIZE - 1)); /* Within page */
--
--	/* ugh.  in prepare/commit_write, if from==to==start of block, we
--	 * skip the prepare.  make sure we never send an offset for the start
--	 * of a block.
--	 * XXX: actually, this should be handled in those filesystems by
--	 * checking for the AOP_FLAG_CONT_EXPAND flag.
--	 */
--	if ((offset & (inode->i_sb->s_blocksize - 1)) == 0) {
--		/* caller must handle this extra byte. */
--		size++;
--	}
--	return generic_cont_expand_simple(inode, size);
--}
--
- int cont_expand_zero(struct file *file, struct address_space *mapping,
- 			loff_t pos, loff_t *bytes)
+-static int fat_prepare_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
++static int fat_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
  {
-@@ -3103,7 +3084,6 @@ EXPORT_SYMBOL(file_fsync);
- EXPORT_SYMBOL(fsync_bdev);
- EXPORT_SYMBOL(generic_block_bmap);
- EXPORT_SYMBOL(generic_commit_write);
--EXPORT_SYMBOL(generic_cont_expand);
- EXPORT_SYMBOL(generic_cont_expand_simple);
- EXPORT_SYMBOL(init_buffer);
- EXPORT_SYMBOL(invalidate_bdev);
-diff -puN include/linux/buffer_head.h~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely
-+++ a/include/linux/buffer_head.h
-@@ -217,7 +217,6 @@ int block_prepare_write(struct page*, un
- int cont_write_begin(struct file *, struct address_space *, loff_t,
- 			unsigned, unsigned, struct page **, void **,
- 			get_block_t *, loff_t *);
--int generic_cont_expand(struct inode *inode, loff_t size);
- int generic_cont_expand_simple(struct inode *inode, loff_t size);
- int block_commit_write(struct page *page, unsigned from, unsigned to);
- void block_sync_page(struct page *);
+-	return cont_prepare_write(page, from, to, fat_get_block,
+-				  &MSDOS_I(page->mapping->host)->mmu_private);
++	*pagep = NULL;
++	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				fat_get_block,
++				&MSDOS_I(mapping->host)->mmu_private);
+ }
+ 
+-static int fat_commit_write(struct file *file, struct page *page,
+-			    unsigned from, unsigned to)
++static int fat_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *pagep, void *fsdata)
+ {
+-	struct inode *inode = page->mapping->host;
+-	int err = generic_commit_write(file, page, from, to);
+-	if (!err && !(MSDOS_I(inode)->i_attrs & ATTR_ARCH)) {
++	struct inode *inode = mapping->host;
++	int err;
++	err = generic_write_end(file, mapping, pos, len, copied, pagep, fsdata);
++	if (!(err < 0) && !(MSDOS_I(inode)->i_attrs & ATTR_ARCH)) {
+ 		inode->i_mtime = inode->i_ctime = CURRENT_TIME_SEC;
+ 		MSDOS_I(inode)->i_attrs |= ATTR_ARCH;
+ 		mark_inode_dirty(inode);
+@@ -201,8 +206,8 @@ static const struct address_space_operat
+ 	.writepage	= fat_writepage,
+ 	.writepages	= fat_writepages,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= fat_prepare_write,
+-	.commit_write	= fat_commit_write,
++	.write_begin	= fat_write_begin,
++	.write_end	= fat_write_end,
+ 	.direct_IO	= fat_direct_IO,
+ 	.bmap		= _fat_bmap
+ };
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
