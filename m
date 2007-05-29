@@ -1,68 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - prohibit-rcutorture-from-being-compiled-into-the-kernel.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:50:52 -0700
-Message-ID: <200705291850.l4TIop5A008302@shell0.pdx.osdl.net>
+Subject: - ignore-bogus-acpi-info-for-offline-cpus.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:50:25 -0700
+Message-ID: <200705291850.l4TIoOdr008259@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47379 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752415AbXE2SvT (ORCPT
+	by vger.kernel.org with ESMTP id S1752415AbXE2SvY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:19 -0400
+	Tue, 29 May 2007 14:51:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, josh@kernel.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     prohibit rcutorture from being compiled into the kernel
+     Ignore bogus ACPI info for offline CPUs
 has been removed from the -mm tree.  Its filename was
-     prohibit-rcutorture-from-being-compiled-into-the-kernel.patch
+     ignore-bogus-acpi-info-for-offline-cpus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: prohibit rcutorture from being compiled into the kernel
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Ignore bogus ACPI info for offline CPUs
+From: Thomas Gleixner <tglx@linutronix.de>
 
-There have been a number of instances where people have accidentally compiled
-rcutorture into the kernel (CONFIG_RCU_TORTURE_TEST=y), which has never been
-useful, and has often resulted in great frustration.  The attached patch
-prohibits rcutorture from being compiled into the kernel.  It may be excluded
-altogether or compiled as a module.  People wishing to have rcutorture hammer
-their machine immediately upon boot are free to hand-edit lib/Kconfig.debug to
-remove the "depends on m" line.
+Booting a SMP kernel with maxcpus=1 on a SMP system leads to a hard hang,
+because ACPI ignores the maxcpus setting and sends timer broadcast info for
+the offline CPUs.  This results in a stuck for ever call to
+smp_call_function_single() on an offline CPU.
 
-Thanks to Randy Dunlap for the trick that makes this work.
+Ignore the bogus information and print a kernel error to remind ACPI
+folks to fix it.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Josh Triplett <josh@kernel.org>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/time/tick-broadcast.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN lib/Kconfig.debug~prohibit-rcutorture-from-being-compiled-into-the-kernel lib/Kconfig.debug
---- a/lib/Kconfig.debug~prohibit-rcutorture-from-being-compiled-into-the-kernel
-+++ a/lib/Kconfig.debug
-@@ -378,14 +378,13 @@ config FORCED_INLINING
- config RCU_TORTURE_TEST
- 	tristate "torture tests for RCU"
- 	depends on DEBUG_KERNEL
-+	depends on m
- 	default n
- 	help
- 	  This option provides a kernel module that runs torture tests
- 	  on the RCU infrastructure.  The kernel module may be built
- 	  after the fact on the running kernel to be tested, if desired.
+diff -puN kernel/time/tick-broadcast.c~ignore-bogus-acpi-info-for-offline-cpus kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~ignore-bogus-acpi-info-for-offline-cpus
++++ a/kernel/time/tick-broadcast.c
+@@ -243,11 +243,18 @@ void tick_broadcast_on_off(unsigned long
+ {
+ 	int cpu = get_cpu();
  
--	  Say Y here if you want RCU torture tests to start automatically
--	  at boot time (you probably don't).
- 	  Say M if you want the RCU torture tests to build as a module.
- 	  Say N if you are unsure.
+-	if (cpu == *oncpu)
+-		tick_do_broadcast_on_off(&reason);
+-	else
+-		smp_call_function_single(*oncpu, tick_do_broadcast_on_off,
+-					 &reason, 1, 1);
++	if (!cpu_isset(*oncpu, cpu_online_map)) {
++		printk(KERN_ERR "tick-braodcast: ignoring broadcast for "
++		       "offline CPU #%d\n", *oncpu);
++	} else {
++
++		if (cpu == *oncpu)
++			tick_do_broadcast_on_off(&reason);
++		else
++			smp_call_function_single(*oncpu,
++						 tick_do_broadcast_on_off,
++						 &reason, 1, 1);
++	}
+ 	put_cpu();
+ }
  
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
+
+git-drm.patch
+s390-spinlock-initializer-cleanup.patch
+i386-hpet-check-if-the-counter-works.patch
