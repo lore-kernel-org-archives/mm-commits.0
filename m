@@ -1,201 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - hisax-fix-error-checking-for-hisax_register.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:52:51 -0700
-Message-ID: <200705291852.l4TIqokj008432@shell0.pdx.osdl.net>
+Subject: - ecryptfs-delay-writing-0s-after-llseek-until-write.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:52:58 -0700
+Message-ID: <200705291852.l4TIqvUw008438@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48386 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760108AbXE2SxT (ORCPT
+	by vger.kernel.org with ESMTP id S1764787AbXE2Sxg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:53:19 -0400
+	Tue, 29 May 2007 14:53:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, info@colognechip.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     HiSax: fix error checking for hisax_register()]
+     eCryptfs: delay writing 0's after llseek until write
 has been removed from the -mm tree.  Its filename was
-     hisax-fix-error-checking-for-hisax_register.patch
+     ecryptfs-delay-writing-0s-after-llseek-until-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: HiSax: fix error checking for hisax_register()]
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: eCryptfs: delay writing 0's after llseek until write
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-This patch (as875) adds error-checking to the callers of hisax_register(). 
-It also changes an error pathway in that routine, making it return an error
-code rather than 0.
+Delay writing 0's out in eCryptfs after a seek past the end of the file
+until data is actually written.
 
-This fixes Bugzilla #7960.
+http://www.opengroup.org/onlinepubs/009695399/functions/lseek.html
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: Karsten Keil <kkeil@suse.de>
-Cc: Martin Bachem <info@colognechip.com>
+``The lseek() function shall not, by itself, extend the size of a
+file.''
+
+Without this fix, applications that lseek() past the end of the file without
+writing will experience unexpected behavior.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/config.c         |    2 -
- drivers/isdn/hisax/hfc_usb.c        |   43 ++++++++++----------------
- drivers/isdn/hisax/hisax_fcpcipnp.c |    6 +++
- drivers/isdn/hisax/st5481_init.c    |    7 +++-
- drivers/isdn/hisax/st5481_usb.c     |    1 
- 5 files changed, 30 insertions(+), 29 deletions(-)
+ fs/ecryptfs/file.c |   59 -------------------------------------------
+ fs/ecryptfs/mmap.c |   38 +++++++++++++++++++++++++--
+ 2 files changed, 36 insertions(+), 61 deletions(-)
 
-diff -puN drivers/isdn/hisax/config.c~hisax-fix-error-checking-for-hisax_register drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~hisax-fix-error-checking-for-hisax_register
-+++ a/drivers/isdn/hisax/config.c
-@@ -1551,7 +1551,7 @@ int hisax_register(struct hisax_d_if *hi
- 	if (retval == 0) { // yuck
- 		cards[i].typ = 0;
- 		nrcards--;
--		return retval;
-+		return -EINVAL;
- 	}
- 	cs = cards[i].cs;
- 	hisax_d_if->cs = cs;
-diff -puN drivers/isdn/hisax/hfc_usb.c~hisax-fix-error-checking-for-hisax_register drivers/isdn/hisax/hfc_usb.c
---- a/drivers/isdn/hisax/hfc_usb.c~hisax-fix-error-checking-for-hisax_register
-+++ a/drivers/isdn/hisax/hfc_usb.c
-@@ -485,7 +485,6 @@ fill_isoc_urb(struct urb *urb, struct us
- {
- 	int k;
+diff -puN fs/ecryptfs/file.c~ecryptfs-delay-writing-0s-after-llseek-until-write fs/ecryptfs/file.c
+--- a/fs/ecryptfs/file.c~ecryptfs-delay-writing-0s-after-llseek-until-write
++++ a/fs/ecryptfs/file.c
+@@ -33,63 +33,6 @@
+ #include "ecryptfs_kernel.h"
  
--	spin_lock_init(&urb->lock);
- 	urb->dev = dev;
- 	urb->pipe = pipe;
- 	urb->complete = complete;
-@@ -578,16 +577,14 @@ stop_isoc_chain(usb_fifo * fifo)
- 			    "HFC-S USB: Stopping iso chain for fifo %i.%i",
- 			    fifo->fifonum, i);
- #endif
--			usb_unlink_urb(fifo->iso[i].purb);
-+			usb_kill_urb(fifo->iso[i].purb);
- 			usb_free_urb(fifo->iso[i].purb);
- 			fifo->iso[i].purb = NULL;
- 		}
- 	}
--	if (fifo->urb) {
--		usb_unlink_urb(fifo->urb);
--		usb_free_urb(fifo->urb);
--		fifo->urb = NULL;
+ /**
+- * ecryptfs_llseek
+- * @file: File we are seeking in
+- * @offset: The offset to seek to
+- * @origin: 2 - offset from i_size; 1 - offset from f_pos
+- *
+- * Returns the position we have seeked to, or negative on error
+- */
+-static loff_t ecryptfs_llseek(struct file *file, loff_t offset, int origin)
+-{
+-	loff_t rv;
+-	loff_t new_end_pos;
+-	int rc;
+-	int expanding_file = 0;
+-	struct inode *inode = file->f_mapping->host;
+-
+-	/* If our offset is past the end of our file, we're going to
+-	 * need to grow it so we have a valid length of 0's */
+-	new_end_pos = offset;
+-	switch (origin) {
+-	case 2:
+-		new_end_pos += i_size_read(inode);
+-		expanding_file = 1;
+-		break;
+-	case 1:
+-		new_end_pos += file->f_pos;
+-		if (new_end_pos > i_size_read(inode)) {
+-			ecryptfs_printk(KERN_DEBUG, "new_end_pos(=[0x%.16x]) "
+-					"> i_size_read(inode)(=[0x%.16x])\n",
+-					new_end_pos, i_size_read(inode));
+-			expanding_file = 1;
+-		}
+-		break;
+-	default:
+-		if (new_end_pos > i_size_read(inode)) {
+-			ecryptfs_printk(KERN_DEBUG, "new_end_pos(=[0x%.16x]) "
+-					"> i_size_read(inode)(=[0x%.16x])\n",
+-					new_end_pos, i_size_read(inode));
+-			expanding_file = 1;
+-		}
 -	}
-+	usb_kill_urb(fifo->urb);
-+	usb_free_urb(fifo->urb);
-+	fifo->urb = NULL;
- 	fifo->active = 0;
- }
- 
-@@ -1305,7 +1302,11 @@ usb_init(hfcusb_data * hfc)
- 	}
- 	/* default Prot: EURO ISDN, should be a module_param */
- 	hfc->protocol = 2;
--	hisax_register(&hfc->d_if, p_b_if, "hfc_usb", hfc->protocol);
-+	i = hisax_register(&hfc->d_if, p_b_if, "hfc_usb", hfc->protocol);
-+	if (i) {
-+		printk(KERN_INFO "HFC-S USB: hisax_register -> %d\n", i);
-+		return i;
-+	}
- 
- #ifdef CONFIG_HISAX_DEBUG
- 	hfc_debug = debug;
-@@ -1626,11 +1627,9 @@ hfc_usb_probe(struct usb_interface *intf
- #endif
- 			/* init the chip and register the driver */
- 			if (usb_init(context)) {
--				if (context->ctrl_urb) {
--					usb_unlink_urb(context->ctrl_urb);
--					usb_free_urb(context->ctrl_urb);
--					context->ctrl_urb = NULL;
--				}
-+				usb_kill_urb(context->ctrl_urb);
-+				usb_free_urb(context->ctrl_urb);
-+				context->ctrl_urb = NULL;
- 				kfree(context);
- 				return (-EIO);
- 			}
-@@ -1682,21 +1681,15 @@ hfc_usb_disconnect(struct usb_interface
- 				    i);
- #endif
- 			}
--			if (context->fifos[i].urb) {
--				usb_unlink_urb(context->fifos[i].urb);
--				usb_free_urb(context->fifos[i].urb);
--				context->fifos[i].urb = NULL;
--			}
-+			usb_kill_urb(context->fifos[i].urb);
-+			usb_free_urb(context->fifos[i].urb);
-+			context->fifos[i].urb = NULL;
- 		}
- 		context->fifos[i].active = 0;
- 	}
--	/* wait for all URBS to terminate */
--	mdelay(10);
--	if (context->ctrl_urb) {
--		usb_unlink_urb(context->ctrl_urb);
--		usb_free_urb(context->ctrl_urb);
--		context->ctrl_urb = NULL;
+-	ecryptfs_printk(KERN_DEBUG, "new_end_pos = [0x%.16x]\n", new_end_pos);
+-	if (expanding_file) {
+-		rc = ecryptfs_truncate(file->f_path.dentry, new_end_pos);
+-		if (rc) {
+-			rv = rc;
+-			ecryptfs_printk(KERN_ERR, "Error on attempt to "
+-					"truncate to (higher) offset [0x%.16x];"
+-					" rc = [%d]\n", new_end_pos, rc);
+-			goto out;
+-		}
 -	}
-+	usb_kill_urb(context->ctrl_urb);
-+	usb_free_urb(context->ctrl_urb);
-+	context->ctrl_urb = NULL;
- 	hisax_unregister(&context->d_if);
- 	kfree(context);		/* free our structure again */
- }				/* hfc_usb_disconnect */
-diff -puN drivers/isdn/hisax/hisax_fcpcipnp.c~hisax-fix-error-checking-for-hisax_register drivers/isdn/hisax/hisax_fcpcipnp.c
---- a/drivers/isdn/hisax/hisax_fcpcipnp.c~hisax-fix-error-checking-for-hisax_register
-+++ a/drivers/isdn/hisax/hisax_fcpcipnp.c
-@@ -859,7 +859,11 @@ new_adapter(void)
- 	for (i = 0; i < 2; i++)
- 		b_if[i] = &adapter->bcs[i].b_if;
+-	rv = generic_file_llseek(file, offset, origin);
+-out:
+-	return rv;
+-}
+-
+-/**
+  * ecryptfs_read_update_atime
+  *
+  * generic_file_read updates the atime of upper layer inode.  But, it
+@@ -425,7 +368,7 @@ const struct file_operations ecryptfs_di
+ };
  
--	hisax_register(&adapter->isac.hisax_d_if, b_if, "fcpcipnp", protocol);
-+	if (hisax_register(&adapter->isac.hisax_d_if, b_if, "fcpcipnp",
-+			protocol) != 0) {
-+		kfree(adapter);
-+		adapter = NULL;
-+	}
- 
- 	return adapter;
- }
-diff -puN drivers/isdn/hisax/st5481_init.c~hisax-fix-error-checking-for-hisax_register drivers/isdn/hisax/st5481_init.c
---- a/drivers/isdn/hisax/st5481_init.c~hisax-fix-error-checking-for-hisax_register
-+++ a/drivers/isdn/hisax/st5481_init.c
-@@ -107,12 +107,17 @@ static int probe_st5481(struct usb_inter
- 	for (i = 0; i < 2; i++)
- 		b_if[i] = &adapter->bcs[i].b_if;
- 
--	hisax_register(&adapter->hisax_d_if, b_if, "st5481_usb", protocol);
-+	if (hisax_register(&adapter->hisax_d_if, b_if, "st5481_usb",
-+			protocol) != 0)
-+		goto err_b1;
-+
- 	st5481_start(adapter);
- 
- 	usb_set_intfdata(intf, adapter);
+ const struct file_operations ecryptfs_main_fops = {
+-	.llseek = ecryptfs_llseek,
++	.llseek = generic_file_llseek,
+ 	.read = do_sync_read,
+ 	.aio_read = ecryptfs_read_update_atime,
+ 	.write = do_sync_write,
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-delay-writing-0s-after-llseek-until-write fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-delay-writing-0s-after-llseek-until-write
++++ a/fs/ecryptfs/mmap.c
+@@ -376,9 +376,31 @@ out:
  	return 0;
+ }
  
-+ err_b1:
-+	st5481_release_b(&adapter->bcs[1]);
-  err_b:
- 	st5481_release_b(&adapter->bcs[0]);
-  err_d:
-diff -puN drivers/isdn/hisax/st5481_usb.c~hisax-fix-error-checking-for-hisax_register drivers/isdn/hisax/st5481_usb.c
---- a/drivers/isdn/hisax/st5481_usb.c~hisax-fix-error-checking-for-hisax_register
-+++ a/drivers/isdn/hisax/st5481_usb.c
-@@ -407,7 +407,6 @@ fill_isoc_urb(struct urb *urb, struct us
++/**
++ * eCryptfs does not currently support holes. When writing after a
++ * seek past the end of the file, eCryptfs fills in 0's through to the
++ * current location. The code to fill in the 0's to all the
++ * intermediate pages calls ecryptfs_prepare_write_no_truncate().
++ */
++static int
++ecryptfs_prepare_write_no_truncate(struct file *file, struct page *page,
++				   unsigned from, unsigned to)
++{
++	int rc = 0;
++
++	if (from == 0 && to == PAGE_CACHE_SIZE)
++		goto out;	/* If we are writing a full page, it will be
++				   up to date. */
++	if (!PageUptodate(page))
++		rc = ecryptfs_do_readpage(file, page, page->index);
++out:
++	return rc;
++}
++
+ static int ecryptfs_prepare_write(struct file *file, struct page *page,
+ 				  unsigned from, unsigned to)
  {
- 	int k;
++	loff_t pos;
+ 	int rc = 0;
  
--	spin_lock_init(&urb->lock);
- 	urb->dev=dev;
- 	urb->pipe=pipe;
- 	urb->interval = 1;
+ 	if (from == 0 && to == PAGE_CACHE_SIZE)
+@@ -386,6 +408,16 @@ static int ecryptfs_prepare_write(struct
+ 				   up to date. */
+ 	if (!PageUptodate(page))
+ 		rc = ecryptfs_do_readpage(file, page, page->index);
++	pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
++	if (pos > i_size_read(page->mapping->host)) {
++		rc = ecryptfs_truncate(file->f_path.dentry, pos);
++		if (rc) {
++			printk(KERN_ERR "Error on attempt to "
++			       "truncate to (higher) offset [%lld];"
++			       " rc = [%d]\n", pos, rc);
++			goto out;
++		}
++	}
+ out:
+ 	return rc;
+ }
+@@ -744,10 +776,10 @@ int write_zeros(struct file *file, pgoff
+ 		rc = PTR_ERR(tmp_page);
+ 		goto out;
+ 	}
+-	rc = ecryptfs_prepare_write(file, tmp_page, start, start + num_zeros);
+-	if (rc) {
++	if ((rc = ecryptfs_prepare_write_no_truncate(file, tmp_page, start,
++						     (start + num_zeros)))) {
+ 		ecryptfs_printk(KERN_ERR, "Error preparing to write zero's "
+-				"to remainder of page at index [0x%.16x]\n",
++				"to page at index [0x%.16x]\n",
+ 				index);
+ 		page_cache_release(tmp_page);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-git-scsi-rc-fixes.patch
-freezer-run-show_state-when-freezing-times-out.patch
+git-unionfs.patch
+couple-fixes-to-fs-ecryptfs-inodec.patch
+ecryptfs-move-ecryptfs-docs-into-documentation-filesystems.patch
+fs-introduce-vfs_path_lookup.patch
+sunrpc-use-vfs_path_lookup.patch
+nfsctl-use-vfs_path_lookup.patch
+fs-mark-link_path_walk-static.patch
+fs-remove-path_walk-export.patch
