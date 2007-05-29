@@ -1,118 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - genhd-expose-an-to-user-space.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:50:40 -0700
-Message-ID: <200705291850.l4TIodbL008286@shell0.pdx.osdl.net>
+Subject: - freezer-move-frozen_process-to-kernel-power-processc.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:50:20 -0700
+Message-ID: <200705291850.l4TIoJRN008253@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:32978 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752457AbXE2SvJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752209AbXE2SvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:09 -0400
+	Tue, 29 May 2007 14:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: ego@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genhd: expose AN to user space
+     freezer: move frozen_process() to kernel/power/process.c
 has been removed from the -mm tree.  Its filename was
-     genhd-expose-an-to-user-space.patch
+     freezer-move-frozen_process-to-kernel-power-processc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: genhd: expose AN to user space
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: freezer: move frozen_process() to kernel/power/process.c
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-Allow user space to determine if a disk supports Asynchronous Notification of
-media changes.  This is done by adding a new sysfs file "capability_flags",
-which is documented in (insert file name).  This sysfs file will export all
-disk capabilities flags to user space.  We also define a new flag to define
-the media change notification capability.
+Other than refrigerator, no one else calls frozen_process().  So move it from
+include/linux/freezer.h to kernel/power/process.c.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Also, since a task can be marked as frozen by itself, we don't need to pass
+the (struct task_struct *p) parameter to frozen_process().
+
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/block/capability.txt |   15 +++++++++++++++
- block/genhd.c                      |   10 +++++++++-
- include/linux/genhd.h              |    1 +
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ include/linux/freezer.h |   13 -------------
+ kernel/power/process.c  |   14 +++++++++++++-
+ 2 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN /dev/null Documentation/block/capability.txt
---- /dev/null
-+++ a/Documentation/block/capability.txt
-@@ -0,0 +1,15 @@
-+Generic Block Device Capability
-+===============================================================================
-+This file documents the sysfs file block/<disk>/capability
-+
-+capability is a hex word indicating which capabilities a specific disk
-+supports.  For more information on bits not listed here, see
-+include/linux/genhd.h
-+
-+Capability				Value
-+-------------------------------------------------------------------------------
-+GENHD_FL_MEDIA_CHANGE_NOTIFY		4
-+	When this bit is set, the disk supports Asynchronous Notification
-+	of media change events.  These events will be broadcast to user
-+	space via kernel uevent.
-+
-diff -puN block/genhd.c~genhd-expose-an-to-user-space block/genhd.c
---- a/block/genhd.c~genhd-expose-an-to-user-space
-+++ a/block/genhd.c
-@@ -423,7 +423,10 @@ static ssize_t disk_size_read(struct gen
- {
- 	return sprintf(page, "%llu\n", (unsigned long long)get_capacity(disk));
+diff -puN include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc include/linux/freezer.h
+--- a/include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc
++++ a/include/linux/freezer.h
+@@ -58,18 +58,6 @@ static inline int thaw_process(struct ta
+ 	return 0;
  }
--
-+static ssize_t disk_capability_read(struct gendisk *disk, char *page)
-+{
-+	return sprintf(page, "%x\n", disk->flags);
-+}
- static ssize_t disk_stats_read(struct gendisk * disk, char *page)
- {
- 	preempt_disable();
-@@ -466,6 +469,10 @@ static struct disk_attribute disk_attr_s
- 	.attr = {.name = "size", .mode = S_IRUGO },
- 	.show	= disk_size_read
- };
-+static struct disk_attribute disk_attr_capability = {
-+	.attr = {.name = "capability", .mode = S_IRUGO },
-+	.show	= disk_capability_read
-+};
- static struct disk_attribute disk_attr_stat = {
- 	.attr = {.name = "stat", .mode = S_IRUGO },
- 	.show	= disk_stats_read
-@@ -506,6 +513,7 @@ static struct attribute * default_attrs[
- 	&disk_attr_removable.attr,
- 	&disk_attr_size.attr,
- 	&disk_attr_stat.attr,
-+	&disk_attr_capability.attr,
- #ifdef CONFIG_FAIL_MAKE_REQUEST
- 	&disk_attr_fail.attr,
- #endif
-diff -puN include/linux/genhd.h~genhd-expose-an-to-user-space include/linux/genhd.h
---- a/include/linux/genhd.h~genhd-expose-an-to-user-space
-+++ a/include/linux/genhd.h
-@@ -94,6 +94,7 @@ struct hd_struct {
  
- #define GENHD_FL_REMOVABLE			1
- #define GENHD_FL_DRIVERFS			2
-+#define GENHD_FL_MEDIA_CHANGE_NOTIFY		4
- #define GENHD_FL_CD				8
- #define GENHD_FL_UP				16
- #define GENHD_FL_SUPPRESS_PARTITION_INFO	32
+-/*
+- * freezing is complete, mark process as frozen
+- */
+-static inline void frozen_process(struct task_struct *p)
+-{
+-	if (!unlikely(p->flags & PF_NOFREEZE)) {
+-		p->flags |= PF_FROZEN;
+-		wmb();
+-	}
+-	clear_tsk_thread_flag(p, TIF_FREEZE);
+-}
+-
+ extern void refrigerator(void);
+ extern int freeze_processes(void);
+ extern void thaw_processes(void);
+@@ -132,7 +120,6 @@ static inline int frozen(struct task_str
+ static inline int freezing(struct task_struct *p) { return 0; }
+ static inline void freeze(struct task_struct *p) { BUG(); }
+ static inline int thaw_process(struct task_struct *p) { return 1; }
+-static inline void frozen_process(struct task_struct *p) { BUG(); }
+ 
+ static inline void refrigerator(void) {}
+ static inline int freeze_processes(void) { BUG(); return 0; }
+diff -puN kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc kernel/power/process.c
+--- a/kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc
++++ a/kernel/power/process.c
+@@ -31,6 +31,18 @@ static inline int freezeable(struct task
+ 	return 1;
+ }
+ 
++/*
++ * freezing is complete, mark current process as frozen
++ */
++static inline void frozen_process(void)
++{
++	if (!unlikely(current->flags & PF_NOFREEZE)) {
++		current->flags |= PF_FROZEN;
++		wmb();
++	}
++	clear_tsk_thread_flag(current, TIF_FREEZE);
++}
++
+ /* Refrigerator is place where frozen processes are stored :-). */
+ void refrigerator(void)
+ {
+@@ -40,7 +52,7 @@ void refrigerator(void)
+ 
+ 	task_lock(current);
+ 	if (freezing(current)) {
+-		frozen_process(current);
++		frozen_process();
+ 		task_unlock(current);
+ 	} else {
+ 		task_unlock(current);
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
-git-acpi.patch
-acpi-bay-send-envp-with-uevent.patch
-libata-check-for-an-support.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
