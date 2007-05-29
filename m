@@ -1,75 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-oprofile-double-free-was-re-multiple-free.patch added to -mm tree
-Date: Tue, 29 May 2007 15:31:21 -0700
-Message-ID: <200705292231.l4TMVLa5013262@shell0.pdx.osdl.net>
+Subject: - add-pm_trace-x86_64-support.patch removed from -mm tree
+Date: Tue, 29 May 2007 15:36:46 -0700
+Message-ID: <200705292236.l4TMalSj013344@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42241 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842AbXE2Wbi (ORCPT
+	by vger.kernel.org with ESMTP id S1750803AbXE2Wgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 18:31:38 -0400
+	Tue, 29 May 2007 18:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: chrisw@sous-sol.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, cebbert@redhat.com, davej@redhat.com
+To: nigel@nigel.suspend2.net, ak@suse.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix oprofile double free
-has been added to the -mm tree.  Its filename is
-     x86-fix-oprofile-double-free-was-re-multiple-free.patch
+     Add PM_TRACE x86_64 support
+has been removed from the -mm tree.  Its filename was
+     add-pm_trace-x86_64-support.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: x86: fix oprofile double free
-From: Chris Wright <chrisw@sous-sol.org>
+Subject: Add PM_TRACE x86_64 support
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
 
-Chuck reports that the recent fix from Andi to oprofile
-6c977aad03a18019015035958c65b6729cd0574c introduces a double free.  Each
-cpu's cpu_msrs is setup to point to cpu 0's, which causes free_msrs to free
-cpu 0's pointers for_each_possible_cpu.  Rather than copy the pointers, do
-a deep copy instead.
+Add x86_64 support for PM_TRACE, and shift per-arch code to the appropriate
+subdirectories.
 
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Symbol exports are added so tracing can be used from drivers built as
+modules too.
+
+Signed-off-by: Nigel Cunningham <nigel@nigel.suspend2.net>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/oprofile/nmi_int.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/vmlinux.lds.S  |    7 +++++++
+ drivers/base/power/trace.c        |    5 ++++-
+ include/asm-i386/resume-trace.h   |   21 +++++++++++++++++++++
+ include/asm-x86_64/resume-trace.h |   21 +++++++++++++++++++++
+ include/linux/resume-trace.h      |   24 ++++++------------------
+ kernel/power/Kconfig              |    2 +-
+ 6 files changed, 60 insertions(+), 20 deletions(-)
 
-diff -puN arch/i386/oprofile/nmi_int.c~x86-fix-oprofile-double-free-was-re-multiple-free arch/i386/oprofile/nmi_int.c
---- a/arch/i386/oprofile/nmi_int.c~x86-fix-oprofile-double-free-was-re-multiple-free
-+++ a/arch/i386/oprofile/nmi_int.c
-@@ -211,8 +211,14 @@ static int nmi_setup(void)
- 	/* Assume saved/restored counters are the same on all CPUs */
- 	model->fill_in_addresses(&cpu_msrs[0]);
- 	for_each_possible_cpu (cpu) {
--		if (cpu != 0)
--			cpu_msrs[cpu] = cpu_msrs[0];
-+		if (cpu != 0) {
-+			memcpy(cpu_msrs[cpu].counters, cpu_msrs[0].counters,
-+				sizeof(struct op_msr) * model->num_counters);
+diff -puN arch/x86_64/kernel/vmlinux.lds.S~add-pm_trace-x86_64-support arch/x86_64/kernel/vmlinux.lds.S
+--- a/arch/x86_64/kernel/vmlinux.lds.S~add-pm_trace-x86_64-support
++++ a/arch/x86_64/kernel/vmlinux.lds.S
+@@ -52,6 +52,13 @@ SECTIONS
+ 
+   RODATA
+ 
++  . = ALIGN(4);
++  .tracedata : AT(ADDR(.tracedata) - LOAD_OFFSET) {
++  	__tracedata_start = .;
++	*(.tracedata)
++  	__tracedata_end = .;
++  }
 +
-+			memcpy(cpu_msrs[cpu].controls, cpu_msrs[0].controls,
-+				sizeof(struct op_msr) * model->num_controls);
-+		}
+   . = ALIGN(PAGE_SIZE);        /* Align data segment to page size boundary */
+ 				/* Data */
+   .data : AT(ADDR(.data) - LOAD_OFFSET) {
+diff -puN drivers/base/power/trace.c~add-pm_trace-x86_64-support drivers/base/power/trace.c
+--- a/drivers/base/power/trace.c~add-pm_trace-x86_64-support
++++ a/drivers/base/power/trace.c
+@@ -142,6 +142,7 @@ void set_trace_device(struct device *dev
+ {
+ 	dev_hash_value = hash_string(DEVSEED, dev->bus_id, DEVHASH);
+ }
++EXPORT_SYMBOL(set_trace_device);
+ 
+ /*
+  * We could just take the "tracedata" index into the .tracedata
+@@ -162,6 +163,7 @@ void generate_resume_trace(void *traceda
+ 	file_hash_value = hash_string(lineno, file, FILEHASH);
+ 	set_magic_time(user_hash_value, file_hash_value, dev_hash_value);
+ }
++EXPORT_SYMBOL(generate_resume_trace);
+ 
+ extern char __tracedata_start, __tracedata_end;
+ static int show_file_hash(unsigned int value)
+@@ -170,7 +172,8 @@ static int show_file_hash(unsigned int v
+ 	char *tracedata;
+ 
+ 	match = 0;
+-	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ; tracedata += 6) {
++	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ;
++			tracedata += 2 + sizeof(unsigned long)) {
+ 		unsigned short lineno = *(unsigned short *)tracedata;
+ 		const char *file = *(const char **)(tracedata + 2);
+ 		unsigned int hash = hash_string(lineno, file, FILEHASH);
+diff -puN /dev/null include/asm-i386/resume-trace.h
+--- /dev/null
++++ a/include/asm-i386/resume-trace.h
+@@ -0,0 +1,21 @@
++#ifndef ARCH_RESUME_TRACE_H
++#define ARCH_RESUME_TRACE_H
 +
- 	}
- 	on_each_cpu(nmi_save_registers, NULL, 0, 1);
- 	on_each_cpu(nmi_cpu_setup, NULL, 0, 1);
++#ifdef CONFIG_PM_TRACE
++#define TRACE_RESUME(user) do {					\
++	if (pm_trace_enabled) {					\
++		void *tracedata;				\
++		asm volatile("movl $1f,%0\n"			\
++			".section .tracedata,\"a\"\n"		\
++			"1:\t.word %c1\n"			\
++			"\t.long %c2\n"				\
++			".previous"				\
++			:"=r" (tracedata)			\
++			: "i" (__LINE__), "i" (__FILE__));	\
++		generate_resume_trace(tracedata, user);		\
++	}							\
++} while (0)
++#else
++#define TRACE_RESUME(user) do { } while (0)
++#endif
++#endif
+diff -puN /dev/null include/asm-x86_64/resume-trace.h
+--- /dev/null
++++ a/include/asm-x86_64/resume-trace.h
+@@ -0,0 +1,21 @@
++#ifndef ARCH_RESUME_TRACE_H
++#define ARCH_RESUME_TRACE_H
++
++#ifdef CONFIG_PM_TRACE
++#define TRACE_RESUME(user) do {					\
++	if (pm_trace_enabled) {					\
++		void *tracedata;				\
++		asm volatile("movq $1f,%0\n"			\
++			".section .tracedata,\"a\"\n"		\
++			"1:\t.word %c1\n"			\
++			"\t.quad %c2\n"				\
++			".previous"				\
++			:"=r" (tracedata)			\
++			: "i" (__LINE__), "i" (__FILE__));	\
++		generate_resume_trace(tracedata, user);		\
++	}							\
++} while (0)
++#else
++#define TRACE_RESUME(user) do { } while (0)
++#endif
++#endif
+diff -puN include/linux/resume-trace.h~add-pm_trace-x86_64-support include/linux/resume-trace.h
+--- a/include/linux/resume-trace.h~add-pm_trace-x86_64-support
++++ a/include/linux/resume-trace.h
+@@ -1,6 +1,8 @@
+ #ifndef RESUME_TRACE_H
+ #define RESUME_TRACE_H
+ 
++#include <asm/resume-trace.h>
++
+ #ifdef CONFIG_PM_TRACE
+ 
+ extern int pm_trace_enabled;
+@@ -9,26 +11,12 @@ struct device;
+ extern void set_trace_device(struct device *);
+ extern void generate_resume_trace(void *tracedata, unsigned int user);
+ 
+-#define TRACE_DEVICE(dev) set_trace_device(dev)
+-#define TRACE_RESUME(user) do {					\
+-	if (pm_trace_enabled) {					\
+-		void *tracedata;				\
+-		asm volatile("movl $1f,%0\n"			\
+-			".section .tracedata,\"a\"\n"		\
+-			"1:\t.word %c1\n"			\
+-			"\t.long %c2\n"				\
+-			".previous"				\
+-			:"=r" (tracedata)			\
+-			: "i" (__LINE__), "i" (__FILE__));	\
+-		generate_resume_trace(tracedata, user);		\
+-	}							\
+-} while (0)
+-
++#define TRACE_DEVICE(dev) do { \
++	if (pm_trace_enabled) \
++		set_trace_device(dev); \
++	} while(0)
+ #else
+-
+ #define TRACE_DEVICE(dev) do { } while (0)
+-#define TRACE_RESUME(dev) do { } while (0)
+-
+ #endif
+ 
+ #endif
+diff -puN kernel/power/Kconfig~add-pm_trace-x86_64-support kernel/power/Kconfig
+--- a/kernel/power/Kconfig~add-pm_trace-x86_64-support
++++ a/kernel/power/Kconfig
+@@ -50,7 +50,7 @@ config DISABLE_CONSOLE_SUSPEND
+ 
+ config PM_TRACE
+ 	bool "Suspend/resume event tracing"
+-	depends on PM && PM_DEBUG && X86_32 && EXPERIMENTAL
++	depends on PM && PM_DEBUG && X86 && EXPERIMENTAL
+ 	default n
+ 	---help---
+ 	This enables some cheesy code to save the last PM event point in the
 _
 
-Patches currently in -mm which might be from chrisw@sous-sol.org are
+Patches currently in -mm which might be from nigel@nigel.suspend2.net are
 
-x86-fix-oprofile-double-free-was-re-multiple-free.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-update.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
