@@ -1,133 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - md-fix-bug-with-linear-hot-add-and-elsewhere.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:52:44 -0700
-Message-ID: <200705291852.l4TIqhFL008424@shell0.pdx.osdl.net>
+Subject: - md-avoid-overflow-in-raid0-calculation-with-large-components.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:52:35 -0700
+Message-ID: <200705291852.l4TIqYet008417@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49168 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40944 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759009AbXE2SxI (ORCPT
+	by vger.kernel.org with ESMTP id S1758937AbXE2SxN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:53:08 -0400
+	Tue, 29 May 2007 14:53:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: neilb@suse.de, Jeff.Zheng@endace.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix bug with linear hot-add and elsewhere
+     md: avoid overflow in raid0 calculation with large components
 has been removed from the -mm tree.  Its filename was
-     md-fix-bug-with-linear-hot-add-and-elsewhere.patch
+     md-avoid-overflow-in-raid0-calculation-with-large-components.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: fix bug with linear hot-add and elsewhere
+Subject: md: avoid overflow in raid0 calculation with large components
 From: NeilBrown <neilb@suse.de>
 
-Adding a drive to a linear array seems to have stopped working, due to changes
-elsewhere in md, and insufficient ongoing testing...
+If a raid0 has a component device larger than 4TB, and is accessed on a 32bit
+machines, then as 'chunk' is unsigned lock,
 
-So the patch to make linear hot-add work in the first place introduced a
-subtle bug elsewhere that interracts poorly with older version of mdadm.
+   chunk << chunksize_bits
 
-This fixes it all up.
+can overflow (this can be as high as the size of the device in KB).  chunk
+itself will not overflow (without triggering a BUG).
 
+So change 'chunk' to be 'sector_t, and get rid of the 'BUG' as it becomes
+impossible to hit.
+
+Cc: "Jeff Zheng" <Jeff.Zheng@endace.com>
 Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/linear.c |   10 +++++-----
- drivers/md/md.c     |   20 ++++++++++++++------
- 2 files changed, 19 insertions(+), 11 deletions(-)
+ drivers/md/raid0.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/md/linear.c~md-fix-bug-with-linear-hot-add-and-elsewhere drivers/md/linear.c
---- a/drivers/md/linear.c~md-fix-bug-with-linear-hot-add-and-elsewhere
-+++ a/drivers/md/linear.c
-@@ -139,8 +139,6 @@ static linear_conf_t *linear_conf(mddev_
- 	if (!conf)
- 		return NULL;
+diff -puN drivers/md/raid0.c~md-avoid-overflow-in-raid0-calculation-with-large-components drivers/md/raid0.c
+--- a/drivers/md/raid0.c~md-avoid-overflow-in-raid0-calculation-with-large-components
++++ a/drivers/md/raid0.c
+@@ -415,7 +415,7 @@ static int raid0_make_request (request_q
+ 	raid0_conf_t *conf = mddev_to_conf(mddev);
+ 	struct strip_zone *zone;
+ 	mdk_rdev_t *tmp_dev;
+-	unsigned long chunk;
++	sector_t chunk;
+ 	sector_t block, rsect;
+ 	const int rw = bio_data_dir(bio);
  
--	mddev->private = conf;
--
- 	cnt = 0;
- 	conf->array_size = 0;
+@@ -470,7 +470,6 @@ static int raid0_make_request (request_q
  
-@@ -232,7 +230,7 @@ static linear_conf_t *linear_conf(mddev_
- 	 * First calculate the device offsets.
- 	 */
- 	conf->disks[0].offset = 0;
--	for (i=1; i<mddev->raid_disks; i++)
-+	for (i = 1; i < raid_disks; i++)
- 		conf->disks[i].offset =
- 			conf->disks[i-1].offset +
- 			conf->disks[i-1].size;
-@@ -244,7 +242,7 @@ static linear_conf_t *linear_conf(mddev_
- 	     curr_offset < conf->array_size;
- 	     curr_offset += conf->hash_spacing) {
+ 		sector_div(x, zone->nb_dev);
+ 		chunk = x;
+-		BUG_ON(x != (sector_t)chunk);
  
--		while (i < mddev->raid_disks-1 &&
-+		while (i < raid_disks-1 &&
- 		       curr_offset >= conf->disks[i+1].offset)
- 			i++;
- 
-@@ -299,9 +297,11 @@ static int linear_add(mddev_t *mddev, md
- 	 */
- 	linear_conf_t *newconf;
- 
--	if (rdev->raid_disk != mddev->raid_disks)
-+	if (rdev->saved_raid_disk != mddev->raid_disks)
- 		return -EINVAL;
- 
-+	rdev->raid_disk = rdev->saved_raid_disk;
-+
- 	newconf = linear_conf(mddev,mddev->raid_disks+1);
- 
- 	if (!newconf)
-diff -puN drivers/md/md.c~md-fix-bug-with-linear-hot-add-and-elsewhere drivers/md/md.c
---- a/drivers/md/md.c~md-fix-bug-with-linear-hot-add-and-elsewhere
-+++ a/drivers/md/md.c
-@@ -1298,8 +1298,9 @@ static void super_1_sync(mddev_t *mddev,
- 	ITERATE_RDEV(mddev,rdev2,tmp)
- 		if (rdev2->desc_nr+1 > max_dev)
- 			max_dev = rdev2->desc_nr+1;
--	
--	sb->max_dev = cpu_to_le32(max_dev);
-+
-+	if (max_dev > le32_to_cpu(sb->max_dev))
-+		sb->max_dev = cpu_to_le32(max_dev);
- 	for (i=0; i<max_dev;i++)
- 		sb->dev_roles[i] = cpu_to_le16(0xfffe);
- 	
-@@ -1365,10 +1366,14 @@ static int bind_rdev_to_array(mdk_rdev_t
- 	}
- 	/* make sure rdev->size exceeds mddev->size */
- 	if (rdev->size && (mddev->size == 0 || rdev->size < mddev->size)) {
--		if (mddev->pers)
--			/* Cannot change size, so fail */
--			return -ENOSPC;
--		else
-+		if (mddev->pers) {
-+			/* Cannot change size, so fail
-+			 * If mddev->level <= 0, then we don't care
-+			 * about aligning sizes (e.g. linear)
-+			 */
-+			if (mddev->level > 0)
-+				return -ENOSPC;
-+		} else
- 			mddev->size = rdev->size;
- 	}
- 
-@@ -2142,6 +2147,9 @@ static void analyze_sbs(mddev_t * mddev)
- 			rdev->desc_nr = i++;
- 			rdev->raid_disk = rdev->desc_nr;
- 			set_bit(In_sync, &rdev->flags);
-+		} else if (rdev->raid_disk >= mddev->raid_disks) {
-+			rdev->raid_disk = -1;
-+			clear_bit(In_sync, &rdev->flags);
- 		}
- 	}
- 
+ 		x = block >> chunksize_bits;
+ 		tmp_dev = zone->dev[sector_div(x, zone->nb_dev)];
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
