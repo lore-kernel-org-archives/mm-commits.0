@@ -1,85 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:51:03 -0700
-Message-ID: <200705291851.l4TIp2DN008316@shell0.pdx.osdl.net>
+Subject: - pm2fb-rdac_wr-barriers-clean-up.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:51:12 -0700
+Message-ID: <200705291851.l4TIpBWb008325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46784 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754126AbXE2Sve (ORCPT
+	by vger.kernel.org with ESMTP id S1753878AbXE2Sve (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 29 May 2007 14:51:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     optimize compat_core_sys_select() by a using stack space for small fd sets
+     pm2fb: RDAC_WR barriers clean up
 has been removed from the -mm tree.  Its filename was
-     optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets.patch
+     pm2fb-rdac_wr-barriers-clean-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: optimize compat_core_sys_select() by a using stack space for small fd sets
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: pm2fb: RDAC_WR barriers clean up
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Optimize select by a using stack space for small fd sets. 
-core_sys_select() already has this optimization.  This is for compat
-version.
+This patch fixes a possible barriers problem in RDAC_WR functions, then remove
+redudant ones.
 
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+It also removes one unneeded register load from blitter function().
+
+Signed-off-by: Krzysztof.Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
+ drivers/video/pm2fb.c |   17 +++++------------
+ 1 files changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN fs/compat.c~optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets fs/compat.c
---- a/fs/compat.c~optimize-compat_core_sys_select-by-a-using-stack-space-for-small-fd-sets
-+++ a/fs/compat.c
-@@ -1544,9 +1544,10 @@ int compat_core_sys_select(int n, compat
- 	compat_ulong_t __user *outp, compat_ulong_t __user *exp, s64 *timeout)
- {
- 	fd_set_bits fds;
--	char *bits;
-+	void *bits;
- 	int size, max_fds, ret = -EINVAL;
- 	struct fdtable *fdt;
-+	long stack_fds[SELECT_STACK_ALLOC/sizeof(long)];
- 
- 	if (n < 0)
- 		goto out_nofds;
-@@ -1564,11 +1565,14 @@ int compat_core_sys_select(int n, compat
- 	 * since we used fdset we need to allocate memory in units of
- 	 * long-words.
- 	 */
--	ret = -ENOMEM;
- 	size = FDS_BYTES(n);
--	bits = kmalloc(6 * size, GFP_KERNEL);
--	if (!bits)
--		goto out_nofds;
-+	bits = stack_fds;
-+	if (size > sizeof(stack_fds) / 6) {
-+		bits = kmalloc(6 * size, GFP_KERNEL);
-+		ret = -ENOMEM;
-+		if (!bits)
-+			goto out_nofds;
-+	}
- 	fds.in      = (unsigned long *)  bits;
- 	fds.out     = (unsigned long *) (bits +   size);
- 	fds.ex      = (unsigned long *) (bits + 2*size);
-@@ -1600,7 +1604,8 @@ int compat_core_sys_select(int n, compat
- 	    compat_set_fd_set(n, exp, fds.res_ex))
- 		ret = -EFAULT;
- out:
--	kfree(bits);
-+	if (bits != stack_fds)
-+		kfree(bits);
- out_nofds:
- 	return ret;
+diff -puN drivers/video/pm2fb.c~pm2fb-rdac_wr-barriers-clean-up drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-rdac_wr-barriers-clean-up
++++ a/drivers/video/pm2fb.c
+@@ -183,15 +183,17 @@ static inline void pm2_RDAC_WR(struct pm
+ 		index = PM2VR_RD_INDEXED_DATA;
+ 		break;
+ 	}	
+-	mb();
++	wmb();
+ 	pm2_WR(p, index, v);
++	wmb();
  }
+ 
+ static inline void pm2v_RDAC_WR(struct pm2fb_par* p, s32 idx, u32 v)
+ {
+ 	pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
+-	mb();
++	wmb();
+ 	pm2_WR(p, PM2VR_RD_INDEXED_DATA, v);
++	wmb();
+ }
+ 
+ #ifdef CONFIG_FB_PM2_FIFO_DISCONNECT
+@@ -466,11 +468,9 @@ static void set_memclock(struct pm2fb_pa
+ 		WAIT_FIFO(par, 8);
+ 		pm2_WR(par, PM2VR_RD_INDEX_HIGH, PM2VI_RD_MCLK_CONTROL >> 8);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 0);
+-		wmb();
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_PRESCALE, m);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_FEEDBACK, n);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_POSTSCALE, p);
+-		wmb();
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 1);
+ 		rmb();
+ 		for (i = 256;
+@@ -483,12 +483,9 @@ static void set_memclock(struct pm2fb_pa
+ 		pm2_mnp(clk, &m, &n, &p);
+ 		WAIT_FIFO(par, 10);
+ 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 6);
+-		wmb();
+ 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_1, m);
+ 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_2, n);
+-		wmb();
+ 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 8|p);
+-		wmb();
+ 		pm2_RDAC_RD(par, PM2I_RD_MEMORY_CLOCK_STATUS);
+ 		rmb();
+ 		for (i = 256;
+@@ -509,12 +506,9 @@ static void set_pixclock(struct pm2fb_pa
+ 		pm2_mnp(clk, &m, &n, &p);
+ 		WAIT_FIFO(par, 8);
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A3, 0);
+-		wmb();
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A1, m);
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A2, n);
+-		wmb();
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A3, 8|p);
+-		wmb();
+ 		pm2_RDAC_RD(par, PM2I_RD_PIXEL_CLOCK_STATUS);
+ 		rmb();
+ 		for (i = 256;
+@@ -1066,10 +1060,9 @@ static void pm2fb_block_op(struct fb_inf
+ 
+ 	if (!w || !h)
+ 		return;
+-	WAIT_FIFO(par, 6);
++	WAIT_FIFO(par, 5);
+ 	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
+ 		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
+-	pm2_WR(par, PM2R_FB_PIXEL_OFFSET, 0);
+ 	if (copy)
+ 		pm2_WR(par, PM2R_FB_SOURCE_DELTA,
+ 			((ysrc-y) & 0xfff) << 16 | ((xsrc-x) & 0xfff));
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+
+fbcon-smart-blitter-usage-for-scrolling.patch
