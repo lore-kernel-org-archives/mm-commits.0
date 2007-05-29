@@ -1,140 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - saa7111-fix-picture-settings-cache-bug.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:55 -0700
-Message-ID: <200705291853.l4TIrsZ3008486@shell0.pdx.osdl.net>
+Subject: - capifunc-warning-fixes.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:25 -0700
+Message-ID: <200705291853.l4TIrO4U008463@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:32909 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762038AbXE2Sy1 (ORCPT
+	by vger.kernel.org with ESMTP id S1764753AbXE2Sxw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:54:27 -0400
+	Tue, 29 May 2007 14:53:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk@arm.linux.org.uk, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     saa7111: fix picture settings cache bug
+     capifunc warning fixes
 has been removed from the -mm tree.  Its filename was
-     saa7111-fix-picture-settings-cache-bug.patch
+     capifunc-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: saa7111: fix picture settings cache bug
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: capifunc warning fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If the SAA7111 device is powered down, and requires re-initialisation when
-the V4L device is opened (as on the NetWinder), the SAA7111 driver gets
-completely confused about the current settings.
+squish these:
 
-The problem is centred around the way the driver keeps _two_ cached copies
-of the current settings - one of the struct video_picture settings, and one
-of the registers.
+drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferSet':
+drivers/isdn/hardware/eicon/capifunc.c:192: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferGet':
+drivers/isdn/hardware/eicon/capifunc.c:197: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:198: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:200: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'TransmitBufferFree':
+drivers/isdn/hardware/eicon/capifunc.c:205: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:206: warning: cast from pointer to integer of different size
+drivers/isdn/hardware/eicon/capifunc.c: In function 'sendf':
+drivers/isdn/hardware/eicon/capifunc.c:304: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:304: warning: cast to pointer from integer of different size
+drivers/isdn/hardware/eicon/capifunc.c:321: warning: cast to pointer from integer of different size
 
-When the decoder is re-initailised, the cached register settings are
-overwritten, as are the values in the hardware registers.  However, the
-cached video_picture settings are not.
-
-Resolve this by removing the useless and buggy second level of caching for
-video_picture.  Instead, provide a function which updates register values
-if and only if the value we are going to write to the register has changed.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7111.c |   49 ++++++++++++--------------------
- 1 files changed, 19 insertions(+), 30 deletions(-)
+ drivers/isdn/hardware/eicon/capifunc.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug drivers/media/video/saa7111.c
---- a/drivers/media/video/saa7111.c~saa7111-fix-picture-settings-cache-bug
-+++ a/drivers/media/video/saa7111.c
-@@ -75,10 +75,6 @@ struct saa7111 {
- 	int norm;
- 	int input;
- 	int enable;
--	int bright;
--	int contrast;
--	int hue;
--	int sat;
- };
- 
- #define   I2C_SAA7111        0x48
-@@ -96,6 +92,17 @@ saa7111_write (struct i2c_client *client
- 	return i2c_smbus_write_byte_data(client, reg, value);
+diff -puN drivers/isdn/hardware/eicon/capifunc.c~capifunc-warning-fixes drivers/isdn/hardware/eicon/capifunc.c
+--- a/drivers/isdn/hardware/eicon/capifunc.c~capifunc-warning-fixes
++++ a/drivers/isdn/hardware/eicon/capifunc.c
+@@ -189,21 +189,21 @@ void *TransmitBufferSet(APPL * appl, dwo
+ {
+ 	appl->xbuffer_used[ref] = true;
+ 	DBG_PRV1(("%d:xbuf_used(%d)", appl->Id, ref + 1))
+-	    return (void *) ref;
++	    return (void *)(long)ref;
  }
  
-+static inline void
-+saa7111_write_if_changed(struct i2c_client *client, u8 reg, u8 value)
-+{
-+	struct saa7111 *decoder = i2c_get_clientdata(client);
-+
-+	if (decoder->reg[reg] != value) {
-+		decoder->reg[reg] = value;
-+		i2c_smbus_write_byte_data(client, reg, value);
-+	}
-+}
-+
- static int
- saa7111_write_block (struct i2c_client *client,
- 		     const u8          *data,
-@@ -439,28 +446,14 @@ saa7111_command (struct i2c_client *clie
- 	{
- 		struct video_picture *pic = arg;
+ void *TransmitBufferGet(APPL * appl, void *p)
+ {
+-	if (appl->xbuffer_internal[(dword) p])
+-		return appl->xbuffer_internal[(dword) p];
++	if (appl->xbuffer_internal[(dword)(long)p])
++		return appl->xbuffer_internal[(dword)(long)p];
  
--		if (decoder->bright != pic->brightness) {
--			/* We want 0 to 255 we get 0-65535 */
--			decoder->bright = pic->brightness;
--			saa7111_write(client, 0x0a, decoder->bright >> 8);
--		}
--		if (decoder->contrast != pic->contrast) {
--			/* We want 0 to 127 we get 0-65535 */
--			decoder->contrast = pic->contrast;
--			saa7111_write(client, 0x0b,
--				      decoder->contrast >> 9);
--		}
--		if (decoder->sat != pic->colour) {
--			/* We want 0 to 127 we get 0-65535 */
--			decoder->sat = pic->colour;
--			saa7111_write(client, 0x0c, decoder->sat >> 9);
--		}
--		if (decoder->hue != pic->hue) {
--			/* We want -128 to 127 we get 0-65535 */
--			decoder->hue = pic->hue;
--			saa7111_write(client, 0x0d,
--				      (decoder->hue - 32768) >> 8);
--		}
-+		/* We want 0 to 255 we get 0-65535 */
-+		saa7111_write_if_changed(client, 0x0a, pic->brightness >> 8);
-+		/* We want 0 to 127 we get 0-65535 */
-+		saa7111_write(client, 0x0b, pic->contrast >> 9);
-+		/* We want 0 to 127 we get 0-65535 */
-+		saa7111_write(client, 0x0c, pic->colour >> 9);
-+		/* We want -128 to 127 we get 0-65535 */
-+		saa7111_write(client, 0x0d, (pic->hue - 32768) >> 8);
+-	return appl->xbuffer_ptr[(dword) p];
++	return appl->xbuffer_ptr[(dword)(long)p];
+ }
+ 
+ void TransmitBufferFree(APPL * appl, void *p)
+ {
+-	appl->xbuffer_used[(dword) p] = false;
+-	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword) p) + 1))
++	appl->xbuffer_used[(dword)(long)p] = false;
++	DBG_PRV1(("%d:xbuf_free(%d)", appl->Id, ((dword)(long)p) + 1))
+ }
+ 
+ void *ReceiveBufferGet(APPL * appl, int Num)
+@@ -301,7 +301,7 @@ void sendf(APPL * appl, word command, dw
+ 	/* if DATA_B3_IND, copy data too */
+ 	if (command == _DATA_B3_I) {
+ 		dword data = GET_DWORD(&msg.info.data_b3_ind.Data);
+-		memcpy(write + length, (void *) data, dlength);
++		memcpy(write + length, (void *)(long)data, dlength);
  	}
- 		break;
  
-@@ -524,10 +517,6 @@ saa7111_detect_client (struct i2c_adapte
- 	decoder->norm = VIDEO_MODE_NTSC;
- 	decoder->input = 0;
- 	decoder->enable = 1;
--	decoder->bright = 32768;
--	decoder->contrast = 32768;
--	decoder->hue = 32768;
--	decoder->sat = 32768;
- 	i2c_set_clientdata(client, decoder);
- 
- 	i = i2c_attach_client(client);
+ #ifndef DIVA_NO_DEBUGLIB
+@@ -318,7 +318,7 @@ void sendf(APPL * appl, word command, dw
+ 			if (myDriverDebugHandle.dbgMask & DL_BLK) {
+ 				xlog("\x00\x02", &msg, 0x81, length);
+ 				for (i = 0; i < dlength; i += 256) {
+-				  DBG_BLK((((char *) GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
++				  DBG_BLK((((char *)(long)GET_DWORD(&msg.info.data_b3_ind.Data)) + i,
+ 				  	((dlength - i) < 256) ? (dlength - i) : 256))
+ 				  if (!(myDriverDebugHandle.dbgMask & DL_PRV0))
+ 					  break; /* not more if not explicitely requested */
 _
 
-Patches currently in -mm which might be from rmk@arm.linux.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm-master.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
 git-dvb.patch
-git-md-accel.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
-update-zilog-timeout.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-xfs.patch
+git-cryptodev.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+add-lzo1x-compression-support-to-the-kernel-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
