@@ -1,86 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - wrong-timeout-value-in-sk_wait_data-v2.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:58 -0700
-Message-ID: <200705291854.l4TIsvwr008562@shell0.pdx.osdl.net>
+Subject: - fdomainc-get-rid-of-unused-stuff.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:55:27 -0700
+Message-ID: <200705291855.l4TItRdo008583@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33865 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765081AbXE2Szx (ORCPT
+	by vger.kernel.org with ESMTP id S1765150AbXE2Szz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:55:53 -0400
+	Tue, 29 May 2007 14:55:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vvs@sw.ru, davem@davemloft.net, mm-commits@vger.kernel.org
+To: parag.warudkar@gmail.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "wrong timeout value" in sk_wait_data()
+     fdomain.c: get rid of unused stuff
 has been removed from the -mm tree.  Its filename was
-     wrong-timeout-value-in-sk_wait_data-v2.patch
+     fdomainc-get-rid-of-unused-stuff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: "wrong timeout value" in sk_wait_data()
-From: Vasily Averin <vvs@sw.ru>
+Subject: fdomain.c: get rid of unused stuff
+From: Parag Warudkar <parag.warudkar@gmail.com>
 
-sys_setsockopt() do not check properly timeout values for
-SO_RCVTIMEO/SO_SNDTIMEO, for example it's possible to set negative timeout
-values.  POSIX do not defines behaviour for sys_setsockopt in case negative
-timeouts, but requires that setsockopt() shall fail with -EDOM if the send
-and receive timeout values are too big to fit into the timeout fields in
-the socket structure.
+fdomain.c uses the below stuff only if PCMCIA is not defined.  This causes
+unused variables to be defined when PCMCIA is not defined.  Wrap variables
+and functions around #ifndef PCMCIA appropriately to avoid this.
 
-In current implementation negative timeout can lead to error messages like
-"schedule_timeout: wrong timeout value".
+4 less compiler warnings.
 
-Proposed patch:
-
-- checks tv_usec and returns -EDOM if it is wrong
-
-- do not allows to set negative timeout values (sets 0 instead) and
-  outputs ratelimited information message about such attempts.
-
-Signed-off-by: Vasily Averin <vvs@sw.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/sock.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+)
+ drivers/scsi/fdomain.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN net/core/sock.c~wrong-timeout-value-in-sk_wait_data-v2 net/core/sock.c
---- a/net/core/sock.c~wrong-timeout-value-in-sk_wait_data-v2
-+++ a/net/core/sock.c
-@@ -206,7 +206,19 @@ static int sock_set_timeout(long *timeo_
- 		return -EINVAL;
- 	if (copy_from_user(&tv, optval, sizeof(tv)))
- 		return -EFAULT;
-+	if (tv.tv_usec < 0 || tv.tv_usec >= USEC_PER_SEC)
-+		return -EDOM;
+diff -puN drivers/scsi/fdomain.c~fdomainc-get-rid-of-unused-stuff drivers/scsi/fdomain.c
+--- a/drivers/scsi/fdomain.c~fdomainc-get-rid-of-unused-stuff
++++ a/drivers/scsi/fdomain.c
+@@ -410,6 +410,7 @@ static irqreturn_t       do_fdomain_16x0
+ static char * fdomain = NULL;
+ module_param(fdomain, charp, 0);
  
-+	if (tv.tv_sec < 0) {
-+		static int warned = 0;
-+		*timeo_p = 0;
-+		if (warned < 10 && net_ratelimit())
-+			warned++;
-+			printk(KERN_INFO "sock_set_timeout: `%s' (pid %d) "
-+			       "tries to set negative timeout\n",
-+			        current->comm, current->pid);
-+		return 0;
-+	}
- 	*timeo_p = MAX_SCHEDULE_TIMEOUT;
- 	if (tv.tv_sec == 0 && tv.tv_usec == 0)
- 		return 0;
++#ifndef PCMCIA
+ static unsigned long addresses[] = {
+    0xc8000,
+    0xca000,
+@@ -502,6 +503,7 @@ static struct signature {
+ };
+ 
+ #define SIGNATURE_COUNT ARRAY_SIZE(signatures)
++#endif /* ifndef PCMCIA */
+ 
+ static void print_banner( struct Scsi_Host *shpnt )
+ {
+@@ -646,7 +648,7 @@ static int fdomain_test_loopback( void )
+    Sometimes it is possible to use the computer's BIOS setup screen to
+    configure a PCI system so that one of these IRQs will be used by the
+    Future Domain card. */
+-
++#ifndef PCMCIA
+ static int fdomain_get_irq( int base )
+ {
+    int options = inb(base + Configuration1);
+@@ -664,6 +666,7 @@ static int fdomain_get_irq( int base )
+    	return 0;
+    return ints[(options & 0x0e) >> 1];
+ }
++#endif
+ 
+ static int fdomain_isa_detect( int *irq, int *iobase )
+ {
 _
 
-Patches currently in -mm which might be from vvs@sw.ru are
-
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+Patches currently in -mm which might be from parag.warudkar@gmail.com are
