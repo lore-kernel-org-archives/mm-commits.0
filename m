@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-integrate-support-for-processing-nfs4-mount-options-in-fs-nfs-superc.patch removed from -mm tree
-Date: Tue, 29 May 2007 09:29:18 -0700
-Message-ID: <200705291629.l4TGTHUU005500@shell0.pdx.osdl.net>
+Subject: - nfs-add-functions-to-parse-nfs4-mount-options-to-fs-nfs-superc.patch removed from -mm tree
+Date: Tue, 29 May 2007 09:29:12 -0700
+Message-ID: <200705291629.l4TGTBAv005488@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59923 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753863AbXE2Q3w (ORCPT
+	by vger.kernel.org with ESMTP id S1754033AbXE2Q3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 12:29:52 -0400
+	Tue, 29 May 2007 12:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chuck.lever@oracle.com, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: integrate support for processing nfs4 mount options in fs/nfs/super.c
+     NFS: add functions to parse nfs4 mount options to fs/nfs/super.c
 has been removed from the -mm tree.  Its filename was
-     nfs-integrate-support-for-processing-nfs4-mount-options-in-fs-nfs-superc.patch
+     nfs-add-functions-to-parse-nfs4-mount-options-to-fs-nfs-superc.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: NFS: integrate support for processing nfs4 mount options in fs/nfs/super.c
+Subject: NFS: add functions to parse nfs4 mount options to fs/nfs/super.c
 From: Chuck Lever <chuck.lever@oracle.com>
 
-Finally, hook in the new mount option parsing logic.
+Add helpers required for parsing nfs4 mount options in the NFS
+client.
 
 Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -33,181 +34,316 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |   87 ++++++++++-------------------------------------
- 1 files changed, 19 insertions(+), 68 deletions(-)
+ fs/nfs/super.c |  290 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 290 insertions(+)
 
-diff -puN fs/nfs/super.c~nfs-integrate-support-for-processing-nfs4-mount-options-in-fs-nfs-superc fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-integrate-support-for-processing-nfs4-mount-options-in-fs-nfs-superc
+diff -puN fs/nfs/super.c~nfs-add-functions-to-parse-nfs4-mount-options-to-fs-nfs-superc fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-add-functions-to-parse-nfs4-mount-options-to-fs-nfs-superc
 +++ a/fs/nfs/super.c
-@@ -13,6 +13,8 @@
-  *
-  *  Split from inode.c by David Howells <dhowells@redhat.com>
-  *
-+ *  In-kernel mount option parsing by Chuck Lever <chuck.lever@oracle.com>
+@@ -1380,6 +1380,296 @@ error_splat_super:
+ 
+ #ifdef CONFIG_NFS_V4
+ 
++static match_table_t nfs4_tokens = {
++	{Opt_userspace, "bg"},
++	{Opt_userspace, "fg"},
++	{Opt_soft, "soft"},
++	{Opt_hard, "hard"},
++	{Opt_intr, "intr"},
++	{Opt_nointr, "nointr"},
++	{Opt_cto, "cto"},
++	{Opt_nocto, "nocto"},
++	{Opt_ac, "ac"},
++	{Opt_noac, "noac"},
++
++	{Opt_port, "port=%u"},
++	{Opt_rsize, "rsize=%u"},
++	{Opt_wsize, "wsize=%u"},
++	{Opt_timeo, "timeo=%u"},
++	{Opt_retrans, "retrans=%u"},
++	{Opt_acregmin, "acregmin=%u"},
++	{Opt_acregmax, "acregmax=%u"},
++	{Opt_acdirmin, "acdirmin=%u"},
++	{Opt_acdirmax, "acdirmax=%u"},
++	{Opt_actimeo, "actimeo=%u"},
++	{Opt_userspace, "retry=%u"},
++
++	{Opt_sec, "sec=%s"},
++	{Opt_proto, "proto=%s"},
++	{Opt_addr, "addr=%s"},
++	{Opt_clientaddr, "clientaddr=%s"},
++
++	{Opt_err, NULL},
++};
++
++static int nfs4_parse_options(char *raw, struct nfs4_mount_args *mnt)
++{
++	char *p, *string;
++
++	if (!raw)
++		return 1;
++
++	while ((p = strsep (&raw, ",")) != NULL) {
++		substring_t args[MAX_OPT_ARGS];
++		int option, token;
++
++		if (!*p)
++			continue;
++		token = match_token(p, nfs4_tokens, args);
++
++		dprintk("NFS:   nfs4 mount option '%s': parsing token %d\n",
++			p, token);
++
++		switch (token) {
++		case Opt_soft:
++			mnt->nmd.flags |= NFS4_MOUNT_SOFT;
++			break;
++		case Opt_hard:
++			mnt->nmd.flags &= ~NFS4_MOUNT_SOFT;
++			break;
++		case Opt_intr:
++			mnt->nmd.flags |= NFS4_MOUNT_INTR;
++			break;
++		case Opt_nointr:
++			mnt->nmd.flags &= ~NFS4_MOUNT_INTR;
++			break;
++		case Opt_cto:
++			mnt->nmd.flags &= ~NFS4_MOUNT_NOCTO;
++			break;
++		case Opt_nocto:
++			mnt->nmd.flags |= NFS4_MOUNT_NOCTO;
++			break;
++		case Opt_ac:
++			mnt->nmd.flags &= ~NFS4_MOUNT_NOAC;
++			break;
++		case Opt_noac:
++			mnt->nmd.flags |= NFS4_MOUNT_NOAC;
++			break;
++
++		case Opt_port:
++			if (match_int(args, &option))
++				return 0;
++			if (option < 0 || option > 65535)
++				return 0;
++			mnt->addr.sin_port = htonl(option);
++			break;
++		case Opt_rsize:
++			if (match_int(args, &mnt->nmd.rsize))
++				return 0;
++			break;
++		case Opt_wsize:
++			if (match_int(args, &mnt->nmd.wsize))
++				return 0;
++			break;
++		case Opt_timeo:
++			if (match_int(args, &mnt->nmd.timeo))
++				return 0;
++			break;
++		case Opt_retrans:
++			if (match_int(args, &mnt->nmd.retrans))
++				return 0;
++			break;
++		case Opt_acregmin:
++			if (match_int(args, &mnt->nmd.acregmin))
++				return 0;
++			break;
++		case Opt_acregmax:
++			if (match_int(args, &mnt->nmd.acregmax))
++				return 0;
++			break;
++		case Opt_acdirmin:
++			if (match_int(args, &mnt->nmd.acdirmin))
++				return 0;
++			break;
++		case Opt_acdirmax:
++			if (match_int(args, &mnt->nmd.acdirmax))
++				return 0;
++			break;
++		case Opt_actimeo:
++			if (match_int(args, &option))
++				return 0;
++			if (option < 0)
++				return 0;
++			mnt->nmd.acregmin =
++			mnt->nmd.acregmax =
++			mnt->nmd.acdirmin =
++			mnt->nmd.acdirmax = option;
++			break;
++
++		case Opt_proto: {
++			string = match_strdup(args);
++			if (string == NULL)
++				goto out_nomem;
++			if (strcmp(string, "udp") == 0) {
++				mnt->nmd.proto = IPPROTO_UDP;
++				kfree(string);
++				break;
++			}
++			if (strcmp(string, "tcp") == 0) {
++				mnt->nmd.proto = IPPROTO_TCP;
++				kfree(string);
++				break;
++			}
++			goto out_unrec_xprt;
++		}
++		case Opt_sec: {
++			string = match_strdup(args);
++			if (string == NULL)
++				goto out_nomem;
++			token = match_token(string, nfs_sec_tokens, args);
++			kfree(string);
++
++			mnt->nmd.auth_flavourlen = 1;
++
++			switch (token) {
++			case Opt_sec_sys:
++				mnt->nmd.auth_flavourlen = 0;
++				break;
++			case Opt_sec_krb5:
++				mnt->authflavor = RPC_AUTH_GSS_KRB5;
++				break;
++			case Opt_sec_krb5i:
++				mnt->authflavor = RPC_AUTH_GSS_KRB5I;
++				break;
++			case Opt_sec_krb5p:
++				mnt->authflavor = RPC_AUTH_GSS_KRB5P;
++				break;
++			case Opt_sec_lkey:
++				mnt->authflavor = RPC_AUTH_GSS_LKEY;
++				break;
++			case Opt_sec_lkeyi:
++				mnt->authflavor = RPC_AUTH_GSS_LKEYI;
++				break;
++			case Opt_sec_lkeyp:
++				mnt->authflavor = RPC_AUTH_GSS_LKEYP;
++				break;
++			case Opt_sec_spkm:
++				mnt->authflavor = RPC_AUTH_GSS_SPKM;
++				break;
++			case Opt_sec_spkmi:
++				mnt->authflavor = RPC_AUTH_GSS_SPKMI;
++				break;
++			case Opt_sec_spkmp:
++				mnt->authflavor = RPC_AUTH_GSS_SPKMP;
++				break;
++			default:
++				goto out_unrec_sec;
++			}
++			break;
++		}
++		case Opt_addr:
++			string = match_strdup(args);
++			if (string == NULL)
++				goto out_nomem;
++			mnt->addr.sin_family = AF_INET;
++			mnt->addr.sin_addr.s_addr = in_aton(string);
++			kfree(string);
++			break;
++		case Opt_clientaddr: {
++			unsigned int len = args[0].to - args[0].from;
++			if (len > 80)
++				goto out_clntaddr_long;
++			match_strcpy(mnt->clientaddr, args);
++			mnt->nmd.client_addr.data = mnt->clientaddr;
++			mnt->nmd.client_addr.len = len;
++			break;
++		}
++
++		case Opt_userspace:
++		case Opt_deprecated:
++			break;
++
++		default:
++			goto out_unknown;
++		}
++	}
++
++	return 1;
++
++out_unrec_xprt:
++	printk(KERN_INFO "NFS4: unrecognized transport protocol\n");
++	return 0;
++
++out_unrec_sec:
++	printk(KERN_INFO "NFS4: unrecognized security flavor\n");
++	return 0;
++
++out_nomem:
++	printk(KERN_INFO "NFS4: not enough memory to parse option\n");
++	return 0;
++
++out_clntaddr_long:
++	printk(KERN_INFO "NFS4: clientaddr too long\n");
++	return 0;
++
++out_unknown:
++	printk(KERN_INFO "NFS4: unrecognized mount option: %s\n", p);
++	return 0;
++}
++
++/*
++ * Convert a string of nfs4 mount options into an nfs4_mount_data struct.
 + *
-  * - superblocks are indexed on server only - all inodes, dentries, etc. associated with a
-  *   particular server are held in the same superblock
-  * - NFS superblocks can have several effective roots to the dentry tree
-@@ -1580,7 +1582,6 @@ static int nfs4_parse_options(char *raw,
- 			if (len > 80)
- 				goto out_clntaddr_long;
- 			match_strcpy(mnt->clientaddr, args);
--			mnt->nmd.client_addr.data = mnt->clientaddr;
- 			mnt->nmd.client_addr.len = len;
- 			break;
- 		}
-@@ -1653,10 +1654,8 @@ static struct nfs4_mount_data *nfs4_conv
- 	args->nmd.acdirmax = 60;
- 
- 	args->nmd.auth_flavourlen = 0;
--	args->nmd.auth_flavours = &args->authflavor;
- 
- 	args->nmd.host_addrlen = sizeof(args->addr);
--	args->nmd.host_addr = (struct sockaddr *) &args->addr;
- 
- 	args->addr.sin_port = htons(NFS_PORT);
- 
-@@ -1700,6 +1699,7 @@ static int nfs4_validate_mount_data(stru
- 				    char *ip_addr)
- {
- 	struct nfs4_mount_data *data = *options;
++ * User space handles the following behaviors:
++ *
++ * + DNS: mapping server host name to IP address ("addr=" option)
++ *
++ * + DNS: providing IP address of callback interface ("clientaddr=" option)
++ *
++ * + failure mode: how to behave if a mount request can't be handled
++ *   immediately ("fg/bg" option)
++ *
++ * + retry: how often to retry a mount request ("retry=" option)
++ *
++ */
++static struct nfs4_mount_data *nfs4_convert_mount_opts(const char *options)
++{
 +	struct nfs4_mount_args *args;
- 	char *c;
- 	unsigned len;
- 
-@@ -1755,25 +1755,26 @@ static int nfs4_validate_mount_data(stru
- 		if (IS_ERR(data))
- 			return PTR_ERR(data);
- 		*options = data;
-+		args = (struct nfs4_mount_args *) data;
- 
--		memcpy(addr, data->host_addr, sizeof(*addr));
--		if (!nfs_verify_server_address((struct sockaddr *) addr,
-+		if (!nfs_verify_server_address((struct sockaddr *) &args->addr,
- 						data->host_addrlen))
- 			return -EINVAL;
-+		memcpy(addr, &args->addr, sizeof(*addr));
- 
- 		switch (data->auth_flavourlen) {
- 		case 0:
- 			*authflavour = RPC_AUTH_UNIX;
- 			break;
- 		case 1:
--			*authflavour = (rpc_authflavor_t) data->auth_flavours[0];
-+			*authflavour = (rpc_authflavor_t) args->authflavor;
- 			break;
- 		default:
- 			goto out_inval_auth;
- 		}
- 
- 		memset(ip_addr, '\0', data->client_addr.len + 1);
--		strncpy(ip_addr, data->client_addr.data, data->client_addr.len);
-+		strncpy(ip_addr, args->clientaddr, data->client_addr.len);
- 
- 		/*
- 		 * Split "dev_name" into "hostname:mntpath".
-@@ -1852,68 +1853,18 @@ static int nfs4_get_sb(struct file_syste
- 	struct nfs_fh mntfh;
- 	struct dentry *mntroot;
- 	char *mntpath = NULL, *hostname = NULL, ip_addr[16];
--	void *p;
- 	int (*compare_super)(struct super_block *,void *) = nfs_compare_super;
- 	int error;
- 
--	if (data == NULL) {
--		dprintk("%s: missing data argument\n", __FUNCTION__);
--		return -EINVAL;
--	}
--	if (data->version <= 0 || data->version > NFS4_MOUNT_VERSION) {
--		dprintk("%s: bad mount version\n", __FUNCTION__);
--		return -EINVAL;
--	}
--
--	/* We now require that the mount process passes the remote address */
--	if (data->host_addrlen != sizeof(addr))
--		return -EINVAL;
--
--	if (copy_from_user(&addr, data->host_addr, sizeof(addr)))
--		return -EFAULT;
--
--	if (!nfs_verify_server_address((struct sockaddr *) &addr,
--					data->host_addrlen))
--		return -EINVAL;
--
--	/* RFC3530: The default port for NFS is 2049 */
--	if (addr.sin_port == 0)
--		addr.sin_port = htons(NFS_PORT);
--
--	/* Grab the authentication type */
--	authflavour = RPC_AUTH_UNIX;
--	if (data->auth_flavourlen != 0) {
--		if (data->auth_flavourlen != 1) {
--			dprintk("%s: Invalid number of RPC auth flavours %d.\n",
--					__FUNCTION__, data->auth_flavourlen);
--			error = -EINVAL;
--			goto out_err_noserver;
--		}
--
--		if (copy_from_user(&authflavour, data->auth_flavours,
--				   sizeof(authflavour))) {
--			error = -EFAULT;
--			goto out_err_noserver;
--		}
-+ 	error = nfs4_validate_mount_data(&data, dev_name, &addr,
-+ 					 &authflavour, &hostname,
-+ 					 &mntpath, ip_addr);
-+	if (error < 0) {
-+		if (data != raw_data)
-+			kfree(data);
-+		return error;
- 	}
- 
--	p = nfs_copy_user_string(NULL, &data->hostname, 256);
--	if (IS_ERR(p))
--		goto out_err;
--	hostname = p;
--
--	p = nfs_copy_user_string(NULL, &data->mnt_path, 1024);
--	if (IS_ERR(p))
--		goto out_err;
--	mntpath = p;
--
--	dprintk("MNTPATH: %s\n", mntpath);
--
--	p = nfs_copy_user_string(ip_addr, &data->client_addr,
--				 sizeof(ip_addr) - 1);
--	if (IS_ERR(p))
--		goto out_err;
--
- 	/* Get a volume representation */
- 	server = nfs4_create_server(data, hostname, &addr, mntpath, ip_addr,
- 				    authflavour, &mntfh);
-@@ -1957,17 +1908,17 @@ static int nfs4_get_sb(struct file_syste
- 	mnt->mnt_root = mntroot;
- 	kfree(mntpath);
- 	kfree(hostname);
-+	if (data != raw_data)
-+		kfree(data);
- 	return 0;
- 
--out_err:
--	error = PTR_ERR(p);
--	goto out_err_noserver;
--
- out_free:
- 	nfs_free_server(server);
- out_err_noserver:
- 	kfree(mntpath);
- 	kfree(hostname);
-+	if (data != raw_data)
-+		kfree(data);
- 	return error;
- 
- error_splat_super:
++
++	dprintk("NFS: nfs4 mount opts='%s'\n", options);
++
++	args = kzalloc(sizeof(*args), GFP_KERNEL);
++	if (args == NULL)
++		return ERR_PTR(-ENOMEM);
++
++	args->nmd.rsize = NFS_MAX_FILE_IO_SIZE;
++	args->nmd.wsize = NFS_MAX_FILE_IO_SIZE;
++	args->nmd.proto = IPPROTO_TCP;
++	args->nmd.timeo = 600;		/* in tenths of a second */
++	args->nmd.retrans = 2;
++	args->nmd.acregmin = 3;
++	args->nmd.acregmax = 60;
++	args->nmd.acdirmin = 30;
++	args->nmd.acdirmax = 60;
++
++	args->nmd.auth_flavourlen = 0;
++	args->nmd.auth_flavours = &args->authflavor;
++
++	args->nmd.host_addrlen = sizeof(args->addr);
++	args->nmd.host_addr = (struct sockaddr *) &args->addr;
++
++	args->addr.sin_port = htons(NFS_PORT);
++
++	if (nfs4_parse_options((char *) options, args) == 0)
++		goto out_err;
++
++	return &args->nmd;
++
++out_err:
++	kfree(args);
++	return ERR_PTR(-EINVAL);
++}
++
+ /*
+  * Finish setting up a cloned NFS4 superblock
+  */
 _
 
 Patches currently in -mm which might be from chuck.lever@oracle.com are
 
 git-nfs.patch
 nfs-refactor-ip-address-sanity-checks-in-nfs-client.patch
+nfs-add-functions-to-parse-nfs4-mount-options-to-fs-nfs-superc.patch
+nfs-move-nfs_copy_user_string.patch
+nfs-more-nfs4-in-kernel-mount-option-parsing-infrastructure.patch
 nfs-integrate-support-for-processing-nfs4-mount-options-in-fs-nfs-superc.patch
