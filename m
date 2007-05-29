@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bfs-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:21 -0700
-Message-ID: <200705292120.l4TLKLsI011775@shell0.pdx.osdl.net>
+Subject: + hpfs-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:19 -0700
+Message-ID: <200705292120.l4TLKJqn011772@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36702 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370AbXE2VUa (ORCPT
+	by vger.kernel.org with ESMTP id S1751416AbXE2VU1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:30 -0400
+	Tue, 29 May 2007 17:20:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, tigran@aivazian.fsnet.co.uk
+Cc: npiggin@suse.de, mikulas@artax.karlin.mff.cuni.cz
 
 
 The patch titled
-     bfs: convert to new aops
+     hpfs: convert to new aops
 has been added to the -mm tree.  Its filename is
-     bfs-convert-to-new-aops.patch
+     hpfs-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bfs: convert to new aops
+Subject: hpfs: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
+Cc: <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/file.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ fs/hpfs/file.c |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN fs/bfs/file.c~bfs-convert-to-new-aops fs/bfs/file.c
---- a/fs/bfs/file.c~bfs-convert-to-new-aops
-+++ a/fs/bfs/file.c
-@@ -145,9 +145,13 @@ static int bfs_readpage(struct file *fil
- 	return block_read_full_page(page, bfs_get_block);
+diff -puN fs/hpfs/file.c~hpfs-convert-to-new-aops fs/hpfs/file.c
+--- a/fs/hpfs/file.c~hpfs-convert-to-new-aops
++++ a/fs/hpfs/file.c
+@@ -86,25 +86,33 @@ static int hpfs_writepage(struct page *p
+ {
+ 	return block_write_full_page(page,hpfs_get_block, wbc);
  }
- 
--static int bfs_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
-+static int bfs_write_begin(struct file *file, struct address_space *mapping,
++
+ static int hpfs_readpage(struct file *file, struct page *page)
+ {
+ 	return block_read_full_page(page,hpfs_get_block);
+ }
+-static int hpfs_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
+-{
+-	return cont_prepare_write(page,from,to,hpfs_get_block,
+-		&hpfs_i(page->mapping->host)->mmu_private);
++
++static int hpfs_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
- {
--	return block_prepare_write(page, from, to, bfs_get_block);
++{
 +	*pagep = NULL;
-+	return block_write_begin(file, mapping, pos, len, flags,
-+					pagep, fsdata, bfs_get_block);
++	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				hpfs_get_block,
++				&hpfs_i(mapping->host)->mmu_private);
  }
- 
- static sector_t bfs_bmap(struct address_space *mapping, sector_t block)
-@@ -159,8 +163,8 @@ const struct address_space_operations bf
- 	.readpage	= bfs_readpage,
- 	.writepage	= bfs_writepage,
- 	.sync_page	= block_sync_page,
--	.prepare_write	= bfs_prepare_write,
--	.commit_write	= generic_commit_write,
-+	.write_begin	= bfs_write_begin,
-+	.write_end	= generic_write_end,
- 	.bmap		= bfs_bmap,
++
+ static sector_t _hpfs_bmap(struct address_space *mapping, sector_t block)
+ {
+ 	return generic_block_bmap(mapping,block,hpfs_get_block);
+ }
++
+ const struct address_space_operations hpfs_aops = {
+ 	.readpage = hpfs_readpage,
+ 	.writepage = hpfs_writepage,
+ 	.sync_page = block_sync_page,
+-	.prepare_write = hpfs_prepare_write,
+-	.commit_write = generic_commit_write,
++	.write_begin = hpfs_write_begin,
++	.write_end = generic_write_end,
+ 	.bmap = _hpfs_bmap
  };
  
 _
