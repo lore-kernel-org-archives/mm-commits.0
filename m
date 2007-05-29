@@ -1,141 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - networking-fix-sending-netlink-message-when-replace-route.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:55 -0700
-Message-ID: <200705291854.l4TIssaN008559@shell0.pdx.osdl.net>
+Subject: - arm-enable-arbitary-speed-tty-ioctls-and-split.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:43 -0700
+Message-ID: <200705291853.l4TIrgBx008477@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57924 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154AbXE2SzT (ORCPT
+	by vger.kernel.org with ESMTP id S1753616AbXE2Syx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:55:19 -0400
+	Tue, 29 May 2007 14:54:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milon@wq.cz, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk+kernel@arm.linux.org.uk, spyro@f2s.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     networking: fix sending netlink message when replace route
+     ARM: enable arbitary speed tty ioctls and split input/output speed
 has been removed from the -mm tree.  Its filename was
-     networking-fix-sending-netlink-message-when-replace-route.patch
+     arm-enable-arbitary-speed-tty-ioctls-and-split.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: networking: fix sending netlink message when replace route
-From: Milan Kocian <milon@wq.cz>
+Subject: ARM: enable arbitary speed tty ioctls and split input/output speed
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-When you replace route via ip r r command the netlink multicast message is
-not send.  This patch corrects it.  NL message is sent with NLM_F_REPLACE
-flag.  Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8320
+Add the ioctls and values needed for this to the ARM26/ARM32 ports.  The
+actual code has been in the base kernel for a while and automatically turns
+on when a port sets the required defines.
 
-Signed-off-by: Milan Kocian <milon@wq.cz>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/fib_hash.c      |    6 ++++--
- net/ipv4/fib_lookup.h    |    3 ++-
- net/ipv4/fib_semantics.c |    5 +++--
- net/ipv4/fib_trie.c      |    6 ++++--
- 4 files changed, 13 insertions(+), 7 deletions(-)
+ include/asm-arm/ioctls.h   |    4 ++++
+ include/asm-arm/termbits.h |    5 ++++-
+ include/asm-arm/termios.h  |    6 ++++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_hash.c
---- a/net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_hash.c
-@@ -456,6 +456,8 @@ static int fn_hash_insert(struct fib_tab
- 			fib_release_info(fi_drop);
- 			if (state & FA_S_ACCESSED)
- 				rt_cache_flush(-1);
-+			rtmsg_fib(RTM_NEWROUTE, key, fa, cfg->fc_dst_len, tb->tb_id,
-+				  &cfg->fc_nlinfo, NLM_F_REPLACE);
- 			return 0;
- 		}
+diff -puN include/asm-arm/ioctls.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/ioctls.h
+--- a/include/asm-arm/ioctls.h~arm-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-arm/ioctls.h
+@@ -46,6 +46,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x5429  /* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
-@@ -523,7 +525,7 @@ static int fn_hash_insert(struct fib_tab
- 	rt_cache_flush(-1);
+diff -puN include/asm-arm/termbits.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/termbits.h
+--- a/include/asm-arm/termbits.h~arm-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-arm/termbits.h
+@@ -128,6 +128,7 @@ struct ktermios {
+ #define HUPCL	0002000
+ #define CLOCAL	0004000
+ #define CBAUDEX 0010000
++#define    BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -143,10 +144,12 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000		/* input baud rate */
+ #define CMSPAR    010000000000		/* mark or space (stick) parity */
+ #define CRTSCTS	  020000000000		/* flow control */
  
- 	rtmsg_fib(RTM_NEWROUTE, key, new_fa, cfg->fc_dst_len, tb->tb_id,
--		  &cfg->fc_nlinfo);
-+		  &cfg->fc_nlinfo, 0);
- 	return 0;
++#define IBSHIFT	   16
++
+ /* c_lflag bits */
+ #define ISIG	0000001
+ #define ICANON	0000002
+diff -puN include/asm-arm/termios.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/termios.h
+--- a/include/asm-arm/termios.h~arm-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-arm/termios.h
+@@ -82,8 +82,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ })
  
- out_free_new_fa:
-@@ -589,7 +591,7 @@ static int fn_hash_delete(struct fib_tab
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
  
- 		fa = fa_to_delete;
- 		rtmsg_fib(RTM_DELROUTE, key, fa, cfg->fc_dst_len,
--			  tb->tb_id, &cfg->fc_nlinfo);
-+			  tb->tb_id, &cfg->fc_nlinfo, 0);
+ #endif	/* __KERNEL__ */
  
- 		kill_fn = 0;
- 		write_lock_bh(&fib_hash_lock);
-diff -puN net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_lookup.h
---- a/net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_lookup.h
-@@ -30,7 +30,8 @@ extern int fib_dump_info(struct sk_buff 
- 			 int dst_len, u8 tos, struct fib_info *fi,
- 			 unsigned int);
- extern void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
--		      int dst_len, u32 tb_id, struct nl_info *info);
-+		      int dst_len, u32 tb_id, struct nl_info *info,
-+		      unsigned int nlm_flags);
- extern struct fib_alias *fib_find_alias(struct list_head *fah,
- 					u8 tos, u32 prio);
- extern int fib_detect_death(struct fib_info *fi, int order,
-diff -puN net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_semantics.c
---- a/net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_semantics.c
-@@ -301,7 +301,8 @@ static inline size_t fib_nlmsg_size(stru
- }
- 
- void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
--	       int dst_len, u32 tb_id, struct nl_info *info)
-+	       int dst_len, u32 tb_id, struct nl_info *info,
-+	       unsigned int nlm_flags)
- {
- 	struct sk_buff *skb;
- 	u32 seq = info->nlh ? info->nlh->nlmsg_seq : 0;
-@@ -313,7 +314,7 @@ void rtmsg_fib(int event, __be32 key, st
- 
- 	err = fib_dump_info(skb, info->pid, seq, event, tb_id,
- 			    fa->fa_type, fa->fa_scope, key, dst_len,
--			    fa->fa_tos, fa->fa_info, 0);
-+			    fa->fa_tos, fa->fa_info, nlm_flags);
- 	if (err < 0) {
- 		/* -EMSGSIZE implies BUG in fib_nlmsg_size() */
- 		WARN_ON(err == -EMSGSIZE);
-diff -puN net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_trie.c
---- a/net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_trie.c
-@@ -1226,6 +1226,8 @@ static int fn_trie_insert(struct fib_tab
- 			fib_release_info(fi_drop);
- 			if (state & FA_S_ACCESSED)
- 				rt_cache_flush(-1);
-+			rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen,
-+				tb->tb_id, &cfg->fc_nlinfo, NLM_F_REPLACE);
- 
- 			goto succeeded;
- 		}
-@@ -1278,7 +1280,7 @@ static int fn_trie_insert(struct fib_tab
- 
- 	rt_cache_flush(-1);
- 	rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen, tb->tb_id,
--		  &cfg->fc_nlinfo);
-+		  &cfg->fc_nlinfo, 0);
- succeeded:
- 	return 0;
- 
-@@ -1624,7 +1626,7 @@ static int fn_trie_delete(struct fib_tab
- 
- 	fa = fa_to_delete;
- 	rtmsg_fib(RTM_DELROUTE, htonl(key), fa, plen, tb->tb_id,
--		  &cfg->fc_nlinfo);
-+		  &cfg->fc_nlinfo, 0);
- 
- 	l = fib_find_node(t, key);
- 	li = find_leaf_info(l, plen);
 _
 
-Patches currently in -mm which might be from milon@wq.cz are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+git-arm-master.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+git-libata-all.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+serial-use-resource_size_t-for-port-io-addresses.patch
+add-pci_try_set_mwi.patch
+fix-pci_find_present.patch
+git-scsi-misc.patch
+git-watchdog.patch
+add-pci_try_set_mwi-prism54pci.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
