@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-masking-bound-suid_dumpable-sysctl.patch added to -mm tree
-Date: Tue, 29 May 2007 14:40:15 -0700
-Message-ID: <200705292140.l4TLeGjT012312@shell0.pdx.osdl.net>
+Subject: + coredump-masking-reimplementation-of-dumpable-using-two-flags.patch added to -mm tree
+Date: Tue, 29 May 2007 14:40:18 -0700
+Message-ID: <200705292140.l4TLeIPc012317@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58474 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751119AbXE2Vke (ORCPT
+	by vger.kernel.org with ESMTP id S1751177AbXE2Vkf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:40:34 -0400
+	Tue, 29 May 2007 17:40:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com
 
 
 The patch titled
-     coredump masking: bound suid_dumpable sysctl
+     coredump masking: reimplementation of dumpable using two flags
 has been added to the -mm tree.  Its filename is
-     coredump-masking-bound-suid_dumpable-sysctl.patch
+     coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coredump masking: bound suid_dumpable sysctl
+Subject: coredump masking: reimplementation of dumpable using two flags
 From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-This patch series is version 5 of the core dump masking feature, which
-controls which VMAs should be dumped based on their memory types and
-per-process flags.
+This patch changes mm_struct.dumpable to a pair of bit flags.
 
-I adopted most of Andrew's suggestion at the previous version.  He also
-suggested using system call instead of /proc/<pid>/ interface, I decided to
-use the latter continuously because adding new system call with pid argument
-will give a big impact on the kernel.  
-
-
-You can access the per-process flags via /proc/<pid>/coredump_filter
-interface.  coredump_filter represents a bitmask of memory types, and if a bit
-is set, VMAs of corresponding memory type are written into a core file when
-the process is dumped.  The bitmask is inherited from the parent process when
-a process is created.
-
-The original purpose is to avoid longtime system slowdown when a number of
-processes which share a huge shared memory are dumped at the same time.  To
-achieve this purpose, this patch series adds an ability to suppress dumping
-anonymous shared memory for specified processes.  In this version, three other
-memory types are also supported.
-
-Here are the coredump_filter bits:
-  bit 0: anonymous private memory
-  bit 1: anonymous shared memory
-  bit 2: file-backed private memory
-  bit 3: file-backed shared memory
-
-The default value of coredump_filter is 0x3.  This means the new core dump
-routine has the same behavior as conventional behavior by default.
-
-In this version, coredump_filter bits and mm.dumpable are merged into
-mm.flags, and it is accessed by atomic bitops.
-
-The supported core file formats are ELF and ELF-FDPIC.  ELF has been tested,
-but ELF-FDPIC has not been built and tested because I don't have the test
-environment.
-
-
-
-This patch limits a value of suid_dumpable sysctl to the range of 0 to 2.
+set_dumpable() converts three-value dumpable to two flags and stores it into
+lower two bits of mm_struct.flags instead of mm_struct.dumpable. 
+get_dumpable() behaves in the opposite way.
 
 Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -79,32 +43,316 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ fs/exec.c                    |   61 +++++++++++++++++++++++++++++----
+ fs/proc/base.c               |    2 -
+ include/asm-ia64/processor.h |    4 +-
+ include/linux/sched.h        |    9 ++++
+ kernel/ptrace.c              |    2 -
+ kernel/sys.c                 |   24 ++++++------
+ security/commoncap.c         |    2 -
+ security/dummy.c             |    2 -
+ 8 files changed, 81 insertions(+), 25 deletions(-)
 
-diff -puN kernel/sysctl.c~coredump-masking-bound-suid_dumpable-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~coredump-masking-bound-suid_dumpable-sysctl
-+++ a/kernel/sysctl.c
-@@ -690,6 +690,7 @@ static ctl_table kern_table[] = {
- /* Constants for minimum and maximum testing in vm_table.
-    We use these as one-element integer vectors. */
- static int zero;
-+static int two = 2;
- static int one_hundred = 100;
+diff -puN fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags fs/exec.c
+--- a/fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/fs/exec.c
+@@ -864,9 +864,9 @@ int flush_old_exec(struct linux_binprm *
+ 	current->sas_ss_sp = current->sas_ss_size = 0;
  
+ 	if (current->euid == current->uid && current->egid == current->gid)
+-		current->mm->dumpable = 1;
++		set_dumpable(current->mm, 1);
+ 	else
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
  
-@@ -1117,7 +1118,10 @@ static ctl_table fs_table[] = {
- 		.data		= &max_user_mounts,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= &proc_dointvec,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &zero,
-+		.extra2		= &two,
- 	},
- 	{
- 		.ctl_name	= KERN_SETUID_DUMPABLE,
+ 	name = bprm->filename;
+ 
+@@ -894,7 +894,7 @@ int flush_old_exec(struct linux_binprm *
+ 	    file_permission(bprm->file, MAY_READ) ||
+ 	    (bprm->interp_flags & BINPRM_FLAGS_ENFORCE_NONDUMP)) {
+ 		suid_keys(current);
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 	}
+ 
+ 	/* An exec changes our domain. We are no longer part of the thread
+@@ -1484,6 +1484,55 @@ fail:
+ 	return core_waiters;
+ }
+ 
++/*
++ * set_dumpable converts traditional three-value dumpable to two flags and
++ * stores them into mm->flags.  It modifies lower two bits of mm->flags, but
++ * these bits are not changed atomically.  So get_dumpable can observe the
++ * intermediate state.  To avoid doing unexpected behavior, get get_dumpable
++ * return either old dumpable or new one by paying attention to the order of
++ * modifying the bits.
++ *
++ * dumpable |   mm->flags (binary)
++ * old  new | initial interim  final
++ * ---------+-----------------------
++ *  0    1  |   00      01      01
++ *  0    2  |   00      10(*)   11
++ *  1    0  |   01      00      00
++ *  1    2  |   01      11      11
++ *  2    0  |   11      10(*)   00
++ *  2    1  |   11      11      01
++ *
++ * (*) get_dumpable regards interim value of 10 as 11.
++ */
++void set_dumpable(struct mm_struct *mm, int value)
++{
++	switch (value) {
++	case 0:
++		clear_bit(MMF_DUMPABLE, &mm->flags);
++		smp_wmb();
++		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
++		break;
++	case 1:
++		set_bit(MMF_DUMPABLE, &mm->flags);
++		smp_wmb();
++		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
++		break;
++	case 2:
++		set_bit(MMF_DUMP_SECURELY, &mm->flags);
++		smp_wmb();
++		set_bit(MMF_DUMPABLE, &mm->flags);
++		break;
++	}
++}
++
++int get_dumpable(struct mm_struct *mm)
++{
++	int ret;
++
++	ret = mm->flags & 0x3;
++	return (ret >= 2) ? 2 : ret;
++}
++
+ int do_coredump(long signr, int exit_code, struct pt_regs * regs)
+ {
+ 	char corename[CORENAME_MAX_SIZE + 1];
+@@ -1502,7 +1551,7 @@ int do_coredump(long signr, int exit_cod
+ 	if (!binfmt || !binfmt->core_dump)
+ 		goto fail;
+ 	down_write(&mm->mmap_sem);
+-	if (!mm->dumpable) {
++	if (!get_dumpable(mm)) {
+ 		up_write(&mm->mmap_sem);
+ 		goto fail;
+ 	}
+@@ -1512,11 +1561,11 @@ int do_coredump(long signr, int exit_cod
+ 	 *	process nor do we know its entire history. We only know it
+ 	 *	was tainted so we dump it as root in mode 2.
+ 	 */
+-	if (mm->dumpable == 2) {	/* Setuid core dump mode */
++	if (get_dumpable(mm) == 2) {	/* Setuid core dump mode */
+ 		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		current->fsuid = 0;	/* Dump root private */
+ 	}
+-	mm->dumpable = 0;
++	set_dumpable(mm, 0);
+ 
+ 	retval = coredump_wait(exit_code);
+ 	if (retval < 0)
+diff -puN fs/proc/base.c~coredump-masking-reimplementation-of-dumpable-using-two-flags fs/proc/base.c
+--- a/fs/proc/base.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/fs/proc/base.c
+@@ -1037,7 +1037,7 @@ static int task_dumpable(struct task_str
+ 	task_lock(task);
+ 	mm = task->mm;
+ 	if (mm)
+-		dumpable = mm->dumpable;
++		dumpable = get_dumpable(mm);
+ 	task_unlock(task);
+ 	if(dumpable == 1)
+ 		return 1;
+diff -puN include/asm-ia64/processor.h~coredump-masking-reimplementation-of-dumpable-using-two-flags include/asm-ia64/processor.h
+--- a/include/asm-ia64/processor.h~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/include/asm-ia64/processor.h
+@@ -295,9 +295,9 @@ struct thread_struct {
+ 	regs->ar_bspstore = current->thread.rbs_bot;						\
+ 	regs->ar_fpsr = FPSR_DEFAULT;								\
+ 	regs->loadrs = 0;									\
+-	regs->r8 = current->mm->dumpable;	/* set "don't zap registers" flag */		\
++	regs->r8 = get_dumpable(current->mm);	/* set "don't zap registers" flag */		\
+ 	regs->r12 = new_sp - 16;	/* allocate 16 byte scratch area */			\
+-	if (unlikely(!current->mm->dumpable)) {							\
++	if (unlikely(!get_dumpable(current->mm))) {							\
+ 		/*										\
+ 		 * Zap scratch regs to avoid leaking bits between processes with different	\
+ 		 * uid/privileges.								\
+diff -puN include/linux/sched.h~coredump-masking-reimplementation-of-dumpable-using-two-flags include/linux/sched.h
+--- a/include/linux/sched.h~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/include/linux/sched.h
+@@ -324,6 +324,13 @@ typedef unsigned long mm_counter_t;
+ 		(mm)->hiwater_vm = (mm)->total_vm;	\
+ } while (0)
+ 
++extern void set_dumpable(struct mm_struct *mm, int value);
++extern int get_dumpable(struct mm_struct *mm);
++
++/* mm flags */
++#define MMF_DUMPABLE      0  /* core dump is permitted */
++#define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
++
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
+ 	struct rb_root mm_rb;
+@@ -381,7 +388,7 @@ struct mm_struct {
+ 	unsigned int token_priority;
+ 	unsigned int last_interval;
+ 
+-	unsigned char dumpable:2;
++	unsigned long flags; /* Must use atomic bitops to access the bits */
+ 
+ 	/* coredumping support */
+ 	int core_waiters;
+diff -puN kernel/ptrace.c~coredump-masking-reimplementation-of-dumpable-using-two-flags kernel/ptrace.c
+--- a/kernel/ptrace.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/kernel/ptrace.c
+@@ -142,7 +142,7 @@ static int may_attach(struct task_struct
+ 		return -EPERM;
+ 	smp_rmb();
+ 	if (task->mm)
+-		dumpable = task->mm->dumpable;
++		dumpable = get_dumpable(task->mm);
+ 	if (!dumpable && !capable(CAP_SYS_PTRACE))
+ 		return -EPERM;
+ 
+diff -puN kernel/sys.c~coredump-masking-reimplementation-of-dumpable-using-two-flags kernel/sys.c
+--- a/kernel/sys.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/kernel/sys.c
+@@ -1025,7 +1025,7 @@ asmlinkage long sys_setregid(gid_t rgid,
+ 			return -EPERM;
+ 	}
+ 	if (new_egid != old_egid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
+ 	}
+ 	if (rgid != (gid_t) -1 ||
+@@ -1055,13 +1055,13 @@ asmlinkage long sys_setgid(gid_t gid)
+ 
+ 	if (capable(CAP_SETGID)) {
+ 		if (old_egid != gid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->gid = current->egid = current->sgid = current->fsgid = gid;
+ 	} else if ((gid == current->gid) || (gid == current->sgid)) {
+ 		if (old_egid != gid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->egid = current->fsgid = gid;
+@@ -1092,7 +1092,7 @@ static int set_user(uid_t new_ruid, int 
+ 	switch_uid(new_user);
+ 
+ 	if (dumpclear) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
+ 	}
+ 	current->uid = new_ruid;
+@@ -1148,7 +1148,7 @@ asmlinkage long sys_setreuid(uid_t ruid,
+ 		return -EAGAIN;
+ 
+ 	if (new_euid != old_euid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
+ 	}
+ 	current->fsuid = current->euid = new_euid;
+@@ -1198,7 +1198,7 @@ asmlinkage long sys_setuid(uid_t uid)
+ 		return -EPERM;
+ 
+ 	if (old_euid != uid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 		smp_wmb();
+ 	}
+ 	current->fsuid = current->euid = uid;
+@@ -1243,7 +1243,7 @@ asmlinkage long sys_setresuid(uid_t ruid
+ 	}
+ 	if (euid != (uid_t) -1) {
+ 		if (euid != current->euid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->euid = euid;
+@@ -1293,7 +1293,7 @@ asmlinkage long sys_setresgid(gid_t rgid
+ 	}
+ 	if (egid != (gid_t) -1) {
+ 		if (egid != current->egid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->egid = egid;
+@@ -1339,7 +1339,7 @@ asmlinkage long sys_setfsuid(uid_t uid)
+ 	    uid == current->suid || uid == current->fsuid || 
+ 	    capable(CAP_SETUID)) {
+ 		if (uid != old_fsuid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->fsuid = uid;
+@@ -1368,7 +1368,7 @@ asmlinkage long sys_setfsgid(gid_t gid)
+ 	    gid == current->sgid || gid == current->fsgid || 
+ 	    capable(CAP_SETGID)) {
+ 		if (gid != old_fsgid) {
+-			current->mm->dumpable = suid_dumpable;
++			set_dumpable(current->mm, suid_dumpable);
+ 			smp_wmb();
+ 		}
+ 		current->fsgid = gid;
+@@ -2165,14 +2165,14 @@ asmlinkage long sys_prctl(int option, un
+ 			error = put_user(current->pdeath_signal, (int __user *)arg2);
+ 			break;
+ 		case PR_GET_DUMPABLE:
+-			error = current->mm->dumpable;
++			error = get_dumpable(current->mm);
+ 			break;
+ 		case PR_SET_DUMPABLE:
+ 			if (arg2 < 0 || arg2 > 1) {
+ 				error = -EINVAL;
+ 				break;
+ 			}
+-			current->mm->dumpable = arg2;
++			set_dumpable(current->mm, arg2);
+ 			break;
+ 
+ 		case PR_SET_UNALIGN:
+diff -puN security/commoncap.c~coredump-masking-reimplementation-of-dumpable-using-two-flags security/commoncap.c
+--- a/security/commoncap.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/security/commoncap.c
+@@ -241,7 +241,7 @@ void cap_bprm_apply_creds (struct linux_
+ 
+ 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
+ 	    !cap_issubset (new_permitted, current->cap_permitted)) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 
+ 		if (unsafe & ~LSM_UNSAFE_PTRACE_CAP) {
+ 			if (!capable(CAP_SETUID)) {
+diff -puN security/dummy.c~coredump-masking-reimplementation-of-dumpable-using-two-flags security/dummy.c
+--- a/security/dummy.c~coredump-masking-reimplementation-of-dumpable-using-two-flags
++++ a/security/dummy.c
+@@ -130,7 +130,7 @@ static void dummy_bprm_free_security (st
+ static void dummy_bprm_apply_creds (struct linux_binprm *bprm, int unsafe)
+ {
+ 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid) {
+-		current->mm->dumpable = suid_dumpable;
++		set_dumpable(current->mm, suid_dumpable);
+ 
+ 		if ((unsafe & ~LSM_UNSAFE_PTRACE_CAP) && !capable(CAP_SETUID)) {
+ 			bprm->e_uid = current->uid;
 _
 
 Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
