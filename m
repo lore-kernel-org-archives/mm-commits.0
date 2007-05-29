@@ -1,132 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - arm-enable-arbitary-speed-tty-ioctls-and-split.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:43 -0700
-Message-ID: <200705291853.l4TIrgBx008477@shell0.pdx.osdl.net>
+Subject: - drm-spinlock-initializer-cleanup.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:48 -0700
+Message-ID: <200705291853.l4TIrlRO008480@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44351 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58721 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753616AbXE2Syx (ORCPT
+	by vger.kernel.org with ESMTP id S1760374AbXE2Syq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:54:53 -0400
+	Tue, 29 May 2007 14:54:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk+kernel@arm.linux.org.uk, spyro@f2s.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ARM: enable arbitary speed tty ioctls and split input/output speed
+     DRM: Spinlock initializer cleanup
 has been removed from the -mm tree.  Its filename was
-     arm-enable-arbitary-speed-tty-ioctls-and-split.patch
+     drm-spinlock-initializer-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ARM: enable arbitary speed tty ioctls and split input/output speed
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: DRM: Spinlock initializer cleanup
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Add the ioctls and values needed for this to the ARM26/ARM32 ports.  The
-actual code has been in the base kernel for a while and automatically turns
-on when a port sets the required defines.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/ioctls.h   |    4 ++++
- include/asm-arm/termbits.h |    5 ++++-
- include/asm-arm/termios.h  |    6 ++++--
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/char/drm/i915_irq.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-arm/ioctls.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/ioctls.h
---- a/include/asm-arm/ioctls.h~arm-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm/ioctls.h
-@@ -46,6 +46,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x5429  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
+diff -puN drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup drivers/char/drm/i915_irq.c
+--- a/drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup
++++ a/drivers/char/drm/i915_irq.c
+@@ -582,7 +582,7 @@ void i915_driver_irq_postinstall(drm_dev
+ {
+ 	drm_i915_private_t *dev_priv = (drm_i915_private_t *) dev->dev_private;
  
-diff -puN include/asm-arm/termbits.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/termbits.h
---- a/include/asm-arm/termbits.h~arm-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm/termbits.h
-@@ -128,6 +128,7 @@ struct ktermios {
- #define HUPCL	0002000
- #define CLOCAL	0004000
- #define CBAUDEX 0010000
-+#define    BOTHER 0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -143,10 +144,12 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000		/* input baud rate */
- #define CMSPAR    010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
- 
-+#define IBSHIFT	   16
-+
- /* c_lflag bits */
- #define ISIG	0000001
- #define ICANON	0000002
-diff -puN include/asm-arm/termios.h~arm-enable-arbitary-speed-tty-ioctls-and-split include/asm-arm/termios.h
---- a/include/asm-arm/termios.h~arm-enable-arbitary-speed-tty-ioctls-and-split
-+++ a/include/asm-arm/termios.h
-@@ -82,8 +82,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
- 
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
- 
- #endif	/* __KERNEL__ */
+-	dev_priv->swaps_lock = SPIN_LOCK_UNLOCKED;
++	spin_lock_init(&dev_priv->swaps_lock);
+ 	INIT_LIST_HEAD(&dev_priv->vbl_swaps.head);
+ 	dev_priv->swaps_pending = 0;
  
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-arm-master.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
-git-libata-all.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-serial-use-resource_size_t-for-port-io-addresses.patch
-add-pci_try_set_mwi.patch
-fix-pci_find_present.patch
-git-scsi-misc.patch
-git-watchdog.patch
-add-pci_try_set_mwi-prism54pci.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+git-drm.patch
+s390-spinlock-initializer-cleanup.patch
+i386-hpet-check-if-the-counter-works.patch
