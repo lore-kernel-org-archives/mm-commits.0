@@ -1,89 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - imxfb-remove-ifdefs.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:51:26 -0700
-Message-ID: <200705291851.l4TIpPkH008341@shell0.pdx.osdl.net>
+Subject: - imxfb-fix-memory-hole.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:51:31 -0700
+Message-ID: <200705291851.l4TIpUYl008344@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39117 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39445 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756523AbXE2Svy (ORCPT
+	by vger.kernel.org with ESMTP id S1756686AbXE2Sv6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:54 -0400
+	Tue, 29 May 2007 14:51:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: s.hauer@pengutronix.de, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     imxfb: remove ifdefs
+     imxfb: fix memory hole
 has been removed from the -mm tree.  Its filename was
-     imxfb-remove-ifdefs.patch
+     imxfb-fix-memory-hole.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: imxfb: remove ifdefs
+Subject: imxfb: fix memory hole
 From: Sascha Hauer <s.hauer@pengutronix.de>
 
-Here are some small fixes for the imxfb framebuffer driver:
-
-- remove ifndef for MX1FS2 platform which is not present in the kernel.
-- REV, CLS, PS and SPL_SPR are only needed with some sharp displays.
-  Only setup the corresponding io pins when such a display is connected.
+info->pseudo_palette was previously kmalloced.  Do not overwrite it afterwards
 
 Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/imxfb.c |   23 ++++++++---------------
- 1 files changed, 8 insertions(+), 15 deletions(-)
+ drivers/video/imxfb.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/video/imxfb.c~imxfb-remove-ifdefs drivers/video/imxfb.c
---- a/drivers/video/imxfb.c~imxfb-remove-ifdefs
+diff -puN drivers/video/imxfb.c~imxfb-fix-memory-hole drivers/video/imxfb.c
+--- a/drivers/video/imxfb.c~imxfb-fix-memory-hole
 +++ a/drivers/video/imxfb.c
-@@ -394,26 +394,18 @@ static void imxfb_setup_gpio(struct imxf
+@@ -468,7 +468,6 @@ static int __init imxfb_init_fbinfo(stru
  
- 	/* initialize GPIOs */
- 	imx_gpio_mode(PD6_PF_LSCLK);
--	imx_gpio_mode(PD10_PF_SPL_SPR);
- 	imx_gpio_mode(PD11_PF_CONTRAST);
- 	imx_gpio_mode(PD14_PF_FLM_VSYNC);
- 	imx_gpio_mode(PD13_PF_LP_HSYNC);
--	imx_gpio_mode(PD7_PF_REV);
--	imx_gpio_mode(PD8_PF_CLS);
--
--#ifndef CONFIG_MACH_PIMX1
--	/* on PiMX1 used as buffers enable signal
--	 */
--	imx_gpio_mode(PD9_PF_PS);
--#endif
--
--#ifndef CONFIG_MACH_MX1FS2
--	/* on mx1fs2 this pin is used to (de)activate the display, so we need
--	 * it as a normal gpio
--	 */
- 	imx_gpio_mode(PD12_PF_ACD_OE);
--#endif
+ 	info->fbops			= &imxfb_ops;
+ 	info->flags			= FBINFO_FLAG_DEFAULT;
+-	info->pseudo_palette		= (fbi + 1);
  
-+	/* These are only needed for Sharp HR TFT displays */
-+	if (fbi->pcr & PCR_SHARP) {
-+		imx_gpio_mode(PD7_PF_REV);
-+		imx_gpio_mode(PD8_PF_CLS);
-+		imx_gpio_mode(PD9_PF_PS);
-+		imx_gpio_mode(PD10_PF_SPL_SPR);
-+	}
- }
- 
- #ifdef CONFIG_PM
-@@ -499,6 +491,7 @@ static int __init imxfb_init_fbinfo(stru
- 	info->var.sync			= inf->sync;
- 	info->var.grayscale		= inf->cmap_greyscale;
- 	fbi->cmap_inverse		= inf->cmap_inverse;
-+	fbi->cmap_static		= inf->cmap_static;
- 	fbi->pcr			= inf->pcr;
- 	fbi->lscr1			= inf->lscr1;
- 	fbi->dmacr			= inf->dmacr;
+ 	fbi->rgb[RGB_16]		= &def_rgb_16;
+ 	fbi->rgb[RGB_8]			= &def_rgb_8;
 _
 
 Patches currently in -mm which might be from s.hauer@pengutronix.de are
