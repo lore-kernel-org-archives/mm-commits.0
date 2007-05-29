@@ -1,69 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch removed from -mm tree
-Date: Tue, 29 May 2007 13:30:17 -0700
-Message-ID: <200705292030.l4TKUHCl010789@shell0.pdx.osdl.net>
+Subject: - dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch removed from -mm tree
+Date: Tue, 29 May 2007 13:31:20 -0700
+Message-ID: <200705292031.l4TKVLJw010802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60688 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759369AbXE2Ubq (ORCPT
+	by vger.kernel.org with ESMTP id S1759158AbXE2UcX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 16:31:46 -0400
+	Tue, 29 May 2007 16:32:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wli@holomorphy.com, apw@shadowen.org, bill.irwin@oracle.com, bob.picco@hp.com, mel@csn.ul.ie, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2 fix
+     Remove unused parameter to allocflags_to_migratetype()
 has been removed from the -mm tree.  Its filename was
-     fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+     dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
 
-This patch was dropped because it was folded into fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+This patch was dropped because it was folded into dont-group-high-order-atomic-allocations.patch
 
 ------------------------------------------------------
-Subject: fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2 fix
-From: William Lee Irwin III <wli@holomorphy.com>
+Subject: Remove unused parameter to allocflags_to_migratetype()
+From: Mel Gorman <mel@csn.ul.ie>
 
-CONFIG_SPARSEMEM sans CONFIG_MEMORY_HOTPLUG trips the following warning:
-mm/sparse.c:254: warning: '__kmalloc_section_usemap' defined but not used
-The following patch silences it.
+The patch dont-group-high-order-atomic-allocations.patch should have removed
+the order parameter to allocflags_to_migratetype() but did not.  This patch
+addresses the problem.
 
-Signed-off-by: William Irwin <bill.irwin@oracle.com>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/sparse.c~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix mm/sparse.c
---- a/mm/sparse.c~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix
-+++ a/mm/sparse.c
-@@ -250,10 +250,12 @@ static unsigned long usemap_size(void)
- 	return size_bytes;
+diff -puN mm/page_alloc.c~dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype mm/page_alloc.c
+--- a/mm/page_alloc.c~dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype
++++ a/mm/page_alloc.c
+@@ -157,7 +157,7 @@ static void set_pageblock_migratetype(st
+ 					PB_migrate, PB_migrate_end);
  }
  
-+#ifdef CONFIG_MEMORY_HOTPLUG
- static unsigned long *__kmalloc_section_usemap(void)
+-static inline int allocflags_to_migratetype(gfp_t gfp_flags, int order)
++static inline int allocflags_to_migratetype(gfp_t gfp_flags)
  {
- 	return kmalloc(usemap_size(), GFP_KERNEL);
- }
-+#endif /* CONFIG_MEMORY_HOTPLUG */
+ 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
  
- static unsigned long *sparse_early_usemap_alloc(unsigned long pnum)
- {
+@@ -1083,7 +1083,7 @@ static struct page *buffered_rmqueue(str
+ 	struct page *page;
+ 	int cold = !!(gfp_flags & __GFP_COLD);
+ 	int cpu;
+-	int migratetype = allocflags_to_migratetype(gfp_flags, order);
++	int migratetype = allocflags_to_migratetype(gfp_flags);
+ 
+ again:
+ 	cpu  = get_cpu();
 _
 
-Patches currently in -mm which might be from wli@holomorphy.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-quicklist-support-for-x86_64.patch
-x86_64-support-poll-on-dev-mcelog.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
 fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+dont-group-high-order-atomic-allocations-remove-unused-parameter-to-allocflags_to_migratetype.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
