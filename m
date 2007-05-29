@@ -1,54 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - drm-spinlock-initializer-cleanup.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:48 -0700
-Message-ID: <200705291853.l4TIrlRO008480@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-tipc.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:54:48 -0700
+Message-ID: <200705291854.l4TIslqZ008550@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58721 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760374AbXE2Syq (ORCPT
+	by vger.kernel.org with ESMTP id S1759970AbXE2SzZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:54:46 -0400
+	Tue, 29 May 2007 14:55:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, airlied@linux.ie, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, allan.stephens@windriver.com, jengelh@gmx.de, jon.maloy@ericsson.com, per.liden@ericsson.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DRM: Spinlock initializer cleanup
+     Use menuconfig objects: TIPC
 has been removed from the -mm tree.  Its filename was
-     drm-spinlock-initializer-cleanup.patch
+     use-menuconfig-objects-tipc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: DRM: Spinlock initializer cleanup
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Use menuconfig objects: TIPC
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Airlie <airlied@linux.ie>
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Per Liden <per.liden@ericsson.com>
+Cc: Jon Maloy <jon.maloy@ericsson.com>
+Cc: Allan Stephens <allan.stephens@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_irq.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ net/tipc/Kconfig |   24 +++++++++++-------------
+ 1 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup drivers/char/drm/i915_irq.c
---- a/drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup
-+++ a/drivers/char/drm/i915_irq.c
-@@ -582,7 +582,7 @@ void i915_driver_irq_postinstall(drm_dev
- {
- 	drm_i915_private_t *dev_priv = (drm_i915_private_t *) dev->dev_private;
+diff -puN net/tipc/Kconfig~use-menuconfig-objects-tipc net/tipc/Kconfig
+--- a/net/tipc/Kconfig~use-menuconfig-objects-tipc
++++ a/net/tipc/Kconfig
+@@ -2,11 +2,9 @@
+ # TIPC configuration
+ #
  
--	dev_priv->swaps_lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&dev_priv->swaps_lock);
- 	INIT_LIST_HEAD(&dev_priv->vbl_swaps.head);
- 	dev_priv->swaps_pending = 0;
+-menu "TIPC Configuration (EXPERIMENTAL)"
+-	depends on INET && EXPERIMENTAL
+-
+-config TIPC
++menuconfig TIPC
+ 	tristate "The TIPC Protocol (EXPERIMENTAL)"
++	depends on INET && EXPERIMENTAL
+ 	---help---
+ 	  The Transparent Inter Process Communication (TIPC) protocol is
+ 	  specially designed for intra cluster communication. This protocol
+@@ -22,9 +20,10 @@ config TIPC
  
+ 	  If in doubt, say N.
+ 
++if TIPC
++
+ config TIPC_ADVANCED
+ 	bool "TIPC: Advanced configuration"
+-	depends on TIPC
+ 	default n
+ 	help
+ 	  Saying Y here will open some advanced configuration
+@@ -33,7 +32,7 @@ config TIPC_ADVANCED
+ 
+ config TIPC_ZONES
+ 	int "Maximum number of zones in network"
+-	depends on TIPC && TIPC_ADVANCED
++	depends on TIPC_ADVANCED
+ 	default "3"
+ 	help
+ 	 Max number of zones inside TIPC network. Max supported value 
+@@ -44,7 +43,7 @@ config TIPC_ZONES
+ 
+ config TIPC_CLUSTERS
+ 	int "Maximum number of clusters in a zone"
+-	depends on TIPC && TIPC_ADVANCED
++	depends on TIPC_ADVANCED
+ 	default "1"
+ 	help
+           ***Only 1 (one cluster in a zone) is supported by current code.
+@@ -59,7 +58,7 @@ config TIPC_CLUSTERS
+ 
+ config TIPC_NODES
+ 	int "Maximum number of nodes in cluster"
+-	depends on TIPC && TIPC_ADVANCED
++	depends on TIPC_ADVANCED
+ 	default "255"
+ 	help
+ 	  Maximum number of nodes inside a TIPC cluster. Maximum 
+@@ -70,7 +69,7 @@ config TIPC_NODES
+ 
+ config TIPC_SLAVE_NODES
+ 	int "Maximum number of slave nodes in cluster"
+-	depends on TIPC && TIPC_ADVANCED
++	depends on TIPC_ADVANCED
+ 	default "0"
+ 	help
+           ***This capability is not supported by current code.***
+@@ -83,7 +82,7 @@ config TIPC_SLAVE_NODES
+ 
+ config TIPC_PORTS
+ 	int "Maximum number of ports in a node"
+-	depends on TIPC && TIPC_ADVANCED
++	depends on TIPC_ADVANCED
+ 	default "8191"
+ 	help
+ 	  Maximum number of ports within a node. Maximum 
+@@ -94,7 +93,7 @@ config TIPC_PORTS
+ 
+ config TIPC_LOG
+ 	int "Size of log buffer"
+-	depends on TIPC && TIPC_ADVANCED
++	depends on TIPC_ADVANCED
+ 	default 0
+ 	help
+  	  Size (in bytes) of TIPC's internal log buffer, which records the
+@@ -106,7 +105,6 @@ config TIPC_LOG
+ 
+ config TIPC_DEBUG
+ 	bool "Enable debugging support"
+-	depends on TIPC
+ 	default n
+ 	help
+  	  This will enable debugging of TIPC.
+@@ -114,4 +112,4 @@ config TIPC_DEBUG
+ 	  Only say Y here if you are having trouble with TIPC.  It will
+ 	  enable the display of detailed information about what is going on.
+ 
+-endmenu
++endif # TIPC
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-git-drm.patch
-s390-spinlock-initializer-cleanup.patch
-i386-hpet-check-if-the-counter-works.patch
+use-menuconfig-objects-acpi.patch
+git-hid.patch
+use-menuconfig-objects-ii-infiniband.patch
+git-kvm.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
