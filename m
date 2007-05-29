@@ -1,99 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - doc-clocksources.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:00 -0700
-Message-ID: <200705291852.l4TIqxVp008441@shell0.pdx.osdl.net>
+Subject: - applesmc-sensors-patch-missing-from-2622-rc2.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:56:40 -0700
+Message-ID: <200705291856.l4TIudjB008660@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36652 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765450AbXE2S5R (ORCPT
+	by vger.kernel.org with ESMTP id S1765332AbXE2S51 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:57:17 -0400
+	Tue, 29 May 2007 14:57:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: nicolas@boichat.ch, kernel@nn7.de, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     document clocksources
+     applesmc - sensors patch missing from 2.6.22-rc2
 has been removed from the -mm tree.  Its filename was
-     doc-clocksources.patch
+     applesmc-sensors-patch-missing-from-2622-rc2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: document clocksources
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: applesmc - sensors patch missing from 2.6.22-rc2
+From: Nicolas Boichat <nicolas@boichat.ch>
 
-Document the available clocksources per platform and move clocksource= into
-the correct (alpha) location in the file.
+Add name file needed by lm_sensors user-space applications in applesmc
+sysfs tree.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Soeren Sonnenburg <kernel@nn7.de>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   24 ++++++++++++++++++++----
- 1 files changed, 20 insertions(+), 4 deletions(-)
+ drivers/hwmon/applesmc.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~doc-clocksources Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-clocksources
-+++ a/Documentation/kernel-parameters.txt
-@@ -396,6 +396,26 @@ and is between 256 and 4096 characters. 
- 			clocksource is not available, it defaults to PIT.
- 			Format: { pit | tsc | cyclone | pmtmr }
+diff -puN drivers/hwmon/applesmc.c~applesmc-sensors-patch-missing-from-2622-rc2 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-sensors-patch-missing-from-2622-rc2
++++ a/drivers/hwmon/applesmc.c
+@@ -491,6 +491,12 @@ out:
  
-+	clocksource=	[GENERIC_TIME] Override the default clocksource
-+			Format: <string>
-+			Override the default clocksource and use the clocksource
-+			with the name specified.
-+			Some clocksource names to choose from, depending on
-+			the platform:
-+			[all] jiffies (this is the base, fallback clocksource)
-+			[ACPI] acpi_pm
-+			[ARM] imx_timer1,OSTS,netx_timer,mpu_timer2,
-+				pxa_timer,timer3,32k_counter,timer0_1
-+			[AVR32] avr32
-+			[IA-32] pit,hpet,tsc,vmi-timer;
-+				scx200_hrt on Geode; cyclone on IBM x440
-+			[MIPS] MIPS
-+			[PARISC] cr16
-+			[S390] tod
-+			[SH] SuperH
-+			[SPARC64] tick
-+			[X86-64] hpet,tsc
+ /* Sysfs Files */
+ 
++static ssize_t applesmc_name_show(struct device *dev,
++				   struct device_attribute *attr, char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "applesmc\n");
++}
 +
- 	code_bytes	[IA32] How many bytes of object code to print in an
- 			oops report.
- 			Range: 0 - 8192
-@@ -1807,10 +1827,6 @@ and is between 256 and 4096 characters. 
+ static ssize_t applesmc_position_show(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+@@ -913,6 +919,8 @@ static struct led_classdev applesmc_back
+ 	.brightness_set		= applesmc_brightness_set,
+ };
  
- 	time		Show timing data prefixed to each printk message line
++static DEVICE_ATTR(name, 0444, applesmc_name_show, NULL);
++
+ static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
+ static DEVICE_ATTR(calibrate, 0644,
+ 			applesmc_calibrate_show, applesmc_calibrate_store);
+@@ -1197,6 +1205,8 @@ static int __init applesmc_init(void)
+ 		goto out_driver;
+ 	}
  
--	clocksource=	[GENERIC_TIME] Override the default clocksource
--			Override the default clocksource and use the clocksource
--			with the name specified.
--
- 	tipar.timeout=	[HW,PPT]
- 			Set communications timeout in tenths of a second
- 			(default 15).
++	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_name.attr);
++
+ 	/* Create key enumeration sysfs files */
+ 	ret = sysfs_create_group(&pdev->dev.kobj, &key_enumeration_group);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-add-notime-boot-option.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+Patches currently in -mm which might be from nicolas@boichat.ch are
