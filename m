@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + block_dev-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:01 -0700
-Message-ID: <200705292120.l4TLK1lp011741@shell0.pdx.osdl.net>
+Subject: + implement-simple-fs-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:19:59 -0700
+Message-ID: <200705292119.l4TLJxQS011732@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60953 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751233AbXE2VUH (ORCPT
+	by vger.kernel.org with ESMTP id S1752110AbXE2VUM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:20:07 -0400
+	Tue, 29 May 2007 17:20:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     block_dev: convert to new aops
+     implement simple fs aops
 has been added to the -mm tree.  Its filename is
-     block_dev-convert-to-new-aops.patch
+     implement-simple-fs-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,179 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: block_dev: convert to new aops
+Subject: implement simple fs aops
 From: Nick Piggin <npiggin@suse.de>
+
+Implement new aops for some of the simpler filesystems.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |   26 +++++++++++++++++++-------
- 1 files changed, 19 insertions(+), 7 deletions(-)
+ fs/configfs/inode.c   |    4 ++--
+ fs/hugetlbfs/inode.c  |   16 ++++++++++------
+ fs/ramfs/file-mmu.c   |    4 ++--
+ fs/ramfs/file-nommu.c |    4 ++--
+ fs/sysfs/inode.c      |    4 ++--
+ mm/shmem.c            |   35 ++++++++++++++++++++++++++++-------
+ 6 files changed, 46 insertions(+), 21 deletions(-)
 
-diff -puN fs/block_dev.c~block_dev-convert-to-new-aops fs/block_dev.c
---- a/fs/block_dev.c~block_dev-convert-to-new-aops
-+++ a/fs/block_dev.c
-@@ -378,14 +378,26 @@ static int blkdev_readpage(struct file *
- 	return block_read_full_page(page, blkdev_get_block);
+diff -puN fs/configfs/inode.c~implement-simple-fs-aops fs/configfs/inode.c
+--- a/fs/configfs/inode.c~implement-simple-fs-aops
++++ a/fs/configfs/inode.c
+@@ -41,8 +41,8 @@ extern struct super_block * configfs_sb;
+ 
+ static const struct address_space_operations configfs_aops = {
+ 	.readpage	= simple_readpage,
+-	.prepare_write	= simple_prepare_write,
+-	.commit_write	= simple_commit_write
++	.write_begin	= simple_write_begin,
++	.write_end	= simple_write_end,
+ };
+ 
+ static struct backing_dev_info configfs_backing_dev_info = {
+diff -puN fs/hugetlbfs/inode.c~implement-simple-fs-aops fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~implement-simple-fs-aops
++++ a/fs/hugetlbfs/inode.c
+@@ -166,15 +166,19 @@ static int hugetlbfs_readpage(struct fil
+ 	return -EINVAL;
  }
  
--static int blkdev_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
--{
--	return block_prepare_write(page, from, to, blkdev_get_block);
-+static int blkdev_write_begin(struct file *file, struct address_space *mapping,
+-static int hugetlbfs_prepare_write(struct file *file,
+-			struct page *page, unsigned offset, unsigned to)
++static int hugetlbfs_write_begin(struct file *file,
++			struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
-+{
-+	*pagep = NULL;
-+	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				blkdev_get_block);
+ {
+ 	return -EINVAL;
  }
  
--static int blkdev_commit_write(struct file *file, struct page *page, unsigned from, unsigned to)
-+static int blkdev_write_end(struct file *file, struct address_space *mapping,
+-static int hugetlbfs_commit_write(struct file *file,
+-			struct page *page, unsigned offset, unsigned to)
++static int hugetlbfs_write_end(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned copied,
 +			struct page *page, void *fsdata)
  {
--	return block_commit_write(page, from, to);
-+	int ret;
-+	ret = block_write_end(file, mapping, pos, len, copied, page, fsdata);
-+
-+	unlock_page(page);
-+	page_cache_release(page);
-+
-+	return ret;
++	BUG();
+ 	return -EINVAL;
  }
  
+@@ -546,8 +550,8 @@ static void hugetlbfs_destroy_inode(stru
+ 
+ static const struct address_space_operations hugetlbfs_aops = {
+ 	.readpage	= hugetlbfs_readpage,
+-	.prepare_write	= hugetlbfs_prepare_write,
+-	.commit_write	= hugetlbfs_commit_write,
++	.write_begin	= hugetlbfs_write_begin,
++	.write_end	= hugetlbfs_write_end,
+ 	.set_page_dirty	= hugetlbfs_set_page_dirty,
+ };
+ 
+diff -puN fs/ramfs/file-mmu.c~implement-simple-fs-aops fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~implement-simple-fs-aops
++++ a/fs/ramfs/file-mmu.c
+@@ -29,8 +29,8 @@
+ 
+ const struct address_space_operations ramfs_aops = {
+ 	.readpage	= simple_readpage,
+-	.prepare_write	= simple_prepare_write,
+-	.commit_write	= simple_commit_write,
++	.write_begin	= simple_write_begin,
++	.write_end	= simple_write_end,
+ 	.set_page_dirty = __set_page_dirty_no_writeback,
+ };
+ 
+diff -puN fs/ramfs/file-nommu.c~implement-simple-fs-aops fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~implement-simple-fs-aops
++++ a/fs/ramfs/file-nommu.c
+@@ -29,8 +29,8 @@ static int ramfs_nommu_setattr(struct de
+ 
+ const struct address_space_operations ramfs_aops = {
+ 	.readpage		= simple_readpage,
+-	.prepare_write		= simple_prepare_write,
+-	.commit_write		= simple_commit_write,
++	.write_begin		= simple_write_begin,
++	.write_end		= simple_write_end,
+ 	.set_page_dirty		= __set_page_dirty_no_writeback,
+ };
+ 
+diff -puN fs/sysfs/inode.c~implement-simple-fs-aops fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~implement-simple-fs-aops
++++ a/fs/sysfs/inode.c
+@@ -21,8 +21,8 @@ extern struct super_block * sysfs_sb;
+ 
+ static const struct address_space_operations sysfs_aops = {
+ 	.readpage	= simple_readpage,
+-	.prepare_write	= simple_prepare_write,
+-	.commit_write	= simple_commit_write
++	.write_begin	= simple_write_begin,
++	.write_end	= simple_write_end,
+ };
+ 
+ static struct backing_dev_info sysfs_backing_dev_info = {
+diff -puN mm/shmem.c~implement-simple-fs-aops mm/shmem.c
+--- a/mm/shmem.c~implement-simple-fs-aops
++++ a/mm/shmem.c
+@@ -1103,7 +1103,7 @@ static int shmem_getpage(struct inode *i
+ 	 * Normally, filepage is NULL on entry, and either found
+ 	 * uptodate immediately, or allocated and zeroed, or read
+ 	 * in under swappage, which is then assigned to filepage.
+-	 * But shmem_prepare_write passes in a locked filepage,
++	 * But shmem_write_begin passes in a locked filepage,
+ 	 * which may be found not uptodate by other callers too,
+ 	 * and may need to be copied from the swappage read in.
+ 	 */
+@@ -1448,14 +1448,35 @@ static const struct inode_operations shm
+ static const struct inode_operations shmem_symlink_inline_operations;
+ 
  /*
-@@ -1326,8 +1338,8 @@ const struct address_space_operations de
- 	.readpage	= blkdev_readpage,
- 	.writepage	= blkdev_writepage,
- 	.sync_page	= block_sync_page,
--	.prepare_write	= blkdev_prepare_write,
--	.commit_write	= blkdev_commit_write,
-+	.write_begin	= blkdev_write_begin,
-+	.write_end	= blkdev_write_end,
- 	.writepages	= generic_writepages,
- 	.direct_IO	= blkdev_direct_IO,
+- * Normally tmpfs makes no use of shmem_prepare_write, but it
++ * Normally tmpfs makes no use of shmem_write_begin, but it
+  * lets a tmpfs file be used read-write below the loop driver.
+  */
+ static int
+-shmem_prepare_write(struct file *file, struct page *page, unsigned offset, unsigned to)
++shmem_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	struct inode *inode = mapping->host;
++	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
++	*pagep = NULL;
++	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
++}
++
++static int
++shmem_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
+ {
+-	struct inode *inode = page->mapping->host;
+-	return shmem_getpage(inode, page->index, &page, SGP_WRITE, NULL);
++	struct inode *inode = mapping->host;
++
++	set_page_dirty(page);
++	mark_page_accessed(page);
++	page_cache_release(page);
++
++	if (pos+copied > inode->i_size)
++		i_size_write(inode, pos+copied);
++
++	return copied;
+ }
+ 
+ static ssize_t
+@@ -2349,8 +2370,8 @@ static const struct address_space_operat
+ 	.writepage	= shmem_writepage,
+ 	.set_page_dirty	= __set_page_dirty_no_writeback,
+ #ifdef CONFIG_TMPFS
+-	.prepare_write	= shmem_prepare_write,
+-	.commit_write	= simple_commit_write,
++	.write_begin	= shmem_write_begin,
++	.write_end	= shmem_write_end,
+ #endif
+ 	.migratepage	= migrate_page,
  };
 _
 
