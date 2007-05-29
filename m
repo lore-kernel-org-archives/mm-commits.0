@@ -1,227 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - simplify-cleanup_workqueue_thread.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:52:00 -0700
-Message-ID: <200705291851.l4TIpxAB008370@shell0.pdx.osdl.net>
+Subject: - misc-phantom-move-to-unlocked_ioctl.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:52:04 -0700
+Message-ID: <200705291852.l4TIq3Ip008373@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44100 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758073AbXE2Swb (ORCPT
+	by vger.kernel.org with ESMTP id S1757952AbXE2Swi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:52:31 -0400
+	Tue, 29 May 2007 14:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, rjw@sisk.pl, vatsa@in.ibm.com, zilvinas@wilibox.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, xslaby@phantom.fi.muni.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     simplify cleanup_workqueue_thread()
+     phantom: move to unlocked_ioctl
 has been removed from the -mm tree.  Its filename was
-     simplify-cleanup_workqueue_thread.patch
+     misc-phantom-move-to-unlocked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: simplify cleanup_workqueue_thread()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: phantom: move to unlocked_ioctl
+From: Jiri Slaby <jirislaby@gmail.com>
 
-cleanup_workqueue_thread() and cwq_should_stop() are overcomplicated. 
-Convert the code to use kthread_should_stop/kthread_stop as was suggested
-by Gautham and Srivatsa.
+phantom's ioctl is often (4000 times a sec or so) invoked, don't acquire
+BKL and block other processes.
 
-In particular this patch removes the (unlikely) busy-wait loop from the
-exit path, it was a temporary and ugly kludge (if not a bug).
-
-Note: the current code was designed to solve another old problem: work->func
-can't share locks with hotplug callbacks. I think this could be done, see
-
-	http://marc.info/?l=linux-kernel&m=116905366428633
-
-but this needs some more complications to preserve CPU affinity of
-cwq->thread during cpu_up().  A freezer-based hotplug looks more appealing.
-
-[akpm@linux-foundation.org: make it more tolerant of gcc borkenness]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Zilvinas Valinskas <zilvinas@wilibox.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Jiri Slaby <xslaby@phantom.fi.muni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   84 ++++++++++++++++++-------------------------
- 1 files changed, 37 insertions(+), 47 deletions(-)
+ drivers/misc/phantom.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN kernel/workqueue.c~simplify-cleanup_workqueue_thread kernel/workqueue.c
---- a/kernel/workqueue.c~simplify-cleanup_workqueue_thread
-+++ a/kernel/workqueue.c
-@@ -47,7 +47,6 @@ struct cpu_workqueue_struct {
+diff -puN drivers/misc/phantom.c~misc-phantom-move-to-unlocked_ioctl drivers/misc/phantom.c
+--- a/drivers/misc/phantom.c~misc-phantom-move-to-unlocked_ioctl
++++ a/drivers/misc/phantom.c
+@@ -47,6 +47,7 @@ struct phantom_device {
+ 	struct cdev cdev;
  
- 	struct workqueue_struct *wq;
- 	struct task_struct *thread;
--	int should_stop;
+ 	struct mutex open_lock;
++	spinlock_t ioctl_lock;
+ };
  
- 	int run_depth;		/* Detect run_workqueue() recursion depth */
- } ____cacheline_aligned;
-@@ -71,7 +70,13 @@ static LIST_HEAD(workqueues);
+ static unsigned char phantom_devices[PHANTOM_MAX_MINORS];
+@@ -71,8 +72,8 @@ static int phantom_status(struct phantom
+  * File ops
+  */
  
- static int singlethread_cpu __read_mostly;
- static cpumask_t cpu_singlethread_map __read_mostly;
--/* optimization, we could use cpu_possible_map */
-+/*
-+ * _cpu_down() first removes CPU from cpu_online_map, then CPU_DEAD
-+ * flushes cwq->worklist. This means that flush_workqueue/wait_on_work
-+ * which comes in between can't use for_each_online_cpu(). We could
-+ * use cpu_possible_map, the cpumask below is more a documentation
-+ * than optimization.
-+ */
- static cpumask_t cpu_populated_map __read_mostly;
- 
- /* If it's single threaded, it isn't in the list of workqueues. */
-@@ -272,24 +277,6 @@ static void run_workqueue(struct cpu_wor
- 	spin_unlock_irq(&cwq->lock);
- }
- 
--/*
-- * NOTE: the caller must not touch *cwq if this func returns true
-- */
--static int cwq_should_stop(struct cpu_workqueue_struct *cwq)
--{
--	int should_stop = cwq->should_stop;
--
--	if (unlikely(should_stop)) {
--		spin_lock_irq(&cwq->lock);
--		should_stop = cwq->should_stop && list_empty(&cwq->worklist);
--		if (should_stop)
--			cwq->thread = NULL;
--		spin_unlock_irq(&cwq->lock);
--	}
--
--	return should_stop;
--}
--
- static int worker_thread(void *__cwq)
+-static int phantom_ioctl(struct inode *inode, struct file *file, u_int cmd,
+-	u_long arg)
++static long phantom_ioctl(struct file *file, unsigned int cmd,
++		unsigned long arg)
  {
- 	struct cpu_workqueue_struct *cwq = __cwq;
-@@ -302,14 +289,15 @@ static int worker_thread(void *__cwq)
+ 	struct phantom_device *dev = file->private_data;
+ 	struct phm_regs rs;
+@@ -92,24 +93,30 @@ static int phantom_ioctl(struct inode *i
+ 		if (r.reg > 7)
+ 			return -EINVAL;
  
- 	for (;;) {
- 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
--		if (!freezing(current) && !cwq->should_stop
--		    && list_empty(&cwq->worklist))
-+		if (!freezing(current) &&
-+		    !kthread_should_stop() &&
-+		    list_empty(&cwq->worklist))
- 			schedule();
- 		finish_wait(&cwq->more_work, &wait);
++		spin_lock(&dev->ioctl_lock);
+ 		if (r.reg == PHN_CONTROL && (r.value & PHN_CTL_IRQ) &&
+-				phantom_status(dev, dev->status | PHB_RUNNING))
++				phantom_status(dev, dev->status | PHB_RUNNING)){
++			spin_unlock(&dev->ioctl_lock);
+ 			return -ENODEV;
++		}
  
- 		try_to_freeze();
+ 		pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
+ 		iowrite32(r.value, dev->iaddr + r.reg);
  
--		if (cwq_should_stop(cwq))
-+		if (kthread_should_stop())
- 			break;
+ 		if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
+ 			phantom_status(dev, dev->status & ~PHB_RUNNING);
++		spin_unlock(&dev->ioctl_lock);
+ 		break;
+ 	case PHN_SET_REGS:
+ 		if (copy_from_user(&rs, argp, sizeof(rs)))
+ 			return -EFAULT;
  
- 		run_workqueue(cwq);
-@@ -340,18 +328,21 @@ static void insert_wq_barrier(struct cpu
- 	insert_work(cwq, &barr->work, tail);
- }
+ 		pr_debug("phantom: SRS %u regs %x\n", rs.count, rs.mask);
++		spin_lock(&dev->ioctl_lock);
+ 		for (i = 0; i < min(rs.count, 8U); i++)
+ 			if ((1 << i) & rs.mask)
+ 				iowrite32(rs.values[i], dev->oaddr + i);
++		spin_unlock(&dev->ioctl_lock);
+ 		break;
+ 	case PHN_GET_REG:
+ 		if (copy_from_user(&r, argp, sizeof(r)))
+@@ -128,9 +135,11 @@ static int phantom_ioctl(struct inode *i
+ 			return -EFAULT;
  
--static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
-+static int flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
- {
-+	int active;
-+
- 	if (cwq->thread == current) {
- 		/*
- 		 * Probably keventd trying to flush its own queue. So simply run
- 		 * it by hand rather than deadlocking.
- 		 */
- 		run_workqueue(cwq);
-+		active = 1;
- 	} else {
- 		struct wq_barrier barr;
--		int active = 0;
+ 		pr_debug("phantom: GRS %u regs %x\n", rs.count, rs.mask);
++		spin_lock(&dev->ioctl_lock);
+ 		for (i = 0; i < min(rs.count, 8U); i++)
+ 			if ((1 << i) & rs.mask)
+ 				rs.values[i] = ioread32(dev->iaddr + i);
++		spin_unlock(&dev->ioctl_lock);
  
-+		active = 0;
- 		spin_lock_irq(&cwq->lock);
- 		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
- 			insert_wq_barrier(cwq, &barr, 1);
-@@ -362,6 +353,8 @@ static void flush_cpu_workqueue(struct c
- 		if (active)
- 			wait_for_completion(&barr.done);
+ 		if (copy_to_user(argp, &rs, sizeof(rs)))
+ 			return -EFAULT;
+@@ -199,7 +208,7 @@ static unsigned int phantom_poll(struct 
+ static struct file_operations phantom_file_ops = {
+ 	.open = phantom_open,
+ 	.release = phantom_release,
+-	.ioctl = phantom_ioctl,
++	.unlocked_ioctl = phantom_ioctl,
+ 	.poll = phantom_poll,
+ };
+ 
+@@ -282,6 +291,7 @@ static int __devinit phantom_probe(struc
  	}
-+
-+	return active;
- }
  
- /**
-@@ -674,7 +667,6 @@ static int create_workqueue_thread(struc
- 		return PTR_ERR(p);
- 
- 	cwq->thread = p;
--	cwq->should_stop = 0;
- 
- 	return 0;
- }
-@@ -740,29 +732,27 @@ EXPORT_SYMBOL_GPL(__create_workqueue);
- 
- static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
- {
--	struct wq_barrier barr;
--	int alive = 0;
--
--	spin_lock_irq(&cwq->lock);
--	if (cwq->thread != NULL) {
--		insert_wq_barrier(cwq, &barr, 1);
--		cwq->should_stop = 1;
--		alive = 1;
--	}
--	spin_unlock_irq(&cwq->lock);
-+	/*
-+	 * Our caller is either destroy_workqueue() or CPU_DEAD,
-+	 * workqueue_mutex protects cwq->thread
-+	 */
-+	if (cwq->thread == NULL)
-+		return;
- 
--	if (alive) {
--		wait_for_completion(&barr.done);
-+	/*
-+	 * If the caller is CPU_DEAD the single flush_cpu_workqueue()
-+	 * is not enough, a concurrent flush_workqueue() can insert a
-+	 * barrier after us.
-+	 * When ->worklist becomes empty it is safe to exit because no
-+	 * more work_structs can be queued on this cwq: flush_workqueue
-+	 * checks list_empty(), and a "normal" queue_work() can't use
-+	 * a dead CPU.
-+	 */
-+	while (flush_cpu_workqueue(cwq))
-+		;
- 
--		while (unlikely(cwq->thread != NULL))
--			cpu_relax();
--		/*
--		 * Wait until cwq->thread unlocks cwq->lock,
--		 * it won't touch *cwq after that.
--		 */
--		smp_rmb();
--		spin_unlock_wait(&cwq->lock);
--	}
-+	kthread_stop(cwq->thread);
-+	cwq->thread = NULL;
- }
- 
- /**
+ 	mutex_init(&pht->open_lock);
++	spin_lock_init(&pht->ioctl_lock);
+ 	init_waitqueue_head(&pht->wait);
+ 	cdev_init(&pht->cdev, &phantom_file_ops);
+ 	pht->cdev.owner = THIS_MODULE;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-freezer-run-show_state-when-freezing-times-out.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
+rocketc-fix-unchecked-mutex_lock_interruptible.patch
+char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
+char-cyclades-add-firmware-loading.patch
+char-cyclades-fix-sparse-warning.patch
+char-isicom-cleanup-locking.patch
+char-isicom-del_timer-at-exit.patch
+char-isicom-proper-variables-types.patch
+char-moxa-eliminate-busy-waiting.patch
+char-specialix-remove-busy-waiting.patch
+char-riscom8-eliminate-busy-loop.patch
+shrink_slab-handle-bad-shrinkers.patch
