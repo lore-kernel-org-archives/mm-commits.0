@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch added to -mm tree
-Date: Tue, 29 May 2007 14:57:01 -0700
-Message-ID: <200705292157.l4TLv102012608@shell0.pdx.osdl.net>
+Subject: + rtc-rs5c372-becomes-a-new-style-i2c-driver.patch added to -mm tree
+Date: Tue, 29 May 2007 14:58:49 -0700
+Message-ID: <200705292158.l4TLwnP3012643@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33565 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751023AbXE2V5j (ORCPT
+	by vger.kernel.org with ESMTP id S1753120AbXE2V75 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:57:39 -0400
+	Tue, 29 May 2007 17:59:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, apw@shadowen.org
+Cc: david-b@pacbell.net, Riku.Voipio@movial.fi, a.zummo@towertech.it, dbrownell@users.sourceforge.net, g.liakhovetski@gmx.de, khali@linux-fr.org, tbm@cyrius.com
 
 
 The patch titled
-     Update page->order at an appropriate time when tracking PAGE_OWNER
+     rtc-rs5c372 becomes a new-style i2c driver
 has been added to the -mm tree.  Its filename is
-     update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+     rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,261 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update page->order at an appropriate time when tracking PAGE_OWNER
-From: mel@skynet.ie (Mel Gorman)
+Subject: rtc-rs5c372 becomes a new-style i2c driver
+From: David Brownell <david-b@pacbell.net>
 
-PAGE_OWNER tracks free pages by setting page->order to -1.  However, it is
-set during __free_pages() which is not the only free path as
-__pagevec_free() and free_compound_page() do not go through __free_pages().
- This leads to a situation where free pages are visible in /proc/page_owner
-which is confusing and might be interpreted as a memory leak.
+Convert rtc-rs5c372 to be a "new style" I2C driver, and update the
+Kconfig text to be more complete..
 
-This patch sets page->owner when PageBuddy is set.  It also prints a
-warning to the kernel log if a free page is found that does not appear free
-to PAGE_OWNER.  This should be considered a fix to
-page-owner-tracking-leak-detector.patch.
+Verified on an OMAP H4 development platform, along with a board
+init patch to declare its rv5c387a device.
 
-This only applies to -mm as PAGE_OWNER is not in mainline.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+
+Only one defconfig -- powerpc/linkstation -- uses this driver; but
+several other platforms use it, just without defconfig support.
+
+Such platforms need to be converted so (a) their I2C adapter driver
+supports new-style drivers, and (b) board init code declares this
+I2C device.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Voipio Riku <Riku.Voipio@movial.fi>
+Cc: <g.liakhovetski@gmx.de>
+Cc: Martin Michlmayr <tbm@cyrius.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    8 ++++++++
- mm/page_alloc.c     |    6 +++---
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/rtc/Kconfig       |    4 -
+ drivers/rtc/rtc-rs5c372.c |   95 ++++++++++++------------------------
+ 2 files changed, 36 insertions(+), 63 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner
-+++ a/fs/proc/proc_misc.c
-@@ -769,8 +769,16 @@ read_page_owner(struct file *file, char 
- 		if (!pfn_valid(pfn))
- 			continue;
- 		page = pfn_to_page(pfn);
-+
-+		/* Catch situations where free pages have a bad ->order  */
-+		if (page->order >= 0 && PageBuddy(page))
-+			printk(KERN_WARNING
-+				"PageOwner info inaccurate for PFN %lu\n",
-+				pfn);
-+
- 		if (page->order >= 0)
- 			break;
-+
- 		next_idx++;
- 	}
+diff -puN drivers/rtc/Kconfig~rtc-rs5c372-becomes-a-new-style-i2c-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-rs5c372-becomes-a-new-style-i2c-driver
++++ a/drivers/rtc/Kconfig
+@@ -160,11 +160,11 @@ config RTC_DRV_MAX6900
+ 	  will be called rtc-max6900.
  
-diff -puN mm/page_alloc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner mm/page_alloc.c
---- a/mm/page_alloc.c~update-page-order-at-an-appropriate-time-when-tracking-page_owner
-+++ a/mm/page_alloc.c
-@@ -308,6 +308,9 @@ static inline void set_page_order(struct
+ config RTC_DRV_RS5C372
+-	tristate "Ricoh RS5C372A/B"
++	tristate "Ricoh RS5C372A/B, RV5C386, RV5C387A"
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for the
+-	  Ricoh RS5C372A and RS5C372B RTC chips.
++	  Ricoh RS5C372A, RS5C372B, RV5C386, and RV5C387A RTC chips.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-rs5c372.
+diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rs5c372-becomes-a-new-style-i2c-driver drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~rtc-rs5c372-becomes-a-new-style-i2c-driver
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -13,13 +13,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ 
+-#define DRV_VERSION "0.4"
+-
+-/* Addresses to scan */
+-static unsigned short normal_i2c[] = { /* 0x32,*/ I2C_CLIENT_END };
+-
+-/* Insmod parameters */
+-I2C_CLIENT_INSMOD;
++#define DRV_VERSION "0.5"
+ 
+ 
+ /*
+@@ -88,9 +82,6 @@ struct rs5c372 {
+ 	unsigned		has_irq:1;
+ 	char			buf[17];
+ 	char			*regs;
+-
+-	/* on conversion to a "new style" i2c driver, this vanishes */
+-	struct i2c_client	dev;
+ };
+ 
+ static int rs5c_get_regs(struct rs5c372 *rs5c)
+@@ -483,25 +474,35 @@ static int rs5c_sysfs_register(struct de
+ 	return err;
+ }
+ 
++static void rs5c_sysfs_unregister(struct device *dev)
++{
++	device_remove_file(dev, &dev_attr_trim);
++	device_remove_file(dev, &dev_attr_osc);
++}
++
+ #else
+ static int rs5c_sysfs_register(struct device *dev)
  {
- 	set_page_private(page, order);
- 	__SetPageBuddy(page);
-+#ifdef CONFIG_PAGE_OWNER
-+		page->order = -1;
-+#endif
+ 	return 0;
  }
++
++static void rs5c_sysfs_unregister(struct device *dev)
++{
++	/* nothing */
++}
+ #endif	/* SYSFS */
  
- static inline void rmv_page_order(struct page *page)
-@@ -1726,9 +1729,6 @@ fastcall void __free_pages(struct page *
- 			free_hot_page(page);
- 		else
- 			__free_pages_ok(page, order);
--#ifdef CONFIG_PAGE_OWNER
--		page->order = -1;
--#endif
+ static struct i2c_driver rs5c372_driver;
+ 
+-static int rs5c372_probe(struct i2c_adapter *adapter, int address, int kind)
++static int rs5c372_probe(struct i2c_client *client)
+ {
+ 	int err = 0;
+-	struct i2c_client *client;
+ 	struct rs5c372 *rs5c372;
+ 	struct rtc_time tm;
+ 
+-	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
++	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+ 		err = -ENODEV;
+ 		goto exit;
  	}
+@@ -514,35 +515,22 @@ static int rs5c372_probe(struct i2c_adap
+ 	/* we read registers 0x0f then 0x00-0x0f; skip the first one */
+ 	rs5c372->regs=&rs5c372->buf[1];
+ 
+-	/* On conversion to a "new style" i2c driver, we'll be handed
+-	 * the i2c_client (we won't create it)
+-	 */
+-	client = &rs5c372->dev;
+ 	rs5c372->client = client;
+-
+-	/* I2C client */
+-	client->addr = address;
+-	client->driver = &rs5c372_driver;
+-	client->adapter = adapter;
+-
+-	strlcpy(client->name, rs5c372_driver.driver.name, I2C_NAME_SIZE);
+-
+ 	i2c_set_clientdata(client, rs5c372);
+ 
+-	/* Inform the i2c layer */
+-	if ((err = i2c_attach_client(client)))
+-		goto exit_kfree;
+-
+ 	err = rs5c_get_regs(rs5c372);
+ 	if (err < 0)
+-		goto exit_detach;
++		goto exit_kfree;
+ 
+-	/* For "new style" drivers, irq is in i2c_client and chip type
+-	 * info comes from i2c_client.dev.platform_data.  Meanwhile:
+-	 *
+-	 * STICK BOARD-SPECIFIC SETUP CODE RIGHT HERE
+-	 */
+-	if (rs5c372->type == rtc_undef) {
++	if (strcmp(client->name, "rs5c372a") == 0)
++		rs5c372->type = rtc_rs5c372a;
++	else if (strcmp(client->name, "rs5c372b") == 0)
++		rs5c372->type = rtc_rs5c372b;
++	else if (strcmp(client->name, "rv5c386") == 0)
++		rs5c372->type = rtc_rv5c386;
++	else if (strcmp(client->name, "rv5c387a") == 0)
++		rs5c372->type = rtc_rv5c387a;
++	else {
+ 		rs5c372->type = rtc_rs5c372b;
+ 		dev_warn(&client->dev, "assuming rs5c372b\n");
+ 	}
+@@ -567,7 +555,7 @@ static int rs5c372_probe(struct i2c_adap
+ 		break;
+ 	default:
+ 		dev_err(&client->dev, "unknown RTC type\n");
+-		goto exit_detach;
++		goto exit_kfree;
+ 	}
+ 
+ 	/* if the oscillator lost power and no other software (like
+@@ -601,7 +589,7 @@ static int rs5c372_probe(struct i2c_adap
+ 
+ 		if ((i2c_master_send(client, buf, 3)) != 3) {
+ 			dev_err(&client->dev, "setup error\n");
+-			goto exit_detach;
++			goto exit_kfree;
+ 		}
+ 		rs5c372->regs[RS5C_REG_CTRL1] = buf[1];
+ 		rs5c372->regs[RS5C_REG_CTRL2] = buf[2];
+@@ -621,14 +609,14 @@ static int rs5c372_probe(struct i2c_adap
+ 			rs5c372->time24 ? "24hr" : "am/pm"
+ 			);
+ 
+-	/* FIXME when client->irq exists, use it to register alarm irq */
++	/* REVISIT use client->irq to register alarm irq ... */
+ 
+ 	rs5c372->rtc = rtc_device_register(rs5c372_driver.driver.name,
+ 				&client->dev, &rs5c372_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(rs5c372->rtc)) {
+ 		err = PTR_ERR(rs5c372->rtc);
+-		goto exit_detach;
++		goto exit_kfree;
+ 	}
+ 
+ 	err = rs5c_sysfs_register(&client->dev);
+@@ -640,9 +628,6 @@ static int rs5c372_probe(struct i2c_adap
+ exit_devreg:
+ 	rtc_device_unregister(rs5c372->rtc);
+ 
+-exit_detach:
+-	i2c_detach_client(client);
+-
+ exit_kfree:
+ 	kfree(rs5c372);
+ 
+@@ -650,24 +635,12 @@ exit:
+ 	return err;
  }
  
+-static int rs5c372_attach(struct i2c_adapter *adapter)
++static int rs5c372_remove(struct i2c_client *client)
+ {
+-	return i2c_probe(adapter, &addr_data, rs5c372_probe);
+-}
+-
+-static int rs5c372_detach(struct i2c_client *client)
+-{
+-	int err;
+ 	struct rs5c372 *rs5c372 = i2c_get_clientdata(client);
+ 
+-	if (rs5c372->rtc)
+-		rtc_device_unregister(rs5c372->rtc);
+-
+-	/* REVISIT properly destroy the sysfs files ... */
+-
+-	if ((err = i2c_detach_client(client)))
+-		return err;
+-
++	rtc_device_unregister(rs5c372->rtc);
++	rs5c_sysfs_unregister(&client->dev);
+ 	kfree(rs5c372);
+ 	return 0;
+ }
+@@ -676,8 +649,8 @@ static struct i2c_driver rs5c372_driver 
+ 	.driver		= {
+ 		.name	= "rtc-rs5c372",
+ 	},
+-	.attach_adapter	= &rs5c372_attach,
+-	.detach_client	= &rs5c372_detach,
++	.probe		= rs5c372_probe,
++	.remove		= rs5c372_remove,
+ };
+ 
+ static __init int rs5c372_init(void)
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-remove-alloc_zeroed_user_highpage.patch
-create-the-zone_movable-zone.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-handle-kernelcore=-generic.patch
-lumpy-reclaim-v4.patch
-lumpy-move-to-using-pfn_valid_within.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-ext2-reservations.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
-update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+git-leds.patch
+git-mmc.patch
+spi-controller-drivers-check-for-unsupported-modes.patch
+spi-add-3wire-mode-flag.patch
+spi-add-3wire-mode-flag-fix.patch
+rtc-ds1307-cleanups.patch
+rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
