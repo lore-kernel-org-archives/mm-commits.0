@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysv-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:48 -0700
-Message-ID: <200705292120.l4TLKmuH011833@shell0.pdx.osdl.net>
+Subject: + minix-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:50 -0700
+Message-ID: <200705292120.l4TLKoiX011836@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36811 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751258AbXE2VVi (ORCPT
+	by vger.kernel.org with ESMTP id S1751320AbXE2VVl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:21:38 -0400
+	Tue, 29 May 2007 17:21:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hch@lst.de
+Cc: npiggin@suse.de, Andries.Brouwer@cwi.nl
 
 
 The patch titled
-     sysv: convert to new aops
+     minixfs: convert to new aops
 has been added to the -mm tree.  Its filename is
-     sysv-convert-to-new-aops.patch
+     minix-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysv: convert to new aops
+Subject: minixfs: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andries Brouwer <Andries.Brouwer@cwi.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/dir.c   |   51 +++++++++++++++++++++++++++-------------------
- fs/sysv/itree.c |   23 +++++++++++++++++---
- 2 files changed, 50 insertions(+), 24 deletions(-)
+ fs/minix/dir.c   |   50 ++++++++++++++++++++++++++++-----------------
+ fs/minix/inode.c |   23 +++++++++++++++++---
+ 2 files changed, 51 insertions(+), 22 deletions(-)
 
-diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops fs/sysv/dir.c
---- a/fs/sysv/dir.c~sysv-convert-to-new-aops
-+++ a/fs/sysv/dir.c
-@@ -16,6 +16,7 @@
- #include <linux/pagemap.h>
+diff -puN fs/minix/dir.c~minix-convert-to-new-aops fs/minix/dir.c
+--- a/fs/minix/dir.c~minix-convert-to-new-aops
++++ a/fs/minix/dir.c
+@@ -9,8 +9,10 @@
+  */
+ 
+ #include "minix.h"
++#include <linux/buffer_head.h>
  #include <linux/highmem.h>
  #include <linux/smp_lock.h>
 +#include <linux/swap.h>
- #include "sysv.h"
  
- static int sysv_readdir(struct file *, void *, filldir_t);
-@@ -37,16 +38,22 @@ static inline unsigned long dir_pages(st
+ typedef struct minix_dir_entry minix_dirent;
+ typedef struct minix3_dir_entry minix3_dirent;
+@@ -48,15 +50,22 @@ static inline unsigned long dir_pages(st
  	return (inode->i_size+PAGE_CACHE_SIZE-1)>>PAGE_CACHE_SHIFT;
  }
  
@@ -60,9 +63,9 @@ diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops fs/sysv/dir.c
 +	struct address_space *mapping = page->mapping;
 +	struct inode *dir = mapping->host;
  	int err = 0;
- 
 -	page->mapping->a_ops->commit_write(NULL, page, from, to);
 +	block_write_end(NULL, mapping, pos, len, len, page, NULL);
++
 +	if (pos+len > dir->i_size) {
 +		i_size_write(dir, pos+len);
 +		mark_inode_dirty(dir);
@@ -75,154 +78,141 @@ diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops fs/sysv/dir.c
  	return err;
  }
  
-@@ -186,7 +193,7 @@ int sysv_add_link(struct dentry *dentry,
- 	unsigned long npages = dir_pages(dir);
- 	unsigned long n;
- 	char *kaddr;
+@@ -220,7 +229,7 @@ int minix_add_link(struct dentry *dentry
+ 	char *kaddr, *p;
+ 	minix_dirent *de;
+ 	minix3_dirent *de3;
 -	unsigned from, to;
 +	loff_t pos;
  	int err;
- 
- 	/* We take care of directory expansion in the same loop */
-@@ -212,16 +219,17 @@ int sysv_add_link(struct dentry *dentry,
+ 	char *namx = NULL;
+ 	__u32 inumber;
+@@ -272,9 +281,9 @@ int minix_add_link(struct dentry *dentry
  	return -EINVAL;
  
  got_it:
--	from = (char*)de - (char*)page_address(page);
--	to = from + SYSV_DIRSIZE;
-+	pos = (page->index << PAGE_CACHE_SHIFT) +
-+			(char*)de - (char*)page_address(page);
- 	lock_page(page);
+-	from = p - (char*)page_address(page);
+-	to = from + sbi->s_dirsize;
 -	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
-+	err = __sysv_write_begin(NULL, page->mapping, pos, SYSV_DIRSIZE,
-+				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
++	pos = (page->index >> PAGE_CACHE_SHIFT) + p - (char*)page_address(page);
++	err = __minix_write_begin(NULL, page->mapping, pos, sbi->s_dirsize,
++					AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
  	if (err)
  		goto out_unlock;
- 	memcpy (de->name, name, namelen);
- 	memset (de->name + namelen, 0, SYSV_DIRSIZE - namelen - 2);
- 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
+ 	memcpy (namx, name, namelen);
+@@ -285,7 +294,7 @@ got_it:
+ 		memset (namx + namelen, 0, sbi->s_dirsize - namelen - 2);
+ 		de->inode = inode->i_ino;
+ 	}
 -	err = dir_commit_chunk(page, from, to);
-+	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
++	err = dir_commit_chunk(page, pos, sbi->s_dirsize);
  	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
  	mark_inode_dirty(dir);
- out_page:
-@@ -238,15 +246,15 @@ int sysv_delete_entry(struct sysv_dir_en
+ out_put:
+@@ -302,15 +311,16 @@ int minix_delete_entry(struct minix_dir_
  	struct address_space *mapping = page->mapping;
  	struct inode *inode = (struct inode*)mapping->host;
- 	char *kaddr = (char*)page_address(page);
+ 	char *kaddr = page_address(page);
 -	unsigned from = (char*)de - kaddr;
--	unsigned to = from + SYSV_DIRSIZE;
-+	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char *)de - kaddr;
+-	unsigned to = from + minix_sb(inode->i_sb)->s_dirsize;
++	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char*)de - kaddr;
++	unsigned len = minix_sb(inode->i_sb)->s_dirsize;
  	int err;
  
  	lock_page(page);
 -	err = mapping->a_ops->prepare_write(NULL, page, from, to);
-+	err = __sysv_write_begin(NULL, mapping, pos, SYSV_DIRSIZE,
-+				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
- 	BUG_ON(err);
- 	de->inode = 0;
--	err = dir_commit_chunk(page, from, to);
-+	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
- 	dir_put_page(page);
- 	inode->i_ctime = inode->i_mtime = CURRENT_TIME_SEC;
- 	mark_inode_dirty(inode);
-@@ -263,12 +271,13 @@ int sysv_make_empty(struct inode *inode,
++	err = __minix_write_begin(NULL, mapping, pos, len,
++					AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	if (err == 0) {
+ 		de->inode = 0;
+-		err = dir_commit_chunk(page, from, to);
++		err = dir_commit_chunk(page, pos, len);
+ 	} else {
+ 		unlock_page(page);
+ 	}
+@@ -330,7 +340,8 @@ int minix_make_empty(struct inode *inode
  
  	if (!page)
  		return -ENOMEM;
--	kmap(page);
--	err = mapping->a_ops->prepare_write(NULL, page, 0, 2 * SYSV_DIRSIZE);
-+	err = __sysv_write_begin(NULL, mapping, 0, 2 * SYSV_DIRSIZE,
-+				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, 2 * sbi->s_dirsize);
++	err = __minix_write_begin(NULL, mapping, 0, 2 * sbi->s_dirsize,
++					AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
  	if (err) {
  		unlock_page(page);
  		goto fail;
- 	}
-+	kmap(page);
- 
- 	base = (char*)page_address(page);
- 	memset(base, 0, PAGE_CACHE_SIZE);
-@@ -280,9 +289,9 @@ int sysv_make_empty(struct inode *inode,
- 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), dir->i_ino);
- 	strcpy(de->name,"..");
- 
-+	kunmap(page);
- 	err = dir_commit_chunk(page, 0, 2 * SYSV_DIRSIZE);
- fail:
--	kunmap(page);
- 	page_cache_release(page);
- 	return err;
- }
-@@ -336,16 +345,18 @@ not_empty:
- void sysv_set_link(struct sysv_dir_entry *de, struct page *page,
+@@ -421,17 +432,20 @@ not_empty:
+ void minix_set_link(struct minix_dir_entry *de, struct page *page,
  	struct inode *inode)
  {
 -	struct inode *dir = (struct inode*)page->mapping->host;
--	unsigned from = (char *)de-(char*)page_address(page);
--	unsigned to = from + SYSV_DIRSIZE;
 +	struct address_space *mapping = page->mapping;
 +	struct inode *dir = mapping->host;
+ 	struct minix_sb_info *sbi = minix_sb(dir->i_sb);
+-	unsigned from = (char *)de-(char*)page_address(page);
+-	unsigned to = from + sbi->s_dirsize;
 +	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
 +			(char *)de-(char*)page_address(page);
  	int err;
  
  	lock_page(page);
 -	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
-+	err = __sysv_write_begin(NULL, mapping, pos, SYSV_DIRSIZE,
-+				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
- 	BUG_ON(err);
- 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
--	err = dir_commit_chunk(page, from, to);
-+	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
- 	dir_put_page(page);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	mark_inode_dirty(dir);
-diff -puN fs/sysv/itree.c~sysv-convert-to-new-aops fs/sysv/itree.c
---- a/fs/sysv/itree.c~sysv-convert-to-new-aops
-+++ a/fs/sysv/itree.c
-@@ -453,23 +453,38 @@ static int sysv_writepage(struct page *p
++
++	err = __minix_write_begin(NULL, mapping, pos, sbi->s_dirsize,
++					AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	if (err == 0) {
+ 		de->inode = inode->i_ino;
+-		err = dir_commit_chunk(page, from, to);
++		err = dir_commit_chunk(page, pos, sbi->s_dirsize);
+ 	} else {
+ 		unlock_page(page);
+ 	}
+diff -puN fs/minix/inode.c~minix-convert-to-new-aops fs/minix/inode.c
+--- a/fs/minix/inode.c~minix-convert-to-new-aops
++++ a/fs/minix/inode.c
+@@ -346,24 +346,39 @@ static int minix_writepage(struct page *
  {
- 	return block_write_full_page(page,get_block,wbc);
+ 	return block_write_full_page(page, minix_get_block, wbc);
  }
 +
- static int sysv_readpage(struct file *file, struct page *page)
+ static int minix_readpage(struct file *file, struct page *page)
  {
- 	return block_read_full_page(page,get_block);
+ 	return block_read_full_page(page,minix_get_block);
  }
--static int sysv_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
+-static int minix_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
 +
-+int __sysv_write_begin(struct file *file, struct address_space *mapping,
++int __minix_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
  {
--	return block_prepare_write(page,from,to,get_block);
+-	return block_prepare_write(page,from,to,minix_get_block);
 +	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				get_block);
++				minix_get_block);
  }
 +
-+static int sysv_write_begin(struct file *file, struct address_space *mapping,
++static int minix_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
 +{
 +	*pagep = NULL;
-+	return __sysv_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
++	return __minix_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
 +}
 +
- static sector_t sysv_bmap(struct address_space *mapping, sector_t block)
+ static sector_t minix_bmap(struct address_space *mapping, sector_t block)
  {
- 	return generic_block_bmap(mapping,block,get_block);
+ 	return generic_block_bmap(mapping,block,minix_get_block);
  }
 +
- const struct address_space_operations sysv_aops = {
- 	.readpage = sysv_readpage,
- 	.writepage = sysv_writepage,
+ static const struct address_space_operations minix_aops = {
+ 	.readpage = minix_readpage,
+ 	.writepage = minix_writepage,
  	.sync_page = block_sync_page,
--	.prepare_write = sysv_prepare_write,
+-	.prepare_write = minix_prepare_write,
 -	.commit_write = generic_commit_write,
-+	.write_begin = sysv_write_begin,
++	.write_begin = minix_write_begin,
 +	.write_end = generic_write_end,
- 	.bmap = sysv_bmap
+ 	.bmap = minix_bmap
  };
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
