@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + udf-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 29 May 2007 14:20:46 -0700
-Message-ID: <200705292120.l4TLKk0T011828@shell0.pdx.osdl.net>
+Subject: + sysv-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 29 May 2007 14:20:48 -0700
+Message-ID: <200705292120.l4TLKmuH011833@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35719 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751240AbXE2VVa (ORCPT
+	by vger.kernel.org with ESMTP id S1751258AbXE2VVi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:21:30 -0400
+	Tue, 29 May 2007 17:21:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, bfennema@falcon.csc.calpoly.edu, jack@ucw.cz
+Cc: npiggin@suse.de, hch@lst.de
 
 
 The patch titled
-     udf: convert to new aops
+     sysv: convert to new aops
 has been added to the -mm tree.  Its filename is
-     udf-convert-to-new-aops.patch
+     sysv-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,203 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: udf: convert to new aops
+Subject: sysv: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
-Convert udf to new aops.  Also seem to have fixed pagecache corruption in
-udf_adinicb_commit_write -- page was marked uptodate when it is not.  Also,
-fixed the silly setup where prepare_write was doing a kmap to be used in
-commit_write: just do kmap_atomic in write_end.  Use libfs helpers to make
-this easier.
-
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: <bfennema@falcon.csc.calpoly.edu>
-Cc: Jan Kara <jack@ucw.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/file.c  |   32 +++++++++++++-------------------
- fs/udf/inode.c |   11 +++++++----
- 2 files changed, 20 insertions(+), 23 deletions(-)
+ fs/sysv/dir.c   |   51 +++++++++++++++++++++++++++-------------------
+ fs/sysv/itree.c |   23 +++++++++++++++++---
+ 2 files changed, 50 insertions(+), 24 deletions(-)
 
-diff -puN fs/udf/file.c~udf-convert-to-new-aops fs/udf/file.c
---- a/fs/udf/file.c~udf-convert-to-new-aops
-+++ a/fs/udf/file.c
-@@ -74,34 +74,28 @@ static int udf_adinicb_writepage(struct 
- 	return 0;
+diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops fs/sysv/dir.c
+--- a/fs/sysv/dir.c~sysv-convert-to-new-aops
++++ a/fs/sysv/dir.c
+@@ -16,6 +16,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/highmem.h>
+ #include <linux/smp_lock.h>
++#include <linux/swap.h>
+ #include "sysv.h"
+ 
+ static int sysv_readdir(struct file *, void *, filldir_t);
+@@ -37,16 +38,22 @@ static inline unsigned long dir_pages(st
+ 	return (inode->i_size+PAGE_CACHE_SIZE-1)>>PAGE_CACHE_SHIFT;
  }
  
--static int udf_adinicb_prepare_write(struct file *file, struct page *page, unsigned offset, unsigned to)
-+static int udf_adinicb_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
+-static int dir_commit_chunk(struct page *page, unsigned from, unsigned to)
++static int dir_commit_chunk(struct page *page, loff_t pos, unsigned len)
  {
+-	struct inode *dir = (struct inode *)page->mapping->host;
++	struct address_space *mapping = page->mapping;
++	struct inode *dir = mapping->host;
+ 	int err = 0;
+ 
+-	page->mapping->a_ops->commit_write(NULL, page, from, to);
++	block_write_end(NULL, mapping, pos, len, len, page, NULL);
++	if (pos+len > dir->i_size) {
++		i_size_write(dir, pos+len);
++		mark_inode_dirty(dir);
++	}
+ 	if (IS_DIRSYNC(dir))
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
++	mark_page_accessed(page);
+ 	return err;
+ }
+ 
+@@ -186,7 +193,7 @@ int sysv_add_link(struct dentry *dentry,
+ 	unsigned long npages = dir_pages(dir);
+ 	unsigned long n;
+ 	char *kaddr;
+-	unsigned from, to;
++	loff_t pos;
+ 	int err;
+ 
+ 	/* We take care of directory expansion in the same loop */
+@@ -212,16 +219,17 @@ int sysv_add_link(struct dentry *dentry,
+ 	return -EINVAL;
+ 
+ got_it:
+-	from = (char*)de - (char*)page_address(page);
+-	to = from + SYSV_DIRSIZE;
++	pos = (page->index << PAGE_CACHE_SHIFT) +
++			(char*)de - (char*)page_address(page);
+ 	lock_page(page);
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __sysv_write_begin(NULL, page->mapping, pos, SYSV_DIRSIZE,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	if (err)
+ 		goto out_unlock;
+ 	memcpy (de->name, name, namelen);
+ 	memset (de->name + namelen, 0, SYSV_DIRSIZE - namelen - 2);
+ 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
+-	err = dir_commit_chunk(page, from, to);
++	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	mark_inode_dirty(dir);
+ out_page:
+@@ -238,15 +246,15 @@ int sysv_delete_entry(struct sysv_dir_en
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *inode = (struct inode*)mapping->host;
+ 	char *kaddr = (char*)page_address(page);
+-	unsigned from = (char*)de - kaddr;
+-	unsigned to = from + SYSV_DIRSIZE;
++	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char *)de - kaddr;
+ 	int err;
+ 
+ 	lock_page(page);
+-	err = mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __sysv_write_begin(NULL, mapping, pos, SYSV_DIRSIZE,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	BUG_ON(err);
+ 	de->inode = 0;
+-	err = dir_commit_chunk(page, from, to);
++	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
+ 	dir_put_page(page);
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME_SEC;
+ 	mark_inode_dirty(inode);
+@@ -263,12 +271,13 @@ int sysv_make_empty(struct inode *inode,
+ 
+ 	if (!page)
+ 		return -ENOMEM;
 -	kmap(page);
--	return 0;
--}
--
--static int udf_adinicb_commit_write(struct file *file, struct page *page, unsigned offset, unsigned to)
--{
--	struct inode *inode = page->mapping->host;
--	char *kaddr = page_address(page);
-+	struct inode *inode = mapping->host;
-+	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
-+	char *kaddr;
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, 2 * SYSV_DIRSIZE);
++	err = __sysv_write_begin(NULL, mapping, 0, 2 * SYSV_DIRSIZE,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	if (err) {
+ 		unlock_page(page);
+ 		goto fail;
+ 	}
++	kmap(page);
  
-+	kaddr = kmap_atomic(page, KM_USER0);
- 	memcpy(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode) + offset,
--		kaddr + offset, to - offset);
--	mark_inode_dirty(inode);
--	SetPageUptodate(page);
+ 	base = (char*)page_address(page);
+ 	memset(base, 0, PAGE_CACHE_SIZE);
+@@ -280,9 +289,9 @@ int sysv_make_empty(struct inode *inode,
+ 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), dir->i_ino);
+ 	strcpy(de->name,"..");
+ 
++	kunmap(page);
+ 	err = dir_commit_chunk(page, 0, 2 * SYSV_DIRSIZE);
+ fail:
 -	kunmap(page);
--	/* only one page here */
--	if (to > inode->i_size)
--		inode->i_size = to;
--	return 0;
-+		kaddr + offset, copied);
-+	kunmap_atomic(kaddr, KM_USER0);
+ 	page_cache_release(page);
+ 	return err;
+ }
+@@ -336,16 +345,18 @@ not_empty:
+ void sysv_set_link(struct sysv_dir_entry *de, struct page *page,
+ 	struct inode *inode)
+ {
+-	struct inode *dir = (struct inode*)page->mapping->host;
+-	unsigned from = (char *)de-(char*)page_address(page);
+-	unsigned to = from + SYSV_DIRSIZE;
++	struct address_space *mapping = page->mapping;
++	struct inode *dir = mapping->host;
++	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
++			(char *)de-(char*)page_address(page);
+ 	int err;
+ 
+ 	lock_page(page);
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __sysv_write_begin(NULL, mapping, pos, SYSV_DIRSIZE,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	BUG_ON(err);
+ 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
+-	err = dir_commit_chunk(page, from, to);
++	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
+ 	dir_put_page(page);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	mark_inode_dirty(dir);
+diff -puN fs/sysv/itree.c~sysv-convert-to-new-aops fs/sysv/itree.c
+--- a/fs/sysv/itree.c~sysv-convert-to-new-aops
++++ a/fs/sysv/itree.c
+@@ -453,23 +453,38 @@ static int sysv_writepage(struct page *p
+ {
+ 	return block_write_full_page(page,get_block,wbc);
+ }
 +
-+	return simple_write_end(file, mapping, pos, len, copied, page, fsdata);
+ static int sysv_readpage(struct file *file, struct page *page)
+ {
+ 	return block_read_full_page(page,get_block);
  }
- 
- const struct address_space_operations udf_adinicb_aops = {
- 	.readpage		= udf_adinicb_readpage,
- 	.writepage		= udf_adinicb_writepage,
- 	.sync_page		= block_sync_page,
--	.prepare_write		= udf_adinicb_prepare_write,
--	.commit_write		= udf_adinicb_commit_write,
-+	.write_begin		= simple_write_begin,
-+	.write_end		= udf_adinicb_write_end,
- };
- 
- static ssize_t udf_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
-diff -puN fs/udf/inode.c~udf-convert-to-new-aops fs/udf/inode.c
---- a/fs/udf/inode.c~udf-convert-to-new-aops
-+++ a/fs/udf/inode.c
-@@ -126,9 +126,12 @@ static int udf_readpage(struct file *fil
- 	return block_read_full_page(page, udf_get_block);
- }
- 
--static int udf_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
-+static int udf_write_begin(struct file *file, struct address_space *mapping,
+-static int sysv_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
++
++int __sysv_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
  {
--	return block_prepare_write(page, from, to, udf_get_block);
+-	return block_prepare_write(page,from,to,get_block);
 +	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				udf_get_block);
++				get_block);
  }
- 
- static sector_t udf_bmap(struct address_space *mapping, sector_t block)
-@@ -140,8 +143,8 @@ const struct address_space_operations ud
- 	.readpage		= udf_readpage,
- 	.writepage		= udf_writepage,
- 	.sync_page		= block_sync_page,
--	.prepare_write		= udf_prepare_write,
--	.commit_write		= generic_commit_write,
-+	.write_begin		= udf_write_begin,
-+	.write_end		= generic_write_end,
- 	.bmap			= udf_bmap,
++
++static int sysv_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	*pagep = NULL;
++	return __sysv_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
++}
++
+ static sector_t sysv_bmap(struct address_space *mapping, sector_t block)
+ {
+ 	return generic_block_bmap(mapping,block,get_block);
+ }
++
+ const struct address_space_operations sysv_aops = {
+ 	.readpage = sysv_readpage,
+ 	.writepage = sysv_writepage,
+ 	.sync_page = block_sync_page,
+-	.prepare_write = sysv_prepare_write,
+-	.commit_write = generic_commit_write,
++	.write_begin = sysv_write_begin,
++	.write_end = generic_write_end,
+ 	.bmap = sysv_bmap
  };
- 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
