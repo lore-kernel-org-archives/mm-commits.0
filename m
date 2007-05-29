@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-masking-add-an-interface-for-core-dump-filter.patch added to -mm tree
-Date: Tue, 29 May 2007 14:40:20 -0700
-Message-ID: <200705292140.l4TLeK0I012320@shell0.pdx.osdl.net>
+Subject: + coredump-masking-elf-fdpic-remove-an-unused-argument.patch added to -mm tree
+Date: Tue, 29 May 2007 14:40:24 -0700
+Message-ID: <200705292140.l4TLeOuD012326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43665 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751177AbXE2Vkg (ORCPT
+	by vger.kernel.org with ESMTP id S1751179AbXE2Vki (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:40:36 -0400
+	Tue, 29 May 2007 17:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com
 
 
 The patch titled
-     coredump masking: add an interface for core dump filter
+     coredump masking: ELF-FDPIC: remove an unused argument
 has been added to the -mm tree.  Its filename is
-     coredump-masking-add-an-interface-for-core-dump-filter.patch
+     coredump-masking-elf-fdpic-remove-an-unused-argument.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,17 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coredump masking: add an interface for core dump filter
+Subject: coredump masking: ELF-FDPIC: remove an unused argument
 From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
 
-This patch adds an interface to set/reset flags which determines each memory
-segment should be dumped or not when a core file is generated.
-
-/proc/<pid>/coredump_filter file is provided to access the flags.  You can
-change the flag status for a particular process by writing to or reading from
-the file.
-
-The flag status is inherited to the child process when it is created.
+This patch removes an unused argument from elf_fdpic_dump_segments().
 
 Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
@@ -46,162 +39,34 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c        |   89 ++++++++++++++++++++++++++++++++++++++++
- include/linux/sched.h |   14 ++++++
- kernel/fork.c         |    2 
- 3 files changed, 105 insertions(+)
+ fs/binfmt_elf_fdpic.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~coredump-masking-add-an-interface-for-core-dump-filter fs/proc/base.c
---- a/fs/proc/base.c~coredump-masking-add-an-interface-for-core-dump-filter
-+++ a/fs/proc/base.c
-@@ -73,6 +73,7 @@
- #include <linux/poll.h>
- #include <linux/nsproxy.h>
- #include <linux/oom.h>
-+#include <linux/elf.h>
- #include "internal.h"
- 
- /* NOTE:
-@@ -1808,6 +1809,91 @@ static const struct inode_operations pro
- 
- #endif
- 
-+#if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
-+static ssize_t proc_coredump_filter_read(struct file *file, char __user *buf,
-+					 size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
-+	struct mm_struct *mm;
-+	char buffer[PROC_NUMBUF];
-+	size_t len;
-+	int ret;
-+
-+	if (!task)
-+		return -ESRCH;
-+
-+	ret = 0;
-+	mm = get_task_mm(task);
-+	if (mm) {
-+		len = snprintf(buffer, sizeof(buffer), "%08lx\n",
-+			       ((mm->flags & MMF_DUMP_FILTER_MASK) >>
-+				MMF_DUMP_FILTER_SHIFT));
-+		mmput(mm);
-+		ret = simple_read_from_buffer(buf, count, ppos, buffer, len);
-+	}
-+
-+	put_task_struct(task);
-+
-+	return ret;
-+}
-+
-+static ssize_t proc_coredump_filter_write(struct file *file,
-+					  const char __user *buf,
-+					  size_t count,
-+					  loff_t *ppos)
-+{
-+	struct task_struct *task;
-+	struct mm_struct *mm;
-+	char buffer[PROC_NUMBUF], *end;
-+	unsigned int val;
-+	int ret;
-+	int i;
-+	unsigned long mask;
-+
-+	ret = -EFAULT;
-+	memset(buffer, 0, sizeof(buffer));
-+	if (count > sizeof(buffer) - 1)
-+		count = sizeof(buffer) - 1;
-+	if (copy_from_user(buffer, buf, count))
-+		goto out_no_task;
-+
-+	ret = -EINVAL;
-+	val = (unsigned int)simple_strtoul(buffer, &end, 0);
-+	if (*end == '\n')
-+		end++;
-+	if (end - buffer == 0)
-+		goto out_no_task;
-+
-+	ret = -ESRCH;
-+	task = get_proc_task(file->f_dentry->d_inode);
-+	if (!task)
-+		goto out_no_task;
-+
-+	ret = end - buffer;
-+	mm = get_task_mm(task);
-+	if (!mm)
-+		goto out_no_mm;
-+
-+	for (i = 0, mask = 1; i < MMF_DUMP_FILTER_BITS; i++, mask <<= 1) {
-+		if (val & mask)
-+			set_bit(i + MMF_DUMP_FILTER_SHIFT, &mm->flags);
-+		else
-+			clear_bit(i + MMF_DUMP_FILTER_SHIFT, &mm->flags);
-+	}
-+
-+	mmput(mm);
-+ out_no_mm:
-+	put_task_struct(task);
-+ out_no_task:
-+	return ret;
-+}
-+
-+static const struct file_operations proc_coredump_filter_operations = {
-+	.read		= proc_coredump_filter_read,
-+	.write		= proc_coredump_filter_write,
-+};
-+#endif
-+
- /*
-  * /proc/self:
+diff -puN fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-remove-an-unused-argument fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-masking-elf-fdpic-remove-an-unused-argument
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1456,8 +1456,8 @@ static int elf_dump_thread_status(long s
+  * dump the segments for an MMU process
   */
-@@ -2036,6 +2122,9 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_FAULT_INJECTION
- 	REG("make-it-fail", S_IRUGO|S_IWUSR, fault_inject),
- #endif
-+#if defined(USE_ELF_CORE_DUMP) && defined(CONFIG_ELF_CORE)
-+	REG("coredump_filter", S_IRUGO|S_IWUSR, coredump_filter),
-+#endif
- #ifdef CONFIG_TASK_IO_ACCOUNTING
- 	INF("io",	S_IRUGO, pid_io_accounting),
- #endif
-diff -puN include/linux/sched.h~coredump-masking-add-an-interface-for-core-dump-filter include/linux/sched.h
---- a/include/linux/sched.h~coredump-masking-add-an-interface-for-core-dump-filter
-+++ a/include/linux/sched.h
-@@ -328,8 +328,22 @@ extern void set_dumpable(struct mm_struc
- extern int get_dumpable(struct mm_struct *mm);
+ #ifdef CONFIG_MMU
+-static int elf_fdpic_dump_segments(struct file *file, struct mm_struct *mm,
+-				   size_t *size, unsigned long *limit)
++static int elf_fdpic_dump_segments(struct file *file, size_t *size,
++				   unsigned long *limit)
+ {
+ 	struct vm_area_struct *vma;
  
- /* mm flags */
-+/* dumpable bits */
- #define MMF_DUMPABLE      0  /* core dump is permitted */
- #define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
-+#define MMF_DUMPABLE_BITS 2
-+
-+/* coredump filter bits */
-+#define MMF_DUMP_ANON_PRIVATE	2
-+#define MMF_DUMP_ANON_SHARED	3
-+#define MMF_DUMP_MAPPED_PRIVATE	4
-+#define MMF_DUMP_MAPPED_SHARED	5
-+#define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
-+#define MMF_DUMP_FILTER_BITS	4
-+#define MMF_DUMP_FILTER_MASK \
-+	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
-+#define MMF_DUMP_FILTER_DEFAULT \
-+	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED))
+@@ -1511,8 +1511,8 @@ end_coredump:
+  * dump the segments for a NOMMU process
+  */
+ #ifndef CONFIG_MMU
+-static int elf_fdpic_dump_segments(struct file *file, struct mm_struct *mm,
+-				   size_t *size, unsigned long *limit)
++static int elf_fdpic_dump_segments(struct file *file, size_t *size,
++				   unsigned long *limit)
+ {
+ 	struct vm_list_struct *vml;
  
- struct mm_struct {
- 	struct vm_area_struct * mmap;		/* list of VMAs */
-diff -puN kernel/fork.c~coredump-masking-add-an-interface-for-core-dump-filter kernel/fork.c
---- a/kernel/fork.c~coredump-masking-add-an-interface-for-core-dump-filter
-+++ a/kernel/fork.c
-@@ -335,6 +335,8 @@ static struct mm_struct * mm_init(struct
- 	atomic_set(&mm->mm_count, 1);
- 	init_rwsem(&mm->mmap_sem);
- 	INIT_LIST_HEAD(&mm->mmlist);
-+	mm->flags = (current->mm) ? current->mm->flags
-+				  : MMF_DUMP_FILTER_DEFAULT;
- 	mm->core_waiters = 0;
- 	mm->nr_ptes = 0;
- 	set_mm_counter(mm, file_rss, 0);
 _
 
 Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
