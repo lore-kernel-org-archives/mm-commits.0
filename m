@@ -1,91 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:55:16 -0700
-Message-ID: <200705291855.l4TItFL0008580@shell0.pdx.osdl.net>
+Subject: - ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:53:03 -0700
+Message-ID: <200705291853.l4TIr2aC008444@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37656 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765233AbXE2Sz5 (ORCPT
+	by vger.kernel.org with ESMTP id S1765284AbXE2S4J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:55:57 -0400
+	Tue, 29 May 2007 14:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mbligh@google.com, James.Bottomley@steeleye.com, Sumant.Patro@lsi.com, mm-commits@vger.kernel.org
+To: leoli@freescale.com, david-b@pacbell.net, greg@kroah.com, reyems@telkomsa.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: cover up bugs^W^W^WFix up compiler warnings in megaraid driver
+     ehci-fsl: fix cache coherency problem on system with large memory
 has been removed from the -mm tree.  Its filename was
-     scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+     ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: cover up bugs^W^W^WFix up compiler warnings in megaraid driver
-From: Martin Bligh <mbligh@google.com>
+Subject: ehci-fsl: fix cache coherency problem on system with large memory
+From: Li Yang <leoli@freescale.com>
 
-Fix up compiler warnings in megaraid driver
+The patch fix bug http://bugzilla.kernel.org/show_bug.cgi?id=7482.
+It sets USB snooping on 4G space for PowerPC platforms without
+CONFIG_NOT_COHERENT_CACHE defined.
 
-Signed-off-by: Martin J. Bligh <mbligh@google.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Reported-by: Stefan Meyer <reyems@telkomsa.net>
+Signed-off-by: Li Yang <leoli@freescale.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/usb/host/ehci-fsl.c |   13 +++++++++++++
+ drivers/usb/host/ehci-fsl.h |    1 +
+ 2 files changed, 14 insertions(+)
 
-diff -puN drivers/scsi/megaraid.c~scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver drivers/scsi/megaraid.c
---- a/drivers/scsi/megaraid.c~scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver
-+++ a/drivers/scsi/megaraid.c
-@@ -3571,7 +3571,7 @@ megadev_ioctl(struct inode *inode, struc
- 			/*
- 			 * The user passthru structure
- 			 */
--			upthru = (mega_passthru __user *)MBOX(uioc)->xferaddr;
-+			upthru = (mega_passthru __user *)(unsigned long)MBOX(uioc)->xferaddr;
+diff -puN drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.c
+--- a/drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
++++ a/drivers/usb/host/ehci-fsl.c
+@@ -193,6 +193,19 @@ static void mpc83xx_usb_setup(struct usb
+ 	out_be32(non_ehci + FSL_SOC_USB_CTRL, 0x00000004);
+ 	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0000001b);
  
- 			/*
- 			 * Copy in the user passthru here.
-@@ -3623,7 +3623,7 @@ megadev_ioctl(struct inode *inode, struc
- 				/*
- 				 * Get the user data
- 				 */
--				if( copy_from_user(data, (char __user *)uxferaddr,
-+				if( copy_from_user(data, (char __user *)(unsigned long) uxferaddr,
- 							pthru->dataxferlen) ) {
- 					rval = (-EFAULT);
- 					goto freemem_and_return;
-@@ -3649,7 +3649,7 @@ megadev_ioctl(struct inode *inode, struc
- 			 * Is data going up-stream
- 			 */
- 			if( pthru->dataxferlen && (uioc.flags & UIOC_RD) ) {
--				if( copy_to_user((char __user *)uxferaddr, data,
-+				if( copy_to_user((char __user *)(unsigned long) uxferaddr, data,
- 							pthru->dataxferlen) ) {
- 					rval = (-EFAULT);
- 				}
-@@ -3702,7 +3702,7 @@ freemem_and_return:
- 				/*
- 				 * Get the user data
- 				 */
--				if( copy_from_user(data, (char __user *)uxferaddr,
-+				if( copy_from_user(data, (char __user *)(unsigned long) uxferaddr,
- 							uioc.xferlen) ) {
++#if defined(CONFIG_PPC32) && !defined(CONFIG_NOT_COHERENT_CACHE)
++	/*
++	 * Turn on cache snooping hardware, since some PowerPC platforms
++	 * wholly rely on hardware to deal with cache coherent
++	 */
++
++	/* Setup Snooping for all the 4GB space */
++	/* SNOOP1 starts from 0x0, size 2G */
++	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0 | SNOOP_SIZE_2GB);
++	/* SNOOP2 starts from 0x80000000, size 2G */
++	out_be32(non_ehci + FSL_SOC_USB_SNOOP2, 0x80000000 | SNOOP_SIZE_2GB);
++#endif
++
+ 	if (pdata->operating_mode == FSL_USB2_DR_HOST)
+ 		mpc83xx_setup_phy(ehci, pdata->phy_mode, 0);
  
- 					pci_free_consistent(pdev,
-@@ -3742,7 +3742,7 @@ freemem_and_return:
- 			 * Is data going up-stream
- 			 */
- 			if( uioc.xferlen && (uioc.flags & UIOC_RD) ) {
--				if( copy_to_user((char __user *)uxferaddr, data,
-+				if( copy_to_user((char __user *)(unsigned long) uxferaddr, data,
- 							uioc.xferlen) ) {
- 
- 					rval = (-EFAULT);
+diff -puN drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.h
+--- a/drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
++++ a/drivers/usb/host/ehci-fsl.h
+@@ -34,4 +34,5 @@
+ #define FSL_SOC_USB_PRICTRL	0x40c	/* NOTE: big-endian */
+ #define FSL_SOC_USB_SICTRL	0x410	/* NOTE: big-endian */
+ #define FSL_SOC_USB_CTRL	0x500	/* NOTE: big-endian */
++#define SNOOP_SIZE_2GB		0x1e
+ #endif				/* _EHCI_FSL_H */
 _
 
-Patches currently in -mm which might be from mbligh@google.com are
+Patches currently in -mm which might be from leoli@freescale.com are
 
-git-scsi-misc.patch
-ext2-balloc-use-io_error-label.patch
+powerpc-fix-section-mismatch-warnings.patch
