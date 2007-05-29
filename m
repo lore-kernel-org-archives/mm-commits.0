@@ -1,94 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:51:52 -0700
-Message-ID: <200705291851.l4TIppoe008364@shell0.pdx.osdl.net>
+Subject: - misc-phantom-take-care-of-pci-posting.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:52:08 -0700
+Message-ID: <200705291852.l4TIq7N4008376@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46824 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757985AbXE2SwS (ORCPT
+	by vger.kernel.org with ESMTP id S1758017AbXE2Swa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:52:18 -0400
+	Tue, 29 May 2007 14:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB Debug: fix check for super sized slabs (>512k 64bit, >256k  32bit)
+     Misc: phantom, take care of pci posting
 has been removed from the -mm tree.  Its filename was
-     slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k.patch
+     misc-phantom-take-care-of-pci-posting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB Debug: fix check for super sized slabs (>512k 64bit, >256k  32bit)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Misc: phantom, take care of pci posting
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The check for super sized slabs where we can no longer move the free
-pointer behind the object for debugging purposes etc is accessing a field
-that is not setup yet.  We must use objsize here since the size of the slab
-has not been determined yet.
+phantom, take care of pci posting
 
-The effect of this is that a global slab shrink via "slabinfo -s" will show
-errors about offsets being wrong if booted with slub_debug.  Potentially
-there are other troubles with huge slabs under slub_debug because the
-calculated free pointer offset is truncated.
+thanks to akpm for pointing this out
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/phantom.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k mm/slub.c
---- a/mm/slub.c~slub-debug-fix-check-for-super-sized-slabs-512k-64bit-256k
-+++ a/mm/slub.c
-@@ -939,7 +939,7 @@ static void kmem_cache_open_debug_check(
- 	 * Debugging or ctor may create a need to move the free
- 	 * pointer. Fail if this happens.
- 	 */
--	if (s->size >= 65535 * sizeof(void *)) {
-+	if (s->objsize >= 65535 * sizeof(void *)) {
- 		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
- 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
- 		BUG_ON(s->ctor);
+diff -puN drivers/misc/phantom.c~misc-phantom-take-care-of-pci-posting drivers/misc/phantom.c
+--- a/drivers/misc/phantom.c~misc-phantom-take-care-of-pci-posting
++++ a/drivers/misc/phantom.c
+@@ -60,8 +60,11 @@ static int phantom_status(struct phantom
+ 		atomic_set(&dev->counter, 0);
+ 		iowrite32(PHN_CTL_IRQ, dev->iaddr + PHN_CONTROL);
+ 		iowrite32(0x43, dev->caddr + PHN_IRQCTL);
+-	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING))
++		ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
++	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING)) {
+ 		iowrite32(0, dev->caddr + PHN_IRQCTL);
++		ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
++	}
+ 
+ 	dev->status = newstat;
+ 
+@@ -102,6 +105,7 @@ static long phantom_ioctl(struct file *f
+ 
+ 		pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
+ 		iowrite32(r.value, dev->iaddr + r.reg);
++		ioread32(dev->iaddr); /* PCI posting */
+ 
+ 		if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
+ 			phantom_status(dev, dev->status & ~PHB_RUNNING);
+@@ -116,6 +120,7 @@ static long phantom_ioctl(struct file *f
+ 		for (i = 0; i < min(rs.count, 8U); i++)
+ 			if ((1 << i) & rs.mask)
+ 				iowrite32(rs.values[i], dev->oaddr + i);
++		ioread32(dev->iaddr); /* PCI posting */
+ 		spin_unlock(&dev->ioctl_lock);
+ 		break;
+ 	case PHN_GET_REG:
+@@ -221,6 +226,7 @@ static irqreturn_t phantom_isr(int irq, 
+ 
+ 	iowrite32(0, dev->iaddr);
+ 	iowrite32(0xc0, dev->iaddr);
++	ioread32(dev->iaddr); /* PCI posting */
+ 
+ 	atomic_inc(&dev->counter);
+ 	wake_up_interruptible(&dev->wait);
+@@ -297,6 +303,7 @@ static int __devinit phantom_probe(struc
+ 	pht->cdev.owner = THIS_MODULE;
+ 
+ 	iowrite32(0, pht->caddr + PHN_IRQCTL);
++	ioread32(pht->caddr + PHN_IRQCTL); /* PCI posting */
+ 	retval = request_irq(pdev->irq, phantom_isr,
+ 			IRQF_SHARED | IRQF_DISABLED, "phantom", pht);
+ 	if (retval) {
+@@ -347,6 +354,7 @@ static void __devexit phantom_remove(str
+ 	cdev_del(&pht->cdev);
+ 
+ 	iowrite32(0, pht->caddr + PHN_IRQCTL);
++	ioread32(pht->caddr + PHN_IRQCTL); /* PCI posting */
+ 	free_irq(pdev->irq, pht);
+ 
+ 	pci_iounmap(pdev, pht->oaddr);
+@@ -368,6 +376,7 @@ static int phantom_suspend(struct pci_de
+ 	struct phantom_device *dev = pci_get_drvdata(pdev);
+ 
+ 	iowrite32(0, dev->caddr + PHN_IRQCTL);
++	ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-slub-more-documentation.patch
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-bio_alloc-allocations-correctly.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-rename-gfp_high_movable-to-gfp_highuser_movable.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-mark-page-cache-pages-as-__gfp_pagecache-instead-of-__gfp_movable.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used.patch
-group-short-lived-and-reclaimable-kernel-allocations-use-slab_account_reclaim-to-determine-when-__gfp_reclaimable-should-be-used-fix.patch
-group-short-lived-and-reclaimable-kernel-allocations-do-not-annotate-shmem-allocations-explicitly.patch
-group-short-lived-and-reclaimable-kernel-allocations-add-__gfp_temporary-to-identify-allocations-that-are-short-lived.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+rocketc-fix-unchecked-mutex_lock_interruptible.patch
+char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
+char-cyclades-add-firmware-loading.patch
+char-cyclades-fix-sparse-warning.patch
+char-isicom-cleanup-locking.patch
+char-isicom-del_timer-at-exit.patch
+char-isicom-proper-variables-types.patch
+char-moxa-eliminate-busy-waiting.patch
+char-specialix-remove-busy-waiting.patch
+char-riscom8-eliminate-busy-loop.patch
+shrink_slab-handle-bad-shrinkers.patch
