@@ -1,112 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-fix-the-explanation-of-kconfig-files.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:50:55 -0700
-Message-ID: <200705291850.l4TIos4h008307@shell0.pdx.osdl.net>
+Subject: + fix-possible-udf-data-corruption.patch added to -mm tree
+Date: Tue, 29 May 2007 12:37:27 -0700
+Message-ID: <200705291937.l4TJbSEh009763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36340 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756453AbXE2TFD (ORCPT
+	by vger.kernel.org with ESMTP id S1754033AbXE2The (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 15:05:03 -0400
+	Tue, 29 May 2007 15:37:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz
 
 
 The patch titled
-     Documentation: fix the explanation of Kconfig files
-has been removed from the -mm tree.  Its filename was
-     documentation-fix-the-explanation-of-kconfig-files.patch
+     Fix possible UDF data corruption
+has been added to the -mm tree.  Its filename is
+     fix-possible-udf-data-corruption.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation: fix the explanation of Kconfig files
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: Fix possible UDF data corruption
+From: Jan Kara <jack@suse.cz>
 
-Fix the obvious errors in the explanation of Kconfig files.
+update_next_aext() could possibly rewrite values in elen and eloc, possibly
+leading to data corruption when rewriting a file.  Use temporary variables
+instead.  Also advance cur_epos as it can also point to an indirect extent
+pointer.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |   51 +++++++++++++++++++++---------------
- 1 files changed, 31 insertions(+), 20 deletions(-)
+ fs/udf/inode.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/CodingStyle~documentation-fix-the-explanation-of-kconfig-files Documentation/CodingStyle
---- a/Documentation/CodingStyle~documentation-fix-the-explanation-of-kconfig-files
-+++ a/Documentation/CodingStyle
-@@ -495,29 +495,40 @@ re-formatting you may want to take a loo
- remember: "indent" is not a fix for bad programming.
+diff -puN fs/udf/inode.c~fix-possible-udf-data-corruption fs/udf/inode.c
+--- a/fs/udf/inode.c~fix-possible-udf-data-corruption
++++ a/fs/udf/inode.c
+@@ -460,8 +460,8 @@ static struct buffer_head * inode_getblk
+ 	kernel_long_ad laarr[EXTENT_MERGE_SIZE];
+ 	struct extent_position prev_epos, cur_epos, next_epos;
+ 	int count = 0, startnum = 0, endnum = 0;
+-	uint32_t elen = 0;
+-	kernel_lb_addr eloc;
++	uint32_t elen = 0, tmpelen;
++	kernel_lb_addr eloc, tmpeloc;
+ 	int c = 1;
+ 	loff_t lbcount = 0, b_off = 0;
+ 	uint32_t newblocknum, newblock;
+@@ -520,8 +520,12 @@ static struct buffer_head * inode_getblk
  
+ 	b_off -= lbcount;
+ 	offset = b_off >> inode->i_sb->s_blocksize_bits;
+-	/* Move into indirect extent if we are at a pointer to it */
+-	udf_next_aext(inode, &prev_epos, &eloc, &elen, 0);
++	/*
++	 * Move prev_epos and cur_epos into indirect extent if we are at
++	 * the pointer to it
++	 */
++	udf_next_aext(inode, &prev_epos, &tmpeloc, &tmpelen, 0);
++	udf_next_aext(inode, &cur_epos, &tmpeloc, &tmpelen, 0);
  
--		Chapter 10: Configuration-files
-+		Chapter 10: Kconfig configuration files
- 
--For configuration options (arch/xxx/Kconfig, and all the Kconfig files),
--somewhat different indentation is used.
--
--Help text is indented with 2 spaces.
--
--if CONFIG_EXPERIMENTAL
--	tristate CONFIG_BOOM
--	default n
--	help
--	  Apply nitroglycerine inside the keyboard (DANGEROUS)
--	bool CONFIG_CHEER
--	depends on CONFIG_BOOM
--	default y
-+For all of the Kconfig* configuration files throughout the source tree,
-+the indentation is somewhat different.  Lines under a "config" definition
-+are indented with one tab, while help text is indented an additional two
-+spaces.  Example:
-+
-+config AUDIT
-+	bool "Auditing support"
-+	depends on NET
- 	help
--	  Output nice messages when you explode
--endif
-+	  Enable auditing infrastructure that can be used with another
-+	  kernel subsystem, such as SELinux (which requires this for
-+	  logging of avc messages output).  Does not do system-call
-+	  auditing without CONFIG_AUDITSYSCALL.
-+
-+Features that might still be considered unstable should be defined as
-+dependent on "EXPERIMENTAL":
-+
-+config SLUB
-+	depends on EXPERIMENTAL && !ARCH_USES_SLAB_PAGE_STRUCT
-+	bool "SLUB (Unqueued Allocator)"
-+	...
-+
-+while seriously dangerous features (such as write support for certain
-+filesystems) should advertise this prominently in their prompt string:
-+
-+config ADFS_FS_RW
-+	bool "ADFS write support (DANGEROUS)"
-+	depends on ADFS_FS
-+	...
- 
--Generally, CONFIG_EXPERIMENTAL should surround all options not considered
--stable. All options that are known to trash data (experimental write-
--support for file-systems, for instance) should be denoted (DANGEROUS), other
--experimental options should be denoted (EXPERIMENTAL).
-+For full documentation on the configuration files, see the file
-+Documentation/kbuild/kconfig-language.txt.
- 
- 
- 		Chapter 11: Data structures
+ 	/* if the extent is allocated and recorded, return the block
+        if the extent is not a multiple of the blocksize, round up */
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-git-arm-master.patch
-git-ieee1394.patch
-git-kbuild.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+fix-possible-udf-data-corruption.patch
+fix-possible-leakage-of-blocks-in-udf.patch
