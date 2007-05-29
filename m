@@ -1,53 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:39 -0700
-Message-ID: <200705291853.l4TIrctA008474@shell0.pdx.osdl.net>
+Subject: - networking-fix-sending-netlink-message-when-replace-route.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:54:55 -0700
+Message-ID: <200705291854.l4TIssaN008559@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53559 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753571AbXE2Syz (ORCPT
+	by vger.kernel.org with ESMTP id S1751154AbXE2SzT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:54:55 -0400
+	Tue, 29 May 2007 14:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, ben-linux@fluff.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: milon@wq.cz, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: arch/arm/mach-s3c2410/bast.h
+     networking: fix sending netlink message when replace route
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+     networking-fix-sending-netlink-message-when-replace-route.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: arch/arm/mach-s3c2410/bast.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: networking: fix sending netlink message when replace route
+From: Milan Kocian <milon@wq.cz>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ben Dooks <ben-linux@fluff.org>
+When you replace route via ip r r command the netlink multicast message is
+not send.  This patch corrects it.  NL message is sent with NLM_F_REPLACE
+flag.  Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8320
+
+Signed-off-by: Milan Kocian <milon@wq.cz>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/bast.h |    2 --
- 1 files changed, 2 deletions(-)
+ net/ipv4/fib_hash.c      |    6 ++++--
+ net/ipv4/fib_lookup.h    |    3 ++-
+ net/ipv4/fib_semantics.c |    5 +++--
+ net/ipv4/fib_trie.c      |    6 ++++--
+ 4 files changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN arch/arm/mach-s3c2410/bast.h~remove-unused-header-file-arch-arm-mach-s3c2410-basth /dev/null
---- a/arch/arm/mach-s3c2410/bast.h
-+++ /dev/null
-@@ -1,2 +0,0 @@
--/* linux/arch/arm/mach-s3c2410/bast.h
--extern void bast_init_irq(void);
+diff -puN net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_hash.c
+--- a/net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_hash.c
+@@ -456,6 +456,8 @@ static int fn_hash_insert(struct fib_tab
+ 			fib_release_info(fi_drop);
+ 			if (state & FA_S_ACCESSED)
+ 				rt_cache_flush(-1);
++			rtmsg_fib(RTM_NEWROUTE, key, fa, cfg->fc_dst_len, tb->tb_id,
++				  &cfg->fc_nlinfo, NLM_F_REPLACE);
+ 			return 0;
+ 		}
+ 
+@@ -523,7 +525,7 @@ static int fn_hash_insert(struct fib_tab
+ 	rt_cache_flush(-1);
+ 
+ 	rtmsg_fib(RTM_NEWROUTE, key, new_fa, cfg->fc_dst_len, tb->tb_id,
+-		  &cfg->fc_nlinfo);
++		  &cfg->fc_nlinfo, 0);
+ 	return 0;
+ 
+ out_free_new_fa:
+@@ -589,7 +591,7 @@ static int fn_hash_delete(struct fib_tab
+ 
+ 		fa = fa_to_delete;
+ 		rtmsg_fib(RTM_DELROUTE, key, fa, cfg->fc_dst_len,
+-			  tb->tb_id, &cfg->fc_nlinfo);
++			  tb->tb_id, &cfg->fc_nlinfo, 0);
+ 
+ 		kill_fn = 0;
+ 		write_lock_bh(&fib_hash_lock);
+diff -puN net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_lookup.h
+--- a/net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_lookup.h
+@@ -30,7 +30,8 @@ extern int fib_dump_info(struct sk_buff 
+ 			 int dst_len, u8 tos, struct fib_info *fi,
+ 			 unsigned int);
+ extern void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
+-		      int dst_len, u32 tb_id, struct nl_info *info);
++		      int dst_len, u32 tb_id, struct nl_info *info,
++		      unsigned int nlm_flags);
+ extern struct fib_alias *fib_find_alias(struct list_head *fah,
+ 					u8 tos, u32 prio);
+ extern int fib_detect_death(struct fib_info *fi, int order,
+diff -puN net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_semantics.c
+--- a/net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_semantics.c
+@@ -301,7 +301,8 @@ static inline size_t fib_nlmsg_size(stru
+ }
+ 
+ void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
+-	       int dst_len, u32 tb_id, struct nl_info *info)
++	       int dst_len, u32 tb_id, struct nl_info *info,
++	       unsigned int nlm_flags)
+ {
+ 	struct sk_buff *skb;
+ 	u32 seq = info->nlh ? info->nlh->nlmsg_seq : 0;
+@@ -313,7 +314,7 @@ void rtmsg_fib(int event, __be32 key, st
+ 
+ 	err = fib_dump_info(skb, info->pid, seq, event, tb_id,
+ 			    fa->fa_type, fa->fa_scope, key, dst_len,
+-			    fa->fa_tos, fa->fa_info, 0);
++			    fa->fa_tos, fa->fa_info, nlm_flags);
+ 	if (err < 0) {
+ 		/* -EMSGSIZE implies BUG in fib_nlmsg_size() */
+ 		WARN_ON(err == -EMSGSIZE);
+diff -puN net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_trie.c
+--- a/net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_trie.c
+@@ -1226,6 +1226,8 @@ static int fn_trie_insert(struct fib_tab
+ 			fib_release_info(fi_drop);
+ 			if (state & FA_S_ACCESSED)
+ 				rt_cache_flush(-1);
++			rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen,
++				tb->tb_id, &cfg->fc_nlinfo, NLM_F_REPLACE);
+ 
+ 			goto succeeded;
+ 		}
+@@ -1278,7 +1280,7 @@ static int fn_trie_insert(struct fib_tab
+ 
+ 	rt_cache_flush(-1);
+ 	rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen, tb->tb_id,
+-		  &cfg->fc_nlinfo);
++		  &cfg->fc_nlinfo, 0);
+ succeeded:
+ 	return 0;
+ 
+@@ -1624,7 +1626,7 @@ static int fn_trie_delete(struct fib_tab
+ 
+ 	fa = fa_to_delete;
+ 	rtmsg_fib(RTM_DELROUTE, htonl(key), fa, plen, tb->tb_id,
+-		  &cfg->fc_nlinfo);
++		  &cfg->fc_nlinfo, 0);
+ 
+ 	l = fib_find_node(t, key);
+ 	li = find_leaf_info(l, plen);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
-
-git-arm-master.patch
-git-ieee1394.patch
-git-kbuild.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+Patches currently in -mm which might be from milon@wq.cz are
