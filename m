@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch added to -mm tree
-Date: Tue, 29 May 2007 15:38:13 -0700
-Message-ID: <200705292238.l4TMcDBc013370@shell0.pdx.osdl.net>
+Subject: + x86_64-pm_trace-support.patch added to -mm tree
+Date: Tue, 29 May 2007 15:40:14 -0700
+Message-ID: <200705292240.l4TMeEBB013420@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53552 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752254AbXE2WiR (ORCPT
+	by vger.kernel.org with ESMTP id S1751232AbXE2Wk1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 18:38:17 -0400
+	Tue, 29 May 2007 18:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: nigel@nigel.suspend2.net, ak@suse.de, pavel@ucw.cz, rdunlap@xenotime.net, rjw@sisk.pl, torvalds@linux-foundation.org
 
 
 The patch titled
-     fs: introduce write_begin, write_end, and perform_write aops (revoke)
+     x86_64: PM_TRACE support
 has been added to the -mm tree.  Its filename is
-     fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+     x86_64-pm_trace-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,111 +26,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs: introduce write_begin, write_end, and perform_write aops (revoke)
-From: Nick Piggin <npiggin@suse.de>
+Subject: x86_64: PM_TRACE support
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
 
-These are intended to replace prepare_write and commit_write with more
-flexible alternatives that are also able to avoid the buffered write deadlock
-problems efficiently (which prepare_write is unable to do).
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- filemap.c          |    0 
- fs/revoked_inode.c |   14 ++++++++++++++
- 2 files changed, 14 insertions(+)
+ arch/x86_64/kernel/vmlinux.lds.S  |    7 +++++++
+ drivers/base/power/trace.c        |    5 ++++-
+ include/asm-i386/resume-trace.h   |   13 +++++++++++++
+ include/asm-x86_64/resume-trace.h |   13 +++++++++++++
+ include/linux/resume-trace.h      |   19 +++++--------------
+ kernel/power/Kconfig              |    2 +-
+ 6 files changed, 43 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/filesystems/Locking~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke Documentation/filesystems/Locking
-diff -puN Documentation/filesystems/vfs.txt~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke Documentation/filesystems/vfs.txt
-diff -puN drivers/block/loop.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke drivers/block/loop.c
-diff -puN fs/buffer.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke fs/buffer.c
-diff -puN fs/libfs.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke fs/libfs.c
-diff -puN fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke fs/namei.c
-diff -puN fs/revoked_inode.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke fs/revoked_inode.c
---- a/fs/revoked_inode.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke
-+++ a/fs/revoked_inode.c
-@@ -384,6 +384,20 @@ static int revoked_commit_write(struct f
- 	return -EIO;
- }
+diff -puN arch/x86_64/kernel/vmlinux.lds.S~x86_64-pm_trace-support arch/x86_64/kernel/vmlinux.lds.S
+--- a/arch/x86_64/kernel/vmlinux.lds.S~x86_64-pm_trace-support
++++ a/arch/x86_64/kernel/vmlinux.lds.S
+@@ -52,6 +52,13 @@ SECTIONS
  
-+static int revoked_write_begin(struct file *file, struct address_space *mapping,
-+				loff_t pos, unsigned len, unsigned flags,
-+				struct page **pagep, void **fsdata)
-+{
-+	return -EIO;
-+}
+   RODATA
+ 
++  . = ALIGN(4);
++  .tracedata : AT(ADDR(.tracedata) - LOAD_OFFSET) {
++  	__tracedata_start = .;
++	*(.tracedata)
++  	__tracedata_end = .;
++  }
 +
-+static int revoked_write_end(struct file *file, struct address_space *mapping,
-+				loff_t pos, unsigned len, unsigned copied,
-+				struct page *page, void *fsdata)
-+{
-+	return -EIO;
-+}
-+
- static ssize_t revoked_direct_IO(int rw, struct kiocb *iocb,
- 				 const struct iovec *iov, loff_t offset,
- 				 unsigned long nr_segs)
-diff -puN fs/splice.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke fs/splice.c
-diff -puN include/linux/buffer_head.h~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke include/linux/buffer_head.h
-diff -puN include/linux/fs.h~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke include/linux/fs.h
-diff -puN include/linux/pagemap.h~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke include/linux/pagemap.h
-diff -puN mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-revoke mm/filemap.c
+   . = ALIGN(PAGE_SIZE);        /* Align data segment to page size boundary */
+ 				/* Data */
+   .data : AT(ADDR(.data) - LOAD_OFFSET) {
+diff -puN drivers/base/power/trace.c~x86_64-pm_trace-support drivers/base/power/trace.c
+--- a/drivers/base/power/trace.c~x86_64-pm_trace-support
++++ a/drivers/base/power/trace.c
+@@ -142,6 +142,7 @@ void set_trace_device(struct device *dev
+ {
+ 	dev_hash_value = hash_string(DEVSEED, dev->bus_id, DEVHASH);
+ }
++EXPORT_SYMBOL(set_trace_device);
+ 
+ /*
+  * We could just take the "tracedata" index into the .tracedata
+@@ -162,6 +163,7 @@ void generate_resume_trace(void *traceda
+ 	file_hash_value = hash_string(lineno, file, FILEHASH);
+ 	set_magic_time(user_hash_value, file_hash_value, dev_hash_value);
+ }
++EXPORT_SYMBOL(generate_resume_trace);
+ 
+ extern char __tracedata_start, __tracedata_end;
+ static int show_file_hash(unsigned int value)
+@@ -170,7 +172,8 @@ static int show_file_hash(unsigned int v
+ 	char *tracedata;
+ 
+ 	match = 0;
+-	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ; tracedata += 6) {
++	for (tracedata = &__tracedata_start ; tracedata < &__tracedata_end ;
++			tracedata += 2 + sizeof(unsigned long)) {
+ 		unsigned short lineno = *(unsigned short *)tracedata;
+ 		const char *file = *(const char **)(tracedata + 2);
+ 		unsigned int hash = hash_string(lineno, file, FILEHASH);
+diff -puN /dev/null include/asm-i386/resume-trace.h
+--- /dev/null
++++ a/include/asm-i386/resume-trace.h
+@@ -0,0 +1,13 @@
++#define TRACE_RESUME(user) do {					\
++	if (pm_trace_enabled) {					\
++		void *tracedata;				\
++		asm volatile("movl $1f,%0\n"			\
++			".section .tracedata,\"a\"\n"		\
++			"1:\t.word %c1\n"			\
++			"\t.long %c2\n"				\
++			".previous"				\
++			:"=r" (tracedata)			\
++			: "i" (__LINE__), "i" (__FILE__));	\
++		generate_resume_trace(tracedata, user);		\
++	}							\
++} while (0)
+diff -puN /dev/null include/asm-x86_64/resume-trace.h
+--- /dev/null
++++ a/include/asm-x86_64/resume-trace.h
+@@ -0,0 +1,13 @@
++#define TRACE_RESUME(user) do {					\
++	if (pm_trace_enabled) {					\
++		void *tracedata;				\
++		asm volatile("movq $1f,%0\n"			\
++			".section .tracedata,\"a\"\n"		\
++			"1:\t.word %c1\n"			\
++			"\t.quad %c2\n"				\
++			".previous"				\
++			:"=r" (tracedata)			\
++			: "i" (__LINE__), "i" (__FILE__));	\
++		generate_resume_trace(tracedata, user);		\
++	}							\
++} while (0)
+diff -puN include/linux/resume-trace.h~x86_64-pm_trace-support include/linux/resume-trace.h
+--- a/include/linux/resume-trace.h~x86_64-pm_trace-support
++++ a/include/linux/resume-trace.h
+@@ -2,6 +2,7 @@
+ #define RESUME_TRACE_H
+ 
+ #ifdef CONFIG_PM_TRACE
++#include <asm/resume-trace.h>
+ 
+ extern int pm_trace_enabled;
+ 
+@@ -9,20 +10,10 @@ struct device;
+ extern void set_trace_device(struct device *);
+ extern void generate_resume_trace(void *tracedata, unsigned int user);
+ 
+-#define TRACE_DEVICE(dev) set_trace_device(dev)
+-#define TRACE_RESUME(user) do {					\
+-	if (pm_trace_enabled) {					\
+-		void *tracedata;				\
+-		asm volatile("movl $1f,%0\n"			\
+-			".section .tracedata,\"a\"\n"		\
+-			"1:\t.word %c1\n"			\
+-			"\t.long %c2\n"				\
+-			".previous"				\
+-			:"=r" (tracedata)			\
+-			: "i" (__LINE__), "i" (__FILE__));	\
+-		generate_resume_trace(tracedata, user);		\
+-	}							\
+-} while (0)
++#define TRACE_DEVICE(dev) do { \
++	if (pm_trace_enabled) \
++		set_trace_device(dev); \
++	} while(0)
+ 
+ #else
+ 
+diff -puN kernel/power/Kconfig~x86_64-pm_trace-support kernel/power/Kconfig
+--- a/kernel/power/Kconfig~x86_64-pm_trace-support
++++ a/kernel/power/Kconfig
+@@ -50,7 +50,7 @@ config DISABLE_CONSOLE_SUSPEND
+ 
+ config PM_TRACE
+ 	bool "Suspend/resume event tracing"
+-	depends on PM && PM_DEBUG && X86_32 && EXPERIMENTAL
++	depends on PM && PM_DEBUG && X86 && EXPERIMENTAL
+ 	default n
+ 	---help---
+ 	This enables some cheesy code to save the last PM event point in the
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from nigel@nigel.suspend2.net are
 
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-mm-remove-legacy-cruft.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-git-arm-master.patch
-slob-rework-freelist-handling.patch
-slob-remove-bigblock-tracking.patch
-slob-improved-alignment-handling.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext4-convert-to-new-aops.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-mm-document-fault_data-and-flags.patch
-fs-introduce-some-page-buffer-invariants.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+x86_64-pm_trace-support.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
