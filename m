@@ -1,115 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-move-frozen_process-to-kernel-power-processc.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:50:20 -0700
-Message-ID: <200705291850.l4TIoJRN008253@shell0.pdx.osdl.net>
+Subject: - uml-improve-ptrace_sysemu-checking.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:50:49 -0700
+Message-ID: <200705291850.l4TIomiL008299@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53015 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752209AbXE2SvF (ORCPT
+	by vger.kernel.org with ESMTP id S1752836AbXE2SvM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:51:05 -0400
+	Tue, 29 May 2007 14:51:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ego@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: move frozen_process() to kernel/power/process.c
+     uml: improve PTRACE_SYSEMU checking
 has been removed from the -mm tree.  Its filename was
-     freezer-move-frozen_process-to-kernel-power-processc.patch
+     uml-improve-ptrace_sysemu-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: freezer: move frozen_process() to kernel/power/process.c
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: uml: improve PTRACE_SYSEMU checking
+From: Jeff Dike <jdike@addtoit.com>
 
-Other than refrigerator, no one else calls frozen_process().  So move it from
-include/linux/freezer.h to kernel/power/process.c.
+Make the PTRACE_SYSEMU checking more robust.  It will make sure that system
+call numbers are reported correctly.  If there is a problem, it will disable
+PTRACE_SYSEMU use and use PTRACE_SYSCALL instead.
 
-Also, since a task can be marked as frozen by itself, we don't need to pass
-the (struct task_struct *p) parameter to frozen_process().
+Thanks to Balaji G for helping reproduce this problem.
 
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |   13 -------------
- kernel/power/process.c  |   14 +++++++++++++-
- 2 files changed, 13 insertions(+), 14 deletions(-)
+ arch/um/os-Linux/start_up.c |   24 ++++++++++++++++--------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-move-frozen_process-to-kernel-power-processc
-+++ a/include/linux/freezer.h
-@@ -58,18 +58,6 @@ static inline int thaw_process(struct ta
- 	return 0;
- }
- 
--/*
-- * freezing is complete, mark process as frozen
-- */
--static inline void frozen_process(struct task_struct *p)
--{
--	if (!unlikely(p->flags & PF_NOFREEZE)) {
--		p->flags |= PF_FROZEN;
--		wmb();
--	}
--	clear_tsk_thread_flag(p, TIF_FREEZE);
--}
--
- extern void refrigerator(void);
- extern int freeze_processes(void);
- extern void thaw_processes(void);
-@@ -132,7 +120,6 @@ static inline int frozen(struct task_str
- static inline int freezing(struct task_struct *p) { return 0; }
- static inline void freeze(struct task_struct *p) { BUG(); }
- static inline int thaw_process(struct task_struct *p) { return 1; }
--static inline void frozen_process(struct task_struct *p) { BUG(); }
- 
- static inline void refrigerator(void) {}
- static inline int freeze_processes(void) { BUG(); return 0; }
-diff -puN kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc kernel/power/process.c
---- a/kernel/power/process.c~freezer-move-frozen_process-to-kernel-power-processc
-+++ a/kernel/power/process.c
-@@ -31,6 +31,18 @@ static inline int freezeable(struct task
- 	return 1;
- }
- 
-+/*
-+ * freezing is complete, mark current process as frozen
-+ */
-+static inline void frozen_process(void)
-+{
-+	if (!unlikely(current->flags & PF_NOFREEZE)) {
-+		current->flags |= PF_FROZEN;
-+		wmb();
-+	}
-+	clear_tsk_thread_flag(current, TIF_FREEZE);
-+}
-+
- /* Refrigerator is place where frozen processes are stored :-). */
- void refrigerator(void)
+diff -puN arch/um/os-Linux/start_up.c~uml-improve-ptrace_sysemu-checking arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-improve-ptrace_sysemu-checking
++++ a/arch/um/os-Linux/start_up.c
+@@ -144,9 +144,7 @@ static int stop_ptraced_child(int pid, v
+ 		int exit_with = WEXITSTATUS(status);
+ 		if (exit_with == 2)
+ 			non_fatal("check_ptrace : child exited with status 2. "
+-				  "Serious trouble happening! Try updating "
+-				  "your host skas patch!\nDisabling SYSEMU "
+-				  "support.");
++				  "\nDisabling SYSEMU support.\n");
+ 		non_fatal("check_ptrace : child exited with exitcode %d, while "
+ 			  "expecting %d; status 0x%x\n", exit_with,
+ 			  exitcode, status);
+@@ -209,6 +207,7 @@ __uml_setup("nosysemu", nosysemu_cmd_par
+ static void __init check_sysemu(void)
  {
-@@ -40,7 +52,7 @@ void refrigerator(void)
+ 	void *stack;
++	unsigned long regs[MAX_REG_NR];
+ 	int pid, n, status, count=0;
  
- 	task_lock(current);
- 	if (freezing(current)) {
--		frozen_process(current);
-+		frozen_process();
- 		task_unlock(current);
- 	} else {
- 		task_unlock(current);
+ 	non_fatal("Checking syscall emulation patch for ptrace...");
+@@ -225,11 +224,20 @@ static void __init check_sysemu(void)
+ 		fatal("check_sysemu : expected SIGTRAP, got status = %d",
+ 		      status);
+ 
+-	n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET,
+-		   os_getpid());
+-	if(n < 0)
+-		fatal_perror("check_sysemu : failed to modify system call "
+-			     "return");
++	if(ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
++		fatal_perror("check_sysemu : PTRACE_GETREGS failed");
++	if(PT_SYSCALL_NR(regs) != __NR_getpid){
++		non_fatal("check_sysemu got system call number %d, "
++			  "expected %d...", PT_SYSCALL_NR(regs), __NR_getpid);
++		goto fail;
++	}
++
++	n = ptrace(PTRACE_POKEUSR, pid, PT_SYSCALL_RET_OFFSET, os_getpid());
++	if(n < 0){
++		non_fatal("check_sysemu : failed to modify system call "
++			  "return");
++		goto fail;
++	}
+ 
+ 	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
+ 		goto fail_stopped;
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
-
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
+Patches currently in -mm which might be from jdike@addtoit.com are
