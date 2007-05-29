@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-masking-documentation-for-proc-pid-coredump_filter.patch added to -mm tree
-Date: Tue, 29 May 2007 14:40:28 -0700
-Message-ID: <200705292140.l4TLeSOV012335@shell0.pdx.osdl.net>
+Subject: + use-list_for_each_entry-for-iteration-in-hostap_apc.patch added to -mm tree
+Date: Tue, 29 May 2007 14:46:39 -0700
+Message-ID: <200705292146.l4TLkdBR012432@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49903 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751197AbXE2Vkp (ORCPT
+	by vger.kernel.org with ESMTP id S1751310AbXE2Vr2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:40:45 -0400
+	Tue, 29 May 2007 17:47:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidehiro.kawai.ez@hitachi.com, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hugh@veritas.com, nickpiggin@yahoo.com.au, rdunlap@xenotime.net
+Cc: matthias.kaehlcke@gmail.com, hch@lst.de, linville@tuxdriver.com
 
 
 The patch titled
-     coredump masking: documentation for /proc/pid/coredump_filter
+     use list_for_each_entry() for iteration in hostap_ap.c
 has been added to the -mm tree.  Its filename is
-     coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+     use-list_for_each_entry-for-iteration-in-hostap_apc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,154 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coredump masking: documentation for /proc/pid/coredump_filter
-From: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
+Subject: use list_for_each_entry() for iteration in hostap_ap.c
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-This patch adds the documentation for /proc/<pid>/coredump_filter.
+hostap_ap.c: Use list_for_each_entry() instead of manual iteration and
+substitute some list_for_each() loops with list_for_each_entry()
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   38 +++++++++++++++++++++++++++
- 1 files changed, 38 insertions(+)
+ drivers/net/wireless/hostap/hostap_ap.c |   33 +++++++---------------
+ 1 files changed, 11 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~coredump-masking-documentation-for-proc-pid-coredump_filter
-+++ a/Documentation/filesystems/proc.txt
-@@ -42,6 +42,7 @@ Table of Contents
-   2.12	/proc/<pid>/oom_adj - Adjust the oom-killer score
-   2.13	/proc/<pid>/oom_score - Display current oom-killer score
-   2.14	/proc/<pid>/io - Display the IO accounting fields
-+  2.15	/proc/<pid>/coredump_filter - Core dump filtering settings
+diff -puN drivers/net/wireless/hostap/hostap_ap.c~use-list_for_each_entry-for-iteration-in-hostap_apc drivers/net/wireless/hostap/hostap_ap.c
+--- a/drivers/net/wireless/hostap/hostap_ap.c~use-list_for_each_entry-for-iteration-in-hostap_apc
++++ a/drivers/net/wireless/hostap/hostap_ap.c
+@@ -326,7 +326,6 @@ static int ap_control_proc_read(char *pa
+ 	char *p = page;
+ 	struct ap_data *ap = (struct ap_data *) data;
+ 	char *policy_txt;
+-	struct list_head *ptr;
+ 	struct mac_entry *entry;
  
- ------------------------------------------------------------------------------
- Preface
-@@ -2135,4 +2136,41 @@ those 64-bit counters, process A could s
- More information about this can be found within the taskstats documentation in
- Documentation/accounting.
+ 	if (off != 0) {
+@@ -352,14 +351,12 @@ static int ap_control_proc_read(char *pa
+ 	p += sprintf(p, "MAC entries: %u\n", ap->mac_restrictions.entries);
+ 	p += sprintf(p, "MAC list:\n");
+ 	spin_lock_bh(&ap->mac_restrictions.lock);
+-	for (ptr = ap->mac_restrictions.mac_list.next;
+-	     ptr != &ap->mac_restrictions.mac_list; ptr = ptr->next) {
++	list_for_each_entry(entry, &ap->mac_restrictions.mac_list, list) {
+ 		if (p - page > PAGE_SIZE - 80) {
+ 			p += sprintf(p, "All entries did not fit one page.\n");
+ 			break;
+ 		}
  
-+2.15 /proc/<pid>/coredump_filter - Core dump filtering settings
-+---------------------------------------------------------------
-+When a process is dumped, all anonymous memory is written to a core file as
-+long as the size of the core file isn't limited. But sometimes we don't want
-+to dump some memory segments, for example, huge shared memory. Conversely,
-+sometimes we want to save file-backed memory segments into a core file, not
-+only the individual files.
+-		entry = list_entry(ptr, struct mac_entry, list);
+ 		p += sprintf(p, MACSTR "\n", MAC2STR(entry->addr));
+ 	}
+ 	spin_unlock_bh(&ap->mac_restrictions.lock);
+@@ -410,10 +407,10 @@ int ap_control_del_mac(struct mac_restri
+ }
+ 
+ 
 +
-+/proc/<pid>/coredump_filter allows you to customize which memory segments
-+will be dumped when the <pid> process is dumped. coredump_filter is a bitmask
-+of memory types. If a bit of the bitmask is set, memory segments of the
-+corresponding memory type are dumped, otherwise they are not dumped.
-+
-+The following 4 memory types are supported:
-+  - (bit 0) anonymous private memory
-+  - (bit 1) anonymous shared memory
-+  - (bit 2) file-backed private memory
-+  - (bit 3) file-backed shared memory
-+
-+  Note that MMIO pages such as frame buffer are never dumped and vDSO pages
-+  are always dumped regardless of the bitmask status.
-+
-+Default value of coredump_filter is 0x3; this means all anonymous memory
-+segments are dumped.
-+
-+If you don't want to dump all shared memory segments attached to pid 1234,
-+write 1 to the process's proc file.
-+
-+  $ echo 0x1 > /proc/1234/coredump_filter
-+
-+When a new process is created, the process inherits the bitmask status from its
-+parent. It is useful to set up coredump_filter before the program runs.
-+For example:
-+
-+  $ echo 0x7 > /proc/self/coredump_filter
-+  $ ./some_program
-+
- ------------------------------------------------------------------------------
+ static int ap_control_mac_deny(struct mac_restrictions *mac_restrictions,
+ 			       u8 *mac)
+ {
+-	struct list_head *ptr;
+ 	struct mac_entry *entry;
+ 	int found = 0;
+ 
+@@ -421,10 +418,7 @@ static int ap_control_mac_deny(struct ma
+ 		return 0;
+ 
+ 	spin_lock_bh(&mac_restrictions->lock);
+-	for (ptr = mac_restrictions->mac_list.next;
+-	     ptr != &mac_restrictions->mac_list; ptr = ptr->next) {
+-		entry = list_entry(ptr, struct mac_entry, list);
+-
++	list_for_each_entry(entry, &mac_restrictions->mac_list, list) {
+ 		if (memcmp(entry->addr, mac, ETH_ALEN) == 0) {
+ 			found = 1;
+ 			break;
+@@ -519,7 +513,7 @@ static int prism2_ap_proc_read(char *pag
+ {
+ 	char *p = page;
+ 	struct ap_data *ap = (struct ap_data *) data;
+-	struct list_head *ptr;
++	struct sta_info *sta;
+ 	int i;
+ 
+ 	if (off > PROC_LIMIT) {
+@@ -529,9 +523,7 @@ static int prism2_ap_proc_read(char *pag
+ 
+ 	p += sprintf(p, "# BSSID CHAN SIGNAL NOISE RATE SSID FLAGS\n");
+ 	spin_lock_bh(&ap->sta_table_lock);
+-	for (ptr = ap->sta_list.next; ptr != &ap->sta_list; ptr = ptr->next) {
+-		struct sta_info *sta = (struct sta_info *) ptr;
+-
++	list_for_each_entry(sta, &ap->sta_list, list) {
+ 		if (!sta->ap)
+ 			continue;
+ 
+@@ -861,7 +853,7 @@ void hostap_init_ap_proc(local_info_t *l
+ 
+ void hostap_free_data(struct ap_data *ap)
+ {
+-	struct list_head *n, *ptr;
++	struct sta_info *n, *sta;
+ 
+ 	if (ap == NULL || !ap->initialized) {
+ 		printk(KERN_DEBUG "hostap_free_data: ap has not yet been "
+@@ -875,8 +867,7 @@ void hostap_free_data(struct ap_data *ap
+ 	ap->crypt = ap->crypt_priv = NULL;
+ #endif /* PRISM2_NO_KERNEL_IEEE80211_MGMT */
+ 
+-	list_for_each_safe(ptr, n, &ap->sta_list) {
+-		struct sta_info *sta = list_entry(ptr, struct sta_info, list);
++	list_for_each_entry_safe(sta, n, &ap->sta_list, list) {
+ 		ap_sta_hash_del(ap, sta);
+ 		list_del(&sta->list);
+ 		if ((sta->flags & WLAN_STA_ASSOC) && !sta->ap && sta->local)
+@@ -3198,15 +3189,14 @@ int hostap_update_rx_stats(struct ap_dat
+ 
+ void hostap_update_rates(local_info_t *local)
+ {
+-	struct list_head *ptr;
++	struct sta_info *sta;
+ 	struct ap_data *ap = local->ap;
+ 
+ 	if (!ap)
+ 		return;
+ 
+ 	spin_lock_bh(&ap->sta_table_lock);
+-	for (ptr = ap->sta_list.next; ptr != &ap->sta_list; ptr = ptr->next) {
+-		struct sta_info *sta = (struct sta_info *) ptr;
++	list_for_each_entry(sta, &ap->sta_list, list) {
+ 		prism2_check_tx_rates(sta);
+ 	}
+ 	spin_unlock_bh(&ap->sta_table_lock);
+@@ -3242,11 +3232,10 @@ void * ap_crypt_get_ptrs(struct ap_data 
+ void hostap_add_wds_links(local_info_t *local)
+ {
+ 	struct ap_data *ap = local->ap;
+-	struct list_head *ptr;
++	struct sta_info *sta;
+ 
+ 	spin_lock_bh(&ap->sta_table_lock);
+-	list_for_each(ptr, &ap->sta_list) {
+-		struct sta_info *sta = list_entry(ptr, struct sta_info, list);
++	list_for_each_entry(sta, &ap->sta_list, list) {
+ 		if (sta->ap)
+ 			hostap_wds_link_oper(local, sta->addr, WDS_ADD);
+ 	}
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+power-management-use-mutexes-instead-of-semaphores.patch
+sysdev-use-mutex-instead-of-semaphore.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+use-list_for_each_entry-for-iteration-in-hostap_apc.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
