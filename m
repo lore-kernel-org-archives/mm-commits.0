@@ -1,79 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:53:03 -0700
-Message-ID: <200705291853.l4TIr2aC008444@shell0.pdx.osdl.net>
+Subject: - scsi-use-irq_handler_t-where-appropriate.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:55:33 -0700
+Message-ID: <200705291855.l4TItWhN008587@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48064 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765284AbXE2S4J (ORCPT
+	by vger.kernel.org with ESMTP id S1765280AbXE2S4K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:56:09 -0400
+	Tue, 29 May 2007 14:56:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leoli@freescale.com, david-b@pacbell.net, greg@kroah.com, reyems@telkomsa.net, mm-commits@vger.kernel.org
+To: jeff@garzik.org, andrew.vasquez@qlogic.com, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ehci-fsl: fix cache coherency problem on system with large memory
+     SCSI: use irq_handler_t where appropriate
 has been removed from the -mm tree.  Its filename was
-     ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory.patch
+     scsi-use-irq_handler_t-where-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ehci-fsl: fix cache coherency problem on system with large memory
-From: Li Yang <leoli@freescale.com>
+Subject: SCSI: use irq_handler_t where appropriate
+From: Jeff Garzik <jeff@garzik.org>
 
-The patch fix bug http://bugzilla.kernel.org/show_bug.cgi?id=7482.
-It sets USB snooping on 4G space for PowerPC platforms without
-CONFIG_NOT_COHERENT_CACHE defined.
-
-Reported-by: Stefan Meyer <reyems@telkomsa.net>
-Signed-off-by: Li Yang <leoli@freescale.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Jeff Garzik <jeff@garzik.org>
+Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-fsl.c |   13 +++++++++++++
- drivers/usb/host/ehci-fsl.h |    1 +
- 2 files changed, 14 insertions(+)
+ drivers/scsi/aacraid/aacraid.h |    2 +-
+ drivers/scsi/qla2xxx/qla_isr.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.c
---- a/drivers/usb/host/ehci-fsl.c~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
-+++ a/drivers/usb/host/ehci-fsl.c
-@@ -193,6 +193,19 @@ static void mpc83xx_usb_setup(struct usb
- 	out_be32(non_ehci + FSL_SOC_USB_CTRL, 0x00000004);
- 	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0000001b);
+diff -puN drivers/scsi/aacraid/aacraid.h~scsi-use-irq_handler_t-where-appropriate drivers/scsi/aacraid/aacraid.h
+--- a/drivers/scsi/aacraid/aacraid.h~scsi-use-irq_handler_t-where-appropriate
++++ a/drivers/scsi/aacraid/aacraid.h
+@@ -464,7 +464,7 @@ struct adapter_ops
+ 	int  (*adapter_restart)(struct aac_dev *dev, int bled);
+ 	/* Transport operations */
+ 	int  (*adapter_ioremap)(struct aac_dev * dev, u32 size);
+-	irqreturn_t (*adapter_intr)(int irq, void *dev_id);
++	irq_handler_t adapter_intr;
+ 	/* Packet operations */
+ 	int  (*adapter_deliver)(struct fib * fib);
+ 	int  (*adapter_bounds)(struct aac_dev * dev, struct scsi_cmnd * cmd, u64 lba);
+diff -puN drivers/scsi/qla2xxx/qla_isr.c~scsi-use-irq_handler_t-where-appropriate drivers/scsi/qla2xxx/qla_isr.c
+--- a/drivers/scsi/qla2xxx/qla_isr.c~scsi-use-irq_handler_t-where-appropriate
++++ a/drivers/scsi/qla2xxx/qla_isr.c
+@@ -1633,7 +1633,7 @@ struct qla_init_msix_entry {
+ 	uint16_t entry;
+ 	uint16_t index;
+ 	const char *name;
+-	irqreturn_t (*handler)(int, void *);
++	irq_handler_t handler;
+ };
  
-+#if defined(CONFIG_PPC32) && !defined(CONFIG_NOT_COHERENT_CACHE)
-+	/*
-+	 * Turn on cache snooping hardware, since some PowerPC platforms
-+	 * wholly rely on hardware to deal with cache coherent
-+	 */
-+
-+	/* Setup Snooping for all the 4GB space */
-+	/* SNOOP1 starts from 0x0, size 2G */
-+	out_be32(non_ehci + FSL_SOC_USB_SNOOP1, 0x0 | SNOOP_SIZE_2GB);
-+	/* SNOOP2 starts from 0x80000000, size 2G */
-+	out_be32(non_ehci + FSL_SOC_USB_SNOOP2, 0x80000000 | SNOOP_SIZE_2GB);
-+#endif
-+
- 	if (pdata->operating_mode == FSL_USB2_DR_HOST)
- 		mpc83xx_setup_phy(ehci, pdata->phy_mode, 0);
- 
-diff -puN drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory drivers/usb/host/ehci-fsl.h
---- a/drivers/usb/host/ehci-fsl.h~ehci-fsl-fix-cache-coherency-problem-on-system-with-large-memory
-+++ a/drivers/usb/host/ehci-fsl.h
-@@ -34,4 +34,5 @@
- #define FSL_SOC_USB_PRICTRL	0x40c	/* NOTE: big-endian */
- #define FSL_SOC_USB_SICTRL	0x410	/* NOTE: big-endian */
- #define FSL_SOC_USB_CTRL	0x500	/* NOTE: big-endian */
-+#define SNOOP_SIZE_2GB		0x1e
- #endif				/* _EHCI_FSL_H */
+ static struct qla_init_msix_entry imsix_entries[QLA_MSIX_ENTRIES] = {
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-powerpc-fix-section-mismatch-warnings.patch
+pci-quirks-fix-msi-disabling-on-rs400-200-and-rs480.patch
+git-ieee1394.patch
+git-libata-all.patch
+git-ubi.patch
+git-netdev-all.patch
+8139too-force-media-setting-fix.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-ioat.patch
+remove-pci_dac_dma_-apis.patch
+git-pciseg.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+s390-spinlock-initializer-cleanup.patch
+git-scsi-misc.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+add-select-phylib-to-the-ucc_geth-kconfig-option.patch
+lguest-the-guest-code-tidyups-update.patch
+lguest-the-net-driver.patch
+lguest-the-net-driver-tidyups-update.patch
+git-gccbug.patch
