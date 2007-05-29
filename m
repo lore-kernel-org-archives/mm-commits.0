@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt8623fb-arkfb-null-pointer-dereference-fix.patch added to -mm tree
-Date: Tue, 29 May 2007 15:51:50 -0700
-Message-ID: <200705292251.l4TMpof6013637@shell0.pdx.osdl.net>
+Subject: + skeletonfb-fix-of-xxxfb_setup-ifdef.patch added to -mm tree
+Date: Tue, 29 May 2007 15:51:44 -0700
+Message-ID: <200705292251.l4TMpjso013630@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34296 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbXE2WwC (ORCPT
+	by vger.kernel.org with ESMTP id S1751256AbXE2Wvx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 18:52:02 -0400
+	Tue, 29 May 2007 18:51:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: santiago@crfreenet.org, adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     vt8623fb: arkfb: null pointer dereference fix
+     skeletonfb: fix of xxxfb_setup ifdef
 has been added to the -mm tree.  Its filename is
-     vt8623fb-arkfb-null-pointer-dereference-fix.patch
+     skeletonfb-fix-of-xxxfb_setup-ifdef.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vt8623fb: arkfb: null pointer dereference fix
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: skeletonfb: fix of xxxfb_setup ifdef
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch prevents null pointer dereference in arkfb and vt8623fb.
+This patch fixes wrong ifdef around the xxxfb_setup. It also moves this
+function to remove forward declaration.
 
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/arkfb.c    |    3 ++-
- drivers/video/vt8623fb.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/skeletonfb.c |   31 +++++++++++++++----------------
+ 1 files changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN drivers/video/arkfb.c~vt8623fb-arkfb-null-pointer-dereference-fix drivers/video/arkfb.c
---- a/drivers/video/arkfb.c~vt8623fb-arkfb-null-pointer-dereference-fix
-+++ a/drivers/video/arkfb.c
-@@ -1055,9 +1055,10 @@ err_enable_device:
- static void __devexit ark_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
--	struct arkfb_info *par = info->par;
+diff -puN drivers/video/skeletonfb.c~skeletonfb-fix-of-xxxfb_setup-ifdef drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-fix-of-xxxfb_setup-ifdef
++++ a/drivers/video/skeletonfb.c
+@@ -132,7 +132,6 @@ static struct fb_info info;
+ static struct xxx_par __initdata current_par;
  
- 	if (info) {
-+		struct arkfb_info *par = info->par;
-+
- #ifdef CONFIG_MTRR
- 		if (par->mtrr_reg >= 0) {
- 			mtrr_del(par->mtrr_reg, 0, 0);
-diff -puN drivers/video/vt8623fb.c~vt8623fb-arkfb-null-pointer-dereference-fix drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~vt8623fb-arkfb-null-pointer-dereference-fix
-+++ a/drivers/video/vt8623fb.c
-@@ -778,9 +778,10 @@ err_enable_device:
- static void __devexit vt8623_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
--	struct vt8623fb_info *par = info->par;
+ int xxxfb_init(void);
+-int xxxfb_setup(char*);
  
- 	if (info) {
-+		struct vt8623fb_info *par = info->par;
+ /**
+  *	xxxfb_open - Optional function. Called when the framebuffer is
+@@ -975,6 +974,21 @@ static struct platform_device xxxfb_devi
+ 	.name = "xxxfb",
+ };
+ 
++#ifndef MODULE
++    /*
++     *  Setup
++     */
 +
- #ifdef CONFIG_MTRR
- 		if (par->mtrr_reg >= 0) {
- 			mtrr_del(par->mtrr_reg, 0, 0);
++/*
++ * Only necessary if your driver takes special options,
++ * otherwise we fall back on the generic fb_setup().
++ */
++int __init xxxfb_setup(char *options)
++{
++    /* Parse user speficied options (`video=xxxfb:') */
++}
++#endif /* MODULE */
++
+ static int __init xxxfb_init(void)
+ {
+ 	int ret;
+@@ -1006,21 +1020,6 @@ static void __exit xxxfb_exit(void)
+ }
+ #endif /* CONFIG_PCI */
+ 
+-#ifdef MODULE
+-    /*
+-     *  Setup
+-     */
+-
+-/* 
+- * Only necessary if your driver takes special options,
+- * otherwise we fall back on the generic fb_setup().
+- */
+-int __init xxxfb_setup(char *options)
+-{
+-    /* Parse user speficied options (`video=xxxfb:') */
+-}
+-#endif /* MODULE */
+-
+ /* ------------------------------------------------------------------------- */
+ 
+ 
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-vt8623fb-arkfb-null-pointer-dereference-fix.patch
+skeletonfb-fix-of-xxxfb_setup-ifdef.patch
+fbcon-smart-blitter-usage-for-scrolling.patch
