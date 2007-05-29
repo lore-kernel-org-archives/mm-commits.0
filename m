@@ -1,196 +1,299 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-toeknring.patch removed from -mm tree
-Date: Tue, 29 May 2007 11:54:53 -0700
-Message-ID: <200705291854.l4TIsqQr008556@shell0.pdx.osdl.net>
+Subject: - drivers-scsi-advansysc-cleanups.patch removed from -mm tree
+Date: Tue, 29 May 2007 11:55:00 -0700
+Message-ID: <200705291854.l4TIsxra008566@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35316 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761227AbXE2Sz1 (ORCPT
+	by vger.kernel.org with ESMTP id S1760878AbXE2Szj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 14:55:27 -0400
+	Tue, 29 May 2007 14:55:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: tokenring
+     drivers/scsi/advansys.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-toeknring.patch
+     drivers-scsi-advansysc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: tokenring
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: drivers/scsi/advansys.c: cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+- remove the unneeded advansys.h
+- remove the unused advansys_setup()
+- make needlessly global functions static
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/Kconfig |   33 +++++++++++++++-----------------
- 1 files changed, 16 insertions(+), 17 deletions(-)
+ drivers/scsi/advansys.c |  101 +++-----------------------------------
+ drivers/scsi/advansys.h |   36 -------------
+ 2 files changed, 8 insertions(+), 129 deletions(-)
 
-diff -puN drivers/net/tokenring/Kconfig~use-menuconfig-objects-toeknring drivers/net/tokenring/Kconfig
---- a/drivers/net/tokenring/Kconfig~use-menuconfig-objects-toeknring
-+++ a/drivers/net/tokenring/Kconfig
-@@ -2,12 +2,10 @@
- # Token Ring driver configuration
- #
- 
--menu "Token Ring devices"
--	depends on NETDEVICES && !UML
+diff -puN drivers/scsi/advansys.c~drivers-scsi-advansysc-cleanups drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~drivers-scsi-advansysc-cleanups
++++ a/drivers/scsi/advansys.c
+@@ -798,7 +798,6 @@
+ #include <scsi/scsi_tcq.h>
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_host.h>
+-#include "advansys.h"
+ #ifdef CONFIG_PCI
+ #include <linux/pci.h>
+ #endif /* CONFIG_PCI */
+@@ -2014,7 +2013,7 @@ STATIC int       AscSgListToQueue(int);
+ STATIC void      AscEnableIsaDma(uchar);
+ #endif /* CONFIG_ISA */
+ STATIC ASC_DCNT  AscGetMaxDmaCount(ushort);
 -
- # So far, we only have PCI, ISA, and MCA token ring devices
--config TR
-+menuconfig TR
- 	bool "Token Ring driver support"
-+	depends on NETDEVICES && !UML
- 	depends on (PCI || ISA || MCA || CCW)
- 	select LLC
- 	help
-@@ -20,9 +18,11 @@ config TR
- 	  from <http://www.tldp.org/docs.html#howto>. Most people can
- 	  say N here.
++static const char *advansys_info(struct Scsi_Host *shp);
  
-+if TR
-+
- config IBMTR
- 	tristate "IBM Tropic chipset based adapter support"
--	depends on TR && (ISA || MCA)
-+	depends on ISA || MCA
- 	---help---
- 	  This is support for all IBM Token Ring cards that don't use DMA. If
- 	  you have such a beast, say Y and read the Token-Ring mini-HOWTO,
-@@ -36,7 +36,7 @@ config IBMTR
+ /*
+  * --- Adv Library Constants and Macros
+@@ -3970,10 +3969,6 @@ STATIC ushort asc_bus[ASC_NUM_BUS] __ini
+     ASC_IS_PCI,
+ };
  
- config IBMOL
- 	tristate "IBM Olympic chipset PCI adapter support"
--	depends on TR && PCI
-+	depends on PCI
- 	---help---
- 	  This is support for all non-Lanstreamer IBM PCI Token Ring Cards.
- 	  Specifically this is all IBM PCI, PCI Wake On Lan, PCI II, PCI II
-@@ -54,7 +54,7 @@ config IBMOL
+-/*
+- * Used with the LILO 'advansys' option to eliminate or
+- * limit I/O port probing at boot time, cf. advansys_setup().
+- */
+ STATIC int asc_iopflag = ASC_FALSE;
+ STATIC int asc_ioport[ASC_NUM_IOPORT_PROBE] = { 0, 0, 0, 0 };
  
- config IBMLS
- 	tristate "IBM Lanstreamer chipset PCI adapter support"
--	depends on TR && PCI && !64BIT
-+	depends on PCI && !64BIT
- 	help
- 	  This is support for IBM Lanstreamer PCI Token Ring Cards.
+@@ -4055,10 +4050,6 @@ STATIC void         asc_prt_hex(char *f,
+ #endif /* ADVANSYS_DEBUG */
  
-@@ -66,7 +66,7 @@ config IBMLS
  
- config 3C359
- 	tristate "3Com 3C359 Token Link Velocity XL adapter support"
--	depends on TR && PCI
-+	depends on PCI
- 	---help---
- 	  This is support for the 3Com PCI Velocity XL cards, specifically
- 	  the 3Com 3C359, please note this is not for the 3C339 cards, you
-@@ -84,7 +84,7 @@ config 3C359
- 
- config TMS380TR
- 	tristate "Generic TMS380 Token Ring ISA/PCI adapter support"
--	depends on TR && (PCI || ISA && ISA_DMA_API || MCA)
-+	depends on PCI || ISA && ISA_DMA_API || MCA
- 	select FW_LOADER
- 	---help---
- 	  This driver provides generic support for token ring adapters
-@@ -108,7 +108,7 @@ config TMS380TR
- 
- config TMSPCI
- 	tristate "Generic TMS380 PCI support"
--	depends on TR && TMS380TR && PCI
-+	depends on TMS380TR && PCI
- 	---help---
- 	  This tms380 module supports generic TMS380-based PCI cards.
- 
-@@ -123,7 +123,7 @@ config TMSPCI
- 
- config SKISA
- 	tristate "SysKonnect TR4/16 ISA support"
--	depends on TR && TMS380TR && ISA
-+	depends on TMS380TR && ISA
- 	help
- 	  This tms380 module supports SysKonnect TR4/16 ISA cards.
- 
-@@ -135,7 +135,7 @@ config SKISA
- 
- config PROTEON
- 	tristate "Proteon ISA support"
--	depends on TR && TMS380TR && ISA
-+	depends on TMS380TR && ISA
- 	help
- 	  This tms380 module supports Proteon ISA cards.
- 
-@@ -148,7 +148,7 @@ config PROTEON
- 
- config ABYSS
- 	tristate "Madge Smart 16/4 PCI Mk2 support"
--	depends on TR && TMS380TR && PCI
-+	depends on TMS380TR && PCI
- 	help
- 	  This tms380 module supports the Madge Smart 16/4 PCI Mk2
- 	  cards (51-02).
-@@ -158,7 +158,7 @@ config ABYSS
- 
- config MADGEMC
- 	tristate "Madge Smart 16/4 Ringnode MicroChannel"
--	depends on TR && TMS380TR && MCA
-+	depends on TMS380TR && MCA
- 	help
- 	  This tms380 module supports the Madge Smart 16/4 MC16 and MC32
- 	  MicroChannel adapters.
-@@ -168,7 +168,7 @@ config MADGEMC
- 
- config SMCTR
- 	tristate "SMC ISA/MCA adapter support"
--	depends on TR && (ISA || MCA_LEGACY) && (BROKEN || !64BIT)
-+	depends on (ISA || MCA_LEGACY) && (BROKEN || !64BIT)
- 	---help---
- 	  This is support for the ISA and MCA SMC Token Ring cards,
- 	  specifically SMC TokenCard Elite (8115T) and SMC TokenCard Elite/A
-@@ -182,5 +182,4 @@ config SMCTR
- 	  To compile this driver as a module, choose M here: the module will be
- 	  called smctr.
- 
--endmenu
+-/*
+- * --- Linux 'struct scsi_host_template' and advansys_setup() Functions
+- */
 -
-+endif # TR
+ #ifdef CONFIG_PROC_FS
+ /*
+  * advansys_proc_info() - /proc/scsi/advansys/[0-(ASC_NUM_BOARD_SUPPORTED-1)]
+@@ -4080,7 +4071,7 @@ STATIC void         asc_prt_hex(char *f,
+  * if 'prtbuf' is too small it will not be overwritten. Instead the
+  * user just won't get all the available statistics.
+  */
+-int
++static int
+ advansys_proc_info(struct Scsi_Host *shost, char *buffer, char **start,
+ 		off_t offset, int length, int inout)
+ {
+@@ -4296,7 +4287,7 @@ advansys_proc_info(struct Scsi_Host *sho
+  * it must not call SCSI mid-level functions including scsi_malloc()
+  * and scsi_free().
+  */
+-int __init
++static int __init
+ advansys_detect(struct scsi_host_template *tpnt)
+ {
+     static int          detect_called = ASC_FALSE;
+@@ -5428,7 +5419,7 @@ advansys_detect(struct scsi_host_templat
+  *
+  * Release resources allocated for a single AdvanSys adapter.
+  */
+-int
++static int
+ advansys_release(struct Scsi_Host *shp)
+ {
+     asc_board_t    *boardp;
+@@ -5475,7 +5466,7 @@ advansys_release(struct Scsi_Host *shp)
+  * Note: The information line should not exceed ASC_INFO_SIZE bytes,
+  * otherwise the static 'info' array will be overrun.
+  */
+-const char *
++static const char *
+ advansys_info(struct Scsi_Host *shp)
+ {
+     static char     info[ASC_INFO_SIZE];
+@@ -5568,7 +5559,7 @@ advansys_info(struct Scsi_Host *shp)
+  * This function always returns 0. Command return status is saved
+  * in the 'scp' result field.
+  */
+-int
++static int
+ advansys_queuecommand(struct scsi_cmnd *scp, void (*done)(struct scsi_cmnd *))
+ {
+     struct Scsi_Host    *shp;
+@@ -5656,7 +5647,7 @@ advansys_queuecommand(struct scsi_cmnd *
+  * sleeping is allowed and no locking other than for host structures is
+  * required. Returns SUCCESS or FAILED.
+  */
+-int
++static int
+ advansys_reset(struct scsi_cmnd *scp)
+ {
+     struct Scsi_Host     *shp;
+@@ -5841,7 +5832,7 @@ advansys_reset(struct scsi_cmnd *scp)
+  * ip[1]: sectors
+  * ip[2]: cylinders
+  */
+-int
++static int
+ advansys_biosparam(struct scsi_device *sdev, struct block_device *bdev,
+ 		sector_t capacity, int ip[])
+ {
+@@ -5875,82 +5866,6 @@ advansys_biosparam(struct scsi_device *s
+ }
+ 
+ /*
+- * advansys_setup()
+- *
+- * This function is called from init/main.c at boot time.
+- * It it passed LILO parameters that can be set from the
+- * LILO command line or in /etc/lilo.conf.
+- *
+- * It is used by the AdvanSys driver to either disable I/O
+- * port scanning or to limit scanning to 1 - 4 I/O ports.
+- * Regardless of the option setting EISA and PCI boards
+- * will still be searched for and detected. This option
+- * only affects searching for ISA and VL boards.
+- *
+- * If ADVANSYS_DEBUG is defined the driver debug level may
+- * be set using the 5th (ASC_NUM_IOPORT_PROBE + 1) I/O Port.
+- *
+- * Examples:
+- * 1. Eliminate I/O port scanning:
+- *         boot: linux advansys=
+- *       or
+- *         boot: linux advansys=0x0
+- * 2. Limit I/O port scanning to one I/O port:
+- *        boot: linux advansys=0x110
+- * 3. Limit I/O port scanning to four I/O ports:
+- *        boot: linux advansys=0x110,0x210,0x230,0x330
+- * 4. If ADVANSYS_DEBUG, limit I/O port scanning to four I/O ports and
+- *    set the driver debug level to 2.
+- *        boot: linux advansys=0x110,0x210,0x230,0x330,0xdeb2
+- *
+- * ints[0] - number of arguments
+- * ints[1] - first argument
+- * ints[2] - second argument
+- * ...
+- */
+-void __init
+-advansys_setup(char *str, int *ints)
+-{
+-    int    i;
+-
+-    if (asc_iopflag == ASC_TRUE) {
+-        printk("AdvanSys SCSI: 'advansys' LILO option may appear only once\n");
+-        return;
+-    }
+-
+-    asc_iopflag = ASC_TRUE;
+-
+-    if (ints[0] > ASC_NUM_IOPORT_PROBE) {
+-#ifdef ADVANSYS_DEBUG
+-        if ((ints[0] == ASC_NUM_IOPORT_PROBE + 1) &&
+-            (ints[ASC_NUM_IOPORT_PROBE + 1] >> 4 == 0xdeb)) {
+-            asc_dbglvl = ints[ASC_NUM_IOPORT_PROBE + 1] & 0xf;
+-        } else {
+-#endif /* ADVANSYS_DEBUG */
+-            printk("AdvanSys SCSI: only %d I/O ports accepted\n",
+-                ASC_NUM_IOPORT_PROBE);
+-#ifdef ADVANSYS_DEBUG
+-        }
+-#endif /* ADVANSYS_DEBUG */
+-    }
+-
+-#ifdef ADVANSYS_DEBUG
+-    ASC_DBG1(1, "advansys_setup: ints[0] %d\n", ints[0]);
+-    for (i = 1; i < ints[0]; i++) {
+-        ASC_DBG2(1, " ints[%d] 0x%x", i, ints[i]);
+-    }
+-    ASC_DBG(1, "\n");
+-#endif /* ADVANSYS_DEBUG */
+-
+-    for (i = 1; i <= ints[0] && i <= ASC_NUM_IOPORT_PROBE; i++) {
+-        asc_ioport[i-1] = ints[i];
+-        ASC_DBG2(1, "advansys_setup: asc_ioport[%d] 0x%x\n",
+-            i - 1, asc_ioport[i-1]);
+-    }
+-}
+-
+-
+-/*
+  * --- Loadable Driver Support
+  */
+ 
+diff -puN drivers/scsi/advansys.h~drivers-scsi-advansysc-cleanups /dev/null
+--- a/drivers/scsi/advansys.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/*
+- * advansys.h - Linux Host Driver for AdvanSys SCSI Adapters
+- * 
+- * Copyright (c) 1995-2000 Advanced System Products, Inc.
+- * Copyright (c) 2000-2001 ConnectCom Solutions, Inc.
+- * All Rights Reserved.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that redistributions of source
+- * code retain the above copyright notice and this comment without
+- * modification.
+- *
+- * As of March 8, 2000 Advanced System Products, Inc. (AdvanSys)
+- * changed its name to ConnectCom Solutions, Inc.
+- *
+- */
+-
+-#ifndef _ADVANSYS_H
+-#define _ADVANSYS_H
+-
+-/*
+- * struct scsi_host_template function prototypes.
+- */
+-int advansys_detect(struct scsi_host_template *);
+-int advansys_release(struct Scsi_Host *);
+-const char *advansys_info(struct Scsi_Host *);
+-int advansys_queuecommand(struct scsi_cmnd *, void (* done)(struct scsi_cmnd *));
+-int advansys_reset(struct scsi_cmnd *);
+-int advansys_biosparam(struct scsi_device *, struct block_device *,
+-		sector_t, int[]);
+-static int advansys_slave_configure(struct scsi_device *);
+-
+-/* init/main.c setup function */
+-void advansys_setup(char *, int *);
+-
+-#endif /* _ADVANSYS_H */
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-use-menuconfig-objects-acpi.patch
-git-hid.patch
-use-menuconfig-objects-ii-infiniband.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
 git-kvm.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-ii-isdn.patch
-use-menuconfig-objects-ii-md.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-battery.patch
+unexport-pci_proc_attach_device.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
