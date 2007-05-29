@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-buffered-write-cleanup.patch added to -mm tree
-Date: Tue, 29 May 2007 14:19:45 -0700
-Message-ID: <200705292119.l4TLJjZX011708@shell0.pdx.osdl.net>
+Subject: + mm-fix-pagecache-write-deadlocks.patch added to -mm tree
+Date: Tue, 29 May 2007 14:19:49 -0700
+Message-ID: <200705292119.l4TLJoVV011715@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50883 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752409AbXE2VTv (ORCPT
+	by vger.kernel.org with ESMTP id S1752552AbXE2VTz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 17:19:51 -0400
+	Tue, 29 May 2007 17:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: buffered write cleanup
+     mm: fix pagecache write deadlocks
 has been added to the -mm tree.  Its filename is
-     mm-buffered-write-cleanup.patch
+     mm-fix-pagecache-write-deadlocks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,404 +26,294 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: buffered write cleanup
+Subject: mm: fix pagecache write deadlocks
 From: Nick Piggin <npiggin@suse.de>
 
-Quite a bit of code is used in maintaining these "cached pages" that are
-probably pretty unlikely to get used. It would require a narrow race where
-the page is inserted concurrently while this process is allocating a page
-in order to create the spare page. Then a multi-page write into an uncached
-part of the file, to make use of it.
+Modify the core write() code so that it won't take a pagefault while holding a
+lock on the pagecache page. There are a number of different deadlocks possible
+if we try to do such a thing:
 
-Next, the buffered write path (and others) uses its own LRU pagevec when it
-should be just using the per-CPU LRU pagevec (which will cut down on both data
-and code size cacheline footprint). Also, these private LRU pagevecs are
-emptied after just a very short time, in contrast with the per-CPU pagevecs
-that are persistent. Net result: 7.3 times fewer lru_lock acquisitions required
-to add the pages to pagecache for a bulk write (in 4K chunks).
+1.  generic_buffered_write
+2.   lock_page
+3.    prepare_write
+4.     unlock_page+vmtruncate
+5.     copy_from_user
+6.      mmap_sem(r)
+7.       handle_mm_fault
+8.        lock_page (filemap_nopage)
+9.    commit_write
+10.  unlock_page
 
-[this gets rid of some cond_resched() calls in readahead.c and mpage.c due
- to clashes in -mm. What put them there, and why? ]
+a. sys_munmap / sys_mlock / others
+b.  mmap_sem(w)
+c.   make_pages_present
+d.    get_user_pages
+e.     handle_mm_fault
+f.      lock_page (filemap_nopage)
+
+2,8	- recursive deadlock if page is same
+2,8;2,8	- ABBA deadlock is page is different
+2,6;b,f	- ABBA deadlock if page is same
+
+The solution is as follows:
+1.  If we find the destination page is uptodate, continue as normal, but use
+    atomic usercopies which do not take pagefaults and do not zero the uncopied
+    tail of the destination. The destination is already uptodate, so we can
+    commit_write the full length even if there was a partial copy: it does not
+    matter that the tail was not modified, because if it is dirtied and written
+    back to disk it will not cause any problems (uptodate *means* that the
+    destination page is as new or newer than the copy on disk).
+
+1a. The above requires that fault_in_pages_readable correctly returns access
+    information, because atomic usercopies cannot distinguish between
+    non-present pages in a readable mapping, from lack of a readable mapping.
+
+2.  If we find the destination page is non uptodate, unlock it (this could be
+    made slightly more optimal), then allocate a temporary page to copy the
+    source data into. Relock the destination page and continue with the copy.
+    However, instead of a usercopy (which might take a fault), copy the data
+    from the pinned temporary page via the kernel address space.
+
+(also, rename maxlen to seglen, because it was confusing)
+
+This increases the CPU/memory copy cost by almost 50% on the affected
+workloads. That will be solved by introducing a new set of pagecache write
+aops in a subsequent patch.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c     |   10 ---
- mm/filemap.c   |  145 ++++++++++++++++++-----------------------------
- mm/readahead.c |   24 ++-----
- 3 files changed, 66 insertions(+), 113 deletions(-)
+ include/linux/pagemap.h |   11 ++-
+ mm/filemap.c            |  122 ++++++++++++++++++++++++++++++++------
+ 2 files changed, 112 insertions(+), 21 deletions(-)
 
-diff -puN fs/mpage.c~mm-buffered-write-cleanup fs/mpage.c
---- a/fs/mpage.c~mm-buffered-write-cleanup
-+++ a/fs/mpage.c
-@@ -387,31 +387,25 @@ mpage_readpages(struct address_space *ma
- 	struct bio *bio = NULL;
- 	unsigned page_idx;
- 	sector_t last_block_in_bio = 0;
--	struct pagevec lru_pvec;
- 	struct buffer_head map_bh;
- 	unsigned long first_logical_block = 0;
- 
- 	clear_buffer_mapped(&map_bh);
--	pagevec_init(&lru_pvec, 0);
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
- 		struct page *page = list_entry(pages->prev, struct page, lru);
- 
- 		prefetchw(&page->flags);
- 		list_del(&page->lru);
--		if (!add_to_page_cache(page, mapping,
-+		if (!add_to_page_cache_lru(page, mapping,
- 					page->index, GFP_KERNEL)) {
- 			bio = do_mpage_readpage(bio, page,
- 					nr_pages - page_idx,
- 					&last_block_in_bio, &map_bh,
- 					&first_logical_block,
- 					get_block);
--			if (!pagevec_add(&lru_pvec, page))
--				__pagevec_lru_add(&lru_pvec);
--		} else {
--			page_cache_release(page);
- 		}
-+		page_cache_release(page);
- 	}
--	pagevec_lru_add(&lru_pvec);
- 	BUG_ON(!list_empty(pages));
- 	if (bio)
- 		mpage_bio_submit(READ, bio);
-diff -puN mm/filemap.c~mm-buffered-write-cleanup mm/filemap.c
---- a/mm/filemap.c~mm-buffered-write-cleanup
-+++ a/mm/filemap.c
-@@ -665,27 +665,22 @@ EXPORT_SYMBOL(find_lock_page);
- struct page *find_or_create_page(struct address_space *mapping,
- 		unsigned long index, gfp_t gfp_mask)
+diff -puN include/linux/pagemap.h~mm-fix-pagecache-write-deadlocks include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-fix-pagecache-write-deadlocks
++++ a/include/linux/pagemap.h
+@@ -218,6 +218,9 @@ static inline int fault_in_pages_writeab
  {
--	struct page *page, *cached_page = NULL;
-+	struct page *page;
- 	int err;
- repeat:
- 	page = find_lock_page(mapping, index);
- 	if (!page) {
--		if (!cached_page) {
--			cached_page =
--				__page_cache_alloc(gfp_mask);
--			if (!cached_page)
--				return NULL;
--		}
--		err = add_to_page_cache_lru(cached_page, mapping,
--					index, gfp_mask);
--		if (!err) {
--			page = cached_page;
--			cached_page = NULL;
--		} else if (err == -EEXIST)
--			goto repeat;
-+		page = __page_cache_alloc(gfp_mask);
-+		if (!page)
-+			return NULL;
-+		err = add_to_page_cache_lru(page, mapping, index, gfp_mask);
-+		if (unlikely(err)) {
-+			page_cache_release(page);
-+			page = NULL;
-+			if (err == -EEXIST)
-+				goto repeat;
-+		}
- 	}
--	if (cached_page)
--		page_cache_release(cached_page);
- 	return page;
- }
- EXPORT_SYMBOL(find_or_create_page);
-@@ -874,11 +869,9 @@ void do_generic_mapping_read(struct addr
- 	unsigned long prev_index;
- 	unsigned int prev_offset;
- 	loff_t isize;
--	struct page *cached_page;
- 	int error;
- 	struct file_ra_state ra = *_ra;
+ 	int ret;
  
--	cached_page = NULL;
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	next_index = index;
- 	prev_index = ra.prev_index;
-@@ -1045,23 +1038,20 @@ no_cached_page:
- 		 * Ok, it wasn't cached, so we need to create a new
- 		 * page..
- 		 */
--		if (!cached_page) {
--			cached_page = page_cache_alloc_cold(mapping);
--			if (!cached_page) {
--				desc->error = -ENOMEM;
--				goto out;
--			}
-+		page = page_cache_alloc_cold(mapping);
-+		if (!page) {
-+			desc->error = -ENOMEM;
-+			goto out;
- 		}
--		error = add_to_page_cache_lru(cached_page, mapping,
-+		error = add_to_page_cache_lru(page, mapping,
- 						index, GFP_KERNEL);
- 		if (error) {
-+			page_cache_release(page);
- 			if (error == -EEXIST)
- 				goto find_page;
- 			desc->error = error;
- 			goto out;
- 		}
--		page = cached_page;
--		cached_page = NULL;
- 		goto readpage;
- 	}
- 
-@@ -1069,8 +1059,6 @@ out:
- 	*_ra = ra;
- 
- 	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
--	if (cached_page)
--		page_cache_release(cached_page);
- 	if (filp)
- 		file_accessed(filp);
- }
-@@ -1553,35 +1541,28 @@ static struct page *__read_cache_page(st
- 				int (*filler)(void *,struct page*),
- 				void *data)
- {
--	struct page *page, *cached_page = NULL;
-+	struct page *page;
- 	int err;
- repeat:
- 	page = find_get_page(mapping, index);
- 	if (!page) {
--		if (!cached_page) {
--			cached_page = page_cache_alloc_cold(mapping);
--			if (!cached_page)
--				return ERR_PTR(-ENOMEM);
--		}
--		err = add_to_page_cache_lru(cached_page, mapping,
--					index, GFP_KERNEL);
--		if (err == -EEXIST)
--			goto repeat;
--		if (err < 0) {
-+		page = page_cache_alloc_cold(mapping);
-+		if (!page)
-+			return ERR_PTR(-ENOMEM);
-+		err = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
-+		if (unlikely(err)) {
-+			page_cache_release(page);
-+			if (err == -EEXIST)
-+				goto repeat;
- 			/* Presumably ENOMEM for radix tree node */
--			page_cache_release(cached_page);
- 			return ERR_PTR(err);
- 		}
--		page = cached_page;
--		cached_page = NULL;
- 		err = filler(data, page);
- 		if (err < 0) {
- 			page_cache_release(page);
- 			page = ERR_PTR(err);
- 		}
- 	}
--	if (cached_page)
--		page_cache_release(cached_page);
- 	return page;
- }
- 
-@@ -1659,40 +1640,6 @@ struct page *read_cache_page(struct addr
- EXPORT_SYMBOL(read_cache_page);
- 
- /*
-- * If the page was newly created, increment its refcount and add it to the
-- * caller's lru-buffering pagevec.  This function is specifically for
-- * generic_file_write().
-- */
--static inline struct page *
--__grab_cache_page(struct address_space *mapping, unsigned long index,
--			struct page **cached_page, struct pagevec *lru_pvec)
--{
--	int err;
--	struct page *page;
--repeat:
--	page = find_lock_page(mapping, index);
--	if (!page) {
--		if (!*cached_page) {
--			*cached_page = page_cache_alloc(mapping);
--			if (!*cached_page)
--				return NULL;
--		}
--		err = add_to_page_cache(*cached_page, mapping,
--					index, GFP_KERNEL);
--		if (err == -EEXIST)
--			goto repeat;
--		if (err == 0) {
--			page = *cached_page;
--			page_cache_get(page);
--			if (!pagevec_add(lru_pvec, page))
--				__pagevec_lru_add(lru_pvec);
--			*cached_page = NULL;
--		}
--	}
--	return page;
--}
--
--/*
-  * The logic we want is
-  *
-  *	if suid or (sgid and xgrp)
-@@ -1886,6 +1833,33 @@ generic_file_direct_write(struct kiocb *
- }
- EXPORT_SYMBOL(generic_file_direct_write);
- 
-+/*
-+ * Find or create a page at the given pagecache position. Return the locked
-+ * page. This function is specifically for buffered writes.
-+ */
-+static struct page *__grab_cache_page(struct address_space *mapping,
-+							pgoff_t index)
-+{
-+	int status;
-+	struct page *page;
-+repeat:
-+	page = find_lock_page(mapping, index);
-+	if (likely(page))
-+		return page;
++	if (unlikely(size == 0))
++		return 0;
 +
-+	page = page_cache_alloc(mapping);
-+	if (!page)
-+		return NULL;
-+	status = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
-+	if (unlikely(status)) {
-+		page_cache_release(page);
-+		if (status == -EEXIST)
-+			goto repeat;
-+		return NULL;
-+	}
-+	return page;
-+}
-+
- ssize_t
- generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
- 		unsigned long nr_segs, loff_t pos, loff_t *ppos,
-@@ -1896,15 +1870,10 @@ generic_file_buffered_write(struct kiocb
- 	const struct address_space_operations *a_ops = mapping->a_ops;
- 	struct inode 	*inode = mapping->host;
- 	long		status = 0;
--	struct page	*page;
--	struct page	*cached_page = NULL;
--	struct pagevec	lru_pvec;
- 	const struct iovec *cur_iov = iov; /* current iovec */
- 	size_t		iov_offset = 0;	   /* offset in the current iovec */
- 	char __user	*buf;
- 
--	pagevec_init(&lru_pvec, 0);
--
  	/*
- 	 * handle partial DIO write.  Adjust cur_iov if needed.
- 	 */
-@@ -1916,6 +1885,7 @@ generic_file_buffered_write(struct kiocb
+ 	 * Writing zeroes into userspace here is OK, because we know that if
+ 	 * the zero gets there, we'll be overwriting it.
+@@ -237,19 +240,23 @@ static inline int fault_in_pages_writeab
+ 	return ret;
+ }
+ 
+-static inline void fault_in_pages_readable(const char __user *uaddr, int size)
++static inline int fault_in_pages_readable(const char __user *uaddr, int size)
+ {
+ 	volatile char c;
+ 	int ret;
+ 
++	if (unlikely(size == 0))
++		return 0;
++
+ 	ret = __get_user(c, uaddr);
+ 	if (ret == 0) {
+ 		const char __user *end = uaddr + size - 1;
+ 
+ 		if (((unsigned long)uaddr & PAGE_MASK) !=
+ 				((unsigned long)end & PAGE_MASK))
+-		 	__get_user(c, end);
++		 	ret = __get_user(c, end);
  	}
++	return ret;
+ }
+ 
+ #endif /* _LINUX_PAGEMAP_H */
+diff -puN mm/filemap.c~mm-fix-pagecache-write-deadlocks mm/filemap.c
+--- a/mm/filemap.c~mm-fix-pagecache-write-deadlocks
++++ a/mm/filemap.c
+@@ -1880,11 +1880,12 @@ generic_file_buffered_write(struct kiocb
+ 	filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, written);
  
  	do {
-+		struct page *page;
++		struct page *src_page;
+ 		struct page *page;
  		pgoff_t index;		/* Pagecache index for current page */
  		unsigned long offset;	/* Offset into pagecache page */
- 		unsigned long maxlen;	/* Bytes remaining in current iovec */
-@@ -1942,7 +1912,8 @@ generic_file_buffered_write(struct kiocb
- 		fault_in_pages_readable(buf, maxlen);
- #endif
+-		unsigned long maxlen;	/* Bytes remaining in current iovec */
+-		size_t bytes;		/* Bytes to write to page */
++		unsigned long seglen;	/* Bytes remaining in current iovec */
++		unsigned long bytes;	/* Bytes to write to page */
+ 		size_t copied;		/* Bytes copied from user */
  
--		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
+ 		buf = cur_iov->iov_base + iov_offset;
+@@ -1894,20 +1895,30 @@ generic_file_buffered_write(struct kiocb
+ 		if (bytes > count)
+ 			bytes = count;
+ 
+-		maxlen = cur_iov->iov_len - iov_offset;
+-		if (maxlen > bytes)
+-			maxlen = bytes;
++		/*
++		 * a non-NULL src_page indicates that we're doing the
++		 * copy via get_user_pages and kmap.
++		 */
++		src_page = NULL;
 +
-+		page = __grab_cache_page(mapping, index);
++		seglen = cur_iov->iov_len - iov_offset;
++		if (seglen > bytes)
++			seglen = bytes;
+ 
+-#ifndef CONFIG_DEBUG_VM
+ 		/*
+ 		 * Bring in the user page that we will copy from _first_.
+ 		 * Otherwise there's a nasty deadlock on copying from the
+ 		 * same page as we're writing to, without it being marked
+ 		 * up-to-date.
++		 *
++		 * Not only is this an optimisation, but it is also required
++		 * to check that the address is actually valid, when atomic
++		 * usercopies are used, below.
+ 		 */
+-		fault_in_pages_readable(buf, maxlen);
+-#endif
+-
++		if (unlikely(fault_in_pages_readable(buf, seglen))) {
++			status = -EFAULT;
++			break;
++		}
+ 
+ 		page = __grab_cache_page(mapping, index);
  		if (!page) {
- 			status = -ENOMEM;
+@@ -1915,32 +1926,104 @@ generic_file_buffered_write(struct kiocb
  			break;
-@@ -2010,9 +1981,6 @@ fs_write_aop_error:
+ 		}
+ 
++		/*
++		 * non-uptodate pages cannot cope with short copies, and we
++		 * cannot take a pagefault with the destination page locked.
++		 * So pin the source page to copy it.
++		 */
++		if (!PageUptodate(page)) {
++			unlock_page(page);
++
++			src_page = alloc_page(GFP_KERNEL);
++			if (!src_page) {
++				page_cache_release(page);
++				status = -ENOMEM;
++				break;
++			}
++
++			/*
++			 * Cannot get_user_pages with a page locked for the
++			 * same reason as we can't take a page fault with a
++			 * page locked (as explained below).
++			 */
++			copied = filemap_copy_from_user(src_page, offset,
++					cur_iov, nr_segs, iov_offset, bytes);
++			if (unlikely(copied == 0)) {
++				status = -EFAULT;
++				page_cache_release(page);
++				page_cache_release(src_page);
++				break;
++			}
++			bytes = copied;
++
++			lock_page(page);
++			/*
++			 * Can't handle the page going uptodate here, because
++			 * that means we would use non-atomic usercopies, which
++			 * zero out the tail of the page, which can cause
++			 * zeroes to become transiently visible. We could just
++			 * use a non-zeroing copy, but the APIs aren't too
++			 * consistent.
++			 */
++			if (unlikely(!page->mapping || PageUptodate(page))) {
++				unlock_page(page);
++				page_cache_release(page);
++				page_cache_release(src_page);
++				continue;
++			}
++
++		}
++
+ 		status = a_ops->prepare_write(file, page, offset, offset+bytes);
+ 		if (unlikely(status))
+ 			goto fs_write_aop_error;
+ 
+-		copied = filemap_copy_from_user(page, offset,
++		if (!src_page) {
++			/*
++			 * Must not enter the pagefault handler here, because
++			 * we hold the page lock, so we might recursively
++			 * deadlock on the same lock, or get an ABBA deadlock
++			 * against a different lock, or against the mmap_sem
++			 * (which nests outside the page lock).  So increment
++			 * preempt count, and use _atomic usercopies.
++			 *
++			 * The page is uptodate so we are OK to encounter a
++			 * short copy: if unmodified parts of the page are
++			 * marked dirty and written out to disk, it doesn't
++			 * really matter.
++			 */
++			pagefault_disable();
++			copied = filemap_copy_from_user_atomic(page, offset,
+ 					cur_iov, nr_segs, iov_offset, bytes);
++			pagefault_enable();
++		} else {
++			void *src, *dst;
++			src = kmap_atomic(src_page, KM_USER0);
++			dst = kmap_atomic(page, KM_USER1);
++			memcpy(dst + offset, src + offset, bytes);
++			kunmap_atomic(dst, KM_USER1);
++			kunmap_atomic(src, KM_USER0);
++			copied = bytes;
++		}
+ 		flush_dcache_page(page);
+ 
+ 		status = a_ops->commit_write(file, page, offset, offset+bytes);
+ 		if (unlikely(status < 0 || status == AOP_TRUNCATED_PAGE))
+ 			goto fs_write_aop_error;
+-		if (unlikely(copied != bytes)) {
+-			status = -EFAULT;
+-			goto fs_write_aop_error;
+-		}
+ 		if (unlikely(status > 0)) /* filesystem did partial write */
+-			copied = status;
++			copied = min_t(size_t, copied, status);
++
++		unlock_page(page);
++		mark_page_accessed(page);
++		page_cache_release(page);
++		if (src_page)
++			page_cache_release(src_page);
+ 
+ 		written += copied;
+ 		count -= copied;
+ 		pos += copied;
+ 		filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, copied);
+ 
+-		unlock_page(page);
+-		mark_page_accessed(page);
+-		page_cache_release(page);
+ 		balance_dirty_pages_ratelimited(mapping);
+ 		cond_resched();
+ 		continue;
+@@ -1949,6 +2032,8 @@ fs_write_aop_error:
+ 		if (status != AOP_TRUNCATED_PAGE)
+ 			unlock_page(page);
+ 		page_cache_release(page);
++		if (src_page)
++			page_cache_release(src_page);
+ 
+ 		/*
+ 		 * prepare_write() may have instantiated a few blocks
+@@ -1961,7 +2046,6 @@ fs_write_aop_error:
+ 			continue;
+ 		else
+ 			break;
+-
  	} while (count);
  	*ppos = pos;
  
--	if (cached_page)
--		page_cache_release(cached_page);
--
- 	/*
- 	 * For now, when the user asks for O_SYNC, we'll actually give O_DSYNC
- 	 */
-@@ -2032,7 +2000,6 @@ fs_write_aop_error:
- 	if (unlikely(file->f_flags & O_DIRECT) && written)
- 		status = filemap_write_and_wait(mapping);
- 
--	pagevec_lru_add(&lru_pvec);
- 	return written ? written : status;
- }
- EXPORT_SYMBOL(generic_file_buffered_write);
-diff -puN mm/readahead.c~mm-buffered-write-cleanup mm/readahead.c
---- a/mm/readahead.c~mm-buffered-write-cleanup
-+++ a/mm/readahead.c
-@@ -133,28 +133,25 @@ int read_cache_pages(struct address_spac
- 			int (*filler)(void *, struct page *), void *data)
- {
- 	struct page *page;
--	struct pagevec lru_pvec;
- 	int ret = 0;
- 
--	pagevec_init(&lru_pvec, 0);
--
- 	while (!list_empty(pages)) {
- 		page = list_to_page(pages);
- 		list_del(&page->lru);
--		if (add_to_page_cache(page, mapping, page->index, GFP_KERNEL)) {
-+		if (add_to_page_cache_lru(page, mapping,
-+					page->index, GFP_KERNEL)) {
- 			page_cache_release(page);
- 			continue;
- 		}
-+		page_cache_release(page);
-+
- 		ret = filler(data, page);
--		if (!pagevec_add(&lru_pvec, page))
--			__pagevec_lru_add(&lru_pvec);
--		if (ret) {
-+		if (unlikely(ret)) {
- 			put_pages_list(pages);
- 			break;
- 		}
- 		task_io_account_read(PAGE_CACHE_SIZE);
- 	}
--	pagevec_lru_add(&lru_pvec);
- 	return ret;
- }
- 
-@@ -164,7 +161,6 @@ static int read_pages(struct address_spa
- 		struct list_head *pages, unsigned nr_pages)
- {
- 	unsigned page_idx;
--	struct pagevec lru_pvec;
- 	int ret;
- 
- 	if (mapping->a_ops->readpages) {
-@@ -174,19 +170,15 @@ static int read_pages(struct address_spa
- 		goto out;
- 	}
- 
--	pagevec_init(&lru_pvec, 0);
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
- 		struct page *page = list_to_page(pages);
- 		list_del(&page->lru);
--		if (!add_to_page_cache(page, mapping,
-+		if (!add_to_page_cache_lru(page, mapping,
- 					page->index, GFP_KERNEL)) {
- 			mapping->a_ops->readpage(filp, page);
--			if (!pagevec_add(&lru_pvec, page))
--				__pagevec_lru_add(&lru_pvec);
--		} else
--			page_cache_release(page);
-+		}
-+		page_cache_release(page);
- 	}
--	pagevec_lru_add(&lru_pvec);
- 	ret = 0;
- out:
- 	return ret;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
