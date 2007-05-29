@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-possible-udf-data-corruption.patch added to -mm tree
-Date: Tue, 29 May 2007 12:37:27 -0700
-Message-ID: <200705291937.l4TJbSEh009763@shell0.pdx.osdl.net>
+Subject: + fix-possible-leakage-of-blocks-in-udf.patch added to -mm tree
+Date: Tue, 29 May 2007 12:40:48 -0700
+Message-ID: <200705291940.l4TJemTQ009807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47617 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754033AbXE2The (ORCPT
+	by vger.kernel.org with ESMTP id S1751914AbXE2Tkx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 15:37:34 -0400
+	Tue, 29 May 2007 15:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jack@suse.cz
 
 
 The patch titled
-     Fix possible UDF data corruption
+     udf: Fix possible leakage of blocks
 has been added to the -mm tree.  Its filename is
-     fix-possible-udf-data-corruption.patch
+     fix-possible-leakage-of-blocks-in-udf.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,197 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix possible UDF data corruption
+Subject: udf: Fix possible leakage of blocks
 From: Jan Kara <jack@suse.cz>
 
-update_next_aext() could possibly rewrite values in elen and eloc, possibly
-leading to data corruption when rewriting a file.  Use temporary variables
-instead.  Also advance cur_epos as it can also point to an indirect extent
-pointer.
+It is wrong to call udf_discard_prealloc() from udf_clear_inode() as at that
+time inode changes won't be written any more which can lead to leakage of
+blocks, use of free blocks or improperly aligned extents.
+
+Also udf_discard_prealloc() does two exactly match i_size.  We move the latter
+functionality to udf_truncate_tail_extent(), call udf_discard_prealloc() when
+last reference to a file is dropped and call udf_truncate_tail_extent() when
+inode is being removed from inode cach (udf_drop_inode() call).  We cannot
+call udf_truncate_tail_extent() earlier as subsequent open+write would find
+the last block of the file mapped and happily write to the end of it, although
+the last extent says it's shorter.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+ fs/udf/inode.c    |    8 ++++-
+ fs/udf/super.c    |    1 
+ fs/udf/truncate.c |   64 ++++++++++++++++++++++++++++++++++++--------
+ fs/udf/udfdecl.h  |    2 +
+ 4 files changed, 62 insertions(+), 13 deletions(-)
 
-diff -puN fs/udf/inode.c~fix-possible-udf-data-corruption fs/udf/inode.c
---- a/fs/udf/inode.c~fix-possible-udf-data-corruption
+diff -puN fs/udf/inode.c~fix-possible-leakage-of-blocks-in-udf fs/udf/inode.c
+--- a/fs/udf/inode.c~fix-possible-leakage-of-blocks-in-udf
 +++ a/fs/udf/inode.c
-@@ -460,8 +460,8 @@ static struct buffer_head * inode_getblk
- 	kernel_long_ad laarr[EXTENT_MERGE_SIZE];
- 	struct extent_position prev_epos, cur_epos, next_epos;
- 	int count = 0, startnum = 0, endnum = 0;
--	uint32_t elen = 0;
--	kernel_lb_addr eloc;
-+	uint32_t elen = 0, tmpelen;
-+	kernel_lb_addr eloc, tmpeloc;
- 	int c = 1;
- 	loff_t lbcount = 0, b_off = 0;
- 	uint32_t newblocknum, newblock;
-@@ -520,8 +520,12 @@ static struct buffer_head * inode_getblk
+@@ -100,14 +100,18 @@ no_delete:
+ 	clear_inode(inode);
+ }
  
- 	b_off -= lbcount;
- 	offset = b_off >> inode->i_sb->s_blocksize_bits;
--	/* Move into indirect extent if we are at a pointer to it */
--	udf_next_aext(inode, &prev_epos, &eloc, &elen, 0);
-+	/*
-+	 * Move prev_epos and cur_epos into indirect extent if we are at
-+	 * the pointer to it
-+	 */
-+	udf_next_aext(inode, &prev_epos, &tmpeloc, &tmpelen, 0);
-+	udf_next_aext(inode, &cur_epos, &tmpeloc, &tmpelen, 0);
+-void udf_clear_inode(struct inode *inode)
++void udf_drop_inode(struct inode *inode)
+ {
+ 	if (!(inode->i_sb->s_flags & MS_RDONLY)) {
+ 		lock_kernel();
+-		udf_discard_prealloc(inode);
++		udf_truncate_tail_extent(inode);
+ 		unlock_kernel();
+ 	}
++	generic_drop_inode(inode);
++}
  
- 	/* if the extent is allocated and recorded, return the block
-        if the extent is not a multiple of the blocksize, round up */
++void udf_clear_inode(struct inode *inode)
++{
+ 	kfree(UDF_I_DATA(inode));
+ 	UDF_I_DATA(inode) = NULL;
+ }
+diff -puN fs/udf/super.c~fix-possible-leakage-of-blocks-in-udf fs/udf/super.c
+--- a/fs/udf/super.c~fix-possible-leakage-of-blocks-in-udf
++++ a/fs/udf/super.c
+@@ -162,6 +162,7 @@ static const struct super_operations udf
+ 	.write_inode		= udf_write_inode,
+ 	.delete_inode		= udf_delete_inode,
+ 	.clear_inode		= udf_clear_inode,
++	.drop_inode		= udf_drop_inode,
+ 	.put_super		= udf_put_super,
+ 	.write_super		= udf_write_super,
+ 	.statfs			= udf_statfs,
+diff -puN fs/udf/truncate.c~fix-possible-leakage-of-blocks-in-udf fs/udf/truncate.c
+--- a/fs/udf/truncate.c~fix-possible-leakage-of-blocks-in-udf
++++ a/fs/udf/truncate.c
+@@ -61,7 +61,11 @@ static void extent_trunc(struct inode * 
+ 	}
+ }
+ 
+-void udf_discard_prealloc(struct inode * inode)
++/*
++ * Truncate the last extent to match i_size. This function assumes
++ * that preallocation extent is already truncated.
++ */
++void udf_truncate_tail_extent(struct inode *inode)
+ {
+ 	struct extent_position epos = { NULL, 0, {0, 0}};
+ 	kernel_lb_addr eloc;
+@@ -71,7 +75,7 @@ void udf_discard_prealloc(struct inode *
+ 	int adsize;
+ 
+ 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
+-		inode->i_size == UDF_I_LENEXTENTS(inode))
++	    inode->i_size == UDF_I_LENEXTENTS(inode))
+ 		return;
+ 
+ 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
+@@ -79,25 +83,63 @@ void udf_discard_prealloc(struct inode *
+ 	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+-		adsize = 0;
+-
+-	epos.block = UDF_I_LOCATION(inode);
++		BUG();
+ 
+ 	/* Find the last extent in the file */
+ 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
+ 	{
+ 		etype = netype;
+ 		lbcount += elen;
+-		if (lbcount > inode->i_size && lbcount - elen < inode->i_size)
+-		{
+-			WARN_ON(lbcount - inode->i_size >= inode->i_sb->s_blocksize);
++		if (lbcount > inode->i_size) {
++			if (lbcount - inode->i_size >= inode->i_sb->s_blocksize)
++				printk(KERN_WARNING "udf_truncate_tail_extent():\
++ Too long extent after EOF in inode %u: i_size: %Ld lbcount: %Ld extent %u+%u\n",
++(unsigned)inode->i_ino, (long long)inode->i_size, (long long)lbcount,
++(unsigned)eloc.logicalBlockNum, (unsigned)elen);
+ 			nelen = elen - (lbcount - inode->i_size);
+ 			epos.offset -= adsize;
+ 			extent_trunc(inode, &epos, eloc, etype, elen, nelen);
+ 			epos.offset += adsize;
+-			lbcount = inode->i_size;
++			if (udf_next_aext(inode, &epos, &eloc, &elen, 1) != -1)
++				printk(KERN_ERR "udf_truncate_tail_extent(): \
++Extent after EOF in inode %u.\n", (unsigned)inode->i_ino);
++			break;
+ 		}
+ 	}
++	/* This inode entry is in-memory only and thus we don't have to mark
++	 * the inode dirty */
++	UDF_I_LENEXTENTS(inode) = inode->i_size;
++	brelse(epos.bh);
++}
++
++void udf_discard_prealloc(struct inode * inode)
++{
++	struct extent_position epos = { NULL, 0, {0, 0}};
++	kernel_lb_addr eloc;
++	uint32_t elen;
++	uint64_t lbcount = 0;
++	int8_t etype = -1, netype;
++	int adsize;
++
++	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
++		inode->i_size == UDF_I_LENEXTENTS(inode))
++		return;
++
++	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++		adsize = sizeof(short_ad);
++	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++		adsize = sizeof(long_ad);
++	else
++		adsize = 0;
++
++	epos.block = UDF_I_LOCATION(inode);
++
++	/* Find the last extent in the file */
++	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
++	{
++		etype = netype;
++		lbcount += elen;
++	}
+ 	if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
+ 		epos.offset -= adsize;
+ 		lbcount -= elen;
+@@ -118,9 +160,9 @@ void udf_discard_prealloc(struct inode *
+ 			mark_buffer_dirty_inode(epos.bh, inode);
+ 		}
+ 	}
++	/* This inode entry is in-memory only and thus we don't have to mark
++	 * the inode dirty */
+ 	UDF_I_LENEXTENTS(inode) = lbcount;
+-
+-	WARN_ON(lbcount != inode->i_size);
+ 	brelse(epos.bh);
+ }
+ 
+diff -puN fs/udf/udfdecl.h~fix-possible-leakage-of-blocks-in-udf fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~fix-possible-leakage-of-blocks-in-udf
++++ a/fs/udf/udfdecl.h
+@@ -103,6 +103,7 @@ extern struct buffer_head * udf_bread(st
+ extern void udf_truncate(struct inode *);
+ extern void udf_read_inode(struct inode *);
+ extern void udf_delete_inode(struct inode *);
++extern void udf_drop_inode(struct inode *);
+ extern void udf_clear_inode(struct inode *);
+ extern int udf_write_inode(struct inode *, int);
+ extern long udf_block_map(struct inode *, sector_t);
+@@ -146,6 +147,7 @@ extern void udf_free_inode(struct inode 
+ extern struct inode * udf_new_inode (struct inode *, int, int *);
+ 
+ /* truncate.c */
++extern void udf_truncate_tail_extent(struct inode *);
+ extern void udf_discard_prealloc(struct inode *);
+ extern void udf_truncate_extents(struct inode *);
+ 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
 
 fix-possible-udf-data-corruption.patch
 fix-possible-leakage-of-blocks-in-udf.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
