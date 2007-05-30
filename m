@@ -1,173 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - serial-use-resource_size_t-for-port-io-addresses.patch removed from -mm tree
-Date: Wed, 30 May 2007 11:57:54 -0700
-Message-ID: <200705301857.l4UIvsCN002172@shell0.pdx.osdl.net>
+Subject: + console-more-buf-for-index-parsing.patch added to -mm tree
+Date: Wed, 30 May 2007 11:59:30 -0700
+Message-ID: <200705301859.l4UIxUYL002203@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45503 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754422AbXE3S6W (ORCPT
+	by vger.kernel.org with ESMTP id S1754664AbXE3S7r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 14:58:22 -0400
+	Wed, 30 May 2007 14:59:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@gibson.dropbear.id.au, alan@lxorguk.ukuu.org.uk, dwg@au1.ibm.com, kebkal@gmail.com, ralf@linux-mips.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
 
 
 The patch titled
-     serial: use resource_size_t for port IO addresses
-has been removed from the -mm tree.  Its filename was
-     serial-use-resource_size_t-for-port-io-addresses.patch
+     console: more buf for index parsing
+has been added to the -mm tree.  Its filename is
+     console-more-buf-for-index-parsing.patch
 
-This patch was dropped because I merged Yinghai Lu's stuff instead
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: serial: use resource_size_t for port IO addresses
-From: David Gibson <david@gibson.dropbear.id.au>
+Subject: console: more buf for index parsing
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-At present, various parts of the serial code use unsigned long to define
-resource addresses.  This is a problem, because some 32-bit platforms have
-physical addresses larger than 32-bits, and have mmio serial uarts located
-above the 4GB point.
+change name to buf according to the usage as name + index
 
-This patch changes the type of mapbase in both struct uart_port and struct
-plat_serial8250_port to resource_size_t, which can be configured to be 64
-bits on such platforms.  The mapbase in serial_struct can't safely be
-changed, because that structure is user visible.
-
-Signed-off-by: David Gibson <dwg@au1.ibm.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Oleksiy Kebkal <kebkal@gmail.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c        |    5 +++--
- drivers/serial/8250_early.c  |   16 +++++++++-------
- drivers/serial/serial_core.c |    9 +++++----
- include/linux/serial_8250.h  |    2 +-
- include/linux/serial_core.h  |    2 +-
- 5 files changed, 19 insertions(+), 15 deletions(-)
+ kernel/printk.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-use-resource_size_t-for-port-io-addresses drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-use-resource_size_t-for-port-io-addresses
-+++ a/drivers/serial/8250.c
-@@ -2664,8 +2664,9 @@ static int __devinit serial8250_probe(st
- 		ret = serial8250_register_port(&port);
- 		if (ret < 0) {
- 			dev_err(&dev->dev, "unable to register port at index %d "
--				"(IO%lx MEM%lx IRQ%d): %d\n", i,
--				p->iobase, p->mapbase, p->irq, ret);
-+				"(IO%lx MEM%llx IRQ%d): %d\n", i,
-+				p->iobase, (unsigned long long)p->mapbase,
-+				p->irq, ret);
- 		}
- 	}
- 	return 0;
-diff -puN drivers/serial/8250_early.c~serial-use-resource_size_t-for-port-io-addresses drivers/serial/8250_early.c
---- a/drivers/serial/8250_early.c~serial-use-resource_size_t-for-port-io-addresses
-+++ a/drivers/serial/8250_early.c
-@@ -145,8 +145,9 @@ static int __init parse_options(struct e
- 		port->mapbase = simple_strtoul(options + 5, &options, 0);
- 		port->membase = ioremap(port->mapbase, mapsize);
- 		if (!port->membase) {
--			printk(KERN_ERR "%s: Couldn't ioremap 0x%lx\n",
--				__FUNCTION__, port->mapbase);
-+			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
-+				__FUNCTION__,
-+			       (unsigned long long)port->mapbase);
- 			return -ENOMEM;
- 		}
- 		mmio = 1;
-@@ -168,9 +169,10 @@ static int __init parse_options(struct e
- 			device->baud);
- 	}
+diff -puN kernel/printk.c~console-more-buf-for-index-parsing kernel/printk.c
+--- a/kernel/printk.c~console-more-buf-for-index-parsing
++++ a/kernel/printk.c
+@@ -654,7 +654,7 @@ static void call_console_drivers(unsigne
+  */
+ static int __init console_setup(char *str)
+ {
+-	char name[sizeof(console_cmdline[0].name)];
++	char buf[sizeof(console_cmdline[0].name) + 4]; /* 4 for index */
+ 	char *s, *options;
+ 	int idx;
  
--	printk(KERN_INFO "Early serial console at %s 0x%lx (options '%s')\n",
-+	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
- 		mmio ? "MMIO" : "I/O port",
--		mmio ? port->mapbase : (unsigned long) port->iobase,
-+		mmio ? (unsigned long long) port->mapbase
-+	             : (unsigned long long) port->iobase,
- 		device->options);
- 	return 0;
+@@ -662,27 +662,27 @@ static int __init console_setup(char *st
+ 	 * Decode str into name, index, options.
+ 	 */
+ 	if (str[0] >= '0' && str[0] <= '9') {
+-		strcpy(name, "ttyS");
+-		strncpy(name + 4, str, sizeof(name) - 5);
++		strcpy(buf, "ttyS");
++		strncpy(buf + 4, str, sizeof(buf) - 5);
+ 	} else {
+-		strncpy(name, str, sizeof(name) - 1);
++		strncpy(buf, str, sizeof(buf) - 1);
+ 	}
+-	name[sizeof(name) - 1] = 0;
++	buf[sizeof(buf) - 1] = 0;
+ 	if ((options = strchr(str, ',')) != NULL)
+ 		*(options++) = 0;
+ #ifdef __sparc__
+ 	if (!strcmp(str, "ttya"))
+-		strcpy(name, "ttyS0");
++		strcpy(buf, "ttyS0");
+ 	if (!strcmp(str, "ttyb"))
+-		strcpy(name, "ttyS1");
++		strcpy(buf, "ttyS1");
+ #endif
+-	for (s = name; *s; s++)
++	for (s = buf; *s; s++)
+ 		if ((*s >= '0' && *s <= '9') || *s == ',')
+ 			break;
+ 	idx = simple_strtoul(s, NULL, 10);
+ 	*s = 0;
+ 
+-	add_preferred_console(name, idx, options);
++	add_preferred_console(buf, idx, options);
+ 	return 1;
  }
-@@ -236,10 +238,10 @@ static int __init early_uart_console_swi
- 	mmio = (port->iotype == UPIO_MEM);
- 	line = serial8250_start_console(port, device->options);
- 	if (line < 0)
--		printk("No ttyS device at %s 0x%lx for console\n",
-+		printk("No ttyS device at %s 0x%llx for console\n",
- 			mmio ? "MMIO" : "I/O port",
--			mmio ? port->mapbase :
--			    (unsigned long) port->iobase);
-+			mmio ? (unsigned long long) port->mapbase
-+		             : (unsigned long long) port->iobase);
- 
- 	unregister_console(&early_uart_console);
- 	if (mmio)
-diff -puN drivers/serial/serial_core.c~serial-use-resource_size_t-for-port-io-addresses drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-use-resource_size_t-for-port-io-addresses
-+++ a/drivers/serial/serial_core.c
-@@ -626,7 +626,7 @@ static int uart_get_info(struct uart_sta
- 	tmp.hub6	    = port->hub6;
- 	tmp.io_type         = port->iotype;
- 	tmp.iomem_reg_shift = port->regshift;
--	tmp.iomem_base      = (void *)port->mapbase;
-+	tmp.iomem_base      = (void *)(unsigned long)port->mapbase;
- 
- 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
- 		return -EFAULT;
-@@ -1666,10 +1666,11 @@ static int uart_line_info(char *buf, str
- 		return 0;
- 
- 	mmio = port->iotype >= UPIO_MEM;
--	ret = sprintf(buf, "%d: uart:%s %s%08lX irq:%d",
-+	ret = sprintf(buf, "%d: uart:%s %s%08llX irq:%d",
- 			port->line, uart_type(port),
- 			mmio ? "mmio:0x" : "port:",
--			mmio ? port->mapbase : (unsigned long) port->iobase,
-+			mmio ? (unsigned long long)port->mapbase
-+		             : (unsigned long long) port->iobase,
- 			port->irq);
- 
- 	if (port->type == PORT_UNKNOWN) {
-@@ -2063,7 +2064,7 @@ uart_report_port(struct uart_driver *drv
- 	case UPIO_TSI:
- 	case UPIO_DWAPB:
- 		snprintf(address, sizeof(address),
--			 "MMIO 0x%lx", port->mapbase);
-+			 "MMIO 0x%llx", (unsigned long long)port->mapbase);
- 		break;
- 	default:
- 		strlcpy(address, "*unknown*", sizeof(address));
-diff -puN include/linux/serial_8250.h~serial-use-resource_size_t-for-port-io-addresses include/linux/serial_8250.h
---- a/include/linux/serial_8250.h~serial-use-resource_size_t-for-port-io-addresses
-+++ a/include/linux/serial_8250.h
-@@ -20,7 +20,7 @@
- struct plat_serial8250_port {
- 	unsigned long	iobase;		/* io base address */
- 	void __iomem	*membase;	/* ioremap cookie or NULL */
--	unsigned long	mapbase;	/* resource base */
-+	resource_size_t	mapbase;	/* resource base */
- 	unsigned int	irq;		/* interrupt number */
- 	unsigned int	uartclk;	/* UART clock rate */
- 	unsigned char	regshift;	/* register shift */
-diff -puN include/linux/serial_core.h~serial-use-resource_size_t-for-port-io-addresses include/linux/serial_core.h
---- a/include/linux/serial_core.h~serial-use-resource_size_t-for-port-io-addresses
-+++ a/include/linux/serial_core.h
-@@ -283,7 +283,7 @@ struct uart_port {
- 	const struct uart_ops	*ops;
- 	unsigned int		custom_divisor;
- 	unsigned int		line;			/* port index */
--	unsigned long		mapbase;		/* for ioremap */
-+	resource_size_t		mapbase;		/* for ioremap */
- 	struct device		*dev;			/* parent device */
- 	unsigned char		hub6;			/* this should be in the 8250 driver */
- 	unsigned char		unused[3];
+ __setup("console=", console_setup);
+@@ -709,7 +709,7 @@ int __init add_preferred_console(char *n
+ 	 *	See if this tty is not yet registered, and
+ 	 *	if we have a slot free.
+ 	 */
+-	for(i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
++	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
+ 		if (strcmp(console_cmdline[i].name, name) == 0 &&
+ 			  console_cmdline[i].index == idx) {
+ 				selected_console = i;
 _
 
-Patches currently in -mm which might be from david@gibson.dropbear.id.au are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-serial-use-resource_size_t-for-port-io-addresses.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-set-dtr-in-uart-for-kernel-serial-console.patch
