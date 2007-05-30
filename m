@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_agp-use-table-for-device-probe.patch added to -mm tree
-Date: Wed, 30 May 2007 00:23:25 -0700
-Message-ID: <200705300723.l4U7NOO6021537@shell0.pdx.osdl.net>
+Subject: + containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 00:15:20 -0700
+Message-ID: <200705300715.l4U7FJCa021368@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53243 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751288AbXE3HXy (ORCPT
+	by vger.kernel.org with ESMTP id S1751331AbXE3Het (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 03:23:54 -0400
+	Wed, 30 May 2007 03:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhenyu.z.wang@intel.com, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     agpgart: intel_agp: use table for device probe
+     containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix
 has been added to the -mm tree.  Its filename is
-     intel_agp-use-table-for-device-probe.patch
+     containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,396 +26,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: agpgart: intel_agp: use table for device probe
-From: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Subject: containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove big switch to make things clear.  Eric Anholt was the original author.
-
-Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |  324 ++++++++++++---------------------
- 1 file changed, 122 insertions(+), 202 deletions(-)
+ kernel/container.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-use-table-for-device-probe drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-use-table-for-device-probe
-+++ a/drivers/char/agp/intel-agp.c
-@@ -1724,41 +1724,119 @@ static const struct agp_bridge_driver in
- 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
- };
- 
--static int find_i810(u16 device)
--{
--	struct pci_dev *i810_dev;
--
--	i810_dev = pci_get_device(PCI_VENDOR_ID_INTEL, device, NULL);
--	if (!i810_dev)
--		return 0;
--	intel_private.pcidev = i810_dev;
--	return 1;
--}
- 
--static int find_i830(u16 device)
-+static int find_gmch(u16 device)
+diff -puN kernel/container.c~containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix kernel/container.c
+--- a/kernel/container.c~containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix
++++ a/kernel/container.c
+@@ -2080,7 +2080,7 @@ void container_fork_callbacks(struct tas
+ void container_exit(struct task_struct *tsk, int run_callbacks)
  {
--	struct pci_dev *i830_dev;
-+	struct pci_dev *gmch_device;
+ 	int i;
+-	struct css_group *cg = NULL;
++	struct css_group *cg;
  
--	i830_dev = pci_get_device(PCI_VENDOR_ID_INTEL, device, NULL);
--	if (i830_dev && PCI_FUNC(i830_dev->devfn) != 0) {
--		i830_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
--				device, i830_dev);
-+	gmch_device = pci_get_device(PCI_VENDOR_ID_INTEL, device, NULL);
-+	if (gmch_device && PCI_FUNC(gmch_device->devfn) != 0) {
-+		gmch_device = pci_get_device(PCI_VENDOR_ID_INTEL,
-+                                device, gmch_device);
- 	}
- 
--	if (!i830_dev)
-+	if (!gmch_device)
- 		return 0;
- 
--	intel_private.pcidev = i830_dev;
-+	intel_private.pcidev = gmch_device;
- 	return 1;
- }
- 
-+/* Table to describe Intel GMCH and AGP/PCIE GART drivers.  At least one of
-+ * driver and gmch_driver must be non-null, and find_gmch will determine
-+ * which one should be used if a gmch_chip_id is present.
-+ */
-+static const struct intel_driver_description {
-+	unsigned int chip_id;
-+	unsigned int gmch_chip_id;
-+	char *name;
-+	struct agp_bridge_driver *driver;
-+	struct agp_bridge_driver *gmch_driver;
-+} intel_agp_chipsets[] = {
-+	{ PCI_DEVICE_ID_INTEL_82443LX_0, 0, "440LX",
-+            (struct agp_bridge_driver *)&intel_generic_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82443BX_0, 0, "440BX",
-+            (struct agp_bridge_driver *)&intel_generic_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82443GX_0, 0, "440GX",
-+            (struct agp_bridge_driver *)&intel_generic_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82810_MC1, PCI_DEVICE_ID_INTEL_82810_IG1, "i810",
-+            NULL, (struct agp_bridge_driver *)&intel_810_driver },
-+	{ PCI_DEVICE_ID_INTEL_82810_MC3, PCI_DEVICE_ID_INTEL_82810_IG3, "i810",
-+            NULL, (struct agp_bridge_driver *)&intel_810_driver },
-+	{ PCI_DEVICE_ID_INTEL_82810E_MC, PCI_DEVICE_ID_INTEL_82810E_IG, "i810",
-+            NULL, (struct agp_bridge_driver *)&intel_810_driver },
-+	{ PCI_DEVICE_ID_INTEL_82815_MC, PCI_DEVICE_ID_INTEL_82815_CGC, "i815",
-+            (struct agp_bridge_driver *)&intel_810_driver,
-+            (struct agp_bridge_driver *)&intel_815_driver },
-+	{ PCI_DEVICE_ID_INTEL_82820_HB, 0, "i820",
-+            (struct agp_bridge_driver *)&intel_820_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82820_UP_HB, 0, "i820",
-+            (struct agp_bridge_driver *)&intel_820_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82830_HB, PCI_DEVICE_ID_INTEL_82830_CGC, "830M",
-+            (struct agp_bridge_driver *)&intel_830mp_driver,
-+            (struct agp_bridge_driver *)&intel_830_driver },
-+	{ PCI_DEVICE_ID_INTEL_82840_HB, 0, "i840",
-+            (struct agp_bridge_driver *)&intel_840_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82845_HB, 0, "845G",
-+            (struct agp_bridge_driver *)&intel_845_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82845G_HB, PCI_DEVICE_ID_INTEL_82845G_IG, "830M",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_830_driver },
-+	{ PCI_DEVICE_ID_INTEL_82850_HB, 0, "i850",
-+	    (struct agp_bridge_driver *)&intel_850_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82855PM_HB, 0, "855PM",
-+            (struct agp_bridge_driver *)&intel_845_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82855GM_HB, PCI_DEVICE_ID_INTEL_82855GM_IG, "855GM",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_830_driver },
-+	{ PCI_DEVICE_ID_INTEL_82860_HB, 0, "i860",
-+            (struct agp_bridge_driver *)&intel_860_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82865_HB, PCI_DEVICE_ID_INTEL_82865_IG, "865",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_830_driver },
-+	{ PCI_DEVICE_ID_INTEL_82875_HB, 0, "i875",
-+            (struct agp_bridge_driver *)&intel_845_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_82915G_HB, PCI_DEVICE_ID_INTEL_82915G_IG, "915G",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_915_driver },
-+	{ PCI_DEVICE_ID_INTEL_82915GM_HB, PCI_DEVICE_ID_INTEL_82915GM_IG, "915GM",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_915_driver },
-+	{ PCI_DEVICE_ID_INTEL_82945G_HB, PCI_DEVICE_ID_INTEL_82945G_IG, "945G",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_915_driver },
-+	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GM_IG, "945GM",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_915_driver },
-+	{ PCI_DEVICE_ID_INTEL_82946GZ_HB, PCI_DEVICE_ID_INTEL_82946GZ_IG, "946GZ",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_82965G_1_HB, PCI_DEVICE_ID_INTEL_82965G_1_IG, "965G",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_82965Q_HB, PCI_DEVICE_ID_INTEL_82965Q_IG, "965Q",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_82965G_HB, PCI_DEVICE_ID_INTEL_82965G_IG, "965G",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GM_IG, "965GM",
-+            (struct agp_bridge_driver *)&intel_845_driver,
-+            (struct agp_bridge_driver *)&intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_7505_0, 0, "E7505",
-+            (struct agp_bridge_driver *)&intel_7505_driver, NULL },
-+	{ PCI_DEVICE_ID_INTEL_7205_0, 0, "E7205",
-+            (struct agp_bridge_driver *)&intel_7505_driver, NULL },
-+	{ 0, 0, NULL, NULL, NULL }
-+};
-+
- static int __devinit agp_intel_probe(struct pci_dev *pdev,
- 				     const struct pci_device_id *ent)
- {
- 	struct agp_bridge_data *bridge;
--	char *name = "(unknown)";
- 	u8 cap_ptr = 0;
- 	struct resource *r;
-+	int i;
- 
- 	cap_ptr = pci_find_capability(pdev, PCI_CAP_ID_AGP);
- 
-@@ -1766,191 +1844,39 @@ static int __devinit agp_intel_probe(str
- 	if (!bridge)
- 		return -ENOMEM;
- 
--	switch (pdev->device) {
--	case PCI_DEVICE_ID_INTEL_82443LX_0:
--		bridge->driver = &intel_generic_driver;
--		name = "440LX";
--		break;
--	case PCI_DEVICE_ID_INTEL_82443BX_0:
--		bridge->driver = &intel_generic_driver;
--		name = "440BX";
--		break;
--	case PCI_DEVICE_ID_INTEL_82443GX_0:
--		bridge->driver = &intel_generic_driver;
--		name = "440GX";
--		break;
--	case PCI_DEVICE_ID_INTEL_82810_MC1:
--		name = "i810";
--		if (!find_i810(PCI_DEVICE_ID_INTEL_82810_IG1))
--			goto fail;
--		bridge->driver = &intel_810_driver;
--		break;
--	case PCI_DEVICE_ID_INTEL_82810_MC3:
--		name = "i810 DC100";
--		if (!find_i810(PCI_DEVICE_ID_INTEL_82810_IG3))
--			goto fail;
--		bridge->driver = &intel_810_driver;
--		break;
--	case PCI_DEVICE_ID_INTEL_82810E_MC:
--		name = "i810 E";
--		if (!find_i810(PCI_DEVICE_ID_INTEL_82810E_IG))
--			goto fail;
--		bridge->driver = &intel_810_driver;
--		break;
--	 case PCI_DEVICE_ID_INTEL_82815_MC:
--		/*
--		 * The i815 can operate either as an i810 style
--		 * integrated device, or as an AGP4X motherboard.
--		 */
--		if (find_i810(PCI_DEVICE_ID_INTEL_82815_CGC))
--			bridge->driver = &intel_810_driver;
--		else
--			bridge->driver = &intel_815_driver;
--		name = "i815";
--		break;
--	case PCI_DEVICE_ID_INTEL_82820_HB:
--	case PCI_DEVICE_ID_INTEL_82820_UP_HB:
--		bridge->driver = &intel_820_driver;
--		name = "i820";
--		break;
--	case PCI_DEVICE_ID_INTEL_82830_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82830_CGC))
--			bridge->driver = &intel_830_driver;
--		else
--			bridge->driver = &intel_830mp_driver;
--		name = "830M";
--		break;
--	case PCI_DEVICE_ID_INTEL_82840_HB:
--		bridge->driver = &intel_840_driver;
--		name = "i840";
--		break;
--	case PCI_DEVICE_ID_INTEL_82845_HB:
--		bridge->driver = &intel_845_driver;
--		name = "i845";
--		break;
--	case PCI_DEVICE_ID_INTEL_82845G_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82845G_IG))
--			bridge->driver = &intel_830_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "845G";
--		break;
--	case PCI_DEVICE_ID_INTEL_82850_HB:
--		bridge->driver = &intel_850_driver;
--		name = "i850";
--		break;
--	case PCI_DEVICE_ID_INTEL_82855PM_HB:
--		bridge->driver = &intel_845_driver;
--		name = "855PM";
--		break;
--	case PCI_DEVICE_ID_INTEL_82855GM_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82855GM_IG)) {
--			bridge->driver = &intel_830_driver;
--			name = "855";
--		} else {
--			bridge->driver = &intel_845_driver;
--			name = "855GM";
--		}
--		break;
--	case PCI_DEVICE_ID_INTEL_82860_HB:
--		bridge->driver = &intel_860_driver;
--		name = "i860";
--		break;
--	case PCI_DEVICE_ID_INTEL_82865_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82865_IG))
--			bridge->driver = &intel_830_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "865";
--		break;
--	case PCI_DEVICE_ID_INTEL_82875_HB:
--		bridge->driver = &intel_845_driver;
--		name = "i875";
--		break;
--	case PCI_DEVICE_ID_INTEL_82915G_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82915G_IG))
--			bridge->driver = &intel_915_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "915G";
--		break;
--	case PCI_DEVICE_ID_INTEL_82915GM_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82915GM_IG))
--			bridge->driver = &intel_915_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "915GM";
--		break;
--	case PCI_DEVICE_ID_INTEL_82945G_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82945G_IG))
--			bridge->driver = &intel_915_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "945G";
--		break;
--	case PCI_DEVICE_ID_INTEL_82945GM_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82945GM_IG))
--			bridge->driver = &intel_915_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "945GM";
--		break;
--	case PCI_DEVICE_ID_INTEL_82946GZ_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82946GZ_IG))
--			bridge->driver = &intel_i965_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "946GZ";
--		break;
--	case PCI_DEVICE_ID_INTEL_82965G_1_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82965G_1_IG))
--			bridge->driver = &intel_i965_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "965G";
--		break;
--	case PCI_DEVICE_ID_INTEL_82965Q_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82965Q_IG))
--			bridge->driver = &intel_i965_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "965Q";
--		break;
--	case PCI_DEVICE_ID_INTEL_82965G_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82965G_IG))
--			bridge->driver = &intel_i965_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "965G";
--		break;
--	case PCI_DEVICE_ID_INTEL_82965GM_HB:
--		if (find_i830(PCI_DEVICE_ID_INTEL_82965GM_IG))
--			bridge->driver = &intel_i965_driver;
--		else
--			bridge->driver = &intel_845_driver;
--		name = "965GM";
--		break;
--	case PCI_DEVICE_ID_INTEL_7505_0:
--		bridge->driver = &intel_7505_driver;
--		name = "E7505";
--		break;
--	case PCI_DEVICE_ID_INTEL_7205_0:
--		bridge->driver = &intel_7505_driver;
--		name = "E7205";
--		break;
--	default:
-+	for (i = 0; intel_agp_chipsets[i].name != NULL; i++) {
-+		if (pdev->device == intel_agp_chipsets[i].chip_id)
-+		    break;
-+	}
-+
-+	if (intel_agp_chipsets[i].name == NULL) {
- 		if (cap_ptr)
--			printk(KERN_WARNING PFX "Unsupported Intel chipset (device id: %04x)\n",
--			    pdev->device);
-+			printk(KERN_WARNING PFX "Unsupported Intel chipset"
-+                               "(device id: %04x)\n", pdev->device);
- 		agp_put_bridge(bridge);
- 		return -ENODEV;
--	};
-+	}
-+
-+	if (intel_agp_chipsets[i].gmch_chip_id != 0 &&
-+		find_gmch(intel_agp_chipsets[i].gmch_chip_id)) {
-+	    bridge->driver = intel_agp_chipsets[i].gmch_driver;
-+	} else {
-+	    bridge->driver = intel_agp_chipsets[i].driver;
-+	}
-+
-+	if (bridge->driver == NULL) {
-+		printk(KERN_WARNING PFX "Failed to find bridge device "
-+			"(chip_id: %04x)\n", intel_agp_chipsets[i].gmch_chip_id);
-+		agp_put_bridge(bridge);
-+		return -ENODEV;
-+        }
- 
- 	bridge->dev = pdev;
- 	bridge->capndx = cap_ptr;
- 	bridge->dev_private_data = &intel_private;
- 
--	printk(KERN_INFO PFX "Detected an Intel %s Chipset.\n", name);
-+	printk(KERN_INFO PFX "Detected an Intel %s Chipset.\n",
-+		intel_agp_chipsets[i].name);
- 
- 	/*
- 	* The following fixes the case where the BIOS has "forgotten" to
-@@ -1986,12 +1912,6 @@ static int __devinit agp_intel_probe(str
- 
- 	pci_set_drvdata(pdev, bridge);
- 	return agp_add_bridge(bridge);
--
--fail:
--	printk(KERN_ERR PFX "Detected an Intel %s chipset, "
--		"but could not find the secondary device.\n", name);
--	agp_put_bridge(bridge);
--	return -ENODEV;
- }
- 
- static void __devexit agp_intel_remove(struct pci_dev *pdev)
+ 	if (run_callbacks && need_forkexit_callback) {
+ 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-intel_agp-cleanup-intel-private-data.patch
-intel_agp-cleanup-intel-private-data-update.patch
-intel_agp-use-table-for-device-probe.patch
-intel_agp-use-table-for-device-probe-update.patch
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm-master.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-xfs.patch
+git-cryptodev.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+potential-parse-error-in-ifdef.patch
+e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
