@@ -1,114 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg.patch added to -mm tree
-Date: Wed, 30 May 2007 15:43:47 -0700
-Message-ID: <200705302243.l4UMhlFm007007@shell0.pdx.osdl.net>
+Subject: - fix-soft-lockup-when-removing-netconsole-module.patch removed from -mm tree
+Date: Wed, 30 May 2007 15:45:05 -0700
+Message-ID: <200705302245.l4UMj6bb007049@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45890 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751645AbXE3Wn7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751370AbXE3WpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:43:59 -0400
+	Wed, 30 May 2007 18:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com, penberg@cs.helsinki.fi, teanropo@jyu.fi
+To: jason.wessel@windriver.com, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     neofb: Fix pseudo_palette array overrun in neofb_setcolreg
-has been added to the -mm tree.  Its filename is
-     neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg.patch
+     fix soft lockup when removing netconsole module
+has been removed from the -mm tree.  Its filename was
+     fix-soft-lockup-when-removing-netconsole-module.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it's unneeded in 2.6.22
 
 ------------------------------------------------------
-Subject: neofb: Fix pseudo_palette array overrun in neofb_setcolreg
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: fix soft lockup when removing netconsole module
+From: Jason Wessel <jason.wessel@windriver.com>
 
-The pseudo_palette has room for 16 entries only, but in truecolor mode, it
-attempts to add 256.
+The netpoll_cleanup handler can hang the kernel if there is no work in the
+work queue because a call to cancel_rearming_delayed_work() with no work
+goes into an infinite loop.
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Cc: Tero Roponen <teanropo@jyu.fi>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+The typical case where this is a problem is on removing a kernel module
+such as the netconsole driver or kgdboe.
+
+To maintain 80 column code, the function had to have one level of braces
+dropped.
+
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/neofb.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+ net/core/netpoll.c |   36 +++++++++++++++++++-----------------
+ 1 files changed, 19 insertions(+), 17 deletions(-)
 
-diff -puN drivers/video/neofb.c~neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg drivers/video/neofb.c
---- a/drivers/video/neofb.c~neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg
-+++ a/drivers/video/neofb.c
-@@ -1286,34 +1286,36 @@ static int neofb_setcolreg(u_int regno, 
- 	if (regno >= fb->cmap.len || regno > 255)
- 		return -EINVAL;
+diff -puN net/core/netpoll.c~fix-soft-lockup-when-removing-netconsole-module net/core/netpoll.c
+--- a/net/core/netpoll.c~fix-soft-lockup-when-removing-netconsole-module
++++ a/net/core/netpoll.c
+@@ -771,30 +771,32 @@ void netpoll_cleanup(struct netpoll *np)
+ 	struct netpoll_info *npinfo;
+ 	unsigned long flags;
  
--	switch (fb->var.bits_per_pixel) {
--	case 8:
-+	if (fb->var.bits_per_pixel <= 8) {
- 		outb(regno, 0x3c8);
+-	if (np->dev) {
+-		npinfo = np->dev->npinfo;
+-		if (npinfo) {
+-			if (npinfo->rx_np == np) {
+-				spin_lock_irqsave(&npinfo->rx_lock, flags);
+-				npinfo->rx_np = NULL;
+-				npinfo->rx_flags &= ~NETPOLL_RX_ENABLED;
+-				spin_unlock_irqrestore(&npinfo->rx_lock, flags);
+-			}
++	if (!np->dev)
++		return;
++
++	npinfo = np->dev->npinfo;
++	if (npinfo) {
++		if (npinfo->rx_np == np) {
++			spin_lock_irqsave(&npinfo->rx_lock, flags);
++			npinfo->rx_np = NULL;
++			npinfo->rx_flags &= ~NETPOLL_RX_ENABLED;
++			spin_unlock_irqrestore(&npinfo->rx_lock, flags);
++		}
  
- 		outb(red >> 10, 0x3c9);
- 		outb(green >> 10, 0x3c9);
- 		outb(blue >> 10, 0x3c9);
--		break;
--	case 16:
--		((u32 *) fb->pseudo_palette)[regno] =
-+	} else if (regno < 16) {
-+		switch (fb->var.bits_per_pixel) {
-+		case 16:
-+			((u32 *) fb->pseudo_palette)[regno] =
- 				((red & 0xf800)) | ((green & 0xfc00) >> 5) |
- 				((blue & 0xf800) >> 11);
--		break;
--	case 24:
--		((u32 *) fb->pseudo_palette)[regno] =
-+			break;
-+		case 24:
-+			((u32 *) fb->pseudo_palette)[regno] =
- 				((red & 0xff00) << 8) | ((green & 0xff00)) |
- 				((blue & 0xff00) >> 8);
--		break;
-+			break;
- #ifdef NO_32BIT_SUPPORT_YET
--	case 32:
--		((u32 *) fb->pseudo_palette)[regno] =
-+		case 32:
-+			((u32 *) fb->pseudo_palette)[regno] =
- 				((transp & 0xff00) << 16) | ((red & 0xff00) << 8) |
- 				((green & 0xff00)) | ((blue & 0xff00) >> 8);
--		break;
-+			break;
- #endif
--	default:
--		return 1;
-+		default:
-+			return 1;
+-			np->dev->npinfo = NULL;
+-			if (atomic_dec_and_test(&npinfo->refcnt)) {
+-				skb_queue_purge(&npinfo->arp_tx);
+-				skb_queue_purge(&npinfo->txq);
++		np->dev->npinfo = NULL;
++		if (atomic_dec_and_test(&npinfo->refcnt)) {
++			skb_queue_purge(&npinfo->arp_tx);
++			skb_queue_purge(&npinfo->txq);
++			if (delayed_work_pending(&npinfo->tx_work)) {
+ 				cancel_rearming_delayed_work(&npinfo->tx_work);
+ 				flush_scheduled_work();
+-
+-				kfree(npinfo);
+ 			}
+-		}
+ 
+-		dev_put(np->dev);
++			kfree(npinfo);
 +		}
  	}
-+
- 	return 0;
+ 
++	dev_put(np->dev);
+ 	np->dev = NULL;
  }
  
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from jason.wessel@windriver.com are
 
-skeletonfb-fix-of-xxxfb_setup-ifdef.patch
-vt8623fb-arkfb-null-pointer-dereference-fix.patch
-cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors.patch
-fbdev-move-declaration-of-fb_class-to-linux-fbh.patch
-neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg.patch
-fbcon-smart-blitter-usage-for-scrolling.patch
-nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
-fbcon-cursor-blink-control.patch
-fbcon-use-struct-device-instead-of-struct-class_device.patch
-fbdev-move-arch-specific-bits-to-their-respective.patch
-fbdev-detect-primary-display-device.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
+fix-soft-lockup-when-removing-netconsole-module.patch
