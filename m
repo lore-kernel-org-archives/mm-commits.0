@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + security-revalidate-rw-permissions-for-sys_splice-and.patch added to -mm tree
-Date: Wed, 30 May 2007 11:17:48 -0700
-Message-ID: <200705301817.l4UIHmeA001502@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-xen-core-xen-implementation.patch added to -mm tree
+Date: Wed, 30 May 2007 11:19:13 -0700
+Message-ID: <200705301819.l4UIJDPT001521@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40514 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753400AbXE3SSA (ORCPT
+	by vger.kernel.org with ESMTP id S1753408AbXE3STW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 14:18:00 -0400
+	Wed, 30 May 2007 14:19:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmorris@namei.org, jens.axboe@oracle.com, sds@tycho.nsa.gov
+Cc: jeremy@goop.org, ak@suse.de, ebiederm@xmission.com, jeremy@xensource.com, sam@ravnborg.org
 
 
 The patch titled
-     security: revalidate rw permissions for sys_splice and sys_vmsplice
+     xen_start_kernel is __init, so startup_xen should be too
 has been added to the -mm tree.  Its filename is
-     security-revalidate-rw-permissions-for-sys_splice-and.patch
+     fix-x86_64-mm-xen-core-xen-implementation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: security: revalidate rw permissions for sys_splice and sys_vmsplice
-From: James Morris <jmorris@namei.org>
+Subject: xen_start_kernel is __init, so startup_xen should be too
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Revalidate read/write permissions for splice(2) and vmslice(2), in case
-security policy has changed since the files were opened.
+This needs an update to modpost to prevent warning about the reference from
+.note* to the .init.text section.
 
-Note that this brings the splice code into line with other mechanisms for
-reading and writing files, where an LSM check is made on open, then
-revalidated on read or write as a form of partial revocation.
-
-Signed-off-by: James Morris <jmorris@namei.org>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Signed-off-by: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+)
+ arch/i386/xen/xen-head.S |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN fs/splice.c~security-revalidate-rw-permissions-for-sys_splice-and fs/splice.c
---- a/fs/splice.c~security-revalidate-rw-permissions-for-sys_splice-and
-+++ a/fs/splice.c
-@@ -28,6 +28,7 @@
- #include <linux/module.h>
- #include <linux/syscalls.h>
- #include <linux/uio.h>
-+#include <linux/security.h>
+diff -puN arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation arch/i386/xen/xen-head.S
+--- a/arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation
++++ a/arch/i386/xen/xen-head.S
+@@ -7,11 +7,13 @@
+ #include <asm/boot.h>
+ #include <xen/interface/elfnote.h>
  
- struct partial_page {
- 	unsigned int offset;
-@@ -912,6 +913,10 @@ static long do_splice_from(struct pipe_i
- 	if (unlikely(ret < 0))
- 		return ret;
++.pushsection .init.text,"ax",@progbits
+ ENTRY(startup_xen)
+ 	movl %esi,xen_start_info
+ 	cld
+  	movl $(init_thread_union+THREAD_SIZE),%esp
+ 	jmp xen_start_kernel
++.popsection
  
-+	ret = security_file_permission(out, MAY_WRITE);
-+	if (unlikely(ret < 0))
-+		return ret;
-+	
- 	return out->f_op->splice_write(pipe, out, ppos, len, flags);
- }
- 
-@@ -935,6 +940,10 @@ static long do_splice_to(struct file *in
- 	if (unlikely(ret < 0))
- 		return ret;
- 
-+	ret = security_file_permission(in, MAY_READ);
-+	if (unlikely(ret < 0))
-+		return ret;
-+
- 	isize = i_size_read(in->f_mapping->host);
- 	if (unlikely(*ppos >= isize))
- 		return 0;
-@@ -1263,6 +1272,7 @@ static int get_iovec_page_array(const st
- static long do_vmsplice(struct file *file, const struct iovec __user *iov,
- 			unsigned long nr_segs, unsigned int flags)
- {
-+	long err;
- 	struct pipe_inode_info *pipe;
- 	struct page *pages[PIPE_BUFFERS];
- 	struct partial_page partial[PIPE_BUFFERS];
-@@ -1281,6 +1291,10 @@ static long do_vmsplice(struct file *fil
- 	else if (unlikely(!nr_segs))
- 		return 0;
- 
-+	err = security_file_permission(file, MAY_WRITE);
-+	if (unlikely(err < 0))
-+		return err;
-+
- 	spd.nr_pages = get_iovec_page_array(iov, nr_segs, pages, partial,
- 					    flags & SPLICE_F_GIFT);
- 	if (spd.nr_pages <= 0)
+ .pushsection ".bss.page_aligned"
+ 	.align PAGE_SIZE_asm
 _
 
-Patches currently in -mm which might be from jmorris@namei.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-git-selinux.patch
-security-revalidate-rw-permissions-for-sys_splice-and.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-update.patch
-lguest-the-net-driver.patch
-lguest-the-documentation-example-launcher.patch
+add-kstrndup-fix.patch
+xen-build-fix.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+tidy-up-usermode-helper-waiting-a-bit-fix.patch
+lguest-the-guest-code.patch
