@@ -1,104 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - security-revalidate-rw-permissions-for-sys_splice-and.patch removed from -mm tree
-Date: Wed, 30 May 2007 16:28:50 -0700
-Message-ID: <200705302328.l4UNSnNa007780@shell0.pdx.osdl.net>
+Subject: - usb-replace-flush_workqueue-with-cancel_sync_work.patch removed from -mm tree
+Date: Wed, 30 May 2007 16:28:14 -0700
+Message-ID: <200705302328.l4UNSDL0007738@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41228 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753171AbXE3X35 (ORCPT
+	by vger.kernel.org with ESMTP id S1753185AbXE3X36 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 19:29:57 -0400
+	Wed, 30 May 2007 19:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmorris@namei.org, jens.axboe@oracle.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, akpm@linux-foundation.org, greg@kroah.com, mlord@pobox.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security: revalidate rw permissions for sys_splice and sys_vmsplice
+     USB: replace flush_workqueue with cancel_sync_work
 has been removed from the -mm tree.  Its filename was
-     security-revalidate-rw-permissions-for-sys_splice-and.patch
+     usb-replace-flush_workqueue-with-cancel_sync_work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: security: revalidate rw permissions for sys_splice and sys_vmsplice
-From: James Morris <jmorris@namei.org>
+Subject: USB: replace flush_workqueue with cancel_sync_work
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Revalidate read/write permissions for splice(2) and vmslice(2), in case
-security policy has changed since the files were opened.
+This patch (as912) replaces a couple of calls to flush_workqueue() with
+cancel_sync_work() and cancel_rearming_delayed_work().  Using a more
+directed approach allows us to avoid some nasty deadlocks.  The prime
+example occurs when a first-level device (the parent is a root hub) is
+removed while at the same time the root hub gets a remote wakeup request. 
+khubd would try to flush the autosuspend workqueue while holding the
+root-hub's lock, and the remote-wakeup workqueue routine would be waiting
+to lock the root hub.
 
-Note that this brings the splice code into line with other mechanisms for
-reading and writing files, where an LSM check is made on open, then
-revalidated on read or write as a form of partial revocation.
+The patch also reorganizes the power management portion of
+usb_disconnect(), separating it out into its own routine.  The autosuspend
+workqueue entry is cancelled immediately instead of waiting for the
+device's release routine.  In addition, synchronization with the
+autosuspend thread is carried out even for root hubs (an oversight in the
+original code).
 
-Signed-off-by: James Morris <jmorris@namei.org>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Signed-off-by: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Acked-by: Mark Lord <mlord@pobox.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+)
+ drivers/usb/core/hcd.c |    2 +-
+ drivers/usb/core/hub.c |   32 +++++++++++++++++++++++++-------
+ drivers/usb/core/usb.c |    4 ----
+ 3 files changed, 26 insertions(+), 12 deletions(-)
 
-diff -puN fs/splice.c~security-revalidate-rw-permissions-for-sys_splice-and fs/splice.c
---- a/fs/splice.c~security-revalidate-rw-permissions-for-sys_splice-and
-+++ a/fs/splice.c
-@@ -28,6 +28,7 @@
- #include <linux/module.h>
- #include <linux/syscalls.h>
- #include <linux/uio.h>
-+#include <linux/security.h>
+diff -puN drivers/usb/core/hcd.c~usb-replace-flush_workqueue-with-cancel_sync_work drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~usb-replace-flush_workqueue-with-cancel_sync_work
++++ a/drivers/usb/core/hcd.c
+@@ -1681,7 +1681,7 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+ 	spin_unlock_irq (&hcd_root_hub_lock);
  
- struct partial_page {
- 	unsigned int offset;
-@@ -912,6 +913,10 @@ static long do_splice_from(struct pipe_i
- 	if (unlikely(ret < 0))
- 		return ret;
+ #ifdef CONFIG_PM
+-	flush_workqueue(ksuspend_usb_wq);
++	cancel_work_sync(&hcd->wakeup_work);
+ #endif
  
-+	ret = security_file_permission(out, MAY_WRITE);
-+	if (unlikely(ret < 0))
-+		return ret;
-+
- 	return out->f_op->splice_write(pipe, out, ppos, len, flags);
+ 	mutex_lock(&usb_bus_list_lock);
+diff -puN drivers/usb/core/hub.c~usb-replace-flush_workqueue-with-cancel_sync_work drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~usb-replace-flush_workqueue-with-cancel_sync_work
++++ a/drivers/usb/core/hub.c
+@@ -1158,6 +1158,30 @@ static void release_address(struct usb_d
+ 	}
  }
  
-@@ -935,6 +940,10 @@ static long do_splice_to(struct file *in
- 	if (unlikely(ret < 0))
- 		return ret;
- 
-+	ret = security_file_permission(in, MAY_READ);
-+	if (unlikely(ret < 0))
-+		return ret;
++#ifdef	CONFIG_USB_SUSPEND
 +
- 	isize = i_size_read(in->f_mapping->host);
- 	if (unlikely(*ppos >= isize))
- 		return 0;
-@@ -1263,6 +1272,7 @@ static int get_iovec_page_array(const st
- static long do_vmsplice(struct file *file, const struct iovec __user *iov,
- 			unsigned long nr_segs, unsigned int flags)
- {
-+	long err;
- 	struct pipe_inode_info *pipe;
- 	struct page *pages[PIPE_BUFFERS];
- 	struct partial_page partial[PIPE_BUFFERS];
-@@ -1281,6 +1291,10 @@ static long do_vmsplice(struct file *fil
- 	else if (unlikely(!nr_segs))
- 		return 0;
- 
-+	err = security_file_permission(file, MAY_WRITE);
-+	if (unlikely(err < 0))
-+		return err;
++static void usb_stop_pm(struct usb_device *udev)
++{
++	/* Synchronize with the ksuspend thread to prevent any more
++	 * autosuspend requests from being submitted, and decrement
++	 * the parent's count of unsuspended children.
++	 */
++	usb_pm_lock(udev);
++	if (udev->parent && !udev->discon_suspended)
++		usb_autosuspend_device(udev->parent);
++	usb_pm_unlock(udev);
 +
- 	spd.nr_pages = get_iovec_page_array(iov, nr_segs, pages, partial,
- 					    flags & SPLICE_F_GIFT);
- 	if (spd.nr_pages <= 0)
++	/* Stop any autosuspend requests already submitted */
++	cancel_rearming_delayed_work(&udev->autosuspend);
++}
++
++#else
++
++static inline void usb_stop_pm(struct usb_device *udev)
++{ }
++
++#endif
++
+ /**
+  * usb_disconnect - disconnect a device (usbcore-internal)
+  * @pdev: pointer to device being disconnected
+@@ -1224,13 +1248,7 @@ void usb_disconnect(struct usb_device **
+ 	*pdev = NULL;
+ 	spin_unlock_irq(&device_state_lock);
+ 
+-	/* Decrement the parent's count of unsuspended children */
+-	if (udev->parent) {
+-		usb_pm_lock(udev);
+-		if (!udev->discon_suspended)
+-			usb_autosuspend_device(udev->parent);
+-		usb_pm_unlock(udev);
+-	}
++	usb_stop_pm(udev);
+ 
+ 	put_device(&udev->dev);
+ }
+diff -puN drivers/usb/core/usb.c~usb-replace-flush_workqueue-with-cancel_sync_work drivers/usb/core/usb.c
+--- a/drivers/usb/core/usb.c~usb-replace-flush_workqueue-with-cancel_sync_work
++++ a/drivers/usb/core/usb.c
+@@ -184,10 +184,6 @@ static void usb_release_dev(struct devic
+ 
+ 	udev = to_usb_device(dev);
+ 
+-#ifdef	CONFIG_USB_SUSPEND
+-	cancel_delayed_work(&udev->autosuspend);
+-	flush_workqueue(ksuspend_usb_wq);
+-#endif
+ 	usb_destroy_configuration(udev);
+ 	usb_put_hcd(bus_to_hcd(udev->bus));
+ 	kfree(udev->product);
 _
 
-Patches currently in -mm which might be from jmorris@namei.org are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-git-selinux.patch
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-update.patch
-lguest-the-net-driver.patch
-lguest-the-documentation-example-launcher.patch
+origin.patch
+git-hid.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+freezer-run-show_state-when-freezing-times-out.patch
