@@ -1,275 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-prevent-dma-dependent-code-from-linking-on.patch added to -mm tree
-Date: Wed, 30 May 2007 15:46:51 -0700
-Message-ID: <200705302246.l4UMkpLg007071@shell0.pdx.osdl.net>
+Subject: - git-leds-fixup.patch removed from -mm tree
+Date: Wed, 30 May 2007 16:11:32 -0700
+Message-ID: <200705302311.l4UNBV2w007463@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51912 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751248AbXE3Wsx (ORCPT
+	by vger.kernel.org with ESMTP id S1750746AbXE3XLw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:48:53 -0400
+	Wed, 30 May 2007 19:11:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dan.j.williams@intel.com, James.Bottomley@SteelEye.com, cornelia.huck@de.ibm.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, htejun@gmail.com, jeff@garzik.org, kyle@parisc-linux.org, linville@tuxdriver.com, schwidefsky@de.ibm.com, spyro@f2s.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
+To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping: prevent dma dependent code from linking on !HAS_DMA archs
-has been added to the -mm tree.  Its filename is
-     dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+     git-leds-fixup
+has been removed from the -mm tree.  Its filename was
+     git-leds-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: dma-mapping: prevent dma dependent code from linking on !HAS_DMA archs
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: git-leds-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Continuing the work started in 411f0f3edc141a582190d3605cadd1d993abb6df ...
+Fix reject in git-leds
 
-This enables code with a dma path, that compiles away, to build without
-requiring additional code factoring.  It also prevents code that calls
-dma_alloc_coherent and dma_free_coherent from linking whereas previously
-the code would hit a BUG() at run time.  Finally, it allows archs that set
-!HAS_DMA to delete their asm/dma-mapping.h file.
-
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <geert@linux-m68k.org>
-Cc: <zippel@linux-m68k.org>
-Cc: <spyro@f2s.com>
-Cc: <ysato@users.sourceforge.jp>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm26/Kconfig                       |    3 
- arch/h8300/Kconfig                       |    3 
- arch/m32r/Kconfig                        |    3 
- drivers/dma/Kconfig                      |    2 
- include/asm-arm26/dma-mapping.h          |    2 
- include/asm-generic/dma-mapping-broken.h |   82 +++++++++++++++++----
- include/asm-h8300/dma-mapping.h          |    1 
- include/asm-m32r/dma-mapping.h           |    6 -
- include/asm-s390/dma-mapping.h           |   12 ---
- include/linux/dma-mapping.h              |    4 +
- 10 files changed, 84 insertions(+), 34 deletions(-)
+ drivers/leds/Kconfig |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN arch/arm26/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/arm26/Kconfig
---- a/arch/arm26/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/arch/arm26/Kconfig
-@@ -17,6 +17,9 @@ config MMU
- 	bool
- 	default y
- 
-+config NO_DMA
-+	def_bool y
-+
- config ARCH_ACORN
-         bool
-         default y
-diff -puN arch/h8300/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/arch/h8300/Kconfig
-@@ -68,6 +68,9 @@ config TIME_LOW_RES
- config NO_IOPORT
- 	def_bool y
- 
-+config NO_DMA
-+	def_bool y
-+
- config ISA
- 	bool
- 	default y
-diff -puN arch/m32r/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/arch/m32r/Kconfig
-@@ -31,6 +31,9 @@ config GENERIC_IRQ_PROBE
- config NO_IOPORT
- 	def_bool y
- 
-+config NO_DMA
-+	def_bool y
-+
- source "init/Kconfig"
- 
- 
-diff -puN drivers/dma/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/drivers/dma/Kconfig
-@@ -3,7 +3,7 @@
- #
- 
- menu "DMA Engine support"
--	depends on !S390
-+	depends on HAS_DMA
- 
- config DMA_ENGINE
- 	bool "Support for DMA engines"
-diff -puN include/asm-arm26/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-arm26/dma-mapping.h
-+++ /dev/null
-@@ -1,2 +0,0 @@
--#include <asm-generic/dma-mapping-broken.h>
+diff -puN drivers/leds/Kconfig~git-leds-fixup drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~git-leds-fixup
++++ a/drivers/leds/Kconfig
+@@ -1,12 +1,5 @@
 -
-diff -puN include/asm-generic/dma-mapping-broken.h~dma-mapping-prevent-dma-dependent-code-from-linking-on include/asm-generic/dma-mapping-broken.h
---- a/include/asm-generic/dma-mapping-broken.h~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/include/asm-generic/dma-mapping-broken.h
-@@ -1,24 +1,82 @@
- #ifndef _ASM_GENERIC_DMA_MAPPING_H
- #define _ASM_GENERIC_DMA_MAPPING_H
- 
--/* This is used for archs that do not support DMA */
-+/* define the dma api to allow compilation but not linking of
-+ * dma dependent code.  Code that depends on the dma-mapping
-+ * API needs to set 'depends on HAS_DMA' in its Kconfig
-+ */
- 
--static inline void *
-+struct scatterlist;
-+
-+extern void *
- dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
--		   gfp_t flag)
--{
--	BUG();
--	return NULL;
--}
-+		   gfp_t flag);
- 
--static inline void
-+extern void
- dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
--		    dma_addr_t dma_handle)
--{
--	BUG();
--}
-+		    dma_addr_t dma_handle);
- 
- #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
- #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
- 
-+extern dma_addr_t
-+dma_map_single(struct device *dev, void *ptr, size_t size,
-+	       enum dma_data_direction direction);
-+
-+extern void
-+dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
-+		 enum dma_data_direction direction);
-+
-+extern int
-+dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+	   enum dma_data_direction direction);
-+
-+extern void
-+dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
-+	     enum dma_data_direction direction);
-+
-+extern dma_addr_t
-+dma_map_page(struct device *dev, struct page *page, unsigned long offset,
-+	     size_t size, enum dma_data_direction direction);
-+
-+extern void
-+dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
-+	       enum dma_data_direction direction);
-+
-+extern void
-+dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
-+			enum dma_data_direction direction);
-+
-+extern void
-+dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
-+			      unsigned long offset, size_t size,
-+			      enum dma_data_direction direction);
-+
-+extern void
-+dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
-+		    enum dma_data_direction direction);
-+
-+#define dma_sync_single_for_device dma_sync_single_for_cpu
-+#define dma_sync_single_range_for_device dma_sync_single_range_for_cpu
-+#define dma_sync_sg_for_device dma_sync_sg_for_cpu
-+
-+extern int
-+dma_mapping_error(dma_addr_t dma_addr);
-+
-+extern int
-+dma_supported(struct device *dev, u64 mask);
-+
-+extern int
-+dma_set_mask(struct device *dev, u64 mask);
-+
-+extern int
-+dma_get_cache_alignment(void);
-+
-+extern int
-+dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
-+
-+extern void
-+dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-+	       enum dma_data_direction direction);
-+
- #endif /* _ASM_GENERIC_DMA_MAPPING_H */
-diff -puN include/asm-h8300/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-h8300/dma-mapping.h
-+++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/dma-mapping-broken.h>
-diff -puN include/asm-m32r/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-m32r/dma-mapping.h
-+++ /dev/null
-@@ -1,6 +0,0 @@
--#ifndef _ASM_M32R_DMA_MAPPING_H
--#define _ASM_M32R_DMA_MAPPING_H
+-<<<<<<< HEAD/drivers/leds/Kconfig
+-menu "LED devices"
+-	depends on HAS_IOMEM
 -
--#include <asm-generic/dma-mapping-broken.h>
--
--#endif /* _ASM_M32R_DMA_MAPPING_H */
-diff -puN include/asm-s390/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
---- a/include/asm-s390/dma-mapping.h
-+++ /dev/null
-@@ -1,12 +0,0 @@
--/*
-- *  include/asm-s390/dma-mapping.h
-- *
-- *  S390 version
-- *
-- *  This file exists so that #include <dma-mapping.h> doesn't break anything.
-- */
--
--#ifndef _ASM_DMA_MAPPING_H
--#define _ASM_DMA_MAPPING_H
--
--#endif /* _ASM_DMA_MAPPING_H */
-diff -puN include/linux/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on
-+++ a/include/linux/dma-mapping.h
-@@ -31,7 +31,11 @@ static inline int valid_dma_direction(in
- 		(dma_direction == DMA_FROM_DEVICE));
- }
- 
-+#ifdef CONFIG_HAS_DMA
- #include <asm/dma-mapping.h>
-+#else
-+#include <asm-generic/dma-mapping-broken.h>
-+#endif
- 
- /* Backwards compat, remove in 2.7.x */
- #define dma_sync_single		dma_sync_single_for_cpu
+-config NEW_LEDS
+-=======
+ menuconfig NEW_LEDS
+->>>>>>> /drivers/leds/Kconfig
++	depends on HAS_IOMEM
+ 	bool "LED Support"
+ 	help
+ 	  Say Y to enable Linux LED support.  This allows control of supported
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-md-accel.patch
-git-ioat-vs-git-md-accel.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+origin.patch
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+git-e1000.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-bluetooth.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-xfs.patch
+git-cryptodev.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+potential-parse-error-in-ifdef.patch
+potential-parse-error-in-ifdef-update.patch
+e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
+aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
