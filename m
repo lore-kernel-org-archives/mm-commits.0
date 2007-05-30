@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-isdn-config_capi_eicon.patch added to -mm tree
-Date: Wed, 30 May 2007 15:38:47 -0700
-Message-ID: <200705302238.l4UMclc3006914@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-isdn-config_capi_avm.patch added to -mm tree
+Date: Wed, 30 May 2007 15:38:45 -0700
+Message-ID: <200705302238.l4UMcjtt006911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34833 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752241AbXE3Wi6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752172AbXE3Wiz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:38:58 -0400
+	Wed, 30 May 2007 18:38:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, kkeil@suse.de
 
 
 The patch titled
-     Use menuconfig objects: ISDN: CONFIG_CAPI_EICON
+     Use menuconfig objects: ISDN: CONFIG_CAPI_AVM
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-isdn-config_capi_eicon.patch
+     use-menuconfig-objects-isdn-config_capi_avm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: ISDN: CONFIG_CAPI_EICON
+Subject: Use menuconfig objects: ISDN: CONFIG_CAPI_AVM
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Transform Kconfig objects from "menu, config" into "menuconfig" so
@@ -38,74 +38,78 @@ Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/Kconfig |   21 ++++++++++-----------
- 1 files changed, 10 insertions(+), 11 deletions(-)
+ drivers/isdn/hardware/avm/Kconfig |   22 ++++++++++------------
+ 1 files changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/Kconfig~use-menuconfig-objects-isdn-config_capi_eicon drivers/isdn/hardware/eicon/Kconfig
---- a/drivers/isdn/hardware/eicon/Kconfig~use-menuconfig-objects-isdn-config_capi_eicon
-+++ a/drivers/isdn/hardware/eicon/Kconfig
-@@ -2,51 +2,50 @@
- # ISDN DIVAS Eicon driver
+diff -puN drivers/isdn/hardware/avm/Kconfig~use-menuconfig-objects-isdn-config_capi_avm drivers/isdn/hardware/avm/Kconfig
+--- a/drivers/isdn/hardware/avm/Kconfig~use-menuconfig-objects-isdn-config_capi_avm
++++ a/drivers/isdn/hardware/avm/Kconfig
+@@ -2,22 +2,22 @@
+ # ISDN AVM drivers
  #
  
--menu "Active Eicon DIVA Server cards"
+-menu "Active AVM cards"
 -
--config CAPI_EICON
--	bool "Support Eicon cards"
-+menuconfig CAPI_EICON
-+	bool "Active Eicon DIVA Server cards"
+-config CAPI_AVM
+-	bool "Support AVM cards"
++menuconfig CAPI_AVM
++	bool "Active AVM cards"
  	help
- 	  Enable support for Eicon Networks active ISDN cards.
+ 	  Enable support for AVM active ISDN cards.
  
-+if CAPI_EICON
++if CAPI_AVM
 +
- config ISDN_DIVAS
- 	tristate "Support Eicon DIVA Server cards"
--	depends on CAPI_EICON && PROC_FS && PCI
-+	depends on PROC_FS && PCI
+ config ISDN_DRV_AVMB1_B1ISA
+ 	tristate "AVM B1 ISA support"
+-	depends on CAPI_AVM && ISA
++	depends on ISA
  	help
- 	  Say Y here if you have an Eicon Networks DIVA Server PCI ISDN card.
- 	  In order to use this card, additional firmware is necessary, which
- 	  has to be downloaded into the card using the divactrl utility.
+ 	  Enable support for the ISA version of the AVM B1 card.
  
-+if ISDN_DIVAS
-+
- config ISDN_DIVAS_BRIPCI
- 	bool "DIVA Server BRI/PCI support"
--	depends on ISDN_DIVAS
+ config ISDN_DRV_AVMB1_B1PCI
+ 	tristate "AVM B1 PCI support"
+-	depends on CAPI_AVM && PCI
++	depends on PCI
  	help
- 	  Enable support for DIVA Server BRI-PCI.
+ 	  Enable support for the PCI version of the AVM B1 card.
  
- config ISDN_DIVAS_PRIPCI
- 	bool "DIVA Server PRI/PCI support"
--	depends on ISDN_DIVAS
- 	help
- 	  Enable support for DIVA Server PRI-PCI.
+@@ -29,14 +29,13 @@ config ISDN_DRV_AVMB1_B1PCIV4
  
- config ISDN_DIVAS_DIVACAPI
- 	tristate "DIVA CAPI2.0 interface support"
--	depends on ISDN_DIVAS
+ config ISDN_DRV_AVMB1_T1ISA
+ 	tristate "AVM T1/T1-B ISA support"
+-	depends on CAPI_AVM && ISA
++	depends on ISA
  	help
- 	  You need this to provide the CAPI interface
- 	  for DIVA Server cards.
+ 	  Enable support for the AVM T1 T1B card.
+ 	  Note: This is a PRI card and handle 30 B-channels.
  
- config ISDN_DIVAS_USERIDI
- 	tristate "DIVA User-IDI interface support"
--	depends on ISDN_DIVAS
+ config ISDN_DRV_AVMB1_B1PCMCIA
+ 	tristate "AVM B1/M1/M2 PCMCIA support"
+-	depends on CAPI_AVM
  	help
- 	  Enable support for user-mode IDI interface.
+ 	  Enable support for the PCMCIA version of the AVM B1 card.
  
- config ISDN_DIVAS_MAINT
- 	tristate "DIVA Maint driver support"
--	depends on ISDN_DIVAS && m
-+	depends on m
+@@ -49,17 +48,16 @@ config ISDN_DRV_AVMB1_AVM_CS
+ 
+ config ISDN_DRV_AVMB1_T1PCI
+ 	tristate "AVM T1/T1-B PCI support"
+-	depends on CAPI_AVM && PCI
++	depends on PCI
  	help
- 	  Enable Divas Maintenance driver.
+ 	  Enable support for the AVM T1 T1B card.
+ 	  Note: This is a PRI card and handle 30 B-channels.
+ 
+ config ISDN_DRV_AVMB1_C4
+ 	tristate "AVM C4/C2 support"
+-	depends on CAPI_AVM && PCI
++	depends on PCI
+ 	help
+ 	  Enable support for the AVM C4/C2 PCI cards.
+ 	  These cards handle 4/2 BRI ISDN lines (8/4 channels).
  
 -endmenu
-+endif # ISDN_DIVAS
- 
-+endif # CAPI_EICON
+-
++endif # CAPI_AVM
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
