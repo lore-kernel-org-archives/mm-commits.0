@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-example-cpu-accounting-subsystem-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 00:14:55 -0700
-Message-ID: <200705300714.l4U7EsUq021306@shell0.pdx.osdl.net>
+Subject: + containersv10-add-tasks-file-interface.patch added to -mm tree
+Date: Wed, 30 May 2007 00:14:58 -0700
+Message-ID: <200705300714.l4U7EvQJ021312@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47236 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751270AbXE3HPx (ORCPT
+	by vger.kernel.org with ESMTP id S1751306AbXE3HPx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 May 2007 03:15:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
+Cc: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     containersv10-example-cpu-accounting-subsystem-fix
+     Containers: add tasks file interface
 has been added to the -mm tree.  Its filename is
-     containersv10-example-cpu-accounting-subsystem-fix.patch
+     containersv10-add-tasks-file-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,218 +26,437 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containersv10-example-cpu-accounting-subsystem-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Containers: add tasks file interface
+From: Paul Menage <menage@google.com>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+This patch adds the per-directory "tasks" file for containerfs mounts; this
+allows the user to determine which tasks are members of a container by reading
+a container's "tasks", and to move a task into a container by writing its pid
+to its "tasks".
+
+Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu_acct.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ include/linux/container.h |   10 +
+ kernel/container.c        |  335 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 345 insertions(+)
 
-diff -puN kernel/cpu_acct.c~containersv10-example-cpu-accounting-subsystem-fix kernel/cpu_acct.c
---- a/kernel/cpu_acct.c~containersv10-example-cpu-accounting-subsystem-fix
-+++ a/kernel/cpu_acct.c
-@@ -16,6 +16,8 @@
- #include <linux/module.h>
- #include <linux/container.h>
- #include <linux/fs.h>
-+#include <linux/rcupdate.h>
-+
- #include <asm/div64.h>
+diff -puN include/linux/container.h~containersv10-add-tasks-file-interface include/linux/container.h
+--- a/include/linux/container.h~containersv10-add-tasks-file-interface
++++ a/include/linux/container.h
+@@ -126,6 +126,16 @@ int container_is_removed(const struct co
  
- struct cpuacct {
-@@ -50,7 +52,8 @@ static inline struct cpuacct *task_ca(st
+ int container_path(const struct container *cont, char *buf, int buflen);
  
- #define INTERVAL (HZ * 10)
- 
--static inline u64 next_interval_boundary(u64 now) {
-+static inline u64 next_interval_boundary(u64 now)
++int __container_task_count(const struct container *cont);
++static inline int container_task_count(const struct container *cont)
 +{
- 	/* calculate the next interval boundary beyond the
- 	 * current time */
- 	do_div(now, INTERVAL);
-@@ -60,6 +63,7 @@ static inline u64 next_interval_boundary
- static int cpuacct_create(struct container_subsys *ss, struct container *cont)
- {
- 	struct cpuacct *ca = kzalloc(sizeof(*ca), GFP_KERNEL);
++	int task_count;
++	rcu_read_lock();
++	task_count = __container_task_count(cont);
++	rcu_read_unlock();
++	return task_count;
++}
 +
- 	if (!ca)
- 		return -ENOMEM;
- 	spin_lock_init(&ca->lock);
-@@ -78,6 +82,7 @@ static void cpuacct_destroy(struct conta
- static void cpuusage_update(struct cpuacct *ca)
- {
- 	u64 now = get_jiffies_64();
-+
- 	/* If we're not due for an update, return */
- 	if (ca->next_interval_check > now)
- 		return;
-@@ -91,18 +96,16 @@ static void cpuusage_update(struct cpuac
- 	} else {
- 		/* If a steal takes the last interval time negative,
- 		 * then we just ignore it */
--		if ((s64)ca->current_interval_time > 0) {
-+		if ((s64)ca->current_interval_time > 0)
- 			ca->last_interval_time = ca->current_interval_time;
--		} else {
-+		else
- 			ca->last_interval_time = 0;
--		}
- 		ca->next_interval_check += INTERVAL;
- 	}
- 	ca->current_interval_time = 0;
+ /* Return true if the container is a descendant of the current container */
+ int container_is_descendant(const struct container *cont);
+ 
+diff -puN kernel/container.c~containersv10-add-tasks-file-interface kernel/container.c
+--- a/kernel/container.c~containersv10-add-tasks-file-interface
++++ a/kernel/container.c
+@@ -673,6 +673,109 @@ static void get_first_subsys(const struc
+ 		*subsys_id = test_ss->subsys_id;
  }
  
--static u64 cpuusage_read(struct container *cont,
--			 struct cftype *cft)
-+static u64 cpuusage_read(struct container *cont, struct cftype *cft)
- {
- 	struct cpuacct *ca = container_ca(cont);
- 	u64 time;
-@@ -118,8 +121,7 @@ static u64 cpuusage_read(struct containe
- 	return time;
- }
++/*
++ * Attach task 'tsk' to container 'cont'
++ *
++ * Call holding container_mutex.  May take task_lock of
++ * the task 'pid' during call.
++ */
++
++static int attach_task(struct container *cont, struct task_struct *tsk)
++{
++	int retval = 0;
++	struct container_subsys *ss;
++	struct container *oldcont;
++	struct css_group *cg = &tsk->containers;
++	struct containerfs_root *root = cont->root;
++	int i;
++
++	int subsys_id;
++	get_first_subsys(cont, NULL, &subsys_id);
++
++	/* Nothing to do if the task is already in that container */
++	oldcont = task_container(tsk, subsys_id);
++	if (cont == oldcont)
++		return 0;
++
++	for_each_subsys(root, ss) {
++		if (ss->can_attach) {
++			retval = ss->can_attach(ss, cont, tsk);
++			if (retval) {
++				return retval;
++			}
++		}
++	}
++
++	task_lock(tsk);
++	if (tsk->flags & PF_EXITING) {
++		task_unlock(tsk);
++		return -ESRCH;
++	}
++	/* Update the css_group pointers for the subsystems in this
++	 * hierarchy */
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		if (root->subsys_bits & (1ull << i)) {
++			/* Subsystem is in this hierarchy. So we want
++			 * the subsystem state from the new
++			 * container. Transfer the refcount from the
++			 * old to the new */
++			atomic_inc(&cont->count);
++			atomic_dec(&cg->subsys[i]->container->count);
++			rcu_assign_pointer(cg->subsys[i], cont->subsys[i]);
++		}
++	}
++	task_unlock(tsk);
++
++	for_each_subsys(root, ss) {
++		if (ss->attach) {
++			ss->attach(ss, cont, oldcont, tsk);
++		}
++	}
++
++	synchronize_rcu();
++	return 0;
++}
++
++/*
++ * Attach task with pid 'pid' to container 'cont'. Call with
++ * container_mutex, may take task_lock of task
++ *
++ */
++
++static int attach_task_by_pid(struct container *cont, char *pidbuf)
++{
++	pid_t pid;
++	struct task_struct *tsk;
++	int ret;
++
++	if (sscanf(pidbuf, "%d", &pid) != 1)
++		return -EIO;
++
++	if (pid) {
++		rcu_read_lock();
++		tsk = find_task_by_pid(pid);
++		if (!tsk || tsk->flags & PF_EXITING) {
++			rcu_read_unlock();
++			return -ESRCH;
++		}
++		get_task_struct(tsk);
++		rcu_read_unlock();
++
++		if ((current->euid) && (current->euid != tsk->uid)
++		    && (current->euid != tsk->suid)) {
++			put_task_struct(tsk);
++			return -EACCES;
++		}
++	} else {
++		tsk = current;
++		get_task_struct(tsk);
++	}
++
++	ret = attach_task(cont, tsk);
++	put_task_struct(tsk);
++	return ret;
++}
++
+ /* The various types of files and directories in a container file system */
  
--static u64 load_read(struct container *cont,
--		     struct cftype *cft)
-+static u64 load_read(struct container *cont, struct cftype *cft)
- {
- 	struct cpuacct *ca = container_ca(cont);
- 	u64 time;
-@@ -149,8 +151,7 @@ static struct cftype files[] = {
- 	}
+ enum container_filetype {
+@@ -681,6 +784,54 @@ enum container_filetype {
+ 	FILE_TASKLIST,
  };
  
--static int cpuacct_populate(struct container_subsys *ss,
--			    struct container *cont)
-+static int cpuacct_populate(struct container_subsys *ss, struct container *cont)
++static ssize_t container_common_file_write(struct container *cont,
++					   struct cftype *cft,
++					   struct file *file,
++					   const char __user *userbuf,
++					   size_t nbytes, loff_t *unused_ppos)
++{
++	enum container_filetype type = cft->private;
++	char *buffer;
++	int retval = 0;
++
++	if (nbytes >= PATH_MAX)
++		return -E2BIG;
++
++	/* +1 for nul-terminator */
++	if ((buffer = kmalloc(nbytes + 1, GFP_KERNEL)) == 0)
++		return -ENOMEM;
++
++	if (copy_from_user(buffer, userbuf, nbytes)) {
++		retval = -EFAULT;
++		goto out1;
++	}
++	buffer[nbytes] = 0;	/* nul-terminate */
++
++	mutex_lock(&container_mutex);
++
++	if (container_is_removed(cont)) {
++		retval = -ENODEV;
++		goto out2;
++	}
++
++	switch (type) {
++	case FILE_TASKLIST:
++		retval = attach_task_by_pid(cont, buffer);
++		break;
++	default:
++		retval = -EINVAL;
++		goto out2;
++	}
++
++	if (retval == 0)
++		retval = nbytes;
++out2:
++	mutex_unlock(&container_mutex);
++out1:
++	kfree(buffer);
++	return retval;
++}
++
+ static ssize_t container_file_write(struct file *file, const char __user *buf,
+ 						size_t nbytes, loff_t *ppos)
  {
- 	return container_add_files(cont, files, ARRAY_SIZE(files));
+@@ -874,6 +1025,187 @@ int container_add_files(struct container
+ 	return 0;
  }
+ 
++/* Count the number of tasks in a container. Could be made more
++ * time-efficient but less space-efficient with more linked lists
++ * running through each container and the css_group structures that
++ * referenced it. Must be called with tasklist_lock held for read or
++ * write or in an rcu critical section. */
++
++int __container_task_count(const struct container *cont)
++{
++	int count = 0;
++	struct task_struct *g, *p;
++	struct container_subsys_state *css;
++	int subsys_id;
++	get_first_subsys(cont, &css, &subsys_id);
++
++	do_each_thread(g, p) {
++		if (task_subsys_state(p, subsys_id) == css)
++			count ++;
++	} while_each_thread(g, p);
++	return count;
++}
++
++/*
++ * Stuff for reading the 'tasks' file.
++ *
++ * Reading this file can return large amounts of data if a container has
++ * *lots* of attached tasks. So it may need several calls to read(),
++ * but we cannot guarantee that the information we produce is correct
++ * unless we produce it entirely atomically.
++ *
++ * Upon tasks file open(), a struct ctr_struct is allocated, that
++ * will have a pointer to an array (also allocated here).  The struct
++ * ctr_struct * is stored in file->private_data.  Its resources will
++ * be freed by release() when the file is closed.  The array is used
++ * to sprintf the PIDs and then used by read().
++ */
++
++/* containers_tasks_read array */
++
++struct ctr_struct {
++	char *buf;
++	int bufsz;
++};
++
++/*
++ * Load into 'pidarray' up to 'npids' of the tasks using container
++ * 'cont'.  Return actual number of pids loaded.  No need to
++ * task_lock(p) when reading out p->container, since we're in an RCU
++ * read section, so the css_group can't go away, and is
++ * immutable after creation.
++ */
++static int pid_array_load(pid_t *pidarray, int npids, struct container *cont)
++{
++	int n = 0;
++	struct task_struct *g, *p;
++	struct container_subsys_state *css;
++	int subsys_id;
++	get_first_subsys(cont, &css, &subsys_id);
++	rcu_read_lock();
++
++	do_each_thread(g, p) {
++		if (task_subsys_state(p, subsys_id) == css) {
++			pidarray[n++] = pid_nr(task_pid(p));
++			if (unlikely(n == npids))
++				goto array_full;
++		}
++	} while_each_thread(g, p);
++
++array_full:
++	rcu_read_unlock();
++	return n;
++}
++
++static int cmppid(const void *a, const void *b)
++{
++	return *(pid_t *)a - *(pid_t *)b;
++}
++
++/*
++ * Convert array 'a' of 'npids' pid_t's to a string of newline separated
++ * decimal pids in 'buf'.  Don't write more than 'sz' chars, but return
++ * count 'cnt' of how many chars would be written if buf were large enough.
++ */
++static int pid_array_to_buf(char *buf, int sz, pid_t *a, int npids)
++{
++	int cnt = 0;
++	int i;
++
++	for (i = 0; i < npids; i++)
++		cnt += snprintf(buf + cnt, max(sz - cnt, 0), "%d\n", a[i]);
++	return cnt;
++}
++
++/*
++ * Handle an open on 'tasks' file.  Prepare a buffer listing the
++ * process id's of tasks currently attached to the container being opened.
++ *
++ * Does not require any specific container mutexes, and does not take any.
++ */
++static int container_tasks_open(struct inode *unused, struct file *file)
++{
++	struct container *cont = __d_cont(file->f_dentry->d_parent);
++	struct ctr_struct *ctr;
++	pid_t *pidarray;
++	int npids;
++	char c;
++
++	if (!(file->f_mode & FMODE_READ))
++		return 0;
++
++	ctr = kmalloc(sizeof(*ctr), GFP_KERNEL);
++	if (!ctr)
++		goto err0;
++
++	/*
++	 * If container gets more users after we read count, we won't have
++	 * enough space - tough.  This race is indistinguishable to the
++	 * caller from the case that the additional container users didn't
++	 * show up until sometime later on.
++	 */
++	npids = container_task_count(cont);
++	pidarray = kmalloc(npids * sizeof(pid_t), GFP_KERNEL);
++	if (!pidarray)
++		goto err1;
++
++	npids = pid_array_load(pidarray, npids, cont);
++	sort(pidarray, npids, sizeof(pid_t), cmppid, NULL);
++
++	/* Call pid_array_to_buf() twice, first just to get bufsz */
++	ctr->bufsz = pid_array_to_buf(&c, sizeof(c), pidarray, npids) + 1;
++	ctr->buf = kmalloc(ctr->bufsz, GFP_KERNEL);
++	if (!ctr->buf)
++		goto err2;
++	ctr->bufsz = pid_array_to_buf(ctr->buf, ctr->bufsz, pidarray, npids);
++
++	kfree(pidarray);
++	file->private_data = ctr;
++	return 0;
++
++err2:
++	kfree(pidarray);
++err1:
++	kfree(ctr);
++err0:
++	return -ENOMEM;
++}
++
++static ssize_t container_tasks_read(struct container *cont,
++				    struct cftype *cft,
++				    struct file *file, char __user *buf,
++				    size_t nbytes, loff_t *ppos)
++{
++	struct ctr_struct *ctr = file->private_data;
++
++        return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
++}
++
++static int container_tasks_release(struct inode *unused_inode, struct file *file)
++{
++	struct ctr_struct *ctr;
++
++	if (file->f_mode & FMODE_READ) {
++		ctr = file->private_data;
++		kfree(ctr->buf);
++		kfree(ctr);
++	}
++	return 0;
++}
++
++/*
++ * for the common functions, 'private' gives the type of file
++ */
++
++static struct cftype cft_tasks = {
++	.name = "tasks",
++	.open = container_tasks_open,
++	.read = container_tasks_read,
++	.write = container_common_file_write,
++	.release = container_tasks_release,
++	.private = FILE_TASKLIST,
++};
++
+ static int container_populate_dir(struct container *cont)
+ {
+ 	int err;
+@@ -882,6 +1214,9 @@ static int container_populate_dir(struct
+ 	/* First clear out any existing files */
+ 	container_clear_directory(cont->dentry);
+ 
++	if ((err = container_add_file(cont, &cft_tasks)) < 0)
++		return err;
++
+ 	for_each_subsys(cont->root, ss) {
+ 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
+ 			return err;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from menage@google.com are
 
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm-master.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock.patch
 reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+containersv10-basic-container-framework.patch
 containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
 containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
 containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
