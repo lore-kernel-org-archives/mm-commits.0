@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser_new-fix-sparse-warning.patch added to -mm tree
-Date: Tue, 29 May 2007 17:08:29 -0700
-Message-ID: <200705300008.l4U08TMr014997@shell0.pdx.osdl.net>
+Subject: + char-genrtc-use-wait_event_interruptible.patch added to -mm tree
+Date: Tue, 29 May 2007 17:08:35 -0700
+Message-ID: <200705300008.l4U08ZhR015006@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44308 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751163AbXE3AIe (ORCPT
+	by vger.kernel.org with ESMTP id S1750999AbXE3AIx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 20:08:34 -0400
+	Tue, 29 May 2007 20:08:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: jirislaby@gmail.com, a.zummo@towertech.it, david-b@pacbell.net, zippel@linux-m68k.org
 
 
 The patch titled
-     Char: mxser_new, fix sparse warning
+     Char: genrtc, use wait_event_interruptible
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-fix-sparse-warning.patch
+     char-genrtc-use-wait_event_interruptible.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,27 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, fix sparse warning
+Subject: Char: genrtc, use wait_event_interruptible
 From: Jiri Slaby <jirislaby@gmail.com>
 
+genrtc, use wait_event_interruptible
+
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/genrtc.c |   22 +++++-----------------
+ 1 files changed, 5 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-fix-sparse-warning
-+++ a/drivers/char/mxser_new.c
-@@ -1560,7 +1560,7 @@ static int mxser_ioctl_special(unsigned 
- 			return -EFAULT;
- 		return 0;
- 	case MOXA_ASPP_MON_EXT: {
--		int status, p, shiftbit;
-+		int p, shiftbit;
- 		unsigned long opmode;
- 		unsigned cflag, iflag;
+diff -puN drivers/char/genrtc.c~char-genrtc-use-wait_event_interruptible drivers/char/genrtc.c
+--- a/drivers/char/genrtc.c~char-genrtc-use-wait_event_interruptible
++++ a/drivers/char/genrtc.c
+@@ -173,7 +173,6 @@ static void gen_rtc_interrupt(unsigned l
+ static ssize_t gen_rtc_read(struct file *file, char __user *buf,
+ 			size_t count, loff_t *ppos)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+ 	unsigned long data;
+ 	ssize_t retval;
+ 
+@@ -183,18 +182,10 @@ static ssize_t gen_rtc_read(struct file 
+ 	if (file->f_flags & O_NONBLOCK && !gen_rtc_irq_data)
+ 		return -EAGAIN;
+ 
+-	add_wait_queue(&gen_rtc_wait, &wait);
+-	retval = -ERESTARTSYS;
+-
+-	while (1) {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		data = xchg(&gen_rtc_irq_data, 0);
+-		if (data)
+-			break;
+-		if (signal_pending(current))
+-			goto out;
+-		schedule();
+-	}
++	retval = wait_event_interruptible(gen_rtc_wait,
++			(data = xchg(&gen_rtc_irq_data, 0)));
++	if (retval)
++		goto out;
+ 
+ 	/* first test allows optimizer to nuke this case for 32-bit machines */
+ 	if (sizeof (int) != sizeof (long) && count == sizeof (unsigned int)) {
+@@ -206,10 +197,7 @@ static ssize_t gen_rtc_read(struct file 
+ 		retval = put_user(data, (unsigned long __user *)buf) ?:
+ 			sizeof(unsigned long);
+ 	}
+- out:
+-	__set_current_state(TASK_RUNNING);
+-	remove_wait_queue(&gen_rtc_wait, &wait);
+-
++out:
+ 	return retval;
+ }
  
 _
 
