@@ -1,59 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - git-leds-fixup.patch removed from -mm tree
-Date: Wed, 30 May 2007 16:11:32 -0700
-Message-ID: <200705302311.l4UNBV2w007463@shell0.pdx.osdl.net>
+Subject: + git-scsi-misc-fixup.patch added to -mm tree
+Date: Wed, 30 May 2007 16:20:59 -0700
+Message-ID: <200705302320.l4UNKwk6007642@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56227 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746AbXE3XLw (ORCPT
+	by vger.kernel.org with ESMTP id S1752268AbXE3XVB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 19:11:52 -0400
+	Wed, 30 May 2007 19:21:01 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4UNKwZ5010271
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 30 May 2007 16:21:00 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-leds-fixup
-has been removed from the -mm tree.  Its filename was
-     git-leds-fixup.patch
+     git-scsi-misc-fixup
+has been added to the -mm tree.  Its filename is
+     git-scsi-misc-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-leds-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: git-scsi-misc-fixup
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-Fix reject in git-leds
-
-Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ drivers/scsi/jazz_esp.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/leds/Kconfig~git-leds-fixup drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~git-leds-fixup
-+++ a/drivers/leds/Kconfig
-@@ -1,12 +1,5 @@
--
--<<<<<<< HEAD/drivers/leds/Kconfig
--menu "LED devices"
--	depends on HAS_IOMEM
--
--config NEW_LEDS
--=======
- menuconfig NEW_LEDS
-->>>>>>> /drivers/leds/Kconfig
-+	depends on HAS_IOMEM
- 	bool "LED Support"
- 	help
- 	  Say Y to enable Linux LED support.  This allows control of supported
+diff -puN drivers/scsi/jazz_esp.c~git-scsi-misc-fixup drivers/scsi/jazz=
+_esp.c
+--- a/drivers/scsi/jazz_esp.c~git-scsi-misc-fixup
++++ a/drivers/scsi/jazz_esp.c
+@@ -1,10 +1,6 @@
+ /* jazz_esp.c: ESP front-end for MIPS JAZZ systems.
+  *
+-<<<<<<< HEAD/drivers/scsi/jazz_esp.c
+- * Copyright (C) 2007 Thomas Bogend=C3=B6rfer (tsbogend@alpha.frankend=
+e)
+-=3D=3D=3D=3D=3D=3D=3D
+  * Copyright (C) 2007 Thomas Bogend=F6rfer (tsbogend@alpha.frankende)
+->>>>>>> /drivers/scsi/jazz_esp.c
+  */
+=20
+ #include <linux/kernel.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
 origin.patch
 slub-more-documentation-fix.patch
@@ -77,28 +87,26 @@ git-input.patch
 git-kbuild.patch
 git-kvm.patch
 git-leds.patch
-git-leds-fixup.patch
 git-mips-fixup.patch
 git-mtd.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
-git-e1000.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
-git-bluetooth.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 git-pciseg.patch
 sh-support-older-gccs.patch
 git-scsi-misc.patch
+git-scsi-misc-fixup.patch
 git-scsi-rc-fixes.patch
-scsi-fix-config_scsi_wait_scan=m.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
 git-watchdog.patch
 git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.pat=
+ch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
@@ -111,10 +119,13 @@ potential-parse-error-in-ifdef.patch
 potential-parse-error-in-ifdef-update.patch
 e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
 aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
+he-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that=
+-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_or=
+der_nr_pages-blocks.patch
 create-the-zone_movable-zone-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
@@ -133,7 +144,8 @@ introduce-boot-based-time-fix.patch
 use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
 add-argv_split-fix.patch
 add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realt=
+ime-process-fix.patch
 fuse-warning-fix.patch
 vxfs-warning-fixes.patch
 percpu_counters-use-cpu-notifiers.patch
@@ -143,14 +155,21 @@ mpu401-warning-fixes.patch
 procfs-directory-entry-cleanup-fix.patch
 vdso-print-fatal-signals.patch
 reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.pat=
+ch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.p=
+atch
 writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.p=
+atch
 crc7-support-fix.patch
 i2o_cfg_passthru-cleanup-fix.patch
 knfsd-exportfs-add-exportfsh-header-fix.patch
@@ -168,7 +187,8 @@ containersv10-add-tasks-file-interface-fix.patch
 containersv10-add-fork-exit-hooks-fix.patch
 containersv10-add-container_clone-interface-fix.patch
 containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-=
+memberships-fix.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 reiser4.patch
 reiser4-fix.patch
