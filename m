@@ -1,70 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-fix-section-mismatch-warnings.patch removed from -mm tree
-Date: Wed, 30 May 2007 16:28:24 -0700
-Message-ID: <200705302328.l4UNSNoe007750@shell0.pdx.osdl.net>
+Subject: - avr32-ratelimit-segfault-reporting-rate.patch removed from -mm tree
+Date: Wed, 30 May 2007 16:28:19 -0700
+Message-ID: <200705302328.l4UNSIqW007744@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34873 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752701AbXE3X23 (ORCPT
+	by vger.kernel.org with ESMTP id S1752172AbXE3X2c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 19:28:29 -0400
+	Wed, 30 May 2007 19:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leoli@freescale.com, mm-commits@vger.kernel.org
+To: righiandr@users.sourceforge.net, a.righi@cineca.it, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: fix Section mismatch warnings
+     avr32: ratelimit segfault reporting rate
 has been removed from the -mm tree.  Its filename was
-     powerpc-fix-section-mismatch-warnings.patch
+     avr32-ratelimit-segfault-reporting-rate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: fix Section mismatch warnings
-From: Li Yang <leoli@freescale.com>
+Subject: avr32: ratelimit segfault reporting rate
+From: Andrea Righi <righiandr@users.sourceforge.net>
 
-This patch fix the following Section mismatch warnings in powerpc code.
+Limit the rate of the kernel logging for the segfaults of user
+applications, to avoid potential message floods or denial-of-service
+attacks.
 
-WARNING: arch/powerpc/platforms/built-in.o - Section mismatch: reference to .init.data:mv643xx_eth_pd_devs from .text between 'mv643xx_eth_add_pds' (at offset 0x9ed2) and 'gg2_read_config'
-WARNING: arch/powerpc/platforms/built-in.o - Section mismatch: reference to .init.data:mv643xx_eth_pd_devs from .text between 'mv643xx_eth_add_pds' (at offset 0x9ed6) and 'gg2_read_config'
-WARNING: arch/powerpc/platforms/built-in.o - Section mismatch: reference to .init.text:note_scsi_host from __ksymtab between '__ksymtab_note_scsi_host' (at offset 0x8) and '__ksymtab_sys_ctrler'
-
-Signed-off-by: Li Yang <leoli@freescale.com>
+Signed-off-by: Andrea Righi <a.righi@cineca.it>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/chrp/pegasos_eth.c |    2 +-
- arch/powerpc/platforms/powermac/setup.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/avr32/mm/fault.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/chrp/pegasos_eth.c~powerpc-fix-section-mismatch-warnings arch/powerpc/platforms/chrp/pegasos_eth.c
---- a/arch/powerpc/platforms/chrp/pegasos_eth.c~powerpc-fix-section-mismatch-warnings
-+++ a/arch/powerpc/platforms/chrp/pegasos_eth.c
-@@ -169,7 +169,7 @@ static int Enable_SRAM(void)
+diff -puN arch/avr32/mm/fault.c~avr32-ratelimit-segfault-reporting-rate arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~avr32-ratelimit-segfault-reporting-rate
++++ a/arch/avr32/mm/fault.c
+@@ -158,7 +158,7 @@ bad_area:
+ 	up_read(&mm->mmap_sem);
  
- /***********/
- /***********/
--int mv643xx_eth_add_pds(void)
-+static int __init mv643xx_eth_add_pds(void)
- {
- 	int ret = 0;
- 	static struct pci_device_id pci_marvell_mv64360[] = {
-diff -puN arch/powerpc/platforms/powermac/setup.c~powerpc-fix-section-mismatch-warnings arch/powerpc/platforms/powermac/setup.c
---- a/arch/powerpc/platforms/powermac/setup.c~powerpc-fix-section-mismatch-warnings
-+++ a/arch/powerpc/platforms/powermac/setup.c
-@@ -384,7 +384,7 @@ int boot_part;
- static dev_t boot_dev;
- 
- #ifdef CONFIG_SCSI
--void __init note_scsi_host(struct device_node *node, void *host)
-+void note_scsi_host(struct device_node *node, void *host)
- {
- 	int l;
- 	char *p;
+ 	if (user_mode(regs)) {
+-		if (exception_trace)
++		if (exception_trace && printk_ratelimit())
+ 			printk("%s%s[%d]: segfault at %08lx pc %08lx "
+ 			       "sp %08lx ecr %lu\n",
+ 			       is_init(tsk) ? KERN_EMERG : KERN_INFO,
 _
 
-Patches currently in -mm which might be from leoli@freescale.com are
+Patches currently in -mm which might be from righiandr@users.sourceforge.net are
 
-origin.patch
+git-avr32.patch
+x86_64-ratelimit-segfault-reporting-rate.patch
