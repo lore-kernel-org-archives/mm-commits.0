@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-simple-debug-info-subsystem-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 00:15:24 -0700
-Message-ID: <200705300715.l4U7FNOg021374@shell0.pdx.osdl.net>
+Subject: + containersv10-support-for-automatic-userspace-release-agents.patch added to -mm tree
+Date: Wed, 30 May 2007 00:15:26 -0700
+Message-ID: <200705300715.l4U7FP6r021377@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59080 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752092AbXE3HQS (ORCPT
+	by vger.kernel.org with ESMTP id S1752102AbXE3HQV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 03:16:18 -0400
+	Wed, 30 May 2007 03:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
+Cc: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     containersv10-simple-debug-info-subsystem-fix
+     Containers: support for automatic userspace release agents
 has been added to the -mm tree.  Its filename is
-     containersv10-simple-debug-info-subsystem-fix.patch
+     containersv10-support-for-automatic-userspace-release-agents.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,181 +26,673 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containersv10-simple-debug-info-subsystem-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Containers: support for automatic userspace release agents
+From: Paul Menage <menage@google.com>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+This patch adds the following files to the container filesystem:
+
+notify_on_release - configures/reports whether the container subsystem should
+attempt to run a release script when this container becomes unused
+
+release_agent - configures/reports the release agent to be used for
+this hierarchy (top level in each hierarchy only)
+
+releasable - reports whether this container would have been auto-released if
+notify_on_release was true and a release agent was configured (mainly useful
+for debugging)
+
+To avoid locking issues, invoking the userspace release agent is done via a
+workqueue task; containers that need to have their release agents invoked by
+the workqueue task are linked on to a list.
+
+When the "cpuset" filesystem is mounted, it automatically sets the hierarchy's
+release agent to be /sbin/cpuset_release_agent for backward-compatibility with
+existing cpusets users.
+
+Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container_debug.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/container.h |   15 -
+ kernel/container.c        |  368 ++++++++++++++++++++++++++++++++----
+ kernel/cpuset.c           |    5 
+ 3 files changed, 350 insertions(+), 38 deletions(-)
 
-diff -puN kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix kernel/container_debug.c
---- a/kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix
-+++ a/kernel/container_debug.c
-@@ -10,10 +10,15 @@
+diff -puN include/linux/container.h~containersv10-support-for-automatic-userspace-release-agents include/linux/container.h
+--- a/include/linux/container.h~containersv10-support-for-automatic-userspace-release-agents
++++ a/include/linux/container.h
+@@ -65,11 +65,7 @@ static inline void css_get(struct contai
+  * css_put() should be called to release a reference taken by
+  * css_get()
+  */
+-
+-static inline void css_put(struct container_subsys_state *css)
+-{
+-	atomic_dec(&css->refcnt);
+-}
++void css_put(struct container_subsys_state *css);
  
- #include <linux/container.h>
- #include <linux/fs.h>
-+#include <linux/slab.h>
-+#include <linux/rcupdate.h>
+ struct container {
+ 	unsigned long flags;		/* "unsigned long" so bitops work */
+@@ -100,6 +96,13 @@ struct container {
+ 	 * tasks in this container. Protected by css_group_lock
+ 	 */
+ 	struct list_head css_groups;
 +
-+#include <asm/atomic.h>
++	/*
++	 * Linked list running through all containers that can
++	 * potentially be reaped by the release agent. Protected by
++	 * container_mutex
++	 */
++	struct list_head release_list;
+ };
  
- static int debug_create(struct container_subsys *ss, struct container *cont)
- {
- 	struct container_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
-+
- 	if (!css)
- 		return -ENOMEM;
- 	cont->subsys[debug_subsys_id] = css;
-@@ -33,6 +38,7 @@ static u64 container_refcount_read(struc
- static u64 taskcount_read(struct container *cont, struct cftype *cft)
- {
- 	u64 count;
-+
- 	container_lock();
- 	count = container_task_count(cont);
- 	container_unlock();
-@@ -41,13 +47,14 @@ static u64 taskcount_read(struct contain
+ /* A css_group is a structure holding pointers to a set of
+@@ -271,6 +274,8 @@ struct task_struct *container_iter_next(
+ 					struct container_iter *it);
+ void container_iter_end(struct container *cont, struct container_iter *it);
  
- static u64 current_css_group_read(struct container *cont, struct cftype *cft)
- {
--	return (u64) current->containers;
-+	return (u64)current->containers;
++void container_set_release_agent_path(struct container_subsys *ss,
++				      const char *path);
+ 
+ #else /* !CONFIG_CONTAINERS */
+ 
+diff -puN kernel/container.c~containersv10-support-for-automatic-userspace-release-agents kernel/container.c
+--- a/kernel/container.c~containersv10-support-for-automatic-userspace-release-agents
++++ a/kernel/container.c
+@@ -61,6 +61,8 @@
+ 
+ #include <asm/atomic.h>
+ 
++static DEFINE_MUTEX(container_mutex);
++
+ /* Generate an array of container subsystem pointers */
+ #define SUBSYS(_x) &_x ## _subsys,
+ 
+@@ -88,6 +90,13 @@ struct containerfs_root {
+ 
+ 	/* A list running through the mounted hierarchies */
+ 	struct list_head root_list;
++
++	/* The path to use for release notifications. No locking
++	 * between setting and use - so if userspace updates this
++	 * while subcontainers exist, you could miss a
++	 * notification. We ensure that it's always a valid
++	 * NUL-terminated string */
++	char release_agent_path[PATH_MAX];
+ };
+ 
+ 
+@@ -114,7 +123,13 @@ static int need_forkexit_callback;
+ 
+ /* bits in struct container flags field */
+ enum {
++	/* Container is dead */
+ 	CONT_REMOVED,
++	/* Container has previously had a child container or a task,
++	 * but no longer (only if CONT_NOTIFY_ON_RELEASE is set) */
++	CONT_RELEASABLE,
++	/* Container requires release notifications to userspace */
++	CONT_NOTIFY_ON_RELEASE,
+ };
+ 
+ /* convenient tests for these bits */
+@@ -123,6 +138,19 @@ inline int container_is_removed(const st
+ 	return test_bit(CONT_REMOVED, &cont->flags);
  }
  
- static u64 current_css_group_refcount_read(struct container *cont,
- 					   struct cftype *cft)
- {
- 	u64 count;
++inline int container_is_releasable(const struct container *cont)
++{
++	const int bits =
++		(1 << CONT_RELEASABLE) |
++		(1 << CONT_NOTIFY_ON_RELEASE);
++	return (cont->flags & bits) == bits;
++}
 +
- 	rcu_read_lock();
- 	count = atomic_read(&current->containers->ref.refcount);
- 	rcu_read_unlock();
++inline int notify_on_release(const struct container *cont)
++{
++	return test_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
++}
++
+ /* for_each_subsys() allows you to iterate on each subsystem attached to
+  * an active hierarchy */
+ #define for_each_subsys(_root, _ss) \
+@@ -132,6 +160,12 @@ list_for_each_entry(_ss, &_root->subsys_
+ #define for_each_root(_root) \
+ list_for_each_entry(_root, &roots, root_list)
+ 
++/* the list of containers eligible for automatic release */
++static LIST_HEAD(release_list);
++static void container_release_agent(struct work_struct *work);
++static DECLARE_WORK(release_agent_work, container_release_agent);
++static void check_for_release(struct container *cont);
++
+ /* Link structure for associating css_group objects with containers */
+ struct cg_container_link {
+ 	/*
+@@ -180,11 +214,8 @@ static int css_group_count;
+ /*
+  * unlink a css_group from the list and free it
+  */
+-static void release_css_group(struct kref *k)
++static void unlink_css_group(struct css_group *cg)
+ {
+-	struct css_group *cg = container_of(k, struct css_group, ref);
+-	int i;
+-
+ 	write_lock(&css_group_lock);
+ 	list_del(&cg->list);
+ 	css_group_count--;
+@@ -197,8 +228,48 @@ static void release_css_group(struct kre
+ 		kfree(link);
+ 	}
+ 	write_unlock(&css_group_lock);
+-	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
+-		atomic_dec(&cg->subsys[i]->container->count);
++}
++
++static void release_css_group(struct kref *k)
++{
++	int i;
++	struct css_group *cg = container_of(k, struct css_group, ref);
++
++	BUG_ON(!mutex_is_locked(&container_mutex));
++	unlink_css_group(cg);
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		struct container *cont = cg->subsys[i]->container;
++		if (atomic_dec_and_test(&cont->count) &&
++		    container_is_releasable(cont)) {
++			check_for_release(cont);
++		}
++	}
++	kfree(cg);
++}
++
++/*
++ * In the task exit path we want to avoid taking container_mutex
++ * unless absolutely necessary, so the release process is slightly
++ * different.
++ */
++static void release_css_group_taskexit(struct kref *k)
++{
++	int i;
++	struct css_group *cg = container_of(k, struct css_group, ref);
++
++	unlink_css_group(cg);
++	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
++		struct container *cont = cg->subsys[i]->container;
++		if (notify_on_release(cont)) {
++			mutex_lock(&container_mutex);
++			set_bit(CONT_RELEASABLE, &cont->flags);
++			if (atomic_dec_and_test(&cont->count))
++				check_for_release(cont);
++			mutex_unlock(&container_mutex);
++		} else {
++			atomic_dec(&cont->count);
++		}
++	}
+ 	kfree(cg);
+ }
+ 
+@@ -215,6 +286,11 @@ static inline void put_css_group(struct 
+ 	kref_put(&cg->ref, release_css_group);
+ }
+ 
++static inline void put_css_group_taskexit(struct css_group *cg)
++{
++	kref_put(&cg->ref, release_css_group_taskexit);
++}
++
+ /*
+  * find_existing_css_group() is a helper for
+  * find_css_group(), and checks to see whether an existing
+@@ -444,8 +520,6 @@ static struct css_group *find_css_group(
+  * update of a tasks container pointer by attach_task()
+  */
+ 
+-static DEFINE_MUTEX(container_mutex);
+-
+ /**
+  * container_lock - lock out any changes to container structures
+  *
+@@ -790,6 +864,7 @@ static int container_fill_super(struct s
+ 	root->d_fsdata = &hroot->top_container;
+ 	hroot->top_container.dentry = root;
+ 
++	strcpy(hroot->release_agent_path, "");
+ 	sb->s_fs_info = hroot;
+ 	hroot->sb = sb;
+ 
+@@ -806,6 +881,7 @@ static void init_container_root(struct c
+ 	INIT_LIST_HEAD(&cont->sibling);
+ 	INIT_LIST_HEAD(&cont->children);
+ 	INIT_LIST_HEAD(&cont->css_groups);
++	INIT_LIST_HEAD(&cont->release_list);
+ 	list_add(&root->root_list, &roots);
+ 	root_count++;
+ }
+@@ -1049,7 +1125,7 @@ static int attach_task(struct container 
+ 			ss->attach(ss, cont, oldcont, tsk);
+ 		}
+ 	}
+-
++	set_bit(CONT_RELEASABLE, &oldcont->flags);
+ 	synchronize_rcu();
+ 	put_css_group(cg);
+ 	return 0;
+@@ -1099,6 +1175,9 @@ enum container_filetype {
+ 	FILE_ROOT,
+ 	FILE_DIR,
+ 	FILE_TASKLIST,
++	FILE_NOTIFY_ON_RELEASE,
++	FILE_RELEASABLE,
++	FILE_RELEASE_AGENT,
+ };
+ 
+ static ssize_t container_common_file_write(struct container *cont,
+@@ -1136,6 +1215,28 @@ static ssize_t container_common_file_wri
+ 	case FILE_TASKLIST:
+ 		retval = attach_task_by_pid(cont, buffer);
+ 		break;
++	case FILE_NOTIFY_ON_RELEASE:
++		clear_bit(CONT_RELEASABLE, &cont->flags);
++		if (simple_strtoul(buffer, NULL, 10) != 0)
++			set_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
++		else
++			clear_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
++		break;
++	case FILE_RELEASE_AGENT:
++	{
++		struct containerfs_root *root = cont->root;
++		if (nbytes < sizeof(root->release_agent_path)) {
++			/* We never write anything other than '\0'
++			 * into the last char of release_agent_path,
++			 * so it always remains a NUL-terminated
++			 * string */
++			strncpy(root->release_agent_path, buffer, nbytes);
++			root->release_agent_path[nbytes] = 0;
++		} else {
++			retval = -ENOSPC;
++		}
++		break;
++	}
+ 	default:
+ 		retval = -EINVAL;
+ 		goto out2;
+@@ -1176,6 +1277,49 @@ static ssize_t container_read_uint(struc
+ 	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
+ }
+ 
++static ssize_t container_common_file_read(struct container *cont,
++					  struct cftype *cft,
++					  struct file *file,
++					  char __user *buf,
++					  size_t nbytes, loff_t *ppos)
++{
++	enum container_filetype type = cft->private;
++	char *page;
++	ssize_t retval = 0;
++	char *s;
++
++	if (!(page = (char *)__get_free_page(GFP_KERNEL)))
++		return -ENOMEM;
++
++	s = page;
++
++	switch (type) {
++	case FILE_RELEASE_AGENT:
++	{
++		struct containerfs_root *root;
++		size_t n;
++		mutex_lock(&container_mutex);
++		root = cont->root;
++		n = strnlen(root->release_agent_path,
++			    sizeof(root->release_agent_path));
++		n = min(n, (size_t) PAGE_SIZE);
++		strncpy(s, root->release_agent_path, n);
++		mutex_unlock(&container_mutex);
++		s += n;
++		break;
++	}
++	default:
++		retval = -EINVAL;
++		goto out;
++	}
++	*s++ = '\n';
++
++	retval = simple_read_from_buffer(buf, nbytes, ppos, page, s - page);
++out:
++	free_page((unsigned long)page);
++	return retval;
++}
++
+ static ssize_t container_file_read(struct file *file, char __user *buf,
+ 				   size_t nbytes, loff_t *ppos)
+ {
+@@ -1556,16 +1700,49 @@ static int container_tasks_release(struc
+ 	return 0;
+ }
+ 
++static u64 container_read_notify_on_release(struct container *cont,
++					    struct cftype *cft)
++{
++	return notify_on_release(cont);
++}
++
++static u64 container_read_releasable(struct container *cont, struct cftype *cft)
++{
++	return test_bit(CONT_RELEASABLE, &cont->flags);
++}
++
+ /*
+  * for the common functions, 'private' gives the type of file
+  */
+-static struct cftype cft_tasks = {
+-	.name = "tasks",
+-	.open = container_tasks_open,
+-	.read = container_tasks_read,
++static struct cftype files[] = {
++	{
++		.name = "tasks",
++		.open = container_tasks_open,
++		.read = container_tasks_read,
++		.write = container_common_file_write,
++		.release = container_tasks_release,
++		.private = FILE_TASKLIST,
++	},
++
++	{
++		.name = "notify_on_release",
++		.read_uint = container_read_notify_on_release,
++		.write = container_common_file_write,
++		.private = FILE_NOTIFY_ON_RELEASE,
++	},
++
++	{
++		.name = "releasable",
++		.read_uint = container_read_releasable,
++		.private = FILE_RELEASABLE,
++	}
++};
++
++static struct cftype cft_release_agent = {
++	.name = "release_agent",
++	.read = container_common_file_read,
+ 	.write = container_common_file_write,
+-	.release = container_tasks_release,
+-	.private = FILE_TASKLIST,
++	.private = FILE_RELEASE_AGENT,
+ };
+ 
+ static int container_populate_dir(struct container *cont)
+@@ -1576,10 +1753,15 @@ static int container_populate_dir(struct
+ 	/* First clear out any existing files */
+ 	container_clear_directory(cont->dentry);
+ 
+-	err = container_add_file(cont, &cft_tasks);
+-	if (err < 0)
++	err = container_add_files(cont, files, ARRAY_SIZE(files));
++     	if (err < 0)
+ 		return err;
+ 
++	if (cont == cont->top_container) {
++		if ((err = container_add_file(cont, &cft_release_agent)) < 0)
++			return err;
++	}
++
+ 	for_each_subsys(cont->root, ss) {
+ 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
+ 			return err;
+@@ -1631,6 +1813,7 @@ static long container_create(struct cont
+ 	INIT_LIST_HEAD(&cont->sibling);
+ 	INIT_LIST_HEAD(&cont->children);
+ 	INIT_LIST_HEAD(&cont->css_groups);
++	INIT_LIST_HEAD(&cont->release_list);
+ 
+ 	cont->parent = parent;
+ 	cont->root = parent->root;
+@@ -1690,6 +1873,24 @@ static int container_mkdir(struct inode 
+ 	return container_create(c_parent, dentry, mode | S_IFDIR);
+ }
+ 
++static inline int container_has_css_refs(struct container *cont)
++{
++	/* Check the reference count on each subsystem. Since we
++	 * already established that there are no tasks in the
++	 * container, if the css refcount is also 0, then there should
++	 * be no outstanding references, so the subsystem is safe to
++	 * destroy */
++	struct container_subsys *ss;
++	for_each_subsys(cont->root, ss) {
++		struct container_subsys_state *css;
++		css = cont->subsys[ss->subsys_id];
++		if (atomic_read(&css->refcnt)) {
++			return 1;
++		}
++	}
++	return 0;
++}
++
+ static int container_rmdir(struct inode *unused_dir, struct dentry *dentry)
+ {
+ 	struct container *cont = dentry->d_fsdata;
+@@ -1698,7 +1899,6 @@ static int container_rmdir(struct inode 
+ 	struct container_subsys *ss;
+ 	struct super_block *sb;
+ 	struct containerfs_root *root;
+-	int css_busy = 0;
+ 
+ 	/* the vfs holds both inode->i_mutex already */
+ 
+@@ -1716,20 +1916,7 @@ static int container_rmdir(struct inode 
+ 	root = cont->root;
+ 	sb = root->sb;
+ 
+-	/* Check the reference count on each subsystem. Since we
+-	 * already established that there are no tasks in the
+-	 * container, if the css refcount is also 0, then there should
+-	 * be no outstanding references, so the subsystem is safe to
+-	 * destroy */
+-	for_each_subsys(root, ss) {
+-		struct container_subsys_state *css;
+-		css = cont->subsys[ss->subsys_id];
+-		if (atomic_read(&css->refcnt)) {
+-			css_busy = 1;
+-			break;
+-		}
+-	}
+-	if (css_busy) {
++	if (container_has_css_refs(cont)) {
+ 		mutex_unlock(&container_mutex);
+ 		return -EBUSY;
+ 	}
+@@ -1751,6 +1938,11 @@ static int container_rmdir(struct inode 
+ 	dput(d);
+ 	root->number_of_containers--;
+ 
++	if (!list_empty(&cont->release_list))
++		list_del(&cont->release_list);
++	set_bit(CONT_RELEASABLE, &parent->flags);
++	check_for_release(parent);
++
+ 	mutex_unlock(&container_mutex);
+ 	/* Drop the active superblock reference that we took when we
+ 	 * created the container */
+@@ -2100,7 +2292,7 @@ void container_exit(struct task_struct *
+ 	tsk->containers = &init_css_group;
+ 	task_unlock(tsk);
+ 	if (cg)
+-		put_css_group(cg);
++		put_css_group_taskexit(cg);
+ }
+ 
+ static atomic_t namecnt;
+@@ -2208,7 +2400,10 @@ int container_clone(struct task_struct *
+ 
+  out_release:
+ 	mutex_unlock(&inode->i_mutex);
++
++	mutex_lock(&container_mutex);
+ 	put_css_group(cg);
++	mutex_unlock(&container_mutex);
+ 	deactivate_super(parent->root->sb);
+ 	return ret;
+ }
+@@ -2229,3 +2424,110 @@ int container_is_descendant(const struct
+ 	ret = (cont == target);
+ 	return ret;
+ }
++
++static void check_for_release(struct container *cont)
++{
++	BUG_ON(!mutex_is_locked(&container_mutex));
++	if (container_is_releasable(cont) && !atomic_read(&cont->count)
++	    && list_empty(&cont->children) && !container_has_css_refs(cont)) {
++		/* Container is currently removeable. If it's not
++		 * already queued for a userspace notification, queue
++		 * it now */
++		if (list_empty(&cont->release_list)) {
++			list_add(&cont->release_list, &release_list);
++			schedule_work(&release_agent_work);
++		}
++	}
++}
++
++void css_put(struct container_subsys_state *css)
++{
++	struct container *cont = css->container;
++	if (notify_on_release(cont)) {
++		mutex_lock(&container_mutex);
++		set_bit(CONT_RELEASABLE, &cont->flags);
++		if (atomic_dec_and_test(&css->refcnt)) {
++			check_for_release(cont);
++		}
++		mutex_unlock(&container_mutex);
++	} else {
++		atomic_dec(&css->refcnt);
++	}
++}
++
++void container_set_release_agent_path(struct container_subsys *ss,
++				      const char *path)
++{
++	mutex_lock(&container_mutex);
++	strcpy(ss->root->release_agent_path, path);
++	mutex_unlock(&container_mutex);
++}
++
++/*
++ * Notify userspace when a container is released, by running the
++ * configured release agent with the name of the container (path
++ * relative to the root of container file system) as the argument.
++ *
++ * Most likely, this user command will try to rmdir this container.
++ *
++ * This races with the possibility that some other task will be
++ * attached to this container before it is removed, or that some other
++ * user task will 'mkdir' a child container of this container.  That's ok.
++ * The presumed 'rmdir' will fail quietly if this container is no longer
++ * unused, and this container will be reprieved from its death sentence,
++ * to continue to serve a useful existence.  Next time it's released,
++ * we will get notified again, if it still has 'notify_on_release' set.
++ *
++ * The final arg to call_usermodehelper() is UMH_WAIT_EXEC, which
++ * means only wait until the task is successfully execve()'d.  The
++ * separate release agent task is forked by call_usermodehelper(),
++ * then control in this thread returns here, without waiting for the
++ * release agent task.  We don't bother to wait because the caller of
++ * this routine has no use for the exit status of the release agent
++ * task, so no sense holding our caller up for that.
++ *
++ */
++
++static void container_release_agent(struct work_struct *work)
++{
++	BUG_ON(work != &release_agent_work);
++	mutex_lock(&container_mutex);
++	while (!list_empty(&release_list)) {
++		char *argv[3], *envp[3];
++		int i;
++		char *pathbuf;
++		struct container *cont = list_entry(release_list.next,
++						    struct container,
++						    release_list);
++		list_del_init(&cont->release_list);
++
++		pathbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++		if (!pathbuf)
++			continue;
++
++		if (container_path(cont, pathbuf, PAGE_SIZE) < 0) {
++			kfree(pathbuf);
++			continue;
++		}
++
++		i = 0;
++		argv[i++] = cont->root->release_agent_path;
++		argv[i++] = (char *)pathbuf;
++		argv[i] = NULL;
++
++		i = 0;
++		/* minimal command environment */
++		envp[i++] = "HOME=/";
++		envp[i++] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
++		envp[i] = NULL;
++
++		/* Drop the lock while we invoke the usermode helper,
++		 * since the exec could involve hitting disk and hence
++		 * be a slow process */
++		mutex_unlock(&container_mutex);
++		call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
++		kfree(pathbuf);
++		mutex_lock(&container_mutex);
++	}
++	mutex_unlock(&container_mutex);
++}
+diff -puN kernel/cpuset.c~containersv10-support-for-automatic-userspace-release-agents kernel/cpuset.c
+--- a/kernel/cpuset.c~containersv10-support-for-automatic-userspace-release-agents
++++ a/kernel/cpuset.c
+@@ -275,6 +275,11 @@ static int cpuset_get_sb(struct file_sys
+ 					   unused_dev_name,
+ 					   "cpuset", mnt);
+ 		put_filesystem(container_fs);
++		if (!ret) {
++			container_set_release_agent_path(
++				&cpuset_subsys,
++				"/sbin/cpuset_release_agent");
++		}
+ 	}
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from menage@google.com are
 
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm-master.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-leds-fixup.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock.patch
 reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+containersv10-basic-container-framework.patch
 containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
 containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
 containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
