@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch added to -mm tree
-Date: Wed, 30 May 2007 12:29:54 -0700
-Message-ID: <200705301929.l4UJTsr5002893@shell0.pdx.osdl.net>
+Subject: + lockstat-human-readability-tweaks.patch added to -mm tree
+Date: Wed, 30 May 2007 12:29:52 -0700
+Message-ID: <200705301929.l4UJTqOd002890@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35691 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199AbXE3Tbm (ORCPT
+	by vger.kernel.org with ESMTP id S1754476AbXE3Tbq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 15:31:42 -0400
+	Wed, 30 May 2007 15:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     lockstat: hook into spinlock_t, rwlock_t, rwsem and mutex
+     lockstat: human readability tweaks
 has been added to the -mm tree.  Its filename is
-     lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+     lockstat-human-readability-tweaks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockstat: hook into spinlock_t, rwlock_t, rwsem and mutex
+Subject: lockstat: human readability tweaks
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Call the new lockstat tracking functions from the various lock primitives.
+Present all this fancy new lock statistics information:
+
+*warning, _wide_ output ahead*
+
+(output edited for purpose of brevity)
+
+ # cat /proc/lock_stat
+lock_stat version 0.1
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+                              class name    contentions   waittime-min   waittime-max waittime-total   acquisitions   holdtime-min   holdtime-max holdtime-total
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                         &inode->i_mutex:         14458           6.57      398832.75     2469412.23        6768876           0.34    11398383.65   339410830.89
+                         ---------------
+                         &inode->i_mutex           4486          [<ffffffff802a08f9>] pipe_wait+0x86/0x8d
+                         &inode->i_mutex              0          [<ffffffff802a01e8>] pipe_write_fasync+0x29/0x5d
+                         &inode->i_mutex              0          [<ffffffff802a0e18>] pipe_read+0x74/0x3a5
+                         &inode->i_mutex              0          [<ffffffff802a1a6a>] do_lookup+0x81/0x1ae
+
+.................................................................................................................................................................
+
+              &inode->i_data.tree_lock-W:           491           0.27          62.47         493.89        2477833           0.39         468.89     1146584.25
+              &inode->i_data.tree_lock-R:            65           0.44           4.27          48.78       26288792           0.36         184.62    10197458.24
+              --------------------------
+                &inode->i_data.tree_lock             46          [<ffffffff80277095>] __do_page_cache_readahead+0x69/0x24f
+                &inode->i_data.tree_lock             31          [<ffffffff8026f9fb>] add_to_page_cache+0x31/0xba
+                &inode->i_data.tree_lock              0          [<ffffffff802770ee>] __do_page_cache_readahead+0xc2/0x24f
+                &inode->i_data.tree_lock              0          [<ffffffff8026f6e4>] find_get_page+0x1a/0x58
+
+.................................................................................................................................................................
+
+                      proc_inum_idr.lock:             0           0.00           0.00           0.00             36           0.00          65.60         148.26
+                        proc_subdir_lock:             0           0.00           0.00           0.00        3049859           0.00         106.81     1563212.42
+                        shrinker_rwsem-W:             0           0.00           0.00           0.00              5           0.00           1.73           3.68
+                        shrinker_rwsem-R:             0           0.00           0.00           0.00            633           2.57         246.57       10909.76
+
+'contentions' and 'acquisitions' are the number of such events measured (since
+the last reset). The waittime- and holdtime- (min, max, total) numbers are
+presented in microseconds.
+
+If there are any contention points, the lock class is presented in the block
+format (as i_mutex and tree_lock above), otherwise a single line of output is
+presented.
+
+The output is sorted on absolute number of contentions (read + write), this
+should get the worst offenders presented first, so that:
+
+ # grep : /proc/lock_stat | head
+
+will quickly show who's bad.
+
+The stats can be reset using:
+
+ # echo 0 > /proc/lock_stat
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Acked-by: Ingo Molnar <mingo@elte.hu>
@@ -37,204 +90,354 @@ Acked-by: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/mutex.c    |    8 ++++++++
- kernel/rwsem.c    |    8 ++++----
- kernel/spinlock.c |   28 ++++++++++++++--------------
- 3 files changed, 26 insertions(+), 18 deletions(-)
+ kernel/lockdep.c      |   44 ++++++
+ kernel/lockdep_proc.c |  266 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 310 insertions(+)
 
-diff -puN kernel/mutex.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex kernel/mutex.c
---- a/kernel/mutex.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex
-+++ a/kernel/mutex.c
-@@ -139,6 +139,12 @@ __mutex_lock_common(struct mutex *lock, 
- 	list_add_tail(&waiter.list, &lock->wait_list);
- 	waiter.task = task;
+diff -puN kernel/lockdep.c~lockstat-human-readability-tweaks kernel/lockdep.c
+--- a/kernel/lockdep.c~lockstat-human-readability-tweaks
++++ a/kernel/lockdep.c
+@@ -149,6 +149,50 @@ static void lock_time_inc(struct lock_ti
+ 	lt->nr++;
+ }
  
-+	old_val = atomic_xchg(&lock->count, -1);
-+	if (old_val == 1)
-+		goto done;
++static inline void lock_time_add(struct lock_time *src, struct lock_time *dst)
++{
++	dst->min += src->min;
++	dst->max += src->max;
++	dst->total += src->total;
++	dst->nr += src->nr;
++}
 +
-+	lock_contended(&lock->dep_map, _RET_IP_);
++struct lock_class_stats lock_stats(struct lock_class *class)
++{
++	struct lock_class_stats stats;
++	int cpu, i;
 +
- 	for (;;) {
- 		/*
- 		 * Lets try to take the lock again - this is needed even if
-@@ -174,6 +180,8 @@ __mutex_lock_common(struct mutex *lock, 
- 		spin_lock_mutex(&lock->wait_lock, flags);
- 	}
- 
-+	lock_acquired(&lock->dep_map);
-+done:
- 	/* got the lock - rejoice! */
- 	mutex_remove_waiter(lock, &waiter, task_thread_info(task));
- 	debug_mutex_set_owner(lock, task_thread_info(task));
-diff -puN kernel/rwsem.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex kernel/rwsem.c
---- a/kernel/rwsem.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex
-+++ a/kernel/rwsem.c
-@@ -20,7 +20,7 @@ void down_read(struct rw_semaphore *sem)
- 	might_sleep();
- 	rwsem_acquire_read(&sem->dep_map, 0, 0, _RET_IP_);
- 
--	__down_read(sem);
-+	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
- }
- 
- EXPORT_SYMBOL(down_read);
-@@ -47,7 +47,7 @@ void down_write(struct rw_semaphore *sem
- 	might_sleep();
- 	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
- 
--	__down_write(sem);
-+	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
- }
- 
- EXPORT_SYMBOL(down_write);
-@@ -111,7 +111,7 @@ void down_read_nested(struct rw_semaphor
- 	might_sleep();
- 	rwsem_acquire_read(&sem->dep_map, subclass, 0, _RET_IP_);
- 
--	__down_read(sem);
-+	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
- }
- 
- EXPORT_SYMBOL(down_read_nested);
-@@ -130,7 +130,7 @@ void down_write_nested(struct rw_semapho
- 	might_sleep();
- 	rwsem_acquire(&sem->dep_map, subclass, 0, _RET_IP_);
- 
--	__down_write_nested(sem, subclass);
-+	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
- }
- 
- EXPORT_SYMBOL(down_write_nested);
-diff -puN kernel/spinlock.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex kernel/spinlock.c
---- a/kernel/spinlock.c~lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex
-+++ a/kernel/spinlock.c
-@@ -72,7 +72,7 @@ void __lockfunc _read_lock(rwlock_t *loc
++	memset(&stats, 0, sizeof(struct lock_class_stats));
++	for_each_possible_cpu(cpu) {
++		struct lock_class_stats *pcs =
++			&per_cpu(lock_stats, cpu)[class - lock_classes];
++
++		for (i = 0; i < ARRAY_SIZE(stats.contention_point); i++)
++			stats.contention_point[i] += pcs->contention_point[i];
++
++		lock_time_add(&pcs->read_waittime, &stats.read_waittime);
++		lock_time_add(&pcs->write_waittime, &stats.write_waittime);
++
++		lock_time_add(&pcs->read_holdtime, &stats.read_holdtime);
++		lock_time_add(&pcs->write_holdtime, &stats.write_holdtime);
++	}
++
++	return stats;
++}
++
++void clear_lock_stats(struct lock_class *class)
++{
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		struct lock_class_stats *cpu_stats =
++			&per_cpu(lock_stats, cpu)[class - lock_classes];
++
++		memset(cpu_stats, 0, sizeof(struct lock_class_stats));
++	}
++	memset(class->contention_point, 0, sizeof(class->contention_point));
++}
++
+ static struct lock_class_stats *get_lock_stats(struct lock_class *class)
  {
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- }
- EXPORT_SYMBOL(_read_lock);
+ 	return &get_cpu_var(lock_stats)[class - lock_classes];
+diff -puN kernel/lockdep_proc.c~lockstat-human-readability-tweaks kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-human-readability-tweaks
++++ a/kernel/lockdep_proc.c
+@@ -15,6 +15,10 @@
+ #include <linux/seq_file.h>
+ #include <linux/kallsyms.h>
+ #include <linux/debug_locks.h>
++#include <linux/vmalloc.h>
++#include <linux/sort.h>
++#include <asm/uaccess.h>
++#include <asm/div64.h>
  
-@@ -89,7 +89,7 @@ unsigned long __lockfunc _spin_lock_irqs
- 	 * that interrupts are not re-enabled during lock-acquire:
- 	 */
- #ifdef CONFIG_LOCKDEP
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- #else
- 	_raw_spin_lock_flags(lock, &flags);
- #endif
-@@ -102,7 +102,7 @@ void __lockfunc _spin_lock_irq(spinlock_
- 	local_irq_disable();
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
- EXPORT_SYMBOL(_spin_lock_irq);
+ #include "lockdep_internals.h"
  
-@@ -111,7 +111,7 @@ void __lockfunc _spin_lock_bh(spinlock_t
- 	local_bh_disable();
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
- EXPORT_SYMBOL(_spin_lock_bh);
+@@ -344,6 +348,262 @@ static const struct file_operations proc
+ 	.release	= seq_release,
+ };
  
-@@ -122,7 +122,7 @@ unsigned long __lockfunc _read_lock_irqs
- 	local_irq_save(flags);
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- 	return flags;
- }
- EXPORT_SYMBOL(_read_lock_irqsave);
-@@ -132,7 +132,7 @@ void __lockfunc _read_lock_irq(rwlock_t 
- 	local_irq_disable();
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- }
- EXPORT_SYMBOL(_read_lock_irq);
- 
-@@ -141,7 +141,7 @@ void __lockfunc _read_lock_bh(rwlock_t *
- 	local_bh_disable();
- 	preempt_disable();
- 	rwlock_acquire_read(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_read_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_read_trylock, _raw_read_lock);
- }
- EXPORT_SYMBOL(_read_lock_bh);
- 
-@@ -152,7 +152,7 @@ unsigned long __lockfunc _write_lock_irq
- 	local_irq_save(flags);
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- 	return flags;
- }
- EXPORT_SYMBOL(_write_lock_irqsave);
-@@ -162,7 +162,7 @@ void __lockfunc _write_lock_irq(rwlock_t
- 	local_irq_disable();
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- }
- EXPORT_SYMBOL(_write_lock_irq);
- 
-@@ -171,7 +171,7 @@ void __lockfunc _write_lock_bh(rwlock_t 
- 	local_bh_disable();
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- }
- EXPORT_SYMBOL(_write_lock_bh);
- 
-@@ -179,7 +179,7 @@ void __lockfunc _spin_lock(spinlock_t *l
++#ifdef CONFIG_LOCK_STAT
++
++struct lock_stat_data {
++	struct lock_class *class;
++	struct lock_class_stats stats;
++};
++
++struct lock_stat_seq {
++	struct lock_stat_data *iter;
++	struct lock_stat_data *iter_end;
++	struct lock_stat_data stats[MAX_LOCKDEP_KEYS];
++};
++
++/*
++ * sort on absolute number of contentions
++ */
++int lock_stat_cmp(const void *l, const void *r)
++{
++	const struct lock_stat_data *dl = l, *dr = r;
++	unsigned long nl, nr;
++
++	nl = dl->stats.read_waittime.nr + dl->stats.write_waittime.nr;
++	nr = dr->stats.read_waittime.nr + dr->stats.write_waittime.nr;
++
++	return nr - nl;
++}
++
++static void seq_line(struct seq_file *m, char c, int offset, int length)
++{
++	int i;
++
++	for (i = 0; i < offset; i++)
++		seq_puts(m, " ");
++	for (i = 0; i < length; i++)
++		seq_printf(m, "%c", c);
++	seq_puts(m, "\n");
++}
++
++static void snprint_time(char *buf, size_t bufsiz, s64 nr)
++{
++	unsigned long rem;
++
++	rem = do_div(nr, 1000); /* XXX: do_div_signed */
++	snprintf(buf, bufsiz, "%lld.%02d", nr, ((int)rem+5)/10);
++}
++
++static void seq_time(struct seq_file *m, s64 time)
++{
++	char num[15];
++
++	snprint_time(num, sizeof(num), time);
++	seq_printf(m, " %14s", num);
++}
++
++static void seq_lock_time(struct seq_file *m, struct lock_time *lt)
++{
++	seq_printf(m, "%14lu", lt->nr);
++	seq_time(m, lt->min);
++	seq_time(m, lt->max);
++	seq_time(m, lt->total);
++}
++
++static void seq_stats(struct seq_file *m, struct lock_stat_data *data)
++{
++	char name[39];
++	struct lock_class *class;
++	struct lock_class_stats *stats;
++	int i, namelen;
++
++	class = data->class;
++	stats = &data->stats;
++
++	snprintf(name, 38, "%s", class->name);
++	namelen = strlen(name);
++
++	if (stats->write_holdtime.nr) {
++		if (stats->read_holdtime.nr)
++			seq_printf(m, "%38s-W:", name);
++		else
++			seq_printf(m, "%40s:", name);
++
++		seq_lock_time(m, &stats->write_waittime);
++		seq_puts(m, " ");
++		seq_lock_time(m, &stats->write_holdtime);
++		seq_puts(m, "\n");
++	}
++
++	if (stats->read_holdtime.nr) {
++		seq_printf(m, "%38s-R:", name);
++		seq_lock_time(m, &stats->read_waittime);
++		seq_puts(m, " ");
++		seq_lock_time(m, &stats->read_holdtime);
++		seq_puts(m, "\n");
++	}
++
++	if (stats->read_waittime.nr + stats->write_waittime.nr == 0)
++		return;
++
++	if (stats->read_holdtime.nr)
++		namelen += 2;
++
++	for (i = 0; i < ARRAY_SIZE(class->contention_point); i++) {
++		char sym[KSYM_SYMBOL_LEN];
++		char ip[32];
++
++		if (class->contention_point[i] == 0)
++			break;
++
++		if (!i)
++			seq_line(m, '-', 40-namelen, namelen);
++
++		sprint_symbol(sym, class->contention_point[i]);
++		snprintf(ip, sizeof(ip), "[<%p>]",
++				(void *)class->contention_point[i]);
++		seq_printf(m, "%40s %14lu %29s %s\n", name,
++				stats->contention_point[i],
++				ip, sym);
++	}
++	if (i) {
++		seq_puts(m, "\n");
++		seq_line(m, '.', 0, 40 + 1 + 8 * (14 + 1));
++		seq_puts(m, "\n");
++	}
++}
++
++static void seq_header(struct seq_file *m)
++{
++	seq_printf(m, "lock_stat version 0.1\n");
++	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
++	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s\n",
++			"class name",
++			"contentions",
++			"waittime-min",
++			"waittime-max",
++			"waittime-total",
++			"acquisitions",
++			"holdtime-min",
++			"holdtime-max",
++			"holdtime-total");
++	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
++	seq_printf(m, "\n");
++}
++
++static void *ls_start(struct seq_file *m, loff_t *pos)
++{
++	struct lock_stat_seq *data = m->private;
++
++	if (data->iter == data->stats)
++		seq_header(m);
++
++	return data->iter;
++}
++
++static void *ls_next(struct seq_file *m, void *v, loff_t *pos)
++{
++	struct lock_stat_seq *data = m->private;
++
++	(*pos)++;
++
++	data->iter = v;
++	data->iter++;
++	if (data->iter == data->iter_end)
++		data->iter = NULL;
++
++	return data->iter;
++}
++
++static void ls_stop(struct seq_file *m, void *v)
++{
++}
++
++static int ls_show(struct seq_file *m, void *v)
++{
++	struct lock_stat_seq *data = m->private;
++
++	seq_stats(m, data->iter);
++	return 0;
++}
++
++static struct seq_operations lockstat_ops = {
++	.start	= ls_start,
++	.next	= ls_next,
++	.stop	= ls_stop,
++	.show	= ls_show,
++};
++
++static int lock_stat_open(struct inode *inode, struct file *file)
++{
++	int res;
++	struct lock_class *class;
++	struct lock_stat_seq *data = vmalloc(sizeof(struct lock_stat_seq));
++
++	if (!data)
++		return -ENOMEM;
++
++	res = seq_open(file, &lockstat_ops);
++	if (!res) {
++		struct lock_stat_data *iter = data->stats;
++		struct seq_file *m = file->private_data;
++
++		data->iter = iter;
++		list_for_each_entry(class, &all_lock_classes, lock_entry) {
++			iter->class = class;
++			iter->stats = lock_stats(class);
++			iter++;
++		}
++		data->iter_end = iter;
++
++		sort(data->stats, data->iter_end - data->iter,
++				sizeof(struct lock_stat_data),
++				lock_stat_cmp, NULL);
++
++		m->private = data;
++	} else
++		vfree(data);
++
++	return res;
++}
++
++ssize_t lock_stat_write(struct file *file, const char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct lock_class *class;
++	char c;
++
++	if (count) {
++		if (get_user(c, buf))
++			return -EFAULT;
++
++		if (c != '0')
++			return count;
++
++		list_for_each_entry(class, &all_lock_classes, lock_entry)
++			clear_lock_stats(class);
++	}
++	return count;
++}
++
++static int lock_stat_release(struct inode *inode, struct file *file)
++{
++	struct seq_file *seq = file->private_data;
++
++	vfree(seq->private);
++	seq->private = NULL;
++	return seq_release(inode, file);
++}
++
++static const struct file_operations proc_lock_stat_operations = {
++	.open		= lock_stat_open,
++	.write		= lock_stat_write,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= lock_stat_release,
++};
++#endif /* CONFIG_LOCK_STAT */
++
+ static int __init lockdep_proc_init(void)
  {
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+ 	struct proc_dir_entry *entry;
+@@ -356,6 +616,12 @@ static int __init lockdep_proc_init(void
+ 	if (entry)
+ 		entry->proc_fops = &proc_lockdep_stats_operations;
+ 
++#ifdef CONFIG_LOCK_STAT
++	entry = create_proc_entry("lock_stat", S_IRUSR, NULL);
++	if (entry)
++		entry->proc_fops = &proc_lock_stat_operations;
++#endif
++
+ 	return 0;
  }
  
- EXPORT_SYMBOL(_spin_lock);
-@@ -188,7 +188,7 @@ void __lockfunc _write_lock(rwlock_t *lo
- {
- 	preempt_disable();
- 	rwlock_acquire(&lock->dep_map, 0, 0, _RET_IP_);
--	_raw_write_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_write_trylock, _raw_write_lock);
- }
- 
- EXPORT_SYMBOL(_write_lock);
-@@ -289,7 +289,7 @@ void __lockfunc _spin_lock_nested(spinlo
- {
- 	preempt_disable();
- 	spin_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
- 
- EXPORT_SYMBOL(_spin_lock_nested);
-@@ -306,7 +306,7 @@ unsigned long __lockfunc _spin_lock_irqs
- 	 * that interrupts are not re-enabled during lock-acquire:
- 	 */
- #ifdef CONFIG_LOCKDEP
--	_raw_spin_lock(lock);
-+	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- #else
- 	_raw_spin_lock_flags(lock, &flags);
- #endif
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
