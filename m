@@ -1,83 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch removed from -mm tree
-Date: Wed, 30 May 2007 16:28:40 -0700
-Message-ID: <200705302328.l4UNSd4h007771@shell0.pdx.osdl.net>
+Subject: - security-revalidate-rw-permissions-for-sys_splice-and.patch removed from -mm tree
+Date: Wed, 30 May 2007 16:28:50 -0700
+Message-ID: <200705302328.l4UNSnNa007780@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52309 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759233AbXE3X30 (ORCPT
+	by vger.kernel.org with ESMTP id S1753171AbXE3X35 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 19:29:26 -0400
+	Wed, 30 May 2007 19:29:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herbert@gondor.apana.org.au, akpm@linux-foundation.org, auke-jan.h.kok@intel.com, jeff@garzik.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: jmorris@namei.org, jens.axboe@oracle.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000: restore netif_poll_enable call but make sure IRQs are off
+     security: revalidate rw permissions for sys_splice and sys_vmsplice
 has been removed from the -mm tree.  Its filename was
-     e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
+     security-revalidate-rw-permissions-for-sys_splice-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: e1000: restore netif_poll_enable call but make sure IRQs are off
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: security: revalidate rw permissions for sys_splice and sys_vmsplice
+From: James Morris <jmorris@namei.org>
 
-This restores the previously removed netif_poll_enable call in e1000_open. 
-It's needed on all but the first call to e1000_open for a NIC as
-e1000_close always calls netif_poll_disable.
+Revalidate read/write permissions for splice(2) and vmslice(2), in case
+security policy has changed since the files were opened.
 
-netif_poll_enable can only be called safely if no polls have been
-scheduled.  This should be the case as long as we don't enter our IRQ
-handler.
+Note that this brings the splice code into line with other mechanisms for
+reading and writing files, where an LSM check is made on open, then
+revalidated on read or write as a form of partial revocation.
 
-In order to guarantee this we explicitly disable IRQs as early as possible
-when we're probing the NIC.
-
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "Kok, Auke" <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@kernel.org>
+Signed-off-by: James Morris <jmorris@namei.org>
+Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
+Signed-off-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_main.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletion(-)
+ fs/splice.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN drivers/net/e1000/e1000_main.c~e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -1325,7 +1325,10 @@ e1000_sw_init(struct e1000_adapter *adap
- 	spin_lock_init(&adapter->tx_queue_lock);
- #endif
+diff -puN fs/splice.c~security-revalidate-rw-permissions-for-sys_splice-and fs/splice.c
+--- a/fs/splice.c~security-revalidate-rw-permissions-for-sys_splice-and
++++ a/fs/splice.c
+@@ -28,6 +28,7 @@
+ #include <linux/module.h>
+ #include <linux/syscalls.h>
+ #include <linux/uio.h>
++#include <linux/security.h>
  
--	atomic_set(&adapter->irq_sem, 1);
-+	/* Explicitly disable IRQ since the NIC can be in any state. */
-+	atomic_set(&adapter->irq_sem, 0);
-+	e1000_irq_disable(adapter);
+ struct partial_page {
+ 	unsigned int offset;
+@@ -912,6 +913,10 @@ static long do_splice_from(struct pipe_i
+ 	if (unlikely(ret < 0))
+ 		return ret;
+ 
++	ret = security_file_permission(out, MAY_WRITE);
++	if (unlikely(ret < 0))
++		return ret;
 +
- 	spin_lock_init(&adapter->stats_lock);
+ 	return out->f_op->splice_write(pipe, out, ppos, len, flags);
+ }
  
- 	set_bit(__E1000_DOWN, &adapter->flags);
-@@ -1431,6 +1434,10 @@ e1000_open(struct net_device *netdev)
- 	/* From here on the code is the same as e1000_up() */
- 	clear_bit(__E1000_DOWN, &adapter->flags);
+@@ -935,6 +940,10 @@ static long do_splice_to(struct file *in
+ 	if (unlikely(ret < 0))
+ 		return ret;
  
-+#ifdef CONFIG_E1000_NAPI
-+	netif_poll_enable(netdev);
-+#endif
++	ret = security_file_permission(in, MAY_READ);
++	if (unlikely(ret < 0))
++		return ret;
 +
- 	e1000_irq_enable(adapter);
+ 	isize = i_size_read(in->f_mapping->host);
+ 	if (unlikely(*ppos >= isize))
+ 		return 0;
+@@ -1263,6 +1272,7 @@ static int get_iovec_page_array(const st
+ static long do_vmsplice(struct file *file, const struct iovec __user *iov,
+ 			unsigned long nr_segs, unsigned int flags)
+ {
++	long err;
+ 	struct pipe_inode_info *pipe;
+ 	struct page *pages[PIPE_BUFFERS];
+ 	struct partial_page partial[PIPE_BUFFERS];
+@@ -1281,6 +1291,10 @@ static long do_vmsplice(struct file *fil
+ 	else if (unlikely(!nr_segs))
+ 		return 0;
  
- 	/* fire a link status change interrupt to start the watchdog */
++	err = security_file_permission(file, MAY_WRITE);
++	if (unlikely(err < 0))
++		return err;
++
+ 	spd.nr_pages = get_iovec_page_array(iov, nr_segs, pages, partial,
+ 					    flags & SPLICE_F_GIFT);
+ 	if (spd.nr_pages <= 0)
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from jmorris@namei.org are
 
-origin.patch
-git-wireless.patch
-git-cryptodev.patch
-make-crypto-api-use-seq_list_xxx-helpers.patch
+git-selinux.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-update.patch
+lguest-the-net-driver.patch
+lguest-the-documentation-example-launcher.patch
