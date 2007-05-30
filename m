@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-use-fallback-irq-if-pnp-tables-dont-provide-one.patch added to -mm tree
-Date: Tue, 29 May 2007 17:31:08 -0700
-Message-ID: <200705300031.l4U0V8Hx015417@shell0.pdx.osdl.net>
+Subject: + bluetooth-remove-the-redundant-non-seekable-llseek-method.patch added to -mm tree
+Date: Tue, 29 May 2007 17:33:24 -0700
+Message-ID: <200705300033.l4U0XO85015451@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54370 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51944 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752609AbXE3AbU (ORCPT
+	by vger.kernel.org with ESMTP id S1750740AbXE3Adc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 20:31:20 -0400
+	Tue, 29 May 2007 20:33:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, castet.matthieu@free.fr, dbrownell@users.sourceforge.net
+Cc: rpjday@mindspring.com, marcel@holtmann.org
 
 
 The patch titled
-     RTC: use fallback IRQ if PNP tables don't provide one
+     BLUETOOTH: remove the redundant non-seekable llseek method
 has been added to the -mm tree.  Its filename is
-     rtc-use-fallback-irq-if-pnp-tables-dont-provide-one.patch
+     bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC: use fallback IRQ if PNP tables don't provide one
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: BLUETOOTH: remove the redundant non-seekable llseek method
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Intel Macs (and possibly other machines) provide a PNP entry for the RTC,
-but provide no IRQ.  As a result the rtc-cmos driver doesn't allow wakeup
-alarms.  If the RTC is located at the legacy ioport range, assume that it's
-on IRQ 8 unless the tables say otherwise.
+Remove the llseek method given that the open method already calls
+nonseekable_open().
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Matthieu CASTET <castet.matthieu@free.fr>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
+ drivers/bluetooth/hci_vhci.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-use-fallback-irq-if-pnp-tables-dont-provide-one drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-use-fallback-irq-if-pnp-tables-dont-provide-one
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -641,9 +641,16 @@ cmos_pnp_probe(struct pnp_dev *pnp, cons
- 	 * drivers can't provide shutdown() methods to disable IRQs.
- 	 * Or better yet, fix PNP to allow those methods...
- 	 */
--	return cmos_do_probe(&pnp->dev,
--			&pnp->res.port_resource[0],
--			pnp->res.irq_resource[0].start);
-+	if (pnp_port_start(pnp,0) == 0x70 && !pnp_irq_valid(pnp,0))
-+		/* Some machines contain a PNP entry for the RTC, but
-+		 * don't define the IRQ. It should always be safe to
-+		 * hardcode it in these cases
-+		 */
-+		return cmos_do_probe(&pnp->dev, &pnp->res.port_resource[0], 8);
-+	else
-+		return cmos_do_probe(&pnp->dev,
-+				     &pnp->res.port_resource[0],
-+				     pnp->res.irq_resource[0].start);
+diff -puN drivers/bluetooth/hci_vhci.c~bluetooth-remove-the-redundant-non-seekable-llseek-method drivers/bluetooth/hci_vhci.c
+--- a/drivers/bluetooth/hci_vhci.c~bluetooth-remove-the-redundant-non-seekable-llseek-method
++++ a/drivers/bluetooth/hci_vhci.c
+@@ -180,11 +180,6 @@ static inline ssize_t vhci_put_user(stru
+ 	return total;
  }
  
- static void __exit cmos_pnp_remove(struct pnp_dev *pnp)
+-static loff_t vhci_llseek(struct file *file, loff_t offset, int origin)
+-{
+-	return -ESPIPE;
+-}
+-
+ static ssize_t vhci_read(struct file *file,
+ 				char __user *buf, size_t count, loff_t *pos)
+ {
+@@ -332,7 +327,6 @@ static int vhci_fasync(int fd, struct fi
+ 
+ static const struct file_operations vhci_fops = {
+ 	.owner		= THIS_MODULE,
+-	.llseek		= vhci_llseek,
+ 	.read		= vhci_read,
+ 	.write		= vhci_write,
+ 	.poll		= vhci_poll,
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-rtc-use-fallback-irq-if-pnp-tables-dont-provide-one.patch
+git-arm-master.patch
+git-ieee1394.patch
+input-delete-useless-reference-to-dead-module_parm-macro.patch
+git-kbuild.patch
+bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-dead-references-to-module_parm-macro.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
