@@ -1,225 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-cleanup-in-bitopsh.patch removed from -mm tree
-Date: Wed, 30 May 2007 16:28:43 -0700
-Message-ID: <200705302328.l4UNSgbr007774@shell0.pdx.osdl.net>
+Subject: - use-list_for_each_entry-for-iteration-in-hostap_apc.patch removed from -mm tree
+Date: Wed, 30 May 2007 16:28:37 -0700
+Message-ID: <200705302328.l4UNSa65007768@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58434 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758734AbXE3X3K (ORCPT
+	by vger.kernel.org with ESMTP id S1759158AbXE3X3Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 19:29:10 -0400
+	Wed, 30 May 2007 19:29:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rth@twiddle.net, ink@jurassic.park.msu.ru, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, hch@lst.de, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: cleanup in bitops.h
+     use list_for_each_entry() for iteration in hostap_ap.c
 has been removed from the -mm tree.  Its filename was
-     alpha-cleanup-in-bitopsh.patch
+     use-list_for_each_entry-for-iteration-in-hostap_apc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: cleanup in bitops.h
-From: Richard Henderson <rth@twiddle.net>
+Subject: use list_for_each_entry() for iteration in hostap_ap.c
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Remove 2 functions private to the alpha implemetation, in favor of similar
-functions in <linux/log2.h>.
+hostap_ap.c: Use list_for_each_entry() instead of manual iteration and
+substitute some list_for_each() loops with list_for_each_entry()
 
-Provide a more efficient version of the fls64 function for pre-ev67 alphas.
-
-Signed-off-by: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci_iommu.c |    3 +
- arch/alpha/kernel/setup.c     |    3 +
- arch/alpha/lib/Makefile       |    3 +
- arch/alpha/lib/fls.c          |   38 ++++++++++++++++++++++++
- include/asm-alpha/bitops.h    |   50 ++++++++++++++++++--------------
- 5 files changed, 73 insertions(+), 24 deletions(-)
+ drivers/net/wireless/hostap/hostap_ap.c |   33 +++++++---------------
+ 1 files changed, 11 insertions(+), 22 deletions(-)
 
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-cleanup-in-bitopsh arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-cleanup-in-bitopsh
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -7,6 +7,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <linux/bootmem.h>
-+#include <linux/log2.h>
+diff -puN drivers/net/wireless/hostap/hostap_ap.c~use-list_for_each_entry-for-iteration-in-hostap_apc drivers/net/wireless/hostap/hostap_ap.c
+--- a/drivers/net/wireless/hostap/hostap_ap.c~use-list_for_each_entry-for-iteration-in-hostap_apc
++++ a/drivers/net/wireless/hostap/hostap_ap.c
+@@ -326,7 +326,6 @@ static int ap_control_proc_read(char *pa
+ 	char *p = page;
+ 	struct ap_data *ap = (struct ap_data *) data;
+ 	char *policy_txt;
+-	struct list_head *ptr;
+ 	struct mac_entry *entry;
  
- #include <asm/io.h>
- #include <asm/hwrpb.h>
-@@ -53,7 +54,7 @@ size_for_memory(unsigned long max)
+ 	if (off != 0) {
+@@ -352,14 +351,12 @@ static int ap_control_proc_read(char *pa
+ 	p += sprintf(p, "MAC entries: %u\n", ap->mac_restrictions.entries);
+ 	p += sprintf(p, "MAC list:\n");
+ 	spin_lock_bh(&ap->mac_restrictions.lock);
+-	for (ptr = ap->mac_restrictions.mac_list.next;
+-	     ptr != &ap->mac_restrictions.mac_list; ptr = ptr->next) {
++	list_for_each_entry(entry, &ap->mac_restrictions.mac_list, list) {
+ 		if (p - page > PAGE_SIZE - 80) {
+ 			p += sprintf(p, "All entries did not fit one page.\n");
+ 			break;
+ 		}
+ 
+-		entry = list_entry(ptr, struct mac_entry, list);
+ 		p += sprintf(p, MACSTR "\n", MAC2STR(entry->addr));
+ 	}
+ 	spin_unlock_bh(&ap->mac_restrictions.lock);
+@@ -410,10 +407,10 @@ int ap_control_del_mac(struct mac_restri
+ }
+ 
+ 
++
+ static int ap_control_mac_deny(struct mac_restrictions *mac_restrictions,
+ 			       u8 *mac)
  {
- 	unsigned long mem = max_low_pfn << PAGE_SHIFT;
- 	if (mem < max)
--		max = 1UL << ceil_log2(mem);
-+		max = roundup_pow_of_two(mem);
- 	return max;
- }
- 
-diff -puN arch/alpha/kernel/setup.c~alpha-cleanup-in-bitopsh arch/alpha/kernel/setup.c
---- a/arch/alpha/kernel/setup.c~alpha-cleanup-in-bitopsh
-+++ a/arch/alpha/kernel/setup.c
-@@ -43,6 +43,7 @@
- #include <linux/notifier.h>
- #include <asm/setup.h>
- #include <asm/io.h>
-+#include <linux/log2.h>
+-	struct list_head *ptr;
+ 	struct mac_entry *entry;
+ 	int found = 0;
  
- extern struct atomic_notifier_head panic_notifier_list;
- static int alpha_panic_event(struct notifier_block *, unsigned long, void *);
-@@ -1303,7 +1304,7 @@ external_cache_probe(int minsize, int wi
- 	long size = minsize, maxsize = MAX_BCACHE_SIZE * 2;
+@@ -421,10 +418,7 @@ static int ap_control_mac_deny(struct ma
+ 		return 0;
  
- 	if (maxsize > (max_low_pfn + 1) << PAGE_SHIFT)
--		maxsize = 1 << (floor_log2(max_low_pfn + 1) + PAGE_SHIFT);
-+		maxsize = 1 << (ilog2(max_low_pfn + 1) + PAGE_SHIFT);
- 
- 	/* Get the first block cached. */
- 	read_mem_block(__va(0), stride, size);
-diff -puN arch/alpha/lib/Makefile~alpha-cleanup-in-bitopsh arch/alpha/lib/Makefile
---- a/arch/alpha/lib/Makefile~alpha-cleanup-in-bitopsh
-+++ a/arch/alpha/lib/Makefile
-@@ -37,7 +37,8 @@ lib-y =	__divqu.o __remqu.o __divlu.o __
- 	$(ev6-y)clear_page.o \
- 	$(ev6-y)copy_page.o \
- 	fpreg.o \
--	callback_srm.o srm_puts.o srm_printk.o
-+	callback_srm.o srm_puts.o srm_printk.o \
-+	fls.o
- 
- lib-$(CONFIG_SMP) += dec_and_lock.o
- 
-diff -puN /dev/null arch/alpha/lib/fls.c
---- /dev/null
-+++ a/arch/alpha/lib/fls.c
-@@ -0,0 +1,38 @@
-+/*
-+ * arch/alpha/lib/fls.c
-+ */
-+
-+#include <linux/module.h>
-+#include <asm/bitops.h>
-+
-+/* This is fls(x)-1, except zero is held to zero.  This allows most
-+   efficent input into extbl, plus it allows easy handling of fls(0)=0.  */
-+
-+const unsigned char __flsm1_tab[256] =
-+{
-+  0,
-+  0,
-+  1, 1,
-+  2, 2, 2, 2,
-+  3, 3, 3, 3, 3, 3, 3, 3,
-+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-+
-+  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-+  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-+
-+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-+
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-+};
-+
-+EXPORT_SYMBOL(__flsm1_tab);
-diff -puN include/asm-alpha/bitops.h~alpha-cleanup-in-bitopsh include/asm-alpha/bitops.h
---- a/include/asm-alpha/bitops.h~alpha-cleanup-in-bitopsh
-+++ a/include/asm-alpha/bitops.h
-@@ -313,32 +313,29 @@ static inline int ffs(int word)
-  * fls: find last bit set.
-  */
- #if defined(CONFIG_ALPHA_EV6) && defined(CONFIG_ALPHA_EV67)
--static inline int fls(int word)
-+static inline int fls64(unsigned long word)
+ 	spin_lock_bh(&mac_restrictions->lock);
+-	for (ptr = mac_restrictions->mac_list.next;
+-	     ptr != &mac_restrictions->mac_list; ptr = ptr->next) {
+-		entry = list_entry(ptr, struct mac_entry, list);
+-
++	list_for_each_entry(entry, &mac_restrictions->mac_list, list) {
+ 		if (memcmp(entry->addr, mac, ETH_ALEN) == 0) {
+ 			found = 1;
+ 			break;
+@@ -519,7 +513,7 @@ static int prism2_ap_proc_read(char *pag
  {
--	return 64 - __kernel_ctlz(word & 0xffffffff);
-+	return 64 - __kernel_ctlz(word);
- }
- #else
--#include <asm-generic/bitops/fls.h>
--#endif
--#include <asm-generic/bitops/fls64.h>
-+extern const unsigned char __flsm1_tab[256];
+ 	char *p = page;
+ 	struct ap_data *ap = (struct ap_data *) data;
+-	struct list_head *ptr;
++	struct sta_info *sta;
+ 	int i;
  
--/* Compute powers of two for the given integer.  */
--static inline long floor_log2(unsigned long word)
-+static inline int fls64(unsigned long x)
+ 	if (off > PROC_LIMIT) {
+@@ -529,9 +523,7 @@ static int prism2_ap_proc_read(char *pag
+ 
+ 	p += sprintf(p, "# BSSID CHAN SIGNAL NOISE RATE SSID FLAGS\n");
+ 	spin_lock_bh(&ap->sta_table_lock);
+-	for (ptr = ap->sta_list.next; ptr != &ap->sta_list; ptr = ptr->next) {
+-		struct sta_info *sta = (struct sta_info *) ptr;
+-
++	list_for_each_entry(sta, &ap->sta_list, list) {
+ 		if (!sta->ap)
+ 			continue;
+ 
+@@ -861,7 +853,7 @@ void hostap_init_ap_proc(local_info_t *l
+ 
+ void hostap_free_data(struct ap_data *ap)
  {
--#if defined(CONFIG_ALPHA_EV6) && defined(CONFIG_ALPHA_EV67)
--	return 63 - __kernel_ctlz(word);
--#else
--	long bit;
--	for (bit = -1; word ; bit++)
--		word >>= 1;
--	return bit;
--#endif
-+	unsigned long t, a, r;
-+
-+	t = __kernel_cmpbge (x, 0x0101010101010101);
-+	a = __flsm1_tab[t];
-+	t = __kernel_extbl (x, a);
-+	r = a*8 + __flsm1_tab[t] + (x != 0);
-+
-+	return r;
- }
-+#endif
+-	struct list_head *n, *ptr;
++	struct sta_info *n, *sta;
  
--static inline long ceil_log2(unsigned long word)
-+static inline int fls(int x)
+ 	if (ap == NULL || !ap->initialized) {
+ 		printk(KERN_DEBUG "hostap_free_data: ap has not yet been "
+@@ -875,8 +867,7 @@ void hostap_free_data(struct ap_data *ap
+ 	ap->crypt = ap->crypt_priv = NULL;
+ #endif /* PRISM2_NO_KERNEL_IEEE80211_MGMT */
+ 
+-	list_for_each_safe(ptr, n, &ap->sta_list) {
+-		struct sta_info *sta = list_entry(ptr, struct sta_info, list);
++	list_for_each_entry_safe(sta, n, &ap->sta_list, list) {
+ 		ap_sta_hash_del(ap, sta);
+ 		list_del(&sta->list);
+ 		if ((sta->flags & WLAN_STA_ASSOC) && !sta->ap && sta->local)
+@@ -3198,15 +3189,14 @@ int hostap_update_rx_stats(struct ap_dat
+ 
+ void hostap_update_rates(local_info_t *local)
  {
--	long bit = floor_log2(word);
--	return bit + (word > (1UL << bit));
-+	return fls64((unsigned int) x);
- }
+-	struct list_head *ptr;
++	struct sta_info *sta;
+ 	struct ap_data *ap = local->ap;
  
- /*
-@@ -353,9 +350,20 @@ static inline unsigned long hweight64(un
- 	return __kernel_ctpop(w);
- }
+ 	if (!ap)
+ 		return;
  
--#define hweight32(x)	(unsigned int) hweight64((x) & 0xfffffffful)
--#define hweight16(x)	(unsigned int) hweight64((x) & 0xfffful)
--#define hweight8(x)	(unsigned int) hweight64((x) & 0xfful)
-+static inline unsigned int hweight32(unsigned int w)
-+{
-+	return hweight64(w);
-+}
-+
-+static inline unsigned int hweight16(unsigned int w)
-+{
-+	return hweight64(w & 0xffff);
-+}
-+
-+static inline unsigned int hweight8(unsigned int w)
-+{
-+	return hweight64(w & 0xff);
-+}
- #else
- #include <asm-generic/bitops/hweight.h>
- #endif
+ 	spin_lock_bh(&ap->sta_table_lock);
+-	for (ptr = ap->sta_list.next; ptr != &ap->sta_list; ptr = ptr->next) {
+-		struct sta_info *sta = (struct sta_info *) ptr;
++	list_for_each_entry(sta, &ap->sta_list, list) {
+ 		prism2_check_tx_rates(sta);
+ 	}
+ 	spin_unlock_bh(&ap->sta_table_lock);
+@@ -3242,11 +3232,10 @@ void * ap_crypt_get_ptrs(struct ap_data 
+ void hostap_add_wds_links(local_info_t *local)
+ {
+ 	struct ap_data *ap = local->ap;
+-	struct list_head *ptr;
++	struct sta_info *sta;
+ 
+ 	spin_lock_bh(&ap->sta_table_lock);
+-	list_for_each(ptr, &ap->sta_list) {
+-		struct sta_info *sta = list_entry(ptr, struct sta_info, list);
++	list_for_each_entry(sta, &ap->sta_list, list) {
+ 		if (sta->ap)
+ 			hostap_wds_link_oper(local, sta->addr, WDS_ADD);
+ 	}
 _
 
-Patches currently in -mm which might be from rth@twiddle.net are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-potential-parse-error-in-ifdef-update.patch
-alpha-support-graphics-on-non-zero-pci-domains.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
-alpha-misc-fixes.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+power-management-use-mutexes-instead-of-semaphores.patch
+sysdev-use-mutex-instead-of-semaphore.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+git-netdev-all.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
+drivers-block-ubc-use-list_for_each_entry.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+fs-block_devc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
