@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-add-procfs-interface.patch added to -mm tree
-Date: Wed, 30 May 2007 00:15:11 -0700
-Message-ID: <200705300715.l4U7FAa1021356@shell0.pdx.osdl.net>
+Subject: + containersv10-add-container_clone-interface-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 00:15:09 -0700
+Message-ID: <200705300715.l4U7F8rZ021353@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59803 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751483AbXE3HQF (ORCPT
+	by vger.kernel.org with ESMTP id S1751341AbXE3HQ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 03:16:05 -0400
+	Wed, 30 May 2007 03:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     Containers: add procfs interface
+     containersv10-add-container_clone-interface-fix
 has been added to the -mm tree.  Its filename is
-     containersv10-add-procfs-interface.patch
+     containersv10-add-container_clone-interface-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,239 +26,164 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Containers: add procfs interface
-From: Paul Menage <menage@google.com>
+Subject: containersv10-add-container_clone-interface-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch adds:
-
-/proc/containers - general system info
-
-/proc/*/container - per-task container membership info
-
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |    7 ++
- kernel/container.c |  128 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 135 insertions(+)
+ kernel/container.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~containersv10-add-procfs-interface fs/proc/base.c
---- a/fs/proc/base.c~containersv10-add-procfs-interface
-+++ a/fs/proc/base.c
-@@ -68,6 +68,7 @@
- #include <linux/security.h>
- #include <linux/ptrace.h>
- #include <linux/seccomp.h>
-+#include <linux/container.h>
- #include <linux/cpuset.h>
- #include <linux/audit.h>
- #include <linux/poll.h>
-@@ -2119,6 +2120,9 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_CPUSETS
- 	REG("cpuset",     S_IRUGO, cpuset),
- #endif
-+#ifdef CONFIG_CONTAINERS
-+	REG("container",  S_IRUGO, container),
-+#endif
- 	INF("oom_score",  S_IRUGO, oom_score),
- 	REG("oom_adj",    S_IRUGO|S_IWUSR, oom_adjust),
- #ifdef CONFIG_AUDITSYSCALL
-@@ -2413,6 +2417,9 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_CPUSETS
- 	REG("cpuset",    S_IRUGO, cpuset),
- #endif
-+#ifdef CONFIG_CONTAINERS
-+	REG("container",  S_IRUGO, container),
-+#endif
- 	INF("oom_score", S_IRUGO, oom_score),
- 	REG("oom_adj",   S_IRUGO|S_IWUSR, oom_adjust),
- #ifdef CONFIG_AUDITSYSCALL
-diff -puN kernel/container.c~containersv10-add-procfs-interface kernel/container.c
---- a/kernel/container.c~containersv10-add-procfs-interface
+diff -puN kernel/container.c~containersv10-add-container_clone-interface-fix kernel/container.c
+--- a/kernel/container.c~containersv10-add-container_clone-interface-fix
 +++ a/kernel/container.c
-@@ -246,6 +246,7 @@ static int container_mkdir(struct inode 
- static int container_rmdir(struct inode *unused_dir, struct dentry *dentry);
- static int container_populate_dir(struct container *cont);
- static struct inode_operations container_dir_inode_operations;
-+struct file_operations proc_containerstats_operations;
- 
- static struct inode *container_new_inode(mode_t mode, struct super_block *sb)
- {
-@@ -1494,6 +1495,7 @@ int __init container_init(void)
- {
- 	int err;
- 	int i;
-+	struct proc_dir_entry *entry;
- 
- 	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 		struct container_subsys *ss = subsys[i];
-@@ -1505,10 +1507,136 @@ int __init container_init(void)
- 	if (err < 0)
- 		goto out;
- 
-+	entry = create_proc_entry("containers", 0, NULL);
-+	if (entry)
-+		entry->proc_fops = &proc_containerstats_operations;
-+
- out:
- 	return err;
+@@ -1710,18 +1710,18 @@ int container_clone(struct task_struct *
  }
  
-+/*
-+ * proc_container_show()
-+ *  - Print task's container paths into seq_file, one line for each hierarchy
-+ *  - Used for /proc/<pid>/container.
-+ *  - No need to task_lock(tsk) on this tsk->container reference, as it
-+ *    doesn't really matter if tsk->container changes after we read it,
-+ *    and we take container_mutex, keeping attach_task() from changing it
-+ *    anyway.  No need to check that tsk->container != NULL, thanks to
-+ *    the_top_container_hack in container_exit(), which sets an exiting tasks
-+ *    container to top_container.
+ /* See if "cont" is a descendant of the current task's container in
+- * the appropriate hierarchy */
+-
++ * the appropriate hierarchy
 + */
+ int container_is_descendant(const struct container *cont)
+ {
+ 	int ret;
+ 	struct container *target;
+ 	int subsys_id;
 +
-+/* TODO: Use a proper seq_file iterator */
-+static int proc_container_show(struct seq_file *m, void *v)
-+{
-+	struct pid *pid;
-+	struct task_struct *tsk;
-+	char *buf;
-+	int retval;
-+	struct containerfs_root *root;
-+
-+	retval = -ENOMEM;
-+	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!buf)
-+		goto out;
-+
-+	retval = -ESRCH;
-+	pid = m->private;
-+	tsk = get_pid_task(pid, PIDTYPE_PID);
-+	if (!tsk)
-+		goto out_free;
-+
-+	retval = 0;
-+
-+	mutex_lock(&container_mutex);
-+
-+	for_each_root(root) {
-+		struct container_subsys *ss;
-+		struct container *cont;
-+		int subsys_id;
-+		int count = 0;
-+		/* Skip this hierarchy if it has no active subsystems */
-+		if (!root->subsys_bits) continue;
-+		for_each_subsys(root, ss) {
-+			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
-+		}
-+		seq_putc(m, ':');
-+		get_first_subsys(&root->top_container, NULL, &subsys_id);
-+		cont = task_container(tsk, subsys_id);
-+		retval = container_path(cont, buf, PAGE_SIZE);
-+		if (retval < 0)
-+			goto out_unlock;
-+		seq_puts(m, buf);
-+		seq_putc(m, '\n');
-+	}
-+
-+out_unlock:
-+	mutex_unlock(&container_mutex);
-+	put_task_struct(tsk);
-+out_free:
-+	kfree(buf);
-+out:
-+	return retval;
-+}
-+
-+static int container_open(struct inode *inode, struct file *file)
-+{
-+	struct pid *pid = PROC_I(inode)->pid;
-+	return single_open(file, proc_container_show, pid);
-+}
-+
-+struct file_operations proc_container_operations = {
-+	.open		= container_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
-+/* Display information about each subsystem and each hierarchy */
-+static int proc_containerstats_show(struct seq_file *m, void *v)
-+{
-+	int i;
-+	struct containerfs_root *root;
-+	mutex_lock(&container_mutex);
-+	seq_puts(m, "Hierarchies:\n");
-+	for_each_root(root) {
-+		struct container_subsys *ss;
-+		int first = 1;
-+		seq_printf(m, "%p: bits=%lx containers=%d (", root,
-+			   root->subsys_bits, root->number_of_containers);
-+		for_each_subsys(root, ss) {
-+			seq_printf(m, "%s%s", first ? "" : ", ", ss->name);
-+			first = false;
-+		}
-+		seq_putc(m, ')');
-+		if (root->sb) {
-+			seq_printf(m, " s_active=%d",
-+				   atomic_read(&root->sb->s_active));
-+		}
-+		seq_putc(m, '\n');
-+	}
-+	seq_puts(m, "Subsystems:\n");
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+		struct container_subsys *ss = subsys[i];
-+		seq_printf(m, "%d: name=%s hierarchy=%p\n",
-+			   i, ss->name, ss->root);
-+	}
-+	mutex_unlock(&container_mutex);
-+	return 0;
-+}
-+
-+static int containerstats_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, proc_containerstats_show, 0);
-+}
-+
-+struct file_operations proc_containerstats_operations = {
-+	.open = containerstats_open,
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = single_release,
-+};
- /**
-  * container_fork - attach newly forked task to its parents container.
-  * @tsk: pointer to task_struct of forking parent process.
+ 	get_first_subsys(cont, NULL, &subsys_id);
+ 	target = task_container(current, subsys_id);
+-	while (cont != target && cont!= cont->top_container) {
++	while (cont != target && cont!= cont->top_container)
+ 		cont = cont->parent;
+-	}
+ 	ret = (cont == target);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-reduce-cpusetc-write_lock_irq-to-read_lock.patch
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm-master.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-leds-fixup.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+git-xfs.patch
+git-cryptodev.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+potential-parse-error-in-ifdef.patch
+e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
 reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-containersv10-basic-container-framework.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
 containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
 containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
