@@ -1,196 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-fixup.patch added to -mm tree
-Date: Wed, 30 May 2007 16:20:59 -0700
-Message-ID: <200705302320.l4UNKwk6007642@shell0.pdx.osdl.net>
+Subject: - powerpc-fix-kconfig-select-warning-with-ucc_fast.patch removed from -mm tree
+Date: Wed, 30 May 2007 16:28:22 -0700
+Message-ID: <200705302328.l4UNSLgQ007747@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54651 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752268AbXE3XVB (ORCPT
+	by vger.kernel.org with ESMTP id S1751806AbXE3X21 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 19:21:01 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4UNKwZ5010271
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 30 May 2007 16:21:00 -0700
+	Wed, 30 May 2007 19:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: timur@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-fixup
-has been added to the -mm tree.  Its filename is
-     git-scsi-misc-fixup.patch
+     powerpc: fix Kconfig 'select' warning with UCC_FAST
+has been removed from the -mm tree.  Its filename was
+     powerpc-fix-kconfig-select-warning-with-ucc_fast.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: powerpc: fix Kconfig 'select' warning with UCC_FAST
+From: Timur Tabi <timur@freescale.com>
 
+The UCC_GETH Kconfig option in drivers/net/Kconfig had a line to select the
+UCC_FAST option is arch/powerpc/sysdev/qe_lib/Kconfig, which is only used
+on PowerPC builds.  On other architectures, this would generated a warning.
+ The fix is to have UCC_FAST depend on UCC_GETH.
+
+Signed-off-by: Timur Tabi <timur@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/jazz_esp.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/powerpc/sysdev/qe_lib/Kconfig |    4 +---
+ drivers/net/Kconfig                |    1 -
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/scsi/jazz_esp.c~git-scsi-misc-fixup drivers/scsi/jazz=
-_esp.c
---- a/drivers/scsi/jazz_esp.c~git-scsi-misc-fixup
-+++ a/drivers/scsi/jazz_esp.c
-@@ -1,10 +1,6 @@
- /* jazz_esp.c: ESP front-end for MIPS JAZZ systems.
-  *
--<<<<<<< HEAD/drivers/scsi/jazz_esp.c
-- * Copyright (C) 2007 Thomas Bogend=C3=B6rfer (tsbogend@alpha.frankend=
-e)
--=3D=3D=3D=3D=3D=3D=3D
-  * Copyright (C) 2007 Thomas Bogend=F6rfer (tsbogend@alpha.frankende)
-->>>>>>> /drivers/scsi/jazz_esp.c
-  */
-=20
- #include <linux/kernel.h>
+diff -puN arch/powerpc/sysdev/qe_lib/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast arch/powerpc/sysdev/qe_lib/Kconfig
+--- a/arch/powerpc/sysdev/qe_lib/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast
++++ a/arch/powerpc/sysdev/qe_lib/Kconfig
+@@ -5,15 +5,13 @@
+ config UCC_SLOW
+ 	bool
+ 	default n
+-	select UCC
+ 	help
+ 	  This option provides qe_lib support to UCC slow
+ 	  protocols: UART, BISYNC, QMC
+ 
+ config UCC_FAST
+ 	bool
+-	default n
+-	select UCC
++	default y if UCC_GETH
+ 	help
+ 	  This option provides qe_lib support to UCC fast
+ 	  protocols: HDLC, Ethernet, ATM, transparent
+diff -puN drivers/net/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast drivers/net/Kconfig
+--- a/drivers/net/Kconfig~powerpc-fix-kconfig-select-warning-with-ucc_fast
++++ a/drivers/net/Kconfig
+@@ -2280,7 +2280,6 @@ config GFAR_NAPI
+ config UCC_GETH
+ 	tristate "Freescale QE Gigabit Ethernet"
+ 	depends on QUICC_ENGINE
+-	select UCC_FAST
+ 	help
+ 	  This driver supports the Gigabit Ethernet mode of the QUICC Engine,
+ 	  which is available on some Freescale SOCs.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from timur@freescale.com are
 
 origin.patch
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.pat=
-ch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-potential-parse-error-in-ifdef-update.patch
-e1000-restore-netif_poll_enable-call-but-make-sure-irqs-are-off.patch
-aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
-he-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that=
--may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_or=
-der_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realt=
-ime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.pat=
-ch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.p=
-atch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.p=
-atch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.p=
-atch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.p=
-atch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.p=
-atch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.p=
-atch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-=
-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
