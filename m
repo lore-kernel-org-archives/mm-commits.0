@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-dma-address-bugfix.patch added to -mm tree
-Date: Wed, 30 May 2007 15:32:44 -0700
-Message-ID: <200705302232.l4UMWikD006807@shell0.pdx.osdl.net>
+Subject: + add-printktime-option-deprecate-time.patch added to -mm tree
+Date: Wed, 30 May 2007 15:35:20 -0700
+Message-ID: <200705302235.l4UMZKBV006827@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37545 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750949AbXE3WdI (ORCPT
+	by vger.kernel.org with ESMTP id S1751110AbXE3WgE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:33:08 -0400
+	Wed, 30 May 2007 18:36:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     atmel_spi dma address bugfix
+     add printk.time option, deprecate 'time'
 has been added to the -mm tree.  Its filename is
-     atmel_spi-dma-address-bugfix.patch
+     add-printktime-option-deprecate-time.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_spi dma address bugfix
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: add printk.time option, deprecate 'time'
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-When either rx_buf or tx_buf is not being used, i.e.  for plain read- or
-write operations, the atmel_spi uses a fixed-size DMA buffer instead.  If
-the transfer is longer than the size of this buffer, it is split into
-multiple DMA transfers.
+Allow printk_time to be enabled or disabled at boot time.  Previously it
+could be enabled only, but not disabled.
 
-When the transfer is split like this, the atmel_spi driver ends up using
-the same DMA address again and again even for the buffer that came from the
-user, which is of course wrong.  Fix this by adding the number of bytes
-already transferred to the DMA address so that the data ends up in the
-right place.
+Change printk_time from an int to a bool since that's what it is.  Make its
+logical (exposed) name just be "time" (was "printk_time").
 
-Thanks to Wu Xuan for discovering this bug.
+Note: Changes kernel boot option syntax from "time" to "printk.time=value".
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Since printk_time is declared as a module_param, it can also be
+changed at run-time by modifying
+  /sys/module/printk/parameters/time
+to a value of 1/Y/y to enabled it or 0/N/n to disable it.
+
+Since printk_time is declared as a module_param, its value can also
+be set at boot-time by using
+  linux printk.time=<bool>
+
+If the "time" boot option is used, print a message that it is deprecated
+and will be removed.
+
+Note its planned removal in feature-removal-schedule.txt.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/feature-removal-schedule.txt |    8 ++++++++
+ Documentation/kernel-parameters.txt        |    4 ++++
+ kernel/printk.c                            |    5 ++++-
+ 3 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-dma-address-bugfix drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-dma-address-bugfix
-+++ a/drivers/spi/atmel_spi.c
-@@ -113,16 +113,16 @@ static void atmel_spi_next_xfer(struct s
+diff -puN Documentation/feature-removal-schedule.txt~add-printktime-option-deprecate-time Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~add-printktime-option-deprecate-time
++++ a/Documentation/feature-removal-schedule.txt
+@@ -307,6 +307,14 @@ Who:	Jean Delvare <khali@linux-fr.org>
  
- 	len = as->remaining_bytes;
+ ---------------------------
  
--	tx_dma = xfer->tx_dma;
--	rx_dma = xfer->rx_dma;
-+	tx_dma = xfer->tx_dma + xfer->len - len;
-+	rx_dma = xfer->rx_dma + xfer->len - len;
++What:	'time' kernel boot parameter
++When:	January 2008
++Why:	replaced by 'printk.time=<value>' so that printk timestamps can be
++	enabled or disabled as needed
++Who:	Randy Dunlap <randy.dunlap@oracle.com>
++
++---------------------------
++
+ What:  drivers depending on OSS_OBSOLETE
+ When:  options in 2.6.23, code in 2.6.25
+ Why:   obsolete OSS drivers
+diff -puN Documentation/kernel-parameters.txt~add-printktime-option-deprecate-time Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-printktime-option-deprecate-time
++++ a/Documentation/kernel-parameters.txt
+@@ -1450,6 +1450,9 @@ and is between 256 and 4096 characters. 
+ 			the kernel console.
+ 			default: off.
  
- 	/* use scratch buffer only when rx or tx data is unspecified */
--	if (rx_dma == INVALID_DMA_ADDRESS) {
-+	if (!xfer->rx_buf) {
- 		rx_dma = as->buffer_dma;
- 		if (len > BUFFER_SIZE)
- 			len = BUFFER_SIZE;
- 	}
--	if (tx_dma == INVALID_DMA_ADDRESS) {
-+	if (!xfer->tx_buf) {
- 		tx_dma = as->buffer_dma;
- 		if (len > BUFFER_SIZE)
- 			len = BUFFER_SIZE;
++	printk.time=	Show timing data prefixed to each printk message line
++			Format: <bool>  (1/Y/y=enable, 0/N/n=disable)
++
+ 	profile=	[KNL] Enable kernel profiling via /proc/profile
+ 			Format: [schedule,]<number>
+ 			Param: "schedule" - profile schedule points.
+@@ -1881,6 +1884,7 @@ and is between 256 and 4096 characters. 
+ 			Set number of hash buckets for TCP connection
+ 
+ 	time		Show timing data prefixed to each printk message line
++			[deprecated, see 'printk.time']
+ 
+ 	tipar.timeout=	[HW,PPT]
+ 			Set communications timeout in tenths of a second
+diff -puN kernel/printk.c~add-printktime-option-deprecate-time kernel/printk.c
+--- a/kernel/printk.c~add-printktime-option-deprecate-time
++++ a/kernel/printk.c
+@@ -449,13 +449,16 @@ static int printk_time = 1;
+ #else
+ static int printk_time = 0;
+ #endif
+-module_param(printk_time, int, S_IRUGO | S_IWUSR);
++module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
+ 
+ static int __init printk_time_setup(char *str)
+ {
+ 	if (*str)
+ 		return 0;
+ 	printk_time = 1;
++	printk(KERN_NOTICE "The 'time' option is deprecated and "
++		"is scheduled for removal in early 2008\n");
++	printk(KERN_NOTICE "Use 'printk.time=<value>' instead\n");
+ 	return 1;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-avr32-ratelimit-segfault-reporting-rate.patch
-atmel_spi-dma-address-bugfix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+add-pci_try_set_mwi-prism54pci.patch
+git-ipwireless_cs.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+profile-likely-unlikely-macros.patch
