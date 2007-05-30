@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch added to -mm tree
-Date: Wed, 30 May 2007 15:30:53 -0700
-Message-ID: <200705302230.l4UMUrrb006757@shell0.pdx.osdl.net>
+Subject: + fault-injection-fix-example-scripts-in-documentation.patch added to -mm tree
+Date: Wed, 30 May 2007 15:32:07 -0700
+Message-ID: <200705302232.l4UMW7oM006784@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38162 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751403AbXE3WbF (ORCPT
+	by vger.kernel.org with ESMTP id S1751595AbXE3WcK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:31:05 -0400
+	Wed, 30 May 2007 18:32:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, aacraid@adaptec.com, akpm@linux-foundation.org, ebiederm@xmission.com, vgoyal@in.ibm.com, yhlu.kernel@gmail.com
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     aacraid: fix shutdown handler to also disable interrupts.
+     fault-injection: fix example scripts in documentation
 has been added to the -mm tree.  Its filename is
-     aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+     fault-injection-fix-example-scripts-in-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,209 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aacraid: fix shutdown handler to also disable interrupts.
-From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Subject: fault-injection: fix example scripts in documentation
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Moves quiesce, thread and interrupt shutdown into aacraid drivers'
-.shutdown handler.  This fix to the aac_shutdown handler will remove the
-superfluous reset of the adapter during a (clean) kexec.
+Fix and cleanup example scripts in fault injection documentation.
 
-This fix may mitigate the active investigation 'kexec and aacraid
-broken' but it is unlikely to affect the root cause (issue likely
-present in both kexec and kdump). This patch reduces the chance the
-problem will occur with a kexec. The fix for root cause is currently
-expected to be the minimum value check to the aacraid.startup_timeout
-driver variable after an adapter reset within aacraid_commit_reset.patch
-submitted on 05/22/2007 and awaiting testing by Yinghai to confirm.
+1. Eliminate broken oops() shell function.
 
-Signed-off-by: Mark Salyzyn <aacraid@adaptec.com>
-Cc: "Yinghai Lu" <yhlu.kernel@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+2. Fold failcmd.sh and failmodule.sh into example scripts. It makes
+   the example scripts work independent of current working directory.
+
+3. Set "space" parameter to 0 to start injecting errors immediately.
+
+4. Use /sys/module/<modulename>/sections/.data as upper bound of
+   .text section. Because some module doesn't have .exit.text section.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/linit.c |   22 ++++++++++++----------
- 1 files changed, 12 insertions(+), 10 deletions(-)
+ Documentation/fault-injection/failcmd.sh          |    4 
+ Documentation/fault-injection/failmodule.sh       |   31 ---
+ Documentation/fault-injection/fault-injection.txt |  107 ++++++------
+ 3 files changed, 57 insertions(+), 85 deletions(-)
 
-diff -puN drivers/scsi/aacraid/linit.c~aacraid-fix-shutdown-handler-to-also-disable-interrupts drivers/scsi/aacraid/linit.c
---- a/drivers/scsi/aacraid/linit.c~aacraid-fix-shutdown-handler-to-also-disable-interrupts
-+++ a/drivers/scsi/aacraid/linit.c
-@@ -859,6 +859,14 @@ static struct scsi_host_template aac_dri
- 	.emulated                       = 1,
- };
+diff -puN Documentation/fault-injection/failcmd.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
+--- a/Documentation/fault-injection/failcmd.sh
++++ /dev/null
+@@ -1,4 +0,0 @@
+-#!/bin/bash
+-
+-echo 1 > /proc/self/make-it-fail
+-exec $*
+diff -puN Documentation/fault-injection/failmodule.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
+--- a/Documentation/fault-injection/failmodule.sh
++++ /dev/null
+@@ -1,31 +0,0 @@
+-#!/bin/bash
+-#
+-# Usage: failmodule <failname> <modulename> [stacktrace-depth]
+-#
+-#	<failname>: "failslab", "fail_alloc_page", or "fail_make_request"
+-#
+-#	<modulename>: module name that you want to inject faults.
+-#
+-#	[stacktrace-depth]: the maximum number of stacktrace walking allowed
+-#
+-
+-STACKTRACE_DEPTH=5
+-if [ $# -gt 2 ]; then
+-	STACKTRACE_DEPTH=$3
+-fi
+-
+-if [ ! -d /debug/$1 ]; then
+-	echo "Fault-injection $1 does not exist" >&2
+-	exit 1
+-fi
+-if [ ! -d /sys/module/$2 ]; then
+-	echo "Module $2 does not exist" >&2
+-	exit 1
+-fi
+-
+-# Disable any fault injection
+-echo 0 > /debug/$1/stacktrace-depth
+-
+-echo `cat /sys/module/$2/sections/.text` > /debug/$1/require-start
+-echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/require-end
+-echo $STACKTRACE_DEPTH > /debug/$1/stacktrace-depth
+diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation Documentation/fault-injection/fault-injection.txt
+--- a/Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation
++++ a/Documentation/fault-injection/fault-injection.txt
+@@ -161,70 +161,77 @@ o add a hook to insert failures
+ Application Examples
+ --------------------
  
-+static void __aac_shutdown(struct aac_dev * aac)
-+{
-+	kthread_stop(aac->thread);
-+	aac_send_shutdown(aac);
-+	aac_adapter_disable_int(aac);
-+	free_irq(aac->pdev->irq, aac);
-+}
-+
- static int __devinit aac_probe_one(struct pci_dev *pdev,
- 		const struct pci_device_id *id)
- {
-@@ -1011,10 +1019,7 @@ static int __devinit aac_probe_one(struc
- 	return 0;
+-o inject slab allocation failures into module init/cleanup code
++o Inject slab allocation failures into module init/exit code
  
-  out_deinit:
--	kthread_stop(aac->thread);
--	aac_send_shutdown(aac);
--	aac_adapter_disable_int(aac);
--	free_irq(pdev->irq, aac);
-+	__aac_shutdown(aac);
-  out_unmap:
- 	aac_fib_map_free(aac);
- 	pci_free_consistent(aac->pdev, aac->comm_size, aac->comm_addr, aac->comm_phys);
-@@ -1034,7 +1039,8 @@ static void aac_shutdown(struct pci_dev 
+-------------------------------------------------------------------------------
+ #!/bin/bash
+ 
+-FAILCMD=Documentation/fault-injection/failcmd.sh
+-BLACKLIST="root_plug evbug"
+-
+-FAILNAME=failslab
+-echo Y > /debug/$FAILNAME/task-filter
+-echo 10 > /debug/$FAILNAME/probability
+-echo 100 > /debug/$FAILNAME/interval
+-echo -1 > /debug/$FAILNAME/times
+-echo 2 > /debug/$FAILNAME/verbose
+-echo 1 > /debug/$FAILNAME/ignore-gfp-wait
++FAILTYPE=failslab
++echo Y > /debug/$FAILTYPE/task-filter
++echo 10 > /debug/$FAILTYPE/probability
++echo 100 > /debug/$FAILTYPE/interval
++echo -1 > /debug/$FAILTYPE/times
++echo 0 > /debug/$FAILTYPE/space
++echo 2 > /debug/$FAILTYPE/verbose
++echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
+ 
+-blacklist()
++faulty_system()
  {
- 	struct Scsi_Host *shost = pci_get_drvdata(dev);
- 	struct aac_dev *aac = (struct aac_dev *)shost->hostdata;
--	aac_send_shutdown(aac);
-+	scsi_block_requests(shost);
-+	__aac_shutdown(aac);
+-	echo $BLACKLIST | grep $1 > /dev/null 2>&1
++	bash -c "echo 1 > /proc/self/make-it-fail && exec $*"
  }
  
- static void __devexit aac_remove_one(struct pci_dev *pdev)
-@@ -1044,16 +1050,12 @@ static void __devexit aac_remove_one(str
- 
- 	scsi_remove_host(shost);
- 
--	kthread_stop(aac->thread);
+-oops()
+-{
+-	dmesg | grep BUG > /dev/null 2>&1
+-}
 -
--	aac_send_shutdown(aac);
--	aac_adapter_disable_int(aac);
-+	__aac_shutdown(aac);
- 	aac_fib_map_free(aac);
- 	pci_free_consistent(aac->pdev, aac->comm_size, aac->comm_addr,
- 			aac->comm_phys);
- 	kfree(aac->queues);
+-find /lib/modules/`uname -r` -name '*.ko' -exec basename {} .ko \; |
+-	while read i
+-	do
+-		oops && exit 1
+-
+-		if ! blacklist $i
+-		then
+-			echo inserting $i...
+-			bash $FAILCMD modprobe $i
+-		fi
+-	done
+-
+-lsmod | awk '{ if ($3 == 0) { print $1 } }' |
+-	while read i
+-	do
+-		oops && exit 1
+-
+-		if ! blacklist $i
+-		then
+-			echo removing $i...
+-			bash $FAILCMD modprobe -r $i
+-		fi
+-	done
++if [ $# -eq 0 ]
++then
++	echo "Usage: $0 modulename [ modulename ... ]"
++	exit 1
++fi
++
++for m in $*
++do
++	echo inserting $m...
++	faulty_system modprobe $m
++
++	echo removing $m...
++	faulty_system modprobe -r $m
++done
  
--	free_irq(pdev->irq, aac);
- 	aac_adapter_ioremap(aac, 0);
- 	
- 	kfree(aac->fibs);
+ ------------------------------------------------------------------------------
+ 
+-o inject slab allocation failures only for a specific module
++o Inject page allocation failures only for a specific module
+ 
+-------------------------------------------------------------------------------
+ #!/bin/bash
+ 
+-FAILMOD=Documentation/fault-injection/failmodule.sh
++FAILTYPE=fail_page_alloc
++module=$1
+ 
+-echo injecting errors into the module $1...
++if [ -z $module ]
++then
++	echo "Usage: $0 <modulename>"
++	exit 1
++fi
++
++modprobe $module
++
++if [ ! -d /sys/module/$module/sections ]
++then
++	echo Module $module is not loaded
++	exit 1
++fi
++
++cat /sys/module/$module/sections/.text > /debug/$FAILTYPE/require-start
++cat /sys/module/$module/sections/.data > /debug/$FAILTYPE/require-end
++
++echo N > /debug/$FAILTYPE/task-filter
++echo 10 > /debug/$FAILTYPE/probability
++echo 100 > /debug/$FAILTYPE/interval
++echo -1 > /debug/$FAILTYPE/times
++echo 0 > /debug/$FAILTYPE/space
++echo 2 > /debug/$FAILTYPE/verbose
++echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
++echo 1 > /debug/$FAILTYPE/ignore-gfp-highmem
++echo 10 > /debug/$FAILTYPE/stacktrace-depth
+ 
+-modprobe $1
+-bash $FAILMOD failslab $1 10
+-echo 25 > /debug/failslab/probability
++trap "echo 0 > /debug/$FAILTYPE/probability" SIGINT SIGTERM EXIT
+ 
+-------------------------------------------------------------------------------
++echo "Injecting errors into the module $module... (interrupt to stop)"
++sleep 1000000
+ 
 _
 
-Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+git-dvb.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+fault-injection-add-min-order-parameter-to-fail_page_alloc.patch
+fault-injection-fix-example-scripts-in-documentation.patch
