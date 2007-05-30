@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-simple-debug-info-subsystem.patch added to -mm tree
-Date: Wed, 30 May 2007 00:15:22 -0700
-Message-ID: <200705300715.l4U7FLrr021371@shell0.pdx.osdl.net>
+Subject: + containersv10-add-container_clone-interface.patch added to -mm tree
+Date: Wed, 30 May 2007 00:15:07 -0700
+Message-ID: <200705300715.l4U7F6RU021350@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47243 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751833AbXE3HQO (ORCPT
+	by vger.kernel.org with ESMTP id S1751188AbXE3HQT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 03:16:14 -0400
+	Wed, 30 May 2007 03:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com,
 
 
 The patch titled
-     Containers: simple debug info subsystem
+     Containers: add container_clone() interface
 has been added to the -mm tree.  Its filename is
-     containersv10-simple-debug-info-subsystem.patch
+     containersv10-add-container_clone-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Containers: simple debug info subsystem
+Subject: Containers: add container_clone() interface
 From: Paul Menage <menage@google.com>
 
-This example subsystem exports debugging information as an aid to diagnosing
-refcount leaks, etc, in the container framework.
+This patch adds support for container_clone(), a speculative interface to
+creating new containers intended to be used for systems such as namespace
+unsharing.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
@@ -44,148 +45,152 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_subsys.h |    4 +
- init/Kconfig                     |   10 +++
- kernel/Makefile                  |    1 
- kernel/container_debug.c         |   89 +++++++++++++++++++++++++++++
- 4 files changed, 104 insertions(+)
+ include/linux/container.h |    2 
+ kernel/container.c        |  123 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 125 insertions(+)
 
-diff -puN include/linux/container_subsys.h~containersv10-simple-debug-info-subsystem include/linux/container_subsys.h
---- a/include/linux/container_subsys.h~containersv10-simple-debug-info-subsystem
-+++ a/include/linux/container_subsys.h
-@@ -19,4 +19,8 @@ SUBSYS(cpuset)
+diff -puN include/linux/container.h~containersv10-add-container_clone-interface include/linux/container.h
+--- a/include/linux/container.h~containersv10-add-container_clone-interface
++++ a/include/linux/container.h
+@@ -195,6 +195,8 @@ static inline struct container* task_con
  
- /* */
+ int container_path(const struct container *cont, char *buf, int buflen);
  
-+#ifdef CONFIG_CONTAINER_DEBUG
-+SUBSYS(debug)
-+#endif
++int container_clone(struct task_struct *tsk, struct container_subsys *ss);
 +
- /* */
-diff -puN init/Kconfig~containersv10-simple-debug-info-subsystem init/Kconfig
---- a/init/Kconfig~containersv10-simple-debug-info-subsystem
-+++ a/init/Kconfig
-@@ -306,6 +306,16 @@ config LOG_BUF_SHIFT
- config CONTAINERS
- 	bool
+ #else /* !CONFIG_CONTAINERS */
  
-+config CONTAINER_DEBUG
-+	bool "Example debug container subsystem"
-+	select CONTAINERS
-+	help
-+	  This option enables a simple container subsystem that
-+	  exports useful debugging information about the containers
-+	  framework
+ static inline int container_init_early(void) { return 0; }
+diff -puN kernel/container.c~containersv10-add-container_clone-interface kernel/container.c
+--- a/kernel/container.c~containersv10-add-container_clone-interface
++++ a/kernel/container.c
+@@ -1602,3 +1602,126 @@ void container_exit(struct task_struct *
+ 	tsk->containers = init_task.containers;
+ 	task_unlock(tsk);
+ }
 +
-+	  Say N if unsure
++static atomic_t namecnt;
++static void get_unused_name(char *buf)
++{
++	sprintf(buf, "node%d", atomic_inc_return(&namecnt));
++}
 +
- config CPUSETS
- 	bool "Cpuset support"
- 	depends on SMP
-diff -puN kernel/Makefile~containersv10-simple-debug-info-subsystem kernel/Makefile
---- a/kernel/Makefile~containersv10-simple-debug-info-subsystem
-+++ a/kernel/Makefile
-@@ -37,6 +37,7 @@ obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
- obj-$(CONFIG_KEXEC) += kexec.o
- obj-$(CONFIG_COMPAT) += compat.o
- obj-$(CONFIG_CONTAINERS) += container.o
-+obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
- obj-$(CONFIG_IKCONFIG) += configs.o
-diff -puN /dev/null kernel/container_debug.c
---- /dev/null
-+++ a/kernel/container_debug.c
-@@ -0,0 +1,89 @@
-+/*
-+ * kernel/ccontainer_debug.c - Example container subsystem that
-+ * exposes debug info
-+ *
-+ * Copyright (C) Google Inc, 2007
-+ *
-+ * Developed by Paul Menage (menage@google.com)
-+ *
++/**
++ * container_clone - duplicate the current container in the hierarchy
++ * that the given subsystem is attached to, and move this task into
++ * the new child
 + */
-+
-+#include <linux/container.h>
-+#include <linux/fs.h>
-+
-+static int debug_create(struct container_subsys *ss, struct container *cont)
++int container_clone(struct task_struct *tsk, struct container_subsys *subsys)
 +{
-+	struct container_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
-+	if (!css)
-+		return -ENOMEM;
-+	cont->subsys[debug_subsys_id] = css;
-+	return 0;
++	struct dentry *dentry;
++	int ret = 0;
++	char nodename[32];
++	struct container *parent, *child;
++	struct inode *inode;
++	struct css_group *cg;
++	struct containerfs_root *root;
++
++	/* We shouldn't be called by an unregistered subsystem */
++	BUG_ON(!subsys->active);
++
++	/* First figure out what hierarchy and container we're dealing
++	 * with, and pin them so we can drop container_mutex */
++	mutex_lock(&container_mutex);
++ again:
++	root = subsys->root;
++	if (root == &rootnode) {
++		printk(KERN_INFO
++		       "Not cloning container for unused subsystem %s\n",
++		       subsys->name);
++		mutex_unlock(&container_mutex);
++		return 0;
++	}
++	cg = &tsk->containers;
++	parent = task_container(tsk, subsys->subsys_id);
++	/* Pin the hierarchy */
++	atomic_inc(&parent->root->sb->s_active);
++
++	mutex_unlock(&container_mutex);
++
++	/* Now do the VFS work to create a container */
++	get_unused_name(nodename);
++	inode = parent->dentry->d_inode;
++
++	/* Hold the parent directory mutex across this operation to
++	 * stop anyone else deleting the new container */
++	mutex_lock(&inode->i_mutex);
++	dentry = container_get_dentry(parent->dentry, nodename);
++	if (IS_ERR(dentry)) {
++		printk(KERN_INFO
++		       "Couldn't allocate dentry for %s: %ld\n", nodename,
++		       PTR_ERR(dentry));
++		ret = PTR_ERR(dentry);
++		goto out_release;
++	}
++
++	/* Create the container directory, which also creates the container */
++	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
++	child = __d_cont(dentry);
++	dput(dentry);
++	if (ret) {
++		printk(KERN_INFO
++		       "Failed to create container %s: %d\n", nodename,
++		       ret);
++		goto out_release;
++	}
++
++	if (!child) {
++		printk(KERN_INFO
++		       "Couldn't find new container %s\n", nodename);
++		ret = -ENOMEM;
++		goto out_release;
++	}
++
++	/* The container now exists. Retake container_mutex and check
++	 * that we're still in the same state that we thought we
++	 * were. */
++	mutex_lock(&container_mutex);
++	if ((root != subsys->root) ||
++	    (parent != task_container(tsk, subsys->subsys_id))) {
++		/* Aargh, we raced ... */
++		mutex_unlock(&inode->i_mutex);
++
++		deactivate_super(parent->root->sb);
++		/* The container is still accessible in the VFS, but
++		 * we're not going to try to rmdir() it at this
++		 * point. */
++		printk(KERN_INFO
++		       "Race in container_clone() - leaking container %s\n",
++		       nodename);
++		goto again;
++	}
++
++	/* All seems fine. Finish by moving the task into the new container */
++	ret = attach_task(child, tsk);
++	mutex_unlock(&container_mutex);
++
++ out_release:
++	mutex_unlock(&inode->i_mutex);
++	deactivate_super(parent->root->sb);
++	return ret;
 +}
 +
-+static void debug_destroy(struct container_subsys *ss, struct container *cont)
++/* See if "cont" is a descendant of the current task's container in
++ * the appropriate hierarchy */
++
++int container_is_descendant(const struct container *cont)
 +{
-+	kfree(cont->subsys[debug_subsys_id]);
++	int ret;
++	struct container *target;
++	int subsys_id;
++	get_first_subsys(cont, NULL, &subsys_id);
++	target = task_container(current, subsys_id);
++	while (cont != target && cont!= cont->top_container) {
++		cont = cont->parent;
++	}
++	ret = (cont == target);
++	return ret;
 +}
-+
-+static u64 container_refcount_read(struct container *cont, struct cftype *cft)
-+{
-+	return atomic_read(&cont->count);
-+}
-+
-+static u64 taskcount_read(struct container *cont, struct cftype *cft)
-+{
-+	u64 count;
-+	container_lock();
-+	count = container_task_count(cont);
-+	container_unlock();
-+	return count;
-+}
-+
-+static u64 current_css_group_read(struct container *cont, struct cftype *cft)
-+{
-+	return (u64) current->containers;
-+}
-+
-+static u64 current_css_group_refcount_read(struct container *cont,
-+					   struct cftype *cft)
-+{
-+	u64 count;
-+	rcu_read_lock();
-+	count = atomic_read(&current->containers->ref.refcount);
-+	rcu_read_unlock();
-+	return count;
-+}
-+
-+static struct cftype files[] =  {
-+	{
-+		.name = "debug.container_refcount",
-+		.read_uint = container_refcount_read,
-+	},
-+	{
-+		.name = "debug.taskcount",
-+		.read_uint = taskcount_read,
-+	},
-+
-+	{
-+		.name = "debug.current_css_group",
-+		.read_uint = current_css_group_read,
-+	},
-+
-+	{
-+		.name = "debug.current_css_group_refcount",
-+		.read_uint = current_css_group_refcount_read,
-+	},
-+};
-+
-+static int debug_populate(struct container_subsys *ss, struct container *cont)
-+{
-+	return container_add_files(cont, files, ARRAY_SIZE(files));
-+}
-+
-+struct container_subsys debug_subsys = {
-+	.name = "debug",
-+	.create = debug_create,
-+	.destroy = debug_destroy,
-+	.populate = debug_populate,
-+	.subsys_id = debug_subsys_id,
-+};
 _
 
 Patches currently in -mm which might be from menage@google.com are
