@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone.patch added to -mm tree
-Date: Tue, 29 May 2007 20:06:37 -0700
-Message-ID: <200705300306.l4U36aHi018079@shell0.pdx.osdl.net>
+Subject: + ext2-fix-a-comment-when-ext2_release_file-is-called.patch added to -mm tree
+Date: Tue, 29 May 2007 20:07:42 -0700
+Message-ID: <200705300307.l4U37fRw018102@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38773 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978AbXE3DGp (ORCPT
+	by vger.kernel.org with ESMTP id S1751017AbXE3DHw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 23:06:45 -0400
+	Tue, 29 May 2007 23:07:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com
+Cc: jack@suse.cz, tytso@mit.edu
 
 
 The patch titled
-     memory hotplug: fix unnecessary calling of init_currenty_empty_zone()
+     ext2: fix a comment when ext2_release_file() is called
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone.patch
+     ext2-fix-a-comment-when-ext2_release_file-is-called.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory hotplug: fix unnecessary calling of init_currenty_empty_zone()
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: ext2: fix a comment when ext2_release_file() is called
+From: Jan Kara <jack@suse.cz>
 
-zone->present_pages is updated in online_pages().  But, __add_zone() can be
-called twice or more before calling online_pages().  So,
-init_currenty_empty_zone() can be called unnecessary times.  It is cause of
-memory leak of zone's wait_table.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext2/file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone
-+++ a/mm/memory_hotplug.c
-@@ -65,7 +65,7 @@ static int __add_zone(struct zone *zone,
- 	int zone_type;
+diff -puN fs/ext2/file.c~ext2-fix-a-comment-when-ext2_release_file-is-called fs/ext2/file.c
+--- a/fs/ext2/file.c~ext2-fix-a-comment-when-ext2_release_file-is-called
++++ a/fs/ext2/file.c
+@@ -24,9 +24,9 @@
+ #include "acl.h"
  
- 	zone_type = zone - pgdat->node_zones;
--	if (!populated_zone(zone)) {
-+	if (!zone->wait_table) {
- 		int ret = 0;
- 		ret = init_currently_empty_zone(zone, phys_start_pfn,
- 						nr_pages, MEMMAP_HOTPLUG);
+ /*
+- * Called when an inode is released. Note that this is different
+- * from ext2_open_file: open gets called at every open, but release
+- * gets called only when /all/ the files are closed.
++ * Called when filp is released. This happens when all file descriptors
++ * for a single struct file are closed. Note that different open() calls
++ * for the same file yield different struct file structures.
+  */
+ static int ext2_release_file (struct inode * inode, struct file * filp)
+ {
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone.patch
-move-three-functions-that-are-only-needed-for.patch
-move-free-pages-between-lists-on-steal.patch
-create-the-zone_movable-zone.patch
-handle-kernelcore=-generic.patch
+fix-possible-udf-data-corruption.patch
+fix-possible-leakage-of-blocks-in-udf.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+ext2-fix-a-comment-when-ext2_release_file-is-called.patch
