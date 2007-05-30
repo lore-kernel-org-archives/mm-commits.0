@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-xen-core-xen-implementation.patch added to -mm tree
-Date: Wed, 30 May 2007 11:19:13 -0700
-Message-ID: <200705301819.l4UIJDPT001521@shell0.pdx.osdl.net>
+Subject: + usb-replace-flush_workqueue-with-cancel_sync_work.patch added to -mm tree
+Date: Wed, 30 May 2007 11:20:55 -0700
+Message-ID: <200705301820.l4UIKtRQ001564@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45565 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753408AbXE3STW (ORCPT
+	by vger.kernel.org with ESMTP id S1753668AbXE3SVq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 14:19:22 -0400
+	Wed, 30 May 2007 14:21:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, ebiederm@xmission.com, jeremy@xensource.com, sam@ravnborg.org
+Cc: stern@rowland.harvard.edu, akpm@linux-foundation.org, greg@kroah.com, mlord@pobox.com, oleg@tv-sign.ru
 
 
 The patch titled
-     xen_start_kernel is __init, so startup_xen should be too
+     USB: replace flush_workqueue with cancel_sync_work
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-xen-core-xen-implementation.patch
+     usb-replace-flush_workqueue-with-cancel_sync_work.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen_start_kernel is __init, so startup_xen should be too
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: USB: replace flush_workqueue with cancel_sync_work
+From: Alan Stern <stern@rowland.harvard.edu>
 
-This needs an update to modpost to prevent warning about the reference from
-.note* to the .init.text section.
+This patch (as912) replaces a couple of calls to flush_workqueue() with
+cancel_sync_work() and cancel_rearming_delayed_work().  Using a more
+directed approach allows us to avoid some nasty deadlocks.  The prime
+example occurs when a first-level device (the parent is a root hub) is
+removed while at the same time the root hub gets a remote wakeup request. 
+khubd would try to flush the autosuspend workqueue while holding the
+root-hub's lock, and the remote-wakeup workqueue routine would be waiting
+to lock the root hub.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andi Kleen <ak@suse.de>
+The patch also reorganizes the power management portion of
+usb_disconnect(), separating it out into its own routine.  The autosuspend
+workqueue entry is cancelled immediately instead of waiting for the
+device's release routine.  In addition, synchronization with the
+autosuspend thread is carried out even for root hubs (an oversight in the
+original code).
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Acked-by: Mark Lord <mlord@pobox.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/xen-head.S |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/usb/core/hcd.c |    2 +-
+ drivers/usb/core/hub.c |   32 +++++++++++++++++++++++++-------
+ drivers/usb/core/usb.c |    4 ----
+ 3 files changed, 26 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation arch/i386/xen/xen-head.S
---- a/arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation
-+++ a/arch/i386/xen/xen-head.S
-@@ -7,11 +7,13 @@
- #include <asm/boot.h>
- #include <xen/interface/elfnote.h>
+diff -puN drivers/usb/core/hcd.c~usb-replace-flush_workqueue-with-cancel_sync_work drivers/usb/core/hcd.c
+--- a/drivers/usb/core/hcd.c~usb-replace-flush_workqueue-with-cancel_sync_work
++++ a/drivers/usb/core/hcd.c
+@@ -1681,7 +1681,7 @@ void usb_remove_hcd(struct usb_hcd *hcd)
+ 	spin_unlock_irq (&hcd_root_hub_lock);
  
-+.pushsection .init.text,"ax",@progbits
- ENTRY(startup_xen)
- 	movl %esi,xen_start_info
- 	cld
-  	movl $(init_thread_union+THREAD_SIZE),%esp
- 	jmp xen_start_kernel
-+.popsection
+ #ifdef CONFIG_PM
+-	flush_workqueue(ksuspend_usb_wq);
++	cancel_work_sync(&hcd->wakeup_work);
+ #endif
  
- .pushsection ".bss.page_aligned"
- 	.align PAGE_SIZE_asm
+ 	mutex_lock(&usb_bus_list_lock);
+diff -puN drivers/usb/core/hub.c~usb-replace-flush_workqueue-with-cancel_sync_work drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~usb-replace-flush_workqueue-with-cancel_sync_work
++++ a/drivers/usb/core/hub.c
+@@ -1158,6 +1158,30 @@ static void release_address(struct usb_d
+ 	}
+ }
+ 
++#ifdef	CONFIG_USB_SUSPEND
++
++static void usb_stop_pm(struct usb_device *udev)
++{
++	/* Synchronize with the ksuspend thread to prevent any more
++	 * autosuspend requests from being submitted, and decrement
++	 * the parent's count of unsuspended children.
++	 */
++	usb_pm_lock(udev);
++	if (udev->parent && !udev->discon_suspended)
++		usb_autosuspend_device(udev->parent);
++	usb_pm_unlock(udev);
++
++	/* Stop any autosuspend requests already submitted */
++	cancel_rearming_delayed_work(&udev->autosuspend);
++}
++
++#else
++
++static inline void usb_stop_pm(struct usb_device *udev)
++{ }
++
++#endif
++
+ /**
+  * usb_disconnect - disconnect a device (usbcore-internal)
+  * @pdev: pointer to device being disconnected
+@@ -1224,13 +1248,7 @@ void usb_disconnect(struct usb_device **
+ 	*pdev = NULL;
+ 	spin_unlock_irq(&device_state_lock);
+ 
+-	/* Decrement the parent's count of unsuspended children */
+-	if (udev->parent) {
+-		usb_pm_lock(udev);
+-		if (!udev->discon_suspended)
+-			usb_autosuspend_device(udev->parent);
+-		usb_pm_unlock(udev);
+-	}
++	usb_stop_pm(udev);
+ 
+ 	put_device(&udev->dev);
+ }
+diff -puN drivers/usb/core/usb.c~usb-replace-flush_workqueue-with-cancel_sync_work drivers/usb/core/usb.c
+--- a/drivers/usb/core/usb.c~usb-replace-flush_workqueue-with-cancel_sync_work
++++ a/drivers/usb/core/usb.c
+@@ -184,10 +184,6 @@ static void usb_release_dev(struct devic
+ 
+ 	udev = to_usb_device(dev);
+ 
+-#ifdef	CONFIG_USB_SUSPEND
+-	cancel_delayed_work(&udev->autosuspend);
+-	flush_workqueue(ksuspend_usb_wq);
+-#endif
+ 	usb_destroy_configuration(udev);
+ 	usb_put_hcd(bus_to_hcd(udev->bus));
+ 	kfree(udev->product);
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-add-kstrndup-fix.patch
-xen-build-fix.patch
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-fix-x86_64-mm-xen-core-xen-implementation.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-tidy-up-usermode-helper-waiting-a-bit-fix.patch
-lguest-the-guest-code.patch
+usb-replace-flush_workqueue-with-cancel_sync_work.patch
+git-scsi-rc-fixes.patch
+freezer-run-show_state-when-freezing-times-out.patch
