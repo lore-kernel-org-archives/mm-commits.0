@@ -1,74 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + serial-set-dtr-in-uart-for-kernel-serial-console.patch added to -mm tree
-Date: Wed, 30 May 2007 12:00:15 -0700
-Message-ID: <200705301900.l4UJ0FIQ002275@shell0.pdx.osdl.net>
+Subject: - make-mce-polling-timers-1-sec-jiffy-aligned.patch removed from -mm tree
+Date: Wed, 30 May 2007 12:05:46 -0700
+Message-ID: <200705301905.l4UJ5kVA002381@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43595 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754998AbXE3TA1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754937AbXE3TF7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 15:00:27 -0400
+	Wed, 30 May 2007 15:05:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
+To: venkatesh.pallipadi@intel.com, ak@suse.de, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: set DTR in uart for kernel serial console
-has been added to the -mm tree.  Its filename is
-     serial-set-dtr-in-uart-for-kernel-serial-console.patch
+     Make mce polling timers 1 sec jiffy aligned
+has been removed from the -mm tree.  Its filename was
+     make-mce-polling-timers-1-sec-jiffy-aligned.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: serial: set DTR in uart for kernel serial console
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: Make mce polling timers 1 sec jiffy aligned
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Some UARTs on other side need host uart DTR is set, otherwise will not
-receive char from the host that kernel is runing during kernel boot stage.
+round_jiffies() for i386 and x86-64 non-critical/corrected MCE polling.
 
-BTW:
-earlyprintk and early_uart are hard coded to set DTR/RTS.
+This helps to reduce the frequency at which the CPU must be taken out of a
+lower-power state.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Tim Hockin <thockin@hockin.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletion(-)
+ arch/i386/kernel/cpu/mcheck/non-fatal.c |    4 ++--
+ arch/x86_64/kernel/mce.c                |    9 ++++++---
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~serial-set-dtr-in-uart-for-kernel-serial-console drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-set-dtr-in-uart-for-kernel-serial-console
-+++ a/drivers/serial/serial_core.c
-@@ -2303,8 +2303,14 @@ int uart_add_one_port(struct uart_driver
- 	 * It may be that the port was not available.
- 	 */
- 	if (port->type != PORT_UNKNOWN &&
--	    port->cons && !(port->cons->flags & CON_ENABLED))
-+	    port->cons && !(port->cons->flags & CON_ENABLED)) {
-+		/*
-+		 * some uarts on other side don't support no flow control.
-+		 * So we set DTR in host uart to make them happy  --- YHLU
-+		 */
-+		port->mctrl |= TIOCM_DTR;
- 		register_console(port->cons);
-+	}
+diff -puN arch/i386/kernel/cpu/mcheck/non-fatal.c~make-mce-polling-timers-1-sec-jiffy-aligned arch/i386/kernel/cpu/mcheck/non-fatal.c
+--- a/arch/i386/kernel/cpu/mcheck/non-fatal.c~make-mce-polling-timers-1-sec-jiffy-aligned
++++ a/arch/i386/kernel/cpu/mcheck/non-fatal.c
+@@ -57,7 +57,7 @@ static DECLARE_DELAYED_WORK(mce_work, mc
+ static void mce_work_fn(struct work_struct *work)
+ { 
+ 	on_each_cpu(mce_checkregs, NULL, 1, 1);
+-	schedule_delayed_work(&mce_work, MCE_RATE);
++	schedule_delayed_work(&mce_work, round_jiffies_relative(MCE_RATE));
+ } 
  
+ static int __init init_nonfatal_mce_checker(void)
+@@ -82,7 +82,7 @@ static int __init init_nonfatal_mce_chec
  	/*
- 	 * Ensure UPF_DEAD is not set.
+ 	 * Check for non-fatal errors every MCE_RATE s
+ 	 */
+-	schedule_delayed_work(&mce_work, MCE_RATE);
++	schedule_delayed_work(&mce_work, round_jiffies_relative(MCE_RATE));
+ 	printk(KERN_INFO "Machine check exception polling timer started.\n");
+ 	return 0;
+ }
+diff -puN arch/x86_64/kernel/mce.c~make-mce-polling-timers-1-sec-jiffy-aligned arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~make-mce-polling-timers-1-sec-jiffy-aligned
++++ a/arch/x86_64/kernel/mce.c
+@@ -378,7 +378,8 @@ static void mcheck_timer(struct work_str
+ 		next_interval = min(next_interval*2, check_interval*HZ);
+ 	}
+ 
+-	schedule_delayed_work(&mcheck_work, next_interval);
++	schedule_delayed_work(&mcheck_work,
++			      round_jiffies_relative(next_interval));
+ }
+ 
+ /*
+@@ -441,7 +442,8 @@ static __init int periodic_mcheck_init(v
+ { 
+ 	next_interval = check_interval * HZ;
+ 	if (next_interval)
+-		schedule_delayed_work(&mcheck_work, next_interval);
++		schedule_delayed_work(&mcheck_work,
++				round_jiffies_relative(next_interval));
+ 	idle_notifier_register(&mce_idle_notifier);
+ 	return 0;
+ } 
+@@ -731,7 +733,8 @@ static void mce_restart(void) 
+ 	on_each_cpu(mce_init, NULL, 1, 1);       
+ 	next_interval = check_interval * HZ;
+ 	if (next_interval)
+-		schedule_delayed_work(&mcheck_work, next_interval);
++		schedule_delayed_work(&mcheck_work,
++				      round_jiffies_relative(next_interval));
+ }
+ 
+ static struct sysdev_class mce_sysclass = {
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-set-dtr-in-uart-for-kernel-serial-console.patch
+make-usb-autosuspend-timer-1-sec-jiffy-aligned.patch
+make-mce-polling-timers-1-sec-jiffy-aligned.patch
