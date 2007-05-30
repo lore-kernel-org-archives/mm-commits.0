@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch added to -mm tree
-Date: Wed, 30 May 2007 15:38:41 -0700
-Message-ID: <200705302238.l4UMcflw006905@shell0.pdx.osdl.net>
+Subject: + make-alt-sysrq-p-display-the-debug-register-contents.patch added to -mm tree
+Date: Wed, 30 May 2007 15:39:23 -0700
+Message-ID: <200705302239.l4UMdNj4006944@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41243 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbXE3Wiw (ORCPT
+	by vger.kernel.org with ESMTP id S1751645AbXE3Wjq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:38:52 -0400
+	Wed, 30 May 2007 18:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, kkeil@suse.de
+Cc: stern@rowland.harvard.edu, ak@suse.de, roland@redhat.com
 
 
 The patch titled
-     Use menuconfig objects: ISDN: CONFIG_ISDN_DRV_GIGASET
+     Make Alt-SysRq-p display the debug register contents
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
+     make-alt-sysrq-p-display-the-debug-register-contents.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,103 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: ISDN: CONFIG_ISDN_DRV_GIGASET
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Make Alt-SysRq-p display the debug register contents
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Transform Kconfig objects from "menu, config" into "menuconfig" so that the
-user can disable the whole feature without having to enter the menu first.
+This patch (as921) adds code to the show_regs() routine in i386 and x86_64
+to print the contents of the debug registers along with all the others.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/Kconfig |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+ arch/i386/kernel/process.c   |   12 ++++++++++++
+ arch/x86_64/kernel/process.c |   10 ++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN drivers/isdn/gigaset/Kconfig~use-menuconfig-objects-isdn-config_isdn_drv_gigaset drivers/isdn/gigaset/Kconfig
---- a/drivers/isdn/gigaset/Kconfig~use-menuconfig-objects-isdn-config_isdn_drv_gigaset
-+++ a/drivers/isdn/gigaset/Kconfig
-@@ -1,6 +1,4 @@
--menu "Siemens Gigaset"
--
--config ISDN_DRV_GIGASET
-+menuconfig ISDN_DRV_GIGASET
- 	tristate "Siemens Gigaset support (isdn)"
- 	select CRC_CCITT
- 	select BITREVERSE
-@@ -13,11 +11,11 @@ config ISDN_DRV_GIGASET
- 	  one of the connection specific parts that follow.
- 	  This will build a module called "gigaset".
+diff -puN arch/i386/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents
++++ a/arch/i386/kernel/process.c
+@@ -300,6 +300,7 @@ early_param("idle", idle_setup);
+ void show_regs(struct pt_regs * regs)
+ {
+ 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L;
++	unsigned long d0, d1, d2, d3, d6, d7;
  
--if ISDN_DRV_GIGASET!=n
-+if ISDN_DRV_GIGASET
+ 	printk("\n");
+ 	printk("Pid: %d, comm: %20s\n", current->pid, current->comm);
+@@ -324,6 +325,17 @@ void show_regs(struct pt_regs * regs)
+ 	cr3 = read_cr3();
+ 	cr4 = read_cr4_safe();
+ 	printk("CR0: %08lx CR2: %08lx CR3: %08lx CR4: %08lx\n", cr0, cr2, cr3, cr4);
++
++	get_debugreg(d0, 0);
++	get_debugreg(d1, 1);
++	get_debugreg(d2, 2);
++	get_debugreg(d3, 3);
++	printk("DR0: %08lx DR1: %08lx DR2: %08lx DR3: %08lx\n",
++			d0, d1, d2, d3);
++	get_debugreg(d6, 6);
++	get_debugreg(d7, 7);
++	printk("DR6: %08lx DR7: %08lx\n", d6, d7);
++
+ 	show_trace(NULL, regs, &regs->esp);
+ }
  
- config GIGASET_BASE
- 	tristate "Gigaset base station support"
--	depends on ISDN_DRV_GIGASET && USB
-+	depends on USB
- 	help
- 	  Say M here if you want to use the USB interface of the Gigaset
- 	  base for connection to your system.
-@@ -25,7 +23,7 @@ config GIGASET_BASE
+diff -puN arch/x86_64/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~make-alt-sysrq-p-display-the-debug-register-contents
++++ a/arch/x86_64/kernel/process.c
+@@ -306,6 +306,7 @@ early_param("idle", idle_setup);
+ void __show_regs(struct pt_regs * regs)
+ {
+ 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L, fs, gs, shadowgs;
++	unsigned long d0, d1, d2, d3, d6, d7;
+ 	unsigned int fsindex,gsindex;
+ 	unsigned int ds,cs,es; 
  
- config GIGASET_M105
- 	tristate "Gigaset M105 support"
--	depends on ISDN_DRV_GIGASET && USB
-+	depends on USB
- 	help
- 	  Say M here if you want to connect to the Gigaset base via DECT
- 	  using a Gigaset M105 (Sinus 45 Data 2) USB DECT device.
-@@ -33,7 +31,6 @@ config GIGASET_M105
+@@ -350,6 +351,15 @@ void __show_regs(struct pt_regs * regs)
+ 	       fs,fsindex,gs,gsindex,shadowgs); 
+ 	printk("CS:  %04x DS: %04x ES: %04x CR0: %016lx\n", cs, ds, es, cr0); 
+ 	printk("CR2: %016lx CR3: %016lx CR4: %016lx\n", cr2, cr3, cr4);
++
++	get_debugreg(d0, 0);
++	get_debugreg(d1, 1);
++	get_debugreg(d2, 2);
++	printk("DR0: %016lx DR1: %016lx DR2: %016lx\n", d0, d1, d2);
++	get_debugreg(d3, 3);
++	get_debugreg(d6, 6);
++	get_debugreg(d7, 7);
++	printk("DR3: %016lx DR6: %016lx DR7: %016lx\n", d3, d6, d7);
+ }
  
- config GIGASET_M101
- 	tristate "Gigaset M101 support"
--	depends on ISDN_DRV_GIGASET
- 	help
- 	  Say M here if you want to connect to the Gigaset base via DECT
- 	  using a Gigaset M101 (Sinus 45 Data 1) RS232 DECT device.
-@@ -53,6 +50,4 @@ config GIGASET_UNDOCREQ
- 	  features like configuration mode of M105, say yes. If you
- 	  care about your device, say no.
- 
--endif
--
--endmenu
-+endif # ISDN_DRV_GIGASET
+ void show_regs(struct pt_regs *regs)
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-use-menuconfig-objects-acpi.patch
-git-hid.patch
-use-menuconfig-objects-ii-infiniband.patch
-git-kvm.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-use-menuconfig-objects-isdn-config_isdn.patch
-use-menuconfig-objects-isdn-config_isdn_i4l.patch
-use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
-use-menuconfig-objects-isdn-config_isdn_capi.patch
-use-menuconfig-objects-isdn-config_capi_avm.patch
-use-menuconfig-objects-isdn-config_capi_eicon.patch
-use-menuconfig-objects-ii-md.patch
+usb-replace-flush_workqueue-with-cancel_sync_work.patch
+git-scsi-rc-fixes.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+freezer-run-show_state-when-freezing-times-out.patch
