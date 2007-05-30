@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-mce-polling-timers-1-sec-jiffy-aligned.patch added to -mm tree
-Date: Wed, 30 May 2007 11:01:09 -0700
-Message-ID: <200705301801.l4UI19ql001203@shell0.pdx.osdl.net>
+Subject: + slub-fix-numa--sysfs-bootstrap-issue.patch added to -mm tree
+Date: Wed, 30 May 2007 11:06:23 -0700
+Message-ID: <200705301806.l4UI6NAS001312@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39101 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751670AbXE3SBU (ORCPT
+	by vger.kernel.org with ESMTP id S1757028AbXE3SG0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 14:01:20 -0400
+	Wed, 30 May 2007 14:06:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, ak@suse.de, thockin@hockin.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Make mce polling timers 1 sec jiffy aligned
+     SLUB: Fix NUMA / SYSFS bootstrap issue
 has been added to the -mm tree.  Its filename is
-     make-mce-polling-timers-1-sec-jiffy-aligned.patch
+     slub-fix-numa--sysfs-bootstrap-issue.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,81 +26,101 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make mce polling timers 1 sec jiffy aligned
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: SLUB: Fix NUMA / SYSFS bootstrap issue
+From: Christoph Lameter <clameter@sgi.com>
 
-round_jiffies() for i386 and x86-64 non-critical/corrected MCE polling.
+We need this patch in ASAP.  Patch fixes the mysterious hang that remained
+on some particular configurations with lockdep on after the first fix that
+moved the #idef CONFIG_SLUB_DEBUG to the right location.  See
+http://marc.info/?t=117963072300001&r=1&w=2
 
-This helps to reduce the frequency at which the CPU must be taken out of a
-lower-power state.
+The kmem_cache_node cache is very special because it is needed for NUMA
+bootstrap.  Under certain conditions (like for example if lockdep is
+enabled and significantly increases the size of spinlock_t) the structure
+may become exactly the size as one of the larger caches in the kmalloc
+array.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Tim Hockin <thockin@hockin.org>
+That early during bootstrap we cannot perform merging properly.  The unique
+id for the kmem_cache_node cache will match one of the kmalloc array. 
+Sysfs will complain about a duplicate directory entry.  All of this occurs
+while the console is not yet fully operational.  Thus boot may appear to be
+silently failing.
+
+The kmem_cache_node cache is very special.  During early boostrap the main
+allocation function is not operational yet and so we have to run our own
+small special alloc function during early boot.  It is also special in that
+it is never freed.
+
+We really do not want any merging on that cache.  Set the refcount -1 and
+forbid merging of slabs that have a negative refcount.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mcheck/non-fatal.c |    4 ++--
- arch/x86_64/kernel/mce.c                |    9 ++++++---
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ mm/slub.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN arch/i386/kernel/cpu/mcheck/non-fatal.c~make-mce-polling-timers-1-sec-jiffy-aligned arch/i386/kernel/cpu/mcheck/non-fatal.c
---- a/arch/i386/kernel/cpu/mcheck/non-fatal.c~make-mce-polling-timers-1-sec-jiffy-aligned
-+++ a/arch/i386/kernel/cpu/mcheck/non-fatal.c
-@@ -57,7 +57,7 @@ static DECLARE_DELAYED_WORK(mce_work, mc
- static void mce_work_fn(struct work_struct *work)
- { 
- 	on_each_cpu(mce_checkregs, NULL, 1, 1);
--	schedule_delayed_work(&mce_work, MCE_RATE);
-+	schedule_delayed_work(&mce_work, round_jiffies_relative(MCE_RATE));
- } 
- 
- static int __init init_nonfatal_mce_checker(void)
-@@ -82,7 +82,7 @@ static int __init init_nonfatal_mce_chec
- 	/*
- 	 * Check for non-fatal errors every MCE_RATE s
+diff -puN mm/slub.c~slub-fix-numa--sysfs-bootstrap-issue mm/slub.c
+--- a/mm/slub.c~slub-fix-numa--sysfs-bootstrap-issue
++++ a/mm/slub.c
+@@ -2435,6 +2435,7 @@ void __init kmem_cache_init(void)
  	 */
--	schedule_delayed_work(&mce_work, MCE_RATE);
-+	schedule_delayed_work(&mce_work, round_jiffies_relative(MCE_RATE));
- 	printk(KERN_INFO "Machine check exception polling timer started.\n");
+ 	create_kmalloc_cache(&kmalloc_caches[0], "kmem_cache_node",
+ 		sizeof(struct kmem_cache_node), GFP_KERNEL);
++	kmalloc_caches[0].refcount = -1;
+ #endif
+ 
+ 	/* Able to allocate the per node structures */
+@@ -2482,6 +2483,12 @@ static int slab_unmergeable(struct kmem_
+ 	if (s->ctor)
+ 		return 1;
+ 
++	/*
++	 * We may have set a slab to be unmergeable during bootstrap.
++	 */
++	if (s->refcount < 0)
++		return 1;
++
  	return 0;
  }
-diff -puN arch/x86_64/kernel/mce.c~make-mce-polling-timers-1-sec-jiffy-aligned arch/x86_64/kernel/mce.c
---- a/arch/x86_64/kernel/mce.c~make-mce-polling-timers-1-sec-jiffy-aligned
-+++ a/arch/x86_64/kernel/mce.c
-@@ -378,7 +378,8 @@ static void mcheck_timer(struct work_str
- 		next_interval = min(next_interval*2, check_interval*HZ);
- 	}
  
--	schedule_delayed_work(&mcheck_work, next_interval);
-+	schedule_delayed_work(&mcheck_work,
-+			      round_jiffies_relative(next_interval));
- }
- 
- /*
-@@ -441,7 +442,8 @@ static __init int periodic_mcheck_init(v
- { 
- 	next_interval = check_interval * HZ;
- 	if (next_interval)
--		schedule_delayed_work(&mcheck_work, next_interval);
-+		schedule_delayed_work(&mcheck_work,
-+				round_jiffies_relative(next_interval));
- 	idle_notifier_register(&mce_idle_notifier);
- 	return 0;
- } 
-@@ -731,7 +733,8 @@ static void mce_restart(void) 
- 	on_each_cpu(mce_init, NULL, 1, 1);       
- 	next_interval = check_interval * HZ;
- 	if (next_interval)
--		schedule_delayed_work(&mcheck_work, next_interval);
-+		schedule_delayed_work(&mcheck_work,
-+				      round_jiffies_relative(next_interval));
- }
- 
- static struct sysdev_class mce_sysclass = {
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-make-usb-autosuspend-timer-1-sec-jiffy-aligned.patch
-make-mce-polling-timers-1-sec-jiffy-aligned.patch
+slub-more-documentation.patch
+slub-more-documentation-fix.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+slub-fix-numa--sysfs-bootstrap-issue.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+git-ubi.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+define-new-percpu-interface-for-shared-data.patch
+use-the-new-percpu-interface-for-shared-data.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
