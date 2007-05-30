@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-core-infrastructure.patch added to -mm tree
-Date: Wed, 30 May 2007 12:29:50 -0700
-Message-ID: <200705301929.l4UJTpiI002887@shell0.pdx.osdl.net>
+Subject: + fix-raw_spinlock_t-vs-lockdep.patch added to -mm tree
+Date: Wed, 30 May 2007 12:30:09 -0700
+Message-ID: <200705301930.l4UJUAUf002925@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51954 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754325AbXE3Tai (ORCPT
+	by vger.kernel.org with ESMTP id S1754282AbXE3Tav (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 15:30:38 -0400
+	Wed, 30 May 2007 15:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu
+Cc: a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     lockstat: core infrastructure
+     fix raw_spinlock_t vs lockdep
 has been added to the -mm tree.  Its filename is
-     lockstat-core-infrastructure.patch
+     fix-raw_spinlock_t-vs-lockdep.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,552 +26,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockstat: core infrastructure
+Subject: fix raw_spinlock_t vs lockdep
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Introduce the core lock statistics code.
+Use the lockdep infrastructure to track lock contention and other lock
+statistics.
 
-Lock statistics provides lock wait-time and hold-time (as well as the count
-of corresponding contention and acquisitions events). Also, the first few
-call-sites that encounter contention are tracked.
+It tracks lock contention events, and the first four unique call-sites that
+encountered contention.
 
-Lock wait-time is the time spent waiting on the lock. This provides insight
-into the locking scheme, that is, a heavily contended lock is indicative of
-a too coarse locking scheme.
+It also measures lock wait-time and hold-time in nanoseconds. The minimum and
+maximum times are tracked, as well as a total (which together with the number
+of event can give the avg).
 
-Lock hold-time is the duration the lock was held, this provides a reference for
-the wait-time numbers, so they can be put into perspective.
+All statistics are done per lock class, per write (exclusive state) and per read
+(shared state). 
 
-  1)
-    lock
-  2)
-    ... do stuff ..
-    unlock
-  3)
+The statistics are collected per-cpu, so that the collection overhead is
+minimized via having no global cachemisses.
 
-The time between 1 and 2 is the wait-time. The time between 2 and 3 is the
-hold-time.
+This new lock statistics feature is independent of the lock dependency checking
+traditionally done by lockdep; it just shares the lock tracking code. It is
+also possible to enable both and runtime disabled either component - thereby
+avoiding the O(n^2) lock chain walks for instance.
 
-The lockdep held-lock tracking code is reused, because it already collects locks
-into meaningful groups (classes), and because it is an existing infrastructure
-for lock instrumentation.
 
-Currently lockdep tracks lock acquisition with two hooks:
+This patch:
 
-  lock()
-    lock_acquire()
-    _lock()
-
- ... code protected by lock ...
-
-  unlock()
-    lock_release()
-    _unlock()
-
-We need to extend this with two more hooks, in order to measure contention.
-
-  lock_contended() - used to measure contention events
-  lock_acquired()  - completion of the contention
-
-These are then placed the following way:
-
-  lock()
-    lock_acquire()
-    if (!_try_lock())
-      lock_contended()
-      _lock()
-      lock_acquired()
-
- ... do locked stuff ...
-
-  unlock()
-    lock_release()
-    _unlock()
-
-(Note: the try_lock() 'trick' is used to avoid instrumenting all platform
-       dependent lock primitive implementations.)
-
-It is also possible to toggle the two lockdep features at runtime using:
-
-  /proc/sys/kernel/prove_locking
-  /proc/sys/kernel/lock_stat
-
-(esp. turning off the O(n^2) prove_locking functionaliy can help)
+raw_spinlock_t should not use lockdep (and doesn't) since lockdep itself
+relies on it.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |   57 ++++++++
- kernel/lockdep.c        |  247 ++++++++++++++++++++++++++++++++++++++
- kernel/sysctl.c         |   28 ++++
- lib/Kconfig.debug       |   11 +
- 4 files changed, 343 insertions(+)
+ include/linux/spinlock_types.h    |    4 ++--
+ include/linux/spinlock_types_up.h |    9 +--------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockstat-core-infrastructure include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-core-infrastructure
-+++ a/include/linux/lockdep.h
-@@ -114,8 +114,32 @@ struct lock_class {
+diff -puN include/linux/spinlock_types.h~fix-raw_spinlock_t-vs-lockdep include/linux/spinlock_types.h
+--- a/include/linux/spinlock_types.h~fix-raw_spinlock_t-vs-lockdep
++++ a/include/linux/spinlock_types.h
+@@ -9,14 +9,14 @@
+  * Released under the General Public License (GPL).
+  */
  
- 	const char			*name;
- 	int				name_version;
-+
-+#ifdef CONFIG_LOCK_STAT
-+	unsigned long			contention_point[4];
-+#endif
-+};
-+
-+#ifdef CONFIG_LOCK_STAT
-+struct lock_time {
-+	s64				min;
-+	s64				max;
-+	s64				total;
-+	unsigned long			nr;
-+};
-+
-+struct lock_class_stats {
-+	unsigned long			contention_point[4];
-+	struct lock_time		read_waittime;
-+	struct lock_time		write_waittime;
-+	struct lock_time		read_holdtime;
-+	struct lock_time		write_holdtime;
- };
- 
-+struct lock_class_stats lock_stats(struct lock_class *class);
-+void clear_lock_stats(struct lock_class *class);
-+#endif
-+
- /*
-  * Map the lock object (the lock instance) to the lock-class object.
-  * This is embedded into specific lock instances:
-@@ -165,6 +189,10 @@ struct held_lock {
- 	unsigned long			acquire_ip;
- 	struct lockdep_map		*instance;
- 
-+#ifdef CONFIG_LOCK_STAT
-+	u64 				waittime_stamp;
-+	u64				holdtime_stamp;
-+#endif
- 	/*
- 	 * The lock-stack is unified in that the lock chains of interrupt
- 	 * contexts nest ontop of process context chains, but we 'separate'
-@@ -281,6 +309,35 @@ struct lock_class_key { };
- 
- #endif /* !LOCKDEP */
- 
-+#ifdef CONFIG_LOCK_STAT
-+
-+extern void lock_contended(struct lockdep_map *lock, unsigned long ip);
-+extern void lock_acquired(struct lockdep_map *lock);
-+
-+#define LOCK_CONTENDED(_lock, try, lock)			\
-+do {								\
-+	if (!try(_lock)) {					\
-+		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
-+		lock(_lock);					\
-+		lock_acquired(&(_lock)->dep_map);		\
-+	}							\
-+} while (0)
-+
-+#else /* CONFIG_LOCK_STAT */
-+
-+static inline void lock_contended(struct lockdep_map *lock, unsigned long ip)
-+{
-+}
-+
-+static inline void lock_acquired(struct lockdep_map *lock)
-+{
-+}
-+
-+#define LOCK_CONTENDED(_lock, try, lock) \
-+	lock(_lock)
-+
-+#endif /* CONFIG_LOCK_STAT */
-+
- #if defined(CONFIG_TRACE_IRQFLAGS) && defined(CONFIG_GENERIC_HARDIRQS)
- extern void early_init_irq_lock_class(void);
+-#include <linux/lockdep.h>
+-
+ #if defined(CONFIG_SMP)
+ # include <asm/spinlock_types.h>
  #else
-diff -puN kernel/lockdep.c~lockstat-core-infrastructure kernel/lockdep.c
---- a/kernel/lockdep.c~lockstat-core-infrastructure
-+++ a/kernel/lockdep.c
-@@ -42,6 +42,20 @@
- 
- #include "lockdep_internals.h"
- 
-+#ifdef CONFIG_PROVE_LOCKING
-+int prove_locking = 1;
-+module_param(prove_locking, int, 0644);
-+#else
-+#define prove_locking 0
-+#endif
-+
-+#ifdef CONFIG_LOCK_STAT
-+int lock_stat = 1;
-+module_param(lock_stat, int, 0644);
-+#else
-+#define lock_stat 0
-+#endif
-+
- /*
-  * lockdep_lock: protects the lockdep graph, the hashes and the
-  *               class/list/hash allocators.
-@@ -104,6 +118,70 @@ static struct lock_list list_entries[MAX
- unsigned long nr_lock_classes;
- static struct lock_class lock_classes[MAX_LOCKDEP_KEYS];
- 
-+#ifdef CONFIG_LOCK_STAT
-+static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS], lock_stats);
-+
-+static int lock_contention_point(struct lock_class *class, unsigned long ip)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(class->contention_point); i++) {
-+		if (class->contention_point[i] == 0) {
-+			class->contention_point[i] = ip;
-+			break;
-+		}
-+		if (class->contention_point[i] == ip)
-+			break;
-+	}
-+
-+	return i;
-+}
-+
-+static void lock_time_inc(struct lock_time *lt, s64 time)
-+{
-+	if (time > lt->max)
-+		lt->max = time;
-+
-+	if (time < lt->min || !lt->min)
-+		lt->min = time;
-+
-+	lt->total += time;
-+	lt->nr++;
-+}
-+
-+static struct lock_class_stats *get_lock_stats(struct lock_class *class)
-+{
-+	return &get_cpu_var(lock_stats)[class - lock_classes];
-+}
-+
-+static void put_lock_stats(struct lock_class_stats *stats)
-+{
-+	put_cpu_var(lock_stats);
-+}
-+
-+static void lock_release_holdtime(struct held_lock *hlock)
-+{
-+	struct lock_class_stats *stats;
-+	s64 holdtime;
-+
-+	if (!lock_stat)
-+		return;
-+
-+	holdtime = sched_clock() - hlock->holdtime_stamp;
-+
-+	stats = get_lock_stats(hlock->class);
-+	if (hlock->read)
-+		lock_time_inc(&stats->read_holdtime, holdtime);
-+	else
-+		lock_time_inc(&stats->write_holdtime, holdtime);
-+	put_lock_stats(stats);
-+}
-+#else
-+static inline void lock_release_holdtime(struct held_lock *hlock)
-+{
-+}
-+#endif
-+
- /*
-  * We keep a global list of all lock classes. The list only grows,
-  * never shrinks. The list is only accessed with the lockdep
-@@ -2221,6 +2299,9 @@ static int __lock_acquire(struct lockdep
- 	int chain_head = 0;
- 	u64 chain_key;
- 
-+	if (!prove_locking)
-+		check = 1;
-+
- 	if (unlikely(!debug_locks))
- 		return 0;
- 
-@@ -2271,6 +2352,10 @@ static int __lock_acquire(struct lockdep
- 	hlock->read = read;
- 	hlock->check = check;
- 	hlock->hardirqs_off = hardirqs_off;
-+#ifdef CONFIG_LOCK_STAT
-+	hlock->waittime_stamp = 0;
-+	hlock->holdtime_stamp = sched_clock();
-+#endif
- 
- 	if (check == 2 && !mark_irqflags(curr, hlock))
- 		return 0;
-@@ -2411,6 +2496,8 @@ lock_release_non_nested(struct task_stru
- 	return print_unlock_inbalance_bug(curr, lock, ip);
- 
- found_it:
-+	lock_release_holdtime(hlock);
-+
- 	/*
- 	 * We have the right lock to unlock, 'hlock' points to it.
- 	 * Now we remove it from the stack, and add back the other
-@@ -2463,6 +2550,8 @@ static int lock_release_nested(struct ta
- 
- 	curr->curr_chain_key = hlock->prev_chain_key;
- 
-+	lock_release_holdtime(hlock);
-+
- #ifdef CONFIG_DEBUG_LOCKDEP
- 	hlock->prev_chain_key = 0;
- 	hlock->class = NULL;
-@@ -2537,6 +2626,9 @@ void lock_acquire(struct lockdep_map *lo
- {
- 	unsigned long flags;
- 
-+	if (unlikely(!lock_stat && !prove_locking))
-+		return;
-+
- 	if (unlikely(current->lockdep_recursion))
- 		return;
- 
-@@ -2556,6 +2648,9 @@ void lock_release(struct lockdep_map *lo
- {
- 	unsigned long flags;
- 
-+	if (unlikely(!lock_stat && !prove_locking))
-+		return;
-+
- 	if (unlikely(current->lockdep_recursion))
- 		return;
- 
-@@ -2569,6 +2664,158 @@ void lock_release(struct lockdep_map *lo
- 
- EXPORT_SYMBOL_GPL(lock_release);
- 
-+#ifdef CONFIG_LOCK_STAT
-+static int
-+print_lock_contention_bug(struct task_struct *curr, struct lockdep_map *lock,
-+			   unsigned long ip)
-+{
-+	if (!debug_locks_off())
-+		return 0;
-+	if (debug_locks_silent)
-+		return 0;
-+
-+	printk("\n=================================\n");
-+	printk(  "[ BUG: bad contention detected! ]\n");
-+	printk(  "---------------------------------\n");
-+	printk("%s/%d is trying to contend lock (",
-+		curr->comm, curr->pid);
-+	print_lockdep_cache(lock);
-+	printk(") at:\n");
-+	print_ip_sym(ip);
-+	printk("but there are no locks held!\n");
-+	printk("\nother info that might help us debug this:\n");
-+	lockdep_print_held_locks(curr);
-+
-+	printk("\nstack backtrace:\n");
-+	dump_stack();
-+
-+	return 0;
-+}
-+
-+static void
-+__lock_contended(struct lockdep_map *lock, unsigned long ip)
-+{
-+	struct task_struct *curr = current;
-+	struct held_lock *hlock, *prev_hlock;
-+	struct lock_class_stats *stats;
-+	unsigned int depth;
-+	int i, point;
-+
-+	depth = curr->lockdep_depth;
-+	if (DEBUG_LOCKS_WARN_ON(!depth))
-+		return;
-+
-+	prev_hlock = NULL;
-+	for (i = depth-1; i >= 0; i--) {
-+		hlock = curr->held_locks + i;
-+		/*
-+		 * We must not cross into another context:
-+		 */
-+		if (prev_hlock && prev_hlock->irq_context != hlock->irq_context)
-+			break;
-+		if (hlock->instance == lock)
-+			goto found_it;
-+		prev_hlock = hlock;
-+	}
-+	print_lock_contention_bug(curr, lock, ip);
-+	return;
-+
-+found_it:
-+	hlock->waittime_stamp = sched_clock();
-+
-+	point = lock_contention_point(hlock->class, ip);
-+
-+	stats = get_lock_stats(hlock->class);
-+	if (point < ARRAY_SIZE(stats->contention_point))
-+		stats->contention_point[i]++;
-+	put_lock_stats(stats);
-+}
-+
-+static void
-+__lock_acquired(struct lockdep_map *lock)
-+{
-+	struct task_struct *curr = current;
-+	struct held_lock *hlock, *prev_hlock;
-+	struct lock_class_stats *stats;
-+	unsigned int depth;
-+	u64 now;
-+	s64 waittime;
-+	int i;
-+
-+	depth = curr->lockdep_depth;
-+	if (DEBUG_LOCKS_WARN_ON(!depth))
-+		return;
-+
-+	prev_hlock = NULL;
-+	for (i = depth-1; i >= 0; i--) {
-+		hlock = curr->held_locks + i;
-+		/*
-+		 * We must not cross into another context:
-+		 */
-+		if (prev_hlock && prev_hlock->irq_context != hlock->irq_context)
-+			break;
-+		if (hlock->instance == lock)
-+			goto found_it;
-+		prev_hlock = hlock;
-+	}
-+	print_lock_contention_bug(curr, lock, _RET_IP_);
-+	return;
-+
-+found_it:
-+	if (!hlock->waittime_stamp)
-+		return;
-+
-+	now = sched_clock();
-+	waittime = now - hlock->waittime_stamp;
-+	hlock->holdtime_stamp = now;
-+
-+	stats = get_lock_stats(hlock->class);
-+	if (hlock->read)
-+		lock_time_inc(&stats->read_waittime, waittime);
-+	else
-+		lock_time_inc(&stats->write_waittime, waittime);
-+	put_lock_stats(stats);
-+}
-+
-+void lock_contended(struct lockdep_map *lock, unsigned long ip)
-+{
-+	unsigned long flags;
-+
-+	if (unlikely(!lock_stat))
-+		return;
-+
-+	if (unlikely(current->lockdep_recursion))
-+		return;
-+
-+	raw_local_irq_save(flags);
-+	check_flags(flags);
-+	current->lockdep_recursion = 1;
-+	__lock_contended(lock, ip);
-+	current->lockdep_recursion = 0;
-+	raw_local_irq_restore(flags);
-+}
-+EXPORT_SYMBOL_GPL(lock_contended);
-+
-+void lock_acquired(struct lockdep_map *lock)
-+{
-+	unsigned long flags;
-+
-+	if (unlikely(!lock_stat))
-+		return;
-+
-+	if (unlikely(current->lockdep_recursion))
-+		return;
-+
-+	raw_local_irq_save(flags);
-+	check_flags(flags);
-+	current->lockdep_recursion = 1;
-+	__lock_acquired(lock);
-+	current->lockdep_recursion = 0;
-+	raw_local_irq_restore(flags);
-+}
-+EXPORT_SYMBOL_GPL(lock_acquired);
-+#endif
-+
- /*
-  * Used by the testsuite, sanitize the validator state
-  * after a simulated failure:
-diff -puN kernel/sysctl.c~lockstat-core-infrastructure kernel/sysctl.c
---- a/kernel/sysctl.c~lockstat-core-infrastructure
-+++ a/kernel/sysctl.c
-@@ -164,6 +164,14 @@ int sysctl_legacy_va_layout;
+ # include <linux/spinlock_types_up.h>
  #endif
  
- 
-+#ifdef CONFIG_PROVE_LOCKING
-+extern int prove_locking;
-+#endif
++#include <linux/lockdep.h>
 +
-+#ifdef CONFIG_LOCK_STAT
-+extern int lock_stat;
-+#endif
-+
- /* The default sysctl tables: */
+ typedef struct {
+ 	raw_spinlock_t raw_lock;
+ #if defined(CONFIG_PREEMPT) && defined(CONFIG_SMP)
+diff -puN include/linux/spinlock_types_up.h~fix-raw_spinlock_t-vs-lockdep include/linux/spinlock_types_up.h
+--- a/include/linux/spinlock_types_up.h~fix-raw_spinlock_t-vs-lockdep
++++ a/include/linux/spinlock_types_up.h
+@@ -12,14 +12,10 @@
+  * Released under the General Public License (GPL).
+  */
  
- static ctl_table root_table[] = {
-@@ -683,6 +691,26 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dostring,
- 		.strategy	= &sysctl_string,
- 	},
-+#ifdef CONFIG_PROVE_LOCKING
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "prove_locking",
-+		.data		= &prove_locking,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+#endif
-+#ifdef CONFIG_LOCK_STAT
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "lock_stat",
-+		.data		= &lock_stat,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+#endif
+-#if defined(CONFIG_DEBUG_SPINLOCK) || \
+-	defined(CONFIG_DEBUG_LOCK_ALLOC)
++#ifdef CONFIG_DEBUG_SPINLOCK
  
- 	{ .ctl_name = 0 }
- };
-diff -puN lib/Kconfig.debug~lockstat-core-infrastructure lib/Kconfig.debug
---- a/lib/Kconfig.debug~lockstat-core-infrastructure
-+++ a/lib/Kconfig.debug
-@@ -258,6 +258,17 @@ config LOCKDEP
- 	select KALLSYMS
- 	select KALLSYMS_ALL
+ typedef struct {
+ 	volatile unsigned int slock;
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	struct lockdep_map dep_map;
+-#endif
+ } raw_spinlock_t;
  
-+config LOCK_STAT
-+	bool "Lock usage statisitics"
-+	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	select LOCKDEP
-+	select DEBUG_SPINLOCK
-+	select DEBUG_MUTEXES
-+	select DEBUG_LOCK_ALLOC
-+	default n
-+	help
-+	 This feature enables tracking lock contention points
-+
- config DEBUG_LOCKDEP
- 	bool "Lock dependency engine debugging"
- 	depends on DEBUG_KERNEL && LOCKDEP
+ #define __RAW_SPIN_LOCK_UNLOCKED { 1 }
+@@ -34,9 +30,6 @@ typedef struct { } raw_spinlock_t;
+ 
+ typedef struct {
+ 	/* no debug version on UP */
+-#ifdef CONFIG_DEBUG_LOCK_ALLOC
+-	struct lockdep_map dep_map;
+-#endif
+ } raw_rwlock_t;
+ 
+ #define __RAW_RW_LOCK_UNLOCKED { }
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
