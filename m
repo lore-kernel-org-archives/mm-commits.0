@@ -1,102 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - make-mce-polling-timers-1-sec-jiffy-aligned.patch removed from -mm tree
-Date: Wed, 30 May 2007 12:05:46 -0700
-Message-ID: <200705301905.l4UJ5kVA002381@shell0.pdx.osdl.net>
+Subject: - use-menuconfig-objects-ii-isdn.patch removed from -mm tree
+Date: Wed, 30 May 2007 12:06:02 -0700
+Message-ID: <200705301906.l4UJ62hC002388@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37289 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754937AbXE3TF7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751782AbXE3TGO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 15:05:59 -0400
+	Wed, 30 May 2007 15:06:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, ak@suse.de, thockin@hockin.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make mce polling timers 1 sec jiffy aligned
+     Use menuconfig objects II - ISDN
 has been removed from the -mm tree.  Its filename was
-     make-mce-polling-timers-1-sec-jiffy-aligned.patch
+     use-menuconfig-objects-ii-isdn.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Make mce polling timers 1 sec jiffy aligned
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Use menuconfig objects II - ISDN
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-round_jiffies() for i386 and x86-64 non-critical/corrected MCE polling.
+Change Kconfig objects from "menu, config" into "menuconfig" so
+that the user can disable the whole feature without having to
+enter the menu first.
 
-This helps to reduce the frequency at which the CPU must be taken out of a
-lower-power state.
+In this patch, CONFIG_ISDN is also changed from a tristate to bool,
+since no Makefile uses obj-$(CONFIG_ISDN) that could possibly
+produce a module out of CONFIG_ISDN. So CONFIG_ISDN=y and
+CONFIG_ISDN=m would do the same, in which case only allowing yes/no
+seems 'nicer' to me. The submodules in the ISDN menu can still be
+built as modules, as usual.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Tim Hockin <thockin@hockin.org>
+CAUTION: Everyone who has CONFIG_ISDN set to 'm' will get it set to
+'n'(!), so either everyone (including defconfig maintainers) should keep
+an eye open, or I need to come up with a patch that changes kconfig to
+just downgrade m->y in such cases.
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mcheck/non-fatal.c |    4 ++--
- arch/x86_64/kernel/mce.c                |    9 ++++++---
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/isdn/Kconfig |   20 +++++++-------------
+ 1 files changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mcheck/non-fatal.c~make-mce-polling-timers-1-sec-jiffy-aligned arch/i386/kernel/cpu/mcheck/non-fatal.c
---- a/arch/i386/kernel/cpu/mcheck/non-fatal.c~make-mce-polling-timers-1-sec-jiffy-aligned
-+++ a/arch/i386/kernel/cpu/mcheck/non-fatal.c
-@@ -57,7 +57,7 @@ static DECLARE_DELAYED_WORK(mce_work, mc
- static void mce_work_fn(struct work_struct *work)
- { 
- 	on_each_cpu(mce_checkregs, NULL, 1, 1);
--	schedule_delayed_work(&mce_work, MCE_RATE);
-+	schedule_delayed_work(&mce_work, round_jiffies_relative(MCE_RATE));
- } 
+diff -puN drivers/isdn/Kconfig~use-menuconfig-objects-ii-isdn drivers/isdn/Kconfig
+--- a/drivers/isdn/Kconfig~use-menuconfig-objects-ii-isdn
++++ a/drivers/isdn/Kconfig
+@@ -2,11 +2,9 @@
+ # ISDN device configuration
+ #
  
- static int __init init_nonfatal_mce_checker(void)
-@@ -82,7 +82,7 @@ static int __init init_nonfatal_mce_chec
- 	/*
- 	 * Check for non-fatal errors every MCE_RATE s
- 	 */
--	schedule_delayed_work(&mce_work, MCE_RATE);
-+	schedule_delayed_work(&mce_work, round_jiffies_relative(MCE_RATE));
- 	printk(KERN_INFO "Machine check exception polling timer started.\n");
- 	return 0;
- }
-diff -puN arch/x86_64/kernel/mce.c~make-mce-polling-timers-1-sec-jiffy-aligned arch/x86_64/kernel/mce.c
---- a/arch/x86_64/kernel/mce.c~make-mce-polling-timers-1-sec-jiffy-aligned
-+++ a/arch/x86_64/kernel/mce.c
-@@ -378,7 +378,8 @@ static void mcheck_timer(struct work_str
- 		next_interval = min(next_interval*2, check_interval*HZ);
- 	}
+-menu "ISDN subsystem"
+-	depends on !S390
+-
+-config ISDN
++menuconfig ISDN
+ 	tristate "ISDN support"
++	depends on !S390
+ 	depends on NET
+ 	---help---
+ 	  ISDN ("Integrated Services Digital Networks", called RNIS in France)
+@@ -22,11 +20,11 @@ config ISDN
+ 	  Select this option if you want your kernel to support ISDN.
  
--	schedule_delayed_work(&mcheck_work, next_interval);
-+	schedule_delayed_work(&mcheck_work,
-+			      round_jiffies_relative(next_interval));
- }
  
- /*
-@@ -441,7 +442,8 @@ static __init int periodic_mcheck_init(v
- { 
- 	next_interval = check_interval * HZ;
- 	if (next_interval)
--		schedule_delayed_work(&mcheck_work, next_interval);
-+		schedule_delayed_work(&mcheck_work,
-+				round_jiffies_relative(next_interval));
- 	idle_notifier_register(&mce_idle_notifier);
- 	return 0;
- } 
-@@ -731,7 +733,8 @@ static void mce_restart(void) 
- 	on_each_cpu(mce_init, NULL, 1, 1);       
- 	next_interval = check_interval * HZ;
- 	if (next_interval)
--		schedule_delayed_work(&mcheck_work, next_interval);
-+		schedule_delayed_work(&mcheck_work,
-+				      round_jiffies_relative(next_interval));
- }
+-menu "Old ISDN4Linux"
+-	depends on NET && ISDN
++if ISDN
  
- static struct sysdev_class mce_sysclass = {
+-config ISDN_I4L
++menuconfig ISDN_I4L
+ 	tristate "Old ISDN4Linux (deprecated)"
++	depends on NET
+ 	---help---
+ 	  This driver allows you to use an ISDN adapter for networking
+ 	  connections and as dialin/out device.  The isdn-tty's have a built
+@@ -47,14 +45,11 @@ if ISDN_I4L
+ source "drivers/isdn/i4l/Kconfig"
+ endif
+ 
+-endmenu
+-
+ comment "CAPI subsystem"
+-	depends on NET && ISDN
++	depends on NET
+ 
+ config ISDN_CAPI
+ 	tristate "CAPI2.0 support"
+-	depends on ISDN
+ 	help
+ 	  This provides the CAPI (Common ISDN Application Programming
+ 	  Interface, a standard making it easy for programs to access ISDN
+@@ -65,5 +60,4 @@ source "drivers/isdn/capi/Kconfig"
+ 
+ source "drivers/isdn/hardware/Kconfig"
+ 
+-endmenu
+-
++endif # ISDN
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-make-usb-autosuspend-timer-1-sec-jiffy-aligned.patch
-make-mce-polling-timers-1-sec-jiffy-aligned.patch
+use-menuconfig-objects-acpi.patch
+git-hid.patch
+use-menuconfig-objects-ii-infiniband.patch
+git-kvm.patch
+use-menuconfig-objects-ii-netdev-general100mbit.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+use-menuconfig-objects-ii-isdn.patch
+use-menuconfig-objects-ii-md.patch
