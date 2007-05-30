@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-vt-use-array_size.patch added to -mm tree
-Date: Tue, 29 May 2007 20:09:07 -0700
-Message-ID: <200705300309.l4U396Zo018116@shell0.pdx.osdl.net>
+Subject: + mutex_unlock-later-in-seq_lseek.patch added to -mm tree
+Date: Tue, 29 May 2007 20:09:44 -0700
+Message-ID: <200705300309.l4U39hc7018127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55120 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978AbXE3DJX (ORCPT
+	by vger.kernel.org with ESMTP id S1751017AbXE3DKc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 May 2007 23:09:23 -0400
+	Tue, 29 May 2007 23:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@redhat.com
+Cc: adobriyan@sw.ru
 
 
 The patch titled
-     Char: vt, use ARRAY_SIZE
+     mutex_unlock() later in seq_lseek()
 has been added to the -mm tree.  Its filename is
-     char-vt-use-array_size.patch
+     mutex_unlock-later-in-seq_lseek.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: vt, use ARRAY_SIZE
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mutex_unlock() later in seq_lseek()
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-vt, use ARRAY_SIZE
+All manipulations with struct seq_file::version are done under
+struct seq_file::lock except one introduced in commit
+d6b7a781c51c91dd054e5c437885205592faac21
+aka "[PATCH] Speed up /proc/pid/maps"
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/seq_file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~char-vt-use-array_size drivers/char/vt.c
---- a/drivers/char/vt.c~char-vt-use-array_size
-+++ a/drivers/char/vt.c
-@@ -1990,8 +1990,7 @@ static int is_double_width(uint32_t ucs)
- 		{ 0xFE30, 0xFE6F }, { 0xFF00, 0xFF60 }, { 0xFFE0, 0xFFE6 },
- 		{ 0x20000, 0x2FFFD }, { 0x30000, 0x3FFFD }
- 	};
--	return bisearch(ucs, double_width,
--		sizeof(double_width) / sizeof(*double_width) - 1);
-+	return bisearch(ucs, double_width, ARRAY_SIZE(double_width) - 1);
+diff -puN fs/seq_file.c~mutex_unlock-later-in-seq_lseek fs/seq_file.c
+--- a/fs/seq_file.c~mutex_unlock-later-in-seq_lseek
++++ a/fs/seq_file.c
+@@ -260,8 +260,8 @@ loff_t seq_lseek(struct file *file, loff
+ 				}
+ 			}
+ 	}
+-	mutex_unlock(&m->lock);
+ 	file->f_version = m->version;
++	mutex_unlock(&m->lock);
+ 	return retval;
  }
- 
- /* acquires console_sem */
+ EXPORT_SYMBOL(seq_lseek);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-rocketc-fix-unchecked-mutex_lock_interruptible.patch
-char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
-char-mxser_new-fix-sparse-warning.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-char-genrtc-use-wait_event_interruptible.patch
-char-n_r3964-use-wait_event_interruptible.patch
-char-ip2-use-msleep-for-sleeping.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-char-isicom-cleanup-locking.patch
-char-isicom-del_timer-at-exit.patch
-char-isicom-proper-variables-types.patch
-char-moxa-eliminate-busy-waiting.patch
-char-specialix-remove-busy-waiting.patch
-char-riscom8-eliminate-busy-loop.patch
-char-vt-use-kzalloc.patch
-char-vt-use-array_size.patch
-char-kconfig-mxser_new-remove-experimental-comment.patch
-shrink_slab-handle-bad-shrinkers.patch
+fix-vmic-compilation.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-cleanup.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+proc-environ-wrong-placing-of-ptrace_may_attach-check.patch
+mutex_unlock-later-in-seq_lseek.patch
