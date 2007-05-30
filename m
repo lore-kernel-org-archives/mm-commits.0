@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + potential-parse-error-in-ifdef-update.patch added to -mm tree
-Date: Wed, 30 May 2007 12:20:08 -0700
-Message-ID: <200705301920.l4UJK8pE002679@shell0.pdx.osdl.net>
+Subject: + gfs2-convert-to-new-aops.patch added to -mm tree
+Date: Wed, 30 May 2007 12:21:59 -0700
+Message-ID: <200705301921.l4UJLxYF002718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49405 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756650AbXE3TUt (ORCPT
+	by vger.kernel.org with ESMTP id S1751777AbXE3TWO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 15:20:49 -0400
+	Wed, 30 May 2007 15:22:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: padator@wanadoo.fr, James.Bottomley@steeleye.com, akpm@linux-foundation.org, ink@jurassic.park.msu.ru, jack@ucw.cz, jeff@garzik.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, rth@twiddle.net, tony.luck@intel.com
+Cc: swhiteho@redhat.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     parse errors in ifdefs
+     gfs2: convert to new aops
 has been added to the -mm tree.  Its filename is
-     potential-parse-error-in-ifdef-update.patch
+     gfs2-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,168 +26,328 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parse errors in ifdefs
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: gfs2: convert to new aops
+From: Steven Whitehouse <swhiteho@redhat.com>
 
-Fix various bits of obviously-busted code which we're not happening to
-compile, due to ifdefs.
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ia64/aliasing-test.c    |    2 +-
- arch/alpha/boot/tools/mkbb.c          |    2 +-
- arch/arm/mm/alignment.c               |    2 +-
- arch/mips/jmr3927/rbhma3100/kgdb_io.c |    2 +-
- arch/mips/pci/pci-ocelot.c            |   14 +++++++-------
- drivers/mtd/nand/ppchameleonevb.c     |    4 ++--
- drivers/net/fec_8xx/fec_main.c        |    2 +-
- drivers/scsi/NCR5380.c                |    2 +-
- fs/udf/super.c                        |    2 +-
- 9 files changed, 16 insertions(+), 16 deletions(-)
+ fs/gfs2/ops_address.c |  212 ++++++++++++++++++++++++----------------
+ 1 files changed, 128 insertions(+), 84 deletions(-)
 
-diff -puN Documentation/ia64/aliasing-test.c~potential-parse-error-in-ifdef-update Documentation/ia64/aliasing-test.c
---- a/Documentation/ia64/aliasing-test.c~potential-parse-error-in-ifdef-update
-+++ a/Documentation/ia64/aliasing-test.c
-@@ -197,7 +197,7 @@ skip:
- 	return rc;
+diff -puN fs/gfs2/ops_address.c~gfs2-convert-to-new-aops fs/gfs2/ops_address.c
+--- a/fs/gfs2/ops_address.c~gfs2-convert-to-new-aops
++++ a/fs/gfs2/ops_address.c
+@@ -17,6 +17,7 @@
+ #include <linux/mpage.h>
+ #include <linux/fs.h>
+ #include <linux/writeback.h>
++#include <linux/swap.h>
+ #include <linux/gfs2_ondisk.h>
+ #include <linux/lm_interface.h>
+ 
+@@ -349,45 +350,49 @@ out_unlock:
  }
  
--main()
-+int main()
+ /**
+- * gfs2_prepare_write - Prepare to write a page to a file
++ * gfs2_write_begin - Begin to write to a file
+  * @file: The file to write to
+- * @page: The page which is to be prepared for writing
+- * @from: From (byte range within page)
+- * @to: To (byte range within page)
++ * @mapping: The mapping in which to write
++ * @pos: The file offset at which to start writing
++ * @len: Length of the write
++ * @flags: Various flags
++ * @pagep: Pointer to return the page
++ * @fsdata: Pointer to return fs data (unused by GFS2)
+  *
+  * Returns: errno
+  */
+ 
+-static int gfs2_prepare_write(struct file *file, struct page *page,
+-			      unsigned from, unsigned to)
++static int gfs2_write_begin(struct file *file, struct address_space *mapping,
++			    loff_t pos, unsigned len, unsigned flags,
++			    struct page **pagep, void **fsdata)
  {
- 	int rc;
+-	struct gfs2_inode *ip = GFS2_I(page->mapping->host);
+-	struct gfs2_sbd *sdp = GFS2_SB(page->mapping->host);
++	struct gfs2_inode *ip = GFS2_I(mapping->host);
++	struct gfs2_sbd *sdp = GFS2_SB(mapping->host);
+ 	unsigned int data_blocks, ind_blocks, rblocks;
+ 	int alloc_required;
+ 	int error = 0;
+-	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + from;
+-	loff_t end = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
+ 	struct gfs2_alloc *al;
+-	unsigned int write_len = to - from;
++	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
++	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
++	unsigned to = from + len;
++	struct page *page;
  
-diff -puN arch/alpha/boot/tools/mkbb.c~potential-parse-error-in-ifdef-update arch/alpha/boot/tools/mkbb.c
---- a/arch/alpha/boot/tools/mkbb.c~potential-parse-error-in-ifdef-update
-+++ a/arch/alpha/boot/tools/mkbb.c
-@@ -81,7 +81,7 @@ typedef union __bootblock {
- #define	bootblock_label		__u1.__label
- #define bootblock_checksum	__u2.__checksum
+-
+-	gfs2_holder_init(ip->i_gl, LM_ST_EXCLUSIVE, GL_ATIME|LM_FLAG_TRY_1CB, &ip->i_gh);
++	gfs2_holder_init(ip->i_gl, LM_ST_EXCLUSIVE, GL_ATIME, &ip->i_gh);
+ 	error = gfs2_glock_nq_atime(&ip->i_gh);
+-	if (unlikely(error)) {
+-		if (error == GLR_TRYFAILED) {
+-			unlock_page(page);
+-			error = AOP_TRUNCATED_PAGE;
+-			yield();
+-		}
++	if (unlikely(error))
+ 		goto out_uninit;
+-	}
  
--main(int argc, char ** argv)
-+int main(int argc, char ** argv)
- {
-     bootblock		bootblock_from_disk;
-     bootblock		bootloader_image;
-diff -puN arch/arm/mm/alignment.c~potential-parse-error-in-ifdef-update arch/arm/mm/alignment.c
---- a/arch/arm/mm/alignment.c~potential-parse-error-in-ifdef-update
-+++ a/arch/arm/mm/alignment.c
-@@ -630,7 +630,7 @@ do_alignment(unsigned long addr, unsigne
+-	gfs2_write_calc_reserv(ip, write_len, &data_blocks, &ind_blocks);
++	error = -ENOMEM;
++	page = __grab_cache_page(mapping, index);
++	*pagep = page;
++	if (!page)
++		goto out_unlock;
++
++	gfs2_write_calc_reserv(ip, len, &data_blocks, &ind_blocks);
  
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
--	if thumb_mode(regs) {
-+	if (thumb_mode(regs)) {
- 		fault = __get_user(tinstr, (u16 *)(instrptr & ~1));
- 		if (!(fault))
- 			instr = thumb2arm(tinstr);
-diff -puN arch/mips/jmr3927/rbhma3100/kgdb_io.c~potential-parse-error-in-ifdef-update arch/mips/jmr3927/rbhma3100/kgdb_io.c
---- a/arch/mips/jmr3927/rbhma3100/kgdb_io.c~potential-parse-error-in-ifdef-update
-+++ a/arch/mips/jmr3927/rbhma3100/kgdb_io.c
-@@ -36,7 +36,7 @@
- #define TIMEOUT       0xffffff
+-	error = gfs2_write_alloc_required(ip, pos, write_len, &alloc_required);
++	error = gfs2_write_alloc_required(ip, pos, len, &alloc_required);
+ 	if (error)
+-		goto out_unlock;
++		goto out_putpage;
  
- static int remoteDebugInitialized = 0;
--static void debugInit(int baud)
-+static void debugInit(int baud);
  
- int putDebugChar(unsigned char c)
- {
-diff -puN arch/mips/pci/pci-ocelot.c~potential-parse-error-in-ifdef-update arch/mips/pci/pci-ocelot.c
---- a/arch/mips/pci/pci-ocelot.c~potential-parse-error-in-ifdef-update
-+++ a/arch/mips/pci/pci-ocelot.c
-@@ -71,19 +71,19 @@ static inline void pci0WriteConfigReg(un
+ 	ip->i_alloc.al_requested = 0;
+@@ -419,7 +424,7 @@ static int gfs2_prepare_write(struct fil
+ 		goto out;
+ 
+ 	if (gfs2_is_stuffed(ip)) {
+-		if (end > sdp->sd_sb.sb_bsize - sizeof(struct gfs2_dinode)) {
++		if (pos + len > sdp->sd_sb.sb_bsize - sizeof(struct gfs2_dinode)) {
+ 			error = gfs2_unstuff_dinode(ip, page);
+ 			if (error == 0)
+ 				goto prepare_write;
+@@ -441,6 +446,10 @@ out_qunlock:
+ out_alloc_put:
+ 			gfs2_alloc_put(ip);
+ 		}
++out_putpage:
++		page_cache_release(page);
++		if (pos + len > ip->i_inode.i_size)
++			vmtruncate(&ip->i_inode, ip->i_inode.i_size);
+ out_unlock:
+ 		gfs2_glock_dq_m(1, &ip->i_gh);
+ out_uninit:
+@@ -476,65 +485,118 @@ static void adjust_fs_space(struct inode
  }
  
- static struct resource ocelot_mem_resource = {
--	start	= GT_PCI_MEM_BASE;
--	end	= GT_PCI_MEM_BASE + GT_PCI_MEM_BASE - 1;
-+	.start	= GT_PCI_MEM_BASE,
-+	.end	= GT_PCI_MEM_BASE + GT_PCI_MEM_BASE - 1,
- };
+ /**
+- * gfs2_commit_write - Commit write to a file
++ * gfs2_stuffed_write_end - Write end for stuffed files
++ * @inode: The inode
++ * @dibh: The buffer_head containing the on-disk inode
++ * @pos: The file position
++ * @len: The length of the write
++ * @copied: How much was actually copied by the VFS
++ * @page: The page
++ *
++ * This copies the data from the page into the inode block after
++ * the inode data structure itself.
++ *
++ * Returns: errno
++ */
++static int gfs2_stuffed_write_end(struct inode *inode, struct buffer_head *dibh,
++				  loff_t pos, unsigned len, unsigned copied,
++				  struct page *page)
++{
++	struct gfs2_inode *ip = GFS2_I(inode);
++	struct gfs2_sbd *sdp = GFS2_SB(inode);
++	u64 to = pos + copied;
++	void *kaddr;
++	unsigned char *buf = dibh->b_data + sizeof(struct gfs2_dinode);
++	struct gfs2_dinode *di = (struct gfs2_dinode *)dibh->b_data;
++
++	BUG_ON((pos + len) > (dibh->b_size - sizeof(struct gfs2_dinode)));
++	kaddr = kmap_atomic(page, KM_USER0);
++	memcpy(buf + pos, kaddr + pos, copied);
++	memset(kaddr + pos + copied, 0, len - copied);
++	flush_dcache_page(page);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	if (!PageUptodate(page))
++		SetPageUptodate(page);
++	unlock_page(page);
++	mark_page_accessed(page);
++	page_cache_release(page);
++
++	if (inode->i_size < to) {
++		i_size_write(inode, to);
++		ip->i_di.di_size = inode->i_size;
++		di->di_size = cpu_to_be64(inode->i_size);
++		mark_inode_dirty(inode);
++	}
++
++	if (inode == sdp->sd_rindex)
++		adjust_fs_space(inode);
++
++	brelse(dibh);
++	gfs2_trans_end(sdp);
++	gfs2_glock_dq(&ip->i_gh);
++	gfs2_holder_uninit(&ip->i_gh);
++	return copied;
++}
++
++/**
++ * gfs2_write_end
+  * @file: The file to write to
+- * @page: The page containing the data
+- * @from: From (byte range within page)
+- * @to: To (byte range within page)
++ * @mapping: The address space to write to
++ * @pos: The file position
++ * @len: The length of the data
++ * @copied:
++ * @page: The page that has been written
++ * @fsdata: The fsdata (unused in GFS2)
++ *
++ * The main write_end function for GFS2. We have a separate one for
++ * stuffed files as they are slightly different, otherwise we just
++ * put our locking around the VFS provided functions.
+  *
+  * Returns: errno
+  */
  
- static struct resource ocelot_io_resource = {
--	start	= GT_PCI_IO_BASE;
--	end	= GT_PCI_IO_BASE + GT_PCI_IO_SIZE - 1;
-+	.start	= GT_PCI_IO_BASE,
-+	.end	= GT_PCI_IO_BASE + GT_PCI_IO_SIZE - 1,
- };
+-static int gfs2_commit_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
++static int gfs2_write_end(struct file *file, struct address_space *mapping,
++			  loff_t pos, unsigned len, unsigned copied,
++			  struct page *page, void *fsdata)
+ {
+ 	struct inode *inode = page->mapping->host;
+ 	struct gfs2_inode *ip = GFS2_I(inode);
+ 	struct gfs2_sbd *sdp = GFS2_SB(inode);
+-	int error = -EOPNOTSUPP;
+ 	struct buffer_head *dibh;
+ 	struct gfs2_alloc *al = &ip->i_alloc;
+ 	struct gfs2_dinode *di;
++	unsigned int from = pos & (PAGE_CACHE_SIZE - 1);
++	unsigned int to = from + len;
++	int ret;
  
- static struct pci_controller ocelot_pci_controller = {
--	.pci_ops	= gt64xxx_pci0_ops;
--	.mem_resource	= &ocelot_mem_resource;
--	.io_resource	= &ocelot_io_resource;
-+	.pci_ops	= gt64xxx_pci0_ops,
-+	.mem_resource	= &ocelot_mem_resource,
-+	.io_resource	= &ocelot_io_resource,
- };
+-	if (gfs2_assert_withdraw(sdp, gfs2_glock_is_locked_by_me(ip->i_gl)))
+-                goto fail_nounlock;
++	BUG_ON(gfs2_glock_is_locked_by_me(ip->i_gl) == 0);
  
- static int __init ocelot_pcibios_init(void)
-diff -puN drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef-update drivers/mtd/nand/ppchameleonevb.c
---- a/drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef-update
-+++ a/drivers/mtd/nand/ppchameleonevb.c
-@@ -424,9 +424,9 @@ static void __exit ppchameleonevb_cleanu
+-	error = gfs2_meta_inode_buffer(ip, &dibh);
+-	if (error)
+-		goto fail_endtrans;
++	ret = gfs2_meta_inode_buffer(ip, &dibh);
++	if (unlikely(ret)) {
++		unlock_page(page);
++		page_cache_release(page);
++		goto failed;
++	}
  
- 	/* Release iomaps */
- 	this = (struct nand_chip *) &ppchameleon_mtd[1];
--	iounmap((void *) this->IO_ADDR_R;
-+	iounmap((void *) this->IO_ADDR_R);
- 	this = (struct nand_chip *) &ppchameleonevb_mtd[1];
--	iounmap((void *) this->IO_ADDR_R;
-+	iounmap((void *) this->IO_ADDR_R);
+ 	gfs2_trans_add_bh(ip->i_gl, dibh, 1);
+-	di = (struct gfs2_dinode *)dibh->b_data;
  
- 	/* Free the MTD device structure */
- 	kfree (ppchameleon_mtd);
-diff -puN drivers/net/fec_8xx/fec_main.c~potential-parse-error-in-ifdef-update drivers/net/fec_8xx/fec_main.c
---- a/drivers/net/fec_8xx/fec_main.c~potential-parse-error-in-ifdef-update
-+++ a/drivers/net/fec_8xx/fec_main.c
-@@ -550,7 +550,7 @@ static int fec_enet_rx_common(struct net
- 				skbn = dev_alloc_skb(pkt_len + 2);
- 				if (skbn != NULL) {
- 					skb_reserve(skbn, 2);	/* align IP header */
--					skb_copy_from_linear_data(skb
-+					skb_copy_from_linear_data(skb,
- 								  skbn->data,
- 								  pkt_len);
- 					/* swap */
-diff -puN drivers/scsi/NCR5380.c~potential-parse-error-in-ifdef-update drivers/scsi/NCR5380.c
---- a/drivers/scsi/NCR5380.c~potential-parse-error-in-ifdef-update
-+++ a/drivers/scsi/NCR5380.c
-@@ -2627,7 +2627,7 @@ static void NCR5380_reselect(struct Scsi
- #ifdef REAL_DMA
- static void NCR5380_dma_complete(NCR5380_instance * instance) {
- 	NCR5380_local_declare();
--	struct NCR5380_hostdata *hostdata = (struct NCR5380_hostdata * instance->hostdata);
-+	struct NCR5380_hostdata *hostdata = (struct NCR5380_hostdata *) instance->hostdata;
- 	int transferred;
- 	NCR5380_setup(instance);
+-	if (gfs2_is_stuffed(ip)) {
+-		u64 file_size;
+-		void *kaddr;
+-
+-		file_size = ((u64)page->index << PAGE_CACHE_SHIFT) + to;
++	if (gfs2_is_stuffed(ip))
++		return gfs2_stuffed_write_end(inode, dibh, pos, len, copied, page);
  
-diff -puN fs/udf/super.c~potential-parse-error-in-ifdef-update fs/udf/super.c
---- a/fs/udf/super.c~potential-parse-error-in-ifdef-update
-+++ a/fs/udf/super.c
-@@ -1352,7 +1352,7 @@ udf_load_partition(struct super_block *s
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		memcpy(dibh->b_data + sizeof(struct gfs2_dinode) + from,
+-		       kaddr + from, to - from);
+-		kunmap_atomic(kaddr, KM_USER0);
++	if (sdp->sd_args.ar_data == GFS2_DATA_ORDERED || gfs2_is_jdata(ip))
++		gfs2_page_add_databufs(ip, page, from, to);
  
- 	for (i=0; i<UDF_SB_NUMPARTS(sb); i++)
- 	{
--		switch UDF_SB_PARTTYPE(sb, i)
-+		switch (UDF_SB_PARTTYPE(sb, i))
- 		{
- 			case UDF_VIRTUAL_MAP15:
- 			case UDF_VIRTUAL_MAP20:
+-		SetPageUptodate(page);
++	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
+-		if (inode->i_size < file_size) {
+-			i_size_write(inode, file_size);
++	if (likely(ret >= 0)) {
++		copied = ret;
++		if  ((pos + copied) > inode->i_size) {
++			di = (struct gfs2_dinode *)dibh->b_data;
++			ip->i_di.di_size = inode->i_size;
++			di->di_size = cpu_to_be64(inode->i_size);
+ 			mark_inode_dirty(inode);
+ 		}
+-	} else {
+-		if (sdp->sd_args.ar_data == GFS2_DATA_ORDERED ||
+-		    gfs2_is_jdata(ip))
+-			gfs2_page_add_databufs(ip, page, from, to);
+-		error = generic_commit_write(file, page, from, to);
+-		if (error)
+-			goto fail;
+-	}
+-
+-	if (ip->i_di.di_size < inode->i_size) {
+-		ip->i_di.di_size = inode->i_size;
+-		di->di_size = cpu_to_be64(inode->i_size);
+ 	}
+ 
+ 	if (inode == sdp->sd_rindex)
+@@ -542,33 +604,15 @@ static int gfs2_commit_write(struct file
+ 
+ 	brelse(dibh);
+ 	gfs2_trans_end(sdp);
++failed:
+ 	if (al->al_requested) {
+ 		gfs2_inplace_release(ip);
+ 		gfs2_quota_unlock(ip);
+ 		gfs2_alloc_put(ip);
+ 	}
+-	unlock_page(page);
+-	gfs2_glock_dq_m(1, &ip->i_gh);
+-	lock_page(page);
++	gfs2_glock_dq(&ip->i_gh);
+ 	gfs2_holder_uninit(&ip->i_gh);
+-	return 0;
+-
+-fail:
+-	brelse(dibh);
+-fail_endtrans:
+-	gfs2_trans_end(sdp);
+-	if (al->al_requested) {
+-		gfs2_inplace_release(ip);
+-		gfs2_quota_unlock(ip);
+-		gfs2_alloc_put(ip);
+-	}
+-	unlock_page(page);
+-	gfs2_glock_dq_m(1, &ip->i_gh);
+-	lock_page(page);
+-	gfs2_holder_uninit(&ip->i_gh);
+-fail_nounlock:
+-	ClearPageUptodate(page);
+-	return error;
++	return ret;
+ }
+ 
+ /**
+@@ -837,8 +881,8 @@ const struct address_space_operations gf
+ 	.readpage = gfs2_readpage,
+ 	.readpages = gfs2_readpages,
+ 	.sync_page = block_sync_page,
+-	.prepare_write = gfs2_prepare_write,
+-	.commit_write = gfs2_commit_write,
++	.write_begin = gfs2_write_begin,
++	.write_end = gfs2_write_end,
+ 	.bmap = gfs2_bmap,
+ 	.invalidatepage = gfs2_invalidatepage,
+ 	.releasepage = gfs2_releasepage,
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from swhiteho@redhat.com are
 
-atari_pamsnetc-old-declaration-ritchie-style-fix.patch
-potential-parse-error-in-ifdef.patch
-potential-parse-error-in-ifdef-update.patch
+git-gfs2-nmw.patch
+git-nfs-server-cluster-locking-api.patch
+gfs2-convert-to-new-aops.patch
