@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fault-injection-fix-example-scripts-in-documentation.patch added to -mm tree
-Date: Wed, 30 May 2007 15:32:07 -0700
-Message-ID: <200705302232.l4UMW7oM006784@shell0.pdx.osdl.net>
+Subject: + atmel_spi-dma-address-bugfix.patch added to -mm tree
+Date: Wed, 30 May 2007 15:32:44 -0700
+Message-ID: <200705302232.l4UMWikD006807@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34606 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595AbXE3WcK (ORCPT
+	by vger.kernel.org with ESMTP id S1750949AbXE3WdI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:32:10 -0400
+	Wed, 30 May 2007 18:33:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     fault-injection: fix example scripts in documentation
+     atmel_spi dma address bugfix
 has been added to the -mm tree.  Its filename is
-     fault-injection-fix-example-scripts-in-documentation.patch
+     atmel_spi-dma-address-bugfix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,209 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fault-injection: fix example scripts in documentation
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: atmel_spi dma address bugfix
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Fix and cleanup example scripts in fault injection documentation.
+When either rx_buf or tx_buf is not being used, i.e.  for plain read- or
+write operations, the atmel_spi uses a fixed-size DMA buffer instead.  If
+the transfer is longer than the size of this buffer, it is split into
+multiple DMA transfers.
 
-1. Eliminate broken oops() shell function.
+When the transfer is split like this, the atmel_spi driver ends up using
+the same DMA address again and again even for the buffer that came from the
+user, which is of course wrong.  Fix this by adding the number of bytes
+already transferred to the DMA address so that the data ends up in the
+right place.
 
-2. Fold failcmd.sh and failmodule.sh into example scripts. It makes
-   the example scripts work independent of current working directory.
+Thanks to Wu Xuan for discovering this bug.
 
-3. Set "space" parameter to 0 to start injecting errors immediately.
-
-4. Use /sys/module/<modulename>/sections/.data as upper bound of
-   .text section. Because some module doesn't have .exit.text section.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/failcmd.sh          |    4 
- Documentation/fault-injection/failmodule.sh       |   31 ---
- Documentation/fault-injection/fault-injection.txt |  107 ++++++------
- 3 files changed, 57 insertions(+), 85 deletions(-)
+ drivers/spi/atmel_spi.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/fault-injection/failcmd.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
---- a/Documentation/fault-injection/failcmd.sh
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#!/bin/bash
--
--echo 1 > /proc/self/make-it-fail
--exec $*
-diff -puN Documentation/fault-injection/failmodule.sh~fault-injection-fix-example-scripts-in-documentation /dev/null
---- a/Documentation/fault-injection/failmodule.sh
-+++ /dev/null
-@@ -1,31 +0,0 @@
--#!/bin/bash
--#
--# Usage: failmodule <failname> <modulename> [stacktrace-depth]
--#
--#	<failname>: "failslab", "fail_alloc_page", or "fail_make_request"
--#
--#	<modulename>: module name that you want to inject faults.
--#
--#	[stacktrace-depth]: the maximum number of stacktrace walking allowed
--#
--
--STACKTRACE_DEPTH=5
--if [ $# -gt 2 ]; then
--	STACKTRACE_DEPTH=$3
--fi
--
--if [ ! -d /debug/$1 ]; then
--	echo "Fault-injection $1 does not exist" >&2
--	exit 1
--fi
--if [ ! -d /sys/module/$2 ]; then
--	echo "Module $2 does not exist" >&2
--	exit 1
--fi
--
--# Disable any fault injection
--echo 0 > /debug/$1/stacktrace-depth
--
--echo `cat /sys/module/$2/sections/.text` > /debug/$1/require-start
--echo `cat /sys/module/$2/sections/.exit.text` > /debug/$1/require-end
--echo $STACKTRACE_DEPTH > /debug/$1/stacktrace-depth
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-fix-example-scripts-in-documentation
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -161,70 +161,77 @@ o add a hook to insert failures
- Application Examples
- --------------------
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-dma-address-bugfix drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-dma-address-bugfix
++++ a/drivers/spi/atmel_spi.c
+@@ -113,16 +113,16 @@ static void atmel_spi_next_xfer(struct s
  
--o inject slab allocation failures into module init/cleanup code
-+o Inject slab allocation failures into module init/exit code
+ 	len = as->remaining_bytes;
  
--------------------------------------------------------------------------------
- #!/bin/bash
+-	tx_dma = xfer->tx_dma;
+-	rx_dma = xfer->rx_dma;
++	tx_dma = xfer->tx_dma + xfer->len - len;
++	rx_dma = xfer->rx_dma + xfer->len - len;
  
--FAILCMD=Documentation/fault-injection/failcmd.sh
--BLACKLIST="root_plug evbug"
--
--FAILNAME=failslab
--echo Y > /debug/$FAILNAME/task-filter
--echo 10 > /debug/$FAILNAME/probability
--echo 100 > /debug/$FAILNAME/interval
--echo -1 > /debug/$FAILNAME/times
--echo 2 > /debug/$FAILNAME/verbose
--echo 1 > /debug/$FAILNAME/ignore-gfp-wait
-+FAILTYPE=failslab
-+echo Y > /debug/$FAILTYPE/task-filter
-+echo 10 > /debug/$FAILTYPE/probability
-+echo 100 > /debug/$FAILTYPE/interval
-+echo -1 > /debug/$FAILTYPE/times
-+echo 0 > /debug/$FAILTYPE/space
-+echo 2 > /debug/$FAILTYPE/verbose
-+echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
- 
--blacklist()
-+faulty_system()
- {
--	echo $BLACKLIST | grep $1 > /dev/null 2>&1
-+	bash -c "echo 1 > /proc/self/make-it-fail && exec $*"
- }
- 
--oops()
--{
--	dmesg | grep BUG > /dev/null 2>&1
--}
--
--find /lib/modules/`uname -r` -name '*.ko' -exec basename {} .ko \; |
--	while read i
--	do
--		oops && exit 1
--
--		if ! blacklist $i
--		then
--			echo inserting $i...
--			bash $FAILCMD modprobe $i
--		fi
--	done
--
--lsmod | awk '{ if ($3 == 0) { print $1 } }' |
--	while read i
--	do
--		oops && exit 1
--
--		if ! blacklist $i
--		then
--			echo removing $i...
--			bash $FAILCMD modprobe -r $i
--		fi
--	done
-+if [ $# -eq 0 ]
-+then
-+	echo "Usage: $0 modulename [ modulename ... ]"
-+	exit 1
-+fi
-+
-+for m in $*
-+do
-+	echo inserting $m...
-+	faulty_system modprobe $m
-+
-+	echo removing $m...
-+	faulty_system modprobe -r $m
-+done
- 
- ------------------------------------------------------------------------------
- 
--o inject slab allocation failures only for a specific module
-+o Inject page allocation failures only for a specific module
- 
--------------------------------------------------------------------------------
- #!/bin/bash
- 
--FAILMOD=Documentation/fault-injection/failmodule.sh
-+FAILTYPE=fail_page_alloc
-+module=$1
- 
--echo injecting errors into the module $1...
-+if [ -z $module ]
-+then
-+	echo "Usage: $0 <modulename>"
-+	exit 1
-+fi
-+
-+modprobe $module
-+
-+if [ ! -d /sys/module/$module/sections ]
-+then
-+	echo Module $module is not loaded
-+	exit 1
-+fi
-+
-+cat /sys/module/$module/sections/.text > /debug/$FAILTYPE/require-start
-+cat /sys/module/$module/sections/.data > /debug/$FAILTYPE/require-end
-+
-+echo N > /debug/$FAILTYPE/task-filter
-+echo 10 > /debug/$FAILTYPE/probability
-+echo 100 > /debug/$FAILTYPE/interval
-+echo -1 > /debug/$FAILTYPE/times
-+echo 0 > /debug/$FAILTYPE/space
-+echo 2 > /debug/$FAILTYPE/verbose
-+echo 1 > /debug/$FAILTYPE/ignore-gfp-wait
-+echo 1 > /debug/$FAILTYPE/ignore-gfp-highmem
-+echo 10 > /debug/$FAILTYPE/stacktrace-depth
- 
--modprobe $1
--bash $FAILMOD failslab $1 10
--echo 25 > /debug/failslab/probability
-+trap "echo 0 > /debug/$FAILTYPE/probability" SIGINT SIGTERM EXIT
- 
--------------------------------------------------------------------------------
-+echo "Injecting errors into the module $module... (interrupt to stop)"
-+sleep 1000000
- 
+ 	/* use scratch buffer only when rx or tx data is unspecified */
+-	if (rx_dma == INVALID_DMA_ADDRESS) {
++	if (!xfer->rx_buf) {
+ 		rx_dma = as->buffer_dma;
+ 		if (len > BUFFER_SIZE)
+ 			len = BUFFER_SIZE;
+ 	}
+-	if (tx_dma == INVALID_DMA_ADDRESS) {
++	if (!xfer->tx_buf) {
+ 		tx_dma = as->buffer_dma;
+ 		if (len > BUFFER_SIZE)
+ 			len = BUFFER_SIZE;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
-git-dvb.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-add-min-order-parameter-to-fail_page_alloc.patch
-fault-injection-fix-example-scripts-in-documentation.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+avr32-ratelimit-segfault-reporting-rate.patch
+atmel_spi-dma-address-bugfix.patch
