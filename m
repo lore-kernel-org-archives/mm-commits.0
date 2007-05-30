@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fault-injection-add-min-order-parameter-to-fail_page_alloc.patch added to -mm tree
-Date: Wed, 30 May 2007 15:32:05 -0700
-Message-ID: <200705302232.l4UMW5oN006781@shell0.pdx.osdl.net>
+Subject: + dma-mapping-prevent-dma-dependent-code-from-linking-on.patch added to -mm tree
+Date: Wed, 30 May 2007 15:46:51 -0700
+Message-ID: <200705302246.l4UMkpLg007071@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35963 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbXE3Wrs (ORCPT
+	by vger.kernel.org with ESMTP id S1751248AbXE3Wsx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 18:47:48 -0400
+	Wed, 30 May 2007 18:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: dan.j.williams@intel.com, James.Bottomley@SteelEye.com, cornelia.huck@de.ibm.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, htejun@gmail.com, jeff@garzik.org, kyle@parisc-linux.org, linville@tuxdriver.com, schwidefsky@de.ibm.com, spyro@f2s.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
 
 
 The patch titled
-     fault-injection: add min-order parameter to fail_page_alloc
+     dma-mapping: prevent dma dependent code from linking on !HAS_DMA archs
 has been added to the -mm tree.  Its filename is
-     fault-injection-add-min-order-parameter-to-fail_page_alloc.patch
+     dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +26,250 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fault-injection: add min-order parameter to fail_page_alloc
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: dma-mapping: prevent dma dependent code from linking on !HAS_DMA archs
+From: Dan Williams <dan.j.williams@intel.com>
 
-Limiting smaller allocation failures by fault injection helps to find real
-possible bugs.  Because higher order allocations are likely to fail and
-zero-order allocations are not likely to fail.
+Continuing the work started in 411f0f3edc141a582190d3605cadd1d993abb6df ...
 
-This patch adds min-order parameter to fail_page_alloc.  It specifies the
-minimum page allocation order to be injected failures.
+This enables code with a dma path, that compiles away, to build without
+requiring additional code factoring.  It also prevents code that calls
+dma_alloc_coherent and dma_free_coherent from linking whereas previously
+the code would hit a BUG() at run time.  Finally, it allows archs that set
+!HAS_DMA to delete their asm/dma-mapping.h file.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <geert@linux-m68k.org>
+Cc: <zippel@linux-m68k.org>
+Cc: <spyro@f2s.com>
+Cc: <ysato@users.sourceforge.jp>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fault-injection/fault-injection.txt |    5 +++++
- mm/page_alloc.c                                   |   12 +++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ arch/arm26/Kconfig                       |    3 
+ arch/h8300/Kconfig                       |    3 
+ arch/m32r/Kconfig                        |    3 
+ drivers/dma/Kconfig                      |    2 
+ include/asm-arm26/dma-mapping.h          |    2 
+ include/asm-generic/dma-mapping-broken.h |   82 +++++++++++++++++----
+ include/asm-h8300/dma-mapping.h          |    1 
+ include/asm-m32r/dma-mapping.h           |    6 -
+ include/asm-s390/dma-mapping.h           |   12 ---
+ include/linux/dma-mapping.h              |    4 +
+ 10 files changed, 84 insertions(+), 34 deletions(-)
 
-diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-add-min-order-parameter-to-fail_page_alloc Documentation/fault-injection/fault-injection.txt
---- a/Documentation/fault-injection/fault-injection.txt~fault-injection-add-min-order-parameter-to-fail_page_alloc
-+++ a/Documentation/fault-injection/fault-injection.txt
-@@ -103,6 +103,11 @@ configuration of fault-injection capabil
- 	default is 'N', setting it to 'Y' will inject failures
- 	only into non-sleep allocations (GFP_ATOMIC allocations).
+diff -puN arch/arm26/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/arm26/Kconfig
+--- a/arch/arm26/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
++++ a/arch/arm26/Kconfig
+@@ -17,6 +17,9 @@ config MMU
+ 	bool
+ 	default y
  
-+- /debug/fail_page_alloc/min-order:
++config NO_DMA
++	def_bool y
 +
-+	specifies the minimum page allocation order to be injected
-+	failures.
+ config ARCH_ACORN
+         bool
+         default y
+diff -puN arch/h8300/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
++++ a/arch/h8300/Kconfig
+@@ -68,6 +68,9 @@ config TIME_LOW_RES
+ config NO_IOPORT
+ 	def_bool y
+ 
++config NO_DMA
++	def_bool y
 +
- o Boot option
+ config ISA
+ 	bool
+ 	default y
+diff -puN arch/m32r/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
++++ a/arch/m32r/Kconfig
+@@ -31,6 +31,9 @@ config GENERIC_IRQ_PROBE
+ config NO_IOPORT
+ 	def_bool y
  
- In order to inject faults while debugfs is not available (early boot time),
-diff -puN mm/page_alloc.c~fault-injection-add-min-order-parameter-to-fail_page_alloc mm/page_alloc.c
---- a/mm/page_alloc.c~fault-injection-add-min-order-parameter-to-fail_page_alloc
-+++ a/mm/page_alloc.c
-@@ -1130,11 +1130,13 @@ static struct fail_page_alloc_attr {
++config NO_DMA
++	def_bool y
++
+ source "init/Kconfig"
  
- 	u32 ignore_gfp_highmem;
- 	u32 ignore_gfp_wait;
-+	u32 min_order;
  
- #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
+diff -puN drivers/dma/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on drivers/dma/Kconfig
+--- a/drivers/dma/Kconfig~dma-mapping-prevent-dma-dependent-code-from-linking-on
++++ a/drivers/dma/Kconfig
+@@ -3,7 +3,7 @@
+ #
  
- 	struct dentry *ignore_gfp_highmem_file;
- 	struct dentry *ignore_gfp_wait_file;
-+	struct dentry *min_order_file;
+ menu "DMA Engine support"
+-	depends on !S390
++	depends on HAS_DMA
  
- #endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
+ config DMA_ENGINE
+ 	bool "Support for DMA engines"
+diff -puN include/asm-arm26/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
+--- a/include/asm-arm26/dma-mapping.h
++++ /dev/null
+@@ -1,2 +0,0 @@
+-#include <asm-generic/dma-mapping-broken.h>
+-
+diff -puN include/asm-generic/dma-mapping-broken.h~dma-mapping-prevent-dma-dependent-code-from-linking-on include/asm-generic/dma-mapping-broken.h
+--- a/include/asm-generic/dma-mapping-broken.h~dma-mapping-prevent-dma-dependent-code-from-linking-on
++++ a/include/asm-generic/dma-mapping-broken.h
+@@ -1,24 +1,82 @@
+ #ifndef _ASM_GENERIC_DMA_MAPPING_H
+ #define _ASM_GENERIC_DMA_MAPPING_H
  
-@@ -1142,6 +1144,7 @@ static struct fail_page_alloc_attr {
- 	.attr = FAULT_ATTR_INITIALIZER,
- 	.ignore_gfp_wait = 1,
- 	.ignore_gfp_highmem = 1,
-+	.min_order = 1,
- };
+-/* This is used for archs that do not support DMA */
++/* define the dma api to allow compilation but not linking of
++ * dma dependent code.  Code that depends on the dma-mapping
++ * API needs to set 'depends on HAS_DMA' in its Kconfig
++ */
  
- static int __init setup_fail_page_alloc(char *str)
-@@ -1152,6 +1155,8 @@ __setup("fail_page_alloc=", setup_fail_p
+-static inline void *
++struct scatterlist;
++
++extern void *
+ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+-		   gfp_t flag)
+-{
+-	BUG();
+-	return NULL;
+-}
++		   gfp_t flag);
  
- static int should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
- {
-+	if (order < fail_page_alloc.min_order)
-+		return 0;
- 	if (gfp_mask & __GFP_NOFAIL)
- 		return 0;
- 	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
-@@ -1183,12 +1188,17 @@ static int __init fail_page_alloc_debugf
- 	fail_page_alloc.ignore_gfp_highmem_file =
- 		debugfs_create_bool("ignore-gfp-highmem", mode, dir,
- 				      &fail_page_alloc.ignore_gfp_highmem);
-+	fail_page_alloc.min_order_file =
-+		debugfs_create_u32("min-order", mode, dir,
-+				   &fail_page_alloc.min_order);
+-static inline void
++extern void
+ dma_free_coherent(struct device *dev, size_t size, void *cpu_addr,
+-		    dma_addr_t dma_handle)
+-{
+-	BUG();
+-}
++		    dma_addr_t dma_handle);
  
- 	if (!fail_page_alloc.ignore_gfp_wait_file ||
--			!fail_page_alloc.ignore_gfp_highmem_file) {
-+            !fail_page_alloc.ignore_gfp_highmem_file ||
-+            !fail_page_alloc.min_order_file) {
- 		err = -ENOMEM;
- 		debugfs_remove(fail_page_alloc.ignore_gfp_wait_file);
- 		debugfs_remove(fail_page_alloc.ignore_gfp_highmem_file);
-+		debugfs_remove(fail_page_alloc.min_order_file);
- 		cleanup_fault_attr_dentries(&fail_page_alloc.attr);
- 	}
+ #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+ #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
  
++extern dma_addr_t
++dma_map_single(struct device *dev, void *ptr, size_t size,
++	       enum dma_data_direction direction);
++
++extern void
++dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
++		 enum dma_data_direction direction);
++
++extern int
++dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++	   enum dma_data_direction direction);
++
++extern void
++dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
++	     enum dma_data_direction direction);
++
++extern dma_addr_t
++dma_map_page(struct device *dev, struct page *page, unsigned long offset,
++	     size_t size, enum dma_data_direction direction);
++
++extern void
++dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
++	       enum dma_data_direction direction);
++
++extern void
++dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
++			enum dma_data_direction direction);
++
++extern void
++dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
++			      unsigned long offset, size_t size,
++			      enum dma_data_direction direction);
++
++extern void
++dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
++		    enum dma_data_direction direction);
++
++#define dma_sync_single_for_device dma_sync_single_for_cpu
++#define dma_sync_single_range_for_device dma_sync_single_range_for_cpu
++#define dma_sync_sg_for_device dma_sync_sg_for_cpu
++
++extern int
++dma_mapping_error(dma_addr_t dma_addr);
++
++extern int
++dma_supported(struct device *dev, u64 mask);
++
++extern int
++dma_set_mask(struct device *dev, u64 mask);
++
++extern int
++dma_get_cache_alignment(void);
++
++extern int
++dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
++
++extern void
++dma_cache_sync(struct device *dev, void *vaddr, size_t size,
++	       enum dma_data_direction direction);
++
+ #endif /* _ASM_GENERIC_DMA_MAPPING_H */
+diff -puN include/asm-h8300/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
+--- a/include/asm-h8300/dma-mapping.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/dma-mapping-broken.h>
+diff -puN include/asm-m32r/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
+--- a/include/asm-m32r/dma-mapping.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_M32R_DMA_MAPPING_H
+-#define _ASM_M32R_DMA_MAPPING_H
+-
+-#include <asm-generic/dma-mapping-broken.h>
+-
+-#endif /* _ASM_M32R_DMA_MAPPING_H */
+diff -puN include/asm-s390/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on /dev/null
+--- a/include/asm-s390/dma-mapping.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/*
+- *  include/asm-s390/dma-mapping.h
+- *
+- *  S390 version
+- *
+- *  This file exists so that #include <dma-mapping.h> doesn't break anything.
+- */
+-
+-#ifndef _ASM_DMA_MAPPING_H
+-#define _ASM_DMA_MAPPING_H
+-
+-#endif /* _ASM_DMA_MAPPING_H */
+diff -puN include/linux/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mapping-prevent-dma-dependent-code-from-linking-on
++++ a/include/linux/dma-mapping.h
+@@ -31,7 +31,11 @@ static inline int valid_dma_direction(in
+ 		(dma_direction == DMA_FROM_DEVICE));
+ }
+ 
++#ifdef CONFIG_HAS_DMA
+ #include <asm/dma-mapping.h>
++#else
++#include <asm-generic/dma-mapping-broken.h>
++#endif
+ 
+ /* Backwards compat, remove in 2.7.x */
+ #define dma_sync_single		dma_sync_single_for_cpu
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-git-dvb.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-add-min-order-parameter-to-fail_page_alloc.patch
-fault-injection-fix-example-scripts-in-documentation.patch
+git-md-accel.patch
+git-ioat-vs-git-md-accel.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
