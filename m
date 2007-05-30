@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-numa--sysfs-bootstrap-issue.patch added to -mm tree
-Date: Wed, 30 May 2007 11:06:23 -0700
-Message-ID: <200705301806.l4UI6NAS001312@shell0.pdx.osdl.net>
+Subject: + tty-fix-leakage-of-erestartsys-to-userland.patch added to -mm tree
+Date: Wed, 30 May 2007 11:05:19 -0700
+Message-ID: <200705301805.l4UI5Jru001290@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47884 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757028AbXE3SG0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758635AbXE3SF6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 14:06:26 -0400
+	Wed, 30 May 2007 14:05:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: oleg@tv-sign.ru, alan@lxorguk.ukuu.org.uk, roland@redhat.com, stable@kernel.org, takeuchi_satoru@jp.fujitsu.com
 
 
 The patch titled
-     SLUB: Fix NUMA / SYSFS bootstrap issue
+     tty: fix leakage of -ERESTARTSYS to userland
 has been added to the -mm tree.  Its filename is
-     slub-fix-numa--sysfs-bootstrap-issue.patch
+     tty-fix-leakage-of-erestartsys-to-userland.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Fix NUMA / SYSFS bootstrap issue
-From: Christoph Lameter <clameter@sgi.com>
+Subject: tty: fix leakage of -ERESTARTSYS to userland
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-We need this patch in ASAP.  Patch fixes the mysterious hang that remained
-on some particular configurations with lockdep on after the first fix that
-moved the #idef CONFIG_SLUB_DEBUG to the right location.  See
-http://marc.info/?t=117963072300001&r=1&w=2
+Spotted by Satoru Takeuchi.
 
-The kmem_cache_node cache is very special because it is needed for NUMA
-bootstrap.  Under certain conditions (like for example if lockdep is
-enabled and significantly increases the size of spinlock_t) the structure
-may become exactly the size as one of the larger caches in the kmalloc
-array.
+kill_pgrp(task_pgrp(current)) sends the signal to the current's thread
+group, but can choose any sub-thread as a target for signal_wake_up(). 
+This means that job_control() and tty_check_change() may return
+-ERESTARTSYS without signal_pending().
 
-That early during bootstrap we cannot perform merging properly.  The unique
-id for the kmem_cache_node cache will match one of the kmalloc array. 
-Sysfs will complain about a duplicate directory entry.  All of this occurs
-while the console is not yet fully operational.  Thus boot may appear to be
-silently failing.
-
-The kmem_cache_node cache is very special.  During early boostrap the main
-allocation function is not operational yet and so we have to run our own
-small special alloc function during early boot.  It is also special in that
-it is never freed.
-
-We really do not want any merging on that cache.  Set the refcount -1 and
-forbid merging of slabs that have a negative refcount.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 +++++++
- 1 files changed, 7 insertions(+)
+ drivers/char/n_tty.c  |    1 +
+ drivers/char/tty_io.c |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-fix-numa--sysfs-bootstrap-issue mm/slub.c
---- a/mm/slub.c~slub-fix-numa--sysfs-bootstrap-issue
-+++ a/mm/slub.c
-@@ -2435,6 +2435,7 @@ void __init kmem_cache_init(void)
- 	 */
- 	create_kmalloc_cache(&kmalloc_caches[0], "kmem_cache_node",
- 		sizeof(struct kmem_cache_node), GFP_KERNEL);
-+	kmalloc_caches[0].refcount = -1;
- #endif
- 
- 	/* Able to allocate the per node structures */
-@@ -2482,6 +2483,12 @@ static int slab_unmergeable(struct kmem_
- 	if (s->ctor)
- 		return 1;
- 
-+	/*
-+	 * We may have set a slab to be unmergeable during bootstrap.
-+	 */
-+	if (s->refcount < 0)
-+		return 1;
-+
- 	return 0;
+diff -puN drivers/char/n_tty.c~tty-fix-leakage-of-erestartsys-to-userland drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~tty-fix-leakage-of-erestartsys-to-userland
++++ a/drivers/char/n_tty.c
+@@ -1191,6 +1191,7 @@ static int job_control(struct tty_struct
+ 			    is_current_pgrp_orphaned())
+ 				return -EIO;
+ 			kill_pgrp(task_pgrp(current), SIGTTIN, 1);
++			set_thread_flag(TIF_SIGPENDING);
+ 			return -ERESTARTSYS;
+ 		}
+ 	}
+diff -puN drivers/char/tty_io.c~tty-fix-leakage-of-erestartsys-to-userland drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-fix-leakage-of-erestartsys-to-userland
++++ a/drivers/char/tty_io.c
+@@ -1148,7 +1148,8 @@ int tty_check_change(struct tty_struct *
+ 		return 0;
+ 	if (is_current_pgrp_orphaned())
+ 		return -EIO;
+-	(void) kill_pgrp(task_pgrp(current), SIGTTOU, 1);
++	kill_pgrp(task_pgrp(current), SIGTTOU, 1);
++	set_thread_flag(TIF_SIGPENDING);
+ 	return -ERESTARTSYS;
  }
  
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-slub-more-documentation.patch
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-slub-fix-numa--sysfs-bootstrap-issue.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+tty-fix-leakage-of-erestartsys-to-userland.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
