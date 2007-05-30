@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-add-fork-exit-hooks-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 00:15:04 -0700
-Message-ID: <200705300715.l4U7F3e3021345@shell0.pdx.osdl.net>
+Subject: + containersv10-simple-debug-info-subsystem-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 00:15:24 -0700
+Message-ID: <200705300715.l4U7FNOg021374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47656 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752066AbXE3HQT (ORCPT
+	by vger.kernel.org with ESMTP id S1752092AbXE3HQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 03:16:19 -0400
+	Wed, 30 May 2007 03:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmiss
 
 
 The patch titled
-     containersv10-add-fork-exit-hooks-fix
+     containersv10-simple-debug-info-subsystem-fix
 has been added to the -mm tree.  Its filename is
-     containersv10-add-fork-exit-hooks-fix.patch
+     containersv10-simple-debug-info-subsystem-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containersv10-add-fork-exit-hooks-fix
+Subject: containersv10-simple-debug-info-subsystem-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -41,87 +41,52 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |   23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+ kernel/container_debug.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN kernel/container.c~containersv10-add-fork-exit-hooks-fix kernel/container.c
---- a/kernel/container.c~containersv10-add-fork-exit-hooks-fix
-+++ a/kernel/container.c
-@@ -144,21 +144,18 @@ list_for_each_entry(_root, &roots, root_
-  * it's better for performance to ref-count every subsystem, or to
-  * take a global lock and only add one ref count to each hierarchy.
-  */
--
- static void get_css_group(struct css_group *cg)
- {
- 	int i;
--	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
- 		atomic_inc(&cg->subsys[i]->container->count);
--	}
- }
+diff -puN kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix kernel/container_debug.c
+--- a/kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix
++++ a/kernel/container_debug.c
+@@ -10,10 +10,15 @@
  
- static void put_css_group(struct css_group *cg)
- {
- 	int i;
--	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
-+	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++)
- 		atomic_dec(&cg->subsys[i]->container->count);
--	}
- }
- 
- /*
-@@ -1527,8 +1524,7 @@ out:
-  *
-  * At the point that container_fork() is called, 'current' is the parent
-  * task, and the passed argument 'child' points to the child task.
-- **/
--
-+ */
- void container_fork(struct task_struct *child)
- {
- 	rcu_read_lock();
-@@ -1541,17 +1537,15 @@ void container_fork(struct task_struct *
-  * container_fork_callbacks - called on a new task very soon before
-  * adding it to the tasklist. No need to take any locks since no-one
-  * can be operating on this task
-- **/
--
-+ */
- void container_fork_callbacks(struct task_struct *child)
- {
- 	if (need_forkexit_callback) {
- 		int i;
- 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 			struct container_subsys *ss = subsys[i];
--			if (ss->fork) {
-+			if (ss->fork)
- 				ss->fork(ss, child);
--			}
- 		}
- 	}
- }
-@@ -1590,17 +1584,16 @@ void container_fork_callbacks(struct tas
-  *    which wards off any attach_task() attempts, or task is a failed
-  *    fork, never visible to attach_task.
-  *
-- **/
--
-+ */
- void container_exit(struct task_struct *tsk, int run_callbacks)
- {
- 	int i;
+ #include <linux/container.h>
+ #include <linux/fs.h>
++#include <linux/slab.h>
++#include <linux/rcupdate.h>
 +
- 	if (run_callbacks && need_forkexit_callback) {
- 		for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 			struct container_subsys *ss = subsys[i];
--			if (ss->exit) {
-+			if (ss->exit)
- 				ss->exit(ss, tsk);
--			}
- 		}
- 	}
- 	/* Reassign the task to the init_css_group. */
++#include <asm/atomic.h>
+ 
+ static int debug_create(struct container_subsys *ss, struct container *cont)
+ {
+ 	struct container_subsys_state *css = kzalloc(sizeof(*css), GFP_KERNEL);
++
+ 	if (!css)
+ 		return -ENOMEM;
+ 	cont->subsys[debug_subsys_id] = css;
+@@ -33,6 +38,7 @@ static u64 container_refcount_read(struc
+ static u64 taskcount_read(struct container *cont, struct cftype *cft)
+ {
+ 	u64 count;
++
+ 	container_lock();
+ 	count = container_task_count(cont);
+ 	container_unlock();
+@@ -41,13 +47,14 @@ static u64 taskcount_read(struct contain
+ 
+ static u64 current_css_group_read(struct container *cont, struct cftype *cft)
+ {
+-	return (u64) current->containers;
++	return (u64)current->containers;
+ }
+ 
+ static u64 current_css_group_refcount_read(struct container *cont,
+ 					   struct cftype *cft)
+ {
+ 	u64 count;
++
+ 	rcu_read_lock();
+ 	count = atomic_read(&current->containers->ref.refcount);
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
