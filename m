@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + prism54-maintainers-update.patch added to -mm tree
-Date: Wed, 30 May 2007 13:38:13 -0700
-Message-ID: <200705302038.l4UKcDhN004065@shell0.pdx.osdl.net>
+Subject: + serial-set-dtr-in-uart-for-kernel-serial-console.patch added to -mm tree
+Date: Wed, 30 May 2007 13:50:23 -0700
+Message-ID: <200705302050.l4UKoNHf004269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37664 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758750AbXE3UjB (ORCPT
+	by vger.kernel.org with ESMTP id S1753409AbXE3Uuj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 16:39:01 -0400
+	Wed, 30 May 2007 16:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mcgrof@gmail.com, linville@tuxdriver.com
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
 
 
 The patch titled
-     prism54: MAINTAINERS update
+     serial: set DTR in uart for kernel serial console
 has been added to the -mm tree.  Its filename is
-     prism54-maintainers-update.patch
+     serial-set-dtr-in-uart-for-kernel-serial-console.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: prism54: MAINTAINERS update
-From: "Luis R. Rodriguez" <mcgrof@gmail.com>
+Subject: serial: set DTR in uart for kernel serial console
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Some RS-232 devices require DTR to be asserted before they can be used.  DTR
+is normally asserted in uart_startup() when the port is opened.  But we don't
+actually open serial console ports, so assert DTR when the port is added.
+
+BTW:
+earlyprintk and early_uart are hard coded to set DTR/RTS.
+
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/serial_core.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~prism54-maintainers-update MAINTAINERS
---- a/MAINTAINERS~prism54-maintainers-update
-+++ a/MAINTAINERS
-@@ -2885,8 +2885,8 @@ W:	ftp://ftp.kernel.org/pub/linux/kernel
- S:	Supported
+diff -puN drivers/serial/serial_core.c~serial-set-dtr-in-uart-for-kernel-serial-console drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-set-dtr-in-uart-for-kernel-serial-console
++++ a/drivers/serial/serial_core.c
+@@ -2303,8 +2303,14 @@ int uart_add_one_port(struct uart_driver
+ 	 * It may be that the port was not available.
+ 	 */
+ 	if (port->type != PORT_UNKNOWN &&
+-	    port->cons && !(port->cons->flags & CON_ENABLED))
++	    port->cons && !(port->cons->flags & CON_ENABLED)) {
++		/*
++		 * We normally assert DTR when a port is opened, but serial
++		 * console devices aren't actually opened, so do it here.
++		 */
++		uart_set_mctrl(port, TIOCM_DTR);
+ 		register_console(port->cons);
++	}
  
- PRISM54 WIRELESS DRIVER
--P:	Prism54 Development Team
--M:	developers@islsm.org
-+P:	Luis R. Rodriguez
-+M:	mcgrof@gmail.com
- L:	linux-wireless@vger.kernel.org
- W:	http://prism54.org
- S:	Maintained
-diff -puN /dev/null /dev/null
+ 	/*
+ 	 * Ensure UPF_DEAD is not set.
 _
 
-Patches currently in -mm which might be from mcgrof@gmail.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-git-wireless.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-prism54-maintainers-update.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-set-dtr-in-uart-for-kernel-serial-console.patch
