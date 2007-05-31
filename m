@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch added to -mm tree
-Date: Thu, 31 May 2007 15:41:20 -0700
-Message-ID: <200705312241.l4VMfKgZ029827@shell0.pdx.osdl.net>
+Subject: + introduce-i_sync.patch added to -mm tree
+Date: Thu, 31 May 2007 15:46:56 -0700
+Message-ID: <200705312246.l4VMkuH7029914@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40222 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753407AbXEaWlc (ORCPT
+	by vger.kernel.org with ESMTP id S1753115AbXEaWrk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 18:41:32 -0400
+	Thu, 31 May 2007 18:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, asit.k.mallick@intel.com, ebiederm@xmission.com, keith.packard@intel.com, mingo@elte.hu, nanhai.zou@intel.com, suresh.b.siddha@intel.com
+Cc: joern@wohnheim.fh-wedel.de, aia21@cam.ac.uk, dgc@sgi.com, hch@infradead.org, shaggy@linux.vnet.ibm.com, viro@ftp.linux.org.uk
 
 
 The patch titled
-     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix
+     introduce I_SYNC
 has been added to the -mm tree.  Its filename is
-     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
+     introduce-i_sync.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,184 +26,352 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: introduce I_SYNC
+From: Joern Engel <joern@wohnheim.fh-wedel.de>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Asit Mallick <asit.k.mallick@intel.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Keith Packard <keith.packard@intel.com>
-Cc: Nanhai Zou <nanhai.zou@intel.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+I_LOCK was used for several unrelated purposes, which caused deadlock
+situations in certain filesystems as a side effect.  One of the purposes
+now uses the new I_SYNC bit.
+
+Also document the various bits and change their order from historical to
+logical.
+
+Signed-off-by: Joern Engel <joern@wohnheim.fh-wedel.de>
+Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Anton Altaparmakov <aia21@cam.ac.uk>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c           |   39 +++++++++++-------
+ fs/hugetlbfs/inode.c        |    2 
+ fs/inode.c                  |    6 +-
+ fs/jfs/jfs_txnmgr.c         |    9 +++-
+ fs/xfs/linux-2.6/xfs_iops.c |    4 -
+ include/linux/fs.h          |   70 +++++++++++++++++++++++++++++-----
+ include/linux/writeback.h   |    7 +++
+ mm/page-writeback.c         |    2 
+ 8 files changed, 107 insertions(+), 32 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -1447,13 +1447,13 @@ static void ack_apic_level(unsigned int 
- 	if (unlikely(do_unmask_irq)) {
- 		/* Only migrate the irq if the ack has been received.
- 		 *
--		 * On rare occaions the broadcast level triggered ack gets
-+		 * On rare occasions the broadcast level triggered ack gets
- 		 * delayed going to ioapics, and if we reprogram the
- 		 * vector while Remote IRR is still the irq will never
- 		 * fire again.
- 		 *
- 		 * To prevent this scenario we read the Remote IRR bit
--		 * of the ioapic.  This has two affects.
-+		 * of the ioapic.  This has two effects.
- 		 * - On any sane system the read of the ioapic will
- 		 *   flush writes (and acks) going to the ioapic from
- 		 *   this cpu.
-@@ -1468,8 +1468,8 @@ static void ack_apic_level(unsigned int 
- 		 *
- 		 * However there appears to be no other way to plug
- 		 * this race, so if the Remote IRR bit is not
--		 * accurate and causing problems it is a hardware bug
--		 * and you can go talk chipset vendor about it.
-+		 * accurate and is causing problems then it is a hardware bug
-+		 * and you can go talk to the chipset vendor about it.
+diff -puN fs/fs-writeback.c~introduce-i_sync fs/fs-writeback.c
+--- a/fs/fs-writeback.c~introduce-i_sync
++++ a/fs/fs-writeback.c
+@@ -99,11 +99,11 @@ void __mark_inode_dirty(struct inode *in
+ 		inode->i_state |= flags;
+ 
+ 		/*
+-		 * If the inode is locked, just update its dirty state. 
++		 * If the inode is being synced, just update its dirty state.
+ 		 * The unlocker will place the inode on the appropriate
+ 		 * superblock list, based upon its state.
  		 */
- 		if (!io_apic_level_ack_pending(irq))
- 			move_masked_irq(irq);
+-		if (inode->i_state & I_LOCK)
++		if (inode->i_state & I_SYNC)
+ 			goto out;
+ 
+ 		/*
+@@ -185,6 +185,15 @@ static void redirty_head(struct inode *i
+ 	list_move_tail(&inode->i_list, &sb->s_dirty);
+ }
+ 
++static void inode_sync_complete(struct inode *inode)
++{
++	/*
++	 * Prevent speculative execution through spin_unlock(&inode_lock);
++	 */
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_SYNC);
++}
++
+ /*
+  * Write a single inode's dirty pages and inode data out to disk.
+  * If `wait' is set, wait on the writeout.
+@@ -203,11 +212,11 @@ __sync_single_inode(struct inode *inode,
+ 	int wait = wbc->sync_mode == WB_SYNC_ALL;
+ 	int ret;
+ 
+-	BUG_ON(inode->i_state & I_LOCK);
++	BUG_ON(inode->i_state & I_SYNC);
+ 
+-	/* Set I_LOCK, reset I_DIRTY */
++	/* Set I_SYNC, reset I_DIRTY */
+ 	dirty = inode->i_state & I_DIRTY;
+-	inode->i_state |= I_LOCK;
++	inode->i_state |= I_SYNC;
+ 	inode->i_state &= ~I_DIRTY;
+ 
+ 	spin_unlock(&inode_lock);
+@@ -228,7 +237,7 @@ __sync_single_inode(struct inode *inode,
+ 	}
+ 
+ 	spin_lock(&inode_lock);
+-	inode->i_state &= ~I_LOCK;
++	inode->i_state &= ~I_SYNC;
+ 	if (!(inode->i_state & I_FREEING)) {
+ 		if (!(inode->i_state & I_DIRTY) &&
+ 		    mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
+@@ -284,7 +293,7 @@ __sync_single_inode(struct inode *inode,
+ 			list_move(&inode->i_list, &inode_unused);
+ 		}
+ 	}
+-	wake_up_inode(inode);
++	inode_sync_complete(inode);
+ 	return ret;
+ }
+ 
+@@ -303,7 +312,7 @@ __writeback_single_inode(struct inode *i
+ 	else
+ 		WARN_ON(inode->i_state & I_WILL_FREE);
+ 
+-	if ((wbc->sync_mode != WB_SYNC_ALL) && (inode->i_state & I_LOCK)) {
++	if ((wbc->sync_mode != WB_SYNC_ALL) && (inode->i_state & I_SYNC)) {
+ 		struct address_space *mapping = inode->i_mapping;
+ 		int ret;
+ 
+@@ -329,16 +338,16 @@ __writeback_single_inode(struct inode *i
+ 	/*
+ 	 * It's a data-integrity sync.  We must wait.
+ 	 */
+-	if (inode->i_state & I_LOCK) {
+-		DEFINE_WAIT_BIT(wq, &inode->i_state, __I_LOCK);
++	if (inode->i_state & I_SYNC) {
++		DEFINE_WAIT_BIT(wq, &inode->i_state, __I_SYNC);
+ 
+-		wqh = bit_waitqueue(&inode->i_state, __I_LOCK);
++		wqh = bit_waitqueue(&inode->i_state, __I_SYNC);
+ 		do {
+ 			spin_unlock(&inode_lock);
+ 			__wait_on_bit(wqh, &wq, inode_wait,
+ 							TASK_UNINTERRUPTIBLE);
+ 			spin_lock(&inode_lock);
+-		} while (inode->i_state & I_LOCK);
++		} while (inode->i_state & I_SYNC);
+ 	}
+ 	return __sync_single_inode(inode, wbc);
+ }
+@@ -371,7 +380,7 @@ __writeback_single_inode(struct inode *i
+  * The inodes to be written are parked on sb->s_io.  They are moved back onto
+  * sb->s_dirty as they are selected for writing.  This way, none can be missed
+  * on the writer throttling path, and we get decent balancing between many
+- * throttled threads: we don't want them all piling up on __wait_on_inode.
++ * throttled threads: we don't want them all piling up on inode_sync_wait.
+  */
+ static void
+ sync_sb_inodes(struct super_block *sb, struct writeback_control *wbc)
+@@ -643,7 +652,7 @@ int write_inode_now(struct inode *inode,
+ 	ret = __writeback_single_inode(inode, &wbc);
+ 	spin_unlock(&inode_lock);
+ 	if (sync)
+-		wait_on_inode(inode);
++		inode_sync_wait(inode);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(write_inode_now);
+@@ -718,7 +727,7 @@ int generic_osync_inode(struct inode *in
+ 			err = err2;
+ 	}
+ 	else
+-		wait_on_inode(inode);
++		inode_sync_wait(inode);
+ 
+ 	return err;
+ }
+diff -puN fs/hugetlbfs/inode.c~introduce-i_sync fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~introduce-i_sync
++++ a/fs/hugetlbfs/inode.c
+@@ -237,7 +237,7 @@ static void hugetlbfs_forget_inode(struc
+ 	struct super_block *sb = inode->i_sb;
+ 
+ 	if (!hlist_unhashed(&inode->i_hash)) {
+-		if (!(inode->i_state & (I_DIRTY|I_LOCK)))
++		if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+ 			list_move(&inode->i_list, &inode_unused);
+ 		inodes_stat.nr_unused++;
+ 		if (!sb || (sb->s_flags & MS_ACTIVE)) {
+diff -puN fs/inode.c~introduce-i_sync fs/inode.c
+--- a/fs/inode.c~introduce-i_sync
++++ a/fs/inode.c
+@@ -226,7 +226,7 @@ void __iget(struct inode * inode)
+ 		return;
+ 	}
+ 	atomic_inc(&inode->i_count);
+-	if (!(inode->i_state & (I_DIRTY|I_LOCK)))
++	if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+ 		list_move(&inode->i_list, &inode_in_use);
+ 	inodes_stat.nr_unused--;
+ }
+@@ -247,7 +247,7 @@ void clear_inode(struct inode *inode)
+ 	BUG_ON(inode->i_data.nrpages);
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+ 	BUG_ON(inode->i_state & I_CLEAR);
+-	wait_on_inode(inode);
++	inode_sync_wait(inode);
+ 	DQUOT_DROP(inode);
+ 	if (inode->i_sb->s_op->clear_inode)
+ 		inode->i_sb->s_op->clear_inode(inode);
+@@ -1053,7 +1053,7 @@ static void generic_forget_inode(struct 
+ 	struct super_block *sb = inode->i_sb;
+ 
+ 	if (!hlist_unhashed(&inode->i_hash)) {
+-		if (!(inode->i_state & (I_DIRTY|I_LOCK)))
++		if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+ 			list_move(&inode->i_list, &inode_unused);
+ 		inodes_stat.nr_unused++;
+ 		if (sb->s_flags & MS_ACTIVE) {
+diff -puN fs/jfs/jfs_txnmgr.c~introduce-i_sync fs/jfs/jfs_txnmgr.c
+--- a/fs/jfs/jfs_txnmgr.c~introduce-i_sync
++++ a/fs/jfs/jfs_txnmgr.c
+@@ -1285,7 +1285,14 @@ int txCommit(tid_t tid,		/* transaction 
+ 		 * commit the transaction synchronously, so the last iput
+ 		 * will be done by the calling thread (or later)
+ 		 */
+-		if (tblk->u.ip->i_state & I_LOCK)
++		/*
++		 * I believe this code is no longer needed.  Splitting I_LOCK
++		 * into two bits, I_LOCK and I_SYNC should prevent this
++		 * deadlock as well.  But since I don't have a JFS testload
++		 * to verify this, only a trivial s/I_LOCK/I_SYNC/ was done.
++		 * Joern
++		 */
++		if (tblk->u.ip->i_state & I_SYNC)
+ 			tblk->xflag &= ~COMMIT_LAZY;
+ 	}
+ 
+diff -puN fs/xfs/linux-2.6/xfs_iops.c~introduce-i_sync fs/xfs/linux-2.6/xfs_iops.c
+--- a/fs/xfs/linux-2.6/xfs_iops.c~introduce-i_sync
++++ a/fs/xfs/linux-2.6/xfs_iops.c
+@@ -133,7 +133,7 @@ xfs_ichgtime(
+ 	 */
+ 	SYNCHRONIZE();
+ 	ip->i_update_core = 1;
+-	if (!(inode->i_state & I_LOCK))
++	if (!(inode->i_state & I_SYNC))
+ 		mark_inode_dirty_sync(inode);
+ }
+ 
+@@ -185,7 +185,7 @@ xfs_ichgtime_fast(
+ 	 */
+ 	SYNCHRONIZE();
+ 	ip->i_update_core = 1;
+-	if (!(inode->i_state & I_LOCK))
++	if (!(inode->i_state & I_SYNC))
+ 		mark_inode_dirty_sync(inode);
+ }
+ 
+diff -puN include/linux/fs.h~introduce-i_sync include/linux/fs.h
+--- a/include/linux/fs.h~introduce-i_sync
++++ a/include/linux/fs.h
+@@ -1247,16 +1247,68 @@ struct super_operations {
+ #endif
+ };
+ 
+-/* Inode state bits.  Protected by inode_lock. */
+-#define I_DIRTY_SYNC		1 /* Not dirty enough for O_DATASYNC */
+-#define I_DIRTY_DATASYNC	2 /* Data-related inode changes pending */
+-#define I_DIRTY_PAGES		4 /* Data-related inode changes pending */
+-#define __I_LOCK		3
++/*
++ * Inode state bits.  Protected by inode_lock.
++ *
++ * Three bits determine the dirty state of the inode, I_DIRTY_SYNC,
++ * I_DIRTY_DATASYNC and I_DIRTY_PAGES.
++ *
++ * Four bits define the lifetime of an inode.  Initially, inodes are I_NEW,
++ * until that flag is cleared.  I_WILL_FREE, I_FREEING and I_CLEAR are set at
++ * various stages of removing an inode.
++ *
++ * Two bits are used for locking and completion notification, I_LOCK and I_SYNC.
++ *
++ * I_DIRTY_SYNC		Inode itself is dirty.
++ * I_DIRTY_DATASYNC	Data-related inode changes pending
++ * I_DIRTY_PAGES	Inode has dirty pages.  Inode itself may be clean.
++ * I_NEW		get_new_inode() sets i_state to I_LOCK|I_NEW.  Both
++ *			are cleared by unlock_new_inode(), called from iget().
++ * I_WILL_FREE		Must be set when calling write_inode_now() if i_count
++ *			is zero.  I_FREEING must be set when I_WILL_FREE is
++ *			cleared.
++ * I_FREEING		Set when inode is about to be freed but still has dirty
++ *			pages or buffers attached or the inode itself is still
++ *			dirty.
++ * I_CLEAR		Set by clear_inode().  In this state the inode is clean
++ *			and can be destroyed.
++ *
++ *			Inodes that are I_WILL_FREE, I_FREEING or I_CLEAR are
++ *			prohibited for many purposes.  iget() must wait for
++ *			the inode to be completely released, then create it
++ *			anew.  Other functions will just ignore such inodes,
++ *			if appropriate.  I_LOCK is used for waiting.
++ *
++ * I_LOCK		Serves as both a mutex and completion notification.
++ *			New inodes set I_LOCK.  If two processes both create
++ *			the same inode, one of them will release its inode and
++ *			wait for I_LOCK to be released before returning.
++ *			Inodes in I_WILL_FREE, I_FREEING or I_CLEAR state can
++ *			also cause waiting on I_LOCK, without I_LOCK actually
++ *			being set.  find_inode() uses this to prevent returning
++ *			nearly-dead inodes.
++ * I_SYNC		Similar to I_LOCK, but limited in scope to writeback
++ *			of inode dirty data.  Having a seperate lock for this
++ *			purpose reduces latency and prevents some filesystem-
++ *			specific deadlocks.
++ *
++ * Q: Why does I_DIRTY_DATASYNC exist?  It appears as if it could be replaced
++ *    by (I_DIRTY_SYNC|I_DIRTY_PAGES).
++ * Q: What is the difference between I_WILL_FREE and I_FREEING?
++ * Q: igrab() only checks on (I_FREEING|I_WILL_FREE).  Should it also check on
++ *    I_CLEAR?  If not, why?
++ */
++#define I_DIRTY_SYNC		1
++#define I_DIRTY_DATASYNC	2
++#define I_DIRTY_PAGES		4
++#define I_NEW			8
++#define I_WILL_FREE		16
++#define I_FREEING		32
++#define I_CLEAR			64
++#define __I_LOCK		7
+ #define I_LOCK			(1 << __I_LOCK)
+-#define I_FREEING		16
+-#define I_CLEAR			32
+-#define I_NEW			64
+-#define I_WILL_FREE		128
++#define __I_SYNC		8
++#define I_SYNC			(1 << __I_SYNC)
+ 
+ #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
+ 
+diff -puN include/linux/writeback.h~introduce-i_sync include/linux/writeback.h
+--- a/include/linux/writeback.h~introduce-i_sync
++++ a/include/linux/writeback.h
+@@ -81,6 +81,13 @@ static inline void wait_on_inode(struct 
+ 	wait_on_bit(&inode->i_state, __I_LOCK, inode_wait,
+ 							TASK_UNINTERRUPTIBLE);
+ }
++static inline void inode_sync_wait(struct inode *inode)
++{
++	might_sleep();
++	wait_on_bit(&inode->i_state, __I_SYNC, inode_wait,
++							TASK_UNINTERRUPTIBLE);
++}
++
+ 
+ /*
+  * mm/page-writeback.c
+diff -puN mm/page-writeback.c~introduce-i_sync mm/page-writeback.c
+--- a/mm/page-writeback.c~introduce-i_sync
++++ a/mm/page-writeback.c
+@@ -36,7 +36,7 @@
+ 
+ /*
+  * The maximum number of pages to writeout in a single bdflush/kupdate
+- * operation.  We do this so we don't hold I_LOCK against an inode for
++ * operation.  We do this so we don't hold I_SYNC against an inode for
+  * enormous amounts of time, which would block a userspace task which has
+  * been forced to throttle against that inode.  Also, the code reevaluates
+  * the dirty each time it has written this many pages.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joern@wohnheim.fh-wedel.de are
 
-origin.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-afs-needs-schedh.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-rc-fixes.patch
-sparc32-build-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-potential-parse-error-in-ifdef-fix.patch
-potential-parse-error-in-ifdef-update.patch
-aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+introduce-i_sync.patch
