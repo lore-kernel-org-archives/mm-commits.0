@@ -1,191 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-core-infrastructure-fix-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 17:12:34 -0700
-Message-ID: <200705310015.l4V0FxxM008550@shell0.pdx.osdl.net>
+Subject: - print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch removed from -mm tree
+Date: Wed, 30 May 2007 17:15:28 -0700
+Message-ID: <200705310018.l4V0IreU008580@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38486 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751130AbXEaAQP (ORCPT
+	by vger.kernel.org with ESMTP id S1751130AbXEaATd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:16:15 -0400
+	Wed, 30 May 2007 20:19:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@elte.hu
+To: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockstat-core-infrastructure-fix-fix
-has been added to the -mm tree.  Its filename is
-     lockstat-core-infrastructure-fix-fix.patch
+     Print out PAGE_OWNER statistics in relation to fragmentation avoidance
+has been removed from the -mm tree.  Its filename was
+     print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of more allnoconfig failures
 
 ------------------------------------------------------
-Subject: lockstat-core-infrastructure-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Print out PAGE_OWNER statistics in relation to fragmentation avoidance
+From: Mel Gorman <mel@csn.ul.ie>
 
-kernel/mutex.c: In function '__mutex_lock_common':
-kernel/mutex.c:146: error: 'struct mutex' has no member named 'dep_map'
-kernel/mutex.c:183: error: 'struct mutex' has no member named 'dep_map'
+When PAGE_OWNER is set, more information is available of relevance to
+fragmentation avoidance.  A second line is added to /proc/page_owner
+showing the PFN, the pageblock number, the mobility type of the page based
+on its allocation flags, whether the allocation is improperly placed and
+the flags.  A sample entry looks like
 
-tra la la.
+Page allocated via order 0, mask 0x1280d2
+PFN 7355 Block 7 type 3 Fallback Flags      LA
+[0xc01528c6] __handle_mm_fault+598
+[0xc0320427] do_page_fault+279
+[0xc031ed9a] error_code+114
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jason Baron <jbaron@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+This information can be used to identify pages that are improperly placed. As
+the format of PAGE_OWNER data is now different, the comment at the top of
+Documentation/page_owner.c is updated with new instructions.
+
+As PAGE_OWNER tracks the GFP flags used to allocate the pages,
+/proc/pagetypeinfo is enhanced to contain how many mixed blocks exist. The
+additional output looks like
+
+Number of mixed blocks    Unmovable  Reclaimable      Movable      Reserve
+Node 0, zone      DMA            0            1            2            1
+Node 0, zone   Normal            2           11           33            0
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Kconfig.debug           |    0 
- include/linux/lockdep.h |    9 ++-------
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ Documentation/page_owner.c |    3 -
+ fs/proc/proc_misc.c        |   28 ++++++++++
+ mm/vmstat.c                |   93 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 123 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/lockdep.h~lockstat-core-infrastructure-fix-fix include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-core-infrastructure-fix-fix
-+++ a/include/linux/lockdep.h
-@@ -326,13 +326,8 @@ do {								\
+diff -puN Documentation/page_owner.c~print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance Documentation/page_owner.c
+--- a/Documentation/page_owner.c~print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance
++++ a/Documentation/page_owner.c
+@@ -2,7 +2,8 @@
+  * User-space helper to sort the output of /proc/page_owner
+  *
+  * Example use:
+- * cat /proc/page_owner > page_owner.txt
++ * cat /proc/page_owner > page_owner_full.txt
++ * grep -v ^PFN page_owner_full.txt > page_owner.txt
+  * ./sort page_owner.txt sorted_page_owner.txt
+ */
  
- #else /* CONFIG_LOCK_STAT */
+diff -puN fs/proc/proc_misc.c~print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance
++++ a/fs/proc/proc_misc.c
+@@ -761,6 +761,7 @@ read_page_owner(struct file *file, char 
+ 	unsigned long offset = 0, symsize;
+ 	int i;
+ 	ssize_t num_written = 0;
++	int blocktype = 0, pagetype = 0;
  
--static inline void lock_contended(struct lockdep_map *lock, unsigned long ip)
--{
--}
--
--static inline void lock_acquired(struct lockdep_map *lock)
--{
--}
-+#define lock_contended(lockdep_map, ip) do {} while (0)
-+#define lock_acquired(lockdep_map) do {} while (0)
+ 	pfn = min_low_pfn + *ppos;
+ 	page = pfn_to_page(pfn);
+@@ -789,6 +790,33 @@ read_page_owner(struct file *file, char 
+ 		goto out;
+ 	}
  
- #define LOCK_CONTENDED(_lock, try, lock) \
- 	lock(_lock)
-diff -puN kernel/lockdep.c~lockstat-core-infrastructure-fix-fix kernel/lockdep.c
-diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix-fix kernel/sysctl.c
-diff -puN lib/Kconfig.debug~lockstat-core-infrastructure-fix-fix lib/Kconfig.debug
++	/* Print information relevant to grouping pages by mobility */
++	blocktype = get_pageblock_migratetype(page);
++	pagetype  = allocflags_to_migratetype(page->gfp_mask);
++	ret += snprintf(kbuf+ret, count-ret,
++			"PFN %lu Block %lu type %d %s "
++			"Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
++			pfn,
++			pfn >> pageblock_order,
++			blocktype,
++			blocktype != pagetype ? "Fallback" : "        ",
++			PageLocked(page)	? "K" : " ",
++			PageError(page)		? "E" : " ",
++			PageReferenced(page)	? "R" : " ",
++			PageUptodate(page)	? "U" : " ",
++			PageDirty(page)		? "D" : " ",
++			PageLRU(page)		? "L" : " ",
++			PageActive(page)	? "A" : " ",
++			PageSlab(page)		? "S" : " ",
++			PageWriteback(page)	? "W" : " ",
++			PageCompound(page)	? "C" : " ",
++			PageSwapCache(page)	? "B" : " ",
++			PageMappedToDisk(page)	? "M" : " ");
++	if (ret >= count) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
+ 	num_written = ret;
+ 
+ 	for (i = 0; i < 8; i++) {
+diff -puN mm/vmstat.c~print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance mm/vmstat.c
+--- a/mm/vmstat.c~print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance
++++ a/mm/vmstat.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/cpu.h>
+ #include <linux/sched.h>
++#include "internal.h"
+ 
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+@@ -552,6 +553,97 @@ static int pagetypeinfo_showblockcount(s
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PAGE_OWNER
++static void pagetypeinfo_showmixedcount_print(struct seq_file *m,
++							pg_data_t *pgdat,
++							struct zone *zone)
++{
++	int mtype, pagetype;
++	unsigned long pfn;
++	unsigned long start_pfn = zone->zone_start_pfn;
++	unsigned long end_pfn = start_pfn + zone->spanned_pages;
++	unsigned long count[MIGRATE_TYPES] = { 0, };
++
++	/* Align PFNs to pageblock_nr_pages boundary */
++	pfn = start_pfn & ~(pageblock_nr_pages-1);
++
++	/*
++	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
++	 * a zone boundary, it will be double counted between zones. This does
++	 * not matter as the mixed block count will still be correct
++	 */
++	for (; pfn < end_pfn; pfn += pageblock_nr_pages) {
++		struct page *page;
++		unsigned long offset = 0;
++
++		/* Do not read before the zone start, use a valid page */
++		if (pfn < start_pfn)
++			offset = start_pfn - pfn;
++
++		if (!pfn_valid(pfn + offset))
++			continue;
++
++		page = pfn_to_page(pfn + offset);
++		mtype = get_pageblock_migratetype(page);
++
++		/* Check the block for bad migrate types */
++		for (; offset < pageblock_nr_pages; offset++) {
++			/* Do not past the end of the zone */
++			if (pfn + offset >= end_pfn)
++				break;
++
++			if (!pfn_valid_within(pfn + offset))
++				continue;
++
++			page = pfn_to_page(pfn + offset);
++
++			/* Skip free pages */
++			if (PageBuddy(page)) {
++				offset += (1UL << page_order(page)) - 1UL;
++				continue;
++			}
++			if (page->order < 0)
++				continue;
++
++			pagetype = allocflags_to_migratetype(page->gfp_mask);
++			if (pagetype != mtype) {
++				count[mtype]++;
++				break;
++			}
++
++			/* Move to end of this allocation */
++			offset += (1 << page->order) - 1;
++		}
++	}
++
++	/* Print counts */
++	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
++	for (mtype = 0; mtype < MIGRATE_TYPES; mtype++)
++		seq_printf(m, "%12lu ", count[mtype]);
++	seq_putc(m, '\n');
++}
++#endif /* CONFIG_PAGE_OWNER */
++
++/*
++ * Print out the number of pageblocks for each migratetype that contain pages
++ * of other types. This gives an indication of how well fallbacks are being
++ * contained by rmqueue_fallback(). It requires information from PAGE_OWNER
++ * to determine what is going on
++ */
++static void pagetypeinfo_showmixedcount(struct seq_file *m, pg_data_t *pgdat)
++{
++#ifdef CONFIG_PAGE_OWNER
++	int mtype;
++
++	seq_printf(m, "\n%-23s", "Number of mixed blocks ");
++	for (mtype = 0; mtype < MIGRATE_TYPES; mtype++)
++		seq_printf(m, "%12s ", migratetype_names[mtype]);
++	seq_putc(m, '\n');
++
++	walk_zones_in_node(m, pgdat, pagetypeinfo_showmixedcount_print);
++#endif /* CONFIG_PAGE_OWNER */
++}
++
+ /*
+  * This prints out statistics in relation to grouping pages by mobility.
+  * It is expensive to collect so do not constantly read the file.
+@@ -565,6 +657,7 @@ static int pagetypeinfo_show(struct seq_
+ 	seq_putc(m, '\n');
+ 	pagetypeinfo_showfree(m, pgdat);
+ 	pagetypeinfo_showblockcount(m, pgdat);
++	pagetypeinfo_showmixedcount(m, pgdat);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-potential-parse-error-in-ifdef-update.patch
-aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
 create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
