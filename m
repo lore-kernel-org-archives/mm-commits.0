@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nick-broke-stuff.patch added to -mm tree
-Date: Wed, 30 May 2007 17:40:49 -0700
-Message-ID: <200705310044.l4V0iDlB008959@shell0.pdx.osdl.net>
+Subject: + containersv10-simple-debug-info-subsystem-fix-2.patch added to -mm tree
+Date: Wed, 30 May 2007 17:40:47 -0700
+Message-ID: <200705310044.l4V0iCrm008956@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54519 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbXEaAoQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753538AbXEaApH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:44:16 -0400
+	Wed, 30 May 2007 20:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     nick-broke-stuff
+     containersv10-simple-debug-info-subsystem-fix-2
 has been added to the -mm tree.  Its filename is
-     nick-broke-stuff.patch
+     containersv10-simple-debug-info-subsystem-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nick-broke-stuff
+Subject: containersv10-simple-debug-info-subsystem-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-These both use cont_prepare_write().  How do these things happen?
+kernel/container_debug.c: In function 'current_css_group_read':
+kernel/container_debug.c:50: warning: cast from pointer to integer of different size
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Don't like this fix.  Why does ->read_uint return u64 at all?  It's a rather
+unnatural type on 32-bit machines.
+
+This code is returning a kernel address to userspace.  This is generally
+verboten.  Can we just delete debug.current_css_group altogether?
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/container_debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~nick-broke-stuff fs/Kconfig
---- a/fs/Kconfig~nick-broke-stuff
-+++ a/fs/Kconfig
-@@ -1096,7 +1096,7 @@ menu "Miscellaneous filesystems"
+diff -puN kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix-2 kernel/container_debug.c
+--- a/kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix-2
++++ a/kernel/container_debug.c
+@@ -47,7 +47,7 @@ static u64 taskcount_read(struct contain
  
- config ADFS_FS
- 	tristate "ADFS file system support (EXPERIMENTAL)"
--	depends on BLOCK && EXPERIMENTAL
-+	depends on BLOCK && EXPERIMENTAL && BROKEN
- 	help
- 	  The Acorn Disc Filing System is the standard file system of the
- 	  RiscOS operating system which runs on Acorn's ARM-based Risc PC
-@@ -1124,7 +1124,7 @@ config ADFS_FS_RW
+ static u64 current_css_group_read(struct container *cont, struct cftype *cft)
+ {
+-	return (u64)current->containers;
++	return (u64)(long)current->containers;
+ }
  
- config AFFS_FS
- 	tristate "Amiga FFS file system support (EXPERIMENTAL)"
--	depends on BLOCK && EXPERIMENTAL
-+	depends on BLOCK && EXPERIMENTAL && BROKEN
- 	help
- 	  The Fast File System (FFS) is the common file system used on hard
- 	  disks by Amiga(tm) systems since AmigaOS Version 1.3 (34.20).  Say Y
+ static u64 current_css_group_refcount_read(struct container *cont,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
