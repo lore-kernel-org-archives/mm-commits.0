@@ -1,30 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - console-console-handover-to-preferred-console.patch removed from -mm tree
-Date: Wed, 30 May 2007 20:16:00 -0700
-Message-ID: <200705310315.l4V3FxhA011272@shell0.pdx.osdl.net>
+Subject: - x86-initial-fixmap-support.patch removed from -mm tree
+Date: Wed, 30 May 2007 20:16:03 -0700
+Message-ID: <200705310316.l4V3G2eE011275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37126 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756103AbXEaDQK (ORCPT
+	by vger.kernel.org with ESMTP id S1756118AbXEaDQR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 23:16:10 -0400
+	Wed, 30 May 2007 23:16:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, ak@suse.de, bjorn.helgaas@hp.com, ebiderman@xmisson.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     console: console handover to preferred console
+     x86: initial fixmap support
 has been removed from the -mm tree.  Its filename was
-     console-console-handover-to-preferred-console.patch
+     x86-initial-fixmap-support.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: console: console handover to preferred console
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: x86: initial fixmap support
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
+Needed to get fixed virtual address for USB debug port and earlycon with mmio.
+
+Signed-off-by: Eric W. Biderman <ebiderman@xmisson.com>
 Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Russell King <rmk@arm.linux.org.uk>
@@ -33,34 +36,101 @@ Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ arch/i386/kernel/head.S   |    8 ++++++++
+ arch/x86_64/kernel/head.S |   15 ++++++++++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~console-console-handover-to-preferred-console kernel/printk.c
---- a/kernel/printk.c~console-console-handover-to-preferred-console
-+++ a/kernel/printk.c
-@@ -985,12 +985,15 @@ void register_console(struct console *co
- 	if (!(console->flags & CON_ENABLED))
- 		return;
+diff -puN arch/i386/kernel/head.S~x86-initial-fixmap-support arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~x86-initial-fixmap-support
++++ a/arch/i386/kernel/head.S
+@@ -168,6 +168,12 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
+ .section .init.text,"ax",@progbits
+ #endif
  
--	if (bootconsole) {
-+	if (bootconsole && (console->flags & CON_CONSDEV)) {
- 		printk(KERN_INFO "console handover: boot [%s%d] -> real [%s%d]\n",
- 		       bootconsole->name, bootconsole->index,
- 		       console->name, console->index);
- 		unregister_console(bootconsole);
- 		console->flags &= ~CON_PRINTBUFFER;
-+	} else {
-+		printk(KERN_INFO "console [%s%d] enabled\n",
-+		       console->name, console->index);
- 	}
++	/* Do an early initialization of the fixmap area */
++	movl $(swapper_pg_dir - __PAGE_OFFSET), %edx
++	movl $(swapper_pg_pmd - __PAGE_OFFSET), %eax
++	addl $0x007, %eax			/* 0x007 = PRESENT+RW+USER */
++	movl %eax, 4092(%edx)
++
+ #ifdef CONFIG_SMP
+ ENTRY(startup_32_smp)
+ 	cld
+@@ -507,6 +513,8 @@ ENTRY(_stext)
+ .section ".bss.page_aligned","w"
+ ENTRY(swapper_pg_dir)
+ 	.fill 1024,4,0
++ENTRY(swapper_pg_pmd)
++	.fill 1024,4,0
+ ENTRY(empty_zero_page)
+ 	.fill 4096,1,0
  
- 	/*
+diff -puN arch/x86_64/kernel/head.S~x86-initial-fixmap-support arch/x86_64/kernel/head.S
+--- a/arch/x86_64/kernel/head.S~x86-initial-fixmap-support
++++ a/arch/x86_64/kernel/head.S
+@@ -73,7 +73,11 @@ startup_64:
+ 	addq	%rbp, init_level4_pgt + (511*8)(%rip)
+ 
+ 	addq	%rbp, level3_ident_pgt + 0(%rip)
++
+ 	addq	%rbp, level3_kernel_pgt + (510*8)(%rip)
++	addq	%rbp, level3_kernel_pgt + (511*8)(%rip)
++
++	addq	%rbp, level2_fixmap_pgt + (506*8)(%rip)
+ 
+ 	/* Add an Identity mapping if I am above 1G */
+ 	leaq	_text(%rip), %rdi
+@@ -314,7 +318,16 @@ NEXT_PAGE(level3_kernel_pgt)
+ 	.fill	510,8,0
+ 	/* (2^48-(2*1024*1024*1024)-((2^39)*511))/(2^30) = 510 */
+ 	.quad	level2_kernel_pgt - __START_KERNEL_map + _KERNPG_TABLE
+-	.fill	1,8,0
++	.quad	level2_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE
++
++NEXT_PAGE(level2_fixmap_pgt)
++	.fill	506,8,0
++	.quad	level1_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE
++	/* 8MB reserved for vsyscalls + a 2MB hole = 4 + 1 entries */
++	.fill	5,8,0
++
++NEXT_PAGE(level1_fixmap_pgt)
++	.fill	512,8,0
+ 
+ NEXT_PAGE(level2_ident_pgt)
+ 	/* Since I easily can, map the first 1G.
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-2.patch
-serial-set-dtr-in-uart-for-kernel-serial-console.patch
+dvb_en_50221-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+x86-initial-fixmap-support.patch
+pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+msi-fix-the-ordering-of-msix-irqs.patch
+msi-mask-the-msix-vector-before-we-unmap-it.patch
+aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+preserve-the-dirty-bit-in-init_page_buffers.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+rd-simplify-by-using-the-same-helper-functions-in-libfs.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
