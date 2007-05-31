@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 18:19:20 -0700
-Message-ID: <200705310122.l4V1MjQX009602@shell0.pdx.osdl.net>
+Subject: + fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch added to -mm tree
+Date: Wed, 30 May 2007 18:21:09 -0700
+Message-ID: <200705310124.l4V1OYcM009621@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56554 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37094 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753786AbXEaBXI (ORCPT
+	by vger.kernel.org with ESMTP id S1750746AbXEaBYj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 21:23:08 -0400
+	Wed, 30 May 2007 21:24:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, adaplas@gmail.com
 
 
 The patch titled
-     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
+     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
 has been added to the -mm tree.  Its filename is
-     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
+Subject: fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "set_dumpable" [security/commoncap.ko] undefined!
+ERROR: "unbind_con_driver" [drivers/video/console/fbcon.ko] undefined!
 
-Cc: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 +
+ drivers/char/vt.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix fs/exec.c
---- a/fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
-+++ a/fs/exec.c
-@@ -1524,6 +1524,7 @@ void set_dumpable(struct mm_struct *mm, 
- 		break;
- 	}
- }
-+EXPORT_SYMBOL_GPL(set_dumpable);
+diff -puN drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2 drivers/char/vt.c
+--- a/drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
++++ a/drivers/char/vt.c
+@@ -3064,6 +3064,7 @@ err:
+ 	return retval;
  
- int get_dumpable(struct mm_struct *mm)
+ }
++EXPORT_SYMBOL(unbind_con_driver);
+ 
+ static int vt_bind(struct con_driver *con)
  {
 _
 
@@ -166,6 +161,7 @@ nfsd-warning-fix.patch
 revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
 lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
 cfs-scheduler-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
