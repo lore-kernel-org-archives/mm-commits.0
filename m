@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-core-infrastructure-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 17:09:38 -0700
-Message-ID: <200705310013.l4V0D3vL008503@shell0.pdx.osdl.net>
+Subject: + lockstat-core-infrastructure-fix-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 17:12:34 -0700
+Message-ID: <200705310015.l4V0FxxM008550@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41230 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38486 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751103AbXEaAOX (ORCPT
+	by vger.kernel.org with ESMTP id S1751130AbXEaAQP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:14:23 -0400
+	Wed, 30 May 2007 20:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, jbaron@redhat.com, mingo@
 
 
 The patch titled
-     lockstat-core-infrastructure-fix
+     lockstat-core-infrastructure-fix-fix
 has been added to the -mm tree.  Its filename is
-     lockstat-core-infrastructure-fix.patch
+     lockstat-core-infrastructure-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,21 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockstat-core-infrastructure-fix
+Subject: lockstat-core-infrastructure-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/spinlock_types.h:18,
-                 from include/linux/spinlock.h:79,
-                 from include/linux/seqlock.h:29,
-                 from include/linux/time.h:7,
-                 from include/linux/stat.h:60,
-                 from include/linux/module.h:10,
-                 from include/linux/crypto.h:21,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/lockdep.h:328: warning: 'struct lockdep_map' declared inside parameter list
-include/linux/lockdep.h:328: warning: its scope is only this definition or declaration, which is probably not what you want
+kernel/mutex.c: In function '__mutex_lock_common':
+kernel/mutex.c:146: error: 'struct mutex' has no member named 'dep_map'
+kernel/mutex.c:183: error: 'struct mutex' has no member named 'dep_map'
 
-Dunno why I bothered writing that SubmitChecklist thing.
+tra la la.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jason Baron <jbaron@redhat.com>
@@ -49,23 +42,31 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  Kconfig.debug           |    0 
- include/linux/lockdep.h |    1 +
- 2 files changed, 1 insertion(+)
+ include/linux/lockdep.h |    9 ++-------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockstat-core-infrastructure-fix include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-core-infrastructure-fix
+diff -puN include/linux/lockdep.h~lockstat-core-infrastructure-fix-fix include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockstat-core-infrastructure-fix-fix
 +++ a/include/linux/lockdep.h
-@@ -9,6 +9,7 @@
- #define __LINUX_LOCKDEP_H
+@@ -326,13 +326,8 @@ do {								\
  
- struct task_struct;
-+struct lockdep_map;
+ #else /* CONFIG_LOCK_STAT */
  
- #ifdef CONFIG_LOCKDEP
+-static inline void lock_contended(struct lockdep_map *lock, unsigned long ip)
+-{
+-}
+-
+-static inline void lock_acquired(struct lockdep_map *lock)
+-{
+-}
++#define lock_contended(lockdep_map, ip) do {} while (0)
++#define lock_acquired(lockdep_map) do {} while (0)
  
-diff -puN kernel/lockdep.c~lockstat-core-infrastructure-fix kernel/lockdep.c
-diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix kernel/sysctl.c
-diff -puN lib/Kconfig.debug~lockstat-core-infrastructure-fix lib/Kconfig.debug
+ #define LOCK_CONTENDED(_lock, try, lock) \
+ 	lock(_lock)
+diff -puN kernel/lockdep.c~lockstat-core-infrastructure-fix-fix kernel/lockdep.c
+diff -puN kernel/sysctl.c~lockstat-core-infrastructure-fix-fix kernel/sysctl.c
+diff -puN lib/Kconfig.debug~lockstat-core-infrastructure-fix-fix lib/Kconfig.debug
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -183,6 +184,7 @@ containersv10-add-procfs-interface-fix.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
 reiser4.patch
 reiser4-fix.patch
 check_dirty_inode_list.patch
