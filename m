@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + afs-needs-schedh.patch added to -mm tree
-Date: Wed, 30 May 2007 22:32:35 -0700
-Message-ID: <200705310536.l4V5a13Y013456@shell0.pdx.osdl.net>
+Subject: + sparc32-build-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 22:58:28 -0700
+Message-ID: <200705310601.l4V61rEh013814@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36103 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753661AbXEaFgT (ORCPT
+	by vger.kernel.org with ESMTP id S1756808AbXEaGCA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 01:36:19 -0400
+	Thu, 31 May 2007 02:02:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kyle@mcmartin.ca, wli@holomorphy.com
 
 
 The patch titled
-     afs: needs sched.h
+     sparc32 build fix
 has been added to the -mm tree.  Its filename is
-     afs-needs-schedh.patch
+     sparc32-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: afs: needs sched.h
+Subject: sparc32 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
+Fix 6197fe4d720ea3e2ee94cdc7ef32d6c0151199de
 
-fs/afs/flock.c: In function `afs_lock_may_be_available':
-fs/afs/flock.c:55: error: dereferencing pointer to incomplete type
-fs/afs/flock.c: In function `afs_lock_work':
-fs/afs/flock.c:84: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:89: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:109: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:135: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:143: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:158: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:161: error: dereferencing pointer to incomplete type
-fs/afs/flock.c:179: error: `TASK_UNINTERRUPTIBLE' undeclared (first use in this function)
-fs/afs/flock.c:179: error: (Each undeclared identifier is reported only once
-fs/afs/flock.c:179: error: for each function it appears in.)
-fs/afs/flock.c:179: error: `TASK_INTERRUPTIBLE' undeclared (first use in this function)
-fs/afs/flock.c:182: error: dereferencing pointer to incomplete type
+arch/sparc/lib/atomic32.c: In function '__cmpxchg_u32':
+arch/sparc/lib/atomic32.c:127: error: 'addr' undeclared (first use in this function)
+arch/sparc/lib/atomic32.c:127: error: (Each undeclared identifier is reported only once
+arch/sparc/lib/atomic32.c:127: error: for each function it appears in.)
 
-Cc: David Howells <dhowells@redhat.com>
+I assume this is what was intended..
+
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/internal.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/sparc/lib/atomic32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/afs/internal.h~afs-needs-schedh fs/afs/internal.h
---- a/fs/afs/internal.h~afs-needs-schedh
-+++ a/fs/afs/internal.h
-@@ -17,6 +17,8 @@
- #include <linux/rxrpc.h>
- #include <linux/key.h>
- #include <linux/workqueue.h>
-+#include <linux/sched.h>
-+
- #include "afs.h"
- #include "afs_vl.h"
+diff -puN arch/sparc/lib/atomic32.c~sparc32-build-fix arch/sparc/lib/atomic32.c
+--- a/arch/sparc/lib/atomic32.c~sparc32-build-fix
++++ a/arch/sparc/lib/atomic32.c
+@@ -124,10 +124,10 @@ unsigned long __cmpxchg_u32(volatile u32
+ 	unsigned long flags;
+ 	u32 prev;
  
+-	spin_lock_irqsave(ATOMIC_HASH(addr), flags);
++	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
+ 	if ((prev = *ptr) == old)
+ 		*ptr = new;
+-	spin_unlock_irqrestore(ATOMIC_HASH(addr), flags);
++	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
+ 
+ 	return (unsigned long)prev;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +70,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 slub-more-documentation-fix.patch
 ntfs_init_locked_inode-fix-array-indexing.patch
+afs-needs-schedh.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
 invalidate_mapping_pages-add-cond_resched.patch
@@ -197,4 +195,4 @@ reiser4.patch
 reiser4-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-afs-needs-schedh.patch
+sparc32-build-fix.patch
