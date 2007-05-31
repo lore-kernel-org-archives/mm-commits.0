@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-add-comment-for-unbind_con_driver.patch added to -mm tree
-Date: Thu, 31 May 2007 15:24:34 -0700
-Message-ID: <200705312224.l4VMOYsg029514@shell0.pdx.osdl.net>
+Subject: + radeonfb-add-support-for-radeon-xpress-200m-rs485.patch added to -mm tree
+Date: Thu, 31 May 2007 15:24:20 -0700
+Message-ID: <200705312224.l4VMOKY0029476@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50823 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753005AbXEaWYh (ORCPT
+	by vger.kernel.org with ESMTP id S1752979AbXEaWYe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 18:24:37 -0400
+	Thu, 31 May 2007 18:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbarnes@virtuousgeek.org, adaplas@gmail.com, jesse.barnes@intel.com
+Cc: WolfSt.External@qimonda.com, adaplas@gmail.com, benh@kernel.crashing.org
 
 
 The patch titled
-     vt: add comment for unbind_con_driver()
+     radeonfb: Add support for Radeon Xpress 200M (RS485)
 has been added to the -mm tree.  Its filename is
-     vt-add-comment-for-unbind_con_driver.patch
+     radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,81 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vt: add comment for unbind_con_driver()
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: radeonfb: Add support for Radeon Xpress 200M (RS485)
+From: Stephan Wolf <WolfSt.External@qimonda.com>
 
-- add comment for unbind_con_driver().
-- bind_con_driver() is made private again
+Add PCI ids for the Radeon Xpress 200M (RS485).
 
-Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c       |   21 +++++++++++++++++++--
- include/linux/vt_kern.h |    2 --
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ drivers/video/aty/ati_ids.h     |    1 +
+ drivers/video/aty/radeon_base.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN drivers/char/vt.c~vt-add-comment-for-unbind_con_driver drivers/char/vt.c
---- a/drivers/char/vt.c~vt-add-comment-for-unbind_con_driver
-+++ a/drivers/char/vt.c
-@@ -2861,7 +2861,8 @@ int __init vty_init(void)
- 
- static struct class *vtconsole_class;
- 
--int bind_con_driver(const struct consw *csw, int first, int last, int deflt)
-+static int bind_con_driver(const struct consw *csw, int first, int last,
-+			   int deflt)
- {
- 	struct module *owner = csw->owner;
- 	const char *desc = NULL;
-@@ -2960,7 +2961,6 @@ err:
- 	module_put(owner);
- 	return retval;
- };
--EXPORT_SYMBOL(bind_con_driver);
- 
- #ifdef CONFIG_VT_HW_CONSOLE_BINDING
- static int con_is_graphics(const struct consw *csw, int first, int last)
-@@ -2979,6 +2979,23 @@ static int con_is_graphics(const struct 
- 	return retval;
- }
- 
-+/**
-+ * unbind_con_driver - unbind a console driver
-+ * @csw: pointer to console driver to unregister
-+ * @first: first in range of consoles that @csw should be unbound from
-+ * @last: last in range of consoles that @csw should be unbound from
-+ * @deflt: should next bound console driver be default after @csw is unbound?
-+ *
-+ * To unbind a driver from all possible consoles, pass 0 as @first and
-+ * %MAX_NR_CONSOLES as @last.
-+ *
-+ * @deflt controls whether the console that ends up replacing @csw should be
-+ * the default console.
-+ *
-+ * RETURNS:
-+ * -ENODEV if @csw isn't a registered console driver or can't be unregistered
-+ * or 0 on success.
-+ */
- int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
- {
- 	struct module *owner = csw->owner;
-diff -puN include/linux/vt_kern.h~vt-add-comment-for-unbind_con_driver include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~vt-add-comment-for-unbind_con_driver
-+++ a/include/linux/vt_kern.h
-@@ -75,8 +75,6 @@ int con_copy_unimap(struct vc_data *dst_
- int vt_waitactive(int vt);
- void change_console(struct vc_data *new_vc);
- void reset_vc(struct vc_data *vc);
--extern int bind_con_driver(const struct consw *csw, int first, int last,
--			   int deflt);
- extern int unbind_con_driver(const struct consw *csw, int first, int last,
- 			     int deflt);
- 
+diff -puN drivers/video/aty/ati_ids.h~radeonfb-add-support-for-radeon-xpress-200m-rs485 drivers/video/aty/ati_ids.h
+--- a/drivers/video/aty/ati_ids.h~radeonfb-add-support-for-radeon-xpress-200m-rs485
++++ a/drivers/video/aty/ati_ids.h
+@@ -204,6 +204,7 @@
+ #define PCI_CHIP_RV280_5961		0x5961
+ #define PCI_CHIP_RV280_5962		0x5962
+ #define PCI_CHIP_RV280_5964		0x5964
++#define PCI_CHIP_RS485_5975		0x5975
+ #define PCI_CHIP_RV280_5C61		0x5C61
+ #define PCI_CHIP_RV280_5C63		0x5C63
+ #define PCI_CHIP_R423_5D57              0x5D57
+diff -puN drivers/video/aty/radeon_base.c~radeonfb-add-support-for-radeon-xpress-200m-rs485 drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~radeonfb-add-support-for-radeon-xpress-200m-rs485
++++ a/drivers/video/aty/radeon_base.c
+@@ -153,6 +153,8 @@ static struct pci_device_id radeonfb_pci
+ 	/* Mobility 9200 (M9+) */
+ 	CHIP_DEF(PCI_CHIP_RV280_5C61,	RV280,	CHIP_HAS_CRTC2 | CHIP_IS_MOBILITY),
+ 	CHIP_DEF(PCI_CHIP_RV280_5C63,	RV280,	CHIP_HAS_CRTC2 | CHIP_IS_MOBILITY),
++	/*Mobility Xpress 200 */
++	CHIP_DEF(PCI_CHIP_RS485_5975,	R300,	CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
+ 	/* 9200 */
+ 	CHIP_DEF(PCI_CHIP_RV280_5960,	RV280,	CHIP_HAS_CRTC2),
+ 	CHIP_DEF(PCI_CHIP_RV280_5961,	RV280,	CHIP_HAS_CRTC2),
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from WolfSt.External@qimonda.com are
 
-mmconfig-validate-against-acpi-motherboard-resources.patch
-vt-add-comment-for-unbind_con_driver.patch
+radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
