@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-o_cloexec-take-2.patch added to -mm tree
-Date: Thu, 31 May 2007 16:20:28 -0700
-Message-ID: <200705312320.l4VNKS44030545@shell0.pdx.osdl.net>
+Subject: + x86_64-change-early_ioremap-to-static.patch added to -mm tree
+Date: Thu, 31 May 2007 16:24:07 -0700
+Message-ID: <200705312324.l4VNO7YT030591@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35986 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755524AbXEaXVN (ORCPT
+	by vger.kernel.org with ESMTP id S1753119AbXEaXYk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 19:21:13 -0400
+	Thu, 31 May 2007 19:24:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drepper@redhat.com, chris@zankel.net, davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, yinghai.lu@Sun.COM
 
 
 The patch titled
-     Introduce O_CLOEXEC
+     x86_64: change early_ioremap to static
 has been added to the -mm tree.  Its filename is
-     introduce-o_cloexec-take-2.patch
+     x86_64-change-early_ioremap-to-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,141 +26,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Introduce O_CLOEXEC
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: x86_64: change early_ioremap to static
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-The problem is as follows: in multi-threaded code (or more correctly: all
-code using clone() with CLONE_FILES) we have a race when exec'ing.
+Only dmi_scan_machine==>dmi_present==>dmi_table==>dmi_ioremap uses
+early_ioremap outside of mm/init.c dmi_scan_machine is called after
+init_memory_mappings, and could use ioremap instead.
 
-   thread #1                       thread #2
-
-   fd=open()
-
-                                   fork + exec
-
-  fcntl(fd,F_SETFD,FD_CLOEXEC)
-
-In some applications this can happen frequently.  Take a web browser.  One
-thread opens a file and another thread starts, say, an external PDF viewer.
- The result can even be a security issue if that open file descriptor
-refers to a sensitive file and the external program can somehow be tricked
-into using that descriptor.
-
-Just adding O_CLOEXEC support to open() doesn't solve the whole set of
-problems.  There are other ways to create file descriptors (socket,
-epoll_create, Unix domain socket transfer, etc).  These can and should be
-addressed separately though.  open() is such an easy case that it makes not
-much sense putting the fix off.
-
-The test program:
-
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-
-#ifndef O_CLOEXEC
-# define O_CLOEXEC 02000000
-#endif
-
-int
-main (int argc, char *argv[])
-{
-  int fd;
-  if (argc > 1)
-    {
-      fd = atol (argv[1]);
-      printf ("child: fd = %d\n", fd);
-      if (fcntl (fd, F_GETFD) == 0 || errno != EBADF)
-        {
-          puts ("file descriptor valid in child");
-          return 1;
-        }
-      return 0;
-    }
-
-  fd = open ("/proc/self/exe", O_RDONLY | O_CLOEXEC);
-  printf ("in parent: new fd = %d\n", fd);
-  char buf[20];
-  snprintf (buf, sizeof (buf), "%d", fd);
-  execl ("/proc/self/exe", argv[0], buf, NULL);
-  puts ("execl failed");
-  return 1;
-}
-
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Chris Zankel <chris@zankel.net>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c                   |   14 +++++++++++---
- include/asm-generic/fcntl.h |    3 +++
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ arch/x86_64/mm/init.c    |   63 ++++++++++++++++++-------------------
+ include/asm-x86_64/dmi.h |    9 +----
+ include/asm-x86_64/io.h  |    3 -
+ 3 files changed, 34 insertions(+), 41 deletions(-)
 
-diff -puN fs/open.c~introduce-o_cloexec-take-2 fs/open.c
---- a/fs/open.c~introduce-o_cloexec-take-2
-+++ a/fs/open.c
-@@ -855,7 +855,7 @@ EXPORT_SYMBOL(dentry_open);
- /*
-  * Find an empty file descriptor entry, and mark it busy.
-  */
--int get_unused_fd(void)
-+static int get_unused_fd_flags(int flags)
- {
- 	struct files_struct * files = current->files;
- 	int fd, error;
-@@ -891,7 +891,10 @@ repeat:
- 	}
+diff -puN arch/x86_64/mm/init.c~x86_64-change-early_ioremap-to-static arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~x86_64-change-early_ioremap-to-static
++++ a/arch/x86_64/mm/init.c
+@@ -174,37 +174,7 @@ __set_fixmap (enum fixed_addresses idx, 
  
- 	FD_SET(fd, fdt->open_fds);
--	FD_CLR(fd, fdt->close_on_exec);
-+	if (flags & O_CLOEXEC)
-+		FD_SET(fd, fdt->close_on_exec);
-+	else
-+		FD_CLR(fd, fdt->close_on_exec);
- 	files->next_fd = fd + 1;
- #if 1
- 	/* Sanity check */
-@@ -907,6 +910,11 @@ out:
- 	return error;
+ unsigned long __meminitdata table_start, table_end;
+ 
+-static __meminit void *alloc_low_page(unsigned long *phys)
+-{ 
+-	unsigned long pfn = table_end++;
+-	void *adr;
+-
+-	if (after_bootmem) {
+-		adr = (void *)get_zeroed_page(GFP_ATOMIC);
+-		*phys = __pa(adr);
+-		return adr;
+-	}
+-
+-	if (pfn >= end_pfn) 
+-		panic("alloc_low_page: ran out of memory"); 
+-
+-	adr = early_ioremap(pfn * PAGE_SIZE, PAGE_SIZE);
+-	memset(adr, 0, PAGE_SIZE);
+-	*phys  = pfn * PAGE_SIZE;
+-	return adr;
+-}
+-
+-static __meminit void unmap_low_page(void *adr)
+-{ 
+-
+-	if (after_bootmem)
+-		return;
+-
+-	early_iounmap(adr, PAGE_SIZE);
+-} 
+-
+-/* Must run before zap_low_mappings */
+-__meminit void *early_ioremap(unsigned long addr, unsigned long size)
++static __meminit void *early_ioremap(unsigned long addr, unsigned long size)
+ {
+ 	unsigned long vaddr;
+ 	pmd_t *pmd, *last_pmd;
+@@ -233,7 +203,7 @@ __meminit void *early_ioremap(unsigned l
  }
  
-+int get_unused_fd(void)
+ /* To avoid virtual aliases later */
+-__meminit void early_iounmap(void *addr, unsigned long size)
++static __meminit void early_iounmap(void *addr, unsigned long size)
+ {
+ 	unsigned long vaddr;
+ 	pmd_t *pmd;
+@@ -247,6 +217,35 @@ __meminit void early_iounmap(void *addr,
+ 	__flush_tlb();
+ }
+ 
++static __meminit void *alloc_low_page(unsigned long *phys)
 +{
-+	return get_unused_fd_flags(0);
++	unsigned long pfn = table_end++;
++	void *adr;
++
++	if (after_bootmem) {
++		adr = (void *)get_zeroed_page(GFP_ATOMIC);
++		*phys = __pa(adr);
++		return adr;
++	}
++
++	if (pfn >= end_pfn)
++		panic("alloc_low_page: ran out of memory");
++
++	adr = early_ioremap(pfn * PAGE_SIZE, PAGE_SIZE);
++	memset(adr, 0, PAGE_SIZE);
++	*phys  = pfn * PAGE_SIZE;
++	return adr;
 +}
 +
- EXPORT_SYMBOL(get_unused_fd);
++static __meminit void unmap_low_page(void *adr)
++{
++
++	if (after_bootmem)
++		return;
++
++	early_iounmap(adr, PAGE_SIZE);
++}
++
+ static void __meminit
+ phys_pmd_init(pmd_t *pmd_page, unsigned long address, unsigned long end)
+ {
+diff -puN include/asm-x86_64/dmi.h~x86_64-change-early_ioremap-to-static include/asm-x86_64/dmi.h
+--- a/include/asm-x86_64/dmi.h~x86_64-change-early_ioremap-to-static
++++ a/include/asm-x86_64/dmi.h
+@@ -3,15 +3,12 @@
  
- static void __put_unused_fd(struct files_struct *files, unsigned int fd)
-@@ -959,7 +967,7 @@ long do_sys_open(int dfd, const char __u
- 	int fd = PTR_ERR(tmp);
+ #include <asm/io.h>
  
- 	if (!IS_ERR(tmp)) {
--		fd = get_unused_fd();
-+		fd = get_unused_fd_flags(flags);
- 		if (fd >= 0) {
- 			struct file *f = do_filp_open(dfd, tmp, flags, mode);
- 			if (IS_ERR(f)) {
-diff -puN include/asm-generic/fcntl.h~introduce-o_cloexec-take-2 include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~introduce-o_cloexec-take-2
-+++ a/include/asm-generic/fcntl.h
-@@ -48,6 +48,9 @@
- #ifndef O_NOATIME
- #define O_NOATIME	01000000
+-extern void *dmi_ioremap(unsigned long addr, unsigned long size);
+-extern void dmi_iounmap(void *addr, unsigned long size);
+-
+ #define DMI_MAX_DATA 2048
+ 
+ extern int dmi_alloc_index;
+ extern char dmi_alloc_data[DMI_MAX_DATA];
+ 
+-/* This is so early that there is no good way to allocate dynamic memory. 
++/* This is so early that there is no good way to allocate dynamic memory.
+    Allocate data in an BSS array. */
+ static inline void *dmi_alloc(unsigned len)
+ {
+@@ -21,7 +18,7 @@ static inline void *dmi_alloc(unsigned l
+ 	return dmi_alloc_data + idx;
+ }
+ 
+-#define dmi_ioremap early_ioremap
+-#define dmi_iounmap early_iounmap
++#define dmi_ioremap ioremap
++#define dmi_iounmap(x,l) iounmap(x)
+ 
  #endif
-+#ifndef O_CLOEXEC
-+#define O_CLOEXEC	02000000	/* set close_on_exec */
-+#endif
- #ifndef O_NDELAY
- #define O_NDELAY	O_NONBLOCK
- #endif
+diff -puN include/asm-x86_64/io.h~x86_64-change-early_ioremap-to-static include/asm-x86_64/io.h
+--- a/include/asm-x86_64/io.h~x86_64-change-early_ioremap-to-static
++++ a/include/asm-x86_64/io.h
+@@ -134,9 +134,6 @@ static inline void __iomem * ioremap (un
+ 	return __ioremap(offset, size, 0);
+ }
+ 
+-extern void *early_ioremap(unsigned long addr, unsigned long size);
+-extern void early_iounmap(void *addr, unsigned long size);
+-
+ /*
+  * This one maps high address device memory and turns off caching for that area.
+  * it's useful if some control registers are in such an area and write combining
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-fix-compat-futex-code-for-private-futexes.patch
-introduce-o_cloexec-take-2.patch
+x86_64-change-early_ioremap-to-static.patch
