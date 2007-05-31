@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nick-broke-even-more-stuff.patch added to -mm tree
-Date: Wed, 30 May 2007 17:44:38 -0700
-Message-ID: <200705310048.l4V0m2aR009047@shell0.pdx.osdl.net>
+Subject: + nick-really-did-it-this-time.patch added to -mm tree
+Date: Wed, 30 May 2007 17:45:33 -0700
+Message-ID: <200705310048.l4V0mvuS009065@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54589 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753870AbXEaAsF (ORCPT
+	by vger.kernel.org with ESMTP id S1754108AbXEaAtA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:48:05 -0400
+	Wed, 30 May 2007 20:49:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     nick-broke-even-more-stuff
+     nick-really-did-it-this-time
 has been added to the -mm tree.  Its filename is
-     nick-broke-even-more-stuff.patch
+     nick-really-did-it-this-time.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nick-broke-even-more-stuff
+Subject: nick-really-did-it-this-time
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/sysv/dir.c: In function 'sysv_add_link':
-fs/sysv/dir.c:225: warning: implicit declaration of function '__sysv_write_begin'
+fs/ufs/dir.c: In function 'ufs_set_link':
+fs/ufs/dir.c:98: warning: implicit declaration of function '__ufs_write_begin'
 
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -39,18 +39,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~nick-broke-even-more-stuff fs/Kconfig
---- a/fs/Kconfig~nick-broke-even-more-stuff
+diff -puN fs/Kconfig~nick-really-did-it-this-time fs/Kconfig
+--- a/fs/Kconfig~nick-really-did-it-this-time
 +++ a/fs/Kconfig
-@@ -1481,7 +1481,7 @@ config QNX4FS_RW
+@@ -1520,7 +1520,7 @@ config SYSV_FS
  
- config SYSV_FS
- 	tristate "System V/Xenix/V7/Coherent file system support"
+ config UFS_FS
+ 	tristate "UFS file system support (read only)"
 -	depends on BLOCK
 +	depends on BLOCK && BROKEN
  	help
- 	  SCO, Xenix and Coherent are commercial Unix systems for Intel
- 	  machines, and Version 7 was used on the DEC PDP-11. Saying Y
+ 	  BSD and derivate versions of Unix (such as SunOS, FreeBSD, NetBSD,
+ 	  OpenBSD and NeXTstep) use a file system called UFS. Some System V
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -179,3 +179,4 @@ check_dirty_inode_list.patch
 w1-build-fix.patch
 nick-broke-more-stuff.patch
 nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
