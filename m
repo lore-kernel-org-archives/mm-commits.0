@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-more-lazy_hcalls.patch added to -mm tree
-Date: Thu, 31 May 2007 14:54:58 -0700
-Message-ID: <200705312154.l4VLswZS028978@shell0.pdx.osdl.net>
+Subject: + lguest-faster-tls-switching.patch added to -mm tree
+Date: Thu, 31 May 2007 14:55:30 -0700
+Message-ID: <200705312155.l4VLtUoZ028981@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45092 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750971AbXEaVzD (ORCPT
+	by vger.kernel.org with ESMTP id S1752001AbXEaVzf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 17:55:03 -0400
+	Thu, 31 May 2007 17:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     lguest: more lazy_hcalls
+     lguest: faster tls switching
 has been added to the -mm tree.  Its filename is
-     lguest-more-lazy_hcalls.patch
+     lguest-faster-tls-switching.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: more lazy_hcalls
+Subject: lguest: faster tls switching
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Some hypercalls can be batched: lazy_hcall is the wrapper which determines
-this, so it's pretty harmless to use lazy_hcall() instead of hcall().
+1) When the Guest sets the new TLS entries, we don't need to re-verify
+   the whole GDT.
+2) We also don't need to copy all the GDT entries if only the TLS
+   entries have changed.
 
 Before:
-Time for one context switch via pipe: 6745 (6521 - 13966)
+Time for one context switch via pipe: 5406 (5170 - 7467)
 
 After:
-Time for one context switch via pipe: 5406 (5170 - 7467)
+Time for one context switch via pipe: 4916 (4661 - 7004)
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/lguest/core.c     |    3 +++
+ drivers/lguest/lg.h       |    2 ++
+ drivers/lguest/segments.c |   20 +++++++++++++++-----
+ 3 files changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-more-lazy_hcalls drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-more-lazy_hcalls
-+++ a/drivers/lguest/lguest.c
-@@ -227,7 +227,7 @@ static void lguest_cpuid(unsigned int *e
- static unsigned long current_cr0, current_cr3;
- static void lguest_write_cr0(unsigned long val)
+diff -puN drivers/lguest/core.c~lguest-faster-tls-switching drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-faster-tls-switching
++++ a/drivers/lguest/core.c
+@@ -278,6 +278,9 @@ static void copy_in_guest_info(struct lg
+ 	/* Copy all GDT entries but the TSS. */
+ 	if (lg->changed & CHANGED_GDT)
+ 		copy_gdt(lg, pages->state.guest_gdt);
++	/* If only the TLS entries have changed, copy them. */
++	else if (lg->changed & CHANGED_GDT_TLS)
++		copy_gdt_tls(lg, pages->state.guest_gdt);
+ 
+ 	lg->changed = 0;
+ }
+diff -puN drivers/lguest/lg.h~lguest-faster-tls-switching drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-faster-tls-switching
++++ a/drivers/lguest/lg.h
+@@ -115,6 +115,7 @@ struct lguest_pages
+ 
+ #define CHANGED_IDT		1
+ #define CHANGED_GDT		2
++#define CHANGED_GDT_TLS		4 /* Actually a subset of CHANGED_GDT */
+ #define CHANGED_ALL	        3
+ 
+ /* The private info the thread maintains about the guest. */
+@@ -202,6 +203,7 @@ void setup_guest_gdt(struct lguest *lg);
+ void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num);
+ void guest_load_tls(struct lguest *lg, unsigned long tls_array);
+ void copy_gdt(const struct lguest *lg, struct desc_struct *gdt);
++void copy_gdt_tls(const struct lguest *lg, struct desc_struct *gdt);
+ 
+ /* page_tables.c: */
+ int init_guest_pagetable(struct lguest *lg, unsigned long pgtable);
+diff -puN drivers/lguest/segments.c~lguest-faster-tls-switching drivers/lguest/segments.c
+--- a/drivers/lguest/segments.c~lguest-faster-tls-switching
++++ a/drivers/lguest/segments.c
+@@ -34,11 +34,11 @@ static void check_segment_use(struct lgu
+ 		kill_guest(lg, "Removed live GDT entry %u", desc);
+ }
+ 
+-static void fixup_gdt_table(struct lguest *lg)
++static void fixup_gdt_table(struct lguest *lg, unsigned start, unsigned end)
  {
--	hcall(LHCALL_TS, val & 8, 0, 0);
-+	lazy_hcall(LHCALL_TS, val & 8, 0, 0);
- 	current_cr0 = val;
+ 	unsigned int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(lg->gdt); i++) {
++	for (i = start; i < end; i++) {
+ 		/* We never copy these ones to real gdt */
+ 		if (ignored_gdt(i))
+ 			continue;
+@@ -86,6 +86,16 @@ void setup_guest_gdt(struct lguest *lg)
+ 	lg->gdt[GDT_ENTRY_KERNEL_DS].b |= (GUEST_PL << 13);
  }
  
-@@ -249,7 +249,7 @@ static unsigned long lguest_read_cr2(voi
- 
- static void lguest_write_cr3(unsigned long cr3)
++/* This is a fast version for the common case where only the three TLS entries
++ * have changed. */
++void copy_gdt_tls(const struct lguest *lg, struct desc_struct *gdt)
++{
++	unsigned int i;
++
++	for (i = GDT_ENTRY_TLS_MIN; i <= GDT_ENTRY_TLS_MAX; i++)
++		gdt[i] = lg->gdt[i];
++}
++
+ void copy_gdt(const struct lguest *lg, struct desc_struct *gdt)
  {
--	hcall(LHCALL_NEW_PGTABLE, cr3, 0, 0);
-+	lazy_hcall(LHCALL_NEW_PGTABLE, cr3, 0, 0);
- 	current_cr3 = cr3;
+ 	unsigned int i;
+@@ -101,7 +111,7 @@ void load_guest_gdt(struct lguest *lg, u
+ 		kill_guest(lg, "too many gdt entries %i", num);
+ 
+ 	lgread(lg, lg->gdt, table, num * sizeof(lg->gdt[0]));
+-	fixup_gdt_table(lg);
++	fixup_gdt_table(lg, 0, ARRAY_SIZE(lg->gdt));
+ 	lg->changed |= CHANGED_GDT;
  }
  
-@@ -289,7 +289,7 @@ static void lguest_set_pte(pte_t *ptep, 
- 	*ptep = pteval;
- 	/* Don't bother with hypercall before initial setup. */
- 	if (current_cr3)
--		hcall(LHCALL_FLUSH_TLB, 1, 0, 0);
-+		lazy_hcall(LHCALL_FLUSH_TLB, 1, 0, 0);
- }
+@@ -110,6 +120,6 @@ void guest_load_tls(struct lguest *lg, u
+ 	struct desc_struct *tls = &lg->gdt[GDT_ENTRY_TLS_MIN];
  
- static void lguest_flush_tlb_single(unsigned long addr)
+ 	lgread(lg, tls, gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
+-	fixup_gdt_table(lg);
+-	lg->changed |= CHANGED_GDT;
++	fixup_gdt_table(lg, GDT_ENTRY_TLS_MIN, GDT_ENTRY_TLS_MAX+1);
++	lg->changed |= CHANGED_GDT_TLS;
+ }
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -97,6 +155,7 @@ lguest-the-host-code.patch
 lguest-the-host-code-tidyups.patch
 lguest-the-host-code-tidyups-update.patch
 lguest-the-host-code-borkages.patch
+lguest-faster-tls-switching.patch
 lguest-the-asm-offsets.patch
 lguest-the-makefile-and-kconfig.patch
 lguest-the-makefile-and-kconfig-tidyups.patch
@@ -109,5 +168,4 @@ lguest-the-block-driver.patch
 lguest-the-block-driver-tidyups.patch
 lguest-the-block-driver-tidyups-update.patch
 lguest-the-documentation-example-launcher.patch
-lguest-faster-tls-switching.patch
 mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
