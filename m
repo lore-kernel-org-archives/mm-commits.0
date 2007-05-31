@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch added to -mm tree
-Date: Wed, 30 May 2007 18:21:09 -0700
-Message-ID: <200705310124.l4V1OYcM009621@shell0.pdx.osdl.net>
+Subject: + freezer-make-kernel-threads-nonfreezable-by-default-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 18:26:31 -0700
+Message-ID: <200705310129.l4V1Tukc009663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37094 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746AbXEaBYj (ORCPT
+	by vger.kernel.org with ESMTP id S1752886AbXEaBae (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 21:24:39 -0400
+	Wed, 30 May 2007 21:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@gmail.com
+Cc: akpm@linux-foundation.org, ego@in.ibm.com, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
+     freezer-make-kernel-threads-nonfreezable-by-default-fix
 has been added to the -mm tree.  Its filename is
-     fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+     freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,227 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
+Subject: freezer-make-kernel-threads-nonfreezable-by-default-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "unbind_con_driver" [drivers/video/console/fbcon.ko] undefined!
+ERROR: "set_freezable" [drivers/media/video/msp3400.ko] undefined!
 
-Cc: Antonino Daplas <adaplas@gmail.com>
+Make sure all affected fiels include freezer.h.  Might be overkill.
+
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/apm.c                 |    1 +
+ drivers/block/loop.c                   |    1 +
+ drivers/char/apm-emulation.c           |    1 +
+ drivers/ieee1394/ieee1394_core.c       |    1 +
+ drivers/media/video/msp3400-kthreads.c |    1 +
+ drivers/mmc/card/queue.c               |    1 +
+ drivers/mtd/mtd_blkdevs.c              |    1 +
+ drivers/scsi/libsas/sas_scsi_host.c    |    1 +
+ drivers/scsi/scsi_error.c              |    1 +
+ kernel/exit.c                          |    1 +
+ kernel/rcutorture.c                    |    1 +
+ kernel/softirq.c                       |    1 +
+ kernel/softlockup.c                    |    1 +
+ net/bluetooth/bnep/core.c              |    1 +
+ net/bluetooth/cmtp/core.c              |    1 +
+ net/bluetooth/hidp/core.c              |    1 +
+ net/bluetooth/rfcomm/core.c            |    1 +
+ 17 files changed, 17 insertions(+)
 
-diff -puN drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2 drivers/char/vt.c
---- a/drivers/char/vt.c~fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2
-+++ a/drivers/char/vt.c
-@@ -3064,6 +3064,7 @@ err:
- 	return retval;
+diff -puN arch/i386/kernel/apm.c~freezer-make-kernel-threads-nonfreezable-by-default-fix arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/arch/i386/kernel/apm.c
+@@ -222,6 +222,7 @@
+ #include <linux/capability.h>
+ #include <linux/device.h>
+ #include <linux/kernel.h>
++#include <linux/freezer.h>
+ #include <linux/smp.h>
+ #include <linux/dmi.h>
+ #include <linux/suspend.h>
+diff -puN drivers/block/loop.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/block/loop.c
+--- a/drivers/block/loop.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/block/loop.c
+@@ -68,6 +68,7 @@
+ #include <linux/loop.h>
+ #include <linux/compat.h>
+ #include <linux/suspend.h>
++#include <linux/freezer.h>
+ #include <linux/writeback.h>
+ #include <linux/buffer_head.h>		/* for invalidate_bdev() */
+ #include <linux/completion.h>
+diff -puN drivers/char/apm-emulation.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/char/apm-emulation.c
+--- a/drivers/char/apm-emulation.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/char/apm-emulation.c
+@@ -20,6 +20,7 @@
+ #include <linux/sched.h>
+ #include <linux/pm.h>
+ #include <linux/apm-emulation.h>
++#include <linux/freezer.h>
+ #include <linux/device.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+diff -puN drivers/ieee1394/ieee1394_core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/ieee1394/ieee1394_core.c
+--- a/drivers/ieee1394/ieee1394_core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/ieee1394/ieee1394_core.c
+@@ -30,6 +30,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/bitops.h>
+ #include <linux/kdev_t.h>
++#include <linux/freezer.h>
+ #include <linux/suspend.h>
+ #include <linux/kthread.h>
+ #include <linux/preempt.h>
+diff -puN drivers/media/video/msp3400-kthreads.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/media/video/msp3400-kthreads.c
+--- a/drivers/media/video/msp3400-kthreads.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/media/video/msp3400-kthreads.c
+@@ -23,6 +23,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
++#include <linux/freezer.h>
+ #include <linux/videodev.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-common.h>
+diff -puN drivers/mmc/card/queue.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/mmc/card/queue.c
+--- a/drivers/mmc/card/queue.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/mmc/card/queue.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/blkdev.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
  
- }
-+EXPORT_SYMBOL(unbind_con_driver);
+ #include <linux/mmc/card.h>
+diff -puN drivers/mtd/mtd_blkdevs.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/mtd/mtd_blkdevs.c
+--- a/drivers/mtd/mtd_blkdevs.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/mtd/mtd_blkdevs.c
+@@ -16,6 +16,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/blkdev.h>
+ #include <linux/blkpg.h>
++#include <linux/freezer.h>
+ #include <linux/spinlock.h>
+ #include <linux/hdreg.h>
+ #include <linux/init.h>
+diff -puN drivers/scsi/libsas/sas_scsi_host.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/scsi/libsas/sas_scsi_host.c
+--- a/drivers/scsi/libsas/sas_scsi_host.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/scsi/libsas/sas_scsi_host.c
+@@ -40,6 +40,7 @@
  
- static int vt_bind(struct con_driver *con)
- {
+ #include <linux/err.h>
+ #include <linux/blkdev.h>
++#include <linux/freezer.h>
+ #include <linux/scatterlist.h>
+ 
+ /* ---------- SCSI Host glue ---------- */
+diff -puN drivers/scsi/scsi_error.c~freezer-make-kernel-threads-nonfreezable-by-default-fix drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/drivers/scsi/scsi_error.c
+@@ -19,6 +19,7 @@
+ #include <linux/timer.h>
+ #include <linux/string.h>
+ #include <linux/kernel.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include <linux/interrupt.h>
+ #include <linux/blkdev.h>
+diff -puN kernel/exit.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/exit.c
+--- a/kernel/exit.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/exit.c
+@@ -31,6 +31,7 @@
+ #include <linux/mempolicy.h>
+ #include <linux/taskstats_kern.h>
+ #include <linux/delayacct.h>
++#include <linux/freezer.h>
+ #include <linux/cpuset.h>
+ #include <linux/syscalls.h>
+ #include <linux/signal.h>
+diff -puN kernel/rcutorture.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/rcutorture.c
+--- a/kernel/rcutorture.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/rcutorture.c
+@@ -40,6 +40,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/percpu.h>
+ #include <linux/notifier.h>
++#include <linux/freezer.h>
+ #include <linux/cpu.h>
+ #include <linux/random.h>
+ #include <linux/delay.h>
+diff -puN kernel/softirq.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/softirq.c
+--- a/kernel/softirq.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/softirq.c
+@@ -14,6 +14,7 @@
+ #include <linux/notifier.h>
+ #include <linux/percpu.h>
+ #include <linux/cpu.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include <linux/rcupdate.h>
+ #include <linux/smp.h>
+diff -puN kernel/softlockup.c~freezer-make-kernel-threads-nonfreezable-by-default-fix kernel/softlockup.c
+--- a/kernel/softlockup.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/kernel/softlockup.c
+@@ -10,6 +10,7 @@
+ #include <linux/cpu.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
++#include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include <linux/notifier.h>
+ #include <linux/module.h>
+diff -puN net/bluetooth/bnep/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/bnep/core.c
+--- a/net/bluetooth/bnep/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/bnep/core.c
+@@ -36,6 +36,7 @@
+ #include <linux/signal.h>
+ #include <linux/init.h>
+ #include <linux/wait.h>
++#include <linux/freezer.h>
+ #include <linux/errno.h>
+ #include <linux/net.h>
+ #include <net/sock.h>
+diff -puN net/bluetooth/cmtp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/cmtp/core.c
+--- a/net/bluetooth/cmtp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/cmtp/core.c
+@@ -29,6 +29,7 @@
+ #include <linux/slab.h>
+ #include <linux/poll.h>
+ #include <linux/fcntl.h>
++#include <linux/freezer.h>
+ #include <linux/skbuff.h>
+ #include <linux/socket.h>
+ #include <linux/ioctl.h>
+diff -puN net/bluetooth/hidp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/hidp/core.c
+@@ -28,6 +28,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/poll.h>
++#include <linux/freezer.h>
+ #include <linux/fcntl.h>
+ #include <linux/skbuff.h>
+ #include <linux/socket.h>
+diff -puN net/bluetooth/rfcomm/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~freezer-make-kernel-threads-nonfreezable-by-default-fix
++++ a/net/bluetooth/rfcomm/core.c
+@@ -33,6 +33,7 @@
+ #include <linux/sched.h>
+ #include <linux/signal.h>
+ #include <linux/init.h>
++#include <linux/freezer.h>
+ #include <linux/wait.h>
+ #include <linux/device.h>
+ #include <linux/net.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +322,7 @@ maps2-move-the-page-walker-code-to-lib-fix.patch
 maps2-add-proc-pid-pagemap-interface.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
 freezer-run-show_state-when-freezing-times-out.patch
