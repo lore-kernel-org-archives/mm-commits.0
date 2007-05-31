@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nick-really-did-it-this-time.patch added to -mm tree
-Date: Wed, 30 May 2007 17:45:33 -0700
-Message-ID: <200705310048.l4V0mvuS009065@shell0.pdx.osdl.net>
+Subject: + potential-parse-error-in-ifdef-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 18:05:40 -0700
+Message-ID: <200705310109.l4V194PH009384@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48204 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754108AbXEaAtA (ORCPT
+	by vger.kernel.org with ESMTP id S1756017AbXEaBJL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:49:00 -0400
+	Wed, 30 May 2007 21:09:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, jeff@garzik.org, padator@wanadoo.fr
 
 
 The patch titled
-     nick-really-did-it-this-time
+     amd8111e: fix more bustage
 has been added to the -mm tree.  Its filename is
-     nick-really-did-it-this-time.patch
+     potential-parse-error-in-ifdef-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nick-really-did-it-this-time
+Subject: amd8111e: fix more bustage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ufs/dir.c: In function 'ufs_set_link':
-fs/ufs/dir.c:98: warning: implicit declaration of function '__ufs_write_begin'
+drivers/net/amd8111e.c: In function 'amd8111e_write_phy':
+drivers/net/amd8111e.c:159: warning: ISO C90 forbids mixed declarations and code
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Yoann Padioleau <padator@wanadoo.fr>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    2 +-
+ drivers/net/amd8111e.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~nick-really-did-it-this-time fs/Kconfig
---- a/fs/Kconfig~nick-really-did-it-this-time
-+++ a/fs/Kconfig
-@@ -1520,7 +1520,7 @@ config SYSV_FS
+diff -puN drivers/net/amd8111e.c~potential-parse-error-in-ifdef-fix drivers/net/amd8111e.c
+diff -puN drivers/net/amd8111e.h~potential-parse-error-in-ifdef-fix drivers/net/amd8111e.h
+--- a/drivers/net/amd8111e.h~potential-parse-error-in-ifdef-fix
++++ a/drivers/net/amd8111e.h
+@@ -615,7 +615,7 @@ typedef enum {
+ #define SSTATE  2
  
- config UFS_FS
- 	tristate "UFS file system support (read only)"
--	depends on BLOCK
-+	depends on BLOCK && BROKEN
- 	help
- 	  BSD and derivate versions of Unix (such as SunOS, FreeBSD, NetBSD,
- 	  OpenBSD and NeXTstep) use a file system called UFS. Some System V
+ /* Assume contoller gets data 10 times the maximum processing time */
+-#define  REPEAT_CNT			10;
++#define  REPEAT_CNT			10
+ 
+ /* amd8111e decriptor flag definitions */
+ typedef enum {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,11 +110,15 @@ git-xfs.patch
 git-cryptodev.patch
 fix-possible-leakage-of-blocks-in-udf-tidy.patch
 potential-parse-error-in-ifdef.patch
+potential-parse-error-in-ifdef-fix.patch
 potential-parse-error-in-ifdef-update.patch
 aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 create-the-zone_movable-zone-fix.patch
@@ -175,8 +182,6 @@ lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
 reiser4.patch
 reiser4-fix.patch
+nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
