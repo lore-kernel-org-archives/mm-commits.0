@@ -1,193 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-simple-debug-info-subsystem-fix-2.patch added to -mm tree
-Date: Wed, 30 May 2007 17:40:47 -0700
-Message-ID: <200705310044.l4V0iCrm008956@shell0.pdx.osdl.net>
+Subject: - make-map_vm_area-static.patch removed from -mm tree
+Date: Wed, 30 May 2007 17:42:05 -0700
+Message-ID: <200705310045.l4V0jUCp008992@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38902 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753538AbXEaApH (ORCPT
+	by vger.kernel.org with ESMTP id S1753563AbXEaApr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:45:07 -0400
+	Wed, 30 May 2007 20:45:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
+To: benh@kernel.crashing.org, hugh@veritas.com, nickpiggin@yahoo.com.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     containersv10-simple-debug-info-subsystem-fix-2
-has been added to the -mm tree.  Its filename is
-     containersv10-simple-debug-info-subsystem-fix-2.patch
+     Make map_vm_area() static
+has been removed from the -mm tree.  Its filename was
+     make-map_vm_area-static.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because lguest uses it
 
 ------------------------------------------------------
-Subject: containersv10-simple-debug-info-subsystem-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Make map_vm_area() static
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-kernel/container_debug.c: In function 'current_css_group_read':
-kernel/container_debug.c:50: warning: cast from pointer to integer of different size
+map_vm_area() is only ever used inside of mm/vmalloc.c. This makes
+it static and removes the prototype.
 
-Don't like this fix.  Why does ->read_uint return u64 at all?  It's a rather
-unnatural type on 32-bit machines.
-
-This code is returning a kernel address to userspace.  This is generally
-verboten.  Can we just delete debug.current_css_group altogether?
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container_debug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/vmalloc.h |    2 --
+ mm/vmalloc.c            |    3 ++-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix-2 kernel/container_debug.c
---- a/kernel/container_debug.c~containersv10-simple-debug-info-subsystem-fix-2
-+++ a/kernel/container_debug.c
-@@ -47,7 +47,7 @@ static u64 taskcount_read(struct contain
+diff -puN include/linux/vmalloc.h~make-map_vm_area-static include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~make-map_vm_area-static
++++ a/include/linux/vmalloc.h
+@@ -66,8 +66,6 @@ extern struct vm_struct *get_vm_area_nod
+ 					  gfp_t gfp_mask);
+ extern struct vm_struct *remove_vm_area(void *addr);
  
- static u64 current_css_group_read(struct container *cont, struct cftype *cft)
- {
--	return (u64)current->containers;
-+	return (u64)(long)current->containers;
+-extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
+-			struct page ***pages);
+ extern void unmap_kernel_range(unsigned long addr, unsigned long size);
+ 
+ /* Allocate/destroy a 'vmalloc' VM area. */
+diff -puN mm/vmalloc.c~make-map_vm_area-static mm/vmalloc.c
+--- a/mm/vmalloc.c~make-map_vm_area-static
++++ a/mm/vmalloc.c
+@@ -145,7 +145,8 @@ static inline int vmap_pud_range(pgd_t *
+ 	return 0;
  }
  
- static u64 current_css_group_refcount_read(struct container *cont,
+-int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page ***pages)
++static int map_vm_area(struct vm_struct *area, pgprot_t prot,
++		       struct page ***pages)
+ {
+ 	pgd_t *pgd;
+ 	unsigned long next;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-origin.patch
-slub-more-documentation-fix.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
+do-not-select-macintosh-drivers-by-default.patch
 8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
+dts-kill-hardcoded-phandles.patch
+git-libata-all.patch
 i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-potential-parse-error-in-ifdef-update.patch
-aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
-nick-broke-stuff.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
+make-map_vm_area-static.patch
+8xx-fix-whitespace-and-indentation.patch
+fallocate-implementation-on-i86-x86_64-and-powerpc.patch
