@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch added to -mm tree
-Date: Wed, 30 May 2007 17:27:45 -0700
-Message-ID: <200705310031.l4V0VAfW008775@shell0.pdx.osdl.net>
+Subject: + nick-broke-stuff.patch added to -mm tree
+Date: Wed, 30 May 2007 17:40:49 -0700
+Message-ID: <200705310044.l4V0iDlB008959@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51225 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759153AbXEaAbR (ORCPT
+	by vger.kernel.org with ESMTP id S1752479AbXEaAoQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:31:17 -0400
+	Wed, 30 May 2007 20:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, benh@kernel.crashing.org
+Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     i386 flush_tlb_kernel_range(): add reference to the arguments
+     nick-broke-stuff
 has been added to the -mm tree.  Its filename is
-     i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+     nick-broke-stuff.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 flush_tlb_kernel_range(): add reference to the arguments
+Subject: nick-broke-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Prevent stuff like this:
+These both use cont_prepare_write().  How do these things happen?
 
-mm/vmalloc.c: In function 'unmap_kernel_range':
-mm/vmalloc.c:75: warning: unused variable 'start'
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/tlbflush.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/tlbflush.h~i386-flush_tlb_kernel_range-add-reference-to-the-arguments include/asm-i386/tlbflush.h
---- a/include/asm-i386/tlbflush.h~i386-flush_tlb_kernel_range-add-reference-to-the-arguments
-+++ a/include/asm-i386/tlbflush.h
-@@ -160,7 +160,11 @@ DECLARE_PER_CPU(struct tlb_state, cpu_tl
- 	native_flush_tlb_others(&mask, mm, va)
- #endif
+diff -puN fs/Kconfig~nick-broke-stuff fs/Kconfig
+--- a/fs/Kconfig~nick-broke-stuff
++++ a/fs/Kconfig
+@@ -1096,7 +1096,7 @@ menu "Miscellaneous filesystems"
  
--#define flush_tlb_kernel_range(start, end) flush_tlb_all()
-+static inline void flush_tlb_kernel_range(unsigned long start,
-+					unsigned long end)
-+{
-+	flush_tlb_all();
-+}
+ config ADFS_FS
+ 	tristate "ADFS file system support (EXPERIMENTAL)"
+-	depends on BLOCK && EXPERIMENTAL
++	depends on BLOCK && EXPERIMENTAL && BROKEN
+ 	help
+ 	  The Acorn Disc Filing System is the standard file system of the
+ 	  RiscOS operating system which runs on Acorn's ARM-based Risc PC
+@@ -1124,7 +1124,7 @@ config ADFS_FS_RW
  
- static inline void flush_tlb_pgtables(struct mm_struct *mm,
- 				      unsigned long start, unsigned long end)
+ config AFFS_FS
+ 	tristate "Amiga FFS file system support (EXPERIMENTAL)"
+-	depends on BLOCK && EXPERIMENTAL
++	depends on BLOCK && EXPERIMENTAL && BROKEN
+ 	help
+ 	  The Fast File System (FFS) is the common file system used on hard
+ 	  disks by Amiga(tm) systems since AmigaOS Version 1.3 (34.20).  Say Y
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,3 +183,5 @@ reiser4.patch
 reiser4-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+nick-broke-stuff.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
