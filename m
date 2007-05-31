@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-convert-early_uart-to-earlycon-for-8250-fix-2.patch added to -mm tree
-Date: Wed, 30 May 2007 18:37:17 -0700
-Message-ID: <200705310140.l4V1efK0009804@shell0.pdx.osdl.net>
+Subject: + nick-broke-reiser4-too.patch added to -mm tree
+Date: Wed, 30 May 2007 18:41:18 -0700
+Message-ID: <200705310144.l4V1ihTA009878@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42752 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37174 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753854AbXEaBkz (ORCPT
+	by vger.kernel.org with ESMTP id S1753786AbXEaBop (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 21:40:55 -0400
+	Wed, 30 May 2007 21:44:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, hpa@zytor.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
+Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     serial-convert-early_uart-to-earlycon-for-8250-fix-2
+     nick-broke-reiser4-too
 has been added to the -mm tree.  Its filename is
-     serial-convert-early_uart-to-earlycon-for-8250-fix-2.patch
+     nick-broke-reiser4-too.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial-convert-early_uart-to-earlycon-for-8250-fix-2
+Subject: nick-broke-reiser4-too
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I ended up fixing it instead.
+fs/reiser4/plugin/item/extent_file_ops.c:10:36: error: ../../../../mm/filemap.h: No such file or directory
+fs/reiser4/plugin/item/extent_file_ops.c: In function 'reiser4_write_extent':
+fs/reiser4/plugin/item/extent_file_ops.c:1044: warning: implicit declaration of function 'filemap_copy_from_user'
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Gerd Hoffmann <kraxel@suse.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
+dammit, people use this.  I just lost testers.
+
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/ioremap.c   |   11 +++++++++++
- arch/x86_64/mm/ioremap.c |   11 +++++++++++
- include/asm-i386/io.h    |   14 +-------------
- include/asm-x86_64/io.h  |   14 +-------------
- 4 files changed, 24 insertions(+), 26 deletions(-)
+ fs/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/i386/mm/ioremap.c~serial-convert-early_uart-to-earlycon-for-8250-fix-2 arch/i386/mm/ioremap.c
---- a/arch/i386/mm/ioremap.c~serial-convert-early_uart-to-earlycon-for-8250-fix-2
-+++ a/arch/i386/mm/ioremap.c
-@@ -94,6 +94,17 @@ void __iomem * __ioremap(unsigned long p
- }
- EXPORT_SYMBOL(__ioremap);
- 
-+void __iomem *fix_ioremap(unsigned idx, unsigned long phys)
-+{
-+	void __iomem * vaddr;
-+	set_fixmap_nocache(idx, phys & PAGE_MASK);
-+	vaddr = (void __iomem *)__fix_to_virt(idx);
-+	vaddr += phys & ~PAGE_MASK;
-+
-+	return vaddr;
-+}
-+EXPORT_SYMBOL(fix_ioremap);
-+
- /**
-  * ioremap_nocache     -   map bus memory into CPU space
-  * @offset:    bus address of the memory
-diff -puN arch/x86_64/mm/ioremap.c~serial-convert-early_uart-to-earlycon-for-8250-fix-2 arch/x86_64/mm/ioremap.c
---- a/arch/x86_64/mm/ioremap.c~serial-convert-early_uart-to-earlycon-for-8250-fix-2
-+++ a/arch/x86_64/mm/ioremap.c
-@@ -134,6 +134,17 @@ void __iomem * __ioremap(unsigned long p
- }
- EXPORT_SYMBOL(__ioremap);
- 
-+void __iomem *fix_ioremap(unsigned idx, unsigned long phys)
-+{
-+	void __iomem * vaddr;
-+	set_fixmap_nocache(idx, phys & PAGE_MASK);
-+	vaddr = (void __iomem *)__fix_to_virt(idx);
-+	vaddr += phys & ~PAGE_MASK;
-+
-+	return vaddr;
-+}
-+EXPORT_SYMBOL(fix_ioremap);
-+
- /**
-  * ioremap_nocache     -   map bus memory into CPU space
-  * @offset:    bus address of the memory
-diff -puN include/asm-i386/io.h~serial-convert-early_uart-to-earlycon-for-8250-fix-2 include/asm-i386/io.h
---- a/include/asm-i386/io.h~serial-convert-early_uart-to-earlycon-for-8250-fix-2
-+++ a/include/asm-i386/io.h
-@@ -129,19 +129,7 @@ extern void iounmap(volatile void __iome
-  */
- extern void *bt_ioremap(unsigned long offset, unsigned long size);
- extern void bt_iounmap(void *addr, unsigned long size);
--
--#include <asm/pgtable.h>
--#include <asm/fixmap.h>
--
--static inline void __iomem * fix_ioremap (unsigned idx, unsigned long phys)
--{
--	void __iomem * vaddr;
--	set_fixmap_nocache(idx, phys & PAGE_MASK);
--	vaddr = (void __iomem *)__fix_to_virt(idx);
--	vaddr += phys & ~PAGE_MASK;
--
--	return vaddr;
--}
-+extern void __iomem *fix_ioremap(unsigned idx, unsigned long phys);
- 
- /* Use early IO mappings for DMI because it's initialized early */
- #define dmi_ioremap bt_ioremap
-diff -puN include/asm-x86_64/io.h~serial-convert-early_uart-to-earlycon-for-8250-fix-2 include/asm-x86_64/io.h
---- a/include/asm-x86_64/io.h~serial-convert-early_uart-to-earlycon-for-8250-fix-2
-+++ a/include/asm-x86_64/io.h
-@@ -144,19 +144,7 @@ extern void early_iounmap(void *addr, un
-  */
- extern void __iomem * ioremap_nocache (unsigned long offset, unsigned long size);
- extern void iounmap(volatile void __iomem *addr);
--
--#include <asm/pgtable.h>
--#include <asm/fixmap.h>
--
--static inline void __iomem * fix_ioremap (unsigned idx, unsigned long phys)
--{
--	void __iomem * vaddr;
--	set_fixmap_nocache(idx, phys & PAGE_MASK);
--	vaddr = (void __iomem *)__fix_to_virt(idx);
--	vaddr += phys & ~PAGE_MASK;
--
--	return vaddr;
--}
-+extern void __iomem *fix_ioremap(unsigned idx, unsigned long phys);
- 
- /*
-  * ISA I/O bus memory addresses are 1:1 with the physical address.
+diff -puN fs/Makefile~nick-broke-reiser4-too fs/Makefile
+--- a/fs/Makefile~nick-broke-reiser4-too
++++ a/fs/Makefile
+@@ -67,7 +67,6 @@ obj-$(CONFIG_DLM)		+= dlm/
+  
+ # Do not add any filesystems before this line
+ obj-$(CONFIG_REISERFS_FS)	+= reiserfs/
+-obj-$(CONFIG_REISER4_FS)	+= reiser4/
+ obj-$(CONFIG_EXT3_FS)		+= ext3/ # Before ext2 so root fs can be ext3
+ obj-$(CONFIG_EXT4DEV_FS)	+= ext4/ # Before ext2 so root fs can be ext4dev
+ obj-$(CONFIG_JBD)		+= jbd/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
