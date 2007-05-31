@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rd-remove-ramdisk_set_page_dirty-fix.patch added to -mm tree
-Date: Thu, 31 May 2007 16:12:53 -0700
-Message-ID: <200705312312.l4VNCrVG030348@shell0.pdx.osdl.net>
+Subject: + buffer-kill-old-incorrect-comment.patch added to -mm tree
+Date: Thu, 31 May 2007 16:15:28 -0700
+Message-ID: <200705312315.l4VNFSXH030428@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56969 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754364AbXEaXM4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750822AbXEaXPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 19:12:56 -0400
+	Thu, 31 May 2007 19:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, nickpiggin@yahoo.com.au
+Cc: ebiederm@xmission.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     rd-remove-ramdisk_set_page_dirty fix
+     buffer: kill old incorrect comment
 has been added to the -mm tree.  Its filename is
-     rd-remove-ramdisk_set_page_dirty-fix.patch
+     buffer-kill-old-incorrect-comment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,163 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rd-remove-ramdisk_set_page_dirty fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: buffer: kill old incorrect comment
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-It's nicer to be explicit.
-
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/rd.c |    1 +
- 1 files changed, 1 insertion(+)
+ fs/buffer.c |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN drivers/block/rd.c~rd-remove-ramdisk_set_page_dirty-fix drivers/block/rd.c
---- a/drivers/block/rd.c~rd-remove-ramdisk_set_page_dirty-fix
-+++ a/drivers/block/rd.c
-@@ -118,6 +118,7 @@ static const struct address_space_operat
- 	.readpage	= ramdisk_readpage,
- 	.prepare_write	= simple_prepare_write,
- 	.commit_write	= simple_commit_write,
-+	.set_page_dirty = __set_page_dirty_buffers,
- };
- 
- static int rd_blkdev_pagecache_IO(int rw, struct bio_vec *vec, sector_t sector,
+diff -puN fs/buffer.c~buffer-kill-old-incorrect-comment fs/buffer.c
+--- a/fs/buffer.c~buffer-kill-old-incorrect-comment
++++ a/fs/buffer.c
+@@ -1048,11 +1048,6 @@ failed:
+ /*
+  * Create buffers for the specified block device block's page.  If
+  * that page was dirty, the buffers are set dirty also.
+- *
+- * Except that's a bug.  Attaching dirty buffers to a dirty
+- * blockdev's page can result in filesystem corruption, because
+- * some of those buffers may be aliases of filesystem data.
+- * grow_dev_page() will go BUG() if this happens.
+  */
+ static int
+ grow_buffers(struct block_device *bdev, sector_t block, int size)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-origin.patch
-ntfs_init_locked_inode-fix-array-indexing.patch
-afs-needs-schedh.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-sh-support-older-gccs.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-rc-fixes.patch
-sparc32-build-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+dvb_en_50221-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-potential-parse-error-in-ifdef.patch
-potential-parse-error-in-ifdef-fix.patch
-potential-parse-error-in-ifdef-update.patch
+msi-fix-the-ordering-of-msix-irqs.patch
+msi-mask-the-msix-vector-before-we-unmap-it.patch
 aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix.patch
-alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+preserve-the-dirty-bit-in-init_page_buffers.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty.patch
 rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+rd-simplify-by-using-the-same-helper-functions-in-libfs.patch
+rd-remove-ramdisk_set_page_dirty.patch
 rd-remove-ramdisk_set_page_dirty-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+buffer-kill-old-incorrect-comment.patch
+containersv10-basic-container-framework.patch
 containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
 containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
 containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
