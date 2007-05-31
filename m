@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch added to -mm tree
-Date: Wed, 30 May 2007 20:57:26 -0700
-Message-ID: <200705310357.l4V3vSCT011845@shell0.pdx.osdl.net>
+Subject: + afs-needs-schedh.patch added to -mm tree
+Date: Wed, 30 May 2007 22:32:35 -0700
+Message-ID: <200705310536.l4V5a13Y013456@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:32891 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755601AbXEaD5j (ORCPT
+	by vger.kernel.org with ESMTP id S1753661AbXEaFgT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 23:57:39 -0400
+	Thu, 31 May 2007 01:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, nanhai.zou@intel.com, suresh.b.siddha@intel.com
+Cc: akpm@linux-foundation.org, dhowells@redhat.com
 
 
 The patch titled
-     revert x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
+     afs: needs sched.h
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+     afs-needs-schedh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
+Subject: afs: needs sched.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Drop this.  x86_64-allocate-sparsemem-memmap-above-4g.patch is better.
+mips:
 
-Cc: Zou Nan hai <nanhai.zou@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Siddha, Suresh <suresh.b.siddha@intel.com>
+fs/afs/flock.c: In function `afs_lock_may_be_available':
+fs/afs/flock.c:55: error: dereferencing pointer to incomplete type
+fs/afs/flock.c: In function `afs_lock_work':
+fs/afs/flock.c:84: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:89: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:109: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:135: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:143: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:158: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:161: error: dereferencing pointer to incomplete type
+fs/afs/flock.c:179: error: `TASK_UNINTERRUPTIBLE' undeclared (first use in this function)
+fs/afs/flock.c:179: error: (Each undeclared identifier is reported only once
+fs/afs/flock.c:179: error: for each function it appears in.)
+fs/afs/flock.c:179: error: `TASK_INTERRUPTIBLE' undeclared (first use in this function)
+fs/afs/flock.c:182: error: dereferencing pointer to incomplete type
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/mmzone.h |    5 -----
- include/linux/bootmem.h     |    3 ---
- mm/sparse.c                 |    5 -----
- 3 files changed, 13 deletions(-)
+ fs/afs/internal.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/asm-x86_64/mmzone.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 include/asm-x86_64/mmzone.h
---- a/include/asm-x86_64/mmzone.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
-+++ a/include/asm-x86_64/mmzone.h
-@@ -52,10 +52,5 @@ extern int pfn_valid(unsigned long pfn);
- #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1uL))
- #endif
+diff -puN fs/afs/internal.h~afs-needs-schedh fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-needs-schedh
++++ a/fs/afs/internal.h
+@@ -17,6 +17,8 @@
+ #include <linux/rxrpc.h>
+ #include <linux/key.h>
+ #include <linux/workqueue.h>
++#include <linux/sched.h>
++
+ #include "afs.h"
+ #include "afs_vl.h"
  
--#define ARCH_HAS_ALLOC_BOOTMEM_HIGH_NODE 1
--#define alloc_bootmem_high_node(pgdat,size) \
--({__alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, (4UL*1024*1024*1024), 0);})
--
--
- #endif
- #endif
-diff -puN include/linux/bootmem.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 include/linux/bootmem.h
---- a/include/linux/bootmem.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
-+++ a/include/linux/bootmem.h
-@@ -131,8 +131,5 @@ extern void *alloc_large_system_hash(con
- #endif
- extern int hashdist;		/* Distribute hashes across NUMA nodes? */
- 
--#ifndef ARCH_HAS_ALLOC_BOOTMEM_HIGH_NODE
--#define alloc_bootmem_high_node(pgdat, size) ({NULL;})
--#endif
- 
- #endif /* _LINUX_BOOTMEM_H */
-diff -puN mm/sparse.c~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 mm/sparse.c
---- a/mm/sparse.c~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
-+++ a/mm/sparse.c
-@@ -219,11 +219,6 @@ static struct page __init *sparse_early_
- 	if (map)
- 		return map;
- 
--	map = alloc_bootmem_high_node(NODE_DATA(nid),
--			sizeof(struct page) * PAGES_PER_SECTION);
--        if (map)
--                return map;
--
- 	map = alloc_bootmem_node(NODE_DATA(nid),
- 			sizeof(struct page) * PAGES_PER_SECTION);
- 	if (map)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -145,10 +128,6 @@ potential-parse-error-in-ifdef-update.patch
 aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 create-the-zone_movable-zone-fix.patch
@@ -216,6 +195,6 @@ lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
 reiser4.patch
 reiser4-fix.patch
-nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+afs-needs-schedh.patch
