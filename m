@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-faster-tls-switching.patch added to -mm tree
-Date: Thu, 31 May 2007 14:55:30 -0700
-Message-ID: <200705312155.l4VLtUoZ028981@shell0.pdx.osdl.net>
+Subject: + zs-move-to-the-serial-subsystem-update.patch added to -mm tree
+Date: Thu, 31 May 2007 14:59:16 -0700
+Message-ID: <200705312159.l4VLxGka029017@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59235 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752001AbXEaVzf (ORCPT
+	by vger.kernel.org with ESMTP id S1751148AbXEaV71 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 17:55:35 -0400
+	Thu, 31 May 2007 17:59:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au
+Cc: macro@linux-mips.org, ralf@linux-mips.org
 
 
 The patch titled
-     lguest: faster tls switching
+     zs: updates to fix issues raised
 has been added to the -mm tree.  Its filename is
-     lguest-faster-tls-switching.patch
+     zs-move-to-the-serial-subsystem-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,146 +26,247 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: faster tls switching
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: zs: updates to fix issues raised
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-1) When the Guest sets the new TLS entries, we don't need to re-verify
-   the whole GDT.
-2) We also don't need to copy all the GDT entries if only the TLS
-   entries have changed.
+This is a set of fixes to the initial revision of the zs driver port to the
+serial subsystem.  They include an update to the recovery delay, and the
+race on interrupt handler registration.  As well as a number of style fixes
+throughout.
 
-Before:
-Time for one context switch via pipe: 5406 (5170 - 7467)
-
-After:
-Time for one context switch via pipe: 4916 (4661 - 7004)
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c     |    3 +++
- drivers/lguest/lg.h       |    2 ++
- drivers/lguest/segments.c |   20 +++++++++++++++-----
- 3 files changed, 20 insertions(+), 5 deletions(-)
+ drivers/serial/zs.c |   75 +++++++++++++++++++++++-------------------
+ drivers/serial/zs.h |    2 -
+ 2 files changed, 43 insertions(+), 34 deletions(-)
 
-diff -puN drivers/lguest/core.c~lguest-faster-tls-switching drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-faster-tls-switching
-+++ a/drivers/lguest/core.c
-@@ -278,6 +278,9 @@ static void copy_in_guest_info(struct lg
- 	/* Copy all GDT entries but the TSS. */
- 	if (lg->changed & CHANGED_GDT)
- 		copy_gdt(lg, pages->state.guest_gdt);
-+	/* If only the TLS entries have changed, copy them. */
-+	else if (lg->changed & CHANGED_GDT_TLS)
-+		copy_gdt_tls(lg, pages->state.guest_gdt);
+diff -puN drivers/serial/zs.c~zs-move-to-the-serial-subsystem-update drivers/serial/zs.c
+--- a/drivers/serial/zs.c~zs-move-to-the-serial-subsystem-update
++++ a/drivers/serial/zs.c
+@@ -47,11 +47,13 @@
+ #define SUPPORT_SYSRQ
+ #endif
  
- 	lg->changed = 0;
- }
-diff -puN drivers/lguest/lg.h~lguest-faster-tls-switching drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-faster-tls-switching
-+++ a/drivers/lguest/lg.h
-@@ -115,6 +115,7 @@ struct lguest_pages
++#include <linux/bug.h>
+ #include <linux/console.h>
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/io.h>
+ #include <linux/ioport.h>
+ #include <linux/irqflags.h>
+ #include <linux/kernel.h>
+@@ -62,8 +64,7 @@
+ #include <linux/sysrq.h>
+ #include <linux/tty.h>
  
- #define CHANGED_IDT		1
- #define CHANGED_GDT		2
-+#define CHANGED_GDT_TLS		4 /* Actually a subset of CHANGED_GDT */
- #define CHANGED_ALL	        3
+-#include <asm/bug.h>
+-#include <asm/io.h>
++#include <asm/atomic.h>
+ #include <asm/system.h>
  
- /* The private info the thread maintains about the guest. */
-@@ -202,6 +203,7 @@ void setup_guest_gdt(struct lguest *lg);
- void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num);
- void guest_load_tls(struct lguest *lg, unsigned long tls_array);
- void copy_gdt(const struct lguest *lg, struct desc_struct *gdt);
-+void copy_gdt_tls(const struct lguest *lg, struct desc_struct *gdt);
+ #include <asm/dec/interrupts.h>
+@@ -86,11 +87,10 @@ static char zs_version[] __initdata = "0
+ #define ZS_CHAN_B	1		/* Index of the channel B.  */
+ #define ZS_CHAN_IO_SIZE 8		/* IOMEM space size.  */
+ #define ZS_CHAN_IO_STRIDE 4		/* Register alignment.  */
+-#define ZS_CHAN_IO_OFFSET 1		/* The SCC resides on the high byte						   of the 16-bit IOBUS.  */
++#define ZS_CHAN_IO_OFFSET 1		/* The SCC resides on the high byte
++					   of the 16-bit IOBUS.  */
+ #define ZS_CLOCK        7372800 	/* Z85C30 PCLK input clock rate.  */
  
- /* page_tables.c: */
- int init_guest_pagetable(struct lguest *lg, unsigned long pgtable);
-diff -puN drivers/lguest/segments.c~lguest-faster-tls-switching drivers/lguest/segments.c
---- a/drivers/lguest/segments.c~lguest-faster-tls-switching
-+++ a/drivers/lguest/segments.c
-@@ -34,11 +34,11 @@ static void check_segment_use(struct lgu
- 		kill_guest(lg, "Removed live GDT entry %u", desc);
- }
+-#define RECOVERY_DELAY  udelay(2)
+-
+ #define to_zport(uport) container_of(uport, struct zs_port, port)
  
--static void fixup_gdt_table(struct lguest *lg)
-+static void fixup_gdt_table(struct lguest *lg, unsigned start, unsigned end)
- {
- 	unsigned int i;
- 
--	for (i = 0; i < ARRAY_SIZE(lg->gdt); i++) {
-+	for (i = start; i < end; i++) {
- 		/* We never copy these ones to real gdt */
- 		if (ignored_gdt(i))
- 			continue;
-@@ -86,6 +86,16 @@ void setup_guest_gdt(struct lguest *lg)
- 	lg->gdt[GDT_ENTRY_KERNEL_DS].b |= (GUEST_PL << 13);
- }
- 
-+/* This is a fast version for the common case where only the three TLS entries
-+ * have changed. */
-+void copy_gdt_tls(const struct lguest *lg, struct desc_struct *gdt)
+ struct zs_parms {
+@@ -126,53 +126,59 @@ static u8 zs_init_regs[ZS_NUM_REGS] __in
+ /*
+  * Reading and writing Z85C30 registers.
+  */
+-static inline u8 read_zsreg(struct zs_port *zport, int reg)
++static void recovery_delay(void)
 +{
-+	unsigned int i;
-+
-+	for (i = GDT_ENTRY_TLS_MIN; i <= GDT_ENTRY_TLS_MAX; i++)
-+		gdt[i] = lg->gdt[i];
++	udelay(2);
 +}
 +
- void copy_gdt(const struct lguest *lg, struct desc_struct *gdt)
++static u8 read_zsreg(struct zs_port *zport, int reg)
  {
- 	unsigned int i;
-@@ -101,7 +111,7 @@ void load_guest_gdt(struct lguest *lg, u
- 		kill_guest(lg, "too many gdt entries %i", num);
+-	volatile void __iomem *control = zport->port.membase +
+-					 ZS_CHAN_IO_OFFSET;
++	void __iomem *control = zport->port.membase + ZS_CHAN_IO_OFFSET;
+ 	u8 retval;
  
- 	lgread(lg, lg->gdt, table, num * sizeof(lg->gdt[0]));
--	fixup_gdt_table(lg);
-+	fixup_gdt_table(lg, 0, ARRAY_SIZE(lg->gdt));
- 	lg->changed |= CHANGED_GDT;
+ 	if (reg != 0) {
+ 		writeb(reg & 0xf, control);
+-		fast_iob(); RECOVERY_DELAY;
++		fast_iob();
++		recovery_delay();
+ 	}
+ 	retval = readb(control);
+-	RECOVERY_DELAY;
++	recovery_delay();
+ 	return retval;
  }
  
-@@ -110,6 +120,6 @@ void guest_load_tls(struct lguest *lg, u
- 	struct desc_struct *tls = &lg->gdt[GDT_ENTRY_TLS_MIN];
+-static inline void write_zsreg(struct zs_port *zport, int reg, u8 value)
++static void write_zsreg(struct zs_port *zport, int reg, u8 value)
+ {
+-	volatile void __iomem *control = zport->port.membase +
+-					 ZS_CHAN_IO_OFFSET;
++	void __iomem *control = zport->port.membase + ZS_CHAN_IO_OFFSET;
  
- 	lgread(lg, tls, gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
--	fixup_gdt_table(lg);
--	lg->changed |= CHANGED_GDT;
-+	fixup_gdt_table(lg, GDT_ENTRY_TLS_MIN, GDT_ENTRY_TLS_MAX+1);
-+	lg->changed |= CHANGED_GDT_TLS;
+ 	if (reg != 0) {
+ 		writeb(reg & 0xf, control);
+-		fast_iob(); RECOVERY_DELAY;
++		fast_iob(); recovery_delay();
+ 	}
+ 	writeb(value, control);
+-	fast_iob(); RECOVERY_DELAY;
++	fast_iob();
++	recovery_delay();
+ 	return;
  }
+ 
+-static inline u8 read_zsdata(struct zs_port *zport)
++static u8 read_zsdata(struct zs_port *zport)
+ {
+-	volatile void __iomem *data = zport->port.membase +
+-				      ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
++	void __iomem *data = zport->port.membase +
++			     ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
+ 	u8 retval;
+ 
+ 	retval = readb(data);
+-	RECOVERY_DELAY;
++	recovery_delay();
+ 	return retval;
+ }
+ 
+-static inline void write_zsdata(struct zs_port *zport, u8 value)
++static void write_zsdata(struct zs_port *zport, u8 value)
+ {
+-	volatile void __iomem *data = zport->port.membase +
+-				      ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
++	void __iomem *data = zport->port.membase +
++			     ZS_CHAN_IO_STRIDE + ZS_CHAN_IO_OFFSET;
+ 
+ 	writeb(value, data);
+-	fast_iob(); RECOVERY_DELAY;
++	fast_iob();
++	recovery_delay();
+ 	return;
+ }
+ 
+@@ -196,7 +202,7 @@ void zs_dump(void)
+ #endif
+ 
+ 
+-static inline void zs_spin_lock_cond_irq(spinlock_t* lock, int irq)
++static void zs_spin_lock_cond_irq(spinlock_t *lock, int irq)
+ {
+ 	if (irq)
+ 		spin_lock_irq(lock);
+@@ -204,7 +210,7 @@ static inline void zs_spin_lock_cond_irq
+ 		spin_lock(lock);
+ }
+ 
+-static inline void zs_spin_unlock_cond_irq(spinlock_t* lock, int irq)
++static void zs_spin_unlock_cond_irq(spinlock_t *lock, int irq)
+ {
+ 	if (irq)
+ 		spin_unlock_irq(lock);
+@@ -235,7 +241,7 @@ static int zs_transmit_drain(struct zs_p
+ }
+ 
+ 
+-static inline void load_zsregs(struct zs_port *zport, u8 *regs, int irq)
++static void load_zsregs(struct zs_port *zport, u8 *regs, int irq)
+ {
+ 	zs_transmit_drain(zport, irq);
+ 	/* Load 'em up.  */
+@@ -288,8 +294,8 @@ static unsigned int zs_tx_empty(struct u
+ 	return status & ALL_SNT ? TIOCSER_TEMT : 0;
+ }
+ 
+-static inline unsigned int zs_raw_get_ab_mctrl(struct zs_port *zport_a,
+-					       struct zs_port *zport_b)
++static unsigned int zs_raw_get_ab_mctrl(struct zs_port *zport_a,
++					struct zs_port *zport_b)
+ {
+ 	u8 status_a, status_b;
+ 	unsigned int mctrl;
+@@ -728,18 +734,20 @@ static int zs_startup(struct uart_port *
+ 	struct zs_port *zport = to_zport(uport);
+ 	struct zs_scc *scc = zport->scc;
+ 	unsigned long flags;
++	int irq_guard;
+ 	int ret;
+ 
+-	if (!scc->irq_guard) {
++	irq_guard = atomic_add_return(1, &scc->irq_guard);
++	if (irq_guard == 1) {
+ 		ret = request_irq(zport->port.irq, zs_interrupt,
+ 				  IRQF_SHARED, "scc", scc);
+ 		if (ret) {
++			atomic_add(-1, &scc->irq_guard);
+ 			printk(KERN_ERR "zs: can't get irq %d\n",
+ 			       zport->port.irq);
+ 			return ret;
+ 		}
+ 	}
+-	scc->irq_guard++;
+ 
+ 	spin_lock_irqsave(&scc->zlock, flags);
+ 
+@@ -780,6 +788,7 @@ static void zs_shutdown(struct uart_port
+ 	struct zs_port *zport = to_zport(uport);
+ 	struct zs_scc *scc = zport->scc;
+ 	unsigned long flags;
++	int irq_guard;
+ 
+ 	spin_lock_irqsave(&scc->zlock, flags);
+ 
+@@ -790,8 +799,8 @@ static void zs_shutdown(struct uart_port
+ 
+ 	spin_unlock_irqrestore(&scc->zlock, flags);
+ 
+-	scc->irq_guard--;
+-	if (!scc->irq_guard)
++	irq_guard = atomic_add_return(-1, &scc->irq_guard);
++	if (!irq_guard)
+ 		free_irq(zport->port.irq, scc);
+ }
+ 
+@@ -1203,7 +1212,7 @@ static int __init zs_init(void)
+ {
+ 	int i, ret;
+ 
+-	printk("%s%s\n", zs_name, zs_version);
++	pr_info("%s%s\n", zs_name, zs_version);
+ 
+ 	/* Find out how many Z85C30 SCCs we have.  */
+ 	ret = zs_probe_sccs();
+diff -puN drivers/serial/zs.h~zs-move-to-the-serial-subsystem-update drivers/serial/zs.h
+--- a/drivers/serial/zs.h~zs-move-to-the-serial-subsystem-update
++++ a/drivers/serial/zs.h
+@@ -39,7 +39,7 @@ struct zs_port {
+ struct zs_scc {
+ 	struct zs_port	zport[2];
+ 	spinlock_t	zlock;
+-	int		irq_guard;
++	atomic_t	irq_guard;
+ 	int		initialised;
+ };
+ 
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-mm-clean-up-and-kernelify-shrinker-registration.patch
-use-menuconfig-objects-ii-module-menu.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
-lguest-the-guest-code-tidyups.patch
-lguest-the-guest-code-tidyups-update.patch
-lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit.patch
-lguest-speed-up-paravirt_lazy_flush-handling.patch
-lguest-more-lazy_hcalls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-tidyups.patch
-lguest-the-host-code-tidyups-update.patch
-lguest-the-host-code-borkages.patch
-lguest-faster-tls-switching.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-makefile-and-kconfig-tidyups.patch
-lguest-the-console-driver.patch
-lguest-the-console-driver-tidyups.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-tidyups.patch
-lguest-the-net-driver-tidyups-update.patch
-lguest-the-block-driver.patch
-lguest-the-block-driver-tidyups.patch
-lguest-the-block-driver-tidyups-update.patch
-lguest-the-documentation-example-launcher.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+origin.patch
+zs-move-to-the-serial-subsystem.patch
+zs-move-to-the-serial-subsystem-update.patch
