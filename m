@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nick-broke-reiser4-too.patch added to -mm tree
-Date: Wed, 30 May 2007 18:41:18 -0700
-Message-ID: <200705310144.l4V1ihTA009878@shell0.pdx.osdl.net>
+Subject: + freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 18:51:05 -0700
+Message-ID: <200705310154.l4V1sUbd010018@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37174 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753786AbXEaBop (ORCPT
+	by vger.kernel.org with ESMTP id S1753942AbXEaByw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 21:44:45 -0400
+	Wed, 30 May 2007 21:54:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, ego@in.ibm.com, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     nick-broke-reiser4-too
+     freezer-make-kernel-threads-nonfreezable-by-default-fix-fix
 has been added to the -mm tree.  Its filename is
-     nick-broke-reiser4-too.patch
+     freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nick-broke-reiser4-too
+Subject: freezer-make-kernel-threads-nonfreezable-by-default-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/reiser4/plugin/item/extent_file_ops.c:10:36: error: ../../../../mm/filemap.h: No such file or directory
-fs/reiser4/plugin/item/extent_file_ops.c: In function 'reiser4_write_extent':
-fs/reiser4/plugin/item/extent_file_ops.c:1044: warning: implicit declaration of function 'filemap_copy_from_user'
+In file included from kernel/exit.c:48:
+include/linux/freezer.h:10: error: redefinition of 'frozen'
+include/linux/freezer.h:10: error: previous definition of 'frozen' was here
+include/linux/freezer.h:18: error: redefinition of 'freezing'
+include/linux/freezer.h:18: error: previous definition of 'freezing' was here
+include/linux/freezer.h:26: error: redefinition of 'set_freeze_flag'
+include/linux/freezer.h:26: error: previous definition of 'set_freeze_flag' was here
+include/linux/freezer.h:34: error: redefinition of 'clear_freeze_flag'
+include/linux/freezer.h:34: error: previous definition of 'clear_freeze_flag' was here
+include/linux/freezer.h:48: error: redefinition of 'thaw_process'
+include/linux/freezer.h:48: error: previous definition of 'thaw_process' was here
+include/linux/freezer.h:66: error: redefinition of 'try_to_freeze'
+include/linux/freezer.h:66: error: previous definition of 'try_to_freeze' was here
+include/linux/freezer.h:93: error: redefinition of 'freezer_do_not_count'
+include/linux/freezer.h:93: error: previous definition of 'freezer_do_not_count' was here
+include/linux/freezer.h:103: error: redefinition of 'freezer_count'
+include/linux/freezer.h:103: error: previous definition of 'freezer_count' was here
+include/linux/freezer.h:114: error: redefinition of 'freezer_should_skip'
+include/linux/freezer.h:114: error: previous definition of 'freezer_should_skip' was here
+include/linux/freezer.h:122: error: redefinition of 'set_freezable'
+include/linux/freezer.h:122: error: previous definition of 'set_freezable' was here
 
-dammit, people use this.  I just lost testers.
+It's included in some header file, it needs include protection.
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/freezer.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/Makefile~nick-broke-reiser4-too fs/Makefile
---- a/fs/Makefile~nick-broke-reiser4-too
-+++ a/fs/Makefile
-@@ -67,7 +67,6 @@ obj-$(CONFIG_DLM)		+= dlm/
-  
- # Do not add any filesystems before this line
- obj-$(CONFIG_REISERFS_FS)	+= reiserfs/
--obj-$(CONFIG_REISER4_FS)	+= reiser4/
- obj-$(CONFIG_EXT3_FS)		+= ext3/ # Before ext2 so root fs can be ext3
- obj-$(CONFIG_EXT4DEV_FS)	+= ext4/ # Before ext2 so root fs can be ext4dev
- obj-$(CONFIG_JBD)		+= jbd/
+diff -puN include/linux/freezer.h~freezer-make-kernel-threads-nonfreezable-by-default-fix-fix include/linux/freezer.h
+--- a/include/linux/freezer.h~freezer-make-kernel-threads-nonfreezable-by-default-fix-fix
++++ a/include/linux/freezer.h
+@@ -1,5 +1,8 @@
+ /* Freezer declarations */
+ 
++#ifndef FREEZER_H_INCLUDED
++#define FREEZER_H_INCLUDED
++
+ #include <linux/sched.h>
+ 
+ #ifdef CONFIG_PM
+@@ -140,3 +143,5 @@ static inline void freezer_count(void) {
+ static inline int freezer_should_skip(struct task_struct *p) { return 0; }
+ static inline void set_freezable(void) {}
+ #endif
++
++#endif	/* FREEZER_H_INCLUDED */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,6 +159,7 @@ maps2-add-proc-pid-pagemap-interface.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix.patch
 alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
 freezer-run-show_state-when-freezing-times-out.patch
