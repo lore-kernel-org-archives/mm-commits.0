@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-white-spaces-clean-up.patch added to -mm tree
-Date: Thu, 31 May 2007 15:24:24 -0700
-Message-ID: <200705312224.l4VMOOp7029490@shell0.pdx.osdl.net>
+Subject: + fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch added to -mm tree
+Date: Thu, 31 May 2007 15:24:30 -0700
+Message-ID: <200705312224.l4VMOUXa029508@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42077 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753165AbXEaWYj (ORCPT
+	by vger.kernel.org with ESMTP id S1753379AbXEaWYo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 18:24:39 -0400
+	Thu, 31 May 2007 18:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com, geert@linux-m68k.org
+Cc: jesse.barnes@intel.com, adaplas@gmail.com, geert@linux-m68k.org
 
 
 The patch titled
-     pm2fb: white spaces clean up
+     fbdev: fbcon: console unregistration from unregister_framebuffer
 has been added to the -mm tree.  Its filename is
-     pm2fb-white-spaces-clean-up.patch
+     fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,504 +26,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: white spaces clean up
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: fbdev: fbcon: console unregistration from unregister_framebuffer
+From: Jesse Barnes <jesse.barnes@intel.com>
 
-This patch removes trailing spaces and tabs and spaces before tabs.
+This allows for proper console unregistration via the VT layer, and updates
+the FB layer to use it.  This makes debugging new console drivers much easier,
+since you can properly clean them up before unloading.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+[adaplas]
+unregister_framebuffer() is typically called as part of the driver's
+module_exit(). Doing so otherwise will freeze the machine as the VT layer is
+holding reference counts on fbcon, and fbcon on the driver.  With this change,
+it allows unregister_framebuffer() to be called safely anywhere as needed.
+
+Additions from the original:  If multiple drivers are used by fbcon, and if
+one of them unregisters, a driver will take over the consoles vacated by the
+outgoing one (via set_con2fb_map).   Once only the outgoing driver remains,
+then fbcon will unbind from the VT layer (if CONFIG_HW_CONSOLE_UNBINDING is
+set to y).
+
+It is important that these drivers implement fb_open() and fb_release()
+just to ensure that no other process is using the driver. Likewise, these
+drivers _must_ check the return value of unregister_framebuffer().
+
+Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |  202 ++++++++++++++++++++--------------------
- 1 files changed, 101 insertions(+), 101 deletions(-)
+ drivers/video/console/fbcon.c |   42 ++++++++++++++++++++++++++++++++
+ drivers/video/fbmem.c         |   26 ++++++++++++++++---
+ include/linux/fb.h            |    2 +
+ 3 files changed, 66 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-white-spaces-clean-up drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-white-spaces-clean-up
-+++ a/drivers/video/pm2fb.c
-@@ -24,7 +24,7 @@
-  * License. See the file COPYING in the main directory of this archive for
-  * more details.
-  *
-- * 
-+ *
-  */
- 
- #include <linux/module.h>
-@@ -58,7 +58,7 @@
- #endif
- 
- /*
-- * Driver data 
-+ * Driver data
-  */
- static char *mode __devinitdata = NULL;
- 
-@@ -82,12 +82,12 @@ struct pm2fb_par
- {
- 	pm2type_t	type;		/* Board type */
- 	unsigned char	__iomem *v_regs;/* virtual address of p_regs */
--	u32 	   	memclock;	/* memclock */
-+	u32		memclock;	/* memclock */
- 	u32		video;		/* video flags before blanking */
- 	u32		mem_config;	/* MemConfig reg at probe */
- 	u32		mem_control;	/* MemControl reg at probe */
- 	u32		boot_address;	/* BootAddress reg at probe */
--	u32             palette[16];
-+	u32		palette[16];
- };
- 
- /*
-@@ -95,12 +95,12 @@ struct pm2fb_par
-  * if we don't use modedb.
-  */
- static struct fb_fix_screeninfo pm2fb_fix __devinitdata = {
--	.id =		"", 
-+	.id =		"",
- 	.type =		FB_TYPE_PACKED_PIXELS,
- 	.visual =	FB_VISUAL_PSEUDOCOLOR,
- 	.xpanstep =	1,
- 	.ypanstep =	1,
--	.ywrapstep =	0, 
-+	.ywrapstep =	0,
- 	.accel =	FB_ACCEL_3DLABS_PERMEDIA2,
- };
- 
-@@ -109,26 +109,26 @@ static struct fb_fix_screeninfo pm2fb_fi
-  */
- static struct fb_var_screeninfo pm2fb_var __devinitdata = {
- 	/* "640x480, 8 bpp @ 60 Hz */
--	.xres =		640,
--	.yres =		480,
--	.xres_virtual =	640,
--	.yres_virtual =	480,
--	.bits_per_pixel =8,
--	.red =		{0, 8, 0},
--	.blue =		{0, 8, 0},
--	.green =	{0, 8, 0},
--	.activate =	FB_ACTIVATE_NOW,
--	.height =	-1,
--	.width =	-1,
--	.accel_flags =	0,
--	.pixclock =	39721,
--	.left_margin =	40,
--	.right_margin =	24,
--	.upper_margin =	32,
--	.lower_margin =	11,
--	.hsync_len =	96,
--	.vsync_len =	2,
--	.vmode =	FB_VMODE_NONINTERLACED
-+	.xres =			640,
-+	.yres =			480,
-+	.xres_virtual =		640,
-+	.yres_virtual =		480,
-+	.bits_per_pixel =	8,
-+	.red =			{0, 8, 0},
-+	.blue =			{0, 8, 0},
-+	.green =		{0, 8, 0},
-+	.activate =		FB_ACTIVATE_NOW,
-+	.height =		-1,
-+	.width =		-1,
-+	.accel_flags =		0,
-+	.pixclock =		39721,
-+	.left_margin =		40,
-+	.right_margin =		24,
-+	.upper_margin =		32,
-+	.lower_margin =		11,
-+	.hsync_len =		96,
-+	.vsync_len =		2,
-+	.vmode =		FB_VMODE_NONINTERLACED
- };
- 
- /*
-@@ -166,7 +166,7 @@ static inline u32 pm2_RDAC_RD(struct pm2
- 		pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
- 		index = PM2VR_RD_INDEXED_DATA;
- 		break;
--	}	
-+	}
- 	mb();
- 	return pm2_RD(p, index);
- }
-@@ -182,7 +182,7 @@ static inline void pm2_RDAC_WR(struct pm
- 		pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
- 		index = PM2VR_RD_INDEXED_DATA;
- 		break;
--	}	
-+	}
- 	wmb();
- 	pm2_WR(p, index, v);
- 	wmb();
-@@ -197,7 +197,7 @@ static inline void pm2v_RDAC_WR(struct p
+diff -puN drivers/video/console/fbcon.c~fbdev-fbcon-console-unregistration-from-unregister_framebuffer drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbdev-fbcon-console-unregistration-from-unregister_framebuffer
++++ a/drivers/video/console/fbcon.c
+@@ -3003,6 +3003,45 @@ static int fbcon_mode_deleted(struct fb_
+ 	return found;
  }
  
- #ifdef CONFIG_FB_PM2_FIFO_DISCONNECT
--#define WAIT_FIFO(p,a)
-+#define WAIT_FIFO(p, a)
- #else
- static inline void WAIT_FIFO(struct pm2fb_par* p, u32 a)
- {
-@@ -209,7 +209,7 @@ static inline void WAIT_FIFO(struct pm2f
- /*
-  * partial products for the supported horizontal resolutions.
-  */
--#define PACKPP(p0,p1,p2)	(((p2) << 6) | ((p1) << 3) | (p0))
-+#define PACKPP(p0, p1, p2)	(((p2) << 6) | ((p1) << 3) | (p0))
- static const struct {
- 	u16 width;
- 	u16 pp;
-@@ -357,7 +357,7 @@ static void reset_card(struct pm2fb_par*
- static void reset_config(struct pm2fb_par* p)
- {
- 	WAIT_FIFO(p, 52);
--	pm2_WR(p, PM2R_CHIP_CONFIG, pm2_RD(p, PM2R_CHIP_CONFIG)&
-+	pm2_WR(p, PM2R_CHIP_CONFIG, pm2_RD(p, PM2R_CHIP_CONFIG) &
- 	       ~(PM2F_VGA_ENABLE|PM2F_VGA_FIXED));
- 	pm2_WR(p, PM2R_BYPASS_WRITE_MASK, ~(0L));
- 	pm2_WR(p, PM2R_FRAMEBUFFER_WRITE_MASK, ~(0L));
-@@ -367,7 +367,7 @@ static void reset_config(struct pm2fb_pa
- 	pm2_WR(p, PM2R_RASTERIZER_MODE, 0);
- 	pm2_WR(p, PM2R_DELTA_MODE, PM2F_DELTA_ORDER_RGB);
- 	pm2_WR(p, PM2R_LB_READ_FORMAT, 0);
--	pm2_WR(p, PM2R_LB_WRITE_FORMAT, 0); 
-+	pm2_WR(p, PM2R_LB_WRITE_FORMAT, 0);
- 	pm2_WR(p, PM2R_LB_READ_MODE, 0);
- 	pm2_WR(p, PM2R_LB_SOURCE_OFFSET, 0);
- 	pm2_WR(p, PM2R_FB_SOURCE_OFFSET, 0);
-@@ -535,7 +535,7 @@ static void set_video(struct pm2fb_par* 
- 	vsync = video;
- 
- 	DPRINTK("video = 0x%x\n", video);
--	
++#ifdef CONFIG_VT_HW_CONSOLE_BINDING
++static int fbcon_unbind(void)
++{
++	int ret;
 +
- 	/*
- 	 * The hardware cursor needs +vsync to recognise vert retrace.
- 	 * We may not be using the hardware cursor, but the X Glint
-@@ -574,9 +574,9 @@ static void set_video(struct pm2fb_par* 
-  */
- 
- /**
-- *      pm2fb_check_var - Optional function. Validates a var passed in. 
-- *      @var: frame buffer variable screen structure
-- *      @info: frame buffer structure that represents a single frame buffer 
-+ *	pm2fb_check_var - Optional function. Validates a var passed in.
-+ *	@var: frame buffer variable screen structure
-+ *	@info: frame buffer structure that represents a single frame buffer
-  *
-  *	Checks to see if the hardware supports the state requested by
-  *	var passed in.
-@@ -615,23 +615,23 @@ static int pm2fb_check_var(struct fb_var
- 
- 	var->xres = (var->xres + 15) & ~15; /* could sometimes be 8 */
- 	lpitch = var->xres * ((var->bits_per_pixel + 7)>>3);
--  
++	ret = unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
++				fbcon_is_default);
++	return ret;
++}
++#else
++static fbcon_unbind(void)
++{
++	return -EINVAL;
++}
++#endif /* CONFIG_VT_HW_CONSOLE_BINDING */
 +
- 	if (var->xres < 320 || var->xres > 1600) {
- 		DPRINTK("width not supported: %u\n", var->xres);
- 		return -EINVAL;
- 	}
--  
++static int fbcon_fb_unbind(int idx)
++{
++	int i, new_idx = -1, ret = 0;
 +
- 	if (var->yres < 200 || var->yres > 1200) {
- 		DPRINTK("height not supported: %u\n", var->yres);
- 		return -EINVAL;
- 	}
--  
-+
- 	if (lpitch * var->yres_virtual > info->fix.smem_len) {
- 		DPRINTK("no memory for screen (%ux%ux%u)\n",
- 			var->xres, var->yres_virtual, var->bits_per_pixel);
- 		return -EINVAL;
- 	}
--  
-+
- 	if (PICOS2KHZ(var->pixclock) > PM2_MAX_PIXCLOCK) {
- 		DPRINTK("pixclock too high (%ldKHz)\n", PICOS2KHZ(var->pixclock));
- 		return -EINVAL;
-@@ -672,17 +672,17 @@ static int pm2fb_check_var(struct fb_var
- 		break;
- 	}
- 	var->height = var->width = -1;
--  
-+
- 	var->accel_flags = 0;	/* Can't mmap if this is on */
--	
-+
- 	DPRINTK("Checking graphics mode at %dx%d depth %d\n",
- 		var->xres, var->yres, var->bits_per_pixel);
- 	return 0;
- }
- 
- /**
-- *      pm2fb_set_par - Alters the hardware state.
-- *      @info: frame buffer structure that represents a single frame buffer
-+ *	pm2fb_set_par - Alters the hardware state.
-+ *	@info: frame buffer structure that represents a single frame buffer
-  *
-  *	Using the fb_var_screeninfo in fb_info we set the resolution of the
-  *	this particular framebuffer.
-@@ -709,7 +709,7 @@ static int pm2fb_set_par(struct fb_info 
- 	clear_palette(par);
- 	if ( par->memclock )
- 		set_memclock(par, par->memclock);
--    
-+
- 	width = (info->var.xres_virtual + 7) & ~7;
- 	height = info->var.yres_virtual;
- 	depth = (info->var.bits_per_pixel + 7) & ~7;
-@@ -722,7 +722,7 @@ static int pm2fb_set_par(struct fb_info 
- 		DPRINTK("pixclock too high (%uKHz)\n", pixclock);
- 		return -EINVAL;
- 	}
--    
-+
- 	hsstart = to3264(info->var.right_margin, depth, data64);
- 	hsend = hsstart + to3264(info->var.hsync_len, depth, data64);
- 	hbend = hsend + to3264(info->var.left_margin, depth, data64);
-@@ -737,7 +737,7 @@ static int pm2fb_set_par(struct fb_info 
- 	base = to3264(info->var.yoffset * xres + info->var.xoffset, depth, 1);
- 	if (data64)
- 		video |= PM2F_DATA_64_ENABLE;
--    
-+
- 	if (info->var.sync & FB_SYNC_HOR_HIGH_ACT) {
- 		if (lowhsync) {
- 			DPRINTK("ignoring +hsync, using -hsync.\n");
-@@ -778,9 +778,9 @@ static int pm2fb_set_par(struct fb_info 
- 		WAIT_FIFO(par, 1);
- 		pm2_WR(par, PM2VR_RD_INDEX_HIGH, 0);
- 	}
--    
-+
- 	set_aperture(par, depth);
--    
-+
- 	mb();
- 	WAIT_FIFO(par, 19);
- 	pm2_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
-@@ -847,22 +847,22 @@ static int pm2fb_set_par(struct fb_info 
- 	set_pixclock(par, pixclock);
- 	DPRINTK("Setting graphics mode at %dx%d depth %d\n",
- 		info->var.xres, info->var.yres, info->var.bits_per_pixel);
--	return 0;	
-+	return 0;
- }
- 
- /**
-- *  	pm2fb_setcolreg - Sets a color register.
-- *      @regno: boolean, 0 copy local, 1 get_user() function
-- *      @red: frame buffer colormap structure
-- *	@green: The green value which can be up to 16 bits wide 
-+ *	pm2fb_setcolreg - Sets a color register.
-+ *	@regno: boolean, 0 copy local, 1 get_user() function
-+ *	@red: frame buffer colormap structure
-+ *	@green: The green value which can be up to 16 bits wide
-  *	@blue:  The blue value which can be up to 16 bits wide.
-- *	@transp: If supported the alpha value which can be up to 16 bits wide.	
-- *      @info: frame buffer info structure
-- * 
-- *  	Set a single color register. The values supplied have a 16 bit
-- *  	magnitude which needs to be scaled in this function for the hardware.
-+ *	@transp: If supported the alpha value which can be up to 16 bits wide.
-+ *	@info: frame buffer info structure
-+ *
-+ *	Set a single color register. The values supplied have a 16 bit
-+ *	magnitude which needs to be scaled in this function for the hardware.
-  *	Pretty much a direct lift from tdfxfb.c.
-- * 
-+ *
-  *	Returns negative errno on error, or zero on success.
-  */
- static int pm2fb_setcolreg(unsigned regno, unsigned red, unsigned green,
-@@ -906,7 +906,7 @@ static int pm2fb_setcolreg(unsigned regn
- 	 *    (blue << blue.offset) | (transp << transp.offset)
- 	 *    RAMDAC does not exist
- 	 */
--#define CNVT_TOHW(val,width) ((((val)<<(width))+0x7FFF-(val))>>16)
-+#define CNVT_TOHW(val, width) ((((val) << (width)) + 0x7FFF -(val)) >> 16)
- 	switch (info->fix.visual) {
- 	case FB_VISUAL_TRUECOLOR:
- 	case FB_VISUAL_PSEUDOCOLOR:
-@@ -916,9 +916,9 @@ static int pm2fb_setcolreg(unsigned regn
- 		transp = CNVT_TOHW(transp, info->var.transp.length);
- 		break;
- 	case FB_VISUAL_DIRECTCOLOR:
--		/* example here assumes 8 bit DAC. Might be different 
--		 * for your hardware */	
--		red = CNVT_TOHW(red, 8);       
-+		/* example here assumes 8 bit DAC. Might be different
-+		 * for your hardware */
-+		red = CNVT_TOHW(red, 8);
- 		green = CNVT_TOHW(green, 8);
- 		blue = CNVT_TOHW(blue, 8);
- 		/* hey, there is bug in transp handling... */
-@@ -940,11 +940,11 @@ static int pm2fb_setcolreg(unsigned regn
- 
- 		switch (info->var.bits_per_pixel) {
- 		case 8:
--			break;	
--   		case 16:
++	for (i = first_fb_vc; i <= last_fb_vc; i++) {
++		if (con2fb_map[i] != idx &&
++		    con2fb_map[i] != -1) {
++			new_idx = i;
 +			break;
-+		case 16:
- 		case 24:
--		case 32:	
--           		par->palette[regno] = v;
-+		case 32:
-+			par->palette[regno] = v;
- 			break;
- 		}
- 		return 0;
-@@ -956,15 +956,15 @@ static int pm2fb_setcolreg(unsigned regn
++		}
++	}
++
++	if (new_idx != -1) {
++		for (i = first_fb_vc; i <= last_fb_vc; i++) {
++			if (con2fb_map[i] == idx)
++				set_con2fb_map(i, new_idx, 0);
++		}
++	} else
++		ret = fbcon_unbind();
++
++	return ret;
++}
++
+ static int fbcon_fb_unregistered(struct fb_info *info)
+ {
+ 	int i, idx = info->node;
+@@ -3210,6 +3249,9 @@ static int fbcon_event_notify(struct not
+ 		mode = event->data;
+ 		ret = fbcon_mode_deleted(info, mode);
+ 		break;
++	case FB_EVENT_FB_UNBIND:
++		ret = fbcon_fb_unbind(info->node);
++		break;
+ 	case FB_EVENT_FB_REGISTERED:
+ 		ret = fbcon_fb_registered(info);
+ 		break;
+diff -puN drivers/video/fbmem.c~fbdev-fbcon-console-unregistration-from-unregister_framebuffer drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-fbcon-console-unregistration-from-unregister_framebuffer
++++ a/drivers/video/fbmem.c
+@@ -1334,17 +1334,34 @@ register_framebuffer(struct fb_info *fb_
+  *
+  *	Returns negative errno on error, or zero for success.
+  *
++ *      This function will also notify the framebuffer console
++ *      to release the driver.
++ *
++ *      This is meant to be called within a driver's module_exit()
++ *      function. If this is called outside module_exit(), ensure
++ *      that the driver implements fb_open() and fb_release() to
++ *      check that no processes are using the device.
+  */
+ 
+ int
+ unregister_framebuffer(struct fb_info *fb_info)
+ {
+ 	struct fb_event event;
+-	int i;
++	int i, ret = 0;
+ 
+ 	i = fb_info->node;
+-	if (!registered_fb[i])
+-		return -EINVAL;
++	if (!registered_fb[i]) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	event.info = fb_info;
++	ret = fb_notifier_call_chain(FB_EVENT_FB_UNBIND, &event);
++
++	if (ret) {
++		ret = -EINVAL;
++		goto done;
++	}
+ 
+ 	if (fb_info->pixmap.addr &&
+ 	    (fb_info->pixmap.flags & FB_PIXMAP_DEFAULT))
+@@ -1356,7 +1373,8 @@ unregister_framebuffer(struct fb_info *f
+ 	device_destroy(fb_class, MKDEV(FB_MAJOR, i));
+ 	event.info = fb_info;
+ 	fb_notifier_call_chain(FB_EVENT_FB_UNREGISTERED, &event);
+-	return 0;
++done:
++	return ret;
  }
  
  /**
-- *      pm2fb_pan_display - Pans the display.
-- *      @var: frame buffer variable screen structure
-- *      @info: frame buffer structure that represents a single frame buffer
-+ *	pm2fb_pan_display - Pans the display.
-+ *	@var: frame buffer variable screen structure
-+ *	@info: frame buffer structure that represents a single frame buffer
-  *
-  *	Pan (or wrap, depending on the `vmode' field) the display using the
-- *  	`xoffset' and `yoffset' fields of the `var' structure.
-- *  	If the values don't fit, return -EINVAL.
-+ *	`xoffset' and `yoffset' fields of the `var' structure.
-+ *	If the values don't fit, return -EINVAL.
-  *
-- *      Returns negative errno on error, or zero on success.
-+ *	Returns negative errno on error, or zero on success.
-  *
-  */
- static int pm2fb_pan_display(struct fb_var_screeninfo *var,
-@@ -980,24 +980,24 @@ static int pm2fb_pan_display(struct fb_v
- 	depth = (depth > 32) ? 32 : depth;
- 	base = to3264(var->yoffset * xres + var->xoffset, depth, 1);
- 	WAIT_FIFO(p, 1);
--	pm2_WR(p, PM2R_SCREEN_BASE, base);    
-+	pm2_WR(p, PM2R_SCREEN_BASE, base);
- 	return 0;
- }
+diff -puN include/linux/fb.h~fbdev-fbcon-console-unregistration-from-unregister_framebuffer include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-fbcon-console-unregistration-from-unregister_framebuffer
++++ a/include/linux/fb.h
+@@ -529,6 +529,8 @@ struct fb_cursor_user {
+ #define FB_EVENT_CONBLANK               0x0C
+ /*      Get drawing requirements        */
+ #define FB_EVENT_GET_REQ                0x0D
++/*      Unbind from the console if possible */
++#define FB_EVENT_FB_UNBIND              0x0E
  
- /**
-- *      pm2fb_blank - Blanks the display.
-- *      @blank_mode: the blank mode we want. 
-- *      @info: frame buffer structure that represents a single frame buffer
-+ *	pm2fb_blank - Blanks the display.
-+ *	@blank_mode: the blank mode we want.
-+ *	@info: frame buffer structure that represents a single frame buffer
-  *
-- *      Blank the screen if blank_mode != 0, else unblank. Return 0 if
-- *      blanking succeeded, != 0 if un-/blanking failed due to e.g. a 
-- *      video mode which doesn't support it. Implements VESA suspend
-- *      and powerdown modes on hardware that supports disabling hsync/vsync:
-- *      blank_mode == 2: suspend vsync
-- *      blank_mode == 3: suspend hsync
-- *      blank_mode == 4: powerdown
-+ *	Blank the screen if blank_mode != 0, else unblank. Return 0 if
-+ *	blanking succeeded, != 0 if un-/blanking failed due to e.g. a
-+ *	video mode which doesn't support it. Implements VESA suspend
-+ *	and powerdown modes on hardware that supports disabling hsync/vsync:
-+ *	blank_mode == 2: suspend vsync
-+ *	blank_mode == 3: suspend hsync
-+ *	blank_mode == 4: powerdown
-  *
-- *      Returns negative errno on error, or zero on success.
-+ *	Returns negative errno on error, or zero on success.
-  *
-  */
- static int pm2fb_blank(int blank_mode, struct fb_info *info)
-@@ -1071,7 +1071,7 @@ static void pm2fb_block_op(struct fb_inf
- 	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (y << 16) | x);
- 	pm2_WR(par, PM2R_RECTANGLE_SIZE, (h << 16) | w);
- 	wmb();
--	pm2_WR(par, PM2R_RENDER,PM2F_RENDER_RECTANGLE |
-+	pm2_WR(par, PM2R_RENDER, PM2F_RENDER_RECTANGLE |
- 				(x<xsrc ? PM2F_INCREASE_X : 0) |
- 				(y<ysrc ? PM2F_INCREASE_Y : 0) |
- 				(copy ? 0 : PM2F_RENDER_FASTFILL));
-@@ -1234,7 +1234,7 @@ static int __devinit pm2fb_probe(struct 
- 	DPRINTK("Adjusting register base for big-endian.\n");
- #endif
- 	DPRINTK("Register base at 0x%lx\n", pm2fb_fix.mmio_start);
--    
-+
- 	/* Registers - request region and map it. */
- 	if ( !request_mem_region(pm2fb_fix.mmio_start, pm2fb_fix.mmio_len,
- 				 "pm2fb regbase") ) {
-@@ -1317,17 +1317,17 @@ static int __devinit pm2fb_probe(struct 
- 	}
- 
- 	info->fbops		= &pm2fb_ops;
--	info->fix		= pm2fb_fix; 	
-+	info->fix		= pm2fb_fix;
- 	info->pseudo_palette	= default_par->palette;
- 	info->flags		= FBINFO_DEFAULT |
--                                  FBINFO_HWACCEL_YPAN |
--	                          FBINFO_HWACCEL_COPYAREA |
--	                          FBINFO_HWACCEL_FILLRECT;
-+				  FBINFO_HWACCEL_YPAN |
-+				  FBINFO_HWACCEL_COPYAREA |
-+				  FBINFO_HWACCEL_FILLRECT;
- 
- 	if (!mode)
- 		mode = "640x480@60";
--	 
--	err = fb_find_mode(&info->var, info, mode, NULL, 0, NULL, 8); 
-+
-+	err = fb_find_mode(&info->var, info, mode, NULL, 0, NULL, 8);
- 	if (!err || err == 4)
- 		info->var = pm2fb_var;
- 
-@@ -1348,8 +1348,8 @@ static int __devinit pm2fb_probe(struct 
- 	return 0;
- 
-  err_exit_all:
--	fb_dealloc_cmap(&info->cmap);	
-- err_exit_both:    
-+	fb_dealloc_cmap(&info->cmap);
-+ err_exit_both:
- 	iounmap(info->screen_base);
- 	release_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
-  err_exit_mmio:
-@@ -1374,7 +1374,7 @@ static void __devexit pm2fb_remove(struc
- 	struct pm2fb_par *par = info->par;
- 
- 	unregister_framebuffer(info);
--    
-+
- 	iounmap(info->screen_base);
- 	release_mem_region(fix->smem_start, fix->smem_len);
- 	iounmap(par->v_regs);
-@@ -1402,9 +1402,9 @@ static struct pci_device_id pm2fb_id_tab
- 
- static struct pci_driver pm2fb_driver = {
- 	.name		= "pm2fb",
--	.id_table 	= pm2fb_id_table,
--	.probe 		= pm2fb_probe,
--	.remove 	= __devexit_p(pm2fb_remove),
-+	.id_table	= pm2fb_id_table,
-+	.probe		= pm2fb_probe,
-+	.remove		= __devexit_p(pm2fb_remove),
- };
- 
- MODULE_DEVICE_TABLE(pci, pm2fb_id_table);
-@@ -1423,7 +1423,7 @@ static int __init pm2fb_setup(char *opti
- 	if (!options || !*options)
- 		return 0;
- 
--	while ((this_opt = strsep(&options, ",")) != NULL) {	
-+	while ((this_opt = strsep(&options, ",")) != NULL) {
- 		if (!*this_opt)
- 			continue;
- 		if(!strcmp(this_opt, "lowhsync")) {
+ struct fb_event {
+ 	struct fb_info *info;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jesse.barnes@intel.com are
 
-origin.patch
-skeletonfb-fix-of-xxxfb_setup-ifdef.patch
-fbcon-smart-blitter-usage-for-scrolling.patch
-pm3fb-switching-between-x-and-fb-fix.patch
-pm2fb-white-spaces-clean-up.patch
+remove-pci_dac_dma_-apis.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+vt-add-comment-for-unbind_con_driver.patch
