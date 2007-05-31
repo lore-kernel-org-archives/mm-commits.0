@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-fix-section-mismatch-warning-in-kvm-intelo.patch added to -mm tree
-Date: Thu, 31 May 2007 16:39:48 -0700
-Message-ID: <200705312339.l4VNdmxT030865@shell0.pdx.osdl.net>
+Subject: + net-hp100-fix-section-mismatch-warning.patch added to -mm tree
+Date: Thu, 31 May 2007 16:39:46 -0700
+Message-ID: <200705312339.l4VNdk2I030862@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36051 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753460AbXEaXkZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753151AbXEaXkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 19:40:25 -0400
+	Thu, 31 May 2007 19:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, avi@qumranet.com
+Cc: sam@ravnborg.org, jeff@garzik.org
 
 
 The patch titled
-     kvm: fix section mismatch warning in kvm-intel.o
+     net/hp100: fix section mismatch warning
 has been added to the -mm tree.  Its filename is
-     kvm-fix-section-mismatch-warning-in-kvm-intelo.patch
+     net-hp100-fix-section-mismatch-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kvm: fix section mismatch warning in kvm-intel.o
+Subject: net/hp100: fix section mismatch warning
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following section mismatch warning in kvm-intel.o:
-WARNING: o-i386/drivers/kvm/kvm-intel.o(.init.text+0xbd): Section mismatch: reference to .exit.text: (between 'hardware_setup' and 'vmx_disabled_by_bios')
+Fix following section mismatch warning in hp100:
 
-The function free_kvm_area is used in the function alloc_kvm_area which
-is marked __init.
-The __exit area is discarded by some archs during link-time if a
-module is built-in resulting in an oops.
+WARNING: drivers/net/hp100.o(.init.text+0x26a): Section mismatch: reference to .exit.text: (after 'init_module')
+
+The warning says that we use a function marked __exit from a
+function marked __init.
+This is not good on architectures where we discard __exit section
+for drivers that are built-in.
 
 Note: This warning is only seen by my local copy of modpost
       but the change will soon hit upstream.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/vmx.c |    2 +-
+ drivers/net/hp100.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-fix-section-mismatch-warning-in-kvm-intelo drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-fix-section-mismatch-warning-in-kvm-intelo
-+++ a/drivers/kvm/vmx.c
-@@ -797,7 +797,7 @@ static void free_vmcs(struct vmcs *vmcs)
- 	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
+diff -puN drivers/net/hp100.c~net-hp100-fix-section-mismatch-warning drivers/net/hp100.c
+--- a/drivers/net/hp100.c~net-hp100-fix-section-mismatch-warning
++++ a/drivers/net/hp100.c
+@@ -3005,7 +3005,7 @@ static int __init hp100_isa_init(void)
+ 	return cards > 0 ? 0 : -ENODEV;
  }
  
--static __exit void free_kvm_area(void)
-+static void free_kvm_area(void)
+-static void __exit hp100_isa_cleanup(void)
++static void hp100_isa_cleanup(void)
  {
- 	int cpu;
+ 	int i;
  
 _
 
