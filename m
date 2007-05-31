@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-hp100-fix-section-mismatch-warning.patch added to -mm tree
-Date: Thu, 31 May 2007 16:39:46 -0700
-Message-ID: <200705312339.l4VNdk2I030862@shell0.pdx.osdl.net>
+Subject: + acpi-fix-section-mismatch-warning-in-asus-toshiba.patch added to -mm tree
+Date: Thu, 31 May 2007 16:39:50 -0700
+Message-ID: <200705312339.l4VNdop9030868@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60779 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753151AbXEaXkY (ORCPT
+	by vger.kernel.org with ESMTP id S1753218AbXEaXkc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 19:40:24 -0400
+	Thu, 31 May 2007 19:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, jeff@garzik.org
+Cc: sam@ravnborg.org, lenb@kernel.org
 
 
 The patch titled
-     net/hp100: fix section mismatch warning
+     acpi: fix section mismatch warning in asus + toshiba
 has been added to the -mm tree.  Its filename is
-     net-hp100-fix-section-mismatch-warning.patch
+     acpi-fix-section-mismatch-warning-in-asus-toshiba.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/hp100: fix section mismatch warning
+Subject: acpi: fix section mismatch warning in asus + toshiba
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following section mismatch warning in hp100:
+Fix following section mismatch warnings in acpi
 
-WARNING: drivers/net/hp100.o(.init.text+0x26a): Section mismatch: reference to .exit.text: (after 'init_module')
+WARNING: drivers/acpi/asus_acpi.o(.init.text+0xb7): Section mismatch: reference to .exit.text: (after 'init_module')
+WARNING: o-i386/drivers/acpi/toshiba_acpi.o(.init.text+0x13a): Section mismatch: reference to .exit.text: (after 'init_module')
 
-The warning says that we use a function marked __exit from a
-function marked __init.
-This is not good on architectures where we discard __exit section
-for drivers that are built-in.
+The exit function is used in the init function during an error codition.
+As __exit may be discarded during link-time / run-time this is no good.
+Do not mark the exit function __exit.
 
 Note: This warning is only seen by my local copy of modpost
       but the change will soon hit upstream.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hp100.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/asus_acpi.c    |    2 +-
+ drivers/acpi/toshiba_acpi.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/hp100.c~net-hp100-fix-section-mismatch-warning drivers/net/hp100.c
---- a/drivers/net/hp100.c~net-hp100-fix-section-mismatch-warning
-+++ a/drivers/net/hp100.c
-@@ -3005,7 +3005,7 @@ static int __init hp100_isa_init(void)
- 	return cards > 0 ? 0 : -ENODEV;
- }
+diff -puN drivers/acpi/asus_acpi.c~acpi-fix-section-mismatch-warning-in-asus-toshiba drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~acpi-fix-section-mismatch-warning-in-asus-toshiba
++++ a/drivers/acpi/asus_acpi.c
+@@ -1357,7 +1357,7 @@ static struct backlight_ops asus_backlig
+         .update_status  = set_brightness_status,
+ };
  
--static void __exit hp100_isa_cleanup(void)
-+static void hp100_isa_cleanup(void)
+-static void __exit asus_acpi_exit(void)
++static void asus_acpi_exit(void)
  {
- 	int i;
+ 	if (asus_backlight_device)
+ 		backlight_device_unregister(asus_backlight_device);
+diff -puN drivers/acpi/toshiba_acpi.c~acpi-fix-section-mismatch-warning-in-asus-toshiba drivers/acpi/toshiba_acpi.c
+--- a/drivers/acpi/toshiba_acpi.c~acpi-fix-section-mismatch-warning-in-asus-toshiba
++++ a/drivers/acpi/toshiba_acpi.c
+@@ -538,7 +538,7 @@ static struct backlight_ops toshiba_back
+         .update_status  = set_lcd_status,
+ };
  
+-static void __exit toshiba_acpi_exit(void)
++static void toshiba_acpi_exit(void)
+ {
+ 	if (toshiba_backlight_device)
+ 		backlight_device_unregister(toshiba_backlight_device);
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
