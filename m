@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-discontinuous-memory-support-fix.patch added to -mm tree
-Date: Thu, 31 May 2007 00:39:35 -0700
-Message-ID: <200705310739.l4V7dY1x015246@shell0.pdx.osdl.net>
+Subject: - m68k-discontinuous-memory-support-fix.patch removed from -mm tree
+Date: Thu, 31 May 2007 00:39:44 -0700
+Message-ID: <200705310739.l4V7dh3k015249@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37383 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755231AbXEaHjo (ORCPT
+	by vger.kernel.org with ESMTP id S1755745AbXEaHjw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 03:39:44 -0400
+	Thu, 31 May 2007 03:39:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, zippel@linux-m68k.org
+To: geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      m68k-discontinuous-memory-support fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      m68k-discontinuous-memory-support-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into m68k-discontinuous-memory-support.patch
 
 ------------------------------------------------------
 Subject: m68k-discontinuous-memory-support fix
