@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-locking-for-hotplug-callbacks.patch added to -mm tree
-Date: Thu, 31 May 2007 16:28:22 -0700
-Message-ID: <200705312328.l4VNSMlC030656@shell0.pdx.osdl.net>
+Subject: + x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch added to -mm tree
+Date: Thu, 31 May 2007 16:36:12 -0700
+Message-ID: <200705312336.l4VNaChx030804@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50736 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750822AbXEaX3B (ORCPT
+	by vger.kernel.org with ESMTP id S1753035AbXEaXg7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 19:29:01 -0400
+	Thu, 31 May 2007 19:36:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, michal.k.k.piotrowski@gmail.com
+Cc: akpm@linux-foundation.org, ak@suse.de, asit.k.mallick@intel.com, ebiederm@xmission.com, keith.packard@intel.com, mingo@elte.hu, nanhai.zou@intel.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     SLUB: fix locking for hotplug callbacks
+     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix
 has been added to the -mm tree.  Its filename is
-     slub-fix-locking-for-hotplug-callbacks.patch
+     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,168 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: fix locking for hotplug callbacks
-From: Christoph Lameter <clameter@sgi.com>
+Subject: x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Hotplug callbacks are performed with interrupts enabled.  Slub requires
-interrupts to be disabled for flushing caches.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Asit Mallick <asit.k.mallick@intel.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Keith Packard <keith.packard@intel.com>
+Cc: Nanhai Zou <nanhai.zou@intel.com>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++++++++++++-
- 1 files changed, 14 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/io_apic.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-fix-locking-for-hotplug-callbacks mm/slub.c
---- a/mm/slub.c~slub-fix-locking-for-hotplug-callbacks
-+++ a/mm/slub.c
-@@ -2608,6 +2608,19 @@ static void for_all_slabs(void (*func)(s
- }
- 
- /*
-+ * Version of __flush_cpu_slab for the case that interrupts
-+ * are enabled.
-+ */
-+static void cpu_slab_flush(struct kmem_cache *s, int cpu)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__flush_cpu_slab(s, cpu);
-+	local_irq_restore(flags);
-+}
-+
-+/*
-  * Use the cpu notifier to insure that the cpu slabs are flushed when
-  * necessary.
-  */
-@@ -2621,7 +2634,7 @@ static int __cpuinit slab_cpuup_callback
- 	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
--		for_all_slabs(__flush_cpu_slab, cpu);
-+		for_all_slabs(cpu_slab_flush, cpu);
- 		break;
- 	default:
- 		break;
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -1449,7 +1449,7 @@ static void ack_apic_level(unsigned int 
+ 		 *
+ 		 * On rare occasions the broadcast level triggered ack gets
+ 		 * delayed going to ioapics, and if we reprogram the
+-		 * vector while Remote IRR is still the irq will never
++		 * vector while Remote IRR is still set the irq will never
+ 		 * fire again.
+ 		 *
+ 		 * To prevent this scenario we read the Remote IRR bit
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slub-more-documentation.patch
+origin.patch
 ntfs_init_locked_inode-fix-array-indexing.patch
-slub-fix-numa--sysfs-bootstrap-issue.patch
+afs-needs-schedh.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
 fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
-quicklist-support-for-x86_64.patch
-slub-fix-locking-for-hotplug-callbacks.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-rc-fixes.patch
+sparc32-build-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+potential-parse-error-in-ifdef.patch
+potential-parse-error-in-ifdef-fix.patch
+potential-parse-error-in-ifdef-update.patch
+aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-hexdump-more-output-formatting.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
