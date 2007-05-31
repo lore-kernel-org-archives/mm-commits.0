@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + potential-parse-error-in-ifdef-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 18:05:40 -0700
-Message-ID: <200705310109.l4V194PH009384@shell0.pdx.osdl.net>
+Subject: + coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch added to -mm tree
+Date: Wed, 30 May 2007 18:19:20 -0700
+Message-ID: <200705310122.l4V1MjQX009602@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40313 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756017AbXEaBJL (ORCPT
+	by vger.kernel.org with ESMTP id S1753786AbXEaBXI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 21:09:11 -0400
+	Wed, 30 May 2007 21:23:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org, padator@wanadoo.fr
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dhowells@redhat.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     amd8111e: fix more bustage
+     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
 has been added to the -mm tree.  Its filename is
-     potential-parse-error-in-ifdef-fix.patch
+     coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: amd8111e: fix more bustage
+Subject: coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/amd8111e.c: In function 'amd8111e_write_phy':
-drivers/net/amd8111e.c:159: warning: ISO C90 forbids mixed declarations and code
+ERROR: "set_dumpable" [security/commoncap.ko] undefined!
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Yoann Padioleau <padator@wanadoo.fr>
-
+Cc: "Kawai, Hidehiro" <hidehiro.kawai.ez@hitachi.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/amd8111e.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/amd8111e.c~potential-parse-error-in-ifdef-fix drivers/net/amd8111e.c
-diff -puN drivers/net/amd8111e.h~potential-parse-error-in-ifdef-fix drivers/net/amd8111e.h
---- a/drivers/net/amd8111e.h~potential-parse-error-in-ifdef-fix
-+++ a/drivers/net/amd8111e.h
-@@ -615,7 +615,7 @@ typedef enum {
- #define SSTATE  2
+diff -puN fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix fs/exec.c
+--- a/fs/exec.c~coredump-masking-reimplementation-of-dumpable-using-two-flags-fix
++++ a/fs/exec.c
+@@ -1524,6 +1524,7 @@ void set_dumpable(struct mm_struct *mm, 
+ 		break;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(set_dumpable);
  
- /* Assume contoller gets data 10 times the maximum processing time */
--#define  REPEAT_CNT			10;
-+#define  REPEAT_CNT			10
- 
- /* amd8111e decriptor flag definitions */
- typedef enum {
+ int get_dumpable(struct mm_struct *mm)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,6 +169,7 @@ lguest-the-host-code-borkages.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
 cfs-scheduler-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 containersv10-basic-container-framework-fix.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
 containersv10-add-tasks-file-interface-fix.patch
