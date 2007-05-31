@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch added to -mm tree
-Date: Wed, 30 May 2007 17:19:38 -0700
-Message-ID: <200705310023.l4V0N3Ug008647@shell0.pdx.osdl.net>
+Subject: + i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch added to -mm tree
+Date: Wed, 30 May 2007 17:27:45 -0700
+Message-ID: <200705310031.l4V0VAfW008775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59371 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751238AbXEaAXH (ORCPT
+	by vger.kernel.org with ESMTP id S1759153AbXEaAbR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 May 2007 20:23:07 -0400
+	Wed, 30 May 2007 20:31:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, ak@suse.de, benh@kernel.crashing.org
 
 
 The patch titled
-     slub-change-error-reporting-format-to-follow-lockdep-loosely-fix
+     i386 flush_tlb_kernel_range(): add reference to the arguments
 has been added to the -mm tree.  Its filename is
-     slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+     i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-change-error-reporting-format-to-follow-lockdep-loosely-fix
+Subject: i386 flush_tlb_kernel_range(): add reference to the arguments
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/slub.c: In function 'print_trailer':
-mm/slub.c:476: warning: format '%lu' expects type 'long unsigned int', but argument 3 has type 'int'
+Prevent stuff like this:
 
-Cc: Christoph Lameter <clameter@sgi.com>
+mm/vmalloc.c: In function 'unmap_kernel_range':
+mm/vmalloc.c:75: warning: unused variable 'start'
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-i386/tlbflush.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-change-error-reporting-format-to-follow-lockdep-loosely-fix mm/slub.c
---- a/mm/slub.c~slub-change-error-reporting-format-to-follow-lockdep-loosely-fix
-+++ a/mm/slub.c
-@@ -472,7 +472,7 @@ static void print_trailer(struct kmem_ca
+diff -puN include/asm-i386/tlbflush.h~i386-flush_tlb_kernel_range-add-reference-to-the-arguments include/asm-i386/tlbflush.h
+--- a/include/asm-i386/tlbflush.h~i386-flush_tlb_kernel_range-add-reference-to-the-arguments
++++ a/include/asm-i386/tlbflush.h
+@@ -160,7 +160,11 @@ DECLARE_PER_CPU(struct tlb_state, cpu_tl
+ 	native_flush_tlb_others(&mask, mm, va)
+ #endif
  
- 	print_page_info(page);
+-#define flush_tlb_kernel_range(start, end) flush_tlb_all()
++static inline void flush_tlb_kernel_range(unsigned long start,
++					unsigned long end)
++{
++	flush_tlb_all();
++}
  
--	printk(KERN_ERR "INFO: Object 0x%p @offset=%lu fp=0x%p\n\n",
-+	printk(KERN_ERR "INFO: Object 0x%p @offset=%tu fp=0x%p\n\n",
- 			p, p - addr, get_freepointer(s, p));
- 
- 	if (p > addr + 16)
+ static inline void flush_tlb_pgtables(struct mm_struct *mm,
+ 				      unsigned long start, unsigned long end)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +109,7 @@ i386-add-support-for-picopower-irq-router.patch
 x86_64-extract-helper-function-from-e820_register_active_regions.patch
 mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 git-xfs.patch
 git-cryptodev.patch
 fix-possible-leakage-of-blocks-in-udf-tidy.patch
