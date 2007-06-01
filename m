@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rework-ptep_set_access_flags-and-fix-sun4c-fix.patch added to -mm tree
-Date: Fri, 01 Jun 2007 10:00:30 -0700
-Message-ID: <200706011700.l51H0Th5014153@shell0.pdx.osdl.net>
+Subject: + rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch added to -mm tree
+Date: Fri, 01 Jun 2007 10:02:23 -0700
+Message-ID: <200706011702.l51H2MbE014172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59005 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759308AbXFARAm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:00:42 -0400
+	by vger.kernel.org with ESMTP id S1758653AbXFARCb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, davem@davemloft.net, hu
 
 
 The patch titled
-     rework-ptep_set_access_flags-and-fix-sun4c-fix
+     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
 has been added to the -mm tree.  Its filename is
-     rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,8 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix
+Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+less revolting in 80-col display
 
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: David Miller <davem@davemloft.net>
@@ -36,21 +38,46 @@ Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-ia64/pgtable.h |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix
+diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
 +++ a/include/asm-ia64/pgtable.h
-@@ -546,7 +546,7 @@ extern void lazy_mmu_prot_update (pte_t 
+@@ -534,21 +534,21 @@ extern void lazy_mmu_prot_update (pte_t 
+  */
+ #ifdef CONFIG_SMP
  # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
- ({										\
- 	int __changed = !pte_same(*(__ptep), __entry);				\
--	if (__changed) {							\
-+	if (__changed)							\
- 		ptep_establish(__vma, __addr, __ptep, __entry)			\
- 	__changed;								\
+-({										\
+-	int __changed = !pte_same(*(__ptep), __entry);				\
+-	if (__changed && __safely_writable) {					\
+-		set_pte(__ptep, __entry);					\
+-		flush_tlb_page(__vma, __addr);					\
+-	}									\
+-	__changed;								\
++({								\
++	int __changed = !pte_same(*(__ptep), __entry);		\
++	if (__changed && __safely_writable) {			\
++		set_pte(__ptep, __entry);			\
++		flush_tlb_page(__vma, __addr);			\
++	}							\
++	__changed;						\
  })
+ #else
+ # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
+-({										\
+-	int __changed = !pte_same(*(__ptep), __entry);				\
+-	if (__changed)							\
+-		ptep_establish(__vma, __addr, __ptep, __entry)			\
+-	__changed;								\
++({								\
++	int __changed = !pte_same(*(__ptep), __entry);		\
++	if (__changed)						\
++		ptep_establish(__vma, __addr, __ptep, __entry)	\
++	__changed;						\
+ })
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +139,7 @@ aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 create-the-zone_movable-zone-fix.patch
