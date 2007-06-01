@@ -1,80 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 00:06:07 -0700
-Message-ID: <200706010706.l517672n004706@shell0.pdx.osdl.net>
+Subject: - ramfs-nommu-a-bug-in-ramfs_nommu_resize-function-passing-old-size-to-vmtruncate.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 00:07:18 -0700
+Message-ID: <200706010707.l5177HCs004773@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57738 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756429AbXFAHH0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:07:26 -0400
+	by vger.kernel.org with ESMTP id S1756459AbXFAHHe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:07:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marc.pignat@hevs.ch, andrew@sanpeople.com, david-b@pacbell.net, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     at91: fix enable/disable_irq_wake symmetry in pcmcia driver
+     RAMFS NOMMU: a bug in ramfs_nommu_resize function, passing old size to vmtruncate
 has been removed from the -mm tree.  Its filename was
-     at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver.patch
+     ramfs-nommu-a-bug-in-ramfs_nommu_resize-function-passing-old-size-to-vmtruncate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: at91: fix enable/disable_irq_wake symmetry in pcmcia driver
-From: Marc Pignat <marc.pignat@hevs.ch>
+Subject: RAMFS NOMMU: a bug in ramfs_nommu_resize function, passing old size to vmtruncate
+From: Bryan Wu <bryan.wu@analog.com>
 
-Fix enable_irq_wake and disable_irq_wake symmetry in at91 pcmcia driver
+It should pass "newsize" to vmtruncate function to modify the
+inode->i_size, while the old size is passed to vmtruncate.
 
-disable_irq_wake call must be symmetric with enable_irq_wake.  This patch
-fix that problem for the at91_pcmia driver.  It seems that this patch was
-forgotten when we've fixed irq_wake symmetry in all at91 related drivers. 
-It was discussed in the "at91 drivers and [enable/disable]_irq_wake
-(wrong?) usage" thread on the linux-arm-kernel mailing list.
+This bug was caught by LTP truncate test case on Blackfin platform.  After
+it was fixed, the LTP truncate test case passed.
 
-Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrew Victor <andrew@sanpeople.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/at91_cf.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/ramfs/file-nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/at91_cf.c~at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver drivers/pcmcia/at91_cf.c
---- a/drivers/pcmcia/at91_cf.c~at91-fix-enable-disable_irq_wake-symmetry-in-pcmcia-driver
-+++ a/drivers/pcmcia/at91_cf.c
-@@ -336,16 +336,21 @@ static int at91_cf_suspend(struct platfo
- 		enable_irq_wake(board->det_pin);
- 		if (board->irq_pin)
- 			enable_irq_wake(board->irq_pin);
--	} else {
--		disable_irq_wake(board->det_pin);
--		if (board->irq_pin)
--			disable_irq_wake(board->irq_pin);
+diff -puN fs/ramfs/file-nommu.c~ramfs-nommu-a-bug-in-ramfs_nommu_resize-function-passing-old-size-to-vmtruncate fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~ramfs-nommu-a-bug-in-ramfs_nommu_resize-function-passing-old-size-to-vmtruncate
++++ a/fs/ramfs/file-nommu.c
+@@ -179,7 +179,7 @@ static int ramfs_nommu_resize(struct ino
+ 			return ret;
  	}
- 	return 0;
- }
  
- static int at91_cf_resume(struct platform_device *pdev)
- {
-+	struct at91_cf_socket	*cf = platform_get_drvdata(pdev);
-+	struct at91_cf_data	*board = cf->board;
-+
-+	if (device_may_wakeup(&pdev->dev)) {
-+		disable_irq_wake(board->det_pin);
-+		if (board->irq_pin)
-+			disable_irq_wake(board->irq_pin);
-+	}
-+
- 	pcmcia_socket_dev_resume(&pdev->dev);
- 	return 0;
+-	ret = vmtruncate(inode, size);
++	ret = vmtruncate(inode, newsize);
+ 
+ 	return ret;
  }
 _
 
-Patches currently in -mm which might be from marc.pignat@hevs.ch are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
 origin.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
