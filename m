@@ -1,70 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - isdn4linux-fix-maturity-label-v4.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:53 -0700
-Message-ID: <200706011747.l51Hlq13015159@shell0.pdx.osdl.net>
+Subject: - fix-compat-futex-code-for-private-futexes.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:47:28 -0700
+Message-ID: <200706011747.l51HlRXp015126@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48202 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761379AbXFARr6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:58 -0400
+	by vger.kernel.org with ESMTP id S1761408AbXFARsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tilman@imap.cc, kkeil@suse.de, mm-commits@vger.kernel.org
+To: drepper@redhat.com, dada1@cosmosbay.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ISDN4Linux: fix maturity label
+     fix compat futex code for private futexes
 has been removed from the -mm tree.  Its filename was
-     isdn4linux-fix-maturity-label-v4.patch
+     fix-compat-futex-code-for-private-futexes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ISDN4Linux: fix maturity label
-From: Tilman Schmidt <tilman@imap.cc>
+Subject: fix compat futex code for private futexes
+From: Ulrich Drepper <drepper@redhat.com>
 
-According to the definitions recently posted on LKML, the maturity label
-for the ISDN4Linux subsystem is wrong.  This patch corrects it and also
-clarifies the accompanying help text a bit.
+When the private futex support was added the compat code wasn't changed. 
+The result is that code using compat code which fail, e.g., because the
+timeout values are not correctly passed.  The following patch should fix
+that.
 
-Signed-off-by: Tilman Schmidt <tilman@imap.cc>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/Kconfig |    9 +++++----
+ kernel/futex_compat.c |    9 +++++----
  1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/isdn/Kconfig~isdn4linux-fix-maturity-label-v4 drivers/isdn/Kconfig
---- a/drivers/isdn/Kconfig~isdn4linux-fix-maturity-label-v4
-+++ a/drivers/isdn/Kconfig
-@@ -26,9 +26,9 @@ menu "Old ISDN4Linux"
- 	depends on NET && ISDN
+diff -puN kernel/futex_compat.c~fix-compat-futex-code-for-private-futexes kernel/futex_compat.c
+--- a/kernel/futex_compat.c~fix-compat-futex-code-for-private-futexes
++++ a/kernel/futex_compat.c
+@@ -144,20 +144,21 @@ asmlinkage long compat_sys_futex(u32 __u
+ 	struct timespec ts;
+ 	ktime_t t, *tp = NULL;
+ 	int val2 = 0;
++	int cmd = op & FUTEX_CMD_MASK;
  
- config ISDN_I4L
--	tristate "Old ISDN4Linux (obsolete)"
-+	tristate "Old ISDN4Linux (deprecated)"
- 	---help---
--	  This driver allows you to use an ISDN-card for networking
-+	  This driver allows you to use an ISDN adapter for networking
- 	  connections and as dialin/out device.  The isdn-tty's have a built
- 	  in AT-compatible modem emulator.  Network devices support autodial,
- 	  channel-bundling, callback and caller-authentication without having
-@@ -39,8 +39,9 @@ config ISDN_I4L
+-	if (utime && (op == FUTEX_WAIT || op == FUTEX_LOCK_PI)) {
++	if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI)) {
+ 		if (get_compat_timespec(&ts, utime))
+ 			return -EFAULT;
+ 		if (!timespec_valid(&ts))
+ 			return -EINVAL;
  
- 	  ISDN support in the linux kernel is moving towards a new API,
- 	  called CAPI (Common ISDN Application Programming Interface).
--	  Therefore the old ISDN4Linux layer is becoming obsolete. It is 
--	  still usable, though, if you select this option.
-+	  Therefore the old ISDN4Linux layer will eventually become obsolete.
-+	  It is still available, though, for use with adapters that are not
-+	  supported by the new CAPI subsystem yet.
+ 		t = timespec_to_ktime(ts);
+-		if (op == FUTEX_WAIT)
++		if (cmd == FUTEX_WAIT)
+ 			t = ktime_add(ktime_get(), t);
+ 		tp = &t;
+ 	}
+-	if (op == FUTEX_REQUEUE || op == FUTEX_CMP_REQUEUE
+-	    || op == FUTEX_CMP_REQUEUE_PI)
++	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE
++	    || cmd == FUTEX_CMP_REQUEUE_PI)
+ 		val2 = (int) (unsigned long) utime;
  
- if ISDN_I4L
- source "drivers/isdn/i4l/Kconfig"
+ 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
 _
 
-Patches currently in -mm which might be from tilman@imap.cc are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
+introduce-o_cloexec-take-2.patch
+introduce-o_cloexec-parisc-fix.patch
