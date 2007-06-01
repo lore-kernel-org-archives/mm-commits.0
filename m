@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-o_cloexec-parisc-fix.patch added to -mm tree
-Date: Fri, 01 Jun 2007 12:54:24 -0700
-Message-ID: <200706011954.l51JsOYO017439@shell0.pdx.osdl.net>
+Subject: + spi-dynamic-busid-generation-bugfix.patch added to -mm tree
+Date: Fri, 01 Jun 2007 16:34:05 -0700
+Message-ID: <200706012334.l51NY5Ld021967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58457 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762367AbXFATzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 15:55:32 -0400
+	by vger.kernel.org with ESMTP id S1752816AbXFAXep (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 19:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyle@parisc-linux.org, drepper@redhat.com, mingo@elte.hu
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Introduce O_CLOEXEC (parisc fix)
+     SPI dynamic busid generation bugfix
 has been added to the -mm tree.  Its filename is
-     introduce-o_cloexec-parisc-fix.patch
+     spi-dynamic-busid-generation-bugfix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Introduce O_CLOEXEC (parisc fix)
-From: Kyle McMartin <kyle@parisc-linux.org>
+Subject: SPI dynamic busid generation bugfix
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Fix SPI dynamic bus ID assignment to start at 2^15-1 rather than a negative
+number.  Valid bus ids are supposed to be positive, and are (now) stored in
+an 's16' value.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/fcntl.h |   31 ++++++++++++++++---------------
- 1 files changed, 16 insertions(+), 15 deletions(-)
+ drivers/spi/spi.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-parisc/fcntl.h~introduce-o_cloexec-parisc-fix include/asm-parisc/fcntl.h
---- a/include/asm-parisc/fcntl.h~introduce-o_cloexec-parisc-fix
-+++ a/include/asm-parisc/fcntl.h
-@@ -3,21 +3,22 @@
- 
- /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
-    located on an ext2 file system */
--#define O_APPEND	00000010
--#define O_BLKSEEK	00000100 /* HPUX only */
--#define O_CREAT		00000400 /* not fcntl */
--#define O_EXCL		00002000 /* not fcntl */
--#define O_LARGEFILE	00004000
--#define O_SYNC		00100000
--#define O_NONBLOCK	00200004 /* HPUX has separate NDELAY & NONBLOCK */
--#define O_NOCTTY	00400000 /* not fcntl */
--#define O_DSYNC		01000000 /* HPUX only */
--#define O_RSYNC		02000000 /* HPUX only */
--#define O_NOATIME	04000000
--
--#define O_DIRECTORY	00010000 /* must be a directory */
--#define O_NOFOLLOW	00000200 /* don't follow links */
--#define O_INVISIBLE	04000000 /* invisible I/O, for DMAPI/XDSM */
-+#define O_APPEND	000000010
-+#define O_BLKSEEK	000000100 /* HPUX only */
-+#define O_CREAT		000000400 /* not fcntl */
-+#define O_EXCL		000002000 /* not fcntl */
-+#define O_LARGEFILE	000004000
-+#define O_SYNC		000100000
-+#define O_NONBLOCK	000200004 /* HPUX has separate NDELAY & NONBLOCK */
-+#define O_NOCTTY	000400000 /* not fcntl */
-+#define O_DSYNC		001000000 /* HPUX only */
-+#define O_RSYNC		002000000 /* HPUX only */
-+#define O_NOATIME	004000000
-+#define O_CLOEXEC	010000000 /* set close_on_exec */
-+
-+#define O_DIRECTORY	000010000 /* must be a directory */
-+#define O_NOFOLLOW	000000200 /* don't follow links */
-+#define O_INVISIBLE	004000000 /* invisible I/O, for DMAPI/XDSM */
- 
- #define F_GETLK64	8
- #define F_SETLK64	9
+diff -puN drivers/spi/spi.c~spi-dynamic-busid-generation-bugfix drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-dynamic-busid-generation-bugfix
++++ a/drivers/spi/spi.c
+@@ -411,7 +411,7 @@ EXPORT_SYMBOL_GPL(spi_alloc_master);
+  */
+ int spi_register_master(struct spi_master *master)
+ {
+-	static atomic_t		dyn_bus_id = ATOMIC_INIT((1<<16) - 1);
++	static atomic_t		dyn_bus_id = ATOMIC_INIT((1<<15) - 1);
+ 	struct device		*dev = master->cdev.dev;
+ 	int			status = -ENODEV;
+ 	int			dynamic = 0;
 _
 
-Patches currently in -mm which might be from kyle@parisc-linux.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-parisc.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
-introduce-o_cloexec-parisc-fix.patch
+spi-dynamic-busid-generation-bugfix.patch
+git-avr32.patch
+git-leds.patch
+git-mmc.patch
+git-backlight.patch
+char-genrtc-use-wait_event_interruptible.patch
+spi-controller-drivers-check-for-unsupported-modes.patch
+spi-add-3wire-mode-flag.patch
+spi-add-3wire-mode-flag-fix.patch
+spidev-compiler-warning-gone.patch
+rtc-ds1307-cleanups.patch
+rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
