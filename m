@@ -1,67 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-fix-section-mismatch-warning-in-kvm-intelo.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:48:32 -0700
-Message-ID: <200706011748.l51HmVkc015214@shell0.pdx.osdl.net>
+Subject: - better-documentation-for-erestartsys.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:48:14 -0700
+Message-ID: <200706011748.l51HmDqZ015190@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34068 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761617AbXFARsf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:35 -0400
+	by vger.kernel.org with ESMTP id S1761516AbXFARsg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, avi@qumranet.com, mm-commits@vger.kernel.org
+To: takeuchi_satoru@jp.fujitsu.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm: fix section mismatch warning in kvm-intel.o
+     Better documentation for ERESTARTSYS
 has been removed from the -mm tree.  Its filename was
-     kvm-fix-section-mismatch-warning-in-kvm-intelo.patch
+     better-documentation-for-erestartsys.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kvm: fix section mismatch warning in kvm-intel.o
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: Better documentation for ERESTARTSYS
+From: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
 
-Fix following section mismatch warning in kvm-intel.o:
-WARNING: o-i386/drivers/kvm/kvm-intel.o(.init.text+0xbd): Section mismatch: reference to .exit.text: (between 'hardware_setup' and 'vmx_disabled_by_bios')
+Add comment for errnos related to restart syscall to avoid the leakage of
+them to user programs.
 
-The function free_kvm_area is used in the function alloc_kvm_area which
-is marked __init.
-The __exit area is discarded by some archs during link-time if a
-module is built-in resulting in an oops.
-
-Note: This warning is only seen by my local copy of modpost
-      but the change will soon hit upstream.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Avi Kivity <avi@qumranet.com>
+Signed-off-by: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/vmx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/errno.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/kvm/vmx.c~kvm-fix-section-mismatch-warning-in-kvm-intelo drivers/kvm/vmx.c
---- a/drivers/kvm/vmx.c~kvm-fix-section-mismatch-warning-in-kvm-intelo
-+++ a/drivers/kvm/vmx.c
-@@ -639,7 +639,7 @@ static void free_vmcs(struct vmcs *vmcs)
- 	free_pages((unsigned long)vmcs, vmcs_descriptor.order);
- }
+diff -puN include/linux/errno.h~better-documentation-for-erestartsys include/linux/errno.h
+--- a/include/linux/errno.h~better-documentation-for-erestartsys
++++ a/include/linux/errno.h
+@@ -5,7 +5,12 @@
  
--static __exit void free_kvm_area(void)
-+static void free_kvm_area(void)
- {
- 	int cpu;
+ #ifdef __KERNEL__
  
+-/* Should never be seen by user programs */
++/*
++ * These should never be seen by user programs.  To return one of ERESTART*
++ * codes, signal_pending() MUST be set.  Note that ptrace can observe these
++ * at syscall exit tracing, but they will never be left for the debugged user
++ * process to see.
++ */
+ #define ERESTARTSYS	512
+ #define ERESTARTNOINTR	513
+ #define ERESTARTNOHAND	514	/* restart if no handler.. */
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from takeuchi_satoru@jp.fujitsu.com are
 
 origin.patch
-git-kbuild.patch
-use-posix-bre-in-headers-install-target.patch
-fix-x86_64-mm-xen-core-xen-implementation.patch
-x86-fix-section-mismatch-warnings-in-mtrr.patch
-git-newsetup.patch
+git-input.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
