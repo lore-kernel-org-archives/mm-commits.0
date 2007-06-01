@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + i386-remove-support-for-the-rise-cpu.patch added to -mm tree
-Date: Thu, 31 May 2007 19:01:33 -0700
-Message-ID: <200706010201.l5121WUn000446@shell0.pdx.osdl.net>
+Subject: + document-acked-by.patch added to -mm tree
+Date: Thu, 31 May 2007 19:09:16 -0700
+Message-ID: <200706010209.l5129F5k000534@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42873 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44684 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750822AbXFACCG (ORCPT
+	by vger.kernel.org with ESMTP id S1752659AbXFACJR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 22:02:06 -0400
+	Thu, 31 May 2007 22:09:17 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5129F9p005229
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 31 May 2007 19:09:16 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ak@suse.de, davej@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     i386: remove support for the Rise CPU
+     document Acked-by:
 has been added to the -mm tree.  Its filename is
-     i386-remove-support-for-the-rise-cpu.patch
+     document-acked-by.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,172 +30,176 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: remove support for the Rise CPU
-From: Adrian Bunk <bunk@stusta.de>
+Subject: document Acked-by:
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The Rise CPUs were only very short-lived, and there are no reports of
-anyone both owning one and running Linux on it.
-
-Googling for the printk string "CPU: Rise iDragon" didn't find any dmesg
-available online.
-
-If it turns out that against all expectations there are actually users
-reverting this patch would be easy.
-
-This patch will make the kernel images smaller by a few bytes for all
-i386 users.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Dave Jones <davej@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Explain what we use Acked-by: for, and how it differs from Signed-off-by:
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/Makefile  |    1 
- arch/i386/kernel/cpu/common.c  |    2 -
- arch/i386/kernel/cpu/rise.c    |   52 -------------------------------
- include/asm-i386/processor.h   |    1 
- include/asm-x86_64/processor.h |    1 
- 5 files changed, 57 deletions(-)
+ Documentation/SubmittingPatches |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/common.c~i386-remove-support-for-the-rise-cpu arch/i386/kernel/cpu/common.c
---- a/arch/i386/kernel/cpu/common.c~i386-remove-support-for-the-rise-cpu
-+++ a/arch/i386/kernel/cpu/common.c
-@@ -604,7 +604,6 @@ extern int nsc_init_cpu(void);
- extern int amd_init_cpu(void);
- extern int centaur_init_cpu(void);
- extern int transmeta_init_cpu(void);
--extern int rise_init_cpu(void);
- extern int nexgen_init_cpu(void);
- extern int umc_init_cpu(void);
+diff -puN Documentation/SubmittingPatches~document-acked-by Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~document-acked-by
++++ a/Documentation/SubmittingPatches
+@@ -328,7 +328,20 @@ now, but you can do this to mark interna
+ point out some special detail about the sign-off. 
  
-@@ -616,7 +615,6 @@ void __init early_cpu_init(void)
- 	amd_init_cpu();
- 	centaur_init_cpu();
- 	transmeta_init_cpu();
--	rise_init_cpu();
- 	nexgen_init_cpu();
- 	umc_init_cpu();
- 	early_cpu_detect();
-diff -puN arch/i386/kernel/cpu/Makefile~i386-remove-support-for-the-rise-cpu arch/i386/kernel/cpu/Makefile
---- a/arch/i386/kernel/cpu/Makefile~i386-remove-support-for-the-rise-cpu
-+++ a/arch/i386/kernel/cpu/Makefile
-@@ -9,7 +9,6 @@ obj-y	+=	cyrix.o
- obj-y	+=	centaur.o
- obj-y	+=	transmeta.o
- obj-y	+=	intel.o intel_cacheinfo.o
--obj-y	+=	rise.o
- obj-y	+=	nexgen.o
- obj-y	+=	umc.o
  
-diff -puN arch/i386/kernel/cpu/rise.c~i386-remove-support-for-the-rise-cpu /dev/null
---- a/arch/i386/kernel/cpu/rise.c
-+++ /dev/null
-@@ -1,52 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/bitops.h>
--#include <asm/processor.h>
--
--#include "cpu.h"
--
--static void __cpuinit init_rise(struct cpuinfo_x86 *c)
--{
--	printk("CPU: Rise iDragon");
--	if (c->x86_model > 2)
--		printk(" II");
--	printk("\n");
--
--	/* Unhide possibly hidden capability flags
--	   The mp6 iDragon family don't have MSRs.
--	   We switch on extra features with this cpuid weirdness: */
--	__asm__ (
--		"movl $0x6363452a, %%eax\n\t"
--		"movl $0x3231206c, %%ecx\n\t"
--		"movl $0x2a32313a, %%edx\n\t"
--		"cpuid\n\t"
--		"movl $0x63634523, %%eax\n\t"
--		"movl $0x32315f6c, %%ecx\n\t"
--		"movl $0x2333313a, %%edx\n\t"
--		"cpuid\n\t" : : : "eax", "ebx", "ecx", "edx"
--	);
--	set_bit(X86_FEATURE_CX8, c->x86_capability);
--}
--
--static struct cpu_dev rise_cpu_dev __cpuinitdata = {
--	.c_vendor	= "Rise",
--	.c_ident	= { "RiseRiseRise" },
--	.c_models = {
--		{ .vendor = X86_VENDOR_RISE, .family = 5, .model_names = 
--		  { 
--			  [0] = "iDragon", 
--			  [2] = "iDragon", 
--			  [8] = "iDragon II", 
--			  [9] = "iDragon II"
--		  }
--		},
--	},
--	.c_init		= init_rise,
--};
--
--int __init rise_init_cpu(void)
--{
--	cpu_devs[X86_VENDOR_RISE] = &rise_cpu_dev;
--	return 0;
--}
--
-diff -puN include/asm-i386/processor.h~i386-remove-support-for-the-rise-cpu include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~i386-remove-support-for-the-rise-cpu
-+++ a/include/asm-i386/processor.h
-@@ -88,7 +88,6 @@ struct cpuinfo_x86 {
- #define X86_VENDOR_UMC 3
- #define X86_VENDOR_NEXGEN 4
- #define X86_VENDOR_CENTAUR 5
--#define X86_VENDOR_RISE 6
- #define X86_VENDOR_TRANSMETA 7
- #define X86_VENDOR_NSC 8
- #define X86_VENDOR_NUM 9
-diff -puN include/asm-x86_64/processor.h~i386-remove-support-for-the-rise-cpu include/asm-x86_64/processor.h
---- a/include/asm-x86_64/processor.h~i386-remove-support-for-the-rise-cpu
-+++ a/include/asm-x86_64/processor.h
-@@ -83,7 +83,6 @@ struct cpuinfo_x86 {
- #define X86_VENDOR_UMC 3
- #define X86_VENDOR_NEXGEN 4
- #define X86_VENDOR_CENTAUR 5
--#define X86_VENDOR_RISE 6
- #define X86_VENDOR_TRANSMETA 7
- #define X86_VENDOR_NUM 8
- #define X86_VENDOR_UNKNOWN 0xff
+-12) The canonical patch format
++12) When to use Acked-by:
++
++The Signed-off-by: tag implies that the signer was involved in the development
++of the patch, or that he/she was in the patch's delivery path.
++
++If a person was not directly involved in the preparation or handling of a
++patch but wishes to signify and record their approval of it then they can
++arrange to have an Acked-by: line added to the patch's changelog.
++
++Acked-by: is often used by the maintainer of the affected code when that
++maintainer neither wrote, merged nor forwarded the patch themselves.
++
++
++13) The canonical patch format
+ 
+ The canonical patch subject line is:
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 ntfs_init_locked_inode-fix-array-indexing.patch
+afs-needs-schedh.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-leds.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
-unexport-pci_proc_attach_device.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+sh-support-older-gccs.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-scsi-misc-fixup.patch
+git-scsi-rc-fixes.patch
+sparc32-build-fix.patch
 git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-reiser4-export-remove_from_page_cache.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+potential-parse-error-in-ifdef.patch
+potential-parse-error-in-ifdef-fix.patch
+potential-parse-error-in-ifdef-update.patch
+aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
+document-acked-by.patch
