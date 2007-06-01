@@ -1,68 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - work-around-dell-e520-bios-reboot-bug.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:25 -0700
-Message-ID: <200706011747.l51HlODI015123@shell0.pdx.osdl.net>
+Subject: - skeletonfb-fix-of-xxxfb_setup-ifdef.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:47:30 -0700
+Message-ID: <200706011747.l51HlTXa015129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40376 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761370AbXFARrn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:43 -0400
+	by vger.kernel.org with ESMTP id S1761289AbXFARri (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.gardner@ubuntu.com, Matt_Domsch@dell.com, ak@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Work around Dell E520 BIOS reboot bug
+     skeletonfb: fix of xxxfb_setup ifdef
 has been removed from the -mm tree.  Its filename was
-     work-around-dell-e520-bios-reboot-bug.patch
+     skeletonfb-fix-of-xxxfb_setup-ifdef.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Work around Dell E520 BIOS reboot bug
-From: Tim Gardner <tim.gardner@ubuntu.com>
+Subject: skeletonfb: fix of xxxfb_setup ifdef
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Force Dell E520 to use the BIOS to shutdown/reboot.
+This patch fixes wrong ifdef around the xxxfb_setup. It also moves this
+function to remove forward declaration.
 
-I have at least one report that this patch fixes shutdown/reboot
-problems on the Dell E520 platform.
-
-(Andi says: People can always set the boot option.  It hardly seems like a
-critical issue needing a backport.)
-
-Signed-off-by: Tim Gardner <tim.gardner@ubuntu.com>
-Acked-by: Andi Kleen <ak@suse.de>
-Acked-by: Matt Domsch <Matt_Domsch@dell.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/reboot.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/video/skeletonfb.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN arch/i386/kernel/reboot.c~work-around-dell-e520-bios-reboot-bug arch/i386/kernel/reboot.c
---- a/arch/i386/kernel/reboot.c~work-around-dell-e520-bios-reboot-bug
-+++ a/arch/i386/kernel/reboot.c
-@@ -89,6 +89,14 @@ static int __init set_bios_reboot(struct
- }
+diff -puN drivers/video/skeletonfb.c~skeletonfb-fix-of-xxxfb_setup-ifdef drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-fix-of-xxxfb_setup-ifdef
++++ a/drivers/video/skeletonfb.c
+@@ -132,7 +132,6 @@ static struct fb_info info;
+ static struct xxx_par __initdata current_par;
  
- static struct dmi_system_id __initdata reboot_dmi_table[] = {
-+	{	/* Handle problems with rebooting on Dell E520's */
-+		.callback = set_bios_reboot,
-+		.ident = "Dell E520",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Dell DM061"),
-+		},
-+	},
- 	{	/* Handle problems with rebooting on Dell 1300's */
- 		.callback = set_bios_reboot,
- 		.ident = "Dell PowerEdge 1300",
+ int xxxfb_init(void);
+-int xxxfb_setup(char*);
+ 
+ /**
+  *	xxxfb_open - Optional function. Called when the framebuffer is
+@@ -975,6 +974,21 @@ static struct platform_device xxxfb_devi
+ 	.name = "xxxfb",
+ };
+ 
++#ifndef MODULE
++    /*
++     *  Setup
++     */
++
++/*
++ * Only necessary if your driver takes special options,
++ * otherwise we fall back on the generic fb_setup().
++ */
++int __init xxxfb_setup(char *options)
++{
++    /* Parse user speficied options (`video=xxxfb:') */
++}
++#endif /* MODULE */
++
+ static int __init xxxfb_init(void)
+ {
+ 	int ret;
+@@ -1006,21 +1020,6 @@ static void __exit xxxfb_exit(void)
+ }
+ #endif /* CONFIG_PCI */
+ 
+-#ifdef MODULE
+-    /*
+-     *  Setup
+-     */
+-
+-/* 
+- * Only necessary if your driver takes special options,
+- * otherwise we fall back on the generic fb_setup().
+- */
+-int __init xxxfb_setup(char *options)
+-{
+-    /* Parse user speficied options (`video=xxxfb:') */
+-}
+-#endif /* MODULE */
+-
+ /* ------------------------------------------------------------------------- */
+ 
+ 
 _
 
-Patches currently in -mm which might be from tim.gardner@ubuntu.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-wireless.patch
+fbcon-smart-blitter-usage-for-scrolling.patch
+pm2fb-white-spaces-clean-up.patch
