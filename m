@@ -1,99 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - skeletonfb-fix-of-xxxfb_setup-ifdef.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:30 -0700
-Message-ID: <200706011747.l51HlTXa015129@shell0.pdx.osdl.net>
+Subject: - memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:47:48 -0700
+Message-ID: <200706011747.l51Hll3J015153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37818 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761289AbXFARri (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:38 -0400
+	by vger.kernel.org with ESMTP id S1761396AbXFARrw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     skeletonfb: fix of xxxfb_setup ifdef
+     memory hotplug: fix unnecessary calling of init_currenty_empty_zone()
 has been removed from the -mm tree.  Its filename was
-     skeletonfb-fix-of-xxxfb_setup-ifdef.patch
+     memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: skeletonfb: fix of xxxfb_setup ifdef
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: memory hotplug: fix unnecessary calling of init_currenty_empty_zone()
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-This patch fixes wrong ifdef around the xxxfb_setup. It also moves this
-function to remove forward declaration.
+zone->present_pages is updated in online_pages().  But, __add_zone() can be
+called twice or more before calling online_pages().  So,
+init_currenty_empty_zone() can be called unnecessary times.  It is cause of
+memory leak of zone's wait_table.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/skeletonfb.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/skeletonfb.c~skeletonfb-fix-of-xxxfb_setup-ifdef drivers/video/skeletonfb.c
---- a/drivers/video/skeletonfb.c~skeletonfb-fix-of-xxxfb_setup-ifdef
-+++ a/drivers/video/skeletonfb.c
-@@ -132,7 +132,6 @@ static struct fb_info info;
- static struct xxx_par __initdata current_par;
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-unnecessary-calling-of-init_currenty_empty_zone
++++ a/mm/memory_hotplug.c
+@@ -65,7 +65,7 @@ static int __add_zone(struct zone *zone,
+ 	int zone_type;
  
- int xxxfb_init(void);
--int xxxfb_setup(char*);
- 
- /**
-  *	xxxfb_open - Optional function. Called when the framebuffer is
-@@ -975,6 +974,21 @@ static struct platform_device xxxfb_devi
- 	.name = "xxxfb",
- };
- 
-+#ifndef MODULE
-+    /*
-+     *  Setup
-+     */
-+
-+/*
-+ * Only necessary if your driver takes special options,
-+ * otherwise we fall back on the generic fb_setup().
-+ */
-+int __init xxxfb_setup(char *options)
-+{
-+    /* Parse user speficied options (`video=xxxfb:') */
-+}
-+#endif /* MODULE */
-+
- static int __init xxxfb_init(void)
- {
- 	int ret;
-@@ -1006,21 +1020,6 @@ static void __exit xxxfb_exit(void)
- }
- #endif /* CONFIG_PCI */
- 
--#ifdef MODULE
--    /*
--     *  Setup
--     */
--
--/* 
-- * Only necessary if your driver takes special options,
-- * otherwise we fall back on the generic fb_setup().
-- */
--int __init xxxfb_setup(char *options)
--{
--    /* Parse user speficied options (`video=xxxfb:') */
--}
--#endif /* MODULE */
--
- /* ------------------------------------------------------------------------- */
- 
- 
+ 	zone_type = zone - pgdat->node_zones;
+-	if (!populated_zone(zone)) {
++	if (!zone->wait_table) {
+ 		int ret = 0;
+ 		ret = init_currently_empty_zone(zone, phys_start_pfn,
+ 						nr_pages, MEMMAP_HOTPLUG);
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-fbcon-smart-blitter-usage-for-scrolling.patch
-pm2fb-white-spaces-clean-up.patch
+move-three-functions-that-are-only-needed-for.patch
+move-free-pages-between-lists-on-steal.patch
+create-the-zone_movable-zone.patch
+handle-kernelcore=-generic.patch
