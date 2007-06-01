@@ -1,119 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 00:07:15 -0700
-Message-ID: <200706010707.l5177EBT004770@shell0.pdx.osdl.net>
+Subject: - i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 00:07:08 -0700
+Message-ID: <200706010707.l517772X004764@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52361 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756681AbXFAHHh (ORCPT
+	by vger.kernel.org with ESMTP id S1756601AbXFAHHh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, penberg@cs.helsinki.fi, teanropo@jyu.fi, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, Wolfgang.Erig@gmx.de, ak@suse.de, cebbert@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     neofb: Fix pseudo_palette array overrun in neofb_setcolreg
+     i386 pci: fixup for Siemens Nixdorf AG FSC Multiprocessor Interrupt Controllers
 has been removed from the -mm tree.  Its filename was
-     neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg.patch
+     i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: neofb: Fix pseudo_palette array overrun in neofb_setcolreg
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: i386 pci: fixup for Siemens Nixdorf AG FSC Multiprocessor Interrupt Controllers
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-The pseudo_palette has room for 16 entries only, but in truecolor mode, it
-attempts to add 256.
+Wolfgang gets:
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Cc: Tero Roponen <teanropo@jyu.fi>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+ PCI: Cannot allocate resource region 0 of device 0000:00:04.0
+ PCI: Error while updating region 0000:00:04.0/0 (a8008000 != fec08000)
+
+Note that the BAR seems to have high address bits hardwired to fec00000.
+And device 0000:00:04.0 is
+
+ 00:04.0 System peripheral: Siemens Nixdorf AG FSC Multiprocessor Interrupt Controller (rev 02)
+
+I'd guess that when we try to reassign this resource, PCI interrupts might
+just stop working. This could explain SCSI timeouts and other weird things.
+
+Cc: Wolfgang Erig <Wolfgang.Erig@gmx.de>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/neofb.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+ arch/i386/pci/fixup.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+)
 
-diff -puN drivers/video/neofb.c~neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg drivers/video/neofb.c
---- a/drivers/video/neofb.c~neofb-fix-pseudo_palette-array-overrun-in-neofb_setcolreg
-+++ a/drivers/video/neofb.c
-@@ -1286,34 +1286,36 @@ static int neofb_setcolreg(u_int regno, 
- 	if (regno >= fb->cmap.len || regno > 255)
- 		return -EINVAL;
- 
--	switch (fb->var.bits_per_pixel) {
--	case 8:
-+	if (fb->var.bits_per_pixel <= 8) {
- 		outb(regno, 0x3c8);
- 
- 		outb(red >> 10, 0x3c9);
- 		outb(green >> 10, 0x3c9);
- 		outb(blue >> 10, 0x3c9);
--		break;
--	case 16:
--		((u32 *) fb->pseudo_palette)[regno] =
-+	} else if (regno < 16) {
-+		switch (fb->var.bits_per_pixel) {
-+		case 16:
-+			((u32 *) fb->pseudo_palette)[regno] =
- 				((red & 0xf800)) | ((green & 0xfc00) >> 5) |
- 				((blue & 0xf800) >> 11);
--		break;
--	case 24:
--		((u32 *) fb->pseudo_palette)[regno] =
-+			break;
-+		case 24:
-+			((u32 *) fb->pseudo_palette)[regno] =
- 				((red & 0xff00) << 8) | ((green & 0xff00)) |
- 				((blue & 0xff00) >> 8);
--		break;
-+			break;
- #ifdef NO_32BIT_SUPPORT_YET
--	case 32:
--		((u32 *) fb->pseudo_palette)[regno] =
-+		case 32:
-+			((u32 *) fb->pseudo_palette)[regno] =
- 				((transp & 0xff00) << 16) | ((red & 0xff00) << 8) |
- 				((green & 0xff00)) | ((blue & 0xff00) >> 8);
--		break;
-+			break;
- #endif
--	default:
--		return 1;
-+		default:
-+			return 1;
-+		}
- 	}
+diff -puN arch/i386/pci/fixup.c~i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers arch/i386/pci/fixup.c
+--- a/arch/i386/pci/fixup.c~i386-pci-fixup-for-siemens-nixdorf-ag-fsc-multiprocessor-interrupt-controllers
++++ a/arch/i386/pci/fixup.c
+@@ -438,3 +438,14 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_CY
+ 			pci_early_fixup_cyrix_5530);
+ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY,
+ 			pci_early_fixup_cyrix_5530);
 +
- 	return 0;
- }
- 
++/*
++ * Siemens Nixdorf AG FSC Multiprocessor Interrupt Controller:
++ * prevent update of the BAR0, which doesn't look like a normal BAR.
++ */
++static void __devinit pci_siemens_interrupt_controller(struct pci_dev *dev)
++{
++	dev->resource[0].flags |= IORESOURCE_PCI_FIXED;
++}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SIEMENS, 0x0015,
++			  pci_siemens_interrupt_controller);
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
 origin.patch
-skeletonfb-fix-of-xxxfb_setup-ifdef.patch
-vt8623fb-arkfb-null-pointer-dereference-fix.patch
-cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors.patch
-fbdev-move-declaration-of-fb_class-to-linux-fbh.patch
-pm3fb-switching-between-x-and-fb-fix.patch
-fbcon-smart-blitter-usage-for-scrolling.patch
-nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
-fbcon-cursor-blink-control.patch
-fbcon-use-struct-device-instead-of-struct-class_device.patch
-fbdev-move-arch-specific-bits-to-their-respective.patch
-fbdev-detect-primary-display-device.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
-nvidiafb-add-proper-support-for-geforce-7600-chipset.patch
-pm2fb-white-spaces-clean-up.patch
-fbcon-set_con2fb_map-fixes.patch
-fbcon-revise-primary-device-selection.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-vt-add-comment-for-unbind_con_driver.patch
+potential-parse-error-in-ifdef-update.patch
+alpha-support-graphics-on-non-zero-pci-domains.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix.patch
+alpha-support-graphics-on-non-zero-pci-domains-fix-2.patch
+alpha-correct-low-level-i-o-routines-for-sable-lynx.patch
+alpha-misc-fixes.patch
+make-sure-nobodys-leaking-resources.patch
