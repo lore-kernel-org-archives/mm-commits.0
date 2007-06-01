@@ -1,73 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - misc-tifm_7xx1-replace-deprecated-irq-flag.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:38 -0700
-Message-ID: <200706011747.l51HlbNK015141@shell0.pdx.osdl.net>
+Subject: - x86-fix-oprofile-double-free-was-re-multiple-free.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:47:22 -0700
+Message-ID: <200706011747.l51HlL52015120@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34158 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761289AbXFARrl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:41 -0400
+	by vger.kernel.org with ESMTP id S1761368AbXFARrm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: chrisw@sous-sol.org, acme@redhat.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, cebbert@redhat.com, davej@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc/tifm_7xx1: replace deprecated irq flag
+     x86: fix oprofile double free
 has been removed from the -mm tree.  Its filename was
-     misc-tifm_7xx1-replace-deprecated-irq-flag.patch
+     x86-fix-oprofile-double-free-was-re-multiple-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: misc/tifm_7xx1: replace deprecated irq flag
-From: Jeff Garzik <jeff@garzik.org>
+Subject: x86: fix oprofile double free
+From: Chris Wright <chrisw@sous-sol.org>
 
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
-Cc: Alex Dubov <oakad@yahoo.com>
+Chuck reports that the recent fix from Andi to oprofile
+6c977aad03a18019015035958c65b6729cd0574c introduces a double free.  Each
+cpu's cpu_msrs is setup to point to cpu 0's, which causes free_msrs to free
+cpu 0's pointers for_each_possible_cpu.  Rather than copy the pointers, do
+a deep copy instead.
+
+[acme@redhat.com: allocate_msrs() was using for_each_online_cpu()]
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/tifm_7xx1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/oprofile/nmi_int.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/tifm_7xx1.c~misc-tifm_7xx1-replace-deprecated-irq-flag drivers/misc/tifm_7xx1.c
---- a/drivers/misc/tifm_7xx1.c~misc-tifm_7xx1-replace-deprecated-irq-flag
-+++ a/drivers/misc/tifm_7xx1.c
-@@ -343,7 +343,7 @@ static int tifm_7xx1_probe(struct pci_de
- 	if (!fm->addr)
- 		goto err_out_free;
+diff -puN arch/i386/oprofile/nmi_int.c~x86-fix-oprofile-double-free-was-re-multiple-free arch/i386/oprofile/nmi_int.c
+--- a/arch/i386/oprofile/nmi_int.c~x86-fix-oprofile-double-free-was-re-multiple-free
++++ a/arch/i386/oprofile/nmi_int.c
+@@ -154,7 +154,7 @@ static int allocate_msrs(void)
+ 	size_t counters_size = sizeof(struct op_msr) * model->num_counters;
  
--	rc = request_irq(dev->irq, tifm_7xx1_isr, SA_SHIRQ, DRIVER_NAME, fm);
-+	rc = request_irq(dev->irq, tifm_7xx1_isr, IRQF_SHARED, DRIVER_NAME, fm);
- 	if (rc)
- 		goto err_out_unmap;
- 
+ 	int i;
+-	for_each_online_cpu(i) {
++	for_each_possible_cpu(i) {
+ 		cpu_msrs[i].counters = kmalloc(counters_size, GFP_KERNEL);
+ 		if (!cpu_msrs[i].counters) {
+ 			success = 0;
+@@ -211,8 +211,14 @@ static int nmi_setup(void)
+ 	/* Assume saved/restored counters are the same on all CPUs */
+ 	model->fill_in_addresses(&cpu_msrs[0]);
+ 	for_each_possible_cpu (cpu) {
+-		if (cpu != 0)
+-			cpu_msrs[cpu] = cpu_msrs[0];
++		if (cpu != 0) {
++			memcpy(cpu_msrs[cpu].counters, cpu_msrs[0].counters,
++				sizeof(struct op_msr) * model->num_counters);
++
++			memcpy(cpu_msrs[cpu].controls, cpu_msrs[0].controls,
++				sizeof(struct op_msr) * model->num_controls);
++		}
++
+ 	}
+ 	on_each_cpu(nmi_save_registers, NULL, 0, 1);
+ 	on_each_cpu(nmi_cpu_setup, NULL, 0, 1);
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from chrisw@sous-sol.org are
 
 origin.patch
-git-libata-all.patch
-git-ubi.patch
-git-netdev-all.patch
-8139too-force-media-setting-fix.patch
-blackfin-on-chip-ethernet-mac-controller-driver.patch
-use-menuconfig-objects-ii-netdev-general100mbit.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-net.patch
-git-ioat.patch
-remove-pci_dac_dma_-apis.patch
-git-pciseg.patch
-pci-device-ensure-sysdata-initialised-v2.patch
-s390-spinlock-initializer-cleanup.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
-lguest-the-guest-code-tidyups-update.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-tidyups-update.patch
-git-gccbug.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-update.patch
