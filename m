@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rework-ptep_set_access_flags-and-fix-sun4c-fix.patch added to -mm tree
-Date: Fri, 01 Jun 2007 12:45:14 -0700
-Message-ID: <200706011945.l51JjFxA017279@shell0.pdx.osdl.net>
+Subject: + introduce-o_cloexec-parisc-fix.patch added to -mm tree
+Date: Fri, 01 Jun 2007 12:54:24 -0700
+Message-ID: <200706011954.l51JsOYO017439@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54626 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762172AbXFATpc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 15:45:32 -0400
+	by vger.kernel.org with ESMTP id S1762367AbXFATzc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 15:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, davem@davemloft.net, hugh@veritas.com, mark@mtfhpc.demon.co.uk, wli@holomorphy.com
+Cc: kyle@parisc-linux.org, drepper@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     rework-ptep_set_access_flags-and-fix-sun4c-fix
+     Introduce O_CLOEXEC (parisc fix)
 has been added to the -mm tree.  Its filename is
-     rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+     introduce-o_cloexec-parisc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,159 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Introduce O_CLOEXEC (parisc fix)
+From: Kyle McMartin <kyle@parisc-linux.org>
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pgtable.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-parisc/fcntl.h |   31 ++++++++++++++++---------------
+ 1 files changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix
-+++ a/include/asm-ia64/pgtable.h
-@@ -546,8 +546,8 @@ extern void lazy_mmu_prot_update (pte_t 
- # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
- ({										\
- 	int __changed = !pte_same(*(__ptep), __entry);				\
--	if (__changed) {							\
--		ptep_establish(__vma, __addr, __ptep, __entry)			\
-+	if (__changed)							\
-+		ptep_establish(__vma, __addr, __ptep, __entry);			\
- 	__changed;								\
- })
- #endif
+diff -puN include/asm-parisc/fcntl.h~introduce-o_cloexec-parisc-fix include/asm-parisc/fcntl.h
+--- a/include/asm-parisc/fcntl.h~introduce-o_cloexec-parisc-fix
++++ a/include/asm-parisc/fcntl.h
+@@ -3,21 +3,22 @@
+ 
+ /* open/fcntl - O_SYNC is only implemented on blocks devices and on files
+    located on an ext2 file system */
+-#define O_APPEND	00000010
+-#define O_BLKSEEK	00000100 /* HPUX only */
+-#define O_CREAT		00000400 /* not fcntl */
+-#define O_EXCL		00002000 /* not fcntl */
+-#define O_LARGEFILE	00004000
+-#define O_SYNC		00100000
+-#define O_NONBLOCK	00200004 /* HPUX has separate NDELAY & NONBLOCK */
+-#define O_NOCTTY	00400000 /* not fcntl */
+-#define O_DSYNC		01000000 /* HPUX only */
+-#define O_RSYNC		02000000 /* HPUX only */
+-#define O_NOATIME	04000000
+-
+-#define O_DIRECTORY	00010000 /* must be a directory */
+-#define O_NOFOLLOW	00000200 /* don't follow links */
+-#define O_INVISIBLE	04000000 /* invisible I/O, for DMAPI/XDSM */
++#define O_APPEND	000000010
++#define O_BLKSEEK	000000100 /* HPUX only */
++#define O_CREAT		000000400 /* not fcntl */
++#define O_EXCL		000002000 /* not fcntl */
++#define O_LARGEFILE	000004000
++#define O_SYNC		000100000
++#define O_NONBLOCK	000200004 /* HPUX has separate NDELAY & NONBLOCK */
++#define O_NOCTTY	000400000 /* not fcntl */
++#define O_DSYNC		001000000 /* HPUX only */
++#define O_RSYNC		002000000 /* HPUX only */
++#define O_NOATIME	004000000
++#define O_CLOEXEC	010000000 /* set close_on_exec */
++
++#define O_DIRECTORY	000010000 /* must be a directory */
++#define O_NOFOLLOW	000000200 /* don't follow links */
++#define O_INVISIBLE	004000000 /* invisible I/O, for DMAPI/XDSM */
+ 
+ #define F_GETLK64	8
+ #define F_SETLK64	9
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kyle@parisc-linux.org are
 
 origin.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-pciseg.patch
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-git-xfs.patch
-git-cryptodev.patch
-git-xtensa.patch
-fix-possible-leakage-of-blocks-in-udf-tidy.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-rd-remove-ramdisk_set_page_dirty-fix.patch
-document-acked-by.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+introduce-o_cloexec-parisc-fix.patch
