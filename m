@@ -1,83 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:34 -0700
-Message-ID: <200706011747.l51HlXVs015135@shell0.pdx.osdl.net>
+Subject: - vt8623fb-arkfb-null-pointer-dereference-fix.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:47:32 -0700
+Message-ID: <200706011747.l51HlVk5015132@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39989 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761283AbXFARrf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:35 -0400
+	by vger.kernel.org with ESMTP id S1761300AbXFARrk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avuton@gmail.com, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: santiago@crfreenet.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cfag12864bfb: Use sys_ instead of cfb_ framebuffer accessors
+     vt8623fb: arkfb: null pointer dereference fix
 has been removed from the -mm tree.  Its filename was
-     cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors.patch
+     vt8623fb-arkfb-null-pointer-dereference-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cfag12864bfb: Use sys_ instead of cfb_ framebuffer accessors
-From: Avuton Olrich <avuton@gmail.com>
+Subject: vt8623fb: arkfb: null pointer dereference fix
+From: Ondrej Zajicek <santiago@crfreenet.org>
 
-Because the framebuffer memory is allocated system RAM, use the sys_ drawing
-libraries. It also fixes the following compile error:
+This patch prevents null pointer dereference in arkfb and vt8623fb.
 
-  LD      .tmp_vmlinux1
-drivers/built-in.o:(.data+0x8b48): undefined reference to `cfb_fillrect'
-drivers/built-in.o:(.data+0x8b50): undefined reference to `cfb_copyarea'
-drivers/built-in.o:(.data+0x8b58): undefined reference to `cfb_imageblit'
-
-[adaplas]
-Use fb_sys_read/write for the same reasons as above.
-
-Signed-off-by: Avuton Olrich <avuton@gmail.com>
+Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/auxdisplay/Kconfig        |    4 ++++
- drivers/auxdisplay/cfag12864bfb.c |    8 +++++---
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/video/arkfb.c    |    3 ++-
+ drivers/video/vt8623fb.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/auxdisplay/Kconfig~cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors drivers/auxdisplay/Kconfig
---- a/drivers/auxdisplay/Kconfig~cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors
-+++ a/drivers/auxdisplay/Kconfig
-@@ -68,6 +68,10 @@ config CFAG12864B
- 	depends on X86
- 	depends on FB
- 	depends on KS0108
-+	select FB_SYS_FILLRECT
-+	select FB_SYS_COPYAREA
-+	select FB_SYS_IMAGEBLIT
-+	select FB_SYS_FOPS
- 	default n
- 	---help---
- 	  If you have a Crystalfontz 128x64 2-color LCD, cfag12864b Series,
-diff -puN drivers/auxdisplay/cfag12864bfb.c~cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors drivers/auxdisplay/cfag12864bfb.c
---- a/drivers/auxdisplay/cfag12864bfb.c~cfag12864bfb-use-sys_-instead-of-cfb_-framebuffer-accessors
-+++ a/drivers/auxdisplay/cfag12864bfb.c
-@@ -73,9 +73,11 @@ static int cfag12864bfb_mmap(struct fb_i
+diff -puN drivers/video/arkfb.c~vt8623fb-arkfb-null-pointer-dereference-fix drivers/video/arkfb.c
+--- a/drivers/video/arkfb.c~vt8623fb-arkfb-null-pointer-dereference-fix
++++ a/drivers/video/arkfb.c
+@@ -1055,9 +1055,10 @@ err_enable_device:
+ static void __devexit ark_pci_remove(struct pci_dev *dev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(dev);
+-	struct arkfb_info *par = info->par;
  
- static struct fb_ops cfag12864bfb_ops = {
- 	.owner = THIS_MODULE,
--	.fb_fillrect = cfb_fillrect,
--	.fb_copyarea = cfb_copyarea,
--	.fb_imageblit = cfb_imageblit,
-+	.fb_read = fb_sys_read,
-+	.fb_write = fb_sys_write,
-+	.fb_fillrect = sys_fillrect,
-+	.fb_copyarea = sys_copyarea,
-+	.fb_imageblit = sys_imageblit,
- 	.fb_mmap = cfag12864bfb_mmap,
- };
+ 	if (info) {
++		struct arkfb_info *par = info->par;
++
+ #ifdef CONFIG_MTRR
+ 		if (par->mtrr_reg >= 0) {
+ 			mtrr_del(par->mtrr_reg, 0, 0);
+diff -puN drivers/video/vt8623fb.c~vt8623fb-arkfb-null-pointer-dereference-fix drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~vt8623fb-arkfb-null-pointer-dereference-fix
++++ a/drivers/video/vt8623fb.c
+@@ -778,9 +778,10 @@ err_enable_device:
+ static void __devexit vt8623_pci_remove(struct pci_dev *dev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(dev);
+-	struct vt8623fb_info *par = info->par;
  
+ 	if (info) {
++		struct vt8623fb_info *par = info->par;
++
+ #ifdef CONFIG_MTRR
+ 		if (par->mtrr_reg >= 0) {
+ 			mtrr_del(par->mtrr_reg, 0, 0);
 _
 
-Patches currently in -mm which might be from avuton@gmail.com are
+Patches currently in -mm which might be from santiago@crfreenet.org are
 
 origin.patch
