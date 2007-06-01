@@ -1,106 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - slub-fix-locking-for-hotplug-callbacks.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:48:22 -0700
-Message-ID: <200706011748.l51HmLJV015199@shell0.pdx.osdl.net>
+Subject: - spi-freescale-imx-spi-controller-driver.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:48:18 -0700
+Message-ID: <200706011748.l51HmHu2015196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39289 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761486AbXFARsY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:24 -0400
+	by vger.kernel.org with ESMTP id S1761552AbXFARsZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, michal.k.k.piotrowski@gmail.com, mm-commits@vger.kernel.org
+To: a.paterniani@swapp-eng.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: fix locking for hotplug callbacks
+     SPI: Freescale iMX SPI controller driver fixes
 has been removed from the -mm tree.  Its filename was
-     slub-fix-locking-for-hotplug-callbacks.patch
+     spi-freescale-imx-spi-controller-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: fix locking for hotplug callbacks
-From: Christoph Lameter <clameter@sgi.com>
+Subject: SPI: Freescale iMX SPI controller driver fixes
+From: Andrea Paterniani <a.paterniani@swapp-eng.it>
 
-Hotplug callbacks are performed with interrupts enabled.  Slub requires
-interrupts to be disabled for flushing caches.
+Fix 2 bugs:
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+- SPI_DMA_RHDMA bad value.
+
+- Missing return value in setup() function (lost passing from
+  patch-2.6.20-rc4-spi_imx to patch-2.6.20-rc6-spi_imx).
+
+Signed-off-by: Andrea Paterniani <a.paterniani@swapp-eng.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/spi/spi_imx.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-fix-locking-for-hotplug-callbacks mm/slub.c
---- a/mm/slub.c~slub-fix-locking-for-hotplug-callbacks
-+++ a/mm/slub.c
-@@ -2608,6 +2608,19 @@ static void for_all_slabs(void (*func)(s
- }
+diff -puN drivers/spi/spi_imx.c~spi-freescale-imx-spi-controller-driver drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-freescale-imx-spi-controller-driver
++++ a/drivers/spi/spi_imx.c
+@@ -121,7 +121,7 @@
+ 							32.768 KHz Clock */
  
- /*
-+ * Version of __flush_cpu_slab for the case that interrupts
-+ * are enabled.
-+ */
-+static void cpu_slab_flush(struct kmem_cache *s, int cpu)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__flush_cpu_slab(s, cpu);
-+	local_irq_restore(flags);
-+}
-+
-+/*
-  * Use the cpu notifier to insure that the cpu slabs are flushed when
-  * necessary.
-  */
-@@ -2621,7 +2634,7 @@ static int __cpuinit slab_cpuup_callback
- 	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
--		for_all_slabs(__flush_cpu_slab, cpu);
-+		for_all_slabs(cpu_slab_flush, cpu);
- 		break;
- 	default:
- 		break;
+ /* SPI DMA Register Bit Fields & Masks */
+-#define SPI_DMA_RHDMA	(0xF << 4)	/* RXFIFO Half Status */
++#define SPI_DMA_RHDMA	(0x1 << 4)	/* RXFIFO Half Status */
+ #define SPI_DMA_RFDMA	(0x1 << 5)      /* RXFIFO Full Status */
+ #define SPI_DMA_TEDMA	(0x1 << 6)      /* TXFIFO Empty Status */
+ #define SPI_DMA_THDMA	(0x1 << 7)      /* TXFIFO Half Status */
+@@ -1355,6 +1355,7 @@ static int setup(struct spi_device *spi)
+ 		spi->bits_per_word,
+ 		spi_speed_hz(SPI_CONTROL_DATARATE_MIN),
+ 		spi->max_speed_hz);
++	return status;
+ 
+ err_first_setup:
+ 	kfree(chip);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from a.paterniani@swapp-eng.it are
 
 origin.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-slab-fix-slab-debug-for-non-alien-caches.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-hexdump-more-output-formatting.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
