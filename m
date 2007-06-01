@@ -1,280 +1,909 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-runtime-patching-infrastructure.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 00:06:34 -0700
-Message-ID: <200706010706.l5176XxN004722@shell0.pdx.osdl.net>
+Subject: - m68k-discontinuous-memory-support.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 00:06:43 -0700
+Message-ID: <200706010706.l5176gAB004731@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41517 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755914AbXFAHGo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:06:44 -0400
+	by vger.kernel.org with ESMTP id S1755998AbXFAHGx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:06:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zippel@linux-m68k.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: runtime patching infrastructure
+     m68k: discontinuous memory support
 has been removed from the -mm tree.  Its filename was
-     m68k-runtime-patching-infrastructure.patch
+     m68k-discontinuous-memory-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68k: runtime patching infrastructure
+Subject: m68k: discontinuous memory support
 From: Roman Zippel <zippel@linux-m68k.org>
 
-Add the basic infrastructure to allow runtime patching of kernel and modules
-to optimize a few functions with parameters, which are only calculated once
-during bootup and are otherwise constant.  Use this for the conversion between
-virtual and physical addresses.
+Fix support for discontinuous memory
 
 Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/Makefile                |    1 
- arch/m68k/kernel/Makefile         |    3 --
- arch/m68k/kernel/module.c         |   28 ++++++++++++++++++++++-
- arch/m68k/kernel/module.lds       |    7 +++++
- arch/m68k/kernel/vmlinux-std.lds  |    5 ++++
- arch/m68k/kernel/vmlinux-sun3.lds |    5 ++++
- arch/m68k/mm/motorola.c           |    3 ++
- include/asm-m68k/module.h         |   33 +++++++++++++++++++++++++++-
- include/asm-m68k/page.h           |   29 ++++++++++++++++++++++--
- 9 files changed, 107 insertions(+), 7 deletions(-)
+ arch/m68k/Kconfig                   |   13 ++
+ arch/m68k/kernel/module.c           |    3 
+ arch/m68k/kernel/setup.c            |   37 +-------
+ arch/m68k/mm/init.c                 |  119 +++++++++++++++++---------
+ arch/m68k/mm/memory.c               |   73 ---------------
+ arch/m68k/mm/motorola.c             |  101 +++++++++++++++-------
+ arch/m68k/sun3/config.c             |    2 
+ include/asm-m68k/mmzone.h           |    9 +
+ include/asm-m68k/module.h           |    1 
+ include/asm-m68k/motorola_pgtable.h |   10 +-
+ include/asm-m68k/page.h             |   52 ++++++++---
+ include/asm-m68k/pgalloc.h          |    3 
+ include/asm-m68k/pgtable.h          |   17 ---
+ include/asm-m68k/sun3_pgtable.h     |    4 
+ include/asm-m68k/virtconvert.h      |   49 +++-------
+ mm/page_alloc.c                     |    2 
+ 16 files changed, 247 insertions(+), 248 deletions(-)
 
-diff -puN arch/m68k/Makefile~m68k-runtime-patching-infrastructure arch/m68k/Makefile
---- a/arch/m68k/Makefile~m68k-runtime-patching-infrastructure
-+++ a/arch/m68k/Makefile
-@@ -19,6 +19,7 @@ COMPILE_ARCH = $(shell uname -m)
- # override top level makefile
- AS += -m68020
- LDFLAGS := -m m68kelf
-+LDFLAGS_MODULE += -T $(srctree)/arch/m68k/kernel/module.lds
- ifneq ($(COMPILE_ARCH),$(ARCH))
- 	# prefix for cross-compiling binaries
- 	CROSS_COMPILE = m68k-linux-gnu-
-diff -puN arch/m68k/kernel/Makefile~m68k-runtime-patching-infrastructure arch/m68k/kernel/Makefile
---- a/arch/m68k/kernel/Makefile~m68k-runtime-patching-infrastructure
-+++ a/arch/m68k/kernel/Makefile
-@@ -9,13 +9,12 @@ else
- endif
- extra-y	+= vmlinux.lds
+diff -puN arch/m68k/Kconfig~m68k-discontinuous-memory-support arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~m68k-discontinuous-memory-support
++++ a/arch/m68k/Kconfig
+@@ -355,8 +355,9 @@ config RMW_INSNS
+ 	  adventurous.
  
--obj-y	:= entry.o process.o traps.o ints.o signal.o ptrace.o \
-+obj-y	:= entry.o process.o traps.o ints.o signal.o ptrace.o module.o \
- 	   sys_m68k.o time.o semaphore.o setup.o m68k_ksyms.o devres.o
+ config SINGLE_MEMORY_CHUNK
+-	bool "Use one physical chunk of memory only"
+-	depends on ADVANCED && !SUN3
++	bool "Use one physical chunk of memory only" if ADVANCED && !SUN3
++	default y if SUN3
++	select NEED_MULTIPLE_NODES
+ 	help
+ 	  Ignore all but the first contiguous chunk of physical memory for VM
+ 	  purposes.  This will save a few bytes kernel size and may speed up
+@@ -377,6 +378,14 @@ config 060_WRITETHROUGH
+ 	  is hardwired on.  The 53c710 SCSI driver is known to suffer from
+ 	  this problem.
  
- devres-y = ../../../kernel/irq/devres.o
- 
- obj-$(CONFIG_PCI)	+= bios32.o
--obj-$(CONFIG_MODULES)	+= module.o
- obj-y$(CONFIG_MMU_SUN3) += dma.o	# no, it's not a typo
- 
- EXTRA_AFLAGS := -traditional
-diff -puN arch/m68k/kernel/module.c~m68k-runtime-patching-infrastructure arch/m68k/kernel/module.c
---- a/arch/m68k/kernel/module.c~m68k-runtime-patching-infrastructure
-+++ a/arch/m68k/kernel/module.c
-@@ -1,3 +1,9 @@
-+/*
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file COPYING in the main directory of this archive
-+ * for more details.
-+ */
++config ARCH_DISCONTIGMEM_ENABLE
++	def_bool !SINGLE_MEMORY_CHUNK
 +
- #include <linux/moduleloader.h>
- #include <linux/elf.h>
- #include <linux/vmalloc.h>
-@@ -11,6 +17,8 @@
- #define DEBUGP(fmt...)
++config NODES_SHIFT
++	int
++	default "3"
++	depends on !SINGLE_MEMORY_CHUNK
++
+ source "mm/Kconfig"
+ 
+ endmenu
+diff -puN arch/m68k/kernel/module.c~m68k-discontinuous-memory-support arch/m68k/kernel/module.c
+--- a/arch/m68k/kernel/module.c~m68k-discontinuous-memory-support
++++ a/arch/m68k/kernel/module.c
+@@ -149,6 +149,9 @@ void module_fixup(struct module *mod, st
+ 		case m68k_fixup_memoffset:
+ 			*(u32 *)fixup->addr = m68k_memoffset;
+ 			break;
++		case m68k_fixup_vnode_shift:
++			*(u16 *)fixup->addr += m68k_virt_to_node_shift;
++			break;
+ 		}
+ 	}
+ }
+diff -puN arch/m68k/kernel/setup.c~m68k-discontinuous-memory-support arch/m68k/kernel/setup.c
+--- a/arch/m68k/kernel/setup.c~m68k-discontinuous-memory-support
++++ a/arch/m68k/kernel/setup.c
+@@ -60,14 +60,12 @@ extern unsigned long availmem;
+ int m68k_num_memory;
+ int m68k_realnum_memory;
+ EXPORT_SYMBOL(m68k_realnum_memory);
+-#ifdef CONFIG_SINGLE_MEMORY_CHUNK
+ unsigned long m68k_memoffset;
+ EXPORT_SYMBOL(m68k_memoffset);
+-#endif
+ struct mem_info m68k_memory[NUM_MEMINFO];
+ EXPORT_SYMBOL(m68k_memory);
+ 
+-static struct mem_info m68k_ramdisk;
++struct mem_info m68k_ramdisk;
+ 
+ static char m68k_command_line[CL_SIZE];
+ 
+@@ -208,9 +206,6 @@ static void __init m68k_parse_bootinfo(c
+ void __init setup_arch(char **cmdline_p)
+ {
+ 	extern int _etext, _edata, _end;
+-#ifndef CONFIG_SUN3
+-	unsigned long endmem, startmem;
+-#endif
+ 	int i;
+ 
+ 	/* The bootinfo is located right after the kernel bss */
+@@ -320,30 +315,16 @@ void __init setup_arch(char **cmdline_p)
+ 		panic("No configuration setup");
+ 	}
+ 
+-#ifndef CONFIG_SUN3
+-	startmem= m68k_memory[0].addr;
+-	endmem = startmem + m68k_memory[0].size;
+-	high_memory = (void *)PAGE_OFFSET;
+-	for (i = 0; i < m68k_num_memory; i++) {
+-		m68k_memory[i].size &= MASK_256K;
+-		if (m68k_memory[i].addr < startmem)
+-			startmem = m68k_memory[i].addr;
+-		if (m68k_memory[i].addr+m68k_memory[i].size > endmem)
+-			endmem = m68k_memory[i].addr+m68k_memory[i].size;
+-		high_memory += m68k_memory[i].size;
+-	}
+-
+-	availmem += init_bootmem_node(NODE_DATA(0), availmem >> PAGE_SHIFT,
+-				      startmem >> PAGE_SHIFT, endmem >> PAGE_SHIFT);
+-
+-	for (i = 0; i < m68k_num_memory; i++)
+-		free_bootmem(m68k_memory[i].addr, m68k_memory[i].size);
+-
+-	reserve_bootmem(m68k_memory[0].addr, availmem - m68k_memory[0].addr);
++	paging_init();
+ 
++#ifndef CONFIG_SUN3
++	for (i = 1; i < m68k_num_memory; i++)
++		free_bootmem_node(NODE_DATA(i), m68k_memory[i].addr,
++				  m68k_memory[i].size);
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	if (m68k_ramdisk.size) {
+-		reserve_bootmem(m68k_ramdisk.addr, m68k_ramdisk.size);
++		reserve_bootmem_node(__virt_to_node(phys_to_virt(m68k_ramdisk.addr)),
++				     m68k_ramdisk.addr, m68k_ramdisk.size);
+ 		initrd_start = (unsigned long)phys_to_virt(m68k_ramdisk.addr);
+ 		initrd_end = initrd_start + m68k_ramdisk.size;
+ 		printk("initrd: %08lx - %08lx\n", initrd_start, initrd_end);
+@@ -362,8 +343,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ #endif /* !CONFIG_SUN3 */
+ 
+-	paging_init();
+-
+ /* set ISA defs early as possible */
+ #if defined(CONFIG_ISA) && defined(MULTI_ISA)
+ #if defined(CONFIG_Q40)
+diff -puN arch/m68k/mm/init.c~m68k-discontinuous-memory-support arch/m68k/mm/init.c
+--- a/arch/m68k/mm/init.c~m68k-discontinuous-memory-support
++++ a/arch/m68k/mm/init.c
+@@ -7,6 +7,7 @@
+  *  to motorola.c and sun3mmu.c
+  */
+ 
++#include <linux/module.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+@@ -31,6 +32,37 @@
+ 
+ DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
+ 
++static bootmem_data_t __initdata bootmem_data[MAX_NUMNODES];
++
++pg_data_t pg_data_map[MAX_NUMNODES];
++EXPORT_SYMBOL(pg_data_map);
++
++int m68k_virt_to_node_shift;
++
++#ifndef CONFIG_SINGLE_MEMORY_CHUNK
++pg_data_t *pg_data_table[65];
++EXPORT_SYMBOL(pg_data_table);
++#endif
++
++void m68k_setup_node(int node)
++{
++#ifndef CONFIG_SINGLE_MEMORY_CHUNK
++	struct mem_info *info = m68k_memory + node;
++	int i, end;
++
++	i = (unsigned long)phys_to_virt(info->addr) >> __virt_to_node_shift();
++	end = (unsigned long)phys_to_virt(info->addr + info->size - 1) >> __virt_to_node_shift();
++	for (; i <= end; i++) {
++		if (pg_data_table[i])
++			printk("overlap at %u for chunk %u\n", i, node);
++		pg_data_table[i] = pg_data_map + node;
++	}
++#endif
++	pg_data_map[node].bdata = bootmem_data + node;
++	node_set_online(node);
++}
++
++
+ /*
+  * ZERO_PAGE is a special page that is used for zero-initialized
+  * data and COW.
+@@ -40,52 +72,51 @@ void *empty_zero_page;
+ 
+ void show_mem(void)
+ {
+-    unsigned long i;
+-    int free = 0, total = 0, reserved = 0, shared = 0;
+-    int cached = 0;
+-
+-    printk("\nMem-info:\n");
+-    show_free_areas();
+-    printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
+-    i = max_mapnr;
+-    while (i-- > 0) {
+-	total++;
+-	if (PageReserved(mem_map+i))
+-	    reserved++;
+-	else if (PageSwapCache(mem_map+i))
+-	    cached++;
+-	else if (!page_count(mem_map+i))
+-	    free++;
+-	else
+-	    shared += page_count(mem_map+i) - 1;
+-    }
+-    printk("%d pages of RAM\n",total);
+-    printk("%d free pages\n",free);
+-    printk("%d reserved pages\n",reserved);
+-    printk("%d pages shared\n",shared);
+-    printk("%d pages swap cached\n",cached);
++	pg_data_t *pgdat;
++	int free = 0, total = 0, reserved = 0, shared = 0;
++	int cached = 0;
++	int i;
++
++	printk("\nMem-info:\n");
++	show_free_areas();
++	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
++	for_each_online_pgdat(pgdat) {
++		for (i = 0; i < pgdat->node_spanned_pages; i++) {
++			struct page *page = pgdat->node_mem_map + i;
++			total++;
++			if (PageReserved(page))
++				reserved++;
++			else if (PageSwapCache(page))
++				cached++;
++			else if (!page_count(page))
++				free++;
++			else
++				shared += page_count(page) - 1;
++		}
++	}
++	printk("%d pages of RAM\n",total);
++	printk("%d free pages\n",free);
++	printk("%d reserved pages\n",reserved);
++	printk("%d pages shared\n",shared);
++	printk("%d pages swap cached\n",cached);
+ }
+ 
+ extern void init_pointer_table(unsigned long ptable);
+ 
+ /* References to section boundaries */
+ 
+-extern char _text, _etext, _edata, __bss_start, _end;
+-extern char __init_begin, __init_end;
++extern char _text[], _etext[];
++extern char __init_begin[], __init_end[];
+ 
+ extern pmd_t *zero_pgtable;
+ 
+ void __init mem_init(void)
+ {
++	pg_data_t *pgdat;
+ 	int codepages = 0;
+ 	int datapages = 0;
+ 	int initpages = 0;
+-	unsigned long tmp;
+-#ifndef CONFIG_SUN3
+ 	int i;
+-#endif
+-
+-	max_mapnr = num_physpages = (((unsigned long)high_memory - PAGE_OFFSET) >> PAGE_SHIFT);
+ 
+ #ifdef CONFIG_ATARI
+ 	if (MACH_IS_ATARI)
+@@ -93,19 +124,25 @@ void __init mem_init(void)
  #endif
  
-+#ifdef CONFIG_MODULES
+ 	/* this will put all memory onto the freelists */
+-	totalram_pages = free_all_bootmem();
+-
+-	for (tmp = PAGE_OFFSET ; tmp < (unsigned long)high_memory; tmp += PAGE_SIZE) {
+-		if (PageReserved(virt_to_page(tmp))) {
+-			if (tmp >= (unsigned long)&_text
+-			    && tmp < (unsigned long)&_etext)
++	totalram_pages = num_physpages = 0;
++	for_each_online_pgdat(pgdat) {
++		num_physpages += pgdat->node_present_pages;
 +
- void *module_alloc(unsigned long size)
- {
- 	if (size == 0)
-@@ -118,11 +126,29 @@ int apply_relocate_add(Elf32_Shdr *sechd
++		totalram_pages += free_all_bootmem_node(pgdat);
++		for (i = 0; i < pgdat->node_spanned_pages; i++) {
++			struct page *page = pgdat->node_mem_map + i;
++			char *addr = page_to_virt(page);
++
++			if (!PageReserved(page))
++				continue;
++			if (addr >= _text &&
++			    addr < _etext)
+ 				codepages++;
+-			else if (tmp >= (unsigned long) &__init_begin
+-				 && tmp < (unsigned long) &__init_end)
++			else if (addr >= __init_begin &&
++				 addr < __init_end)
+ 				initpages++;
+ 			else
+ 				datapages++;
+-			continue;
+ 		}
+ 	}
  
- int module_finalize(const Elf_Ehdr *hdr,
- 		    const Elf_Shdr *sechdrs,
--		    struct module *me)
-+		    struct module *mod)
- {
-+	module_fixup(mod, mod->arch.fixup_start, mod->arch.fixup_end);
-+
+@@ -124,7 +161,7 @@ void __init mem_init(void)
+ 
+ 	printk("Memory: %luk/%luk available (%dk kernel code, %dk data, %dk init)\n",
+ 	       (unsigned long)nr_free_pages() << (PAGE_SHIFT-10),
+-	       max_mapnr << (PAGE_SHIFT-10),
++	       totalram_pages << (PAGE_SHIFT-10),
+ 	       codepages << (PAGE_SHIFT-10),
+ 	       datapages << (PAGE_SHIFT-10),
+ 	       initpages << (PAGE_SHIFT-10));
+diff -puN arch/m68k/mm/memory.c~m68k-discontinuous-memory-support arch/m68k/mm/memory.c
+--- a/arch/m68k/mm/memory.c~m68k-discontinuous-memory-support
++++ a/arch/m68k/mm/memory.c
+@@ -127,67 +127,6 @@ int free_pointer_table (pmd_t *ptable)
  	return 0;
  }
  
- void module_arch_cleanup(struct module *mod)
+-#ifdef DEBUG_INVALID_PTOV
+-int mm_inv_cnt = 5;
+-#endif
+-
+-#ifndef CONFIG_SINGLE_MEMORY_CHUNK
+-/*
+- * The following two routines map from a physical address to a kernel
+- * virtual address and vice versa.
+- */
+-unsigned long mm_vtop(unsigned long vaddr)
+-{
+-	int i=0;
+-	unsigned long voff = (unsigned long)vaddr - PAGE_OFFSET;
+-
+-	do {
+-		if (voff < m68k_memory[i].size) {
+-#ifdef DEBUGPV
+-			printk ("VTOP(%p)=%lx\n", vaddr,
+-				m68k_memory[i].addr + voff);
+-#endif
+-			return m68k_memory[i].addr + voff;
+-		}
+-		voff -= m68k_memory[i].size;
+-	} while (++i < m68k_num_memory);
+-
+-	/* As a special case allow `__pa(high_memory)'.  */
+-	if (voff == 0)
+-		return m68k_memory[i-1].addr + m68k_memory[i-1].size;
+-
+-	return -1;
+-}
+-EXPORT_SYMBOL(mm_vtop);
+-
+-unsigned long mm_ptov (unsigned long paddr)
+-{
+-	int i = 0;
+-	unsigned long poff, voff = PAGE_OFFSET;
+-
+-	do {
+-		poff = paddr - m68k_memory[i].addr;
+-		if (poff < m68k_memory[i].size) {
+-#ifdef DEBUGPV
+-			printk ("PTOV(%lx)=%lx\n", paddr, poff + voff);
+-#endif
+-			return poff + voff;
+-		}
+-		voff += m68k_memory[i].size;
+-	} while (++i < m68k_num_memory);
+-
+-#ifdef DEBUG_INVALID_PTOV
+-	if (mm_inv_cnt > 0) {
+-		mm_inv_cnt--;
+-		printk("Invalid use of phys_to_virt(0x%lx) at 0x%p!\n",
+-			paddr, __builtin_return_address(0));
+-	}
+-#endif
+-	return -1;
+-}
+-EXPORT_SYMBOL(mm_ptov);
+-#endif
+-
+ /* invalidate page in both caches */
+ static inline void clear040(unsigned long paddr)
  {
+@@ -354,15 +293,3 @@ void cache_push (unsigned long paddr, in
  }
-+
-+#endif /* CONFIG_MODULES */
-+
-+void module_fixup(struct module *mod, struct m68k_fixup_info *start,
-+		  struct m68k_fixup_info *end)
-+{
-+	struct m68k_fixup_info *fixup;
-+
-+	for (fixup = start; fixup < end; fixup++) {
-+		switch (fixup->type) {
-+		case m68k_fixup_memoffset:
-+			*(u32 *)fixup->addr = m68k_memoffset;
-+			break;
-+		}
-+	}
-+}
-diff -puN /dev/null arch/m68k/kernel/module.lds
---- /dev/null
-+++ a/arch/m68k/kernel/module.lds
-@@ -0,0 +1,7 @@
-+SECTIONS {
-+	.m68k_fixup : {
-+		__start_fixup = .;
-+		*(.m68k_fixup)
-+		__stop_fixup = .;
-+	}
-+}
-diff -puN arch/m68k/kernel/vmlinux-std.lds~m68k-runtime-patching-infrastructure arch/m68k/kernel/vmlinux-std.lds
---- a/arch/m68k/kernel/vmlinux-std.lds~m68k-runtime-patching-infrastructure
-+++ a/arch/m68k/kernel/vmlinux-std.lds
-@@ -60,6 +60,11 @@ SECTIONS
-   __con_initcall_start = .;
-   .con_initcall.init : { *(.con_initcall.init) }
-   __con_initcall_end = .;
-+  .m68k_fixup : {
-+	__start_fixup = .;
-+	*(.m68k_fixup)
-+	__stop_fixup = .;
-+  }
-   SECURITY_INIT
- #ifdef CONFIG_BLK_DEV_INITRD
-   . = ALIGN(8192);
-diff -puN arch/m68k/kernel/vmlinux-sun3.lds~m68k-runtime-patching-infrastructure arch/m68k/kernel/vmlinux-sun3.lds
---- a/arch/m68k/kernel/vmlinux-sun3.lds~m68k-runtime-patching-infrastructure
-+++ a/arch/m68k/kernel/vmlinux-sun3.lds
-@@ -54,6 +54,11 @@ __init_begin = .;
- 	__con_initcall_start = .;
- 	.con_initcall.init : { *(.con_initcall.init) }
- 	__con_initcall_end = .;
-+	.m68k_fixup : {
-+		__start_fixup = .;
-+		*(.m68k_fixup)
-+		__stop_fixup = .;
-+	}
- 	SECURITY_INIT
- #ifdef CONFIG_BLK_DEV_INITRD
- 	. = ALIGN(8192);
-diff -puN arch/m68k/mm/motorola.c~m68k-runtime-patching-infrastructure arch/m68k/mm/motorola.c
---- a/arch/m68k/mm/motorola.c~m68k-runtime-patching-infrastructure
+ EXPORT_SYMBOL(cache_push);
+ 
+-#ifndef CONFIG_SINGLE_MEMORY_CHUNK
+-int mm_end_of_chunk (unsigned long addr, int len)
+-{
+-	int i;
+-
+-	for (i = 0; i < m68k_num_memory; i++)
+-		if (m68k_memory[i].addr + m68k_memory[i].size == addr + len)
+-			return 1;
+-	return 0;
+-}
+-EXPORT_SYMBOL(mm_end_of_chunk);
+-#endif
+diff -puN arch/m68k/mm/motorola.c~m68k-discontinuous-memory-support arch/m68k/mm/motorola.c
+--- a/arch/m68k/mm/motorola.c~m68k-discontinuous-memory-support
 +++ a/arch/m68k/mm/motorola.c
-@@ -222,6 +222,9 @@ void __init paging_init(void)
+@@ -43,6 +43,11 @@ unsigned long mm_cachebits;
+ EXPORT_SYMBOL(mm_cachebits);
+ #endif
+ 
++/* size of memory already mapped in head.S */
++#define INIT_MAPPED_SIZE	(4UL<<20)
++
++extern unsigned long availmem;
++
+ static pte_t * __init kernel_page_table(void)
+ {
+ 	pte_t *ptablep;
+@@ -98,19 +103,20 @@ static pmd_t * __init kernel_ptr_table(v
+ 	return last_pgtable;
+ }
+ 
+-static unsigned long __init
+-map_chunk (unsigned long addr, long size)
++static void __init map_node(int node)
+ {
+ #define PTRTREESIZE (256*1024)
+ #define ROOTTREESIZE (32*1024*1024)
+-	static unsigned long virtaddr = PAGE_OFFSET;
+-	unsigned long physaddr;
++	unsigned long physaddr, virtaddr, size;
+ 	pgd_t *pgd_dir;
+ 	pmd_t *pmd_dir;
+ 	pte_t *pte_dir;
+ 
+-	physaddr = (addr | m68k_supervisor_cachemode |
+-		    _PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_DIRTY);
++	size = m68k_memory[node].size;
++	physaddr = m68k_memory[node].addr;
++	virtaddr = (unsigned long)phys_to_virt(physaddr);
++	physaddr |= m68k_supervisor_cachemode |
++		    _PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_DIRTY;
+ 	if (CPU_IS_040_OR_060)
+ 		physaddr |= _PAGE_GLOBAL040;
+ 
+@@ -190,8 +196,6 @@ map_chunk (unsigned long addr, long size
+ #ifdef DEBUG
+ 	printk("\n");
+ #endif
+-
+-	return virtaddr;
+ }
+ 
+ /*
+@@ -200,15 +204,16 @@ map_chunk (unsigned long addr, long size
+  */
+ void __init paging_init(void)
+ {
+-	int chunk;
+-	unsigned long mem_avail = 0;
+ 	unsigned long zones_size[MAX_NR_ZONES] = { 0, };
++	unsigned long min_addr, max_addr;
++	unsigned long addr, size, end;
++	int i;
+ 
+ #ifdef DEBUG
+ 	{
+ 		extern unsigned long availmem;
+-		printk ("start of paging_init (%p, %lx, %lx, %lx)\n",
+-			kernel_pg_dir, availmem, start_mem, end_mem);
++		printk ("start of paging_init (%p, %lx)\n",
++			kernel_pg_dir, availmem);
+ 	}
+ #endif
+ 
+@@ -222,27 +227,62 @@ void __init paging_init(void)
  			pgprot_val(protection_map[i]) |= _PAGE_CACHE040;
  	}
  
-+	module_fixup(NULL, __start_fixup, __stop_fixup);
-+	flush_icache();
++	min_addr = m68k_memory[0].addr;
++	max_addr = min_addr + m68k_memory[0].size;
++	for (i = 1; i < m68k_num_memory;) {
++		if (m68k_memory[i].addr < min_addr) {
++			printk("Ignoring memory chunk at 0x%lx:0x%lx before the first chunk\n",
++				m68k_memory[i].addr, m68k_memory[i].size);
++			printk("Fix your bootloader or use a memfile to make use of this area!\n");
++			m68k_num_memory--;
++			memmove(m68k_memory + i, m68k_memory + i + 1,
++				(m68k_num_memory - i) * sizeof(struct mem_info));
++			continue;
++		}
++		addr = m68k_memory[i].addr + m68k_memory[i].size;
++		if (addr > max_addr)
++			max_addr = addr;
++		i++;
++	}
++	m68k_memoffset = min_addr - PAGE_OFFSET;
++	m68k_virt_to_node_shift = fls(max_addr - min_addr - 1) - 6;
++
+ 	module_fixup(NULL, __start_fixup, __stop_fixup);
+ 	flush_icache();
+ 
++	high_memory = phys_to_virt(max_addr);
++
++	min_low_pfn = availmem >> PAGE_SHIFT;
++	max_low_pfn = max_addr >> PAGE_SHIFT;
++
++	for (i = 0; i < m68k_num_memory; i++) {
++		addr = m68k_memory[i].addr;
++		end = addr + m68k_memory[i].size;
++		m68k_setup_node(i);
++		availmem = PAGE_ALIGN(availmem);
++		availmem += init_bootmem_node(NODE_DATA(i),
++					      availmem >> PAGE_SHIFT,
++					      addr >> PAGE_SHIFT,
++					      end >> PAGE_SHIFT);
++	}
 +
  	/*
  	 * Map the physical memory available into the kernel virtual
- 	 * address space.  It may allocate some memory for page
-diff -puN include/asm-m68k/module.h~m68k-runtime-patching-infrastructure include/asm-m68k/module.h
---- a/include/asm-m68k/module.h~m68k-runtime-patching-infrastructure
+-	 * address space.  It may allocate some memory for page
+-	 * tables and thus modify availmem.
++	 * address space. First initialize the bootmem allocator with
++	 * the memory we already mapped, so map_node() has something
++	 * to allocate.
+ 	 */
++	addr = m68k_memory[0].addr;
++	size = m68k_memory[0].size;
++	free_bootmem_node(NODE_DATA(0), availmem, min(INIT_MAPPED_SIZE, size) - (availmem - addr));
++	map_node(0);
++	if (size > INIT_MAPPED_SIZE)
++		free_bootmem_node(NODE_DATA(0), addr + INIT_MAPPED_SIZE, size - INIT_MAPPED_SIZE);
+ 
+-	for (chunk = 0; chunk < m68k_num_memory; chunk++) {
+-		mem_avail = map_chunk (m68k_memory[chunk].addr,
+-				       m68k_memory[chunk].size);
+-
+-	}
++	for (i = 1; i < m68k_num_memory; i++)
++		map_node(i);
+ 
+ 	flush_tlb_all();
+-#ifdef DEBUG
+-	printk ("memory available is %ldKB\n", mem_avail >> 10);
+-	printk ("start_mem is %#lx\nvirtual_end is %#lx\n",
+-		start_mem, end_mem);
+-#endif
+ 
+ 	/*
+ 	 * initialize the bad page table and bad page to point
+@@ -259,14 +299,11 @@ void __init paging_init(void)
+ #ifdef DEBUG
+ 	printk ("before free_area_init\n");
+ #endif
+-	zones_size[ZONE_DMA] = (mach_max_dma_address < (unsigned long)high_memory ?
+-				(mach_max_dma_address+1) : (unsigned long)high_memory);
+-	zones_size[ZONE_NORMAL] = (unsigned long)high_memory - zones_size[0];
+-
+-	zones_size[ZONE_DMA] = (zones_size[ZONE_DMA] - PAGE_OFFSET) >> PAGE_SHIFT;
+-	zones_size[ZONE_NORMAL] >>= PAGE_SHIFT;
+-
+-	free_area_init(zones_size);
++	for (i = 0; i < m68k_num_memory; i++) {
++		zones_size[ZONE_DMA] = m68k_memory[i].size >> PAGE_SHIFT;
++		free_area_init_node(i, pg_data_map + i, zones_size,
++				    m68k_memory[i].addr >> PAGE_SHIFT, NULL);
++	}
+ }
+ 
+ extern char __init_begin, __init_end;
+diff -puN arch/m68k/sun3/config.c~m68k-discontinuous-memory-support arch/m68k/sun3/config.c
+--- a/arch/m68k/sun3/config.c~m68k-discontinuous-memory-support
++++ a/arch/m68k/sun3/config.c
+@@ -21,6 +21,7 @@
+ #include <asm/contregs.h>
+ #include <asm/movs.h>
+ #include <asm/pgtable.h>
++#include <asm/pgalloc.h>
+ #include <asm/sun3-head.h>
+ #include <asm/sun3mmu.h>
+ #include <asm/rtc.h>
+@@ -127,6 +128,7 @@ void __init sun3_bootmem_alloc(unsigned 
+ 	high_memory = (void *)memory_end;
+ 	availmem = memory_start;
+ 
++	m68k_setup_node(0);
+ 	availmem += init_bootmem_node(NODE_DATA(0), start_page, 0, num_pages);
+ 	availmem = (availmem + (PAGE_SIZE-1)) & PAGE_MASK;
+ 
+diff -puN /dev/null include/asm-m68k/mmzone.h
+--- /dev/null
++++ a/include/asm-m68k/mmzone.h
+@@ -0,0 +1,9 @@
++#ifndef _ASM_M68K_MMZONE_H_
++#define _ASM_M68K_MMZONE_H_
++
++extern pg_data_t pg_data_map[];
++
++#define NODE_DATA(nid)		(&pg_data_map[nid])
++#define NODE_MEM_MAP(nid)	(NODE_DATA(nid)->node_mem_map)
++
++#endif /* _ASM_M68K_MMZONE_H_ */
+diff -puN include/asm-m68k/module.h~m68k-discontinuous-memory-support include/asm-m68k/module.h
+--- a/include/asm-m68k/module.h~m68k-discontinuous-memory-support
 +++ a/include/asm-m68k/module.h
-@@ -1,7 +1,38 @@
- #ifndef _ASM_M68K_MODULE_H
- #define _ASM_M68K_MODULE_H
--struct mod_arch_specific { };
-+
-+struct mod_arch_specific {
-+	struct m68k_fixup_info *fixup_start, *fixup_end;
-+};
-+
-+#define MODULE_ARCH_INIT {				\
-+	.fixup_start		= __start_fixup,	\
-+	.fixup_end		= __stop_fixup,		\
-+}
-+
- #define Elf_Shdr Elf32_Shdr
- #define Elf_Sym Elf32_Sym
- #define Elf_Ehdr Elf32_Ehdr
-+
-+
-+enum m68k_fixup_type {
-+	m68k_fixup_memoffset,
-+};
-+
-+struct m68k_fixup_info {
-+	enum m68k_fixup_type type;
-+	void *addr;
-+};
-+
-+#define m68k_fixup(type, addr)			\
-+	"	.section \".m68k_fixup\",\"aw\"\n"	\
-+	"	.long " #type "," #addr "\n"	\
-+	"	.previous\n"
-+
-+extern struct m68k_fixup_info __start_fixup[], __stop_fixup[];
-+
-+struct module;
-+extern void module_fixup(struct module *mod, struct m68k_fixup_info *start,
-+			 struct m68k_fixup_info *end);
-+
- #endif /* _ASM_M68K_MODULE_H */
-diff -puN include/asm-m68k/page.h~m68k-runtime-patching-infrastructure include/asm-m68k/page.h
---- a/include/asm-m68k/page.h~m68k-runtime-patching-infrastructure
+@@ -17,6 +17,7 @@ struct mod_arch_specific {
+ 
+ enum m68k_fixup_type {
+ 	m68k_fixup_memoffset,
++	m68k_fixup_vnode_shift,
+ };
+ 
+ struct m68k_fixup_info {
+diff -puN include/asm-m68k/motorola_pgtable.h~m68k-discontinuous-memory-support include/asm-m68k/motorola_pgtable.h
+--- a/include/asm-m68k/motorola_pgtable.h~m68k-discontinuous-memory-support
++++ a/include/asm-m68k/motorola_pgtable.h
+@@ -130,7 +130,7 @@ static inline void pgd_set(pgd_t *pgdp, 
+ #define pte_present(pte)	(pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROTNONE))
+ #define pte_clear(mm,addr,ptep)		({ pte_val(*(ptep)) = 0; })
+ 
+-#define pte_page(pte)		(mem_map + ((unsigned long)(__va(pte_val(pte)) - PAGE_OFFSET) >> PAGE_SHIFT))
++#define pte_page(pte)		virt_to_page(__va(pte_val(pte)))
+ #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)
+ #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+ 
+@@ -143,7 +143,7 @@ static inline void pgd_set(pgd_t *pgdp, 
+ 	while (--__i >= 0)			\
+ 		*__ptr++ = 0;			\
+ })
+-#define pmd_page(pmd)		(mem_map + ((unsigned long)(__va(pmd_val(pmd)) - PAGE_OFFSET) >> PAGE_SHIFT))
++#define pmd_page(pmd)		virt_to_page(__va(pmd_val(pmd)))
+ 
+ 
+ #define pgd_none(pgd)		(!pgd_val(pgd))
+@@ -223,10 +223,10 @@ static inline pte_t *pte_offset_kernel(p
+ 	return (pte_t *)__pmd_page(*pmdp) + ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
+ }
+ 
+-#define pte_offset_map(pmdp,address) ((pte_t *)kmap(pmd_page(*pmdp)) + ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
++#define pte_offset_map(pmdp,address) ((pte_t *)__pmd_page(*pmdp) + (((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
+ #define pte_offset_map_nested(pmdp, address) pte_offset_map(pmdp, address)
+-#define pte_unmap(pte) kunmap(pte)
+-#define pte_unmap_nested(pte) kunmap(pte)
++#define pte_unmap(pte)		((void)0)
++#define pte_unmap_nested(pte)	((void)0)
+ 
+ /*
+  * Allocate and free page tables. The xxx_kernel() versions are
+diff -puN include/asm-m68k/page.h~m68k-discontinuous-memory-support include/asm-m68k/page.h
+--- a/include/asm-m68k/page.h~m68k-discontinuous-memory-support
 +++ a/include/asm-m68k/page.h
-@@ -27,6 +27,8 @@
- 
- #ifndef __ASSEMBLY__
- 
-+#include <asm/module.h>
-+
- #define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
- #define free_user_page(page, addr)	free_page(addr)
- 
-@@ -114,14 +116,35 @@ typedef struct { unsigned long pgprot; }
- 
- #ifndef __ASSEMBLY__
- 
-+extern unsigned long m68k_memoffset;
-+
+@@ -121,7 +121,6 @@ extern unsigned long m68k_memoffset;
  #ifndef CONFIG_SUN3
  
  #define WANT_PAGE_VIRTUAL
- #ifdef CONFIG_SINGLE_MEMORY_CHUNK
--extern unsigned long m68k_memoffset;
+-#ifdef CONFIG_SINGLE_MEMORY_CHUNK
  
--#define __pa(vaddr)		((unsigned long)(vaddr)+m68k_memoffset)
--#define __va(paddr)		((void *)((unsigned long)(paddr)-m68k_memoffset))
-+static inline unsigned long ___pa(void *vaddr)
+ static inline unsigned long ___pa(void *vaddr)
+ {
+@@ -133,7 +132,7 @@ static inline unsigned long ___pa(void *
+ 		: "0" (vaddr), "i" (m68k_fixup_memoffset));
+ 	return paddr;
+ }
+-#define __pa(vaddr)    ___pa((void *)(vaddr))
++#define __pa(vaddr)	___pa((void *)(vaddr))
+ static inline void *__va(unsigned long paddr)
+ {
+ 	void *vaddr;
+@@ -145,11 +144,6 @@ static inline void *__va(unsigned long p
+ 	return vaddr;
+ }
+ 
+-#else
+-#define __pa(vaddr)		virt_to_phys((void *)(vaddr))
+-#define __va(paddr)		phys_to_virt((unsigned long)(paddr))
+-#endif
+-
+ #else	/* !CONFIG_SUN3 */
+ /* This #define is a horrible hack to suppress lots of warnings. --m */
+ #define __pa(x) ___pa((unsigned long)(x))
+@@ -184,11 +178,47 @@ static inline void *__va(unsigned long x
+ #define virt_to_pfn(kaddr)	(__pa(kaddr) >> PAGE_SHIFT)
+ #define pfn_to_virt(pfn)	__va((pfn) << PAGE_SHIFT)
+ 
+-#define virt_to_page(kaddr)	(mem_map + (((unsigned long)(kaddr)-PAGE_OFFSET) >> PAGE_SHIFT))
+-#define page_to_virt(page)	((((page) - mem_map) << PAGE_SHIFT) + PAGE_OFFSET)
++extern int m68k_virt_to_node_shift;
++
++#ifdef CONFIG_SINGLE_MEMORY_CHUNK
++#define __virt_to_node(addr)	(&pg_data_map[0])
++#else
++extern struct pglist_data *pg_data_table[];
++
++static inline __attribute_const__ int __virt_to_node_shift(void)
 +{
-+	unsigned long paddr;
++	int shift;
++
 +	asm (
-+		"1:	addl #0,%0\n"
-+		m68k_fixup(%c2, 1b+2)
-+		: "=r" (paddr)
-+		: "0" (vaddr), "i" (m68k_fixup_memoffset));
-+	return paddr;
-+}
-+#define __pa(vaddr)    ___pa((void *)(vaddr))
-+static inline void *__va(unsigned long paddr)
-+{
-+	void *vaddr;
-+	asm (
-+		"1:	subl #0,%0\n"
-+		m68k_fixup(%c2, 1b+2)
-+		: "=r" (vaddr)
-+		: "0" (paddr), "i" (m68k_fixup_memoffset));
-+	return vaddr;
++		"1:	moveq	#0,%0\n"
++		m68k_fixup(%c1, 1b)
++		: "=d" (shift)
++		: "i" (m68k_fixup_vnode_shift));
++	return shift;
 +}
 +
++#define __virt_to_node(addr)	(pg_data_table[(unsigned long)(addr) >> __virt_to_node_shift()])
++#endif
+ 
+-#define pfn_to_page(pfn)	virt_to_page(pfn_to_virt(pfn))
+-#define page_to_pfn(page)	virt_to_pfn(page_to_virt(page))
++#define virt_to_page(addr) ({						\
++	pfn_to_page(virt_to_pfn(addr));					\
++})
++#define page_to_virt(page) ({						\
++	pfn_to_virt(page_to_pfn(page));					\
++})
++
++#define pfn_to_page(pfn) ({						\
++	unsigned long __pfn = (pfn);					\
++	struct pglist_data *pgdat;					\
++	pgdat = __virt_to_node((unsigned long)pfn_to_virt(__pfn));	\
++	pgdat->node_mem_map + (__pfn - pgdat->node_start_pfn);		\
++})
++#define page_to_pfn(_page) ({						\
++	struct page *__p = (_page);					\
++	struct pglist_data *pgdat;					\
++	pgdat = &pg_data_map[page_to_nid(__p)];				\
++	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
++})
+ 
+ #define virt_addr_valid(kaddr)	((void *)(kaddr) >= (void *)PAGE_OFFSET && (void *)(kaddr) < high_memory)
+ #define pfn_valid(pfn)		virt_addr_valid(pfn_to_virt(pfn))
+diff -puN include/asm-m68k/pgalloc.h~m68k-discontinuous-memory-support include/asm-m68k/pgalloc.h
+--- a/include/asm-m68k/pgalloc.h~m68k-discontinuous-memory-support
++++ a/include/asm-m68k/pgalloc.h
+@@ -8,11 +8,12 @@
+ #include <asm/virtconvert.h>
+ 
+ 
+-
+ #ifdef CONFIG_SUN3
+ #include <asm/sun3_pgalloc.h>
  #else
- #define __pa(vaddr)		virt_to_phys((void *)(vaddr))
- #define __va(paddr)		phys_to_virt((unsigned long)(paddr))
+ #include <asm/motorola_pgalloc.h>
+ #endif
+ 
++extern void m68k_setup_node(int node);
++
+ #endif /* M68K_PGALLOC_H */
+diff -puN include/asm-m68k/pgtable.h~m68k-discontinuous-memory-support include/asm-m68k/pgtable.h
+--- a/include/asm-m68k/pgtable.h~m68k-discontinuous-memory-support
++++ a/include/asm-m68k/pgtable.h
+@@ -107,22 +107,7 @@ extern void *empty_zero_page;
+ /* 64-bit machines, beware!  SRB. */
+ #define SIZEOF_PTR_LOG2			       2
+ 
+-/*
+- * Check if the addr/len goes up to the end of a physical
+- * memory chunk.  Used for DMA functions.
+- */
+-#ifdef CONFIG_SINGLE_MEMORY_CHUNK
+-/*
+- * It makes no sense to consider whether we cross a memory boundary if
+- * we support just one physical chunk of memory.
+- */
+-static inline int mm_end_of_chunk(unsigned long addr, int len)
+-{
+-	return 0;
+-}
+-#else
+-int mm_end_of_chunk (unsigned long addr, int len);
+-#endif
++#define mm_end_of_chunk(addr, len)	0
+ 
+ extern void kernel_set_cachemode(void *addr, unsigned long size, int cmode);
+ 
+diff -puN include/asm-m68k/sun3_pgtable.h~m68k-discontinuous-memory-support include/asm-m68k/sun3_pgtable.h
+--- a/include/asm-m68k/sun3_pgtable.h~m68k-discontinuous-memory-support
++++ a/include/asm-m68k/sun3_pgtable.h
+@@ -132,8 +132,8 @@ static inline void pte_clear (struct mm_
+ #define pfn_pte(pfn, pgprot) \
+ ({ pte_t __pte; pte_val(__pte) = pfn | pgprot_val(pgprot); __pte; })
+ 
+-#define pte_page(pte)		(mem_map+((__pte_page(pte) - PAGE_OFFSET) >> PAGE_SHIFT))
+-#define pmd_page(pmd)		(mem_map+((__pmd_page(pmd) - PAGE_OFFSET) >> PAGE_SHIFT))
++#define pte_page(pte)		virt_to_page(__pte_page(pte))
++#define pmd_page(pmd)		virt_to_page(__pmd_page(pmd))
+ 
+ 
+ static inline int pmd_none2 (pmd_t *pmd) { return !pmd_val (*pmd); }
+diff -puN include/asm-m68k/virtconvert.h~m68k-discontinuous-memory-support include/asm-m68k/virtconvert.h
+--- a/include/asm-m68k/virtconvert.h~m68k-discontinuous-memory-support
++++ a/include/asm-m68k/virtconvert.h
+@@ -8,56 +8,35 @@
+ #ifdef __KERNEL__
+ 
+ #include <linux/compiler.h>
++#include <linux/mmzone.h>
+ #include <asm/setup.h>
+ #include <asm/page.h>
+ 
+-#ifdef CONFIG_AMIGA
+-#include <asm/amigahw.h>
+-#endif
+-
+ /*
+  * Change virtual addresses to physical addresses and vv.
+  */
+-#ifndef CONFIG_SUN3
+-extern unsigned long mm_vtop(unsigned long addr) __attribute_const__;
+-extern unsigned long mm_ptov(unsigned long addr) __attribute_const__;
+-#else
+-static inline unsigned long mm_vtop(unsigned long vaddr)
+-{
+-	return __pa(vaddr);
+-}
+-
+-static inline unsigned long mm_ptov(unsigned long paddr)
+-{
+-	return (unsigned long)__va(paddr);
+-}
+-#endif
+-
+-#ifdef CONFIG_SINGLE_MEMORY_CHUNK
+-static inline unsigned long virt_to_phys(void *vaddr)
+-{
+-	return (unsigned long)vaddr - PAGE_OFFSET + m68k_memory[0].addr;
+-}
+-
+-static inline void * phys_to_virt(unsigned long paddr)
+-{
+-	return (void *)(paddr - m68k_memory[0].addr + PAGE_OFFSET);
+-}
+-#else
+ static inline unsigned long virt_to_phys(void *address)
+ {
+-	return mm_vtop((unsigned long)address);
++	return __pa(address);
+ }
+ 
+ static inline void *phys_to_virt(unsigned long address)
+ {
+-	return (void *) mm_ptov(address);
++	return __va(address);
+ }
+-#endif
+ 
+ /* Permanent address of a page. */
+-#define __page_address(page)	(PAGE_OFFSET + (((page) - mem_map) << PAGE_SHIFT))
+-#define page_to_phys(page)	virt_to_phys((void *)__page_address(page))
++#ifdef CONFIG_SINGLE_MEMORY_CHUNK
++#define page_to_phys(page) \
++	__pa(PAGE_OFFSET + (((page) - pg_data_map[0].node_mem_map) << PAGE_SHIFT))
++#else
++#define page_to_phys(_page) ({						\
++	struct page *__page = _page;					\
++	struct pglist_data *pgdat;					\
++	pgdat = pg_data_table[page_to_nid(__page)];			\
++	page_to_pfn(__page) << PAGE_SHIFT;				\
++})
++#endif
+ 
+ /*
+  * IO bus memory addresses are 1:1 with the physical address,
+diff -puN mm/page_alloc.c~m68k-discontinuous-memory-support mm/page_alloc.c
+--- a/mm/page_alloc.c~m68k-discontinuous-memory-support
++++ a/mm/page_alloc.c
+@@ -2689,7 +2689,7 @@ static void __init_refok alloc_node_mem_
+ 			map = alloc_bootmem_node(pgdat, size);
+ 		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
+ 	}
+-#ifdef CONFIG_FLATMEM
++#ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+ 	 * With no DISCONTIG, the global mem_map is just set as node 0's
+ 	 */
 _
 
 Patches currently in -mm which might be from zippel@linux-m68k.org are
