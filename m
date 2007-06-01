@@ -1,173 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-change-early_ioremap-to-static.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 08:52:54 -0700
-Message-ID: <200706011552.l51Fqrr2012597@shell0.pdx.osdl.net>
+Subject: + rework-ptep_set_access_flags-and-fix-sun4c-fix.patch added to -mm tree
+Date: Fri, 01 Jun 2007 10:00:30 -0700
+Message-ID: <200706011700.l51H0Th5014153@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49783 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038AbXFAPxB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 11:53:01 -0400
+	by vger.kernel.org with ESMTP id S1759308AbXFARAm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:00:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, davem@davemloft.net, hugh@veritas.com, mark@mtfhpc.demon.co.uk, wli@holomorphy.com
 
 
 The patch titled
-     x86_64: change early_ioremap to static
-has been removed from the -mm tree.  Its filename was
-     x86_64-change-early_ioremap-to-static.patch
+     rework-ptep_set_access_flags-and-fix-sun4c-fix
+has been added to the -mm tree.  Its filename is
+     rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
 
-This patch was dropped because EF will use it
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: change early_ioremap to static
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Only dmi_scan_machine==>dmi_present==>dmi_table==>dmi_ioremap uses
-early_ioremap outside of mm/init.c dmi_scan_machine is called after
-init_memory_mappings, and could use ioremap instead.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/init.c    |   63 ++++++++++++++++++-------------------
- include/asm-x86_64/dmi.h |    9 +----
- include/asm-x86_64/io.h  |    3 -
- 3 files changed, 34 insertions(+), 41 deletions(-)
+ include/asm-ia64/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/mm/init.c~x86_64-change-early_ioremap-to-static arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~x86_64-change-early_ioremap-to-static
-+++ a/arch/x86_64/mm/init.c
-@@ -174,37 +174,7 @@ __set_fixmap (enum fixed_addresses idx, 
- 
- unsigned long __meminitdata table_start, table_end;
- 
--static __meminit void *alloc_low_page(unsigned long *phys)
--{ 
--	unsigned long pfn = table_end++;
--	void *adr;
--
--	if (after_bootmem) {
--		adr = (void *)get_zeroed_page(GFP_ATOMIC);
--		*phys = __pa(adr);
--		return adr;
--	}
--
--	if (pfn >= end_pfn) 
--		panic("alloc_low_page: ran out of memory"); 
--
--	adr = early_ioremap(pfn * PAGE_SIZE, PAGE_SIZE);
--	memset(adr, 0, PAGE_SIZE);
--	*phys  = pfn * PAGE_SIZE;
--	return adr;
--}
--
--static __meminit void unmap_low_page(void *adr)
--{ 
--
--	if (after_bootmem)
--		return;
--
--	early_iounmap(adr, PAGE_SIZE);
--} 
--
--/* Must run before zap_low_mappings */
--__meminit void *early_ioremap(unsigned long addr, unsigned long size)
-+static __meminit void *early_ioremap(unsigned long addr, unsigned long size)
- {
- 	unsigned long vaddr;
- 	pmd_t *pmd, *last_pmd;
-@@ -233,7 +203,7 @@ __meminit void *early_ioremap(unsigned l
- }
- 
- /* To avoid virtual aliases later */
--__meminit void early_iounmap(void *addr, unsigned long size)
-+static __meminit void early_iounmap(void *addr, unsigned long size)
- {
- 	unsigned long vaddr;
- 	pmd_t *pmd;
-@@ -247,6 +217,35 @@ __meminit void early_iounmap(void *addr,
- 	__flush_tlb();
- }
- 
-+static __meminit void *alloc_low_page(unsigned long *phys)
-+{
-+	unsigned long pfn = table_end++;
-+	void *adr;
-+
-+	if (after_bootmem) {
-+		adr = (void *)get_zeroed_page(GFP_ATOMIC);
-+		*phys = __pa(adr);
-+		return adr;
-+	}
-+
-+	if (pfn >= end_pfn)
-+		panic("alloc_low_page: ran out of memory");
-+
-+	adr = early_ioremap(pfn * PAGE_SIZE, PAGE_SIZE);
-+	memset(adr, 0, PAGE_SIZE);
-+	*phys  = pfn * PAGE_SIZE;
-+	return adr;
-+}
-+
-+static __meminit void unmap_low_page(void *adr)
-+{
-+
-+	if (after_bootmem)
-+		return;
-+
-+	early_iounmap(adr, PAGE_SIZE);
-+}
-+
- static void __meminit
- phys_pmd_init(pmd_t *pmd_page, unsigned long address, unsigned long end)
- {
-diff -puN include/asm-x86_64/dmi.h~x86_64-change-early_ioremap-to-static include/asm-x86_64/dmi.h
---- a/include/asm-x86_64/dmi.h~x86_64-change-early_ioremap-to-static
-+++ a/include/asm-x86_64/dmi.h
-@@ -3,15 +3,12 @@
- 
- #include <asm/io.h>
- 
--extern void *dmi_ioremap(unsigned long addr, unsigned long size);
--extern void dmi_iounmap(void *addr, unsigned long size);
--
- #define DMI_MAX_DATA 2048
- 
- extern int dmi_alloc_index;
- extern char dmi_alloc_data[DMI_MAX_DATA];
- 
--/* This is so early that there is no good way to allocate dynamic memory. 
-+/* This is so early that there is no good way to allocate dynamic memory.
-    Allocate data in an BSS array. */
- static inline void *dmi_alloc(unsigned len)
- {
-@@ -21,7 +18,7 @@ static inline void *dmi_alloc(unsigned l
- 	return dmi_alloc_data + idx;
- }
- 
--#define dmi_ioremap early_ioremap
--#define dmi_iounmap early_iounmap
-+#define dmi_ioremap ioremap
-+#define dmi_iounmap(x,l) iounmap(x)
- 
- #endif
-diff -puN include/asm-x86_64/io.h~x86_64-change-early_ioremap-to-static include/asm-x86_64/io.h
---- a/include/asm-x86_64/io.h~x86_64-change-early_ioremap-to-static
-+++ a/include/asm-x86_64/io.h
-@@ -134,9 +134,6 @@ static inline void __iomem * ioremap (un
- 	return __ioremap(offset, size, 0);
- }
- 
--extern void *early_ioremap(unsigned long addr, unsigned long size);
--extern void early_iounmap(void *addr, unsigned long size);
--
- /*
-  * This one maps high address device memory and turns off caching for that area.
-  * it's useful if some control registers are in such an area and write combining
+diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix
++++ a/include/asm-ia64/pgtable.h
+@@ -546,7 +546,7 @@ extern void lazy_mmu_prot_update (pte_t 
+ # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
+ ({										\
+ 	int __changed = !pte_same(*(__ptep), __entry);				\
+-	if (__changed) {							\
++	if (__changed)							\
+ 		ptep_establish(__vma, __addr, __ptep, __entry)			\
+ 	__changed;								\
+ })
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+potential-parse-error-in-ifdef.patch
+potential-parse-error-in-ifdef-update.patch
+alpha-support-graphics-on-non-zero-pci-domains.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+document-acked-by.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
