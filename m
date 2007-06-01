@@ -1,187 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - potential-parse-error-in-ifdef-update.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:15 -0700
-Message-ID: <200706011747.l51HlEW5015114@shell0.pdx.osdl.net>
+Subject: - rtc-use-fallback-irq-if-pnp-tables-dont-provide-one.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:47:46 -0700
+Message-ID: <200706011747.l51Hlj43015150@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52821 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761371AbXFARru (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:50 -0400
+	by vger.kernel.org with ESMTP id S1761137AbXFARr5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: padator@wanadoo.fr, James.Bottomley@steeleye.com, akpm@linux-foundation.org, ink@jurassic.park.msu.ru, jack@ucw.cz, jeff@garzik.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, rth@twiddle.net, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mjg59@srcf.ucam.org, castet.matthieu@free.fr, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parse errors in ifdefs
+     RTC: use fallback IRQ if PNP tables don't provide one
 has been removed from the -mm tree.  Its filename was
-     potential-parse-error-in-ifdef-update.patch
+     rtc-use-fallback-irq-if-pnp-tables-dont-provide-one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: parse errors in ifdefs
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: RTC: use fallback IRQ if PNP tables don't provide one
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Fix various bits of obviously-busted code which we're not happening to
-compile, due to ifdefs.
+Intel Macs (and possibly other machines) provide a PNP entry for the RTC,
+but provide no IRQ.  As a result the rtc-cmos driver doesn't allow wakeup
+alarms.  If the RTC is located at the legacy ioport range, assume that it's
+on IRQ 8 unless the tables say otherwise.
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Matthieu CASTET <castet.matthieu@free.fr>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ia64/aliasing-test.c    |    2 +-
- arch/alpha/boot/tools/mkbb.c          |    2 +-
- arch/arm/mm/alignment.c               |    2 +-
- arch/mips/jmr3927/rbhma3100/kgdb_io.c |    2 +-
- arch/mips/pci/pci-ocelot.c            |   14 +++++++-------
- drivers/mtd/nand/ppchameleonevb.c     |    4 ++--
- drivers/net/fec_8xx/fec_main.c        |    2 +-
- drivers/scsi/NCR5380.c                |    2 +-
- fs/udf/super.c                        |    2 +-
- 9 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/rtc/rtc-cmos.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/ia64/aliasing-test.c~potential-parse-error-in-ifdef-update Documentation/ia64/aliasing-test.c
---- a/Documentation/ia64/aliasing-test.c~potential-parse-error-in-ifdef-update
-+++ a/Documentation/ia64/aliasing-test.c
-@@ -197,7 +197,7 @@ skip:
- 	return rc;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-use-fallback-irq-if-pnp-tables-dont-provide-one drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-use-fallback-irq-if-pnp-tables-dont-provide-one
++++ a/drivers/rtc/rtc-cmos.c
+@@ -641,9 +641,16 @@ cmos_pnp_probe(struct pnp_dev *pnp, cons
+ 	 * drivers can't provide shutdown() methods to disable IRQs.
+ 	 * Or better yet, fix PNP to allow those methods...
+ 	 */
+-	return cmos_do_probe(&pnp->dev,
+-			&pnp->res.port_resource[0],
+-			pnp->res.irq_resource[0].start);
++	if (pnp_port_start(pnp,0) == 0x70 && !pnp_irq_valid(pnp,0))
++		/* Some machines contain a PNP entry for the RTC, but
++		 * don't define the IRQ. It should always be safe to
++		 * hardcode it in these cases
++		 */
++		return cmos_do_probe(&pnp->dev, &pnp->res.port_resource[0], 8);
++	else
++		return cmos_do_probe(&pnp->dev,
++				     &pnp->res.port_resource[0],
++				     pnp->res.irq_resource[0].start);
  }
  
--main()
-+int main()
- {
- 	int rc;
- 
-diff -puN arch/alpha/boot/tools/mkbb.c~potential-parse-error-in-ifdef-update arch/alpha/boot/tools/mkbb.c
---- a/arch/alpha/boot/tools/mkbb.c~potential-parse-error-in-ifdef-update
-+++ a/arch/alpha/boot/tools/mkbb.c
-@@ -81,7 +81,7 @@ typedef union __bootblock {
- #define	bootblock_label		__u1.__label
- #define bootblock_checksum	__u2.__checksum
- 
--main(int argc, char ** argv)
-+int main(int argc, char ** argv)
- {
-     bootblock		bootblock_from_disk;
-     bootblock		bootloader_image;
-diff -puN arch/arm/mm/alignment.c~potential-parse-error-in-ifdef-update arch/arm/mm/alignment.c
---- a/arch/arm/mm/alignment.c~potential-parse-error-in-ifdef-update
-+++ a/arch/arm/mm/alignment.c
-@@ -630,7 +630,7 @@ do_alignment(unsigned long addr, unsigne
- 
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
--	if thumb_mode(regs) {
-+	if (thumb_mode(regs)) {
- 		fault = __get_user(tinstr, (u16 *)(instrptr & ~1));
- 		if (!(fault))
- 			instr = thumb2arm(tinstr);
-diff -puN arch/mips/jmr3927/rbhma3100/kgdb_io.c~potential-parse-error-in-ifdef-update arch/mips/jmr3927/rbhma3100/kgdb_io.c
---- a/arch/mips/jmr3927/rbhma3100/kgdb_io.c~potential-parse-error-in-ifdef-update
-+++ a/arch/mips/jmr3927/rbhma3100/kgdb_io.c
-@@ -36,7 +36,7 @@
- #define TIMEOUT       0xffffff
- 
- static int remoteDebugInitialized = 0;
--static void debugInit(int baud)
-+static void debugInit(int baud);
- 
- int putDebugChar(unsigned char c)
- {
-diff -puN arch/mips/pci/pci-ocelot.c~potential-parse-error-in-ifdef-update arch/mips/pci/pci-ocelot.c
---- a/arch/mips/pci/pci-ocelot.c~potential-parse-error-in-ifdef-update
-+++ a/arch/mips/pci/pci-ocelot.c
-@@ -71,19 +71,19 @@ static inline void pci0WriteConfigReg(un
- }
- 
- static struct resource ocelot_mem_resource = {
--	start	= GT_PCI_MEM_BASE;
--	end	= GT_PCI_MEM_BASE + GT_PCI_MEM_BASE - 1;
-+	.start	= GT_PCI_MEM_BASE,
-+	.end	= GT_PCI_MEM_BASE + GT_PCI_MEM_BASE - 1,
- };
- 
- static struct resource ocelot_io_resource = {
--	start	= GT_PCI_IO_BASE;
--	end	= GT_PCI_IO_BASE + GT_PCI_IO_SIZE - 1;
-+	.start	= GT_PCI_IO_BASE,
-+	.end	= GT_PCI_IO_BASE + GT_PCI_IO_SIZE - 1,
- };
- 
- static struct pci_controller ocelot_pci_controller = {
--	.pci_ops	= gt64xxx_pci0_ops;
--	.mem_resource	= &ocelot_mem_resource;
--	.io_resource	= &ocelot_io_resource;
-+	.pci_ops	= gt64xxx_pci0_ops,
-+	.mem_resource	= &ocelot_mem_resource,
-+	.io_resource	= &ocelot_io_resource,
- };
- 
- static int __init ocelot_pcibios_init(void)
-diff -puN drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef-update drivers/mtd/nand/ppchameleonevb.c
---- a/drivers/mtd/nand/ppchameleonevb.c~potential-parse-error-in-ifdef-update
-+++ a/drivers/mtd/nand/ppchameleonevb.c
-@@ -424,9 +424,9 @@ static void __exit ppchameleonevb_cleanu
- 
- 	/* Release iomaps */
- 	this = (struct nand_chip *) &ppchameleon_mtd[1];
--	iounmap((void *) this->IO_ADDR_R;
-+	iounmap((void *) this->IO_ADDR_R);
- 	this = (struct nand_chip *) &ppchameleonevb_mtd[1];
--	iounmap((void *) this->IO_ADDR_R;
-+	iounmap((void *) this->IO_ADDR_R);
- 
- 	/* Free the MTD device structure */
- 	kfree (ppchameleon_mtd);
-diff -puN drivers/net/fec_8xx/fec_main.c~potential-parse-error-in-ifdef-update drivers/net/fec_8xx/fec_main.c
---- a/drivers/net/fec_8xx/fec_main.c~potential-parse-error-in-ifdef-update
-+++ a/drivers/net/fec_8xx/fec_main.c
-@@ -550,7 +550,7 @@ static int fec_enet_rx_common(struct net
- 				skbn = dev_alloc_skb(pkt_len + 2);
- 				if (skbn != NULL) {
- 					skb_reserve(skbn, 2);	/* align IP header */
--					skb_copy_from_linear_data(skb
-+					skb_copy_from_linear_data(skb,
- 								  skbn->data,
- 								  pkt_len);
- 					/* swap */
-diff -puN drivers/scsi/NCR5380.c~potential-parse-error-in-ifdef-update drivers/scsi/NCR5380.c
---- a/drivers/scsi/NCR5380.c~potential-parse-error-in-ifdef-update
-+++ a/drivers/scsi/NCR5380.c
-@@ -2625,7 +2625,7 @@ static void NCR5380_reselect(struct Scsi
- #ifdef REAL_DMA
- static void NCR5380_dma_complete(NCR5380_instance * instance) {
- 	NCR5380_local_declare();
--	struct NCR5380_hostdata *hostdata = (struct NCR5380_hostdata * instance->hostdata);
-+	struct NCR5380_hostdata *hostdata = (struct NCR5380_hostdata *) instance->hostdata;
- 	int transferred;
- 	NCR5380_setup(instance);
- 
-diff -puN fs/udf/super.c~potential-parse-error-in-ifdef-update fs/udf/super.c
---- a/fs/udf/super.c~potential-parse-error-in-ifdef-update
-+++ a/fs/udf/super.c
-@@ -1351,7 +1351,7 @@ udf_load_partition(struct super_block *s
- 
- 	for (i=0; i<UDF_SB_NUMPARTS(sb); i++)
- 	{
--		switch UDF_SB_PARTTYPE(sb, i)
-+		switch (UDF_SB_PARTTYPE(sb, i))
- 		{
- 			case UDF_VIRTUAL_MAP15:
- 			case UDF_VIRTUAL_MAP20:
+ static void __exit cmos_pnp_remove(struct pnp_dev *pnp)
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
 origin.patch
-atari_pamsnetc-old-declaration-ritchie-style-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
