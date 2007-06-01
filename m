@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 00:41:51 -0700
-Message-ID: <200706010741.l517fsNX005261@shell0.pdx.osdl.net>
+Subject: - x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 00:42:02 -0700
+Message-ID: <200706010742.l517g22t005264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35033 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:32860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753453AbXFAHmE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:42:04 -0400
+	by vger.kernel.org with ESMTP id S1753445AbXFAHmN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:42:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, asit.k.mallick@intel.com, ebiederm@xmission.com, keith.packard@intel.com, mingo@elte.hu, nanhai.zou@intel.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix
+     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
+     x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch
 
 This patch was dropped because it was folded into x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
 
 ------------------------------------------------------
-Subject: x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix
+Subject: x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Andi Kleen <ak@suse.de>
@@ -34,39 +34,21 @@ Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/x86_64/kernel/io_apic.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix
+diff -puN arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix
 +++ a/arch/x86_64/kernel/io_apic.c
-@@ -1447,13 +1447,13 @@ static void ack_apic_level(unsigned int 
- 	if (unlikely(do_unmask_irq)) {
- 		/* Only migrate the irq if the ack has been received.
+@@ -1449,7 +1449,7 @@ static void ack_apic_level(unsigned int 
  		 *
--		 * On rare occaions the broadcast level triggered ack gets
-+		 * On rare occasions the broadcast level triggered ack gets
+ 		 * On rare occasions the broadcast level triggered ack gets
  		 * delayed going to ioapics, and if we reprogram the
- 		 * vector while Remote IRR is still the irq will never
+-		 * vector while Remote IRR is still the irq will never
++		 * vector while Remote IRR is still set the irq will never
  		 * fire again.
  		 *
  		 * To prevent this scenario we read the Remote IRR bit
--		 * of the ioapic.  This has two affects.
-+		 * of the ioapic.  This has two effects.
- 		 * - On any sane system the read of the ioapic will
- 		 *   flush writes (and acks) going to the ioapic from
- 		 *   this cpu.
-@@ -1468,8 +1468,8 @@ static void ack_apic_level(unsigned int 
- 		 *
- 		 * However there appears to be no other way to plug
- 		 * this race, so if the Remote IRR bit is not
--		 * accurate and causing problems it is a hardware bug
--		 * and you can go talk chipset vendor about it.
-+		 * accurate and is causing problems then it is a hardware bug
-+		 * and you can go talk to the chipset vendor about it.
- 		 */
- 		if (!io_apic_level_ack_pending(irq))
- 			move_masked_irq(irq);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,7 +102,6 @@ mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
 x86_64-fix-smp_call_function_single-return-value.patch
 i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3-fix-fix.patch
 git-xfs.patch
 git-cryptodev.patch
