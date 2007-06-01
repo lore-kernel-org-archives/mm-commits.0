@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-slab-debug-for-non-alien-caches.patch added to -mm tree
-Date: Thu, 31 May 2007 23:36:18 -0700
-Message-ID: <200706010636.l516aHsb004301@shell0.pdx.osdl.net>
+Subject: + x86-fix-oprofile-double-free-was-re-multiple-free-fix.patch added to -mm tree
+Date: Thu, 31 May 2007 23:38:40 -0700
+Message-ID: <200706010638.l516cdPq004316@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42237 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbXFAGg0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 02:36:26 -0400
+	by vger.kernel.org with ESMTP id S1753530AbXFAGiz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 02:38:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: acme@redhat.com, ak@suse.de, alan@lxorguk.ukuu.org.uk, cebbert@redhat.com, chrisw@sous-sol.org, davej@redhat.com
 
 
 The patch titled
-     Subject: [PATCH] slab: Fix slab debug for non alien caches.
+     x86-fix-oprofile-double-free-was-re-multiple-free fix
 has been added to the -mm tree.  Its filename is
-     slab-fix-slab-debug-for-non-alien-caches.patch
+     x86-fix-oprofile-double-free-was-re-multiple-free-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] slab: Fix slab debug for non alien caches.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: x86-fix-oprofile-double-free-was-re-multiple-free fix
+From: Arnaldo Carvalho de Melo <acme@redhat.com>
 
-Currently when slab debugging is enabled, the WARN_ON() nodeid checks
-trigger if we boot with 'noaliencache'.  In the noaliencache case the
-WARN_ON()'s seem to be superfluous, so only bother doing the nodeid
-comparison if use_alien_caches is set.
+The fix for the fix needed a fix: allocate_msrs() was using
+for_each_online_cpu(), but nmi_setup uses for_each_possible_cpu(), and in
+my test machine, a Dell Poweredge 1950 I have 2 dual core Xeons, which
+makes for 4 possible cores, but wait, they are HT capable, so...
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+[acme@mica linux-2.6.21.3.orig]$ dmesg | grep Allowing
+SMP: Allowing 8 CPUs, 4 hotplug CPUs
+[acme@mica linux-2.6.21.3.orig]$
+
+We have 8 possible CPUs, but only 4 online, b00m. Fix it by making
+allocate_msrs agree with nmi_setup, i.e. make both use
+for_each_possible_cpu().
+
+Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+Acked-by: Chris Wright <chrisw@sous-sol.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/oprofile/nmi_int.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-fix-slab-debug-for-non-alien-caches mm/slab.c
---- a/mm/slab.c~slab-fix-slab-debug-for-non-alien-caches
-+++ a/mm/slab.c
-@@ -2663,7 +2663,7 @@ static void *slab_get_obj(struct kmem_ca
- 	next = slab_bufctl(slabp)[slabp->free];
- #if DEBUG
- 	slab_bufctl(slabp)[slabp->free] = BUFCTL_FREE;
--	WARN_ON(slabp->nodeid != nodeid);
-+	WARN_ON(use_alien_caches && slabp->nodeid != nodeid);
- #endif
- 	slabp->free = next;
+diff -puN arch/i386/oprofile/nmi_int.c~x86-fix-oprofile-double-free-was-re-multiple-free-fix arch/i386/oprofile/nmi_int.c
+--- a/arch/i386/oprofile/nmi_int.c~x86-fix-oprofile-double-free-was-re-multiple-free-fix
++++ a/arch/i386/oprofile/nmi_int.c
+@@ -154,7 +154,7 @@ static int allocate_msrs(void)
+ 	size_t counters_size = sizeof(struct op_msr) * model->num_counters;
  
-@@ -2677,7 +2677,7 @@ static void slab_put_obj(struct kmem_cac
- 
- #if DEBUG
- 	/* Verify that the slab belongs to the intended node */
--	WARN_ON(slabp->nodeid != nodeid);
-+	WARN_ON(use_alien_caches && slabp->nodeid != nodeid);
- 
- 	if (slab_bufctl(slabp)[objnr] + 1 <= SLAB_LIMIT + 1) {
- 		printk(KERN_ERR "slab: double free detected in cache "
+ 	int i;
+-	for_each_online_cpu(i) {
++	for_each_possible_cpu(i) {
+ 		cpu_msrs[i].counters = kmalloc(counters_size, GFP_KERNEL);
+ 		if (!cpu_msrs[i].counters) {
+ 			success = 0;
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from acme@redhat.com are
 
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-sh.patch
-sh-support-older-gccs.patch
-slab-fix-slab-debug-for-non-alien-caches.patch
+x86-fix-oprofile-double-free-was-re-multiple-free-fix.patch
