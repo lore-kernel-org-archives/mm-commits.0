@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-asm-generic-fcntlh.patch added to -mm tree
-Date: Thu, 31 May 2007 18:21:29 -0700
-Message-ID: <200706010121.l511LS05032370@shell0.pdx.osdl.net>
+Subject: + i386-remove-support-for-the-rise-cpu.patch added to -mm tree
+Date: Thu, 31 May 2007 19:01:33 -0700
+Message-ID: <200706010201.l5121WUn000446@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57122 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757713AbXFABWF (ORCPT
+	by vger.kernel.org with ESMTP id S1750822AbXFACCG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2007 21:22:05 -0400
+	Thu, 31 May 2007 22:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, zankel@tensilica.com
+Cc: bunk@stusta.de, ak@suse.de, davej@redhat.com
 
 
 The patch titled
-     Xtensa: use asm-generic/fcntl.h
+     i386: remove support for the Rise CPU
 has been added to the -mm tree.  Its filename is
-     xtensa-use-asm-generic-fcntlh.patch
+     i386-remove-support-for-the-rise-cpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,131 +26,172 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Xtensa: use asm-generic/fcntl.h
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: i386: remove support for the Rise CPU
+From: Adrian Bunk <bunk@stusta.de>
 
-Commit fc4fb2adf944d45a7f3d4d38df991c79ffdb6a43 "fixed" the Xtensa
-asm/fcntl.h and in doing so ignored asm-generic/fcntl.h completely.
-It turns out that it is now exactly the same as asm-generic/fcntl.h.
+The Rise CPUs were only very short-lived, and there are no reports of
+anyone both owning one and running Linux on it.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Chris Zankel <zankel@tensilica.com>
+Googling for the printk string "CPU: Rise iDragon" didn't find any dmesg
+available online.
+
+If it turns out that against all expectations there are actually users
+reverting this patch would be easy.
+
+This patch will make the kernel images smaller by a few bytes for all
+i386 users.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Dave Jones <davej@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-xtensa/fcntl.h |  100 -----------------------------------
- 1 file changed, 1 insertion(+), 99 deletions(-)
+ arch/i386/kernel/cpu/Makefile  |    1 
+ arch/i386/kernel/cpu/common.c  |    2 -
+ arch/i386/kernel/cpu/rise.c    |   52 -------------------------------
+ include/asm-i386/processor.h   |    1 
+ include/asm-x86_64/processor.h |    1 
+ 5 files changed, 57 deletions(-)
 
-diff -puN include/asm-xtensa/fcntl.h~xtensa-use-asm-generic-fcntlh include/asm-xtensa/fcntl.h
---- a/include/asm-xtensa/fcntl.h~xtensa-use-asm-generic-fcntlh
-+++ a/include/asm-xtensa/fcntl.h
-@@ -1,99 +1 @@
--/*
-- * include/asm-xtensa/fcntl.h
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file "COPYING" in the main directory of this archive
-- * for more details.
-- *
-- * Copyright (C) 1995, 1996, 1997, 1998 by Ralf Baechle
-- * Copyright (C) 2001 - 2005 Tensilica Inc.
-- */
+diff -puN arch/i386/kernel/cpu/common.c~i386-remove-support-for-the-rise-cpu arch/i386/kernel/cpu/common.c
+--- a/arch/i386/kernel/cpu/common.c~i386-remove-support-for-the-rise-cpu
++++ a/arch/i386/kernel/cpu/common.c
+@@ -604,7 +604,6 @@ extern int nsc_init_cpu(void);
+ extern int amd_init_cpu(void);
+ extern int centaur_init_cpu(void);
+ extern int transmeta_init_cpu(void);
+-extern int rise_init_cpu(void);
+ extern int nexgen_init_cpu(void);
+ extern int umc_init_cpu(void);
+ 
+@@ -616,7 +615,6 @@ void __init early_cpu_init(void)
+ 	amd_init_cpu();
+ 	centaur_init_cpu();
+ 	transmeta_init_cpu();
+-	rise_init_cpu();
+ 	nexgen_init_cpu();
+ 	umc_init_cpu();
+ 	early_cpu_detect();
+diff -puN arch/i386/kernel/cpu/Makefile~i386-remove-support-for-the-rise-cpu arch/i386/kernel/cpu/Makefile
+--- a/arch/i386/kernel/cpu/Makefile~i386-remove-support-for-the-rise-cpu
++++ a/arch/i386/kernel/cpu/Makefile
+@@ -9,7 +9,6 @@ obj-y	+=	cyrix.o
+ obj-y	+=	centaur.o
+ obj-y	+=	transmeta.o
+ obj-y	+=	intel.o intel_cacheinfo.o
+-obj-y	+=	rise.o
+ obj-y	+=	nexgen.o
+ obj-y	+=	umc.o
+ 
+diff -puN arch/i386/kernel/cpu/rise.c~i386-remove-support-for-the-rise-cpu /dev/null
+--- a/arch/i386/kernel/cpu/rise.c
++++ /dev/null
+@@ -1,52 +0,0 @@
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/bitops.h>
+-#include <asm/processor.h>
 -
--#ifndef _XTENSA_FCNTL_H
--#define _XTENSA_FCNTL_H
+-#include "cpu.h"
 -
--/* open/fcntl - O_SYNC is only implemented on blocks devices and on files
--   located on an ext2 file system */
--#define O_ACCMODE	   0003
--#define O_RDONLY	     00
--#define O_WRONLY	     01
--#define O_RDWR		     02
--#define O_CREAT		   0100	/* not fcntl */
--#define O_EXCL		   0200	/* not fcntl */
--#define O_NOCTTY	   0400	/* not fcntl */
--#define O_TRUNC		  01000	/* not fcntl */
--#define O_APPEND	  02000
--#define O_NONBLOCK	  04000
--#define O_NDELAY	O_NONBLOCK
--#define O_SYNC		 010000
--#define FASYNC		 020000	/* fcntl, for BSD compatibility */
--#define O_DIRECT	 040000	/* direct disk access hint */
--#define O_LARGEFILE	0100000
--#define O_DIRECTORY	0200000	/* must be a directory */
--#define O_NOFOLLOW	0400000 /* don't follow links */
--#define O_NOATIME	01000000
+-static void __cpuinit init_rise(struct cpuinfo_x86 *c)
+-{
+-	printk("CPU: Rise iDragon");
+-	if (c->x86_model > 2)
+-		printk(" II");
+-	printk("\n");
 -
--#define F_DUPFD		0	/* dup */
--#define F_GETFD		1	/* get close_on_exec */
--#define F_SETFD		2	/* set/clear close_on_exec */
--#define F_GETFL		3	/* get file->f_flags */
--#define F_SETFL		4	/* set file->f_flags */
--#define F_GETLK		5
--#define F_SETLK		6
--#define F_SETLKW	7
+-	/* Unhide possibly hidden capability flags
+-	   The mp6 iDragon family don't have MSRs.
+-	   We switch on extra features with this cpuid weirdness: */
+-	__asm__ (
+-		"movl $0x6363452a, %%eax\n\t"
+-		"movl $0x3231206c, %%ecx\n\t"
+-		"movl $0x2a32313a, %%edx\n\t"
+-		"cpuid\n\t"
+-		"movl $0x63634523, %%eax\n\t"
+-		"movl $0x32315f6c, %%ecx\n\t"
+-		"movl $0x2333313a, %%edx\n\t"
+-		"cpuid\n\t" : : : "eax", "ebx", "ecx", "edx"
+-	);
+-	set_bit(X86_FEATURE_CX8, c->x86_capability);
+-}
 -
--#define F_SETOWN	8	/*  for sockets. */
--#define F_GETOWN	9	/*  for sockets. */
--#define F_SETSIG	10	/*  for sockets. */
--#define F_GETSIG	11	/*  for sockets. */
--
--#define F_GETLK64	12	/*  using 'struct flock64' */
--#define F_SETLK64	13
--#define F_SETLKW64	14
--
--/* for F_[GET|SET]FL */
--#define FD_CLOEXEC	1	/* actually anything with low bit set goes */
--
--/* for posix fcntl() and lockf() */
--#define F_RDLCK		0
--#define F_WRLCK		1
--#define F_UNLCK		2
--
--/* for old implementation of bsd flock () */
--#define F_EXLCK		4	/* or 3 */
--#define F_SHLCK		8	/* or 4 */
--
--/* for leases */
--#define F_INPROGRESS	16
--
--/* operations for bsd flock(), also used by the kernel implementation */
--#define LOCK_SH		1	/* shared lock */
--#define LOCK_EX		2	/* exclusive lock */
--#define LOCK_NB		4	/* or'd with one of the above to prevent
--				   blocking */
--#define LOCK_UN		8	/* remove lock */
--
--#define LOCK_MAND	32	/* This is a mandatory flock */
--#define LOCK_READ	64	/* ... Which allows concurrent read operations */
--#define LOCK_WRITE	128	/* ... Which allows concurrent write operations */
--#define LOCK_RW		192	/* ... Which allows concurrent read & write ops */
--
--struct flock {
--	short l_type;
--	short l_whence;
--	off_t l_start;
--	off_t l_len;
--	pid_t l_pid;
+-static struct cpu_dev rise_cpu_dev __cpuinitdata = {
+-	.c_vendor	= "Rise",
+-	.c_ident	= { "RiseRiseRise" },
+-	.c_models = {
+-		{ .vendor = X86_VENDOR_RISE, .family = 5, .model_names = 
+-		  { 
+-			  [0] = "iDragon", 
+-			  [2] = "iDragon", 
+-			  [8] = "iDragon II", 
+-			  [9] = "iDragon II"
+-		  }
+-		},
+-	},
+-	.c_init		= init_rise,
 -};
 -
--struct flock64 {
--	short  l_type;
--	short  l_whence;
--	loff_t l_start;
--	loff_t l_len;
--	pid_t  l_pid;
--};
+-int __init rise_init_cpu(void)
+-{
+-	cpu_devs[X86_VENDOR_RISE] = &rise_cpu_dev;
+-	return 0;
+-}
 -
--#define F_LINUX_SPECIFIC_BASE	1024
--
--#endif /* _XTENSA_FCNTL_H */
-+#include <asm-generic/fcntl.h>
+diff -puN include/asm-i386/processor.h~i386-remove-support-for-the-rise-cpu include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~i386-remove-support-for-the-rise-cpu
++++ a/include/asm-i386/processor.h
+@@ -88,7 +88,6 @@ struct cpuinfo_x86 {
+ #define X86_VENDOR_UMC 3
+ #define X86_VENDOR_NEXGEN 4
+ #define X86_VENDOR_CENTAUR 5
+-#define X86_VENDOR_RISE 6
+ #define X86_VENDOR_TRANSMETA 7
+ #define X86_VENDOR_NSC 8
+ #define X86_VENDOR_NUM 9
+diff -puN include/asm-x86_64/processor.h~i386-remove-support-for-the-rise-cpu include/asm-x86_64/processor.h
+--- a/include/asm-x86_64/processor.h~i386-remove-support-for-the-rise-cpu
++++ a/include/asm-x86_64/processor.h
+@@ -83,7 +83,6 @@ struct cpuinfo_x86 {
+ #define X86_VENDOR_UMC 3
+ #define X86_VENDOR_NEXGEN 4
+ #define X86_VENDOR_CENTAUR 5
+-#define X86_VENDOR_RISE 6
+ #define X86_VENDOR_TRANSMETA 7
+ #define X86_VENDOR_NUM 8
+ #define X86_VENDOR_UNKNOWN 0xff
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-viotape-use-designated-initializers-for-fops-member.patch
-git-kbuild.patch
-move-three-functions-that-are-only-needed-for.patch
-introduce-config_virt_to_bus.patch
-xtensa-use-asm-generic-fcntlh.patch
+ntfs_init_locked_inode-fix-array-indexing.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-battery.patch
+unexport-pci_proc_attach_device.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
