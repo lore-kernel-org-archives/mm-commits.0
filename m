@@ -1,55 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - ntfs_init_locked_inode-fix-array-indexing.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 00:06:31 -0700
-Message-ID: <200706010706.l5176UU9004719@shell0.pdx.osdl.net>
+Subject: - sh-support-older-gccs.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 00:06:55 -0700
+Message-ID: <200706010706.l5176snO004744@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52270 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756019AbXFAHHA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:07:00 -0400
+	by vger.kernel.org with ESMTP id S1756136AbXFAHHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 03:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aia21@cantab.net, bunk@stusta.de, clameter@sgi.com, hidave.darkstar@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntfs_init_locked_inode(): fix array indexing
+     sh: support older gcc's
 has been removed from the -mm tree.  Its filename was
-     ntfs_init_locked_inode-fix-array-indexing.patch
+     sh-support-older-gccs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ntfs_init_locked_inode(): fix array indexing
+Subject: sh: support older gcc's
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Local variable `i' is a byte-counter.  Don't use it as an index into an array
-of le32's.
+Make my version of gcc happy.
 
-Reported-by: "young dave" <hidave.darkstar@gmail.com>
-Cc: "Christoph Lameter" <clameter@sgi.com>
-Acked-by: Anton Altaparmakov <aia21@cantab.net>
-Cc: <stable@kernel.org>
-Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/inode.c |    2 +-
+ arch/sh/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ntfs/inode.c~ntfs_init_locked_inode-fix-array-indexing fs/ntfs/inode.c
---- a/fs/ntfs/inode.c~ntfs_init_locked_inode-fix-array-indexing
-+++ a/fs/ntfs/inode.c
-@@ -140,7 +140,7 @@ static int ntfs_init_locked_inode(struct
- 		if (!ni->name)
- 			return -ENOMEM;
- 		memcpy(ni->name, na->name, i);
--		ni->name[i] = 0;
-+		ni->name[na->name_len] = 0;
- 	}
- 	return 0;
- }
+diff -puN arch/sh/Makefile~sh-support-older-gccs arch/sh/Makefile
+--- a/arch/sh/Makefile~sh-support-older-gccs
++++ a/arch/sh/Makefile
+@@ -39,7 +39,7 @@ cflags-$(CONFIG_CPU_SH2A)		:= -m2a $(cal
+ cflags-$(CONFIG_CPU_SH3)		:= -m3
+ cflags-$(CONFIG_CPU_SH4)		:= -m4 \
+ 	$(call cc-option,-mno-implicit-fp,-m4-nofpu)
+-cflags-$(CONFIG_CPU_SH4A)		:= -m4a $(call cc-option,-m4a-nofpu,)
++cflags-$(CONFIG_CPU_SH4A)		:= $(call cc-option,-m4a,) $(call cc-option,-m4a-nofpu,)
+ 
+ cflags-$(CONFIG_CPU_BIG_ENDIAN)		+= -mb
+ cflags-$(CONFIG_CPU_LITTLE_ENDIAN)	+= -ml
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
