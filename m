@@ -1,92 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - tty-fix-leakage-of-erestartsys-to-userland.patch removed from -mm tree
-Date: Fri, 01 Jun 2007 10:47:50 -0700
-Message-ID: <200706011747.l51Hln2n015156@shell0.pdx.osdl.net>
+Subject: - aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 10:48:41 -0700
+Message-ID: <200706011748.l51HmeZm015226@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39714 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761648AbXFARs5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:57 -0400
+	by vger.kernel.org with ESMTP id S1761621AbXFARsy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 13:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, alan@lxorguk.ukuu.org.uk, roland@redhat.com, stable@kernel.org, takeuchi_satoru@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, aacraid@adaptec.com, akpm@linux-foundation.org, ebiederm@xmission.com, vgoyal@in.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: fix leakage of -ERESTARTSYS to userland
+     aacraid: fix shutdown handler to also disable interrupts.
 has been removed from the -mm tree.  Its filename was
-     tty-fix-leakage-of-erestartsys-to-userland.patch
+     aacraid-fix-shutdown-handler-to-also-disable-interrupts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: fix leakage of -ERESTARTSYS to userland
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: aacraid: fix shutdown handler to also disable interrupts.
+From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 
-Spotted by Satoru Takeuchi.
+Moves quiesce, thread and interrupt shutdown into aacraid drivers'
+.shutdown handler.  This fix to the aac_shutdown handler will remove the
+superfluous reset of the adapter during a (clean) kexec.
 
-kill_pgrp(task_pgrp(current)) sends the signal to the current's thread
-group, but can choose any sub-thread as a target for signal_wake_up(). 
-This means that job_control() and tty_check_change() may return
--ERESTARTSYS without signal_pending().
+This fix may mitigate the active investigation 'kexec and aacraid
+broken' but it is unlikely to affect the root cause (issue likely
+present in both kexec and kdump). This patch reduces the chance the
+problem will occur with a kexec. The fix for root cause is currently
+expected to be the minimum value check to the aacraid.startup_timeout
+driver variable after an adapter reset within aacraid_commit_reset.patch
+submitted on 05/22/2007 and awaiting testing by Yinghai to confirm.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: Mark Salyzyn <aacraid@adaptec.com>
+Cc: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c  |    1 +
- drivers/char/tty_io.c |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/scsi/aacraid/linit.c |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/n_tty.c~tty-fix-leakage-of-erestartsys-to-userland drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~tty-fix-leakage-of-erestartsys-to-userland
-+++ a/drivers/char/n_tty.c
-@@ -1191,6 +1191,7 @@ static int job_control(struct tty_struct
- 			    is_current_pgrp_orphaned())
- 				return -EIO;
- 			kill_pgrp(task_pgrp(current), SIGTTIN, 1);
-+			set_thread_flag(TIF_SIGPENDING);
- 			return -ERESTARTSYS;
- 		}
- 	}
-diff -puN drivers/char/tty_io.c~tty-fix-leakage-of-erestartsys-to-userland drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-fix-leakage-of-erestartsys-to-userland
-+++ a/drivers/char/tty_io.c
-@@ -1148,7 +1148,8 @@ int tty_check_change(struct tty_struct *
- 		return 0;
- 	if (is_current_pgrp_orphaned())
- 		return -EIO;
--	(void) kill_pgrp(task_pgrp(current), SIGTTOU, 1);
-+	kill_pgrp(task_pgrp(current), SIGTTOU, 1);
-+	set_thread_flag(TIF_SIGPENDING);
- 	return -ERESTARTSYS;
+diff -puN drivers/scsi/aacraid/linit.c~aacraid-fix-shutdown-handler-to-also-disable-interrupts drivers/scsi/aacraid/linit.c
+--- a/drivers/scsi/aacraid/linit.c~aacraid-fix-shutdown-handler-to-also-disable-interrupts
++++ a/drivers/scsi/aacraid/linit.c
+@@ -859,6 +859,14 @@ static struct scsi_host_template aac_dri
+ 	.emulated                       = 1,
+ };
+ 
++static void __aac_shutdown(struct aac_dev * aac)
++{
++	kthread_stop(aac->thread);
++	aac_send_shutdown(aac);
++	aac_adapter_disable_int(aac);
++	free_irq(aac->pdev->irq, aac);
++}
++
+ static int __devinit aac_probe_one(struct pci_dev *pdev,
+ 		const struct pci_device_id *id)
+ {
+@@ -1011,10 +1019,7 @@ static int __devinit aac_probe_one(struc
+ 	return 0;
+ 
+  out_deinit:
+-	kthread_stop(aac->thread);
+-	aac_send_shutdown(aac);
+-	aac_adapter_disable_int(aac);
+-	free_irq(pdev->irq, aac);
++	__aac_shutdown(aac);
+  out_unmap:
+ 	aac_fib_map_free(aac);
+ 	pci_free_consistent(aac->pdev, aac->comm_size, aac->comm_addr, aac->comm_phys);
+@@ -1034,7 +1039,8 @@ static void aac_shutdown(struct pci_dev 
+ {
+ 	struct Scsi_Host *shost = pci_get_drvdata(dev);
+ 	struct aac_dev *aac = (struct aac_dev *)shost->hostdata;
+-	aac_send_shutdown(aac);
++	scsi_block_requests(shost);
++	__aac_shutdown(aac);
  }
  
+ static void __devexit aac_remove_one(struct pci_dev *pdev)
+@@ -1044,16 +1050,12 @@ static void __devexit aac_remove_one(str
+ 
+ 	scsi_remove_host(shost);
+ 
+-	kthread_stop(aac->thread);
+-
+-	aac_send_shutdown(aac);
+-	aac_adapter_disable_int(aac);
++	__aac_shutdown(aac);
+ 	aac_fib_map_free(aac);
+ 	pci_free_consistent(aac->pdev, aac->comm_size, aac->comm_addr,
+ 			aac->comm_phys);
+ 	kfree(aac->queues);
+ 
+-	free_irq(pdev->irq, aac);
+ 	aac_adapter_ioremap(aac, 0);
+ 	
+ 	kfree(aac->fibs);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
 
 origin.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
