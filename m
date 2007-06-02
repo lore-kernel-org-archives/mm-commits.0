@@ -1,93 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: + spi-controller-drivers-check-for-unsupported-modes-update.patch added to -mm tree
-Date: Fri, 01 Jun 2007 16:38:25 -0700
-Message-ID: <200706012338.l51NcPWv022022@shell0.pdx.osdl.net>
+Subject: - fix-possible-leakage-of-blocks-in-udf-tidy.patch removed from -mm tree
+Date: Fri, 01 Jun 2007 22:43:50 -0700
+Message-ID: <200706020543.l525hsDf011744@smtp2.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34473 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754850AbXFAXjD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2007 19:39:03 -0400
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48979 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757040AbXFBFoD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 2 Jun 2007 01:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi controller mode check update
-has been added to the -mm tree.  Its filename is
-     spi-controller-drivers-check-for-unsupported-modes-update.patch
+     fix-possible-leakage-of-blocks-in-udf tidy
+has been removed from the -mm tree.  Its filename was
+     fix-possible-leakage-of-blocks-in-udf-tidy.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into fix-possible-leakage-of-blocks-in-udf.patch
 
 ------------------------------------------------------
-Subject: spi controller mode check update
-From: David Brownell <david-b@pacbell.net>
+Subject: fix-possible-leakage-of-blocks-in-udf tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This lets bitbanging SPI controller drivers declare that they
-support modes like SPI_CS_HIGH and SPI_3WIRE.
+Not sure what happened there..
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bitbang.c       |   12 +++---------
- include/linux/spi/spi_bitbang.h |    1 +
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ fs/udf/truncate.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/spi/spi_bitbang.c~spi-controller-drivers-check-for-unsupported-modes-update drivers/spi/spi_bitbang.c
---- a/drivers/spi/spi_bitbang.c~spi-controller-drivers-check-for-unsupported-modes-update
-+++ a/drivers/spi/spi_bitbang.c
-@@ -187,16 +187,10 @@ int spi_bitbang_setup(struct spi_device 
- 
- 	bitbang = spi_master_get_devdata(spi->master);
- 
--	/* REVISIT: some systems will want to support devices using lsb-first
--	 * bit encodings on the wire.  In pure software that would be trivial,
--	 * just bitbang_txrx_le_cphaX() routines shifting the other way, and
--	 * some hardware controllers also have this support.
--	 *
--	 * REVISIT: we should accept SPI_CS_HIGH in some cases; it's
--	 * easy to implement that with GPIOs, but we don't know if the
--	 * underlying chipselect() method support that...
-+	/* Bitbangers can support SPI_CS_HIGH, SPI_3WIRE, and so on;
-+	 * add those to master->flags, and provide the other support.
- 	 */
--	if ((spi->mode & ~(SPI_CPOL|SPI_CPHA)) != 0)
-+	if ((spi->mode & ~(SPI_CPOL|SPI_CPHA|bitbang->flags)) != 0)
- 		return -EINVAL;
- 
- 	if (!cs) {
-diff -puN include/linux/spi/spi_bitbang.h~spi-controller-drivers-check-for-unsupported-modes-update include/linux/spi/spi_bitbang.h
---- a/include/linux/spi/spi_bitbang.h~spi-controller-drivers-check-for-unsupported-modes-update
-+++ a/include/linux/spi/spi_bitbang.h
-@@ -26,6 +26,7 @@ struct spi_bitbang {
- 	struct list_head	queue;
- 	u8			busy;
- 	u8			use_dma;
-+	u8			flags;		/* extra spi->mode support */
- 
- 	struct spi_master	*master;
- 
+diff -puN fs/udf/truncate.c~fix-possible-leakage-of-blocks-in-udf-tidy fs/udf/truncate.c
+--- a/fs/udf/truncate.c~fix-possible-leakage-of-blocks-in-udf-tidy
++++ a/fs/udf/truncate.c
+@@ -92,17 +92,23 @@ void udf_truncate_tail_extent(struct ino
+ 		lbcount += elen;
+ 		if (lbcount > inode->i_size) {
+ 			if (lbcount - inode->i_size >= inode->i_sb->s_blocksize)
+-				printk(KERN_WARNING "udf_truncate_tail_extent():\
+- Too long extent after EOF in inode %u: i_size: %Ld lbcount: %Ld extent %u+%u\n",
+-(unsigned)inode->i_ino, (long long)inode->i_size, (long long)lbcount,
+-(unsigned)eloc.logicalBlockNum, (unsigned)elen);
++				printk(KERN_WARNING "udf_truncate_tail_extent()"
++					": Too long extent after EOF in inode "
++					"%u: i_size: %Ld lbcount: %Ld extent "
++					"%u+%u\n",
++					(unsigned)inode->i_ino,
++					(long long)inode->i_size,
++					(long long)lbcount,
++					(unsigned)eloc.logicalBlockNum,
++					(unsigned)elen);
+ 			nelen = elen - (lbcount - inode->i_size);
+ 			epos.offset -= adsize;
+ 			extent_trunc(inode, &epos, eloc, etype, elen, nelen);
+ 			epos.offset += adsize;
+ 			if (udf_next_aext(inode, &epos, &eloc, &elen, 1) != -1)
+-				printk(KERN_ERR "udf_truncate_tail_extent(): \
+-Extent after EOF in inode %u.\n", (unsigned)inode->i_ino);
++				printk(KERN_ERR "udf_truncate_tail_extent(): "
++					"Extent after EOF in inode %u.\n",
++					(unsigned)inode->i_ino);
+ 			break;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-spi-dynamic-busid-generation-bugfix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
 git-leds.patch
-git-mmc.patch
-git-backlight.patch
-char-genrtc-use-wait_event_interruptible.patch
-spi-controller-drivers-check-for-unsupported-modes.patch
-spi-controller-drivers-check-for-unsupported-modes-update.patch
-spi-add-3wire-mode-flag.patch
-spi-add-3wire-mode-flag-fix.patch
-spidev-compiler-warning-gone.patch
-rtc-ds1307-cleanups.patch
-rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-pciseg.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+fix-possible-leakage-of-blocks-in-udf.patch
+fix-possible-leakage-of-blocks-in-udf-tidy.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+document-acked-by.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
