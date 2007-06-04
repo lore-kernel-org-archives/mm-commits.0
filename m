@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + epson1355fb-color-setting-fixes.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:07 -0700
-Message-ID: <200706042040.l54Ke7Yp018405@imap1.linux-foundation.org>
+Subject: + ffb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:10 -0700
+Message-ID: <200706042040.l54KeALY018408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55340 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753203AbXFDUkW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:22 -0400
+	by vger.kernel.org with ESMTP id S1753111AbXFDUkU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     epson1355fb: color setting fixes
+     ffb: the pseudo_palette is only 16 elements long
 has been added to the -mm tree.  Its filename is
-     epson1355fb-color-setting-fixes.patch
+     ffb-the-pseudo_palette-is-only-16-elements-long.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: epson1355fb: color setting fixes
+Subject: ffb: the pseudo_palette is only 16 elements long
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- the pseudo_palette is only 16 elements long
-- allocate the pseudo_palette as part of epson1355_par
+The pseudo_palette is only 16 elements long.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/epson1355fb.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/ffb.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/epson1355fb.c~epson1355fb-color-setting-fixes drivers/video/epson1355fb.c
---- a/drivers/video/epson1355fb.c~epson1355fb-color-setting-fixes
-+++ a/drivers/video/epson1355fb.c
-@@ -63,6 +63,7 @@
+diff -puN drivers/video/ffb.c~ffb-the-pseudo_palette-is-only-16-elements-long drivers/video/ffb.c
+--- a/drivers/video/ffb.c~ffb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/ffb.c
+@@ -656,7 +656,7 @@ static int ffb_setcolreg(unsigned regno,
+ {
+ 	u32 value;
  
- struct epson1355_par {
- 	unsigned long reg_addr;
+-	if (regno >= 256)
++	if (regno >= 16)
+ 		return 1;
+ 
+ 	red >>= 8;
+@@ -903,7 +903,7 @@ ffb_init_fix(struct fb_info *info)
+ struct all_info {
+ 	struct fb_info info;
+ 	struct ffb_par par;
+-	u32 pseudo_palette[256];
 +	u32 pseudo_palette[16];
  };
  
- /* ------------------------------------------------------------------------- */
-@@ -635,7 +636,7 @@ int __init epson1355fb_probe(struct plat
- 		goto bail;
- 	}
- 
--	info = framebuffer_alloc(sizeof(struct epson1355_par) + sizeof(u32) * 256, &dev->dev);
-+	info = framebuffer_alloc(sizeof(struct epson1355_par), &dev->dev);
- 	if (!info) {
- 		rc = -ENOMEM;
- 		goto bail;
-@@ -648,7 +649,7 @@ int __init epson1355fb_probe(struct plat
- 		rc = -ENOMEM;
- 		goto bail;
- 	}
--	info->pseudo_palette = (void *)(default_par + 1);
-+	info->pseudo_palette = default_par->pseudo_palette;
- 
- 	info->screen_base = ioremap(EPSON1355FB_FB_PHYS, EPSON1355FB_FB_LEN);
- 	if (!info->screen_base) {
+ static int ffb_init_one(struct of_device *op)
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
