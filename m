@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-fix-break-handling.patch added to -mm tree
-Date: Mon, 04 Jun 2007 12:35:04 -0700
-Message-ID: <200706041935.l54JZ4RH011874@imap1.linux-foundation.org>
+Subject: + trim-memory-not-covered-by-mtrr-wb-type.patch added to -mm tree
+Date: Mon, 04 Jun 2007 12:48:53 -0700
+Message-ID: <200706041948.l54JmrqO012140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750795AbXFDThy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:37:54 -0400
+	by vger.kernel.org with ESMTP id S1754546AbXFDTte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:49:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, akpm@linux-foundation.org, andrew@sanpeople.com, ivan.kuten@promwad.com, nicolas.ferre@rfo.atmel.com, patrice.vilchez@rfo.atmel.com, rmk@arm.linux.org.uk
+Cc: jesse.barnes@intel.com, ak@suse.de
 
 
 The patch titled
-     atmel_serial: fix break handling
+     i386: trim memory not covered by MTRR WB type
 has been added to the -mm tree.  Its filename is
-     atmel_serial-fix-break-handling.patch
+     trim-memory-not-covered-by-mtrr-wb-type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,142 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_serial: fix break handling
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: i386: trim memory not covered by MTRR WB type
+From: Jesse Barnes <jesse.barnes@intel.com>
 
-The RXBRK field in the AT91/AT32 USART status register has the
-following definition according to e.g. the AT32AP7000 data sheet:
+I've seen a few machines lately that don't map all their memory WB via the
+MTRRs.  It tends to happen at large memory configurations (at least for
+desktops, >3G or so), and is really a BIOS bug.  But it would be nice if
+the kernel could warn the user and continue, rather than just run horribly
+slowly.
 
-    RXBRK: Break Received/End of Break
-    0: No Break received or End of Break detected since the last RSTSTA.
-    1: Break Received or End of Break detected since the last RSTSTA.
+This patch assumes that the unmapped memory occurs at the end of the memory
+configuration, and adjusts end_pfn accordingly.  It works ok on my machine
+(correctly detects the condition, adjusts end_pfn, and keeps the machine
+fast), aside from the fact that X won't start.  So I obviously broke
+something by making the MTRR system init so much earlier.
 
-Thus, for each break, the USART sets the RXBRK bit twice. This patch
-modifies the driver to report the break event to the serial core only
-once by keeping track of whether a break condition is currently
-active. The break_active flag is reset as soon as a character is
-received, so even if we miss the start-of-break interrupt this should
-do the right thing.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <andrew@sanpeople.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ivan Kuten <ivan.kuten@promwad.com>
-Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: Patrice Vilchez <patrice.vilchez@rfo.atmel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   32 ++++++++++++++++++++++++++++++--
- 1 files changed, 30 insertions(+), 2 deletions(-)
+ arch/i386/kernel/cpu/mtrr/main.c |   33 ++++++++++++++++++++++-------
+ arch/x86_64/kernel/bugs.c        |    1 
+ arch/x86_64/kernel/setup.c       |    4 +++
+ include/asm-x86_64/mtrr.h        |    1 
+ 4 files changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-break-handling drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-break-handling
-+++ a/drivers/serial/atmel_serial.c
-@@ -114,6 +114,7 @@ struct atmel_uart_port {
- 	struct uart_port	uart;		/* uart */
- 	struct clk		*clk;		/* uart clock */
- 	unsigned short		suspended;	/* is port suspended? */
-+	int			break_active;	/* break being received */
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~trim-memory-not-covered-by-mtrr-wb-type arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~trim-memory-not-covered-by-mtrr-wb-type
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -38,8 +38,8 @@
+ #include <linux/cpu.h>
+ #include <linux/mutex.h>
+ 
++#include <asm/e820.h>
+ #include <asm/mtrr.h>
+-
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+ #include <asm/msr.h>
+@@ -47,7 +47,8 @@
+ 
+ u32 num_var_ranges = 0;
+ 
+-unsigned int *usage_table;
++#define MAX_MTRR_RANGES 255
++unsigned int usage_table[MAX_MTRR_RANGES];
+ static DEFINE_MUTEX(mtrr_mutex);
+ 
+ u64 size_or_mask, size_and_mask;
+@@ -126,11 +127,6 @@ static void __init init_table(void)
+ 	}
+ 
+ 	max = num_var_ranges;
+-	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
+-	    == NULL) {
+-		printk(KERN_ERR "mtrr: could not allocate\n");
+-		return;
+-	}
+ 	for (i = 0; i < max; i++)
+ 		usage_table[i] = 1;
+ }
+@@ -636,6 +632,29 @@ static struct sysdev_driver mtrr_sysdev_
+ 	.resume		= mtrr_restore,
  };
  
- static struct atmel_uart_port atmel_ports[ATMEL_MAX_UART];
-@@ -252,6 +253,7 @@ static void atmel_break_ctl(struct uart_
-  */
- static void atmel_rx_chars(struct uart_port *port)
++void __init mtrr_trim_uncached_memory(void)
++{
++	unsigned long i, base, size, highest_addr = 0;
++	mtrr_type type;
++
++	/* Find highest cached pfn */
++	for (i = 0; i < num_var_ranges; i++) {
++		mtrr_if->get(i, &base, &size, &type);
++		if (type != MTRR_TYPE_WRBACK)
++			continue;
++		base <<= PAGE_SHIFT;
++		size <<= PAGE_SHIFT;
++		if (highest_addr < base + size)
++			highest_addr = base + size;
++	}
++
++	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
++		printk(KERN_WARNING "Warning:  MTRRs don't cover all of "
++		       "memory, trimmed %ld pages\n", end_pfn -
++		       (highest_addr >> PAGE_SHIFT));
++		end_pfn = highest_addr >> PAGE_SHIFT;
++	}
++}
+ 
+ /**
+  * mtrr_bp_init - initialize mtrrs on the boot CPU
+diff -puN arch/x86_64/kernel/bugs.c~trim-memory-not-covered-by-mtrr-wb-type arch/x86_64/kernel/bugs.c
+--- a/arch/x86_64/kernel/bugs.c~trim-memory-not-covered-by-mtrr-wb-type
++++ a/arch/x86_64/kernel/bugs.c
+@@ -14,7 +14,6 @@
+ void __init check_bugs(void)
  {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
- 	struct tty_struct *tty = port->info->tty;
- 	unsigned int status, ch, flg;
+ 	identify_cpu(&boot_cpu_data);
+-	mtrr_bp_init();
+ #if !defined(CONFIG_SMP)
+ 	printk("CPU: ");
+ 	print_cpu_info(&boot_cpu_data);
+diff -puN arch/x86_64/kernel/setup.c~trim-memory-not-covered-by-mtrr-wb-type arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~trim-memory-not-covered-by-mtrr-wb-type
++++ a/arch/x86_64/kernel/setup.c
+@@ -266,6 +266,10 @@ void __init setup_arch(char **cmdline_p)
+ 	 * we are rounding upwards:
+ 	 */
+ 	end_pfn = e820_end_of_ram();
++	/* Trim memory not covered by WB MTRRs */
++	mtrr_bp_init();
++	mtrr_trim_uncached_memory();
++
+ 	num_physpages = end_pfn;
  
-@@ -267,13 +269,29 @@ static void atmel_rx_chars(struct uart_p
- 		 * note that the error handling code is
- 		 * out of the main execution path
- 		 */
--		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME | ATMEL_US_OVRE | ATMEL_US_RXBRK))) {
-+		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
-+				       | ATMEL_US_OVRE | ATMEL_US_RXBRK)
-+			     || atmel_port->break_active)) {
- 			UART_PUT_CR(port, ATMEL_US_RSTSTA);	/* clear error */
--			if (status & ATMEL_US_RXBRK) {
-+			if (status & ATMEL_US_RXBRK
-+			    && !atmel_port->break_active) {
- 				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);	/* ignore side-effect */
- 				port->icount.brk++;
-+				atmel_port->break_active = 1;
-+				UART_PUT_IER(port, ATMEL_US_RXBRK);
- 				if (uart_handle_break(port))
- 					goto ignore_char;
-+			} else {
-+				/*
-+				 * This is either the end-of-break
-+				 * condition or we've received at
-+				 * least one character without RXBRK
-+				 * being set. In both cases, the next
-+				 * RXBRK will indicate start-of-break.
-+				 */
-+				UART_PUT_IDR(port, ATMEL_US_RXBRK);
-+				status &= ~ATMEL_US_RXBRK;
-+				atmel_port->break_active = 0;
- 			}
- 			if (status & ATMEL_US_PARE)
- 				port->icount.parity++;
-@@ -352,6 +370,16 @@ static irqreturn_t atmel_interrupt(int i
- 		/* Interrupt receive */
- 		if (pending & ATMEL_US_RXRDY)
- 			atmel_rx_chars(port);
-+		else if (pending & ATMEL_US_RXBRK) {
-+			/*
-+			 * End of break detected. If it came along
-+			 * with a character, atmel_rx_chars will
-+			 * handle it.
-+			 */
-+			UART_PUT_CR(port, ATMEL_US_RSTSTA);
-+			UART_PUT_IDR(port, ATMEL_US_RXBRK);
-+			atmel_port->break_active = 0;
-+		}
- 
- 		// TODO: All reads to CSR will clear these interrupts!
- 		if (pending & ATMEL_US_RIIC) port->icount.rng++;
+ 	check_efer();
+diff -puN include/asm-x86_64/mtrr.h~trim-memory-not-covered-by-mtrr-wb-type include/asm-x86_64/mtrr.h
+--- a/include/asm-x86_64/mtrr.h~trim-memory-not-covered-by-mtrr-wb-type
++++ a/include/asm-x86_64/mtrr.h
+@@ -78,6 +78,7 @@ extern int mtrr_add_page (unsigned long 
+ 		     unsigned int type, char increment);
+ extern int mtrr_del (int reg, unsigned long base, unsigned long size);
+ extern int mtrr_del_page (int reg, unsigned long base, unsigned long size);
++extern void mtrr_trim_uncached_memory(void);
+ #  else
+ static __inline__ int mtrr_add (unsigned long base, unsigned long size,
+ 				unsigned int type, char increment)
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from jesse.barnes@intel.com are
 
-origin.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-avr32.patch
-atmel_serial-fix-break-handling.patch
+remove-pci_dac_dma_-apis.patch
+trim-memory-not-covered-by-mtrr-wb-type.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+vt-add-comment-for-unbind_con_driver.patch
