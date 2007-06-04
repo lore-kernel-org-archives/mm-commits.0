@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch added to -mm tree
-Date: Mon, 04 Jun 2007 14:48:15 -0700
-Message-ID: <200706042148.l54LmFC5019982@imap1.linux-foundation.org>
+Subject: + i386-do-not-restore-reserved-memory-after-hibernation.patch added to -mm tree
+Date: Mon, 04 Jun 2007 14:49:52 -0700
+Message-ID: <200706042149.l54LnqGI020007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32803 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752953AbXFDVsr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:48:47 -0400
+	by vger.kernel.org with ESMTP id S1752953AbXFDVuS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:50:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kevin.tian@intel.com, ak@suse.de, akpm@linux-foundation.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, rui.zhang@intel.com
+Cc: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz, rientjes@google.com
 
 
 The patch titled
-     ACPI: preserve the ebx value in acpi_copy_wakeup_routine
+     i386: do not restore reserved memory after hibernation
 has been added to the -mm tree.  Its filename is
-     acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+     i386-do-not-restore-reserved-memory-after-hibernation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: preserve the ebx value in acpi_copy_wakeup_routine
-From: Tian Kevin <kevin.tian@intel.com>
+Subject: i386: do not restore reserved memory after hibernation
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Register %ebx serves as the "global offset table base register" for
-position-independent code.  For absolute code, %ebx serves as a local
-register and has no specified role in the function calling sequence.  In
-either case, a function must preserve the register value for the caller.
+On some systems the ACPI NVS area is located in the first 1 MB of RAM and
+it is overwritten by the i386 code during the restore after hibernation. 
+This confuses the ACPI platform firmware that doesn't update the AC adapter
+status appropriately as a result
+(http://bugzilla.kernel.org/show_bug.cgi?id=7995).
 
-acpi_copy_wakeup_routine overrides %ebx without saving it, this may corrupt
-the called data.
+The solution is to register the reserved memory in the first 1 MB as
+'nosave', so that swsusp doesn't touch it during the restore.  Also, this
+has been done on x86_64 for a long time now, so this patch makes the i386
+restore code behave like the x86_64 one.
 
-Kevin found that most time the value of Sx is saved in %esi, however
-sometimes compiler also uses %ebx.  When this happens, suspends fails since
-sleep value in ebx is changed by acpi_copy_wakeup_routine.
-
-The same funtion in X86_64 doesn't have this problem.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Looks-okay-to: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/wakeup.S |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/i386/kernel/e820.c  |   30 ++++++++++++++++++++++++++++++
+ arch/i386/kernel/setup.c |    1 +
+ include/asm-i386/e820.h  |    1 +
+ 3 files changed, 32 insertions(+)
 
-diff -puN arch/i386/kernel/acpi/wakeup.S~acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine arch/i386/kernel/acpi/wakeup.S
---- a/arch/i386/kernel/acpi/wakeup.S~acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine
-+++ a/arch/i386/kernel/acpi/wakeup.S
-@@ -230,6 +230,7 @@ bogus_magic:
- #
- ENTRY(acpi_copy_wakeup_routine)
+diff -puN arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation
++++ a/arch/i386/kernel/e820.c
+@@ -10,6 +10,7 @@
+ #include <linux/efi.h>
+ #include <linux/pfn.h>
+ #include <linux/uaccess.h>
++#include <linux/suspend.h>
  
-+	pushl	%ebx
- 	sgdt	saved_gdt
- 	sidt	saved_idt
- 	sldt	saved_ldt
-@@ -263,6 +264,7 @@ ENTRY(acpi_copy_wakeup_routine)
- 	movl	%edx, video_flags - wakeup_start (%eax)
- 	movl	$0x12345678, real_magic - wakeup_start (%eax)
- 	movl	$0x12345678, saved_magic
-+	popl	%ebx
- 	ret
+ #include <asm/pgtable.h>
+ #include <asm/page.h>
+@@ -320,6 +321,35 @@ static int __init request_standard_resou
  
- save_registers:
+ subsys_initcall(request_standard_resources);
+ 
++/**
++ * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
++ * correspond to e820 RAM areas and mark the corresponding pages as nosave for
++ * hibernation.
++ *
++ * This function requires the e820 map to be sorted and without any
++ * overlapping entries and assumes the first e820 area to be RAM.
++ */
++void __init e820_mark_nosave_regions(void)
++{
++	int i;
++	unsigned long pfn;
++
++	pfn = PFN_DOWN(e820.map[0].addr + e820.map[0].size);
++	for (i = 1; i < e820.nr_map; i++) {
++		struct e820entry *ei = &e820.map[i];
++
++		if (pfn < PFN_UP(ei->addr))
++			register_nosave_region(pfn, PFN_UP(ei->addr));
++
++		pfn = PFN_DOWN(ei->addr + ei->size);
++		if (ei->type != E820_RAM)
++			register_nosave_region(PFN_UP(ei->addr), pfn);
++
++		if (pfn >= max_low_pfn)
++			break;
++	}
++}
++
+ void __init add_memory_region(unsigned long long start,
+ 			      unsigned long long size, int type)
+ {
+diff -puN arch/i386/kernel/setup.c~i386-do-not-restore-reserved-memory-after-hibernation arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c~i386-do-not-restore-reserved-memory-after-hibernation
++++ a/arch/i386/kernel/setup.c
+@@ -650,6 +650,7 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ 
+ 	e820_register_memory();
++	e820_mark_nosave_regions();
+ 
+ #ifdef CONFIG_VT
+ #if defined(CONFIG_VGA_CONSOLE)
+diff -puN include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation include/asm-i386/e820.h
+--- a/include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation
++++ a/include/asm-i386/e820.h
+@@ -44,6 +44,7 @@ extern void register_bootmem_low_pages(u
+ extern void e820_register_memory(void);
+ extern void limit_regions(unsigned long long size);
+ extern void print_memory_map(char *who);
++extern void e820_mark_nosave_regions(void);
+ 
+ #endif/*!__ASSEMBLY__*/
+ 
 _
 
-Patches currently in -mm which might be from kevin.tian@intel.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
+origin.patch
+mtrr-atomicity-fix.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
 acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+shrink_slab-handle-bad-shrinkers.patch
