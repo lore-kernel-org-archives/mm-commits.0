@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + the-async_-options-shouldnt-be-user-visible.patch added to -mm tree
-Date: Mon, 04 Jun 2007 14:36:42 -0700
-Message-ID: <200706042136.l54LagKL019757@imap1.linux-foundation.org>
+Subject: + make-drivers-char-hvc_consoleckhvcd-static.patch added to -mm tree
+Date: Mon, 04 Jun 2007 14:37:22 -0700
+Message-ID: <200706042137.l54LbMdJ019769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56094 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbXFDVg5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:36:57 -0400
+	by vger.kernel.org with ESMTP id S1752446AbXFDVhg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:37:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dan.j.williams@intel.com
+Cc: bunk@stusta.de
 
 
 The patch titled
-     the ASYNC_* options shouldn't be user visible
+     make drivers/char/hvc_console.c:khvcd() static
 has been added to the -mm tree.  Its filename is
-     the-async_-options-shouldnt-be-user-visible.patch
+     make-drivers-char-hvc_consoleckhvcd-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: the ASYNC_* options shouldn't be user visible
+Subject: make drivers/char/hvc_console.c:khvcd() static
 From: Adrian Bunk <bunk@stusta.de>
 
-The ASYNC_* options are for internal helper code and should therefore
-not be user visible.
-
-BTW: Please move the async_tx directory under drivers/ or lib/
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- async_tx/Kconfig |   28 ++++++++--------------------
- 1 files changed, 8 insertions(+), 20 deletions(-)
+ drivers/char/hvc_console.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible async_tx/Kconfig
---- a/async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible
-+++ a/async_tx/Kconfig
-@@ -1,27 +1,15 @@
--menuconfig ASYNC_CORE
--	tristate "Asynchronous Bulk Memory Transfers/Transforms"
--	default n
--	---help---
--	  This enables the async_tx interface layer for dma (offload) engines.
--	  Subsystems coded to this api will use offload engines for bulk memory
--	  operations (e.g. memcpy, memset, xor...).  When an offload engine is not
--	  available the interface will implicitly fall back to a software
--	  implementation of the operation.
--
--	  If unsure, say N
--
--if ASYNC_CORE
-+config ASYNC_CORE
-+	tristate
- 
- config ASYNC_MEMCPY
--	default m
--	tristate "async_memcpy support"
-+	tristate
-+	select ASYNC_CORE
- 
- config ASYNC_XOR
--	default m
--	tristate "async_xor support"
-+	tristate
-+	select ASYNC_CORE
- 
- config ASYNC_MEMSET
--	default m
--	tristate "async_memset support"
-+	tristate
-+	select ASYNC_CORE
- 
--endif
+diff -puN drivers/char/hvc_console.c~make-drivers-char-hvc_consoleckhvcd-static drivers/char/hvc_console.c
+--- a/drivers/char/hvc_console.c~make-drivers-char-hvc_consoleckhvcd-static
++++ a/drivers/char/hvc_console.c
+@@ -674,7 +674,7 @@ static const cpumask_t cpus_in_xmon = CP
+  * calling hvc_poll() who determines whether a console adapter support
+  * interrupts.
+  */
+-int khvcd(void *unused)
++static int khvcd(void *unused)
+ {
+ 	int poll_mask;
+ 	struct hvc_struct *hp;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 git-acpi.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
 git-kvm.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 the-async_-options-shouldnt-be-user-visible.patch
