@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-idr_remove_all.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:29:32 -0700
-Message-ID: <200706042029.l54KTWOn018048@imap1.linux-foundation.org>
+Subject: + remove-capabilityh-from-mmh.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:29:55 -0700
+Message-ID: <200706042029.l54KTtvL018061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34747 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52521 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750903AbXFDU34 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:29:56 -0400
+	by vger.kernel.org with ESMTP id S1751446AbXFDUaE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:30:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krh@redhat.com, airlied@linux.ie, htejun@gmail.com
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     lib: add idr_remove_all
+     Remove capability.h from mm.h
 has been added to the -mm tree.  Its filename is
-     lib-add-idr_remove_all.patch
+     remove-capabilityh-from-mmh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,101 +25,110 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: add idr_remove_all
-From: Kristian Hoegsberg <krh@redhat.com>
+Subject: Remove capability.h from mm.h
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Remove all ids from the given idr tree.  idr_destroy() only frees up
-unused, cached idp_layers, but this function will remove all id mappings
-and leave all idp_layers unused.
+I forgot to remove capability.h from mm.h while removing sched.h!  This
+patch remedies that, because the only inline function which was using
+CAP_something was made out of line.
 
-A typical clean-up sequence for objects stored in an idr tree, will use
-idr_for_each() to free all objects, if necessay, then idr_remove_all() to
-remove all ids, and idr_destroy() to free up the cached idr_layers.
+Cross-compile tested without regressions on:
 
-Signed-off-by: Kristian Hoegsberg <krh@redhat.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+	all powerpc defconfigs
+	all mips defconfigs
+	all m68k defconfigs
+	all arm defconfigs
+	all ia64 defconfigs
+
+	alpha alpha-allnoconfig alpha-defconfig alpha-up
+	arm
+	i386 i386-allnoconfig i386-defconfig i386-up
+	ia64 ia64-allnoconfig ia64-defconfig ia64-up
+	m68k
+	mips
+	parisc parisc-allnoconfig parisc-defconfig parisc-up
+	powerpc powerpc-up
+	s390 s390-allnoconfig s390-defconfig s390-up
+	sparc sparc-allnoconfig sparc-defconfig sparc-up
+	sparc64 sparc64-allnoconfig sparc64-defconfig sparc64-up
+	um-x86_64
+	x86_64 x86_64-allnoconfig x86_64-defconfig x86_64-up
+
+as well as my two usual configs.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |    1 
- lib/idr.c           |   47 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+)
+ drivers/pci/pci-sysfs.c |    2 +-
+ drivers/pci/proc.c      |    2 +-
+ fs/gfs2/eaops.c         |    1 +
+ include/linux/mm.h      |    1 -
+ kernel/time/ntp.c       |    2 +-
+ 5 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/idr.h~lib-add-idr_remove_all include/linux/idr.h
---- a/include/linux/idr.h~lib-add-idr_remove_all
-+++ a/include/linux/idr.h
-@@ -82,6 +82,7 @@ int idr_for_each(struct idr *idp,
- 		 int (*fn)(int id, void *p, void *data), void *data);
- void *idr_replace(struct idr *idp, void *ptr, int id);
- void idr_remove(struct idr *idp, int id);
-+void idr_remove_all(struct idr *idp);
- void idr_destroy(struct idr *idp);
- void idr_init(struct idr *idp);
+diff -puN drivers/pci/pci-sysfs.c~remove-capabilityh-from-mmh drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~remove-capabilityh-from-mmh
++++ a/drivers/pci/pci-sysfs.c
+@@ -20,7 +20,7 @@
+ #include <linux/stat.h>
+ #include <linux/topology.h>
+ #include <linux/mm.h>
+-
++#include <linux/capability.h>
+ #include "pci.h"
  
-diff -puN lib/idr.c~lib-add-idr_remove_all lib/idr.c
---- a/lib/idr.c~lib-add-idr_remove_all
-+++ a/lib/idr.c
-@@ -391,6 +391,53 @@ void idr_remove(struct idr *idp, int id)
- EXPORT_SYMBOL(idr_remove);
+ static int sysfs_initialized;	/* = 0 */
+diff -puN drivers/pci/proc.c~remove-capabilityh-from-mmh drivers/pci/proc.c
+--- a/drivers/pci/proc.c~remove-capabilityh-from-mmh
++++ a/drivers/pci/proc.c
+@@ -11,7 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+-
++#include <linux/capability.h>
+ #include <asm/uaccess.h>
+ #include <asm/byteorder.h>
+ #include "pci.h"
+diff -puN fs/gfs2/eaops.c~remove-capabilityh-from-mmh fs/gfs2/eaops.c
+--- a/fs/gfs2/eaops.c~remove-capabilityh-from-mmh
++++ a/fs/gfs2/eaops.c
+@@ -11,6 +11,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/completion.h>
+ #include <linux/buffer_head.h>
++#include <linux/capability.h>
+ #include <linux/xattr.h>
+ #include <linux/gfs2_ondisk.h>
+ #include <linux/lm_interface.h>
+diff -puN include/linux/mm.h~remove-capabilityh-from-mmh include/linux/mm.h
+--- a/include/linux/mm.h~remove-capabilityh-from-mmh
++++ a/include/linux/mm.h
+@@ -2,7 +2,6 @@
+ #define _LINUX_MM_H
  
- /**
-+ * idr_remove_all - remove all ids from the given idr tree
-+ * @idp: idr handle
-+ *
-+ * idr_destroy() only frees up unused, cached idp_layers, but this
-+ * function will remove all id mappings and leave all idp_layers
-+ * unused.
-+ *
-+ * A typical clean-up sequence for objects stored in an idr tree, will
-+ * use idr_for_each() to free all objects, if necessay, then
-+ * idr_remove_all() to remove all ids, and idr_destroy() to free
-+ * up the cached idr_layers.
-+ */
-+void idr_remove_all(struct idr *idp)
-+{
-+	int n, id, max, error = 0;
-+	struct idr_layer *p;
-+	struct idr_layer *pa[MAX_LEVEL];
-+	struct idr_layer **paa = &pa[0];
-+
-+	n = idp->layers * IDR_BITS;
-+	p = idp->top;
-+	max = 1 << n;
-+
-+	id = 0;
-+	while (id < max && !error) {
-+		while (n > IDR_BITS && p) {
-+			n -= IDR_BITS;
-+			*paa++ = p;
-+			p = p->ary[(id >> n) & IDR_MASK];
-+		}
-+
-+		id += 1 << n;
-+		while (n < fls(id)) {
-+			if (p) {
-+				memset(p, 0, sizeof *p);
-+				free_layer(idp, p);
-+			}
-+			n += IDR_BITS;
-+			p = *--paa;
-+		}
-+	}
-+	idp->top = NULL;
-+	idp->layers = 0;
-+}
-+EXPORT_SYMBOL(idr_remove_all);
-+
-+/**
-  * idr_destroy - release all cached layers within an idr tree
-  * idp: idr handle
-  */
+ #include <linux/errno.h>
+-#include <linux/capability.h>
+ 
+ #ifdef __KERNEL__
+ 
+diff -puN kernel/time/ntp.c~remove-capabilityh-from-mmh kernel/time/ntp.c
+--- a/kernel/time/ntp.c~remove-capabilityh-from-mmh
++++ a/kernel/time/ntp.c
+@@ -13,7 +13,7 @@
+ #include <linux/timex.h>
+ #include <linux/jiffies.h>
+ #include <linux/hrtimer.h>
+-
++#include <linux/capability.h>
+ #include <asm/div64.h>
+ #include <asm/timex.h>
+ 
 _
 
-Patches currently in -mm which might be from krh@redhat.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
-git-ieee1394.patch
-lib-add-idr_for_each.patch
-lib-add-idr_for_each-fix.patch
-lib-add-idr_remove_all.patch
+git-parisc.patch
+procfs-directory-entry-cleanup-fix.patch
+remove-capabilityh-from-mmh.patch
