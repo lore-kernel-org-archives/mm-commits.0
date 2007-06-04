@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intel_agp-add-support-for-945gme.patch added to -mm tree
-Date: Mon, 04 Jun 2007 12:21:22 -0700
-Message-ID: <200706041921.l54JLMZX011600@imap1.linux-foundation.org>
+Subject: + atmel_serial-fix-break-handling.patch added to -mm tree
+Date: Mon, 04 Jun 2007 12:35:04 -0700
+Message-ID: <200706041935.l54JZ4RH011874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49655 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760058AbXFDTWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:22:09 -0400
+	by vger.kernel.org with ESMTP id S1750795AbXFDThy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:37:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhenyu.z.wang@intel.com, davej@codemonkey.org.uk
+Cc: hskinnemoen@atmel.com, akpm@linux-foundation.org, andrew@sanpeople.com, ivan.kuten@promwad.com, nicolas.ferre@rfo.atmel.com, patrice.vilchez@rfo.atmel.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     intel_agp: add support for 945GME
+     atmel_serial: fix break handling
 has been added to the -mm tree.  Its filename is
-     intel_agp-add-support-for-945gme.patch
+     atmel_serial-fix-break-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: intel_agp: add support for 945GME
-From: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Subject: atmel_serial: fix break handling
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Add pci id info for 945GME.
+The RXBRK field in the AT91/AT32 USART status register has the
+following definition according to e.g. the AT32AP7000 data sheet:
 
-Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+    RXBRK: Break Received/End of Break
+    0: No Break received or End of Break detected since the last RSTSTA.
+    1: Break Received or End of Break detected since the last RSTSTA.
+
+Thus, for each break, the USART sets the RXBRK bit twice. This patch
+modifies the driver to report the break event to the serial core only
+once by keeping track of whether a break condition is currently
+active. The break_active flag is reset as soon as a character is
+received, so even if we miss the start-of-break interrupt this should
+do the right thing.
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <andrew@sanpeople.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ivan Kuten <ivan.kuten@promwad.com>
+Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Cc: Patrice Vilchez <patrice.vilchez@rfo.atmel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/serial/atmel_serial.c |   32 ++++++++++++++++++++++++++++++--
+ 1 files changed, 30 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-add-support-for-945gme drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-add-support-for-945gme
-+++ a/drivers/char/agp/intel-agp.c
-@@ -21,6 +21,7 @@
- #define PCI_DEVICE_ID_INTEL_82965GM_HB      0x2A00
- #define PCI_DEVICE_ID_INTEL_82965GM_IG      0x2A02
- #define PCI_DEVICE_ID_INTEL_82965GME_IG     0x2A12
-+#define PCI_DEVICE_ID_INTEL_82945GME_IG     0x27AE
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-break-handling drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-fix-break-handling
++++ a/drivers/serial/atmel_serial.c
+@@ -114,6 +114,7 @@ struct atmel_uart_port {
+ 	struct uart_port	uart;		/* uart */
+ 	struct clk		*clk;		/* uart clock */
+ 	unsigned short		suspended;	/* is port suspended? */
++	int			break_active;	/* break being received */
+ };
  
- #define IS_I965 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82946GZ_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_1_HB || \
-@@ -1789,6 +1790,8 @@ static const struct intel_driver_descrip
- 		&intel_845_driver, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GM_IG, "945GM",
- 		&intel_845_driver, &intel_915_driver },
-+	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GME_IG, "945GME",
-+		&intel_845_driver, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82946GZ_HB, PCI_DEVICE_ID_INTEL_82946GZ_IG, "946GZ",
- 		&intel_845_driver, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_82965G_1_HB, PCI_DEVICE_ID_INTEL_82965G_1_IG, "965G",
+ static struct atmel_uart_port atmel_ports[ATMEL_MAX_UART];
+@@ -252,6 +253,7 @@ static void atmel_break_ctl(struct uart_
+  */
+ static void atmel_rx_chars(struct uart_port *port)
+ {
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+ 	struct tty_struct *tty = port->info->tty;
+ 	unsigned int status, ch, flg;
+ 
+@@ -267,13 +269,29 @@ static void atmel_rx_chars(struct uart_p
+ 		 * note that the error handling code is
+ 		 * out of the main execution path
+ 		 */
+-		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME | ATMEL_US_OVRE | ATMEL_US_RXBRK))) {
++		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
++				       | ATMEL_US_OVRE | ATMEL_US_RXBRK)
++			     || atmel_port->break_active)) {
+ 			UART_PUT_CR(port, ATMEL_US_RSTSTA);	/* clear error */
+-			if (status & ATMEL_US_RXBRK) {
++			if (status & ATMEL_US_RXBRK
++			    && !atmel_port->break_active) {
+ 				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);	/* ignore side-effect */
+ 				port->icount.brk++;
++				atmel_port->break_active = 1;
++				UART_PUT_IER(port, ATMEL_US_RXBRK);
+ 				if (uart_handle_break(port))
+ 					goto ignore_char;
++			} else {
++				/*
++				 * This is either the end-of-break
++				 * condition or we've received at
++				 * least one character without RXBRK
++				 * being set. In both cases, the next
++				 * RXBRK will indicate start-of-break.
++				 */
++				UART_PUT_IDR(port, ATMEL_US_RXBRK);
++				status &= ~ATMEL_US_RXBRK;
++				atmel_port->break_active = 0;
+ 			}
+ 			if (status & ATMEL_US_PARE)
+ 				port->icount.parity++;
+@@ -352,6 +370,16 @@ static irqreturn_t atmel_interrupt(int i
+ 		/* Interrupt receive */
+ 		if (pending & ATMEL_US_RXRDY)
+ 			atmel_rx_chars(port);
++		else if (pending & ATMEL_US_RXBRK) {
++			/*
++			 * End of break detected. If it came along
++			 * with a character, atmel_rx_chars will
++			 * handle it.
++			 */
++			UART_PUT_CR(port, ATMEL_US_RSTSTA);
++			UART_PUT_IDR(port, ATMEL_US_RXBRK);
++			atmel_port->break_active = 0;
++		}
+ 
+ 		// TODO: All reads to CSR will clear these interrupts!
+ 		if (pending & ATMEL_US_RIIC) port->icount.rng++;
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
-intel_agp-cleanup-intel-private-data.patch
-intel_agp-cleanup-intel-private-data-update.patch
-intel_agp-use-table-for-device-probe.patch
-intel_agp-use-table-for-device-probe-update.patch
-intel_agp-add-support-for-965gme-gle.patch
-intel_agp-add-support-for-945gme.patch
+origin.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+git-avr32.patch
+atmel_serial-fix-break-handling.patch
