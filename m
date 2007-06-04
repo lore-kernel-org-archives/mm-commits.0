@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-sched-clock-share-2.patch added to -mm tree
-Date: Mon, 04 Jun 2007 11:09:50 -0700
-Message-ID: <200706041809.l54I9o8B010084@imap1.linux-foundation.org>
+Subject: - fix-x86_64-mm-sched-clock-share-2.patch removed from -mm tree
+Date: Mon, 04 Jun 2007 11:21:19 -0700
+Message-ID: <200706041821.l54ILKSK010268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41836 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758840AbXFDSKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 14:10:15 -0400
+	by vger.kernel.org with ESMTP id S1756105AbXFDSVm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 14:21:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de, mpm@selenic.com
+To: rusty@rustcorp.com.au, ak@suse.de, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      sched_clock vs tsc_disable
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fix-x86_64-mm-sched-clock-share-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it's an lguest bug
 
 ------------------------------------------------------
 Subject: sched_clock vs tsc_disable
