@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-more-atomicity-in-traverse.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:08:13 -0700
-Message-ID: <200706042008.l54K8D34017570@imap1.linux-foundation.org>
+Subject: + loop-preallocate-eight-loop-devices.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:11:09 -0700
+Message-ID: <200706042011.l54KBALh017625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50784 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758422AbXFDUJA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:09:00 -0400
+	by vger.kernel.org with ESMTP id S1758415AbXFDULW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:11:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, viro@zeniv.linux.org.uk
+Cc: kenchen@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     seq_file: more atomicity in traverse()
+     loop: preallocate eight loop devices
 has been added to the -mm tree.  Its filename is
-     seq_file-more-atomicity-in-traverse.patch
+     loop-preallocate-eight-loop-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,113 +25,189 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: seq_file: more atomicity in traverse()
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: loop: preallocate eight loop devices
+From: "Ken Chen" <kenchen@google.com>
 
-Original problem: in some circumstances seq_file interface can present
-infinite proc file to the following script when normally said proc file is
-finite:
+The kernel on-demand loop device instantiation breaks several user space
+tools as the tools are not ready to cope with the "on-demand feature".  Fix
+it by instantiate default 8 loop devices and also reinstate max_loop module
+parameter.
 
-	while read line; do
-		[do something with $line]
-	done </proc/$FILE
-
-bash, to implement such loop does essentially
-
-	read(0, buf, 128);
-	[find \n]
-	lseek(0, -difference, SEEK_CUR);
-
-Consider, proc file prints list of objects each of them consists of many
-lines, each line is shorter than 128 bytes.
-
-Two objects in list, with ->index'es being 0 and 1.  Current one is 1, as
-bash prints second object line by line.
-
-Imagine first object being removed right before lseek().
-traverse() will be called, because there is negative offset.
-traverse() will reset ->index to 0 (!).
-traverse() will call ->next() and get NULL in any usual iterate-over-list
-code using list_for_each_entry_continue() and such. There is one object in
-list now after all...
-traverse() will return 0, lseek() will update file position and pretend
-everything is OK.
-
-So, what we have now: ->f_pos points to place where second object will be
-printed, but ->index is 0.  seq_read() instead of returning EOF, will start
-printing first line of first object every time it's called, until enough
-objects are added to ->f_pos return in bounds.
-
-Fix is to update ->index only after we're sure we saw enough objects down
-the road.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Ken Chen <kenchen@google.com>
+Acked-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/block/loop.c |  100 +++++++++++++++++++++++++++++++++--------
+ 1 files changed, 82 insertions(+), 18 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-more-atomicity-in-traverse fs/seq_file.c
---- a/fs/seq_file.c~seq_file-more-atomicity-in-traverse
-+++ a/fs/seq_file.c
-@@ -177,21 +177,23 @@ EXPORT_SYMBOL(seq_read);
+diff -puN drivers/block/loop.c~loop-preallocate-eight-loop-devices drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-preallocate-eight-loop-devices
++++ a/drivers/block/loop.c
+@@ -1354,7 +1354,7 @@ static struct block_device_operations lo
+  */
+ static int max_loop;
+ module_param(max_loop, int, 0);
+-MODULE_PARM_DESC(max_loop, "obsolete, loop device is created on-demand");
++MODULE_PARM_DESC(max_loop, "Maximum number of loop devices");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_BLOCKDEV_MAJOR(LOOP_MAJOR);
  
- static int traverse(struct seq_file *m, loff_t offset)
+@@ -1394,16 +1394,11 @@ int loop_unregister_transfer(int number)
+ EXPORT_SYMBOL(loop_register_transfer);
+ EXPORT_SYMBOL(loop_unregister_transfer);
+ 
+-static struct loop_device *loop_init_one(int i)
++static struct loop_device *loop_alloc(int i)
  {
--	loff_t pos = 0;
-+	loff_t pos = 0, index;
- 	int error = 0;
- 	void *p;
+ 	struct loop_device *lo;
+ 	struct gendisk *disk;
  
- 	m->version = 0;
--	m->index = 0;
-+	index = 0;
- 	m->count = m->from = 0;
--	if (!offset)
-+	if (!offset) {
-+		m->index = index;
- 		return 0;
+-	list_for_each_entry(lo, &loop_devices, lo_list) {
+-		if (lo->lo_number == i)
+-			return lo;
+-	}
+-
+ 	lo = kzalloc(sizeof(*lo), GFP_KERNEL);
+ 	if (!lo)
+ 		goto out;
+@@ -1427,8 +1422,6 @@ static struct loop_device *loop_init_one
+ 	disk->private_data	= lo;
+ 	disk->queue		= lo->lo_queue;
+ 	sprintf(disk->disk_name, "loop%d", i);
+-	add_disk(disk);
+-	list_add_tail(&lo->lo_list, &loop_devices);
+ 	return lo;
+ 
+ out_free_queue:
+@@ -1439,15 +1432,37 @@ out:
+ 	return NULL;
+ }
+ 
+-static void loop_del_one(struct loop_device *lo)
++static void loop_free(struct loop_device *lo)
+ {
+-	del_gendisk(lo->lo_disk);
+ 	blk_cleanup_queue(lo->lo_queue);
+ 	put_disk(lo->lo_disk);
+ 	list_del(&lo->lo_list);
+ 	kfree(lo);
+ }
+ 
++static struct loop_device *loop_init_one(int i)
++{
++	struct loop_device *lo;
++
++	list_for_each_entry(lo, &loop_devices, lo_list) {
++		if (lo->lo_number == i)
++			return lo;
 +	}
- 	if (!m->buf) {
- 		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
- 		if (!m->buf)
- 			return -ENOMEM;
++
++	lo = loop_alloc(i);
++	if (lo) {
++		add_disk(lo->lo_disk);
++		list_add_tail(&lo->lo_list, &loop_devices);
++	}
++	return lo;
++}
++
++static void loop_del_one(struct loop_device *lo)
++{
++	del_gendisk(lo->lo_disk);
++	loop_free(lo);
++}
++
+ static struct kobject *loop_probe(dev_t dev, int *part, void *data)
+ {
+ 	struct loop_device *lo;
+@@ -1464,28 +1479,77 @@ static struct kobject *loop_probe(dev_t 
+ 
+ static int __init loop_init(void)
+ {
+-	if (register_blkdev(LOOP_MAJOR, "loop"))
+-		return -EIO;
+-	blk_register_region(MKDEV(LOOP_MAJOR, 0), 1UL << MINORBITS,
+-				  THIS_MODULE, loop_probe, NULL, NULL);
++	int i, nr;
++	unsigned long range;
++	struct loop_device *lo, *next;
++
++	/*
++	 * loop module now has a feature to instantiate underlying device
++	 * structure on-demand, provided that there is an access dev node.
++	 * However, this will not work well with user space tool that doesn't
++	 * know about such "feature".  In order to not break any existing
++	 * tool, we do the following:
++	 *
++	 * (1) if max_loop is specified, create that many upfront, and this
++	 *     also becomes a hard limit.
++	 * (2) if max_loop is not specified, create 8 loop device on module
++	 *     load, user can further extend loop device by create dev node
++	 *     themselves and have kernel automatically instantiate actual
++	 *     device on-demand.
++	 */
++	if (max_loop > 1UL << MINORBITS)
++		return -EINVAL;
+ 
+ 	if (max_loop) {
+-		printk(KERN_INFO "loop: the max_loop option is obsolete "
+-				 "and will be removed in March 2008\n");
++		nr = max_loop;
++		range = max_loop;
++	} else {
++		nr = 8;
++		range = 1UL << MINORBITS;
++	}
+ 
++	if (register_blkdev(LOOP_MAJOR, "loop"))
++		return -EIO;
++
++	for (i = 0; i < nr; i++) {
++		lo = loop_alloc(i);
++		if (!lo)
++			goto Enomem;
++		list_add_tail(&lo->lo_list, &loop_devices);
  	}
--	p = m->op->start(m, &m->index);
-+	p = m->op->start(m, &index);
- 	while (p) {
- 		error = PTR_ERR(p);
- 		if (IS_ERR(p))
-@@ -204,15 +206,17 @@ static int traverse(struct seq_file *m, 
- 		if (pos + m->count > offset) {
- 			m->from = offset - pos;
- 			m->count -= m->from;
-+			m->index = index;
- 			break;
- 		}
- 		pos += m->count;
- 		m->count = 0;
- 		if (pos == offset) {
--			m->index++;
-+			index++;
-+			m->index = index;
- 			break;
- 		}
--		p = m->op->next(m, p, &m->index);
-+		p = m->op->next(m, p, &index);
- 	}
- 	m->op->stop(m, p);
- 	return error;
++
++	/* point of no return */
++
++	list_for_each_entry(lo, &loop_devices, lo_list)
++		add_disk(lo->lo_disk);
++
++	blk_register_region(MKDEV(LOOP_MAJOR, 0), range,
++				  THIS_MODULE, loop_probe, NULL, NULL);
++
+ 	printk(KERN_INFO "loop: module loaded\n");
+ 	return 0;
++
++Enomem:
++	printk(KERN_INFO "loop: out of memory\n");
++
++	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
++		loop_free(lo);
++
++	unregister_blkdev(LOOP_MAJOR, "loop");
++	return -ENOMEM;
+ }
+ 
+ static void __exit loop_exit(void)
+ {
++	unsigned long range;
+ 	struct loop_device *lo, *next;
+ 
++	range = max_loop ? max_loop :  1UL << MINORBITS;
++
+ 	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
+ 		loop_del_one(lo);
+ 
+-	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), 1UL << MINORBITS);
++	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
+ 	if (unregister_blkdev(LOOP_MAJOR, "loop"))
+ 		printk(KERN_WARNING "loop: cannot unregister blkdev\n");
+ }
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from kenchen@google.com are
 
-origin.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-cleanup.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-proc-environ-wrong-placing-of-ptrace_may_attach-check.patch
-mutex_unlock-later-in-seq_lseek.patch
-seq_file-more-atomicity-in-traverse.patch
+loop-preallocate-eight-loop-devices.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
