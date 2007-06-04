@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + offb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:22 -0700
-Message-ID: <200706042040.l54KeMvI018424@imap1.linux-foundation.org>
+Subject: + sunxvr2500fb-fix-pseudo_palette-array-size.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:37 -0700
+Message-ID: <200706042040.l54Kebc0018451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52752 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753364AbXFDUkn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:43 -0400
+	by vger.kernel.org with ESMTP id S1753519AbXFDUkz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com, geert@linux-m68k.org
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     offb: the pseudo_palette is only 16 elements long
+     sunxvr2500fb: fix pseudo_palette array size
 has been added to the -mm tree.  Its filename is
-     offb-the-pseudo_palette-is-only-16-elements-long.patch
+     sunxvr2500fb-fix-pseudo_palette-array-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: offb: the pseudo_palette is only 16 elements long
+Subject: sunxvr2500fb: fix pseudo_palette array size
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The pseudo_palette is only 16 elements long.
+- the pseudo_palette is only 16 elements long.
+- the pseudo_palette has only 16 elements. Do not write if regno (the array
+  index) is more than 15.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/offb.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/sunxvr2500.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/offb.c~offb-the-pseudo_palette-is-only-16-elements-long drivers/video/offb.c
---- a/drivers/video/offb.c~offb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/offb.c
-@@ -271,7 +271,7 @@ static void __init offb_init_fb(const ch
- 		return;
- 	}
+diff -puN drivers/video/sunxvr2500.c~sunxvr2500fb-fix-pseudo_palette-array-size drivers/video/sunxvr2500.c
+--- a/drivers/video/sunxvr2500.c~sunxvr2500fb-fix-pseudo_palette-array-size
++++ a/drivers/video/sunxvr2500.c
+@@ -28,7 +28,7 @@ struct s3d_info {
+ 	unsigned int		depth;
+ 	unsigned int		fb_size;
  
--	size = sizeof(struct fb_info) + sizeof(u32) * 17;
-+	size = sizeof(struct fb_info) + sizeof(u32) * 16;
+-	u32			pseudo_palette[256];
++	u32			pseudo_palette[16];
+ };
  
- 	info = kmalloc(size, GFP_ATOMIC);
- 	
+ static int __devinit s3d_get_props(struct s3d_info *sp)
+@@ -52,15 +52,14 @@ static int s3d_setcolreg(unsigned regno,
+ {
+ 	u32 value;
+ 
+-	if (regno >= 256)
+-		return 1;
++	if (regno < 16) {
++		red >>= 8;
++		green >>= 8;
++		blue >>= 8;
+ 
+-	red >>= 8;
+-	green >>= 8;
+-	blue >>= 8;
+-
+-	value = (blue << 24) | (green << 16) | (red << 8);
+-	((u32 *)info->pseudo_palette)[regno] = value;
++		value = (blue << 24) | (green << 16) | (red << 8);
++		((u32 *)info->pseudo_palette)[regno] = value;
++	}
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
