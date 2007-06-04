@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch added to -mm tree
-Date: Mon, 04 Jun 2007 11:54:27 -0700
-Message-ID: <200706041854.l54IsRQn010949@imap1.linux-foundation.org>
+Subject: + x86-64-calgary-tabify-and-trim-trailing-whitespace.patch added to -mm tree
+Date: Mon, 04 Jun 2007 11:54:33 -0700
+Message-ID: <200706041854.l54IsXOe010955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47660 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759383AbXFDSy7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 14:54:59 -0400
+	by vger.kernel.org with ESMTP id S1759705AbXFDSzF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 14:55:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, muli@il.ibm.com
+Cc: muli@il.ibm.com, ak@suse.de
 
 
 The patch titled
-     x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix
+     x86-64: Calgary: tabify and trim trailing whitespace
 has been added to the -mm tree.  Its filename is
-     x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+     x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,157 +25,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-64: Calgary: tabify and trim trailing whitespace
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
 Cc: Andi Kleen <ak@suse.de>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/pci-calgary.c |   40 ++++++++++++++---------------
+ 1 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tabify-and-trim-trailing-whitespace arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-tabify-and-trim-trailing-whitespace
 +++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -1571,7 +1571,7 @@ static void __init calgary_fixup_one_tce
- static int __init calgary_fixup_tce_spaces(void)
- {
- 	struct pci_dev *dev = NULL;
--	void* tce_space;
-+	void *tce_space;
+@@ -75,9 +75,9 @@ int use_calgary __read_mostly = 0;
+ #define PHB_DOSHOLE_OFFSET	0x08E0
  
- 	if (no_iommu || swiotlb || !calgary_detected)
- 		return -ENODEV;
+ /* CalIOC2 specific */
+-#define PHB_SAVIOR_L2           0x0DB0
+-#define PHB_PAGE_MIG_CTRL       0x0DA8
+-#define PHB_PAGE_MIG_DEBUG      0x0DA0
++#define PHB_SAVIOR_L2		0x0DB0
++#define PHB_PAGE_MIG_CTRL	0x0DA8
++#define PHB_PAGE_MIG_DEBUG	0x0DA0
+ #define PHB_ROOT_COMPLEX_STATUS 0x0CB0
+ 
+ /* PHB_CONFIG_RW */
+@@ -92,11 +92,11 @@ int use_calgary __read_mostly = 0;
+ /* CSR (Channel/DMA Status Register) */
+ #define CSR_AGENT_MASK		0xffe0ffff
+ /* CCR (Calgary Configuration Register) */
+-#define CCR_2SEC_TIMEOUT        0x000000000000000EUL
++#define CCR_2SEC_TIMEOUT	0x000000000000000EUL
+ /* PMCR/PMDR (Page Migration Control/Debug Registers */
+-#define PMR_SOFTSTOP            0x80000000
+-#define PMR_SOFTSTOPFAULT       0x40000000
+-#define PMR_HARDSTOP            0x20000000
++#define PMR_SOFTSTOP		0x80000000
++#define PMR_SOFTSTOPFAULT	0x40000000
++#define PMR_HARDSTOP		0x20000000
+ 
+ #define MAX_NUM_OF_PHBS		8 /* how many PHBs in total? */
+ #define MAX_NUM_CHASSIS		8 /* max number of chassis */
+@@ -228,7 +228,7 @@ static inline int translate_phb(struct p
+ }
+ 
+ static void iommu_range_reserve(struct iommu_table *tbl,
+-        unsigned long start_addr, unsigned int npages)
++	unsigned long start_addr, unsigned int npages)
+ {
+ 	unsigned long index;
+ 	unsigned long end;
+@@ -418,7 +418,7 @@ static int calgary_nontranslate_map_sg(s
+ {
+ 	int i;
+ 
+- 	for (i = 0; i < nelems; i++ ) {
++	for (i = 0; i < nelems; i++ ) {
+ 		struct scatterlist *s = &sg[i];
+ 		BUG_ON(!s->page);
+ 		s->dma_address = virt_to_bus(page_address(s->page) +s->offset);
+@@ -838,12 +838,12 @@ static int __init calgary_setup_tar(stru
+ 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
+ 	tce_free(tbl, 0, tbl->it_size);
+ 
+-  	if (is_calgary(dev->device))
+-  		tbl->chip_ops = &calgary_chip_ops;
++	if (is_calgary(dev->device))
++		tbl->chip_ops = &calgary_chip_ops;
+ 	else if (is_calioc2(dev->device))
+ 		tbl->chip_ops = &calioc2_chip_ops;
+-  	else
+-  		BUG();
++	else
++		BUG();
+ 
+ 	calgary_reserve_regions(dev);
+ 
+@@ -1025,13 +1025,13 @@ static void calioc2_handle_quirks(struct
+ 	void __iomem *target;
+ 	u32 val;
+ 
+- 	/*
+- 	 * CalIOC2 designers recommend setting bit 8 in 0xnDB0 to 1
+- 	 */
+- 	target = calgary_reg(bbar, phb_offset(busnum) | PHB_SAVIOR_L2);
+- 	val = cpu_to_be32(readl(target));
+- 	val |= 0x00800000;
+- 	writel(cpu_to_be32(val), target);
++	/*
++	 * CalIOC2 designers recommend setting bit 8 in 0xnDB0 to 1
++	 */
++	target = calgary_reg(bbar, phb_offset(busnum) | PHB_SAVIOR_L2);
++	val = cpu_to_be32(readl(target));
++	val |= 0x00800000;
++	writel(cpu_to_be32(val), target);
+ }
+ 
+ static void calgary_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
-origin.patch
-mtrr-atomicity-fix.patch
-vanishing-ioctl-handler-debugging.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-mips-fixup.patch
-git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-generalize-calgary_increase_split_completion_timeout.patch
+x86-64-calgary-update-copyright-notice.patch
+x86-64-calgary-introduce-handle_quirks-for-various-chipset-quirks.patch
+x86-64-calgary-introduce-chipset-specific-ops.patch
 x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-abstract-how-we-find-the-iommu_table-for-a-device.patch
+x86-64-calgary-introduce-calioc2-support.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2.patch
 x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-implement-calioc2-tce-cache-flush-sequence.patch
+x86-64-calgary-make-dump_error_regs-a-chip-op.patch
+x86-64-calgary-grab-plssr-too-when-a-dma-error-occurs.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-rd-remove-ramdisk_set_page_dirty-fix.patch
-document-acked-by.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+x86-64-calgary-cleanup-of-unneeded-macros.patch
+x86-64-calgary-tabify-and-trim-trailing-whitespace.patch
+x86-64-calgary-only-reserve-the-first-1mb-of-io-space-for-calioc2.patch
+x86-64-calgary-tidy-up-debug-printks.patch
+oss-trident-massive-whitespace-removal.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+oss-trident-replace-deprecated-pci_find_device-with-pci_get_device.patch
