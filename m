@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + atyfb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:52 -0700
-Message-ID: <200706042040.l54KeqqO018491@imap1.linux-foundation.org>
+Subject: + tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:49 -0700
+Message-ID: <200706042040.l54Kenh7018488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32875 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39085 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753456AbXFDUlA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:41:00 -0400
+	by vger.kernel.org with ESMTP id S1754010AbXFDUlJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:41:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     atyfb: the pseudo_palette is only 16 elements long
+     tx3912fb: fix improper assignment of info->pseudo_palette
 has been added to the -mm tree.  Its filename is
-     atyfb-the-pseudo_palette-is-only-16-elements-long.patch
+     tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atyfb: the pseudo_palette is only 16 elements long
+Subject: tx3912fb: fix improper assignment of info->pseudo_palette
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The pseudo_palette is only 16 elements long.
+There is no variable pseudo_palette.  Instead, there is u32 cfb8[16]. Use
+this for info->pseudo_palette.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |    2 +-
+ drivers/video/tx3912fb.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-the-pseudo_palette-is-only-16-elements-long drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -541,7 +541,7 @@ static char ram_off[] __devinitdata = "O
- #endif /* CONFIG_FB_ATY_CT */
+diff -puN drivers/video/tx3912fb.c~tx3912fb-fix-improper-assignment-of-info-pseudo_palette drivers/video/tx3912fb.c
+--- a/drivers/video/tx3912fb.c~tx3912fb-fix-improper-assignment-of-info-pseudo_palette
++++ a/drivers/video/tx3912fb.c
+@@ -291,7 +291,7 @@ int __init tx3912fb_init(void)
+ 	fb_info.fbops = &tx3912fb_ops;
+ 	fb_info.var = tx3912fb_var;
+ 	fb_info.fix = tx3912fb_fix;
+-	fb_info.pseudo_palette = pseudo_palette;
++	fb_info.pseudo_palette = cfb8;
+ 	fb_info.flags = FBINFO_DEFAULT;
  
- 
--static u32 pseudo_palette[17];
-+static u32 pseudo_palette[16];
- 
- #ifdef CONFIG_FB_ATY_GX
- static char *aty_gx_ram[8] __devinitdata = {
+ 	/* Clear the framebuffer */
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
