@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch added to -mm tree
-Date: Mon, 04 Jun 2007 14:25:26 -0700
-Message-ID: <200706042125.l54LPQBe019540@imap1.linux-foundation.org>
+Subject: + the-async_-options-shouldnt-be-user-visible.patch added to -mm tree
+Date: Mon, 04 Jun 2007 14:36:42 -0700
+Message-ID: <200706042136.l54LagKL019757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761830AbXFDVZ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:25:59 -0400
+	by vger.kernel.org with ESMTP id S1752446AbXFDVg5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, dan.j.williams@intel.com
 
 
 The patch titled
-     i386: make arch/i386/mm/pgtable.c:pgd_{c,d}tor() static
+     the ASYNC_* options shouldn't be user visible
 has been added to the -mm tree.  Its filename is
-     i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+     the-async_-options-shouldnt-be-user-visible.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: make arch/i386/mm/pgtable.c:pgd_{c,d}tor() static
+Subject: the ASYNC_* options shouldn't be user visible
 From: Adrian Bunk <bunk@stusta.de>
 
-pgd_{c,d}tor() can now become static.
+The ASYNC_* options are for internal helper code and should therefore
+not be user visible.
+
+BTW: Please move the async_tx directory under drivers/ or lib/
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/pgtable.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ async_tx/Kconfig |   28 ++++++++--------------------
+ 1 files changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN arch/i386/mm/pgtable.c~i386-make-arch-i386-mm-pgtablecpgd_cdtor-static arch/i386/mm/pgtable.c
---- a/arch/i386/mm/pgtable.c~i386-make-arch-i386-mm-pgtablecpgd_cdtor-static
-+++ a/arch/i386/mm/pgtable.c
-@@ -235,7 +235,7 @@ static inline void pgd_list_del(pgd_t *p
+diff -puN async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible async_tx/Kconfig
+--- a/async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible
++++ a/async_tx/Kconfig
+@@ -1,27 +1,15 @@
+-menuconfig ASYNC_CORE
+-	tristate "Asynchronous Bulk Memory Transfers/Transforms"
+-	default n
+-	---help---
+-	  This enables the async_tx interface layer for dma (offload) engines.
+-	  Subsystems coded to this api will use offload engines for bulk memory
+-	  operations (e.g. memcpy, memset, xor...).  When an offload engine is not
+-	  available the interface will implicitly fall back to a software
+-	  implementation of the operation.
+-
+-	  If unsure, say N
+-
+-if ASYNC_CORE
++config ASYNC_CORE
++	tristate
  
- #if (PTRS_PER_PMD == 1)
- /* Non-PAE pgd constructor */
--void pgd_ctor(void *pgd)
-+static void pgd_ctor(void *pgd)
- {
- 	unsigned long flags;
+ config ASYNC_MEMCPY
+-	default m
+-	tristate "async_memcpy support"
++	tristate
++	select ASYNC_CORE
  
-@@ -257,7 +257,7 @@ void pgd_ctor(void *pgd)
- }
- #else  /* PTRS_PER_PMD > 1 */
- /* PAE pgd constructor */
--void pgd_ctor(void *pgd)
-+static void pgd_ctor(void *pgd)
- {
- 	/* PAE, kernel PMD may be shared */
+ config ASYNC_XOR
+-	default m
+-	tristate "async_xor support"
++	tristate
++	select ASYNC_CORE
  
-@@ -276,7 +276,7 @@ void pgd_ctor(void *pgd)
- }
- #endif	/* PTRS_PER_PMD */
+ config ASYNC_MEMSET
+-	default m
+-	tristate "async_memset support"
++	tristate
++	select ASYNC_CORE
  
--void pgd_dtor(void *pgd)
-+static void pgd_dtor(void *pgd)
- {
- 	unsigned long flags; /* can be called from interrupt context */
- 
+-endif
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -75,6 +88,7 @@ origin.patch
 git-acpi.patch
 git-kvm.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+the-async_-options-shouldnt-be-user-visible.patch
 nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 drivers-mtd-maps-nettelc-possible-cleanups.patch
 git-battery.patch
