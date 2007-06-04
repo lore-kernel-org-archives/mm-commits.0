@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-do-not-restore-reserved-memory-after-hibernation.patch added to -mm tree
-Date: Mon, 04 Jun 2007 14:49:52 -0700
-Message-ID: <200706042149.l54LnqGI020007@imap1.linux-foundation.org>
+Subject: + pi-futex-fixes.patch added to -mm tree
+Date: Mon, 04 Jun 2007 15:05:26 -0700
+Message-ID: <200706042205.l54M5QvN020247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752953AbXFDVuS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:50:18 -0400
+	by vger.kernel.org with ESMTP id S1753998AbXFDWHf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 18:07:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz, rientjes@google.com
+Cc: kuznet@ms2.inr.ac.ru, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     i386: do not restore reserved memory after hibernation
+     pi-futex fixes
 has been added to the -mm tree.  Its filename is
-     i386-do-not-restore-reserved-memory-after-hibernation.patch
+     pi-futex-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,123 +25,216 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: do not restore reserved memory after hibernation
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pi-futex fixes
+From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
 
-On some systems the ACPI NVS area is located in the first 1 MB of RAM and
-it is overwritten by the i386 code during the restore after hibernation. 
-This confuses the ACPI platform firmware that doesn't update the AC adapter
-status appropriately as a result
-(http://bugzilla.kernel.org/show_bug.cgi?id=7995).
+1. New entries can be added to tsk->pi_state_list after task completed
+   exit_pi_state_list(). The result is memory leakage and deadlocks.
 
-The solution is to register the reserved memory in the first 1 MB as
-'nosave', so that swsusp doesn't touch it during the restore.  Also, this
-has been done on x86_64 for a long time now, so this patch makes the i386
-restore code behave like the x86_64 one.
+2. handle_mm_fault() is called under spinlock. The result is obvious.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Andi Kleen <ak@suse.de>
-Cc: David Rientjes <rientjes@google.com>
+3. results in self-inflicted deadlock inside glibc.
+   Sometimes futex_lock_pi returns -ESRCH, when it is not expected
+   and glibc enters to for(;;) sleep() to simulate deadlock. This problem
+   is quite obvious and I think the patch is right. Though it looks like
+   each "if" in futex_lock_pi() got some stupid special case "else if". :-)
+
+4. sometimes futex_lock_pi() returns -EDEADLK,
+   when nobody has the lock. The reason is also obvious (see comment
+   in the patch), but correct fix is far beyond my comprehension.
+   I guess someone already saw this, the chunk:
+
+                        if (rt_mutex_trylock(&q.pi_state->pi_mutex))
+                                ret = 0;
+
+   is obviously from the same opera. But it does not work, because the
+   rtmutex is really taken at this point: wake_futex_pi() of previous
+   owner reassigned it to us. My fix works. But it looks very stupid.
+   I would think about removal of shift of ownership in wake_futex_pi()
+   and making all the work in context of process taking lock.
+
+(akpm: this doesn't vaguely apply to 2.6.21, but 2.6.21 need fixing!)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/e820.c  |   30 ++++++++++++++++++++++++++++++
- arch/i386/kernel/setup.c |    1 +
- include/asm-i386/e820.h  |    1 +
- 3 files changed, 32 insertions(+)
+ kernel/futex.c |   73 ++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 60 insertions(+), 13 deletions(-)
 
-diff -puN arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation arch/i386/kernel/e820.c
---- a/arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation
-+++ a/arch/i386/kernel/e820.c
-@@ -10,6 +10,7 @@
- #include <linux/efi.h>
- #include <linux/pfn.h>
- #include <linux/uaccess.h>
-+#include <linux/suspend.h>
+diff -puN kernel/futex.c~pi-futex-fixes kernel/futex.c
+--- a/kernel/futex.c~pi-futex-fixes
++++ a/kernel/futex.c
+@@ -430,10 +430,6 @@ static struct task_struct * futex_find_g
+ 		p = NULL;
+ 		goto out_unlock;
+ 	}
+-	if (p->exit_state != 0) {
+-		p = NULL;
+-		goto out_unlock;
+-	}
+ 	get_task_struct(p);
+ out_unlock:
+ 	rcu_read_unlock();
+@@ -540,6 +536,19 @@ lookup_pi_state(u32 uval, struct futex_h
+ 	if (!p)
+ 		return -ESRCH;
  
- #include <asm/pgtable.h>
- #include <asm/page.h>
-@@ -320,6 +321,35 @@ static int __init request_standard_resou
- 
- subsys_initcall(request_standard_resources);
- 
-+/**
-+ * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
-+ * correspond to e820 RAM areas and mark the corresponding pages as nosave for
-+ * hibernation.
-+ *
-+ * This function requires the e820 map to be sorted and without any
-+ * overlapping entries and assumes the first e820 area to be RAM.
-+ */
-+void __init e820_mark_nosave_regions(void)
-+{
-+	int i;
-+	unsigned long pfn;
-+
-+	pfn = PFN_DOWN(e820.map[0].addr + e820.map[0].size);
-+	for (i = 1; i < e820.nr_map; i++) {
-+		struct e820entry *ei = &e820.map[i];
-+
-+		if (pfn < PFN_UP(ei->addr))
-+			register_nosave_region(pfn, PFN_UP(ei->addr));
-+
-+		pfn = PFN_DOWN(ei->addr + ei->size);
-+		if (ei->type != E820_RAM)
-+			register_nosave_region(PFN_UP(ei->addr), pfn);
-+
-+		if (pfn >= max_low_pfn)
-+			break;
++	/*
++	 * Task state transitions are protected only by tasklist_lock
++	 * and by nothing else. Better solution would be
++	 * to use ->pi_lock. But this should be done in do_exit() as well.
++	 * So, I use tasklist_lock for now.
++	 */
++	read_lock(&tasklist_lock);
++	if (p->exit_state) {
++		read_unlock(&tasklist_lock);
++		put_task_struct(p);
++		return -ESRCH;
 +	}
-+}
 +
- void __init add_memory_region(unsigned long long start,
- 			      unsigned long long size, int type)
- {
-diff -puN arch/i386/kernel/setup.c~i386-do-not-restore-reserved-memory-after-hibernation arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~i386-do-not-restore-reserved-memory-after-hibernation
-+++ a/arch/i386/kernel/setup.c
-@@ -650,6 +650,7 @@ void __init setup_arch(char **cmdline_p)
+ 	pi_state = alloc_pi_state();
+ 
+ 	/*
+@@ -557,6 +566,8 @@ lookup_pi_state(u32 uval, struct futex_h
+ 	pi_state->owner = p;
+ 	spin_unlock_irq(&p->pi_lock);
+ 
++	read_unlock(&tasklist_lock);
++
+ 	put_task_struct(p);
+ 
+ 	*ps = pi_state;
+@@ -1174,7 +1185,7 @@ static int futex_requeue(u32 __user *uad
+ #ifdef CONFIG_DEBUG_PI_LIST
+ 				this->list.plist.lock = &hb2->lock;
  #endif
+- 			}
++			}
+ 			this->key = key2;
+ 			get_futex_key_refs(&key2);
+ 			drop_count++;
+@@ -1371,7 +1382,7 @@ static int fixup_pi_state_owner(u32 __us
+ 		curval = futex_atomic_cmpxchg_inatomic(uaddr,
+ 						       uval, newval);
+ 		if (curval == -EFAULT)
+- 			ret = -EFAULT;
++			ret = -EFAULT;
+ 		if (curval == uval)
+ 			break;
+ 		uval = curval;
+@@ -1709,6 +1720,7 @@ static int futex_lock_pi(u32 __user *uad
+ 	if (unlikely(ret != 0))
+ 		goto out_release_sem;
  
- 	e820_register_memory();
-+	e820_mark_nosave_regions();
++ retry_unlocked:
+ 	hb = queue_lock(&q, -1, NULL);
  
- #ifdef CONFIG_VT
- #if defined(CONFIG_VGA_CONSOLE)
-diff -puN include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation include/asm-i386/e820.h
---- a/include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation
-+++ a/include/asm-i386/e820.h
-@@ -44,6 +44,7 @@ extern void register_bootmem_low_pages(u
- extern void e820_register_memory(void);
- extern void limit_regions(unsigned long long size);
- extern void print_memory_map(char *who);
-+extern void e820_mark_nosave_regions(void);
+  retry_locked:
+@@ -1813,6 +1825,19 @@ static int futex_lock_pi(u32 __user *uad
+ 			if (unlikely(curval != uval))
+ 				goto retry_locked;
+ 			ret = 0;
++		} else if (ret == -ESRCH) {
++			/*
++			 * Process could exit right now, so that robust
++			 * list was processed after we got uval. Retry:
++			 */
++			pagefault_disable();
++			curval = futex_atomic_cmpxchg_inatomic(uaddr,
++							       uval, uval);
++			pagefault_enable();
++			if (unlikely(curval == -EFAULT))
++				goto uaddr_faulted;
++			if (unlikely(curval != uval))
++				goto retry_locked;
+ 		}
+ 		goto out_unlock_release_sem;
+ 	}
+@@ -1861,6 +1886,22 @@ static int futex_lock_pi(u32 __user *uad
+ 		if (ret && q.pi_state->owner == curr) {
+ 			if (rt_mutex_trylock(&q.pi_state->pi_mutex))
+ 				ret = 0;
++			/*
++			 * Holy crap... Now futex lock returns -EDEADLK
++			 * sometimes, because ownership was passed to us while
++			 * unlock of previous owner. Who wrote this?
++			 * Please, fix this correctly. For now:
++			 */
++			if (ret == -EDEADLK) {
++				pagefault_disable();
++				uval = futex_atomic_cmpxchg_inatomic(uaddr,
++								     0, 0);
++				pagefault_enable();
++				if (uval != -EFAULT &&
++				    (uval & FUTEX_TID_MASK) == current->pid) {
++					ret = 0;
++				}
++			}
+ 		}
+ 		/* Unqueue and drop the lock */
+ 		unqueue_me_pi(&q);
+@@ -1887,16 +1928,19 @@ static int futex_lock_pi(u32 __user *uad
+ 	 * non-atomically.  Therefore, if get_user below is not
+ 	 * enough, we need to handle the fault ourselves, while
+ 	 * still holding the mmap_sem.
++	 *
++	 * ... and hb->lock. :-) --ANK
+ 	 */
++	queue_unlock(&q, hb);
++
+ 	if (attempt++) {
+ 		ret = futex_handle_fault((unsigned long)uaddr, fshared,
+ 					 attempt);
+ 		if (ret)
+-			goto out_unlock_release_sem;
+-		goto retry_locked;
++			goto out_release_sem;
++		goto retry_unlocked;
+ 	}
  
- #endif/*!__ASSEMBLY__*/
+-	queue_unlock(&q, hb);
+ 	if (fshared)
+ 		up_read(fshared);
+ 
+@@ -1940,9 +1984,9 @@ retry:
+ 		goto out;
+ 
+ 	hb = hash_futex(&key);
++retry_unlocked:
+ 	spin_lock(&hb->lock);
+ 
+-retry_locked:
+ 	/*
+ 	 * To avoid races, try to do the TID -> 0 atomic transition
+ 	 * again. If it succeeds then we can return without waking
+@@ -2005,16 +2049,19 @@ pi_faulted:
+ 	 * non-atomically.  Therefore, if get_user below is not
+ 	 * enough, we need to handle the fault ourselves, while
+ 	 * still holding the mmap_sem.
++	 *
++	 * ... and hb->lock. --ANK
+ 	 */
++	spin_unlock(&hb->lock);
++
+ 	if (attempt++) {
+ 		ret = futex_handle_fault((unsigned long)uaddr, fshared,
+ 					 attempt);
+ 		if (ret)
+-			goto out_unlock;
+-		goto retry_locked;
++			goto out;
++		goto retry_unlocked;
+ 	}
+ 
+-	spin_unlock(&hb->lock);
+ 	if (fshared)
+ 		up_read(fshared);
  
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
 
-origin.patch
-mtrr-atomicity-fix.patch
-x86_64-pm_trace-support.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-shrink_slab-handle-bad-shrinkers.patch
+pi-futex-fixes.patch
