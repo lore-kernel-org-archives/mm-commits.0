@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-tulip-maintainer-email-address.patch added to -mm tree
-Date: Mon, 04 Jun 2007 12:10:31 -0700
-Message-ID: <200706041910.l54JAVHa011332@imap1.linux-foundation.org>
+Subject: + intel_agp-add-support-for-965gme-gle.patch added to -mm tree
+Date: Mon, 04 Jun 2007 12:21:19 -0700
+Message-ID: <200706041921.l54JLJd5011594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759168AbXFDTKk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:10:40 -0400
+	by vger.kernel.org with ESMTP id S1759538AbXFDTWC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: val@nmt.edu
+Cc: zhenyu.z.wang@intel.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     Update tulip maintainer email address
+     intel_agp: add support for 965GME/GLE
 has been added to the -mm tree.  Its filename is
-     update-tulip-maintainer-email-address.patch
+     intel_agp-add-support-for-965gme-gle.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update tulip maintainer email address
-From: Valerie Henson <val@nmt.edu>
+Subject: intel_agp: add support for 965GME/GLE
+From: Wang Zhenyu <zhenyu.z.wang@intel.com>
 
-I've quit Intel and gone into business as a Linux consultant.  Update
-my email address in MAINTAINERS.
+Add pci id info for 965GME/GLE support.
 
-Signed-off-by: Valerie Henson <val@nmt.edu>
+Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/agp/intel-agp.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN MAINTAINERS~update-tulip-maintainer-email-address MAINTAINERS
---- a/MAINTAINERS~update-tulip-maintainer-email-address
-+++ a/MAINTAINERS
-@@ -3550,7 +3550,7 @@ S:	Maintained
+diff -puN drivers/char/agp/intel-agp.c~intel_agp-add-support-for-965gme-gle drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel_agp-add-support-for-965gme-gle
++++ a/drivers/char/agp/intel-agp.c
+@@ -20,6 +20,7 @@
+ #define PCI_DEVICE_ID_INTEL_82965G_IG       0x29A2
+ #define PCI_DEVICE_ID_INTEL_82965GM_HB      0x2A00
+ #define PCI_DEVICE_ID_INTEL_82965GM_IG      0x2A02
++#define PCI_DEVICE_ID_INTEL_82965GME_IG     0x2A12
  
- TULIP NETWORK DRIVER
- P:	Valerie Henson
--M:	val_henson@linux.intel.com
-+M:     val@nmt.edu
- L:	tulip-users@lists.sourceforge.net
- W:	http://sourceforge.net/projects/tulip/
- S:	Maintained
+ #define IS_I965 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82946GZ_HB || \
+                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_1_HB || \
+@@ -1798,6 +1799,8 @@ static const struct intel_driver_descrip
+ 		&intel_845_driver, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GM_IG, "965GM",
+ 		&intel_845_driver, &intel_i965_driver },
++	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GME_IG, "965GME/GLE",
++		&intel_845_driver, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_7505_0, 0, "E7505", &intel_7505_driver, NULL },
+ 	{ PCI_DEVICE_ID_INTEL_7205_0, 0, "E7205", &intel_7505_driver, NULL },
+ 	{ 0, 0, NULL, NULL, NULL }
 _
 
-Patches currently in -mm which might be from val@nmt.edu are
+Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
 
-update-tulip-maintainer-email-address.patch
+intel_agp-cleanup-intel-private-data.patch
+intel_agp-cleanup-intel-private-data-update.patch
+intel_agp-use-table-for-device-probe.patch
+intel_agp-use-table-for-device-probe-update.patch
+intel_agp-add-support-for-965gme-gle.patch
+intel_agp-add-support-for-945gme.patch
