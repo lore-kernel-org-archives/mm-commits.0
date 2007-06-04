@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:04 -0700
-Message-ID: <200706042040.l54Ke4R3018401@imap1.linux-foundation.org>
+Subject: + 68328fb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:39:58 -0700
+Message-ID: <200706042039.l54Kdwgn018370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753149AbXFDUkN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:13 -0400
+	by vger.kernel.org with ESMTP id S1752446AbXFDUkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     cyblafb: fix pseudo_palette array overrun in setcolreg
+     68328fb: the pseudo_palette is only 16 elements long
 has been added to the -mm tree.  Its filename is
-     cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+     68328fb-the-pseudo_palette-is-only-16-elements-long.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cyblafb: fix pseudo_palette array overrun in setcolreg
+Subject: 68328fb: the pseudo_palette is only 16 elements long
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The pseudo_palette has only 16 elements. Do not write if regno (the array
-index) is more than 15.
+The pseudo_palette is only 16 elements long.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cyblafb.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+ drivers/video/68328fb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cyblafb.c~cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg drivers/video/cyblafb.c
---- a/drivers/video/cyblafb.c~cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg
-+++ a/drivers/video/cyblafb.c
-@@ -1068,15 +1068,18 @@ static int cyblafb_setcolreg(unsigned re
- 		out8(0x3C9, green >> 10);
- 		out8(0x3C9, blue >> 10);
+diff -puN drivers/video/68328fb.c~68328fb-the-pseudo_palette-is-only-16-elements-long drivers/video/68328fb.c
+--- a/drivers/video/68328fb.c~68328fb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/68328fb.c
+@@ -60,7 +60,7 @@ static u_long videomemory;
+ static u_long videomemorysize;
  
--	} else if (bpp == 16)	// RGB 565
--		((u32 *) info->pseudo_palette)[regno] =
--		    (red & 0xF800) |
--		    ((green & 0xFC00) >> 5) | ((blue & 0xF800) >> 11);
--	else if (bpp == 32)	// ARGB 8888
--		((u32 *) info->pseudo_palette)[regno] =
--		    ((transp & 0xFF00) << 16) |
--		    ((red & 0xFF00) << 8) |
--		    ((green & 0xFF00)) | ((blue & 0xFF00) >> 8);
-+	} else if (regno < 16) {
-+		if (bpp == 16)	// RGB 565
-+			((u32 *) info->pseudo_palette)[regno] =
-+				(red & 0xF800) |
-+				((green & 0xFC00) >> 5) |
-+				((blue & 0xF800) >> 11);
-+		else if (bpp == 32)	// ARGB 8888
-+			((u32 *) info->pseudo_palette)[regno] =
-+				((transp & 0xFF00) << 16) |
-+				((red & 0xFF00) << 8) |
-+				((green & 0xFF00)) | ((blue & 0xFF00) >> 8);
-+	}
+ static struct fb_info fb_info;
+-static u32 mc68x328fb_pseudo_palette[17];
++static u32 mc68x328fb_pseudo_palette[16];
  
- 	return 0;
- }
+ static struct fb_var_screeninfo mc68x328fb_default __initdata = {
+ 	.red =		{ 0, 8, 0 },
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
