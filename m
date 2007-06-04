@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-drivers-char-hvc_consoleckhvcd-static.patch added to -mm tree
-Date: Mon, 04 Jun 2007 14:37:22 -0700
-Message-ID: <200706042137.l54LbMdJ019769@imap1.linux-foundation.org>
+Subject: + remove-sonypi_camera_command.patch added to -mm tree
+Date: Mon, 04 Jun 2007 14:38:05 -0700
+Message-ID: <200706042138.l54Lc5OM019781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbXFDVhg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:37:36 -0400
+	by vger.kernel.org with ESMTP id S1753494AbXFDViX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:38:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, malattia@linux.it
 
 
 The patch titled
-     make drivers/char/hvc_console.c:khvcd() static
+     remove sonypi_camera_command()
 has been added to the -mm tree.  Its filename is
-     make-drivers-char-hvc_consoleckhvcd-static.patch
+     remove-sonypi_camera_command.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make drivers/char/hvc_console.c:khvcd() static
+Subject: remove sonypi_camera_command()
 From: Adrian Bunk <bunk@stusta.de>
 
+Remove the no longer used sonypi_camera_command().
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvc_console.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/sonypi.c  |   47 ---------------------------------------
+ include/linux/sonypi.h |    2 -
+ 2 files changed, 49 deletions(-)
 
-diff -puN drivers/char/hvc_console.c~make-drivers-char-hvc_consoleckhvcd-static drivers/char/hvc_console.c
---- a/drivers/char/hvc_console.c~make-drivers-char-hvc_consoleckhvcd-static
-+++ a/drivers/char/hvc_console.c
-@@ -674,7 +674,7 @@ static const cpumask_t cpus_in_xmon = CP
-  * calling hvc_poll() who determines whether a console adapter support
-  * interrupts.
-  */
--int khvcd(void *unused)
-+static int khvcd(void *unused)
+diff -puN drivers/char/sonypi.c~remove-sonypi_camera_command drivers/char/sonypi.c
+--- a/drivers/char/sonypi.c~remove-sonypi_camera_command
++++ a/drivers/char/sonypi.c
+@@ -885,53 +885,6 @@ found:
+ 	return IRQ_HANDLED;
+ }
+ 
+-/* External camera command (exported to the motion eye v4l driver) */
+-int sonypi_camera_command(int command, u8 value)
+-{
+-	if (!camera)
+-		return -EIO;
+-
+-	mutex_lock(&sonypi_device.lock);
+-
+-	switch (command) {
+-	case SONYPI_COMMAND_SETCAMERA:
+-		if (value)
+-			sonypi_camera_on();
+-		else
+-			sonypi_camera_off();
+-		break;
+-	case SONYPI_COMMAND_SETCAMERABRIGHTNESS:
+-		sonypi_set(SONYPI_CAMERA_BRIGHTNESS, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERACONTRAST:
+-		sonypi_set(SONYPI_CAMERA_CONTRAST, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERAHUE:
+-		sonypi_set(SONYPI_CAMERA_HUE, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERACOLOR:
+-		sonypi_set(SONYPI_CAMERA_COLOR, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERASHARPNESS:
+-		sonypi_set(SONYPI_CAMERA_SHARPNESS, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERAPICTURE:
+-		sonypi_set(SONYPI_CAMERA_PICTURE, value);
+-		break;
+-	case SONYPI_COMMAND_SETCAMERAAGC:
+-		sonypi_set(SONYPI_CAMERA_AGC, value);
+-		break;
+-	default:
+-		printk(KERN_ERR "sonypi: sonypi_camera_command invalid: %d\n",
+-		       command);
+-		break;
+-	}
+-	mutex_unlock(&sonypi_device.lock);
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(sonypi_camera_command);
+-
+ static int sonypi_misc_fasync(int fd, struct file *filp, int on)
  {
- 	int poll_mask;
- 	struct hvc_struct *hp;
+ 	int retval;
+diff -puN include/linux/sonypi.h~remove-sonypi_camera_command include/linux/sonypi.h
+--- a/include/linux/sonypi.h~remove-sonypi_camera_command
++++ a/include/linux/sonypi.h
+@@ -153,8 +153,6 @@
+ #define SONYPI_COMMAND_GETCAMERAROMVERSION	18	/* obsolete */
+ #define SONYPI_COMMAND_GETCAMERAREVISION	19	/* obsolete */
+ 
+-int sonypi_camera_command(int command, u8 value);
+-
+ #endif				/* __KERNEL__ */
+ 
+ #endif				/* _SONYPI_H_ */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -79,6 +140,7 @@ i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
 maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
 more-scheduled-oss-driver-removal.patch
+remove-sonypi_camera_command.patch
 ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
