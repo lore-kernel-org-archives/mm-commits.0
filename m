@@ -1,53 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - update-tulip-maintainer-email-address.patch removed from -mm tree
-Date: Mon, 04 Jun 2007 13:56:38 -0700
-Message-ID: <200706042056.l54Kub1W018909@imap1.linux-foundation.org>
+Subject: - acpi-bay-send-envp-with-uevent.patch removed from -mm tree
+Date: Mon, 04 Jun 2007 13:56:24 -0700
+Message-ID: <200706042056.l54KuQ2i018889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34851 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756903AbXFDU4p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:45 -0400
+	by vger.kernel.org with ESMTP id S1755426AbXFDU4k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: val@nmt.edu, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, s.berberig@arcor.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Update tulip maintainer email address
+     ACPI: bay: send envp with uevent
 has been removed from the -mm tree.  Its filename was
-     update-tulip-maintainer-email-address.patch
+     acpi-bay-send-envp-with-uevent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Update tulip maintainer email address
-From: Valerie Henson <val@nmt.edu>
+Subject: ACPI: bay: send envp with uevent
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-I've quit Intel and gone into business as a Linux consultant.  Update
-my email address in MAINTAINERS.
+Make the bay driver send env information on bay events.
 
-Signed-off-by: Valerie Henson <val@nmt.edu>
+Upon any bay event, we will send the string "BAY_EVENT=%d" along with the
+KOBJ_CHANGE, and report the event number.  What the event number means will
+be platform specific.  Event 3 is always an eject request, but an insert
+may be either event 1, or it may be event 0.  Event 1 may also be a
+remove request.  It would be best if you check the number of your event
+with udevmonitor before writing any udev scripts for inserting and
+removing drive bays.
+
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Stephan Berberig <s.berberig@arcor.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/bay.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN MAINTAINERS~update-tulip-maintainer-email-address MAINTAINERS
---- a/MAINTAINERS~update-tulip-maintainer-email-address
-+++ a/MAINTAINERS
-@@ -3550,7 +3550,7 @@ S:	Maintained
+diff -puN drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent drivers/acpi/bay.c
+--- a/drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent
++++ a/drivers/acpi/bay.c
+@@ -333,18 +333,12 @@ static void bay_notify(acpi_handle handl
+ {
+ 	struct bay *bay_dev = (struct bay *)data;
+ 	struct device *dev = &bay_dev->pdev->dev;
++	char event_string[12];
++	char *envp[] = { event_string, NULL };
  
- TULIP NETWORK DRIVER
- P:	Valerie Henson
--M:	val_henson@linux.intel.com
-+M:     val@nmt.edu
- L:	tulip-users@lists.sourceforge.net
- W:	http://sourceforge.net/projects/tulip/
- S:	Maintained
+ 	bay_dprintk(handle, "Bay event");
+-
+-	switch(event) {
+-	case ACPI_NOTIFY_BUS_CHECK:
+-	case ACPI_NOTIFY_DEVICE_CHECK:
+-	case ACPI_NOTIFY_EJECT_REQUEST:
+-		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
+-		break;
+-	default:
+-		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
+-	}
++	sprintf(event_string, "BAY_EVENT=%d\n", event);
++	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
+ }
+ 
+ static acpi_status
 _
 
-Patches currently in -mm which might be from val@nmt.edu are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-origin.patch
+git-acpi.patch
+libata-check-for-an-support.patch
+scsi-expose-an-to-user-space.patch
+libata-expose-an-to-user-space.patch
+scsi-save-disk-in-scsi_device.patch
+libata-send-event-when-an-received.patch
+cpci_hotplug-convert-to-use-the-kthread-api.patch
+allow-aer-to-build-for-config_acpi-=-n.patch
