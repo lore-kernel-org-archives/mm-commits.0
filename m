@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:46 -0700
-Message-ID: <200706042040.l54Kekgs018485@imap1.linux-foundation.org>
+Subject: + atyfb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:52 -0700
+Message-ID: <200706042040.l54KeqqO018491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32875 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753494AbXFDUkz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:55 -0400
+	by vger.kernel.org with ESMTP id S1753456AbXFDUlA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     tridentfb: fix pseudo_palette array overrun in setcolreg
+     atyfb: the pseudo_palette is only 16 elements long
 has been added to the -mm tree.  Its filename is
-     tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+     atyfb-the-pseudo_palette-is-only-16-elements-long.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tridentfb: fix pseudo_palette array overrun in setcolreg
+Subject: atyfb: the pseudo_palette is only 16 elements long
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The pseudo_palette has only 16 elements. Do not write if regno (the array
-index) is more than 15.
+The pseudo_palette is only 16 elements long.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+ drivers/video/aty/atyfb_base.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg
-+++ a/drivers/video/tridentfb.c
-@@ -976,7 +976,7 @@ static int tridentfb_setcolreg(unsigned 
- 		return 1;
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-the-pseudo_palette-is-only-16-elements-long drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/aty/atyfb_base.c
+@@ -541,7 +541,7 @@ static char ram_off[] __devinitdata = "O
+ #endif /* CONFIG_FB_ATY_CT */
  
  
--	if (bpp==8) {
-+	if (bpp == 8) {
- 		t_outb(0xFF,0x3C6);
- 		t_outb(regno,0x3C8);
+-static u32 pseudo_palette[17];
++static u32 pseudo_palette[16];
  
-@@ -984,19 +984,21 @@ static int tridentfb_setcolreg(unsigned 
- 		t_outb(green>>10,0x3C9);
- 		t_outb(blue>>10,0x3C9);
- 
--	} else if (bpp == 16) {	/* RGB 565 */
--		u32 col;
--
--		col = (red & 0xF800) | ((green & 0xFC00) >> 5) |
--			((blue & 0xF800) >> 11);
--		col |= col << 16;	
--		((u32 *)(info->pseudo_palette))[regno] = col;
--	} else if (bpp == 32)		/* ARGB 8888 */
--		((u32*)info->pseudo_palette)[regno] =
--			((transp & 0xFF00) <<16) 	|
--			((red & 0xFF00) << 8) 		|
--			((green & 0xFF00))		|
--			((blue & 0xFF00)>>8);
-+	} else if (regno < 16) {
-+		if (bpp == 16) {	/* RGB 565 */
-+			u32 col;
-+
-+			col = (red & 0xF800) | ((green & 0xFC00) >> 5) |
-+				((blue & 0xF800) >> 11);
-+			col |= col << 16;
-+			((u32 *)(info->pseudo_palette))[regno] = col;
-+		} else if (bpp == 32)		/* ARGB 8888 */
-+			((u32*)info->pseudo_palette)[regno] =
-+				((transp & 0xFF00) <<16) 	|
-+				((red & 0xFF00) << 8) 		|
-+				((green & 0xFF00))		|
-+				((blue & 0xFF00)>>8);
-+	}
- 
- //	debug("exit\n");
- 	return 0;
+ #ifdef CONFIG_FB_ATY_GX
+ static char *aty_gx_ram[8] __devinitdata = {
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
