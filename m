@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smc91x-sh-solution-engine-fixes.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:02:23 -0700
-Message-ID: <200706042002.l54K2NWd014161@imap1.linux-foundation.org>
+Subject: + m68knommu-fix-coldfire-timer-off-by-1.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:04:56 -0700
+Message-ID: <200706042004.l54K4ulJ015735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56884 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34686 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760126AbXFDUCc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:02:32 -0400
+	by vger.kernel.org with ESMTP id S1760046AbXFDUFw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:05:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org
+Cc: gerg@snapgear.com, gerg@uclinux.org, phdm@macqel.be
 
 
 The patch titled
-     smc91x: sh solution engine fixes
+     m68knommu: fix ColdFire timer off by 1
 has been added to the -mm tree.  Its filename is
-     smc91x-sh-solution-engine-fixes.patch
+     m68knommu-fix-coldfire-timer-off-by-1.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smc91x: sh solution engine fixes
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: m68knommu: fix ColdFire timer off by 1
+From: Greg Ungerer <gerg@snapgear.com>
 
-The current smc91x I/O routines ifdef the solution engine subtypes
-individually, which is rather bogus, as they can simply use
-CONFIG_SOLUTION_ENGINE instead.  This fixes it for some of the other
-solution engines that weren't included in the ifdef list (SH7206
-specifically).
+The coldfire timer runs from 0 to TRR included, then 0 again and so on.  It
+counts thus actually TRR + 1 steps for 1 tick, not TRR.  Fix that.
 
-There are also inb/outb definitions which are totally bogus (missing
-brackets in _both_ cases, SMC_CAN_USE_8BIT == 0, and even better, they try
-to use a 16-bit access to fake 8-bit access).  Kill that nonsense off
-completely.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.h |    5 +----
- 1 files changed, 1 insertion(+), 4 deletions(-)
+ arch/m68knommu/platform/5307/timers.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/smc91x.h~smc91x-sh-solution-engine-fixes drivers/net/smc91x.h
---- a/drivers/net/smc91x.h~smc91x-sh-solution-engine-fixes
-+++ a/drivers/net/smc91x.h
-@@ -281,17 +281,14 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+diff -puN arch/m68knommu/platform/5307/timers.c~m68knommu-fix-coldfire-timer-off-by-1 arch/m68knommu/platform/5307/timers.c
+--- a/arch/m68knommu/platform/5307/timers.c~m68knommu-fix-coldfire-timer-off-by-1
++++ a/arch/m68knommu/platform/5307/timers.c
+@@ -62,10 +62,13 @@ void coldfire_tick(void)
  
- #elif   defined(CONFIG_SUPERH)
+ /***************************************************************************/
  
--#if defined(CONFIG_SH_7780_SOLUTION_ENGINE) || defined(CONFIG_SH_7722_SOLUTION_ENGINE)
-+#ifdef CONFIG_SOLUTION_ENGINE
- #define SMC_CAN_USE_8BIT       0
- #define SMC_CAN_USE_16BIT      1
- #define SMC_CAN_USE_32BIT      0
- #define SMC_IO_SHIFT           0
- #define SMC_NOWAIT             1
++static int ticks_per_intr;
++
+ void coldfire_timer_init(irq_handler_t handler)
+ {
+ 	__raw_writew(MCFTIMER_TMR_DISABLE, TA(MCFTIMER_TMR));
+-	__raw_writetrr(((MCF_BUSCLK / 16) / HZ), TA(MCFTIMER_TRR));
++	ticks_per_intr = (MCF_BUSCLK / 16) / HZ;
++	__raw_writetrr(ticks_per_intr - 1, TA(MCFTIMER_TRR));
+ 	__raw_writew(MCFTIMER_TMR_ENORI | MCFTIMER_TMR_CLK16 |
+ 		MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, TA(MCFTIMER_TMR));
  
--#define SMC_inb(a, r)          (inw((a) + ((r)&~1)) >> (8*(r%2)))&0xff
- #define SMC_inw(a, r)          inw((a) + (r))
--#define SMC_outb(v, a, r)      outw(((inw((a)+((r)&~1))*(0xff<<8*(r%2)))) | ((v)<<(8*(r&2)))), (a) + ((r)&~1))
--
- #define SMC_outw(v, a, r)      outw(v, (a) + (r))
- #define SMC_insw(a, r, p, l)   insw((a) + (r), p, l)
- #define SMC_outsw(a, r, p, l)  outsw((a) + (r), p, l)
+@@ -81,11 +84,10 @@ void coldfire_timer_init(irq_handler_t h
+ 
+ unsigned long coldfire_timer_offset(void)
+ {
+-	unsigned long trr, tcn, offset;
++	unsigned long tcn, offset;
+ 
+ 	tcn = __raw_readw(TA(MCFTIMER_TCN));
+-	trr = __raw_readtrr(TA(MCFTIMER_TRR));
+-	offset = (tcn * (1000000 / HZ)) / trr;
++	offset = ((tcn + 1) * (1000000 / HZ)) / ticks_per_intr;
+ 
+ 	/* Check if we just wrapped the counters and maybe missed a tick */
+ 	if ((offset < (1000000 / HZ / 2)) && mcf_timerirqpending(1))
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
-origin.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-smc91x-sh-solution-engine-fixes.patch
-slab-fix-slab-debug-for-non-alien-caches.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+m68knommu-fix-coldfire-timer-off-by-1.patch
+nommu-stub-expand_stack-for-nommu-case.patch
+m68knommu-use-trhead_size-instead-of-hard-constant.patch
+m68knommu-remove-cruft-from-setup-code.patch
+m68knommu-remove-old-cache-management-cruft-from-mm-code.patch
+nommu-report-correct-errno-in-message.patch
