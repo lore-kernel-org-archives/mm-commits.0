@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 68328fb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:39:58 -0700
-Message-ID: <200706042039.l54Kdwgn018370@imap1.linux-foundation.org>
+Subject: + controlfb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:01 -0700
+Message-ID: <200706042040.l54Ke1NM018374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38357 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbXFDUkH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:07 -0400
+	by vger.kernel.org with ESMTP id S1753150AbXFDUkQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com
+Cc: adaplas@gmail.com, benh@kernel.crashing.org
 
 
 The patch titled
-     68328fb: the pseudo_palette is only 16 elements long
+     controlfb: the pseudo_palette is only 16 elements long
 has been added to the -mm tree.  Its filename is
-     68328fb-the-pseudo_palette-is-only-16-elements-long.patch
+     controlfb-the-pseudo_palette-is-only-16-elements-long.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 68328fb: the pseudo_palette is only 16 elements long
+Subject: controlfb: the pseudo_palette is only 16 elements long
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
 The pseudo_palette is only 16 elements long.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/68328fb.c |    2 +-
+ drivers/video/controlfb.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/68328fb.c~68328fb-the-pseudo_palette-is-only-16-elements-long drivers/video/68328fb.c
---- a/drivers/video/68328fb.c~68328fb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/68328fb.c
-@@ -60,7 +60,7 @@ static u_long videomemory;
- static u_long videomemorysize;
- 
- static struct fb_info fb_info;
--static u32 mc68x328fb_pseudo_palette[17];
-+static u32 mc68x328fb_pseudo_palette[16];
- 
- static struct fb_var_screeninfo mc68x328fb_default __initdata = {
- 	.red =		{ 0, 8, 0 },
+diff -puN drivers/video/controlfb.c~controlfb-the-pseudo_palette-is-only-16-elements-long drivers/video/controlfb.c
+--- a/drivers/video/controlfb.c~controlfb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/controlfb.c
+@@ -94,7 +94,7 @@ static inline int VAR_MATCH(struct fb_va
+ struct fb_info_control {
+ 	struct fb_info		info;
+ 	struct fb_par_control	par;
+-	u32			pseudo_palette[17];
++	u32			pseudo_palette[16];
+ 		
+ 	struct cmap_regs	__iomem *cmap_regs;
+ 	unsigned long		cmap_regs_phys;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
