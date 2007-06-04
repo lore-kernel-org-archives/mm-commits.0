@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-disable-decode-of-io-memory-during-bar-sizing.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:33:02 -0700
-Message-ID: <200706042033.l54KX2Cj018154@imap1.linux-foundation.org>
+Subject: + cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:04 -0700
+Message-ID: <200706042040.l54Ke4R3018401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32848 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49704 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752055AbXFDUdN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:33:13 -0400
+	by vger.kernel.org with ESMTP id S1753149AbXFDUkN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hancockr@shaw.ca, ak@suse.de, greg@kroah.com, jesse.barnes@intel.com
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     PCI: disable decode of IO/memory during BAR sizing
+     cyblafb: fix pseudo_palette array overrun in setcolreg
 has been added to the -mm tree.  Its filename is
-     pci-disable-decode-of-io-memory-during-bar-sizing.patch
+     cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PCI: disable decode of IO/memory during BAR sizing
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: cyblafb: fix pseudo_palette array overrun in setcolreg
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Change PCI BAR sizing to disable the decode of memory or IO, as
-appropriate, while we are writing the all-ones value to the BAR to
-determine the size.  If this is not done, the device may spuriously decode
-accesses to memory areas it should not.  On some Intel PCI Express
-chipsets, this breaks MMCONFIG configuration space access, since the memory
-the graphics card ends up decoding during this period overlaps the MMCONFIG
-area, and thus it steals the accesses to the area to do any other
-configuration space access, including changing the BAR back to its previous
-value.
+The pseudo_palette has only 16 elements. Do not write if regno (the array
+index) is more than 15.
 
-However, don't do this disabling on host bridge devices, as it is reported that
-some of them do silly things like disable CPU to RAM access if this is done.
-
-Based on an original patch by Jesse Barnes.
-
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Cc: Greg KH <greg@kroah.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jesse Barnes <jesse.barnes@intel.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   63 ++++++++++++++++++++++++++++++++++++------
- 1 files changed, 55 insertions(+), 8 deletions(-)
+ drivers/video/cyblafb.c |   21 ++++++++++++---------
+ 1 files changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-disable-decode-of-io-memory-during-bar-sizing drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-disable-decode-of-io-memory-during-bar-sizing
-+++ a/drivers/pci/probe.c
-@@ -169,6 +169,58 @@ static inline int is_64bit_memory(u32 ma
+diff -puN drivers/video/cyblafb.c~cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg drivers/video/cyblafb.c
+--- a/drivers/video/cyblafb.c~cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg
++++ a/drivers/video/cyblafb.c
+@@ -1068,15 +1068,18 @@ static int cyblafb_setcolreg(unsigned re
+ 		out8(0x3C9, green >> 10);
+ 		out8(0x3C9, blue >> 10);
+ 
+-	} else if (bpp == 16)	// RGB 565
+-		((u32 *) info->pseudo_palette)[regno] =
+-		    (red & 0xF800) |
+-		    ((green & 0xFC00) >> 5) | ((blue & 0xF800) >> 11);
+-	else if (bpp == 32)	// ARGB 8888
+-		((u32 *) info->pseudo_palette)[regno] =
+-		    ((transp & 0xFF00) << 16) |
+-		    ((red & 0xFF00) << 8) |
+-		    ((green & 0xFF00)) | ((blue & 0xFF00) >> 8);
++	} else if (regno < 16) {
++		if (bpp == 16)	// RGB 565
++			((u32 *) info->pseudo_palette)[regno] =
++				(red & 0xF800) |
++				((green & 0xFC00) >> 5) |
++				((blue & 0xF800) >> 11);
++		else if (bpp == 32)	// ARGB 8888
++			((u32 *) info->pseudo_palette)[regno] =
++				((transp & 0xFF00) << 16) |
++				((red & 0xFF00) << 8) |
++				((green & 0xFF00)) | ((blue & 0xFF00) >> 8);
++	}
+ 
  	return 0;
  }
- 
-+#define BAR_IS_MEMORY(bar) (((bar) & PCI_BASE_ADDRESS_SPACE) ==	\
-+			    PCI_BASE_ADDRESS_SPACE_MEMORY)
-+
-+/**
-+ * pci_bar_size - get raw PCI BAR size
-+ * @dev: PCI device
-+ * @reg: BAR to probe
-+ *
-+ * Use basic PCI probing:
-+ *   - save original BAR value
-+ *   - disable MEM or IO decode in PCI_COMMAND reg if appropriate
-+ *   - write all 1s to the BAR
-+ *   - read back value
-+ *   - reenble MEM or IO decode as necessary
-+ *   - write original value back
-+ *
-+ * Returns raw BAR size to caller.
-+ */
-+static u32 pci_bar_size(struct pci_dev *dev, unsigned int reg)
-+{
-+	u32 orig_reg, sz;
-+	u16 orig_cmd;
-+
-+	pci_read_config_dword(dev, reg, &orig_reg);
-+	pci_read_config_word(dev, PCI_COMMAND, &orig_cmd);
-+
-+	/*
-+	 * Disable memory or IO decode on the device while writing the test
-+	 * value to the BAR. This prevents possible spurious decoding
-+	 * of random addresses by the device. Don't do this for host bridges,
-+	 * however, since some of them do silly things like disable CPU to RAM
-+	 * access if this is done.
-+	 */
-+	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST) {
-+		if (BAR_IS_MEMORY(orig_reg))
-+			pci_write_config_word(dev, PCI_COMMAND,
-+					      orig_cmd & ~PCI_COMMAND_MEMORY);
-+		else
-+			pci_write_config_word(dev, PCI_COMMAND,
-+					      orig_cmd & ~PCI_COMMAND_IO);
-+	}
-+
-+	pci_write_config_dword(dev, reg, 0xffffffff);
-+	pci_read_config_dword(dev, reg, &sz);
-+	pci_write_config_dword(dev, reg, orig_reg);
-+
-+	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
-+		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
-+
-+	return sz;
-+}
-+
- static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
- {
- 	unsigned int pos, reg, next;
-@@ -185,16 +237,13 @@ static void pci_read_bases(struct pci_de
- 		res->name = pci_name(dev);
- 		reg = PCI_BASE_ADDRESS_0 + (pos << 2);
- 		pci_read_config_dword(dev, reg, &l);
--		pci_write_config_dword(dev, reg, ~0);
--		pci_read_config_dword(dev, reg, &sz);
--		pci_write_config_dword(dev, reg, l);
-+		sz = pci_bar_size(dev, reg);
- 		if (!sz || sz == 0xffffffff)
- 			continue;
- 		if (l == 0xffffffff)
- 			l = 0;
- 		raw_sz = sz;
--		if ((l & PCI_BASE_ADDRESS_SPACE) ==
--				PCI_BASE_ADDRESS_SPACE_MEMORY) {
-+		if (BAR_IS_MEMORY(l)) {
- 			sz = pci_size(l, sz, (u32)PCI_BASE_ADDRESS_MEM_MASK);
- 			/*
- 			 * For 64bit prefetchable memory sz could be 0, if the
-@@ -218,9 +267,7 @@ static void pci_read_bases(struct pci_de
- 			u32 szhi, lhi;
- 
- 			pci_read_config_dword(dev, reg+4, &lhi);
--			pci_write_config_dword(dev, reg+4, ~0);
--			pci_read_config_dword(dev, reg+4, &szhi);
--			pci_write_config_dword(dev, reg+4, lhi);
-+			szhi = pci_bar_size(dev, reg+4);
- 			sz64 = ((u64)szhi << 32) | raw_sz;
- 			l64 = ((u64)lhi << 32) | l;
- 			sz64 = pci_size64(l64, sz64, PCI_BASE_ADDRESS_MEM_MASK);
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-libata-add-human-readable-error-value-decoding.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-pci-disable-decode-of-io-memory-during-bar-sizing.patch
+origin.patch
+fbcon-smart-blitter-usage-for-scrolling.patch
+nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
+fbcon-cursor-blink-control.patch
+fbcon-use-struct-device-instead-of-struct-class_device.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+fbdev-detect-primary-display-device.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
+nvidiafb-add-proper-support-for-geforce-7600-chipset.patch
+pm2fb-white-spaces-clean-up.patch
+fbcon-set_con2fb_map-fixes.patch
+fbcon-revise-primary-device-selection.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+vt-add-comment-for-unbind_con_driver.patch
+68328fb-the-pseudo_palette-is-only-16-elements-long.patch
+controlfb-the-pseudo_palette-is-only-16-elements-long.patch
+cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+epson1355fb-color-setting-fixes.patch
+ffb-the-pseudo_palette-is-only-16-elements-long.patch
+fm2fb-the-pseudo_palette-is-only-16-elements-long.patch
+gbefb-the-pseudo_palette-is-only-16-elements-long.patch
+macfb-fix-pseudo_palette-size-and-overrun.patch
+offb-the-pseudo_palette-is-only-16-elements-long.patch
+platinumfb-the-pseudo_palette-is-only-16-elements.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+q40fb-the-pseudo_palette-is-only-16-elements-long.patch
+sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
+sunxvr2500fb-fix-pseudo_palette-array-size.patch
+sunxvr500fb-fix-pseudo_palette-array-size.patch
+tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
+tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch
+atyfb-the-pseudo_palette-is-only-16-elements-long.patch
+radeonfb-the-pseudo_palette-is-only-16-elements-long.patch
+i810fb-the-pseudo_palette-is-only-16-elements-long.patch
+intelfb-the-pseudo_palette-is-only-16-elements-long.patch
+sisfb-fix-pseudo_palette-array-size-and-overrun.patch
