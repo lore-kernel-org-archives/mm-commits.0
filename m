@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fm2fb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:13 -0700
-Message-ID: <200706042040.l54KeDg5018411@imap1.linux-foundation.org>
+Subject: + sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:34 -0700
+Message-ID: <200706042040.l54KeYwm018446@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35347 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753387AbXFDUkp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:45 -0400
+	by vger.kernel.org with ESMTP id S1753331AbXFDUkn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com, geert@linux-m68k.org
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     fm2fb: the pseudo_palette is only 16 elements long
+     sgivwfb: the pseudo_palette is only 16 elements long
 has been added to the -mm tree.  Its filename is
-     fm2fb-the-pseudo_palette-is-only-16-elements-long.patch
+     sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fm2fb: the pseudo_palette is only 16 elements long
+Subject: sgivwfb: the pseudo_palette is only 16 elements long
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
 The pseudo_palette is only 16 elements long.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fm2fb.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+ drivers/video/sgivwfb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fm2fb.c~fm2fb-the-pseudo_palette-is-only-16-elements-long drivers/video/fm2fb.c
---- a/drivers/video/fm2fb.c~fm2fb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/fm2fb.c
-@@ -195,13 +195,15 @@ static int fm2fb_blank(int blank, struct
- static int fm2fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-                          u_int transp, struct fb_info *info)
- {
--	if (regno > info->cmap.len)
--		return 1;
--	red >>= 8;
--	green >>= 8;
--	blue >>= 8;
-+	if (regno < 16) {
-+		red >>= 8;
-+		green >>= 8;
-+		blue >>= 8;
-+
-+		((u32*)(info->pseudo_palette))[regno] = (red << 16) |
-+			(green << 8) | blue;
-+	}
+diff -puN drivers/video/sgivwfb.c~sgivwfb-the-pseudo_palette-is-only-16-elements-long drivers/video/sgivwfb.c
+--- a/drivers/video/sgivwfb.c~sgivwfb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/sgivwfb.c
+@@ -752,7 +752,7 @@ static int __init sgivwfb_probe(struct p
+ 	struct fb_info *info;
+ 	char *monitor;
  
--	((u32*)(info->pseudo_palette))[regno] = (red << 16) | (green << 8) | blue;
- 	return 0;
- }
- 
-@@ -237,7 +239,7 @@ static int __devinit fm2fb_probe(struct 
- 	if (!zorro_request_device(z,"fm2fb"))
- 		return -ENXIO;
- 
--	info = framebuffer_alloc(256 * sizeof(u32), &z->dev);
-+	info = framebuffer_alloc(16 * sizeof(u32), &z->dev);
- 	if (!info) {
- 		zorro_release_device(z);
+-	info = framebuffer_alloc(sizeof(struct sgivw_par) + sizeof(u32) * 256, &dev->dev);
++	info = framebuffer_alloc(sizeof(struct sgivw_par) + sizeof(u32) * 16, &dev->dev);
+ 	if (!info)
  		return -ENOMEM;
+ 	par = info->par;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
