@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:28 -0700
-Message-ID: <200706042040.l54KeSNl018430@imap1.linux-foundation.org>
+Subject: + macfb-fix-pseudo_palette-size-and-overrun.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:19 -0700
+Message-ID: <200706042040.l54KeJpX018417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753364AbXFDUki (ORCPT
+	by vger.kernel.org with ESMTP id S1753372AbXFDUki (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com, lethal@linux-sh.org
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     pvr2fb: fix pseudo_palette array overrun and typecast
+     macfb: fix pseudo_palette size and overrun
 has been added to the -mm tree.  Its filename is
-     pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+     macfb-fix-pseudo_palette-size-and-overrun.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,137 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pvr2fb: fix pseudo_palette array overrun and typecast
+Subject: macfb: fix pseudo_palette size and overrun
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- the pseudo_palette has only 16 elements. Do not write if regno (the array
-  index) is more than 15.
-- if using generic drawing libraries, the typecast of pseudo_palette is
-  always u32 *
+- the pseudo_palette is only 16 elements long.
+- do not write to the pseudo_palette if regno (array index) is more than 15.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pvr2fb.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/video/macfb.c |   93 +++++++++++++++++++++-------------------
+ 1 files changed, 50 insertions(+), 43 deletions(-)
 
-diff -puN drivers/video/pvr2fb.c~pvr2fb-fix-pseudo_palette-array-overrun-and-typecast drivers/video/pvr2fb.c
---- a/drivers/video/pvr2fb.c~pvr2fb-fix-pseudo_palette-array-overrun-and-typecast
-+++ a/drivers/video/pvr2fb.c
-@@ -337,24 +337,25 @@ static int pvr2fb_setcolreg(unsigned int
- 		      ((blue  & 0xf800) >> 11);
+diff -puN drivers/video/macfb.c~macfb-fix-pseudo_palette-size-and-overrun drivers/video/macfb.c
+--- a/drivers/video/macfb.c~macfb-fix-pseudo_palette-size-and-overrun
++++ a/drivers/video/macfb.c
+@@ -170,7 +170,7 @@ static struct fb_fix_screeninfo macfb_fi
+ };
  
- 		pvr2fb_set_pal_entry(par, regno, tmp);
--		((u16*)(info->pseudo_palette))[regno] = tmp;
- 		break;
- 	    case 24: /* RGB 888 */
- 		red >>= 8; green >>= 8; blue >>= 8;
--		((u32*)(info->pseudo_palette))[regno] = (red << 16) | (green << 8) | blue;
-+		tmp = (red << 16) | (green << 8) | blue;
- 		break;
- 	    case 32: /* ARGB 8888 */
- 		red >>= 8; green >>= 8; blue >>= 8;
- 		tmp = (transp << 24) | (red << 16) | (green << 8) | blue;
+ static struct fb_info fb_info;
+-static u32 pseudo_palette[17];
++static u32 pseudo_palette[16];
+ static int inverse   = 0;
+ static int vidtest   = 0;
  
- 		pvr2fb_set_pal_entry(par, regno, tmp);
--		((u32*)(info->pseudo_palette))[regno] = tmp;
- 		break;
- 	    default:
- 		pr_debug("Invalid bit depth %d?!?\n", info->var.bits_per_pixel);
+@@ -529,56 +529,63 @@ static int macfb_setcolreg(unsigned regn
+ 	if (regno >= fb_info->cmap.len)
  		return 1;
- 	}
  
-+	if (regno < 16)
-+		((u32*)(info->pseudo_palette))[regno] = tmp;
+-	switch (fb_info->var.bits_per_pixel) {
+-	case 1:
+-		/* We shouldn't get here */
+-		break;
+-	case 2:
+-	case 4:
+-	case 8:
+-		if (macfb_setpalette)
+-			macfb_setpalette(regno, red, green, blue, fb_info);
+-		else
+-			return 1;
+-		break;
+-	case 16:
+-		if (fb_info->var.red.offset == 10) {
+-			/* 1:5:5:5 */
+-			((u32*) (fb_info->pseudo_palette))[regno] =
++	if (fb_info->var.bits_per_pixel <= 8) {
++		switch (fb_info->var.bits_per_pixel) {
++		case 1:
++			/* We shouldn't get here */
++			break;
++		case 2:
++		case 4:
++		case 8:
++			if (macfb_setpalette)
++				macfb_setpalette(regno, red, green, blue,
++						 fb_info);
++			else
++				return 1;
++			break;
++		}
++	} else if (regno < 16) {
++		switch (fb_info->var.bits_per_pixel) {
++		case 16:
++			if (fb_info->var.red.offset == 10) {
++				/* 1:5:5:5 */
++				((u32*) (fb_info->pseudo_palette))[regno] =
+ 					((red   & 0xf800) >>  1) |
+ 					((green & 0xf800) >>  6) |
+ 					((blue  & 0xf800) >> 11) |
+ 					((transp != 0) << 15);
+-		} else {
+-			/* 0:5:6:5 */
+-			((u32*) (fb_info->pseudo_palette))[regno] =
++			} else {
++				/* 0:5:6:5 */
++				((u32*) (fb_info->pseudo_palette))[regno] =
+ 					((red   & 0xf800)      ) |
+ 					((green & 0xfc00) >>  5) |
+ 					((blue  & 0xf800) >> 11);
++			}
++			break;
++			/* I'm pretty sure that one or the other of these
++			   doesn't exist on 68k Macs */
++		case 24:
++			red   >>= 8;
++			green >>= 8;
++			blue  >>= 8;
++			((u32 *)(fb_info->pseudo_palette))[regno] =
++				(red   << fb_info->var.red.offset)   |
++				(green << fb_info->var.green.offset) |
++				(blue  << fb_info->var.blue.offset);
++			break;
++		case 32:
++			red   >>= 8;
++			green >>= 8;
++			blue  >>= 8;
++			((u32 *)(fb_info->pseudo_palette))[regno] =
++				(red   << fb_info->var.red.offset)   |
++				(green << fb_info->var.green.offset) |
++				(blue  << fb_info->var.blue.offset);
++			break;
+ 		}
+-		break;	
+-		/* I'm pretty sure that one or the other of these
+-		   doesn't exist on 68k Macs */
+-	case 24:
+-		red   >>= 8;
+-		green >>= 8;
+-		blue  >>= 8;
+-		((u32 *)(fb_info->pseudo_palette))[regno] =
+-			(red   << fb_info->var.red.offset)   |
+-			(green << fb_info->var.green.offset) |
+-			(blue  << fb_info->var.blue.offset);
+-		break;
+-	case 32:
+-		red   >>= 8;
+-		green >>= 8;
+-		blue  >>= 8;
+-		((u32 *)(fb_info->pseudo_palette))[regno] =
+-			(red   << fb_info->var.red.offset)   |
+-			(green << fb_info->var.green.offset) |
+-			(blue  << fb_info->var.blue.offset);
+-		break;
+-    }
+-    return 0;
++	}
 +
- 	return 0;
++	return 0;
  }
  
+ static struct fb_ops macfb_ops = {
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
