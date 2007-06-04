@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sunxvr500fb-fix-pseudo_palette-array-size.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:40 -0700
-Message-ID: <200706042040.l54Keeo3018454@imap1.linux-foundation.org>
+Subject: + platinumfb-the-pseudo_palette-is-only-16-elements.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:25 -0700
+Message-ID: <200706042040.l54KePIF018427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33169 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753422AbXFDUks (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:48 -0400
+	by vger.kernel.org with ESMTP id S1753387AbXFDUkr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     sunxvr500fb: fix pseudo_palette array size
+     platinumfb: the pseudo_palette is only 16 elements long
 has been added to the -mm tree.  Its filename is
-     sunxvr500fb-fix-pseudo_palette-array-size.patch
+     platinumfb-the-pseudo_palette-is-only-16-elements.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sunxvr500fb: fix pseudo_palette array size
+Subject: platinumfb: the pseudo_palette is only 16 elements long
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- the pseudo_palette is only 16 elements long.
-- the pseudo_palette has only 16 elements. Do not write if regno (the array
-  index) is more than 15.
+The pseudo_palette is only 16 elements long.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sunxvr500.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/platinumfb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/sunxvr500.c~sunxvr500fb-fix-pseudo_palette-array-size drivers/video/sunxvr500.c
---- a/drivers/video/sunxvr500.c~sunxvr500fb-fix-pseudo_palette-array-size
-+++ a/drivers/video/sunxvr500.c
-@@ -50,7 +50,7 @@ struct e3d_info {
- 	u32			fb8_0_off;
- 	u32			fb8_1_off;
- 
--	u32			pseudo_palette[256];
-+	u32			pseudo_palette[16];
- };
- 
- static int __devinit e3d_get_props(struct e3d_info *ep)
-@@ -126,7 +126,9 @@ static int e3d_setcolreg(unsigned regno,
- 	blue_8 = blue >> 8;
- 
- 	value = (blue_8 << 24) | (green_8 << 16) | (red_8 << 8);
--	((u32 *)info->pseudo_palette)[regno] = value;
-+
-+	if (info->fix.visual == FB_VISUAL_TRUECOLOR && regno < 16)
-+		((u32 *)info->pseudo_palette)[regno] = value;
- 
- 
- 	red_10 = red >> 6;
+diff -puN drivers/video/platinumfb.c~platinumfb-the-pseudo_palette-is-only-16-elements drivers/video/platinumfb.c
+--- a/drivers/video/platinumfb.c~platinumfb-the-pseudo_palette-is-only-16-elements
++++ a/drivers/video/platinumfb.c
+@@ -52,7 +52,7 @@ struct fb_info_platinum {
+ 	struct {
+ 		__u8 red, green, blue;
+ 	}				palette[256];
+-	u32				pseudo_palette[17];
++	u32				pseudo_palette[16];
+ 	
+ 	volatile struct cmap_regs	__iomem *cmap_regs;
+ 	unsigned long			cmap_regs_phys;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
