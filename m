@@ -1,82 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-bay-send-envp-with-uevent.patch removed from -mm tree
-Date: Mon, 04 Jun 2007 13:56:24 -0700
-Message-ID: <200706042056.l54KuQ2i018889@imap1.linux-foundation.org>
+Subject: - remove-dell-optiplex-gx240-from-the-acpi-blacklist.patch removed from -mm tree
+Date: Mon, 04 Jun 2007 13:56:31 -0700
+Message-ID: <200706042056.l54KuU8b018896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58305 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755426AbXFDU4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:40 -0400
+	by vger.kernel.org with ESMTP id S1756320AbXFDU4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, s.berberig@arcor.de, mm-commits@vger.kernel.org
+To: tarrqt@yahoo.com, lenb@kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: bay: send envp with uevent
+     Remove Dell Optiplex GX240 from the ACPI blacklist
 has been removed from the -mm tree.  Its filename was
-     acpi-bay-send-envp-with-uevent.patch
+     remove-dell-optiplex-gx240-from-the-acpi-blacklist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: bay: send envp with uevent
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: Remove Dell Optiplex GX240 from the ACPI blacklist
+From: Tear <tarrqt@yahoo.com>
 
-Make the bay driver send env information on bay events.
+I have a Dell Optiplex GX240 and when I boot Linux, ACPI gets set up by only
+acpi=ht.  dmesg shows the following line:
 
-Upon any bay event, we will send the string "BAY_EVENT=%d" along with the
-KOBJ_CHANGE, and report the event number.  What the event number means will
-be platform specific.  Event 3 is always an eject request, but an insert
-may be either event 1, or it may be event 0.  Event 1 may also be a
-remove request.  It would be best if you check the number of your event
-with udevmonitor before writing any udev scripts for inserting and
-removing drive bays.
+   DELL GX240 detected: force use of acpi=ht
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Stephan Berberig <s.berberig@arcor.de>
+Everything seemed to be fine.  However, I discovered that everything is not
+fine.  The USB controller works so slowly that copying a few (uncached) 1
+megabyte large photos from a USB-enabled digital camera takes many minutes
+instead of a couple of seconds.
+
+I am using Linux 2.6.21.1 on a Debian 4.0 ("Etch") system.
+
+I thought that this might be related to ACPI.  So I tried to boot with _only_
+"acpi=force" appended to the kernel command line.  Voila, the USB controller
+started to work at full speed and copying photos from my digital camera took
+only seconds.
+
+I tested the system with "acpi=force" and could not find anything which did
+not work.  So, can we please remove Dell Optiplex GX240 from the blacklist in
+
+..../arch/i386/kernel/acpi/boot.c
+
+?  The attached patch does just that: It removes Dell Optiplex GX240 from the
+ACPI blacklist.
+
+I thought that this might be related to interrupts and APIC as well.  (Note
+that this is APIC, not ACPI.) I tried booting with _only_ "noapic" and
+"nolapic" appended to the command line.  Again, the USB controller started to
+work at full speed.
+
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bay.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ arch/i386/kernel/acpi/boot.c |    8 --------
+ 1 files changed, 8 deletions(-)
 
-diff -puN drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent drivers/acpi/bay.c
---- a/drivers/acpi/bay.c~acpi-bay-send-envp-with-uevent
-+++ a/drivers/acpi/bay.c
-@@ -333,18 +333,12 @@ static void bay_notify(acpi_handle handl
- {
- 	struct bay *bay_dev = (struct bay *)data;
- 	struct device *dev = &bay_dev->pdev->dev;
-+	char event_string[12];
-+	char *envp[] = { event_string, NULL };
- 
- 	bay_dprintk(handle, "Bay event");
--
--	switch(event) {
--	case ACPI_NOTIFY_BUS_CHECK:
--	case ACPI_NOTIFY_DEVICE_CHECK:
--	case ACPI_NOTIFY_EJECT_REQUEST:
--		kobject_uevent(&dev->kobj, KOBJ_CHANGE);
--		break;
--	default:
--		printk(KERN_ERR PREFIX "Bay: unknown event %d\n", event);
--	}
-+	sprintf(event_string, "BAY_EVENT=%d\n", event);
-+	kobject_uevent_env(&dev->kobj, KOBJ_CHANGE, envp);
- }
- 
- static acpi_status
+diff -puN arch/i386/kernel/acpi/boot.c~remove-dell-optiplex-gx240-from-the-acpi-blacklist arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~remove-dell-optiplex-gx240-from-the-acpi-blacklist
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -971,14 +971,6 @@ static struct dmi_system_id __initdata a
+ 	 },
+ 	{
+ 	 .callback = force_acpi_ht,
+-	 .ident = "DELL GX240",
+-	 .matches = {
+-		     DMI_MATCH(DMI_BOARD_VENDOR, "Dell Computer Corporation"),
+-		     DMI_MATCH(DMI_BOARD_NAME, "OptiPlex GX240"),
+-		     },
+-	 },
+-	{
+-	 .callback = force_acpi_ht,
+ 	 .ident = "HP VISUALIZE NT Workstation",
+ 	 .matches = {
+ 		     DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from tarrqt@yahoo.com are
 
 git-acpi.patch
-libata-check-for-an-support.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
-allow-aer-to-build-for-config_acpi-=-n.patch
