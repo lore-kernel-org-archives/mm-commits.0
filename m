@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-remove-old-cache-management-cruft-from-mm-code.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:05:16 -0700
-Message-ID: <200706042005.l54K5GY1016032@imap1.linux-foundation.org>
+Subject: + seq_file-more-atomicity-in-traverse.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:08:13 -0700
+Message-ID: <200706042008.l54K8D34017570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56506 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760192AbXFDUGB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:06:01 -0400
+	by vger.kernel.org with ESMTP id S1758422AbXFDUJA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:09:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gerg@snapgear.com, gerg@uclinux.org
+Cc: adobriyan@sw.ru, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     m68knommu: remove old cache management cruft from mm code
+     seq_file: more atomicity in traverse()
 has been added to the -mm tree.  Its filename is
-     m68knommu-remove-old-cache-management-cruft-from-mm-code.patch
+     seq_file-more-atomicity-in-traverse.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68knommu: remove old cache management cruft from mm code
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: seq_file: more atomicity in traverse()
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Remove cache management cruft.  This code is dead, all the cache manangement
-functions for the ColdFire exist in the header file
-include/asm-m68knommu/cacheflush.h.
+Original problem: in some circumstances seq_file interface can present
+infinite proc file to the following script when normally said proc file is
+finite:
 
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+	while read line; do
+		[do something with $line]
+	done </proc/$FILE
+
+bash, to implement such loop does essentially
+
+	read(0, buf, 128);
+	[find \n]
+	lseek(0, -difference, SEEK_CUR);
+
+Consider, proc file prints list of objects each of them consists of many
+lines, each line is shorter than 128 bytes.
+
+Two objects in list, with ->index'es being 0 and 1.  Current one is 1, as
+bash prints second object line by line.
+
+Imagine first object being removed right before lseek().
+traverse() will be called, because there is negative offset.
+traverse() will reset ->index to 0 (!).
+traverse() will call ->next() and get NULL in any usual iterate-over-list
+code using list_for_each_entry_continue() and such. There is one object in
+list now after all...
+traverse() will return 0, lseek() will update file position and pretend
+everything is OK.
+
+So, what we have now: ->f_pos points to place where second object will be
+printed, but ->index is 0.  seq_read() instead of returning EOF, will start
+printing first line of first object every time it's called, until enough
+objects are added to ->f_pos return in bounds.
+
+Fix is to update ->index only after we're sure we saw enough objects down
+the road.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/mm/memory.c |   80 -----------------------------------
- 1 files changed, 2 insertions(+), 78 deletions(-)
+ fs/seq_file.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN arch/m68knommu/mm/memory.c~m68knommu-remove-old-cache-management-cruft-from-mm-code arch/m68knommu/mm/memory.c
---- a/arch/m68knommu/mm/memory.c~m68knommu-remove-old-cache-management-cruft-from-mm-code
-+++ a/arch/m68knommu/mm/memory.c
-@@ -17,90 +17,14 @@
- #include <linux/types.h>
- #include <linux/slab.h>
+diff -puN fs/seq_file.c~seq_file-more-atomicity-in-traverse fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-more-atomicity-in-traverse
++++ a/fs/seq_file.c
+@@ -177,21 +177,23 @@ EXPORT_SYMBOL(seq_read);
  
--#include <asm/setup.h>
- #include <asm/segment.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
- #include <asm/system.h>
--#include <asm/traps.h>
--#include <asm/io.h>
+ static int traverse(struct seq_file *m, loff_t offset)
+ {
+-	loff_t pos = 0;
++	loff_t pos = 0, index;
+ 	int error = 0;
+ 	void *p;
  
- /*
-- * cache_clear() semantics: Clear any cache entries for the area in question,
-- * without writing back dirty entries first. This is useful if the data will
-- * be overwritten anyway, e.g. by DMA to memory. The range is defined by a
-- * _physical_ address.
-- */
--
--void cache_clear (unsigned long paddr, int len)
--{
--}
--
--
--/*
-- *	Define cache invalidate functions. The ColdFire 5407 is really
-- *	the only processor that needs to do some work here. Anything
-- *	that has separate data and instruction caches will be a problem.
-- */
--#ifdef CONFIG_M5407
--
--static __inline__ void cache_invalidate_lines(unsigned long paddr, int len)
--{
--	unsigned long	sset, eset;
--
--	sset = (paddr & 0x00000ff0);
--	eset = ((paddr + len) & 0x0000ff0) + 0x10;
--
--	__asm__ __volatile__ (
--		"nop\n\t"
--		"clrl	%%d0\n\t"
--		"1:\n\t"
--		"movel	%0,%%a0\n\t"
--		"addl	%%d0,%%a0\n\t"
--		"2:\n\t"
--		".word	0xf4e8\n\t"
--		"addl	#0x10,%%a0\n\t"
--		"cmpl	%1,%%a0\n\t"
--		"blt	2b\n\t"
--		"addql	#1,%%d0\n\t"
--		"cmpil	#4,%%d0\n\t"
--		"bne	1b"
--		: : "a" (sset), "a" (eset) : "d0", "a0" );
--}
--
--#else
--#define	cache_invalidate_lines(a,b)
--#endif
--
--
--/*
-- * cache_push() semantics: Write back any dirty cache data in the given area,
-- * and invalidate the range in the instruction cache. It needs not (but may)
-- * invalidate those entries also in the data cache. The range is defined by a
-- * _physical_ address.
-- */
--
--void cache_push (unsigned long paddr, int len)
--{
--	cache_invalidate_lines(paddr, len);
--}
--
--
--/*
-- * cache_push_v() semantics: Write back any dirty cache data in the given
-- * area, and invalidate those entries at least in the instruction cache. This
-- * is intended to be used after data has been written that can be executed as
-- * code later. The range is defined by a _user_mode_ _virtual_ address  (or,
-- * more exactly, the space is defined by the %sfc/%dfc register.)
-- */
--
--void cache_push_v (unsigned long vaddr, int len)
--{
--	cache_invalidate_lines(vaddr, len);
--}
--
--/* Map some physical address range into the kernel address space. The
-- * code is copied and adapted from map_chunk().
-+ * Map some physical address range into the kernel address space.
-+ * The code is copied and adapted from map_chunk().
-  */
- 
- unsigned long kernel_map(unsigned long paddr, unsigned long size,
+ 	m->version = 0;
+-	m->index = 0;
++	index = 0;
+ 	m->count = m->from = 0;
+-	if (!offset)
++	if (!offset) {
++		m->index = index;
+ 		return 0;
++	}
+ 	if (!m->buf) {
+ 		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
+ 		if (!m->buf)
+ 			return -ENOMEM;
+ 	}
+-	p = m->op->start(m, &m->index);
++	p = m->op->start(m, &index);
+ 	while (p) {
+ 		error = PTR_ERR(p);
+ 		if (IS_ERR(p))
+@@ -204,15 +206,17 @@ static int traverse(struct seq_file *m, 
+ 		if (pos + m->count > offset) {
+ 			m->from = offset - pos;
+ 			m->count -= m->from;
++			m->index = index;
+ 			break;
+ 		}
+ 		pos += m->count;
+ 		m->count = 0;
+ 		if (pos == offset) {
+-			m->index++;
++			index++;
++			m->index = index;
+ 			break;
+ 		}
+-		p = m->op->next(m, p, &m->index);
++		p = m->op->next(m, p, &index);
+ 	}
+ 	m->op->stop(m, p);
+ 	return error;
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-m68knommu-fix-coldfire-timer-off-by-1.patch
-nommu-stub-expand_stack-for-nommu-case.patch
-m68knommu-use-trhead_size-instead-of-hard-constant.patch
-m68knommu-remove-cruft-from-setup-code.patch
-m68knommu-remove-old-cache-management-cruft-from-mm-code.patch
-nommu-report-correct-errno-in-message.patch
+origin.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-cleanup.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+proc-environ-wrong-placing-of-ptrace_may_attach-check.patch
+mutex_unlock-later-in-seq_lseek.patch
+seq_file-more-atomicity-in-traverse.patch
