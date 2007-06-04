@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + sunxvr2500fb-fix-pseudo_palette-array-size.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:40:37 -0700
-Message-ID: <200706042040.l54Kebc0018451@imap1.linux-foundation.org>
+Subject: + tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:40:46 -0700
+Message-ID: <200706042040.l54Kekgs018485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33967 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42085 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753519AbXFDUkz (ORCPT
+	by vger.kernel.org with ESMTP id S1753494AbXFDUkz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:40:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     sunxvr2500fb: fix pseudo_palette array size
+     tridentfb: fix pseudo_palette array overrun in setcolreg
 has been added to the -mm tree.  Its filename is
-     sunxvr2500fb-fix-pseudo_palette-array-size.patch
+     tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sunxvr2500fb: fix pseudo_palette array size
+Subject: tridentfb: fix pseudo_palette array overrun in setcolreg
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- the pseudo_palette is only 16 elements long.
-- the pseudo_palette has only 16 elements. Do not write if regno (the array
-  index) is more than 15.
+The pseudo_palette has only 16 elements. Do not write if regno (the array
+index) is more than 15.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sunxvr2500.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/video/tridentfb.c |   30 ++++++++++++++++--------------
+ 1 files changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/sunxvr2500.c~sunxvr2500fb-fix-pseudo_palette-array-size drivers/video/sunxvr2500.c
---- a/drivers/video/sunxvr2500.c~sunxvr2500fb-fix-pseudo_palette-array-size
-+++ a/drivers/video/sunxvr2500.c
-@@ -28,7 +28,7 @@ struct s3d_info {
- 	unsigned int		depth;
- 	unsigned int		fb_size;
+diff -puN drivers/video/tridentfb.c~tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg
++++ a/drivers/video/tridentfb.c
+@@ -976,7 +976,7 @@ static int tridentfb_setcolreg(unsigned 
+ 		return 1;
  
--	u32			pseudo_palette[256];
-+	u32			pseudo_palette[16];
- };
  
- static int __devinit s3d_get_props(struct s3d_info *sp)
-@@ -52,15 +52,14 @@ static int s3d_setcolreg(unsigned regno,
- {
- 	u32 value;
+-	if (bpp==8) {
++	if (bpp == 8) {
+ 		t_outb(0xFF,0x3C6);
+ 		t_outb(regno,0x3C8);
  
--	if (regno >= 256)
--		return 1;
-+	if (regno < 16) {
-+		red >>= 8;
-+		green >>= 8;
-+		blue >>= 8;
+@@ -984,19 +984,21 @@ static int tridentfb_setcolreg(unsigned 
+ 		t_outb(green>>10,0x3C9);
+ 		t_outb(blue>>10,0x3C9);
  
--	red >>= 8;
--	green >>= 8;
--	blue >>= 8;
+-	} else if (bpp == 16) {	/* RGB 565 */
+-		u32 col;
 -
--	value = (blue << 24) | (green << 16) | (red << 8);
--	((u32 *)info->pseudo_palette)[regno] = value;
-+		value = (blue << 24) | (green << 16) | (red << 8);
-+		((u32 *)info->pseudo_palette)[regno] = value;
+-		col = (red & 0xF800) | ((green & 0xFC00) >> 5) |
+-			((blue & 0xF800) >> 11);
+-		col |= col << 16;	
+-		((u32 *)(info->pseudo_palette))[regno] = col;
+-	} else if (bpp == 32)		/* ARGB 8888 */
+-		((u32*)info->pseudo_palette)[regno] =
+-			((transp & 0xFF00) <<16) 	|
+-			((red & 0xFF00) << 8) 		|
+-			((green & 0xFF00))		|
+-			((blue & 0xFF00)>>8);
++	} else if (regno < 16) {
++		if (bpp == 16) {	/* RGB 565 */
++			u32 col;
++
++			col = (red & 0xF800) | ((green & 0xFC00) >> 5) |
++				((blue & 0xF800) >> 11);
++			col |= col << 16;
++			((u32 *)(info->pseudo_palette))[regno] = col;
++		} else if (bpp == 32)		/* ARGB 8888 */
++			((u32*)info->pseudo_palette)[regno] =
++				((transp & 0xFF00) <<16) 	|
++				((red & 0xFF00) << 8) 		|
++				((green & 0xFF00))		|
++				((blue & 0xFF00)>>8);
 +	}
  
+ //	debug("exit\n");
  	return 0;
- }
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
