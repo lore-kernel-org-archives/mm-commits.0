@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + loop-preallocate-eight-loop-devices.patch added to -mm tree
-Date: Mon, 04 Jun 2007 13:11:09 -0700
-Message-ID: <200706042011.l54KBALh017625@imap1.linux-foundation.org>
+Subject: + do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:17:16 -0700
+Message-ID: <200706042017.l54KHGdb017766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50784 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758415AbXFDULW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:11:22 -0400
+	by vger.kernel.org with ESMTP id S1759149AbXFDUSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kenchen@google.com, viro@zeniv.linux.org.uk
+Cc: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com
 
 
 The patch titled
-     loop: preallocate eight loop devices
+     Do not depend on MAX_ORDER when grouping pages by mobility
 has been added to the -mm tree.  Its filename is
-     loop-preallocate-eight-loop-devices.patch
+     do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,189 +25,362 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: loop: preallocate eight loop devices
-From: "Ken Chen" <kenchen@google.com>
+Subject: Do not depend on MAX_ORDER when grouping pages by mobility
+From: Mel Gorman <mel@csn.ul.ie>
 
-The kernel on-demand loop device instantiation breaks several user space
-tools as the tools are not ready to cope with the "on-demand feature".  Fix
-it by instantiate default 8 loop devices and also reinstate max_loop module
-parameter.
+Currently mobility grouping works at the MAX_ORDER_NR_PAGES level.  This makes
+sense for the majority of users where this is also the huge page size. 
+However, on platforms like ia64 where the huge page size is runtime
+configurable it is desirable to group at a lower order.  On x86_64 and
+occasionally on x86, the hugepage size may not always be MAX_ORDER_NR_PAGES.
 
-Signed-off-by: Ken Chen <kenchen@google.com>
-Acked-by: Al Viro <viro@zeniv.linux.org.uk>
+This patch groups pages together based on the value of HUGETLB_PAGE_ORDER.  It
+uses a compile-time constant if possible and a variable where the huge page
+size is runtime configurable.
+
+It is assumed that grouping should be done at the lowest sensible order and
+that the user would not want to override this.  If this is not true,
+page_block order could be forced to a variable initialised via a boot-time
+kernel parameter.
+
+One potential issue with this patch is that IA64 now parses hugepagesz with
+early_param() instead of __setup().  __setup() is called after the memory
+allocator has been initialised and the pageblock bitmaps already setup.  In
+tests on one IA64 there did not seem to be any problem with using
+early_param() and in fact may be more correct as it guarantees the parameter
+is handled before the parsing of hugepages=.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |  100 +++++++++++++++++++++++++++++++++--------
- 1 files changed, 82 insertions(+), 18 deletions(-)
+ arch/ia64/Kconfig               |    5 ++
+ arch/ia64/mm/hugetlbpage.c      |    4 -
+ include/linux/mmzone.h          |    4 -
+ include/linux/pageblock-flags.h |   25 ++++++++++-
+ mm/page_alloc.c                 |   67 +++++++++++++++++++++---------
+ 5 files changed, 80 insertions(+), 25 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-preallocate-eight-loop-devices drivers/block/loop.c
---- a/drivers/block/loop.c~loop-preallocate-eight-loop-devices
-+++ a/drivers/block/loop.c
-@@ -1354,7 +1354,7 @@ static struct block_device_operations lo
+diff -puN arch/ia64/Kconfig~do-not-depend-on-max_order-when-grouping-pages-by-mobility arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~do-not-depend-on-max_order-when-grouping-pages-by-mobility
++++ a/arch/ia64/Kconfig
+@@ -54,6 +54,11 @@ config ARCH_HAS_ILOG2_U64
+ 	bool
+ 	default n
+ 
++config HUGETLB_PAGE_SIZE_VARIABLE
++	bool
++	depends on HUGETLB_PAGE
++	default y
++
+ config GENERIC_FIND_NEXT_BIT
+ 	bool
+ 	default y
+diff -puN arch/ia64/mm/hugetlbpage.c~do-not-depend-on-max_order-when-grouping-pages-by-mobility arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~do-not-depend-on-max_order-when-grouping-pages-by-mobility
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -195,6 +195,6 @@ static int __init hugetlb_setup_sz(char 
+ 	 * override here with new page shift.
+ 	 */
+ 	ia64_set_rr(HPAGE_REGION_BASE, hpage_shift << 2);
+-	return 1;
++	return 0;
+ }
+-__setup("hugepagesz=", hugetlb_setup_sz);
++early_param("hugepagesz", hugetlb_setup_sz);
+diff -puN include/linux/mmzone.h~do-not-depend-on-max_order-when-grouping-pages-by-mobility include/linux/mmzone.h
+--- a/include/linux/mmzone.h~do-not-depend-on-max_order-when-grouping-pages-by-mobility
++++ a/include/linux/mmzone.h
+@@ -226,7 +226,7 @@ struct zone {
+ 
+ #ifndef CONFIG_SPARSEMEM
+ 	/*
+-	 * Flags for a MAX_ORDER_NR_PAGES block. See pageblock-flags.h.
++	 * Flags for a pageblock_nr_pages block. See pageblock-flags.h.
+ 	 * In SPARSEMEM, this map is stored in struct mem_section
+ 	 */
+ 	unsigned long		*pageblock_flags;
+@@ -687,7 +687,7 @@ extern struct zone *next_zone(struct zon
+ #define PAGE_SECTION_MASK	(~(PAGES_PER_SECTION-1))
+ 
+ #define SECTION_BLOCKFLAGS_BITS \
+-		((1 << (PFN_SECTION_SHIFT - (MAX_ORDER-1))) * NR_PAGEBLOCK_BITS)
++	((1UL << (PFN_SECTION_SHIFT - pageblock_order)) * NR_PAGEBLOCK_BITS)
+ 
+ #if (MAX_ORDER - 1 + PAGE_SHIFT) > SECTION_SIZE_BITS
+ #error Allocator MAX_ORDER exceeds SECTION_SIZE
+diff -puN include/linux/pageblock-flags.h~do-not-depend-on-max_order-when-grouping-pages-by-mobility include/linux/pageblock-flags.h
+--- a/include/linux/pageblock-flags.h~do-not-depend-on-max_order-when-grouping-pages-by-mobility
++++ a/include/linux/pageblock-flags.h
+@@ -1,6 +1,6 @@
+ /*
+  * Macros for manipulating and testing flags related to a
+- * MAX_ORDER_NR_PAGES block of pages.
++ * pageblock_nr_pages number of pages.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -35,6 +35,29 @@ enum pageblock_bits {
+ 	NR_PAGEBLOCK_BITS
+ };
+ 
++#ifdef CONFIG_HUGETLB_PAGE
++
++#ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
++
++/* Huge page sizes are variable */
++extern int pageblock_order;
++
++#else /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
++
++/* Huge pages are a constant size */
++#define pageblock_order		HUGETLB_PAGE_ORDER
++
++#endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
++
++#else /* CONFIG_HUGETLB_PAGE */
++
++/* If huge pages are not used, group by MAX_ORDER_NR_PAGES */
++#define pageblock_order		(MAX_ORDER-1)
++
++#endif /* CONFIG_HUGETLB_PAGE */
++
++#define pageblock_nr_pages	(1UL << pageblock_order)
++
+ /* Forward declaration */
+ struct page;
+ 
+diff -puN mm/page_alloc.c~do-not-depend-on-max_order-when-grouping-pages-by-mobility mm/page_alloc.c
+--- a/mm/page_alloc.c~do-not-depend-on-max_order-when-grouping-pages-by-mobility
++++ a/mm/page_alloc.c
+@@ -59,6 +59,10 @@ unsigned long totalreserve_pages __read_
+ long nr_swap_pages;
+ int percpu_pagelist_fraction;
+ 
++#ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
++int pageblock_order __read_mostly;
++#endif
++
+ static void __free_pages_ok(struct page *page, unsigned int order);
+ 
+ /*
+@@ -689,7 +693,7 @@ static int fallbacks[MIGRATE_TYPES][MIGR
+ 
+ /*
+  * Move the free pages in a range to the free lists of the requested type.
+- * Note that start_page and end_pages are not aligned in a MAX_ORDER_NR_PAGES
++ * Note that start_page and end_pages are not aligned on a pageblock
+  * boundary. If alignment is required, use move_freepages_block()
   */
- static int max_loop;
- module_param(max_loop, int, 0);
--MODULE_PARM_DESC(max_loop, "obsolete, loop device is created on-demand");
-+MODULE_PARM_DESC(max_loop, "Maximum number of loop devices");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_BLOCKDEV_MAJOR(LOOP_MAJOR);
+ int move_freepages(struct zone *zone,
+@@ -739,10 +743,10 @@ int move_freepages_block(struct zone *zo
+ 	struct page *start_page, *end_page;
  
-@@ -1394,16 +1394,11 @@ int loop_unregister_transfer(int number)
- EXPORT_SYMBOL(loop_register_transfer);
- EXPORT_SYMBOL(loop_unregister_transfer);
+ 	start_pfn = page_to_pfn(page);
+-	start_pfn = start_pfn & ~(MAX_ORDER_NR_PAGES-1);
++	start_pfn = start_pfn & ~(pageblock_nr_pages-1);
+ 	start_page = pfn_to_page(start_pfn);
+-	end_page = start_page + MAX_ORDER_NR_PAGES - 1;
+-	end_pfn = start_pfn + MAX_ORDER_NR_PAGES - 1;
++	end_page = start_page + pageblock_nr_pages - 1;
++	end_pfn = start_pfn + pageblock_nr_pages - 1;
  
--static struct loop_device *loop_init_one(int i)
-+static struct loop_device *loop_alloc(int i)
+ 	/* Do not cross zone boundaries */
+ 	if (start_pfn < zone->zone_start_pfn)
+@@ -806,14 +810,14 @@ static struct page *__rmqueue_fallback(s
+ 			 * back for a reclaimable kernel allocation, be more
+ 			 * agressive about taking ownership of free pages
+ 			 */
+-			if (unlikely(current_order >= MAX_ORDER / 2) ||
++			if (unlikely(current_order >= (pageblock_order >> 1)) ||
+ 					start_migratetype == MIGRATE_RECLAIMABLE) {
+ 				unsigned long pages;
+ 				pages = move_freepages_block(zone, page,
+ 								start_migratetype);
+ 
+ 				/* Claim the whole block if over half of it is free */
+-				if (pages >= (1 << (MAX_ORDER-2)))
++				if (pages >= (1 << (pageblock_order-1)))
+ 					set_pageblock_migratetype(page,
+ 								start_migratetype);
+ 
+@@ -826,7 +830,7 @@ static struct page *__rmqueue_fallback(s
+ 			__mod_zone_page_state(zone, NR_FREE_PAGES,
+ 							-(1UL << order));
+ 
+-			if (current_order == MAX_ORDER - 1)
++			if (current_order == pageblock_order)
+ 				set_pageblock_migratetype(page,
+ 							start_migratetype);
+ 
+@@ -2315,7 +2319,7 @@ void build_all_zonelists(void)
+ 	 * made on memory-hotadd so a system can start with mobility
+ 	 * disabled and enable it later
+ 	 */
+-	if (vm_total_pages < (MAX_ORDER_NR_PAGES * MIGRATE_TYPES))
++	if (vm_total_pages < (pageblock_nr_pages * MIGRATE_TYPES))
+ 		page_group_by_mobility_disabled = 1;
+ 	else
+ 		page_group_by_mobility_disabled = 0;
+@@ -2400,7 +2404,7 @@ static inline unsigned long wait_table_b
+ #define LONG_ALIGN(x) (((x)+(sizeof(long))-1)&~((sizeof(long))-1))
+ 
+ /*
+- * Mark a number of MAX_ORDER_NR_PAGES blocks as MIGRATE_RESERVE. The number
++ * Mark a number of pageblocks as MIGRATE_RESERVE. The number
+  * of blocks reserved is based on zone->pages_min. The memory within the
+  * reserve will tend to store contiguous free pages. Setting min_free_kbytes
+  * higher will lead to a bigger reserve which will get freed as contiguous
+@@ -2415,9 +2419,10 @@ static void setup_zone_migrate_reserve(s
+ 	/* Get the start pfn, end pfn and the number of blocks to reserve */
+ 	start_pfn = zone->zone_start_pfn;
+ 	end_pfn = start_pfn + zone->spanned_pages;
+-	reserve = roundup(zone->pages_min, MAX_ORDER_NR_PAGES) >> (MAX_ORDER-1);
++	reserve = roundup(zone->pages_min, pageblock_nr_pages) >>
++							pageblock_order;
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn += MAX_ORDER_NR_PAGES) {
++	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		if (!pfn_valid(pfn))
+ 			continue;
+ 		page = pfn_to_page(pfn);
+@@ -2492,7 +2497,7 @@ void __meminit memmap_init_zone(unsigned
+ 		 * the start are marked MIGRATE_RESERVE by
+ 		 * setup_zone_migrate_reserve()
+ 		 */
+-		if ((pfn & (MAX_ORDER_NR_PAGES-1)))
++		if ((pfn & (pageblock_nr_pages-1)))
+ 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 
+ 		INIT_LIST_HEAD(&page->lru);
+@@ -3130,8 +3135,8 @@ static void __meminit calculate_node_tot
+ #ifndef CONFIG_SPARSEMEM
+ /*
+  * Calculate the size of the zone->blockflags rounded to an unsigned long
+- * Start by making sure zonesize is a multiple of MAX_ORDER-1 by rounding up
+- * Then figure 1 NR_PAGEBLOCK_BITS worth of bits per MAX_ORDER-1, finally
++ * Start by making sure zonesize is a multiple of pageblock_order by rounding
++ * up. Then use 1 NR_PAGEBLOCK_BITS worth of bits per pageblock, finally
+  * round what is now in bits to nearest long in bits, then return it in
+  * bytes.
+  */
+@@ -3139,8 +3144,8 @@ static unsigned long __init usemap_size(
  {
- 	struct loop_device *lo;
- 	struct gendisk *disk;
+ 	unsigned long usemapsize;
  
--	list_for_each_entry(lo, &loop_devices, lo_list) {
--		if (lo->lo_number == i)
--			return lo;
--	}
--
- 	lo = kzalloc(sizeof(*lo), GFP_KERNEL);
- 	if (!lo)
- 		goto out;
-@@ -1427,8 +1422,6 @@ static struct loop_device *loop_init_one
- 	disk->private_data	= lo;
- 	disk->queue		= lo->lo_queue;
- 	sprintf(disk->disk_name, "loop%d", i);
--	add_disk(disk);
--	list_add_tail(&lo->lo_list, &loop_devices);
- 	return lo;
+-	usemapsize = roundup(zonesize, MAX_ORDER_NR_PAGES);
+-	usemapsize = usemapsize >> (MAX_ORDER-1);
++	usemapsize = roundup(zonesize, pageblock_nr_pages);
++	usemapsize = usemapsize >> pageblock_order;
+ 	usemapsize *= NR_PAGEBLOCK_BITS;
+ 	usemapsize = roundup(usemapsize, 8 * sizeof(unsigned long));
  
- out_free_queue:
-@@ -1439,15 +1432,37 @@ out:
- 	return NULL;
- }
+@@ -3162,6 +3167,27 @@ static void inline setup_usemap(struct p
+ 				struct zone *zone, unsigned long zonesize) {}
+ #endif /* CONFIG_SPARSEMEM */
  
--static void loop_del_one(struct loop_device *lo)
-+static void loop_free(struct loop_device *lo)
- {
--	del_gendisk(lo->lo_disk);
- 	blk_cleanup_queue(lo->lo_queue);
- 	put_disk(lo->lo_disk);
- 	list_del(&lo->lo_list);
- 	kfree(lo);
- }
- 
-+static struct loop_device *loop_init_one(int i)
++#ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
++/* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
++static inline void __init set_pageblock_order(unsigned int order)
 +{
-+	struct loop_device *lo;
-+
-+	list_for_each_entry(lo, &loop_devices, lo_list) {
-+		if (lo->lo_number == i)
-+			return lo;
-+	}
-+
-+	lo = loop_alloc(i);
-+	if (lo) {
-+		add_disk(lo->lo_disk);
-+		list_add_tail(&lo->lo_list, &loop_devices);
-+	}
-+	return lo;
-+}
-+
-+static void loop_del_one(struct loop_device *lo)
-+{
-+	del_gendisk(lo->lo_disk);
-+	loop_free(lo);
-+}
-+
- static struct kobject *loop_probe(dev_t dev, int *part, void *data)
- {
- 	struct loop_device *lo;
-@@ -1464,28 +1479,77 @@ static struct kobject *loop_probe(dev_t 
- 
- static int __init loop_init(void)
- {
--	if (register_blkdev(LOOP_MAJOR, "loop"))
--		return -EIO;
--	blk_register_region(MKDEV(LOOP_MAJOR, 0), 1UL << MINORBITS,
--				  THIS_MODULE, loop_probe, NULL, NULL);
-+	int i, nr;
-+	unsigned long range;
-+	struct loop_device *lo, *next;
++	/* Check that pageblock_nr_pages has not already been setup */
++	if (pageblock_order)
++		return;
 +
 +	/*
-+	 * loop module now has a feature to instantiate underlying device
-+	 * structure on-demand, provided that there is an access dev node.
-+	 * However, this will not work well with user space tool that doesn't
-+	 * know about such "feature".  In order to not break any existing
-+	 * tool, we do the following:
-+	 *
-+	 * (1) if max_loop is specified, create that many upfront, and this
-+	 *     also becomes a hard limit.
-+	 * (2) if max_loop is not specified, create 8 loop device on module
-+	 *     load, user can further extend loop device by create dev node
-+	 *     themselves and have kernel automatically instantiate actual
-+	 *     device on-demand.
++	 * Assume the largest contiguous order of interest is a huge page.
++	 * This value may be variable depending on boot parameters on IA64
 +	 */
-+	if (max_loop > 1UL << MINORBITS)
-+		return -EINVAL;
++	pageblock_order = order;
++}
++#else /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
++
++/* Defined this way to avoid accidently referencing HUGETLB_PAGE_ORDER */
++#define set_pageblock_order(x)	do {} while (0)
++
++#endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
++
+ /*
+  * Set up the zone data structures:
+  *   - mark all pages reserved
+@@ -3242,6 +3268,7 @@ static void __meminit free_area_init_cor
+ 		if (!size)
+ 			continue;
  
- 	if (max_loop) {
--		printk(KERN_INFO "loop: the max_loop option is obsolete "
--				 "and will be removed in March 2008\n");
-+		nr = max_loop;
-+		range = max_loop;
-+	} else {
-+		nr = 8;
-+		range = 1UL << MINORBITS;
-+	}
- 
-+	if (register_blkdev(LOOP_MAJOR, "loop"))
-+		return -EIO;
-+
-+	for (i = 0; i < nr; i++) {
-+		lo = loop_alloc(i);
-+		if (!lo)
-+			goto Enomem;
-+		list_add_tail(&lo->lo_list, &loop_devices);
- 	}
-+
-+	/* point of no return */
-+
-+	list_for_each_entry(lo, &loop_devices, lo_list)
-+		add_disk(lo->lo_disk);
-+
-+	blk_register_region(MKDEV(LOOP_MAJOR, 0), range,
-+				  THIS_MODULE, loop_probe, NULL, NULL);
-+
- 	printk(KERN_INFO "loop: module loaded\n");
- 	return 0;
-+
-+Enomem:
-+	printk(KERN_INFO "loop: out of memory\n");
-+
-+	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
-+		loop_free(lo);
-+
-+	unregister_blkdev(LOOP_MAJOR, "loop");
-+	return -ENOMEM;
- }
- 
- static void __exit loop_exit(void)
++		set_pageblock_order(HUGETLB_PAGE_ORDER);
+ 		setup_usemap(pgdat, zone, size);
+ 		ret = init_currently_empty_zone(zone, zone_start_pfn,
+ 						size, MEMMAP_EARLY);
+@@ -4006,15 +4033,15 @@ static inline int pfn_to_bitidx(struct z
  {
-+	unsigned long range;
- 	struct loop_device *lo, *next;
- 
-+	range = max_loop ? max_loop :  1UL << MINORBITS;
-+
- 	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
- 		loop_del_one(lo);
- 
--	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), 1UL << MINORBITS);
-+	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
- 	if (unregister_blkdev(LOOP_MAJOR, "loop"))
- 		printk(KERN_WARNING "loop: cannot unregister blkdev\n");
+ #ifdef CONFIG_SPARSEMEM
+ 	pfn &= (PAGES_PER_SECTION-1);
+-	return (pfn >> (MAX_ORDER-1)) * NR_PAGEBLOCK_BITS;
++	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
+ #else
+ 	pfn = pfn - zone->zone_start_pfn;
+-	return (pfn >> (MAX_ORDER-1)) * NR_PAGEBLOCK_BITS;
++	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
+ #endif /* CONFIG_SPARSEMEM */
  }
+ 
+ /**
+- * get_pageblock_flags_group - Return the requested group of flags for the MAX_ORDER_NR_PAGES block of pages
++ * get_pageblock_flags_group - Return the requested group of flags for the pageblock_nr_pages block of pages
+  * @page: The page within the block of interest
+  * @start_bitidx: The first bit of interest to retrieve
+  * @end_bitidx: The last bit of interest
+@@ -4042,7 +4069,7 @@ unsigned long get_pageblock_flags_group(
+ }
+ 
+ /**
+- * set_pageblock_flags_group - Set the requested group of flags for a MAX_ORDER_NR_PAGES block of pages
++ * set_pageblock_flags_group - Set the requested group of flags for a pageblock_nr_pages block of pages
+  * @page: The page within the block of interest
+  * @start_bitidx: The first bit of interest
+  * @end_bitidx: The last bit of interest
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-loop-preallocate-eight-loop-devices.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
