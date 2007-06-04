@@ -1,162 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - trim-memory-not-covered-by-mtrr-wb-type.patch removed from -mm tree
-Date: Mon, 04 Jun 2007 13:01:29 -0700
-Message-ID: <200706042001.l54K1TNI013661@imap1.linux-foundation.org>
+Subject: + smc91x-sh-solution-engine-fixes.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:02:23 -0700
+Message-ID: <200706042002.l54K2NWd014161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56229 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56884 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759009AbXFDUBk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:01:40 -0400
+	by vger.kernel.org with ESMTP id S1760126AbXFDUCc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:02:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesse.barnes@intel.com, ak@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lethal@linux-sh.org
 
 
 The patch titled
-     i386: trim memory not covered by MTRR WB type
-has been removed from the -mm tree.  Its filename was
-     trim-memory-not-covered-by-mtrr-wb-type.patch
+     smc91x: sh solution engine fixes
+has been added to the -mm tree.  Its filename is
+     smc91x-sh-solution-engine-fixes.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: i386: trim memory not covered by MTRR WB type
-From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: smc91x: sh solution engine fixes
+From: Paul Mundt <lethal@linux-sh.org>
 
-I've seen a few machines lately that don't map all their memory WB via the
-MTRRs.  It tends to happen at large memory configurations (at least for
-desktops, >3G or so), and is really a BIOS bug.  But it would be nice if
-the kernel could warn the user and continue, rather than just run horribly
-slowly.
+The current smc91x I/O routines ifdef the solution engine subtypes
+individually, which is rather bogus, as they can simply use
+CONFIG_SOLUTION_ENGINE instead.  This fixes it for some of the other
+solution engines that weren't included in the ifdef list (SH7206
+specifically).
 
-This patch assumes that the unmapped memory occurs at the end of the memory
-configuration, and adjusts end_pfn accordingly.  It works ok on my machine
-(correctly detects the condition, adjusts end_pfn, and keeps the machine
-fast), aside from the fact that X won't start.  So I obviously broke
-something by making the MTRR system init so much earlier.
+There are also inb/outb definitions which are totally bogus (missing
+brackets in _both_ cases, SMC_CAN_USE_8BIT == 0, and even better, they try
+to use a 16-bit access to fake 8-bit access).  Kill that nonsense off
+completely.
 
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |   33 ++++++++++++++++++++++-------
- arch/x86_64/kernel/bugs.c        |    1 
- arch/x86_64/kernel/setup.c       |    4 +++
- include/asm-x86_64/mtrr.h        |    1 
- 4 files changed, 31 insertions(+), 8 deletions(-)
+ drivers/net/smc91x.h |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~trim-memory-not-covered-by-mtrr-wb-type arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -38,8 +38,8 @@
- #include <linux/cpu.h>
- #include <linux/mutex.h>
+diff -puN drivers/net/smc91x.h~smc91x-sh-solution-engine-fixes drivers/net/smc91x.h
+--- a/drivers/net/smc91x.h~smc91x-sh-solution-engine-fixes
++++ a/drivers/net/smc91x.h
+@@ -281,17 +281,14 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
  
-+#include <asm/e820.h>
- #include <asm/mtrr.h>
+ #elif   defined(CONFIG_SUPERH)
+ 
+-#if defined(CONFIG_SH_7780_SOLUTION_ENGINE) || defined(CONFIG_SH_7722_SOLUTION_ENGINE)
++#ifdef CONFIG_SOLUTION_ENGINE
+ #define SMC_CAN_USE_8BIT       0
+ #define SMC_CAN_USE_16BIT      1
+ #define SMC_CAN_USE_32BIT      0
+ #define SMC_IO_SHIFT           0
+ #define SMC_NOWAIT             1
+ 
+-#define SMC_inb(a, r)          (inw((a) + ((r)&~1)) >> (8*(r%2)))&0xff
+ #define SMC_inw(a, r)          inw((a) + (r))
+-#define SMC_outb(v, a, r)      outw(((inw((a)+((r)&~1))*(0xff<<8*(r%2)))) | ((v)<<(8*(r&2)))), (a) + ((r)&~1))
 -
- #include <asm/uaccess.h>
- #include <asm/processor.h>
- #include <asm/msr.h>
-@@ -47,7 +47,8 @@
- 
- u32 num_var_ranges = 0;
- 
--unsigned int *usage_table;
-+#define MAX_MTRR_RANGES 255
-+unsigned int usage_table[MAX_MTRR_RANGES];
- static DEFINE_MUTEX(mtrr_mutex);
- 
- u64 size_or_mask, size_and_mask;
-@@ -126,11 +127,6 @@ static void __init init_table(void)
- 	}
- 
- 	max = num_var_ranges;
--	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
--	    == NULL) {
--		printk(KERN_ERR "mtrr: could not allocate\n");
--		return;
--	}
- 	for (i = 0; i < max; i++)
- 		usage_table[i] = 1;
- }
-@@ -636,6 +632,29 @@ static struct sysdev_driver mtrr_sysdev_
- 	.resume		= mtrr_restore,
- };
- 
-+void __init mtrr_trim_uncached_memory(void)
-+{
-+	unsigned long i, base, size, highest_addr = 0;
-+	mtrr_type type;
-+
-+	/* Find highest cached pfn */
-+	for (i = 0; i < num_var_ranges; i++) {
-+		mtrr_if->get(i, &base, &size, &type);
-+		if (type != MTRR_TYPE_WRBACK)
-+			continue;
-+		base <<= PAGE_SHIFT;
-+		size <<= PAGE_SHIFT;
-+		if (highest_addr < base + size)
-+			highest_addr = base + size;
-+	}
-+
-+	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
-+		printk(KERN_WARNING "Warning:  MTRRs don't cover all of "
-+		       "memory, trimmed %ld pages\n", end_pfn -
-+		       (highest_addr >> PAGE_SHIFT));
-+		end_pfn = highest_addr >> PAGE_SHIFT;
-+	}
-+}
- 
- /**
-  * mtrr_bp_init - initialize mtrrs on the boot CPU
-diff -puN arch/x86_64/kernel/bugs.c~trim-memory-not-covered-by-mtrr-wb-type arch/x86_64/kernel/bugs.c
---- a/arch/x86_64/kernel/bugs.c~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/arch/x86_64/kernel/bugs.c
-@@ -14,7 +14,6 @@
- void __init check_bugs(void)
- {
- 	identify_cpu(&boot_cpu_data);
--	mtrr_bp_init();
- #if !defined(CONFIG_SMP)
- 	printk("CPU: ");
- 	print_cpu_info(&boot_cpu_data);
-diff -puN arch/x86_64/kernel/setup.c~trim-memory-not-covered-by-mtrr-wb-type arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/arch/x86_64/kernel/setup.c
-@@ -266,6 +266,10 @@ void __init setup_arch(char **cmdline_p)
- 	 * we are rounding upwards:
- 	 */
- 	end_pfn = e820_end_of_ram();
-+	/* Trim memory not covered by WB MTRRs */
-+	mtrr_bp_init();
-+	mtrr_trim_uncached_memory();
-+
- 	num_physpages = end_pfn;
- 
- 	check_efer();
-diff -puN include/asm-x86_64/mtrr.h~trim-memory-not-covered-by-mtrr-wb-type include/asm-x86_64/mtrr.h
---- a/include/asm-x86_64/mtrr.h~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/include/asm-x86_64/mtrr.h
-@@ -78,6 +78,7 @@ extern int mtrr_add_page (unsigned long 
- 		     unsigned int type, char increment);
- extern int mtrr_del (int reg, unsigned long base, unsigned long size);
- extern int mtrr_del_page (int reg, unsigned long base, unsigned long size);
-+extern void mtrr_trim_uncached_memory(void);
- #  else
- static __inline__ int mtrr_add (unsigned long base, unsigned long size,
- 				unsigned int type, char increment)
+ #define SMC_outw(v, a, r)      outw(v, (a) + (r))
+ #define SMC_insw(a, r, p, l)   insw((a) + (r), p, l)
+ #define SMC_outsw(a, r, p, l)  outsw((a) + (r), p, l)
 _
 
-Patches currently in -mm which might be from jesse.barnes@intel.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-remove-pci_dac_dma_-apis.patch
-trim-memory-not-covered-by-mtrr-wb-type.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-vt-add-comment-for-unbind_con_driver.patch
+origin.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+smc91x-sh-solution-engine-fixes.patch
+slab-fix-slab-debug-for-non-alien-caches.patch
