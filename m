@@ -1,75 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - smc91x-sh-solution-engine-fixes.patch removed from -mm tree
-Date: Mon, 04 Jun 2007 13:56:40 -0700
-Message-ID: <200706042056.l54KucGm018912@imap1.linux-foundation.org>
+Subject: + fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch added to -mm tree
+Date: Mon, 04 Jun 2007 14:17:16 -0700
+Message-ID: <200706042117.l54LHGhK019373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758070AbXFDU4q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:46 -0400
+	by vger.kernel.org with ESMTP id S1752104AbXFDVRf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 17:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@stusta.de, ak@suse.de, jeremy@goop.org
 
 
 The patch titled
-     smc91x: sh solution engine fixes
-has been removed from the -mm tree.  Its filename was
-     smc91x-sh-solution-engine-fixes.patch
+     fix XEN_BLKDEV_FRONTEND Makefile entry
+has been added to the -mm tree.  Its filename is
+     fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: smc91x: sh solution engine fixes
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: fix XEN_BLKDEV_FRONTEND Makefile entry
+From: Adrian Bunk <bunk@stusta.de>
 
-The current smc91x I/O routines ifdef the solution engine subtypes
-individually, which is rather bogus, as they can simply use
-CONFIG_SOLUTION_ENGINE instead.  This fixes it for some of the other
-solution engines that weren't included in the ifdef list (SH7206
-specifically).
+CONFIG_XEN_BLKDEV_FRONTEND shouldn't silently prevent the compilation of
+most other block drivers.
 
-There are also inb/outb definitions which are totally bogus (missing
-brackets in _both_ cases, SMC_CAN_USE_8BIT == 0, and even better, they try
-to use a 16-bit access to fake 8-bit access).  Kill that nonsense off
-completely.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.h |    5 +----
- 1 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/block/Makefile |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/smc91x.h~smc91x-sh-solution-engine-fixes drivers/net/smc91x.h
---- a/drivers/net/smc91x.h~smc91x-sh-solution-engine-fixes
-+++ a/drivers/net/smc91x.h
-@@ -281,17 +281,14 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+diff -puN drivers/block/Makefile~fix-x86_64-mm-xen-add-xen-virtual-block-device-driver drivers/block/Makefile
+--- a/drivers/block/Makefile~fix-x86_64-mm-xen-add-xen-virtual-block-device-driver
++++ a/drivers/block/Makefile
+@@ -28,6 +28,6 @@ obj-$(CONFIG_BLK_DEV_CRYPTOLOOP) += cryp
+ obj-$(CONFIG_VIODASD)		+= viodasd.o
+ obj-$(CONFIG_BLK_DEV_SX8)	+= sx8.o
+ obj-$(CONFIG_BLK_DEV_UB)	+= ub.o
+-obj-$(CONFIG_XEN_BLKDEV_FRONTEND) := xen-blkfront.o
++obj-$(CONFIG_XEN_BLKDEV_FRONTEND) += xen-blkfront.o
+ obj-$(CONFIG_XILINX_SYSACE)	+= xsysace.o
  
- #elif   defined(CONFIG_SUPERH)
- 
--#if defined(CONFIG_SH_7780_SOLUTION_ENGINE) || defined(CONFIG_SH_7722_SOLUTION_ENGINE)
-+#ifdef CONFIG_SOLUTION_ENGINE
- #define SMC_CAN_USE_8BIT       0
- #define SMC_CAN_USE_16BIT      1
- #define SMC_CAN_USE_32BIT      0
- #define SMC_IO_SHIFT           0
- #define SMC_NOWAIT             1
- 
--#define SMC_inb(a, r)          (inw((a) + ((r)&~1)) >> (8*(r%2)))&0xff
- #define SMC_inw(a, r)          inw((a) + (r))
--#define SMC_outb(v, a, r)      outw(((inw((a)+((r)&~1))*(0xff<<8*(r%2)))) | ((v)<<(8*(r&2)))), (a) + ((r)&~1))
--
- #define SMC_outw(v, a, r)      outw(v, (a) + (r))
- #define SMC_insw(a, r, p, l)   insw((a) + (r), p, l)
- #define SMC_outsw(a, r, p, l)  outsw((a) + (r), p, l)
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-sh.patch
-slab-fix-slab-debug-for-non-alien-caches.patch
-pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+git-acpi.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-battery.patch
+unexport-pci_proc_attach_device.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
