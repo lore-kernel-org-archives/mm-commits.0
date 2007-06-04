@@ -1,113 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - input-reduce-raciness-when-input-handlers-disconnect.patch removed from -mm tree
-Date: Mon, 04 Jun 2007 13:56:34 -0700
-Message-ID: <200706042056.l54KuWRE018901@imap1.linux-foundation.org>
+Subject: + intelfb-the-pseudo_palette-is-only-16-elements-long.patch added to -mm tree
+Date: Mon, 04 Jun 2007 13:41:01 -0700
+Message-ID: <200706042041.l54Kf1Bc018503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44511 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45179 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757999AbXFDU4t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:49 -0400
+	by vger.kernel.org with ESMTP id S1757215AbXFDU4v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 16:56:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dtor@insightbb.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     Input: reduce raciness when input handlers disconnect
-has been removed from the -mm tree.  Its filename was
-     input-reduce-raciness-when-input-handlers-disconnect.patch
+     intelfb: the pseudo_palette is only 16 elements long
+has been added to the -mm tree.  Its filename is
+     intelfb-the-pseudo_palette-is-only-16-elements-long.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Input: reduce raciness when input handlers disconnect
-From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: intelfb: the pseudo_palette is only 16 elements long
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-There is a race between input handler's release() and disconnect() methods:
-when input handler disconnects it wakes up all regular users and then process
-to walk user list to wake up async.  users.  While disconnect() walks the list
-release() removes elements of the same list causing oopses.
+The pseudo_palette is only 16 elements long.
 
-While this is not a substitute for proper locking we can reduce odds of
-getting an oops if we wake up normal readers after walking the list.
-
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/evdev.c    |    2 +-
- drivers/input/joydev.c   |    2 +-
- drivers/input/mousedev.c |    2 +-
- drivers/input/tsdev.c    |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/intelfb/intelfb.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/evdev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/evdev.c
---- a/drivers/input/evdev.c~input-reduce-raciness-when-input-handlers-disconnect
-+++ a/drivers/input/evdev.c
-@@ -699,9 +699,9 @@ static void evdev_disconnect(struct inpu
- 	if (evdev->open) {
- 		input_flush_device(handle, NULL);
- 		input_close_device(handle);
--		wake_up_interruptible(&evdev->wait);
- 		list_for_each_entry(client, &evdev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
-+		wake_up_interruptible(&evdev->wait);
- 	} else
- 		evdev_free(evdev);
- }
-diff -puN drivers/input/joydev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/joydev.c
---- a/drivers/input/joydev.c~input-reduce-raciness-when-input-handlers-disconnect
-+++ a/drivers/input/joydev.c
-@@ -619,9 +619,9 @@ static void joydev_disconnect(struct inp
+diff -puN drivers/video/intelfb/intelfb.h~intelfb-the-pseudo_palette-is-only-16-elements-long drivers/video/intelfb/intelfb.h
+--- a/drivers/video/intelfb/intelfb.h~intelfb-the-pseudo_palette-is-only-16-elements-long
++++ a/drivers/video/intelfb/intelfb.h
+@@ -302,7 +302,7 @@ struct intelfb_info {
+ 	u32 ring_lockup;
  
- 	if (joydev->open) {
- 		input_close_device(handle);
--		wake_up_interruptible(&joydev->wait);
- 		list_for_each_entry(client, &joydev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
-+		wake_up_interruptible(&joydev->wait);
- 	} else
- 		joydev_free(joydev);
- }
-diff -puN drivers/input/mousedev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~input-reduce-raciness-when-input-handlers-disconnect
-+++ a/drivers/input/mousedev.c
-@@ -766,9 +766,9 @@ static void mousedev_disconnect(struct i
+ 	/* palette */
+-	u32 pseudo_palette[17];
++	u32 pseudo_palette[16];
  
- 	if (mousedev->open) {
- 		input_close_device(handle);
--		wake_up_interruptible(&mousedev->wait);
- 		list_for_each_entry(client, &mousedev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
-+		wake_up_interruptible(&mousedev->wait);
- 	} else
- 		mousedev_free(mousedev);
- }
-diff -puN drivers/input/tsdev.c~input-reduce-raciness-when-input-handlers-disconnect drivers/input/tsdev.c
---- a/drivers/input/tsdev.c~input-reduce-raciness-when-input-handlers-disconnect
-+++ a/drivers/input/tsdev.c
-@@ -476,9 +476,9 @@ static void tsdev_disconnect(struct inpu
- 
- 	if (tsdev->open) {
- 		input_close_device(handle);
--		wake_up_interruptible(&tsdev->wait);
- 		list_for_each_entry(client, &tsdev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
-+		wake_up_interruptible(&tsdev->wait);
- 	} else
- 		tsdev_free(tsdev);
- }
+ 	/* chip info */
+ 	int pci_chipset;
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-git-dvb.patch
-hdaps-switch-to-using-input-polldev.patch
-applesmc-switch-to-using-input-polldev.patch
-ams-switch-to-using-input-polldev.patch
-git-input.patch
-ibmasm-whitespace-cleanup.patch
-ibmasm-dont-use-extern-in-function-declarations.patch
-ibmasm-miscellaneous-fixes.patch
-ibmasm-must-depend-on-config_input.patch
+origin.patch
+fbcon-smart-blitter-usage-for-scrolling.patch
+nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
+fbcon-cursor-blink-control.patch
+fbcon-use-struct-device-instead-of-struct-class_device.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+fbdev-detect-primary-display-device.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
+nvidiafb-add-proper-support-for-geforce-7600-chipset.patch
+pm2fb-white-spaces-clean-up.patch
+fbcon-set_con2fb_map-fixes.patch
+fbcon-revise-primary-device-selection.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+vt-add-comment-for-unbind_con_driver.patch
+68328fb-the-pseudo_palette-is-only-16-elements-long.patch
+controlfb-the-pseudo_palette-is-only-16-elements-long.patch
+cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+epson1355fb-color-setting-fixes.patch
+ffb-the-pseudo_palette-is-only-16-elements-long.patch
+fm2fb-the-pseudo_palette-is-only-16-elements-long.patch
+gbefb-the-pseudo_palette-is-only-16-elements-long.patch
+macfb-fix-pseudo_palette-size-and-overrun.patch
+offb-the-pseudo_palette-is-only-16-elements-long.patch
+platinumfb-the-pseudo_palette-is-only-16-elements.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+q40fb-the-pseudo_palette-is-only-16-elements-long.patch
+sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
+sunxvr2500fb-fix-pseudo_palette-array-size.patch
+sunxvr500fb-fix-pseudo_palette-array-size.patch
+tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
+tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch
+atyfb-the-pseudo_palette-is-only-16-elements-long.patch
+radeonfb-the-pseudo_palette-is-only-16-elements-long.patch
+i810fb-the-pseudo_palette-is-only-16-elements-long.patch
+intelfb-the-pseudo_palette-is-only-16-elements-long.patch
+sisfb-fix-pseudo_palette-array-size-and-overrun.patch
