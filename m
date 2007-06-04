@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + trim-memory-not-covered-by-mtrr-wb-type.patch added to -mm tree
-Date: Mon, 04 Jun 2007 12:48:53 -0700
-Message-ID: <200706041948.l54JmrqO012140@imap1.linux-foundation.org>
+Subject: + documentation-proc-pid-stat-files.patch added to -mm tree
+Date: Mon, 04 Jun 2007 12:50:17 -0700
+Message-ID: <200706041950.l54JoHtn012162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36222 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43925 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754546AbXFDTte (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:49:34 -0400
+	by vger.kernel.org with ESMTP id S1758983AbXFDTuk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 15:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesse.barnes@intel.com, ak@suse.de
+Cc: kees@outflux.net, rob@landley.net
 
 
 The patch titled
-     i386: trim memory not covered by MTRR WB type
+     Documentation: /proc/$pid/stat files
 has been added to the -mm tree.  Its filename is
-     trim-memory-not-covered-by-mtrr-wb-type.patch
+     documentation-proc-pid-stat-files.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,142 +25,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: trim memory not covered by MTRR WB type
-From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Documentation: /proc/$pid/stat files
+From: Kees Cook <kees@outflux.net>
 
-I've seen a few machines lately that don't map all their memory WB via the
-MTRRs.  It tends to happen at large memory configurations (at least for
-desktops, >3G or so), and is really a BIOS bug.  But it would be nice if
-the kernel could warn the user and continue, rather than just run horribly
-slowly.
+Documentation for the /proc/$pid/stat file.
 
-This patch assumes that the unmapped memory occurs at the end of the memory
-configuration, and adjusts end_pfn accordingly.  It works ok on my machine
-(correctly detects the condition, adjusts end_pfn, and keeps the machine
-fast), aside from the fact that X won't start.  So I obviously broke
-something by making the MTRR system init so much earlier.
-
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Kees Cook <kees@outflux.net>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |   33 ++++++++++++++++++++++-------
- arch/x86_64/kernel/bugs.c        |    1 
- arch/x86_64/kernel/setup.c       |    4 +++
- include/asm-x86_64/mtrr.h        |    1 
- 4 files changed, 31 insertions(+), 8 deletions(-)
+ Documentation/filesystems/proc.txt |   65 ++++++++++++++++++++++++---
+ 1 files changed, 58 insertions(+), 7 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~trim-memory-not-covered-by-mtrr-wb-type arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -38,8 +38,8 @@
- #include <linux/cpu.h>
- #include <linux/mutex.h>
+diff -puN Documentation/filesystems/proc.txt~documentation-proc-pid-stat-files Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~documentation-proc-pid-stat-files
++++ a/Documentation/filesystems/proc.txt
+@@ -171,7 +171,9 @@ read the file /proc/PID/status:
+ This shows you nearly the same information you would get if you viewed it with
+ the ps  command.  In  fact,  ps  uses  the  proc  file  system  to  obtain its
+ information. The  statm  file  contains  more  detailed  information about the
+-process memory usage. Its seven fields are explained in Table 1-2.
++process memory usage. Its seven fields are explained in Table 1-2.  The stat
++file contains details information about the process itself.  Its fields are
++explained in Table 1-3.
  
-+#include <asm/e820.h>
- #include <asm/mtrr.h>
--
- #include <asm/uaccess.h>
- #include <asm/processor.h>
- #include <asm/msr.h>
-@@ -47,7 +47,8 @@
  
- u32 num_var_ranges = 0;
+ Table 1-2: Contents of the statm files (as of 2.6.8-rc3)
+@@ -188,16 +190,65 @@ Table 1-2: Contents of the statm files (
+  dt       number of dirty pages			(always 0 on 2.6)
+ ..............................................................................
  
--unsigned int *usage_table;
-+#define MAX_MTRR_RANGES 255
-+unsigned int usage_table[MAX_MTRR_RANGES];
- static DEFINE_MUTEX(mtrr_mutex);
- 
- u64 size_or_mask, size_and_mask;
-@@ -126,11 +127,6 @@ static void __init init_table(void)
- 	}
- 
- 	max = num_var_ranges;
--	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
--	    == NULL) {
--		printk(KERN_ERR "mtrr: could not allocate\n");
--		return;
--	}
- 	for (i = 0; i < max; i++)
- 		usage_table[i] = 1;
- }
-@@ -636,6 +632,29 @@ static struct sysdev_driver mtrr_sysdev_
- 	.resume		= mtrr_restore,
- };
- 
-+void __init mtrr_trim_uncached_memory(void)
-+{
-+	unsigned long i, base, size, highest_addr = 0;
-+	mtrr_type type;
 +
-+	/* Find highest cached pfn */
-+	for (i = 0; i < num_var_ranges; i++) {
-+		mtrr_if->get(i, &base, &size, &type);
-+		if (type != MTRR_TYPE_WRBACK)
-+			continue;
-+		base <<= PAGE_SHIFT;
-+		size <<= PAGE_SHIFT;
-+		if (highest_addr < base + size)
-+			highest_addr = base + size;
-+	}
++Table 1-3: Contents of the stat files (as of 2.6.22-rc3)
++..............................................................................
++ Field          Content
++  pid           process id
++  tcomm         filename of the executable
++  state         state (R is running, S is sleeping, D is sleeping in an
++                uninterruptible wait, Z is zombie, T is traced or stopped)
++  ppid          process id of the parent process
++  pgrp          pgrp of the process
++  sid           session id
++  tty_nr        tty the process uses
++  tty_pgrp      pgrp of the tty
++  flags         task flags
++  min_flt       number of minor faults
++  cmin_flt      number of minor faults with child's
++  maj_flt       number of major faults
++  cmaj_flt      number of major faults with child's
++  utime         user mode jiffies
++  stime         kernel mode jiffies
++  cutime        user mode jiffies with child's
++  cstime        kernel mode jiffies with child's
++  priority      priority level
++  nice          nice level
++  num_threads   number of threads
++  start_time    time the process started after system boot
++  vsize         virtual memory size
++  rss           resident set memory size
++  rsslim        current limit in bytes on the rss
++  start_code    address above which program text can run
++  end_code      address below which program text can run
++  start_stack   address of the start of the stack
++  esp           current value of ESP
++  eip           current value of EIP
++  pending       bitmap of pending signals (obsolete)
++  blocked       bitmap of blocked signals (obsolete)
++  sigign        bitmap of ignored signals (obsolete)
++  sigcatch      bitmap of catched signals (obsolete)
++  wchan         address where process went to sleep
++  0             (place holder)
++  0             (place holder)
++  exit_signal   signal to send to parent thread on exit
++  task_cpu      which CPU the task is scheduled on
++  rt_priority   realtime priority
++  policy        scheduling policy (man sched_setscheduler)
++  blkio_ticks   time spent waiting for block IO
++..............................................................................
 +
-+	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
-+		printk(KERN_WARNING "Warning:  MTRRs don't cover all of "
-+		       "memory, trimmed %ld pages\n", end_pfn -
-+		       (highest_addr >> PAGE_SHIFT));
-+		end_pfn = highest_addr >> PAGE_SHIFT;
-+	}
-+}
- 
- /**
-  * mtrr_bp_init - initialize mtrrs on the boot CPU
-diff -puN arch/x86_64/kernel/bugs.c~trim-memory-not-covered-by-mtrr-wb-type arch/x86_64/kernel/bugs.c
---- a/arch/x86_64/kernel/bugs.c~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/arch/x86_64/kernel/bugs.c
-@@ -14,7 +14,6 @@
- void __init check_bugs(void)
- {
- 	identify_cpu(&boot_cpu_data);
--	mtrr_bp_init();
- #if !defined(CONFIG_SMP)
- 	printk("CPU: ");
- 	print_cpu_info(&boot_cpu_data);
-diff -puN arch/x86_64/kernel/setup.c~trim-memory-not-covered-by-mtrr-wb-type arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/arch/x86_64/kernel/setup.c
-@@ -266,6 +266,10 @@ void __init setup_arch(char **cmdline_p)
- 	 * we are rounding upwards:
- 	 */
- 	end_pfn = e820_end_of_ram();
-+	/* Trim memory not covered by WB MTRRs */
-+	mtrr_bp_init();
-+	mtrr_trim_uncached_memory();
 +
- 	num_physpages = end_pfn;
+ 1.2 Kernel data
+ ---------------
  
- 	check_efer();
-diff -puN include/asm-x86_64/mtrr.h~trim-memory-not-covered-by-mtrr-wb-type include/asm-x86_64/mtrr.h
---- a/include/asm-x86_64/mtrr.h~trim-memory-not-covered-by-mtrr-wb-type
-+++ a/include/asm-x86_64/mtrr.h
-@@ -78,6 +78,7 @@ extern int mtrr_add_page (unsigned long 
- 		     unsigned int type, char increment);
- extern int mtrr_del (int reg, unsigned long base, unsigned long size);
- extern int mtrr_del_page (int reg, unsigned long base, unsigned long size);
-+extern void mtrr_trim_uncached_memory(void);
- #  else
- static __inline__ int mtrr_add (unsigned long base, unsigned long size,
- 				unsigned int type, char increment)
+ Similar to  the  process entries, the kernel data files give information about
+ the running kernel. The files used to obtain this information are contained in
+-/proc and  are  listed  in Table 1-3. Not all of these will be present in your
++/proc and  are  listed  in Table 1-4. Not all of these will be present in your
+ system. It  depends  on the kernel configuration and the loaded modules, which
+ files are there, and which are missing.
+ 
+-Table 1-3: Kernel info in /proc 
++Table 1-4: Kernel info in /proc
+ ..............................................................................
+  File        Content                                           
+  apm         Advanced power management info                    
+@@ -473,10 +524,10 @@ IDE devices:
+ 
+ More detailed  information  can  be  found  in  the  controller  specific
+ subdirectories. These  are  named  ide0,  ide1  and  so  on.  Each  of  these
+-directories contains the files shown in table 1-4.
++directories contains the files shown in table 1-5.
+ 
+ 
+-Table 1-4: IDE controller info in  /proc/ide/ide? 
++Table 1-5: IDE controller info in  /proc/ide/ide?
+ ..............................................................................
+  File    Content                                 
+  channel IDE channel (0 or 1)                    
+@@ -486,11 +537,11 @@ Table 1-4: IDE controller info in  /proc
+ ..............................................................................
+ 
+ Each device  connected  to  a  controller  has  a separate subdirectory in the
+-controllers directory.  The  files  listed in table 1-5 are contained in these
++controllers directory.  The  files  listed in table 1-6 are contained in these
+ directories.
+ 
+ 
+-Table 1-5: IDE device information 
++Table 1-6: IDE device information
+ ..............................................................................
+  File             Content                                    
+  cache            The cache                                  
 _
 
-Patches currently in -mm which might be from jesse.barnes@intel.com are
+Patches currently in -mm which might be from kees@outflux.net are
 
-remove-pci_dac_dma_-apis.patch
-trim-memory-not-covered-by-mtrr-wb-type.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-vt-add-comment-for-unbind_con_driver.patch
+documentation-proc-pid-stat-files.patch
