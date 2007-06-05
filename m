@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch added to -mm tree
-Date: Mon, 04 Jun 2007 20:43:12 -0700
-Message-ID: <200706050343.l553hArW028587@imap1.linux-foundation.org>
+Subject: + mount-t-tmpfs-o-mpol=-check-nodes-online.patch added to -mm tree
+Date: Mon, 04 Jun 2007 20:45:08 -0700
+Message-ID: <200706050345.l553j64V028605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760205AbXFEDn7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 23:43:59 -0400
+	by vger.kernel.org with ESMTP id S1755496AbXFEDpX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 23:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, clameter@sgi.com, penberg@cs.helsinki.fi, xemul@openvz.org
+Cc: hugh@veritas.com, ak@suse.de, clameter@sgi.com, holt@sgi.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     Fix /proc/slab_allocators re seq_list_next() conversion
+     mount -t tmpfs -o mpol=: check nodes online
 has been added to the -mm tree.  Its filename is
-     make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+     mount-t-tmpfs-o-mpol=-check-nodes-online.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix /proc/slab_allocators re seq_list_next() conversion
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: mount -t tmpfs -o mpol=: check nodes online
+From: Hugh Dickins <hugh@veritas.com>
 
-Wrong pointer was used as kmem_cache pointer.
+Randy Dunlap reports that a tmpfs, mounted with NUMA mpol= specifying an
+offline node, crashes as soon as data is allocated upon it.  Now restrict it
+to online nodes, where before it restricted to MAX_NUMNODES.
 
-[Here /proc/slab_allocators appears as empty file, but it's just me, probably]
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Pavel Emelianov <xemul@openvz.org>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Robin Holt <holt@sgi.com>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Andi Kleen <ak@suse.de>
+Tested-and-acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/tmpfs.txt |   10 +++++-----
+ mm/shmem.c                          |    2 ++
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/slab.c~make-proc-slabinfo-use-seq_list_xxx-helpers-fix mm/slab.c
---- a/mm/slab.c~make-proc-slabinfo-use-seq_list_xxx-helpers-fix
-+++ a/mm/slab.c
-@@ -4399,7 +4399,7 @@ static void show_symbol(struct seq_file 
+diff -puN Documentation/filesystems/tmpfs.txt~mount-t-tmpfs-o-mpol=-check-nodes-online Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~mount-t-tmpfs-o-mpol=-check-nodes-online
++++ a/Documentation/filesystems/tmpfs.txt
+@@ -94,10 +94,10 @@ largest node numbers in the range.  For 
  
- static int leaks_show(struct seq_file *m, void *p)
- {
--	struct kmem_cache *cachep = p;
-+	struct kmem_cache *cachep = list_entry(p, struct kmem_cache, next);
- 	struct slab *slabp;
- 	struct kmem_list3 *l3;
- 	const char *name;
+ Note that trying to mount a tmpfs with an mpol option will fail if the
+ running kernel does not support NUMA; and will fail if its nodelist
+-specifies a node >= MAX_NUMNODES.  If your system relies on that tmpfs
+-being mounted, but from time to time runs a kernel built without NUMA
+-capability (perhaps a safe recovery kernel), or configured to support
+-fewer nodes, then it is advisable to omit the mpol option from automatic
++specifies a node which is not online.  If your system relies on that
++tmpfs being mounted, but from time to time runs a kernel built without
++NUMA capability (perhaps a safe recovery kernel), or with fewer nodes
++online, then it is advisable to omit the mpol option from automatic
+ mount options.  It can be added later, when the tmpfs is already mounted
+ on MountPoint, by 'mount -o remount,mpol=Policy:NodeList MountPoint'.
+ 
+@@ -121,4 +121,4 @@ RAM/SWAP in 10240 inodes and it is only 
+ Author:
+    Christoph Rohland <cr@sap.com>, 1.12.01
+ Updated:
+-   Hugh Dickins <hugh@veritas.com>, 19 February 2006
++   Hugh Dickins <hugh@veritas.com>, 4 June 2007
+diff -puN mm/shmem.c~mount-t-tmpfs-o-mpol=-check-nodes-online mm/shmem.c
+--- a/mm/shmem.c~mount-t-tmpfs-o-mpol=-check-nodes-online
++++ a/mm/shmem.c
+@@ -967,6 +967,8 @@ static inline int shmem_parse_mpol(char 
+ 		*nodelist++ = '\0';
+ 		if (nodelist_parse(nodelist, *policy_nodes))
+ 			goto out;
++		if (!nodes_subset(*policy_nodes, node_online_map))
++			goto out;
+ 	}
+ 	if (!strcmp(value, "default")) {
+ 		*policy = MPOL_DEFAULT;
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-origin.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-cleanup.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-proc-environ-wrong-placing-of-ptrace_may_attach-check.patch
-mutex_unlock-later-in-seq_lseek.patch
-seq_file-more-atomicity-in-traverse.patch
+mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+git-scsi-rc-fixes.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+prio_tree-debugging-patch.patch
