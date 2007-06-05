@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ramfs-nommu-missed-posix-uid-gid-inode-attribute-checking.patch added to -mm tree
-Date: Mon, 04 Jun 2007 21:45:16 -0700
-Message-ID: <200706050445.l554jESB029469@imap1.linux-foundation.org>
+Subject: + sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch added to -mm tree
+Date: Mon, 04 Jun 2007 21:48:47 -0700
+Message-ID: <200706050448.l554mkJp029521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752694AbXFEEpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 00:45:35 -0400
+	by vger.kernel.org with ESMTP id S1752338AbXFEEtE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 00:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org, jesse@icplus.com.tw
 
 
 The patch titled
-     RAMFS NOMMU: missed POSIX UID/GID inode attribute checking
+     sundance-phy-address-form-0-only-for-device-id-0x0200-fix
 has been added to the -mm tree.  Its filename is
-     ramfs-nommu-missed-posix-uid-gid-inode-attribute-checking.patch
+     sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,163 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RAMFS NOMMU: missed POSIX UID/GID inode attribute checking
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: sundance-phy-address-form-0-only-for-device-id-0x0200-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This bug was caught by LTP testcase fchmod06 on Blackfin platform.
-
-In the manpage of fchmod, "EPERM: The effective UID does not match the
-owner of the file, and the process is not privileged (Linux: it does not
-have the CAP_FOWNER capability)."
-
-But the ramfs nommu code missed the inode_change_ok POSIX UID/GID
-verification.  This patch fixed this.
-
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jesse Huang <jesse@icplus.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/sundance.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-nommu.c~ramfs-nommu-missed-posix-uid-gid-inode-attribute-checking fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~ramfs-nommu-missed-posix-uid-gid-inode-attribute-checking
-+++ a/fs/ramfs/file-nommu.c
-@@ -195,6 +195,11 @@ static int ramfs_nommu_setattr(struct de
- 	unsigned int old_ia_valid = ia->ia_valid;
- 	int ret = 0;
- 
-+	/* POSIX UID/GID verification for setting inode attributes */
-+	ret = inode_change_ok(inode, ia);
-+	if (ret)
-+		return ret;
-+
- 	/* by providing our own setattr() method, we skip this quotaism */
- 	if ((old_ia_valid & ATTR_UID && ia->ia_uid != inode->i_uid) ||
- 	    (old_ia_valid & ATTR_GID && ia->ia_gid != inode->i_gid))
+diff -puN drivers/net/sundance.c~sundance-phy-address-form-0-only-for-device-id-0x0200-fix drivers/net/sundance.c
+--- a/drivers/net/sundance.c~sundance-phy-address-form-0-only-for-device-id-0x0200-fix
++++ a/drivers/net/sundance.c
+@@ -562,7 +562,7 @@ static int __devinit sundance_probe1 (st
+ 	 * It seems some phys doesn't deal well with address 0 being accessed
+ 	 * first, so leave address zero to the end of the loop (32 & 31).
+ 	 */
+-	if(sundance_pci_tbl[np->chip_id].device == 0x0200)
++	if (sundance_pci_tbl[np->chip_id].device == 0x0200)
+ 		phy = 0;
+ 	else
+ 		phy = 1;
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ramfs-nommu-missed-posix-uid-gid-inode-attribute-checking.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-blackfin-on-chip-ethernet-mac-controller-driver.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
+mtrr-atomicity-fix.patch
+vanishing-ioctl-handler-debugging.patch
+document-acked-by.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
