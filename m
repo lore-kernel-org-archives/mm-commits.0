@@ -1,54 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 00:10:25 -0700
-Message-ID: <200706050710.l557AN2g031261@imap1.linux-foundation.org>
+Subject: - mtrr-atomicity-fix.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 00:10:18 -0700
+Message-ID: <200706050710.l557AGYd031252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59856 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763082AbXFEHKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:36 -0400
+	by vger.kernel.org with ESMTP id S1763120AbXFEHKh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@suse.de, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gregkh-driver-sysfs-fix-error-handling-in-binattr-write-fix
+     mtrr atomicity fix
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+     mtrr-atomicity-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gregkh-driver-sysfs-fix-error-handling-in-binattr-write-fix
+Subject: mtrr atomicity fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/sysfs/bin.c: In function 'read':
-fs/sysfs/bin.c:58: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
+Rafael gets this on an SMP box with kernel preemption enabled, during
+hibernation and restore (100% of the time):
 
-How many times have we fixed this??
+Enabling non-boot CPUs ...
+BUG: using smp_processor_id() in preemptible [00000001] code: bash/4514
+caller is mtrr_save_state+0x9/0x40
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/cpu/mtrr/main.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
-+++ a/fs/sysfs/bin.c
-@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
- 		goto out_unlock;
- 	}
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-atomicity-fix arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-atomicity-fix
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -734,10 +734,13 @@ void mtrr_ap_init(void)
+  */
+ void mtrr_save_state(void)
+ {
+-	if (smp_processor_id() == 0)
++	int cpu = get_cpu();
++
++	if (cpu == 0)
+ 		mtrr_save_fixed_ranges(NULL);
+ 	else
+ 		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
++	put_cpu();
+ }
  
--	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
-+	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
- 
- 	*off = offs + count;
- 
+ static int __init mtrr_init_finialize(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
