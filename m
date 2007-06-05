@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix.patch added to -mm tree
-Date: Mon, 04 Jun 2007 18:19:19 -0700
-Message-ID: <200706050119.l551JHLW026788@imap1.linux-foundation.org>
+Subject: + ext3-ext4-orphan-list-corruption-due-bad-inode.patch added to -mm tree
+Date: Mon, 04 Jun 2007 19:03:45 -0700
+Message-ID: <200706050203.l5523iHX027378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53729 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbXFEBTZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 21:19:25 -0400
+	by vger.kernel.org with ESMTP id S1756218AbXFECE2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 22:04:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org
+Cc: vvs@sw.ru
 
 
 The patch titled
-     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix
+     ext3/ext4: orphan list corruption due bad inode
 has been added to the -mm tree.  Its filename is
-     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix.patch
+     ext3-ext4-orphan-list-corruption-due-bad-inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: ext3/ext4: orphan list corruption due bad inode
+From: Vasily Averin <vvs@sw.ru>
 
-Some changes done a while ago to avoid pounding on ptep_set_access_flags
-and update_mmu_cache in some race situations break sun4c which requires
-update_mmu_cache() to always be called on minor faults.
+After ext3 orphan list check has been added into ext3_destroy_inode()
+(please see my previous patch) the following situation has been detected:
 
-This patch reworks ptep_set_access_flags() semantics, implementations
-and callers so that it's now responsible for returning whether an update
-is necessary or not (basically whether the PTE actually changed). This
-allow fixing the sparc implementation to always return 1 on sun4c.
+ EXT3-fs warning (device sda6): ext3_unlink: Deleting nonexistent file (37901290), 0
+ Inode 00000101a15b7840: orphan list check failed!
+ 00000773 6f665f00 74616d72 00000573 65725f00 06737270 66000000 616d726f
+...
+ Call Trace: [<ffffffff80211ea9>] ext3_destroy_inode+0x79/0x90
+  [<ffffffff801a2b16>] sys_unlink+0x126/0x1a0
+  [<ffffffff80111479>] error_exit+0x0/0x81
+  [<ffffffff80110aba>] system_call+0x7e/0x83
 
-Hope I got ia64 right this time !
+First messages said that unlinked inode has i_nlink=0, then ext3_unlink()
+adds this inode into orphan list.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Second message means that this inode has not been removed from orphan list.
+ Inode dump has showed that i_fop = &bad_file_ops and it can be set in
+make_bad_inode() only.  Then I've found that ext3_read_inode() can call
+make_bad_inode() without any error/warning messages, for example in the
+following case:
+
+...
+        if (inode->i_nlink == 0) {
+                if (inode->i_mode == 0 ||
+                    !(EXT3_SB(inode->i_sb)->s_mount_state & EXT3_ORPHAN_FS)) {
+                        /* this inode is deleted */
+                        brelse (bh);
+                        goto bad_inode;
+...
+
+Bad inode can live some time, ext3_unlink can add it to orphan list, but
+ext3_delete_inode() do not deleted this inode from orphan list.  As result
+we can have orphan list corruption detected in ext3_destroy_inode().
+
+However it is not clear for me how to fix this issue correctly.
+
+As far as i see is_bad_inode() is called after iget() in all places
+excluding ext3_lookup() and ext3_get_parent().  I believe it makes sense to
+add bad inode check to these functions too and call iput if bad inode
+detected.
+
+Signed-off-by:	Vasily Averin <vvs@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pgtable.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/ext3/namei.c |   10 ++++++++++
+ fs/ext4/namei.c |   10 ++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix
-+++ a/include/asm-ia64/pgtable.h
-@@ -534,13 +534,13 @@ extern void lazy_mmu_prot_update (pte_t 
-  */
- #ifdef CONFIG_SMP
- # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
--({										\
--	int __changed = !pte_same(*(__ptep), __entry);				\
--	if (__changed && __safely_writable) {					\
--		set_pte(__ptep, __entry);					\
--		flush_tlb_page(__vma, __addr);					\
--	}									\
--	__changed;								\
-+({									\
-+	int __changed = !pte_same(*(__ptep), __entry);			\
-+	if (__changed && __safely_writable) {				\
-+		set_pte(__ptep, __entry);				\
-+		flush_tlb_page(__vma, __addr);				\
-+	}								\
-+	__changed;							\
- })
- #else
- # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
+diff -puN fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
++++ a/fs/ext3/namei.c
+@@ -1019,6 +1019,11 @@ static struct dentry *ext3_lookup(struct
+ 
+ 		if (!inode)
+ 			return ERR_PTR(-EACCES);
++
++		if (is_bad_inode(inode)) {
++			iput(inode);
++			return ERR_PTR(-ENOENT);
++		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+ }
+@@ -1054,6 +1059,11 @@ struct dentry *ext3_get_parent(struct de
+ 	if (!inode)
+ 		return ERR_PTR(-EACCES);
+ 
++	if (is_bad_inode(inode)) {
++		iput(inode);
++		return ERR_PTR(-ENOENT);
++	}
++
+ 	parent = d_alloc_anon(inode);
+ 	if (!parent) {
+ 		iput(inode);
+diff -puN fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
++++ a/fs/ext4/namei.c
+@@ -1017,6 +1017,11 @@ static struct dentry *ext4_lookup(struct
+ 
+ 		if (!inode)
+ 			return ERR_PTR(-EACCES);
++
++		if (is_bad_inode(inode)) {
++			iput(inode);
++			return ERR_PTR(-ENOENT);
++		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+ }
+@@ -1052,6 +1057,11 @@ struct dentry *ext4_get_parent(struct de
+ 	if (!inode)
+ 		return ERR_PTR(-EACCES);
+ 
++	if (is_bad_inode(inode)) {
++		iput(inode);
++		return ERR_PTR(-ENOENT);
++	}
++
+ 	parent = d_alloc_anon(inode);
+ 	if (!parent) {
+ 		iput(inode);
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from vvs@sw.ru are
 
-origin.patch
-do-not-select-macintosh-drivers-by-default.patch
-8xx-mpc885ads-pcmcia-support.patch
-dts-kill-hardcoded-phandles.patch
-git-libata-all.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix-fix.patch
-unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
-8xx-fix-whitespace-and-indentation.patch
-radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
-controlfb-the-pseudo_palette-is-only-16-elements-long.patch
-fallocate-implementation-on-i86-x86_64-and-powerpc.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+ext3-lost-brelse-in-ext3_read_inode.patch
+ext4-lost-brelse-in-ext4_read_inode.patch
+ext3-ext4-orphan-list-corruption-due-bad-inode.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
