@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 00:41:41 -0700
-Message-ID: <200706050745.l557jCeh031789@imap1.linux-foundation.org>
+Subject: + i386-do-not-restore-reserved-memory-after-hibernation-fix.patch added to -mm tree
+Date: Tue, 05 Jun 2007 00:47:31 -0700
+Message-ID: <200706050751.l557p2AO031861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760810AbXFEHpu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:45:50 -0400
+	by vger.kernel.org with ESMTP id S1760694AbXFEHvU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:51:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, ak@suse.de, pavel@ucw.cz, rientjes@google.com, rjw@sisk.pl
 
 
 The patch titled
-     pm-disable-usermode-helper-before-hibernation-and-suspend-fix
+     i386-do-not-restore-reserved-memory-after-hibernation-fix
 has been added to the -mm tree.  Its filename is
-     pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+     i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm-disable-usermode-helper-before-hibernation-and-suspend-fix
+Subject: i386-do-not-restore-reserved-memory-after-hibernation-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Please always test allnoconfig and allmodconfig builds
+SubmitChecklist, section 1.
 
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/i386/kernel/e820.c |    2 ++
+ include/asm-i386/e820.h |    7 +++++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix kernel/kmod.c
---- a/kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix
-+++ a/kernel/kmod.c
-@@ -41,13 +41,6 @@ extern int max_threads;
+diff -puN arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation-fix arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation-fix
++++ a/arch/i386/kernel/e820.c
+@@ -321,6 +321,7 @@ static int __init request_standard_resou
  
- static struct workqueue_struct *khelper_wq;
+ subsys_initcall(request_standard_resources);
  
--#ifdef CONFIG_KMOD
--
--/*
--	modprobe_path is set via /proc/sys.
--*/
--char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
--
- /*
-  * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
-  * immediately returning -EBUSY.  Used for preventing user land processes from
-@@ -56,6 +49,13 @@ char modprobe_path[KMOD_PATH_LEN] = "/sb
-  */
- static int usermodehelper_disabled;
- 
-+#ifdef CONFIG_KMOD
-+
-+/*
-+	modprobe_path is set via /proc/sys.
-+*/
-+char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
-+
++#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
  /**
-  * request_module - try to load a kernel module
-  * @fmt:     printf style format string for the name of the module
+  * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
+  * correspond to e820 RAM areas and mark the corresponding pages as nosave for
+@@ -349,6 +350,7 @@ void __init e820_mark_nosave_regions(voi
+ 			break;
+ 	}
+ }
++#endif
+ 
+ void __init add_memory_region(unsigned long long start,
+ 			      unsigned long long size, int type)
+diff -puN include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation-fix include/asm-i386/e820.h
+--- a/include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation-fix
++++ a/include/asm-i386/e820.h
+@@ -44,7 +44,14 @@ extern void register_bootmem_low_pages(u
+ extern void e820_register_memory(void);
+ extern void limit_regions(unsigned long long size);
+ extern void print_memory_map(char *who);
++
++#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
+ extern void e820_mark_nosave_regions(void);
++#else
++static inline void e820_mark_nosave_regions(void)
++{
++}
++#endif
+ 
+ #endif/*!__ASSEMBLY__*/
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +125,7 @@ x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
 x86-64-calgary-introduce-chipset-specific-ops-fix.patch
 x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 git-xfs.patch
 git-cryptodev.patch
 git-xtensa.patch
