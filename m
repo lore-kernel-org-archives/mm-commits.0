@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-do-not-restore-reserved-memory-after-hibernation-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 00:47:31 -0700
-Message-ID: <200706050751.l557p2AO031861@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-block-device.patch added to -mm tree
+Date: Tue, 05 Jun 2007 01:02:09 -0700
+Message-ID: <200706050805.l5585efe032092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38354 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760694AbXFEHvU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:51:20 -0400
+	by vger.kernel.org with ESMTP id S1755792AbXFEIFs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:05:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, pavel@ucw.cz, rientjes@google.com, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     i386-do-not-restore-reserved-memory-after-hibernation-fix
+     fix-gregkh-driver-block-device
 has been added to the -mm tree.  Its filename is
-     i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+     fix-gregkh-driver-block-device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-do-not-restore-reserved-memory-after-hibernation-fix
+Subject: fix-gregkh-driver-block-device
 From: Andrew Morton <akpm@linux-foundation.org>
 
-SubmitChecklist, section 1.
+Make it compile.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+This is an incompatible change.  I had to rename the sysfs file.
+
+Please fix it properly.
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/e820.c |    2 ++
- include/asm-i386/e820.h |    7 +++++++
- 2 files changed, 9 insertions(+)
+ block/genhd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation-fix arch/i386/kernel/e820.c
---- a/arch/i386/kernel/e820.c~i386-do-not-restore-reserved-memory-after-hibernation-fix
-+++ a/arch/i386/kernel/e820.c
-@@ -321,6 +321,7 @@ static int __init request_standard_resou
+diff -puN block/genhd.c~fix-gregkh-driver-block-device block/genhd.c
+--- a/block/genhd.c~fix-gregkh-driver-block-device
++++ a/block/genhd.c
+@@ -471,8 +471,8 @@ static DEVICE_ATTR(size, S_IRUGO, disk_s
+ static DEVICE_ATTR(capability, S_IRUGO, disk_capability_show, NULL);
+ static DEVICE_ATTR(stat, S_IRUGO, disk_stat_show, NULL);
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+-static device_attribute dev_attr_fail =
+-	__ATTR(make-it-fail, S_IRUGO|S_IWUSR, disk_fail_show, disk_fail_store);
++static DEVICE_ATTR(make_it_fail, S_IRUGO|S_IWUSR, disk_fail_show,
++		disk_fail_store);
+ #endif
  
- subsys_initcall(request_standard_resources);
- 
-+#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
- /**
-  * e820_mark_nosave_regions - Find the ranges of physical addresses that do not
-  * correspond to e820 RAM areas and mark the corresponding pages as nosave for
-@@ -349,6 +350,7 @@ void __init e820_mark_nosave_regions(voi
- 			break;
- 	}
- }
-+#endif
- 
- void __init add_memory_region(unsigned long long start,
- 			      unsigned long long size, int type)
-diff -puN include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation-fix include/asm-i386/e820.h
---- a/include/asm-i386/e820.h~i386-do-not-restore-reserved-memory-after-hibernation-fix
-+++ a/include/asm-i386/e820.h
-@@ -44,7 +44,14 @@ extern void register_bootmem_low_pages(u
- extern void e820_register_memory(void);
- extern void limit_regions(unsigned long long size);
- extern void print_memory_map(char *who);
-+
-+#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
- extern void e820_mark_nosave_regions(void);
-+#else
-+static inline void e820_mark_nosave_regions(void)
-+{
-+}
-+#endif
- 
- #endif/*!__ASSEMBLY__*/
- 
+ static struct attribute *disk_attrs[] = {
+@@ -482,7 +482,7 @@ static struct attribute *disk_attrs[] = 
+ 	&dev_attr_capability.attr,
+ 	&dev_attr_stat.attr,
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+-	&dev_attr_fail.attr,
++	&dev_attr_make_it_fail.attr,
+ #endif
+ 	NULL
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +125,10 @@ mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
 invalidate_mapping_pages-add-cond_resched.patch
 slub-support-slub_debug-on-by-default-tidy.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 create-the-zone_movable-zone-fix.patch
@@ -210,5 +201,7 @@ lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
 reiser4.patch
 reiser4-fix.patch
+nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+fix-gregkh-driver-block-device.patch
