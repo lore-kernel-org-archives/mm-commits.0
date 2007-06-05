@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command.patch added to -mm tree
-Date: Tue, 05 Jun 2007 14:17:12 -0700
-Message-ID: <200706052117.l55LHD2Y003173@imap1.linux-foundation.org>
+Subject: + lguest-dont-signal-like-crazy-use-lhreq_break-command-doc.patch added to -mm tree
+Date: Tue, 05 Jun 2007 14:18:07 -0700
+Message-ID: <200706052118.l55LI8lT003193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53474 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48499 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765715AbXFEVRX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 17:17:23 -0400
+	by vger.kernel.org with ESMTP id S932590AbXFEVSS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 17:18:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: rusty@rustcorp.com.au
 The patch titled
      lguest: don't signal like crazy, use LHREQ_BREAK command
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command.patch
+     lguest-dont-signal-like-crazy-use-lhreq_break-command-doc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -81,166 +81,179 @@ Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c           |    7 +++
- drivers/lguest/lg.h             |    5 ++
- drivers/lguest/lguest_user.c    |   55 ++++++++++++++++++++++++++----
- include/linux/lguest_launcher.h |    1 
- 4 files changed, 61 insertions(+), 7 deletions(-)
+ Documentation/lguest/lguest.c |   68 ++++++++++++++------------------
+ 1 files changed, 30 insertions(+), 38 deletions(-)
 
-diff -puN drivers/lguest/core.c~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command
-+++ a/drivers/lguest/core.c
-@@ -313,7 +313,12 @@ int run_guest(struct lguest *lg, unsigne
- 		}
+diff -puN Documentation/lguest/lguest.c~lguest-dont-signal-like-crazy-use-lhreq_break-command-doc Documentation/lguest/lguest.c
+--- a/Documentation/lguest/lguest.c~lguest-dont-signal-like-crazy-use-lhreq_break-command-doc
++++ a/Documentation/lguest/lguest.c
+@@ -16,7 +16,6 @@
+ #include <fcntl.h>
+ #include <stdbool.h>
+ #include <errno.h>
+-#include <signal.h>
+ #include <ctype.h>
+ #include <sys/socket.h>
+ #include <sys/ioctl.h>
+@@ -47,6 +46,7 @@ typedef uint8_t u8;
+ static bool verbose;
+ #define verbose(args...) \
+ 	do { if (verbose) printf(args); } while(0)
++static int waker_fd;
  
- 		if (signal_pending(current))
--			return -EINTR;
-+			return -ERESTARTSYS;
-+
-+		/* If Waker set break_out, return to Launcher. */
-+		if (lg->break_out)
-+			return -EAGAIN;
-+
- 		maybe_do_interrupt(lg);
- 
- 		try_to_freeze();
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command
-+++ a/drivers/lguest/lg.h
-@@ -16,6 +16,7 @@
- #include <linux/futex.h>
- #include <linux/lguest.h>
- #include <linux/lguest_launcher.h>
-+#include <linux/wait.h>
- #include <linux/err.h>
- #include <asm/semaphore.h>
- #include "irq_vectors.h"
-@@ -138,6 +139,10 @@ struct lguest
- 	u32 esp1;
- 	u8 ss1;
- 
-+	/* Do we need to stop what we're doing and return to userspace? */
-+	int break_out;
-+	wait_queue_head_t break_wq;
-+
- 	/* Bitmap of what has changed: see CHANGED_* above. */
- 	int changed;
- 	struct lguest_pages *last_pages;
-diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command
-+++ a/drivers/lguest/lguest_user.c
-@@ -30,6 +30,30 @@ static long user_get_dma(struct lguest *
- 	return udma;
+ struct device_list
+ {
+@@ -341,15 +341,14 @@ static void set_fd(int fd, struct device
+ 		devices->max_infd = fd;
  }
  
-+/* To force the Guest to stop running and return to the Launcher, the
-+ * Waker sets writes LHREQ_BREAK and the value "1" to /dev/lguest.  The
-+ * Launcher then writes LHREQ_BREAK and "0" to release the Waker. */
-+static int break_guest_out(struct lguest *lg, const u32 __user *input)
-+{
-+	unsigned long on;
-+
-+	/* Fetch whether they're turning break on or off.. */
-+	if (get_user(on, input) != 0)
-+		return -EFAULT;
-+
-+	if (on) {
-+		lg->break_out = 1;
-+		/* Pop it out (may be running on different CPU) */
-+		wake_up_process(lg->tsk);
-+		/* Wait for them to reset it */
-+		return wait_event_interruptible(lg->break_wq, !lg->break_out);
-+	} else {
-+		lg->break_out = 0;
-+		wake_up(&lg->break_wq);
-+		return 0;
-+	}
-+}
-+
- /* + irq */
- static int user_send_irq(struct lguest *lg, const u32 __user *input)
+-/* We send lguest_add signals while input is pending: avoids races. */
+-static void wake_parent(int pipefd, struct device_list *devices)
++/* When input arrives, we tell the kernel to kick lguest out with -EAGAIN. */
++static void wake_parent(int pipefd, int lguest_fd, struct device_list *devices)
  {
-@@ -50,6 +74,10 @@ static ssize_t read(struct file *file, c
- 	if (!lg)
- 		return -EINVAL;
+-	nice(19);
+-
+ 	set_fd(pipefd, devices);
  
-+	/* If you're not the task which owns the guest, go away. */
-+	if (current != lg->tsk)
-+		return -EPERM;
-+
- 	if (lg->dead) {
- 		size_t len;
+ 	for (;;) {
+ 		fd_set rfds = devices->infds;
++		u32 args[] = { LHREQ_BREAK, 1 };
  
-@@ -75,13 +103,20 @@ static int initialize(struct file *file,
- 	int err, i;
- 	u32 args[4];
- 
--	if (file->private_data)
--		return -EBUSY;
-+	/* We grab the Big Lguest lock, which protects the global array
-+	 * "lguests" and multiple simultaneous initializations. */
-+	mutex_lock(&lguest_lock);
- 
--	if (copy_from_user(args, input, sizeof(args)) != 0)
--		return -EFAULT;
-+	if (file->private_data) {
-+		err = -EBUSY;
-+		goto unlock;
-+	}
-+
-+	if (copy_from_user(args, input, sizeof(args)) != 0) {
-+		err = -EFAULT;
-+		goto unlock;
-+	}
- 
--	mutex_lock(&lguest_lock);
- 	i = find_free_guest();
- 	if (i < 0) {
- 		err = -ENOSPC;
-@@ -107,10 +142,12 @@ static int initialize(struct file *file,
- 	lg->tsk = current;
- 	get_task_struct(lg->tsk);
- 	lg->mm = get_task_mm(lg->tsk);
-+	init_waitqueue_head(&lg->break_wq);
- 	lg->last_pages = NULL;
-+	file->private_data = lg;
-+
- 	mutex_unlock(&lguest_lock);
- 
--	file->private_data = lg;
- 	return sizeof(args);
- 
- free_regs:
-@@ -137,6 +174,10 @@ static ssize_t write(struct file *file, 
- 	if (lg && lg->dead)
- 		return -ENOENT;
- 
-+	/* If you're not the task which owns the Guest, you can only break */
-+	if (lg && current != lg->tsk && req != LHREQ_BREAK)
-+		return -EPERM;
-+
- 	switch (req) {
- 	case LHREQ_INITIALIZE:
- 		return initialize(file, (const u32 __user *)input);
-@@ -144,6 +185,8 @@ static ssize_t write(struct file *file, 
- 		return user_get_dma(lg, (const u32 __user *)input);
- 	case LHREQ_IRQ:
- 		return user_send_irq(lg, (const u32 __user *)input);
-+	case LHREQ_BREAK:
-+		return break_guest_out(lg, (const u32 __user *)input);
- 	default:
- 		return -EINVAL;
+ 		select(devices->max_infd+1, &rfds, NULL, NULL, NULL);
+ 		if (FD_ISSET(pipefd, &rfds)) {
+@@ -357,25 +356,14 @@ static void wake_parent(int pipefd, stru
+ 			if (read(pipefd, &ignorefd, sizeof(ignorefd)) == 0)
+ 				exit(0);
+ 			FD_CLR(ignorefd, &devices->infds);
+-		}
+-		kill(getppid(), SIGUSR1);
++		} else
++			write(lguest_fd, args, sizeof(args));
  	}
-diff -puN include/linux/lguest_launcher.h~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command include/linux/lguest_launcher.h
---- a/include/linux/lguest_launcher.h~lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command
-+++ a/include/linux/lguest_launcher.h
-@@ -68,5 +68,6 @@ enum lguest_req
- 	LHREQ_INITIALIZE, /* + pfnlimit, pgdir, start, pageoffset */
- 	LHREQ_GETDMA, /* + addr (returns &lguest_dma, irq in ->used_len) */
- 	LHREQ_IRQ, /* + irq */
-+	LHREQ_BREAK, /* + on/off flag (on blocks until someone does off) */
- };
- #endif /* _ASM_LGUEST_USER */
+ }
+ 
+-/* We don't want signal to kill us, just jerk us out of kernel. */
+-static void wakeup(int signo)
+-{
+-}
+-
+-static int setup_waker(struct device_list *device_list)
++static int setup_waker(int lguest_fd, struct device_list *device_list)
+ {
+ 	int pipefd[2], child;
+-	struct sigaction act;
+-
+-	act.sa_handler = wakeup;
+-	sigemptyset(&act.sa_mask);
+-	act.sa_flags = 0;
+-	sigaction(SIGUSR1, &act, NULL);
+ 
+ 	pipe(pipefd);
+ 	child = fork();
+@@ -384,7 +372,7 @@ static int setup_waker(struct device_lis
+ 
+ 	if (child == 0) {
+ 		close(pipefd[1]);
+-		wake_parent(pipefd[0], device_list);
++		wake_parent(pipefd[0], lguest_fd, device_list);
+ 	}
+ 	close(pipefd[0]);
+ 
+@@ -495,8 +483,13 @@ static bool handle_console_input(int fd,
+ 		else if (abort->count == 3) {
+ 			struct timeval now;
+ 			gettimeofday(&now, NULL);
+-			if (now.tv_sec <= abort->start.tv_sec+1)
++			if (now.tv_sec <= abort->start.tv_sec+1) {
++				/* Make sure waker is not blocked in BREAK */
++				u32 args[] = { LHREQ_BREAK, 0 };
++				close(waker_fd);
++				write(fd, args, sizeof(args));
+ 				exit(2);
++			}
+ 			abort->count = 0;
+ 		}
+ 	} else
+@@ -613,7 +606,7 @@ static void handle_output(int fd, unsign
+ 	warnx("Pending dma %p, key %p", (void *)dma, (void *)key);
+ }
+ 
+-static void handle_input(int fd, int childfd, struct device_list *devices)
++static void handle_input(int fd, struct device_list *devices)
+ {
+ 	struct timeval poll = { .tv_sec = 0, .tv_usec = 0 };
+ 
+@@ -628,8 +621,8 @@ static void handle_input(int fd, int chi
+ 			if (i->handle_input && FD_ISSET(i->fd, &fds)) {
+ 				if (!i->handle_input(fd, i)) {
+ 					FD_CLR(i->fd, &devices->infds);
+-					/* Tell child to ignore it too... */
+-					write(childfd, &i->fd, sizeof(i->fd));
++					/* Tell waker to ignore it too... */
++					write(waker_fd, &i->fd, sizeof(i->fd));
+ 				}
+ 			}
+ 		}
+@@ -898,29 +891,28 @@ static void map_device_descriptors(struc
+ }
+ 
+ static void __attribute__((noreturn))
+-run_guest(int lguest_fd, int waker_fd, struct device_list *device_list)
++run_guest(int lguest_fd, struct device_list *device_list)
+ {
+-	sigset_t sigset;
+-
+-	sigemptyset(&sigset);
+-	sigaddset(&sigset, SIGUSR1);
+ 	for (;;) {
++		u32 args[] = { LHREQ_BREAK, 0 };
+ 		unsigned long arr[2];
+ 		int readval;
+ 
+-		sigprocmask(SIG_UNBLOCK, &sigset, NULL);
++		/* We read from the /dev/lguest device to run the Guest. */
+ 		readval = read(lguest_fd, arr, sizeof(arr));
+-		sigprocmask(SIG_BLOCK, &sigset, NULL);
+ 
+-		if (readval == sizeof(arr))
++		if (readval == sizeof(arr)) {
+ 			handle_output(lguest_fd, arr[0], arr[1], device_list);
+-		else if (errno == ENOENT) {
++			continue;
++		} else if (errno == ENOENT) {
+ 			char reason[1024] = { 0 };
+ 			read(lguest_fd, reason, sizeof(reason)-1);
+ 			errx(1, "%s", reason);
+-		} else if (errno != EINTR)
++		} else if (errno != EAGAIN)
+ 			err(1, "Running guest failed");
+-		handle_input(lguest_fd, waker_fd, device_list);
++		handle_input(lguest_fd, device_list);
++		if (write(lguest_fd, args, sizeof(args)) < 0)
++			err(1, "Resetting break");
+ 	}
+ }
+ 
+@@ -943,7 +935,7 @@ static void usage(void)
+ int main(int argc, char *argv[])
+ {
+ 	unsigned long mem, pgdir, start, page_offset, initrd_size = 0;
+-	int c, lguest_fd, waker_fd;
++	int c, lguest_fd;
+ 	struct device_list device_list;
+ 	void *boot = (void *)0;
+ 	const char *initrd_name = NULL;
+@@ -1014,7 +1006,7 @@ int main(int argc, char *argv[])
+ 	*(int *)(boot + 0x23c) = 1;
+ 
+ 	lguest_fd = tell_kernel(pgdir, start, page_offset);
+-	waker_fd = setup_waker(&device_list);
++	waker_fd = setup_waker(lguest_fd, &device_list);
+ 
+-	run_guest(lguest_fd, waker_fd, &device_list);
++	run_guest(lguest_fd, &device_list);
+ }
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
