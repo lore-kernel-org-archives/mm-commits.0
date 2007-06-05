@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + git-input-make-xpad_play_effect-static.patch added to -mm tree
-Date: Mon, 04 Jun 2007 18:06:47 -0700
-Message-ID: <200706050106.l5516jbt026636@imap1.linux-foundation.org>
+Date: Mon, 04 Jun 2007 18:06:58 -0700
+Message-ID: <200706050106.l5516vrR026641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754866AbXFEBHA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 21:07:00 -0400
+	by vger.kernel.org with ESMTP id S1754168AbXFEBHO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 21:07:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: bunk@stusta.de, dtor@mail.ru
 
 
 The patch titled
@@ -31,6 +31,7 @@ From: Adrian Bunk <bunk@stusta.de>
 Make the needlessly global xpad_play_effect() static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
