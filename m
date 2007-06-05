@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + git-input-fixup.patch added to -mm tree
-Date: Mon, 04 Jun 2007 23:53:28 -0700
-Message-ID: <200706050653.l556rV9M031009@imap1.linux-foundation.org>
+Subject: + git-md-accel-fixup.patch added to -mm tree
+Date: Mon, 04 Jun 2007 23:54:39 -0700
+Message-ID: <200706050654.l556sbgP031031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40491 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755457AbXFEGxm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 02:53:42 -0400
+	by vger.kernel.org with ESMTP id S1761004AbXFEGyo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 02:54:44 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l556shSd000685
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 4 Jun 2007 23:54:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-input-fixup
+     git-md-accel-fixup
 has been added to the -mm tree.  Its filename is
-     git-input-fixup.patch
+     git-md-accel-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,110 +29,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-input-fixup
+Subject: git-md-accel-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Try to repair conflicts in git-input.patch
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/evdev.c    |    6 ------
- drivers/input/joydev.c   |    6 ------
- drivers/input/mousedev.c |   18 ------------------
- drivers/input/tsdev.c    |    6 ------
- 4 files changed, 36 deletions(-)
+ arch/arm/mach-iop32x/n2100.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/input/evdev.c~git-input-fixup drivers/input/evdev.c
---- a/drivers/input/evdev.c~git-input-fixup
-+++ a/drivers/input/evdev.c
-@@ -700,16 +700,10 @@ static void evdev_disconnect(struct inpu
- 		input_close_device(handle);
- 		list_for_each_entry(client, &evdev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--<<<<<<< HEAD/drivers/input/evdev.c
--		wake_up_interruptible(&evdev->wait);
--	} else
--		evdev_free(evdev);
--=======
- 		wake_up_interruptible(&evdev->wait);
- 	}
+diff -puN arch/arm/mach-iop32x/n2100.c~git-md-accel-fixup arch/arm/mach-iop32x/n2100.c
+--- a/arch/arm/mach-iop32x/n2100.c~git-md-accel-fixup
++++ a/arch/arm/mach-iop32x/n2100.c
+@@ -252,6 +252,8 @@ static void __init n2100_init_machine(vo
+ 	platform_device_register(&iop3xx_i2c0_device);
+ 	platform_device_register(&n2100_flash_device);
+ 	platform_device_register(&n2100_serial_device);
++	platform_device_register(&iop3xx_dma_0_channel);
++	platform_device_register(&iop3xx_dma_1_channel);
+ 	i2c_register_board_info(0, n2100_i2c_devices,
+ 		ARRAY_SIZE(n2100_i2c_devices));
  
- 	put_device(&evdev->dev);
-->>>>>>> /drivers/input/evdev.c
- }
- 
- static const struct input_device_id evdev_ids[] = {
-diff -puN drivers/input/joydev.c~git-input-fixup drivers/input/joydev.c
---- a/drivers/input/joydev.c~git-input-fixup
-+++ a/drivers/input/joydev.c
-@@ -597,16 +597,10 @@ static void joydev_disconnect(struct inp
- 		input_close_device(handle);
- 		list_for_each_entry(client, &joydev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--<<<<<<< HEAD/drivers/input/joydev.c
--		wake_up_interruptible(&joydev->wait);
--	} else
--		joydev_free(joydev);
--=======
- 		wake_up_interruptible(&joydev->wait);
- 	}
- 
- 	put_device(&joydev->dev);
-->>>>>>> /drivers/input/joydev.c
- }
- 
- static const struct input_device_id joydev_blacklist[] = {
-diff -puN drivers/input/mousedev.c~git-input-fixup drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~git-input-fixup
-+++ a/drivers/input/mousedev.c
-@@ -802,25 +802,7 @@ static void mousedev_disconnect(struct i
- 
- 	mixdev_remove_device(mousedev);
- 	input_unregister_handle(handle);
--<<<<<<< HEAD/drivers/input/mousedev.c
--
--	sysfs_remove_link(&input_class.subsys.kobj, mousedev->name);
--	class_device_destroy(&input_class,
--			MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + mousedev->minor));
--	mousedev->exist = 0;
--
--	mixdev_remove_device(mousedev);
--
--	if (mousedev->open) {
--		input_close_device(handle);
--		list_for_each_entry(client, &mousedev->client_list, node)
--			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--		wake_up_interruptible(&mousedev->wait);
--	} else
--		mousedev_free(mousedev);
--=======
- 	mousedev_destroy(mousedev);
-->>>>>>> /drivers/input/mousedev.c
- }
- 
- static const struct input_device_id mousedev_ids[] = {
-diff -puN drivers/input/tsdev.c~git-input-fixup drivers/input/tsdev.c
---- a/drivers/input/tsdev.c~git-input-fixup
-+++ a/drivers/input/tsdev.c
-@@ -477,16 +477,10 @@ static void tsdev_disconnect(struct inpu
- 		input_close_device(handle);
- 		list_for_each_entry(client, &tsdev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--<<<<<<< HEAD/drivers/input/tsdev.c
--		wake_up_interruptible(&tsdev->wait);
--	} else
--		tsdev_free(tsdev);
--=======
- 		wake_up_interruptible(&tsdev->wait);
- 	}
- 
- 	put_device(&tsdev->dev);
-->>>>>>> /drivers/input/tsdev.c
- }
- 
- static const struct input_device_id tsdev_ids[] = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +69,7 @@ git-input-fixup.patch
 git-kbuild.patch
 git-kvm.patch
 git-leds.patch
+git-md-accel-fixup.patch
 git-mips-fixup.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
