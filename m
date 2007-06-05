@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-fix-something.patch added to -mm tree
-Date: Tue, 05 Jun 2007 16:46:26 -0700
-Message-ID: <200706052346.l55NkQAH005348@imap1.linux-foundation.org>
+Subject: + udf-coding-style-conversion-lindent-fixups-2.patch added to -mm tree
+Date: Tue, 05 Jun 2007 16:53:18 -0700
+Message-ID: <200706052353.l55NrI4M005443@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933602AbXFEXqo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:46:44 -0400
+	by vger.kernel.org with ESMTP id S1759155AbXFEXx0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, greg@kroah.com, pfmp.404@gmail.com
+Cc: gorcunov@gmail.com
 
 
 The patch titled
-     usb serial: fix something
+     UDF: coding style conversion - lindent fixups 2
 has been added to the -mm tree.  Its filename is
-     usb-serial-fix-something.patch
+     udf-coding-style-conversion-lindent-fixups-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,128 +25,274 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb serial: fix something
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: UDF: coding style conversion - lindent fixups 2
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Might fix bug 8561
+This patch fixes sources were converted to kernel coding style by Lindent
+for first and then by hands.  But some messed things were accidentally
+skipped.
 
-On Mon, 4 Jun 2007, Paulo Pereira wrote:
-
-> The patch that you send is not resolving the problem... :(
-> I stil have Kernel panic after 45/60 min of work with Ktorrent/Amule...
->
-> The Drump is:
->
-> Call Trace:
-> [<c055fb36>] usb_hcd_submit+0xb1/0x763
-> [<f9276488>] ipt_do_table+0x2c7/0x2ef [ip_tables]
-> [<f929a6d7>] nf_ct_deliver_cached_events+0x41/0x96 [nf_conntrak]
-> [<f9288254>] ipv4_confirm+0x36/0c3b [nf_conntrack_ipv4]
-> [<c05ce7c2>] tcp_v4_rcv+0x827/0x899
-> [<c05afcc0>] nf_hook_slow+0x4d/0xb5
-> [<c042826f>] irq_enter+0x19/0x23
-> [<c042826f>] irq_enter+0x19/0x23
-> [<c040794c>] do_IRQ+0xbd/0xd1
-> [<f90893c9>] option_write+0xa7/0xef [option]
-
-Okay, from this it looks like there's a problem in the option.c serial
-driver.  Glancing at the code, it's obvious why: The thing totally
-abuses the USB API.
-
-Try applying this patch; it should help.
-
-Cc: Paulo Pereira <pfmp.404@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |   20 +++++++++++++++++---
- 1 files changed, 17 insertions(+), 3 deletions(-)
+ fs/udf/inode.c    |   14 +++--
+ fs/udf/truncate.c |  109 ++++++++++++++------------------------------
+ 2 files changed, 45 insertions(+), 78 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-serial-fix-something drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-serial-fix-something
-+++ a/drivers/usb/serial/option.c
-@@ -38,6 +38,7 @@
- #include <linux/tty.h>
- #include <linux/tty_flip.h>
- #include <linux/module.h>
-+#include <linux/bitops.h>
- #include <linux/usb.h>
- #include <linux/usb/serial.h>
- 
-@@ -238,6 +239,7 @@ struct option_port_private {
- 	/* Output endpoints and buffer for this port */
- 	struct urb *out_urbs[N_OUT_URB];
- 	char out_buffer[N_OUT_URB][OUT_BUFLEN];
-+	unsigned long out_busy;		/* Bit vector of URBs in use */
- 
- 	/* Settings for the port */
- 	int rts_state;	/* Handshaking pins (outputs) */
-@@ -368,7 +370,7 @@ static int option_write(struct usb_seria
- 			todo = OUT_BUFLEN;
- 
- 		this_urb = portdata->out_urbs[i];
--		if (this_urb->status == -EINPROGRESS) {
-+		if (test_and_set_bit(i, &portdata->out_busy)) {
- 			if (time_before(jiffies,
- 					portdata->tx_start_time[i] + 10 * HZ))
- 				continue;
-@@ -392,6 +394,7 @@ static int option_write(struct usb_seria
- 			dbg("usb_submit_urb %p (write bulk) failed "
- 				"(%d, has %d)", this_urb,
- 				err, this_urb->status);
-+			clear_bit(i, &portdata->out_busy);
- 			continue;
+diff -puN fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2
++++ a/fs/udf/inode.c
+@@ -1094,7 +1094,8 @@ static void udf_fill_inode(struct inode 
+ 			make_bad_inode(inode);
+ 			return;
  		}
- 		portdata->tx_start_time[i] = jiffies;
-@@ -444,12 +447,23 @@ static void option_indat_callback(struct
- static void option_outdat_callback(struct urb *urb)
- {
- 	struct usb_serial_port *port;
-+	struct option_port_private *portdata;
-+	int i;
+-		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
++		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry),
++		       inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
+ 	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE) {
+ 		UDF_I_EFE(inode) = 0;
+ 		UDF_I_USE(inode) = 0;
+@@ -1796,7 +1797,8 @@ int8_t udf_current_aext(struct inode * i
+ 		if (!epos->offset)
+ 			epos->offset = sizeof(struct allocExtDesc);
+ 		ptr = epos->bh->b_data + epos->offset;
+-		alen = sizeof(struct allocExtDesc) + le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
++		alen = sizeof(struct allocExtDesc) +
++			le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
+ 	}
  
- 	dbg("%s", __FUNCTION__);
- 
- 	port = (struct usb_serial_port *) urb->context;
- 
- 	usb_serial_port_softint(port);
-+
-+	portdata = usb_get_serial_port_data(port);
-+	for (i = 0; i < N_OUT_URB; ++i) {
-+		if (portdata->out_urbs[i] == urb) {
-+			smp_mb__before_clear_bit();
-+			clear_bit(i, &portdata->out_busy);
-+			break;
-+		}
-+	}
+ 	switch (UDF_I_ALLOCTYPE(inode)) {
+@@ -1823,9 +1825,8 @@ int8_t udf_current_aext(struct inode * i
+ 	return etype;
  }
  
- static void option_instat_callback(struct urb *urb)
-@@ -516,7 +530,7 @@ static int option_write_room(struct usb_
+-static int8_t
+-udf_insert_aext(struct inode *inode, struct extent_position epos,
+-		kernel_lb_addr neloc, uint32_t nelen)
++static int8_t udf_insert_aext(struct inode *inode, struct extent_position epos,
++			      kernel_lb_addr neloc, uint32_t nelen)
+ {
+ 	kernel_lb_addr oeloc;
+ 	uint32_t oelen;
+@@ -1909,7 +1910,8 @@ int8_t udf_delete_aext(struct inode * in
+ 			aed = (struct allocExtDesc *)oepos.bh->b_data;
+ 			aed->lengthAllocDescs =
+ 				cpu_to_le32(le32_to_cpu(aed->lengthAllocDescs) - adsize);
+-			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
++			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
++			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
+ 				udf_update_tag(oepos.bh->b_data, epos.offset - adsize);
+ 			else
+ 				udf_update_tag(oepos.bh->b_data, sizeof(struct allocExtDesc));
+diff -puN fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/truncate.c
+--- a/fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2
++++ a/fs/udf/truncate.c
+@@ -33,12 +33,10 @@ static void extent_trunc(struct inode *i
+ 			 uint32_t nelen)
+ {
+ 	kernel_lb_addr neloc = {};
+-	int last_block =
+-	    (elen + inode->i_sb->s_blocksize -
+-	     1) >> inode->i_sb->s_blocksize_bits;
+-	int first_block =
+-	    (nelen + inode->i_sb->s_blocksize -
+-	     1) >> inode->i_sb->s_blocksize_bits;
++	int last_block = (elen + inode->i_sb->s_blocksize - 1) >>
++		inode->i_sb->s_blocksize_bits;
++	int first_block = (nelen + inode->i_sb->s_blocksize - 1) >>
++		inode->i_sb->s_blocksize_bits;
  
- 	for (i=0; i < N_OUT_URB; i++) {
- 		this_urb = portdata->out_urbs[i];
--		if (this_urb && this_urb->status != -EINPROGRESS)
-+		if (this_urb && !test_bit(i, &portdata->out_busy))
- 			data_len += OUT_BUFLEN;
+ 	if (nelen) {
+ 		if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
+@@ -106,16 +104,16 @@ void udf_discard_prealloc(struct inode *
+ 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
+ 		if (!epos.bh) {
+ 			UDF_I_LENALLOC(inode) =
+-			    epos.offset - udf_file_entry_alloc_offset(inode);
++				epos.offset - udf_file_entry_alloc_offset(inode);
+ 			mark_inode_dirty(inode);
+ 		} else {
+ 			struct allocExtDesc *aed =
+-			    (struct allocExtDesc *)(epos.bh->b_data);
++				(struct allocExtDesc *)(epos.bh->b_data);
+ 			aed->lengthAllocDescs =
+-			    cpu_to_le32(epos.offset -
+-					sizeof(struct allocExtDesc));
+-			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT)
+-			    || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
++				cpu_to_le32(epos.offset -
++					    sizeof(struct allocExtDesc));
++			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
++			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
+ 				udf_update_tag(epos.bh->b_data, epos.offset);
+ 			else
+ 				udf_update_tag(epos.bh->b_data,
+@@ -132,7 +130,7 @@ void udf_discard_prealloc(struct inode *
+ void udf_truncate_extents(struct inode *inode)
+ {
+ 	struct extent_position epos;
+-	kernel_lb_addr eloc, neloc = { 0, 0 };
++	kernel_lb_addr eloc, neloc = {};
+ 	uint32_t elen, nelen = 0, indirect_ext_len = 0, lenalloc;
+ 	int8_t etype;
+ 	struct super_block *sb = inode->i_sb;
+@@ -148,9 +146,8 @@ void udf_truncate_extents(struct inode *
+ 		BUG();
+ 
+ 	etype = inode_bmap(inode, first_block, &epos, &eloc, &elen, &offset);
+-	byte_offset =
+-	    (offset << sb->s_blocksize_bits) +
+-	    (inode->i_size & (sb->s_blocksize - 1));
++	byte_offset = (offset << sb->s_blocksize_bits) +
++		(inode->i_size & (sb->s_blocksize - 1));
+ 	if (etype != -1) {
+ 		epos.offset -= adsize;
+ 		extent_trunc(inode, &epos, eloc, etype, elen, byte_offset);
+@@ -165,9 +162,7 @@ void udf_truncate_extents(struct inode *
+ 		else
+ 			lenalloc -= sizeof(struct allocExtDesc);
+ 
+-		while ((etype =
+-			udf_current_aext(inode, &epos, &eloc, &elen,
+-					 0)) != -1) {
++		while ((etype = udf_current_aext(inode, &epos, &eloc, &elen, 0)) != -1) {
+ 			if (etype == (EXT_NEXT_EXTENT_ALLOCDECS >> 30)) {
+ 				udf_write_aext(inode, &epos, neloc, nelen, 0);
+ 				if (indirect_ext_len) {
+@@ -179,52 +174,35 @@ void udf_truncate_extents(struct inode *
+ 							0, indirect_ext_len);
+ 				} else {
+ 					if (!epos.bh) {
+-						UDF_I_LENALLOC(inode) =
+-						    lenalloc;
++						UDF_I_LENALLOC(inode) = lenalloc;
+ 						mark_inode_dirty(inode);
+ 					} else {
+ 						struct allocExtDesc *aed =
+-						    (struct allocExtDesc
+-						     *)(epos.bh->b_data);
++							(struct allocExtDesc *)(epos.bh->b_data);
+ 						aed->lengthAllocDescs =
+ 						    cpu_to_le32(lenalloc);
+-						if (!UDF_QUERY_FLAG
+-						    (sb, UDF_FLAG_STRICT)
+-						    || UDF_SB_UDFREV(sb) >=
+-						    0x0201)
+-							udf_update_tag(epos.bh->
+-								       b_data,
+-								       lenalloc
+-								       +
+-								       sizeof
+-								       (struct
+-									allocExtDesc));
++						if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
++						    UDF_SB_UDFREV(sb) >= 0x0201)
++							udf_update_tag(epos.bh->b_data,
++								       lenalloc +
++								       sizeof(struct allocExtDesc));
+ 						else
+-							udf_update_tag(epos.bh->
+-								       b_data,
+-								       sizeof
+-								       (struct
+-									allocExtDesc));
+-						mark_buffer_dirty_inode(epos.bh,
+-									inode);
++							udf_update_tag(epos.bh->b_data,
++								       sizeof(struct allocExtDesc));
++						mark_buffer_dirty_inode(epos.bh, inode);
+ 					}
+ 				}
+ 				brelse(epos.bh);
+ 				epos.offset = sizeof(struct allocExtDesc);
+ 				epos.block = eloc;
+-				epos.bh =
+-				    udf_tread(sb,
+-					      udf_get_lb_pblock(sb, eloc, 0));
++				epos.bh = udf_tread(sb, udf_get_lb_pblock(sb, eloc, 0));
+ 				if (elen)
+-					indirect_ext_len = (elen +
+-							    sb->s_blocksize -
+-							    1) >> sb->
+-					    s_blocksize_bits;
++					indirect_ext_len = (elen + sb->s_blocksize -1) >>
++						sb->s_blocksize_bits;
+ 				else
+ 					indirect_ext_len = 1;
+ 			} else {
+-				extent_trunc(inode, &epos, eloc, etype, elen,
+-					     0);
++				extent_trunc(inode, &epos, eloc, etype, elen, 0);
+ 				epos.offset += adsize;
+ 			}
+ 		}
+@@ -242,16 +220,13 @@ void udf_truncate_extents(struct inode *
+ 				struct allocExtDesc *aed =
+ 				    (struct allocExtDesc *)(epos.bh->b_data);
+ 				aed->lengthAllocDescs = cpu_to_le32(lenalloc);
+-				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT)
+-				    || UDF_SB_UDFREV(sb) >= 0x0201)
++				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
++				    UDF_SB_UDFREV(sb) >= 0x0201)
+ 					udf_update_tag(epos.bh->b_data,
+-						       lenalloc +
+-						       sizeof(struct
+-							      allocExtDesc));
++						       lenalloc + sizeof(struct allocExtDesc));
+ 				else
+ 					udf_update_tag(epos.bh->b_data,
+-						       sizeof(struct
+-							      allocExtDesc));
++						       sizeof(struct allocExtDesc));
+ 				mark_buffer_dirty_inode(epos.bh, inode);
+ 			}
+ 		}
+@@ -264,21 +239,14 @@ void udf_truncate_extents(struct inode *
+ 			 *  no extent above inode->i_size => truncate is
+ 			 *  extending the file by 'offset' blocks.
+ 			 */
+-			if ((!epos.bh
+-			     && epos.offset ==
+-			     udf_file_entry_alloc_offset(inode)) || (epos.bh
+-								     && epos.
+-								     offset ==
+-								     sizeof
+-								     (struct
+-								      allocExtDesc)))
+-			{
++			if ((!epos.bh &&
++			     epos.offset == udf_file_entry_alloc_offset(inode)) ||
++			    (epos.bh && epos.offset == sizeof(struct allocExtDesc))) {
+ 				/* File has no extents at all or has empty last
+ 				 * indirect extent! Create a fake extent... */
+ 				extent.extLocation.logicalBlockNum = 0;
+ 				extent.extLocation.partitionReferenceNum = 0;
+-				extent.extLength =
+-				    EXT_NOT_RECORDED_NOT_ALLOCATED;
++				extent.extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
+ 			} else {
+ 				epos.offset -= adsize;
+ 				etype = udf_next_aext(inode, &epos,
+@@ -287,10 +255,7 @@ void udf_truncate_extents(struct inode *
+ 				extent.extLength |= etype << 30;
+ 			}
+ 			udf_extend_file(inode, &epos, &extent,
+-					offset +
+-					((inode->
+-					  i_size & (sb->s_blocksize - 1)) !=
+-					 0));
++					offset + ((inode->i_size & (sb->s_blocksize - 1)) != 0));
+ 		}
  	}
- 
-@@ -535,7 +549,7 @@ static int option_chars_in_buffer(struct
- 
- 	for (i=0; i < N_OUT_URB; i++) {
- 		this_urb = portdata->out_urbs[i];
--		if (this_urb && this_urb->status == -EINPROGRESS)
-+		if (this_urb && test_bit(i, &portdata->out_busy))
- 			data_len += this_urb->transfer_buffer_length;
- 	}
- 	dbg("%s: %d", __FUNCTION__, data_len);
+ 	UDF_I_LENEXTENTS(inode) = inode->i_size;
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-git-hid.patch
-usb-try-to-debug-bug-8561.patch
-usb-serial-fix-something.patch
-make-alt-sysrq-p-display-the-debug-register-contents.patch
-freezer-run-show_state-when-freezing-times-out.patch
+udf-check-for-allocated-memory-for-data-of-new-inodes.patch
+udf-check-for-allocated-memory-for-data-of-new-inodes-fix.patch
+udf-check-for-allocated-memory-for-inode-data-v2.patch
+udf-coding-style-conversion-lindent.patch
+udf-coding-style-conversion-lindent-fixups.patch
+udf-coding-style-conversion-lindent-fixups-2.patch
