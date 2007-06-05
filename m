@@ -1,183 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-dmi-based-module-autoloading.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 00:10:22 -0700
-Message-ID: <200706050710.l557AKa8031258@imap1.linux-foundation.org>
+Subject: - sysdev-use-mutex-instead-of-semaphore.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 00:10:28 -0700
+Message-ID: <200706050710.l557AQeh031268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763344AbXFEHKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:38 -0400
+	by vger.kernel.org with ESMTP id S1763189AbXFEHKh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, gregkh@suse.de, kay.sievers@vrfy.org, michal.k.k.piotrowski@gmail.com, mzxreary@0pointer.de, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-driver-dmi-based-module-autoloading
+     sysdev: use mutex instead of semaphore
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-dmi-based-module-autoloading.patch
+     sysdev-use-mutex-instead-of-semaphore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-dmi-based-module-autoloading
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysdev: use mutex instead of semaphore
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Fix a pretty obvious off-by-one.
+The sysdev code use a semaphore as mutex.  Use the mutex API instead of the
+(binary) semaphore.
 
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Lennart Poettering <mzxreary@0pointer.de>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi-id.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/sys.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/firmware/dmi-id.c~fix-gregkh-driver-dmi-based-module-autoloading drivers/firmware/dmi-id.c
---- a/drivers/firmware/dmi-id.c~fix-gregkh-driver-dmi-based-module-autoloading
-+++ a/drivers/firmware/dmi-id.c
-@@ -94,7 +94,7 @@ static ssize_t get_modalias(char *buffer
- 		if (!c)
- 			continue;
+diff -puN drivers/base/sys.c~sysdev-use-mutex-instead-of-semaphore drivers/base/sys.c
+--- a/drivers/base/sys.c~sysdev-use-mutex-instead-of-semaphore
++++ a/drivers/base/sys.c
+@@ -21,7 +21,7 @@
+ #include <linux/string.h>
+ #include <linux/pm.h>
+ #include <linux/device.h>
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
  
--		t = kmalloc(strlen(c), GFP_KERNEL);
-+		t = kmalloc(strlen(c) + 1, GFP_KERNEL);
- 		if (!t)
- 			break;
- 		ascii_filter(t, c);
+ #include "base.h"
+ 
+@@ -155,7 +155,7 @@ EXPORT_SYMBOL_GPL(sysdev_class_unregiste
+ 
+ 
+ static LIST_HEAD(sysdev_drivers);
+-static DECLARE_MUTEX(sysdev_drivers_lock);
++static DEFINE_MUTEX(sysdev_drivers_lock);
+ 
+ /**
+  *	sysdev_driver_register - Register auxillary driver
+@@ -172,7 +172,7 @@ static DECLARE_MUTEX(sysdev_drivers_lock
+ int sysdev_driver_register(struct sysdev_class * cls,
+ 			   struct sysdev_driver * drv)
+ {
+-	down(&sysdev_drivers_lock);
++	mutex_lock(&sysdev_drivers_lock);
+ 	if (cls && kset_get(&cls->kset)) {
+ 		list_add_tail(&drv->entry, &cls->drivers);
+ 
+@@ -184,7 +184,7 @@ int sysdev_driver_register(struct sysdev
+ 		}
+ 	} else
+ 		list_add_tail(&drv->entry, &sysdev_drivers);
+-	up(&sysdev_drivers_lock);
++	mutex_unlock(&sysdev_drivers_lock);
+ 	return 0;
+ }
+ 
+@@ -197,7 +197,7 @@ int sysdev_driver_register(struct sysdev
+ void sysdev_driver_unregister(struct sysdev_class * cls,
+ 			      struct sysdev_driver * drv)
+ {
+-	down(&sysdev_drivers_lock);
++	mutex_lock(&sysdev_drivers_lock);
+ 	list_del_init(&drv->entry);
+ 	if (cls) {
+ 		if (drv->remove) {
+@@ -207,7 +207,7 @@ void sysdev_driver_unregister(struct sys
+ 		}
+ 		kset_put(&cls->kset);
+ 	}
+-	up(&sysdev_drivers_lock);
++	mutex_unlock(&sysdev_drivers_lock);
+ }
+ 
+ EXPORT_SYMBOL_GPL(sysdev_driver_register);
+@@ -246,7 +246,7 @@ int sysdev_register(struct sys_device * 
+ 	if (!error) {
+ 		struct sysdev_driver * drv;
+ 
+-		down(&sysdev_drivers_lock);
++		mutex_lock(&sysdev_drivers_lock);
+ 		/* Generic notification is implicit, because it's that
+ 		 * code that should have called us.
+ 		 */
+@@ -262,7 +262,7 @@ int sysdev_register(struct sys_device * 
+ 			if (drv->add)
+ 				drv->add(sysdev);
+ 		}
+-		up(&sysdev_drivers_lock);
++		mutex_unlock(&sysdev_drivers_lock);
+ 	}
+ 	return error;
+ }
+@@ -271,7 +271,7 @@ void sysdev_unregister(struct sys_device
+ {
+ 	struct sysdev_driver * drv;
+ 
+-	down(&sysdev_drivers_lock);
++	mutex_lock(&sysdev_drivers_lock);
+ 	list_for_each_entry(drv, &sysdev_drivers, entry) {
+ 		if (drv->remove)
+ 			drv->remove(sysdev);
+@@ -281,7 +281,7 @@ void sysdev_unregister(struct sys_device
+ 		if (drv->remove)
+ 			drv->remove(sysdev);
+ 	}
+-	up(&sysdev_drivers_lock);
++	mutex_unlock(&sysdev_drivers_lock);
+ 
+ 	kobject_unregister(&sysdev->kobj);
+ }
+@@ -308,7 +308,7 @@ void sysdev_shutdown(void)
+ 
+ 	pr_debug("Shutting Down System Devices\n");
+ 
+-	down(&sysdev_drivers_lock);
++	mutex_lock(&sysdev_drivers_lock);
+ 	list_for_each_entry_reverse(cls, &system_subsys.list,
+ 				    kset.kobj.entry) {
+ 		struct sys_device * sysdev;
+@@ -337,7 +337,7 @@ void sysdev_shutdown(void)
+ 				cls->shutdown(sysdev);
+ 		}
+ 	}
+-	up(&sysdev_drivers_lock);
++	mutex_unlock(&sysdev_drivers_lock);
+ }
+ 
+ static void __sysdev_resume(struct sys_device *dev)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-document-acked-by.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-input-fixup.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-git-md-accel-fixup.patch
-git-mips-fixup.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-git-xtensa.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-rd-remove-ramdisk_set_page_dirty-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+git-netdev-all.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
+drivers-block-ubc-use-list_for_each_entry.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+fs-block_devc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
