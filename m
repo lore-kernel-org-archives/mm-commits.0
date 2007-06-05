@@ -1,118 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - the-async_-options-shouldnt-be-user-visible.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 00:10:32 -0700
-Message-ID: <200706050710.l557AUxS031274@imap1.linux-foundation.org>
+Subject: + pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch added to -mm tree
+Date: Tue, 05 Jun 2007 00:41:41 -0700
+Message-ID: <200706050745.l557jCeh031789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36599 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763545AbXFEHKp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:45 -0400
+	by vger.kernel.org with ESMTP id S1760810AbXFEHpu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:45:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dan.j.williams@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     the ASYNC_* options shouldn't be user visible
-has been removed from the -mm tree.  Its filename was
-     the-async_-options-shouldnt-be-user-visible.patch
+     pm-disable-usermode-helper-before-hibernation-and-suspend-fix
+has been added to the -mm tree.  Its filename is
+     pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: the ASYNC_* options shouldn't be user visible
-From: Adrian Bunk <bunk@stusta.de>
+Subject: pm-disable-usermode-helper-before-hibernation-and-suspend-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The ASYNC_* options are for internal helper code and should therefore
-not be user visible.
+Please always test allnoconfig and allmodconfig builds
 
-BTW: Please move the async_tx directory under drivers/ or lib/
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- async_tx/Kconfig |   28 ++++++++--------------------
- 1 files changed, 8 insertions(+), 20 deletions(-)
+ kernel/kmod.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible async_tx/Kconfig
---- a/async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible
-+++ a/async_tx/Kconfig
-@@ -1,27 +1,15 @@
--menuconfig ASYNC_CORE
--	tristate "Asynchronous Bulk Memory Transfers/Transforms"
--	default n
--	---help---
--	  This enables the async_tx interface layer for dma (offload) engines.
--	  Subsystems coded to this api will use offload engines for bulk memory
--	  operations (e.g. memcpy, memset, xor...).  When an offload engine is not
--	  available the interface will implicitly fall back to a software
--	  implementation of the operation.
+diff -puN kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix kernel/kmod.c
+--- a/kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend-fix
++++ a/kernel/kmod.c
+@@ -41,13 +41,6 @@ extern int max_threads;
+ 
+ static struct workqueue_struct *khelper_wq;
+ 
+-#ifdef CONFIG_KMOD
 -
--	  If unsure, say N
+-/*
+-	modprobe_path is set via /proc/sys.
+-*/
+-char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
 -
--if ASYNC_CORE
-+config ASYNC_CORE
-+	tristate
+ /*
+  * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
+  * immediately returning -EBUSY.  Used for preventing user land processes from
+@@ -56,6 +49,13 @@ char modprobe_path[KMOD_PATH_LEN] = "/sb
+  */
+ static int usermodehelper_disabled;
  
- config ASYNC_MEMCPY
--	default m
--	tristate "async_memcpy support"
-+	tristate
-+	select ASYNC_CORE
- 
- config ASYNC_XOR
--	default m
--	tristate "async_xor support"
-+	tristate
-+	select ASYNC_CORE
- 
- config ASYNC_MEMSET
--	default m
--	tristate "async_memset support"
-+	tristate
-+	select ASYNC_CORE
- 
--endif
++#ifdef CONFIG_KMOD
++
++/*
++	modprobe_path is set via /proc/sys.
++*/
++char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
++
+ /**
+  * request_module - try to load a kernel module
+  * @fmt:     printf style format string for the name of the module
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+document-acked-by.patch
 git-acpi.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-fix-2-gregkh-driver-dmi-based-module-autoloading.patch
-git-dvb-fix-the-tea5761-tuner-support.patch
-git-input-make-xpad_play_effect-static.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-input-fixup.patch
+git-kbuild.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-leds.patch
+git-md-accel-fixup.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
-unexport-pci_proc_attach_device.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-remove-sonypi_camera_command.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-reiser4-export-remove_from_page_cache.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
