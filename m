@@ -1,56 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-export-acpi_set_cstate_limit.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 01:03:23 -0700
-Message-ID: <200706050806.l5586sdk032131@imap1.linux-foundation.org>
+Subject: + git-acpi-tickh-needs-hrtimerh.patch added to -mm tree
+Date: Tue, 05 Jun 2007 01:23:00 -0700
+Message-ID: <200706050826.l558QWSL032424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47056 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755592AbXFEIHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:07:08 -0400
+	by vger.kernel.org with ESMTP id S1751661AbXFEI0p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:26:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, lenb@kernel.org
 
 
 The patch titled
-     git-acpi: export acpi_set_cstate_limit
-has been removed from the -mm tree.  Its filename was
-     git-acpi-export-acpi_set_cstate_limit.patch
+     git-acpi: tick.h needs hrtimer.h
+has been added to the -mm tree.  Its filename is
+     git-acpi-tickh-needs-hrtimerh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi: export acpi_set_cstate_limit
+Subject: git-acpi: tick.h needs hrtimer.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ipw2100 uses this.
+It uses hrtimers.
 
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    1 +
+ include/linux/tick.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit
-+++ a/drivers/acpi/osl.c
-@@ -1078,6 +1078,7 @@ acpi_cpu_flags acpi_os_acquire_lock(acpi
- 	spin_lock_irqsave(lockp, flags);
- 	return flags;
- }
-+EXPORT_SYMBOL(acpi_set_cstate_limit);
+diff -puN include/linux/tick.h~git-acpi-tickh-needs-hrtimerh include/linux/tick.h
+--- a/include/linux/tick.h~git-acpi-tickh-needs-hrtimerh
++++ a/include/linux/tick.h
+@@ -7,6 +7,7 @@
+ #define _LINUX_TICK_H
  
- /*
-  * Release a spinlock. See above.
+ #include <linux/clockchips.h>
++#include <linux/hrtimer.h>
+ 
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 document-acked-by.patch
 git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
+git-acpi-tickh-needs-hrtimerh.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
@@ -64,7 +68,6 @@ git-input-fixup.patch
 git-kbuild.patch
 git-kvm.patch
 git-leds.patch
-git-md-accel-fixup.patch
 git-mips-fixup.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
