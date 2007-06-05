@@ -1,243 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-pci-pci-reduce-aer-init-error-information.patch added to -mm tree
-Date: Tue, 05 Jun 2007 02:38:45 -0700
-Message-ID: <200706050938.l559ckSA000927@imap1.linux-foundation.org>
+Subject: - gregkh-pci-pci-reduce-aer-init-error-information-fix.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 02:38:55 -0700
+Message-ID: <200706050938.l559ct6s000930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59718 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759042AbXFEJi6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 05:38:58 -0400
+	by vger.kernel.org with ESMTP id S1762770AbXFEJjG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 05:39:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, yanmin.zhang@intel.com
+To: akpm@linux-foundation.org, gregkh@suse.de, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-pci-pci-reduce-aer-init-error-information
-has been added to the -mm tree.  Its filename is
-     revert-gregkh-pci-pci-reduce-aer-init-error-information.patch
+     gregkh-pci-pci-reduce-aer-init-error-information-fix
+has been removed from the -mm tree.  Its filename was
+     gregkh-pci-pci-reduce-aer-init-error-information-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-reduce-aer-init-error-information
+Subject: gregkh-pci-pci-reduce-aer-init-error-information-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It deletes aerdrv_acpi.c but we still need it.
+If we're going to delete the file we'd best not still try to compile it.
 
-Cc: "Zhang, Yanmin" <yanmin.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Or maybe we didn't intend to delete that file.  No doubt I will find out.
+
+Cc: Zhang Yanmin <yanmin.zhang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-acpi.c             |    8 ++-
- drivers/pci/pcie/aer/aerdrv.h      |    5 +
- drivers/pci/pcie/aer/aerdrv_acpi.c |   68 +++++++++++++++++++++++++++
- drivers/pci/pcie/aer/aerdrv_core.c |   55 ++-------------------
- 4 files changed, 86 insertions(+), 50 deletions(-)
+ drivers/pci/pcie/aer/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/pci-acpi.c~revert-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pci-acpi.c
---- a/drivers/pci/pci-acpi.c~revert-gregkh-pci-pci-reduce-aer-init-error-information
-+++ a/drivers/pci/pci-acpi.c
-@@ -55,6 +55,8 @@ acpi_query_osc (
+diff -puN drivers/pci/pci-acpi.c~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pci-acpi.c
+diff -puN drivers/pci/pcie/aer/aerdrv.h~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/aerdrv.h
+diff -puN /dev/null /dev/null
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/aerdrv_core.c
+diff -puN drivers/pci/pcie/aer/Makefile~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/Makefile
+--- a/drivers/pci/pcie/aer/Makefile~gregkh-pci-pci-reduce-aer-init-error-information-fix
++++ a/drivers/pci/pcie/aer/Makefile
+@@ -4,5 +4,5 @@
  
- 	status = acpi_evaluate_object(handle, "_OSC", &input, &output);
- 	if (ACPI_FAILURE (status)) {
-+		printk(KERN_DEBUG  
-+			"Evaluate _OSC Set fails. Status = 0x%04x\n", status);
- 		*ret_status = status;
- 		return status;
- 	}
-@@ -122,9 +124,11 @@ acpi_run_osc (
- 	in_params[3].buffer.pointer 	= (u8 *)context;
+ obj-$(CONFIG_PCIEAER) += aerdriver.o
  
- 	status = acpi_evaluate_object(handle, "_OSC", &input, &output);
--	if (ACPI_FAILURE (status))
-+	if (ACPI_FAILURE (status)) {
-+		printk(KERN_DEBUG  
-+			"Evaluate _OSC Set fails. Status = 0x%04x\n", status);
- 		return status;
--
-+	}
- 	out_obj = output.pointer;
- 	if (out_obj->type != ACPI_TYPE_BUFFER) {
- 		printk(KERN_DEBUG  
-diff -puN drivers/pci/pcie/aer/aerdrv.h~revert-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/aerdrv.h
---- a/drivers/pci/pcie/aer/aerdrv.h~revert-gregkh-pci-pci-reduce-aer-init-error-information
-+++ a/drivers/pci/pcie/aer/aerdrv.h
-@@ -19,6 +19,10 @@
- #define AER_ERROR_MASK			0x001fffff
- #define AER_ERROR(d)			(d & AER_ERROR_MASK)
+-aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o aerdrv_acpi.o
++aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o
  
-+#define OSC_METHOD_RUN_SUCCESS		0
-+#define OSC_METHOD_NOT_SUPPORTED	1
-+#define OSC_METHOD_RUN_FAILURE		2
-+
- /* Root Error Status Register Bits */
- #define ROOT_ERR_STATUS_MASKS			0x0f
- 
-@@ -117,5 +121,6 @@ extern void aer_delete_rootport(struct a
- extern int aer_init(struct pcie_device *dev);
- extern void aer_isr(struct work_struct *work);
- extern void aer_print_error(struct pci_dev *dev, struct aer_err_info *info);
-+extern int aer_osc_setup(struct pci_dev *dev);
- 
- #endif //_AERDRV_H_
-diff -puN /dev/null drivers/pci/pcie/aer/aerdrv_acpi.c
---- /dev/null
-+++ a/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -0,0 +1,68 @@
-+/*
-+ * Access ACPI _OSC method
-+ *
-+ * Copyright (C) 2006 Intel Corp.
-+ *	Tom Long Nguyen (tom.l.nguyen@intel.com)
-+ *	Zhang Yanmin (yanmin.zhang@intel.com)
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/pci.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/pm.h>
-+#include <linux/suspend.h>
-+#include <linux/acpi.h>
-+#include <linux/pci-acpi.h>
-+#include <linux/delay.h>
-+#include "aerdrv.h"
-+
-+/**
-+ * aer_osc_setup - run ACPI _OSC method
-+ *
-+ * Return:
-+ *	Zero if success. Nonzero for otherwise.
-+ *
-+ * Invoked when PCIE bus loads AER service driver. To avoid conflict with
-+ * BIOS AER support requires BIOS to yield AER control to OS native driver.
-+ **/
-+int aer_osc_setup(struct pci_dev *dev)
-+{
-+	int retval = OSC_METHOD_RUN_SUCCESS;
-+	acpi_status status;
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
-+	struct pci_dev *pdev = dev;
-+	struct pci_bus *parent;
-+
-+	while (!handle) {
-+		if (!pdev || !pdev->bus->parent)
-+			break;
-+		parent = pdev->bus->parent;
-+		if (!parent->self)
-+			/* Parent must be a host bridge */
-+			handle = acpi_get_pci_rootbridge_handle(
-+					pci_domain_nr(parent),
-+					parent->number);
-+		else
-+			handle = DEVICE_ACPI_HANDLE(
-+					&(parent->self->dev));
-+		pdev = parent->self;
-+	}
-+
-+	if (!handle)
-+		return OSC_METHOD_NOT_SUPPORTED;
-+
-+	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
-+	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
-+		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-+	if (ACPI_FAILURE(status)) {
-+		if (status == AE_SUPPORT)
-+			retval = OSC_METHOD_NOT_SUPPORTED;
-+	 	else
-+			retval = OSC_METHOD_RUN_FAILURE;
-+	}
-+
-+	return retval;
-+}
-+
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~revert-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/aerdrv_core.c
---- a/drivers/pci/pcie/aer/aerdrv_core.c~revert-gregkh-pci-pci-reduce-aer-init-error-information
-+++ a/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -726,47 +726,6 @@ void aer_delete_rootport(struct aer_rpc 
- }
- 
- /**
-- * aer_osc_setup - run ACPI _OSC method
-- *
-- * Return:
-- *	Zero if success. Nonzero for otherwise.
-- *
-- * Invoked when PCIE bus loads AER service driver. To avoid conflict with
-- * BIOS AER support requires BIOS to yield AER control to OS native driver.
-- **/
--acpi_status aer_osc_setup(struct pci_dev *dev)
--{
--	acpi_status status = AE_NOT_FOUND;
--	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
--	struct pci_dev *pdev = dev;
--	struct pci_bus *parent;
--
--	while (!handle) {
--		if (!pdev || !pdev->bus->parent)
--			break;
--		parent = pdev->bus->parent;
--		if (!parent->self)
--			/* Parent must be a host bridge */
--			handle = acpi_get_pci_rootbridge_handle(
--					pci_domain_nr(parent),
--					parent->number);
--		else
--			handle = DEVICE_ACPI_HANDLE(
--					&(parent->self->dev));
--		pdev = parent->self;
--	}
--
--	if (!handle)
--		return status;
--
--	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
--	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
--		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
--
--	return status;
--}
--
--/**
-  * aer_init - provide AER initialization
-  * @dev: pointer to AER pcie device
-  *
-@@ -774,19 +733,19 @@ acpi_status aer_osc_setup(struct pci_dev
-  **/
- int aer_init(struct pcie_device *dev)
- {
--	acpi_status	status;
-+	int status;
- 
- 	/* Run _OSC Method */
- 	status = aer_osc_setup(dev->port);
- 
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_DEBUG "AER service couldn't init device %s - %s\n",
--		    dev->device.bus_id,
--		    (status == AE_SUPPORT || status == AE_NOT_FOUND) ?
--		    "no _OSC support" : "Run ACPI _OSC fails");
-+	if(status != OSC_METHOD_RUN_SUCCESS) {
-+		printk(KERN_DEBUG "%s: AER service init fails - %s\n",
-+		__FUNCTION__,
-+		(status == OSC_METHOD_NOT_SUPPORTED) ?
-+			"No ACPI _OSC support" : "Run ACPI _OSC fails");
- 
- 		if (!forceload)
--			return -ENXIO;
-+			return status;
- 	}
- 
- 	return AER_SUCCESS;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
