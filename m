@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + more-more-fix-gregkh-driver-block-device.patch added to -mm tree
-Date: Tue, 05 Jun 2007 01:40:31 -0700
-Message-ID: <200706050844.l558i2hl032630@imap1.linux-foundation.org>
+Subject: + lguest-the-net-driver-include-fix.patch added to -mm tree
+Date: Tue, 05 Jun 2007 02:06:49 -0700
+Message-ID: <200706050910.l559AKUd000492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761555AbXFEIoJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:44:09 -0400
+	by vger.kernel.org with ESMTP id S1762368AbXFEJKb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 05:10:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     more-more-fix-gregkh-driver-block-device
+     lguest-the-net-driver include fix
 has been added to the -mm tree.  Its filename is
-     more-more-fix-gregkh-driver-block-device.patch
+     lguest-the-net-driver-include-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: more-more-fix-gregkh-driver-block-device
+Subject: lguest-the-net-driver include fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/partitions/check.c:375: warning: 'disk_sysfs_symlinks' defined but not used
+lguest_net.c:(.text+0x5a58c): undefined reference to `virt_to_phys'
+lguest_net.c:(.text+0x5a615): undefined reference to `page_to_phys'
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/lguest_net.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/partitions/check.c~more-more-fix-gregkh-driver-block-device fs/partitions/check.c
---- a/fs/partitions/check.c~more-more-fix-gregkh-driver-block-device
-+++ a/fs/partitions/check.c
-@@ -370,6 +370,7 @@ void add_partition(struct gendisk *disk,
- 		kobject_uevent(&p->dev.kobj, KOBJ_ADD);
- }
+diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-include-fix drivers/net/lguest_net.c
+--- a/drivers/net/lguest_net.c~lguest-the-net-driver-include-fix
++++ a/drivers/net/lguest_net.c
+@@ -21,6 +21,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/module.h>
+ #include <linux/mm_types.h>
++#include <linux/io.h>
+ #include <linux/lguest_bus.h>
  
-+#ifndef CONFIG_SYSFS_DEPRECATED
- static int disk_sysfs_symlinks(struct gendisk *disk)
- {
- 	int err = 0;
-@@ -381,6 +382,7 @@ static int disk_sysfs_symlinks(struct ge
- 		put_device(target);
- 	return err;
- }
-+#endif
- 
- /* Not exported, helper to add_disk(). */
- void register_disk(struct gendisk *disk)
+ #define SHARED_SIZE		PAGE_SIZE
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +61,8 @@ git-avr32.patch
 git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
 fix-gregkh-driver-block-device.patch
+more-fix-gregkh-driver-block-device.patch
+more-more-fix-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
 git-gfs2-nmw.patch
@@ -175,6 +169,7 @@ nfsd-warning-fix.patch
 revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
 lguest-the-host-code-borkages.patch
+lguest-the-net-driver-include-fix.patch
 fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
 fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
@@ -197,5 +192,3 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-more-fix-gregkh-driver-block-device.patch
-more-more-fix-gregkh-driver-block-device.patch
