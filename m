@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-input-make-xpad_play_effect-static.patch added to -mm tree
-Date: Mon, 04 Jun 2007 18:06:58 -0700
-Message-ID: <200706050106.l5516vrR026641@imap1.linux-foundation.org>
+Subject: + git-dvb-fix-the-tea5761-tuner-support.patch added to -mm tree
+Date: Mon, 04 Jun 2007 18:07:57 -0700
+Message-ID: <200706050107.l5517t3W026651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754168AbXFEBHO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 21:07:14 -0400
+	by vger.kernel.org with ESMTP id S1751924AbXFEBIR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 21:08:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dtor@mail.ru
+Cc: bunk@stusta.de, mchehab@infradead.org
 
 
 The patch titled
-     git-input: make xpad_play_effect() static
+     git-dvb: fix the tea5761 tuner support
 has been added to the -mm tree.  Its filename is
-     git-input-make-xpad_play_effect-static.patch
+     git-dvb-fix-the-tea5761-tuner-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-input: make xpad_play_effect() static
+Subject: git-dvb: fix the tea5761 tuner support
 From: Adrian Bunk <bunk@stusta.de>
 
-Make the needlessly global xpad_play_effect() static.
+Due to a typo the tea5761 tuner support was dead code.
+
+This patch also fixes a bug in the no longer dead code:
+A void function can't return anything.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joystick/xpad.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/video/tuner-core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/input/joystick/xpad.c~git-input-make-xpad_play_effect-static drivers/input/joystick/xpad.c
---- a/drivers/input/joystick/xpad.c~git-input-make-xpad_play_effect-static
-+++ a/drivers/input/joystick/xpad.c
-@@ -376,7 +376,8 @@ exit:
- 		   __FUNCTION__, retval);
- }
+diff -puN drivers/media/video/tuner-core.c~git-dvb-fix-the-tea5761-tuner-support drivers/media/video/tuner-core.c
+--- a/drivers/media/video/tuner-core.c~git-dvb-fix-the-tea5761-tuner-support
++++ a/drivers/media/video/tuner-core.c
+@@ -25,7 +25,7 @@
  
--int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect *effect)
-+static int xpad_play_effect(struct input_dev *dev, void *data,
-+			    struct ff_effect *effect)
- {
- 	struct usb_xpad *xpad = input_get_drvdata(dev);
- 
+ /* standard i2c insmod options */
+ static unsigned short normal_i2c[] = {
+-#ifdef CONFIG_TUNER_5761
++#ifdef CONFIG_TUNER_TEA5761
+ 	0x10,
+ #endif
+ 	0x42, 0x43, 0x4a, 0x4b,			/* tda8290 */
+@@ -192,12 +192,12 @@ static void set_type(struct i2c_client *
+ 		}
+ 		t->mode_mask = T_RADIO;
+ 		break;
+-#ifdef CONFIG_TUNER_5761
++#ifdef CONFIG_TUNER_TEA5761
+ 	case TUNER_TEA5761:
+ 		if (tea5761_tuner_init(c) == EINVAL) {
+ 			t->type = TUNER_ABSENT;
+ 			t->mode_mask = T_UNINITIALIZED;
+-			return -ENODEV;
++			return;
+ 		}
+ 		t->mode_mask = T_RADIO;
+ 		break;
+@@ -473,7 +473,7 @@ static int tuner_attach(struct i2c_adapt
+ 	/* autodetection code based on the i2c addr */
+ 	if (!no_autodetect) {
+ 		switch (addr) {
+-#ifdef CONFIG_TUNER_5761
++#ifdef CONFIG_TUNER_TEA5761
+ 		case 0x10:
+ 			if (tea5761_autodetection(&t->i2c) != EINVAL) {
+ 				t->type = TUNER_TEA5761;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -59,6 +85,7 @@ origin.patch
 git-acpi.patch
 make-drivers-char-hvc_consoleckhvcd-static.patch
 fix-2-gregkh-driver-dmi-based-module-autoloading.patch
+git-dvb-fix-the-tea5761-tuner-support.patch
 git-input-make-xpad_play_effect-static.patch
 git-kvm.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
