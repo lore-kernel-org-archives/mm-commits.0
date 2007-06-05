@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-tickh-needs-hrtimerh.patch added to -mm tree
-Date: Tue, 05 Jun 2007 01:23:00 -0700
-Message-ID: <200706050826.l558QWSL032424@imap1.linux-foundation.org>
+Subject: + gregkh-pci-pci-reduce-aer-init-error-information-fix.patch added to -mm tree
+Date: Tue, 05 Jun 2007 01:34:23 -0700
+Message-ID: <200706050837.l558bss1032559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47056 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46568 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751661AbXFEI0p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:26:45 -0400
+	by vger.kernel.org with ESMTP id S1757165AbXFEIiF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:38:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org
+Cc: akpm@linux-foundation.org, gregkh@suse.de, yanmin.zhang@intel.com
 
 
 The patch titled
-     git-acpi: tick.h needs hrtimer.h
+     gregkh-pci-pci-reduce-aer-init-error-information-fix
 has been added to the -mm tree.  Its filename is
-     git-acpi-tickh-needs-hrtimerh.patch
+     gregkh-pci-pci-reduce-aer-init-error-information-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi: tick.h needs hrtimer.h
+Subject: gregkh-pci-pci-reduce-aer-init-error-information-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It uses hrtimers.
+If we're going to delete the file we'd best not still try to compile it.
 
-Cc: Len Brown <lenb@kernel.org>
+Or maybe we didn't intend to delete that file.  No doubt I will find out.
+
+Cc: Zhang Yanmin <yanmin.zhang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/pcie/aer/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/tick.h~git-acpi-tickh-needs-hrtimerh include/linux/tick.h
---- a/include/linux/tick.h~git-acpi-tickh-needs-hrtimerh
-+++ a/include/linux/tick.h
-@@ -7,6 +7,7 @@
- #define _LINUX_TICK_H
+diff -puN drivers/pci/pci-acpi.c~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pci-acpi.c
+diff -puN drivers/pci/pcie/aer/aerdrv.h~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/aerdrv.h
+diff -puN /dev/null /dev/null
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/aerdrv_core.c
+diff -puN drivers/pci/pcie/aer/Makefile~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/Makefile
+--- a/drivers/pci/pcie/aer/Makefile~gregkh-pci-pci-reduce-aer-init-error-information-fix
++++ a/drivers/pci/pcie/aer/Makefile
+@@ -4,5 +4,5 @@
  
- #include <linux/clockchips.h>
-+#include <linux/hrtimer.h>
+ obj-$(CONFIG_PCIEAER) += aerdriver.o
  
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
+-aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o aerdrv_acpi.o
++aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o
  
 _
 
@@ -76,6 +82,7 @@ wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
+gregkh-pci-pci-reduce-aer-init-error-information-fix.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
