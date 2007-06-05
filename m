@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + udf-coding-style-conversion-lindent-fixups-2.patch added to -mm tree
-Date: Tue, 05 Jun 2007 16:53:18 -0700
-Message-ID: <200706052353.l55NrI4M005443@imap1.linux-foundation.org>
+Subject: + allow-file-system-to-configure-for-no-leases.patch added to -mm tree
+Date: Tue, 05 Jun 2007 16:55:25 -0700
+Message-ID: <200706052355.l55NtPw9005470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46644 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34603 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759155AbXFEXx0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:53:26 -0400
+	by vger.kernel.org with ESMTP id S934186AbXFEXzs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:55:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com
+Cc: staubach@redhat.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     UDF: coding style conversion - lindent fixups 2
+     allow file system to configure for no leases
 has been added to the -mm tree.  Its filename is
-     udf-coding-style-conversion-lindent-fixups-2.patch
+     allow-file-system-to-configure-for-no-leases.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,274 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: UDF: coding style conversion - lindent fixups 2
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: allow file system to configure for no leases
+From: Peter Staubach <staubach@redhat.com>
 
-This patch fixes sources were converted to kernel coding style by Lindent
-for first and then by hands.  But some messed things were accidentally
-skipped.
+Allow file systems to inform the file system independent layers that they
+don't support file leases.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+The problem is that some file system such as NFSv2 and NFSv3 do not have
+sufficient support to be able to support leases correctly.  In particular
+for these two file systems, there is no over the wire protocol support.
+
+Currently, these two file systems fail the fcntl(F_SETLEASE) call
+accidently, due to a reference counting difference.  These file systems
+should fail more consciously, with a proper error to indicate that the call
+is invalid for them.
+
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c    |   14 +++--
- fs/udf/truncate.c |  109 ++++++++++++++------------------------------
- 2 files changed, 45 insertions(+), 78 deletions(-)
+ fs/locks.c         |    2 ++
+ fs/nfs/super.c     |    2 ++
+ include/linux/fs.h |    2 ++
+ 3 files changed, 6 insertions(+)
 
-diff -puN fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/inode.c
---- a/fs/udf/inode.c~udf-coding-style-conversion-lindent-fixups-2
-+++ a/fs/udf/inode.c
-@@ -1094,7 +1094,8 @@ static void udf_fill_inode(struct inode 
- 			make_bad_inode(inode);
- 			return;
- 		}
--		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry), inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
-+		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct extendedFileEntry),
-+		       inode->i_sb->s_blocksize - sizeof(struct extendedFileEntry));
- 	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE) {
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_USE(inode) = 0;
-@@ -1796,7 +1797,8 @@ int8_t udf_current_aext(struct inode * i
- 		if (!epos->offset)
- 			epos->offset = sizeof(struct allocExtDesc);
- 		ptr = epos->bh->b_data + epos->offset;
--		alen = sizeof(struct allocExtDesc) + le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
-+		alen = sizeof(struct allocExtDesc) +
-+			le32_to_cpu(((struct allocExtDesc *)epos->bh->b_data)->lengthAllocDescs);
- 	}
+diff -puN fs/locks.c~allow-file-system-to-configure-for-no-leases fs/locks.c
+--- a/fs/locks.c~allow-file-system-to-configure-for-no-leases
++++ a/fs/locks.c
+@@ -1477,6 +1477,8 @@ int fcntl_setlease(unsigned int fd, stru
+ 	error = security_file_lock(filp, arg);
+ 	if (error)
+ 		return error;
++	if (IS_NO_LEASES(inode))
++		return -EINVAL;
  
- 	switch (UDF_I_ALLOCTYPE(inode)) {
-@@ -1823,9 +1825,8 @@ int8_t udf_current_aext(struct inode * i
- 	return etype;
- }
+ 	locks_init_lock(&fl);
+ 	error = lease_init(filp, arg, &fl);
+diff -puN fs/nfs/super.c~allow-file-system-to-configure-for-no-leases fs/nfs/super.c
+--- a/fs/nfs/super.c~allow-file-system-to-configure-for-no-leases
++++ a/fs/nfs/super.c
+@@ -545,6 +545,8 @@ static inline void nfs_initialise_sb(str
  
--static int8_t
--udf_insert_aext(struct inode *inode, struct extent_position epos,
--		kernel_lb_addr neloc, uint32_t nelen)
-+static int8_t udf_insert_aext(struct inode *inode, struct extent_position epos,
-+			      kernel_lb_addr neloc, uint32_t nelen)
- {
- 	kernel_lb_addr oeloc;
- 	uint32_t oelen;
-@@ -1909,7 +1910,8 @@ int8_t udf_delete_aext(struct inode * in
- 			aed = (struct allocExtDesc *)oepos.bh->b_data;
- 			aed->lengthAllocDescs =
- 				cpu_to_le32(le32_to_cpu(aed->lengthAllocDescs) - adsize);
--			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
-+			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
- 				udf_update_tag(oepos.bh->b_data, epos.offset - adsize);
- 			else
- 				udf_update_tag(oepos.bh->b_data, sizeof(struct allocExtDesc));
-diff -puN fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2 fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-coding-style-conversion-lindent-fixups-2
-+++ a/fs/udf/truncate.c
-@@ -33,12 +33,10 @@ static void extent_trunc(struct inode *i
- 			 uint32_t nelen)
- {
- 	kernel_lb_addr neloc = {};
--	int last_block =
--	    (elen + inode->i_sb->s_blocksize -
--	     1) >> inode->i_sb->s_blocksize_bits;
--	int first_block =
--	    (nelen + inode->i_sb->s_blocksize -
--	     1) >> inode->i_sb->s_blocksize_bits;
-+	int last_block = (elen + inode->i_sb->s_blocksize - 1) >>
-+		inode->i_sb->s_blocksize_bits;
-+	int first_block = (nelen + inode->i_sb->s_blocksize - 1) >>
-+		inode->i_sb->s_blocksize_bits;
+ 	sb->s_magic = NFS_SUPER_MAGIC;
  
- 	if (nelen) {
- 		if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
-@@ -106,16 +104,16 @@ void udf_discard_prealloc(struct inode *
- 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
- 		if (!epos.bh) {
- 			UDF_I_LENALLOC(inode) =
--			    epos.offset - udf_file_entry_alloc_offset(inode);
-+				epos.offset - udf_file_entry_alloc_offset(inode);
- 			mark_inode_dirty(inode);
- 		} else {
- 			struct allocExtDesc *aed =
--			    (struct allocExtDesc *)(epos.bh->b_data);
-+				(struct allocExtDesc *)(epos.bh->b_data);
- 			aed->lengthAllocDescs =
--			    cpu_to_le32(epos.offset -
--					sizeof(struct allocExtDesc));
--			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT)
--			    || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+				cpu_to_le32(epos.offset -
-+					    sizeof(struct allocExtDesc));
-+			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) ||
-+			    UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
- 				udf_update_tag(epos.bh->b_data, epos.offset);
- 			else
- 				udf_update_tag(epos.bh->b_data,
-@@ -132,7 +130,7 @@ void udf_discard_prealloc(struct inode *
- void udf_truncate_extents(struct inode *inode)
- {
- 	struct extent_position epos;
--	kernel_lb_addr eloc, neloc = { 0, 0 };
-+	kernel_lb_addr eloc, neloc = {};
- 	uint32_t elen, nelen = 0, indirect_ext_len = 0, lenalloc;
- 	int8_t etype;
- 	struct super_block *sb = inode->i_sb;
-@@ -148,9 +146,8 @@ void udf_truncate_extents(struct inode *
- 		BUG();
++	sb->s_flags |= MS_NO_LEASES;
++
+ 	/* We probably want something more informative here */
+ 	snprintf(sb->s_id, sizeof(sb->s_id),
+ 		 "%x:%x", MAJOR(sb->s_dev), MINOR(sb->s_dev));
+diff -puN include/linux/fs.h~allow-file-system-to-configure-for-no-leases include/linux/fs.h
+--- a/include/linux/fs.h~allow-file-system-to-configure-for-no-leases
++++ a/include/linux/fs.h
+@@ -123,6 +123,7 @@ extern int dir_notify_enable;
+ #define MS_SLAVE	(1<<19)	/* change to slave */
+ #define MS_SHARED	(1<<20)	/* change to shared */
+ #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
++#define MS_NO_LEASES	(1<<22)	/* fs does not support leases */
+ #define MS_ACTIVE	(1<<30)
+ #define MS_NOUSER	(1<<31)
  
- 	etype = inode_bmap(inode, first_block, &epos, &eloc, &elen, &offset);
--	byte_offset =
--	    (offset << sb->s_blocksize_bits) +
--	    (inode->i_size & (sb->s_blocksize - 1));
-+	byte_offset = (offset << sb->s_blocksize_bits) +
-+		(inode->i_size & (sb->s_blocksize - 1));
- 	if (etype != -1) {
- 		epos.offset -= adsize;
- 		extent_trunc(inode, &epos, eloc, etype, elen, byte_offset);
-@@ -165,9 +162,7 @@ void udf_truncate_extents(struct inode *
- 		else
- 			lenalloc -= sizeof(struct allocExtDesc);
+@@ -182,6 +183,7 @@ extern int dir_notify_enable;
+ #define IS_NOCMTIME(inode)	((inode)->i_flags & S_NOCMTIME)
+ #define IS_SWAPFILE(inode)	((inode)->i_flags & S_SWAPFILE)
+ #define IS_PRIVATE(inode)	((inode)->i_flags & S_PRIVATE)
++#define IS_NO_LEASES(inode)	__IS_FLG(inode, MS_NO_LEASES)
  
--		while ((etype =
--			udf_current_aext(inode, &epos, &eloc, &elen,
--					 0)) != -1) {
-+		while ((etype = udf_current_aext(inode, &epos, &eloc, &elen, 0)) != -1) {
- 			if (etype == (EXT_NEXT_EXTENT_ALLOCDECS >> 30)) {
- 				udf_write_aext(inode, &epos, neloc, nelen, 0);
- 				if (indirect_ext_len) {
-@@ -179,52 +174,35 @@ void udf_truncate_extents(struct inode *
- 							0, indirect_ext_len);
- 				} else {
- 					if (!epos.bh) {
--						UDF_I_LENALLOC(inode) =
--						    lenalloc;
-+						UDF_I_LENALLOC(inode) = lenalloc;
- 						mark_inode_dirty(inode);
- 					} else {
- 						struct allocExtDesc *aed =
--						    (struct allocExtDesc
--						     *)(epos.bh->b_data);
-+							(struct allocExtDesc *)(epos.bh->b_data);
- 						aed->lengthAllocDescs =
- 						    cpu_to_le32(lenalloc);
--						if (!UDF_QUERY_FLAG
--						    (sb, UDF_FLAG_STRICT)
--						    || UDF_SB_UDFREV(sb) >=
--						    0x0201)
--							udf_update_tag(epos.bh->
--								       b_data,
--								       lenalloc
--								       +
--								       sizeof
--								       (struct
--									allocExtDesc));
-+						if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
-+						    UDF_SB_UDFREV(sb) >= 0x0201)
-+							udf_update_tag(epos.bh->b_data,
-+								       lenalloc +
-+								       sizeof(struct allocExtDesc));
- 						else
--							udf_update_tag(epos.bh->
--								       b_data,
--								       sizeof
--								       (struct
--									allocExtDesc));
--						mark_buffer_dirty_inode(epos.bh,
--									inode);
-+							udf_update_tag(epos.bh->b_data,
-+								       sizeof(struct allocExtDesc));
-+						mark_buffer_dirty_inode(epos.bh, inode);
- 					}
- 				}
- 				brelse(epos.bh);
- 				epos.offset = sizeof(struct allocExtDesc);
- 				epos.block = eloc;
--				epos.bh =
--				    udf_tread(sb,
--					      udf_get_lb_pblock(sb, eloc, 0));
-+				epos.bh = udf_tread(sb, udf_get_lb_pblock(sb, eloc, 0));
- 				if (elen)
--					indirect_ext_len = (elen +
--							    sb->s_blocksize -
--							    1) >> sb->
--					    s_blocksize_bits;
-+					indirect_ext_len = (elen + sb->s_blocksize -1) >>
-+						sb->s_blocksize_bits;
- 				else
- 					indirect_ext_len = 1;
- 			} else {
--				extent_trunc(inode, &epos, eloc, etype, elen,
--					     0);
-+				extent_trunc(inode, &epos, eloc, etype, elen, 0);
- 				epos.offset += adsize;
- 			}
- 		}
-@@ -242,16 +220,13 @@ void udf_truncate_extents(struct inode *
- 				struct allocExtDesc *aed =
- 				    (struct allocExtDesc *)(epos.bh->b_data);
- 				aed->lengthAllocDescs = cpu_to_le32(lenalloc);
--				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT)
--				    || UDF_SB_UDFREV(sb) >= 0x0201)
-+				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) ||
-+				    UDF_SB_UDFREV(sb) >= 0x0201)
- 					udf_update_tag(epos.bh->b_data,
--						       lenalloc +
--						       sizeof(struct
--							      allocExtDesc));
-+						       lenalloc + sizeof(struct allocExtDesc));
- 				else
- 					udf_update_tag(epos.bh->b_data,
--						       sizeof(struct
--							      allocExtDesc));
-+						       sizeof(struct allocExtDesc));
- 				mark_buffer_dirty_inode(epos.bh, inode);
- 			}
- 		}
-@@ -264,21 +239,14 @@ void udf_truncate_extents(struct inode *
- 			 *  no extent above inode->i_size => truncate is
- 			 *  extending the file by 'offset' blocks.
- 			 */
--			if ((!epos.bh
--			     && epos.offset ==
--			     udf_file_entry_alloc_offset(inode)) || (epos.bh
--								     && epos.
--								     offset ==
--								     sizeof
--								     (struct
--								      allocExtDesc)))
--			{
-+			if ((!epos.bh &&
-+			     epos.offset == udf_file_entry_alloc_offset(inode)) ||
-+			    (epos.bh && epos.offset == sizeof(struct allocExtDesc))) {
- 				/* File has no extents at all or has empty last
- 				 * indirect extent! Create a fake extent... */
- 				extent.extLocation.logicalBlockNum = 0;
- 				extent.extLocation.partitionReferenceNum = 0;
--				extent.extLength =
--				    EXT_NOT_RECORDED_NOT_ALLOCATED;
-+				extent.extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
- 			} else {
- 				epos.offset -= adsize;
- 				etype = udf_next_aext(inode, &epos,
-@@ -287,10 +255,7 @@ void udf_truncate_extents(struct inode *
- 				extent.extLength |= etype << 30;
- 			}
- 			udf_extend_file(inode, &epos, &extent,
--					offset +
--					((inode->
--					  i_size & (sb->s_blocksize - 1)) !=
--					 0));
-+					offset + ((inode->i_size & (sb->s_blocksize - 1)) != 0));
- 		}
- 	}
- 	UDF_I_LENEXTENTS(inode) = inode->i_size;
+ /* the read-only stuff doesn't really belong here, but any other place is
+    probably as bad and I don't want to create yet another include file. */
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from staubach@redhat.com are
 
-udf-check-for-allocated-memory-for-data-of-new-inodes.patch
-udf-check-for-allocated-memory-for-data-of-new-inodes-fix.patch
-udf-check-for-allocated-memory-for-inode-data-v2.patch
-udf-coding-style-conversion-lindent.patch
-udf-coding-style-conversion-lindent-fixups.patch
-udf-coding-style-conversion-lindent-fixups-2.patch
+allow-file-system-to-configure-for-no-leases.patch
