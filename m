@@ -1,70 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - slab-fix-slab-debug-for-non-alien-caches.patch removed from -mm tree
-Date: Mon, 04 Jun 2007 17:58:03 -0700
-Message-ID: <200706050058.l550w2nq026498@imap1.linux-foundation.org>
+Subject: + fix-2-gregkh-driver-dmi-based-module-autoloading.patch added to -mm tree
+Date: Mon, 04 Jun 2007 18:05:33 -0700
+Message-ID: <200706050105.l5515Vwc026608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755867AbXFEA6Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 20:58:16 -0400
+	by vger.kernel.org with ESMTP id S1756742AbXFEBFu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 21:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@stusta.de, mzxreary@0pointer.de
 
 
 The patch titled
-     Subject: [PATCH] slab: Fix slab debug for non alien caches.
-has been removed from the -mm tree.  Its filename was
-     slab-fix-slab-debug-for-non-alien-caches.patch
+     gregkh-driver-dmi-based-module-autoloading fix 2
+has been added to the -mm tree.  Its filename is
+     fix-2-gregkh-driver-dmi-based-module-autoloading.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] slab: Fix slab debug for non alien caches.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: gregkh-driver-dmi-based-module-autoloading fix 2
+From: Adrian Bunk <bunk@stusta.de>
 
-Currently when slab debugging is enabled, the WARN_ON() nodeid checks
-trigger if we boot with 'noaliencache'.  In the noaliencache case the
-WARN_ON()'s seem to be superfluous, so only bother doing the nodeid
-comparison if use_alien_caches is set.
+Make the needlessly global dmi_id_init() static.
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/firmware/dmi-id.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-fix-slab-debug-for-non-alien-caches mm/slab.c
---- a/mm/slab.c~slab-fix-slab-debug-for-non-alien-caches
-+++ a/mm/slab.c
-@@ -2663,7 +2663,7 @@ static void *slab_get_obj(struct kmem_ca
- 	next = slab_bufctl(slabp)[slabp->free];
- #if DEBUG
- 	slab_bufctl(slabp)[slabp->free] = BUFCTL_FREE;
--	WARN_ON(slabp->nodeid != nodeid);
-+	WARN_ON(use_alien_caches && slabp->nodeid != nodeid);
- #endif
- 	slabp->free = next;
+diff -puN drivers/firmware/dmi-id.c~fix-2-gregkh-driver-dmi-based-module-autoloading drivers/firmware/dmi-id.c
+--- a/drivers/firmware/dmi-id.c~fix-2-gregkh-driver-dmi-based-module-autoloading
++++ a/drivers/firmware/dmi-id.c
+@@ -161,7 +161,7 @@ static struct device *dmi_dev;
  
-@@ -2677,7 +2677,7 @@ static void slab_put_obj(struct kmem_cac
+ extern int dmi_available;
  
- #if DEBUG
- 	/* Verify that the slab belongs to the intended node */
--	WARN_ON(slabp->nodeid != nodeid);
-+	WARN_ON(use_alien_caches && slabp->nodeid != nodeid);
+-int __init dmi_id_init(void)
++static int __init dmi_id_init(void)
+ {
+ 	int ret, i;
  
- 	if (slab_bufctl(slabp)[objnr] + 1 <= SLAB_LIMIT + 1) {
- 		printk(KERN_ERR "slab: double free detected in cache "
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-sh.patch
-slab-fix-slab-debug-for-non-alien-caches.patch
-pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+git-acpi.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
+fix-2-gregkh-driver-dmi-based-module-autoloading.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+the-async_-options-shouldnt-be-user-visible.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-battery.patch
+unexport-pci_proc_attach_device.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+remove-sonypi_camera_command.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
