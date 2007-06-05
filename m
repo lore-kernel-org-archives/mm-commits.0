@@ -1,62 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - mtrr-atomicity-fix.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 00:10:18 -0700
-Message-ID: <200706050710.l557AGYd031252@imap1.linux-foundation.org>
+Subject: - fix-gregkh-driver-dmi-based-module-autoloading.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 00:10:22 -0700
+Message-ID: <200706050710.l557AKa8031258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763120AbXFEHKh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:37 -0400
+	by vger.kernel.org with ESMTP id S1763344AbXFEHKi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, gregkh@suse.de, kay.sievers@vrfy.org, michal.k.k.piotrowski@gmail.com, mzxreary@0pointer.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtrr atomicity fix
+     fix gregkh-driver-dmi-based-module-autoloading
 has been removed from the -mm tree.  Its filename was
-     mtrr-atomicity-fix.patch
+     fix-gregkh-driver-dmi-based-module-autoloading.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mtrr atomicity fix
+Subject: fix gregkh-driver-dmi-based-module-autoloading
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Rafael gets this on an SMP box with kernel preemption enabled, during
-hibernation and restore (100% of the time):
+Fix a pretty obvious off-by-one.
 
-Enabling non-boot CPUs ...
-BUG: using smp_processor_id() in preemptible [00000001] code: bash/4514
-caller is mtrr_save_state+0x9/0x40
-
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lennart Poettering <mzxreary@0pointer.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/firmware/dmi-id.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-atomicity-fix arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-atomicity-fix
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -734,10 +734,13 @@ void mtrr_ap_init(void)
-  */
- void mtrr_save_state(void)
- {
--	if (smp_processor_id() == 0)
-+	int cpu = get_cpu();
-+
-+	if (cpu == 0)
- 		mtrr_save_fixed_ranges(NULL);
- 	else
- 		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
-+	put_cpu();
- }
+diff -puN drivers/firmware/dmi-id.c~fix-gregkh-driver-dmi-based-module-autoloading drivers/firmware/dmi-id.c
+--- a/drivers/firmware/dmi-id.c~fix-gregkh-driver-dmi-based-module-autoloading
++++ a/drivers/firmware/dmi-id.c
+@@ -94,7 +94,7 @@ static ssize_t get_modalias(char *buffer
+ 		if (!c)
+ 			continue;
  
- static int __init mtrr_init_finialize(void)
+-		t = kmalloc(strlen(c), GFP_KERNEL);
++		t = kmalloc(strlen(c) + 1, GFP_KERNEL);
+ 		if (!t)
+ 			break;
+ 		ascii_filter(t, c);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
