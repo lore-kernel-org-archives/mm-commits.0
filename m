@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mount-t-tmpfs-o-mpol=-check-nodes-online.patch added to -mm tree
-Date: Mon, 04 Jun 2007 20:45:08 -0700
-Message-ID: <200706050345.l553j64V028605@imap1.linux-foundation.org>
+Subject: + usb-bugfix-gfp_kernel-gfp_atomic-in-spin_locked-region.patch added to -mm tree
+Date: Mon, 04 Jun 2007 21:08:38 -0700
+Message-ID: <200706050408.l5548boY028943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56339 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755496AbXFEDpX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 23:45:23 -0400
+	by vger.kernel.org with ESMTP id S1754653AbXFEEIo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 00:08:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ak@suse.de, clameter@sgi.com, holt@sgi.com, randy.dunlap@oracle.com
+Cc: padator@wanadoo.fr, greg@kroah.com
 
 
 The patch titled
-     mount -t tmpfs -o mpol=: check nodes online
+     bugfix GFP_KERNEL -> GFP_ATOMIC in spin_locked region
 has been added to the -mm tree.  Its filename is
-     mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+     usb-bugfix-gfp_kernel-gfp_atomic-in-spin_locked-region.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mount -t tmpfs -o mpol=: check nodes online
-From: Hugh Dickins <hugh@veritas.com>
+Subject: bugfix GFP_KERNEL -> GFP_ATOMIC in spin_locked region
+From: Yoann Padioleau <padator@wanadoo.fr>
 
-Randy Dunlap reports that a tmpfs, mounted with NUMA mpol= specifying an
-offline node, crashes as soon as data is allocated upon it.  Now restrict it
-to online nodes, where before it restricted to MAX_NUMNODES.
+In a few files a function such as usb_submit_urb is taking GFP_KERNEL as an
+argument whereas this function call is inside a spin_lock_irqsave region of
+code.  Documentation says that it must be GFP_ATOMIC instead.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
-Tested-and-acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Me and my colleagues have made a tool targeting program transformations in
+device drivers.  We have designed a scripting language for specifying
+easily program transformations and a transformation engine for performing
+them.  In the spirit of Linux development practice, the language is based
+on the patch syntax.  We call our scripts "semantic patches" because as
+opposed to traditional patches, our semantic patches do not work at the
+line level but on a high level representation of the C program.
+
+FYI here is our semantic patch detecting invalid use of GFP_KERNEL and
+fixing the problem:
+
+@@
+identifier fn;
+@@
+
+ spin_lock_irqsave(...)
+ ... when != spin_unlock_irqrestore(...)
+ fn(...,
+- GFP_KERNEL
++ GFP_ATOMIC
+   ,...
+   )
+
+And now the real patch resulting from the automated transformation:
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.txt |   10 +++++-----
- mm/shmem.c                          |    2 ++
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/usb/serial/io_ti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/tmpfs.txt~mount-t-tmpfs-o-mpol=-check-nodes-online Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~mount-t-tmpfs-o-mpol=-check-nodes-online
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -94,10 +94,10 @@ largest node numbers in the range.  For 
- 
- Note that trying to mount a tmpfs with an mpol option will fail if the
- running kernel does not support NUMA; and will fail if its nodelist
--specifies a node >= MAX_NUMNODES.  If your system relies on that tmpfs
--being mounted, but from time to time runs a kernel built without NUMA
--capability (perhaps a safe recovery kernel), or configured to support
--fewer nodes, then it is advisable to omit the mpol option from automatic
-+specifies a node which is not online.  If your system relies on that
-+tmpfs being mounted, but from time to time runs a kernel built without
-+NUMA capability (perhaps a safe recovery kernel), or with fewer nodes
-+online, then it is advisable to omit the mpol option from automatic
- mount options.  It can be added later, when the tmpfs is already mounted
- on MountPoint, by 'mount -o remount,mpol=Policy:NodeList MountPoint'.
- 
-@@ -121,4 +121,4 @@ RAM/SWAP in 10240 inodes and it is only 
- Author:
-    Christoph Rohland <cr@sap.com>, 1.12.01
- Updated:
--   Hugh Dickins <hugh@veritas.com>, 19 February 2006
-+   Hugh Dickins <hugh@veritas.com>, 4 June 2007
-diff -puN mm/shmem.c~mount-t-tmpfs-o-mpol=-check-nodes-online mm/shmem.c
---- a/mm/shmem.c~mount-t-tmpfs-o-mpol=-check-nodes-online
-+++ a/mm/shmem.c
-@@ -967,6 +967,8 @@ static inline int shmem_parse_mpol(char 
- 		*nodelist++ = '\0';
- 		if (nodelist_parse(nodelist, *policy_nodes))
- 			goto out;
-+		if (!nodes_subset(*policy_nodes, node_online_map))
-+			goto out;
+diff -puN drivers/usb/serial/io_ti.c~usb-bugfix-gfp_kernel-gfp_atomic-in-spin_locked-region drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~usb-bugfix-gfp_kernel-gfp_atomic-in-spin_locked-region
++++ a/drivers/usb/serial/io_ti.c
+@@ -2364,7 +2364,7 @@ static int restart_read(struct edgeport_
+ 		urb->complete = edge_bulk_in_callback;
+ 		urb->context = edge_port;
+ 		urb->dev = edge_port->port->serial->dev;
+-		status = usb_submit_urb(urb, GFP_KERNEL);
++		status = usb_submit_urb(urb, GFP_ATOMIC);
  	}
- 	if (!strcmp(value, "default")) {
- 		*policy = MPOL_DEFAULT;
+ 	edge_port->ep_read_urb_state = EDGE_READ_URB_RUNNING;
+ 	edge_port->shadow_mcr |= MCR_RTS;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from padator@wanadoo.fr are
 
-mount-t-tmpfs-o-mpol=-check-nodes-online.patch
-git-scsi-rc-fixes.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-prio_tree-debugging-patch.patch
+origin.patch
+atari_pamsnetc-old-declaration-ritchie-style-fix.patch
+usb-bugfix-gfp_kernel-gfp_atomic-in-spin_locked-region.patch
