@@ -1,189 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - allow-aer-to-build-for-config_acpi-=-n.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 00:10:34 -0700
-Message-ID: <200706050710.l557AWJW031277@imap1.linux-foundation.org>
+Subject: - the-async_-options-shouldnt-be-user-visible.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 00:10:32 -0700
+Message-ID: <200706050710.l557AUxS031274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46144 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763535AbXFEHKo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:44 -0400
+	by vger.kernel.org with ESMTP id S1763545AbXFEHKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 03:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@ellerman.id.au, greg@kroah.com, kristen.c.accardi@intel.com, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Allow AER to build for CONFIG_ACPI = n
+     the ASYNC_* options shouldn't be user visible
 has been removed from the -mm tree.  Its filename was
-     allow-aer-to-build-for-config_acpi-=-n.patch
+     the-async_-options-shouldnt-be-user-visible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Allow AER to build for CONFIG_ACPI = n
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: the ASYNC_* options shouldn't be user visible
+From: Adrian Bunk <bunk@stusta.de>
 
-This patch allows the PCIE AER driver to build for CONFIG_ACPI = n. To do
-this we move all the ACPI specific code into aerdrv_acpi.c, and only build
-that for CONFIG_ACPI = y.
+The ASYNC_* options are for internal helper code and should therefore
+not be user visible.
 
-Built for x86_64 ACPI=y/n, and for powerpc (ACPI=n).
+BTW: Please move the async_tx directory under drivers/ or lib/
 
-Acked-by: "Zhang, Yanmin" <yanmin.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/Kconfig       |    2 -
- drivers/pci/pcie/aer/Makefile      |    3 +-
- drivers/pci/pcie/aer/aerdrv.h      |   12 +++++++---
- drivers/pci/pcie/aer/aerdrv_acpi.c |   31 ++++++++++++++++-----------
- drivers/pci/pcie/aer/aerdrv_core.c |   18 +--------------
- 5 files changed, 33 insertions(+), 33 deletions(-)
+ async_tx/Kconfig |   28 ++++++++--------------------
+ 1 files changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN drivers/pci/pcie/aer/Kconfig~allow-aer-to-build-for-config_acpi-=-n drivers/pci/pcie/aer/Kconfig
---- a/drivers/pci/pcie/aer/Kconfig~allow-aer-to-build-for-config_acpi-=-n
-+++ a/drivers/pci/pcie/aer/Kconfig
-@@ -4,7 +4,7 @@
- 
- config PCIEAER
- 	boolean "Root Port Advanced Error Reporting support"
--	depends on PCIEPORTBUS && ACPI
-+	depends on PCIEPORTBUS
- 	default y
- 	help
- 	  This enables PCI Express Root Port Advanced Error Reporting
-diff -puN drivers/pci/pcie/aer/Makefile~allow-aer-to-build-for-config_acpi-=-n drivers/pci/pcie/aer/Makefile
---- a/drivers/pci/pcie/aer/Makefile~allow-aer-to-build-for-config_acpi-=-n
-+++ a/drivers/pci/pcie/aer/Makefile
-@@ -4,5 +4,6 @@
- 
- obj-$(CONFIG_PCIEAER) += aerdriver.o
- 
--aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o aerdrv_acpi.o
-+aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o
-+aerdriver-$(CONFIG_ACPI) += aerdrv_acpi.o
- 
-diff -puN drivers/pci/pcie/aer/aerdrv.h~allow-aer-to-build-for-config_acpi-=-n drivers/pci/pcie/aer/aerdrv.h
---- a/drivers/pci/pcie/aer/aerdrv.h~allow-aer-to-build-for-config_acpi-=-n
-+++ a/drivers/pci/pcie/aer/aerdrv.h
-@@ -10,8 +10,6 @@
- 
- #include <linux/workqueue.h>
- #include <linux/pcieport_if.h>
--#include <linux/acpi.h>
--#include <linux/pci-acpi.h>
- #include <linux/aer.h>
- 
- #define AER_NONFATAL			0
-@@ -119,6 +117,14 @@ extern void aer_delete_rootport(struct a
- extern int aer_init(struct pcie_device *dev);
- extern void aer_isr(struct work_struct *work);
- extern void aer_print_error(struct pci_dev *dev, struct aer_err_info *info);
--extern acpi_status aer_osc_setup(struct pci_dev *dev);
-+
-+#ifdef CONFIG_ACPI
-+extern int aer_osc_setup(struct pcie_device *pciedev);
-+#else
-+static inline int aer_osc_setup(struct pcie_device *pciedev)
-+{
-+	return 0;
-+}
-+#endif
- 
- #endif //_AERDRV_H_
-diff -puN drivers/pci/pcie/aer/aerdrv_acpi.c~allow-aer-to-build-for-config_acpi-=-n drivers/pci/pcie/aer/aerdrv_acpi.c
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c~allow-aer-to-build-for-config_acpi-=-n
-+++ a/drivers/pci/pcie/aer/aerdrv_acpi.c
-@@ -20,18 +20,18 @@
- 
- /**
-  * aer_osc_setup - run ACPI _OSC method
-+ * @pciedev: pcie_device which AER is being enabled on
-  *
-- * Return:
-- *	Zero if success. Nonzero for otherwise.
-+ * @return: Zero on success. Nonzero otherwise.
-  *
-  * Invoked when PCIE bus loads AER service driver. To avoid conflict with
-  * BIOS AER support requires BIOS to yield AER control to OS native driver.
-  **/
--acpi_status aer_osc_setup(struct pci_dev *dev)
-+int aer_osc_setup(struct pcie_device *pciedev)
- {
- 	acpi_status status = AE_NOT_FOUND;
--	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
--	struct pci_dev *pdev = dev;
-+	struct pci_dev *pdev = pciedev->port;
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&pdev->dev);
- 	struct pci_bus *parent;
- 
- 	while (!handle) {
-@@ -49,13 +49,20 @@ acpi_status aer_osc_setup(struct pci_dev
- 		pdev = parent->self;
- 	}
- 
--	if (!handle)
--		return status;
-+	if (handle) {
-+		pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
-+		status = pci_osc_control_set(handle,
-+					OSC_PCI_EXPRESS_AER_CONTROL |
-+					OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-+	}
- 
--	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
--	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
--		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_DEBUG "AER service couldn't init device %s - %s\n",
-+		    pciedev->device.bus_id,
-+		    (status == AE_SUPPORT || status == AE_NOT_FOUND) ?
-+		    "no _OSC support" : "Run ACPI _OSC fails");
-+		return -1;
-+	}
- 
--	return status;
-+	return 0;
- }
+diff -puN async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible async_tx/Kconfig
+--- a/async_tx/Kconfig~the-async_-options-shouldnt-be-user-visible
++++ a/async_tx/Kconfig
+@@ -1,27 +1,15 @@
+-menuconfig ASYNC_CORE
+-	tristate "Asynchronous Bulk Memory Transfers/Transforms"
+-	default n
+-	---help---
+-	  This enables the async_tx interface layer for dma (offload) engines.
+-	  Subsystems coded to this api will use offload engines for bulk memory
+-	  operations (e.g. memcpy, memset, xor...).  When an offload engine is not
+-	  available the interface will implicitly fall back to a software
+-	  implementation of the operation.
 -
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~allow-aer-to-build-for-config_acpi-=-n drivers/pci/pcie/aer/aerdrv_core.c
---- a/drivers/pci/pcie/aer/aerdrv_core.c~allow-aer-to-build-for-config_acpi-=-n
-+++ a/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -22,8 +22,6 @@
- #include <linux/errno.h>
- #include <linux/pm.h>
- #include <linux/suspend.h>
--#include <linux/acpi.h>
--#include <linux/pci-acpi.h>
- #include <linux/delay.h>
- #include "aerdrv.h"
+-	  If unsure, say N
+-
+-if ASYNC_CORE
++config ASYNC_CORE
++	tristate
  
-@@ -733,20 +731,8 @@ void aer_delete_rootport(struct aer_rpc 
-  **/
- int aer_init(struct pcie_device *dev)
- {
--	acpi_status	status;
--
--	/* Run _OSC Method */
--	status = aer_osc_setup(dev->port);
--
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_DEBUG "AER service couldn't init device %s - %s\n",
--		    dev->device.bus_id,
--		    (status == AE_SUPPORT || status == AE_NOT_FOUND) ?
--		    "no _OSC support" : "Run ACPI _OSC fails");
--
--		if (!forceload)
--			return -ENXIO;
--	}
-+	if (aer_osc_setup(dev) && !forceload)
-+		return -ENXIO;
+ config ASYNC_MEMCPY
+-	default m
+-	tristate "async_memcpy support"
++	tristate
++	select ASYNC_CORE
  
- 	return AER_SUCCESS;
- }
+ config ASYNC_XOR
+-	default m
+-	tristate "async_xor support"
++	tristate
++	select ASYNC_CORE
+ 
+ config ASYNC_MEMSET
+-	default m
+-	tristate "async_memset support"
++	tristate
++	select ASYNC_CORE
+ 
+-endif
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from bunk@stusta.de are
+
+git-acpi.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
+fix-2-gregkh-driver-dmi-based-module-autoloading.patch
+git-dvb-fix-the-tea5761-tuner-support.patch
+git-input-make-xpad_play_effect-static.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+git-battery.patch
+unexport-pci_proc_attach_device.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+remove-sonypi_camera_command.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
