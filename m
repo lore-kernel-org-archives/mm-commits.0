@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-return-zero_size_ptr-for-kmalloc0.patch added to -mm tree
-Date: Mon, 04 Jun 2007 21:30:14 -0700
-Message-ID: <200706050430.l554UDeU029273@imap1.linux-foundation.org>
+Subject: + pm-disable-usermode-helper-before-hibernation-and-suspend.patch added to -mm tree
+Date: Mon, 04 Jun 2007 21:41:04 -0700
+Message-ID: <200706050441.l554f3RT029426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59619 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752694AbXFEEaU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 00:30:20 -0400
+	by vger.kernel.org with ESMTP id S1754612AbXFEEla (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 00:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz
 
 
 The patch titled
-     SLUB: return ZERO_SIZE_PTR for kmalloc(0)
+     PM: disable usermode helper before hibernation and suspend
 has been added to the -mm tree.  Its filename is
-     slub-return-zero_size_ptr-for-kmalloc0.patch
+     pm-disable-usermode-helper-before-hibernation-and-suspend.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,219 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: return ZERO_SIZE_PTR for kmalloc(0)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: PM: disable usermode helper before hibernation and suspend
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Instead of returning the smallest available object return ZERO_SIZE_PTR.
+Use a hibernation and suspend notifier to disable the user mode helper before
+a hibernation/suspend and enable it after the operation.
 
-A ZERO_SIZE_PTR can be legitimately used as an object pointer as long as it
-is not deferenced.  The dereference of ZERO_SIZE_PTR causes a distinctive
-fault.  kfree can handle a ZERO_SIZE_PTR in the same way as NULL.
-
-This enables functions to use zero sized object. e.g. n = number of objects.
-
-	objects = kmalloc(n * sizeof(object));
-
-	for (i = 0; i < n; i++)
-		objects[i].x = y;
-
-	kfree(objects);
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   25 +++++++++++++++++--------
- mm/slub.c                |   26 ++++++++++++++++++--------
- 2 files changed, 35 insertions(+), 16 deletions(-)
+ kernel/kmod.c |   31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/slub_def.h~slub-return-zero_size_ptr-for-kmalloc0 include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-return-zero_size_ptr-for-kmalloc0
-+++ a/include/linux/slub_def.h
-@@ -70,11 +70,8 @@ extern struct kmem_cache kmalloc_caches[
-  */
- static inline int kmalloc_index(size_t size)
- {
--	/*
--	 * We should return 0 if size == 0 but we use the smallest object
--	 * here for SLAB legacy reasons.
--	 */
--	WARN_ON_ONCE(size == 0);
-+	if (!size)
-+		return 0;
+diff -puN kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend kernel/kmod.c
+--- a/kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend
++++ a/kernel/kmod.c
+@@ -33,6 +33,8 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/resource.h>
++#include <linux/notifier.h>
++#include <linux/suspend.h>
+ #include <asm/uaccess.h>
  
- 	if (size > KMALLOC_MAX_SIZE)
- 		return -1;
-@@ -153,13 +150,25 @@ static inline struct kmem_cache *kmalloc
- #define SLUB_DMA 0
- #endif
+ extern int max_threads;
+@@ -46,6 +48,14 @@ static struct workqueue_struct *khelper_
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
  
-+
 +/*
-+ * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
-+ *
-+ * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
-+ *
-+ * ZERO_SIZE_PTR can be passed to kfree though in the same way that NULL can.
-+ * Both make kfree a no-op.
++ * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
++ * immediately returning -EBUSY.  Used for preventing user land processes from
++ * being created after the user land has been frozen during a system-wide
++ * hibernation or suspend operation.
 + */
-+#define ZERO_SIZE_PTR ((void *)16)
++static int usermodehelper_disabled;
 +
-+
- static inline void *kmalloc(size_t size, gfp_t flags)
- {
- 	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
- 		struct kmem_cache *s = kmalloc_slab(size);
- 
- 		if (!s)
--			return NULL;
-+			return ZERO_SIZE_PTR;
- 
- 		return kmem_cache_alloc(s, flags);
- 	} else
-@@ -172,7 +181,7 @@ static inline void *kzalloc(size_t size,
- 		struct kmem_cache *s = kmalloc_slab(size);
- 
- 		if (!s)
--			return NULL;
-+			return ZERO_SIZE_PTR;
- 
- 		return kmem_cache_zalloc(s, flags);
- 	} else
-@@ -188,7 +197,7 @@ static inline void *kmalloc_node(size_t 
- 		struct kmem_cache *s = kmalloc_slab(size);
- 
- 		if (!s)
--			return NULL;
-+			return ZERO_SIZE_PTR;
- 
- 		return kmem_cache_alloc_node(s, flags, node);
- 	} else
-diff -puN mm/slub.c~slub-return-zero_size_ptr-for-kmalloc0 mm/slub.c
---- a/mm/slub.c~slub-return-zero_size_ptr-for-kmalloc0
-+++ a/mm/slub.c
-@@ -2241,7 +2241,7 @@ void *__kmalloc(size_t size, gfp_t flags
- 
- 	if (s)
- 		return slab_alloc(s, flags, -1, __builtin_return_address(0));
--	return NULL;
-+	return ZERO_SIZE_PTR;
+ /**
+  * request_module - try to load a kernel module
+  * @fmt:     printf style format string for the name of the module
+@@ -265,6 +275,24 @@ static void __call_usermodehelper(struct
+ 	}
  }
- EXPORT_SYMBOL(__kmalloc);
  
-@@ -2252,16 +2252,20 @@ void *__kmalloc_node(size_t size, gfp_t 
- 
- 	if (s)
- 		return slab_alloc(s, flags, node, __builtin_return_address(0));
--	return NULL;
-+	return ZERO_SIZE_PTR;
- }
- EXPORT_SYMBOL(__kmalloc_node);
- #endif
- 
- size_t ksize(const void *object)
- {
--	struct page *page = get_object_page(object);
-+	struct page *page;
- 	struct kmem_cache *s;
- 
-+	if (object == ZERO_SIZE_PTR)
-+		return 0;
++static int usermodehelper_pm_callback(struct notifier_block *nfb,
++					unsigned long action,
++					void *ignored)
++{
++	switch (action) {
++	case PM_HIBERNATION_PREPARE:
++	case PM_SUSPEND_PREPARE:
++		usermodehelper_disabled = 1;
++		return NOTIFY_OK;
++	case PM_POST_HIBERNATION:
++	case PM_POST_SUSPEND:
++		usermodehelper_disabled = 0;
++		return NOTIFY_OK;
++	}
 +
-+	page = get_object_page(object);
- 	BUG_ON(!page);
- 	s = page->slab;
- 	BUG_ON(!s);
-@@ -2293,7 +2297,13 @@ void kfree(const void *x)
- 	struct kmem_cache *s;
- 	struct page *page;
- 
--	if (!x)
-+	/*
-+	 * This has to be an unsigned comparison. According to Linus
-+	 * some gcc version treat a pointer as a signed entity. Then
-+	 * this comparison would be true for all "negative" pointers
-+	 * (which would cover the whole upper half of the address space).
-+	 */
-+	if ((unsigned long)x <= (unsigned long)ZERO_SIZE_PTR)
- 		return;
- 
- 	page = virt_to_head_page(x);
-@@ -2398,12 +2408,12 @@ void *krealloc(const void *p, size_t new
- 	void *ret;
- 	size_t ks;
- 
--	if (unlikely(!p))
-+	if (unlikely(!p || p == ZERO_SIZE_PTR))
- 		return kmalloc(new_size, flags);
- 
- 	if (unlikely(!new_size)) {
- 		kfree(p);
--		return NULL;
-+		return ZERO_SIZE_PTR;
++	return NOTIFY_DONE;
++}
++
+ /**
+  * call_usermodehelper_setup - prepare to call a usermode helper
+  * @path - path to usermode executable
+@@ -374,7 +402,7 @@ int call_usermodehelper_exec(struct subp
+ 		goto out;
  	}
  
- 	ks = ksize(p);
-@@ -2652,7 +2662,7 @@ void *__kmalloc_track_caller(size_t size
- 	struct kmem_cache *s = get_slab(size, gfpflags);
- 
- 	if (!s)
--		return NULL;
-+		return ZERO_SIZE_PTR;
- 
- 	return slab_alloc(s, gfpflags, -1, caller);
- }
-@@ -2663,7 +2673,7 @@ void *__kmalloc_node_track_caller(size_t
- 	struct kmem_cache *s = get_slab(size, gfpflags);
- 
- 	if (!s)
--		return NULL;
-+		return ZERO_SIZE_PTR;
- 
- 	return slab_alloc(s, gfpflags, node, caller);
+-	if (!khelper_wq) {
++	if (!khelper_wq || usermodehelper_disabled) {
+ 		retval = -EBUSY;
+ 		goto out;
+ 	}
+@@ -431,4 +459,5 @@ void __init usermodehelper_init(void)
+ {
+ 	khelper_wq = create_singlethread_workqueue("khelper");
+ 	BUG_ON(!khelper_wq);
++	pm_notifier(usermodehelper_pm_callback, 0);
  }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-mount-t-tmpfs-o-mpol=-check-nodes-online.patch
-slab-fix-alien-cache-handling.patch
-slub-return-zero_size_ptr-for-kmalloc0.patch
-fix-gregkh-driver-dmi-based-module-autoloading.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-hexdump-more-output-formatting.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+mtrr-atomicity-fix.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+shrink_slab-handle-bad-shrinkers.patch
