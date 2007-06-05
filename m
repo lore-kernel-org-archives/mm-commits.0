@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-disable-usermode-helper-before-hibernation-and-suspend.patch added to -mm tree
-Date: Mon, 04 Jun 2007 21:41:04 -0700
-Message-ID: <200706050441.l554f3RT029426@imap1.linux-foundation.org>
+Subject: + pm-introduce-hibernation-and-suspend-notifiers-tidy.patch added to -mm tree
+Date: Mon, 04 Jun 2007 21:41:03 -0700
+Message-ID: <200706050441.l554f22g029423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59619 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754612AbXFEEla (ORCPT
+	by vger.kernel.org with ESMTP id S1754790AbXFEEla (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 00:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz
+Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     PM: disable usermode helper before hibernation and suspend
+     pm-introduce-hibernation-and-suspend-notifiers-tidy
 has been added to the -mm tree.  Its filename is
-     pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+     pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,113 +25,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PM: disable usermode helper before hibernation and suspend
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pm-introduce-hibernation-and-suspend-notifiers-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use a hibernation and suspend notifier to disable the user mode helper before
-a hibernation/suspend and enable it after the operation.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ include/linux/suspend.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend kernel/kmod.c
---- a/kernel/kmod.c~pm-disable-usermode-helper-before-hibernation-and-suspend
-+++ a/kernel/kmod.c
-@@ -33,6 +33,8 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/resource.h>
-+#include <linux/notifier.h>
-+#include <linux/suspend.h>
- #include <asm/uaccess.h>
- 
- extern int max_threads;
-@@ -46,6 +48,14 @@ static struct workqueue_struct *khelper_
- */
- char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
- 
-+/*
-+ * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
-+ * immediately returning -EBUSY.  Used for preventing user land processes from
-+ * being created after the user land has been frozen during a system-wide
-+ * hibernation or suspend operation.
-+ */
-+static int usermodehelper_disabled;
-+
- /**
-  * request_module - try to load a kernel module
-  * @fmt:     printf style format string for the name of the module
-@@ -265,6 +275,24 @@ static void __call_usermodehelper(struct
- 	}
+diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-tidy include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-tidy
++++ a/include/linux/suspend.h
+@@ -109,11 +109,13 @@ static inline int unregister_pm_notifier
+ 	register_pm_notifier(&fn##_nb);			\
  }
- 
-+static int usermodehelper_pm_callback(struct notifier_block *nfb,
-+					unsigned long action,
-+					void *ignored)
+ #else /* CONFIG_PM */
+-static inline int register_pm_notifier(struct notifier_block *nb) {
++static inline int register_pm_notifier(struct notifier_block *nb)
 +{
-+	switch (action) {
-+	case PM_HIBERNATION_PREPARE:
-+	case PM_SUSPEND_PREPARE:
-+		usermodehelper_disabled = 1;
-+		return NOTIFY_OK;
-+	case PM_POST_HIBERNATION:
-+	case PM_POST_SUSPEND:
-+		usermodehelper_disabled = 0;
-+		return NOTIFY_OK;
-+	}
-+
-+	return NOTIFY_DONE;
-+}
-+
- /**
-  * call_usermodehelper_setup - prepare to call a usermode helper
-  * @path - path to usermode executable
-@@ -374,7 +402,7 @@ int call_usermodehelper_exec(struct subp
- 		goto out;
- 	}
- 
--	if (!khelper_wq) {
-+	if (!khelper_wq || usermodehelper_disabled) {
- 		retval = -EBUSY;
- 		goto out;
- 	}
-@@ -431,4 +459,5 @@ void __init usermodehelper_init(void)
- {
- 	khelper_wq = create_singlethread_workqueue("khelper");
- 	BUG_ON(!khelper_wq);
-+	pm_notifier(usermodehelper_pm_callback, 0);
+ 	return 0;
  }
+ 
+-static inline int unregister_pm_notifier(struct notifier_block *nb) {
++static inline int unregister_pm_notifier(struct notifier_block *nb)
++{
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mtrr-atomicity-fix.patch
-x86_64-pm_trace-support.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
+vanishing-ioctl-handler-debugging.patch
+document-acked-by.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-dmi-based-module-autoloading.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+git-mips-fixup.patch
+git-mtd.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
 acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
 freezer-run-show_state-when-freezing-times-out.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
 pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-shrink_slab-handle-bad-shrinkers.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+rd-mark-ramdisk-buffer-heads-dirty-in-ramdisk_set_page_dirty-fix.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+rd-remove-ramdisk_set_page_dirty-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
