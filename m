@@ -1,147 +1,45 @@
-From: akpm@linux-foundation.org
-Subject: + ext3-ext4-orphan-list-corruption-due-bad-inode.patch added to -mm tree
-Date: Mon, 04 Jun 2007 19:03:45 -0700
-Message-ID: <200706050203.l5523iHX027378@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: - serial-use-resource_size_t-for-port-io-addresses.patch
+ removed from -mm tree
+Date: Mon, 4 Jun 2007 20:24:30 -0700
+Message-ID: <20070604202430.04348fa8.akpm@linux-foundation.org>
+References: <200705301857.l4UIvsCN002172@shell0.pdx.osdl.net>
+	<20070605031638.GA26469@localhost.localdomain>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756218AbXFECE2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 22:04:28 -0400
+	by vger.kernel.org with ESMTP id S1757657AbXFEDY6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2007 23:24:58 -0400
+In-Reply-To: <20070605031638.GA26469@localhost.localdomain>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: vvs@sw.ru
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: alan@lxorguk.ukuu.org.uk, kebkal@gmail.com, ralf@linux-mips.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
+On Tue, 5 Jun 2007 13:16:38 +1000 David Gibson <david@gibson.dropbear.id.au> wrote:
 
-The patch titled
-     ext3/ext4: orphan list corruption due bad inode
-has been added to the -mm tree.  Its filename is
-     ext3-ext4-orphan-list-corruption-due-bad-inode.patch
+> On Wed, May 30, 2007 at 11:57:54AM -0700, akpm@linux-foundation.org wrote:
+> > 
+> > The patch titled
+> >      serial: use resource_size_t for port IO addresses
+> > has been removed from the -mm tree.  Its filename was
+> >      serial-use-resource_size_t-for-port-io-addresses.patch
+> > 
+> > This patch was dropped because I merged Yinghai Lu's stuff instead
+> 
+> Sorry, can you tell me which patches in the -mm series constitute
+> Yinghai Lu's stuff, so that I can grab them and update my stuff as
+> appropriate?
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+x86-initial-fixmap-support.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-assert-dtr-for-serial-console-devices.patch
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-------------------------------------------------------
-Subject: ext3/ext4: orphan list corruption due bad inode
-From: Vasily Averin <vvs@sw.ru>
-
-After ext3 orphan list check has been added into ext3_destroy_inode()
-(please see my previous patch) the following situation has been detected:
-
- EXT3-fs warning (device sda6): ext3_unlink: Deleting nonexistent file (37901290), 0
- Inode 00000101a15b7840: orphan list check failed!
- 00000773 6f665f00 74616d72 00000573 65725f00 06737270 66000000 616d726f
-...
- Call Trace: [<ffffffff80211ea9>] ext3_destroy_inode+0x79/0x90
-  [<ffffffff801a2b16>] sys_unlink+0x126/0x1a0
-  [<ffffffff80111479>] error_exit+0x0/0x81
-  [<ffffffff80110aba>] system_call+0x7e/0x83
-
-First messages said that unlinked inode has i_nlink=0, then ext3_unlink()
-adds this inode into orphan list.
-
-Second message means that this inode has not been removed from orphan list.
- Inode dump has showed that i_fop = &bad_file_ops and it can be set in
-make_bad_inode() only.  Then I've found that ext3_read_inode() can call
-make_bad_inode() without any error/warning messages, for example in the
-following case:
-
-...
-        if (inode->i_nlink == 0) {
-                if (inode->i_mode == 0 ||
-                    !(EXT3_SB(inode->i_sb)->s_mount_state & EXT3_ORPHAN_FS)) {
-                        /* this inode is deleted */
-                        brelse (bh);
-                        goto bad_inode;
-...
-
-Bad inode can live some time, ext3_unlink can add it to orphan list, but
-ext3_delete_inode() do not deleted this inode from orphan list.  As result
-we can have orphan list corruption detected in ext3_destroy_inode().
-
-However it is not clear for me how to fix this issue correctly.
-
-As far as i see is_bad_inode() is called after iget() in all places
-excluding ext3_lookup() and ext3_get_parent().  I believe it makes sense to
-add bad inode check to these functions too and call iput if bad inode
-detected.
-
-Signed-off-by:	Vasily Averin <vvs@sw.ru>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/ext3/namei.c |   10 ++++++++++
- fs/ext4/namei.c |   10 ++++++++++
- 2 files changed, 20 insertions(+)
-
-diff -puN fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
-+++ a/fs/ext3/namei.c
-@@ -1019,6 +1019,11 @@ static struct dentry *ext3_lookup(struct
- 
- 		if (!inode)
- 			return ERR_PTR(-EACCES);
-+
-+		if (is_bad_inode(inode)) {
-+			iput(inode);
-+			return ERR_PTR(-ENOENT);
-+		}
- 	}
- 	return d_splice_alias(inode, dentry);
- }
-@@ -1054,6 +1059,11 @@ struct dentry *ext3_get_parent(struct de
- 	if (!inode)
- 		return ERR_PTR(-EACCES);
- 
-+	if (is_bad_inode(inode)) {
-+		iput(inode);
-+		return ERR_PTR(-ENOENT);
-+	}
-+
- 	parent = d_alloc_anon(inode);
- 	if (!parent) {
- 		iput(inode);
-diff -puN fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext3-ext4-orphan-list-corruption-due-bad-inode
-+++ a/fs/ext4/namei.c
-@@ -1017,6 +1017,11 @@ static struct dentry *ext4_lookup(struct
- 
- 		if (!inode)
- 			return ERR_PTR(-EACCES);
-+
-+		if (is_bad_inode(inode)) {
-+			iput(inode);
-+			return ERR_PTR(-ENOENT);
-+		}
- 	}
- 	return d_splice_alias(inode, dentry);
- }
-@@ -1052,6 +1057,11 @@ struct dentry *ext4_get_parent(struct de
- 	if (!inode)
- 		return ERR_PTR(-EACCES);
- 
-+	if (is_bad_inode(inode)) {
-+		iput(inode);
-+		return ERR_PTR(-ENOENT);
-+	}
-+
- 	parent = d_alloc_anon(inode);
- 	if (!parent) {
- 		iput(inode);
-_
-
-Patches currently in -mm which might be from vvs@sw.ru are
-
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-ext3-lost-brelse-in-ext3_read_inode.patch
-ext4-lost-brelse-in-ext4_read_inode.patch
-ext3-ext4-orphan-list-corruption-due-bad-inode.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
+spose I should do another -mm.  But there's still another 100-odd patches
+to go through from the weekend.  Ho hum.
