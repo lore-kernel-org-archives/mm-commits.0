@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + audit-rework-execve-audit-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 16:39:15 -0700
-Message-ID: <200706052339.l55NdFjl005176@imap1.linux-foundation.org>
+Subject: + audit-rework-execve-audit.patch added to -mm tree
+Date: Tue, 05 Jun 2007 16:39:13 -0700
+Message-ID: <200706052339.l55NdDJX005172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933008AbXFEXjg (ORCPT
+	by vger.kernel.org with ESMTP id S933125AbXFEXjg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:39:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aaw@google.com, linux-audit@redhat.com, viro@zeniv.linux.org.uk
+Cc: a.p.zijlstra@chello.nl, aaw@google.com, linux-audit@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     audit-rework-execve-audit-fix
+     audit: rework execve audit
 has been added to the -mm tree.  Its filename is
-     audit-rework-execve-audit-fix.patch
+     audit-rework-execve-audit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,170 +25,238 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: audit-rework-execve-audit-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: audit: rework execve audit
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Cc: <linux-audit@redhat.com>
+The purpose of audit_bprm() is to log the argv array to a userspace daemon at
+the end of the execve system call.  Since user-space hasn't had time to run,
+this array is still in pristine state on the process' stack; so no need to
+copy it, we can just grab it from there.
+
+In order to minimize the damage to audit_log_*() copy each string into a
+temporary kernel buffer first.
+
+Currently the audit code requires that the full argument vector fits in a
+single packet.  So currently it does clip the argv size to a (sysctl) limit,
+but only when execve auditing is enabled.
+
+If the audit protocol gets extended to allow for multiple packets this check
+can be removed.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ollie Wild <aaw@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ollie Wild <aaw@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: <linux-audit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c               |    3 +
+ include/linux/binfmts.h |    1 
+ kernel/auditsc.c        |   76 +++++++++++++++++++++++++++-----------
+ kernel/sysctl.c         |   11 +++++
+ 4 files changed, 70 insertions(+), 21 deletions(-)
 
-diff -puN kernel/auditsc.c~audit-rework-execve-audit-fix kernel/auditsc.c
---- a/kernel/auditsc.c~audit-rework-execve-audit-fix
-+++ a/kernel/auditsc.c
-@@ -865,7 +865,7 @@ static void audit_log_execve_info(struct
- 		/*
- 		 * There is no reason for this copy to be short.
- 		 */
--		BUG_ON(ret);
-+		WARN_ON(ret);
+diff -puN fs/exec.c~audit-rework-execve-audit fs/exec.c
+--- a/fs/exec.c~audit-rework-execve-audit
++++ a/fs/exec.c
+@@ -1154,6 +1154,7 @@ int do_execve(char * filename,
+ {
+ 	struct linux_binprm *bprm;
+ 	struct file *file;
++	unsigned long tmp;
+ 	int retval;
+ 	int i;
  
- 		audit_log_format(ab, "a%d=", i);
- 		audit_log_untrustedstring(ab, tmp);
+@@ -1208,9 +1209,11 @@ int do_execve(char * filename,
+ 	if (retval < 0)
+ 		goto out;
+ 
++	tmp = bprm->p;
+ 	retval = copy_strings(bprm->argc, argv, bprm);
+ 	if (retval < 0)
+ 		goto out;
++	bprm->argv_len = tmp - bprm->p;
+ 
+ 	retval = search_binary_handler(bprm,regs);
+ 	if (retval >= 0) {
+diff -puN include/linux/binfmts.h~audit-rework-execve-audit include/linux/binfmts.h
+--- a/include/linux/binfmts.h~audit-rework-execve-audit
++++ a/include/linux/binfmts.h
+@@ -40,6 +40,7 @@ struct linux_binprm{
+ 	unsigned interp_flags;
+ 	unsigned interp_data;
+ 	unsigned long loader, exec;
++	unsigned long argv_len;
+ };
+ 
+ #define BINPRM_FLAGS_ENFORCE_NONDUMP_BIT 0
+diff -puN kernel/auditsc.c~audit-rework-execve-audit kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-rework-execve-audit
++++ a/kernel/auditsc.c
+@@ -156,7 +156,7 @@ struct audit_aux_data_execve {
+ 	struct audit_aux_data	d;
+ 	int argc;
+ 	int envc;
+-	char mem[0];
++	struct mm_struct *mm;
+ };
+ 
+ struct audit_aux_data_socketcall {
+@@ -834,6 +834,47 @@ static int audit_log_pid_context(struct 
+ 	return rc;
+ }
+ 
++static void audit_log_execve_info(struct audit_buffer *ab,
++		struct audit_aux_data_execve *axi)
++{
++	int i;
++	long len;
++	const char __user *p = (const char __user *)axi->mm->arg_start;
++
++	if (axi->mm != current->mm)
++		return; /* execve failed, no additional info */
++
++	for (i = 0; i < axi->argc; i++, p += len) {
++		long ret;
++		char *tmp;
++
++		len = strnlen_user(p, MAX_ARG_PAGES*PAGE_SIZE);
++		/*
++		 * We just created this mm, if we can't find the strings
++		 * we just copied in something is _very_ wrong.
++		 */
++		BUG_ON(!len);
++
++		tmp = kmalloc(len, GFP_KERNEL);
++		if (!tmp) {
++			audit_panic("out of memory for argv string\n");
++			break;
++		}
++
++		ret = copy_from_user(tmp, p, len);
++		/*
++		 * There is no reason for this copy to be short.
++		 */
++		BUG_ON(ret);
++
++		audit_log_format(ab, "a%d=", i);
++		audit_log_untrustedstring(ab, tmp);
++		audit_log_format(ab, "\n");
++
++		kfree(tmp);
++	}
++}
++
+ static void audit_log_exit(struct audit_context *context, struct task_struct *tsk)
+ {
+ 	int i, call_panic = 0;
+@@ -974,13 +1015,7 @@ static void audit_log_exit(struct audit_
+ 
+ 		case AUDIT_EXECVE: {
+ 			struct audit_aux_data_execve *axi = (void *)aux;
+-			int i;
+-			const char *p;
+-			for (i = 0, p = axi->mem; i < axi->argc; i++) {
+-				audit_log_format(ab, "a%d=", i);
+-				p = audit_log_untrustedstring(ab, p);
+-				audit_log_format(ab, "\n");
+-			}
++			audit_log_execve_info(ab, axi);
+ 			break; }
+ 
+ 		case AUDIT_SOCKETCALL: {
+@@ -1824,32 +1859,31 @@ int __audit_ipc_set_perm(unsigned long q
+ 	return 0;
+ }
+ 
++int audit_argv_kb = 32;
++
+ int audit_bprm(struct linux_binprm *bprm)
+ {
+ 	struct audit_aux_data_execve *ax;
+ 	struct audit_context *context = current->audit_context;
+-	unsigned long p, next;
+-	void *to;
+ 
+ 	if (likely(!audit_enabled || !context || context->dummy))
+ 		return 0;
+ 
+-	ax = kmalloc(sizeof(*ax) + PAGE_SIZE * MAX_ARG_PAGES - bprm->p,
+-				GFP_KERNEL);
++	/*
++	 * Even though the stack code doesn't limit the arg+env size any more,
++	 * the audit code requires that _all_ arguments be logged in a single
++	 * netlink skb. Hence cap it :-(
++	 */
++	if (bprm->argv_len > (audit_argv_kb << 10))
++		return -E2BIG;
++
++	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
+ 	if (!ax)
+ 		return -ENOMEM;
+ 
+ 	ax->argc = bprm->argc;
+ 	ax->envc = bprm->envc;
+-	for (p = bprm->p, to = ax->mem; p < MAX_ARG_PAGES*PAGE_SIZE; p = next) {
+-		struct page *page = bprm->page[p / PAGE_SIZE];
+-		void *kaddr = kmap(page);
+-		next = (p + PAGE_SIZE) & ~(PAGE_SIZE - 1);
+-		memcpy(to, kaddr + (p & (PAGE_SIZE - 1)), next - p);
+-		to += next - p;
+-		kunmap(page);
+-	}
+-
++	ax->mm = bprm->mm;
+ 	ax->d.type = AUDIT_EXECVE;
+ 	ax->d.next = context->aux;
+ 	context->aux = (void *)ax;
+diff -puN kernel/sysctl.c~audit-rework-execve-audit kernel/sysctl.c
+--- a/kernel/sysctl.c~audit-rework-execve-audit
++++ a/kernel/sysctl.c
+@@ -81,6 +81,7 @@ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
+ extern int sysctl_stat_interval;
++extern int audit_argv_kb;
+ 
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+ static int maxolduid = 65535;
+@@ -266,6 +267,16 @@ static ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++#ifdef CONFIG_AUDITSYSCALL
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "audit_argv_kb",
++		.data		= &audit_argv_kb,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++#endif
+ 	{
+ 		.ctl_name	= KERN_CORE_USES_PID,
+ 		.procname	= "core_uses_pid",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-document-acked-by.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-input-fixup.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-revert-gregkh-pci-pci-reduce-aer-init-error-information.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-git-xtensa.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
+lumpy-reclaim-v4.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-lguest-the-net-driver-include-fix.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+arch-personality-independent-stack-top.patch
+audit-rework-execve-audit.patch
 audit-rework-execve-audit-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
+mm-move_page_tables_up.patch
+mm-variable-length-argument-support.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
 lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
