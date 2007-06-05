@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + audit-rework-execve-audit.patch added to -mm tree
-Date: Tue, 05 Jun 2007 16:39:13 -0700
-Message-ID: <200706052339.l55NdDJX005172@imap1.linux-foundation.org>
+Subject: + usb-serial-fix-something.patch added to -mm tree
+Date: Tue, 05 Jun 2007 16:46:26 -0700
+Message-ID: <200706052346.l55NkQAH005348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53109 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46903 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933125AbXFEXjg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:39:36 -0400
+	by vger.kernel.org with ESMTP id S933602AbXFEXqo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:46:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, aaw@google.com, linux-audit@redhat.com, viro@zeniv.linux.org.uk
+Cc: stern@rowland.harvard.edu, greg@kroah.com, pfmp.404@gmail.com
 
 
 The patch titled
-     audit: rework execve audit
+     usb serial: fix something
 has been added to the -mm tree.  Its filename is
-     audit-rework-execve-audit.patch
+     usb-serial-fix-something.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,238 +25,128 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: audit: rework execve audit
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: usb serial: fix something
+From: Alan Stern <stern@rowland.harvard.edu>
 
-The purpose of audit_bprm() is to log the argv array to a userspace daemon at
-the end of the execve system call.  Since user-space hasn't had time to run,
-this array is still in pristine state on the process' stack; so no need to
-copy it, we can just grab it from there.
+Might fix bug 8561
 
-In order to minimize the damage to audit_log_*() copy each string into a
-temporary kernel buffer first.
+On Mon, 4 Jun 2007, Paulo Pereira wrote:
 
-Currently the audit code requires that the full argument vector fits in a
-single packet.  So currently it does clip the argv size to a (sysctl) limit,
-but only when execve auditing is enabled.
+> The patch that you send is not resolving the problem... :(
+> I stil have Kernel panic after 45/60 min of work with Ktorrent/Amule...
+>
+> The Drump is:
+>
+> Call Trace:
+> [<c055fb36>] usb_hcd_submit+0xb1/0x763
+> [<f9276488>] ipt_do_table+0x2c7/0x2ef [ip_tables]
+> [<f929a6d7>] nf_ct_deliver_cached_events+0x41/0x96 [nf_conntrak]
+> [<f9288254>] ipv4_confirm+0x36/0c3b [nf_conntrack_ipv4]
+> [<c05ce7c2>] tcp_v4_rcv+0x827/0x899
+> [<c05afcc0>] nf_hook_slow+0x4d/0xb5
+> [<c042826f>] irq_enter+0x19/0x23
+> [<c042826f>] irq_enter+0x19/0x23
+> [<c040794c>] do_IRQ+0xbd/0xd1
+> [<f90893c9>] option_write+0xa7/0xef [option]
 
-If the audit protocol gets extended to allow for multiple packets this check
-can be removed.
+Okay, from this it looks like there's a problem in the option.c serial
+driver.  Glancing at the code, it's obvious why: The thing totally
+abuses the USB API.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Ollie Wild <aaw@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <linux-audit@redhat.com>
+Try applying this patch; it should help.
+
+Cc: Paulo Pereira <pfmp.404@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    3 +
- include/linux/binfmts.h |    1 
- kernel/auditsc.c        |   76 +++++++++++++++++++++++++++-----------
- kernel/sysctl.c         |   11 +++++
- 4 files changed, 70 insertions(+), 21 deletions(-)
+ drivers/usb/serial/option.c |   20 +++++++++++++++++---
+ 1 files changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~audit-rework-execve-audit fs/exec.c
---- a/fs/exec.c~audit-rework-execve-audit
-+++ a/fs/exec.c
-@@ -1154,6 +1154,7 @@ int do_execve(char * filename,
+diff -puN drivers/usb/serial/option.c~usb-serial-fix-something drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-serial-fix-something
++++ a/drivers/usb/serial/option.c
+@@ -38,6 +38,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/module.h>
++#include <linux/bitops.h>
+ #include <linux/usb.h>
+ #include <linux/usb/serial.h>
+ 
+@@ -238,6 +239,7 @@ struct option_port_private {
+ 	/* Output endpoints and buffer for this port */
+ 	struct urb *out_urbs[N_OUT_URB];
+ 	char out_buffer[N_OUT_URB][OUT_BUFLEN];
++	unsigned long out_busy;		/* Bit vector of URBs in use */
+ 
+ 	/* Settings for the port */
+ 	int rts_state;	/* Handshaking pins (outputs) */
+@@ -368,7 +370,7 @@ static int option_write(struct usb_seria
+ 			todo = OUT_BUFLEN;
+ 
+ 		this_urb = portdata->out_urbs[i];
+-		if (this_urb->status == -EINPROGRESS) {
++		if (test_and_set_bit(i, &portdata->out_busy)) {
+ 			if (time_before(jiffies,
+ 					portdata->tx_start_time[i] + 10 * HZ))
+ 				continue;
+@@ -392,6 +394,7 @@ static int option_write(struct usb_seria
+ 			dbg("usb_submit_urb %p (write bulk) failed "
+ 				"(%d, has %d)", this_urb,
+ 				err, this_urb->status);
++			clear_bit(i, &portdata->out_busy);
+ 			continue;
+ 		}
+ 		portdata->tx_start_time[i] = jiffies;
+@@ -444,12 +447,23 @@ static void option_indat_callback(struct
+ static void option_outdat_callback(struct urb *urb)
  {
- 	struct linux_binprm *bprm;
- 	struct file *file;
-+	unsigned long tmp;
- 	int retval;
- 	int i;
- 
-@@ -1208,9 +1209,11 @@ int do_execve(char * filename,
- 	if (retval < 0)
- 		goto out;
- 
-+	tmp = bprm->p;
- 	retval = copy_strings(bprm->argc, argv, bprm);
- 	if (retval < 0)
- 		goto out;
-+	bprm->argv_len = tmp - bprm->p;
- 
- 	retval = search_binary_handler(bprm,regs);
- 	if (retval >= 0) {
-diff -puN include/linux/binfmts.h~audit-rework-execve-audit include/linux/binfmts.h
---- a/include/linux/binfmts.h~audit-rework-execve-audit
-+++ a/include/linux/binfmts.h
-@@ -40,6 +40,7 @@ struct linux_binprm{
- 	unsigned interp_flags;
- 	unsigned interp_data;
- 	unsigned long loader, exec;
-+	unsigned long argv_len;
- };
- 
- #define BINPRM_FLAGS_ENFORCE_NONDUMP_BIT 0
-diff -puN kernel/auditsc.c~audit-rework-execve-audit kernel/auditsc.c
---- a/kernel/auditsc.c~audit-rework-execve-audit
-+++ a/kernel/auditsc.c
-@@ -156,7 +156,7 @@ struct audit_aux_data_execve {
- 	struct audit_aux_data	d;
- 	int argc;
- 	int envc;
--	char mem[0];
-+	struct mm_struct *mm;
- };
- 
- struct audit_aux_data_socketcall {
-@@ -834,6 +834,47 @@ static int audit_log_pid_context(struct 
- 	return rc;
- }
- 
-+static void audit_log_execve_info(struct audit_buffer *ab,
-+		struct audit_aux_data_execve *axi)
-+{
+ 	struct usb_serial_port *port;
++	struct option_port_private *portdata;
 +	int i;
-+	long len;
-+	const char __user *p = (const char __user *)axi->mm->arg_start;
+ 
+ 	dbg("%s", __FUNCTION__);
+ 
+ 	port = (struct usb_serial_port *) urb->context;
+ 
+ 	usb_serial_port_softint(port);
 +
-+	if (axi->mm != current->mm)
-+		return; /* execve failed, no additional info */
-+
-+	for (i = 0; i < axi->argc; i++, p += len) {
-+		long ret;
-+		char *tmp;
-+
-+		len = strnlen_user(p, MAX_ARG_PAGES*PAGE_SIZE);
-+		/*
-+		 * We just created this mm, if we can't find the strings
-+		 * we just copied in something is _very_ wrong.
-+		 */
-+		BUG_ON(!len);
-+
-+		tmp = kmalloc(len, GFP_KERNEL);
-+		if (!tmp) {
-+			audit_panic("out of memory for argv string\n");
++	portdata = usb_get_serial_port_data(port);
++	for (i = 0; i < N_OUT_URB; ++i) {
++		if (portdata->out_urbs[i] == urb) {
++			smp_mb__before_clear_bit();
++			clear_bit(i, &portdata->out_busy);
 +			break;
 +		}
-+
-+		ret = copy_from_user(tmp, p, len);
-+		/*
-+		 * There is no reason for this copy to be short.
-+		 */
-+		BUG_ON(ret);
-+
-+		audit_log_format(ab, "a%d=", i);
-+		audit_log_untrustedstring(ab, tmp);
-+		audit_log_format(ab, "\n");
-+
-+		kfree(tmp);
 +	}
-+}
-+
- static void audit_log_exit(struct audit_context *context, struct task_struct *tsk)
- {
- 	int i, call_panic = 0;
-@@ -974,13 +1015,7 @@ static void audit_log_exit(struct audit_
- 
- 		case AUDIT_EXECVE: {
- 			struct audit_aux_data_execve *axi = (void *)aux;
--			int i;
--			const char *p;
--			for (i = 0, p = axi->mem; i < axi->argc; i++) {
--				audit_log_format(ab, "a%d=", i);
--				p = audit_log_untrustedstring(ab, p);
--				audit_log_format(ab, "\n");
--			}
-+			audit_log_execve_info(ab, axi);
- 			break; }
- 
- 		case AUDIT_SOCKETCALL: {
-@@ -1824,32 +1859,31 @@ int __audit_ipc_set_perm(unsigned long q
- 	return 0;
  }
  
-+int audit_argv_kb = 32;
-+
- int audit_bprm(struct linux_binprm *bprm)
- {
- 	struct audit_aux_data_execve *ax;
- 	struct audit_context *context = current->audit_context;
--	unsigned long p, next;
--	void *to;
+ static void option_instat_callback(struct urb *urb)
+@@ -516,7 +530,7 @@ static int option_write_room(struct usb_
  
- 	if (likely(!audit_enabled || !context || context->dummy))
- 		return 0;
+ 	for (i=0; i < N_OUT_URB; i++) {
+ 		this_urb = portdata->out_urbs[i];
+-		if (this_urb && this_urb->status != -EINPROGRESS)
++		if (this_urb && !test_bit(i, &portdata->out_busy))
+ 			data_len += OUT_BUFLEN;
+ 	}
  
--	ax = kmalloc(sizeof(*ax) + PAGE_SIZE * MAX_ARG_PAGES - bprm->p,
--				GFP_KERNEL);
-+	/*
-+	 * Even though the stack code doesn't limit the arg+env size any more,
-+	 * the audit code requires that _all_ arguments be logged in a single
-+	 * netlink skb. Hence cap it :-(
-+	 */
-+	if (bprm->argv_len > (audit_argv_kb << 10))
-+		return -E2BIG;
-+
-+	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
- 	if (!ax)
- 		return -ENOMEM;
+@@ -535,7 +549,7 @@ static int option_chars_in_buffer(struct
  
- 	ax->argc = bprm->argc;
- 	ax->envc = bprm->envc;
--	for (p = bprm->p, to = ax->mem; p < MAX_ARG_PAGES*PAGE_SIZE; p = next) {
--		struct page *page = bprm->page[p / PAGE_SIZE];
--		void *kaddr = kmap(page);
--		next = (p + PAGE_SIZE) & ~(PAGE_SIZE - 1);
--		memcpy(to, kaddr + (p & (PAGE_SIZE - 1)), next - p);
--		to += next - p;
--		kunmap(page);
--	}
--
-+	ax->mm = bprm->mm;
- 	ax->d.type = AUDIT_EXECVE;
- 	ax->d.next = context->aux;
- 	context->aux = (void *)ax;
-diff -puN kernel/sysctl.c~audit-rework-execve-audit kernel/sysctl.c
---- a/kernel/sysctl.c~audit-rework-execve-audit
-+++ a/kernel/sysctl.c
-@@ -81,6 +81,7 @@ extern int percpu_pagelist_fraction;
- extern int compat_log;
- extern int maps_protect;
- extern int sysctl_stat_interval;
-+extern int audit_argv_kb;
- 
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
- static int maxolduid = 65535;
-@@ -266,6 +267,16 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#ifdef CONFIG_AUDITSYSCALL
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "audit_argv_kb",
-+		.data		= &audit_argv_kb,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+#endif
- 	{
- 		.ctl_name	= KERN_CORE_USES_PID,
- 		.procname	= "core_uses_pid",
+ 	for (i=0; i < N_OUT_URB; i++) {
+ 		this_urb = portdata->out_urbs[i];
+-		if (this_urb && this_urb->status == -EINPROGRESS)
++		if (this_urb && test_bit(i, &portdata->out_busy))
+ 			data_len += this_urb->transfer_buffer_length;
+ 	}
+ 	dbg("%s: %d", __FUNCTION__, data_len);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-lumpy-reclaim-v4.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-arch-personality-independent-stack-top.patch
-audit-rework-execve-audit.patch
-audit-rework-execve-audit-fix.patch
-mm-move_page_tables_up.patch
-mm-variable-length-argument-support.patch
-fix-raw_spinlock_t-vs-lockdep.patch
-lockdep-sanitise-config_prove_locking.patch
-lockdep-reduce-the-ifdeffery.patch
-lockstat-core-infrastructure.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-human-readability-tweaks.patch
-lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+git-hid.patch
+usb-try-to-debug-bug-8561.patch
+usb-serial-fix-something.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+freezer-run-show_state-when-freezing-times-out.patch
