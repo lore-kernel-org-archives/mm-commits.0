@@ -1,60 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - more-fix-gregkh-driver-block-device.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 10:47:37 -0700
-Message-ID: <200706051747.l55Hlblb031845@imap1.linux-foundation.org>
+Subject: - more-more-fix-gregkh-driver-block-device.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 10:47:44 -0700
+Message-ID: <200706051747.l55HliZA031850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754316AbXFERrp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 13:47:45 -0400
+	by vger.kernel.org with ESMTP id S1754886AbXFERrw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 13:47:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     more-fix-gregkh-driver-block-device
+     more-more-fix-gregkh-driver-block-device
 has been removed from the -mm tree.  Its filename was
-     more-fix-gregkh-driver-block-device.patch
+     more-more-fix-gregkh-driver-block-device.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: more-fix-gregkh-driver-block-device
+Subject: more-more-fix-gregkh-driver-block-device
 From: Andrew Morton <akpm@linux-foundation.org>
+
+fs/partitions/check.c:375: warning: 'disk_sysfs_symlinks' defined but not used
 
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/partitions/check.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/partitions/check.c~more-fix-gregkh-driver-block-device fs/partitions/check.c
---- a/fs/partitions/check.c~more-fix-gregkh-driver-block-device
+diff -puN fs/partitions/check.c~more-more-fix-gregkh-driver-block-device fs/partitions/check.c
+--- a/fs/partitions/check.c~more-more-fix-gregkh-driver-block-device
 +++ a/fs/partitions/check.c
-@@ -250,8 +250,8 @@ static DEVICE_ATTR(start, S_IRUGO, part_
- static DEVICE_ATTR(size, S_IRUGO, part_size_show, NULL);
- static DEVICE_ATTR(stat, S_IRUGO, part_stat_show, NULL);
- #ifdef CONFIG_FAIL_MAKE_REQUEST
--static struct part_attribute dev_attr_fail =
--	__ATTR(make-it-fail, S_IRUGO|S_IWUSR, part_fail_store, part_fail_read);
-+static DEVICE_ATTR(make_it_fail, S_IRUGO|S_IWUSR, part_fail_show,
-+		part_fail_store);
- #endif
+@@ -370,6 +370,7 @@ void add_partition(struct gendisk *disk,
+ 		kobject_uevent(&p->dev.kobj, KOBJ_ADD);
+ }
  
- static struct attribute *part_attrs[] = {
-@@ -259,7 +259,7 @@ static struct attribute *part_attrs[] = 
- 	&dev_attr_size.attr,
- 	&dev_attr_stat.attr,
- #ifdef CONFIG_FAIL_MAKE_REQUEST
--	&dev_attr_fail,
-+	&dev_attr_make_it_fail.attr,
- #endif
- 	NULL,
- };
++#ifndef CONFIG_SYSFS_DEPRECATED
+ static int disk_sysfs_symlinks(struct gendisk *disk)
+ {
+ 	int err = 0;
+@@ -381,6 +382,7 @@ static int disk_sysfs_symlinks(struct ge
+ 		put_device(target);
+ 	return err;
+ }
++#endif
+ 
+ /* Not exported, helper to add_disk(). */
+ void register_disk(struct gendisk *disk)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +64,6 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
-more-fix-gregkh-driver-block-device.patch
 more-more-fix-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
