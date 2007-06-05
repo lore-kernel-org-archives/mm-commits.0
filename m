@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-net-driver-include-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 02:06:49 -0700
-Message-ID: <200706050910.l559AKUd000492@imap1.linux-foundation.org>
+Subject: + o_cloexec-for-scm_rights-fix-2.patch added to -mm tree
+Date: Tue, 05 Jun 2007 02:24:20 -0700
+Message-ID: <200706050927.l559RpnD000766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35793 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762368AbXFEJKb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 05:10:31 -0400
+	by vger.kernel.org with ESMTP id S932115AbXFEJ2y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 05:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, drepper@redhat.com, mb@bu3sch.de, mingo@elte.hu, mtk-manpages@gmx.net
 
 
 The patch titled
-     lguest-the-net-driver include fix
+     o_cloexec-for-scm_rights-fix-2
 has been added to the -mm tree.  Its filename is
-     lguest-the-net-driver-include-fix.patch
+     o_cloexec-for-scm_rights-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest-the-net-driver include fix
+Subject: o_cloexec-for-scm_rights-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lguest_net.c:(.text+0x5a58c): undefined reference to `virt_to_phys'
-lguest_net.c:(.text+0x5a615): undefined reference to `page_to_phys'
+net/compat.c: In function 'scm_detach_fds_compat':
+net/compat.c:279: error: 'msg' undeclared (first use in this function)
+net/compat.c:279: error: (Each undeclared identifier is reported only once
+net/compat.c:279: error: for each function it appears in.)
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/lguest_net.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/compat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-include-fix drivers/net/lguest_net.c
---- a/drivers/net/lguest_net.c~lguest-the-net-driver-include-fix
-+++ a/drivers/net/lguest_net.c
-@@ -21,6 +21,7 @@
- #include <linux/etherdevice.h>
- #include <linux/module.h>
- #include <linux/mm_types.h>
-+#include <linux/io.h>
- #include <linux/lguest_bus.h>
- 
- #define SHARED_SIZE		PAGE_SIZE
+diff -puN net/compat.c~o_cloexec-for-scm_rights-fix-2 net/compat.c
+--- a/net/compat.c~o_cloexec-for-scm_rights-fix-2
++++ a/net/compat.c
+@@ -276,7 +276,7 @@ void scm_detach_fds_compat(struct msghdr
+ 		err = security_file_receive(fp[i]);
+ 		if (err)
+ 			break;
+-		err = get_unused_fd_flags(MSG_CMSG_CLOEXEC & msg->msg_flags
++		err = get_unused_fd_flags(MSG_CMSG_CLOEXEC & kmsg->msg_flags
+ 					  ? O_CLOEXEC : 0);
+ 		if (err < 0)
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -151,6 +157,7 @@ vdso-print-fatal-signals.patch
 reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
 rd-remove-ramdisk_set_page_dirty-fix.patch
 o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
 atmel_serial-fix-break-handling.patch
 lib-add-idr_for_each-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
