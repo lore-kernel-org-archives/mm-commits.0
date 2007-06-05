@@ -1,70 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-block-device.patch added to -mm tree
-Date: Tue, 05 Jun 2007 01:02:09 -0700
-Message-ID: <200706050805.l5585efe032092@imap1.linux-foundation.org>
+Subject: - git-acpi-export-acpi_set_cstate_limit.patch removed from -mm tree
+Date: Tue, 05 Jun 2007 01:03:23 -0700
+Message-ID: <200706050806.l5586sdk032131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38354 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48468 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755792AbXFEIFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:05:48 -0400
+	by vger.kernel.org with ESMTP id S1755592AbXFEIHI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:07:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-gregkh-driver-block-device
-has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-block-device.patch
+     git-acpi: export acpi_set_cstate_limit
+has been removed from the -mm tree.  Its filename was
+     git-acpi-export-acpi_set_cstate_limit.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-block-device
+Subject: git-acpi: export acpi_set_cstate_limit
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it compile.
+ipw2100 uses this.
 
-This is an incompatible change.  I had to rename the sysfs file.
-
-Please fix it properly.
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/osl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN block/genhd.c~fix-gregkh-driver-block-device block/genhd.c
---- a/block/genhd.c~fix-gregkh-driver-block-device
-+++ a/block/genhd.c
-@@ -471,8 +471,8 @@ static DEVICE_ATTR(size, S_IRUGO, disk_s
- static DEVICE_ATTR(capability, S_IRUGO, disk_capability_show, NULL);
- static DEVICE_ATTR(stat, S_IRUGO, disk_stat_show, NULL);
- #ifdef CONFIG_FAIL_MAKE_REQUEST
--static device_attribute dev_attr_fail =
--	__ATTR(make-it-fail, S_IRUGO|S_IWUSR, disk_fail_show, disk_fail_store);
-+static DEVICE_ATTR(make_it_fail, S_IRUGO|S_IWUSR, disk_fail_show,
-+		disk_fail_store);
- #endif
+diff -puN drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit
++++ a/drivers/acpi/osl.c
+@@ -1078,6 +1078,7 @@ acpi_cpu_flags acpi_os_acquire_lock(acpi
+ 	spin_lock_irqsave(lockp, flags);
+ 	return flags;
+ }
++EXPORT_SYMBOL(acpi_set_cstate_limit);
  
- static struct attribute *disk_attrs[] = {
-@@ -482,7 +482,7 @@ static struct attribute *disk_attrs[] = 
- 	&dev_attr_capability.attr,
- 	&dev_attr_stat.attr,
- #ifdef CONFIG_FAIL_MAKE_REQUEST
--	&dev_attr_fail.attr,
-+	&dev_attr_make_it_fail.attr,
- #endif
- 	NULL
- };
+ /*
+  * Release a spinlock. See above.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +55,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
+fix-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
 git-gfs2-nmw.patch
@@ -204,4 +184,3 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-fix-gregkh-driver-block-device.patch
