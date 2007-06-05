@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-apparently-useless-commented-apm_get_battery_status.patch added to -mm tree
-Date: Tue, 05 Jun 2007 16:57:24 -0700
-Message-ID: <200706052357.l55NvOCe005513@imap1.linux-foundation.org>
+Subject: + uml-fix-request-sector-update.patch added to -mm tree
+Date: Tue, 05 Jun 2007 16:58:34 -0700
+Message-ID: <200706052358.l55NwYGk005534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37438 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934242AbXFEX5j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:57:39 -0400
+	by vger.kernel.org with ESMTP id S1760653AbXFEX6o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 19:58:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, cbou@mail.ru, sfr@canb.auug.org.au
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     Remove apparently useless, commented apm_get_battery_status()
+     uml: fix request->sector update
 has been added to the -mm tree.  Its filename is
-     remove-apparently-useless-commented-apm_get_battery_status.patch
+     uml-fix-request-sector-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove apparently useless, commented apm_get_battery_status()
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: uml: fix request->sector update
+From: Jeff Dike <jdike@addtoit.com>
 
-Remove the "#if 0"ed definition of apm_get_battery_status().
+It is theoretically possible for a request to finish and be freed between
+writing it to the I/O thread and updating the sector count.  In this case, the
+update will dereference a freed pointer.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Anton Vorontsov <cbou@mail.ru>
+To avoid this, I delay the update until processing the next sg segment, when
+the request pointer is known to be good.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apm.c |   29 -----------------------------
- 1 files changed, 29 deletions(-)
+ arch/um/drivers/ubd_kern.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/apm.c~remove-apparently-useless-commented-apm_get_battery_status arch/i386/kernel/apm.c
---- a/arch/i386/kernel/apm.c~remove-apparently-useless-commented-apm_get_battery_status
-+++ a/arch/i386/kernel/apm.c
-@@ -1007,35 +1007,6 @@ static int apm_get_power_status(u_short 
- 	return APM_SUCCESS;
- }
+diff -puN arch/um/drivers/ubd_kern.c~uml-fix-request-sector-update arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-fix-request-sector-update
++++ a/arch/um/drivers/ubd_kern.c
+@@ -1082,7 +1082,7 @@ static void do_ubd_request(request_queue
+ {
+ 	struct io_thread_req *io_req;
+ 	struct request *req;
+-	int n;
++	int n, last_sectors;
  
--#if 0
--static int apm_get_battery_status(u_short which, u_short *status,
--				  u_short *bat, u_short *life, u_short *nbat)
--{
--	u32	eax;
--	u32	ebx;
--	u32	ecx;
--	u32	edx;
--	u32	esi;
--
--	if (apm_info.connection_version < 0x0102) {
--		/* pretend we only have one battery. */
--		if (which != 1)
--			return APM_BAD_DEVICE;
--		*nbat = 1;
--		return apm_get_power_status(status, bat, life);
--	}
--
--	if (apm_bios_call(APM_FUNC_GET_STATUS, (0x8000 | (which)), 0, &eax,
--			&ebx, &ecx, &edx, &esi))
--		return (eax >> 8) & 0xff;
--	*status = ebx;
--	*bat = ecx;
--	*life = edx;
--	*nbat = esi;
--	return APM_SUCCESS;
--}
--#endif
--
- /**
-  *	apm_engage_power_management	-	enable PM on a device
-  *	@device: identity of device
+ 	while(1){
+ 		struct ubd *dev = q->queuedata;
+@@ -1098,9 +1098,11 @@ static void do_ubd_request(request_queue
+ 		}
+ 
+ 		req = dev->request;
++		last_sectors = 0;
+ 		while(dev->start_sg < dev->end_sg){
+ 			struct scatterlist *sg = &dev->sg[dev->start_sg];
+ 
++			req->sector += last_sectors;
+ 			io_req = kmalloc(sizeof(struct io_thread_req),
+ 					 GFP_ATOMIC);
+ 			if(io_req == NULL){
+@@ -1112,6 +1114,7 @@ static void do_ubd_request(request_queue
+ 					(unsigned long long) req->sector << 9,
+ 					sg->offset, sg->length, sg->page);
+ 
++			last_sectors = sg->length >> 9;
+ 			n = os_write_file(thread_fd, &io_req,
+ 					  sizeof(struct io_thread_req *));
+ 			if(n != sizeof(struct io_thread_req *)){
+@@ -1123,7 +1126,6 @@ static void do_ubd_request(request_queue
+ 				return;
+ 			}
+ 
+-			req->sector += sg->length >> 9;
+ 			dev->start_sg++;
+ 		}
+ 		dev->end_sg = 0;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
-git-kvm.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
+hostfs-convert-to-new-aops.patch
+uml-fix-request-sector-update.patch
+uml-fix-kernel-stack-size-on-x86_64.patch
