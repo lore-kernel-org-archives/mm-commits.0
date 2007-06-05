@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gregkh-pci-pci-reduce-aer-init-error-information-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 01:34:23 -0700
-Message-ID: <200706050837.l558bss1032559@imap1.linux-foundation.org>
+Subject: + more-fix-gregkh-driver-block-device.patch added to -mm tree
+Date: Tue, 05 Jun 2007 01:39:04 -0700
+Message-ID: <200706050842.l558gZji032614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56763 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757165AbXFEIiF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:38:05 -0400
+	by vger.kernel.org with ESMTP id S1752806AbXFEImn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 04:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, yanmin.zhang@intel.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     gregkh-pci-pci-reduce-aer-init-error-information-fix
+     more-fix-gregkh-driver-block-device
 has been added to the -mm tree.  Its filename is
-     gregkh-pci-pci-reduce-aer-init-error-information-fix.patch
+     more-fix-gregkh-driver-block-device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gregkh-pci-pci-reduce-aer-init-error-information-fix
+Subject: more-fix-gregkh-driver-block-device
 From: Andrew Morton <akpm@linux-foundation.org>
 
-If we're going to delete the file we'd best not still try to compile it.
-
-Or maybe we didn't intend to delete that file.  No doubt I will find out.
-
-Cc: Zhang Yanmin <yanmin.zhang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/partitions/check.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/pci-acpi.c~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pci-acpi.c
-diff -puN drivers/pci/pcie/aer/aerdrv.h~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/aerdrv.h
-diff -puN /dev/null /dev/null
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/aerdrv_core.c
-diff -puN drivers/pci/pcie/aer/Makefile~gregkh-pci-pci-reduce-aer-init-error-information-fix drivers/pci/pcie/aer/Makefile
---- a/drivers/pci/pcie/aer/Makefile~gregkh-pci-pci-reduce-aer-init-error-information-fix
-+++ a/drivers/pci/pcie/aer/Makefile
-@@ -4,5 +4,5 @@
+diff -puN fs/partitions/check.c~more-fix-gregkh-driver-block-device fs/partitions/check.c
+--- a/fs/partitions/check.c~more-fix-gregkh-driver-block-device
++++ a/fs/partitions/check.c
+@@ -250,8 +250,8 @@ static DEVICE_ATTR(start, S_IRUGO, part_
+ static DEVICE_ATTR(size, S_IRUGO, part_size_show, NULL);
+ static DEVICE_ATTR(stat, S_IRUGO, part_stat_show, NULL);
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+-static struct part_attribute dev_attr_fail =
+-	__ATTR(make-it-fail, S_IRUGO|S_IWUSR, part_fail_store, part_fail_read);
++static DEVICE_ATTR(make_it_fail, S_IRUGO|S_IWUSR, part_fail_show,
++		part_fail_store);
+ #endif
  
- obj-$(CONFIG_PCIEAER) += aerdriver.o
- 
--aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o aerdrv_acpi.o
-+aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o
- 
+ static struct attribute *part_attrs[] = {
+@@ -259,7 +259,7 @@ static struct attribute *part_attrs[] = 
+ 	&dev_attr_size.attr,
+ 	&dev_attr_stat.attr,
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+-	&dev_attr_fail,
++	&dev_attr_make_it_fail.attr,
+ #endif
+ 	NULL,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -194,3 +199,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+more-fix-gregkh-driver-block-device.patch
