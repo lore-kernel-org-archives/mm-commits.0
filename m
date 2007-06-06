@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-lindent-amd76x.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:51:14 -0700
-Message-ID: <200706060151.l561pETD007488@imap1.linux-foundation.org>
+Subject: + drivers-edac-lindent-r82600.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:51:24 -0700
+Message-ID: <200706060151.l561pOuA007513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48336 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50303 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933969AbXFFB45 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:57 -0400
+	by vger.kernel.org with ESMTP id S933954AbXFFB46 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dougthompson@xmission.com, djiang@mvista.com
 
 
 The patch titled
-     drivers-edac: Lindent amd76x
+     drivers-edac: Lindent r82600
 has been added to the -mm tree.  Its filename is
-     drivers-edac-lindent-amd76x.patch
+     drivers-edac-lindent-r82600.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,139 +25,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: Lindent amd76x
+Subject: drivers-edac: Lindent r82600
 From: Douglas Thompson <dougthompson@xmission.com>
 
-Ran this driver through Lindent for cleanup
+Run r82600_edac.c file through Lindent for cleanup
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+Signed-off-by: Dave Jiang <djiang@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/amd76x_edac.c |   54 ++++++++++++++++-------------------
- 1 file changed, 25 insertions(+), 29 deletions(-)
+ drivers/edac/r82600_edac.c |   55 +++++++++++++++++------------------
+ 1 file changed, 27 insertions(+), 28 deletions(-)
 
-diff -puN drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x drivers/edac/amd76x_edac.c
---- a/drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x
-+++ a/drivers/edac/amd76x_edac.c
-@@ -86,11 +86,9 @@ struct amd76x_dev_info {
+diff -puN drivers/edac/r82600_edac.c~drivers-edac-lindent-r82600 drivers/edac/r82600_edac.c
+--- a/drivers/edac/r82600_edac.c~drivers-edac-lindent-r82600
++++ a/drivers/edac/r82600_edac.c
+@@ -133,8 +133,8 @@ struct r82600_error_info {
  
- static const struct amd76x_dev_info amd76x_devs[] = {
- 	[AMD761] = {
--		.ctl_name = "AMD761"
--	},
-+		    .ctl_name = "AMD761"},
- 	[AMD762] = {
--		.ctl_name = "AMD762"
--	},
-+		    .ctl_name = "AMD762"},
- };
+ static unsigned int disable_hardware_scrub = 0;
  
- /**
-@@ -102,21 +100,21 @@ static const struct amd76x_dev_info amd7
-  *	on the chip so that further errors will be reported
-  */
- static void amd76x_get_error_info(struct mem_ctl_info *mci,
--		struct amd76x_error_info *info)
-+				  struct amd76x_error_info *info)
+-static void r82600_get_error_info (struct mem_ctl_info *mci,
+-		struct r82600_error_info *info)
++static void r82600_get_error_info(struct mem_ctl_info *mci,
++				  struct r82600_error_info *info)
  {
  	struct pci_dev *pdev;
  
- 	pdev = to_pci_dev(mci->dev);
- 	pci_read_config_dword(pdev, AMD76X_ECC_MODE_STATUS,
--				&info->ecc_mode_status);
-+			      &info->ecc_mode_status);
+@@ -144,18 +144,19 @@ static void r82600_get_error_info (struc
+ 	if (info->eapr & BIT(0))
+ 		/* Clear error to allow next error to be reported [p.62] */
+ 		pci_write_bits32(pdev, R82600_EAP,
+-				((u32) BIT(0) & (u32) BIT(1)),
+-				((u32) BIT(0) & (u32) BIT(1)));
++				 ((u32) BIT(0) & (u32) BIT(1)),
++				 ((u32) BIT(0) & (u32) BIT(1)));
  
- 	if (info->ecc_mode_status & BIT(8))
- 		pci_write_bits32(pdev, AMD76X_ECC_MODE_STATUS,
--				(u32) BIT(8), (u32) BIT(8));
-+				 (u32) BIT(8), (u32) BIT(8));
- 
- 	if (info->ecc_mode_status & BIT(9))
- 		pci_write_bits32(pdev, AMD76X_ECC_MODE_STATUS,
--				(u32) BIT(9), (u32) BIT(9));
-+				 (u32) BIT(9), (u32) BIT(9));
+ 	if (info->eapr & BIT(1))
+ 		/* Clear error to allow next error to be reported [p.62] */
+ 		pci_write_bits32(pdev, R82600_EAP,
+-				((u32) BIT(0) & (u32) BIT(1)),
+-				((u32) BIT(0) & (u32) BIT(1)));
++				 ((u32) BIT(0) & (u32) BIT(1)),
++				 ((u32) BIT(0) & (u32) BIT(1)));
  }
  
- /**
-@@ -130,7 +128,8 @@ static void amd76x_get_error_info(struct
-  *	then attempt to handle and clean up after the error
-  */
- static int amd76x_process_error_info(struct mem_ctl_info *mci,
--		struct amd76x_error_info *info, int handle_errors)
-+				     struct amd76x_error_info *info,
+-static int r82600_process_error_info (struct mem_ctl_info *mci,
+-		struct r82600_error_info *info, int handle_errors)
++static int r82600_process_error_info(struct mem_ctl_info *mci,
++				     struct r82600_error_info *info,
 +				     int handle_errors)
  {
  	int error_found;
- 	u32 row;
-@@ -138,7 +137,7 @@ static int amd76x_process_error_info(str
- 	error_found = 0;
+ 	u32 eapaddr, page;
+@@ -172,25 +173,23 @@ static int r82600_process_error_info (st
+ 	 * granularity (upper 19 bits only)     */
+ 	page = eapaddr >> PAGE_SHIFT;
  
- 	/*
--	 *	Check for an uncorrectable error
-+	 *      Check for an uncorrectable error
- 	 */
- 	if (info->ecc_mode_status & BIT(8)) {
+-	if (info->eapr & BIT(0)) {  /* CE? */
++	if (info->eapr & BIT(0)) {	/* CE? */
  		error_found = 1;
-@@ -146,12 +145,12 @@ static int amd76x_process_error_info(str
- 		if (handle_errors) {
- 			row = (info->ecc_mode_status >> 4) & 0xf;
- 			edac_mc_handle_ue(mci, mci->csrows[row].first_page, 0,
--				row, mci->ctl_name);
-+					  row, mci->ctl_name);
- 		}
+ 
+ 		if (handle_errors)
+-			edac_mc_handle_ce(mci, page, 0,  /* not avail */
+-					syndrome,
+-					edac_mc_find_csrow_by_page(mci, page),
+-					0,  /* channel */
+-					mci->ctl_name);
++			edac_mc_handle_ce(mci, page, 0,	/* not avail */
++					  syndrome, edac_mc_find_csrow_by_page(mci, page), 0,	/* channel */
++					  mci->ctl_name);
  	}
  
- 	/*
--	 *	Check for a correctable error
-+	 *      Check for a correctable error
- 	 */
- 	if (info->ecc_mode_status & BIT(9)) {
+-	if (info->eapr & BIT(1)) {  /* UE? */
++	if (info->eapr & BIT(1)) {	/* UE? */
  		error_found = 1;
-@@ -159,7 +158,7 @@ static int amd76x_process_error_info(str
- 		if (handle_errors) {
- 			row = info->ecc_mode_status & 0xf;
- 			edac_mc_handle_ce(mci, mci->csrows[row].first_page, 0,
--				0, row, 0, mci->ctl_name);
-+					  0, row, 0, mci->ctl_name);
- 		}
+ 
+ 		if (handle_errors)
+ 			/* 82600 doesn't give enough info */
+ 			edac_mc_handle_ue(mci, page, 0,
+-				edac_mc_find_csrow_by_page(mci, page),
+-				mci->ctl_name);
++					  edac_mc_find_csrow_by_page(mci, page),
++					  mci->ctl_name);
  	}
  
-@@ -182,7 +181,7 @@ static void amd76x_check(struct mem_ctl_
+ 	return error_found;
+@@ -211,11 +210,11 @@ static inline int ecc_enabled(u8 dramcr)
  }
  
- static void amd76x_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
--		enum edac_type edac_mode)
-+			       enum edac_type edac_mode)
+ static void r82600_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev,
+-		u8 dramcr)
++			       u8 dramcr)
  {
  	struct csrow_info *csrow;
- 	u32 mba, mba_base, mba_mask, dms;
-@@ -193,8 +192,7 @@ static void amd76x_init_csrows(struct me
+ 	int index;
+-	u8 drbar;  /* SDRAM Row Boundry Address Register */
++	u8 drbar;		/* SDRAM Row Boundry Address Register */
+ 	u32 row_high_limit, row_high_limit_last;
+ 	u32 reg_sdram, ecc_on, row_base;
  
- 		/* find the DRAM Chip Select Base address and mask */
- 		pci_read_config_dword(pdev,
--				      AMD76X_MEM_BASE_ADDR + (index * 4),
--				      &mba);
-+				      AMD76X_MEM_BASE_ADDR + (index * 4), &mba);
- 
- 		if (!(mba & BIT(0)))
- 			continue;
-@@ -249,7 +247,7 @@ static int amd76x_probe1(struct pci_dev 
- 	mci->mtype_cap = MEM_FLAG_RDDR;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
- 	mci->edac_cap = ems_mode ?
--			(EDAC_FLAG_EC | EDAC_FLAG_SECDED) : EDAC_FLAG_NONE;
-+	    (EDAC_FLAG_EC | EDAC_FLAG_SECDED) : EDAC_FLAG_NONE;
- 	mci->mod_name = EDAC_MOD_STR;
- 	mci->mod_ver = AMD76X_REVISION;
- 	mci->ctl_name = amd76x_devs[dev_idx].ctl_name;
-@@ -258,12 +256,12 @@ static int amd76x_probe1(struct pci_dev 
+@@ -309,12 +308,12 @@ static int r82600_probe1(struct pci_dev 
+ 	mci->edac_check = r82600_check;
  	mci->ctl_page_to_phys = NULL;
- 
- 	amd76x_init_csrows(mci, pdev, ems_modes[ems_mode]);
--	amd76x_get_error_info(mci, &discard);  /* clear counters */
-+	amd76x_get_error_info(mci, &discard);	/* clear counters */
+ 	r82600_init_csrows(mci, pdev, dramcr);
+-	r82600_get_error_info(mci, &discard);  /* clear counters */
++	r82600_get_error_info(mci, &discard);	/* clear counters */
  
  	/* Here we assume that we will never see multiple instances of this
  	 * type of memory controller.  The ID is therefore hardcoded to 0.
@@ -167,7 +140,7 @@ diff -puN drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x drivers/edac/am
  		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
  		goto fail;
  	}
-@@ -272,14 +270,14 @@ static int amd76x_probe1(struct pci_dev 
+@@ -330,14 +329,14 @@ static int r82600_probe1(struct pci_dev 
  	debugf3("%s(): success\n", __func__);
  	return 0;
  
@@ -178,27 +151,20 @@ diff -puN drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x drivers/edac/am
  }
  
  /* returns count (>= 0), or negative on error */
- static int __devinit amd76x_init_one(struct pci_dev *pdev,
+ static int __devinit r82600_init_one(struct pci_dev *pdev,
 -		const struct pci_device_id *ent)
 +				     const struct pci_device_id *ent)
  {
  	debugf0("%s()\n", __func__);
  
-@@ -309,16 +307,14 @@ static void __devexit amd76x_remove_one(
+@@ -359,11 +358,11 @@ static void __devexit r82600_remove_one(
  
- static const struct pci_device_id amd76x_pci_tbl[] __devinitdata = {
+ static const struct pci_device_id r82600_pci_tbl[] __devinitdata = {
  	{
--		PCI_VEND_DEV(AMD, FE_GATE_700C), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		AMD762
+-		PCI_DEVICE(PCI_VENDOR_ID_RADISYS, R82600_BRIDGE_ID)
 -	},
-+	 PCI_VEND_DEV(AMD, FE_GATE_700C), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 AMD762},
- 	{
--		PCI_VEND_DEV(AMD, FE_GATE_700E), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
--		AMD761
--	},
-+	 PCI_VEND_DEV(AMD, FE_GATE_700E), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 AMD761},
++	 PCI_DEVICE(PCI_VENDOR_ID_RADISYS, R82600_BRIDGE_ID)
++	 },
  	{
 -		0,
 -	}	/* 0 terminated list. */
@@ -206,7 +172,16 @@ diff -puN drivers/edac/amd76x_edac.c~drivers-edac-lindent-amd76x drivers/edac/am
 +	 }			/* 0 terminated list. */
  };
  
- MODULE_DEVICE_TABLE(pci, amd76x_pci_tbl);
+ MODULE_DEVICE_TABLE(pci, r82600_pci_tbl);
+@@ -390,7 +389,7 @@ module_exit(r82600_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Tim Small <tim@buttersideup.com> - WPAD Ltd. "
+-	"on behalf of EADS Astrium");
++	      "on behalf of EADS Astrium");
+ MODULE_DESCRIPTION("MC support for Radisys 82600 memory controllers");
+ 
+ module_param(disable_hardware_scrub, bool, 0644);
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
