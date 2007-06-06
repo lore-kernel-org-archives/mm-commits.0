@@ -1,112 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - sane-irq-initialization-in-sedlbauer-hisax.patch removed from -mm tree
-Date: Wed, 06 Jun 2007 10:12:03 -0700
-Message-ID: <200706061712.l56HC3pW002048@imap1.linux-foundation.org>
+Subject: - use-the-new-percpu-interface-for-shared-data.patch removed from -mm tree
+Date: Wed, 06 Jun 2007 10:13:51 -0700
+Message-ID: <200706061713.l56HDp5K002063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751124AbXFFRMr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:12:47 -0400
+	by vger.kernel.org with ESMTP id S1751330AbXFFROc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:14:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tv@lio96.de, bastian@bastian-friedrich.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: fenghua.yu@intel.com, clameter@sgi.com, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sane irq initialization in sedlbauer/hisax
+     Use the new percpu interface for shared data
 has been removed from the -mm tree.  Its filename was
-     sane-irq-initialization-in-sedlbauer-hisax.patch
+     use-the-new-percpu-interface-for-shared-data.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: sane irq initialization in sedlbauer/hisax
-From: Thomas Voegtle <tv@lio96.de>
+Subject: Use the new percpu interface for shared data
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-Thomas Voegtle wrote:
-[...]
-> <06>2007 May 30 14:21:40 cbs kern: Sedlbauer: PCI base adr 0xa800
-> <03>2007 May 30 14:21:40 cbs kern: irq 11: nobody cared (try booting with the \"irqpoll\" option)
-[...]
-> <03>2007 May 30 14:21:40 cbs kern: handlers:
-> <03>2007 May 30 14:21:40 cbs kern: [<c030899d>] (usb_hcd_irq+0x0/0x4f)
-> <00>2007 May 30 14:21:40 cbs kern: Disabling IRQ #11
+Currently most of the per cpu data, which is accessed by different cpus, has a
+____cacheline_aligned_in_smp attribute.  Move all this data to the new per cpu
+shared data section: .data.percpu.shared_aligned.
 
-As described, the interrupt handler is registered too late, so early
-incoming interrupts lead to the original problem.  The patch first disables
-the interrupts (byteout(..., 0)), then registers the irq, and finally
-enables the irqs again (byteout(..., 2) as was done at the first point
-before).
+This will seperate the percpu data which is referenced frequently by other
+cpus from the local only percpu data.
 
-Please note that the patch was developed without access to technical
-specifications; the /exact/ meaning of the constants being written to the
-registers are unknown.
-
-Signed-off-by: Bastian Friedrich <bastian@bastian-friedrich.de>
-Signed-off-by: Thomas Voegtle <tv@lio96.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/config.c    |    2 ++
- drivers/isdn/hisax/sedlbauer.c |   16 +++++++++++++++-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ arch/i386/kernel/init_task.c   |    2 +-
+ arch/i386/kernel/irq.c         |    2 +-
+ arch/ia64/kernel/smp.c         |    2 +-
+ arch/x86_64/kernel/init_task.c |    2 +-
+ kernel/sched.c                 |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/isdn/hisax/config.c~sane-irq-initialization-in-sedlbauer-hisax drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~sane-irq-initialization-in-sedlbauer-hisax
-+++ a/drivers/isdn/hisax/config.c
-@@ -511,6 +511,7 @@ extern int setup_TeleInt(struct IsdnCard
+diff -puN arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data arch/i386/kernel/init_task.c
+--- a/arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/i386/kernel/init_task.c
+@@ -42,5 +42,5 @@ EXPORT_SYMBOL(init_task);
+  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
+  * no more per-task TSS's.
+  */ 
+-DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
  
- #if CARD_SEDLBAUER
- extern int setup_sedlbauer(struct IsdnCard *card);
-+extern void sedlbauer_enable_interrupts(struct IsdnCardState *cs);
- #endif
+diff -puN arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data arch/i386/kernel/irq.c
+--- a/arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/i386/kernel/irq.c
+@@ -21,7 +21,7 @@
+ #include <asm/apic.h>
+ #include <asm/uaccess.h>
  
- #if CARD_SPORTSTER
-@@ -822,6 +823,7 @@ static int init_card(struct IsdnCardStat
- 		       cs->irq);
- 		return 1;
- 	}
-+	sedlbauer_enable_interrupts(cs);
- 	while (cnt) {
- 		cs->cardmsg(cs, CARD_INIT, NULL);
- 		/* Timeout 10ms */
-diff -puN drivers/isdn/hisax/sedlbauer.c~sane-irq-initialization-in-sedlbauer-hisax drivers/isdn/hisax/sedlbauer.c
---- a/drivers/isdn/hisax/sedlbauer.c~sane-irq-initialization-in-sedlbauer-hisax
-+++ a/drivers/isdn/hisax/sedlbauer.c
-@@ -529,6 +529,19 @@ static struct isapnp_device_id *ipid __d
- static struct pnp_card *pnp_c __devinitdata = NULL;
- #endif
+-DEFINE_PER_CPU(irq_cpustat_t, irq_stat) ____cacheline_internodealigned_in_smp;
++DEFINE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
+ EXPORT_PER_CPU_SYMBOL(irq_stat);
  
-+int
-+sedlbauer_enable_interrupts(struct IsdnCardState *cs)
-+{
-+#ifdef CONFIG_PCI
-+	if ((cs->typ == ISDN_CTYPE_SEDLBAUER) ||
-+	   (cs->typ == ISDN_CTYPE_SEDLBAUER_FAX)) {
-+		byteout(cs->hw.sedl.cfg_reg+ 5, 0x02);
-+	}
-+#endif
-+	return 0;
-+}
-+
-+
- int __devinit
- setup_sedlbauer(struct IsdnCard *card)
- {
-@@ -667,7 +680,8 @@ setup_sedlbauer(struct IsdnCard *card)
- 		byteout(cs->hw.sedl.cfg_reg, 0xff);
- 		byteout(cs->hw.sedl.cfg_reg, 0x00);
- 		byteout(cs->hw.sedl.cfg_reg+ 2, 0xdd);
--		byteout(cs->hw.sedl.cfg_reg+ 5, 0x02);
-+		byteout(cs->hw.sedl.cfg_reg+ 5, 0x00);
-+			 /* 0 seems to be "disable". Enable (-> 0x02) later! */
- 		byteout(cs->hw.sedl.cfg_reg +3, cs->hw.sedl.reset_on);
- 		mdelay(2);
- 		byteout(cs->hw.sedl.cfg_reg +3, cs->hw.sedl.reset_off);
+ DEFINE_PER_CPU(struct pt_regs *, irq_regs);
+diff -puN arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data arch/ia64/kernel/smp.c
+--- a/arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/ia64/kernel/smp.c
+@@ -82,7 +82,7 @@ static volatile struct call_data_struct 
+ #define IPI_KDUMP_CPU_STOP	3
+ 
+ /* This needs to be cacheline aligned because it is written to by *other* CPUs.  */
+-static DEFINE_PER_CPU(u64, ipi_operation) ____cacheline_aligned;
++static DEFINE_PER_CPU_SHARED_ALIGNED(u64, ipi_operation);
+ 
+ extern void cpu_halt (void);
+ 
+diff -puN arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data arch/x86_64/kernel/init_task.c
+--- a/arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data
++++ a/arch/x86_64/kernel/init_task.c
+@@ -44,7 +44,7 @@ EXPORT_SYMBOL(init_task);
+  * section. Since TSS's are completely CPU-local, we want them
+  * on exact cacheline boundaries, to eliminate cacheline ping-pong.
+  */ 
+-DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
+ 
+ /* Copies of the original ist values from the tss are only accessed during
+  * debugging, no special alignment required.
+diff -puN kernel/sched.c~use-the-new-percpu-interface-for-shared-data kernel/sched.c
+--- a/kernel/sched.c~use-the-new-percpu-interface-for-shared-data
++++ a/kernel/sched.c
+@@ -304,7 +304,7 @@ struct rq {
+ 	struct lock_class_key rq_lock_key;
+ };
+ 
+-static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+ static DEFINE_MUTEX(sched_hotcpu_mutex);
+ 
+ static inline int cpu_of(struct rq *rq)
 _
 
-Patches currently in -mm which might be from tv@lio96.de are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
-sane-irq-initialization-in-sedlbauer-hisax.patch
+use-the-new-percpu-interface-for-shared-data.patch
