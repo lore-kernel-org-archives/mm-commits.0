@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 22:46:56 -0700
-Message-ID: <200706060550.l565oUUh010450@imap1.linux-foundation.org>
+Subject: + git-acpi-add-exports.patch added to -mm tree
+Date: Tue, 05 Jun 2007 23:00:44 -0700
+Message-ID: <200706060604.l5664HQv010639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49765 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755872AbXFFFvT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 01:51:19 -0400
+	by vger.kernel.org with ESMTP id S1755160AbXFFGEf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:04:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rdunlap@xenotime.net, vvs@sw.ru
+Cc: akpm@linux-foundation.org, abelay@novell.com, johnstul@us.ibm.com, len.brown@intel.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     ext3-ext4-orphan-list-check-on-destroy_inode-fix
+     git-acpi: add exports
 has been added to the -mm tree.  Its filename is
-     ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+     git-acpi-add-exports.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3-ext4-orphan-list-check-on-destroy_inode-fix
+Subject: git-acpi: add exports
 From: Andrew Morton <akpm@linux-foundation.org>
 
-print_hex_dump() got fancy.
+ERROR: "tick_nohz_get_sleep_length" [drivers/cpuidle/governors/menu.ko] undefined!
+ERROR: "tick_nohz_get_idle_jiffies" [drivers/cpuidle/governors/menu.ko] undefined!
 
-Cc: Vasily Averin <vvs@sw.ru>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+And please be sure to get your changes to core kernel suitably reviewed.
+
+Cc: Adam Belay <abelay@novell.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    5 +++--
- fs/ext4/super.c |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ kernel/time/tick-sched.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix
-+++ a/fs/ext3/super.c
-@@ -462,8 +462,9 @@ static void ext3_destroy_inode(struct in
- 	if (!list_empty(&(EXT3_I(inode)->i_orphan))) {
- 		printk("EXT3 Inode %p: orphan list check failed!\n",
- 			EXT3_I(inode));
--		print_hex_dump(KERN_INFO, DUMP_PREFIX_ADDRESS,
--				EXT3_I(inode), sizeof(struct ext3_inode_info));
-+		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
-+				EXT3_I(inode), sizeof(struct ext3_inode_info),
-+				false);
- 		dump_stack();
- 	}
- 	kmem_cache_free(ext3_inode_cachep, EXT3_I(inode));
-diff -puN fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix fs/ext4/super.c
---- a/fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix
-+++ a/fs/ext4/super.c
-@@ -513,8 +513,9 @@ static void ext4_destroy_inode(struct in
- 	if (!list_empty(&(EXT4_I(inode)->i_orphan))) {
- 		printk("EXT4 Inode %p: orphan list check failed!\n",
- 			EXT4_I(inode));
--		print_hex_dump(KERN_INFO, DUMP_PREFIX_ADDRESS,
--				EXT4_I(inode), sizeof(struct ext4_inode_info));
-+		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
-+				EXT4_I(inode), sizeof(struct ext4_inode_info),
-+				true);
- 		dump_stack();
- 	}
- 	kmem_cache_free(ext4_inode_cachep, EXT4_I(inode));
+diff -puN kernel/time/tick-sched.c~git-acpi-add-exports kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~git-acpi-add-exports
++++ a/kernel/time/tick-sched.c
+@@ -19,6 +19,7 @@
+ #include <linux/percpu.h>
+ #include <linux/profile.h>
+ #include <linux/sched.h>
++#include <linux/module.h>
+ #include <linux/tick.h>
+ 
+ #include <asm/irq_regs.h>
+@@ -307,6 +308,7 @@ ktime_t tick_nohz_get_sleep_length(void)
+ 
+        return ts->sleep_length;
+ }
++EXPORT_SYMBOL_GPL(tick_nohz_get_sleep_length);
+ 
+ /**
+  * tick_nohz_get_idle_jiffies - returns the current idle jiffie count
+@@ -317,6 +319,7 @@ unsigned long tick_nohz_get_idle_jiffies
+ 
+        return ts->idle_jiffies;
+ }
++EXPORT_SYMBOL_GPL(tick_nohz_get_idle_jiffies);
+ 
+ /**
+  * nohz_restart_sched_tick - restart the idle tick from the idle task
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +79,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 document-acked-by.patch
 git-acpi.patch
 git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
@@ -174,6 +178,7 @@ o_cloexec-for-scm_rights-fix.patch
 o_cloexec-for-scm_rights-fix-2.patch
 atmel_serial-fix-break-handling.patch
 lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -214,4 +219,3 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
