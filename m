@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-produce-fewer-lines-of-output.patch added to -mm tree
-Date: Tue, 05 Jun 2007 23:59:20 -0700
-Message-ID: <200706060659.l566xKEu011365@imap1.linux-foundation.org>
+Subject: + x86_64-use-null-for-pointer.patch added to -mm tree
+Date: Wed, 06 Jun 2007 00:00:20 -0700
+Message-ID: <200706060700.l5670KAP011389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755246AbXFFG76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:59:58 -0400
+	by vger.kernel.org with ESMTP id S1756744AbXFFHA2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:00:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, apw@shadowen.org
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     checkpatch: produce fewer lines of output
+     x86_64: use NULL for pointer
 has been added to the -mm tree.  Its filename is
-     checkpatch-produce-fewer-lines-of-output.patch
+     x86_64-use-null-for-pointer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: checkpatch: produce fewer lines of output
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: x86_64: use NULL for pointer
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Produce one less line of output per flagged incident.
+Use NULL instead of 0 for pointer:
+arch/x86_64/kernel/vsyscall.c:183:21: warning: Using plain integer as NULL pointer
 
-Change this:
-
-use tabs not spaces
-PATCH: /home/rddunlap/arcmsr1200014.patch4:756:
-FILE: b/drivers/scsi/arcmsr/arcmsr_hba.c:1843:
-+                     return PCI_ERS_RESULT_NEED_RESET;$
-
-to this:
-
-use tabs not spaces
-#756: FILE: b/drivers/scsi/arcmsr/arcmsr_hba.c:1843:
-+                     return PCI_ERS_RESULT_NEED_RESET;$
-
-
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-produce-fewer-lines-of-output scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-produce-fewer-lines-of-output
-+++ a/scripts/checkpatch.pl
-@@ -290,8 +290,8 @@ sub process {
- 		}
+diff -puN arch/x86_64/kernel/vsyscall.c~x86_64-use-null-for-pointer arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~x86_64-use-null-for-pointer
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -180,7 +180,7 @@ time_t __vsyscall(1) vtime(time_t *t)
+ 	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
+ 		return time_syscall(t);
  
- #make up the handle for any error we report on this line
--		$here = "PATCH: $ARGV:$linenr:";
--		$here .= "\nFILE: $realfile:$realline:" if ($realcnt != 0);
-+		$here = "#$linenr: ";
-+		$here .= "FILE: $realfile:$realline:" if ($realcnt != 0);
- 
- 		my $herecurr = "$here\n$line\n\n";
- 		my $hereprev = "$here\n$prevline\n$line\n\n";
+-	vgettimeofday(&tv, 0);
++	vgettimeofday(&tv, NULL);
+ 	result = tv.tv_sec;
+ 	if (t)
+ 		*t = result;
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-checkpatch-produce-fewer-lines-of-output.patch
-x86_64-pm_trace-support.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-crc7-support.patch
-crc7-support-fix.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+git-acpi.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+add-pci_try_set_mwi-prism54pci.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+hexdump-more-output-formatting.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+fs-clarify-dummy-member-in-struct.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+profile-likely-unlikely-macros.patch
+x86_64-use-null-for-pointer.patch
+sony-laptop-use-null-for-pointer.patch
+mtd-use-null-for-pointer.patch
