@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mmconfig-validate-against-acpi-motherboard-resources.patch added to -mm tree
-Date: Wed, 06 Jun 2007 09:41:02 -0700
-Message-ID: <200706061644.l56GiZ2E001592@imap1.linux-foundation.org>
+Subject: + revert-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch added to -mm tree
+Date: Wed, 06 Jun 2007 10:10:15 -0700
+Message-ID: <200706061710.l56HAF1u002017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51154 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751377AbXFFQph (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 12:45:37 -0400
+	by vger.kernel.org with ESMTP id S1751005AbXFFRKX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hancockr@shaw.ca
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     revert mmconfig-validate-against-acpi-motherboard-resources
+     revert slub-use-ilog2-instead-of-series-of-constant-comparisons
 has been added to the -mm tree.  Its filename is
-     revert-mmconfig-validate-against-acpi-motherboard-resources.patch
+     revert-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,259 +25,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert mmconfig-validate-against-acpi-motherboard-resources
+Subject: revert slub-use-ilog2-instead-of-series-of-constant-comparisons
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Needs redoing
-
-Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/init.c            |    2 
- arch/i386/pci/mmconfig-shared.c |  150 +++---------------------------
- arch/i386/pci/pci.h             |    3 
- drivers/acpi/bus.c              |    4 
- 4 files changed, 20 insertions(+), 139 deletions(-)
+ include/linux/slub_def.h |   61 +++++++++++++++++++++++++++----------
+ 1 file changed, 45 insertions(+), 16 deletions(-)
 
-diff -puN arch/i386/pci/init.c~revert-mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/init.c
---- a/arch/i386/pci/init.c~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/arch/i386/pci/init.c
-@@ -12,7 +12,7 @@ static __init int pci_access_init(void)
- 	type = pci_direct_probe();
- #endif
- #ifdef CONFIG_PCI_MMCONFIG
--	pci_mmcfg_early_init(type);
-+	pci_mmcfg_init(type);
- #endif
- 	if (raw_pci_ops)
- 		return 0;
-diff -puN arch/i386/pci/mmconfig-shared.c~revert-mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -206,78 +206,9 @@ static void __init pci_mmcfg_insert_reso
- 	pci_mmcfg_resources_inserted = 1;
+diff -puN include/linux/slub_def.h~revert-slub-use-ilog2-instead-of-series-of-constant-comparisons include/linux/slub_def.h
+--- a/include/linux/slub_def.h~revert-slub-use-ilog2-instead-of-series-of-constant-comparisons
++++ a/include/linux/slub_def.h
+@@ -10,7 +10,6 @@
+ #include <linux/gfp.h>
+ #include <linux/workqueue.h>
+ #include <linux/kobject.h>
+-#include <linux/log2.h>
+ 
+ struct kmem_cache_node {
+ 	spinlock_t list_lock;	/* Protect partial list and nr_partial */
+@@ -59,8 +58,6 @@ struct kmem_cache {
+  */
+ #define KMALLOC_SHIFT_LOW 3
+ 
+-#define KMALLOC_MIN_SIZE (1UL << KMALLOC_SHIFT_LOW)
+-
+ /*
+  * We keep the general caches in an array of slab caches that are used for
+  * 2^x bytes of allocations.
+@@ -68,9 +65,8 @@ struct kmem_cache {
+ extern struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1];
+ 
+ /*
+- * Determine the kmalloc array index given the object size.
+- *
+- * Return -1 if the object size is not supported.
++ * Sorry that the following has to be that ugly but some versions of GCC
++ * have trouble with constant propagation and loops.
+  */
+ static inline int kmalloc_index(size_t size)
+ {
+@@ -80,18 +76,42 @@ static inline int kmalloc_index(size_t s
+ 	if (size > KMALLOC_MAX_SIZE)
+ 		return -1;
+ 
+-	if (size <= KMALLOC_MIN_SIZE)
+-		return KMALLOC_SHIFT_LOW;
+-
+-	/*
+-	 * We map the non power of two slabs to the unused
+-	 * log2 values in the kmalloc array.
+-	 */
+ 	if (size > 64 && size <= 96)
+ 		return 1;
+ 	if (size > 128 && size <= 192)
+ 		return 2;
+-	return ilog2(size - 1) + 1;
++	if (size <=          8) return 3;
++	if (size <=         16) return 4;
++	if (size <=         32) return 5;
++	if (size <=         64) return 6;
++	if (size <=        128) return 7;
++	if (size <=        256) return 8;
++	if (size <=        512) return 9;
++	if (size <=       1024) return 10;
++	if (size <=   2 * 1024) return 11;
++	if (size <=   4 * 1024) return 12;
++	if (size <=   8 * 1024) return 13;
++	if (size <=  16 * 1024) return 14;
++	if (size <=  32 * 1024) return 15;
++	if (size <=  64 * 1024) return 16;
++	if (size <= 128 * 1024) return 17;
++	if (size <= 256 * 1024) return 18;
++	if (size <=  512 * 1024) return 19;
++	if (size <= 1024 * 1024) return 20;
++	if (size <=  2 * 1024 * 1024) return 21;
++	if (size <=  4 * 1024 * 1024) return 22;
++	if (size <=  8 * 1024 * 1024) return 23;
++	if (size <= 16 * 1024 * 1024) return 24;
++	if (size <= 32 * 1024 * 1024) return 25;
++	return -1;
++
++/*
++ * What we really wanted to do and cannot do because of compiler issues is:
++ *	int i;
++ *	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
++ *		if (size <= (1 << i))
++ *			return i;
++ */
  }
  
--static acpi_status __init check_mcfg_resource(struct acpi_resource *res,
--					      void *data)
--{
--	struct resource *mcfg_res = data;
--	struct acpi_resource_address64 address;
--	acpi_status status;
--
--	if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
--		struct acpi_resource_fixed_memory32 *fixmem32 =
--			&res->data.fixed_memory32;
--		if (!fixmem32)
--			return AE_OK;
--		if ((mcfg_res->start >= fixmem32->address) &&
--		    (mcfg_res->end < (fixmem32->address +
--		    		      fixmem32->address_length))) {
--			mcfg_res->flags = 1;
--			return AE_CTRL_TERMINATE;
--		}
--	}
--	if ((res->type != ACPI_RESOURCE_TYPE_ADDRESS32) &&
--	    (res->type != ACPI_RESOURCE_TYPE_ADDRESS64))
--		return AE_OK;
--
--	status = acpi_resource_to_address64(res, &address);
--	if (ACPI_FAILURE(status) ||
--	   (address.address_length <= 0) ||
--	   (address.resource_type != ACPI_MEMORY_RANGE))
--		return AE_OK;
--
--	if ((mcfg_res->start >= address.minimum) &&
--	    (mcfg_res->end < (address.minimum + address.address_length))) {
--		mcfg_res->flags = 1;
--		return AE_CTRL_TERMINATE;
--	}
--	return AE_OK;
--}
--
--static acpi_status __init find_mboard_resource(acpi_handle handle, u32 lvl,
--		void *context, void **rv)
--{
--	struct resource *mcfg_res = context;
--
--	acpi_walk_resources(handle, METHOD_NAME__CRS,
--	  		    check_mcfg_resource, context);
--
--	if (mcfg_res->flags)
--		return AE_CTRL_TERMINATE;
--
--	return AE_OK;
--}
--
--static int __init is_acpi_reserved(unsigned long start, unsigned long end)
--{
--	struct resource mcfg_res;
--
--	mcfg_res.start = start;
--	mcfg_res.end = end;
--	mcfg_res.flags = 0;
--
--	acpi_get_devices("PNP0C01", find_mboard_resource, &mcfg_res, NULL);
--
--	if (!mcfg_res.flags)
--		acpi_get_devices("PNP0C02", find_mboard_resource, &mcfg_res,
--				 NULL);
--
--	return mcfg_res.flags;
--}
--
--static void __init pci_mmcfg_reject_broken(void)
-+static void __init pci_mmcfg_reject_broken(int type)
- {
- 	typeof(pci_mmcfg_config[0]) *cfg;
--	int i;
+ /*
+@@ -108,9 +128,18 @@ static inline struct kmem_cache *kmalloc
+ 		return NULL;
  
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
-@@ -298,36 +229,17 @@ static void __init pci_mmcfg_reject_brok
- 		goto reject;
- 	}
- 
--	for (i = 0; i < pci_mmcfg_config_num; i++) {
--		u32 size = (cfg->end_bus_number + 1) << 20;
--		cfg = &pci_mmcfg_config[i];
--		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %p "
--		       "segment %hu buses %u - %u\n",
--		       i, (void*)cfg->address, cfg->pci_segment,
--		       (unsigned int)cfg->start_bus_number,
--		       (unsigned int)cfg->end_bus_number);
--		if (is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
--			printk(KERN_NOTICE "PCI: MCFG area at %Lx reserved "
--			       "in ACPI motherboard resources\n",
--			       cfg->address);
--		} else {
--			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not "
--			       "reserved in ACPI motherboard resources\n",
--			       cfg->address);
--			/* Don't try to do this check unless configuration
--			   type 1 is available. */
--			if ((pci_probe & PCI_PROBE_CONF1) &&
--			    e820_all_mapped(cfg->address,
--			                    cfg->address + size - 1,
--					    E820_RESERVED))
--				printk(KERN_NOTICE
--				       "PCI: MCFG area at %Lx reserved in E820\n",
--				       cfg->address);
--			else
--				goto reject;
--		}
-+	/*
-+	 * Only do this check when type 1 works. If it doesn't work
-+	 * assume we run on a Mac and always use MCFG
-+	 */
-+	if (type == 1 && !e820_all_mapped(cfg->address,
-+					  cfg->address + MMCONFIG_APER_MIN,
-+					  E820_RESERVED)) {
-+		printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not"
-+		       " E820-reserved\n", cfg->address);
-+		goto reject;
- 	}
--
- 	return;
- 
- reject:
-@@ -337,46 +249,20 @@ reject:
- 	pci_mmcfg_config_num = 0;
- }
- 
--void __init pci_mmcfg_early_init(int type)
--{
--	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
--		return;
--
--	/* If type 1 access is available, no need to enable MMCONFIG yet, we can
--	   defer until later when the ACPI interpreter is available to better
--	   validate things. */
--	if (type == 1)
--		return;
--
--	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
--
--	if ((pci_mmcfg_config_num == 0) ||
--	    (pci_mmcfg_config == NULL) ||
--	    (pci_mmcfg_config[0].address == 0))
--		return;
--
--	if (pci_mmcfg_arch_init())
--		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
--}
--
--void __init pci_mmcfg_late_init(void)
-+void __init pci_mmcfg_init(int type)
- {
- 	int known_bridge = 0;
- 
--	/* MMCONFIG disabled */
- 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
- 		return;
- 
--	/* MMCONFIG already enabled */
--	if (!(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
--		return;
--
--	if ((pci_probe & PCI_PROBE_CONF1) && pci_mmcfg_check_hostbridge())
-+	if (type == 1 && pci_mmcfg_check_hostbridge())
- 		known_bridge = 1;
--	else
--		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
- 
--	pci_mmcfg_reject_broken();
-+	if (!known_bridge) {
-+		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
-+		pci_mmcfg_reject_broken(type);
+ 	/*
+-	 * If this triggers then the amount of memory requested was too large.
++	 * This function only gets expanded if __builtin_constant_p(size), so
++	 * testing it here shouldn't be needed.  But some versions of gcc need
++	 * help.
+ 	 */
+-	BUG_ON(index < 0);
++	if (__builtin_constant_p(size) && index < 0) {
++		/*
++		 * Generate a link failure. Would be great if we could
++		 * do something to stop the compile here.
++		 */
++		extern void __kmalloc_size_too_large(void);
++		__kmalloc_size_too_large();
 +	}
+ 	return &kmalloc_caches[index];
+ }
  
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
-@@ -384,7 +270,7 @@ void __init pci_mmcfg_late_init(void)
- 		return;
- 
- 	if (pci_mmcfg_arch_init()) {
--		if (pci_probe & PCI_PROBE_CONF1)
-+		if (type == 1)
- 			unreachable_devices();
- 		if (known_bridge)
- 			pci_mmcfg_insert_resources(IORESOURCE_BUSY);
-diff -puN arch/i386/pci/pci.h~revert-mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/pci.h
---- a/arch/i386/pci/pci.h~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/arch/i386/pci/pci.h
-@@ -91,8 +91,7 @@ extern int pci_conf1_read(unsigned int s
- extern int pci_direct_probe(void);
- extern void pci_direct_init(int type);
- extern void pci_pcbios_init(void);
--extern void pci_mmcfg_early_init(int type);
--extern void pci_mmcfg_late_init(void);
-+extern void pci_mmcfg_init(int type);
- extern void pcibios_sort(void);
- 
- /* pci-mmconfig.c */
-diff -puN drivers/acpi/bus.c~revert-mmconfig-validate-against-acpi-motherboard-resources drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/drivers/acpi/bus.c
-@@ -42,7 +42,6 @@
- ACPI_MODULE_NAME("bus");
- #ifdef	CONFIG_X86
- extern void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger);
--extern void __init pci_mmcfg_late_init(void);
- #endif
- 
- struct acpi_device *acpi_root;
-@@ -756,9 +755,6 @@ static int __init acpi_init(void)
- 	result = acpi_bus_init();
- 
- 	if (!result) {
--#ifdef CONFIG_X86
--		pci_mmcfg_late_init();
--#endif
- #ifdef CONFIG_PM_LEGACY
- 		if (!PM_IS_ACTIVE())
- 			pm_active = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -433,3 +294,4 @@ nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
 revert-mmconfig-validate-against-acpi-motherboard-resources.patch
+revert-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
