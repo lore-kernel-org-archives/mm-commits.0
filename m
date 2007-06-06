@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-stallion-remove-user-class-report-request.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:01:16 -0700
-Message-ID: <200706060101.l5611GEe006536@imap1.linux-foundation.org>
+Subject: + char-stallion-dont-fail-with-less-than-max-panels.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:01:10 -0700
+Message-ID: <200706060101.l5611AmF006524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56663 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52532 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765740AbXFFBBX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:01:23 -0400
+	by vger.kernel.org with ESMTP id S1765730AbXFFBBd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: jirislaby@gmail.com, ingo@akana.de
 
 
 The patch titled
-     Char: stallion, remove user class report request
+     Char: stallion, don't fail with less than max panels
 has been added to the -mm tree.  Its filename is
-     char-stallion-remove-user-class-report-request.patch
+     char-stallion-dont-fail-with-less-than-max-panels.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: stallion, remove user class report request
+Subject: Char: stallion, don't fail with less than max panels
 From: Jiri Slaby <jirislaby@gmail.com>
 
-stallion, remove user class report request
+Thanks to Ingo.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: "Ingo Korb" <ingo@akana.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |    3 ---
- 1 files changed, 3 deletions(-)
+ drivers/char/stallion.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/stallion.c~char-stallion-remove-user-class-report-request drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-remove-user-class-report-request
+diff -puN drivers/char/stallion.c~char-stallion-dont-fail-with-less-than-max-panels drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-dont-fail-with-less-than-max-panels
 +++ a/drivers/char/stallion.c
-@@ -2357,9 +2357,6 @@ static int __devinit stl_pciprobe(struct
- 	if ((pdev->class >> 8) == PCI_CLASS_STORAGE_IDE)
- 		goto err;
- 
--	dev_info(&pdev->dev, "please, report this to LKML: %x/%x/%x\n",
--			pdev->vendor, pdev->device, pdev->class);
--
- 	retval = pci_enable_device(pdev);
- 	if (retval)
- 		goto err;
+@@ -2172,7 +2172,7 @@ static int __devinit stl_initech(struct 
+ 		}
+ 		status = inb(ioaddr + ECH_PNLSTATUS);
+ 		if ((status & ECH_PNLIDMASK) != nxtid)
+-			goto err_fr;
++			break;
+ 		panelp = kzalloc(sizeof(struct stlpanel), GFP_KERNEL);
+ 		if (!panelp) {
+ 			printk("STALLION: failed to allocate memory "
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
