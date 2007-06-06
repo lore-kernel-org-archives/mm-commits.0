@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-stallion-alloc-tty-before-pci-devices-init.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:01:12 -0700
-Message-ID: <200706060101.l5611CIK006527@imap1.linux-foundation.org>
+Subject: + xen-disable-all-non-virtual-devices.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:37:36 -0700
+Message-ID: <200706060137.l561baZY007195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34586 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38728 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764985AbXFFBBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:01:33 -0400
+	by vger.kernel.org with ESMTP id S1763383AbXFFBhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:37:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, ingo@akana.de
+Cc: jeremy@xensource.com, ak@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     Char: stallion, alloc tty before pci devices init
+     xen: disable all non-virtual devices
 has been added to the -mm tree.  Its filename is
-     char-stallion-alloc-tty-before-pci-devices-init.patch
+     xen-disable-all-non-virtual-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,165 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: stallion, alloc tty before pci devices init
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: xen: disable all non-virtual devices
+From: Jeremy Fitzhardinge <jeremy@xensource.com>
 
-this causes oops, because pci probe function calls tty_register_device for
-each device found. Thanks to Ingo.
+A domU Xen environment has no non-virtual drivers, so make sure they're all
+disabled at once.  This noticeably speeds up boot time.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: "Ingo Korb" <ingo@akana.de>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |   73 +++++++++++++++++---------------------
- 1 files changed, 34 insertions(+), 39 deletions(-)
+ arch/i386/xen/setup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/stallion.c~char-stallion-alloc-tty-before-pci-devices-init drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-alloc-tty-before-pci-devices-init
-+++ a/drivers/char/stallion.c
-@@ -4710,6 +4710,29 @@ static int __init stallion_module_init(v
- 	spin_lock_init(&stallion_lock);
- 	spin_lock_init(&brd_lock);
- 
-+	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
-+	if (!stl_serial) {
-+		retval = -ENOMEM;
-+		goto err;
-+	}
+diff -puN arch/i386/xen/setup.c~xen-disable-all-non-virtual-devices arch/i386/xen/setup.c
+--- a/arch/i386/xen/setup.c~xen-disable-all-non-virtual-devices
++++ a/arch/i386/xen/setup.c
+@@ -93,4 +93,6 @@ void __init xen_arch_setup(void)
+ 	/* fill cpus_possible with all available cpus */
+ 	xen_fill_possible_map();
+ #endif
 +
-+	stl_serial->owner = THIS_MODULE;
-+	stl_serial->driver_name = stl_drvname;
-+	stl_serial->name = "ttyE";
-+	stl_serial->major = STL_SERIALMAJOR;
-+	stl_serial->minor_start = 0;
-+	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
-+	stl_serial->subtype = SERIAL_TYPE_NORMAL;
-+	stl_serial->init_termios = stl_deftermios;
-+	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
-+	tty_set_operations(stl_serial, &stl_ops);
-+
-+	retval = tty_register_driver(stl_serial);
-+	if (retval) {
-+		printk("STALLION: failed to register serial driver\n");
-+		goto err_frtty;
-+	}
-+
- /*
-  *	Find any dynamically supported boards. That is via module load
-  *	line options.
-@@ -4739,13 +4762,9 @@ static int __init stallion_module_init(v
- 
- 	/* this has to be _after_ isa finding because of locking */
- 	retval = pci_register_driver(&stl_pcidriver);
--	if (retval && stl_nrbrds == 0)
--		goto err;
--
--	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
--	if (!stl_serial) {
--		retval = -ENOMEM;
--		goto err_pcidr;
-+	if (retval && stl_nrbrds == 0) {
-+		printk(KERN_ERR "STALLION: can't register pci driver\n");
-+		goto err_unrtty;
- 	}
- 
- /*
-@@ -4756,43 +4775,18 @@ static int __init stallion_module_init(v
- 		printk("STALLION: failed to register serial board device\n");
- 
- 	stallion_class = class_create(THIS_MODULE, "staliomem");
--	if (IS_ERR(stallion_class)) {
--		retval = PTR_ERR(stallion_class);
--		goto err_reg;
--	}
-+	if (IS_ERR(stallion_class))
-+		printk("STALLION: failed to create class\n");
- 	for (i = 0; i < 4; i++)
- 		class_device_create(stallion_class, NULL,
- 				    MKDEV(STL_SIOMEMMAJOR, i), NULL,
- 				    "staliomem%d", i);
- 
--	stl_serial->owner = THIS_MODULE;
--	stl_serial->driver_name = stl_drvname;
--	stl_serial->name = "ttyE";
--	stl_serial->major = STL_SERIALMAJOR;
--	stl_serial->minor_start = 0;
--	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
--	stl_serial->subtype = SERIAL_TYPE_NORMAL;
--	stl_serial->init_termios = stl_deftermios;
--	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
--	tty_set_operations(stl_serial, &stl_ops);
--
--	retval = tty_register_driver(stl_serial);
--	if (retval) {
--		printk("STALLION: failed to register serial driver\n");
--		goto err_clsdev;
--	}
--
- 	return 0;
--err_clsdev:
--	for (i = 0; i < 4; i++)
--		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
--	class_destroy(stallion_class);
--err_reg:
--	unregister_chrdev(STL_SIOMEMMAJOR, "staliomem");
-+err_unrtty:
-+	tty_unregister_driver(stl_serial);
-+err_frtty:
- 	put_tty_driver(stl_serial);
--err_pcidr:
--	pci_unregister_driver(&stl_pcidriver);
--	stl_free_isabrds();
- err:
- 	return retval;
++	paravirt_disable_iospace();
  }
-@@ -4821,8 +4815,6 @@ static void __exit stallion_module_exit(
- 			tty_unregister_device(stl_serial,
- 				brdp->brdnr * STL_MAXPORTS + j);
- 	}
--	tty_unregister_driver(stl_serial);
--	put_tty_driver(stl_serial);
- 
- 	for (i = 0; i < 4; i++)
- 		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
-@@ -4834,6 +4826,9 @@ static void __exit stallion_module_exit(
- 	pci_unregister_driver(&stl_pcidriver);
- 
- 	stl_free_isabrds();
-+
-+	tty_unregister_driver(stl_serial);
-+	put_tty_driver(stl_serial);
- }
- 
- module_init(stallion_module_init);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from jeremy@xensource.com are
 
-ide-ide-generic-add-another-device-exception.patch
-rocketc-fix-unchecked-mutex_lock_interruptible.patch
-char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
-char-mxser_new-fix-sparse-warning.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-char-genrtc-use-wait_event_interruptible.patch
-char-n_r3964-use-wait_event_interruptible.patch
-char-ip2-use-msleep-for-sleeping.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-char-isicom-cleanup-locking.patch
-char-isicom-del_timer-at-exit.patch
-char-isicom-proper-variables-types.patch
-char-moxa-eliminate-busy-waiting.patch
-char-specialix-remove-busy-waiting.patch
-char-riscom8-eliminate-busy-loop.patch
-char-vt-use-kzalloc.patch
-char-vt-use-array_size.patch
-char-kconfig-mxser_new-remove-experimental-comment.patch
-char-stallion-dont-fail-with-less-than-max-panels.patch
-char-stallion-alloc-tty-before-pci-devices-init.patch
-char-stallion-proper-fail-return-values.patch
-char-stallion-remove-user-class-report-request.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-kbuild.patch
+add-kstrndup-fix.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+paravirt-helper-to-disable-all-io-space.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+xen-disable-all-non-virtual-devices.patch
