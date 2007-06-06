@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-cpa-cache-flush.patch added to -mm tree
-Date: Wed, 06 Jun 2007 00:58:18 -0700
-Message-ID: <200706060758.l567wI2J012230@imap1.linux-foundation.org>
+Subject: + bugfix-cpufreq-in-combination-with-performance-governor-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2007 01:03:28 -0700
+Message-ID: <200706060803.l5683Shb012329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753167AbXFFH62 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:58:28 -0400
+	by vger.kernel.org with ESMTP id S1758578AbXFFIDq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 04:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, peter.oruba@amd.com
 
 
 The patch titled
-     revert x86_64-mm-cpa-cache-flush
+     bugfix-cpufreq-in-combination-with-performance-governor-fix
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-cpa-cache-flush.patch
+     bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-cpa-cache-flush
+Subject: bugfix-cpufreq-in-combination-with-performance-governor-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This causes my dual-pIII to hang after "write protecting kernel memory".
-
-config: http://userweb.kernel.org/~akpm/config-vmm.txt
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Peter Oruba" <peter.oruba@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Peter Oruba <peter.oruba@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/pageattr.c   |    7 ++-----
- arch/x86_64/mm/pageattr.c |    7 +++----
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ drivers/cpufreq/cpufreq.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush arch/i386/mm/pageattr.c
---- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush
-+++ a/arch/i386/mm/pageattr.c
-@@ -170,11 +170,11 @@ __change_page_attr(struct page *page, pg
- 	 * time (not via split_large_page) and in turn we must not
- 	 * replace it with a largepage.
- 	 */
--
--	list_add(&kpte_page->lru, &df_list);
- 	if (!PageReserved(kpte_page)) {
- 		if (cpu_has_pse && (page_private(kpte_page) == 0)) {
-+			ClearPagePrivate(kpte_page);
- 			paravirt_release_pt(page_to_pfn(kpte_page));
-+			list_add(&kpte_page->lru, &df_list);
- 			revert_page(kpte_page, address);
- 		}
- 	}
-@@ -230,9 +230,6 @@ void global_flush_tlb(void)
- 	list_for_each_entry_safe(pg, next, &l, lru) {
- 		if (cpu_has_clflush)
- 			flush_map(page_address(pg));
--		if (page_private(pg) != 0)
--			continue;
--		ClearPagePrivate(pg);
- 		__free_page(pg);
- 	}
- }
-diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush
-+++ a/arch/x86_64/mm/pageattr.c
-@@ -158,9 +158,10 @@ __change_page_attr(unsigned long address
- 	/* on x86-64 the direct mapping set at boot is not using 4k pages */
-  	BUG_ON(PageReserved(kpte_page));
+diff -puN drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor-fix drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor-fix
++++ a/drivers/cpufreq/cpufreq.c
+@@ -1684,7 +1684,6 @@ static int cpufreq_cpu_callback(struct n
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+ 	struct sys_device *sys_dev;
+-	struct cpufreq_policy *policy;
  
--	save_page(kpte_page);
--	if (page_private(kpte_page) == 0)
-+	if (page_private(kpte_page) == 0) {
-+		save_page(kpte_page);
- 		revert_page(address, ref_prot);
-+ 	}
- 	return 0;
- } 
- 
-@@ -232,8 +233,6 @@ void global_flush_tlb(void)
- 	flush_map(&l);
- 
- 	list_for_each_entry_safe(pg, next, &l, lru) {
--		if (page_private(pg) != 0)
--			continue;
- 		ClearPagePrivate(pg);
- 		__free_page(pg);
- 	} 
+ 	sys_dev = get_cpu_sysdev(cpu);
+ 	if (sys_dev) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +59,7 @@ git-acpi-add-exports.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
 8xx-mpc885ads-pcmcia-support.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
