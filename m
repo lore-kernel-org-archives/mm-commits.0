@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-human-readability-tweaks-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 23:55:48 -0700
-Message-ID: <200706060655.l566tm5P011305@imap1.linux-foundation.org>
+Subject: + fs-proc-basec-make-a-struct-static.patch added to -mm tree
+Date: Tue, 05 Jun 2007 23:56:43 -0700
+Message-ID: <200706060656.l566uhKS011317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39887 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754365AbXFFG4F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:56:05 -0400
+	by vger.kernel.org with ESMTP id S1751282AbXFFG5D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:57:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, a.p.zijlstra@chello.nl
+Cc: bunk@stusta.de, mingo@elte.hu
 
 
 The patch titled
-     kernel/lockdep_proc.c: make 2 functions static
+     fs/proc/base.c: make a struct static
 has been added to the -mm tree.  Its filename is
-     lockstat-human-readability-tweaks-fix.patch
+     fs-proc-basec-make-a-struct-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/lockdep_proc.c: make 2 functions static
+Subject: fs/proc/base.c: make a struct static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep_proc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/lockdep_proc.c~lockstat-human-readability-tweaks-fix kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockstat-human-readability-tweaks-fix
-+++ a/kernel/lockdep_proc.c
-@@ -364,7 +364,7 @@ struct lock_stat_seq {
- /*
-  * sort on absolute number of contentions
-  */
--int lock_stat_cmp(const void *l, const void *r)
-+static int lock_stat_cmp(const void *l, const void *r)
- {
- 	const struct lock_stat_data *dl = l, *dr = r;
- 	unsigned long nl, nr;
-@@ -567,8 +567,8 @@ static int lock_stat_open(struct inode *
- 	return res;
+diff -puN fs/proc/base.c~fs-proc-basec-make-a-struct-static fs/proc/base.c
+--- a/fs/proc/base.c~fs-proc-basec-make-a-struct-static
++++ a/fs/proc/base.c
+@@ -950,7 +950,7 @@ static int sched_open(struct inode *inod
+ 	return ret;
  }
  
--ssize_t lock_stat_write(struct file *file, const char __user *buf,
--		size_t count, loff_t *ppos)
-+static ssize_t lock_stat_write(struct file *file, const char __user *buf,
-+			       size_t count, loff_t *ppos)
- {
- 	struct lock_class *class;
- 	char c;
+-const struct file_operations proc_pid_sched_operations = {
++static const struct file_operations proc_pid_sched_operations = {
+ 	.open		= sched_open,
+ 	.read		= seq_read,
+ 	.write		= sched_write,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -100,6 +89,7 @@ oss-trident-fix-locking-around-write_voice_regs.patch
 pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
 kernel-sched_fairc-make-code-static.patch
+fs-proc-basec-make-a-struct-static.patch
 drivers-edac-core-make-functions-static.patch
 lockstat-human-readability-tweaks-fix.patch
 reiser4-export-remove_from_page_cache.patch
