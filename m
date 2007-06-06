@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sane-irq-initialization-in-sedlbauer-hisax.patch added to -mm tree
-Date: Wed, 06 Jun 2007 10:55:36 -0700
-Message-ID: <200706061755.l56HtaCa002886@imap1.linux-foundation.org>
+Subject: + matroxfb-color-setting-fixes-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2007 11:00:44 -0700
+Message-ID: <200706061800.l56I0irj003010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47300 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760662AbXFFRzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:55:52 -0400
+	by vger.kernel.org with ESMTP id S1751209AbXFFSA4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 14:00:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kkeil@suse.de, bastian@bastian-friedrich.de, tv@lio96.de
+Cc: adaplas@gmail.com, VANDROVE@vc.cvut.cz
 
 
 The patch titled
-     sane irq initialization in sedlbauer hisax
+     matroxfb: color setting fixes fix
 has been added to the -mm tree.  Its filename is
-     sane-irq-initialization-in-sedlbauer-hisax.patch
+     matroxfb-color-setting-fixes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sane irq initialization in sedlbauer hisax
-From: Karsten Keil <kkeil@suse.de>
+Subject: matroxfb: color setting fixes fix
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The interrupts schould be disabled until the driver
-is ready and the IRQ function was registered.
+Remove more code that writes to cmap[16].
 
-Thanks to Bastian Friedrich  and Thomas Voegtle for spotting this.
-
-Signed-off-by: Karsten Keil <kkeil@suse.de>
-Signed-off-by: Bastian Friedrich <bastian@bastian-friedrich.de>
-Signed-off-by: Thomas Voegtle <tv@lio96.de>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/sedlbauer.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/video/matrox/matroxfb_accel.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/isdn/hisax/sedlbauer.c~sane-irq-initialization-in-sedlbauer-hisax drivers/isdn/hisax/sedlbauer.c
---- a/drivers/isdn/hisax/sedlbauer.c~sane-irq-initialization-in-sedlbauer-hisax
-+++ a/drivers/isdn/hisax/sedlbauer.c
-@@ -451,6 +451,9 @@ Sedl_card_msg(struct IsdnCardState *cs, 
- 			spin_unlock_irqrestore(&cs->lock, flags);
- 			return(0);
- 		case CARD_RELEASE:
-+			if (cs->hw.sedl.bus == SEDL_BUS_PCI)
-+				/* disable all IRQ */
-+				byteout(cs->hw.sedl.cfg_reg+ 5, 0); 
- 			if (cs->hw.sedl.chip == SEDL_CHIP_ISAC_ISAR) {
- 				spin_lock_irqsave(&cs->lock, flags);
- 				writereg(cs->hw.sedl.adr, cs->hw.sedl.hscx,
-@@ -468,6 +471,9 @@ Sedl_card_msg(struct IsdnCardState *cs, 
- 			return(0);
- 		case CARD_INIT:
- 			spin_lock_irqsave(&cs->lock, flags);
-+			if (cs->hw.sedl.bus == SEDL_BUS_PCI)
-+				/* enable all IRQ */
-+				byteout(cs->hw.sedl.cfg_reg+ 5, 0x02); 
- 			reset_sedlbauer(cs);
- 			if (cs->hw.sedl.chip == SEDL_CHIP_ISAC_ISAR) {
- 				clear_pending_isac_ints(cs);
-@@ -667,7 +673,7 @@ setup_sedlbauer(struct IsdnCard *card)
- 		byteout(cs->hw.sedl.cfg_reg, 0xff);
- 		byteout(cs->hw.sedl.cfg_reg, 0x00);
- 		byteout(cs->hw.sedl.cfg_reg+ 2, 0xdd);
--		byteout(cs->hw.sedl.cfg_reg+ 5, 0x02);
-+		byteout(cs->hw.sedl.cfg_reg+ 5, 0); /* disable all IRQ */
- 		byteout(cs->hw.sedl.cfg_reg +3, cs->hw.sedl.reset_on);
- 		mdelay(2);
- 		byteout(cs->hw.sedl.cfg_reg +3, cs->hw.sedl.reset_off);
+diff -puN drivers/video/matrox/matroxfb_accel.c~matroxfb-color-setting-fixes-fix drivers/video/matrox/matroxfb_accel.c
+--- a/drivers/video/matrox/matroxfb_accel.c~matroxfb-color-setting-fixes-fix
++++ a/drivers/video/matrox/matroxfb_accel.c
+@@ -91,7 +91,6 @@ static inline void matrox_cfb4_pal(u_int
+ 	for (i = 0; i < 16; i++) {
+ 		pal[i] = i * 0x11111111U;
+ 	}
+-	pal[i] = 0xFFFFFFFF;
+ }
+ 
+ static inline void matrox_cfb8_pal(u_int32_t* pal) {
+@@ -100,7 +99,6 @@ static inline void matrox_cfb8_pal(u_int
+ 	for (i = 0; i < 16; i++) {
+ 		pal[i] = i * 0x01010101U;
+ 	}
+-	pal[i] = 0x0F0F0F0F;
+ }
+ 
+ static void matroxfb_copyarea(struct fb_info* info, const struct fb_copyarea* area);
 _
 
-Patches currently in -mm which might be from kkeil@suse.de are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-make-isdn-capi-use-seq_list_xxx-helpers.patch
-update-isdn-tree-to-use-pci_get_device.patch
-sane-irq-initialization-in-sedlbauer-hisax.patch
-use-menuconfig-objects-isdn-config_isdn.patch
-use-menuconfig-objects-isdn-config_isdn_i4l.patch
-use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
-use-menuconfig-objects-isdn-config_isdn_capi.patch
-use-menuconfig-objects-isdn-config_capi_avm.patch
-use-menuconfig-objects-isdn-config_capi_eicon.patch
+fbcon-smart-blitter-usage-for-scrolling.patch
+nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
+fbcon-cursor-blink-control.patch
+fbcon-use-struct-device-instead-of-struct-class_device.patch
+fbdev-move-arch-specific-bits-to-their-respective.patch
+fbdev-detect-primary-display-device.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
+nvidiafb-add-proper-support-for-geforce-7600-chipset.patch
+pm2fb-white-spaces-clean-up.patch
+fbcon-set_con2fb_map-fixes.patch
+fbcon-revise-primary-device-selection.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+vt-add-comment-for-unbind_con_driver.patch
+68328fb-the-pseudo_palette-is-only-16-elements-long.patch
+controlfb-the-pseudo_palette-is-only-16-elements-long.patch
+cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+epson1355fb-color-setting-fixes.patch
+ffb-the-pseudo_palette-is-only-16-elements-long.patch
+fm2fb-the-pseudo_palette-is-only-16-elements-long.patch
+gbefb-the-pseudo_palette-is-only-16-elements-long.patch
+macfb-fix-pseudo_palette-size-and-overrun.patch
+offb-the-pseudo_palette-is-only-16-elements-long.patch
+platinumfb-the-pseudo_palette-is-only-16-elements.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+q40fb-the-pseudo_palette-is-only-16-elements-long.patch
+sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
+sunxvr2500fb-fix-pseudo_palette-array-size.patch
+sunxvr500fb-fix-pseudo_palette-array-size.patch
+tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
+tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
+tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch
+atyfb-the-pseudo_palette-is-only-16-elements-long.patch
+radeonfb-the-pseudo_palette-is-only-16-elements-long.patch
+i810fb-the-pseudo_palette-is-only-16-elements-long.patch
+intelfb-the-pseudo_palette-is-only-16-elements-long.patch
+sisfb-fix-pseudo_palette-array-size-and-overrun.patch
+matroxfb-color-setting-fixes.patch
+pm3fb-fillrect-acceleration.patch
+i386-set-6-bit-dac-channel-properties-in-vesa-video.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+matroxfb-color-setting-fixes-fix.patch
