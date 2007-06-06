@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-new-inte-30x0-mc-driver.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:50:51 -0700
-Message-ID: <200706060150.l561opcO007461@imap1.linux-foundation.org>
+Subject: + drivers-edac-new-i82443bxgz-mc-driver.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:50:44 -0700
+Message-ID: <200706060150.l561oi7p007449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53004 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932755AbXFFBvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:51:01 -0400
+	by vger.kernel.org with ESMTP id S933534AbXFFBu6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: juhlenko@akamai.com, dougthompson@xmission.com
+Cc: tim@buttersideup.com, dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: new inte 30x0 MC driver
+     drivers-edac: new i82443bxgz MC driver
 has been added to the -mm tree.  Its filename is
-     drivers-edac-new-inte-30x0-mc-driver.patch
+     drivers-edac-new-i82443bxgz-mc-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,563 +25,456 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: new inte 30x0 MC driver
-From: Jason Uhlenkott <juhlenko@akamai.com>
+Subject: drivers-edac: new i82443bxgz MC driver
+From: Tim Small <tim@buttersideup.com>
 
-Here's a driver for the Intel 3000 and 3010 memory controllers,
-relative to today's Sourceforge code drop.  This has only had light
-testing (I've yet to actually see it handle a memory error) but it
-detects my hardware correctly.
+This is a NEW EDAC Memory Controller driver for the 440BX chipset (I82443BXGX)
+created and submitted by Timm Small
 
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
+Signed-off-by: Tim Small <tim@buttersideup.com>
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig      |    7 
- drivers/edac/Makefile     |    1 
- drivers/edac/i3000_edac.c |  493 ++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h   |    1 
- 4 files changed, 502 insertions(+)
+ drivers/edac/Kconfig           |    7 
+ drivers/edac/Makefile          |    1 
+ drivers/edac/i82443bxgx_edac.c |  400 +++++++++++++++++++++++++++++++
+ 3 files changed, 408 insertions(+)
 
-diff -puN drivers/edac/Kconfig~drivers-edac-new-inte-30x0-mc-driver drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~drivers-edac-new-inte-30x0-mc-driver
+diff -puN drivers/edac/Kconfig~drivers-edac-new-i82443bxgz-mc-driver drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-new-i82443bxgz-mc-driver
 +++ a/drivers/edac/Kconfig
-@@ -85,6 +85,13 @@ config EDAC_I82875P
+@@ -71,6 +71,13 @@ config EDAC_E752X
  	  Support for error detection and correction on the Intel
- 	  DP82785P and E7210 server chipsets.
+ 	  E7520, E7525, E7320 server chipsets.
  
-+config EDAC_I3000
-+	tristate "Intel 3000/3010"
++config EDAC_I82443BXGX
++	tristate "Intel 82443BX/GX (440BX/GX)"
 +	depends on EDAC_MM_EDAC && PCI && X86_32
 +	help
 +	  Support for error detection and correction on the Intel
-+	  3000 and 3010 server chipsets.
++	  82443BX/GX memory controllers (440BX/GX chipsets).
 +
- config EDAC_I82860
- 	tristate "Intel 82860"
+ config EDAC_I82875P
+ 	tristate "Intel 82875p (D82875P, E7210)"
  	depends on EDAC_MM_EDAC && PCI && X86_32
-diff -puN drivers/edac/Makefile~drivers-edac-new-inte-30x0-mc-driver drivers/edac/Makefile
---- a/drivers/edac/Makefile~drivers-edac-new-inte-30x0-mc-driver
+diff -puN drivers/edac/Makefile~drivers-edac-new-i82443bxgz-mc-driver drivers/edac/Makefile
+--- a/drivers/edac/Makefile~drivers-edac-new-i82443bxgz-mc-driver
 +++ a/drivers/edac/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_EDAC_E7XXX)		+= e7xxx_edac.
+@@ -18,6 +18,7 @@ obj-$(CONFIG_EDAC_AMD76X)		+= amd76x_eda
+ obj-$(CONFIG_EDAC_I5000)		+= i5000_edac.o
+ obj-$(CONFIG_EDAC_E7XXX)		+= e7xxx_edac.o
  obj-$(CONFIG_EDAC_E752X)		+= e752x_edac.o
- obj-$(CONFIG_EDAC_I82443BXGX)		+= i82443bxgx_edac.o
++obj-$(CONFIG_EDAC_I82443BXGX)		+= i82443bxgx_edac.o
  obj-$(CONFIG_EDAC_I82875P)		+= i82875p_edac.o
-+obj-$(CONFIG_EDAC_I3000)		+= i3000_edac.o
  obj-$(CONFIG_EDAC_I82860)		+= i82860_edac.o
  obj-$(CONFIG_EDAC_R82600)		+= r82600_edac.o
- 
-diff -puN /dev/null drivers/edac/i3000_edac.c
+diff -puN /dev/null drivers/edac/i82443bxgx_edac.c
 --- /dev/null
-+++ a/drivers/edac/i3000_edac.c
-@@ -0,0 +1,493 @@
++++ a/drivers/edac/i82443bxgx_edac.c
+@@ -0,0 +1,400 @@
 +/*
-+ * Intel 3000/3010 Memory Controller kernel module
-+ * Copyright (C) 2007 Akamai Technologies, Inc.
-+ * Shamelessly copied from:
-+ * 	Intel D82875P Memory Controller kernel module
-+ * 	(C) 2003 Linux Networx (http://lnxi.com)
++ * Intel 82443BX/GX (440BX/GX chipset) Memory Controller EDAC kernel
++ * module (C) 2006 Tim Small
 + *
-+ * This file may be distributed under the terms of the
-+ * GNU General Public License.
++ * This file may be distributed under the terms of the GNU General
++ * Public License.
++ *
++ * Written by Tim Small <tim@buttersideup.com>, based on work by Linux
++ * Networx, Thayne Harbaugh, Dan Hollis <goemon at anime dot net> and
++ * others.
++ *
++ * 440GX fix by Jason Uhlenkott <juhlenko@akamai.com>.
++ *
++ * Written with reference to 82443BX Host Bridge Datasheet:
++ * http://www.intel.com/design/chipsets/440/documentation.htm
++ * references to this document given in [].
++ *
++ * This module doesn't support the 440LX, but it may be possible to
++ * make it do so (the 440LX's register definitions are different, but
++ * not completely so - I haven't studied them in enough detail to know
++ * how easy this would be).
 + */
 +
 +#include <linux/module.h>
 +#include <linux/init.h>
++
 +#include <linux/pci.h>
 +#include <linux/pci_ids.h>
++
 +#include <linux/slab.h>
-+#include "edac_core.h"
 +
-+#define I3000_REVISION		"1.1"
++#include "edac_mc.h"
 +
-+#define EDAC_MOD_STR		"i3000_edac"
++#define I82443_REVISION	"0.1"
 +
-+#define I3000_RANKS		8
-+#define I3000_RANKS_PER_CHANNEL	4
-+#define I3000_CHANNELS		2
-+
-+/* Intel 3000 register addresses - device 0 function 0 - DRAM Controller */
-+
-+#define I3000_MCHBAR		0x44	/* MCH Memory Mapped Register BAR */
-+#define I3000_MCHBAR_MASK	0xffffc000
-+#define I3000_MMR_WINDOW_SIZE	16384
-+
-+#define I3000_EDEAP		0x70	/* Extended DRAM Error Address Pointer (8b)
-+					 *
-+					 * 7:1   reserved
-+					 * 0     bit 32 of address
-+					 */
-+#define I3000_DEAP		0x58	/* DRAM Error Address Pointer (32b)
-+					 *
-+					 * 31:7  address
-+					 * 6:1   reserved
-+					 * 0     Error channel 0/1
-+					 */
-+#define I3000_DEAP_GRAIN	(1 << 7)
-+#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) | \
-+					((deap) >> PAGE_SHIFT))
-+#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & ~PAGE_MASK)
-+#define I3000_DEAP_CHANNEL(deap)	((deap) & 1)
-+
-+#define I3000_DERRSYN		0x5c	/* DRAM Error Syndrome (8b)
-+					 *
-+					 *  7:0  DRAM ECC Syndrome
-+					 */
-+
-+#define I3000_ERRSTS		0xc8	/* Error Status Register (16b)
-+					 *
-+					 * 15:12 reserved
-+					 * 11    MCH Thermal Sensor Event for SMI/SCI/SERR
-+					 * 10    reserved
-+					 *  9    LOCK to non-DRAM Memory Flag (LCKF)
-+					 *  8    Received Refresh Timeout Flag (RRTOF)
-+					 *  7:2  reserved
-+					 *  1    Multiple-bit DRAM ECC Error Flag (DMERR)
-+					 *  0    Single-bit DRAM ECC Error Flag (DSERR)
-+					 */
-+#define I3000_ERRSTS_BITS	0x0b03	/* bits which indicate errors */
-+#define I3000_ERRSTS_UE		0x0002
-+#define I3000_ERRSTS_CE		0x0001
-+
-+#define I3000_ERRCMD		0xca	/* Error Command (16b)
-+					 *
-+					 * 15:12 reserved
-+					 * 11    SERR on MCH Thermal Sensor Event (TSESERR)
-+					 * 10    reserved
-+					 *  9    SERR on LOCK to non-DRAM Memory (LCKERR)
-+					 *  8    SERR on DRAM Refresh Timeout (DRTOERR)
-+					 *  7:2  reserved
-+					 *  1    SERR Multiple-Bit DRAM ECC Error (DMERR)
-+					 *  0    SERR on Single-Bit ECC Error (DSERR)
-+					 */
-+
-+/* Intel  MMIO register space - device 0 function 0 - MMR space */
-+
-+#define I3000_DRB_SHIFT 25	/* 32MiB grain */
-+
-+#define I3000_C0DRB		0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
-+					 *
-+					 * 7:0   Channel 0 DRAM Rank Boundary Address
-+					 */
-+#define I3000_C1DRB		0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
-+					 *
-+					 * 7:0   Channel 1 DRAM Rank Boundary Address
-+					 */
-+
-+#define I3000_C0DRA		0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
-+					 *
-+					 * 7     reserved
-+					 * 6:4   DRAM odd Rank Attribute
-+					 * 3     reserved
-+					 * 2:0   DRAM even Rank Attribute
-+					 *
-+					 * Each attribute defines the page
-+					 * size of the corresponding rank:
-+					 *     000: unpopulated
-+					 *     001: reserved
-+					 *     010: 4 KB
-+					 *     011: 8 KB
-+					 *     100: 16 KB
-+					 *     Others: reserved
-+					 */
-+#define I3000_C1DRA		0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
-+#define ODD_RANK_ATTRIB(dra) (((dra) & 0x70) >> 4)
-+#define EVEN_RANK_ATTRIB(dra) ((dra) & 0x07)
-+
-+#define I3000_C0DRC0		0x120	/* DRAM Controller Mode 0 (32b)
-+					 *
-+					 * 31:30 reserved
-+					 * 29    Initialization Complete (IC)
-+					 * 28:11 reserved
-+					 * 10:8  Refresh Mode Select (RMS)
-+					 * 7     reserved
-+					 * 6:4   Mode Select (SMS)
-+					 * 3:2   reserved
-+					 * 1:0   DRAM Type (DT)
-+					 */
-+
-+#define I3000_C0DRC1		0x124	/* DRAM Controller Mode 1 (32b)
-+					 *
-+					 * 31    Enhanced Addressing Enable (ENHADE)
-+					 * 30:0  reserved
-+					 */
++#define EDAC_MOD_STR    "i82443bxgx_edac"
 +
 +
-+enum i3000p_chips {
-+	I3000 = 0,
++/* The 82443BX supports SDRAM, or EDO (EDO for mobile only), "Memory
++ * Size: 8 MB to 512 MB (1GB with Registered DIMMs) with eight memory
++ * rows" "The 82443BX supports multiple-bit error detection and
++ * single-bit error correction when ECC mode is enabled and
++ * single/multi-bit error detection when correction is disabled.
++ * During writes to the DRAM, the 82443BX generates ECC for the data
++ * on a QWord basis. Partial QWord writes require a read-modify-write
++ * cycle when ECC is enabled."
++*/
++
++/* "Additionally, the 82443BX ensures that the data is corrected in
++ * main memory so that accumulation of errors is prevented. Another
++ * error within the same QWord would result in a double-bit error
++ * which is unrecoverable. This is known as hardware scrubbing since
++ * it requires no software intervention to correct the data in memory."
++ */
++
++/* [Also see page 100 (section 4.3), "DRAM Interface"]
++ * [Also see page 112 (section 4.6.1.4), ECC]
++ */
++
++#define I82443BXGX_NR_CSROWS 8
++#define I82443BXGX_NR_CHANS  1
++#define I82443BXGX_NR_DIMMS  4
++
++
++
++/* 82443 PCI Device 0 */
++#define I82443BXGX_NBXCFG 0x50   /* 32bit register starting at this PCI
++				* config space offset */
++#define I82443BXGX_NBXCFG_OFFSET_NON_ECCROW 24 /* Array of bits, zero if
++					      * row is non-ECC */
++#define I82443BXGX_NBXCFG_OFFSET_DRAM_FREQ 12 /* 2 bits,00=100MHz,10=66 MHz */
++
++#define I82443BXGX_NBXCFG_OFFSET_DRAM_INTEGRITY 7 /* 2 bits:       */
++#define I82443BXGX_NBXCFG_INTEGRITY_NONE   0x0    /* 00 = Non-ECC */
++#define I82443BXGX_NBXCFG_INTEGRITY_EC     0x1    /* 01 = EC (only) */
++#define I82443BXGX_NBXCFG_INTEGRITY_ECC    0x2    /* 10 = ECC */
++#define I82443BXGX_NBXCFG_INTEGRITY_SCRUB  0x3    /* 11 = ECC + HW Scrub */
++
++#define I82443BXGX_NBXCFG_OFFSET_ECC_DIAG_ENABLE  6
++
++
++/* 82443 PCI Device 0 */
++#define I82443BXGX_EAP   0x80   /* 32bit register starting at this PCI
++				* config space offset, Error Address
++				* Pointer Register */
++#define I82443BXGX_EAP_OFFSET_EAP  12   /* High 20 bits of error address */
++#define I82443BXGX_EAP_OFFSET_MBE  BIT(1) /* Err at EAP was multi-bit (W1TC) */
++#define I82443BXGX_EAP_OFFSET_SBE  BIT(0) /* Err at EAP was single-bit (W1TC)*/
++
++#define I82443BXGX_ERRCMD  0x90   /* 8bit register starting at this PCI
++				 * config space offset. */
++#define I82443BXGX_ERRCMD_OFFSET_SERR_ON_MBE BIT(1) /* 1 = enable */
++#define I82443BXGX_ERRCMD_OFFSET_SERR_ON_SBE BIT(0) /* 1 = enable */
++
++#define I82443BXGX_ERRSTS  0x91   /* 16bit register starting at this PCI
++				 * config space offset. */
++#define I82443BXGX_ERRSTS_OFFSET_MBFRE 5 /* 3 bits - first err row multibit */
++#define I82443BXGX_ERRSTS_OFFSET_MEF   BIT(4) /* 1 = MBE occurred */
++#define I82443BXGX_ERRSTS_OFFSET_SBFRE 1 /* 3 bits - first err row singlebit */
++#define I82443BXGX_ERRSTS_OFFSET_SEF   BIT(0) /* 1 = SBE occurred */
++
++
++#define I82443BXGX_DRAMC 0x57   /* 8bit register starting at this PCI
++			       * config space offset. */
++#define I82443BXGX_DRAMC_OFFSET_DT 3      /* 2 bits, DRAM Type */
++#define I82443BXGX_DRAMC_DRAM_IS_EDO 0    /* 00 = EDO */
++#define I82443BXGX_DRAMC_DRAM_IS_SDRAM 1	/* 01 = SDRAM */
++#define I82443BXGX_DRAMC_DRAM_IS_RSDRAM 2 /* 10 = Registered SDRAM */
++
++
++#define I82443BXGX_DRB 0x60   /* 8x 8bit registers starting at this PCI
++			     * config space offset. */
++
++
++/* FIXME - don't poll when ECC disabled? */
++
++
++struct i82443bxgx_edacmc_error_info {
++	u32 eap;
 +};
 +
-+struct i3000_dev_info {
-+	const char *ctl_name;
-+};
 +
-+struct i3000_error_info {
-+	u16 errsts;
-+	u8 derrsyn;
-+	u8 edeap;
-+	u32 deap;
-+	u16 errsts2;
-+};
-+
-+static const struct i3000_dev_info i3000_devs[] = {
-+	[I3000] = {
-+		     .ctl_name = "i3000"
-+	},
-+};
-+
-+static struct pci_dev *mci_pdev = NULL;
-+static int i3000_registered = 1;
-+
-+static void i3000_get_error_info(struct mem_ctl_info *mci,
-+		struct i3000_error_info *info)
++static void i82443bxgx_edacmc_get_error_info (struct mem_ctl_info *mci,
++		struct i82443bxgx_edacmc_error_info *info)
 +{
 +	struct pci_dev *pdev;
-+
 +	pdev = to_pci_dev(mci->dev);
++	pci_read_config_dword(pdev, I82443BXGX_EAP, &info->eap);
++	if (info->eap & I82443BXGX_EAP_OFFSET_SBE)
++		/* Clear error to allow next error to be reported [p.61] */
++		pci_write_bits32(pdev, I82443BXGX_EAP,
++				 I82443BXGX_EAP_OFFSET_SBE,
++				 I82443BXGX_EAP_OFFSET_SBE);
 +
-+	/*
-+	 * This is a mess because there is no atomic way to read all the
-+	 * registers at once and the registers can transition from CE being
-+	 * overwritten by UE.
-+	 */
-+	pci_read_config_word(pdev, I3000_ERRSTS, &info->errsts);
-+	if (!(info->errsts & I3000_ERRSTS_BITS))
-+		return;
-+	pci_read_config_byte(pdev, I3000_EDEAP, &info->edeap);
-+	pci_read_config_dword(pdev, I3000_DEAP, &info->deap);
-+	pci_read_config_byte(pdev, I3000_DERRSYN, &info->derrsyn);
-+	pci_read_config_word(pdev, I3000_ERRSTS, &info->errsts2);
-+
-+	/*
-+	 * If the error is the same for both reads then the first set
-+	 * of reads is valid.  If there is a change then there is a CE
-+	 * with no info and the second set of reads is valid and
-+	 * should be UE info.
-+	 */
-+	if ((info->errsts ^ info->errsts2) & I3000_ERRSTS_BITS) {
-+			pci_read_config_byte(pdev, I3000_EDEAP,
-+					&info->edeap);
-+			pci_read_config_dword(pdev, I3000_DEAP,
-+					&info->deap);
-+			pci_read_config_byte(pdev, I3000_DERRSYN,
-+					&info->derrsyn);
-+	}
-+
-+	/* Clear any error bits.
-+	 * (Yes, we really clear bits by writing 1 to them.)
-+	 */
-+	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS, I3000_ERRSTS_BITS);
++	if (info->eap & I82443BXGX_EAP_OFFSET_MBE)
++		/* Clear error to allow next error to be reported [p.61] */
++		pci_write_bits32(pdev, I82443BXGX_EAP,
++				 I82443BXGX_EAP_OFFSET_MBE,
++				 I82443BXGX_EAP_OFFSET_MBE);
 +}
 +
-+static int i3000_process_error_info(struct mem_ctl_info *mci,
-+		struct i3000_error_info *info, int handle_errors)
++
++static int i82443bxgx_edacmc_process_error_info (struct mem_ctl_info *mci,
++		struct i82443bxgx_edacmc_error_info *info, int handle_errors)
 +{
-+	int row, multi_chan;
-+	int pfn, offset, channel;
++	int error_found = 0;
++	u32 eapaddr, page, pageoffset;
 +
-+	multi_chan = mci->csrows[0].nr_channels - 1;
++	/* bits 30:12 hold the 4kb block in which the error occurred
++	 * [p.61] */
++	eapaddr = (info->eap & 0xfffff000);
++	page = eapaddr >> PAGE_SHIFT;
++	pageoffset = eapaddr - (page << PAGE_SHIFT);
 +
-+	if (!(info->errsts & I3000_ERRSTS_BITS))
-+		return 0;
-+
-+	if (!handle_errors)
-+		return 1;
-+
-+	if ((info->errsts ^ info->errsts2) & I3000_ERRSTS_BITS) {
-+		edac_mc_handle_ce_no_info(mci, "UE overwrote CE");
-+		info->errsts = info->errsts2;
++	if (info->eap  & I82443BXGX_EAP_OFFSET_SBE) {
++		error_found = 1;
++		if (handle_errors)
++			edac_mc_handle_ce(
++				mci, page, pageoffset,
++				/* 440BX/GX don't make syndrome information available */
++				0,
++				edac_mc_find_csrow_by_page(mci, page),
++				0,	/* channel */
++				mci->ctl_name);
 +	}
 +
-+	pfn = I3000_DEAP_PFN(info->edeap, info->deap);
-+	offset = I3000_DEAP_OFFSET(info->deap);
-+	channel = I3000_DEAP_CHANNEL(info->deap);
-+
-+	row = edac_mc_find_csrow_by_page(mci, pfn);
-+
-+	if (info->errsts & I3000_ERRSTS_UE)
-+		edac_mc_handle_ue(mci, pfn, offset, row, "i3000 UE");
-+	else
-+		edac_mc_handle_ce(mci, pfn, offset, info->derrsyn, row,
-+				       multi_chan ? channel : 0,
-+				       "i3000 CE");
-+
-+	return 1;
-+}
-+
-+static void i3000_check(struct mem_ctl_info *mci)
-+{
-+	struct i3000_error_info info;
-+
-+	debugf1("MC%d: %s()\n", mci->mc_idx, __func__);
-+	i3000_get_error_info(mci, &info);
-+	i3000_process_error_info(mci, &info, 1);
-+}
-+
-+static int i3000_is_interleaved(const unsigned char *c0dra,
-+				const unsigned char *c1dra,
-+				const unsigned char *c0drb,
-+				const unsigned char *c1drb)
-+{
-+	int i;
-+
-+	/* If the channels aren't populated identically then
-+	 * we're not interleaved.
-+	 */
-+	for (i = 0; i < I3000_RANKS_PER_CHANNEL / 2; i++)
-+		if (ODD_RANK_ATTRIB(c0dra[i]) != ODD_RANK_ATTRIB(c1dra[i]) ||
-+		    EVEN_RANK_ATTRIB(c0dra[i]) != EVEN_RANK_ATTRIB(c1dra[i]))
-+			return 0;
-+
-+	/* If the rank boundaries for the two channels are different
-+	 * then we're not interleaved.
-+	 */
-+	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++)
-+		if (c0drb[i] != c1drb[i])
-+			return 0;
-+
-+	return 1;
-+}
-+
-+static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
-+{
-+	int rc;
-+	int i;
-+	struct mem_ctl_info *mci = NULL;
-+	unsigned long last_cumul_size;
-+	int interleaved, nr_channels;
-+	unsigned char dra[I3000_RANKS / 2], drb[I3000_RANKS];
-+	unsigned char *c0dra = dra, *c1dra = &dra[I3000_RANKS_PER_CHANNEL / 2];
-+	unsigned char *c0drb = drb, *c1drb = &drb[I3000_RANKS_PER_CHANNEL];
-+	unsigned long mchbar;
-+	void *window;
-+
-+	debugf0("MC: %s()\n", __func__);
-+
-+	pci_read_config_dword(pdev, I3000_MCHBAR, (u32 *)&mchbar);
-+	mchbar &= I3000_MCHBAR_MASK;
-+	window = ioremap_nocache(mchbar, I3000_MMR_WINDOW_SIZE);
-+	if (!window) {
-+		printk(KERN_ERR "i3000: cannot map mmio space at 0x%lx\n", mchbar);
-+		return -ENODEV;
++	if (info->eap  & I82443BXGX_EAP_OFFSET_MBE) {
++		error_found = 1;
++		if (handle_errors)
++			edac_mc_handle_ue(
++				mci, page, pageoffset,
++				edac_mc_find_csrow_by_page(mci, page),
++				mci->ctl_name);
 +	}
 +
-+	c0dra[0] = readb(window + I3000_C0DRA + 0); /* ranks 0,1 */
-+	c0dra[1] = readb(window + I3000_C0DRA + 1); /* ranks 2,3 */
-+	c1dra[0] = readb(window + I3000_C1DRA + 0); /* ranks 0,1 */
-+	c1dra[1] = readb(window + I3000_C1DRA + 1); /* ranks 2,3 */
++	return error_found;
++}
 +
-+	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++) {
-+		c0drb[i] = readb(window + I3000_C0DRB + i);
-+		c1drb[i] = readb(window + I3000_C1DRB + i);
++
++static void i82443bxgx_edacmc_check(struct mem_ctl_info *mci)
++{
++	struct i82443bxgx_edacmc_error_info info;
++
++	debugf1("MC%d: " __FILE__ ": %s()\n", mci->mc_idx, __func__);
++	i82443bxgx_edacmc_get_error_info(mci, &info);
++	i82443bxgx_edacmc_process_error_info(mci, &info, 1);
++}
++
++
++static void i82443bxgx_init_csrows(struct mem_ctl_info *mci,
++					struct pci_dev *pdev,
++					enum edac_type edac_mode,
++					enum mem_type mtype)
++{
++	struct csrow_info *csrow;
++	int index;
++	u8 drbar, dramc;
++	u32 row_base, row_high_limit, row_high_limit_last;
++
++	pci_read_config_byte(pdev, I82443BXGX_DRAMC, &dramc);
++	row_high_limit_last = 0;
++	for (index = 0; index < mci->nr_csrows; index++) {
++		csrow = &mci->csrows[index];
++		pci_read_config_byte(pdev, I82443BXGX_DRB + index, &drbar);
++		debugf1("MC%d: " __FILE__ ": %s() Row=%d DRB = %#0x\n",
++			mci->mc_idx, __func__, index, drbar);
++		row_high_limit = ((u32) drbar << 23);
++		/* find the DRAM Chip Select Base address and mask */
++		debugf1("MC%d: " __FILE__ ": %s() Row=%d, "
++			"Boundry Address=%#0x, Last = %#0x \n",
++			mci->mc_idx, __func__, index, row_high_limit,
++			row_high_limit_last);
++
++		/* 440GX goes to 2GB, represented with a DRB of 0. */
++		if (row_high_limit_last && !row_high_limit)
++			row_high_limit = 1UL << 31;
++
++		/* This row is empty [p.49] */
++		if (row_high_limit == row_high_limit_last)
++			continue;
++		row_base = row_high_limit_last;
++		csrow->first_page = row_base >> PAGE_SHIFT;
++		csrow->last_page = (row_high_limit >> PAGE_SHIFT) - 1;
++		csrow->nr_pages = csrow->last_page - csrow->first_page + 1;
++		/* EAP reports in 4kilobyte granularity [61] */
++		csrow->grain = 1 << 12;
++		csrow->mtype = mtype;
++		/* I don't think 440BX can tell you device type? FIXME? */
++		csrow->dtype = DEV_UNKNOWN;
++		/* Mode is global to all rows on 440BX */
++		csrow->edac_mode = edac_mode;
++		row_high_limit_last = row_high_limit;
 +	}
++}
 +
-+	iounmap(window);
 +
-+	/* Figure out how many channels we have.
-+	 *
-+	 * If we have what the datasheet calls "asymmetric channels"
-+	 * (essentially the same as what was called "virtual single
-+	 * channel mode" in the i82875) then it's a single channel as
-+	 * far as EDAC is concerned.
-+	 */
-+	interleaved = i3000_is_interleaved(c0dra, c1dra, c0drb, c1drb);
-+	nr_channels = interleaved ? 2 : 1;
-+	mci = edac_mc_alloc(0, I3000_RANKS / nr_channels, nr_channels);
-+	if (!mci)
++static int  i82443bxgx_edacmc_probe1(struct pci_dev *pdev, int dev_idx)
++{
++	struct mem_ctl_info *mci;
++	u8 dramc;
++	u32 nbxcfg, ecc_mode;
++	enum mem_type mtype;
++	enum edac_type edac_mode;
++
++	debugf0("MC: " __FILE__ ": %s()\n", __func__);
++
++	/* Something is really hosed if PCI config space reads from
++	   the MC aren't working.  */
++	if (pci_read_config_dword(pdev, I82443BXGX_NBXCFG, &nbxcfg))
++		return -EIO;
++
++	mci = edac_mc_alloc(0, I82443BXGX_NR_CSROWS, I82443BXGX_NR_CHANS);
++
++	if (mci == NULL)
 +		return -ENOMEM;
 +
-+	debugf3("MC: %s(): init mci\n", __func__);
-+
++	debugf0("MC: " __FILE__ ": %s(): mci = %p\n", __func__, mci);
 +	mci->dev = &pdev->dev;
-+	mci->mtype_cap = MEM_FLAG_DDR2;
-+
-+	mci->edac_ctl_cap = EDAC_FLAG_SECDED;
-+	mci->edac_cap = EDAC_FLAG_SECDED;
-+
-+	mci->mod_name = EDAC_MOD_STR;
-+	mci->mod_ver = I3000_REVISION;
-+	mci->ctl_name = i3000_devs[dev_idx].ctl_name;
-+	mci->dev_name = pci_name(pdev);
-+	mci->edac_check = i3000_check;
-+	mci->ctl_page_to_phys = NULL;
-+
-+	/*
-+	 * The dram rank boundary (DRB) reg values are boundary addresses
-+	 * for each DRAM rank with a granularity of 32MB.  DRB regs are
-+	 * cumulative; the last one will contain the total memory
-+	 * contained in all ranks.
-+	 *
-+	 * If we're in interleaved mode then we're only walking through
-+	 * the ranks of controller 0, so we double all the values we see.
-+	 */
-+	for (last_cumul_size = i = 0; i < mci->nr_csrows; i++) {
-+		u8 value;
-+		u32 cumul_size;
-+		struct csrow_info *csrow = &mci->csrows[i];
-+
-+		value = drb[i];
-+		cumul_size = value << (I3000_DRB_SHIFT - PAGE_SHIFT);
-+		if (interleaved)
-+			cumul_size <<= 1;
-+		debugf3("MC: %s(): (%d) cumul_size 0x%x\n",
-+			__func__, i, cumul_size);
-+		if (cumul_size == last_cumul_size) {
-+			csrow->mtype = MEM_EMPTY;
-+			continue;
-+		}
-+
-+		csrow->first_page = last_cumul_size;
-+		csrow->last_page = cumul_size - 1;
-+		csrow->nr_pages = cumul_size - last_cumul_size;
-+		last_cumul_size = cumul_size;
-+		csrow->grain = I3000_DEAP_GRAIN;
-+		csrow->mtype = MEM_DDR2;
-+		csrow->dtype = DEV_UNKNOWN;
-+		csrow->edac_mode = EDAC_UNKNOWN;
++	mci->mtype_cap = MEM_FLAG_EDO | MEM_FLAG_SDR | MEM_FLAG_RDR;
++	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
++	pci_read_config_byte(pdev, I82443BXGX_DRAMC, &dramc);
++	switch ((dramc >> I82443BXGX_DRAMC_OFFSET_DT) & (BIT(0) | BIT(1))) {
++	case  I82443BXGX_DRAMC_DRAM_IS_EDO:
++		mtype = MEM_EDO;
++		break;
++	case I82443BXGX_DRAMC_DRAM_IS_SDRAM:
++		mtype = MEM_SDR;
++		break;
++	case I82443BXGX_DRAMC_DRAM_IS_RSDRAM:
++		mtype = MEM_RDR;
++		break;
++	default:
++		debugf0("Unknown/reserved DRAM type value in DRAMC register!\n");
++		mtype = -MEM_UNKNOWN;
 +	}
 +
-+	/* Clear any error bits.
-+	 * (Yes, we really clear bits by writing 1 to them.)
-+	 */
-+	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS, I3000_ERRSTS_BITS);
++	if ((mtype == MEM_SDR) || (mtype == MEM_RDR))
++		mci->edac_cap = mci->edac_ctl_cap;
++	else
++		mci->edac_cap = EDAC_FLAG_NONE;
 +
-+	rc = -ENODEV;
++	mci->scrub_cap = SCRUB_FLAG_HW_SRC;
++	pci_read_config_dword(pdev, I82443BXGX_NBXCFG, &nbxcfg);
++	ecc_mode = ((nbxcfg >> I82443BXGX_NBXCFG_OFFSET_DRAM_INTEGRITY) &
++				(BIT(0) | BIT(1)));
++
++	mci->scrub_mode = (ecc_mode == I82443BXGX_NBXCFG_INTEGRITY_SCRUB)
++		? SCRUB_HW_SRC
++		: SCRUB_NONE;
++
++	switch(ecc_mode) {
++	case I82443BXGX_NBXCFG_INTEGRITY_NONE:
++		edac_mode = EDAC_NONE;
++		break;
++	case I82443BXGX_NBXCFG_INTEGRITY_EC:
++		edac_mode = EDAC_EC;
++		break;
++	case I82443BXGX_NBXCFG_INTEGRITY_ECC:
++	case I82443BXGX_NBXCFG_INTEGRITY_SCRUB:
++		edac_mode = EDAC_SECDED;
++		break;
++	default:
++		debugf0("%s(): Unknown/reserved ECC state in NBXCFG register!\n",
++			__func__);
++		edac_mode = EDAC_UNKNOWN;
++		break;
++	}
++
++	i82443bxgx_init_csrows(mci, pdev, edac_mode, mtype);
++
++	/* Many BIOSes don't clear error flags on boot, so do this
++	 * here, or we get "phantom" errors occuring at module-load
++	 * time. */
++	pci_write_bits32(pdev, I82443BXGX_EAP,
++			 (I82443BXGX_EAP_OFFSET_SBE | I82443BXGX_EAP_OFFSET_MBE),
++			 (I82443BXGX_EAP_OFFSET_SBE | I82443BXGX_EAP_OFFSET_MBE));
++
++	mci->mod_name = EDAC_MOD_STR;
++	mci->mod_ver = I82443_REVISION;
++	mci->ctl_name = "I82443BXGX";
++	mci->edac_check = i82443bxgx_edacmc_check;
++	mci->ctl_page_to_phys = NULL;
++
 +	if (edac_mc_add_mc(mci, 0)) {
-+		debugf3("MC: %s(): failed edac_mc_add_mc()\n", __func__);
++		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
 +		goto fail;
 +	}
 +
-+	/* get this far and it's successful */
-+	debugf3("MC: %s(): success\n", __func__);
++	debugf3("MC: " __FILE__ ": %s(): success\n", __func__);
 +	return 0;
 +
-+      fail:
-+	if (mci)
-+		edac_mc_free(mci);
-+
-+	return rc;
++fail:
++	edac_mc_free(mci);
++	return -ENODEV;
 +}
++EXPORT_SYMBOL_GPL(i82443bxgx_edacmc_probe1);
 +
 +/* returns count (>= 0), or negative on error */
-+static int __devinit i3000_init_one(struct pci_dev *pdev,
-+				      const struct pci_device_id *ent)
++static int __devinit i82443bxgx_edacmc_init_one(struct pci_dev *pdev,
++				     const struct pci_device_id *ent)
 +{
-+	int rc;
++	debugf0("MC: " __FILE__ ": %s()\n", __func__);
 +
-+	debugf0("MC: %s()\n", __func__);
-+
-+	if (pci_enable_device(pdev) < 0)
-+		return -EIO;
-+
-+	rc = i3000_probe1(pdev, ent->driver_data);
-+	if (mci_pdev == NULL)
-+		mci_pdev = pci_dev_get(pdev);
-+
-+	return rc;
++	/* don't need to call pci_device_enable() */
++	return  i82443bxgx_edacmc_probe1(pdev, ent->driver_data);
 +}
 +
-+static void __devexit i3000_remove_one(struct pci_dev *pdev)
++
++static void __devexit i82443bxgx_edacmc_remove_one(struct pci_dev *pdev)
 +{
 +	struct mem_ctl_info *mci;
 +
-+	debugf0("%s()\n", __func__);
++	debugf0(__FILE__ ": %s()\n", __func__);
 +
-+	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
++	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL )
 +		return;
 +
 +	edac_mc_free(mci);
 +}
++EXPORT_SYMBOL_GPL(i82443bxgx_edacmc_remove_one);
 +
-+static const struct pci_device_id i3000_pci_tbl[] __devinitdata = {
-+	{
-+		PCI_VEND_DEV(INTEL, 3000_HB), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 	I3000
-+	},
-+	{
-+		0,
-+	}	/* 0 terminated list. */
++
++static const struct pci_device_id i82443bxgx_pci_tbl[] __devinitdata = {
++	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443BX_0)},
++	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443BX_2)},
++	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443GX_0)},
++	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82443GX_2)},
++	{0,}			/* 0 terminated list. */
 +};
 +
-+MODULE_DEVICE_TABLE(pci, i3000_pci_tbl);
++MODULE_DEVICE_TABLE(pci, i82443bxgx_pci_tbl);
 +
-+static struct pci_driver i3000_driver = {
++
++static struct pci_driver i82443bxgx_edacmc_driver = {
 +	.name = EDAC_MOD_STR,
-+	.probe = i3000_init_one,
-+	.remove = __devexit_p(i3000_remove_one),
-+	.id_table = i3000_pci_tbl,
++	.probe = i82443bxgx_edacmc_init_one,
++	.remove = __devexit_p(i82443bxgx_edacmc_remove_one),
++	.id_table = i82443bxgx_pci_tbl,
 +};
 +
-+static int __init i3000_init(void)
++
++static int __init i82443bxgx_edacmc_init(void)
 +{
-+	int pci_rc;
-+
-+	debugf3("MC: %s()\n", __func__);
-+	pci_rc = pci_register_driver(&i3000_driver);
-+	if (pci_rc < 0)
-+		goto fail0;
-+
-+	if (mci_pdev == NULL) {
-+		i3000_registered = 0;
-+		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
-+					  PCI_DEVICE_ID_INTEL_3000_HB, NULL);
-+		if (!mci_pdev) {
-+			debugf0("i3000 pci_get_device fail\n");
-+			pci_rc = -ENODEV;
-+			goto fail1;
-+		}
-+
-+		pci_rc = i3000_init_one(mci_pdev, i3000_pci_tbl);
-+		if (pci_rc < 0) {
-+			debugf0("i3000 init fail\n");
-+			pci_rc = -ENODEV;
-+			goto fail1;
-+		}
-+	}
-+
-+	return 0;
-+
-+fail1:
-+	pci_unregister_driver(&i3000_driver);
-+
-+fail0:
-+	if (mci_pdev)
-+		pci_dev_put(mci_pdev);
-+
-+	return pci_rc;
++	return pci_register_driver(&i82443bxgx_edacmc_driver);
 +}
 +
-+static void __exit i3000_exit(void)
-+{
-+	debugf3("MC: %s()\n", __func__);
 +
-+	pci_unregister_driver(&i3000_driver);
-+	if (!i3000_registered) {
-+		i3000_remove_one(mci_pdev);
-+		pci_dev_put(mci_pdev);
-+	}
++static void __exit i82443bxgx_edacmc_exit(void)
++{
++	pci_unregister_driver(&i82443bxgx_edacmc_driver);
 +}
 +
-+module_init(i3000_init);
-+module_exit(i3000_exit);
++
++module_init(i82443bxgx_edacmc_init);
++module_exit(i82443bxgx_edacmc_exit);
++
 +
 +MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Akamai Technologies Arthur Ulfeldt/Jason Uhlenkott");
-+MODULE_DESCRIPTION("MC support for Intel 3000 memory hub controllers");
-diff -puN include/linux/pci_ids.h~drivers-edac-new-inte-30x0-mc-driver include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~drivers-edac-new-inte-30x0-mc-driver
-+++ a/include/linux/pci_ids.h
-@@ -2245,6 +2245,7 @@
- #define PCI_DEVICE_ID_INTEL_82915GM_IG	0x2592
- #define PCI_DEVICE_ID_INTEL_82945G_HB	0x2770
- #define PCI_DEVICE_ID_INTEL_82945G_IG	0x2772
-+#define PCI_DEVICE_ID_INTEL_3000_HB	0x2778
- #define PCI_DEVICE_ID_INTEL_82945GM_HB	0x27A0
- #define PCI_DEVICE_ID_INTEL_82945GM_IG	0x27A2
- #define PCI_DEVICE_ID_INTEL_ICH6_0	0x2640
++MODULE_AUTHOR("Tim Small <tim@buttersideup.com> - WPAD");
++MODULE_DESCRIPTION("EDAC MC support for Intel 82443BX/GX memory controllers");
 _
 
-Patches currently in -mm which might be from juhlenko@akamai.com are
+Patches currently in -mm which might be from tim@buttersideup.com are
 
-drivers-edac-new-inte-30x0-mc-driver.patch
+drivers-edac-new-i82443bxgz-mc-driver.patch
