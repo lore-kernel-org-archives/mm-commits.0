@@ -1,544 +1,360 @@
 From: akpm@linux-foundation.org
-Subject: - define-new-percpu-interface-for-shared-data.patch removed from -mm tree
-Date: Wed, 06 Jun 2007 10:13:48 -0700
-Message-ID: <200706061713.l56HDmvP002060@imap1.linux-foundation.org>
+Subject: - arch-personality-independent-stack-top.patch removed from -mm tree
+Date: Wed, 06 Jun 2007 10:19:39 -0700
+Message-ID: <200706061719.l56HJdRl002161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbXFFROd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:14:33 -0400
+	by vger.kernel.org with ESMTP id S1754123AbXFFRUU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:20:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fenghua.yu@intel.com, clameter@sgi.com, kiran@scalex86.org, linux-arch@vger.kernel.org, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, aaw@google.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Define new percpu interface for shared data
+     arch: personality independent stack top
 has been removed from the -mm tree.  Its filename was
-     define-new-percpu-interface-for-shared-data.patch
+     arch-personality-independent-stack-top.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Define new percpu interface for shared data
-From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: arch: personality independent stack top
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-per cpu data section contains two types of data.  One set which is exclusively
-accessed by the local cpu and the other set which is per cpu, but also shared
-by remote cpus.  In the current kernel, these two sets are not clearely
-separated out.  This can potentially cause the same data cacheline shared
-between the two sets of data, which will result in unnecessary bouncing of the
-cacheline between cpus.
+This patch-set aims at removing the current limit on argv+env space aka. 
+MAX_ARG_PAGES.
 
-One way to fix the problem is to cacheline align the remotely accessed per cpu
-data, both at the beginning and at the end.  Because of the padding at both
-ends, this will likely cause some memory wastage and also the interface to
-achieve this is not clean.
+The new mm is created before the binfmt code runs, the stack is placed at the
+highest address supported by that architecture.
 
-Depending on how linker places percpu data, the patches could
-increase or decrease percpu section size. Data from 2.6.21-rc7-mm2:
+The argv+env data is then copied from the old mm into the new mm (which is
+inactive at that time - this introduces some cache coherency issues).
 
-On x86 SMP, the section size is increased from 0x7768 to 0x790c.
-1.3% increase.
+Then we run the binfmt code, which will compute the final stack address.  The
+existing stack will be moved downwards (or upwards on PA-RISC) to the desired
+place.
 
-On X86-64 SMP, the size is decreased from 0x72d0 to 0x6540.
-11.8% decrease.
+This 'trick' heavily relies on the MMU, so for no-MMU archs we stay with the
+old approach.
 
-On X86-64 VSMP, the size is increased from 0x72d0 to 0x8340.
-14.3% increase.
 
-On IA64 SMP, the size is decreased from 0x8370 to 0x7fc0.
-2.8% decrease.
 
 
 This patch:
 
-Moves the remotely accessed per cpu data (which is currently marked
-as ____cacheline_aligned_in_smp) into a different section, where all the data
-elements are cacheline aligned. And as such, this differentiates the local
-only data and remotely accessed data cleanly.
+New arch macro STACK_TOP_MAX it gives the larges valid stack address for the
+architecture in question.
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Christoph Lameter <clameter@sgi.com>
+It differs from STACK_TOP in that it will not distinguish between
+personalities but will always return the largest possible address.
+
+This is used to create the initial stack on execve, which we will move down to
+the proper location once the binfmt code has figured out where that is.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ollie Wild <aaw@google.com>
 Cc: <linux-arch@vger.kernel.org>
-Acked-by: Ravikiran Thirumalai <kiran@scalex86.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/vmlinux.lds.S   |    5 +----
- arch/arm/kernel/vmlinux.lds.S     |    1 +
- arch/cris/arch-v32/vmlinux.lds.S  |    5 +----
- arch/frv/kernel/vmlinux.lds.S     |    5 +----
- arch/i386/kernel/vmlinux.lds.S    |    7 +------
- arch/ia64/kernel/vmlinux.lds.S    |    1 +
- arch/m32r/kernel/vmlinux.lds.S    |    5 +----
- arch/mips/kernel/vmlinux.lds.S    |    5 +----
- arch/parisc/kernel/vmlinux.lds.S  |    7 +++----
- arch/powerpc/kernel/vmlinux.lds.S |    7 +------
- arch/ppc/kernel/vmlinux.lds.S     |    5 +----
- arch/s390/kernel/vmlinux.lds.S    |    5 +----
- arch/sh/kernel/vmlinux.lds.S      |    5 +----
- arch/sh64/kernel/vmlinux.lds.S    |    5 +----
- arch/sparc/kernel/vmlinux.lds.S   |    5 +----
- arch/sparc64/kernel/vmlinux.lds.S |    5 +----
- arch/x86_64/kernel/vmlinux.lds.S  |    6 ++----
- arch/xtensa/kernel/vmlinux.lds.S  |    5 +----
- include/asm-generic/percpu.h      |    8 ++++++++
- include/asm-generic/vmlinux.lds.h |    8 ++++++++
- include/asm-i386/percpu.h         |    5 +++++
- include/asm-ia64/percpu.h         |   10 ++++++++++
- include/asm-powerpc/percpu.h      |    7 +++++++
- include/asm-s390/percpu.h         |    7 +++++++
- include/asm-sparc64/percpu.h      |    7 +++++++
- include/asm-x86_64/percpu.h       |    7 +++++++
- 26 files changed, 80 insertions(+), 68 deletions(-)
+ include/asm-alpha/a.out.h    |    2 ++
+ include/asm-arm/a.out.h      |    1 +
+ include/asm-arm26/a.out.h    |    1 +
+ include/asm-avr32/a.out.h    |    1 +
+ include/asm-cris/a.out.h     |    1 +
+ include/asm-frv/mem-layout.h |    1 +
+ include/asm-h8300/a.out.h    |    1 +
+ include/asm-i386/a.out.h     |    1 +
+ include/asm-ia64/ustack.h    |    1 +
+ include/asm-m32r/a.out.h     |    1 +
+ include/asm-m68k/a.out.h     |    1 +
+ include/asm-mips/a.out.h     |    1 +
+ include/asm-parisc/a.out.h   |    1 +
+ include/asm-powerpc/a.out.h  |    3 +++
+ include/asm-s390/a.out.h     |    1 +
+ include/asm-sh/a.out.h       |    1 +
+ include/asm-sh64/a.out.h     |    1 +
+ include/asm-sparc/a.out.h    |    1 +
+ include/asm-sparc64/a.out.h  |    2 ++
+ include/asm-um/a.out.h       |    2 ++
+ include/asm-x86_64/a.out.h   |    3 ++-
+ include/asm-xtensa/a.out.h   |    1 +
+ 22 files changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/alpha/kernel/vmlinux.lds.S
---- a/arch/alpha/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/alpha/kernel/vmlinux.lds.S
-@@ -69,10 +69,7 @@ SECTIONS
-   . = ALIGN(8);
-   SECURITY_INIT
+diff -puN include/asm-alpha/a.out.h~arch-personality-independent-stack-top include/asm-alpha/a.out.h
+--- a/include/asm-alpha/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-alpha/a.out.h
+@@ -101,6 +101,8 @@ struct exec
+ #define STACK_TOP \
+   (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
  
--  . = ALIGN(8192);
--  __per_cpu_start = .;
--  .data.percpu : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(8192)
- 
-   . = ALIGN(2*8192);
-   __init_end = .;
-diff -puN arch/arm/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/arm/kernel/vmlinux.lds.S
---- a/arch/arm/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/arm/kernel/vmlinux.lds.S
-@@ -66,6 +66,7 @@ SECTIONS
- 		. = ALIGN(4096);
- 		__per_cpu_start = .;
- 			*(.data.percpu)
-+			*(.data.percpu.shared_aligned)
- 		__per_cpu_end = .;
- #ifndef CONFIG_XIP_KERNEL
- 		__init_begin = _stext;
-diff -puN arch/cris/arch-v32/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/cris/arch-v32/vmlinux.lds.S
---- a/arch/cris/arch-v32/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/cris/arch-v32/vmlinux.lds.S
-@@ -91,10 +91,7 @@ SECTIONS
- 	}
- 	SECURITY_INIT
- 
--	. =  ALIGN (8192);
--	__per_cpu_start = .;
--	.data.percpu  : { *(.data.percpu) }
--	__per_cpu_end = .;
-+	PERCPU(8192)
- 
- #ifdef CONFIG_BLK_DEV_INITRD
- 	.init.ramfs : {
-diff -puN arch/frv/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/frv/kernel/vmlinux.lds.S
---- a/arch/frv/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/frv/kernel/vmlinux.lds.S
-@@ -57,10 +57,7 @@ SECTIONS
-   __alt_instructions_end = .;
-  .altinstr_replacement : { *(.altinstr_replacement) }
- 
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
- 
- #ifdef CONFIG_BLK_DEV_INITRD
-   . = ALIGN(4096);
-diff -puN arch/i386/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -179,12 +179,7 @@ SECTIONS
- 	__initramfs_end = .;
-   }
- #endif
--  . = ALIGN(4096);
--  .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
--	__per_cpu_start = .;
--	*(.data.percpu)
--	__per_cpu_end = .;
--  }
-+  PERCPU(4096)
-   . = ALIGN(4096);
-   /* freed after init ends here */
- 	
-diff -puN arch/ia64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/ia64/kernel/vmlinux.lds.S
---- a/arch/ia64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/ia64/kernel/vmlinux.lds.S
-@@ -206,6 +206,7 @@ SECTIONS
- 	{
- 		__per_cpu_start = .;
- 		*(.data.percpu)
-+		*(.data.percpu.shared_aligned)
- 		__per_cpu_end = .;
- 	}
-   . = __phys_per_cpu_start + PERCPU_PAGE_SIZE;	/* ensure percpu data fits
-diff -puN arch/m32r/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/m32r/kernel/vmlinux.lds.S
---- a/arch/m32r/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/m32r/kernel/vmlinux.lds.S
-@@ -110,10 +110,7 @@ SECTIONS
-   __initramfs_end = .;
++#define STACK_TOP_MAX	0x00120000000UL
++
  #endif
  
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
-   . = ALIGN(4096);
-   __init_end = .;
-   /* freed after init ends here */
-diff -puN arch/mips/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/mips/kernel/vmlinux.lds.S
---- a/arch/mips/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/mips/kernel/vmlinux.lds.S
-@@ -119,10 +119,7 @@ SECTIONS
-   .init.ramfs : { *(.init.ramfs) }
-   __initramfs_end = .;
- #endif
--  . = ALIGN(_PAGE_SIZE);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(_PAGE_SIZE)
-   . = ALIGN(_PAGE_SIZE);
-   __init_end = .;
-   /* freed after init ends here */
-diff -puN arch/parisc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/parisc/kernel/vmlinux.lds.S
---- a/arch/parisc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/parisc/kernel/vmlinux.lds.S
-@@ -181,10 +181,9 @@ SECTIONS
-   .init.ramfs : { *(.init.ramfs) }
-   __initramfs_end = .;
- #endif
--  . = ALIGN(ASM_PAGE_SIZE);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+
-+  PERCPU(ASM_PAGE_SIZE)
-+
-   . = ALIGN(ASM_PAGE_SIZE);
-   __init_end = .;
-   /* freed after init ends here */
-diff -puN arch/powerpc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/powerpc/kernel/vmlinux.lds.S
---- a/arch/powerpc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/powerpc/kernel/vmlinux.lds.S
-@@ -139,12 +139,7 @@ SECTIONS
- 		__initramfs_end = .;
- 	}
- #endif
--	. = ALIGN(PAGE_SIZE);
--	.data.percpu : {
--		__per_cpu_start = .;
--		*(.data.percpu)
--		__per_cpu_end = .;
--	}
-+	PERCPU(PAGE_SIZE)
- 
- 	. = ALIGN(8);
- 	.machine.desc : {
-diff -puN arch/ppc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/ppc/kernel/vmlinux.lds.S
---- a/arch/ppc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/ppc/kernel/vmlinux.lds.S
-@@ -130,10 +130,7 @@ SECTIONS
-   __ftr_fixup : { *(__ftr_fixup) }
-   __stop___ftr_fixup = .;
- 
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
- 
- #ifdef CONFIG_BLK_DEV_INITRD
-   . = ALIGN(4096);
-diff -puN arch/s390/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/s390/kernel/vmlinux.lds.S
---- a/arch/s390/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/s390/kernel/vmlinux.lds.S
-@@ -107,10 +107,7 @@ SECTIONS
-   . = ALIGN(2);
-   __initramfs_end = .;
- #endif
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
-   . = ALIGN(4096);
-   __init_end = .;
-   /* freed after init ends here */
-diff -puN arch/sh/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/sh/kernel/vmlinux.lds.S
---- a/arch/sh/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/sh/kernel/vmlinux.lds.S
-@@ -60,10 +60,7 @@ SECTIONS
-   . = ALIGN(PAGE_SIZE);
-   __nosave_end = .;
- 
--  . = ALIGN(PAGE_SIZE);
--  __per_cpu_start = .;
--  .data.percpu : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(PAGE_SIZE)
-   .data.cacheline_aligned : { *(.data.cacheline_aligned) }
- 
-   _edata = .;			/* End of data section */
-diff -puN arch/sh64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/sh64/kernel/vmlinux.lds.S
---- a/arch/sh64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/sh64/kernel/vmlinux.lds.S
-@@ -85,10 +85,7 @@ SECTIONS
-   . = ALIGN(PAGE_SIZE);
-   .data.page_aligned : C_PHYS(.data.page_aligned) { *(.data.page_aligned) }
- 
--  . = ALIGN(PAGE_SIZE);
--  __per_cpu_start = .;
--  .data.percpu : C_PHYS(.data.percpu) { *(.data.percpu) }
--  __per_cpu_end = . ;
-+  PERCPU(PAGE_SIZE)
-   .data.cacheline_aligned : C_PHYS(.data.cacheline_aligned) { *(.data.cacheline_aligned) }
- 
-   _edata = .;			/* End of data section */
-diff -puN arch/sparc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/sparc/kernel/vmlinux.lds.S
---- a/arch/sparc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/sparc/kernel/vmlinux.lds.S
-@@ -65,10 +65,7 @@ SECTIONS
-   __initramfs_end = .;
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-arm/a.out.h~arch-personality-independent-stack-top include/asm-arm/a.out.h
+--- a/include/asm-arm/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-arm/a.out.h
+@@ -30,6 +30,7 @@ struct exec
+ #ifdef __KERNEL__
+ #define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
+ 			 TASK_SIZE : TASK_SIZE_26)
++#define STACK_TOP_MAX	TASK_SIZE
  #endif
  
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
-   . = ALIGN(4096);
-   __init_end = .;
-   . = ALIGN(32);
-diff -puN arch/sparc64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/sparc64/kernel/vmlinux.lds.S
---- a/arch/sparc64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/sparc64/kernel/vmlinux.lds.S
-@@ -90,10 +90,7 @@ SECTIONS
-   __initramfs_end = .;
+ #ifndef LIBRARY_START_TEXT
+diff -puN include/asm-arm26/a.out.h~arch-personality-independent-stack-top include/asm-arm26/a.out.h
+--- a/include/asm-arm26/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-arm26/a.out.h
+@@ -29,6 +29,7 @@ struct exec
+ 
+ #ifdef __KERNEL__
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
  #endif
  
--  . = ALIGN(PAGE_SIZE);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(PAGE_SIZE)
-   . = ALIGN(PAGE_SIZE);
-   __init_end = .;
-   __bss_start = .;
-diff -puN arch/x86_64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/x86_64/kernel/vmlinux.lds.S
---- a/arch/x86_64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/x86_64/kernel/vmlinux.lds.S
-@@ -210,10 +210,8 @@ SECTIONS
-   __initramfs_end = .;
+ #ifndef LIBRARY_START_TEXT
+diff -puN include/asm-avr32/a.out.h~arch-personality-independent-stack-top include/asm-avr32/a.out.h
+--- a/include/asm-avr32/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-avr32/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
  #endif
  
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
-+
-   . = ALIGN(4096);
-   __init_end = .;
+diff -puN include/asm-cris/a.out.h~arch-personality-independent-stack-top include/asm-cris/a.out.h
+--- a/include/asm-cris/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-cris/a.out.h
+@@ -8,6 +8,7 @@
  
-diff -puN arch/xtensa/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data arch/xtensa/kernel/vmlinux.lds.S
---- a/arch/xtensa/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data
-+++ a/arch/xtensa/kernel/vmlinux.lds.S
-@@ -190,10 +190,7 @@ SECTIONS
-   __initramfs_end = .;
+ /* grabbed from the intel stuff  */   
+ #define STACK_TOP TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ 
+ struct exec
+diff -puN include/asm-frv/mem-layout.h~arch-personality-independent-stack-top include/asm-frv/mem-layout.h
+--- a/include/asm-frv/mem-layout.h~arch-personality-independent-stack-top
++++ a/include/asm-frv/mem-layout.h
+@@ -60,6 +60,7 @@
+  */
+ #define BRK_BASE			__UL(2 * 1024 * 1024 + PAGE_SIZE)
+ #define STACK_TOP			__UL(2 * 1024 * 1024)
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ /* userspace process size */
+ #ifdef CONFIG_MMU
+diff -puN include/asm-h8300/a.out.h~arch-personality-independent-stack-top include/asm-h8300/a.out.h
+--- a/include/asm-h8300/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-h8300/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
  #endif
  
--  . = ALIGN(4096);
--  __per_cpu_start = .;
--  .data.percpu  : { *(.data.percpu) }
--  __per_cpu_end = .;
-+  PERCPU(4096)
+diff -puN include/asm-i386/a.out.h~arch-personality-independent-stack-top include/asm-i386/a.out.h
+--- a/include/asm-i386/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-i386/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
  
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
  
-   /* We need this dummy segment here */
-diff -puN include/asm-generic/percpu.h~define-new-percpu-interface-for-shared-data include/asm-generic/percpu.h
---- a/include/asm-generic/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-generic/percpu.h
-@@ -14,6 +14,11 @@ extern unsigned long __per_cpu_offset[NR
- #define DEFINE_PER_CPU(type, name) \
-     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ #endif
  
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
-+    __attribute__((__section__(".data.percpu.shared_aligned"))) \
-+    __typeof__(type) per_cpu__##name				\
-+    ____cacheline_aligned_in_smp
+diff -puN include/asm-ia64/ustack.h~arch-personality-independent-stack-top include/asm-ia64/ustack.h
+--- a/include/asm-ia64/ustack.h~arch-personality-independent-stack-top
++++ a/include/asm-ia64/ustack.h
+@@ -11,6 +11,7 @@
+ /* The absolute hard limit for stack size is 1/2 of the mappable space in the region */
+ #define MAX_USER_STACK_SIZE	(RGN_MAP_LIMIT/2)
+ #define STACK_TOP		(0x6000000000000000UL + RGN_MAP_LIMIT)
++#define STACK_TOP_MAX		STACK_TOP
+ #endif
+ 
+ /* Make a default stack size of 2GiB */
+diff -puN include/asm-m32r/a.out.h~arch-personality-independent-stack-top include/asm-m32r/a.out.h
+--- a/include/asm-m32r/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-m32r/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-m68k/a.out.h~arch-personality-independent-stack-top include/asm-m68k/a.out.h
+--- a/include/asm-m68k/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-m68k/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-mips/a.out.h~arch-personality-independent-stack-top include/asm-mips/a.out.h
+--- a/include/asm-mips/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-mips/a.out.h
+@@ -40,6 +40,7 @@ struct exec
+ #ifdef CONFIG_64BIT
+ #define STACK_TOP	(current->thread.mflags & MF_32BIT_ADDR ? TASK_SIZE32 : TASK_SIZE)
+ #endif
++#define STACK_TOP_MAX	TASK_SIZE
+ 
+ #endif
+ 
+diff -puN include/asm-parisc/a.out.h~arch-personality-independent-stack-top include/asm-parisc/a.out.h
+--- a/include/asm-parisc/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-parisc/a.out.h
+@@ -23,6 +23,7 @@ struct exec
+  * prumpf */
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
+ 
+ #endif
+ 
+diff -puN include/asm-powerpc/a.out.h~arch-personality-independent-stack-top include/asm-powerpc/a.out.h
+--- a/include/asm-powerpc/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-powerpc/a.out.h
+@@ -26,9 +26,12 @@ struct exec
+ #define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
+ 		   STACK_TOP_USER32 : STACK_TOP_USER64)
+ 
++#define STACK_TOP_MAX STACK_TOP_USER64
 +
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*({				\
- 	extern int simple_identifier_##var(void);	\
-@@ -34,6 +39,9 @@ do {								\
- #define DEFINE_PER_CPU(type, name) \
-     __typeof__(type) per_cpu__##name
+ #else /* __powerpc64__ */
  
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
-+    DEFINE_PER_CPU(type, name)
+ #define STACK_TOP TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif /* __powerpc64__ */
+ #endif /* __KERNEL__ */
+diff -puN include/asm-s390/a.out.h~arch-personality-independent-stack-top include/asm-s390/a.out.h
+--- a/include/asm-s390/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-s390/a.out.h
+@@ -32,6 +32,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
+ 
+ #endif
+ 
+diff -puN include/asm-sh/a.out.h~arch-personality-independent-stack-top include/asm-sh/a.out.h
+--- a/include/asm-sh/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sh/a.out.h
+@@ -20,6 +20,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-sh64/a.out.h~arch-personality-independent-stack-top include/asm-sh64/a.out.h
+--- a/include/asm-sh64/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sh64/a.out.h
+@@ -31,6 +31,7 @@ struct exec
+ #ifdef __KERNEL__
+ 
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif
+ 
+diff -puN include/asm-sparc/a.out.h~arch-personality-independent-stack-top include/asm-sparc/a.out.h
+--- a/include/asm-sparc/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sparc/a.out.h
+@@ -92,6 +92,7 @@ struct relocation_info /* used when head
+ #include <asm/page.h>
+ 
+ #define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #endif /* __KERNEL__ */
+ 
+diff -puN include/asm-sparc64/a.out.h~arch-personality-independent-stack-top include/asm-sparc64/a.out.h
+--- a/include/asm-sparc64/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-sparc64/a.out.h
+@@ -101,6 +101,8 @@ struct relocation_info /* used when head
+ #define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
+ 		   STACK_TOP32 : STACK_TOP64)
+ 
++#define STACK_TOP_MAX STACK_TOP64
 +
- #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
- #define __raw_get_cpu_var(var)			per_cpu__##var
-diff -puN include/asm-generic/vmlinux.lds.h~define-new-percpu-interface-for-shared-data include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -267,3 +267,11 @@
-   	*(.initcall7.init)						\
-   	*(.initcall7s.init)
+ #endif
  
-+#define PERCPU(align)							\
-+	. = ALIGN(align);						\
-+	__per_cpu_start = .;						\
-+	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
-+		*(.data.percpu)						\
-+		*(.data.percpu.shared_aligned)				\
-+	}								\
-+	__per_cpu_end = .;
-diff -puN include/asm-i386/percpu.h~define-new-percpu-interface-for-shared-data include/asm-i386/percpu.h
---- a/include/asm-i386/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-i386/percpu.h
-@@ -54,6 +54,11 @@ extern unsigned long __per_cpu_offset[];
- #define DEFINE_PER_CPU(type, name) \
-     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ #endif /* !(__ASSEMBLY__) */
+diff -puN include/asm-um/a.out.h~arch-personality-independent-stack-top include/asm-um/a.out.h
+--- a/include/asm-um/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-um/a.out.h
+@@ -16,4 +16,6 @@ extern int honeypot;
+ #define STACK_TOP \
+ 	CHOOSE_MODE((honeypot ? host_task_size : task_size), task_size)
  
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
-+    __attribute__((__section__(".data.percpu.shared_aligned"))) \
-+    __typeof__(type) per_cpu__##name				\
-+    ____cacheline_aligned_in_smp
++#define STACK_TOP_MAX	STACK_TOP
 +
- /* We can use this directly for local CPU (faster). */
- DECLARE_PER_CPU(unsigned long, this_cpu_off);
+ #endif
+diff -puN include/asm-x86_64/a.out.h~arch-personality-independent-stack-top include/asm-x86_64/a.out.h
+--- a/include/asm-x86_64/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-x86_64/a.out.h
+@@ -21,7 +21,8 @@ struct exec
  
-diff -puN include/asm-ia64/percpu.h~define-new-percpu-interface-for-shared-data include/asm-ia64/percpu.h
---- a/include/asm-ia64/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-ia64/percpu.h
-@@ -29,6 +29,16 @@
- 	__attribute__((__section__(".data.percpu")))		\
- 	__SMALL_ADDR_AREA __typeof__(type) per_cpu__##name
+ #ifdef __KERNEL__
+ #include <linux/thread_info.h>
+-#define STACK_TOP TASK_SIZE
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	TASK_SIZE64
+ #endif
  
-+#ifdef CONFIG_SMP
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
-+	__attribute__((__section__(".data.percpu.shared_aligned")))	\
-+	__SMALL_ADDR_AREA __typeof__(type) per_cpu__##name		\
-+	____cacheline_aligned_in_smp
-+#else
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
-+	DEFINE_PER_CPU(type, name)
-+#endif
-+
- /*
-  * Pretty much a literal copy of asm-generic/percpu.h, except that percpu_modcopy() is an
-  * external routine, to avoid include-hell.
-diff -puN include/asm-powerpc/percpu.h~define-new-percpu-interface-for-shared-data include/asm-powerpc/percpu.h
---- a/include/asm-powerpc/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-powerpc/percpu.h
-@@ -20,6 +20,11 @@
- #define DEFINE_PER_CPU(type, name) \
-     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-xtensa/a.out.h~arch-personality-independent-stack-top include/asm-xtensa/a.out.h
+--- a/include/asm-xtensa/a.out.h~arch-personality-independent-stack-top
++++ a/include/asm-xtensa/a.out.h
+@@ -17,6 +17,7 @@
+ /* Note: the kernel needs the a.out definitions, even if only ELF is used. */
  
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
-+    __attribute__((__section__(".data.percpu.shared_aligned"))) \
-+    __typeof__(type) per_cpu__##name				\
-+    ____cacheline_aligned_in_smp
-+
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
- #define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __my_cpu_offset()))
-@@ -40,6 +45,8 @@ extern void setup_per_cpu_areas(void);
+ #define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
  
- #define DEFINE_PER_CPU(type, name) \
-     __typeof__(type) per_cpu__##name
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
-+    DEFINE_PER_CPU(type, name)
- 
- #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
-diff -puN include/asm-s390/percpu.h~define-new-percpu-interface-for-shared-data include/asm-s390/percpu.h
---- a/include/asm-s390/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-s390/percpu.h
-@@ -41,6 +41,11 @@ extern unsigned long __per_cpu_offset[NR
-     __attribute__((__section__(".data.percpu"))) \
-     __typeof__(type) per_cpu__##name
- 
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
-+    __attribute__((__section__(".data.percpu.shared_aligned"))) \
-+    __typeof__(type) per_cpu__##name				\
-+    ____cacheline_aligned_in_smp
-+
- #define __get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
- #define __raw_get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
- #define per_cpu(var,cpu) __reloc_hide(var,__per_cpu_offset[cpu])
-@@ -59,6 +64,8 @@ do {								\
- 
- #define DEFINE_PER_CPU(type, name) \
-     __typeof__(type) per_cpu__##name
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
-+    DEFINE_PER_CPU(type, name)
- 
- #define __get_cpu_var(var) __reloc_hide(var,0)
- #define __raw_get_cpu_var(var) __reloc_hide(var,0)
-diff -puN include/asm-sparc64/percpu.h~define-new-percpu-interface-for-shared-data include/asm-sparc64/percpu.h
---- a/include/asm-sparc64/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-sparc64/percpu.h
-@@ -18,6 +18,11 @@ extern unsigned long __per_cpu_shift;
- #define DEFINE_PER_CPU(type, name) \
-     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
- 
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
-+    __attribute__((__section__(".data.percpu.shared_aligned"))) \
-+    __typeof__(type) per_cpu__##name				\
-+    ____cacheline_aligned_in_smp
-+
- register unsigned long __local_per_cpu_offset asm("g5");
- 
- /* var is in discarded region: offset to particular copy we want */
-@@ -38,6 +43,8 @@ do {								\
- #define real_setup_per_cpu_areas()		do { } while (0)
- #define DEFINE_PER_CPU(type, name) \
-     __typeof__(type) per_cpu__##name
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
-+    DEFINE_PER_CPU(type, name)
- 
- #define per_cpu(var, cpu)			(*((void)cpu, &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
-diff -puN include/asm-x86_64/percpu.h~define-new-percpu-interface-for-shared-data include/asm-x86_64/percpu.h
---- a/include/asm-x86_64/percpu.h~define-new-percpu-interface-for-shared-data
-+++ a/include/asm-x86_64/percpu.h
-@@ -20,6 +20,11 @@
- #define DEFINE_PER_CPU(type, name) \
-     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
- 
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
-+    __attribute__((__section__(".data.percpu.shared_aligned"))) \
-+    __typeof__(type) per_cpu__##name				\
-+    ____cacheline_internodealigned_in_smp
-+
- /* var is in discarded region: offset to particular copy we want */
- #define per_cpu(var, cpu) (*({				\
- 	extern int simple_identifier_##var(void);	\
-@@ -46,6 +51,8 @@ extern void setup_per_cpu_areas(void);
- 
- #define DEFINE_PER_CPU(type, name) \
-     __typeof__(type) per_cpu__##name
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
-+    DEFINE_PER_CPU(type, name)
- 
- #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
- #define __get_cpu_var(var)			per_cpu__##var
+ struct exec
+ {
 _
 
-Patches currently in -mm which might be from fenghua.yu@intel.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-define-new-percpu-interface-for-shared-data.patch
-use-the-new-percpu-interface-for-shared-data.patch
+lumpy-reclaim-v4.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+arch-personality-independent-stack-top.patch
+audit-rework-execve-audit.patch
+audit-rework-execve-audit-fix.patch
+mm-move_page_tables_up.patch
+mm-variable-length-argument-support.patch
+mm-variable-length-argument-support-fix.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-human-readability-tweaks-fix.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
