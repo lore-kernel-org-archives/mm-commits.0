@@ -1,279 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - revert-mmconfig-validate-against-acpi-motherboard-resources.patch removed from -mm tree
-Date: Wed, 06 Jun 2007 10:21:15 -0700
-Message-ID: <200706061721.l56HLFGI002244@imap1.linux-foundation.org>
+Subject: + git-acpi-disable-acpi_processor_throttling_seq_show.patch added to -mm tree
+Date: Wed, 06 Jun 2007 10:52:37 -0700
+Message-ID: <200706061752.l56Hqbf2002811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60430 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755329AbXFFRVy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:21:54 -0400
+	by vger.kernel.org with ESMTP id S1765625AbXFFRxQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:53:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hancockr@shaw.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alexey.y.starikovskiy@intel.com, apw@shadowen.org, len.brown@intel.com, luming.yu@intel.com
 
 
 The patch titled
-     revert mmconfig-validate-against-acpi-motherboard-resources
-has been removed from the -mm tree.  Its filename was
-     revert-mmconfig-validate-against-acpi-motherboard-resources.patch
+     git-acpi: disable acpi_processor_throttling_seq_show()
+has been added to the -mm tree.  Its filename is
+     git-acpi-disable-acpi_processor_throttling_seq_show.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: revert mmconfig-validate-against-acpi-motherboard-resources
+Subject: git-acpi: disable acpi_processor_throttling_seq_show()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Needs redoing
+for it oopses.
 
-Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Len Brown <len.brown@intel.com>
+Cc: "Yu, Luming" <luming.yu@intel.com>
+Cc: Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/init.c            |    2 
- arch/i386/pci/mmconfig-shared.c |  150 +++---------------------------
- arch/i386/pci/pci.h             |    3 
- drivers/acpi/bus.c              |    4 
- 4 files changed, 20 insertions(+), 139 deletions(-)
+ drivers/acpi/processor_throttling.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/i386/pci/init.c~revert-mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/init.c
---- a/arch/i386/pci/init.c~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/arch/i386/pci/init.c
-@@ -12,7 +12,7 @@ static __init int pci_access_init(void)
- 	type = pci_direct_probe();
- #endif
- #ifdef CONFIG_PCI_MMCONFIG
--	pci_mmcfg_early_init(type);
-+	pci_mmcfg_init(type);
- #endif
- 	if (raw_pci_ops)
- 		return 0;
-diff -puN arch/i386/pci/mmconfig-shared.c~revert-mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/mmconfig-shared.c
---- a/arch/i386/pci/mmconfig-shared.c~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/arch/i386/pci/mmconfig-shared.c
-@@ -206,78 +206,9 @@ static void __init pci_mmcfg_insert_reso
- 	pci_mmcfg_resources_inserted = 1;
- }
- 
--static acpi_status __init check_mcfg_resource(struct acpi_resource *res,
--					      void *data)
--{
--	struct resource *mcfg_res = data;
--	struct acpi_resource_address64 address;
--	acpi_status status;
--
--	if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
--		struct acpi_resource_fixed_memory32 *fixmem32 =
--			&res->data.fixed_memory32;
--		if (!fixmem32)
--			return AE_OK;
--		if ((mcfg_res->start >= fixmem32->address) &&
--		    (mcfg_res->end < (fixmem32->address +
--		    		      fixmem32->address_length))) {
--			mcfg_res->flags = 1;
--			return AE_CTRL_TERMINATE;
--		}
--	}
--	if ((res->type != ACPI_RESOURCE_TYPE_ADDRESS32) &&
--	    (res->type != ACPI_RESOURCE_TYPE_ADDRESS64))
--		return AE_OK;
--
--	status = acpi_resource_to_address64(res, &address);
--	if (ACPI_FAILURE(status) ||
--	   (address.address_length <= 0) ||
--	   (address.resource_type != ACPI_MEMORY_RANGE))
--		return AE_OK;
--
--	if ((mcfg_res->start >= address.minimum) &&
--	    (mcfg_res->end < (address.minimum + address.address_length))) {
--		mcfg_res->flags = 1;
--		return AE_CTRL_TERMINATE;
--	}
--	return AE_OK;
--}
--
--static acpi_status __init find_mboard_resource(acpi_handle handle, u32 lvl,
--		void *context, void **rv)
--{
--	struct resource *mcfg_res = context;
--
--	acpi_walk_resources(handle, METHOD_NAME__CRS,
--	  		    check_mcfg_resource, context);
--
--	if (mcfg_res->flags)
--		return AE_CTRL_TERMINATE;
--
--	return AE_OK;
--}
--
--static int __init is_acpi_reserved(unsigned long start, unsigned long end)
--{
--	struct resource mcfg_res;
--
--	mcfg_res.start = start;
--	mcfg_res.end = end;
--	mcfg_res.flags = 0;
--
--	acpi_get_devices("PNP0C01", find_mboard_resource, &mcfg_res, NULL);
--
--	if (!mcfg_res.flags)
--		acpi_get_devices("PNP0C02", find_mboard_resource, &mcfg_res,
--				 NULL);
--
--	return mcfg_res.flags;
--}
--
--static void __init pci_mmcfg_reject_broken(void)
-+static void __init pci_mmcfg_reject_broken(int type)
- {
- 	typeof(pci_mmcfg_config[0]) *cfg;
--	int i;
- 
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
-@@ -298,36 +229,17 @@ static void __init pci_mmcfg_reject_brok
- 		goto reject;
+diff -puN drivers/acpi/processor_throttling.c~git-acpi-disable-acpi_processor_throttling_seq_show drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~git-acpi-disable-acpi_processor_throttling_seq_show
++++ a/drivers/acpi/processor_throttling.c
+@@ -648,6 +648,9 @@ static int acpi_processor_throttling_seq
+ 		goto end;
  	}
  
--	for (i = 0; i < pci_mmcfg_config_num; i++) {
--		u32 size = (cfg->end_bus_number + 1) << 20;
--		cfg = &pci_mmcfg_config[i];
--		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %p "
--		       "segment %hu buses %u - %u\n",
--		       i, (void*)cfg->address, cfg->pci_segment,
--		       (unsigned int)cfg->start_bus_number,
--		       (unsigned int)cfg->end_bus_number);
--		if (is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
--			printk(KERN_NOTICE "PCI: MCFG area at %Lx reserved "
--			       "in ACPI motherboard resources\n",
--			       cfg->address);
--		} else {
--			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not "
--			       "reserved in ACPI motherboard resources\n",
--			       cfg->address);
--			/* Don't try to do this check unless configuration
--			   type 1 is available. */
--			if ((pci_probe & PCI_PROBE_CONF1) &&
--			    e820_all_mapped(cfg->address,
--			                    cfg->address + size - 1,
--					    E820_RESERVED))
--				printk(KERN_NOTICE
--				       "PCI: MCFG area at %Lx reserved in E820\n",
--				       cfg->address);
--			else
--				goto reject;
--		}
-+	/*
-+	 * Only do this check when type 1 works. If it doesn't work
-+	 * assume we run on a Mac and always use MCFG
-+	 */
-+	if (type == 1 && !e820_all_mapped(cfg->address,
-+					  cfg->address + MMCONFIG_APER_MIN,
-+					  E820_RESERVED)) {
-+		printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not"
-+		       " E820-reserved\n", cfg->address);
-+		goto reject;
- 	}
--
- 	return;
- 
- reject:
-@@ -337,46 +249,20 @@ reject:
- 	pci_mmcfg_config_num = 0;
- }
- 
--void __init pci_mmcfg_early_init(int type)
--{
--	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
--		return;
--
--	/* If type 1 access is available, no need to enable MMCONFIG yet, we can
--	   defer until later when the ACPI interpreter is available to better
--	   validate things. */
--	if (type == 1)
--		return;
--
--	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
--
--	if ((pci_mmcfg_config_num == 0) ||
--	    (pci_mmcfg_config == NULL) ||
--	    (pci_mmcfg_config[0].address == 0))
--		return;
--
--	if (pci_mmcfg_arch_init())
--		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
--}
--
--void __init pci_mmcfg_late_init(void)
-+void __init pci_mmcfg_init(int type)
- {
- 	int known_bridge = 0;
- 
--	/* MMCONFIG disabled */
- 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
- 		return;
- 
--	/* MMCONFIG already enabled */
--	if (!(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
--		return;
--
--	if ((pci_probe & PCI_PROBE_CONF1) && pci_mmcfg_check_hostbridge())
-+	if (type == 1 && pci_mmcfg_check_hostbridge())
- 		known_bridge = 1;
--	else
--		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
- 
--	pci_mmcfg_reject_broken();
-+	if (!known_bridge) {
-+		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
-+		pci_mmcfg_reject_broken(type);
-+	}
- 
- 	if ((pci_mmcfg_config_num == 0) ||
- 	    (pci_mmcfg_config == NULL) ||
-@@ -384,7 +270,7 @@ void __init pci_mmcfg_late_init(void)
- 		return;
- 
- 	if (pci_mmcfg_arch_init()) {
--		if (pci_probe & PCI_PROBE_CONF1)
-+		if (type == 1)
- 			unreachable_devices();
- 		if (known_bridge)
- 			pci_mmcfg_insert_resources(IORESOURCE_BUSY);
-diff -puN arch/i386/pci/pci.h~revert-mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/pci.h
---- a/arch/i386/pci/pci.h~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/arch/i386/pci/pci.h
-@@ -91,8 +91,7 @@ extern int pci_conf1_read(unsigned int s
- extern int pci_direct_probe(void);
- extern void pci_direct_init(int type);
- extern void pci_pcbios_init(void);
--extern void pci_mmcfg_early_init(int type);
--extern void pci_mmcfg_late_init(void);
-+extern void pci_mmcfg_init(int type);
- extern void pcibios_sort(void);
- 
- /* pci-mmconfig.c */
-diff -puN drivers/acpi/bus.c~revert-mmconfig-validate-against-acpi-motherboard-resources drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~revert-mmconfig-validate-against-acpi-motherboard-resources
-+++ a/drivers/acpi/bus.c
-@@ -42,7 +42,6 @@
- ACPI_MODULE_NAME("bus");
- #ifdef	CONFIG_X86
- extern void __init acpi_pic_sci_set_trigger(unsigned int irq, u16 trigger);
--extern void __init pci_mmcfg_late_init(void);
- #endif
- 
- struct acpi_device *acpi_root;
-@@ -756,9 +755,6 @@ static int __init acpi_init(void)
- 	result = acpi_bus_init();
- 
- 	if (!result) {
--#ifdef CONFIG_X86
--		pci_mmcfg_late_init();
--#endif
- #ifdef CONFIG_PM_LEGACY
- 		if (!PM_IS_ACTIVE())
- 			pm_active = 1;
++	seq_puts(seq, "acpi_processor_throttling_seq_show() is busted\n");
++	goto end;
++
+ 	seq_printf(seq, "state count:             %d\n"
+ 		   "active state:            T%d\n"
+ 		   "state available: T%d to T%d\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -426,5 +205,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-revert-mmconfig-validate-against-acpi-motherboard-resources.patch
-revert-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
+git-acpi-disable-acpi_processor_throttling_seq_show.patch
