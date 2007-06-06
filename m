@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-add-rddr2-memory-types.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:50:27 -0700
-Message-ID: <200706060150.l561oRXJ007426@imap1.linux-foundation.org>
+Subject: + drivers-edac-remove-depends-on-x86.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:50:24 -0700
+Message-ID: <200706060150.l561oOvH007397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40178 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41565 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933377AbXFFBue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:50:34 -0400
+	by vger.kernel.org with ESMTP id S932552AbXFFBub (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:50:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: add RDDR2 memory types
+     drivers-edac: remove depends on x86
 has been added to the -mm tree.  Its filename is
-     drivers-edac-add-rddr2-memory-types.patch
+     drivers-edac-remove-depends-on-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: add RDDR2 memory types
+Subject: drivers-edac: remove depends on x86
 From: Douglas Thompson <dougthompson@xmission.com>
 
-Add Registered RDDR2 memory types for displaying DDR2 memories
+Remove the 'depends on x86' as EDAC runs on other ARCHs now.
 
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/edac/Kconfig |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/edac/edac_mc.h~drivers-edac-add-rddr2-memory-types drivers/edac/edac_mc.h
---- a/drivers/edac/edac_mc.h~drivers-edac-add-rddr2-memory-types
-+++ a/drivers/edac/edac_mc.h
-@@ -126,6 +126,7 @@ enum mem_type {
- 	MEM_RMBS,		/* Rambus DRAM */
- 	MEM_DDR2,               /* DDR2 RAM */
- 	MEM_FB_DDR2,            /* fully buffered DDR2 */
-+	MEM_RDDR2,              /* Registered DDR2 RAM */
- };
+diff -puN drivers/edac/Kconfig~drivers-edac-remove-depends-on-x86 drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-remove-depends-on-x86
++++ a/drivers/edac/Kconfig
+@@ -3,13 +3,11 @@
+ #	Copyright (c) 2003 Linux Networx
+ #	Licensed and distributed under the GPL
+ #
+-# $Id: Kconfig,v 1.4.2.7 2005/07/08 22:05:38 dsp_llnl Exp $
+-#
  
- #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
-@@ -141,6 +142,7 @@ enum mem_type {
- #define MEM_FLAG_RMBS		BIT(MEM_RMBS)
- #define MEM_FLAG_DDR2           BIT(MEM_DDR2)
- #define MEM_FLAG_FB_DDR2        BIT(MEM_FB_DDR2)
-+#define MEM_FLAG_RDDR2          BIT(MEM_RDDR2)
- 
- /* chipset Error Detection and Correction capabilities and mode */
- enum edac_type {
+ menuconfig EDAC
+-	tristate "EDAC - error detection and reporting (EXPERIMENTAL)"
++	bool "EDAC - error detection and reporting (EXPERIMENTAL)"
+ 	depends on HAS_IOMEM
+-	depends on X86 && EXPERIMENTAL
++	depends on EXPERIMENTAL
+ 	help
+ 	  EDAC is designed to report errors in the core system.
+ 	  These are low-level errors that are reported in the CPU or
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
