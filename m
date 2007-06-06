@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-verify-cpu-rename.patch added to -mm tree
-Date: Tue, 05 Jun 2007 21:55:41 -0700
-Message-ID: <200706060455.l564tfbx009796@imap1.linux-foundation.org>
+Subject: + ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch added to -mm tree
+Date: Tue, 05 Jun 2007 22:46:56 -0700
+Message-ID: <200706060550.l565oUUh010450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47131 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751744AbXFFEzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 00:55:52 -0400
+	by vger.kernel.org with ESMTP id S1755872AbXFFFvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 01:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, hpa@zytor.com
+Cc: akpm@linux-foundation.org, rdunlap@xenotime.net, vvs@sw.ru
 
 
 The patch titled
-     revert x86_64-mm-verify-cpu-rename
+     ext3-ext4-orphan-list-check-on-destroy_inode-fix
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-verify-cpu-rename.patch
+     ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-verify-cpu-rename
+Subject: ext3-ext4-orphan-list-check-on-destroy_inode-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make this patch from Andi's tree go away for now - it mucks up the
-git-newsetup merge.
+print_hex_dump() got fancy.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Vasily Averin <vvs@sw.ru>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig.cpu         |    2 +-
- arch/i386/kernel/verify_cpu.S |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ext3/super.c |    5 +++--
+ fs/ext4/super.c |    5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/Kconfig.cpu~revert-x86_64-mm-verify-cpu-rename arch/i386/Kconfig.cpu
---- a/arch/i386/Kconfig.cpu~revert-x86_64-mm-verify-cpu-rename
-+++ a/arch/i386/Kconfig.cpu
-@@ -344,7 +344,7 @@ config X86_CMOV
- 	depends on (MK7 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7)
- 	default y
- 
--config X86_MINIMUM_CPU_FAMILY
-+config X86_MINIMUM_CPU_MODEL
- 	int
- 	default "4" if X86_XADD || X86_CMPXCHG || X86_BSWAP
- 	default "0"
-diff -puN arch/i386/kernel/verify_cpu.S~revert-x86_64-mm-verify-cpu-rename arch/i386/kernel/verify_cpu.S
---- a/arch/i386/kernel/verify_cpu.S~revert-x86_64-mm-verify-cpu-rename
-+++ a/arch/i386/kernel/verify_cpu.S
-@@ -9,7 +9,7 @@ verify_cpu:
- 	pushl	$0			# Kill any dangerous flags
- 	popfl
- 
--#if CONFIG_X86_MINIMUM_CPU_FAMILY >= 4
-+#if CONFIG_X86_MINIMUM_CPU_MODEL >= 4
- 	pushfl
- 	pop	%eax
- 	orl	$(1<<18),%eax		# try setting AC
-@@ -75,8 +75,8 @@ verify_cpu:
- 	movl    $0x1,%eax		# Does the cpu have what it takes
- 	cpuid
- 
--#if CONFIG_X86_MINIMUM_CPU_FAMILY > 4
--#error	add proper family checking here
-+#if CONFIG_X86_MINIMUM_CPU_MODEL > 4
-+#error	add proper model checking here
- #endif
- 
- 	andl	$REQUIRED_MASK1,%edx
+diff -puN fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix
++++ a/fs/ext3/super.c
+@@ -462,8 +462,9 @@ static void ext3_destroy_inode(struct in
+ 	if (!list_empty(&(EXT3_I(inode)->i_orphan))) {
+ 		printk("EXT3 Inode %p: orphan list check failed!\n",
+ 			EXT3_I(inode));
+-		print_hex_dump(KERN_INFO, DUMP_PREFIX_ADDRESS,
+-				EXT3_I(inode), sizeof(struct ext3_inode_info));
++		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
++				EXT3_I(inode), sizeof(struct ext3_inode_info),
++				false);
+ 		dump_stack();
+ 	}
+ 	kmem_cache_free(ext3_inode_cachep, EXT3_I(inode));
+diff -puN fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix fs/ext4/super.c
+--- a/fs/ext4/super.c~ext3-ext4-orphan-list-check-on-destroy_inode-fix
++++ a/fs/ext4/super.c
+@@ -513,8 +513,9 @@ static void ext4_destroy_inode(struct in
+ 	if (!list_empty(&(EXT4_I(inode)->i_orphan))) {
+ 		printk("EXT4 Inode %p: orphan list check failed!\n",
+ 			EXT4_I(inode));
+-		print_hex_dump(KERN_INFO, DUMP_PREFIX_ADDRESS,
+-				EXT4_I(inode), sizeof(struct ext4_inode_info));
++		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 16, 4,
++				EXT4_I(inode), sizeof(struct ext4_inode_info),
++				true);
+ 		dump_stack();
+ 	}
+ 	kmem_cache_free(ext4_inode_cachep, EXT4_I(inode));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -220,3 +214,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
