@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang.patch added to -mm tree
-Date: Tue, 05 Jun 2007 23:19:42 -0700
-Message-ID: <200706060619.l566JgZj010803@imap1.linux-foundation.org>
+Subject: + bugfix-cpufreq-in-combination-with-performance-governor.patch added to -mm tree
+Date: Tue, 05 Jun 2007 23:22:59 -0700
+Message-ID: <200706060622.l566MxdD010875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38090 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756923AbXFFGUA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:20:00 -0400
+	by vger.kernel.org with ESMTP id S1758680AbXFFGXO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:23:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: James.Jarvis@ed.ac.uk, ak@suse.de
+Cc: peter.oruba@amd.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     DMI_MATCH patch in reboot.c for SFF Dell OptiPlex 745 - fixes hang on reboot
+     bugfix cpufreq in combination with performance governor
 has been added to the -mm tree.  Its filename is
-     dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang.patch
+     bugfix-cpufreq-in-combination-with-performance-governor.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: DMI_MATCH patch in reboot.c for SFF Dell OptiPlex 745 - fixes hang on reboot
-From: James Jarvis <James.Jarvis@ed.ac.uk>
+Subject: bugfix cpufreq in combination with performance governor
+From: "Peter Oruba" <peter.oruba@amd.com>
 
-The following patch enables reboot through BIOS on the Dell Optiplex 745
-Small Form Factor base, on which reboot hangs.  The larger form factor does
-not require this, hence the match on DMI_BOARD_NAME.
+There is a frequency scaling issue that I encountered with the performance
+governor in combination with CPU hotplug.
 
-Cc: Andi Kleen <ak@suse.de>
+In cpufreq.c CPU frequency is reduced to its minimum before the CPU gets
+unregistered and set offline.  Does that have a particular reason?
+
+Since the (k8-)governor does not monitor CPU frequency that setting also
+applies then to the remaining CPU as well and lets the system run on the
+lowest frequency although performance is chose as the policy.
+
+Signed-off-by: Peter Oruba <peter.oruba@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/reboot.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/cpufreq/cpufreq.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/i386/kernel/reboot.c~dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang arch/i386/kernel/reboot.c
---- a/arch/i386/kernel/reboot.c~dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang
-+++ a/arch/i386/kernel/reboot.c
-@@ -113,6 +113,15 @@ static struct dmi_system_id __initdata r
- 			DMI_MATCH(DMI_PRODUCT_NAME, "PowerEdge 300/"),
- 		},
- 	},
-+	{       /* Handle problems with rebooting on Dell Optiplex 745's SFF*/
-+		.callback = set_bios_reboot,
-+		.ident = "Dell OptiPlex 745",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 745"),
-+			DMI_MATCH(DMI_BOARD_NAME, "0WF810"),
-+		},
-+	},
- 	{	/* Handle problems with rebooting on Dell 2400's */
- 		.callback = set_bios_reboot,
- 		.ident = "Dell PowerEdge 2400",
+diff -puN drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor
++++ a/drivers/cpufreq/cpufreq.c
+@@ -1698,11 +1698,6 @@ static int cpufreq_cpu_callback(struct n
+ 			if (unlikely(lock_policy_rwsem_write(cpu)))
+ 				BUG();
+ 
+-			policy = cpufreq_cpu_data[cpu];
+-			if (policy) {
+-				__cpufreq_driver_target(policy, policy->min,
+-						CPUFREQ_RELATION_H);
+-			}
+ 			__cpufreq_remove_dev(sys_dev);
+ 			break;
+ 		case CPU_DOWN_FAILED:
 _
 
-Patches currently in -mm which might be from James.Jarvis@ed.ac.uk are
+Patches currently in -mm which might be from peter.oruba@amd.com are
 
-dmi_match-patch-in-rebootc-for-sff-dell-optiplex-745-fixes-hang.patch
+bugfix-cpufreq-in-combination-with-performance-governor.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
