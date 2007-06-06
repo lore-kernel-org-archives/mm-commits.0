@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + char-stallion-proper-fail-return-values.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:01:14 -0700
-Message-ID: <200706060101.l5611EXc006530@imap1.linux-foundation.org>
+Subject: + char-stallion-remove-user-class-report-request.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:01:16 -0700
+Message-ID: <200706060101.l5611GEe006536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762003AbXFFBBW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:01:22 -0400
+	by vger.kernel.org with ESMTP id S1765740AbXFFBBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: stallion, proper fail return values
+     Char: stallion, remove user class report request
 has been added to the -mm tree.  Its filename is
-     char-stallion-proper-fail-return-values.patch
+     char-stallion-remove-user-class-report-request.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: stallion, proper fail return values
+Subject: Char: stallion, remove user class report request
 From: Jiri Slaby <jirislaby@gmail.com>
 
-do not return 0 in one case and return proper values in other 2.
+stallion, remove user class report request
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/char/stallion.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/char/stallion.c~char-stallion-proper-fail-return-values drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-proper-fail-return-values
+diff -puN drivers/char/stallion.c~char-stallion-remove-user-class-report-request drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-remove-user-class-report-request
 +++ a/drivers/char/stallion.c
-@@ -2177,6 +2177,7 @@ static int __devinit stl_initech(struct 
- 		if (!panelp) {
- 			printk("STALLION: failed to allocate memory "
- 				"(size=%Zd)\n", sizeof(struct stlpanel));
-+			retval = -ENOMEM;
- 			goto err_fr;
- 		}
- 		panelp->magic = STL_PANELMAGIC;
-@@ -2223,8 +2224,10 @@ static int __devinit stl_initech(struct 
- 		brdp->nrports += panelp->nrports;
- 		brdp->panels[panelnr++] = panelp;
- 		if ((brdp->brdtype != BRD_ECHPCI) &&
--		    (ioaddr >= (brdp->ioaddr2 + brdp->iosize2)))
-+		    (ioaddr >= (brdp->ioaddr2 + brdp->iosize2))) {
-+			retval = -EINVAL;
- 			goto err_fr;
-+		}
- 	}
+@@ -2357,9 +2357,6 @@ static int __devinit stl_pciprobe(struct
+ 	if ((pdev->class >> 8) == PCI_CLASS_STORAGE_IDE)
+ 		goto err;
  
- 	brdp->nrpanels = panelnr;
-@@ -2371,6 +2374,7 @@ static int __devinit stl_pciprobe(struct
- 		dev_err(&pdev->dev, "too many boards found, "
- 			"maximum supported %d\n", STL_MAXBRDS);
- 		mutex_unlock(&stl_brdslock);
-+		retval = -ENODEV;
- 		goto err_fr;
- 	}
- 	brdp->brdnr = (unsigned int)brdnr;
+-	dev_info(&pdev->dev, "please, report this to LKML: %x/%x/%x\n",
+-			pdev->vendor, pdev->device, pdev->class);
+-
+ 	retval = pci_enable_device(pdev);
+ 	if (retval)
+ 		goto err;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
