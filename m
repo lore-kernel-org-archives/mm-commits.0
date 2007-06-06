@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-update-maintainers-files-for-edac.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:51:30 -0700
-Message-ID: <200706060151.l561pUkS007530@imap1.linux-foundation.org>
+Subject: + drivers-edac-lindent-i82860.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:51:18 -0700
+Message-ID: <200706060151.l561pIap007500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58404 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934484AbXFFB40 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:26 -0400
+	by vger.kernel.org with ESMTP id S933876AbXFFB4w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dougthompson@xmission.com
+Cc: djiang@mvista.com, dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: update MAINTAINERS files for EDAC
+     drivers-edac: Lindent i82860
 has been added to the -mm tree.  Its filename is
-     drivers-edac-update-maintainers-files-for-edac.patch
+     drivers-edac-lindent-i82860.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: update MAINTAINERS files for EDAC
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: drivers-edac: Lindent i82860
+From: Dave Jiang <djiang@mvista.com>
 
-Added new maintainers for the new EDAC drivers.
+Lindent cleanup of i82860 edac driver
 
+Signed-off-by: Dave Jiang <djiang@mvista.com>
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/edac/i82860_edac.c |   40 ++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
 
-diff -puN MAINTAINERS~drivers-edac-update-maintainers-files-for-edac MAINTAINERS
---- a/MAINTAINERS~drivers-edac-update-maintainers-files-for-edac
-+++ a/MAINTAINERS
-@@ -1383,6 +1383,27 @@ L:	bluesmoke-devel@lists.sourceforge.net
- W:	bluesmoke.sourceforge.net
- S:	Maintained
+diff -puN drivers/edac/i82860_edac.c~drivers-edac-lindent-i82860 drivers/edac/i82860_edac.c
+--- a/drivers/edac/i82860_edac.c~drivers-edac-lindent-i82860
++++ a/drivers/edac/i82860_edac.c
+@@ -54,8 +54,7 @@ struct i82860_error_info {
  
-+EDAC-I82443BXGX
-+P:	Tim Small
-+M:	tim@buttersideup.com
-+L:	bluesmoke-devel@lists.sourceforge.net
-+W:	bluesmoke.sourceforge.net
-+S:	Maintained
-+
-+EDAC-I3000
-+P:	Jason Uhlenkott
-+M:	juhlenko@akamai.com
-+L:	bluesmoke-devel@lists.sourceforge.net
-+W:	bluesmoke.sourceforge.net
-+S:	Maintained
-+
-+EDAC-I5000
-+P:	Doug Thompson
-+M:	norsk5@xmission.com
-+L:	bluesmoke-devel@lists.sourceforge.net
-+W:	bluesmoke.sourceforge.net
-+S:	Maintained
-+
- EDAC-R82600
- P:	Tim Small
- M:	tim@buttersideup.com
+ static const struct i82860_dev_info i82860_devs[] = {
+ 	[I82860] = {
+-		.ctl_name = "i82860"
+-	},
++		    .ctl_name = "i82860"},
+ };
+ 
+ static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code
+@@ -63,7 +62,7 @@ static struct pci_dev *mci_pdev = NULL;	
+ 					 */
+ 
+ static void i82860_get_error_info(struct mem_ctl_info *mci,
+-		struct i82860_error_info *info)
++				  struct i82860_error_info *info)
+ {
+ 	struct pci_dev *pdev;
+ 
+@@ -91,13 +90,13 @@ static void i82860_get_error_info(struct
+ 
+ 	if ((info->errsts ^ info->errsts2) & 0x0003) {
+ 		pci_read_config_dword(pdev, I82860_EAP, &info->eap);
+-		pci_read_config_word(pdev, I82860_DERRCTL_STS,
+-				&info->derrsyn);
++		pci_read_config_word(pdev, I82860_DERRCTL_STS, &info->derrsyn);
+ 	}
+ }
+ 
+ static int i82860_process_error_info(struct mem_ctl_info *mci,
+-		struct i82860_error_info *info, int handle_errors)
++				     struct i82860_error_info *info,
++				     int handle_errors)
+ {
+ 	int row;
+ 
+@@ -119,7 +118,7 @@ static int i82860_process_error_info(str
+ 		edac_mc_handle_ue(mci, info->eap, 0, row, "i82860 UE");
+ 	else
+ 		edac_mc_handle_ce(mci, info->eap, 0, info->derrsyn, row, 0,
+-				"i82860 UE");
++				  "i82860 UE");
+ 
+ 	return 1;
+ }
+@@ -136,7 +135,7 @@ static void i82860_check(struct mem_ctl_
+ static void i82860_init_csrows(struct mem_ctl_info *mci, struct pci_dev *pdev)
+ {
+ 	unsigned long last_cumul_size;
+-	u16 mchcfg_ddim;  /* DRAM Data Integrity Mode 0=none, 2=edac */
++	u16 mchcfg_ddim;	/* DRAM Data Integrity Mode 0=none, 2=edac */
+ 	u16 value;
+ 	u32 cumul_size;
+ 	struct csrow_info *csrow;
+@@ -204,12 +203,12 @@ static int i82860_probe1(struct pci_dev 
+ 	mci->edac_check = i82860_check;
+ 	mci->ctl_page_to_phys = NULL;
+ 	i82860_init_csrows(mci, pdev);
+-	i82860_get_error_info(mci, &discard);  /* clear counters */
++	i82860_get_error_info(mci, &discard);	/* clear counters */
+ 
+ 	/* Here we assume that we will never see multiple instances of this
+ 	 * type of memory controller.  The ID is therefore hardcoded to 0.
+ 	 */
+-	if (edac_mc_add_mc(mci,0)) {
++	if (edac_mc_add_mc(mci, 0)) {
+ 		debugf3("%s(): failed edac_mc_add_mc()\n", __func__);
+ 		goto fail;
+ 	}
+@@ -219,14 +218,14 @@ static int i82860_probe1(struct pci_dev 
+ 
+ 	return 0;
+ 
+-fail:
++      fail:
+ 	edac_mc_free(mci);
+ 	return -ENODEV;
+ }
+ 
+ /* returns count (>= 0), or negative on error */
+ static int __devinit i82860_init_one(struct pci_dev *pdev,
+-		const struct pci_device_id *ent)
++				     const struct pci_device_id *ent)
+ {
+ 	int rc;
+ 
+@@ -258,12 +257,11 @@ static void __devexit i82860_remove_one(
+ 
+ static const struct pci_device_id i82860_pci_tbl[] __devinitdata = {
+ 	{
+-		PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+-		I82860
+-	},
++	 PCI_VEND_DEV(INTEL, 82860_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
++	 I82860},
+ 	{
+-		0,
+-	}	/* 0 terminated list. */
++	 0,
++	 }			/* 0 terminated list. */
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, i82860_pci_tbl);
+@@ -286,7 +284,7 @@ static int __init i82860_init(void)
+ 
+ 	if (!mci_pdev) {
+ 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
+-					PCI_DEVICE_ID_INTEL_82860_0, NULL);
++					  PCI_DEVICE_ID_INTEL_82860_0, NULL);
+ 
+ 		if (mci_pdev == NULL) {
+ 			debugf0("860 pci_get_device fail\n");
+@@ -305,10 +303,10 @@ static int __init i82860_init(void)
+ 
+ 	return 0;
+ 
+-fail1:
++      fail1:
+ 	pci_unregister_driver(&i82860_driver);
+ 
+-fail0:
++      fail0:
+ 	if (mci_pdev != NULL)
+ 		pci_dev_put(mci_pdev);
+ 
+@@ -330,5 +328,5 @@ module_exit(i82860_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com) "
+-	"Ben Woodard <woodard@redhat.com>");
++	      "Ben Woodard <woodard@redhat.com>");
+ MODULE_DESCRIPTION("ECC support for Intel 82860 memory hub controllers");
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from djiang@mvista.com are
 
-drivers-edac-remove-depends-on-x86.patch
-drivers-edac-add-edac_mc_find-api.patch
-drivers-edac-add-rddr2-memory-types.patch
-drivers-edac-split-out-functions-to-unique-files.patch
-drivers-edac-add-edac_device-class.patch
 drivers-edac-mc-sysfs-add-missing-mem-types.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
-drivers-edac-coreh-fix-scrubdefs.patch
-drivers-edac-new-i82443bxgz-mc-driver.patch
 drivers-edac-add-new-nmi-rescan.patch
-drivers-edac-mod-use-edac_coreh.patch
 drivers-edac-add-dev_name-getter-function.patch
-drivers-edac-new-inte-30x0-mc-driver.patch
 drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
 drivers-edac-updated-pci-monitoring.patch
 drivers-edac-mod-assert_error-check.patch
+drivers-edac-mod-pci-poll-names.patch
 drivers-edac-core-lindent-cleanup.patch
-drivers-edac-edac_device-sysfs-cleanup.patch
-drivers-edac-cleanup-workq-ifdefs.patch
 drivers-edac-lindent-amd76x.patch
 drivers-edac-lindent-i5000.patch
 drivers-edac-lindent-e7xxx.patch
@@ -101,8 +195,3 @@ drivers-edac-lindent-e752x.patch
 drivers-edac-lindent-i82443bxgx.patch
 drivers-edac-lindent-r82600.patch
 drivers-edac-drivers-to-use-new-pci-operation.patch
-drivers-edac-add-device-sysfs-attributes.patch
-drivers-edac-device-output-clenaup.patch
-drivers-edac-add-info-kconfig.patch
-drivers-edac-update-maintainers-files-for-edac.patch
-drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
