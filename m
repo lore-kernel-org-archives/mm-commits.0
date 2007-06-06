@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bugfix-cpufreq-in-combination-with-performance-governor-fix.patch added to -mm tree
-Date: Wed, 06 Jun 2007 01:03:28 -0700
-Message-ID: <200706060803.l5683Shb012329@imap1.linux-foundation.org>
+Subject: + pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2007 09:24:54 -0700
+Message-ID: <200706061628.l56GSTrS001049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56498 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758578AbXFFIDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 04:03:46 -0400
+	by vger.kernel.org with ESMTP id S1754054AbXFFQ26 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 12:28:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@codemonkey.org.uk, peter.oruba@amd.com
+Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     bugfix-cpufreq-in-combination-with-performance-governor-fix
+     pm-introduce-hibernation-and-suspend-notifiers-fix-fix
 has been added to the -mm tree.  Its filename is
-     bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+     pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bugfix-cpufreq-in-combination-with-performance-governor-fix
+Subject: pm-introduce-hibernation-and-suspend-notifiers-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Peter Oruba" <peter.oruba@amd.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Peter Oruba <peter.oruba@amd.com>
+argh.
+
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/suspend.h |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor-fix drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~bugfix-cpufreq-in-combination-with-performance-governor-fix
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -1684,7 +1684,6 @@ static int cpufreq_cpu_callback(struct n
- {
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct sys_device *sys_dev;
--	struct cpufreq_policy *policy;
+diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix-fix include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix-fix
++++ a/include/linux/suspend.h
+@@ -108,14 +108,6 @@ static inline int unregister_pm_notifier
+ }
+ #else /* CONFIG_PM */
  
- 	sys_dev = get_cpu_sysdev(cpu);
- 	if (sys_dev) {
+-static inline void register_nosave_region(unsigned long b, unsigned long e)
+-{
+-}
+-
+-static inline void register_nosave_region_late(unsigned long b, unsigned long e)
+-{
+-}
+-
+ static inline int register_pm_notifier(struct notifier_block *nb)
+ {
+ 	return 0;
+@@ -129,4 +121,10 @@ static inline int unregister_pm_notifier
+ #define pm_notifier(fn, pri)	do { (void)(fn); } while (0)
+ #endif /* CONFIG_PM */
+ 
++#if !defined CONFIG_SOFTWARE_SUSPEND || !defined(CONFIG_PM)
++static inline void register_nosave_region(unsigned long b, unsigned long e)
++{
++}
++#endif
++
+ #endif /* _LINUX_SWSUSP_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -135,6 +155,7 @@ freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
 freezer-run-show_state-when-freezing-times-out.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix.patch
 pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
 fix-rmmod-read-write-races-in-proc-entries-fix.patch
