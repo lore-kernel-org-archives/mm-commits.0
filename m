@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-mod-pci-poll-names.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:50:58 -0700
-Message-ID: <200706060150.l561owmW007476@imap1.linux-foundation.org>
+Subject: + drivers-edac-edac_device-sysfs-cleanup.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:51:12 -0700
+Message-ID: <200706060151.l561pCeP007482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52366 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42031 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933612AbXFFBv1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:51:27 -0400
+	by vger.kernel.org with ESMTP id S933926AbXFFB40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djiang@mvista.com, dougthompson@xmissin.com
+Cc: dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: mod PCI poll names
+     drivers-edac: edac_device sysfs cleanup
 has been added to the -mm tree.  Its filename is
-     drivers-edac-mod-pci-poll-names.patch
+     drivers-edac-edac_device-sysfs-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,453 +25,158 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: mod PCI poll names
-From: Dave Jiang <djiang@mvista.com>
+Subject: drivers-edac: edac_device sysfs cleanup
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Fixup poll values for MC and PCI.
-Also make mc function names unique to mc.
+Removal of some old dead and disabled code from the edac_device sysfs code
 
-Signed-off-by: Dave Jiang <djiang@mvista.com>
-Signed-off-by: Douglas Thompson <dougthompson@xmissin.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_core.h      |    7 --
- drivers/edac/edac_mc.c        |   21 ++++----
- drivers/edac/edac_mc_sysfs.c  |   76 ++++++++++++++++++--------------
- drivers/edac/edac_module.h    |    7 ++
- drivers/edac/edac_pci.c       |   21 ++------
- drivers/edac/edac_pci_sysfs.c |   56 ++++++++++++++++++-----
- 6 files changed, 111 insertions(+), 77 deletions(-)
+ drivers/edac/edac_device_sysfs.c |  107 -----------------------------
+ 1 file changed, 107 deletions(-)
 
-diff -puN drivers/edac/edac_core.h~drivers-edac-mod-pci-poll-names drivers/edac/edac_core.h
---- a/drivers/edac/edac_core.h~drivers-edac-mod-pci-poll-names
-+++ a/drivers/edac/edac_core.h
-@@ -646,13 +646,6 @@ struct edac_pci_ctl_info {
+diff -puN drivers/edac/edac_device_sysfs.c~drivers-edac-edac_device-sysfs-cleanup drivers/edac/edac_device_sysfs.c
+--- a/drivers/edac/edac_device_sysfs.c~drivers-edac-edac_device-sysfs-cleanup
++++ a/drivers/edac/edac_device_sysfs.c
+@@ -21,113 +21,6 @@
+ #define to_edacdev(k) container_of(k, struct edac_device_ctl_info, kobj)
+ #define to_edacdev_attr(a) container_of(a, struct edacdev_attribute, attr)
  
- 	int pci_idx;
- 
--	/* Per instance controls for this edac_device */
--	int check_parity_error;	/* boolean for checking parity errs */
--	int log_parity_error;	/* boolean for logging parity errs */
--	int panic_on_pe;	/* boolean for panic'ing on a PE */
--	unsigned poll_msec;	/* number of milliseconds to poll interval */
--	unsigned long delay;	/* number of jiffies for poll_msec */
+-#ifdef DKT
 -
- 	struct sysdev_class *edac_class;	/* pointer to class */
- 
- 	/* the internal state of this controller instance */
-diff -puN drivers/edac/edac_mc.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~drivers-edac-mod-pci-poll-names
-+++ a/drivers/edac/edac_mc.c
-@@ -263,7 +263,8 @@ static void edac_mc_workq_function(void 
- 	mutex_unlock(&mem_ctls_mutex);
- 
- 	/* Reschedule */
--	queue_delayed_work(edac_workqueue, &mci->work, edac_mc_get_poll_msec());
-+	queue_delayed_work(edac_workqueue, &mci->work,
-+			msecs_to_jiffies(edac_mc_get_poll_msec()));
- }
- 
- /*
-@@ -611,7 +612,7 @@ void edac_mc_handle_ce(struct mem_ctl_in
- 		return;
- 	}
- 
--	if (edac_get_log_ce())
-+	if (edac_mc_get_log_ce())
- 		/* FIXME - put in DIMM location */
- 		edac_mc_printk(mci, KERN_WARNING,
- 			"CE page 0x%lx, offset 0x%lx, grain %d, syndrome "
-@@ -646,7 +647,7 @@ EXPORT_SYMBOL_GPL(edac_mc_handle_ce);
- 
- void edac_mc_handle_ce_no_info(struct mem_ctl_info *mci, const char *msg)
- {
--	if (edac_get_log_ce())
-+	if (edac_mc_get_log_ce())
- 		edac_mc_printk(mci, KERN_WARNING,
- 			"CE - no information available: %s\n", msg);
- 
-@@ -690,14 +691,14 @@ void edac_mc_handle_ue(struct mem_ctl_in
- 		pos += chars;
- 	}
- 
--	if (edac_get_log_ue())
-+	if (edac_mc_get_log_ue())
- 		edac_mc_printk(mci, KERN_EMERG,
- 			"UE page 0x%lx, offset 0x%lx, grain %d, row %d, "
- 			"labels \"%s\": %s\n", page_frame_number,
- 			offset_in_page, mci->csrows[row].grain, row, labels,
- 			msg);
- 
--	if (edac_get_panic_on_ue())
-+	if (edac_mc_get_panic_on_ue())
- 		panic("EDAC MC%d: UE page 0x%lx, offset 0x%lx, grain %d, "
- 			"row %d, labels \"%s\": %s\n", mci->mc_idx,
- 			page_frame_number, offset_in_page,
-@@ -710,10 +711,10 @@ EXPORT_SYMBOL_GPL(edac_mc_handle_ue);
- 
- void edac_mc_handle_ue_no_info(struct mem_ctl_info *mci, const char *msg)
- {
--	if (edac_get_panic_on_ue())
-+	if (edac_mc_get_panic_on_ue())
- 		panic("EDAC MC%d: Uncorrected Error", mci->mc_idx);
- 
--	if (edac_get_log_ue())
-+	if (edac_mc_get_log_ue())
- 		edac_mc_printk(mci, KERN_WARNING,
- 			"UE - no information available: %s\n", msg);
- 	mci->ue_noinfo_count++;
-@@ -776,13 +777,13 @@ void edac_mc_handle_fbd_ue(struct mem_ct
- 	chars = snprintf(pos, len + 1, "-%s",
- 			 mci->csrows[csrow].channels[channelb].label);
- 
--	if (edac_get_log_ue())
-+	if (edac_mc_get_log_ue())
- 		edac_mc_printk(mci, KERN_EMERG,
- 			"UE row %d, channel-a= %d channel-b= %d "
- 			"labels \"%s\": %s\n", csrow, channela, channelb,
- 			labels, msg);
- 
--	if (edac_get_panic_on_ue())
-+	if (edac_mc_get_panic_on_ue())
- 		panic("UE row %d, channel-a= %d channel-b= %d "
- 				"labels \"%s\": %s\n", csrow, channela,
- 				channelb, labels, msg);
-@@ -817,7 +818,7 @@ void edac_mc_handle_fbd_ce(struct mem_ct
- 		return;
- 	}
- 
--	if (edac_get_log_ce())
-+	if (edac_mc_get_log_ce())
- 		/* FIXME - put in DIMM location */
- 		edac_mc_printk(mci, KERN_WARNING,
- 			"CE row %d, channel %d, label \"%s\": %s\n",
-diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-mod-pci-poll-names
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -16,47 +16,44 @@
- #include "edac_module.h"
- 
- /* MC EDAC Controls, setable by module parameter, and sysfs */
--static int log_ue = 1;
--static int log_ce = 1;
--static int panic_on_ue;
--static int poll_msec = 1000;
-+static int edac_mc_log_ue = 1;
-+static int edac_mc_log_ce = 1;
-+static int edac_mc_panic_on_ue = 0;
-+static int edac_mc_poll_msec = 1000;
- 
- /* Getter functions for above */
--int edac_get_log_ue(void)
-+int edac_mc_get_log_ue(void)
- {
--	return log_ue;
-+	return edac_mc_log_ue;
- }
- 
--int edac_get_log_ce(void)
-+int edac_mc_get_log_ce(void)
- {
--	return log_ce;
-+	return edac_mc_log_ce;
- }
- 
--int edac_get_panic_on_ue(void)
-+int edac_mc_get_panic_on_ue(void)
- {
--	return panic_on_ue;
-+	return edac_mc_panic_on_ue;
- }
- 
- /* this is temporary */
- int edac_mc_get_poll_msec(void)
- {
--	return edac_get_poll_msec();
+-static ssize_t edac_dev_ue_count_show(struct edac_device_ctl_info *edac_dev,
+-				      char *data)
+-{
+-	return sprintf(data, "%d\n", edac_dev->ue_count);
 -}
 -
--int edac_get_poll_msec(void)
+-static ssize_t edac_dev_ce_count_show(struct edac_device_ctl_info *edac_dev,
+-				      char *data)
 -{
--	return poll_msec;
-+	return edac_mc_poll_msec;
- }
- 
- /* Parameter declarations for above */
--module_param(panic_on_ue, int, 0644);
--MODULE_PARM_DESC(panic_on_ue, "Panic on uncorrected error: 0=off 1=on");
--module_param(log_ue, int, 0644);
--MODULE_PARM_DESC(log_ue, "Log uncorrectable error to console: 0=off 1=on");
--module_param(log_ce, int, 0644);
--MODULE_PARM_DESC(log_ce, "Log correctable error to console: 0=off 1=on");
--module_param(poll_msec, int, 0644);
--MODULE_PARM_DESC(poll_msec, "Polling period in milliseconds");
-+module_param(edac_mc_panic_on_ue, int, 0644);
-+MODULE_PARM_DESC(edac_mc_panic_on_ue, "Panic on uncorrected error: 0=off 1=on");
-+module_param(edac_mc_log_ue, int, 0644);
-+MODULE_PARM_DESC(edac_mc_log_ue,
-+		"Log uncorrectable error to console: 0=off 1=on");
-+module_param(edac_mc_log_ce, int, 0644);
-+MODULE_PARM_DESC(edac_mc_log_ce,
-+		"Log correctable error to console: 0=off 1=on");
-+module_param(edac_mc_poll_msec, int, 0644);
-+MODULE_PARM_DESC(edac_mc_poll_msec, "Polling period in milliseconds");
- 
- 
- /*
-@@ -187,17 +184,32 @@ static struct memctrl_dev_attribute attr
- };
- 
- /* csrow<id> control files */
--MEMCTRL_ATTR(panic_on_ue,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
--MEMCTRL_ATTR(log_ue,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
--MEMCTRL_ATTR(log_ce,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
--MEMCTRL_ATTR(poll_msec,S_IRUGO|S_IWUSR,memctrl_int_show,memctrl_int_store);
-+MEMCTRL_ATTR(edac_mc_panic_on_ue,
-+		S_IRUGO | S_IWUSR,
-+		memctrl_int_show,
-+		memctrl_int_store);
-+
-+MEMCTRL_ATTR(edac_mc_log_ue,
-+		S_IRUGO|S_IWUSR,
-+		memctrl_int_show,
-+		memctrl_int_store);
-+
-+MEMCTRL_ATTR(edac_mc_log_ce,
-+		S_IRUGO|S_IWUSR,
-+		memctrl_int_show,
-+		memctrl_int_store);
-+
-+MEMCTRL_ATTR(edac_mc_poll_msec,
-+		S_IRUGO|S_IWUSR,
-+		memctrl_int_show,
-+		memctrl_int_store);
- 
- /* Base Attributes of the memory ECC object */
- static struct memctrl_dev_attribute *memctrl_attr[] = {
--	&attr_panic_on_ue,
--	&attr_log_ue,
--	&attr_log_ce,
--	&attr_poll_msec,
-+	&attr_edac_mc_panic_on_ue,
-+	&attr_edac_mc_log_ue,
-+	&attr_edac_mc_log_ce,
-+	&attr_edac_mc_poll_msec,
- 	NULL,
- };
- 
-diff -puN drivers/edac/edac_module.h~drivers-edac-mod-pci-poll-names drivers/edac/edac_module.h
---- a/drivers/edac/edac_module.h~drivers-edac-mod-pci-poll-names
-+++ a/drivers/edac/edac_module.h
-@@ -27,6 +27,9 @@ extern void edac_check_mc_devices(void);
- extern int edac_get_log_ue(void);
- extern int edac_get_log_ce(void);
- extern int edac_get_panic_on_ue(void);
-+extern int edac_mc_get_log_ue(void);
-+extern int edac_mc_get_log_ce(void);
-+extern int edac_mc_get_panic_on_ue(void);
- extern int edac_get_poll_msec(void);
- extern int edac_mc_get_poll_msec(void);
- 
-@@ -52,12 +55,16 @@ extern void edac_pci_do_parity_check(voi
- extern void edac_pci_clear_parity_errors(void);
- extern int edac_sysfs_pci_setup(void);
- extern void edac_sysfs_pci_teardown(void);
-+extern int edac_pci_get_check_errors(void);
-+extern int edac_pci_get_poll_msec(void);
- #else   /* CONFIG_PCI */
- /* pre-process these away */
- #define edac_pci_do_parity_check()
- #define edac_pci_clear_parity_errors()
- #define edac_sysfs_pci_setup()  (0)
- #define edac_sysfs_pci_teardown()
-+#define edac_pci_get_check_errors()
-+#define edac_pci_get_poll_msec()
- #endif  /* CONFIG_PCI */
- 
- 
-diff -puN drivers/edac/edac_pci.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~drivers-edac-mod-pci-poll-names
-+++ a/drivers/edac/edac_pci.c
-@@ -226,13 +226,14 @@ static void edac_pci_workq_function(void
- 
- 	if ((pci->op_state == OP_RUNNING_POLL) &&
- 		(pci->edac_check != NULL) &&
--		(pci->check_parity_error))
-+		(edac_pci_get_check_errors()))
- 		pci->edac_check(pci);
- 
- 	edac_unlock_pci_list();
- 
- 	/* Reschedule */
--	queue_delayed_work(edac_workqueue, &pci->work, pci->delay);
-+	queue_delayed_work(edac_workqueue, &pci->work,
-+			msecs_to_jiffies(edac_pci_get_poll_msec()));
- }
- 
- /*
-@@ -245,15 +246,13 @@ static void edac_pci_workq_setup(struct 
- {
- 	debugf0("%s()\n", __func__);
- 
--	pci->poll_msec = msec;
--	edac_calc_delay(pci);
--
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,20))
- 	INIT_DELAYED_WORK(&pci->work, edac_pci_workq_function);
- #else
- 	INIT_WORK(&pci->work, edac_pci_workq_function, pci);
- #endif
--	queue_delayed_work(edac_workqueue, &pci->work, pci->delay);
-+	queue_delayed_work(edac_workqueue, &pci->work,
-+			msecs_to_jiffies(edac_pci_get_poll_msec()));
- }
- 
- /*
-@@ -390,16 +389,6 @@ struct edac_pci_ctl_info * edac_pci_del_
- }
- EXPORT_SYMBOL_GPL(edac_pci_del_device);
- 
--static inline int edac_pci_get_log_pe(struct edac_pci_ctl_info *pci)
--{
--	return pci->log_parity_error;
+-	return sprintf(data, "%d\n", edac_dev->ce_count);
 -}
 -
--static inline int edac_pci_get_panic_on_pe(struct edac_pci_ctl_info *pci)
+-static ssize_t edac_dev_seconds_show(struct edac_device_ctl_info *edac_dev,
+-				     char *data)
 -{
--	return pci->panic_on_pe;
+-	return sprintf(data, "%ld\n", (jiffies - edac_dev->start_time) / HZ);
 -}
 -
- void edac_pci_generic_check(struct edac_pci_ctl_info *pci)
- {
- 	edac_pci_do_parity_check();
-diff -puN drivers/edac/edac_pci_sysfs.c~drivers-edac-mod-pci-poll-names drivers/edac/edac_pci_sysfs.c
---- a/drivers/edac/edac_pci_sysfs.c~drivers-edac-mod-pci-poll-names
-+++ a/drivers/edac/edac_pci_sysfs.c
-@@ -19,15 +19,42 @@
- #define EDAC_PCI_SYMLINK	"device"
+-static ssize_t edac_dev_ctl_name_show(struct edac_device_ctl_info *edac_dev,
+-				      char *data)
+-{
+-	return sprintf(data, "%s\n", edac_dev->ctl_name);
+-}
+-
+-struct edacdev_attribute {
+-	struct attribute attr;
+-	 ssize_t(*show) (struct edac_device_ctl_info *, char *);
+-	 ssize_t(*store) (struct edac_device_ctl_info *, const char *, size_t);
+-};
+-
+-/* EDAC DEVICE show/store functions for top most object */
+-static ssize_t edacdev_show(struct kobject *kobj, struct attribute *attr,
+-			    char *buffer)
+-{
+-	struct edac_device_ctl_info *edac_dev = to_edacdev(kobj);
+-	struct edacdev_attribute *edacdev_attr = to_edacdev_attr(attr);
+-
+-	if (edacdev_attr->show)
+-		return edacdev_attr->show(edac_dev, buffer);
+-
+-	return -EIO;
+-}
+-
+-static ssize_t edacdev_store(struct kobject *kobj, struct attribute *attr,
+-			     const char *buffer, size_t count)
+-{
+-	struct edac_device_ctl_info *edac_dev = to_edacdev(kobj);
+-	struct edacdev_attribute *edacdev_attr = to_edacdev_attr(attr);
+-
+-	if (edacdev_attr->store)
+-		return edacdev_attr->store(edac_dev, buffer, count);
+-
+-	return -EIO;
+-}
+-
+-static struct sysfs_ops edac_dev_ops = {
+-	.show = edacdev_show,
+-	.store = edacdev_store
+-};
+-
+-#define EDACDEV_ATTR(_name,_mode,_show,_store)			\
+-static struct edacdev_attribute edac_dev_attr_##_name = {			\
+-	.attr = {.name = __stringify(_name), .mode = _mode },	\
+-	.show   = _show,					\
+-	.store  = _store,					\
+-};
+-
+-/* default Control file */
+-EDACDEV_ATTR(reset_counters, S_IWUSR, NULL, edac_dev_reset_counters_store);
+-
+-/* default Attribute files */
+-EDACDEV_ATTR(mc_name, S_IRUGO, edac_dev_ctl_name_show, NULL);
+-EDACDEV_ATTR(seconds_since_reset, S_IRUGO, edac_dev_seconds_show, NULL);
+-EDACDEV_ATTR(ue_count, S_IRUGO, edac_dev_ue_count_show, NULL);
+-EDACDEV_ATTR(ce_count, S_IRUGO, edac_dev_ce_count_show, NULL);
+-
+-static struct edacdev_attribute *edacdev_attr[] = {
+-	&edacdev_attr_reset_counters,
+-	&edacdev_attr_mc_name,
+-	&edacdev_attr_seconds_since_reset,
+-	&edacdev_attr_ue_count,
+-	&edacdev_attr_ce_count,
+-	NULL
+-};
+-
+-/*
+- * Release of a Edac Device controlling instance
+- */
+-static void edac_dev_instance_release(struct kobject *kobj)
+-{
+-	struct edac_device_ctl_info *edac_dev;
+-
+-	edac_dev = to_edacdev(kobj);
+-	debugf0("%s() idx=%d\n", __func__, edac_dev->dev_idx);
+-	complete(&edac_dev->kobj_complete);
+-}
+-
+-static struct kobj_type ktype_device = {
+-	.release = edac_dev_instance_release,
+-	.sysfs_ops = &edacdev_ops,
+-	.default_attrs = (struct attribute **)edacdev_attr,
+-};
+-
+-#endif
+-
+ /************************** edac_device sysfs code and data **************/
  
- static int check_pci_errors = 0;	/* default YES check PCI parity */
--static int panic_on_pci_parity = 0;	/* default no panic on PCI Parity */
--static int log_pci_errs = 1;
-+static int edac_pci_panic_on_pe = 0;	/* default no panic on PCI Parity */
-+static int edac_pci_log_pe = 1;	/* log PCI parity errors */
-+static int edac_pci_log_npe = 1;	/* log PCI non-parity error errors */
- static atomic_t pci_parity_count = ATOMIC_INIT(0);
- static atomic_t pci_nonparity_count = ATOMIC_INIT(0);
-+static int edac_pci_poll_msec = 1000;
- 
- static struct kobject edac_pci_kobj; /* /sys/devices/system/edac/pci */
- static struct completion edac_pci_kobj_complete;
- static atomic_t edac_pci_sysfs_refcount = ATOMIC_INIT(0);
- 
-+int edac_pci_get_check_errors(void)
-+{
-+	return check_pci_errors;
-+}
-+
-+int edac_pci_get_log_pe(void)
-+{
-+	return edac_pci_log_pe;
-+}
-+
-+int edac_pci_get_log_npe(void)
-+{
-+	return edac_pci_log_npe;
-+}
-+
-+int edac_pci_get_panic_on_pe(void)
-+{
-+	return edac_pci_panic_on_pe;
-+}
-+
-+int edac_pci_get_poll_msec(void)
-+{
-+	return edac_pci_poll_msec;
-+}
-+
- /**************************** EDAC PCI sysfs instance *******************/
- static ssize_t instance_pe_count_show(struct edac_pci_ctl_info *pci, char *data)
- {
-@@ -222,9 +249,11 @@ static struct edac_pci_dev_attribute eda
- /* PCI Parity control files */
- EDAC_PCI_ATTR(check_pci_errors, S_IRUGO|S_IWUSR, edac_pci_int_show,
- 	edac_pci_int_store);
--EDAC_PCI_ATTR(log_pci_errs, S_IRUGO|S_IWUSR, edac_pci_int_show,
-+EDAC_PCI_ATTR(edac_pci_log_pe, S_IRUGO|S_IWUSR, edac_pci_int_show,
-+	edac_pci_int_store);
-+EDAC_PCI_ATTR(edac_pci_log_npe, S_IRUGO|S_IWUSR, edac_pci_int_show,
- 	edac_pci_int_store);
--EDAC_PCI_ATTR(panic_on_pci_parity, S_IRUGO|S_IWUSR, edac_pci_int_show,
-+EDAC_PCI_ATTR(edac_pci_panic_on_pe, S_IRUGO|S_IWUSR, edac_pci_int_show,
- 	edac_pci_int_store);
- EDAC_PCI_ATTR(pci_parity_count, S_IRUGO, edac_pci_int_show, NULL);
- EDAC_PCI_ATTR(pci_nonparity_count, S_IRUGO, edac_pci_int_show, NULL);
-@@ -232,8 +261,9 @@ EDAC_PCI_ATTR(pci_nonparity_count, S_IRU
- /* Base Attributes of the memory ECC object */
- static struct edac_pci_dev_attribute *edac_pci_attr[] = {
- 	&edac_pci_attr_check_pci_errors,
--	&edac_pci_attr_log_pci_errs,
--	&edac_pci_attr_panic_on_pci_parity,
-+	&edac_pci_attr_edac_pci_log_pe,
-+	&edac_pci_attr_edac_pci_log_npe,
-+	&edac_pci_attr_edac_pci_panic_on_pe,
- 	&edac_pci_attr_pci_parity_count,
- 	&edac_pci_attr_pci_nonparity_count,
- 	NULL,
-@@ -529,7 +559,7 @@ void edac_pci_do_parity_check(void)
- 	local_irq_restore(flags);
- 
- 	/* Only if operator has selected panic on PCI Error */
--	if (panic_on_pci_parity) {
-+	if (edac_pci_get_panic_on_pe()) {
- 		/* If the count is different 'after' from 'before' */
- 		if (before_count != atomic_read(&pci_parity_count))
- 			panic("EDAC: PCI Parity Error");
-@@ -549,7 +579,7 @@ void edac_pci_handle_pe(struct edac_pci_
- 	/* global PE counter incremented by edac_pci_do_parity_check() */
- 	atomic_inc(&pci->counters.pe_count);
- 
--	if (log_pci_errs)
-+	if (edac_pci_get_log_pe())
- 		edac_pci_printk(pci, KERN_WARNING,
- 				"Parity Error ctl: %s %d: %s\n",
- 				pci->ctl_name, pci->pci_idx, msg);
-@@ -568,7 +598,7 @@ void edac_pci_handle_npe(struct edac_pci
- 	/* global NPE counter incremented by edac_pci_do_parity_check() */
- 	atomic_inc(&pci->counters.npe_count);
- 
--	if (log_pci_errs)
-+	if (edac_pci_get_log_npe())
- 		edac_pci_printk(pci, KERN_WARNING,
- 				"Non-Parity Error ctl: %s %d: %s\n",
- 				pci->ctl_name, pci->pci_idx, msg);
-@@ -585,8 +615,10 @@ EXPORT_SYMBOL_GPL(edac_pci_handle_npe);
-  * Define the PCI parameter to the module
-  */
- module_param(check_pci_errors, int, 0644);
--MODULE_PARM_DESC(check_pci_errors, "Check for PCI bus parity errors: 0=off 1=on");
--module_param(panic_on_pci_parity, int, 0644);
--MODULE_PARM_DESC(panic_on_pci_parity, "Panic on PCI Bus Parity error: 0=off 1=on");
-+MODULE_PARM_DESC(check_pci_errors,
-+		"Check for PCI bus parity errors: 0=off 1=on");
-+module_param(edac_pci_panic_on_pe, int, 0644);
-+MODULE_PARM_DESC(edac_pci_panic_on_pe,
-+		"Panic on PCI Bus Parity error: 0=off 1=on");
- 
- #endif	/* CONFIG_PCI */
+ /*
 _
 
-Patches currently in -mm which might be from djiang@mvista.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
+drivers-edac-remove-depends-on-x86.patch
+drivers-edac-add-edac_mc_find-api.patch
+drivers-edac-add-rddr2-memory-types.patch
+drivers-edac-split-out-functions-to-unique-files.patch
+drivers-edac-add-edac_device-class.patch
 drivers-edac-mc-sysfs-add-missing-mem-types.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
+drivers-edac-coreh-fix-scrubdefs.patch
+drivers-edac-new-i82443bxgz-mc-driver.patch
 drivers-edac-add-new-nmi-rescan.patch
+drivers-edac-mod-use-edac_coreh.patch
 drivers-edac-add-dev_name-getter-function.patch
+drivers-edac-new-inte-30x0-mc-driver.patch
 drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
 drivers-edac-updated-pci-monitoring.patch
 drivers-edac-mod-assert_error-check.patch
-drivers-edac-mod-pci-poll-names.patch
 drivers-edac-core-lindent-cleanup.patch
+drivers-edac-edac_device-sysfs-cleanup.patch
+drivers-edac-cleanup-workq-ifdefs.patch
 drivers-edac-lindent-amd76x.patch
 drivers-edac-lindent-i5000.patch
 drivers-edac-lindent-e7xxx.patch
@@ -482,3 +187,8 @@ drivers-edac-lindent-e752x.patch
 drivers-edac-lindent-i82443bxgx.patch
 drivers-edac-lindent-r82600.patch
 drivers-edac-drivers-to-use-new-pci-operation.patch
+drivers-edac-add-device-sysfs-attributes.patch
+drivers-edac-device-output-clenaup.patch
+drivers-edac-add-info-kconfig.patch
+drivers-edac-update-maintainers-files-for-edac.patch
+drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
