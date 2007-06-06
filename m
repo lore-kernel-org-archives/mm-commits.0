@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + yet-another-uniwill-laptop-with-alc861-codec.patch added to -mm tree
-Date: Wed, 06 Jun 2007 00:01:54 -0700
-Message-ID: <200706060701.l5671smt011432@imap1.linux-foundation.org>
+Subject: + spi_lm70llp-parport-adapter-driver-correction.patch added to -mm tree
+Date: Wed, 06 Jun 2007 00:04:29 -0700
+Message-ID: <200706060704.l5674T79011464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56245 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60305 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755828AbXFFHC6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:02:58 -0400
+	by vger.kernel.org with ESMTP id S1753036AbXFFHF3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:05:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, andy@smile.org.ua, perex@suse.cz, tiwai@suse.de
+Cc: kaiwan@designergraphix.com, david-b@pacbell.net
 
 
 The patch titled
-     Yet another Uniwill laptop with ALC861 codec
+     spi_lm70llp parport adapter driver: correction
 has been added to the -mm tree.  Its filename is
-     yet-another-uniwill-laptop-with-alc861-codec.patch
+     spi_lm70llp-parport-adapter-driver-correction.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Yet another Uniwill laptop with ALC861 codec
-From: Dave Jones <davej@redhat.com>
+Subject: spi_lm70llp parport adapter driver: correction
+From: Kaiwan N Billimoria <kaiwan@designergraphix.com>
 
-Rediffed version of the patch from ..
-http://bugzilla.kernel.org/show_bug.cgi?id=8016
-that seems to be lingering for some time.
+I've found a couple of issues with the patch above
 
-Original patch by: Andy Shevchenko <andy@smile.org.ua>
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Kaiwan N Billimoria <kaiwan@designergraphix.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_realtek.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/spi/spi_lm70llp.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN sound/pci/hda/patch_realtek.c~yet-another-uniwill-laptop-with-alc861-codec sound/pci/hda/patch_realtek.c
---- a/sound/pci/hda/patch_realtek.c~yet-another-uniwill-laptop-with-alc861-codec
-+++ a/sound/pci/hda/patch_realtek.c
-@@ -9291,6 +9291,7 @@ static struct snd_pci_quirk alc861_cfg_t
- 	SND_PCI_QUIRK(0x1179, 0xff00, "Toshiba", ALC861_TOSHIBA),
- 	SND_PCI_QUIRK(0x1179, 0xff10, "Toshiba", ALC861_TOSHIBA),
- 	SND_PCI_QUIRK(0x1584, 0x9072, "Uniwill m31", ALC861_UNIWILL_M31),
-+	SND_PCI_QUIRK(0x1584, 0x9075, "Uniwill", ALC861_UNIWILL_M31),
- 	SND_PCI_QUIRK(0x1584, 0x2b01, "Uniwill X40AIx", ALC861_UNIWILL_M31),
- 	SND_PCI_QUIRK(0x1849, 0x0660, "Asrock 939SLI32", ALC660_3ST),
- 	SND_PCI_QUIRK(0x8086, 0xd600, "Intel", ALC861_3ST),
+diff -puN drivers/spi/spi_lm70llp.c~spi_lm70llp-parport-adapter-driver-correction drivers/spi/spi_lm70llp.c
+--- a/drivers/spi/spi_lm70llp.c~spi_lm70llp-parport-adapter-driver-correction
++++ a/drivers/spi/spi_lm70llp.c
+@@ -69,7 +69,7 @@
+ 
+ #define DRVNAME		"spi-lm70llp"
+ 
+-#define lm70_INIT	0xFE
++#define lm70_INIT	0xBE
+ #define SIO		0x10
+ #define nCS		0x20
+ #define SCLK		0x40
+@@ -294,7 +294,6 @@ static void spi_lm70llp_attach(struct pa
+ 		goto out_bitbang_stop;
+ 	}
+ 	pp->spidev_lm70->bits_per_word = 16;
+-	spi_setup(pp->spidev_lm70);
+ 
+ 	lm70llp = pp;
+ 
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from kaiwan@designergraphix.com are
 
-document-acked-by.patch
-yet-another-uniwill-laptop-with-alc861-codec.patch
-git-cpufreq.patch
-i386-remove-support-for-the-rise-cpu.patch
-fix-up-codingstyle-in-isofs.patch
+spi_lm70llp-parport-adapter-driver.patch
+spi_lm70llp-parport-adapter-driver-correction.patch
