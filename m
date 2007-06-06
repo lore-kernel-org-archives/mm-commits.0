@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch added to -mm tree
-Date: Tue, 05 Jun 2007 23:49:32 -0700
-Message-ID: <200706060649.l566nW14011225@imap1.linux-foundation.org>
+Subject: + kernel-sched_fairc-make-code-static.patch added to -mm tree
+Date: Tue, 05 Jun 2007 23:54:54 -0700
+Message-ID: <200706060654.l566ssVI011275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47488 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35684 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756907AbXFFGts (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:49:48 -0400
+	by vger.kernel.org with ESMTP id S964934AbXFFGzI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 02:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, rjw@sisk.pl
+Cc: bunk@stusta.de
 
 
 The patch titled
-     kernel/power/disk.c: make code static
+     kernel/sched{,_fair}.c: make code static
 has been added to the -mm tree.  Its filename is
-     swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+     kernel-sched_fairc-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/power/disk.c: make code static
+Subject: kernel/sched{,_fair}.c: make code static
 From: Adrian Bunk <bunk@stusta.de>
 
+This patch makes some needlessly global code static.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/power/disk.c~swsusp-remove-code-duplication-between-diskc-and-userc-fix kernel/power/disk.c
---- a/kernel/power/disk.c~swsusp-remove-code-duplication-between-diskc-and-userc-fix
-+++ a/kernel/power/disk.c
-@@ -45,7 +45,7 @@ enum {
- 
- static int hibernation_mode = HIBERNATION_SHUTDOWN;
- 
--struct hibernation_ops *hibernation_ops;
-+static struct hibernation_ops *hibernation_ops;
- 
- /**
-  * hibernation_set_ops - set the global hibernate operations
-@@ -189,7 +189,7 @@ int hibernation_platform_enter(void)
-  *	to power off or reboot.
+diff -puN kernel/sched.c~kernel-sched_fairc-make-code-static kernel/sched.c
+--- a/kernel/sched.c~kernel-sched_fairc-make-code-static
++++ a/kernel/sched.c
+@@ -562,7 +562,7 @@ static inline void resched_task(struct t
+  * if you go up 1 level, it's -10% CPU usage, if you go down 1 level
+  * it's +10% CPU usage.
   */
- 
--void power_down(void)
-+static void power_down(void)
- {
- 	switch (hibernation_mode) {
- 	case HIBERNATION_TEST:
+-const int prio_to_weight[40] = {
++static const int prio_to_weight[40] = {
+ /* -20 */ 88818, 71054, 56843, 45475, 36380, 29104, 23283, 18626, 14901, 11921,
+ /* -10 */  9537,  7629,  6103,  4883,  3906,  3125,  2500,  2000,  1600,  1280,
+ /*   0 */  NICE_0_LOAD /* 1024 */,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -97,6 +89,7 @@ revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
 pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
+kernel-sched_fairc-make-code-static.patch
 drivers-edac-core-make-functions-static.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
