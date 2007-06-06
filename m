@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-build-fix.patch added to -mm tree
-Date: Wed, 06 Jun 2007 10:55:07 -0700
-Message-ID: <200706061755.l56Ht7WT002872@imap1.linux-foundation.org>
+Subject: + sane-irq-initialization-in-sedlbauer-hisax.patch added to -mm tree
+Date: Wed, 06 Jun 2007 10:55:36 -0700
+Message-ID: <200706061755.l56HtaCa002886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43459 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757908AbXFFRzh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:55:37 -0400
+	by vger.kernel.org with ESMTP id S1760662AbXFFRzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peterz@infradead.org, a.p.zijlstra@chello.nl, dhowells@redhat.com
+Cc: kkeil@suse.de, bastian@bastian-friedrich.de, tv@lio96.de
 
 
 The patch titled
-     frv: build fix
+     sane irq initialization in sedlbauer hisax
 has been added to the -mm tree.  Its filename is
-     frv-build-fix.patch
+     sane-irq-initialization-in-sedlbauer-hisax.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: frv: build fix
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: sane irq initialization in sedlbauer hisax
+From: Karsten Keil <kkeil@suse.de>
 
-In file included from /usr/src/linux-2.6-2/net/ipv4/ip_input.c:118:
-include2/asm/system.h:245: error: parse error before "__cmpxchg_32"
-include2/asm/system.h:245: error: parse error before '*' token
-include2/asm/system.h:245: warning: type defaults to `int' in declaration of `__cmpxchg_32'
-include2/asm/system.h:245: warning: function declaration isn't a prototype
-include2/asm/system.h:245: warning: data definition has no type or storage class
+The interrupts schould be disabled until the driver
+is ready and the IRQ function was registered.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: David Howells <dhowells@redhat.com>
+Thanks to Bastian Friedrich  and Thomas Voegtle for spotting this.
+
+Signed-off-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Bastian Friedrich <bastian@bastian-friedrich.de>
+Signed-off-by: Thomas Voegtle <tv@lio96.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/system.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/isdn/hisax/sedlbauer.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-frv/system.h~frv-build-fix include/asm-frv/system.h
---- a/include/asm-frv/system.h~frv-build-fix
-+++ a/include/asm-frv/system.h
-@@ -12,6 +12,7 @@
- #ifndef _ASM_SYSTEM_H
- #define _ASM_SYSTEM_H
- 
-+#include <linux/types.h>
- #include <linux/linkage.h>
- 
- struct thread_struct;
+diff -puN drivers/isdn/hisax/sedlbauer.c~sane-irq-initialization-in-sedlbauer-hisax drivers/isdn/hisax/sedlbauer.c
+--- a/drivers/isdn/hisax/sedlbauer.c~sane-irq-initialization-in-sedlbauer-hisax
++++ a/drivers/isdn/hisax/sedlbauer.c
+@@ -451,6 +451,9 @@ Sedl_card_msg(struct IsdnCardState *cs, 
+ 			spin_unlock_irqrestore(&cs->lock, flags);
+ 			return(0);
+ 		case CARD_RELEASE:
++			if (cs->hw.sedl.bus == SEDL_BUS_PCI)
++				/* disable all IRQ */
++				byteout(cs->hw.sedl.cfg_reg+ 5, 0); 
+ 			if (cs->hw.sedl.chip == SEDL_CHIP_ISAC_ISAR) {
+ 				spin_lock_irqsave(&cs->lock, flags);
+ 				writereg(cs->hw.sedl.adr, cs->hw.sedl.hscx,
+@@ -468,6 +471,9 @@ Sedl_card_msg(struct IsdnCardState *cs, 
+ 			return(0);
+ 		case CARD_INIT:
+ 			spin_lock_irqsave(&cs->lock, flags);
++			if (cs->hw.sedl.bus == SEDL_BUS_PCI)
++				/* enable all IRQ */
++				byteout(cs->hw.sedl.cfg_reg+ 5, 0x02); 
+ 			reset_sedlbauer(cs);
+ 			if (cs->hw.sedl.chip == SEDL_CHIP_ISAC_ISAR) {
+ 				clear_pending_isac_ints(cs);
+@@ -667,7 +673,7 @@ setup_sedlbauer(struct IsdnCard *card)
+ 		byteout(cs->hw.sedl.cfg_reg, 0xff);
+ 		byteout(cs->hw.sedl.cfg_reg, 0x00);
+ 		byteout(cs->hw.sedl.cfg_reg+ 2, 0xdd);
+-		byteout(cs->hw.sedl.cfg_reg+ 5, 0x02);
++		byteout(cs->hw.sedl.cfg_reg+ 5, 0); /* disable all IRQ */
+ 		byteout(cs->hw.sedl.cfg_reg +3, cs->hw.sedl.reset_on);
+ 		mdelay(2);
+ 		byteout(cs->hw.sedl.cfg_reg +3, cs->hw.sedl.reset_off);
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from kkeil@suse.de are
 
-frv-build-fix.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+make-isdn-capi-use-seq_list_xxx-helpers.patch
+update-isdn-tree-to-use-pci_get_device.patch
+sane-irq-initialization-in-sedlbauer-hisax.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_i4l.patch
+use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
