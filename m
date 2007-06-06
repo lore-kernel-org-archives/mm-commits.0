@@ -1,222 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - mm-move_page_tables_up.patch removed from -mm tree
-Date: Wed, 06 Jun 2007 10:19:47 -0700
-Message-ID: <200706061719.l56HJljt002170@imap1.linux-foundation.org>
+Subject: - mm-variable-length-argument-support-fix.patch removed from -mm tree
+Date: Wed, 06 Jun 2007 10:19:53 -0700
+Message-ID: <200706061719.l56HJroO002176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36200 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753206AbXFFRUc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:20:32 -0400
+	by vger.kernel.org with ESMTP id S1754626AbXFFRUi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 13:20:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, aaw@google.com, clameter@sgi.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aaw@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: move_page_tables{,_up}
+     mm-variable-length-argument-support-fix
 has been removed from the -mm tree.  Its filename was
-     mm-move_page_tables_up.patch
+     mm-variable-length-argument-support-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: move_page_tables{,_up}
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: mm-variable-length-argument-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Provide functions for moving page tables upwards.
+fs/exec.c: In function 'setup_arg_pages':
+fs/exec.c:539: warning: unused variable 'stack_base'
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Ollie Wild <aaw@google.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+THis fix is pretty revolting.
+
+Cc: Ollie Wild <aaw@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++
- mm/mremap.c        |  105 ++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 110 insertions(+), 1 deletion(-)
+ fs/exec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-move_page_tables_up include/linux/mm.h
---- a/include/linux/mm.h~mm-move_page_tables_up
-+++ a/include/linux/mm.h
-@@ -832,6 +832,12 @@ int FASTCALL(set_page_dirty(struct page 
- int set_page_dirty_lock(struct page *page);
- int clear_page_dirty_for_io(struct page *page);
- 
-+extern unsigned long move_page_tables(struct vm_area_struct *vma,
-+		unsigned long old_addr, struct vm_area_struct *new_vma,
-+		unsigned long new_addr, unsigned long len);
-+extern unsigned long move_page_tables_up(struct vm_area_struct *vma,
-+		unsigned long old_addr, struct vm_area_struct *new_vma,
-+		unsigned long new_addr, unsigned long len);
- extern unsigned long do_mremap(unsigned long addr,
- 			       unsigned long old_len, unsigned long new_len,
- 			       unsigned long flags, unsigned long new_addr);
-diff -puN mm/mremap.c~mm-move_page_tables_up mm/mremap.c
---- a/mm/mremap.c~mm-move_page_tables_up
-+++ a/mm/mremap.c
-@@ -118,9 +118,63 @@ static void move_ptes(struct vm_area_str
- 		spin_unlock(&mapping->i_mmap_lock);
- }
- 
-+static void move_ptes_up(struct vm_area_struct *vma, pmd_t *old_pmd,
-+		unsigned long old_addr, unsigned long old_end,
-+		struct vm_area_struct *new_vma, pmd_t *new_pmd,
-+		unsigned long new_addr)
-+{
-+	struct address_space *mapping = NULL;
-+	struct mm_struct *mm = vma->vm_mm;
-+	pte_t *old_pte, *new_pte, pte;
-+	spinlock_t *old_ptl, *new_ptl;
-+	unsigned long new_end = new_addr + (old_end - old_addr);
-+
-+	if (vma->vm_file) {
-+		/*
-+		 * Subtle point from Rajesh Venkatasubramanian: before
-+		 * moving file-based ptes, we must lock vmtruncate out,
-+		 * since it might clean the dst vma before the src vma,
-+		 * and we propagate stale pages into the dst afterward.
-+		 */
-+		mapping = vma->vm_file->f_mapping;
-+		spin_lock(&mapping->i_mmap_lock);
-+		if (new_vma->vm_truncate_count &&
-+		    new_vma->vm_truncate_count != vma->vm_truncate_count)
-+			new_vma->vm_truncate_count = 0;
-+	}
-+
-+	/*
-+	 * We don't have to worry about the ordering of src and dst
-+	 * pte locks because exclusive mmap_sem prevents deadlock.
-+	 */
-+	old_pte = pte_offset_map_lock(mm, old_pmd, old_end-1, &old_ptl);
-+ 	new_pte = pte_offset_map_nested(new_pmd, new_end-1);
-+	new_ptl = pte_lockptr(mm, new_pmd);
-+	if (new_ptl != old_ptl)
-+		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
-+	arch_enter_lazy_mmu_mode();
-+
-+	for (; old_end > old_addr; old_pte--, old_end -= PAGE_SIZE,
-+				   new_pte--, new_end -= PAGE_SIZE) {
-+		if (pte_none(*old_pte))
-+			continue;
-+		pte = ptep_clear_flush(vma, old_end-1, old_pte);
-+		pte = move_pte(pte, new_vma->vm_page_prot, old_end-1, new_end-1);
-+		set_pte_at(mm, new_end-1, new_pte, pte);
-+	}
-+
-+	arch_leave_lazy_mmu_mode();
-+	if (new_ptl != old_ptl)
-+		spin_unlock(new_ptl);
-+	pte_unmap_nested(new_pte - 1);
-+	pte_unmap_unlock(old_pte - 1, old_ptl);
-+	if (mapping)
-+		spin_unlock(&mapping->i_mmap_lock);
-+}
-+
- #define LATENCY_LIMIT	(64 * PAGE_SIZE)
- 
--static unsigned long move_page_tables(struct vm_area_struct *vma,
-+unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
- 		unsigned long new_addr, unsigned long len)
+diff -puN fs/exec.c~mm-variable-length-argument-support-fix fs/exec.c
+--- a/fs/exec.c~mm-variable-length-argument-support-fix
++++ a/fs/exec.c
+@@ -536,11 +536,12 @@ int setup_arg_pages(struct linux_binprm 
+ 		    int executable_stack)
  {
-@@ -132,21 +186,25 @@ static unsigned long move_page_tables(st
+ 	unsigned long ret;
+-	unsigned long stack_base, stack_shift;
++	unsigned long stack_shift;
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = bprm->vma;
  
- 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
- 		cond_resched();
-+
- 		next = (old_addr + PMD_SIZE) & PMD_MASK;
- 		if (next - 1 > old_end)
- 			next = old_end;
- 		extent = next - old_addr;
-+
- 		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
- 		if (!old_pmd)
- 			continue;
- 		new_pmd = alloc_new_pmd(vma->vm_mm, new_addr);
- 		if (!new_pmd)
- 			break;
-+
- 		next = (new_addr + PMD_SIZE) & PMD_MASK;
- 		if (extent > next - new_addr)
- 			extent = next - new_addr;
- 		if (extent > LATENCY_LIMIT)
- 			extent = LATENCY_LIMIT;
-+
- 		move_ptes(vma, old_pmd, old_addr, old_addr + extent,
- 				new_vma, new_pmd, new_addr);
- 	}
-@@ -154,6 +212,51 @@ static unsigned long move_page_tables(st
- 	return len + old_addr - old_end;	/* how much done */
- }
- 
-+unsigned long move_page_tables_up(struct vm_area_struct *vma,
-+		unsigned long old_addr, struct vm_area_struct *new_vma,
-+		unsigned long new_addr, unsigned long len)
-+{
-+	unsigned long extent, prev, old_end, new_end;
-+	pmd_t *old_pmd, *new_pmd;
-+
-+	old_end = old_addr + len;
-+	new_end = new_addr + len;
-+	flush_cache_range(vma, old_addr, old_end);
-+
-+	for (; old_end > old_addr; old_end -= extent, new_end -= extent) {
-+		cond_resched();
-+
-+		/*
-+		 * calculate how far till prev PMD boundary for old
-+		 */
-+		prev = (old_end - 1) & PMD_MASK;
-+		if (prev < old_addr)
-+			prev = old_addr;
-+		extent = old_end - prev;
-+
-+		old_pmd = get_old_pmd(vma->vm_mm, old_end-1);
-+		if (!old_pmd)
-+			continue;
-+		new_pmd = alloc_new_pmd(vma->vm_mm, new_end-1);
-+		if (!new_pmd)
-+			break;
-+
-+		/*
-+		 * calculate and clip to prev PMD boundary for new
-+		 */
-+		prev = (new_end - 1) & PMD_MASK;
-+		if (extent > new_end - prev)
-+			extent = new_end - prev;
-+		if (extent > LATENCY_LIMIT)
-+			extent = LATENCY_LIMIT;
-+
-+		move_ptes_up(vma, old_pmd, old_end - extent, old_end,
-+				new_vma, new_pmd, new_end - extent);
-+	}
-+
-+	return old_addr + len - old_end;
-+}
-+
- static unsigned long move_vma(struct vm_area_struct *vma,
- 		unsigned long old_addr, unsigned long old_len,
- 		unsigned long new_len, unsigned long new_addr)
+ #ifdef CONFIG_STACK_GROWSUP
++	unsigned long stack_base;
+ 	/* Limit stack size to 1GB */
+ 	stack_base = current->signal->rlim[RLIMIT_STACK].rlim_max;
+ 	if (stack_base > (1 << 30))
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lumpy-reclaim-v4.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+document-acked-by.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-input-fixup.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-md-accel.patch
+git-md-accel-fixup.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
-mm-move_page_tables_up.patch
-mm-variable-length-argument-support.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+lguest-the-net-driver-include-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 mm-variable-length-argument-support-fix.patch
-fix-raw_spinlock_t-vs-lockdep.patch
-lockdep-sanitise-config_prove_locking.patch
-lockdep-reduce-the-ifdeffery.patch
-lockstat-core-infrastructure.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
 lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
-lockstat-human-readability-tweaks.patch
-lockstat-human-readability-tweaks-fix.patch
-lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
+revert-mmconfig-validate-against-acpi-motherboard-resources.patch
+revert-slub-use-ilog2-instead-of-series-of-constant-comparisons.patch
