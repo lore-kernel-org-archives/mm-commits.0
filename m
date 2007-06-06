@@ -1,286 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-postpone-hci_dev-unregistration.patch removed from -mm tree
-Date: Tue, 05 Jun 2007 21:29:40 -0700
-Message-ID: <200706060429.l564Teng009433@imap1.linux-foundation.org>
+Subject: + revert-x86_64-mm-verify-cpu-rename.patch added to -mm tree
+Date: Tue, 05 Jun 2007 21:55:41 -0700
+Message-ID: <200706060455.l564tfbx009796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54433 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47131 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751160AbXFFE3z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 00:29:55 -0400
+	by vger.kernel.org with ESMTP id S1751744AbXFFEzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 00:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, hpa@zytor.com
 
 
 The patch titled
-     Bluetooth: postpone hci_dev unregistration
-has been removed from the -mm tree.  Its filename was
-     bluetooth-postpone-hci_dev-unregistration.patch
+     revert x86_64-mm-verify-cpu-rename
+has been added to the -mm tree.  Its filename is
+     revert-x86_64-mm-verify-cpu-rename.patch
 
-This patch was dropped because it might have caused a kmalloc overrun
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Bluetooth: postpone hci_dev unregistration
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: revert x86_64-mm-verify-cpu-rename
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Bluetooth: postpone hci_dev unregistration
+Make this patch from Andi's tree go away for now - it mucks up the
+git-newsetup merge.
 
-Commit b40df57 substituted bh_lock_sock() in hci_sock_dev_event() for
-lock_sock() when unregistering HCI device, in order to prevent deadlock
-against locking in l2cap_connect_cfm() from softirq context.
-
-This however introduces another problem - hci_sock_dev_event() for
-HCI_DEV_UNREG can also be triggered in atomic context, in which calling
-lock_sock() is not safe as it could sleep.  Reported by Jeremy Fitzhardinge
-at http://lkml.org/lkml/2007/4/23/271
-
-This patch moves the detaching of sockets from hci_device into workqueue,
-so that lock_sock() can be used safely.  This requires movement of
-deallocation of hci_dev - deallocating device just after
-hci_unregister_dev() would be too soon, as it could happen before the
-workqueue has been run.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/bfusb.c        |    2 -
- drivers/bluetooth/bluecard_cs.c  |    2 -
- drivers/bluetooth/bpa10x.c       |    2 -
- drivers/bluetooth/bt3c_cs.c      |    2 -
- drivers/bluetooth/btuart_cs.c    |    2 -
- drivers/bluetooth/dtl1_cs.c      |    2 -
- drivers/bluetooth/hci_ldisc.c    |    1 
- drivers/bluetooth/hci_usb.c      |    2 -
- drivers/bluetooth/hci_vhci.c     |    2 -
- include/net/bluetooth/hci_core.h |    3 +
- net/bluetooth/hci_core.c         |    9 +++++
- net/bluetooth/hci_sock.c         |   46 +++++++++++++++--------------
- 12 files changed, 36 insertions(+), 39 deletions(-)
+ arch/i386/Kconfig.cpu         |    2 +-
+ arch/i386/kernel/verify_cpu.S |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/bluetooth/bfusb.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/bfusb.c
---- a/drivers/bluetooth/bfusb.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/bfusb.c
-@@ -762,8 +762,6 @@ static void bfusb_disconnect(struct usb_
+diff -puN arch/i386/Kconfig.cpu~revert-x86_64-mm-verify-cpu-rename arch/i386/Kconfig.cpu
+--- a/arch/i386/Kconfig.cpu~revert-x86_64-mm-verify-cpu-rename
++++ a/arch/i386/Kconfig.cpu
+@@ -344,7 +344,7 @@ config X86_CMOV
+ 	depends on (MK7 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7)
+ 	default y
  
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
--
--	hci_free_dev(hdev);
- }
+-config X86_MINIMUM_CPU_FAMILY
++config X86_MINIMUM_CPU_MODEL
+ 	int
+ 	default "4" if X86_XADD || X86_CMPXCHG || X86_BSWAP
+ 	default "0"
+diff -puN arch/i386/kernel/verify_cpu.S~revert-x86_64-mm-verify-cpu-rename arch/i386/kernel/verify_cpu.S
+--- a/arch/i386/kernel/verify_cpu.S~revert-x86_64-mm-verify-cpu-rename
++++ a/arch/i386/kernel/verify_cpu.S
+@@ -9,7 +9,7 @@ verify_cpu:
+ 	pushl	$0			# Kill any dangerous flags
+ 	popfl
  
- static struct usb_driver bfusb_driver = {
-diff -puN drivers/bluetooth/bluecard_cs.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/bluecard_cs.c
---- a/drivers/bluetooth/bluecard_cs.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/bluecard_cs.c
-@@ -851,8 +851,6 @@ static int bluecard_close(bluecard_info_
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
+-#if CONFIG_X86_MINIMUM_CPU_FAMILY >= 4
++#if CONFIG_X86_MINIMUM_CPU_MODEL >= 4
+ 	pushfl
+ 	pop	%eax
+ 	orl	$(1<<18),%eax		# try setting AC
+@@ -75,8 +75,8 @@ verify_cpu:
+ 	movl    $0x1,%eax		# Does the cpu have what it takes
+ 	cpuid
  
--	hci_free_dev(hdev);
--
- 	return 0;
- }
+-#if CONFIG_X86_MINIMUM_CPU_FAMILY > 4
+-#error	add proper family checking here
++#if CONFIG_X86_MINIMUM_CPU_MODEL > 4
++#error	add proper model checking here
+ #endif
  
-diff -puN drivers/bluetooth/bpa10x.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/bpa10x.c
---- a/drivers/bluetooth/bpa10x.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/bpa10x.c
-@@ -613,8 +613,6 @@ static void bpa10x_disconnect(struct usb
- 
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
--
--	hci_free_dev(hdev);
- }
- 
- static struct usb_driver bpa10x_driver = {
-diff -puN drivers/bluetooth/bt3c_cs.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/bt3c_cs.c
---- a/drivers/bluetooth/bt3c_cs.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/bt3c_cs.c
-@@ -640,8 +640,6 @@ static int bt3c_close(bt3c_info_t *info)
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
- 
--	hci_free_dev(hdev);
--
- 	return 0;
- }
- 
-diff -puN drivers/bluetooth/btuart_cs.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/btuart_cs.c
---- a/drivers/bluetooth/btuart_cs.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/btuart_cs.c
-@@ -570,8 +570,6 @@ static int btuart_close(btuart_info_t *i
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
- 
--	hci_free_dev(hdev);
--
- 	return 0;
- }
- 
-diff -puN drivers/bluetooth/dtl1_cs.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/dtl1_cs.c
---- a/drivers/bluetooth/dtl1_cs.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/dtl1_cs.c
-@@ -552,8 +552,6 @@ static int dtl1_close(dtl1_info_t *info)
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
- 
--	hci_free_dev(hdev);
--
- 	return 0;
- }
- 
-diff -puN drivers/bluetooth/hci_ldisc.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/hci_ldisc.c
---- a/drivers/bluetooth/hci_ldisc.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/hci_ldisc.c
-@@ -314,7 +314,6 @@ static void hci_uart_tty_close(struct tt
- 		if (test_and_clear_bit(HCI_UART_PROTO_SET, &hu->flags)) {
- 			hu->proto->close(hu);
- 			hci_unregister_dev(hdev);
--			hci_free_dev(hdev);
- 		}
- 	}
- }
-diff -puN drivers/bluetooth/hci_usb.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -1075,8 +1075,6 @@ static void hci_usb_disconnect(struct us
- 
- 	if (hci_unregister_dev(hdev) < 0)
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
--
--	hci_free_dev(hdev);
- }
- 
- static int hci_usb_suspend(struct usb_interface *intf, pm_message_t message)
-diff -puN drivers/bluetooth/hci_vhci.c~bluetooth-postpone-hci_dev-unregistration drivers/bluetooth/hci_vhci.c
---- a/drivers/bluetooth/hci_vhci.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/drivers/bluetooth/hci_vhci.c
-@@ -308,8 +308,6 @@ static int vhci_release(struct inode *in
- 		BT_ERR("Can't unregister HCI device %s", hdev->name);
- 	}
- 
--	hci_free_dev(hdev);
--
- 	file->private_data = NULL;
- 
- 	return 0;
-diff -puN include/net/bluetooth/hci_core.h~bluetooth-postpone-hci_dev-unregistration include/net/bluetooth/hci_core.h
---- a/include/net/bluetooth/hci_core.h~bluetooth-postpone-hci_dev-unregistration
-+++ a/include/net/bluetooth/hci_core.h
-@@ -132,6 +132,8 @@ struct hci_dev {
- 
- 	struct module 		*owner;
- 
-+	struct work_struct	hci_dev_unreg_work;
-+
- 	int (*open)(struct hci_dev *hdev);
- 	int (*close)(struct hci_dev *hdev);
- 	int (*flush)(struct hci_dev *hdev);
-@@ -622,6 +624,7 @@ void hci_si_event(struct hci_dev *hdev, 
- 
- /* ----- HCI Sockets ----- */
- void hci_send_to_sock(struct hci_dev *hdev, struct sk_buff *skb);
-+void hci_sock_detach(struct hci_dev *hdev);
- 
- /* HCI info for socket */
- #define hci_pi(sk) ((struct hci_pinfo *) sk)
-diff -puN net/bluetooth/hci_core.c~bluetooth-postpone-hci_dev-unregistration net/bluetooth/hci_core.c
---- a/net/bluetooth/hci_core.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/net/bluetooth/hci_core.c
-@@ -795,6 +795,14 @@ int hci_get_dev_info(void __user *arg)
- 	return err;
- }
- 
-+void hci_dev_unreg(struct work_struct *work)
-+{
-+	struct hci_dev *hdev =
-+		container_of(work, struct hci_dev, hci_dev_unreg_work);
-+	hci_sock_detach(hdev);
-+	hci_free_dev(hdev);
-+}
-+
- /* ---- Interface to HCI drivers ---- */
- 
- /* Alloc HCI device */
-@@ -807,6 +815,7 @@ struct hci_dev *hci_alloc_dev(void)
- 		return NULL;
- 
- 	skb_queue_head_init(&hdev->driver_init);
-+	INIT_WORK(&hdev->hci_dev_unreg_work, hci_dev_unreg);
- 
- 	return hdev;
- }
-diff -puN net/bluetooth/hci_sock.c~bluetooth-postpone-hci_dev-unregistration net/bluetooth/hci_sock.c
---- a/net/bluetooth/hci_sock.c~bluetooth-postpone-hci_dev-unregistration
-+++ a/net/bluetooth/hci_sock.c
-@@ -141,6 +141,28 @@ void hci_send_to_sock(struct hci_dev *hd
- 	read_unlock(&hci_sk_list.lock);
- }
- 
-+void hci_sock_detach(struct hci_dev *hdev)
-+{
-+	struct sock *sk;
-+	struct hlist_node *node;
-+
-+	/* Detach sockets from device */
-+	read_lock(&hci_sk_list.lock);
-+	sk_for_each(sk, node, &hci_sk_list.head) {
-+		lock_sock(sk);
-+		if (hci_pi(sk)->hdev == hdev) {
-+			hci_pi(sk)->hdev = NULL;
-+			sk->sk_err = EPIPE;
-+			sk->sk_state = BT_OPEN;
-+			sk->sk_state_change(sk);
-+
-+			hci_dev_put(hdev);
-+		}
-+		release_sock(sk);
-+	}
-+	read_unlock(&hci_sk_list.lock);
-+}
-+
- static int hci_sock_release(struct socket *sock)
- {
- 	struct sock *sk = sock->sk;
-@@ -658,28 +680,8 @@ static int hci_sock_dev_event(struct not
- 	ev.dev_id = hdev->id;
- 	hci_si_event(NULL, HCI_EV_SI_DEVICE, sizeof(ev), &ev);
- 
--	if (event == HCI_DEV_UNREG) {
--		struct sock *sk;
--		struct hlist_node *node;
--
--		/* Detach sockets from device */
--		read_lock(&hci_sk_list.lock);
--		sk_for_each(sk, node, &hci_sk_list.head) {
--			local_bh_disable();
--			bh_lock_sock_nested(sk);
--			if (hci_pi(sk)->hdev == hdev) {
--				hci_pi(sk)->hdev = NULL;
--				sk->sk_err = EPIPE;
--				sk->sk_state = BT_OPEN;
--				sk->sk_state_change(sk);
--
--				hci_dev_put(hdev);
--			}
--			bh_unlock_sock(sk);
--			local_bh_enable();
--		}
--		read_unlock(&hci_sk_list.lock);
--	}
-+	if (event == HCI_DEV_UNREG)
-+		schedule_work(&hdev->hci_dev_unreg_work);
- 
- 	return NOTIFY_DONE;
- }
+ 	andl	$REQUIRED_MASK1,%edx
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-hid.patch
-bluetooth-postpone-hci_dev-unregistration.patch
-git-ipwireless_cs.patch
-pie-randomization.patch
+document-acked-by.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-input-fixup.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-md-accel.patch
+git-md-accel-fixup.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+lguest-the-net-driver-include-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+audit-rework-execve-audit-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
