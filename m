@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paravirt-helper-to-disable-all-io-space.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:37:31 -0700
-Message-ID: <200706060137.l561bVPF007189@imap1.linux-foundation.org>
+Subject: + drivers-edac-add-edac_mc_find-api.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:50:25 -0700
+Message-ID: <200706060150.l561oPgX007400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764364AbXFFBhs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:37:48 -0400
+	by vger.kernel.org with ESMTP id S933298AbXFFBuc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:50:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@xensource.com, ak@suse.de, rusty@rustcorp.com.au
+Cc: dougthompson@xmission.com
 
 
 The patch titled
-     paravirt: helper to disable all IO space
+     drivers-edac: add edac_mc_find API
 has been added to the -mm tree.  Its filename is
-     paravirt-helper-to-disable-all-io-space.patch
+     drivers-edac-add-edac_mc_find-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,106 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paravirt: helper to disable all IO space
-From: Jeremy Fitzhardinge <jeremy@xensource.com>
+Subject: drivers-edac: add edac_mc_find API
+From: Douglas Thompson <dougthompson@xmission.com>
 
-In a virtual environment, device drivers such as legacy IDE will waste quite a
-lot of time probing for their devices which will never appear.  This helper
-function allows a paravirt implementation to lay claim to the whole iomem and
-ioport space, thereby disabling all device drivers trying to claim IO
-resources.
+This simple patch adds an important CORE API for EDAC that EDAC drivers can
+use to find their edac_mc control structure by passing a mem_ctl_info
+'instance' value
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Needed for subsequent patches
+
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |   33 +++++++++++++++++++++++++++++++++
- arch/i386/xen/setup.c       |    2 ++
- include/asm-i386/paravirt.h |    1 +
- 3 files changed, 36 insertions(+)
+ drivers/edac/edac_mc.c |   28 ++++++++++++++++++++++++++++
+ drivers/edac/edac_mc.h |    1 +
+ 2 files changed, 29 insertions(+)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space
-+++ a/arch/i386/kernel/paravirt.c
-@@ -228,6 +228,39 @@ static int __init print_banner(void)
+diff -puN drivers/edac/edac_mc.c~drivers-edac-add-edac_mc_find-api drivers/edac/edac_mc.c
+--- a/drivers/edac/edac_mc.c~drivers-edac-add-edac_mc_find-api
++++ a/drivers/edac/edac_mc.c
+@@ -1457,6 +1457,34 @@ static void del_mc_from_global_list(stru
  }
- core_initcall(print_banner);
  
-+static struct resource reserve_ioports = {
-+	.start = 0,
-+	.end = IO_SPACE_LIMIT,
-+	.name = "paravirt-ioport",
-+	.flags = IORESOURCE_IO | IORESOURCE_BUSY,
-+};
-+
-+static struct resource reserve_iomem = {
-+	.start = 0,
-+	.end = -1,
-+	.name = "paravirt-iomem",
-+	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
-+};
-+
-+/*
-+ * Reserve the whole legacy IO space to prevent any legacy drivers
-+ * from wasting time probing for their hardware.  This is a fairly
-+ * brute-force approach to disabling all non-virtual drivers.
+ /**
++ * edac_mc_find: Search for a mem_ctl_info structure whose index is 'idx'.
 + *
-+ * Note that this must be called very early to have any effect.
++ * If found, return a pointer to the structure.
++ * Else return NULL.
++ *
++ * Caller must hold mem_ctls_mutex.
 + */
-+int paravirt_disable_iospace(void)
++struct mem_ctl_info * edac_mc_find(int idx)
 +{
-+	int ret = 0;
++	struct list_head *item;
++	struct mem_ctl_info *mci;
 +
-+	ret = request_resource(&ioport_resource, &reserve_ioports);
-+	if (ret == 0)
-+		ret = request_resource(&iomem_resource, &reserve_iomem);
++	list_for_each(item, &mc_devices) {
++		mci = list_entry(item, struct mem_ctl_info, link);
 +
-+	return ret;
++		if (mci->mc_idx >= idx) {
++			if (mci->mc_idx == idx)
++				return mci;
++
++			break;
++		}
++	}
++
++	return NULL;
 +}
++EXPORT_SYMBOL(edac_mc_find);
 +
-+
- struct paravirt_ops paravirt_ops = {
- 	.name = "bare hardware",
- 	.paravirt_enabled = 0,
-diff -puN arch/i386/xen/setup.c~paravirt-helper-to-disable-all-io-space arch/i386/xen/setup.c
---- a/arch/i386/xen/setup.c~paravirt-helper-to-disable-all-io-space
-+++ a/arch/i386/xen/setup.c
-@@ -8,12 +8,14 @@
- #include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/pm.h>
-+#include <linux/ioport.h>
++/**
+  * edac_mc_add_mc: Insert the 'mci' structure into the mci global list and
+  *                 create sysfs entries associated with mci structure
+  * @mci: pointer to the mci structure to be added to the list
+diff -puN drivers/edac/edac_mc.h~drivers-edac-add-edac_mc_find-api drivers/edac/edac_mc.h
+--- a/drivers/edac/edac_mc.h~drivers-edac-add-edac_mc_find-api
++++ a/drivers/edac/edac_mc.h
+@@ -430,6 +430,7 @@ void edac_mc_dump_mci(struct mem_ctl_inf
+ void edac_mc_dump_csrow(struct csrow_info *csrow);
+ #endif  /* CONFIG_EDAC_DEBUG */
  
- #include <asm/elf.h>
- #include <asm/e820.h>
- #include <asm/setup.h>
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
-+#include <asm/io.h>
- 
- #include <xen/interface/physdev.h>
- #include <xen/features.h>
-diff -puN include/asm-i386/paravirt.h~paravirt-helper-to-disable-all-io-space include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt-helper-to-disable-all-io-space
-+++ a/include/asm-i386/paravirt.h
-@@ -262,6 +262,7 @@ unsigned paravirt_patch_default(u8 type,
- unsigned paravirt_patch_insns(void *site, unsigned len,
- 			      const char *start, const char *end);
- 
-+int paravirt_disable_iospace(void);
- 
- /*
-  * This generates an indirect call based on the operation type number.
++extern struct mem_ctl_info * edac_mc_find(int idx);
+ extern int edac_mc_add_mc(struct mem_ctl_info *mci,int mc_idx);
+ extern struct mem_ctl_info * edac_mc_del_mc(struct device *dev);
+ extern int edac_mc_find_csrow_by_page(struct mem_ctl_info *mci,
 _
 
-Patches currently in -mm which might be from jeremy@xensource.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
-git-kbuild.patch
-add-kstrndup-fix.patch
-fix-x86_64-mm-xen-core-xen-implementation.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
-paravirt-helper-to-disable-all-io-space.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-xen-disable-all-non-virtual-devices.patch
+drivers-edac-remove-depends-on-x86.patch
+drivers-edac-add-edac_mc_find-api.patch
+drivers-edac-add-rddr2-memory-types.patch
+drivers-edac-split-out-functions-to-unique-files.patch
+drivers-edac-add-edac_device-class.patch
+drivers-edac-mc-sysfs-add-missing-mem-types.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
+drivers-edac-coreh-fix-scrubdefs.patch
+drivers-edac-new-i82443bxgz-mc-driver.patch
+drivers-edac-add-new-nmi-rescan.patch
+drivers-edac-mod-use-edac_coreh.patch
+drivers-edac-add-dev_name-getter-function.patch
+drivers-edac-new-inte-30x0-mc-driver.patch
+drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
+drivers-edac-updated-pci-monitoring.patch
+drivers-edac-mod-assert_error-check.patch
+drivers-edac-core-lindent-cleanup.patch
+drivers-edac-edac_device-sysfs-cleanup.patch
+drivers-edac-cleanup-workq-ifdefs.patch
+drivers-edac-lindent-amd76x.patch
+drivers-edac-lindent-i5000.patch
+drivers-edac-lindent-e7xxx.patch
+drivers-edac-lindent-i3000.patch
+drivers-edac-lindent-i82860.patch
+drivers-edac-lindent-i82875p.patch
+drivers-edac-lindent-e752x.patch
+drivers-edac-lindent-i82443bxgx.patch
+drivers-edac-lindent-r82600.patch
+drivers-edac-drivers-to-use-new-pci-operation.patch
+drivers-edac-add-device-sysfs-attributes.patch
+drivers-edac-device-output-clenaup.patch
+drivers-edac-add-info-kconfig.patch
+drivers-edac-update-maintainers-files-for-edac.patch
+drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
