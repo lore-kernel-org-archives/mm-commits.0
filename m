@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-introduce-hibernation-and-suspend-notifiers-fix.patch added to -mm tree
-Date: Wed, 06 Jun 2007 00:32:12 -0700
-Message-ID: <200706060732.l567WCZ5011845@imap1.linux-foundation.org>
+Subject: + mm-variable-length-argument-support-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2007 00:31:34 -0700
+Message-ID: <200706060735.l567Z7oO011901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43589 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753637AbXFFHcg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:32:36 -0400
+	by vger.kernel.org with ESMTP id S1752621AbXFFHfU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:35:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aaw@google.com
 
 
 The patch titled
-     pm-introduce-hibernation-and-suspend-notifiers-fix
+     mm-variable-length-argument-support-fix
 has been added to the -mm tree.  Its filename is
-     pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+     mm-variable-length-argument-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm-introduce-hibernation-and-suspend-notifiers-fix
+Subject: mm-variable-length-argument-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/e820.c: In function 'e820_mark_nosave_regions':
-arch/x86_64/kernel/e820.c:248: warning: implicit declaration of function 'register_nosave_region'
+fs/exec.c: In function 'setup_arg_pages':
+fs/exec.c:539: warning: unused variable 'stack_base'
 
-these patches were pretty screwed up.
+THis fix is pretty revolting.
 
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Ollie Wild <aaw@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ fs/exec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix include/linux/suspend.h
---- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix
-+++ a/include/linux/suspend.h
-@@ -74,8 +74,6 @@ extern unsigned long get_safe_page(gfp_t
- extern void hibernation_set_ops(struct hibernation_ops *ops);
- extern int hibernate(void);
- #else /* CONFIG_SOFTWARE_SUSPEND */
--static inline void register_nosave_region(unsigned long b, unsigned long e) {}
--static inline void register_nosave_region_late(unsigned long b, unsigned long e) {}
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
- static inline void swsusp_unset_page_free(struct page *p) {}
-@@ -109,6 +107,15 @@ static inline int unregister_pm_notifier
- 	register_pm_notifier(&fn##_nb);			\
- }
- #else /* CONFIG_PM */
-+
-+static inline void register_nosave_region(unsigned long b, unsigned long e)
-+{
-+}
-+
-+static inline void register_nosave_region_late(unsigned long b, unsigned long e)
-+{
-+}
-+
- static inline int register_pm_notifier(struct notifier_block *nb) {
- 	return 0;
- }
+diff -puN fs/exec.c~mm-variable-length-argument-support-fix fs/exec.c
+--- a/fs/exec.c~mm-variable-length-argument-support-fix
++++ a/fs/exec.c
+@@ -536,11 +536,12 @@ int setup_arg_pages(struct linux_binprm 
+ 		    int executable_stack)
+ {
+ 	unsigned long ret;
+-	unsigned long stack_base, stack_shift;
++	unsigned long stack_shift;
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = bprm->vma;
+ 
+ #ifdef CONFIG_STACK_GROWSUP
++	unsigned long stack_base;
+ 	/* Limit stack size to 1GB */
+ 	stack_base = current->signal->rlim[RLIMIT_STACK].rlim_max;
+ 	if (stack_base > (1 << 30))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -204,6 +192,7 @@ cfs-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 audit-rework-execve-audit-fix.patch
+mm-variable-length-argument-support-fix.patch
 containersv10-basic-container-framework-fix.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
 containersv10-add-tasks-file-interface-fix.patch
