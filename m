@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cfs-warning-fixes.patch added to -mm tree
-Date: Wed, 06 Jun 2007 00:21:54 -0700
-Message-ID: <200706060721.l567Lwso011722@imap1.linux-foundation.org>
+Subject: + pm-introduce-hibernation-and-suspend-notifiers-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2007 00:32:12 -0700
+Message-ID: <200706060732.l567WCZ5011845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43589 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595AbXFFHWM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:22:12 -0400
+	by vger.kernel.org with ESMTP id S1753637AbXFFHcg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 03:32:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     cfs warning fixes
+     pm-introduce-hibernation-and-suspend-notifiers-fix
 has been added to the -mm tree.  Its filename is
-     cfs-warning-fixes.patch
+     pm-introduce-hibernation-and-suspend-notifiers-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cfs warning fixes
+Subject: pm-introduce-hibernation-and-suspend-notifiers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from kernel/sched.c:601:
-kernel/sched_stats.h: In function 'show_schedstat':
-kernel/sched_stats.h:30: warning: format '%lu' expects type 'long unsigned int', but argument 13 has type 'long long unsigned int'
-kernel/sched_stats.h:30: warning: format '%lu' expects type 'long unsigned int', but argument 14 has type 'long long unsigned int'
+arch/x86_64/kernel/e820.c: In function 'e820_mark_nosave_regions':
+arch/x86_64/kernel/e820.c:248: warning: implicit declaration of function 'register_nosave_region'
 
-Cc: Ingo Molnar <mingo@elte.hu>
+these patches were pretty screwed up.
+
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_stats.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/suspend.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sched_stats.h~cfs-warning-fixes kernel/sched_stats.h
---- a/kernel/sched_stats.h~cfs-warning-fixes
-+++ a/kernel/sched_stats.h
-@@ -21,7 +21,7 @@ static int show_schedstat(struct seq_fil
- 
- 		/* runqueue-specific stats */
- 		seq_printf(seq,
--		    "cpu%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
-+		    "cpu%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %llu %llu %lu",
- 		    cpu, rq->yld_both_empty,
- 		    rq->yld_act_empty, rq->yld_exp_empty, rq->yld_cnt,
- 		    rq->sched_switch, rq->sched_cnt, rq->sched_goidle,
+diff -puN include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-hibernation-and-suspend-notifiers-fix
++++ a/include/linux/suspend.h
+@@ -74,8 +74,6 @@ extern unsigned long get_safe_page(gfp_t
+ extern void hibernation_set_ops(struct hibernation_ops *ops);
+ extern int hibernate(void);
+ #else /* CONFIG_SOFTWARE_SUSPEND */
+-static inline void register_nosave_region(unsigned long b, unsigned long e) {}
+-static inline void register_nosave_region_late(unsigned long b, unsigned long e) {}
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+ static inline void swsusp_unset_page_free(struct page *p) {}
+@@ -109,6 +107,15 @@ static inline int unregister_pm_notifier
+ 	register_pm_notifier(&fn##_nb);			\
+ }
+ #else /* CONFIG_PM */
++
++static inline void register_nosave_region(unsigned long b, unsigned long e)
++{
++}
++
++static inline void register_nosave_region_late(unsigned long b, unsigned long e)
++{
++}
++
+ static inline int register_pm_notifier(struct notifier_block *nb) {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -135,6 +153,7 @@ fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
 freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
 pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
@@ -181,6 +200,7 @@ fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
 fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
 cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
 kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
 audit-rework-execve-audit-fix.patch
@@ -200,4 +220,3 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-cfs-warning-fixes.patch
