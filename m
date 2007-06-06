@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-device-output-clenaup.patch added to -mm tree
-Date: Tue, 05 Jun 2007 18:51:28 -0700
-Message-ID: <200706060151.l561pSFL007524@imap1.linux-foundation.org>
+Subject: + drivers-edac-add-info-kconfig.patch added to -mm tree
+Date: Tue, 05 Jun 2007 18:51:29 -0700
+Message-ID: <200706060151.l561pTNj007527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41575 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933934AbXFFB40 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:26 -0400
+	by vger.kernel.org with ESMTP id S934480AbXFFB4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2007 21:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: device output clenaup
+     drivers-edac: add info kconfig
 has been added to the -mm tree.  Its filename is
-     drivers-edac-device-output-clenaup.patch
+     drivers-edac-add-info-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: device output clenaup
+Subject: drivers-edac: add info kconfig
 From: Douglas Thompson <dougthompson@xmission.com>
 
-The error handling output strings needed to be refactored for better
-displaying of the error informaton.
-
-Also needed to added offset_value for output as well
+Kconfig - modified the help of EDAC
 
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/edac/Kconfig |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/edac/edac_device.c~drivers-edac-device-output-clenaup drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~drivers-edac-device-output-clenaup
-+++ a/drivers/edac/edac_device.c
-@@ -158,7 +158,7 @@ struct edac_device_ctl_info *edac_device
- 			attrib_p = &dev_attrib[block * nr_attribs];
- 			blk->attribs = attrib_p;
- 			snprintf(blk->name, sizeof(blk->name),
--				 "%s%d", edac_block_name, block + 1);
-+				 "%s%d", edac_block_name, block+offset_value);
- 			blk->name[sizeof(blk->name) - 1] = '\0';
+diff -puN drivers/edac/Kconfig~drivers-edac-add-info-kconfig drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-add-info-kconfig
++++ a/drivers/edac/Kconfig
+@@ -11,8 +11,9 @@ menuconfig EDAC
+ 	help
+ 	  EDAC is designed to report errors in the core system.
+ 	  These are low-level errors that are reported in the CPU or
+-	  supporting chipset: memory errors, cache errors, PCI errors,
+-	  thermal throttling, etc..  If unsure, select 'Y'.
++	  supporting chipset or other subsystems:
++	  memory errors, cache errors, PCI errors, thermal throttling, etc..
++	  If unsure, select 'Y'.
  
- 			debugf1("%s() instance=%d block=%d name=%s\n",
-@@ -580,7 +580,7 @@ void edac_device_handle_ce(struct edac_d
- 
- 	if (edac_device_get_log_ce(edac_dev))
- 		edac_device_printk(edac_dev, KERN_WARNING,
--				   "CE ctl: %s, instance: %s, block: %s: %s\n",
-+				   "CE: %s instance: %s block: %s '%s'\n",
- 				   edac_dev->ctl_name, instance->name,
- 				   block ? block->name : "N/A", msg);
- }
-@@ -626,12 +626,12 @@ void edac_device_handle_ue(struct edac_d
- 
- 	if (edac_device_get_log_ue(edac_dev))
- 		edac_device_printk(edac_dev, KERN_EMERG,
--				   "UE ctl: %s, instance: %s, block: %s: %s\n",
-+				   "UE: %s instance: %s block: %s '%s'\n",
- 				   edac_dev->ctl_name, instance->name,
- 				   block ? block->name : "N/A", msg);
- 
- 	if (edac_device_get_panic_on_ue(edac_dev))
--		panic("EDAC %s: UE instance: %s, block %s: %s\n",
-+		panic("EDAC %s: UE instance: %s block %s '%s'\n",
- 		      edac_dev->ctl_name, instance->name,
- 		      block ? block->name : "N/A", msg);
- }
+ 	  If this code is reporting problems on your system, please
+ 	  see the EDAC project web pages for more information at:
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
