@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + schedstats-fix-printk-format.patch added to -mm tree
-Date: Wed, 06 Jun 2007 19:04:01 -0700
-Message-ID: <200706070204.l57241N8018448@imap1.linux-foundation.org>
+Subject: + paravirt-helper-to-disable-all-io-space-fix-2.patch added to -mm tree
+Date: Wed, 06 Jun 2007 19:05:22 -0700
+Message-ID: <200706070205.l5725M1M018482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56407 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33628 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934919AbXFGCEX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 22:04:23 -0400
+	by vger.kernel.org with ESMTP id S935271AbXFGCFb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 22:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mingo@elte.hu
+Cc: jeremy@goop.org, jeremy@xensource.com
 
 
 The patch titled
-     schedstats: fix printk format
+     paravirt: fix error handling in paravirt_disable_iospace
 has been added to the -mm tree.  Its filename is
-     schedstats-fix-printk-format.patch
+     paravirt-helper-to-disable-all-io-space-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: schedstats: fix printk format
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: paravirt: fix error handling in paravirt_disable_iospace
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Fix printk format warnings for schedstats:
+Make sure everything is backed out if it fails.
 
-fs/proc/base.c:309: warning: format '%lu' expects type 'long unsigned int', but argument 3 has type 'long long unsigned int'
-fs/proc/base.c:309: warning: format '%lu' expects type 'long unsigned int', but argument 4 has type 'long long unsigned int'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/paravirt.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~schedstats-fix-printk-format fs/proc/base.c
---- a/fs/proc/base.c~schedstats-fix-printk-format
-+++ a/fs/proc/base.c
-@@ -301,7 +301,7 @@ static int proc_pid_wchan(struct task_st
-  */
- static int proc_pid_schedstat(struct task_struct *task, char *buffer)
- {
--	return sprintf(buffer, "%lu %lu %lu\n",
-+	return sprintf(buffer, "%llu %llu %lu\n",
- 			task->sched_info.cpu_time,
- 			task->sched_info.run_delay,
- 			task->sched_info.pcnt);
+diff -puN arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space-fix-2 arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space-fix-2
++++ a/arch/i386/kernel/paravirt.c
+@@ -254,8 +254,11 @@ int paravirt_disable_iospace(void)
+ 	int ret;
+ 
+ 	ret = request_resource(&ioport_resource, &reserve_ioports);
+-	if (ret == 0)
++	if (ret == 0) {
+ 		ret = request_resource(&iomem_resource, &reserve_iomem);
++		if (ret)
++			release_resource(&reserve_ioports);
++	}
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-mount-t-tmpfs-o-mpol=-check-nodes-online.patch
-isdn-diva-fix-section-mismatch.patch
-git-acpi.patch
-toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-mac80211-fix-1-bit-bitfield-to-unsigned.patch
-git-ipwireless_cs.patch
-x86_64-use-null-for-pointer.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-hexdump-more-output-formatting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+git-kbuild.patch
+add-kstrndup-fix.patch
+xen-build-fix.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+paravirt-helper-to-disable-all-io-space-fix-2.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+tidy-up-usermode-helper-waiting-a-bit-fix.patch
 add-argv_split-fix.patch
 add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+lguest-the-guest-code.patch
