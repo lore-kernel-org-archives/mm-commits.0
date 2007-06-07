@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + zsc-drain-the-transmission-line.patch added to -mm tree
-Date: Thu, 07 Jun 2007 15:44:25 -0700
-Message-ID: <200706072244.l57MiPGW010470@imap1.linux-foundation.org>
+Subject: + libata-fix-probe-time-irq-printouts.patch added to -mm tree
+Date: Thu, 07 Jun 2007 15:55:26 -0700
+Message-ID: <200706072255.l57MtQ0Z010791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764829AbXFGWpR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 18:45:17 -0400
+	by vger.kernel.org with ESMTP id S933277AbXFGWze (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 18:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, ralf@linux-mips.org
+Cc: olof@lixom.net
 
 
 The patch titled
-     zs.c: drain the transmission line
+     libata: fix probe time irq printouts
 has been added to the -mm tree.  Its filename is
-     zsc-drain-the-transmission-line.patch
+     libata-fix-probe-time-irq-printouts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: zs.c: drain the transmission line
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: libata: fix probe time irq printouts
+From: Olof Johansson <olof@lixom.net>
 
-This is an update to the zs.c driver to make it wait for the transmission
-line to become idle before disabling the transmitter or resetting the chip.
- This way the character that is on the way at the time one of these actions
-is about to be performed does not get corrupted.
+Most drivers don't seem to fill out the host->irq field, resulting in the
+wrong (no) irq being reported at probe time.  For example, sil24 on my
+system:
 
-Plus a change to reset the index/data pointer first before issuing a chip
-reset just in case the state is wrong when control of the chip is taken the
-first time.
+ata1: SATA max UDMA/100 cmd 0xd00008009001f000 ctl 0x0000000000000000 bmdma 0x0000000000000000 irq 0
+ata2: SATA max UDMA/100 cmd 0xd000080090021000 ctl 0x0000000000000000 bmdma 0x0000000000000000 irq 0
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Since they're allocated and set up in ata_host_activate(), just save them
+away there.
+
+Signed-off-by: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/zs.c |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletion(-)
+ drivers/ata/libata-core.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/serial/zs.c~zsc-drain-the-transmission-line drivers/serial/zs.c
---- a/drivers/serial/zs.c~zsc-drain-the-transmission-line
-+++ a/drivers/serial/zs.c
-@@ -240,10 +240,24 @@ static int zs_transmit_drain(struct zs_p
- 	return loops;
+diff -puN drivers/ata/libata-core.c~libata-fix-probe-time-irq-printouts drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-fix-probe-time-irq-printouts
++++ a/drivers/ata/libata-core.c
+@@ -6509,6 +6509,9 @@ int ata_host_activate(struct ata_host *h
+ 	if (rc)
+ 		devm_free_irq(host->dev, irq, host);
+ 
++	/* Used to print device info at probe */
++	host->irq = irq;
++
+ 	return rc;
  }
  
-+static int zs_line_drain(struct zs_port *zport, int irq)
-+{
-+	struct zs_scc *scc = zport->scc;
-+	int loops = 10000;
-+
-+	while (!(read_zsreg(zport, R1) & ALL_SNT) && loops--) {
-+		zs_spin_unlock_cond_irq(&scc->zlock, irq);
-+		udelay(2);
-+		zs_spin_lock_cond_irq(&scc->zlock, irq);
-+	}
-+	return loops;
-+}
-+
- 
- static void load_zsregs(struct zs_port *zport, u8 *regs, int irq)
- {
--	zs_transmit_drain(zport, irq);
-+	/* Let the current transmission finish.  */
-+	zs_line_drain(zport, irq);
- 	/* Load 'em up.  */
- 	write_zsreg(zport, R3, regs[3] & ~RxENABLE);
- 	write_zsreg(zport, R5, regs[5] & ~TxENAB);
-@@ -814,6 +828,10 @@ static void zs_reset(struct zs_port *zpo
- 	spin_lock_irqsave(&scc->zlock, flags);
- 	irq = !irqs_disabled_flags(flags);
- 	if (!scc->initialised) {
-+		/* Reset the pointer first, just in case...  */
-+		read_zsreg(zport, R0);
-+		/* And let the current transmission finish.  */
-+		zs_line_drain(zport, irq);
- 		write_zsreg(zport, R9, FHWRES);
- 		udelay(10);
- 		write_zsreg(zport, R9, 0);
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
-zs-move-to-the-serial-subsystem.patch
-zs-move-to-the-serial-subsystem-update.patch
-zsc-drain-the-transmission-line.patch
-tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
+8xx-mpc885ads-pcmcia-support.patch
+dts-kill-hardcoded-phandles.patch
+libata-config_pm=n-compile-fix.patch
+libata-fix-probe-time-irq-printouts.patch
+8xx-fix-whitespace-and-indentation.patch
