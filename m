@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-fix-1-bit-bitfield-to-unsigned.patch added to -mm tree
-Date: Wed, 06 Jun 2007 19:01:55 -0700
-Message-ID: <200706070201.l5721t0x018423@imap1.linux-foundation.org>
+Subject: + schedstats-fix-printk-format.patch added to -mm tree
+Date: Wed, 06 Jun 2007 19:04:01 -0700
+Message-ID: <200706070204.l57241N8018448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762605AbXFGCCH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 22:02:07 -0400
+	by vger.kernel.org with ESMTP id S934919AbXFGCEX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 22:04:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, mingo@elte.hu
 
 
 The patch titled
-     mac80211: fix 1-bit bitfield to unsigned
+     schedstats: fix printk format
 has been added to the -mm tree.  Its filename is
-     mac80211-fix-1-bit-bitfield-to-unsigned.patch
+     schedstats-fix-printk-format.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mac80211: fix 1-bit bitfield to unsigned
+Subject: schedstats: fix printk format
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix 17 of these pairs of sparse warnings since it's difficult for a 1-bit
-bitfield to have both a value bit and a sign bit.
+Fix printk format warnings for schedstats:
 
-net/mac80211/sta_info.h:105:16: error: dubious bitfield without explicit `signed' or `unsigned'
-net/mac80211/sta_info.h:107:15: error: dubious bitfield without explicit `signed' or `unsigned'
+fs/proc/base.c:309: warning: format '%lu' expects type 'long unsigned int', but argument 3 has type 'long long unsigned int'
+fs/proc/base.c:309: warning: format '%lu' expects type 'long unsigned int', but argument 4 has type 'long long unsigned int'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/sta_info.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/mac80211/sta_info.h~mac80211-fix-1-bit-bitfield-to-unsigned net/mac80211/sta_info.h
---- a/net/mac80211/sta_info.h~mac80211-fix-1-bit-bitfield-to-unsigned
-+++ a/net/mac80211/sta_info.h
-@@ -102,9 +102,9 @@ struct sta_info {
- #ifdef CONFIG_MAC80211_DEBUGFS
- 	int debugfs_registered;
- #endif
--	int assoc_ap:1; /* whether this is an AP that we are
--			 * associated with as a client */
--	int dls_sta:1; /* whether this stations is a DLS peer of us */
-+	unsigned int assoc_ap:1; /* whether this is an AP that we are
-+				  * associated with as a client */
-+	unsigned int dls_sta:1; /* whether this stations is a DLS peer of us */
- 
- #define DLS_STATUS_OK		0
- #define DLS_STATUS_NOLINK	1
+diff -puN fs/proc/base.c~schedstats-fix-printk-format fs/proc/base.c
+--- a/fs/proc/base.c~schedstats-fix-printk-format
++++ a/fs/proc/base.c
+@@ -301,7 +301,7 @@ static int proc_pid_wchan(struct task_st
+  */
+ static int proc_pid_schedstat(struct task_struct *task, char *buffer)
+ {
+-	return sprintf(buffer, "%lu %lu %lu\n",
++	return sprintf(buffer, "%llu %llu %lu\n",
+ 			task->sched_info.cpu_time,
+ 			task->sched_info.run_delay,
+ 			task->sched_info.pcnt);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -83,6 +79,7 @@ afs-drop-explicit-extern.patch
 add-printktime-option-deprecate-time.patch
 fs-clarify-dummy-member-in-struct.patch
 sony-laptop-use-null-for-pointer.patch
+schedstats-fix-printk-format.patch
 kernel-doc-add-tools-doc-in-makefile.patch
 kernel-doc-fix-unnamed-struct-union-warning.patch
 kernel-doc-strip-c99-comments.patch
