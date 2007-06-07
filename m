@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch added to -mm tree
-Date: Thu, 07 Jun 2007 15:42:29 -0700
-Message-ID: <200706072242.l57MgTGH010432@imap1.linux-foundation.org>
+Subject: + zsc-drain-the-transmission-line.patch added to -mm tree
+Date: Thu, 07 Jun 2007 15:44:25 -0700
+Message-ID: <200706072244.l57MiPGW010470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53809 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932402AbXFGWnN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 18:43:13 -0400
+	by vger.kernel.org with ESMTP id S1764829AbXFGWpR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 18:45:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, jens.axboe@oracle.com, neilb@suse.de
+Cc: macro@linux-mips.org, ralf@linux-mips.org
 
 
 The patch titled
-     block: drop unnecessary bvec rewinding from flush_dry_bio_endio
+     zs.c: drain the transmission line
 has been added to the -mm tree.  Its filename is
-     block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch
+     zsc-drain-the-transmission-line.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: block: drop unnecessary bvec rewinding from flush_dry_bio_endio
-From: Tejun Heo <htejun@gmail.com>
+Subject: zs.c: drain the transmission line
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Barrier bios are completed twice - once after the barrier write itself
-is done and again after the whole sequence is complete.
-flush_dry_bio_endio() is for the first completion.  It doesn't really
-complete the bio.  It rewinds bvec and resets bio so that it can be
-completed again when the whole barrier sequence is complete.
+This is an update to the zs.c driver to make it wait for the transmission
+line to become idle before disabling the transmitter or resetting the chip.
+ This way the character that is on the way at the time one of these actions
+is about to be performed does not get corrupted.
 
-The bvec rewinding code has the following problems.
+Plus a change to reset the index/data pointer first before issuing a chip
+reset just in case the state is wrong when control of the chip is taken the
+first time.
 
-1. The rewinding code is wrong because filesystems may pass bvec with
-   non zero bv_offset.
-
-2. The block layer doesn't guarantee anything about the state of
-   bvec array on request completion.  bv_offset and len are updated
-   iff __end_that_request_first() completes the bvec partially.
-
-Because of #2, #1 doesn't really matter (nobody cares whether bvec is
-re-wound correctly or not) but then again by not doing unwinding at
-all, we'll always give back the same bvec to the caller as full bvec
-completion doesn't alter bvecs and the final completion is always full
-completion.
-
-Drop unnecessary rewinding code.
-
-This is spotted by Neil Brown.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    9 ---------
- 1 files changed, 9 deletions(-)
+ drivers/serial/zs.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN block/ll_rw_blk.c~block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio
-+++ a/block/ll_rw_blk.c
-@@ -518,8 +518,6 @@ int blk_do_ordered(request_queue_t *q, s
- static int flush_dry_bio_endio(struct bio *bio, unsigned int bytes, int error)
+diff -puN drivers/serial/zs.c~zsc-drain-the-transmission-line drivers/serial/zs.c
+--- a/drivers/serial/zs.c~zsc-drain-the-transmission-line
++++ a/drivers/serial/zs.c
+@@ -240,10 +240,24 @@ static int zs_transmit_drain(struct zs_p
+ 	return loops;
+ }
+ 
++static int zs_line_drain(struct zs_port *zport, int irq)
++{
++	struct zs_scc *scc = zport->scc;
++	int loops = 10000;
++
++	while (!(read_zsreg(zport, R1) & ALL_SNT) && loops--) {
++		zs_spin_unlock_cond_irq(&scc->zlock, irq);
++		udelay(2);
++		zs_spin_lock_cond_irq(&scc->zlock, irq);
++	}
++	return loops;
++}
++
+ 
+ static void load_zsregs(struct zs_port *zport, u8 *regs, int irq)
  {
- 	request_queue_t *q = bio->bi_private;
--	struct bio_vec *bvec;
--	int i;
- 
- 	/*
- 	 * This is dry run, restore bio_sector and size.  We'll finish
-@@ -531,13 +529,6 @@ static int flush_dry_bio_endio(struct bi
- 	if (bio->bi_size)
- 		return 1;
- 
--	/* Rewind bvec's */
--	bio->bi_idx = 0;
--	bio_for_each_segment(bvec, bio, i) {
--		bvec->bv_len += bvec->bv_offset;
--		bvec->bv_offset = 0;
--	}
--
- 	/* Reset bio */
- 	set_bit(BIO_UPTODATE, &bio->bi_flags);
- 	bio->bi_size = q->bi_size;
+-	zs_transmit_drain(zport, irq);
++	/* Let the current transmission finish.  */
++	zs_line_drain(zport, irq);
+ 	/* Load 'em up.  */
+ 	write_zsreg(zport, R3, regs[3] & ~RxENABLE);
+ 	write_zsreg(zport, R5, regs[5] & ~TxENAB);
+@@ -814,6 +828,10 @@ static void zs_reset(struct zs_port *zpo
+ 	spin_lock_irqsave(&scc->zlock, flags);
+ 	irq = !irqs_disabled_flags(flags);
+ 	if (!scc->initialised) {
++		/* Reset the pointer first, just in case...  */
++		read_zsreg(zport, R0);
++		/* And let the current transmission finish.  */
++		zs_line_drain(zport, irq);
+ 		write_zsreg(zport, R9, FHWRES);
+ 		udelay(10);
+ 		write_zsreg(zport, R9, 0);
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-sata_promise-use-tf-interface-for-polling-nodata-commands.patch
-git-libata-all.patch
-pata_acpi-restore-driver.patch
-libata-implement-ata_wait_after_reset.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-git-scsi-misc.patch
-update-documentation-block-barriertxt.patch
-block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
-lib-add-idr_for_each.patch
-lib-add-idr_for_each-fix.patch
-lib-add-idr_remove_all.patch
+zs-move-to-the-serial-subsystem.patch
+zs-move-to-the-serial-subsystem-update.patch
+zsc-drain-the-transmission-line.patch
+tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
