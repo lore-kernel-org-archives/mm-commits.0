@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-driver-for-at32ap700x-devices-fix-2.patch added to -mm tree
-Date: Thu, 07 Jun 2007 16:08:53 -0700
-Message-ID: <200706072308.l57N8rYt011240@imap1.linux-foundation.org>
+Subject: + ehea-fixed-possible-kernel-panic-on-vlan-packet-recv.patch added to -mm tree
+Date: Thu, 07 Jun 2007 16:10:42 -0700
+Message-ID: <200706072310.l57NAgmb011258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57182 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933204AbXFGXJH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 19:09:07 -0400
+	by vger.kernel.org with ESMTP id S1756794AbXFGXLD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 19:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hcegtvedt@atmel.com, hskinnemoen@atmel.com, wim@iguana.be
+Cc: osstklei@de.ibm.com, meder@de.ibm.com, ossrosch@linux.vnet.ibm.com, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com
 
 
 The patch titled
-     watchdog-driver-for-at32ap700x-devices-fix-2
+     ehea: fix possible kernel panic on VLAN packet recv
 has been added to the -mm tree.  Its filename is
-     watchdog-driver-for-at32ap700x-devices-fix-2.patch
+     ehea-fixed-possible-kernel-panic-on-vlan-packet-recv.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,195 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: watchdog-driver-for-at32ap700x-devices-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ehea: fix possible kernel panic on VLAN packet recv
+From: Thomas Klein <osstklei@de.ibm.com>
 
-standard ifdef-reduction trick.
+Fix a possible kernel panic due to not checking the vlan group when
+processing received VLAN packets and a malfunction in VLAN/hypervisor
+registration.
 
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Thomas Klein <tklein@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: "Jan-Bernd Themann" <themann@de.ibm.com>
+Cc: Marcus Eder <meder@de.ibm.com>
+Cc: Stefan Roscher <ossrosch@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/at32ap700x_wdt.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/ehea/ehea.h      |    2 +-
+ drivers/net/ehea/ehea_main.c |   12 +++++-------
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-2 drivers/char/watchdog/at32ap700x_wdt.c
---- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-2
-+++ a/drivers/char/watchdog/at32ap700x_wdt.c
-@@ -283,14 +283,15 @@ static int at32_wdt_resume(struct platfo
- 		at32_wdt_start();
- 	return 0;
- }
-+#else
-+#define at32_wdt_suspend NULL
-+#define at32_wdt_resume NULL
- #endif
+diff -puN drivers/net/ehea/ehea.h~ehea-fixed-possible-kernel-panic-on-vlan-packet-recv drivers/net/ehea/ehea.h
+--- a/drivers/net/ehea/ehea.h~ehea-fixed-possible-kernel-panic-on-vlan-packet-recv
++++ a/drivers/net/ehea/ehea.h
+@@ -39,7 +39,7 @@
+ #include <asm/io.h>
  
- static struct platform_driver at32_wdt_driver = {
- 	.remove		= __exit_p(at32_wdt_remove),
--#ifdef CONFIG_PM
- 	.suspend	= at32_wdt_suspend,
- 	.resume		= at32_wdt_resume,
--#endif
- 	.driver		= {
- 		.name	= "at32_wdt",
- 		.owner	= THIS_MODULE,
+ #define DRV_NAME	"ehea"
+-#define DRV_VERSION	"EHEA_0061"
++#define DRV_VERSION	"EHEA_0064"
+ 
+ #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
+ 	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
+diff -puN drivers/net/ehea/ehea_main.c~ehea-fixed-possible-kernel-panic-on-vlan-packet-recv drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~ehea-fixed-possible-kernel-panic-on-vlan-packet-recv
++++ a/drivers/net/ehea/ehea_main.c
+@@ -451,7 +451,8 @@ static struct ehea_cqe *ehea_proc_rwqes(
+ 				processed_rq3++;
+ 			}
+ 
+-			if (cqe->status & EHEA_CQE_VLAN_TAG_XTRACT)
++			if ((cqe->status & EHEA_CQE_VLAN_TAG_XTRACT)
++			    && port->vgrp)
+ 				vlan_hwaccel_receive_skb(skb, port->vgrp,
+ 							 cqe->vlan_tag);
+ 			else
+@@ -1910,10 +1911,7 @@ static void ehea_vlan_rx_register(struct
+ 		goto out;
+ 	}
+ 
+-	if (grp)
+-		memset(cb1->vlan_filter, 0, sizeof(cb1->vlan_filter));
+-	else
+-		memset(cb1->vlan_filter, 0xFF, sizeof(cb1->vlan_filter));
++	memset(cb1->vlan_filter, 0, sizeof(cb1->vlan_filter));
+ 
+ 	hret = ehea_h_modify_ehea_port(adapter->handle, port->logical_port_id,
+ 				       H_PORT_CB1, H_PORT_CB1_ALL, cb1);
+@@ -1947,7 +1945,7 @@ static void ehea_vlan_rx_add_vid(struct 
+ 	}
+ 
+ 	index = (vid / 64);
+-	cb1->vlan_filter[index] |= ((u64)(1 << (vid & 0x3F)));
++	cb1->vlan_filter[index] |= ((u64)(0x8000000000000000 >> (vid & 0x3F)));
+ 
+ 	hret = ehea_h_modify_ehea_port(adapter->handle, port->logical_port_id,
+ 				       H_PORT_CB1, H_PORT_CB1_ALL, cb1);
+@@ -1982,7 +1980,7 @@ static void ehea_vlan_rx_kill_vid(struct
+ 	}
+ 
+ 	index = (vid / 64);
+-	cb1->vlan_filter[index] &= ~((u64)(1 << (vid & 0x3F)));
++	cb1->vlan_filter[index] &= ~((u64)(0x8000000000000000 >> (vid & 0x3F)));
+ 
+ 	hret = ehea_h_modify_ehea_port(adapter->handle, port->logical_port_id,
+ 				       H_PORT_CB1, H_PORT_CB1_ALL, cb1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from osstklei@de.ibm.com are
 
-document-acked-by.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-acpi-disable-acpi_processor_throttling_seq_show.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-input-fixup.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix-2.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-git-xtensa.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
-lguest-the-net-driver-include-fix.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+ehea-fixed-possible-kernel-panic-on-vlan-packet-recv.patch
