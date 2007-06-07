@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-diva-fix-section-mismatch.patch added to -mm tree
-Date: Wed, 06 Jun 2007 18:59:30 -0700
-Message-ID: <200706070159.l571xUdO018356@imap1.linux-foundation.org>
+Subject: + serial-convert-early_uart-to-earlycon-for-8250-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2007 19:01:13 -0700
+Message-ID: <200706070201.l5721DSW018412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53417 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48051 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764962AbXFGB7s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 21:59:48 -0400
+	by vger.kernel.org with ESMTP id S1759468AbXFGCB5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 22:01:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, kkeil@suse.de
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
 
 
 The patch titled
-     isdn/diva: fix section mismatch
+     serial-convert-early_uart-to-earlycon-for-8250 fix
 has been added to the -mm tree.  Its filename is
-     isdn-diva-fix-section-mismatch.patch
+     serial-convert-early_uart-to-earlycon-for-8250-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isdn/diva: fix section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: serial-convert-early_uart-to-earlycon-for-8250 fix
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-__exit function is used by both init and exit routines, so it cannot
-be marked __init.  (from allyesconfig)
+please use this one instead. it fixs ia64 compilation.
 
-WARNING: drivers/built-in.o(.text+0x9b83cf): Section mismatch: reference to .exit.text: (between 'divasfunc_exit' and 'didd_callback')
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Gerd Hoffmann <kraxel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/divasfunc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/pcdp.c     |    5 +++--
+ drivers/serial/8250_early.c |    2 +-
+ include/linux/serial_8250.h |    1 +
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/divasfunc.c~isdn-diva-fix-section-mismatch drivers/isdn/hardware/eicon/divasfunc.c
---- a/drivers/isdn/hardware/eicon/divasfunc.c~isdn-diva-fix-section-mismatch
-+++ a/drivers/isdn/hardware/eicon/divasfunc.c
-@@ -195,7 +195,7 @@ static int DIVA_INIT_FUNCTION connect_di
- /*
-  * disconnect from didd
-  */
--static void DIVA_EXIT_FUNCTION disconnect_didd(void)
-+static void disconnect_didd(void)
- {
- 	IDI_SYNC_REQ req;
+diff -puN drivers/firmware/pcdp.c~serial-convert-early_uart-to-earlycon-for-8250-fix drivers/firmware/pcdp.c
+--- a/drivers/firmware/pcdp.c~serial-convert-early_uart-to-earlycon-for-8250-fix
++++ a/drivers/firmware/pcdp.c
+@@ -15,6 +15,7 @@
+ #include <linux/console.h>
+ #include <linux/efi.h>
+ #include <linux/serial.h>
++#include <linux/serial_8250.h>
+ #include <asm/vga.h>
+ #include "pcdp.h"
  
+@@ -27,7 +28,7 @@ setup_serial_console(struct pcdp_uart *u
+ 	char parity;
+ 
+ 	mmio = (uart->addr.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY);
+-	p += sprintf(p, "console=uart,%s,0x%lx",
++	p += sprintf(p, "uart8250,%s,0x%lx",
+ 		mmio ? "mmio" : "io", uart->addr.address);
+ 	if (uart->baud) {
+ 		p += sprintf(p, ",%lu", uart->baud);
+@@ -41,7 +42,7 @@ setup_serial_console(struct pcdp_uart *u
+ 		}
+ 	}
+ 
+-	return early_serial_console_init(options);
++	return setup_early_serial8250_console(options);
+ #else
+ 	return -ENODEV;
+ #endif
+diff -puN drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250-fix drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250-fix
++++ a/drivers/serial/8250_early.c
+@@ -204,7 +204,7 @@ static int __init early_serial8250_setup
+ 	return 0;
+ }
+ 
+-static int __init setup_early_serial8250_console(char *cmdline)
++int __init setup_early_serial8250_console(char *cmdline)
+ {
+ 	char *options;
+ 	int err;
+diff -puN include/linux/serial_8250.h~serial-convert-early_uart-to-earlycon-for-8250-fix include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~serial-convert-early_uart-to-earlycon-for-8250-fix
++++ a/include/linux/serial_8250.h
+@@ -62,5 +62,6 @@ void serial8250_resume_port(int line);
+ 
+ extern int serial8250_find_port(struct uart_port *p);
+ extern int serial8250_find_port_for_earlycon(void);
++extern int setup_early_serial8250_console(char *cmdline);
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-mount-t-tmpfs-o-mpol=-check-nodes-online.patch
-isdn-diva-fix-section-mismatch.patch
-git-acpi.patch
-toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-x86_64-use-null-for-pointer.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-hexdump-more-output-formatting.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix.patch
+serial-assert-dtr-for-serial-console-devices.patch
