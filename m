@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-change-kmalloc-memset-to-kzalloc.patch added to -mm tree
-Date: Wed, 06 Jun 2007 18:24:43 -0700
-Message-ID: <200706070124.l571OhoO017796@imap1.linux-foundation.org>
+Subject: + submitchecklist-update-fix-spelling-error.patch added to -mm tree
+Date: Wed, 06 Jun 2007 18:39:50 -0700
+Message-ID: <200706070139.l571dosQ017995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52458 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47023 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756938AbXFGBZE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 21:25:04 -0400
+	by vger.kernel.org with ESMTP id S1755655AbXFGBkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2007 21:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wyatt@banksresearch.com, zippel@linux-m68k.org
+Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     HFSPlus: change kmalloc/memset to kzalloc
+     SubmitChecklist update, fix spelling error
 has been added to the -mm tree.  Its filename is
-     hfsplus-change-kmalloc-memset-to-kzalloc.patch
+     submitchecklist-update-fix-spelling-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HFSPlus: change kmalloc/memset to kzalloc
-From: Wyatt Banks <wyatt@banksresearch.com>
+Subject: SubmitChecklist update, fix spelling error
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Removed kmalloc and memset in favor of kzalloc.
-
-To explain the HFSPLUS_SB() macro in the removed memset call:
-
-hfsplus_fs.h:#define HFSPLUS_SB(super)  (*(struct hfsplus_sb_info *)(super)->s_fs_info)
-
-Signed-off-by: Wyatt Banks <wyatt@banksresearch.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/super.c |    3 +--
+ Documentation/SubmitChecklist |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/super.c~hfsplus-change-kmalloc-memset-to-kzalloc fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-change-kmalloc-memset-to-kzalloc
-+++ a/fs/hfsplus/super.c
-@@ -283,11 +283,10 @@ static int hfsplus_fill_super(struct sup
- 	struct nls_table *nls = NULL;
- 	int err = -EINVAL;
+diff -puN Documentation/SubmitChecklist~submitchecklist-update-fix-spelling-error Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~submitchecklist-update-fix-spelling-error
++++ a/Documentation/SubmitChecklist
+@@ -1,4 +1,4 @@
+-Linux Kernel patch sumbittal checklist
++Linux Kernel patch submission checklist
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
--	sbi = kmalloc(sizeof(struct hfsplus_sb_info), GFP_KERNEL);
-+	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
- 		return -ENOMEM;
+ Here are some basic things that developers should do if they want to see their
+@@ -9,7 +9,6 @@ Documentation/SubmittingPatches and else
+ kernel patches.
  
--	memset(sbi, 0, sizeof(HFSPLUS_SB(sb)));
- 	sb->s_fs_info = sbi;
- 	INIT_HLIST_HEAD(&sbi->rsrc_inodes);
- 	hfsplus_fill_defaults(sbi);
+ 
+-
+ 1: Builds cleanly with applicable or modified CONFIG options =y, =m, and
+    =n.  No gcc warnings/errors, no linker warnings/errors.
+ 
 _
 
-Patches currently in -mm which might be from wyatt@banksresearch.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-hfsplus-change-kmalloc-memset-to-kzalloc.patch
+volatile-considered-harmful-take-3.patch
+submitchecklist-update-fix-spelling-error.patch
