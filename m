@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:15:56 -0700
-Message-ID: <200706082319.l58NJWkc015404@imap1.linux-foundation.org>
+Subject: + serio_raw_read-warning-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:19:52 -0700
+Message-ID: <200706082323.l58NNSmL015479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42073 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753973AbXFHXTl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:19:41 -0400
+	by vger.kernel.org with ESMTP id S1752358AbXFHXXj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:23:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, dtor@mail.ru
 
 
 The patch titled
-     ide_scan_pcibus(): cehck __pci_register_driver return value
+     serio_raw_read(): warning fix
 has been added to the -mm tree.  Its filename is
-     ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+     serio_raw_read-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide_scan_pcibus(): cehck __pci_register_driver return value
+Subject: serio_raw_read(): warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/setup-pci.c: In function 'ide_scan_pcibus':
-drivers/ide/setup-pci.c:879: warning: ignoring return value of '__pci_register_driver', declared with attribute warn_unused_result
+drivers/input/serio/serio_raw.c: In function 'serio_raw_read':
+drivers/input/serio/serio_raw.c:163: warning: 'c' may be used uninitialized in this function
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/setup-pci.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/input/serio/serio_raw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/setup-pci.c~ide_scan_pcibus-cehck-__pci_register_driver-return-value drivers/ide/setup-pci.c
---- a/drivers/ide/setup-pci.c~ide_scan_pcibus-cehck-__pci_register_driver-return-value
-+++ a/drivers/ide/setup-pci.c
-@@ -872,11 +872,15 @@ void __init ide_scan_pcibus (int scan_di
- 	 *	are post init.
- 	 */
+diff -puN drivers/input/serio/serio_raw.c~serio_raw_read-warning-fix drivers/input/serio/serio_raw.c
+--- a/drivers/input/serio/serio_raw.c~serio_raw_read-warning-fix
++++ a/drivers/input/serio/serio_raw.c
+@@ -160,7 +160,7 @@ static ssize_t serio_raw_read(struct fil
+ {
+ 	struct serio_raw_list *list = file->private_data;
+ 	struct serio_raw *serio_raw = list->serio_raw;
+-	char c;
++	char uninitialized_var(c);
+ 	ssize_t retval = 0;
  
--	list_for_each_safe(l, n, &ide_pci_drivers)
--	{
-+	list_for_each_safe(l, n, &ide_pci_drivers) {
- 		list_del(l);
- 		d = list_entry(l, struct pci_driver, node);
--		__pci_register_driver(d, d->driver.owner, d->driver.mod_name);
-+		if (__pci_register_driver(d, d->driver.owner,
-+					d->driver.mod_name)) {
-+			printk(KERN_ERR "%s: failed to register driver "
-+					"for %s\n", __FUNCTION__,
-+					 d->driver.mod_name);
-+		}
- 	}
- }
- #endif
+ 	if (!serio_raw->serio)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +78,7 @@ git-kbuild.patch
 git-kvm.patch
 git-leds.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 git-md-accel.patch
 git-mips-fixup.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
@@ -230,4 +221,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+serio_raw_read-warning-fix.patch
