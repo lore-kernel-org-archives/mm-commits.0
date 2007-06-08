@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + add-containerstats-v3-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 15:37:38 -0700
-Message-ID: <200706082241.l58MfEHW014676@imap1.linux-foundation.org>
+Subject: + binfmt_elf-warning-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:10:12 -0700
+Message-ID: <200706082313.l58NDmx5015322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55490 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50490 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970724AbXFHWlj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 18:41:39 -0400
+	by vger.kernel.org with ESMTP id S1753984AbXFHXN4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:13:56 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l58NDs7k014888
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Jun 2007 16:13:55 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     add-containerstats-v3-fix
+     binfmt_elf warning fix
 has been added to the -mm tree.  Its filename is
-     add-containerstats-v3-fix.patch
+     binfmt_elf-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +29,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-containerstats-v3-fix
+Subject: binfmt_elf warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/taskstats.c: In function 'containerstats_user_cmd':
-kernel/taskstats.c:414: error: dereferencing pointer to incomplete type
+fs/binfmt_elf.c: In function 'load_elf_binary':
+fs/binfmt_elf.c:1002: warning: 'interp_map_addr' may be used uninitialized in this function
 
-Cc: Paul Menage <menage@google.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+The compiler (gcc-4.1.0) is correct, but it failed to notice that we didn't
+use the resulting value.
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/taskstats.c~add-containerstats-v3-fix kernel/taskstats.c
---- a/kernel/taskstats.c~add-containerstats-v3-fix
-+++ a/kernel/taskstats.c
-@@ -25,6 +25,7 @@
- #include <linux/percpu.h>
- #include <linux/containerstats.h>
- #include <linux/container.h>
-+#include <linux/fs.h>
- #include <linux/file.h>
- #include <net/genetlink.h>
- #include <asm/atomic.h>
+diff -puN fs/binfmt_elf.c~binfmt_elf-warning-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-warning-fix
++++ a/fs/binfmt_elf.c
+@@ -999,7 +999,7 @@ static int load_elf_binary(struct linux_
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+ 		} else {
+-			unsigned long interp_map_addr;	/* unused */
++			unsigned long interp_map_addr = 0;	/* unused */
+ 
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -219,3 +226,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+binfmt_elf-warning-fix.patch
