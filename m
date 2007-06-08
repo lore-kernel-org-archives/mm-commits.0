@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + x86_64-oops_begin-fix.patch added to -mm tree
-Date: Thu, 07 Jun 2007 20:11:42 -0700
-Message-ID: <200706080311.l583BgUv017074@imap1.linux-foundation.org>
+Date: Thu, 07 Jun 2007 20:17:15 -0700
+Message-ID: <200706080317.l583HGLC017246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40509 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966614AbXFHDLw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 23:11:52 -0400
+	by vger.kernel.org with ESMTP id S967243AbXFHDSM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 23:18:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -48,21 +48,28 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/traps.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/traps.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff -puN arch/x86_64/kernel/traps.c~x86_64-oops_begin-fix arch/x86_64/kernel/traps.c
 --- a/arch/x86_64/kernel/traps.c~x86_64-oops_begin-fix
 +++ a/arch/x86_64/kernel/traps.c
-@@ -532,7 +532,7 @@ static unsigned int die_nest_count;
+@@ -532,13 +532,14 @@ static unsigned int die_nest_count;
  
  unsigned __kprobes long oops_begin(void)
  {
 -	int cpu = smp_processor_id();
-+	int cpu = raw_smp_processor_id();
++	int cpu;
  	unsigned long flags;
  
  	oops_enter();
+ 
+ 	/* racy, but better than risking deadlock. */
+ 	local_irq_save(flags);
++	cpu = smp_processor_id();
+ 	if (!spin_trylock(&die_lock)) { 
+ 		if (cpu == die_owner) 
+ 			/* nested oops. should stop eventually */;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
