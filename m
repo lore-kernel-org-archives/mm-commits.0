@@ -1,77 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-speed-up-paravirt_lazy_flush-handling.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:13:55 -0700
-Message-ID: <200706080613.l586Dt2N020966@imap1.linux-foundation.org>
+Subject: - lguest-the-guest-code-tidyups-update.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:13:51 -0700
+Message-ID: <200706080613.l586Dp9w020960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54331 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39806 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbXFHGOF (ORCPT
+	by vger.kernel.org with ESMTP id S1754903AbXFHGOF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:14:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: speed up PARAVIRT_LAZY_FLUSH handling
+     lguest: guest tidyups
 has been removed from the -mm tree.  Its filename was
-     lguest-speed-up-paravirt_lazy_flush-handling.patch
+     lguest-the-guest-code-tidyups-update.patch
 
 This patch was dropped because it was folded into lguest-the-guest-code.patch
 
 ------------------------------------------------------
-Subject: lguest: speed up PARAVIRT_LAZY_FLUSH handling
+Subject: lguest: guest tidyups
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-When Zach Amsden added PARAVIRT_LAZY_FLUSH I didn't realize how often it would
-get called.  We only need to do something if we're actually in lazy mode.
+Jeff Garzik argued forcefully that __pa() should not appear in
+drivers, and that struct netdevice's irq field should not be used.
+Christoph Hellwig suggested that I run sparse, and provide an
+lguest-specific wrapper for mapping/unmapping virtual device memory.
 
-Before:
-Time for one context switch via pipe: 10509 (9863 - 18761)
-Time for one Copy-on-Write fault: 71796 (20625 - 207750)
-Time to exec client once: 1076218 (1066203 - 1085937)
-Time for one fork/exit/wait: 1193125 (574750 - 1197750)
-Time for two PTE updates: 10844 (10659 - 20703)
-
-After:
-Time for one context switch via pipe: 6745 (6521 - 13966)
-Time for one Copy-on-Write fault: 44734 (11468 - 91988)
-Time to exec client once: 815984 (801218 - 878218)
-Time for one fork/exit/wait: 1023250 (397687 - 1030375)
-Time for two PTE updates: 6699 (6475 - 9279)
-
-(Native for comparison):
-Time for one context switch via pipe: 4031 (3212 - 4146)
-Time for one Copy-on-Write fault: 4402 (4388 - 4426)
-Time to exec client once: 343859 (336859 - 349484)
-Time for one fork/exit/wait: 120234 (118500 - 136140)
-Time for two PTE updates: 2269 (2261 - 2272)
+Results:
+1) send-dma and bind-dma hypercall wrappers for drivers to use,
+2) formalization of the convention that devices can use the irq
+   corresponding to their index on the lguest_bus.
+3) Helper to map and unmap virtual device memory (not classic __iomem).
+4) lguest.c should include "lguest_bus.h" for lguest_devices declaration.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/lguest/lguest.c     |   13 +++++++++++++
+ drivers/lguest/lguest_bus.c |    2 +-
+ include/linux/lguest_bus.h  |    4 ++++
+ 3 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-speed-up-paravirt_lazy_flush-handling drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-speed-up-paravirt_lazy_flush-handling
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-tidyups-update drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-tidyups-update
 +++ a/drivers/lguest/lguest.c
-@@ -59,9 +59,10 @@ static __initdata const struct lguest_bo
- static enum paravirt_lazy_mode lazy_mode;
- static void lguest_lazy_mode(enum paravirt_lazy_mode mode)
+@@ -36,6 +36,7 @@
+ #include <asm/setup.h>
+ #include <asm/e820.h>
+ #include <asm/mce.h>
++#include <asm/io.h>
+ 
+ /* Declarations for definitions in lguest_guest.S */
+ extern char lguest_noirq_start[], lguest_noirq_end[];
+@@ -122,6 +123,18 @@ void lguest_unbind_dma(unsigned long key
+ 	hcall(LHCALL_BIND_DMA, key, __pa(dmas), 0);
+ }
+ 
++/* For guests, device memory can be used as normal memory, so we cast away the
++ * __iomem to quieten sparse. */
++void *lguest_map(unsigned long phys_addr, unsigned long pages)
++{
++	return (__force void *)ioremap(phys_addr, PAGE_SIZE*pages);
++}
++
++void lguest_unmap(void *addr)
++{
++	iounmap((__force void __iomem *)addr);
++}
++
+ static unsigned long save_fl(void)
  {
--	if (mode == PARAVIRT_LAZY_FLUSH)
--		hcall(LHCALL_FLUSH_ASYNC, 0, 0, 0);
--	else {
-+	if (mode == PARAVIRT_LAZY_FLUSH) {
-+		if (unlikely(lazy_mode != PARAVIRT_LAZY_NONE))
-+			hcall(LHCALL_FLUSH_ASYNC, 0, 0, 0);
-+	} else {
- 		lazy_mode = mode;
- 		if (mode == PARAVIRT_LAZY_NONE)
- 			hcall(LHCALL_FLUSH_ASYNC, 0, 0, 0);
+ 	return lguest_data.irq_enabled;
+diff -puN drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups-update drivers/lguest/lguest_bus.c
+--- a/drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups-update
++++ a/drivers/lguest/lguest_bus.c
+@@ -136,7 +136,7 @@ static int __init lguest_bus_init(void)
+ 		return 0;
+ 
+ 	/* Devices are in page above top of "normal" mem. */
+-	lguest_devices = (__force void*)ioremap(max_pfn<<PAGE_SHIFT,PAGE_SIZE);
++	lguest_devices = lguest_map(max_pfn<<PAGE_SHIFT, 1);
+ 
+ 	if (bus_register(&lguest_bus.bus) != 0
+ 	    || device_register(&lguest_bus.dev) != 0)
+diff -puN include/linux/lguest_bus.h~lguest-the-guest-code-tidyups-update include/linux/lguest_bus.h
+--- a/include/linux/lguest_bus.h~lguest-the-guest-code-tidyups-update
++++ a/include/linux/lguest_bus.h
+@@ -27,6 +27,10 @@ int lguest_bind_dma(unsigned long key, s
+ 		    unsigned int num, u8 irq);
+ void lguest_unbind_dma(unsigned long key, struct lguest_dma *dmas);
+ 
++/* Map the virtual device space */
++void *lguest_map(unsigned long phys_addr, unsigned long pages);
++void lguest_unmap(void *);
++
+ struct lguest_driver {
+ 	const char *name;
+ 	struct module *owner;
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -87,6 +117,8 @@ cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-proce
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
+lguest-the-guest-code-tidyups-update.patch
+lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit.patch
 lguest-speed-up-paravirt_lazy_flush-handling.patch
 lguest-more-lazy_hcalls.patch
 lguest-the-guest-code-tsc-fix.patch
