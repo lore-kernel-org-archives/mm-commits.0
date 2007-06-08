@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + driver-edac-remove-null-from-statics.patch added to -mm tree
-Date: Fri, 08 Jun 2007 12:40:41 -0700
-Message-ID: <200706081940.l58Jefjo009880@imap1.linux-foundation.org>
+Subject: + driver-edac-fix-ignored-return-i82875p.patch added to -mm tree
+Date: Fri, 08 Jun 2007 12:40:35 -0700
+Message-ID: <200706081940.l58JeZiV009871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48116 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967990AbXFHTks (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:40:48 -0400
+	by vger.kernel.org with ESMTP id S1757133AbXFHTkn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:40:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dougthompson@xmission.com
+Cc: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     drivers/edac: remove null from statics
+     drivers/edac: fix ignored return i82875p
 has been added to the -mm tree.  Its filename is
-     driver-edac-remove-null-from-statics.patch
+     driver-edac-fix-ignored-return-i82875p.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,124 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/edac: remove null from statics
+Subject: drivers/edac: fix ignored return i82875p
 From: Douglas Thompson <dougthompson@xmission.com>
 
-Patches to conform to coding style, namely static don't need to be initialized
-to NULL nor '0', as that is the default
+Compiling this module gave a warning that the return value of
+'pci_bus_add_device()' was not checked.
 
-Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
+This patch adds that check and an output message
+
+Signed-off-by:	Douglas Thompson <dougthompson@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc_sysfs.c  |    2 +-
- drivers/edac/edac_module.c    |    2 +-
- drivers/edac/edac_pci.c       |    2 +-
- drivers/edac/edac_pci_sysfs.c |    4 ++--
- drivers/edac/i3000_edac.c     |    2 +-
- drivers/edac/i82860_edac.c    |    2 +-
- drivers/edac/i82875p_edac.c   |    2 +-
- drivers/edac/r82600_edac.c    |    2 +-
- 8 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/edac/i82875p_edac.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/edac_mc_sysfs.c~driver-edac-remove-null-from-statics drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -17,7 +17,7 @@
- /* MC EDAC Controls, setable by module parameter, and sysfs */
- static int edac_mc_log_ue = 1;
- static int edac_mc_log_ce = 1;
--static int edac_mc_panic_on_ue = 0;
-+static int edac_mc_panic_on_ue;
- static int edac_mc_poll_msec = 1000;
- 
- /* Getter functions for above */
-diff -puN drivers/edac/edac_module.c~driver-edac-remove-null-from-statics drivers/edac/edac_module.c
---- a/drivers/edac/edac_module.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/edac_module.c
-@@ -32,7 +32,7 @@ struct workqueue_struct *edac_workqueue;
- static struct sysdev_class edac_class = {
- 	set_kset_name("edac"),
- };
--static int edac_class_valid = 0;
-+static int edac_class_valid;
- 
- /*
-  * edac_op_state_toString()
-diff -puN drivers/edac/edac_pci.c~driver-edac-remove-null-from-statics drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/edac_pci.c
-@@ -385,7 +385,7 @@ void edac_pci_generic_check(struct edac_
- 	edac_pci_do_parity_check();
- }
- 
--static int edac_pci_idx = 0;
-+static int edac_pci_idx;
- #define EDAC_PCI_GENCTL_NAME	"EDAC PCI controller"
- 
- struct edac_pci_gen_data {
-diff -puN drivers/edac/edac_pci_sysfs.c~driver-edac-remove-null-from-statics drivers/edac/edac_pci_sysfs.c
---- a/drivers/edac/edac_pci_sysfs.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/edac_pci_sysfs.c
-@@ -17,8 +17,8 @@
- 
- #define EDAC_PCI_SYMLINK	"device"
- 
--static int check_pci_errors = 0;	/* default YES check PCI parity */
--static int edac_pci_panic_on_pe = 0;	/* default no panic on PCI Parity */
-+static int check_pci_errors;	/* default YES check PCI parity */
-+static int edac_pci_panic_on_pe;	/* default no panic on PCI Parity */
- static int edac_pci_log_pe = 1;	/* log PCI parity errors */
- static int edac_pci_log_npe = 1;	/* log PCI non-parity error errors */
- static atomic_t pci_parity_count = ATOMIC_INIT(0);
-diff -puN drivers/edac/i3000_edac.c~driver-edac-remove-null-from-statics drivers/edac/i3000_edac.c
---- a/drivers/edac/i3000_edac.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/i3000_edac.c
-@@ -151,7 +151,7 @@ static const struct i3000_dev_info i3000
- 		.ctl_name = "i3000"},
- };
- 
--static struct pci_dev *mci_pdev = NULL;
-+static struct pci_dev *mci_pdev;
- static int i3000_registered = 1;
- static struct edac_pci_ctl_info *i3000_pci;
- 
-diff -puN drivers/edac/i82860_edac.c~driver-edac-remove-null-from-statics drivers/edac/i82860_edac.c
---- a/drivers/edac/i82860_edac.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/i82860_edac.c
-@@ -57,7 +57,7 @@ static const struct i82860_dev_info i828
- 		.ctl_name = "i82860"},
- };
- 
--static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code
-+static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code
- 					 * has already registered driver
- 					 */
- static struct edac_pci_ctl_info *i82860_pci;
-diff -puN drivers/edac/i82875p_edac.c~driver-edac-remove-null-from-statics drivers/edac/i82875p_edac.c
---- a/drivers/edac/i82875p_edac.c~driver-edac-remove-null-from-statics
+diff -puN drivers/edac/i82875p_edac.c~driver-edac-fix-ignored-return-i82875p drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~driver-edac-fix-ignored-return-i82875p
 +++ a/drivers/edac/i82875p_edac.c
-@@ -177,7 +177,7 @@ static const struct i82875p_dev_info i82
- 		.ctl_name = "i82875p"},
- };
+@@ -270,6 +270,7 @@ static int i82875p_setup_overfl_dev(stru
+ {
+ 	struct pci_dev *dev;
+ 	void __iomem *window;
++	int err;
  
--static struct pci_dev *mci_pdev = NULL;	/* init dev: in case that AGP code has
-+static struct pci_dev *mci_pdev;	/* init dev: in case that AGP code has
- 					 * already registered driver
- 					 */
+ 	*ovrfl_pdev = NULL;
+ 	*ovrfl_window = NULL;
+@@ -287,7 +288,12 @@ static int i82875p_setup_overfl_dev(stru
+ 		if (dev == NULL)
+ 			return 1;
  
-diff -puN drivers/edac/r82600_edac.c~driver-edac-remove-null-from-statics drivers/edac/r82600_edac.c
---- a/drivers/edac/r82600_edac.c~driver-edac-remove-null-from-statics
-+++ a/drivers/edac/r82600_edac.c
-@@ -131,7 +131,7 @@ struct r82600_error_info {
- 	u32 eapr;
- };
+-		pci_bus_add_device(dev);
++		err = pci_bus_add_device(dev);
++		if (err) {
++			i82875p_printk(KERN_ERR,
++				"%s(): pci_bus_add_device() Failed\n",
++				__func__);
++		}
+ 	}
  
--static unsigned int disable_hardware_scrub = 0;
-+static unsigned int disable_hardware_scrub;
- 
- static struct edac_pci_ctl_info *r82600_pci;
- 
+ 	*ovrfl_pdev = dev;
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
