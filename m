@@ -1,83 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-guest-code-tsc-fix.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:14:02 -0700
-Message-ID: <200706080614.l586E203020972@imap1.linux-foundation.org>
+Subject: - lguest-the-guest-code-suppress-ide-probing.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:14:06 -0700
+Message-ID: <200706080614.l586E6FQ020975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51436 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754984AbXFHGOL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:14:11 -0400
+	by vger.kernel.org with ESMTP id S1753769AbXFHGO1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, alan@redhat.com, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: tsc fix
+     lguest: suppress IDE probing
 has been removed from the -mm tree.  Its filename was
-     lguest-the-guest-code-tsc-fix.patch
+     lguest-the-guest-code-suppress-ide-probing.patch
 
 This patch was dropped because it was folded into lguest-the-guest-code.patch
 
 ------------------------------------------------------
-Subject: lguest: tsc fix
+Subject: lguest: suppress IDE probing
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-In recent -mm kernels, the TSC capability cannot be disabled, resulting in a
-divide by zero error in the normal sched_clock.
+The IDE probe is the slowest part of boot: by suppressing it we cut
+boot from from 4.1 seconds to 0.6 seconds.
 
-The correct fix is to have a special lguest sched_clock implementation: this
-is as simple as it gets.
+It turns out that paravirt_disable_iospace() does just this.  Woot!
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/lguest/lguest.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-tsc-fix drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-guest-code-tsc-fix
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-suppress-ide-probing drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-suppress-ide-probing
 +++ a/drivers/lguest/lguest.c
-@@ -352,13 +352,20 @@ static void lguest_time_irq(unsigned int
- 	update_process_times(user_mode_vm(get_irq_regs()));
- }
+@@ -510,6 +510,8 @@ __init void lguest_init(void)
  
-+static u64 sched_clock_base;
- static void lguest_time_init(void)
- {
- 	set_irq_handler(0, lguest_time_irq);
- 	hcall(LHCALL_TIMER_READ, 0, 0, 0);
-+	sched_clock_base = jiffies_64;
- 	enable_lguest_irq(0);
- }
+ 	reserve_top_address(lguest_data.reserve_mem);
  
-+static unsigned long long lguest_sched_clock(void)
-+{
-+	return (jiffies_64 - sched_clock_base) * (1000000000 / HZ);
-+}
++	paravirt_disable_iospace();
 +
- static void lguest_load_esp0(struct tss_struct *tss,
- 				     struct thread_struct *thread)
- {
-@@ -491,6 +498,7 @@ __init void lguest_init(void)
- 	paravirt_ops.time_init = lguest_time_init;
- 	paravirt_ops.set_lazy_mode = lguest_lazy_mode;
- 	paravirt_ops.wbinvd = lguest_wbinvd;
-+	paravirt_ops.sched_clock = lguest_sched_clock;
- 
- 	hcall(LHCALL_LGUEST_INIT, __pa(&lguest_data), 0, 0);
- 	strncpy(boot_command_line, boot->cmdline, COMMAND_LINE_SIZE);
-@@ -506,8 +514,6 @@ __init void lguest_init(void)
+ 	cpu_detect(&new_cpu_data);
  	/* Math is always hard! */
  	new_cpu_data.hard_math = 1;
- 
--	tsc_disable = 1;
--
- #ifdef CONFIG_X86_MCE
- 	mce_disabled = 1;
- #endif
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -93,7 +64,6 @@ cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-proce
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
-lguest-the-guest-code-tsc-fix.patch
 lguest-the-guest-code-suppress-ide-probing.patch
 lguest-the-host-code.patch
 lguest-the-host-code-tidyups.patch
