@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-minor-updates.patch added to -mm tree
-Date: Thu, 07 Jun 2007 22:56:04 -0700
-Message-ID: <200706080556.l585u4oL020522@imap1.linux-foundation.org>
+Subject: + slub-remove-useless-export_symbol.patch added to -mm tree
+Date: Thu, 07 Jun 2007 23:00:02 -0700
+Message-ID: <200706080600.l586027H020640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34827 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33925 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751424AbXFHF4b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:56:31 -0400
+	by vger.kernel.org with ESMTP id S1751424AbXFHGAL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:00:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     atmel_spi: minor updates
+     slub: remove useless EXPORT_SYMBOL
 has been added to the -mm tree.  Its filename is
-     atmel_spi-minor-updates.patch
+     slub-remove-useless-export_symbol.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,140 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atmel_spi: minor updates
-From: David Brownell <david-b@pacbell.net>
+Subject: slub: remove useless EXPORT_SYMBOL
+From: Christoph Lameter <clameter@sgi.com>
 
-Minor updates to atmel_spi:
+kmem_cache_open is static. EXPORT_SYMBOL was leftover from some earlier
+time period where kmem_cache_open was usable outside of slub.
 
- - DMA:
-    * Comments to explain the DMA policies
-    * Report any mapping errors from spi_transfer()
-    * Remove extra loop for DMA mapping
-
- - Diagnostics:  report minimum clock rate, if we need to reject a
-   spi_setup() request because that rate is too low.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Chrsitoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   57 ++++++++++++++++++++++++++++++--------
- 1 file changed, 45 insertions(+), 12 deletions(-)
+ mm/slub.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-minor-updates drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-minor-updates
-+++ a/drivers/spi/atmel_spi.c
-@@ -184,18 +184,39 @@ static void atmel_spi_next_message(struc
- 	atmel_spi_next_xfer(master, msg);
+diff -puN mm/slub.c~slub-remove-useless-export_symbol mm/slub.c
+--- a/mm/slub.c~slub-remove-useless-export_symbol
++++ a/mm/slub.c
+@@ -2084,7 +2084,6 @@ error:
+ 			s->offset, flags);
+ 	return 0;
  }
+-EXPORT_SYMBOL(kmem_cache_open);
  
--static void
-+/*
-+ * For DMA, tx_buf/tx_dma have the same relationship as rx_buf/rx_dma:
-+ *  - The buffer is either valid for CPU access, else NULL
-+ *  - If the buffer is valid, so is its DMA addresss
-+ *
-+ * This driver manages the dma addresss unless message->is_dma_mapped.
-+ */
-+static int
- atmel_spi_dma_map_xfer(struct atmel_spi *as, struct spi_transfer *xfer)
- {
-+	struct device	*dev = &as->pdev->dev;
-+
- 	xfer->tx_dma = xfer->rx_dma = INVALID_DMA_ADDRESS;
--	if (xfer->tx_buf)
--		xfer->tx_dma = dma_map_single(&as->pdev->dev,
-+	if (xfer->tx_buf) {
-+		xfer->tx_dma = dma_map_single(dev,
- 				(void *) xfer->tx_buf, xfer->len,
- 				DMA_TO_DEVICE);
--	if (xfer->rx_buf)
--		xfer->rx_dma = dma_map_single(&as->pdev->dev,
-+		if (dma_mapping_error(xfer->tx_dma))
-+			return -ENOMEM;
-+	}
-+	if (xfer->rx_buf) {
-+		xfer->rx_dma = dma_map_single(dev,
- 				xfer->rx_buf, xfer->len,
- 				DMA_FROM_DEVICE);
-+		if (dma_mapping_error(xfer->tx_dma)) {
-+			if (xfer->tx_buf)
-+				dma_unmap_single(dev,
-+						xfer->tx_dma, xfer->len,
-+						DMA_TO_DEVICE);
-+			return -ENOMEM;
-+		}
-+	}
-+	return 0;
- }
- 
- static void atmel_spi_dma_unmap_xfer(struct spi_master *master,
-@@ -398,8 +419,9 @@ static int atmel_spi_setup(struct spi_de
- 		scbr = ((bus_hz + spi->max_speed_hz - 1)
- 			/ spi->max_speed_hz);
- 		if (scbr >= (1 << SPI_SCBR_SIZE)) {
--			dev_dbg(&spi->dev, "setup: %d Hz too slow, scbr %u\n",
--					spi->max_speed_hz, scbr);
-+			dev_dbg(&spi->dev,
-+				"setup: %d Hz too slow, scbr %u; min %ld Hz\n",
-+				spi->max_speed_hz, scbr, bus_hz/255);
- 			return -EINVAL;
- 		}
- 	} else
-@@ -465,12 +487,19 @@ static int atmel_spi_transfer(struct spi
- 			dev_dbg(&spi->dev, "no protocol options yet\n");
- 			return -ENOPROTOOPT;
- 		}
--	}
- 
--	/* scrub dcache "early" */
--	if (!msg->is_dma_mapped) {
--		list_for_each_entry(xfer, &msg->transfers, transfer_list)
--			atmel_spi_dma_map_xfer(as, xfer);
-+		/*
-+		 * DMA map early, for performance (empties dcache ASAP) and
-+		 * better fault reporting.  This is a DMA-only driver.
-+		 *
-+		 * NOTE that if dma_unmap_single() ever starts to do work on
-+		 * platforms supported by this driver, we would need to clean
-+		 * up mappings for previously-mapped transfers.
-+		 */
-+		if (!msg->is_dma_mapped) {
-+			if (atmel_spi_dma_map_xfer(as, xfer) < 0)
-+				return -ENOMEM;
-+		}
- 	}
- 
- 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
-@@ -537,6 +566,10 @@ static int __init atmel_spi_probe(struct
- 
- 	as = spi_master_get_devdata(master);
- 
-+	/*
-+	 * Scratch buffer is used for throwaway rx and tx data.
-+	 * It's coherent to minimize dcache pollution.
-+	 */
- 	as->buffer = dma_alloc_coherent(&pdev->dev, BUFFER_SIZE,
- 					&as->buffer_dma, GFP_KERNEL);
- 	if (!as->buffer)
+ /*
+  * Check if a given pointer is valid
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-avr32.patch
-git-leds.patch
-git-mmc.patch
-git-backlight.patch
-char-genrtc-use-wait_event_interruptible.patch
-spi-controller-drivers-check-for-unsupported-modes.patch
-spi-controller-drivers-check-for-unsupported-modes-update.patch
-spi-add-3wire-mode-flag.patch
-spi-add-3wire-mode-flag-fix.patch
-spidev-compiler-warning-gone.patch
-spi_lm70llp-parport-adapter-driver-correction.patch
-spi_mpc83xxc-underclocking-hotfix.patch
-atmel_spi-minor-updates.patch
-rtc-ds1307-cleanups.patch
-rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
-thecus-n2100-register-rtc-rs5c372-i2c-device.patch
+mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+slab-fix-alien-cache-handling.patch
+slub-return-zero_size_ptr-for-kmalloc0.patch
+hexdump-more-output-formatting.patch
+git-ubi.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
