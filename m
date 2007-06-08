@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf-warning-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:10:12 -0700
-Message-ID: <200706082313.l58NDmx5015322@imap1.linux-foundation.org>
+Subject: + ali5451-warning-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:12:25 -0700
+Message-ID: <200706082316.l58NG1Oq015347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50490 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753984AbXFHXN4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:13:56 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l58NDs7k014888
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Jun 2007 16:13:55 -0700
+	by vger.kernel.org with ESMTP id S1752988AbXFHXQU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     binfmt_elf warning fix
+     ali5451 warning fix
 has been added to the -mm tree.  Its filename is
-     binfmt_elf-warning-fix.patch
+     ali5451-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,35 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: binfmt_elf warning fix
+Subject: ali5451 warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/binfmt_elf.c: In function 'load_elf_binary':
-fs/binfmt_elf.c:1002: warning: 'interp_map_addr' may be used uninitialized in this function
+sound/pci/ali5451/ali5451.c: In function 'snd_ali_prepare':
+sound/pci/ali5451/ali5451.c:716: warning: 'R2' may be used uninitialized in this function
 
-The compiler (gcc-4.1.0) is correct, but it failed to notice that we didn't
-use the resulting value.
-
-
-
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/ali5451/ali5451.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-warning-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-warning-fix
-+++ a/fs/binfmt_elf.c
-@@ -999,7 +999,7 @@ static int load_elf_binary(struct linux_
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
- 		} else {
--			unsigned long interp_map_addr;	/* unused */
-+			unsigned long interp_map_addr = 0;	/* unused */
+diff -puN sound/pci/ali5451/ali5451.c~ali5451-warning-fix sound/pci/ali5451/ali5451.c
+--- a/sound/pci/ali5451/ali5451.c~ali5451-warning-fix
++++ a/sound/pci/ali5451/ali5451.c
+@@ -731,8 +731,7 @@ static void snd_ali_detect_spdif_rate(st
+ 		return;
+ 	}
  
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
+-	count = 0;
+-	while (count++ <= 50000) {
++	for (count = 0; count <= 50000; count++) {
+ 		snd_ali_delay(codec, 6);
+ 		bval = inb(ALI_REG(codec,ALI_SPDIF_CTRL + 1));
+ 		R2 = bval & 0x1F;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -184,6 +178,7 @@ ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
 taskstats-add-context-switch-counters-fix.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
 revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -226,4 +221,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-binfmt_elf-warning-fix.patch
+ali5451-warning-fix.patch
