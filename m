@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ib_umem_get-warning-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:29:43 -0700
-Message-ID: <200706082333.l58NXJUE016233@imap1.linux-foundation.org>
+Subject: + isdn-capi-warning-fixes.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:31:46 -0700
+Message-ID: <200706082335.l58NZMBH016471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34860 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754227AbXFHXd1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:33:27 -0400
+	by vger.kernel.org with ESMTP id S1752021AbXFHXfc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:35:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, kkeil@suse.de
 
 
 The patch titled
-     ib_umem_get() warning fix
+     isdn/capi warning fixes
 has been added to the -mm tree.  Its filename is
-     ib_umem_get-warning-fix.patch
+     isdn-capi-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ib_umem_get() warning fix
+Subject: isdn/capi warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/infiniband/core/umem.c: In function 'ib_umem_get':
-drivers/infiniband/core/umem.c:78: warning: 'ret' may be used uninitialized in this function
+drivers/isdn/capi/capi.c: In function 'handle_minor_send':
+drivers/isdn/capi/capi.c:552: warning: cast from pointer to integer of different size
 
-I was just going to use uninitialized_var(), but it's far from obvious that
-this warning is a false positive.
+Of course, the code here might actually be buggy, in which case this patch
+should not be applied?
 
-CcL Roland Dreier <rolandd@cisco.com>
-
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/umem.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/isdn/capi/capi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/core/umem.c~ib_umem_get-warning-fix drivers/infiniband/core/umem.c
---- a/drivers/infiniband/core/umem.c~ib_umem_get-warning-fix
-+++ a/drivers/infiniband/core/umem.c
-@@ -121,6 +121,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
- 
- 	cur_base = addr & PAGE_MASK;
- 
-+	ret = 0;
- 	while (npages) {
- 		ret = get_user_pages(current, current->mm, cur_base,
- 				     min_t(int, npages,
+diff -puN drivers/isdn/capi/capi.c~isdn-capi-warning-fixes drivers/isdn/capi/capi.c
+--- a/drivers/isdn/capi/capi.c~isdn-capi-warning-fixes
++++ a/drivers/isdn/capi/capi.c
+@@ -549,7 +549,7 @@ static int handle_minor_send(struct capi
+ 		capimsg_setu8 (skb->data, 5, CAPI_REQ);
+ 		capimsg_setu16(skb->data, 6, mp->msgid++);
+ 		capimsg_setu32(skb->data, 8, mp->ncci);	/* NCCI */
+-		capimsg_setu32(skb->data, 12, (u32) skb->data); /* Data32 */
++		capimsg_setu32(skb->data, 12, (u32)(long)skb->data);/* Data32 */
+ 		capimsg_setu16(skb->data, 16, len);	/* Data length */
+ 		capimsg_setu16(skb->data, 18, datahandle);
+ 		capimsg_setu16(skb->data, 20, 0);	/* Flags */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +74,7 @@ revert-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
 git-gfs2-nmw.patch
+ib_umem_get-warning-fix.patch
 git-input.patch
 git-input-fixup.patch
 serio_raw_read-warning-fix.patch
@@ -225,4 +226,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ib_umem_get-warning-fix.patch
+isdn-capi-warning-fixes.patch
