@@ -1,164 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-i386-fix-for-mark-ro-data.patch added to -mm tree
-Date: Fri, 08 Jun 2007 00:35:00 -0700
-Message-ID: <200706080735.l587Z0co023185@imap1.linux-foundation.org>
+Subject: - checkpatch-catch-struct-foo-blah.patch removed from -mm tree
+Date: Fri, 08 Jun 2007 02:11:40 -0700
+Message-ID: <200706080911.l589BeeP025600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40654 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46239 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S938453AbXFHHfS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 03:35:18 -0400
+	by vger.kernel.org with ESMTP id S1756380AbXFHJMW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 05:12:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: prasanna@in.ibm.com, ak@suse.de, jkenisto@us.ibm.com
+To: randy.dunlap@oracle.com, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kprobes: i386 fix for mark ro data
-has been added to the -mm tree.  Its filename is
-     kprobes-i386-fix-for-mark-ro-data.patch
+     checkpatch: catch "struct foo * blah"
+has been removed from the -mm tree.  Its filename was
+     checkpatch-catch-struct-foo-blah.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Kprobes: i386 fix for mark ro data
-From: "S. P. Prasanna" <prasanna@in.ibm.com>
+Subject: checkpatch: catch "struct foo * blah"
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix the problem of page protection introduced by CONFIG_DEBUG_RODATA. 
-CONFIG_DEBUG_RODATA marks the text pages as read-only, hence kprobes is
-unable to insert breakpoints in the kernel text.  This patch overrides the
-page protection when adding or removing a probe for the i386 architecture.
+Catch "struct foo * blah" by allowing spaces preceding the '*'.  Bah. 
+Maybe the error string needs a small change also.
 
-Signed-off-by: Prasanna S P<prasanna@in.ibm.com>
-Acked-by: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/kprobes.c |   26 ++++++++++++++++++++++++++
- arch/i386/mm/init.c        |    2 ++
- include/asm-i386/kprobes.h |   12 ++++++++++++
- include/asm-i386/pgtable.h |    2 ++
- 4 files changed, 42 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/kprobes.c~kprobes-i386-fix-for-mark-ro-data arch/i386/kernel/kprobes.c
---- a/arch/i386/kernel/kprobes.c~kprobes-i386-fix-for-mark-ro-data
-+++ a/arch/i386/kernel/kprobes.c
-@@ -169,16 +169,42 @@ int __kprobes arch_prepare_kprobe(struct
+diff -puN scripts/checkpatch.pl~checkpatch-catch-struct-foo-blah scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-catch-struct-foo-blah
++++ a/scripts/checkpatch.pl
+@@ -393,7 +393,7 @@ sub process {
+ 		}
  
- void __kprobes arch_arm_kprobe(struct kprobe *p)
- {
-+	unsigned long addr = (unsigned long) p->addr;
-+	int page_readonly = 0;
-+
-+	if (kernel_readonly_text(addr)) {
-+		page_readonly = 1;
-+		change_page_attr(virt_to_page(addr), 1, PAGE_KERNEL_RWX);
-+		global_flush_tlb();
-+	}
-+
- 	*p->addr = BREAKPOINT_INSTRUCTION;
- 	flush_icache_range((unsigned long) p->addr,
- 			   (unsigned long) p->addr + sizeof(kprobe_opcode_t));
-+
-+	if (page_readonly) {
-+		change_page_attr(virt_to_page(addr), 1, PAGE_KERNEL_RX);
-+		global_flush_tlb();
-+	}
- }
- 
- void __kprobes arch_disarm_kprobe(struct kprobe *p)
- {
-+	unsigned long addr = (unsigned long) p->addr;
-+	int page_readonly = 0;
-+
-+	if (kernel_readonly_text(addr)) {
-+		page_readonly = 1;
-+		change_page_attr(virt_to_page(addr), 1, PAGE_KERNEL_RWX);
-+		global_flush_tlb();
-+	}
- 	*p->addr = p->opcode;
- 	flush_icache_range((unsigned long) p->addr,
- 			   (unsigned long) p->addr + sizeof(kprobe_opcode_t));
-+	if (page_readonly) {
-+		change_page_attr(virt_to_page(addr), 1, PAGE_KERNEL_RX);
-+		global_flush_tlb();
-+	}
- }
- 
- void __kprobes arch_remove_kprobe(struct kprobe *p)
-diff -puN arch/i386/mm/init.c~kprobes-i386-fix-for-mark-ro-data arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~kprobes-i386-fix-for-mark-ro-data
-+++ a/arch/i386/mm/init.c
-@@ -45,6 +45,7 @@
- #include <asm/sections.h>
- #include <asm/paravirt.h>
- 
-+int kernel_text_is_ro;
- unsigned int __VMALLOC_RESERVE = 128 << 20;
- 
- DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
-@@ -808,6 +809,7 @@ void mark_rodata_ro(void)
- 		change_page_attr(virt_to_page(start),
- 		                 size >> PAGE_SHIFT, PAGE_KERNEL_RX);
- 		printk("Write protecting the kernel text: %luk\n", size >> 10);
-+		kernel_text_is_ro = 1;
- 	}
- 
- 	start += size;
-diff -puN include/asm-i386/kprobes.h~kprobes-i386-fix-for-mark-ro-data include/asm-i386/kprobes.h
---- a/include/asm-i386/kprobes.h~kprobes-i386-fix-for-mark-ro-data
-+++ a/include/asm-i386/kprobes.h
-@@ -26,6 +26,8 @@
-  */
- #include <linux/types.h>
- #include <linux/ptrace.h>
-+#include <linux/pfn.h>
-+#include <asm-generic/sections.h>
- 
- #define  __ARCH_WANT_KPROBES_INSN_SLOT
- 
-@@ -90,4 +92,14 @@ static inline void restore_interrupts(st
- 
- extern int kprobe_exceptions_notify(struct notifier_block *self,
- 				    unsigned long val, void *data);
-+extern int kernel_text_is_ro;
-+static inline int kernel_readonly_text(unsigned long address)
-+{
-+
-+	if (kernel_text_is_ro && ((address >= PFN_ALIGN(_text))
-+				&& (address < PFN_ALIGN(_etext))))
-+		return 1;
-+
-+	return 0;
-+}
- #endif				/* _ASM_KPROBES_H */
-diff -puN include/asm-i386/pgtable.h~kprobes-i386-fix-for-mark-ro-data include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~kprobes-i386-fix-for-mark-ro-data
-+++ a/include/asm-i386/pgtable.h
-@@ -159,6 +159,7 @@ void paging_init(void);
- extern unsigned long long __PAGE_KERNEL, __PAGE_KERNEL_EXEC;
- #define __PAGE_KERNEL_RO		(__PAGE_KERNEL & ~_PAGE_RW)
- #define __PAGE_KERNEL_RX		(__PAGE_KERNEL_EXEC & ~_PAGE_RW)
-+#define __PAGE_KERNEL_RWX		(__PAGE_KERNEL_EXEC | _PAGE_RW)
- #define __PAGE_KERNEL_NOCACHE		(__PAGE_KERNEL | _PAGE_PCD)
- #define __PAGE_KERNEL_LARGE		(__PAGE_KERNEL | _PAGE_PSE)
- #define __PAGE_KERNEL_LARGE_EXEC	(__PAGE_KERNEL_EXEC | _PAGE_PSE)
-@@ -167,6 +168,7 @@ extern unsigned long long __PAGE_KERNEL,
- #define PAGE_KERNEL_RO		__pgprot(__PAGE_KERNEL_RO)
- #define PAGE_KERNEL_EXEC	__pgprot(__PAGE_KERNEL_EXEC)
- #define PAGE_KERNEL_RX		__pgprot(__PAGE_KERNEL_RX)
-+#define PAGE_KERNEL_RWX		__pgprot(__PAGE_KERNEL_RWX)
- #define PAGE_KERNEL_NOCACHE	__pgprot(__PAGE_KERNEL_NOCACHE)
- #define PAGE_KERNEL_LARGE	__pgprot(__PAGE_KERNEL_LARGE)
- #define PAGE_KERNEL_LARGE_EXEC	__pgprot(__PAGE_KERNEL_LARGE_EXEC)
+ # * goes on variable not on type
+-		if ($line=~/[A-Za-z\d_]+\* [A-Za-z\d_]+/) {
++		if ($line=~/[\sA-Za-z\d_]+\* [A-Za-z\d_]+/) {
+ 			print "\"foo* bar\" should be \"foo *bar\"\n";
+ 			print "$herecurr";
+ 			$clean = 0;
 _
 
-Patches currently in -mm which might be from prasanna@in.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-kprobes-x86_64-fix-for-mark-ro-data.patch
-kprobes-i386-fix-for-mark-ro-data.patch
+mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+isdn-diva-fix-section-mismatch.patch
+hexdump-more-output-formatting.patch
+checkpatch-catch-struct-foo-blah.patch
+git-acpi.patch
+toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
+romfs-printk-format-warnings.patch
+mtd-use-null-for-pointer.patch
+add-pci_try_set_mwi.patch
+git-unionfs.patch
+add-pci_try_set_mwi-prism54pci.patch
+mac80211-fix-1-bit-bitfield-to-unsigned.patch
+git-ipwireless_cs.patch
+x86_64-use-null-for-pointer.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+fs-clarify-dummy-member-in-struct.patch
+sony-laptop-use-null-for-pointer.patch
+hugetlbfs-use-lib-parser-fix-docs.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+schedstats-fix-printk-format.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+profile-likely-unlikely-macros.patch
