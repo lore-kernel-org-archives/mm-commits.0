@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 14:11:35 -0700
-Message-ID: <200706082115.l58LFCV9012389@imap1.linux-foundation.org>
+Subject: + git-selinux-allnoconfig-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 14:14:43 -0700
+Message-ID: <200706082118.l58LIJbX012465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33123 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750877AbXFHVPX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:15:23 -0400
+	by vger.kernel.org with ESMTP id S1031614AbXFHVU1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:20:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, jesse.barnes@intel.com
+Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
+     git-selinux: allnoconfig fix
 has been added to the -mm tree.  Its filename is
-     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+     git-selinux-allnoconfig-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
+Subject: git-selinux: allnoconfig fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/cpu/mtrr/main.c: In function 'mtrr_trim_uncached_memory':
-arch/i386/kernel/cpu/mtrr/main.c:655: error: 'end_pfn' undeclared (first use in this function)
-arch/i386/kernel/cpu/mtrr/main.c:655: error: (Each undeclared identifier is reported only once
-arch/i386/kernel/cpu/mtrr/main.c:655: error: for each function it appears in.)
+Documentation/SubmitChecklist, rule 2
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jesse Barnes <jesse.barnes@intel.com>
+(rediffed)
+
+(please don't put new entries at the end of the table: it's guaranteed to
+maximise patch rejects.  Instead, randomise them)
+
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/sysctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -625,6 +625,7 @@ static struct sysdev_driver mtrr_sysdev_
- 	.resume		= mtrr_restore,
+diff -puN kernel/sysctl.c~git-selinux-allnoconfig-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~git-selinux-allnoconfig-fix
++++ a/kernel/sysctl.c
+@@ -615,6 +615,7 @@ static ctl_table kern_table[] = {
+ 		.proc_handler   = &proc_dointvec,
+ 	},
+ #endif
++#ifdef CONFIG_SECURITY
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "mmap_min_addr",
+@@ -623,7 +624,7 @@ static ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_doulongvec_minmax,
+ 	},
+-
++#endif
+ 	{ .ctl_name = 0 }
  };
  
-+#ifdef CONFIG_X86_64
- /**
-  * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
-  *
-@@ -661,6 +662,7 @@ void __init mtrr_trim_uncached_memory(vo
- 		end_pfn = highest_addr >> PAGE_SHIFT;
- 	}
- }
-+#endif
- 
- /**
-  * mtrr_bp_init - initialize mtrrs on the boot CPU
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
