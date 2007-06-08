@@ -1,73 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-block-driver-tidyups-update.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:17:26 -0700
-Message-ID: <200706080617.l586HQQl021067@imap1.linux-foundation.org>
+Subject: - lguest-the-documentation-example-launcher-example-launcher-fix.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:17:43 -0700
+Message-ID: <200706080617.l586HhRg021093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753769AbXFHGRw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:17:52 -0400
+	by vger.kernel.org with ESMTP id S1754511AbXFHGRz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:17:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: block driver tidyups
+     lguest: example launcher fix
 has been removed from the -mm tree.  Its filename was
-     lguest-the-block-driver-tidyups-update.patch
+     lguest-the-documentation-example-launcher-example-launcher-fix.patch
 
-This patch was dropped because it was folded into lguest-the-block-driver.patch
+This patch was dropped because it was folded into lguest-the-documentation-example-launcher.patch
 
 ------------------------------------------------------
-Subject: lguest: block driver tidyups
+Subject: lguest: example launcher fix
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-1) Use new dma wrapper functions, and handle bind failure (may happen
-   in future)
-2) Use new lgdev_irq() "get me a good interrupt number" function.
-3) Use new lguest_map()/lguest_unmap() instead of ioremap/iounmap.
+"struct option" arrays handed to getopt_long() are supposed to be
+NULL-terminated.  (Another patch added an arg and it finally segv'd).
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/lguest_blk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/lguest/lguest.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/block/lguest_blk.c~lguest-the-block-driver-tidyups-update drivers/block/lguest_blk.c
---- a/drivers/block/lguest_blk.c~lguest-the-block-driver-tidyups-update
-+++ a/drivers/block/lguest_blk.c
-@@ -37,7 +37,7 @@ struct blockdev
- 	int irq;
- 
- 	unsigned long phys_addr;
--	/* The ioremap'ed block page. */
-+	/* The mapped block page. */
- 	struct lguest_block_page *lb_page;
- 
- 	/* We only have a single request outstanding at a time. */
-@@ -189,7 +189,7 @@ static int lguestblk_probe(struct lguest
- 	bd->dma.len[0] = 0;
- 	bd->phys_addr = (lguest_devices[lgdev->index].pfn << PAGE_SHIFT);
- 
--	bd->lb_page = (__force void *)ioremap(bd->phys_addr, PAGE_SIZE);
-+	bd->lb_page = lguest_map(bd->phys_addr, 1);
- 	if (!bd->lb_page) {
- 		err = -ENOMEM;
- 		goto out_free_bd;
-@@ -252,7 +252,7 @@ out_put_disk:
- out_unregister_blkdev:
- 	unregister_blkdev(bd->major, "lguestblk");
- out_unmap:
--	iounmap((__force void *__iomem)bd->lb_page);
-+	lguest_unmap(bd->lb_page);
- out_free_bd:
- 	kfree(bd);
- 	return err;
+diff -puN Documentation/lguest/lguest.c~lguest-the-documentation-example-launcher-example-launcher-fix Documentation/lguest/lguest.c
+--- a/Documentation/lguest/lguest.c~lguest-the-documentation-example-launcher-example-launcher-fix
++++ a/Documentation/lguest/lguest.c
+@@ -930,6 +930,7 @@ static struct option opts[] = {
+ 	{ "tunnet", 1, NULL, 't' },
+ 	{ "block", 1, NULL, 'b' },
+ 	{ "initrd", 1, NULL, 'i' },
++	{ NULL },
+ };
+ static void usage(void)
+ {
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -89,7 +66,6 @@ lguest-the-makefile-and-kconfig.patch
 lguest-the-console-driver.patch
 lguest-the-net-driver.patch
 lguest-the-block-driver.patch
-lguest-the-block-driver-tidyups-update.patch
 lguest-the-documentation-example-launcher.patch
 lguest-the-documentation-example-launcher-example-launcher-fix.patch
 lguest-dont-signal-like-crazy-use-lhreq_break-command-doc.patch
