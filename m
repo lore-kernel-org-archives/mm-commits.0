@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-catch-struct-foo-blah.patch added to -mm tree
-Date: Thu, 07 Jun 2007 23:02:11 -0700
-Message-ID: <200706080602.l5862BhI020702@imap1.linux-foundation.org>
+Subject: + divorce-config_x86_pae-from-config_highmem64g.patch added to -mm tree
+Date: Thu, 07 Jun 2007 23:03:09 -0700
+Message-ID: <200706080603.l58639Tg020737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37486 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57454 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760737AbXFHGCy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:02:54 -0400
+	by vger.kernel.org with ESMTP id S1751424AbXFHGDa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:03:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, apw@shadowen.org
+Cc: wli@holomorphy.com, ak@suse.de, lkml@rtr.ca
 
 
 The patch titled
-     checkpatch: catch "struct foo * blah"
+     i386: divorce CONFIG_X86_PAE from CONFIG_HIGHMEM64G
 has been added to the -mm tree.  Its filename is
-     checkpatch-catch-struct-foo-blah.patch
+     divorce-config_x86_pae-from-config_highmem64g.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: checkpatch: catch "struct foo * blah"
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: i386: divorce CONFIG_X86_PAE from CONFIG_HIGHMEM64G
+From: William Lee Irwin III <wli@holomorphy.com>
 
-Catch "struct foo * blah" by allowing spaces preceding the '*'.  Bah. 
-Maybe the error string needs a small change also.
+PAE is useful for more than supporting more than 4GB RAM.  It supports
+expanded swapspace and NX executable protections.  Some users may want NX
+or expanded swapspace support without the overhead or instability of
+highmem.  For these reasons, the following patch divorces CONFIG_X86_PAE
+from CONFIG_HIGHMEM64G.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mark Lord <lkml@rtr.ca>
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: William Irwin <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/Kconfig        |   16 +++++++++++-----
+ arch/i386/kernel/setup.c |    8 ++++----
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-catch-struct-foo-blah scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-catch-struct-foo-blah
-+++ a/scripts/checkpatch.pl
-@@ -393,7 +393,7 @@ sub process {
- 		}
+diff -puN arch/i386/Kconfig~divorce-config_x86_pae-from-config_highmem64g arch/i386/Kconfig
+--- a/arch/i386/Kconfig~divorce-config_x86_pae-from-config_highmem64g
++++ a/arch/i386/Kconfig
+@@ -544,6 +544,7 @@ config HIGHMEM4G
+ config HIGHMEM64G
+ 	bool "64GB"
+ 	depends on X86_CMPXCHG64
++	select X86_PAE
+ 	help
+ 	  Select this if you have a 32-bit processor and more than 4
+ 	  gigabytes of physical RAM.
+@@ -573,12 +574,12 @@ choice
+ 	config VMSPLIT_3G
+ 		bool "3G/1G user/kernel split"
+ 	config VMSPLIT_3G_OPT
+-		depends on !HIGHMEM
++		depends on !X86_PAE
+ 		bool "3G/1G user/kernel split (for full 1G low memory)"
+ 	config VMSPLIT_2G
+ 		bool "2G/2G user/kernel split"
+ 	config VMSPLIT_2G_OPT
+-		depends on !HIGHMEM
++		depends on !X86_PAE
+ 		bool "2G/2G user/kernel split (for full 2G low memory)"
+ 	config VMSPLIT_1G
+ 		bool "1G/3G user/kernel split"
+@@ -598,10 +599,15 @@ config HIGHMEM
+ 	default y
  
- # * goes on variable not on type
--		if ($line=~/[A-Za-z\d_]+\* [A-Za-z\d_]+/) {
-+		if ($line=~/[\sA-Za-z\d_]+\* [A-Za-z\d_]+/) {
- 			print "\"foo* bar\" should be \"foo *bar\"\n";
- 			print "$herecurr";
- 			$clean = 0;
+ config X86_PAE
+-	bool
+-	depends on HIGHMEM64G
+-	default y
++	bool "PAE (Physical Address Extension) Support"
++	default n
++	depends on !HIGHMEM4G
+ 	select RESOURCES_64BIT
++	help
++	  PAE is required for NX support, and furthermore enables
++	  larger swapspace support for non-overcommit purposes. It
++	  has the cost of more pagetable lookup overhead, and also
++	  consumes more pagetable space per process.
+ 
+ # Common NUMA Features
+ config NUMA
+diff -puN arch/i386/kernel/setup.c~divorce-config_x86_pae-from-config_highmem64g arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c~divorce-config_x86_pae-from-config_highmem64g
++++ a/arch/i386/kernel/setup.c
+@@ -282,18 +282,18 @@ unsigned long __init find_max_low_pfn(vo
+ 		printk(KERN_WARNING "Warning only %ldMB will be used.\n",
+ 					MAXMEM>>20);
+ 		if (max_pfn > MAX_NONPAE_PFN)
+-			printk(KERN_WARNING "Use a PAE enabled kernel.\n");
++			printk(KERN_WARNING "Use a HIGHMEM64G enabled kernel.\n");
+ 		else
+ 			printk(KERN_WARNING "Use a HIGHMEM enabled kernel.\n");
+ 		max_pfn = MAXMEM_PFN;
+ #else /* !CONFIG_HIGHMEM */
+-#ifndef CONFIG_X86_PAE
++#ifndef CONFIG_HIGHMEM64G
+ 		if (max_pfn > MAX_NONPAE_PFN) {
+ 			max_pfn = MAX_NONPAE_PFN;
+ 			printk(KERN_WARNING "Warning only 4GB will be used.\n");
+-			printk(KERN_WARNING "Use a PAE enabled kernel.\n");
++			printk(KERN_WARNING "Use a HIGHMEM64G enabled kernel.\n");
+ 		}
+-#endif /* !CONFIG_X86_PAE */
++#endif /* !CONFIG_HIGHMEM64G */
+ #endif /* !CONFIG_HIGHMEM */
+ 	} else {
+ 		if (highmem_pages == -1)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from wli@holomorphy.com are
 
-mount-t-tmpfs-o-mpol=-check-nodes-online.patch
-isdn-diva-fix-section-mismatch.patch
-hexdump-more-output-formatting.patch
-checkpatch-catch-struct-foo-blah.patch
-git-acpi.patch
-toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-add-pci_try_set_mwi-prism54pci.patch
-mac80211-fix-1-bit-bitfield-to-unsigned.patch
-git-ipwireless_cs.patch
-x86_64-use-null-for-pointer.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+quicklist-support-for-x86_64.patch
+x86_64-support-poll-on-dev-mcelog.patch
+divorce-config_x86_pae-from-config_highmem64g.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone-fix-2.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
 hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+containersv10-basic-container-framework-fix-2.patch
