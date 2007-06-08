@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 11:14:31 -0700
-Message-ID: <200706081814.l58IEV2R007475@imap1.linux-foundation.org>
+Subject: + numa-mempolicy-trivial-debug-fixes.patch added to -mm tree
+Date: Fri, 08 Jun 2007 11:15:38 -0700
+Message-ID: <200706081815.l58IFc1E007521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53096 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031240AbXFHSOr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:14:47 -0400
+	by vger.kernel.org with ESMTP id S970408AbXFHSPs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:15:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.oruba@amd.com, andrew.vasquez@qlogic.com, shemminger@linux-foundation.org
+Cc: lethal@linux-sh.org, clameter@sgi.com
 
 
 The patch titled
-     pci-x-pci-express-read-control-interfaces-qla2xxx fix
+     numa: mempolicy: trivial debug fixes.
 has been added to the -mm tree.  Its filename is
-     pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch
+     numa-mempolicy-trivial-debug-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-x-pci-express-read-control-interfaces-qla2xxx fix
-From: "Peter Oruba" <peter.oruba@amd.com>
+Subject: numa: mempolicy: trivial debug fixes.
+From: Paul Mundt <lethal@linux-sh.org>
 
-Sorry, I missed out an essential part in the qla2xxx driver, namely the MMRBC
-configuration for PCI-X. The submitted patch only did that for PCIe. This is
-the corrected version
+Enabling debugging fails to build due to the nodemask variable in
+do_mbind() having changed names, and then oopses on boot due to the
+assumption that the nodemask can be dereferenced -- which doesn't work out
+so well when the policy is changed to MPOL_DEFAULT with a NULL nodemask by
+numa_default_policy().
 
-The pre-condition check is there to not blindly call the mmrbc-functions, but
-to check for the bus type first. Indeed, the first patch version made this
-check look unnecessary.
+This fixes it up, and switches from PDprintk() to pr_debug() while
+we're at it.
 
-Signed-off-by: Peter Oruba <peter.oruba@amd.com>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_init.c |   16 +++++-----------
- 1 files changed, 5 insertions(+), 11 deletions(-)
+ mm/mempolicy.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_init.c~pci-x-pci-express-read-control-interfaces-qla2xxx-fix drivers/scsi/qla2xxx/qla_init.c
---- a/drivers/scsi/qla2xxx/qla_init.c~pci-x-pci-express-read-control-interfaces-qla2xxx-fix
-+++ a/drivers/scsi/qla2xxx/qla_init.c
-@@ -269,21 +269,15 @@ qla24xx_pci_config(scsi_qla_host_t *ha)
+diff -puN mm/mempolicy.c~numa-mempolicy-trivial-debug-fixes mm/mempolicy.c
+--- a/mm/mempolicy.c~numa-mempolicy-trivial-debug-fixes
++++ a/mm/mempolicy.c
+@@ -101,8 +101,6 @@
+ static struct kmem_cache *policy_cache;
+ static struct kmem_cache *sn_cache;
  
- 	/* PCI-X -- adjust Maximum Memory Read Byte Count (2048). */
- 	pcix_cmd_reg = pci_find_capability(ha->pdev, PCI_CAP_ID_PCIX);
--	if (pcix_cmd_reg) {
--		uint16_t pcix_cmd;
+-#define PDprintk(fmt...)
 -
--		pcix_cmd_reg += PCI_X_CMD;
--		pci_read_config_word(ha->pdev, pcix_cmd_reg, &pcix_cmd);
--		pcix_cmd &= ~PCI_X_CMD_MAX_READ;
--		pcix_cmd |= 0x0008;
--		pci_write_config_word(ha->pdev, pcix_cmd_reg, pcix_cmd);
--	}
-+	if (pcix_cmd_reg)
-+		if (pcix_set_mmrbc(ha->pdev, 2048))
-+		DEBUG2(printk("Couldn't write PCI-X read request\n"));
+ /* Highest zone. An specific allocation for a zone below that is not
+    policied. */
+ enum zone_type policy_zone = 0;
+@@ -175,7 +173,9 @@ static struct mempolicy *mpol_new(int mo
+ {
+ 	struct mempolicy *policy;
  
- 	/* PCIe -- adjust Maximum Read Request Size (2048). */
- 	pcie_dctl_reg = pci_find_capability(ha->pdev, PCI_CAP_ID_EXP);
- 	if (pcie_dctl_reg)
--		if (pcie_set_readrq(ha->pdev, 2048))
--			DEBUG2(printk("Couldn't write PCI Express read request\n"));
-+	if (pcie_set_readrq(ha->pdev, 2048))
-+		DEBUG2(printk("Couldn't write PCI Express read request\n"));
+-	PDprintk("setting mode %d nodes[0] %lx\n", mode, nodes_addr(*nodes)[0]);
++	pr_debug("setting mode %d nodes[0] %lx\n",
++		 mode, nodes ? nodes_addr(*nodes)[0] : -1);
++
+ 	if (mode == MPOL_DEFAULT)
+ 		return NULL;
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+@@ -379,7 +379,7 @@ static int policy_vma(struct vm_area_str
+ 	int err = 0;
+ 	struct mempolicy *old = vma->vm_policy;
  
- 	/* Reset expansion ROM address decode enable */
- 	pci_read_config_dword(ha->pdev, PCI_ROM_ADDRESS, &d);
+-	PDprintk("vma %lx-%lx/%lx vm_ops %p vm_file %p set_policy %p\n",
++	pr_debug("vma %lx-%lx/%lx vm_ops %p vm_file %p set_policy %p\n",
+ 		 vma->vm_start, vma->vm_end, vma->vm_pgoff,
+ 		 vma->vm_ops, vma->vm_file,
+ 		 vma->vm_ops ? vma->vm_ops->set_policy : NULL);
+@@ -776,8 +776,8 @@ long do_mbind(unsigned long start, unsig
+ 	if (!new)
+ 		flags |= MPOL_MF_DISCONTIG_OK;
+ 
+-	PDprintk("mbind %lx-%lx mode:%ld nodes:%lx\n",start,start+len,
+-			mode,nodes_addr(nodes)[0]);
++	pr_debug("mbind %lx-%lx mode:%ld nodes:%lx\n",start,start+len,
++		 mode, nmask ? nodes_addr(*nmask)[0] : -1);
+ 
+ 	down_write(&mm->mmap_sem);
+ 	vma = check_range(mm, start, end, nmask,
+@@ -1434,7 +1434,7 @@ static void sp_insert(struct shared_poli
+ 	}
+ 	rb_link_node(&new->nd, parent, p);
+ 	rb_insert_color(&new->nd, &sp->root);
+-	PDprintk("inserting %lx-%lx: %d\n", new->start, new->end,
++	pr_debug("inserting %lx-%lx: %d\n", new->start, new->end,
+ 		 new->policy ? new->policy->policy : 0);
+ }
+ 
+@@ -1459,7 +1459,7 @@ mpol_shared_policy_lookup(struct shared_
+ 
+ static void sp_delete(struct shared_policy *sp, struct sp_node *n)
+ {
+-	PDprintk("deleting %lx-l%x\n", n->start, n->end);
++	pr_debug("deleting %lx-l%lx\n", n->start, n->end);
+ 	rb_erase(&n->nd, &sp->root);
+ 	mpol_free(n->policy);
+ 	kmem_cache_free(sn_cache, n);
+@@ -1558,10 +1558,10 @@ int mpol_set_shared_policy(struct shared
+ 	struct sp_node *new = NULL;
+ 	unsigned long sz = vma_pages(vma);
+ 
+-	PDprintk("set_shared_policy %lx sz %lu %d %lx\n",
++	pr_debug("set_shared_policy %lx sz %lu %d %lx\n",
+ 		 vma->vm_pgoff,
+ 		 sz, npol? npol->policy : -1,
+-		npol ? nodes_addr(npol->v.nodes)[0] : -1);
++		 npol ? nodes_addr(npol->v.nodes)[0] : -1);
+ 
+ 	if (npol) {
+ 		new = sp_alloc(vma->vm_pgoff, vma->vm_pgoff + sz, npol);
 _
 
-Patches currently in -mm which might be from peter.oruba@amd.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-bugfix-cpufreq-in-combination-with-performance-governor.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx.patch
-pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch
+origin.patch
+slab-fix-alien-cache-handling.patch
+potential-parse-error-in-ifdef-part-3.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+numa-mempolicy-trivial-debug-fixes.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+fb-epson1355fb-kill-off-dead-sh-support.patch
