@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + led_colour_show-warning-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:33:42 -0700
-Message-ID: <200706082337.l58NbIms016686@imap1.linux-foundation.org>
+Subject: + gfs2_lookupi-uninitialised-var-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:42:14 -0700
+Message-ID: <200706082345.l58Njo68017722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49583 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752284AbXFHXhb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:37:31 -0400
+	by vger.kernel.org with ESMTP id S1754673AbXFHXqN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:46:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus-list@drzeus.cx
+Cc: akpm@linux-foundation.org, swhiteho@redhat.com
 
 
 The patch titled
-     led_colour_show() warning fix
+     gfs2_lookupi() uninitialised var fix
 has been added to the -mm tree.  Its filename is
-     led_colour_show-warning-fix.patch
+     gfs2_lookupi-uninitialised-var-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: led_colour_show() warning fix
+Subject: gfs2_lookupi() uninitialised var fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/leds/led-class.c: In function 'led_colour_show':
-drivers/leds/led-class.c:62: warning: initialization discards qualifiers from pointer target type
+fs/gfs2/inode.c: In function 'gfs2_lookupi':
+fs/gfs2/inode.c:392: warning: 'error' may be used uninitialized in this function
 
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Looks like a real bug to me.
+
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-class.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/gfs2/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/led-class.c~led_colour_show-warning-fix drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~led_colour_show-warning-fix
-+++ a/drivers/leds/led-class.c
-@@ -59,7 +59,8 @@ static ssize_t led_brightness_store(stru
- static ssize_t led_colour_show(struct class_device *dev, char *buf)
- {
- 	struct led_classdev *led_cdev = class_get_devdata(dev);
--	char *colour, *str = led_cdev->name;
-+	const char *colour;
-+	const char *str = led_cdev->name;
- 	ssize_t len = 0;
+diff -puN fs/gfs2/inode.c~gfs2_lookupi-uninitialised-var-fix fs/gfs2/inode.c
+--- a/fs/gfs2/inode.c~gfs2_lookupi-uninitialised-var-fix
++++ a/fs/gfs2/inode.c
+@@ -389,7 +389,7 @@ struct inode *gfs2_lookupi(struct inode 
+ 	struct super_block *sb = dir->i_sb;
+ 	struct gfs2_inode *dip = GFS2_I(dir);
+ 	struct gfs2_holder d_gh;
+-	int error;
++	int error = 0;
+ 	struct inode *inode = NULL;
+ 	int unlock = 0;
  
- 	/* skip first field */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +73,7 @@ revert-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
 git-gfs2-nmw.patch
+gfs2_lookupi-uninitialised-var-fix.patch
 ib_umem_get-warning-fix.patch
 git-input.patch
 git-input-fixup.patch
@@ -80,6 +82,7 @@ git-jfs-fix.patch
 git-kbuild.patch
 git-kvm.patch
 git-leds.patch
+led_colour_show-warning-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
 ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 git-md-accel.patch
@@ -225,4 +228,3 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-led_colour_show-warning-fix.patch
