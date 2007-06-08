@@ -1,353 +1,314 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-tidyups-update.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:14:49 -0700
-Message-ID: <200706080614.l586EnhY020984@imap1.linux-foundation.org>
+Subject: - lguest-the-host-code-use-hrtimers.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:15:01 -0700
+Message-ID: <200706080615.l586F1J2021002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755507AbXFHGPT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:15:19 -0400
+	by vger.kernel.org with ESMTP id S1755534AbXFHGPu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:15:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, hch@lst.de, mm-commits@vger.kernel.org
+To: jmorris@namei.org, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: host code tidyups
+     lguest: use hrtimers
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-tidyups-update.patch
+     lguest-the-host-code-use-hrtimers.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest: host code tidyups
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: lguest: use hrtimers
+From: James Morris <jmorris@namei.org>
 
-Christoph Hellwig said runs sparse:
-1) page_tables.c unnecessary initialization
-2) Change prototype of run_lguest and do cast in caller instead (when we add
-   __user to cast, it runs over another line).
-Al Viro pointed out the ugly cast in push_lguest_stack():
-3) Stick with unsigned long for arg, removes 4 casts in total.
+Convert lguest to the hrtimer framework, enabling dynamic ticks and high
+resolution timers.
 
-Most importantly, I now realize that Christoph's incorrect ranting
-about lgread_u32 et al was in fact a subtle ploy to make me diagnose
-the real issue: sparse 0.3 complains about casting a __user pointer
-to/from u32, but not an "unsigned long".  They are (currently)
-equivalent for lguest, but this is a much better solution than __force.
+(BTW Thomas, is the check for delta < minimum actually required in our
+set_next_event function?)
 
-Kudos, Christoph, for such masterful manipulation!
-
+Signed-off-by: James Morris <jmorris@namei.org>
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c                 |   27 +++++++++---------
- drivers/lguest/hypercalls.c           |   10 ++----
- drivers/lguest/interrupts_and_traps.c |   13 ++++----
- drivers/lguest/io.c                   |    2 -
- drivers/lguest/lg.h                   |   35 +++++++++++-------------
- drivers/lguest/segments.c             |    6 ++--
- include/linux/lguest_launcher.h       |    2 -
- 7 files changed, 47 insertions(+), 48 deletions(-)
+ drivers/lguest/core.c                 |    2 
+ drivers/lguest/hypercalls.c           |   10 +--
+ drivers/lguest/interrupts_and_traps.c |   34 +++++++++++-
+ drivers/lguest/lg.h                   |    6 +-
+ drivers/lguest/lguest.c               |   63 ++++++++++++++++++++++--
+ drivers/lguest/lguest_user.c          |    3 +
+ include/linux/lguest.h                |    5 +
+ 7 files changed, 106 insertions(+), 17 deletions(-)
 
-diff -puN drivers/lguest/core.c~lguest-the-host-code-tidyups-update drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-the-host-code-tidyups-update
+diff -puN drivers/lguest/core.c~lguest-the-host-code-use-hrtimers drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-the-host-code-use-hrtimers
 +++ a/drivers/lguest/core.c
-@@ -212,39 +212,40 @@ int lguest_address_ok(const struct lgues
- }
+@@ -328,7 +328,7 @@ int run_guest(struct lguest *lg, unsigne
  
- /* Just like get_user, but don't let guest access lguest binary. */
--u32 lgread_u32(struct lguest *lg, u32 addr)
-+u32 lgread_u32(struct lguest *lg, unsigned long addr)
- {
- 	u32 val = 0;
- 
- 	/* Don't let them access lguest binary */
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || get_user(val, (__force u32 __user *)addr) != 0)
--		kill_guest(lg, "bad read address %u", addr);
-+	    || get_user(val, (u32 __user *)addr) != 0)
-+		kill_guest(lg, "bad read address %#lx", addr);
- 	return val;
- }
- 
--void lgwrite_u32(struct lguest *lg, u32 addr, u32 val)
-+void lgwrite_u32(struct lguest *lg, unsigned long addr, u32 val)
- {
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || put_user(val, (__force u32 __user *)addr) != 0)
--		kill_guest(lg, "bad write address %u", addr);
-+	    || put_user(val, (u32 __user *)addr) != 0)
-+		kill_guest(lg, "bad write address %#lx", addr);
- }
- 
--void lgread(struct lguest *lg, void *b, u32 addr, unsigned bytes)
-+void lgread(struct lguest *lg, void *b, unsigned long addr, unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_from_user(b, (__force void __user *)addr, bytes) != 0) {
-+	    || copy_from_user(b, (void __user *)addr, bytes) != 0) {
- 		/* copy_from_user should do this, but as we rely on it... */
- 		memset(b, 0, bytes);
--		kill_guest(lg, "bad read address %u len %u", addr, bytes);
-+		kill_guest(lg, "bad read address %#lx len %u", addr, bytes);
- 	}
- }
- 
--void lgwrite(struct lguest *lg, u32 addr, const void *b, unsigned bytes)
-+void lgwrite(struct lguest *lg, unsigned long addr, const void *b,
-+	     unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_to_user((__force void __user *)addr, b, bytes) != 0)
--		kill_guest(lg, "bad write address %u len %u", addr, bytes);
-+	    || copy_to_user((void __user *)addr, b, bytes) != 0)
-+		kill_guest(lg, "bad write address %#lx len %u", addr, bytes);
- }
- 
- static void set_ts(void)
-@@ -367,7 +368,7 @@ int run_guest(struct lguest *lg, unsigne
- 		if (deliver_trap(lg, lg->regs->trapnum))
+ 		if (lg->halted) {
+ 			set_current_state(TASK_INTERRUPTIBLE);
+-			schedule_timeout(1);
++			schedule();
  			continue;
+ 		}
  
--		kill_guest(lg, "unhandled trap %i at %#x (%#x)",
-+		kill_guest(lg, "unhandled trap %li at %#lx (%#lx)",
- 			   lg->regs->trapnum, lg->regs->eip,
- 			   lg->regs->trapnum == 14 ? cr2 : lg->regs->errcode);
- 	}
-diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups-update drivers/lguest/hypercalls.c
---- a/drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups-update
+diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-use-hrtimers drivers/lguest/hypercalls.c
+--- a/drivers/lguest/hypercalls.c~lguest-the-host-code-use-hrtimers
 +++ a/drivers/lguest/hypercalls.c
-@@ -83,8 +83,7 @@ static void do_hcall(struct lguest *lg, 
- 		guest_set_pmd(lg, regs->edx, regs->ebx);
+@@ -44,13 +44,6 @@ static void do_hcall(struct lguest *lg, 
+ 		else
+ 			guest_pagetable_flush_user(lg);
  		break;
+-	case LHCALL_TIMER_READ: {
+-		u32 now = jiffies;
+-		mb();
+-		regs->eax = now - lg->last_timer;
+-		lg->last_timer = now;
+-		break;
+-	}
+ 	case LHCALL_GET_WALLCLOCK: {
+ 		struct timespec ts;
+ 		ktime_get_real_ts(&ts);
+@@ -85,6 +78,9 @@ static void do_hcall(struct lguest *lg, 
  	case LHCALL_LOAD_TLS:
--		guest_load_tls(lg,
--			       (__force struct desc_struct __user*)regs->edx);
-+		guest_load_tls(lg, regs->edx);
+ 		guest_load_tls(lg, regs->edx);
  		break;
++	case LHCALL_SET_CLOCKEVENT:
++		guest_set_clockevent(lg, regs->edx);
++		break;
  	case LHCALL_TS:
  		lg->ts = regs->edx;
-@@ -93,7 +92,7 @@ static void do_hcall(struct lguest *lg, 
- 		lg->halted = 1;
  		break;
- 	default:
--		kill_guest(lg, "Bad hypercall %i\n", regs->eax);
-+		kill_guest(lg, "Bad hypercall %li\n", regs->eax);
- 	}
- }
- 
-@@ -138,15 +137,14 @@ static void do_async_hcalls(struct lgues
- static void initialize(struct lguest *lg)
- {
- 	if (lg->regs->eax != LHCALL_LGUEST_INIT) {
--		kill_guest(lg, "hypercall %i before LGUEST_INIT",
-+		kill_guest(lg, "hypercall %li before LGUEST_INIT",
- 			   lg->regs->eax);
- 		return;
- 	}
- 
- 	lg->lguest_data = (struct lguest_data __user *)lg->regs->edx;
- 	/* We check here so we can simply copy_to_user/from_user */
--	if (!lguest_address_ok(lg, (long)lg->lguest_data,
--			       sizeof(*lg->lguest_data))) {
-+	if (!lguest_address_ok(lg, lg->regs->edx, sizeof(*lg->lguest_data))) {
- 		kill_guest(lg, "bad guest page %p", lg->lguest_data);
- 		return;
- 	}
-diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups-update drivers/lguest/interrupts_and_traps.c
---- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups-update
+diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-use-hrtimers drivers/lguest/interrupts_and_traps.c
+--- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-use-hrtimers
 +++ a/drivers/lguest/interrupts_and_traps.c
-@@ -16,24 +16,25 @@ static int idt_present(u32 lo, u32 hi)
- 	return (hi & 0x8000);
+@@ -73,10 +73,6 @@ void maybe_do_interrupt(struct lguest *l
+ 	if (!lg->lguest_data)
+ 		return;
+ 
+-	/* If timer has changed, set timer interrupt. */
+-	if (jiffies != lg->last_timer)
+-		set_bit(0, lg->irqs_pending);
+-
+ 	/* Mask out any interrupts they have blocked. */
+ 	if (copy_from_user(&blk, lg->lguest_data->blocked_interrupts,
+ 			   sizeof(blk)))
+@@ -240,3 +236,33 @@ void copy_traps(const struct lguest *lg,
+ 	else
+ 		default_idt_entry(&idt[i], i, def[i]);
  }
- 
--static void push_guest_stack(struct lguest *lg, u32 __user **gstack, u32 val)
-+static void push_guest_stack(struct lguest *lg, unsigned long *gstack, u32 val)
- {
--	lgwrite_u32(lg, (__force u32)--(*gstack), val);
-+	*gstack -= 4;
-+	lgwrite_u32(lg, *gstack, val);
- }
- 
- static void set_guest_interrupt(struct lguest *lg, u32 lo, u32 hi, int has_err)
- {
--	u32 __user *gstack;
-+	unsigned long gstack;
- 	u32 eflags, ss, irq_enable;
- 
- 	/* If they want a ring change, we use new stack and push old ss/esp */
- 	if ((lg->regs->ss&0x3) != GUEST_PL) {
--		gstack = (u32 __user *)guest_pa(lg, lg->esp1);
-+		gstack = guest_pa(lg, lg->esp1);
- 		ss = lg->ss1;
- 		push_guest_stack(lg, &gstack, lg->regs->ss);
- 		push_guest_stack(lg, &gstack, lg->regs->esp);
- 	} else {
--		gstack = (u32 __user *)guest_pa(lg, lg->regs->esp);
-+		gstack = guest_pa(lg, lg->regs->esp);
- 		ss = lg->regs->ss;
- 	}
- 
-@@ -53,7 +54,7 @@ static void set_guest_interrupt(struct l
- 
- 	/* Change the real stack so switcher returns to trap handler */
- 	lg->regs->ss = ss;
--	lg->regs->esp = (__force u32)gstack + lg->page_offset;
-+	lg->regs->esp = gstack + lg->page_offset;
- 	lg->regs->cs = (__KERNEL_CS|GUEST_PL);
- 	lg->regs->eip = idt_address(lo, hi);
- 
-diff -puN drivers/lguest/io.c~lguest-the-host-code-tidyups-update drivers/lguest/io.c
---- a/drivers/lguest/io.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/io.c
-@@ -52,7 +52,7 @@ static int check_dma_list(struct lguest 
- 	return 1;
- 
- kill:
--	kill_guest(lg, "bad DMA entry: %u@%#x", dma->len[i], dma->addr[i]);
-+	kill_guest(lg, "bad DMA entry: %u@%#lx", dma->len[i], dma->addr[i]);
- 	return 0;
- }
- 
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-tidyups-update drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-tidyups-update
++
++void guest_set_clockevent(struct lguest *lg, unsigned long delta)
++{
++	ktime_t expires;
++
++	if (unlikely(delta == 0)) {
++		/* Clock event device is shutting down. */
++		hrtimer_cancel(&lg->hrt);
++		return;
++	}
++
++	expires = ktime_add_ns(ktime_get_real(), delta);
++	hrtimer_start(&lg->hrt, expires, HRTIMER_MODE_ABS);
++}
++
++static enum hrtimer_restart clockdev_fn(struct hrtimer *timer)
++{
++	struct lguest *lg = container_of(timer, struct lguest, hrt);
++
++	set_bit(0, lg->irqs_pending);
++	if (lg->halted)
++		wake_up_process(lg->tsk);
++	return HRTIMER_NORESTART;
++}
++
++void init_clockdev(struct lguest *lg)
++{
++	hrtimer_init(&lg->hrt, CLOCK_REALTIME, HRTIMER_MODE_ABS);
++	lg->hrt.function = clockdev_fn;
++}
+diff -puN drivers/lguest/lg.h~lguest-the-host-code-use-hrtimers drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-the-host-code-use-hrtimers
 +++ a/drivers/lguest/lg.h
-@@ -25,18 +25,18 @@
- struct lguest_regs
- {
- 	/* Manually saved part. */
--	u32 ebx, ecx, edx;
--	u32 esi, edi, ebp;
--	u32 gs;
--	u32 eax;
--	u32 fs, ds, es;
--	u32 trapnum, errcode;
-+	unsigned long ebx, ecx, edx;
-+	unsigned long esi, edi, ebp;
-+	unsigned long gs;
-+	unsigned long eax;
-+	unsigned long fs, ds, es;
-+	unsigned long trapnum, errcode;
- 	/* Trap pushed part */
--	u32 eip;
--	u32 cs;
--	u32 eflags;
--	u32 esp;
--	u32 ss;
-+	unsigned long eip;
-+	unsigned long cs;
-+	unsigned long eflags;
-+	unsigned long esp;
-+	unsigned long ss;
+@@ -134,7 +134,6 @@ struct lguest
+ 	u32 cr2;
+ 	int halted;
+ 	int ts;
+-	u32 last_timer;
+ 	u32 next_hcall;
+ 	u32 esp1;
+ 	u8 ss1;
+@@ -174,6 +173,9 @@ struct lguest
+ 	struct desc_struct idt[FIRST_EXTERNAL_VECTOR+LGUEST_IRQS];
+ 	struct desc_struct syscall_idt;
+ 
++	/* Virtual clock device */
++	struct hrtimer hrt;
++
+ 	/* Pending virtual interrupts */
+ 	DECLARE_BITMAP(irqs_pending, LGUEST_IRQS);
  };
+@@ -202,6 +204,8 @@ void setup_default_idt_entries(struct lg
+ 			       const unsigned long *def);
+ void copy_traps(const struct lguest *lg, struct desc_struct *idt,
+ 		const unsigned long *def);
++void guest_set_clockevent(struct lguest *lg, unsigned long delta);
++void init_clockdev(struct lguest *lg);
  
- void free_pagetables(void);
-@@ -175,10 +175,10 @@ extern struct lguest lguests[];
- extern struct mutex lguest_lock;
- 
- /* core.c: */
--u32 lgread_u32(struct lguest *lg, u32 addr);
--void lgwrite_u32(struct lguest *lg, u32 val, u32 addr);
--void lgread(struct lguest *lg, void *buf, u32 addr, unsigned bytes);
--void lgwrite(struct lguest *lg, u32 addr, const void *buf, unsigned bytes);
-+u32 lgread_u32(struct lguest *lg, unsigned long addr);
-+void lgwrite_u32(struct lguest *lg, unsigned long addr, u32 val);
-+void lgread(struct lguest *lg, void *buf, unsigned long addr, unsigned len);
-+void lgwrite(struct lguest *lg, unsigned long, const void *buf, unsigned len);
- int find_free_guest(void);
- int lguest_address_ok(const struct lguest *lg,
- 		      unsigned long addr, unsigned long len);
-@@ -199,9 +199,8 @@ void copy_traps(const struct lguest *lg,
  /* segments.c: */
  void setup_default_gdt_entries(struct lguest_ro_state *state);
- void setup_guest_gdt(struct lguest *lg);
--void load_guest_gdt(struct lguest *lg, u32 table, u32 num);
--void guest_load_tls(struct lguest *lg,
--		    const struct desc_struct __user *tls_array);
-+void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num);
-+void guest_load_tls(struct lguest *lg, unsigned long tls_array);
- void copy_gdt(const struct lguest *lg, struct desc_struct *gdt);
- 
- /* page_tables.c: */
-diff -puN drivers/lguest/segments.c~lguest-the-host-code-tidyups-update drivers/lguest/segments.c
---- a/drivers/lguest/segments.c~lguest-the-host-code-tidyups-update
-+++ a/drivers/lguest/segments.c
-@@ -95,7 +95,7 @@ void copy_gdt(const struct lguest *lg, s
- 			gdt[i] = lg->gdt[i];
- }
- 
--void load_guest_gdt(struct lguest *lg, u32 table, u32 num)
-+void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num)
- {
- 	if (num > ARRAY_SIZE(lg->gdt))
- 		kill_guest(lg, "too many gdt entries %i", num);
-@@ -105,11 +105,11 @@ void load_guest_gdt(struct lguest *lg, u
- 	lg->changed |= CHANGED_GDT;
- }
- 
--void guest_load_tls(struct lguest *lg, const struct desc_struct __user *gtls)
-+void guest_load_tls(struct lguest *lg, unsigned long gtls)
- {
- 	struct desc_struct *tls = &lg->gdt[GDT_ENTRY_TLS_MIN];
- 
--	lgread(lg, tls, (u32)gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
-+	lgread(lg, tls, gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
- 	fixup_gdt_table(lg);
- 	lg->changed |= CHANGED_GDT;
- }
-diff -puN include/linux/lguest_launcher.h~lguest-the-host-code-tidyups-update include/linux/lguest_launcher.h
---- a/include/linux/lguest_launcher.h~lguest-the-host-code-tidyups-update
-+++ a/include/linux/lguest_launcher.h
-@@ -13,7 +13,7 @@ struct lguest_dma
- {
- 	/* 0 if free to be used, filled by hypervisor. */
-  	u32 used_len;
--	u32 addr[LGUEST_MAX_DMA_SECTIONS];
-+	unsigned long addr[LGUEST_MAX_DMA_SECTIONS];
- 	u16 len[LGUEST_MAX_DMA_SECTIONS];
+diff -puN drivers/lguest/lguest.c~lguest-the-host-code-use-hrtimers drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-host-code-use-hrtimers
++++ a/drivers/lguest/lguest.c
+@@ -26,6 +26,7 @@
+ #include <linux/irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/clocksource.h>
++#include <linux/clockchips.h>
+ #include <linux/lguest.h>
+ #include <linux/lguest_launcher.h>
+ #include <linux/lguest_bus.h>
+@@ -359,8 +360,58 @@ static struct clocksource lguest_clock =
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  };
  
++/* We also need a "struct clock_event_device": Linux asks us to set it to go
++ * off some time in the future.  Actually, James Morris figured all this out, I
++ * just applied the patch. */
++static int lguest_clockevent_set_next_event(unsigned long delta,
++                                           struct clock_event_device *evt)
++{
++	if (delta < LG_CLOCK_MIN_DELTA) {
++		if (printk_ratelimit())
++			printk(KERN_DEBUG "%s: small delta %lu ns\n",
++			       __FUNCTION__, delta);
++		return -ETIME;
++	}
++	hcall(LHCALL_SET_CLOCKEVENT, delta, 0, 0);
++	return 0;
++}
++
++static void lguest_clockevent_set_mode(enum clock_event_mode mode,
++                                      struct clock_event_device *evt)
++{
++	switch (mode) {
++	case CLOCK_EVT_MODE_UNUSED:
++	case CLOCK_EVT_MODE_SHUTDOWN:
++		/* A 0 argument shuts the clock down. */
++		hcall(LHCALL_SET_CLOCKEVENT, 0, 0, 0);
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++		/* This is what we expect. */
++		break;
++	case CLOCK_EVT_MODE_PERIODIC:
++		BUG();
++	}
++}
++
++/* This describes our primitive timer chip. */
++static struct clock_event_device lguest_clockevent = {
++	.name                   = "lguest",
++	.features               = CLOCK_EVT_FEAT_ONESHOT,
++	.set_next_event         = lguest_clockevent_set_next_event,
++	.set_mode               = lguest_clockevent_set_mode,
++	.rating                 = INT_MAX,
++	.mult                   = 1,
++	.shift                  = 0,
++	.min_delta_ns           = LG_CLOCK_MIN_DELTA,
++	.max_delta_ns           = LG_CLOCK_MAX_DELTA,
++};
++
++/* This is the Guest timer interrupt handler (hardware interrupt 0).  We just
++ * call the clockevent infrastructure and it does whatever needs doing. */
+ static void lguest_time_irq(unsigned int irq, struct irq_desc *desc)
+ {
++	unsigned long flags;
++
+ 	/* Check in case host TSC has changed rate. */
+ 	if (unlikely(tsc_khz != lguest_data.tsc_khz)) {
+ 		tsc_khz = lguest_data.tsc_khz;
+@@ -368,8 +419,11 @@ static void lguest_time_irq(unsigned int
+ 		__get_cpu_var(sc_data).cyc2ns_scale
+ 			= (1000000 << CYC2NS_SCALE_FACTOR) / tsc_khz;
+ 	}
+-	do_timer(hcall(LHCALL_TIMER_READ, 0, 0, 0));
+-	update_process_times(user_mode_vm(get_irq_regs()));
++
++	/* Don't interrupt us while this is running. */
++	local_irq_save(flags);
++	lguest_clockevent.event_handler(&lguest_clockevent);
++	local_irq_restore(flags);
+ }
+ 
+ static void lguest_time_init(void)
+@@ -379,7 +433,10 @@ static void lguest_time_init(void)
+ 	lguest_clock.mult = clocksource_khz2mult(tsc_khz, 22);
+ 	clocksource_register(&lguest_clock);
+ 
+-	hcall(LHCALL_TIMER_READ, 0, 0, 0);
++	/* We can't set cpumask in the initializer: damn C limitations! */
++	lguest_clockevent.cpumask = cpumask_of_cpu(0);
++	clockevents_register_device(&lguest_clockevent);
++
+ 	enable_lguest_irq(0);
+ }
+ 
+diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-use-hrtimers drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~lguest-the-host-code-use-hrtimers
++++ a/drivers/lguest/lguest_user.c
+@@ -139,6 +139,7 @@ static int initialize(struct file *file,
+ 
+ 	setup_regs(lg->regs, args[2]);
+ 	setup_guest_gdt(lg);
++	init_clockdev(lg);
+ 	lg->tsk = current;
+ 	get_task_struct(lg->tsk);
+ 	lg->mm = get_task_mm(lg->tsk);
+@@ -200,6 +201,8 @@ static int close(struct inode *inode, st
+ 		return 0;
+ 
+ 	mutex_lock(&lguest_lock);
++	/* Cancels the hrtimer set via LHCALL_SET_CLOCKEVENT. */
++	hrtimer_cancel(&lg->hrt);
+ 	release_all_dma(lg);
+ 	free_guest_pagetable(lg);
+ 	put_task_struct(lg->tsk);
+diff -puN include/linux/lguest.h~lguest-the-host-code-use-hrtimers include/linux/lguest.h
+--- a/include/linux/lguest.h~lguest-the-host-code-use-hrtimers
++++ a/include/linux/lguest.h
+@@ -15,7 +15,7 @@
+ #define LHCALL_LOAD_IDT_ENTRY	6
+ #define LHCALL_SET_STACK	7
+ #define LHCALL_TS		8
+-#define LHCALL_TIMER_READ	9
++#define LHCALL_SET_CLOCKEVENT	9
+ #define LHCALL_HALT		10
+ #define LHCALL_GET_WALLCLOCK	11
+ #define LHCALL_BIND_DMA		12
+@@ -24,6 +24,9 @@
+ #define LHCALL_SET_PMD		15
+ #define LHCALL_LOAD_TLS		16
+ 
++#define LG_CLOCK_MIN_DELTA	100UL
++#define LG_CLOCK_MAX_DELTA	ULONG_MAX
++
+ #define LGUEST_TRAP_ENTRY 0x1F
+ 
+ static inline unsigned long
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from jmorris@namei.org are
 
-git-kbuild.patch
-paravirt-helper-to-disable-all-io-space.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-xen-disable-all-non-virtual-devices.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-use-menuconfig-objects-ii-module-menu.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
+git-net.patch
+git-selinux.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-update.patch
 lguest-the-host-code.patch
-lguest-the-host-code-tidyups-update.patch
-lguest-the-host-code-borkages.patch
-lguest-faster-tls-switching.patch
-lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command.patch
-lguest-the-host-code-use-tsc.patch
 lguest-the-host-code-use-hrtimers.patch
-lguest-the-host-code-update-for-mm-simplify-boot_params.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-makefile-and-kconfig-tidyups.patch
-lguest-the-console-driver.patch
-lguest-the-console-driver-tidyups.patch
 lguest-the-net-driver.patch
-lguest-the-net-driver-tidyups.patch
-lguest-the-net-driver-tidyups-update.patch
-lguest-the-net-driver-include-fix.patch
-lguest-the-block-driver.patch
-lguest-the-block-driver-tidyups.patch
-lguest-the-block-driver-tidyups-update.patch
 lguest-the-documentation-example-launcher.patch
-lguest-the-documentation-example-launcher-example-launcher-fix.patch
-lguest-dont-signal-like-crazy-use-lhreq_break-command-doc.patch
-lguest-documentation-infrastructure-and-chapter-i.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
