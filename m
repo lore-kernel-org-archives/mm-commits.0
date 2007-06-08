@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-selinux-allnoconfig-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 13:58:35 -0700
-Message-ID: <200706082102.l58L2CE8012107@imap1.linux-foundation.org>
+Subject: + i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 14:11:35 -0700
+Message-ID: <200706082115.l58LFCV9012389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59642 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33123 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759920AbXFHVCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:02:36 -0400
+	by vger.kernel.org with ESMTP id S1750877AbXFHVPX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov
+Cc: akpm@linux-foundation.org, ak@suse.de, jesse.barnes@intel.com
 
 
 The patch titled
-     git-selinux: allnoconfig fix
+     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
 has been added to the -mm tree.  Its filename is
-     git-selinux-allnoconfig-fix.patch
+     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-selinux: allnoconfig fix
+Subject: i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Documentation/SubmitChecklist, rule 2
+arch/i386/kernel/cpu/mtrr/main.c: In function 'mtrr_trim_uncached_memory':
+arch/i386/kernel/cpu/mtrr/main.c:655: error: 'end_pfn' undeclared (first use in this function)
+arch/i386/kernel/cpu/mtrr/main.c:655: error: (Each undeclared identifier is reported only once
+arch/i386/kernel/cpu/mtrr/main.c:655: error: for each function it appears in.)
 
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jesse Barnes <jesse.barnes@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 ++
+ arch/i386/kernel/cpu/mtrr/main.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN kernel/sysctl.c~git-selinux-allnoconfig-fix kernel/sysctl.c
---- a/kernel/sysctl.c~git-selinux-allnoconfig-fix
-+++ a/kernel/sysctl.c
-@@ -695,6 +695,7 @@ static ctl_table kern_table[] = {
- 		.proc_handler   = &proc_dointvec,
- 	},
- #endif
-+#ifdef CONFIG_SECURITY
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "mmap_min_addr",
-@@ -703,6 +704,7 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -625,6 +625,7 @@ static struct sysdev_driver mtrr_sysdev_
+ 	.resume		= mtrr_restore,
+ };
+ 
++#ifdef CONFIG_X86_64
+ /**
+  * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
+  *
+@@ -661,6 +662,7 @@ void __init mtrr_trim_uncached_memory(vo
+ 		end_pfn = highest_addr >> PAGE_SHIFT;
+ 	}
+ }
 +#endif
- 	{
- 		.ctl_name	= KERN_POWEROFF_CMD,
- 		.procname	= "poweroff_cmd",
+ 
+ /**
+  * mtrr_bp_init - initialize mtrrs on the boot CPU
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +124,7 @@ x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
 x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
 i386-mtrr-clean-up-usage_table.patch
 git-xfs.patch
 git-cryptodev.patch
