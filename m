@@ -1,223 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-tidyups.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:14:46 -0700
-Message-ID: <200706080614.l586Ek8w020981@imap1.linux-foundation.org>
+Subject: - lguest-the-host-code-borkages.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:14:52 -0700
+Message-ID: <200706080614.l586EqbP020987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46081 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754984AbXFHGO4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:14:56 -0400
+	by vger.kernel.org with ESMTP id S1755224AbXFHGPD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:15:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest host feedback tidyups
+     lguest-the-host-code borkages
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-tidyups.patch
+     lguest-the-host-code-borkages.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest host feedback tidyups
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: lguest-the-host-code borkages
+From: Andrew Morton <akpm@linux-foundation.org>
 
-1) Sam Ravnborg says lg-objs is deprecated, use lg-y.
-2) Sparse: page_tables.c unnecessary initialization
-3) Lots of __force to shut sparse up: guest "physical" addresses are
-   userspace virtual.
-4) Change prototype of run_lguest and do cast in caller instead (when we add
-   __iomem to cast, it runs over another line).
+drivers/lguest/lguest.c: In function 'lguest_init':
+drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__constant_memcpy'
+drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__memcpy'
+drivers/lguest/lguest.c:447: error: invalid operands to binary +
+drivers/lguest/lguest.c:447: error: invalid operands to binary +
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Dunno if this is right, worried.
+
+Are those memcpys back-assward?
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/core.c                 |   16 ++++++++--------
- drivers/lguest/hypercalls.c           |    3 ++-
- drivers/lguest/interrupts_and_traps.c |    4 ++--
- drivers/lguest/lg.h                   |    2 +-
- drivers/lguest/lguest_user.c          |    2 +-
- drivers/lguest/page_tables.c          |    2 +-
- 6 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/lguest/lguest.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/lguest/core.c~lguest-the-host-code-tidyups drivers/lguest/core.c
---- a/drivers/lguest/core.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/core.c
-@@ -218,7 +218,7 @@ u32 lgread_u32(struct lguest *lg, u32 ad
- 
- 	/* Don't let them access lguest binary */
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || get_user(val, (u32 __user *)addr) != 0)
-+	    || get_user(val, (__force u32 __user *)addr) != 0)
- 		kill_guest(lg, "bad read address %u", addr);
- 	return val;
- }
-@@ -226,14 +226,14 @@ u32 lgread_u32(struct lguest *lg, u32 ad
- void lgwrite_u32(struct lguest *lg, u32 addr, u32 val)
+diff -puN drivers/lguest/lguest.c~lguest-the-host-code-borkages drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-host-code-borkages
++++ a/drivers/lguest/lguest.c
+@@ -444,9 +444,9 @@ static unsigned lguest_patch(u8 type, u1
+ __init void lguest_init(void *boot)
  {
- 	if (!lguest_address_ok(lg, addr, sizeof(val))
--	    || put_user(val, (u32 __user *)addr) != 0)
-+	    || put_user(val, (__force u32 __user *)addr) != 0)
- 		kill_guest(lg, "bad write address %u", addr);
- }
+ 	/* Copy boot parameters first. */
+-	memcpy(boot_params, boot, PARAM_SIZE);
++	memcpy(&boot_params, boot, PARAM_SIZE);
+ 	memcpy(boot_command_line,
+-	       __va(*(unsigned long *)(boot_params + NEW_CL_POINTER)),
++	       __va(*(unsigned long *)((void *)&boot_params + NEW_CL_POINTER)),
+ 	       COMMAND_LINE_SIZE);
  
- void lgread(struct lguest *lg, void *b, u32 addr, unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_from_user(b, (void __user *)addr, bytes) != 0) {
-+	    || copy_from_user(b, (__force void __user *)addr, bytes) != 0) {
- 		/* copy_from_user should do this, but as we rely on it... */
- 		memset(b, 0, bytes);
- 		kill_guest(lg, "bad read address %u len %u", addr, bytes);
-@@ -243,7 +243,7 @@ void lgread(struct lguest *lg, void *b, 
- void lgwrite(struct lguest *lg, u32 addr, const void *b, unsigned bytes)
- {
- 	if (!lguest_address_ok(lg, addr, bytes)
--	    || copy_to_user((void __user *)addr, b, bytes) != 0)
-+	    || copy_to_user((__force void __user *)addr, b, bytes) != 0)
- 		kill_guest(lg, "bad write address %u len %u", addr, bytes);
- }
- 
-@@ -294,7 +294,7 @@ static void run_guest_once(struct lguest
- 		     : "memory", "%edx", "%ecx", "%edi", "%esi");
- }
- 
--int run_guest(struct lguest *lg, char *__user user)
-+int run_guest(struct lguest *lg, unsigned long __user *user)
- {
- 	while (!lg->dead) {
- 		unsigned int cr2 = 0; /* Damn gcc */
-@@ -302,8 +302,8 @@ int run_guest(struct lguest *lg, char *_
- 		/* Hypercalls first: we might have been out to userspace */
- 		do_hypercalls(lg);
- 		if (lg->dma_is_pending) {
--			if (put_user(lg->pending_dma, (unsigned long *)user) ||
--			    put_user(lg->pending_key, (unsigned long *)user+1))
-+			if (put_user(lg->pending_dma, user) ||
-+			    put_user(lg->pending_key, user+1))
- 				return -EFAULT;
- 			return sizeof(unsigned long)*2;
- 		}
-@@ -420,7 +420,7 @@ static int __init init(void)
- 	lock_cpu_hotplug();
- 	if (cpu_has_pge) { /* We have a broader idea of "global". */
- 		cpu_had_pge = 1;
--		on_each_cpu(adjust_pge, 0, 0, 1);
-+		on_each_cpu(adjust_pge, (void *)0, 0, 1);
- 		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
- 	}
- 	unlock_cpu_hotplug();
-diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups drivers/lguest/hypercalls.c
---- a/drivers/lguest/hypercalls.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/hypercalls.c
-@@ -83,7 +83,8 @@ static void do_hcall(struct lguest *lg, 
- 		guest_set_pmd(lg, regs->edx, regs->ebx);
- 		break;
- 	case LHCALL_LOAD_TLS:
--		guest_load_tls(lg, (struct desc_struct __user*)regs->edx);
-+		guest_load_tls(lg,
-+			       (__force struct desc_struct __user*)regs->edx);
- 		break;
- 	case LHCALL_TS:
- 		lg->ts = regs->edx;
-diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups drivers/lguest/interrupts_and_traps.c
---- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/interrupts_and_traps.c
-@@ -18,7 +18,7 @@ static int idt_present(u32 lo, u32 hi)
- 
- static void push_guest_stack(struct lguest *lg, u32 __user **gstack, u32 val)
- {
--	lgwrite_u32(lg, (u32)--(*gstack), val);
-+	lgwrite_u32(lg, (__force u32)--(*gstack), val);
- }
- 
- static void set_guest_interrupt(struct lguest *lg, u32 lo, u32 hi, int has_err)
-@@ -53,7 +53,7 @@ static void set_guest_interrupt(struct l
- 
- 	/* Change the real stack so switcher returns to trap handler */
- 	lg->regs->ss = ss;
--	lg->regs->esp = (u32)gstack + lg->page_offset;
-+	lg->regs->esp = (__force u32)gstack + lg->page_offset;
- 	lg->regs->cs = (__KERNEL_CS|GUEST_PL);
- 	lg->regs->eip = idt_address(lo, hi);
- 
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-tidyups drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/lg.h
-@@ -182,7 +182,7 @@ void lgwrite(struct lguest *lg, u32 addr
- int find_free_guest(void);
- int lguest_address_ok(const struct lguest *lg,
- 		      unsigned long addr, unsigned long len);
--int run_guest(struct lguest *lg, char *__user user);
-+int run_guest(struct lguest *lg, unsigned long __user *user);
- 
- 
- /* interrupts_and_traps.c: */
-diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-tidyups drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/lguest_user.c
-@@ -65,7 +65,7 @@ static ssize_t read(struct file *file, c
- 	if (lg->dma_is_pending)
- 		lg->dma_is_pending = 0;
- 
--	return run_guest(lg, user);
-+	return run_guest(lg, (unsigned long __user *)user);
- }
- 
- /* Take: pfnlimit, pgdir, start, pageoffset. */
-diff -puN drivers/lguest/page_tables.c~lguest-the-host-code-tidyups drivers/lguest/page_tables.c
---- a/drivers/lguest/page_tables.c~lguest-the-host-code-tidyups
-+++ a/drivers/lguest/page_tables.c
-@@ -13,7 +13,7 @@
- #define PTES_PER_PAGE (1 << PTES_PER_PAGE_SHIFT)
- #define SWITCHER_PGD_INDEX (PTES_PER_PAGE - 1)
- 
--static DEFINE_PER_CPU(spte_t *, switcher_pte_pages) = { NULL };
-+static DEFINE_PER_CPU(spte_t *, switcher_pte_pages);
- #define switcher_pte_page(cpu) per_cpu(switcher_pte_pages, cpu)
- 
- static unsigned vaddr_to_pgd_index(unsigned long vaddr)
+ 	paravirt_ops.name = "lguest";
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+document-acked-by.patch
+x86_64-oops_begin-fix.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-acpi-disable-acpi_processor_throttling_seq_show.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-input-fixup.patch
 git-kbuild.patch
-paravirt-helper-to-disable-all-io-space.patch
+git-kvm.patch
+git-leds.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix-2.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
-xen-disable-all-non-virtual-devices.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-use-menuconfig-objects-ii-module-menu.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+i386-mtrr-clean-up-usage_table.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
-lguest-the-host-code-tidyups.patch
-lguest-the-host-code-tidyups-update.patch
 lguest-the-host-code-borkages.patch
-lguest-faster-tls-switching.patch
-lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command.patch
-lguest-the-host-code-use-tsc.patch
-lguest-the-host-code-use-hrtimers.patch
-lguest-the-host-code-update-for-mm-simplify-boot_params.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-makefile-and-kconfig-tidyups.patch
-lguest-the-console-driver.patch
-lguest-the-console-driver-tidyups.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-tidyups.patch
-lguest-the-net-driver-tidyups-update.patch
 lguest-the-net-driver-include-fix.patch
-lguest-the-block-driver.patch
-lguest-the-block-driver-tidyups.patch
-lguest-the-block-driver-tidyups-update.patch
-lguest-the-documentation-example-launcher.patch
-lguest-the-documentation-example-launcher-example-launcher-fix.patch
-lguest-dont-signal-like-crazy-use-lhreq_break-command-doc.patch
-lguest-documentation-infrastructure-and-chapter-i.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
