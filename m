@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-config_uts_ns-and-config_ipc_ns.patch added to -mm tree
-Date: Fri, 08 Jun 2007 11:22:07 -0700
-Message-ID: <200706081822.l58IM7CP007730@imap1.linux-foundation.org>
+Subject: + allow-page_owner-to-be-set-on-any-architecture.patch added to -mm tree
+Date: Fri, 08 Jun 2007 11:25:32 -0700
+Message-ID: <200706081825.l58IPWq3007818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42588 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762787AbXFHSWa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:22:30 -0400
+	by vger.kernel.org with ESMTP id S1031096AbXFHS0Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     remove CONFIG_UTS_NS and CONFIG_IPC_NS
+     Allow PAGE_OWNER to be set on any architecture
 has been added to the -mm tree.  Its filename is
-     remove-config_uts_ns-and-config_ipc_ns.patch
+     allow-page_owner-to-be-set-on-any-architecture.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,336 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove CONFIG_UTS_NS and CONFIG_IPC_NS
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: Allow PAGE_OWNER to be set on any architecture
+From: Mel Gorman <mel@csn.ul.ie>
 
-CONFIG_UTS_NS and CONFIG_IPC_NS have very little value as they only
-deactivate the unshare of the uts and ipc namespaces and do not improve
-performance.
+Currently PAGE_OWNER depends on CONFIG_X86.  This appears to be due to
+pfn_to_page() being called in an inappropriate for many memory models and
+the presense of memory holes.  This patch ensures that pfn_valid() and
+pfn_valid_within() is called at the appropriate places and the offsets
+correctly updated so that PAGE_OWNER is safe on any architecture.
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Acked-by: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Pavel Emelianov <xemul@openvz.org>
+In situations where CONFIG_HOLES_IN_ZONES is set (IA64 with
+VIRTUAL_MEM_MAP), there may be cases where pages allocated within a
+MAX_ORDER_NR_PAGES block of pages may not be displayed in /proc/page_owner
+if the hole is at the start of the block.  Addressing this would be quite
+complex, perform slowly and is of no clear benefit.
+
+Once PAGE_OWNER is allowed on all architectures, the statistics for
+grouping pages by mobility that declare how many pageblocks contain mixed
+page types becomes optionally available on all arches.
+
+This patch was tested successfully on x86, x86_64, ppc64 and IA64 machines.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h     |   11 +++--------
- include/linux/utsname.h |   13 -------------
- init/Kconfig            |   17 -----------------
- ipc/msg.c               |    4 +---
- ipc/sem.c               |    4 +---
- ipc/shm.c               |    4 +---
- ipc/util.c              |   11 +----------
- ipc/util.h              |    8 ++------
- kernel/Makefile         |    4 ++--
- kernel/nsproxy.c        |   10 ----------
- kernel/utsname_sysctl.c |    5 +----
- 11 files changed, 12 insertions(+), 79 deletions(-)
+ fs/proc/proc_misc.c |   31 ++++++++++++++++++++++++-------
+ lib/Kconfig.debug   |    2 +-
+ 2 files changed, 25 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/ipc.h~remove-config_uts_ns-and-config_ipc_ns include/linux/ipc.h
---- a/include/linux/ipc.h~remove-config_uts_ns-and-config_ipc_ns
-+++ a/include/linux/ipc.h
-@@ -93,6 +93,7 @@ extern struct ipc_namespace init_ipc_ns;
- 
- #ifdef CONFIG_SYSVIPC
- #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
-+extern void free_ipc_ns(struct kref *kref);
- extern struct ipc_namespace *copy_ipcs(unsigned long flags,
- 						struct ipc_namespace *ns);
- #else
-@@ -104,13 +105,9 @@ static inline struct ipc_namespace *copy
- }
- #endif
- 
--#ifdef CONFIG_IPC_NS
--extern void free_ipc_ns(struct kref *kref);
--#endif
--
- static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
- {
--#ifdef CONFIG_IPC_NS
-+#ifdef CONFIG_SYSVIPC
- 	if (ns)
- 		kref_get(&ns->kref);
- #endif
-@@ -119,7 +116,7 @@ static inline struct ipc_namespace *get_
- 
- static inline void put_ipc_ns(struct ipc_namespace *ns)
- {
--#ifdef CONFIG_IPC_NS
-+#ifdef CONFIG_SYSVIPC
- 	kref_put(&ns->kref, free_ipc_ns);
- #endif
- }
-@@ -127,5 +124,3 @@ static inline void put_ipc_ns(struct ipc
- #endif /* __KERNEL__ */
- 
- #endif /* _LINUX_IPC_H */
--
--
-diff -puN include/linux/utsname.h~remove-config_uts_ns-and-config_ipc_ns include/linux/utsname.h
---- a/include/linux/utsname.h~remove-config_uts_ns-and-config_ipc_ns
-+++ a/include/linux/utsname.h
-@@ -48,7 +48,6 @@ static inline void get_uts_ns(struct uts
- 	kref_get(&ns->kref);
- }
- 
--#ifdef CONFIG_UTS_NS
- extern struct uts_namespace *copy_utsname(int flags, struct uts_namespace *ns);
- extern void free_uts_ns(struct kref *kref);
- 
-@@ -56,18 +55,6 @@ static inline void put_uts_ns(struct uts
- {
- 	kref_put(&ns->kref, free_uts_ns);
- }
--#else
--static inline struct uts_namespace *copy_utsname(int flags,
--						struct uts_namespace *ns)
--{
--	return ns;
--}
--
--static inline void put_uts_ns(struct uts_namespace *ns)
--{
--}
--#endif
--
- static inline struct new_utsname *utsname(void)
- {
- 	return &current->nsproxy->uts_ns->name;
-diff -puN init/Kconfig~remove-config_uts_ns-and-config_ipc_ns init/Kconfig
---- a/init/Kconfig~remove-config_uts_ns-and-config_ipc_ns
-+++ a/init/Kconfig
-@@ -120,15 +120,6 @@ config SYSVIPC
- 	  section 6.4 of the Linux Programmer's Guide, available from
- 	  <http://www.tldp.org/guides.html>.
- 
--config IPC_NS
--	bool "IPC Namespaces"
--	depends on SYSVIPC
--	default n
--	help
--	  Support ipc namespaces.  This allows containers, i.e. virtual
--	  environments, to use ipc namespaces to provide different ipc
--	  objects for different servers.  If unsure, say N.
--
- config SYSVIPC_SYSCTL
- 	bool
- 	depends on SYSVIPC
-@@ -218,14 +209,6 @@ config TASK_IO_ACCOUNTING
- 
- 	  Say N if unsure.
- 
--config UTS_NS
--	bool "UTS Namespaces"
--	default n
--	help
--	  Support uts namespaces.  This allows containers, i.e.
--	  vservers, to use uts namespaces to provide different
--	  uts info for different servers.  If unsure, say N.
--
- config AUDIT
- 	bool "Auditing support"
- 	depends on NET
-diff -puN ipc/msg.c~remove-config_uts_ns-and-config_ipc_ns ipc/msg.c
---- a/ipc/msg.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/msg.c
-@@ -87,7 +87,7 @@ static int newque (struct ipc_namespace 
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
- #endif
- 
--static void __ipc_init __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+static void __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
- {
- 	ns->ids[IPC_MSG_IDS] = ids;
- 	ns->msg_ctlmax = MSGMAX;
-@@ -96,7 +96,6 @@ static void __ipc_init __msg_init_ns(str
- 	ipc_init_ids(ids, ns->msg_ctlmni);
- }
- 
--#ifdef CONFIG_IPC_NS
- int msg_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -128,7 +127,6 @@ void msg_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_MSG_IDS]);
- 	ns->ids[IPC_MSG_IDS] = NULL;
- }
--#endif
- 
- void __init msg_init(void)
- {
-diff -puN ipc/sem.c~remove-config_uts_ns-and-config_ipc_ns ipc/sem.c
---- a/ipc/sem.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/sem.c
-@@ -121,7 +121,7 @@ static int sysvipc_sem_proc_show(struct 
- #define sc_semopm	sem_ctls[2]
- #define sc_semmni	sem_ctls[3]
- 
--static void __ipc_init __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+static void __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
- {
- 	ns->ids[IPC_SEM_IDS] = ids;
- 	ns->sc_semmsl = SEMMSL;
-@@ -132,7 +132,6 @@ static void __ipc_init __sem_init_ns(str
- 	ipc_init_ids(ids, ns->sc_semmni);
- }
- 
--#ifdef CONFIG_IPC_NS
- int sem_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -164,7 +163,6 @@ void sem_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_SEM_IDS]);
- 	ns->ids[IPC_SEM_IDS] = NULL;
- }
--#endif
- 
- void __init sem_init (void)
- {
-diff -puN ipc/shm.c~remove-config_uts_ns-and-config_ipc_ns ipc/shm.c
---- a/ipc/shm.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/shm.c
-@@ -77,7 +77,7 @@ static void shm_destroy (struct ipc_name
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
- #endif
- 
--static void __ipc_init __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+static void __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
- {
- 	ns->ids[IPC_SHM_IDS] = ids;
- 	ns->shm_ctlmax = SHMMAX;
-@@ -98,7 +98,6 @@ static void do_shm_rmid(struct ipc_names
- 		shm_destroy(ns, shp);
- }
- 
--#ifdef CONFIG_IPC_NS
- int shm_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -130,7 +129,6 @@ void shm_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_SHM_IDS]);
- 	ns->ids[IPC_SHM_IDS] = NULL;
- }
--#endif
- 
- void __init shm_init (void)
- {
-diff -puN ipc/util.c~remove-config_uts_ns-and-config_ipc_ns ipc/util.c
---- a/ipc/util.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/util.c
-@@ -50,7 +50,6 @@ struct ipc_namespace init_ipc_ns = {
- 	},
- };
- 
--#ifdef CONFIG_IPC_NS
- static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
- {
- 	int err;
-@@ -110,14 +109,6 @@ void free_ipc_ns(struct kref *kref)
- 	shm_exit_ns(ns);
- 	kfree(ns);
- }
--#else
--struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
--{
--	if (flags & CLONE_NEWIPC)
--		return ERR_PTR(-EINVAL);
--	return ns;
--}
--#endif
- 
- /**
-  *	ipc_init	-	initialise IPC subsystem
-@@ -145,7 +136,7 @@ __initcall(ipc_init);
-  *	array itself. 
-  */
-  
--void __ipc_init ipc_init_ids(struct ipc_ids* ids, int size)
-+void ipc_init_ids(struct ipc_ids* ids, int size)
- {
+diff -puN fs/proc/proc_misc.c~allow-page_owner-to-be-set-on-any-architecture fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~allow-page_owner-to-be-set-on-any-architecture
++++ a/fs/proc/proc_misc.c
+@@ -756,18 +756,35 @@ read_page_owner(struct file *file, char 
+ 	struct page *page;
+ 	char *kbuf, *modname;
+ 	const char *symname;
+-	int ret = 0, next_idx = 1;
++	int ret = 0;
+ 	char namebuf[128];
+ 	unsigned long offset = 0, symsize;
  	int i;
+ 	ssize_t num_written = 0;
+ 	int blocktype = 0, pagetype = 0;
  
-diff -puN ipc/util.h~remove-config_uts_ns-and-config_ipc_ns ipc/util.h
---- a/ipc/util.h~remove-config_uts_ns-and-config_ipc_ns
-+++ a/ipc/util.h
-@@ -41,12 +41,8 @@ struct ipc_ids {
- };
- 
- struct seq_file;
--#ifdef CONFIG_IPC_NS
--#define __ipc_init
--#else
--#define __ipc_init	__init
--#endif
--void __ipc_init ipc_init_ids(struct ipc_ids *ids, int size);
++	page = NULL;
+ 	pfn = min_low_pfn + *ppos;
+-	page = pfn_to_page(pfn);
 +
-+void ipc_init_ids(struct ipc_ids *ids, int size);
- #ifdef CONFIG_PROC_FS
- void __init ipc_init_proc_interface(const char *path, const char *header,
- 		int ids, int (*show)(struct seq_file *, void *));
-diff -puN kernel/Makefile~remove-config_uts_ns-and-config_ipc_ns kernel/Makefile
---- a/kernel/Makefile~remove-config_uts_ns-and-config_ipc_ns
-+++ a/kernel/Makefile
-@@ -8,7 +8,8 @@ obj-y     = sched.o fork.o exec_domain.o
- 	    signal.o sys.o kmod.o workqueue.o pid.o \
- 	    rcupdate.o extable.o params.o posix-timers.o \
- 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
--	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o
-+	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o \
-+	    utsname.o
++	/* Find a valid PFN or the start of a MAX_ORDER_NR_PAGES area */
++	while (!pfn_valid(pfn) && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0)
++		pfn++;
++
++	/* Find an allocated page */
+ 	for (; pfn < max_pfn; pfn++) {
+-		if (!pfn_valid(pfn))
++		/*
++		 * If the new page is in a new MAX_ORDER_NR_PAGES area,
++		 * validate the area as existing, skip it if not
++		 */
++		if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0 && !pfn_valid(pfn)) {
++			pfn += MAX_ORDER_NR_PAGES - 1;
+ 			continue;
++		}
++
++		/* Check for holes within a MAX_ORDER area */
++		if (!pfn_valid_within(pfn))
++			continue;
++
+ 		page = pfn_to_page(pfn);
  
- obj-$(CONFIG_STACKTRACE) += stacktrace.o
- obj-y += time/
-@@ -49,7 +50,6 @@ obj-$(CONFIG_SECCOMP) += seccomp.o
- obj-$(CONFIG_RCU_TORTURE_TEST) += rcutorture.o
- obj-$(CONFIG_RELAY) += relay.o
- obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
--obj-$(CONFIG_UTS_NS) += utsname.o
- obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
- obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
+ 		/* Catch situations where free pages have a bad ->order  */
+@@ -776,16 +793,16 @@ read_page_owner(struct file *file, char 
+ 				"PageOwner info inaccurate for PFN %lu\n",
+ 				pfn);
  
-diff -puN kernel/nsproxy.c~remove-config_uts_ns-and-config_ipc_ns kernel/nsproxy.c
---- a/kernel/nsproxy.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/kernel/nsproxy.c
-@@ -157,16 +157,6 @@ int unshare_nsproxy_namespaces(unsigned 
- 	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
+-		if (page->order >= 0)
++		/* Stop search if page is allocated and has trace info */
++		if (page->order >= 0 && page->trace[0])
+ 			break;
+-
+-		next_idx++;
+ 	}
+ 
+ 	if (!pfn_valid(pfn))
  		return 0;
  
--#ifndef CONFIG_IPC_NS
--	if (unshare_flags & CLONE_NEWIPC)
--		return -EINVAL;
--#endif
--
--#ifndef CONFIG_UTS_NS
--	if (unshare_flags & CLONE_NEWUTS)
--		return -EINVAL;
--#endif
--
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+-	*ppos += next_idx;
++	/* Record the next PFN to read in the file offset */
++	*ppos = (pfn - min_low_pfn) + 1;
  
-diff -puN kernel/utsname_sysctl.c~remove-config_uts_ns-and-config_ipc_ns kernel/utsname_sysctl.c
---- a/kernel/utsname_sysctl.c~remove-config_uts_ns-and-config_ipc_ns
-+++ a/kernel/utsname_sysctl.c
-@@ -18,10 +18,7 @@
- static void *get_uts(ctl_table *table, int write)
- {
- 	char *which = table->data;
--#ifdef CONFIG_UTS_NS
--	struct uts_namespace *uts_ns = current->nsproxy->uts_ns;
--	which = (which - (char *)&init_uts_ns) + (char *)uts_ns;
--#endif
-+
- 	if (!write)
- 		down_read(&uts_sem);
- 	else
+ 	kbuf = kmalloc(count, GFP_KERNEL);
+ 	if (!kbuf)
+diff -puN lib/Kconfig.debug~allow-page_owner-to-be-set-on-any-architecture lib/Kconfig.debug
+--- a/lib/Kconfig.debug~allow-page_owner-to-be-set-on-any-architecture
++++ a/lib/Kconfig.debug
+@@ -49,7 +49,7 @@ config UNUSED_SYMBOLS
+ 
+ config PAGE_OWNER
+ 	bool "Track page owner"
+-	depends on DEBUG_KERNEL && X86
++	depends on DEBUG_KERNEL
+ 	help
+ 	  This keeps track of what call chain is the owner of a page, may
+ 	  help to find bare alloc_page(s) leaks. Eats a fair amount of memory.
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-mm-merge-nopfn-into-fault-spufs-fix.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-containersv10-add-tasks-file-interface-fix-2.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+allow-page_owner-to-be-set-on-any-architecture.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
