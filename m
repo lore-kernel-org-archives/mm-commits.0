@@ -1,53 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-makefile-and-kconfig-tidyups.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:16:20 -0700
-Message-ID: <200706080616.l586GKfD021027@imap1.linux-foundation.org>
+Subject: - lguest-the-console-driver-tidyups.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:16:33 -0700
+Message-ID: <200706080616.l586GXXk021030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50671 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39675 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755582AbXFHGQa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:16:30 -0400
+	by vger.kernel.org with ESMTP id S1755691AbXFHGQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:16:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest host feedback tidyups
+     lguest console driver feedback tidyups
 has been removed from the -mm tree.  Its filename was
-     lguest-the-makefile-and-kconfig-tidyups.patch
+     lguest-the-console-driver-tidyups.patch
 
-This patch was dropped because it was folded into lguest-the-makefile-and-kconfig.patch
+This patch was dropped because it was folded into lguest-the-console-driver.patch
 
 ------------------------------------------------------
-Subject: lguest host feedback tidyups
+Subject: lguest console driver feedback tidyups
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-1) Sam Ravnborg says lg-objs is deprecated, use lg-y.
-2) Sparse: page_tables.c unnecessary initialization
-3) Lots of __force to shut sparse up: guest "physical" addresses are
-   userspace virtual.
-4) Change prototype of run_lguest and do cast in caller instead (when we add
-   __iomem to cast, it runs over another line).
+1) Use new lguest_send_dma & lguest_bind_dma functions.
+2) sparse: lguest_cons can be static.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/hvc_lguest.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/lguest/Makefile~lguest-the-makefile-and-kconfig-tidyups drivers/lguest/Makefile
---- a/drivers/lguest/Makefile~lguest-the-makefile-and-kconfig-tidyups
-+++ a/drivers/lguest/Makefile
-@@ -3,5 +3,5 @@ obj-$(CONFIG_LGUEST_GUEST) += lguest.o l
+diff -puN drivers/char/hvc_lguest.c~lguest-the-console-driver-tidyups drivers/char/hvc_lguest.c
+--- a/drivers/char/hvc_lguest.c~lguest-the-console-driver-tidyups
++++ a/drivers/char/hvc_lguest.c
+@@ -36,7 +36,7 @@ static int put_chars(u32 vtermno, const 
+ 	dma.len[1] = 0;
+ 	dma.addr[0] = __pa(buf);
  
- # Host requires the other files, which can be a module.
- obj-$(CONFIG_LGUEST)	+= lg.o
--lg-objs := core.o hypercalls.o page_tables.o interrupts_and_traps.o \
-+lg-y := core.o hypercalls.o page_tables.o interrupts_and_traps.o \
- 	segments.o io.o lguest_user.o switcher.o
+-	hcall(LHCALL_SEND_DMA, LGUEST_CONSOLE_DMA_KEY, __pa(&dma), 0);
++	lguest_send_dma(LGUEST_CONSOLE_DMA_KEY, &dma);
+ 	return count;
+ }
+ 
+@@ -59,7 +59,7 @@ static int get_chars(u32 vtermno, char *
+ 	return count;
+ }
+ 
+-struct hv_ops lguest_cons = {
++static struct hv_ops lguest_cons = {
+ 	.get_chars = get_chars,
+ 	.put_chars = put_chars,
+ };
+@@ -75,14 +75,17 @@ console_initcall(cons_init);
+ 
+ static int lguestcons_probe(struct lguest_device *lgdev)
+ {
+-	lgdev->private = hvc_alloc(0, lgdev->index+1, &lguest_cons, 256);
++	int err;
++
++	lgdev->private = hvc_alloc(0, lgdev_irq(lgdev), &lguest_cons, 256);
+ 	if (IS_ERR(lgdev->private))
+ 		return PTR_ERR(lgdev->private);
+ 
+-	if (!hcall(LHCALL_BIND_DMA, LGUEST_CONSOLE_DMA_KEY, __pa(&cons_input),
+-		   (1<<8) + lgdev->index+1))
++	err = lguest_bind_dma(LGUEST_CONSOLE_DMA_KEY, &cons_input, 1,
++			      lgdev_irq(lgdev));
++	if (err)
+ 		printk("lguest console: failed to bind buffer.\n");
+-	return 0;
++	return err;
+ }
+ 
+ static struct lguest_driver lguestcons_drv = {
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -66,7 +95,6 @@ lguest-the-guest-code.patch
 lguest-the-host-code.patch
 lguest-the-asm-offsets.patch
 lguest-the-makefile-and-kconfig.patch
-lguest-the-makefile-and-kconfig-tidyups.patch
 lguest-the-console-driver.patch
 lguest-the-console-driver-tidyups.patch
 lguest-the-net-driver.patch
