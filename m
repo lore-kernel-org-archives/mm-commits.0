@@ -1,220 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-borkages.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:14:52 -0700
-Message-ID: <200706080614.l586EqbP020987@imap1.linux-foundation.org>
+Subject: - lguest-faster-tls-switching.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:14:54 -0700
+Message-ID: <200706080614.l586Esce020990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755224AbXFHGPD (ORCPT
+	by vger.kernel.org with ESMTP id S1755248AbXFHGPD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:15:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest-the-host-code borkages
+     lguest: faster tls switching
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-borkages.patch
+     lguest-faster-tls-switching.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest-the-host-code borkages
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lguest: faster tls switching
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-drivers/lguest/lguest.c: In function 'lguest_init':
-drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__constant_memcpy'
-drivers/lguest/lguest.c:446: error: incompatible type for argument 1 of '__memcpy'
-drivers/lguest/lguest.c:447: error: invalid operands to binary +
-drivers/lguest/lguest.c:447: error: invalid operands to binary +
+1) When the Guest sets the new TLS entries, we don't need to re-verify
+   the whole GDT.
+2) We also don't need to copy all the GDT entries if only the TLS
+   entries have changed.
 
-Dunno if this is right, worried.
+Before:
+Time for one context switch via pipe: 5406 (5170 - 7467)
 
-Are those memcpys back-assward?
+After:
+Time for one context switch via pipe: 4916 (4661 - 7004)
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/lguest/core.c     |    3 +++
+ drivers/lguest/lg.h       |    2 ++
+ drivers/lguest/segments.c |   20 +++++++++++++++-----
+ 3 files changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-host-code-borkages drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-host-code-borkages
-+++ a/drivers/lguest/lguest.c
-@@ -444,9 +444,9 @@ static unsigned lguest_patch(u8 type, u1
- __init void lguest_init(void *boot)
- {
- 	/* Copy boot parameters first. */
--	memcpy(boot_params, boot, PARAM_SIZE);
-+	memcpy(&boot_params, boot, PARAM_SIZE);
- 	memcpy(boot_command_line,
--	       __va(*(unsigned long *)(boot_params + NEW_CL_POINTER)),
-+	       __va(*(unsigned long *)((void *)&boot_params + NEW_CL_POINTER)),
- 	       COMMAND_LINE_SIZE);
+diff -puN drivers/lguest/core.c~lguest-faster-tls-switching drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-faster-tls-switching
++++ a/drivers/lguest/core.c
+@@ -278,6 +278,9 @@ static void copy_in_guest_info(struct lg
+ 	/* Copy all GDT entries but the TSS. */
+ 	if (lg->changed & CHANGED_GDT)
+ 		copy_gdt(lg, pages->state.guest_gdt);
++	/* If only the TLS entries have changed, copy them. */
++	else if (lg->changed & CHANGED_GDT_TLS)
++		copy_gdt_tls(lg, pages->state.guest_gdt);
  
- 	paravirt_ops.name = "lguest";
+ 	lg->changed = 0;
+ }
+diff -puN drivers/lguest/lg.h~lguest-faster-tls-switching drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-faster-tls-switching
++++ a/drivers/lguest/lg.h
+@@ -115,6 +115,7 @@ struct lguest_pages
+ 
+ #define CHANGED_IDT		1
+ #define CHANGED_GDT		2
++#define CHANGED_GDT_TLS		4 /* Actually a subset of CHANGED_GDT */
+ #define CHANGED_ALL	        3
+ 
+ /* The private info the thread maintains about the guest. */
+@@ -202,6 +203,7 @@ void setup_guest_gdt(struct lguest *lg);
+ void load_guest_gdt(struct lguest *lg, unsigned long table, u32 num);
+ void guest_load_tls(struct lguest *lg, unsigned long tls_array);
+ void copy_gdt(const struct lguest *lg, struct desc_struct *gdt);
++void copy_gdt_tls(const struct lguest *lg, struct desc_struct *gdt);
+ 
+ /* page_tables.c: */
+ int init_guest_pagetable(struct lguest *lg, unsigned long pgtable);
+diff -puN drivers/lguest/segments.c~lguest-faster-tls-switching drivers/lguest/segments.c
+--- a/drivers/lguest/segments.c~lguest-faster-tls-switching
++++ a/drivers/lguest/segments.c
+@@ -34,11 +34,11 @@ static void check_segment_use(struct lgu
+ 		kill_guest(lg, "Removed live GDT entry %u", desc);
+ }
+ 
+-static void fixup_gdt_table(struct lguest *lg)
++static void fixup_gdt_table(struct lguest *lg, unsigned start, unsigned end)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(lg->gdt); i++) {
++	for (i = start; i < end; i++) {
+ 		/* We never copy these ones to real gdt */
+ 		if (ignored_gdt(i))
+ 			continue;
+@@ -86,6 +86,16 @@ void setup_guest_gdt(struct lguest *lg)
+ 	lg->gdt[GDT_ENTRY_KERNEL_DS].b |= (GUEST_PL << 13);
+ }
+ 
++/* This is a fast version for the common case where only the three TLS entries
++ * have changed. */
++void copy_gdt_tls(const struct lguest *lg, struct desc_struct *gdt)
++{
++	unsigned int i;
++
++	for (i = GDT_ENTRY_TLS_MIN; i <= GDT_ENTRY_TLS_MAX; i++)
++		gdt[i] = lg->gdt[i];
++}
++
+ void copy_gdt(const struct lguest *lg, struct desc_struct *gdt)
+ {
+ 	unsigned int i;
+@@ -101,7 +111,7 @@ void load_guest_gdt(struct lguest *lg, u
+ 		kill_guest(lg, "too many gdt entries %i", num);
+ 
+ 	lgread(lg, lg->gdt, table, num * sizeof(lg->gdt[0]));
+-	fixup_gdt_table(lg);
++	fixup_gdt_table(lg, 0, ARRAY_SIZE(lg->gdt));
+ 	lg->changed |= CHANGED_GDT;
+ }
+ 
+@@ -110,6 +120,6 @@ void guest_load_tls(struct lguest *lg, u
+ 	struct desc_struct *tls = &lg->gdt[GDT_ENTRY_TLS_MIN];
+ 
+ 	lgread(lg, tls, gtls, sizeof(*tls)*GDT_ENTRY_TLS_ENTRIES);
+-	fixup_gdt_table(lg);
+-	lg->changed |= CHANGED_GDT;
++	fixup_gdt_table(lg, GDT_ENTRY_TLS_MIN, GDT_ENTRY_TLS_MAX+1);
++	lg->changed |= CHANGED_GDT_TLS;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-document-acked-by.patch
-x86_64-oops_begin-fix.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-acpi-disable-acpi_processor_throttling_seq_show.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-input.patch
-git-input-fixup.patch
 git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix-2.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
-i386-mtrr-clean-up-usage_table.patch
-git-xfs.patch
-git-cryptodev.patch
-git-xtensa.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
+xen-disable-all-non-virtual-devices.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+use-menuconfig-objects-ii-module-menu.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-revoke-wire-up-i386-system-calls.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
 lguest-the-host-code.patch
-lguest-the-host-code-borkages.patch
+lguest-faster-tls-switching.patch
+lguest-the-host-code-dont-signal-like-crazy-use-lhreq_break-command.patch
+lguest-the-host-code-use-tsc.patch
+lguest-the-host-code-use-hrtimers.patch
+lguest-the-host-code-update-for-mm-simplify-boot_params.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-makefile-and-kconfig-tidyups.patch
+lguest-the-console-driver.patch
+lguest-the-console-driver-tidyups.patch
+lguest-the-net-driver.patch
+lguest-the-net-driver-tidyups.patch
+lguest-the-net-driver-tidyups-update.patch
 lguest-the-net-driver-include-fix.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+lguest-the-block-driver.patch
+lguest-the-block-driver-tidyups.patch
+lguest-the-block-driver-tidyups-update.patch
+lguest-the-documentation-example-launcher.patch
+lguest-the-documentation-example-launcher-example-launcher-fix.patch
+lguest-dont-signal-like-crazy-use-lhreq_break-command-doc.patch
+lguest-documentation-infrastructure-and-chapter-i.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
