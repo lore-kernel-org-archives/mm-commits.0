@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-add-the-new-ioctls-and-definitionto-the-mips.patch added to -mm tree
-Date: Thu, 07 Jun 2007 22:39:23 -0700
-Message-ID: <200706080539.l585dNFL020195@imap1.linux-foundation.org>
+Subject: + improve-behaviour-of-spurious-irq-detect.patch added to -mm tree
+Date: Thu, 07 Jun 2007 22:47:07 -0700
+Message-ID: <200706080547.l585l73V020363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38151 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754528AbXFHFkV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:40:21 -0400
+	by vger.kernel.org with ESMTP id S1755003AbXFHFsF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:48:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ralf@linux-mips.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     tty: add the new ioctls and definitionto the MIPS architecture
+     Improve behaviour of spurious IRQ detect
 has been added to the -mm tree.  Its filename is
-     tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+     improve-behaviour-of-spurious-irq-detect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: add the new ioctls and definitionto the MIPS architecture
+Subject: Improve behaviour of spurious IRQ detect
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Same as all the others, just put in the constants for the existing kernel
-code and termios2 structure
+Currently we handle spurious IRQ activity based upon seeing a lot of
+invalid interrupts, and we clear things back on the base of lots of valid
+interrupts.
+
+Unfortunately in some cases you get legitimate invalid interrupts caused by
+timing asynchronicity between the PCI bus and the APIC bus when disabling
+interrupts and pulling other tricks.  In this case although the spurious
+IRQs are not a problem our unhandled counters didn't clear and they act as
+a slow running timebomb.  (This is effectively what the serial port/tty
+problem that was fixed by clearing counters when registering a handler
+showed up)
+
+It's easy enough to add a second parameter - time.  This means that if we
+see a regular stream of harmless spurious interrupts which are not harming
+processing we don't go off and do something stupid like disable the IRQ
+after a month of running.  OTOH lockups and performance killers show up a
+lot more than 10/second
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/ioctls.h   |    4 ++++
- include/asm-mips/termbits.h |    7 +++++--
- include/asm-mips/termios.h  |    6 ++++--
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ include/linux/irq.h   |    1 +
+ kernel/irq/spurious.c |   10 +++++++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-mips/ioctls.h~tty-add-the-new-ioctls-and-definitionto-the-mips include/asm-mips/ioctls.h
---- a/include/asm-mips/ioctls.h~tty-add-the-new-ioctls-and-definitionto-the-mips
-+++ a/include/asm-mips/ioctls.h
-@@ -77,6 +77,10 @@
- #define TIOCSBRK	0x5427  /* BSD compatibility */
- #define TIOCCBRK	0x5428  /* BSD compatibility */
- #define TIOCGSID	0x7416  /* Return the session ID of FD */
-+#define TCGETS2		_IOR('T',0x2A, struct termios2)
-+#define TCSETS2		_IOW('T',0x2B, struct termios2)
-+#define TCSETSW2	_IOW('T',0x2C, struct termios2)
-+#define TCSETSF2	_IOW('T',0x2D, struct termios2)
- #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
- #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
- 
-diff -puN include/asm-mips/termbits.h~tty-add-the-new-ioctls-and-definitionto-the-mips include/asm-mips/termbits.h
---- a/include/asm-mips/termbits.h~tty-add-the-new-ioctls-and-definitionto-the-mips
-+++ a/include/asm-mips/termbits.h
-@@ -164,6 +164,7 @@ struct ktermios {
- #define HUPCL	0002000		/* Hang up on last close.  */
- #define CLOCAL	0004000		/* Ignore modem status lines.  */
- #define CBAUDEX 0010000
-+#define    BOTHER 0010000
- #define    B57600 0010001
- #define   B115200 0010002
- #define   B230400 0010003
-@@ -179,9 +180,11 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000	/* input baud rate */
- #define CMSPAR    010000000000	/* mark or space (stick) parity */
--#define CRTSCTS	  020000000000		/* flow control */
-+#define CRTSCTS	  020000000000	/* flow control */
-+
-+#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
- 
- /* c_lflag bits */
- #define ISIG	0000001		/* Enable signals.  */
-diff -puN include/asm-mips/termios.h~tty-add-the-new-ioctls-and-definitionto-the-mips include/asm-mips/termios.h
---- a/include/asm-mips/termios.h~tty-add-the-new-ioctls-and-definitionto-the-mips
-+++ a/include/asm-mips/termios.h
-@@ -122,8 +122,10 @@ struct termio {
- 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
- })
- 
--#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
--#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
-+#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
-+#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
-+#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
-+#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
- 
- #endif /* defined(__KERNEL__) */
- 
+diff -puN include/linux/irq.h~improve-behaviour-of-spurious-irq-detect include/linux/irq.h
+--- a/include/linux/irq.h~improve-behaviour-of-spurious-irq-detect
++++ a/include/linux/irq.h
+@@ -161,6 +161,7 @@ struct irq_desc {
+ 	unsigned int		wake_depth;	/* nested wake enables */
+ 	unsigned int		irq_count;	/* For detecting broken IRQs */
+ 	unsigned int		irqs_unhandled;
++	unsigned long		last_unhandled;	/* Aging timer for unhandled count */
+ 	spinlock_t		lock;
+ #ifdef CONFIG_SMP
+ 	cpumask_t		affinity;
+diff -puN kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect
++++ a/kernel/irq/spurious.c
+@@ -172,7 +172,15 @@ void note_interrupt(unsigned int irq, st
+ 		    irqreturn_t action_ret)
+ {
+ 	if (unlikely(action_ret != IRQ_HANDLED)) {
+-		desc->irqs_unhandled++;
++		/* If we are seeing only the odd spurious IRQ caused by
++		   bus asynchronicity then don't eventually trigger an error,
++		   otherwise the couter becomes a doomsday timer for otherwise
++		   working systems */
++		if (jiffies - desc->last_unhandled > HZ/10)
++			desc->irqs_unhandled = 1;
++		else
++			desc->irqs_unhandled++;
++		desc->last_unhandled = jiffies;
+ 		if (unlikely(action_ret != IRQ_NONE))
+ 			report_bad_irq(irq, desc, action_ret);
+ 	}
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -128,6 +119,7 @@ mpu401-warning-fixes.patch
 char-tty_ioctl-use-wait_event_interruptible_timeout.patch
 char-tty_ioctl-little-whitespace-cleanup.patch
 intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
 i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
 wrong-memory-access-in-i2o_block_device_lock.patch
