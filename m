@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf-warning-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:20:46 -0700
-Message-ID: <200706082324.l58NONuc015496@imap1.linux-foundation.org>
+Subject: + ib_umem_get-warning-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:29:43 -0700
+Message-ID: <200706082333.l58NXJUE016233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38866 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754847AbXFHXYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:24:30 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l58NOSoH015227
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 8 Jun 2007 16:24:29 -0700
+	by vger.kernel.org with ESMTP id S1754227AbXFHXd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:33:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     binfmt_elf warning fix
+     ib_umem_get() warning fix
 has been added to the -mm tree.  Its filename is
-     binfmt_elf-warning-fix.patch
+     ib_umem_get-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,35 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: binfmt_elf warning fix
+Subject: ib_umem_get() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/binfmt_elf.c: In function 'load_elf_binary':
-fs/binfmt_elf.c:1002: warning: 'interp_map_addr' may be used uninitialized in this function
+drivers/infiniband/core/umem.c: In function 'ib_umem_get':
+drivers/infiniband/core/umem.c:78: warning: 'ret' may be used uninitialized in this function
 
-The compiler (gcc-4.1.0) is correct, but it failed to notice that we didn't
-use the resulting value.
+I was just going to use uninitialized_var(), but it's far from obvious that
+this warning is a false positive.
 
-
+CcL Roland Dreier <rolandd@cisco.com>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/umem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-warning-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-warning-fix
-+++ a/fs/binfmt_elf.c
-@@ -999,7 +999,7 @@ static int load_elf_binary(struct linux_
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
- 		} else {
--			unsigned long interp_map_addr;	/* unused */
-+			unsigned long uninitialized_var(interp_map_addr);
+diff -puN drivers/infiniband/core/umem.c~ib_umem_get-warning-fix drivers/infiniband/core/umem.c
+--- a/drivers/infiniband/core/umem.c~ib_umem_get-warning-fix
++++ a/drivers/infiniband/core/umem.c
+@@ -121,6 +121,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
  
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
+ 	cur_base = addr & PAGE_MASK;
+ 
++	ret = 0;
+ 	while (npages) {
+ 		ret = get_user_pages(current, current->mm, cur_base,
+ 				     min_t(int, npages,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -230,3 +225,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+ib_umem_get-warning-fix.patch
