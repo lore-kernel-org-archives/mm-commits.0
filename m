@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fb-epson1355fb-kill-off-dead-sh-support.patch added to -mm tree
-Date: Thu, 07 Jun 2007 22:21:43 -0700
-Message-ID: <200706080521.l585Lhfs019754@imap1.linux-foundation.org>
+Subject: + ahci-add-mcp73-mcp77-support-to-ahci-driver.patch added to -mm tree
+Date: Thu, 07 Jun 2007 22:23:03 -0700
+Message-ID: <200706080523.l585N3b1019809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34458 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757825AbXFHFVw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:21:52 -0400
+	by vger.kernel.org with ESMTP id S1757265AbXFHFXM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, adaplas@gmail.com
+Cc: peerchen@gmail.com
 
 
 The patch titled
-     fb: epson1355fb: kill off dead sh support
+     ahci: Add MCP73/MCP77 support to AHCI driver
 has been added to the -mm tree.  Its filename is
-     fb-epson1355fb-kill-off-dead-sh-support.patch
+     ahci-add-mcp73-mcp77-support-to-ahci-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fb: epson1355fb: kill off dead sh support
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: ahci: Add MCP73/MCP77 support to AHCI driver
+From: "Peer Chen" <peerchen@gmail.com>
 
-The SH board that was the only user for this code was removed entirely from
-the kernel quite some time ago, so there's no reason to leave the stubs in
-place.  Additionally this driver was completely broken anyways, so there's
-not really a lot of point in fixing it up either.
+Add the MCP73/MCP77 support to ahci driver.
 
-I can't imagine that this driver gets any testing on ARM either, given that
-FB_BLANK_UNBLANKING doesn't exist, and kills the build regardless of which
-platform is compiling.  This fixes that, too.
-
-It wouldn't be a lot of work to finish the platform device conversion and
-go with a generic 8-bit read/write_reg and kill off the architecture
-dependence completely, should someone have any use for this driver.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Peer Chen <peerchen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig       |    2 +-
- drivers/video/epson1355fb.c |   16 ++--------------
- 2 files changed, 3 insertions(+), 15 deletions(-)
+ drivers/ata/ahci.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/video/epson1355fb.c~fb-epson1355fb-kill-off-dead-sh-support drivers/video/epson1355fb.c
---- a/drivers/video/epson1355fb.c~fb-epson1355fb-kill-off-dead-sh-support
-+++ a/drivers/video/epson1355fb.c
-@@ -68,19 +68,7 @@ struct epson1355_par {
+diff -puN drivers/ata/ahci.c~ahci-add-mcp73-mcp77-support-to-ahci-driver drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-add-mcp73-mcp77-support-to-ahci-driver
++++ a/drivers/ata/ahci.c
+@@ -442,6 +442,30 @@ static const struct pci_device_id ahci_p
+ 	{ PCI_VDEVICE(NVIDIA, 0x0559), board_ahci },		/* MCP67 */
+ 	{ PCI_VDEVICE(NVIDIA, 0x055a), board_ahci },		/* MCP67 */
+ 	{ PCI_VDEVICE(NVIDIA, 0x055b), board_ahci },		/* MCP67 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f0), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f1), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f2), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f3), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f4), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f5), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f6), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f7), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f8), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f9), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07fa), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07fb), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad0), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad1), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad2), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad3), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad4), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad5), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad6), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad7), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad8), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad9), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ada), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0adb), board_ahci },		/* MCP77 */
  
- /* ------------------------------------------------------------------------- */
- 
--#ifdef CONFIG_SUPERH
--
--static inline u8 epson1355_read_reg(int index)
--{
--	return ctrl_inb(par.reg_addr + index);
--}
--
--static inline void epson1355_write_reg(u8 data, int index)
--{
--	ctrl_outb(data, par.reg_addr + index);
--}
--
--#elif defined(CONFIG_ARM)
-+#if defined(CONFIG_ARM)
- 
- # ifdef CONFIG_ARCH_CEIVA
- #  include <asm/arch/hardware.h>
-@@ -290,7 +278,7 @@ static int epson1355fb_blank(int blank_m
- 	struct epson1355_par *par = info->par;
- 
- 	switch (blank_mode) {
--	case FB_BLANK_UNBLANKING:
-+	case FB_BLANK_UNBLANK:
- 	case FB_BLANK_NORMAL:
- 		lcd_enable(par, 1);
- 		backlight_enable(1);
-diff -puN drivers/video/Kconfig~fb-epson1355fb-kill-off-dead-sh-support drivers/video/Kconfig
---- a/drivers/video/Kconfig~fb-epson1355fb-kill-off-dead-sh-support
-+++ a/drivers/video/Kconfig
-@@ -819,7 +819,7 @@ config FB_PVR2
- 
- config FB_EPSON1355
- 	bool "Epson 1355 framebuffer support"
--	depends on (FB = y) && (SUPERH || ARCH_CEIVA)
-+	depends on (FB = y) && ARCH_CEIVA
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
+ 	/* SiS */
+ 	{ PCI_VDEVICE(SI, 0x1184), board_ahci }, /* SiS 966 */
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from peerchen@gmail.com are
 
-slab-fix-alien-cache-handling.patch
-potential-parse-error-in-ifdef-part-3.patch
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-sh.patch
-make-snd_soc_pcm_sh7760-depend-on-sh_dmabrg-rather-than-selecting-it.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
-fb-epson1355fb-kill-off-dead-sh-support.patch
+ahci-add-mcp73-mcp77-support-to-ahci-driver.patch
