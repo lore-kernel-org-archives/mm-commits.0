@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + audit-add-tty-input-auditing-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 12:23:39 -0700
-Message-ID: <200706081923.l58JNdLj009417@imap1.linux-foundation.org>
+Subject: + user-namespace-add-unshare.patch added to -mm tree
+Date: Fri, 08 Jun 2007 12:22:27 -0700
+Message-ID: <200706081922.l58JMRH9009384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51787 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750725AbXFHTYL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:24:11 -0400
+	by vger.kernel.org with ESMTP id S1750933AbXFHT3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:29:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mitr@redhat.com, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com, viro@zeniv.linux.org.uk
+Cc: serue@us.ibm.com, agm@google.com, chrisw@sous-sol.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, jmorris@namei.org, sds@tycho.nsa.gov, xemul@openvz.org
 
 
 The patch titled
-     audit-add-tty-input-auditing fix
+     user namespace: add unshare
 has been added to the -mm tree.  Its filename is
-     audit-add-tty-input-auditing-fix.patch
+     user-namespace-add-unshare.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,187 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: audit-add-tty-input-auditing fix
-From: Miloslav Trmac <mitr@redhat.com>
+Subject: user namespace: add unshare
+From: Serge E. Hallyn <serue@us.ibm.com>
 
-Only add TTY audit state to struct signal_struct if CONFIG_AUDIT.  Move the
-copying of TTY audit state on fork () to tty_audit.c.
+Fix !CONFIG_USER_NS clone with CLONE_NEWUSER so it returns -EINVAL rather
+than 0, so that userspace knows they didn't get a new user namespace.
 
-Signed-off-by: Miloslav Trmac <mitr@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Paul Fulghum <paulkf@microgate.com>
+(akpm: this changlog is crappy)
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Acked-by: Pavel Emelianov <xemul@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Andrew Morgan <agm@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_audit.c |   13 +++++++++++++
- include/linux/sched.h    |    2 ++
- include/linux/tty.h      |    5 +++++
- kernel/exit.c            |    2 +-
- kernel/fork.c            |    6 ++----
- 5 files changed, 23 insertions(+), 5 deletions(-)
+ include/linux/sched.h          |    1 
+ include/linux/user_namespace.h |    4 ++
+ kernel/fork.c                  |    2 -
+ kernel/nsproxy.c               |    5 ++-
+ kernel/user_namespace.c        |   46 ++++++++++++++++++++++++++++++-
+ 5 files changed, 54 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tty_audit.c~audit-add-tty-input-auditing-fix drivers/char/tty_audit.c
---- a/drivers/char/tty_audit.c~audit-add-tty-input-auditing-fix
-+++ a/drivers/char/tty_audit.c
-@@ -134,6 +134,19 @@ void tty_audit_exit(void)
+diff -puN include/linux/sched.h~user-namespace-add-unshare include/linux/sched.h
+--- a/include/linux/sched.h~user-namespace-add-unshare
++++ a/include/linux/sched.h
+@@ -26,6 +26,7 @@
+ #define CLONE_STOPPED		0x02000000	/* Start in stopped state */
+ #define CLONE_NEWUTS		0x04000000	/* New utsname group? */
+ #define CLONE_NEWIPC		0x08000000	/* New ipcs */
++#define CLONE_NEWUSER		0x10000000	/* New user namespace */
+ 
+ /*
+  * Scheduling policies
+diff -puN include/linux/user_namespace.h~user-namespace-add-unshare include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~user-namespace-add-unshare
++++ a/include/linux/user_namespace.h
+@@ -4,6 +4,7 @@
+ #include <linux/kref.h>
+ #include <linux/nsproxy.h>
+ #include <linux/sched.h>
++#include <linux/err.h>
+ 
+ #define UIDHASH_BITS	(CONFIG_BASE_SMALL ? 3 : 8)
+ #define UIDHASH_SZ	(1 << UIDHASH_BITS)
+@@ -45,6 +46,9 @@ static inline struct user_namespace *get
+ static inline struct user_namespace *copy_user_ns(int flags,
+ 						  struct user_namespace *old_ns)
+ {
++	if (flags & CLONE_NEWUSER)
++		return ERR_PTR(-EINVAL);
++
+ 	return NULL;
  }
  
- /**
-+ *	tty_audit_fork	-	Copy TTY audit state for a new task
-+ *
-+ *	Set up TTY audit state in @sig from current.  @sig needs no locking.
+diff -puN kernel/fork.c~user-namespace-add-unshare kernel/fork.c
+--- a/kernel/fork.c~user-namespace-add-unshare
++++ a/kernel/fork.c
+@@ -1610,7 +1610,7 @@ asmlinkage long sys_unshare(unsigned lon
+ 	err = -EINVAL;
+ 	if (unshare_flags & ~(CLONE_THREAD|CLONE_FS|CLONE_NEWNS|CLONE_SIGHAND|
+ 				CLONE_VM|CLONE_FILES|CLONE_SYSVSEM|
+-				CLONE_NEWUTS|CLONE_NEWIPC))
++				CLONE_NEWUTS|CLONE_NEWIPC|CLONE_NEWUSER))
+ 		goto bad_unshare_out;
+ 
+ 	if ((err = unshare_thread(unshare_flags)))
+diff -puN kernel/nsproxy.c~user-namespace-add-unshare kernel/nsproxy.c
+--- a/kernel/nsproxy.c~user-namespace-add-unshare
++++ a/kernel/nsproxy.c
+@@ -117,7 +117,7 @@ int copy_namespaces(int flags, struct ta
+ 
+ 	get_nsproxy(old_ns);
+ 
+-	if (!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
++	if (!(flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC | CLONE_NEWUSER)))
+ 		return 0;
+ 
+ 	if (!capable(CAP_SYS_ADMIN)) {
+@@ -163,7 +163,8 @@ int unshare_nsproxy_namespaces(unsigned 
+ 	struct nsproxy *old_ns = current->nsproxy;
+ 	int err = 0;
+ 
+-	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
++	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC |
++			       CLONE_NEWUSER)))
+ 		return 0;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+diff -puN kernel/user_namespace.c~user-namespace-add-unshare kernel/user_namespace.c
+--- a/kernel/user_namespace.c~user-namespace-add-unshare
++++ a/kernel/user_namespace.c
+@@ -21,6 +21,45 @@ EXPORT_SYMBOL_GPL(init_user_ns);
+ 
+ #ifdef CONFIG_USER_NS
+ 
++/*
++ * Clone a new ns copying an original user ns, setting refcount to 1
++ * @old_ns: namespace to clone
++ * Return NULL on error (failure to kmalloc), new ns otherwise
 + */
-+void tty_audit_fork(struct signal_struct *sig)
++static struct user_namespace *clone_user_ns(struct user_namespace *old_ns)
 +{
-+	spin_lock_irq(&current->sighand->siglock);
-+	sig->audit_tty = current->signal->audit_tty;
-+	spin_unlock_irq(&current->sighand->siglock);
-+	sig->tty_audit_buf = NULL;
++	struct user_namespace *ns;
++	struct user_struct *new_user;
++	int n;
++
++	ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
++	if (!ns)
++		return NULL;
++
++	kref_init(&ns->kref);
++
++	for (n = 0; n < UIDHASH_SZ; ++n)
++		INIT_LIST_HEAD(ns->uidhash_table + n);
++
++	/* Insert new root user.  */
++	ns->root_user = alloc_uid(ns, 0);
++	if (!ns->root_user) {
++		kfree(ns);
++		return NULL;
++	}
++
++	/* Reset current->user with a new one */
++	new_user = alloc_uid(ns, current->uid);
++	if (!new_user) {
++		free_uid(ns->root_user);
++		kfree(ns);
++		return NULL;
++	}
++
++	switch_uid(new_user);
++	return ns;
 +}
 +
-+/**
-  *	tty_audit_push_task	-	Flush task's pending audit data
-  */
- void tty_audit_push_task(struct task_struct *tsk, uid_t loginuid)
-diff -puN include/linux/sched.h~audit-add-tty-input-auditing-fix include/linux/sched.h
---- a/include/linux/sched.h~audit-add-tty-input-auditing-fix
-+++ a/include/linux/sched.h
-@@ -506,8 +506,10 @@ struct signal_struct {
- #ifdef CONFIG_TASKSTATS
- 	struct taskstats *stats;
- #endif
-+#ifdef CONFIG_AUDIT
- 	unsigned audit_tty;
- 	struct tty_audit_buf *tty_audit_buf;
-+#endif
- };
- 
- /* Context switch must be unlocked if interrupts are to be enabled */
-diff -puN include/linux/tty.h~audit-add-tty-input-auditing-fix include/linux/tty.h
---- a/include/linux/tty.h~audit-add-tty-input-auditing-fix
-+++ a/include/linux/tty.h
-@@ -178,6 +178,7 @@ struct tty_bufhead {
- #define L_IEXTEN(tty)	_L_FLAG((tty),IEXTEN)
- 
- struct device;
-+struct signal_struct;
- /*
-  * Where all of the state associated with a tty is kept while the tty
-  * is open.  Since the termios state should be kept even if the tty
-@@ -353,6 +354,7 @@ extern struct tty_ldisc tty_ldisc_N_TTY;
- extern void tty_audit_add_data(struct tty_struct *tty, unsigned char *data,
- 			       size_t size);
- extern void tty_audit_exit(void);
-+extern void tty_audit_fork(struct signal_struct *sig);
- extern void tty_audit_push(struct tty_struct *tty);
- extern void tty_audit_push_task(struct task_struct *tsk, uid_t loginuid);
- extern void tty_audit_opening(void);
-@@ -364,6 +366,9 @@ static inline void tty_audit_add_data(st
- static inline void tty_audit_exit(void)
+ struct user_namespace * copy_user_ns(int flags, struct user_namespace *old_ns)
  {
- }
-+static inline void tty_audit_fork(struct signal_struct *sig)
-+{
-+}
- static inline void tty_audit_push(struct tty_struct *tty)
- {
- }
-diff -puN kernel/exit.c~audit-add-tty-input-auditing-fix kernel/exit.c
---- a/kernel/exit.c~audit-add-tty-input-auditing-fix
-+++ a/kernel/exit.c
-@@ -947,7 +947,7 @@ fastcall NORET_TYPE void do_exit(long co
- 	if (unlikely(tsk->compat_robust_list))
- 		compat_exit_robust_list(tsk);
- #endif
--	if (group_dead && unlikely(tsk->signal->tty_audit_buf))
-+	if (group_dead)
- 		tty_audit_exit();
- 	if (unlikely(tsk->audit_context))
- 		audit_free(tsk);
-diff -puN kernel/fork.c~audit-add-tty-input-auditing-fix kernel/fork.c
---- a/kernel/fork.c~audit-add-tty-input-auditing-fix
-+++ a/kernel/fork.c
-@@ -49,6 +49,7 @@
- #include <linux/delayacct.h>
- #include <linux/taskstats_kern.h>
- #include <linux/random.h>
-+#include <linux/tty.h>
+ 	struct user_namespace *new_ns;
+@@ -28,7 +67,12 @@ struct user_namespace * copy_user_ns(int
+ 	BUG_ON(!old_ns);
+ 	get_user_ns(old_ns);
  
- #include <asm/pgtable.h>
- #include <asm/pgalloc.h>
-@@ -897,10 +898,7 @@ static inline int copy_signal(unsigned l
- 	}
- 	acct_init_pacct(&sig->pacct);
- 
--	spin_lock_irq(&current->sighand->siglock);
--	sig->audit_tty = current->signal->audit_tty;
--	spin_unlock_irq(&current->sighand->siglock);
--	sig->tty_audit_buf = NULL;
-+	tty_audit_fork(sig);
- 
- 	return 0;
+-	new_ns = old_ns;
++	if (!(flags & CLONE_NEWUSER))
++		return old_ns;
++
++	new_ns = clone_user_ns(old_ns);
++
++	put_user_ns(old_ns);
+ 	return new_ns;
  }
+ 
 _
 
-Patches currently in -mm which might be from mitr@redhat.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-audit-add-tty-input-auditing.patch
-audit-add-tty-input-auditing-fix.patch
+implement-file-posix-capabilities.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
