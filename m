@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mmconfig-validate-against-acpi-motherboard-resources-fix.patch added to -mm tree
-Date: Thu, 07 Jun 2007 18:44:52 -0700
-Message-ID: <200706080144.l581iqib015269@imap1.linux-foundation.org>
+Subject: + mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch added to -mm tree
+Date: Thu, 07 Jun 2007 18:44:56 -0700
+Message-ID: <200706080144.l581iugj015278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55014 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48566 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932558AbXFHBpE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 21:45:04 -0400
+	by vger.kernel.org with ESMTP id S934686AbXFHBpH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 21:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, hancockr@shaw.ca, jba
 
 
 The patch titled
-     mmconfig-validate-against-acpi-motherboard-resources-fix
+     mmconfig-validate-against-acpi-motherboard-resources-fix-3
 has been added to the -mm tree.  Its filename is
-     mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+     mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmconfig-validate-against-acpi-motherboard-resources-fix
+Subject: mmconfig-validate-against-acpi-motherboard-resources-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- fix obvious compile error
+- fix
 
-- inlines are better than macros
+  arch/i386/pci/mmconfig-shared.c: In function 'pci_mmcfg_reject_broken':
+  arch/i386/pci/mmconfig-shared.c:306: warning: cast to pointer from integer of different size
 
-- linux/pci.h includes asm/pci.h already, and it's OK to rely on that.
+- 80-col fixes
 
 Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Rajesh Shah <rajesh.shah@intel.com>
 Cc: Robert Hancock <hancockr@shaw.ca>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/init.c     |    1 -
- include/asm-i386/pci.h   |    4 ++--
- include/asm-x86_64/pci.h |    4 ++--
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ arch/i386/pci/mmconfig-shared.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/pci/init.c~mmconfig-validate-against-acpi-motherboard-resources-fix arch/i386/pci/init.c
---- a/arch/i386/pci/init.c~mmconfig-validate-against-acpi-motherboard-resources-fix
-+++ a/arch/i386/pci/init.c
-@@ -1,5 +1,4 @@
- #include <linux/pci.h>
--#include <asm/pci.h>
- #include <linux/init.h>
- #include "pci.h"
- 
-diff -puN include/asm-i386/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix include/asm-i386/pci.h
---- a/include/asm-i386/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix
-+++ a/include/asm-i386/pci.h
-@@ -34,8 +34,8 @@ int pcibios_set_irq_routing(struct pci_d
- extern void __init pci_mmcfg_early_init(int type);
- extern void __init pci_mmcfg_late_init(void);
- #else
--#define pci_mmcfg_early_init(TYPE)	do { } while (0)
--#define pci_mmcfg_late_init(TYPE)	do { } while (0)
-+static inline void pci_mmcfg_early_init(int type) { }
-+static inline void pci_mmcfg_late_init(void) { }
- #endif
- 
- /* Dynamic DMA mapping stuff.
-diff -puN include/asm-x86_64/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix include/asm-x86_64/pci.h
---- a/include/asm-x86_64/pci.h~mmconfig-validate-against-acpi-motherboard-resources-fix
-+++ a/include/asm-x86_64/pci.h
-@@ -38,8 +38,8 @@ int pcibios_set_irq_routing(struct pci_d
- extern void __init pci_mmcfg_early_init(int type);
- extern void __init pci_mmcfg_late_init(void);
- #else
--#define pci_mmcfg_early_init(TYPE)	do { } while (0)
--#define pci_mmcfg_late_init(TYPE)	do { } while (0)
-+static inline void pci_mmcfg_early_init(int type) { }
-+static inline void pci_mmcfg_late_init(void) { }
- #endif
- 
- #include <linux/types.h>
+diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-validate-against-acpi-motherboard-resources-fix-3 arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~mmconfig-validate-against-acpi-motherboard-resources-fix-3
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -301,9 +301,9 @@ static void __init pci_mmcfg_reject_brok
+ 	for (i = 0; i < pci_mmcfg_config_num; i++) {
+ 		u32 size = (cfg->end_bus_number + 1) << 20;
+ 		cfg = &pci_mmcfg_config[i];
+-		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %p "
++		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %lu "
+ 		       "segment %hu buses %u - %u\n",
+-		       i, (void*)cfg->address, cfg->pci_segment,
++		       i, (unsigned long)cfg->address, cfg->pci_segment,
+ 		       (unsigned int)cfg->start_bus_number,
+ 		       (unsigned int)cfg->end_bus_number);
+ 		if (is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
+@@ -311,8 +311,8 @@ static void __init pci_mmcfg_reject_brok
+ 			       "in ACPI motherboard resources\n",
+ 			       cfg->address);
+ 		} else {
+-			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not "
+-			       "reserved in ACPI motherboard resources\n",
++			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not"
++			       " reserved in ACPI motherboard resources\n",
+ 			       cfg->address);
+ 			/* Don't try to do this check unless configuration
+ 			   type 1 is available. */
+@@ -321,7 +321,8 @@ static void __init pci_mmcfg_reject_brok
+ 			                    cfg->address + size - 1,
+ 					    E820_RESERVED))
+ 				printk(KERN_NOTICE
+-				       "PCI: MCFG area at %Lx reserved in E820\n",
++				       "PCI: MCFG area at %Lx reserved in "
++					"E820\n",
+ 				       cfg->address);
+ 			else
+ 				goto reject;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
