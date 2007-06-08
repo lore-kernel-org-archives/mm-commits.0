@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intel-rng-undo-mess-made-by-an-80-column-extremist.patch added to -mm tree
-Date: Thu, 07 Jun 2007 22:38:24 -0700
-Message-ID: <200706080538.l585cOkI020180@imap1.linux-foundation.org>
+Subject: + tty-add-the-new-ioctls-and-definitionto-the-mips.patch added to -mm tree
+Date: Thu, 07 Jun 2007 22:39:23 -0700
+Message-ID: <200706080539.l585dNFL020195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60740 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38151 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936322AbXFHFjk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:39:40 -0400
+	by vger.kernel.org with ESMTP id S1754528AbXFHFkV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mb@bu3sch.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, ralf@linux-mips.org
 
 
 The patch titled
-     intel-rng: undo mess made by an 80 column extremist
+     tty: add the new ioctls and definitionto the MIPS architecture
 has been added to the -mm tree.  Its filename is
-     intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+     tty-add-the-new-ioctls-and-definitionto-the-mips.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: intel-rng: undo mess made by an 80 column extremist
+Subject: tty: add the new ioctls and definitionto the MIPS architecture
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The intel-rng printed a nice well formatted message when the port was
-disabled.  Someone then came along and blindly trashed it by screwing up a
-trim down to 80 columns.
-
-Put it back into the right format and keep the overlong lines as the result
-is also MUCH easier to read in this specific case.
+Same as all the others, just put in the constants for the existing kernel
+code and termios2 structure
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Acked-by: Jeff Garzik <jeff@garzik.org>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/intel-rng.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/asm-mips/ioctls.h   |    4 ++++
+ include/asm-mips/termbits.h |    7 +++++--
+ include/asm-mips/termios.h  |    6 ++++--
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/hw_random/intel-rng.c~intel-rng-undo-mess-made-by-an-80-column-extremist drivers/char/hw_random/intel-rng.c
---- a/drivers/char/hw_random/intel-rng.c~intel-rng-undo-mess-made-by-an-80-column-extremist
-+++ a/drivers/char/hw_random/intel-rng.c
-@@ -296,12 +296,10 @@ static int __init intel_init_hw_struct(s
- 	     (BIOS_CNTL_LOCK_ENABLE_MASK|BIOS_CNTL_WRITE_ENABLE_MASK))
- 	    == BIOS_CNTL_LOCK_ENABLE_MASK) {
- 		static __initdata /*const*/ char warning[] =
--			KERN_WARNING PFX "Firmware space is locked read-only. "
--			KERN_WARNING PFX "If you can't or\n don't want to "
--			KERN_WARNING PFX "disable this in firmware setup, and "
--			KERN_WARNING PFX "if\n you are certain that your "
--			KERN_WARNING PFX "system has a functional\n RNG, try"
--			KERN_WARNING PFX "using the 'no_fwh_detect' option.\n";
-+			KERN_WARNING PFX "Firmware space is locked read-only. If you can't or\n"
-+			KERN_WARNING PFX "don't want to disable this in firmware setup, and if\n"
-+			KERN_WARNING PFX "you are certain that your system has a functional\n"
-+			KERN_WARNING PFX "RNG, try using the 'no_fwh_detect' option.\n";
+diff -puN include/asm-mips/ioctls.h~tty-add-the-new-ioctls-and-definitionto-the-mips include/asm-mips/ioctls.h
+--- a/include/asm-mips/ioctls.h~tty-add-the-new-ioctls-and-definitionto-the-mips
++++ a/include/asm-mips/ioctls.h
+@@ -77,6 +77,10 @@
+ #define TIOCSBRK	0x5427  /* BSD compatibility */
+ #define TIOCCBRK	0x5428  /* BSD compatibility */
+ #define TIOCGSID	0x7416  /* Return the session ID of FD */
++#define TCGETS2		_IOR('T',0x2A, struct termios2)
++#define TCSETS2		_IOW('T',0x2B, struct termios2)
++#define TCSETSW2	_IOW('T',0x2C, struct termios2)
++#define TCSETSF2	_IOW('T',0x2D, struct termios2)
+ #define TIOCGPTN	_IOR('T',0x30, unsigned int) /* Get Pty Number (of pty-mux device) */
+ #define TIOCSPTLCK	_IOW('T',0x31, int)  /* Lock/unlock Pty */
  
- 		if (no_fwh_detect)
- 			return -ENODEV;
+diff -puN include/asm-mips/termbits.h~tty-add-the-new-ioctls-and-definitionto-the-mips include/asm-mips/termbits.h
+--- a/include/asm-mips/termbits.h~tty-add-the-new-ioctls-and-definitionto-the-mips
++++ a/include/asm-mips/termbits.h
+@@ -164,6 +164,7 @@ struct ktermios {
+ #define HUPCL	0002000		/* Hang up on last close.  */
+ #define CLOCAL	0004000		/* Ignore modem status lines.  */
+ #define CBAUDEX 0010000
++#define    BOTHER 0010000
+ #define    B57600 0010001
+ #define   B115200 0010002
+ #define   B230400 0010003
+@@ -179,9 +180,11 @@ struct ktermios {
+ #define  B3000000 0010015
+ #define  B3500000 0010016
+ #define  B4000000 0010017
+-#define CIBAUD	  002003600000	/* input baud rate (not used) */
++#define CIBAUD	  002003600000	/* input baud rate */
+ #define CMSPAR    010000000000	/* mark or space (stick) parity */
+-#define CRTSCTS	  020000000000		/* flow control */
++#define CRTSCTS	  020000000000	/* flow control */
++
++#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
+ 
+ /* c_lflag bits */
+ #define ISIG	0000001		/* Enable signals.  */
+diff -puN include/asm-mips/termios.h~tty-add-the-new-ioctls-and-definitionto-the-mips include/asm-mips/termios.h
+--- a/include/asm-mips/termios.h~tty-add-the-new-ioctls-and-definitionto-the-mips
++++ a/include/asm-mips/termios.h
+@@ -122,8 +122,10 @@ struct termio {
+ 	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
+ })
+ 
+-#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios))
+-#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios))
++#define user_termios_to_kernel_termios(k, u) copy_from_user(k, u, sizeof(struct termios2))
++#define kernel_termios_to_user_termios(u, k) copy_to_user(u, k, sizeof(struct termios2))
++#define user_termios_to_kernel_termios_1(k, u) copy_from_user(k, u, sizeof(struct termios))
++#define kernel_termios_to_user_termios_1(u, k) copy_to_user(u, k, sizeof(struct termios))
+ 
+ #endif /* defined(__KERNEL__) */
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -77,6 +109,7 @@ libata-core-sff-fix-multiple-assumptions-about-dma.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
 add-pci_try_set_mwi.patch
 git-scsi-misc.patch
 add-pci_try_set_mwi-prism54pci.patch
