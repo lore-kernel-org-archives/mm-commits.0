@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-use-the-right-wrapper-to-disable-the-nmi-watchdog.patch added to -mm tree
-Date: Fri, 08 Jun 2007 14:21:08 -0700
-Message-ID: <200706082121.l58LL8vx012553@imap1.linux-foundation.org>
+Subject: + group-short-lived-and-reclaimable-kernel-allocations-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 14:49:48 -0700
+Message-ID: <200706082149.l58LnmpM013223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60433 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752292AbXFHVVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:21:20 -0400
+	by vger.kernel.org with ESMTP id S1751271AbXFHVuf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:50:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: B.Steinbrink@gmx.de, ak@suse.de
+Cc: clameter@sgi.com, apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     i386: use the right wrapper to disable the NMI watchdog
+     SLUB slab validation: Alloc while interrupts are disabled must use GFP_ATOMIC
 has been added to the -mm tree.  Its filename is
-     i386-use-the-right-wrapper-to-disable-the-nmi-watchdog.patch
+     group-short-lived-and-reclaimable-kernel-allocations-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: use the right wrapper to disable the NMI watchdog
-From: Bjorn Steinbrink <B.Steinbrink@gmx.de>
+Subject: SLUB slab validation: Alloc while interrupts are disabled must use GFP_ATOMIC
+From: Christoph Lameter <clameter@sgi.com>
 
-When disabled through /proc/sys/kernel/nmi_watchdog, the NMI watchdog uses the
-stop() method directly, which does not decrement the activity counter, leading
-to a BUG().  Use the wrapper function instead to fix that.
+The data structure to manage the information gathered about functions
+allocating and freeing objects is allocated when the list_lock has already
+been taken.  We need to allocate with GFP_ATOMIC instead of GFP_TEMPORARY.
 
-Signed-off-by: Bjorn Steinbrink <B.Steinbrink@gmx.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/perfctr-watchdog.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~i386-use-the-right-wrapper-to-disable-the-nmi-watchdog arch/i386/kernel/cpu/perfctr-watchdog.c
---- a/arch/i386/kernel/cpu/perfctr-watchdog.c~i386-use-the-right-wrapper-to-disable-the-nmi-watchdog
-+++ a/arch/i386/kernel/cpu/perfctr-watchdog.c
-@@ -28,7 +28,7 @@ struct wd_ops {
- 	void (*unreserve)(void);
- 	int (*setup)(unsigned nmi_hz);
- 	void (*rearm)(struct nmi_watchdog_ctlblk *wd, unsigned nmi_hz);
--	void (*stop)(void *);
-+	void (*stop)(void);
- 	unsigned perfctr;
- 	unsigned evntsel;
- 	u64 checkbit;
-@@ -142,7 +142,7 @@ void disable_lapic_nmi_watchdog(void)
- 	if (atomic_read(&nmi_active) <= 0)
- 		return;
+diff -puN mm/slub.c~group-short-lived-and-reclaimable-kernel-allocations-fix mm/slub.c
+--- a/mm/slub.c~group-short-lived-and-reclaimable-kernel-allocations-fix
++++ a/mm/slub.c
+@@ -2893,7 +2893,7 @@ static int alloc_loc_track(struct loc_tr
  
--	on_each_cpu(wd_ops->stop, NULL, 0, 1);
-+	on_each_cpu(stop_apic_nmi_watchdog, NULL, 0, 1);
- 	wd_ops->unreserve();
+ 	order = get_order(sizeof(struct location) * max);
  
- 	BUG_ON(atomic_read(&nmi_active) != 0);
-@@ -255,7 +255,7 @@ static int setup_k7_watchdog(unsigned nm
- 	return 1;
- }
+-	l = (void *)__get_free_pages(GFP_TEMPORARY, order);
++	l = (void *)__get_free_pages(GFP_ATOMIC, order);
  
--static void single_msr_stop_watchdog(void *arg)
-+static void single_msr_stop_watchdog(void)
- {
- 	struct nmi_watchdog_ctlblk *wd = &__get_cpu_var(nmi_watchdog_ctlblk);
- 
-@@ -442,7 +442,7 @@ static int setup_p4_watchdog(unsigned nm
- 	return 1;
- }
- 
--static void stop_p4_watchdog(void *arg)
-+static void stop_p4_watchdog(void)
- {
- 	struct nmi_watchdog_ctlblk *wd = &__get_cpu_var(nmi_watchdog_ctlblk);
- 	wrmsr(wd->cccr_msr, 0, 0);
-@@ -634,7 +634,7 @@ int lapic_watchdog_init(unsigned nmi_hz)
- void lapic_watchdog_stop(void)
- {
- 	if (wd_ops)
--		wd_ops->stop(NULL);
-+		wd_ops->stop();
- }
- 
- unsigned lapic_adjust_nmi_hz(unsigned hz)
+ 	if (!l)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from B.Steinbrink@gmx.de are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-i386-fix-nmi-watchdog-not-reserving-its-msrs.patch
-i386-use-the-right-wrapper-to-disable-the-nmi-watchdog.patch
-fix-interchanged-parameters-to-release_evntselperfctr_nmi.patch
+mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+slab-fix-alien-cache-handling.patch
+slub-return-zero_size_ptr-for-kmalloc0.patch
+hexdump-more-output-formatting.patch
+git-ubi.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
+numa-mempolicy-trivial-debug-fixes.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-short-lived-and-reclaimable-kernel-allocations-fix.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
