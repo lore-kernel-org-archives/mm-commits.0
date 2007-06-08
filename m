@@ -1,56 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - make-snd_soc_pcm_sh7760-depend-on-sh_dmabrg-rather-than-selecting-it.patch removed from -mm tree
-Date: Fri, 08 Jun 2007 10:35:48 -0700
-Message-ID: <200706081735.l58HZmcX006394@imap1.linux-foundation.org>
+Subject: + watchdog-driver-for-at32ap700x-devices-fix-3.patch added to -mm tree
+Date: Fri, 08 Jun 2007 11:01:47 -0700
+Message-ID: <200706081801.l58I1lLr007104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59110 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937265AbXFHRpn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 13:45:43 -0400
+	by vger.kernel.org with ESMTP id S932383AbXFHSCF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:02:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mano@roarinelk.homelinux.net, lethal@linux-sh.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hcegtvedt@atmel.com, hskinnemoen@atmel.com, wim@iguana.be
 
 
 The patch titled
-     Make SND_SOC_PCM_SH7760 depend on SH_DMABRG rather than selecting it
-has been removed from the -mm tree.  Its filename was
-     make-snd_soc_pcm_sh7760-depend-on-sh_dmabrg-rather-than-selecting-it.patch
+     at32ap700x-wdt: add missing iounmap in _remove
+has been added to the -mm tree.  Its filename is
+     watchdog-driver-for-at32ap700x-devices-fix-3.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Make SND_SOC_PCM_SH7760 depend on SH_DMABRG rather than selecting it
-From: Manuel Lauss <mano@roarinelk.homelinux.net>
+Subject: at32ap700x-wdt: add missing iounmap in _remove
+From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 
-Fixes Kconfig warning about undefined SH_DMABRG symbol on non-sh builds.
-
-Signed-off-by: Manuel Lauss <mano@roarinelk.homelinux.net>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/sh/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/char/watchdog/at32ap700x_wdt.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN sound/soc/sh/Kconfig~make-snd_soc_pcm_sh7760-depend-on-sh_dmabrg-rather-than-selecting-it sound/soc/sh/Kconfig
---- a/sound/soc/sh/Kconfig~make-snd_soc_pcm_sh7760-depend-on-sh_dmabrg-rather-than-selecting-it
-+++ a/sound/soc/sh/Kconfig
-@@ -2,8 +2,7 @@ menu "SoC Audio support for SuperH"
- 
- config SND_SOC_PCM_SH7760
- 	tristate "SoC Audio support for Renesas SH7760"
--	depends on CPU_SUBTYPE_SH7760 && SND_SOC
--	select SH_DMABRG
-+	depends on CPU_SUBTYPE_SH7760 && SND_SOC && SH_DMABRG
- 	help
- 	  Enable this option for SH7760 AC97/I2S audio support.
- 
+diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-3 drivers/char/watchdog/at32ap700x_wdt.c
+--- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-3
++++ a/drivers/char/watchdog/at32ap700x_wdt.c
+@@ -257,6 +257,7 @@ static int __exit at32_wdt_remove(struct
+ {
+ 	if (wdt && platform_get_drvdata(pdev) == wdt) {
+ 		misc_deregister(&wdt->miscdev);
++		iounmap(wdt->regs);
+ 		kfree(wdt);
+ 		wdt = NULL;
+ 		platform_set_drvdata(pdev, NULL);
 _
 
-Patches currently in -mm which might be from mano@roarinelk.homelinux.net are
+Patches currently in -mm which might be from hcegtvedt@atmel.com are
 
-git-alsa.patch
+git-avr32.patch
+watchdog-driver-for-at32ap700x-devices.patch
+watchdog-driver-for-at32ap700x-devices-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix-2.patch
+watchdog-driver-for-at32ap700x-devices-fix-3.patch
