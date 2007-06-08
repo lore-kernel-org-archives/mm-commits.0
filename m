@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + protect-linux-console_structh-from-multiple-inclusion.patch added to -mm tree
-Date: Fri, 08 Jun 2007 12:06:27 -0700
-Message-ID: <200706081906.l58J6R5I008923@imap1.linux-foundation.org>
+Subject: + lock-debugging-loop-nicer-in-mark_rt_mutex_waiters.patch added to -mm tree
+Date: Fri, 08 Jun 2007 12:10:54 -0700
+Message-ID: <200706081910.l58JAsvS009081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751487AbXFHTGf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:06:35 -0400
+	by vger.kernel.org with ESMTP id S1752021AbXFHTLi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:11:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Protect <linux/console_struct.h> from multiple inclusion
+     lock debugging: loop nicer in mark_rt_mutex_waiters
 has been added to the -mm tree.  Its filename is
-     protect-linux-console_structh-from-multiple-inclusion.patch
+     lock-debugging-loop-nicer-in-mark_rt_mutex_waiters.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Protect <linux/console_struct.h> from multiple inclusion
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: lock debugging: loop nicer in mark_rt_mutex_waiters
+From: Ingo Molnar <mingo@elte.hu>
 
-Prevent <linux/console_struct.h> from being included more than once,
-otherwise you get a redefinition error if you happen to include
-<linux/vt_kern.h> first.
+Loop nicer in the mark_rt_mutex_waiters() busy loop.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Fix white space damage while at it.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/console_struct.h |    5 +++++
- 1 files changed, 5 insertions(+)
+ kernel/rtmutex_common.h |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/console_struct.h~protect-linux-console_structh-from-multiple-inclusion include/linux/console_struct.h
---- a/include/linux/console_struct.h~protect-linux-console_structh-from-multiple-inclusion
-+++ a/include/linux/console_struct.h
-@@ -9,6 +9,9 @@
-  * to achieve effects such as fast scrolling by changing the origin.
-  */
+diff -puN kernel/rtmutex_common.h~lock-debugging-loop-nicer-in-mark_rt_mutex_waiters kernel/rtmutex_common.h
+--- a/kernel/rtmutex_common.h~lock-debugging-loop-nicer-in-mark_rt_mutex_waiters
++++ a/kernel/rtmutex_common.h
+@@ -103,7 +103,7 @@ static inline struct task_struct *rt_mut
  
-+#ifndef _LINUX_CONSOLE_STRUCT_H
-+#define _LINUX_CONSOLE_STRUCT_H
-+
- #include <linux/wait.h>
- #include <linux/vt.h>
- #include <linux/workqueue.h>
-@@ -130,3 +133,5 @@ extern void vc_SAK(struct work_struct *w
- #define CUR_DEFAULT CUR_UNDERLINE
+ static inline struct task_struct *rt_mutex_real_owner(struct rt_mutex *lock)
+ {
+- 	return (struct task_struct *)
++	return (struct task_struct *)
+ 		((unsigned long)lock->owner & ~RT_MUTEX_HAS_WAITERS);
+ }
  
- #define CON_IS_VISIBLE(conp) (*conp->vc_display_fg == conp)
-+
-+#endif /* _LINUX_CONSOLE_STRUCT_H */
+@@ -120,11 +120,13 @@ static inline unsigned long rt_mutex_own
+ # define rt_mutex_cmpxchg(l,c,n)	(cmpxchg(&l->owner, c, n) == c)
+ static inline void mark_rt_mutex_waiters(struct rt_mutex *lock)
+ {
+-	unsigned long owner, *p = (unsigned long *) &lock->owner;
++	unsigned long *p = (unsigned long *) &lock->owner;
++	unsigned long owner = *p;
+ 
+-	do {
++	while (cmpxchg(p, owner, owner | RT_MUTEX_HAS_WAITERS) != owner) {
++		cpu_relax();
+ 		owner = *p;
+-	} while (cmpxchg(p, owner, owner | RT_MUTEX_HAS_WAITERS) != owner);
++	}
+ }
+ #else
+ # define rt_mutex_cmpxchg(l,c,n)	(0)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-origin.patch
-protect-linux-console_structh-from-multiple-inclusion.patch
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
+rt-mutex-fix-stale-return-value.patch
+rt-mutex-fix-chain-walk-early-wakeup-bug.patch
+pi-futex-fix-exit-races-and-locking-problems.patch
+git-acpi-add-exports.patch
 git-kvm.patch
-git-mmc.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-drop-the-superfluous-test-for-an-old-version-of-gcc.patch
+git-selinux.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+introduce-write_trylock_irqsave.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+pie-randomization.patch
+vdso-print-fatal-signals.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+introduce-o_cloexec-take-2.patch
+introduce-o_cloexec-parisc-fix.patch
+o_cloexec-for-scm_rights.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+futex-tidy-up-the-code.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+lock-debugging-loop-nicer-in-mark_rt_mutex_waiters.patch
+cfs-scheduler.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-v14-rc2-mm1.patch
+cfs-scheduler-warning-fixes.patch
+cfs-scheduler-v15-rc3-mm1.patch
+fs-proc-basec-make-a-struct-static.patch
+cfs-warning-fixes.patch
+schedstats-fix-printk-format.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
