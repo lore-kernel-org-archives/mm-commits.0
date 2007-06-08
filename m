@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-vanishing-ioctl-handler-debugging.patch added to -mm tree
-Date: Fri, 08 Jun 2007 13:50:51 -0700
-Message-ID: <200706082050.l58KopqV011802@imap1.linux-foundation.org>
+Subject: + git-selinux-allnoconfig-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 13:58:35 -0700
+Message-ID: <200706082102.l58L2CE8012107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762946AbXFHUvC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 16:51:02 -0400
+	by vger.kernel.org with ESMTP id S1759920AbXFHVCg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 17:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com
+Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     revert "vanishing ioctl handler debugging"
+     git-selinux: allnoconfig fix
 has been added to the -mm tree.  Its filename is
-     revert-vanishing-ioctl-handler-debugging.patch
+     git-selinux-allnoconfig-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "vanishing ioctl handler debugging"
+Subject: git-selinux: allnoconfig fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert my do_ioctl() debugging patch: Paul fixed the bug.
+Documentation/SubmitChecklist, rule 2
 
-Cc: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |   14 +++-----------
- 1 files changed, 3 insertions(+), 11 deletions(-)
+ kernel/sysctl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ioctl.c~revert-vanishing-ioctl-handler-debugging fs/ioctl.c
---- a/fs/ioctl.c~revert-vanishing-ioctl-handler-debugging
-+++ a/fs/ioctl.c
-@@ -12,7 +12,6 @@
- #include <linux/fs.h>
- #include <linux/security.h>
- #include <linux/module.h>
--#include <linux/kallsyms.h>
- 
- #include <asm/uaccess.h>
- #include <asm/ioctls.h>
-@@ -21,7 +20,6 @@ static long do_ioctl(struct file *filp, 
- 		unsigned long arg)
- {
- 	int error = -ENOTTY;
--	void *f;
- 
- 	if (!filp->f_op)
- 		goto out;
-@@ -31,16 +29,10 @@ static long do_ioctl(struct file *filp, 
- 		if (error == -ENOIOCTLCMD)
- 			error = -EINVAL;
- 		goto out;
--	} else if ((f = filp->f_op->ioctl)) {
-+	} else if (filp->f_op->ioctl) {
- 		lock_kernel();
--		if (!filp->f_op->ioctl) {
--			printk("%s: ioctl %p disappeared\n", __FUNCTION__, f);
--			print_symbol("symbol: %s\n", (unsigned long)f);
--			dump_stack();
--		} else {
--			error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
--						  filp, cmd, arg);
--		}
-+		error = filp->f_op->ioctl(filp->f_path.dentry->d_inode,
-+					  filp, cmd, arg);
- 		unlock_kernel();
- 	}
- 
+diff -puN kernel/sysctl.c~git-selinux-allnoconfig-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~git-selinux-allnoconfig-fix
++++ a/kernel/sysctl.c
+@@ -695,6 +695,7 @@ static ctl_table kern_table[] = {
+ 		.proc_handler   = &proc_dointvec,
+ 	},
+ #endif
++#ifdef CONFIG_SECURITY
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "mmap_min_addr",
+@@ -703,6 +704,7 @@ static ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &proc_doulongvec_minmax,
+ 	},
++#endif
+ 	{
+ 		.ctl_name	= KERN_POWEROFF_CMD,
+ 		.procname	= "poweroff_cmd",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +93,7 @@ wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
+git-selinux-allnoconfig-fix.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
