@@ -1,134 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - i386-set-6-bit-dac-channel-properties-in-vesa-video.patch removed from -mm tree
-Date: Fri, 08 Jun 2007 10:35:56 -0700
-Message-ID: <200706081735.l58HZunF006433@imap1.linux-foundation.org>
+Subject: - usb-serial-fix-something.patch removed from -mm tree
+Date: Fri, 08 Jun 2007 10:35:41 -0700
+Message-ID: <200706081735.l58HZfEa006381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35162 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35350 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933868AbXFHRos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 13:44:48 -0400
+	by vger.kernel.org with ESMTP id S934321AbXFHRot (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 13:44:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, ak@suse.de, hpa@zytor.com, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, pfmp.404@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: set 6-bit DAC channel properties in vesa video setup
+     usb serial: fix something
 has been removed from the -mm tree.  Its filename was
-     i386-set-6-bit-dac-channel-properties-in-vesa-video.patch
+     usb-serial-fix-something.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: set 6-bit DAC channel properties in vesa video setup
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: usb serial: fix something
+From: Alan Stern <stern@rowland.harvard.edu>
 
-If the video BIOS is not capable of switching or failed to switch the hardware
-to 8-bit DAC, the channel properties are not set.  This leads to a blank (all
-black) display with vesafb at 8 bpp.  Fix by defaulting to a 6-bit DAC.
+Might fix bug 8561
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <ak@suse.de>
+On Mon, 4 Jun 2007, Paulo Pereira wrote:
+
+> The patch that you send is not resolving the problem... :(
+> I stil have Kernel panic after 45/60 min of work with Ktorrent/Amule...
+>
+> The Drump is:
+>
+> Call Trace:
+> [<c055fb36>] usb_hcd_submit+0xb1/0x763
+> [<f9276488>] ipt_do_table+0x2c7/0x2ef [ip_tables]
+> [<f929a6d7>] nf_ct_deliver_cached_events+0x41/0x96 [nf_conntrak]
+> [<f9288254>] ipv4_confirm+0x36/0c3b [nf_conntrack_ipv4]
+> [<c05ce7c2>] tcp_v4_rcv+0x827/0x899
+> [<c05afcc0>] nf_hook_slow+0x4d/0xb5
+> [<c042826f>] irq_enter+0x19/0x23
+> [<c042826f>] irq_enter+0x19/0x23
+> [<c040794c>] do_IRQ+0xbd/0xd1
+> [<f90893c9>] option_write+0xa7/0xef [option]
+
+Okay, from this it looks like there's a problem in the option.c serial
+driver.  Glancing at the code, it's obvious why: The thing totally
+abuses the USB API.
+
+Try applying this patch; it should help.
+
+Cc: Paulo Pereira <pfmp.404@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/video-vesa.c |   27 ++++++++++++++-------------
- 1 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/usb/serial/option.c |   20 +++++++++++++++++---
+ 1 files changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/boot/video-vesa.c~i386-set-6-bit-dac-channel-properties-in-vesa-video arch/i386/boot/video-vesa.c
---- a/arch/i386/boot/video-vesa.c~i386-set-6-bit-dac-channel-properties-in-vesa-video
-+++ a/arch/i386/boot/video-vesa.c
-@@ -153,19 +153,21 @@ static int vesa_set_mode(struct mode_inf
- /* Switch DAC to 8-bit mode */
- static void vesa_dac_set_8bits(void)
+diff -puN drivers/usb/serial/option.c~usb-serial-fix-something drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-serial-fix-something
++++ a/drivers/usb/serial/option.c
+@@ -38,6 +38,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/module.h>
++#include <linux/bitops.h>
+ #include <linux/usb.h>
+ #include <linux/usb/serial.h>
+ 
+@@ -238,6 +239,7 @@ struct option_port_private {
+ 	/* Output endpoints and buffer for this port */
+ 	struct urb *out_urbs[N_OUT_URB];
+ 	char out_buffer[N_OUT_URB][OUT_BUFLEN];
++	unsigned long out_busy;		/* Bit vector of URBs in use */
+ 
+ 	/* Settings for the port */
+ 	int rts_state;	/* Handshaking pins (outputs) */
+@@ -368,7 +370,7 @@ static int option_write(struct usb_seria
+ 			todo = OUT_BUFLEN;
+ 
+ 		this_urb = portdata->out_urbs[i];
+-		if (this_urb->status == -EINPROGRESS) {
++		if (test_and_set_bit(i, &portdata->out_busy)) {
+ 			if (time_before(jiffies,
+ 					portdata->tx_start_time[i] + 10 * HZ))
+ 				continue;
+@@ -392,6 +394,7 @@ static int option_write(struct usb_seria
+ 			dbg("usb_submit_urb %p (write bulk) failed "
+ 				"(%d, has %d)", this_urb,
+ 				err, this_urb->status);
++			clear_bit(i, &portdata->out_busy);
+ 			continue;
+ 		}
+ 		portdata->tx_start_time[i] = jiffies;
+@@ -444,12 +447,23 @@ static void option_indat_callback(struct
+ static void option_outdat_callback(struct urb *urb)
  {
--	u16 ax, bx;
--	u8 dac_size;
-+	u8 dac_size = 6;
+ 	struct usb_serial_port *port;
++	struct option_port_private *portdata;
++	int i;
  
--	ax = 0x4f08;
--	bx = 0x0800;
--	asm volatile(INT10
--		     : "+a" (ax), "+b" (bx)
--		     : : "ecx", "edx", "esi", "edi");
--
--	if (ax != 0x004f)
--		return;
-+	/* If possible, switch the DAC to 8-bit mode */
-+	if (vginfo.capabilities & 1) {
-+		u16 ax, bx;
+ 	dbg("%s", __FUNCTION__);
  
--	dac_size = bx >> 8;
-+		ax = 0x4f08;
-+		bx = 0x0800;
-+		asm volatile(INT10
-+			     : "+a" (ax), "+b" (bx)
-+			     : : "ecx", "edx", "esi", "edi");
+ 	port = (struct usb_serial_port *) urb->context;
+ 
+ 	usb_serial_port_softint(port);
 +
-+		if (ax == 0x004f)
-+			dac_size = bx >> 8;
++	portdata = usb_get_serial_port_data(port);
++	for (i = 0; i < N_OUT_URB; ++i) {
++		if (portdata->out_urbs[i] == urb) {
++			smp_mb__before_clear_bit();
++			clear_bit(i, &portdata->out_busy);
++			break;
++		}
 +	}
+ }
  
- 	/* Set the color sizes to the DAC size, and offsets to 0 */
- 	boot_params.screen_info.red_size = dac_size;
-@@ -219,8 +221,7 @@ static void vesa_store_mode_params_graph
- 	/* General parameters */
- 	boot_params.screen_info.lfb_size = vginfo.total_memory;
+ static void option_instat_callback(struct urb *urb)
+@@ -516,7 +530,7 @@ static int option_write_room(struct usb_
  
--	/* If possible, switch the DAC to 8-bit mode */
--	if (vminfo.bpp <= 8 && (vginfo.capabilities & 1))
-+	if (vminfo.bpp <= 8)
- 		vesa_dac_set_8bits();
+ 	for (i=0; i < N_OUT_URB; i++) {
+ 		this_urb = portdata->out_urbs[i];
+-		if (this_urb && this_urb->status != -EINPROGRESS)
++		if (this_urb && !test_bit(i, &portdata->out_busy))
+ 			data_len += OUT_BUFLEN;
+ 	}
  
- 	vesa_store_pm_info();
+@@ -535,7 +549,7 @@ static int option_chars_in_buffer(struct
+ 
+ 	for (i=0; i < N_OUT_URB; i++) {
+ 		this_urb = portdata->out_urbs[i];
+-		if (this_urb && this_urb->status == -EINPROGRESS)
++		if (this_urb && test_bit(i, &portdata->out_busy))
+ 			data_len += this_urb->transfer_buffer_length;
+ 	}
+ 	dbg("%s: %d", __FUNCTION__, data_len);
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-origin.patch
-git-newsetup.patch
-fbcon-smart-blitter-usage-for-scrolling.patch
-nvidiafb-adjust-flags-to-take-advantage-of-new-scroll-method.patch
-fbcon-cursor-blink-control.patch
-fbcon-use-struct-device-instead-of-struct-class_device.patch
-fbdev-move-arch-specific-bits-to-their-respective.patch
-fbdev-detect-primary-display-device.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-radeonfb-add-support-for-radeon-xpress-200m-rs485.patch
-nvidiafb-add-proper-support-for-geforce-7600-chipset.patch
-pm2fb-white-spaces-clean-up.patch
-fbcon-set_con2fb_map-fixes.patch
-fbcon-revise-primary-device-selection.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-vt-add-comment-for-unbind_con_driver.patch
-68328fb-the-pseudo_palette-is-only-16-elements-long.patch
-controlfb-the-pseudo_palette-is-only-16-elements-long.patch
-cyblafb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
-epson1355fb-color-setting-fixes.patch
-fm2fb-the-pseudo_palette-is-only-16-elements-long.patch
-gbefb-the-pseudo_palette-is-only-16-elements-long.patch
-macfb-fix-pseudo_palette-size-and-overrun.patch
-offb-the-pseudo_palette-is-only-16-elements-long.patch
-platinumfb-the-pseudo_palette-is-only-16-elements.patch
-pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
-q40fb-the-pseudo_palette-is-only-16-elements-long.patch
-sgivwfb-the-pseudo_palette-is-only-16-elements-long.patch
-tgafb-actually-allocate-memory-for-the-pseudo_palette.patch
-tridentfb-fix-pseudo_palette-array-overrun-in-setcolreg.patch
-tx3912fb-fix-improper-assignment-of-info-pseudo_palette.patch
-atyfb-the-pseudo_palette-is-only-16-elements-long.patch
-radeonfb-the-pseudo_palette-is-only-16-elements-long.patch
-i810fb-the-pseudo_palette-is-only-16-elements-long.patch
-intelfb-the-pseudo_palette-is-only-16-elements-long.patch
-sisfb-fix-pseudo_palette-array-size-and-overrun.patch
-matroxfb-color-setting-fixes.patch
-pm3fb-fillrect-acceleration.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-matroxfb-color-setting-fixes-fix.patch
-fb-epson1355fb-kill-off-dead-sh-support.patch
+git-hid.patch
+make-alt-sysrq-p-display-the-debug-register-contents.patch
+freezer-run-show_state-when-freezing-times-out.patch
