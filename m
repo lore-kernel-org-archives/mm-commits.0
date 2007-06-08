@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + improve-behaviour-of-spurious-irq-detect.patch added to -mm tree
-Date: Thu, 07 Jun 2007 22:47:07 -0700
-Message-ID: <200706080547.l585l73V020363@imap1.linux-foundation.org>
+Subject: + improve-behaviour-of-spurious-irq-detect-fix.patch added to -mm tree
+Date: Thu, 07 Jun 2007 22:48:23 -0700
+Message-ID: <200706080548.l585mNAY020391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40625 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50486 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755003AbXFHFsF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:48:05 -0400
+	by vger.kernel.org with ESMTP id S1762149AbXFHFtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 01:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, alan@redhat.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Improve behaviour of spurious IRQ detect
+     improve-behaviour-of-spurious-irq-detect-fix
 has been added to the -mm tree.  Its filename is
-     improve-behaviour-of-spurious-irq-detect.patch
+     improve-behaviour-of-spurious-irq-detect-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,198 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Improve behaviour of spurious IRQ detect
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: improve-behaviour-of-spurious-irq-detect-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently we handle spurious IRQ activity based upon seeing a lot of
-invalid interrupts, and we clear things back on the base of lots of valid
-interrupts.
-
-Unfortunately in some cases you get legitimate invalid interrupts caused by
-timing asynchronicity between the PCI bus and the APIC bus when disabling
-interrupts and pulling other tricks.  In this case although the spurious
-IRQs are not a problem our unhandled counters didn't clear and they act as
-a slow running timebomb.  (This is effectively what the serial port/tty
-problem that was fixed by clearing counters when registering a handler
-showed up)
-
-It's easy enough to add a second parameter - time.  This means that if we
-see a regular stream of harmless spurious interrupts which are not harming
-processing we don't go off and do something stupid like disable the IRQ
-after a month of running.  OTOH lockups and performance killers show up a
-lot more than 10/second
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irq.h   |    1 +
- kernel/irq/spurious.c |   10 +++++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ kernel/irq/spurious.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/irq.h~improve-behaviour-of-spurious-irq-detect include/linux/irq.h
---- a/include/linux/irq.h~improve-behaviour-of-spurious-irq-detect
-+++ a/include/linux/irq.h
-@@ -161,6 +161,7 @@ struct irq_desc {
- 	unsigned int		wake_depth;	/* nested wake enables */
- 	unsigned int		irq_count;	/* For detecting broken IRQs */
- 	unsigned int		irqs_unhandled;
-+	unsigned long		last_unhandled;	/* Aging timer for unhandled count */
- 	spinlock_t		lock;
- #ifdef CONFIG_SMP
- 	cpumask_t		affinity;
-diff -puN kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect kernel/irq/spurious.c
---- a/kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect
+diff -puN include/linux/irq.h~improve-behaviour-of-spurious-irq-detect-fix include/linux/irq.h
+diff -puN kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect-fix kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~improve-behaviour-of-spurious-irq-detect-fix
 +++ a/kernel/irq/spurious.c
-@@ -172,7 +172,15 @@ void note_interrupt(unsigned int irq, st
+@@ -172,10 +172,12 @@ void note_interrupt(unsigned int irq, st
  		    irqreturn_t action_ret)
  {
  	if (unlikely(action_ret != IRQ_HANDLED)) {
--		desc->irqs_unhandled++;
-+		/* If we are seeing only the odd spurious IRQ caused by
-+		   bus asynchronicity then don't eventually trigger an error,
-+		   otherwise the couter becomes a doomsday timer for otherwise
-+		   working systems */
-+		if (jiffies - desc->last_unhandled > HZ/10)
-+			desc->irqs_unhandled = 1;
-+		else
-+			desc->irqs_unhandled++;
-+		desc->last_unhandled = jiffies;
- 		if (unlikely(action_ret != IRQ_NONE))
- 			report_bad_irq(irq, desc, action_ret);
- 	}
+-		/* If we are seeing only the odd spurious IRQ caused by
+-		   bus asynchronicity then don't eventually trigger an error,
+-		   otherwise the couter becomes a doomsday timer for otherwise
+-		   working systems */
++		/*
++		 * If we are seeing only the odd spurious IRQ caused by
++		 * bus asynchronicity then don't eventually trigger an error,
++		 * otherwise the couter becomes a doomsday timer for otherwise
++		 * working systems
++		 */
+ 		if (jiffies - desc->last_unhandled > HZ/10)
+ 			desc->irqs_unhandled = 1;
+ 		else
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
-git-libata-all.patch
-pata-add-the-mcp73-77-support-to-pata-driver.patch
-libata-correct-abuse-of-language.patch
-libata-core-sff-fix-multiple-assumptions-about-dma.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-pci_try_set_mwi.patch
+document-acked-by.patch
+x86_64-oops_begin-fix.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-acpi-disable-acpi_processor_throttling_seq_show.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-input-fixup.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
-add-pci_try_set_mwi-prism54pci.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix-2.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-mtrr-clean-up-usage_table.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
 mpu401-warning-fixes.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-intel-rng-undo-mess-made-by-an-80-column-extremist.patch
-improve-behaviour-of-spurious-irq-detect.patch
-i2o_cfg_passthru-cleanup.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
 i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+lguest-the-net-driver-include-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
 coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
