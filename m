@@ -1,107 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-guest-code-tidyups-update.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 23:13:51 -0700
-Message-ID: <200706080613.l586Dp9w020960@imap1.linux-foundation.org>
+Subject: - lguest-more-lazy_hcalls.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 23:13:57 -0700
+Message-ID: <200706080613.l586Dv0m020969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39806 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754903AbXFHGOF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:14:05 -0400
+	by vger.kernel.org with ESMTP id S1754707AbXFHGOI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 02:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, jeff@garzik.org, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: guest tidyups
+     lguest: more lazy_hcalls
 has been removed from the -mm tree.  Its filename was
-     lguest-the-guest-code-tidyups-update.patch
+     lguest-more-lazy_hcalls.patch
 
 This patch was dropped because it was folded into lguest-the-guest-code.patch
 
 ------------------------------------------------------
-Subject: lguest: guest tidyups
+Subject: lguest: more lazy_hcalls
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Jeff Garzik argued forcefully that __pa() should not appear in
-drivers, and that struct netdevice's irq field should not be used.
-Christoph Hellwig suggested that I run sparse, and provide an
-lguest-specific wrapper for mapping/unmapping virtual device memory.
+Some hypercalls can be batched: lazy_hcall is the wrapper which determines
+this, so it's pretty harmless to use lazy_hcall() instead of hcall().
 
-Results:
-1) send-dma and bind-dma hypercall wrappers for drivers to use,
-2) formalization of the convention that devices can use the irq
-   corresponding to their index on the lguest_bus.
-3) Helper to map and unmap virtual device memory (not classic __iomem).
-4) lguest.c should include "lguest_bus.h" for lguest_devices declaration.
+Before:
+Time for one context switch via pipe: 6745 (6521 - 13966)
+
+After:
+Time for one context switch via pipe: 5406 (5170 - 7467)
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c     |   13 +++++++++++++
- drivers/lguest/lguest_bus.c |    2 +-
- include/linux/lguest_bus.h  |    4 ++++
- 3 files changed, 18 insertions(+), 1 deletion(-)
+ drivers/lguest/lguest.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-tidyups-update drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-guest-code-tidyups-update
+diff -puN drivers/lguest/lguest.c~lguest-more-lazy_hcalls drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-more-lazy_hcalls
 +++ a/drivers/lguest/lguest.c
-@@ -36,6 +36,7 @@
- #include <asm/setup.h>
- #include <asm/e820.h>
- #include <asm/mce.h>
-+#include <asm/io.h>
- 
- /* Declarations for definitions in lguest_guest.S */
- extern char lguest_noirq_start[], lguest_noirq_end[];
-@@ -122,6 +123,18 @@ void lguest_unbind_dma(unsigned long key
- 	hcall(LHCALL_BIND_DMA, key, __pa(dmas), 0);
+@@ -227,7 +227,7 @@ static void lguest_cpuid(unsigned int *e
+ static unsigned long current_cr0, current_cr3;
+ static void lguest_write_cr0(unsigned long val)
+ {
+-	hcall(LHCALL_TS, val & 8, 0, 0);
++	lazy_hcall(LHCALL_TS, val & 8, 0, 0);
+ 	current_cr0 = val;
  }
  
-+/* For guests, device memory can be used as normal memory, so we cast away the
-+ * __iomem to quieten sparse. */
-+void *lguest_map(unsigned long phys_addr, unsigned long pages)
-+{
-+	return (__force void *)ioremap(phys_addr, PAGE_SIZE*pages);
-+}
-+
-+void lguest_unmap(void *addr)
-+{
-+	iounmap((__force void __iomem *)addr);
-+}
-+
- static unsigned long save_fl(void)
+@@ -249,7 +249,7 @@ static unsigned long lguest_read_cr2(voi
+ 
+ static void lguest_write_cr3(unsigned long cr3)
  {
- 	return lguest_data.irq_enabled;
-diff -puN drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups-update drivers/lguest/lguest_bus.c
---- a/drivers/lguest/lguest_bus.c~lguest-the-guest-code-tidyups-update
-+++ a/drivers/lguest/lguest_bus.c
-@@ -136,7 +136,7 @@ static int __init lguest_bus_init(void)
- 		return 0;
+-	hcall(LHCALL_NEW_PGTABLE, cr3, 0, 0);
++	lazy_hcall(LHCALL_NEW_PGTABLE, cr3, 0, 0);
+ 	current_cr3 = cr3;
+ }
  
- 	/* Devices are in page above top of "normal" mem. */
--	lguest_devices = (__force void*)ioremap(max_pfn<<PAGE_SHIFT,PAGE_SIZE);
-+	lguest_devices = lguest_map(max_pfn<<PAGE_SHIFT, 1);
+@@ -289,7 +289,7 @@ static void lguest_set_pte(pte_t *ptep, 
+ 	*ptep = pteval;
+ 	/* Don't bother with hypercall before initial setup. */
+ 	if (current_cr3)
+-		hcall(LHCALL_FLUSH_TLB, 1, 0, 0);
++		lazy_hcall(LHCALL_FLUSH_TLB, 1, 0, 0);
+ }
  
- 	if (bus_register(&lguest_bus.bus) != 0
- 	    || device_register(&lguest_bus.dev) != 0)
-diff -puN include/linux/lguest_bus.h~lguest-the-guest-code-tidyups-update include/linux/lguest_bus.h
---- a/include/linux/lguest_bus.h~lguest-the-guest-code-tidyups-update
-+++ a/include/linux/lguest_bus.h
-@@ -27,6 +27,10 @@ int lguest_bind_dma(unsigned long key, s
- 		    unsigned int num, u8 irq);
- void lguest_unbind_dma(unsigned long key, struct lguest_dma *dmas);
- 
-+/* Map the virtual device space */
-+void *lguest_map(unsigned long phys_addr, unsigned long pages);
-+void lguest_unmap(void *);
-+
- struct lguest_driver {
- 	const char *name;
- 	struct module *owner;
+ static void lguest_flush_tlb_single(unsigned long addr)
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -117,9 +85,6 @@ cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-proce
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
-lguest-the-guest-code-tidyups-update.patch
-lguest-the-guest-code-update-for-mm-disable-tsc-dont-set-pge-bit.patch
-lguest-speed-up-paravirt_lazy_flush-handling.patch
 lguest-more-lazy_hcalls.patch
 lguest-the-guest-code-tsc-fix.patch
 lguest-the-guest-code-suppress-ide-probing.patch
