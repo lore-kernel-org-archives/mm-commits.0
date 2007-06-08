@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-capi-warning-fixes.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:31:46 -0700
-Message-ID: <200706082335.l58NZMBH016471@imap1.linux-foundation.org>
+Subject: + led_colour_show-warning-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:33:42 -0700
+Message-ID: <200706082337.l58NbIms016686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752021AbXFHXfc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:35:32 -0400
+	by vger.kernel.org with ESMTP id S1752284AbXFHXhb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:37:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kkeil@suse.de
+Cc: akpm@linux-foundation.org, drzeus-list@drzeus.cx
 
 
 The patch titled
-     isdn/capi warning fixes
+     led_colour_show() warning fix
 has been added to the -mm tree.  Its filename is
-     isdn-capi-warning-fixes.patch
+     led_colour_show-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isdn/capi warning fixes
+Subject: led_colour_show() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/isdn/capi/capi.c: In function 'handle_minor_send':
-drivers/isdn/capi/capi.c:552: warning: cast from pointer to integer of different size
+drivers/leds/led-class.c: In function 'led_colour_show':
+drivers/leds/led-class.c:62: warning: initialization discards qualifiers from pointer target type
 
-Of course, the code here might actually be buggy, in which case this patch
-should not be applied?
-
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/led-class.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/isdn/capi/capi.c~isdn-capi-warning-fixes drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~isdn-capi-warning-fixes
-+++ a/drivers/isdn/capi/capi.c
-@@ -549,7 +549,7 @@ static int handle_minor_send(struct capi
- 		capimsg_setu8 (skb->data, 5, CAPI_REQ);
- 		capimsg_setu16(skb->data, 6, mp->msgid++);
- 		capimsg_setu32(skb->data, 8, mp->ncci);	/* NCCI */
--		capimsg_setu32(skb->data, 12, (u32) skb->data); /* Data32 */
-+		capimsg_setu32(skb->data, 12, (u32)(long)skb->data);/* Data32 */
- 		capimsg_setu16(skb->data, 16, len);	/* Data length */
- 		capimsg_setu16(skb->data, 18, datahandle);
- 		capimsg_setu16(skb->data, 20, 0);	/* Flags */
+diff -puN drivers/leds/led-class.c~led_colour_show-warning-fix drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~led_colour_show-warning-fix
++++ a/drivers/leds/led-class.c
+@@ -59,7 +59,8 @@ static ssize_t led_brightness_store(stru
+ static ssize_t led_colour_show(struct class_device *dev, char *buf)
+ {
+ 	struct led_classdev *led_cdev = class_get_devdata(dev);
+-	char *colour, *str = led_cdev->name;
++	const char *colour;
++	const char *str = led_cdev->name;
+ 	ssize_t len = 0;
+ 
+ 	/* skip first field */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +191,7 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
 i2o_cfg_passthru-cleanup-fix.patch
 knfsd-exportfs-add-exportfsh-header-fix.patch
 knfsd-exportfs-remove-iget-abuse-fix.patch
@@ -226,4 +225,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-isdn-capi-warning-fixes.patch
+led_colour_show-warning-fix.patch
