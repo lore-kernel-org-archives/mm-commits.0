@@ -1,240 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - pi-futex-fixes.patch removed from -mm tree
-Date: Thu, 07 Jun 2007 17:27:03 -0700
-Message-ID: <200706080027.l580R3Oo013559@imap1.linux-foundation.org>
+Subject: + rt-mutex-fix-stale-return-value.patch added to -mm tree
+Date: Thu, 07 Jun 2007 17:27:14 -0700
+Message-ID: <200706080027.l580REc9013564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50039 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933204AbXFHA2U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:28:20 -0400
+	by vger.kernel.org with ESMTP id S933216AbXFHA3H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:29:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuznet@ms2.inr.ac.ru, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tglx@linutronix.de, dada1@cosmosbay.com, drepper@redhat.com, kuznet@ms2.inr.ac.ru, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     pi-futex fixes
-has been removed from the -mm tree.  Its filename was
-     pi-futex-fixes.patch
+     rt-mutex: fix stale return value
+has been added to the -mm tree.  Its filename is
+     rt-mutex-fix-stale-return-value.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pi-futex fixes
-From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Subject: rt-mutex: fix stale return value
+From: Thomas Gleixner <tglx@linutronix.de>
 
-1. New entries can be added to tsk->pi_state_list after task completed
-   exit_pi_state_list(). The result is memory leakage and deadlocks.
+Alexey Kuznetsov found some problems in the pi-futex code.
 
-2. handle_mm_fault() is called under spinlock. The result is obvious.
+The major problem is a stale return value in rt_mutex_slowlock():
 
-3. results in self-inflicted deadlock inside glibc.
-   Sometimes futex_lock_pi returns -ESRCH, when it is not expected
-   and glibc enters to for(;;) sleep() to simulate deadlock. This problem
-   is quite obvious and I think the patch is right. Though it looks like
-   each "if" in futex_lock_pi() got some stupid special case "else if". :-)
+When the pi chain walk returns -EDEADLK, but the waiter was woken up during
+the phases where the locks were dropped, the rtmutex could be acquired, but
+due to the stale return value -EDEADLK returned to the caller.
 
-4. sometimes futex_lock_pi() returns -EDEADLK,
-   when nobody has the lock. The reason is also obvious (see comment
-   in the patch), but correct fix is far beyond my comprehension.
-   I guess someone already saw this, the chunk:
+Reset the return value in the retry path.
 
-                        if (rt_mutex_trylock(&q.pi_state->pi_mutex))
-                                ret = 0;
-
-   is obviously from the same opera. But it does not work, because the
-   rtmutex is really taken at this point: wake_futex_pi() of previous
-   owner reassigned it to us. My fix works. But it looks very stupid.
-   I would think about removal of shift of ownership in wake_futex_pi()
-   and making all the work in context of process taking lock.
-
-(akpm: this doesn't vaguely apply to 2.6.21, but 2.6.21 need fixing!)
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   73 ++++++++++++++++++++++++++++++++++++++---------
- 1 files changed, 60 insertions(+), 13 deletions(-)
+ kernel/rtmutex.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/futex.c~pi-futex-fixes kernel/futex.c
---- a/kernel/futex.c~pi-futex-fixes
-+++ a/kernel/futex.c
-@@ -430,10 +430,6 @@ static struct task_struct * futex_find_g
- 		p = NULL;
- 		goto out_unlock;
- 	}
--	if (p->exit_state != 0) {
--		p = NULL;
--		goto out_unlock;
--	}
- 	get_task_struct(p);
- out_unlock:
- 	rcu_read_unlock();
-@@ -540,6 +536,19 @@ lookup_pi_state(u32 uval, struct futex_h
- 	if (!p)
- 		return -ESRCH;
- 
-+	/*
-+	 * Task state transitions are protected only by tasklist_lock
-+	 * and by nothing else. Better solution would be
-+	 * to use ->pi_lock. But this should be done in do_exit() as well.
-+	 * So, I use tasklist_lock for now.
-+	 */
-+	read_lock(&tasklist_lock);
-+	if (p->exit_state) {
-+		read_unlock(&tasklist_lock);
-+		put_task_struct(p);
-+		return -ESRCH;
-+	}
-+
- 	pi_state = alloc_pi_state();
- 
- 	/*
-@@ -557,6 +566,8 @@ lookup_pi_state(u32 uval, struct futex_h
- 	pi_state->owner = p;
- 	spin_unlock_irq(&p->pi_lock);
- 
-+	read_unlock(&tasklist_lock);
-+
- 	put_task_struct(p);
- 
- 	*ps = pi_state;
-@@ -1174,7 +1185,7 @@ static int futex_requeue(u32 __user *uad
- #ifdef CONFIG_DEBUG_PI_LIST
- 				this->list.plist.lock = &hb2->lock;
- #endif
-- 			}
+diff -puN kernel/rtmutex.c~rt-mutex-fix-stale-return-value kernel/rtmutex.c
+--- a/kernel/rtmutex.c~rt-mutex-fix-stale-return-value
++++ a/kernel/rtmutex.c
+@@ -636,9 +636,16 @@ rt_mutex_slowlock(struct rt_mutex *lock,
+ 			 * all over without going into schedule to try
+ 			 * to get the lock now:
+ 			 */
+-			if (unlikely(!waiter.task))
++			if (unlikely(!waiter.task)) {
++				/*
++				 * Reset the return value. We might
++				 * have returned with -EDEADLK and the
++				 * owner released the lock while we
++				 * were walking the pi chain.
++				 */
++				ret = 0;
+ 				continue;
+-
 +			}
- 			this->key = key2;
- 			get_futex_key_refs(&key2);
- 			drop_count++;
-@@ -1371,7 +1382,7 @@ static int fixup_pi_state_owner(u32 __us
- 		curval = futex_atomic_cmpxchg_inatomic(uaddr,
- 						       uval, newval);
- 		if (curval == -EFAULT)
-- 			ret = -EFAULT;
-+			ret = -EFAULT;
- 		if (curval == uval)
- 			break;
- 		uval = curval;
-@@ -1709,6 +1720,7 @@ static int futex_lock_pi(u32 __user *uad
- 	if (unlikely(ret != 0))
- 		goto out_release_sem;
- 
-+ retry_unlocked:
- 	hb = queue_lock(&q, -1, NULL);
- 
-  retry_locked:
-@@ -1813,6 +1825,19 @@ static int futex_lock_pi(u32 __user *uad
- 			if (unlikely(curval != uval))
- 				goto retry_locked;
- 			ret = 0;
-+		} else if (ret == -ESRCH) {
-+			/*
-+			 * Process could exit right now, so that robust
-+			 * list was processed after we got uval. Retry:
-+			 */
-+			pagefault_disable();
-+			curval = futex_atomic_cmpxchg_inatomic(uaddr,
-+							       uval, uval);
-+			pagefault_enable();
-+			if (unlikely(curval == -EFAULT))
-+				goto uaddr_faulted;
-+			if (unlikely(curval != uval))
-+				goto retry_locked;
+ 			if (unlikely(ret))
+ 				break;
  		}
- 		goto out_unlock_release_sem;
- 	}
-@@ -1861,6 +1886,22 @@ static int futex_lock_pi(u32 __user *uad
- 		if (ret && q.pi_state->owner == curr) {
- 			if (rt_mutex_trylock(&q.pi_state->pi_mutex))
- 				ret = 0;
-+			/*
-+			 * Holy crap... Now futex lock returns -EDEADLK
-+			 * sometimes, because ownership was passed to us while
-+			 * unlock of previous owner. Who wrote this?
-+			 * Please, fix this correctly. For now:
-+			 */
-+			if (ret == -EDEADLK) {
-+				pagefault_disable();
-+				uval = futex_atomic_cmpxchg_inatomic(uaddr,
-+								     0, 0);
-+				pagefault_enable();
-+				if (uval != -EFAULT &&
-+				    (uval & FUTEX_TID_MASK) == current->pid) {
-+					ret = 0;
-+				}
-+			}
- 		}
- 		/* Unqueue and drop the lock */
- 		unqueue_me_pi(&q);
-@@ -1887,16 +1928,19 @@ static int futex_lock_pi(u32 __user *uad
- 	 * non-atomically.  Therefore, if get_user below is not
- 	 * enough, we need to handle the fault ourselves, while
- 	 * still holding the mmap_sem.
-+	 *
-+	 * ... and hb->lock. :-) --ANK
- 	 */
-+	queue_unlock(&q, hb);
-+
- 	if (attempt++) {
- 		ret = futex_handle_fault((unsigned long)uaddr, fshared,
- 					 attempt);
- 		if (ret)
--			goto out_unlock_release_sem;
--		goto retry_locked;
-+			goto out_release_sem;
-+		goto retry_unlocked;
- 	}
- 
--	queue_unlock(&q, hb);
- 	if (fshared)
- 		up_read(fshared);
- 
-@@ -1940,9 +1984,9 @@ retry:
- 		goto out;
- 
- 	hb = hash_futex(&key);
-+retry_unlocked:
- 	spin_lock(&hb->lock);
- 
--retry_locked:
- 	/*
- 	 * To avoid races, try to do the TID -> 0 atomic transition
- 	 * again. If it succeeds then we can return without waking
-@@ -2005,16 +2049,19 @@ pi_faulted:
- 	 * non-atomically.  Therefore, if get_user below is not
- 	 * enough, we need to handle the fault ourselves, while
- 	 * still holding the mmap_sem.
-+	 *
-+	 * ... and hb->lock. --ANK
- 	 */
-+	spin_unlock(&hb->lock);
-+
- 	if (attempt++) {
- 		ret = futex_handle_fault((unsigned long)uaddr, fshared,
- 					 attempt);
- 		if (ret)
--			goto out_unlock;
--		goto retry_locked;
-+			goto out;
-+		goto retry_unlocked;
- 	}
- 
--	spin_unlock(&hb->lock);
- 	if (fshared)
- 		up_read(fshared);
- 
 _
 
-Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 rt-mutex-fix-stale-return-value.patch
 rt-mutex-fix-chain-walk-early-wakeup-bug.patch
 pi-futex-fix-exit-races-and-locking-problems.patch
-pi-futex-fixes.patch
+git-acpi-add-exports.patch
+git-arm.patch
+s390-spinlock-initializer-cleanup.patch
+i386-hpet-check-if-the-counter-works.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+lguest-the-host-code-use-hrtimers.patch
 futex-tidy-up-the-code.patch
