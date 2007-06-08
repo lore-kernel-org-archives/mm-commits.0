@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-oops_begin-fix.patch added to -mm tree
-Date: Thu, 07 Jun 2007 20:17:15 -0700
-Message-ID: <200706080317.l583HGLC017246@imap1.linux-foundation.org>
+Subject: + cfs-warning-fixes.patch added to -mm tree
+Date: Thu, 07 Jun 2007 20:17:08 -0700
+Message-ID: <200706080317.l583H9Zj017243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40509 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967243AbXFHDSM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 23:18:12 -0400
+	by vger.kernel.org with ESMTP id S966973AbXFHDSL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 23:18:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     x86_64: oops_begin() fix
+     cfs warning fixes
 has been added to the -mm tree.  Its filename is
-     x86_64-oops_begin-fix.patch
+     cfs-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: oops_begin() fix
+Subject: cfs warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We don't want to see this:
+In file included from kernel/sched.c:601:
+kernel/sched_stats.h: In function 'show_schedstat':
+kernel/sched_stats.h:30: warning: format '%lu' expects type 'long unsigned int', but argument 13 has type 'long long unsigned int'
+kernel/sched_stats.h:30: warning: format '%lu' expects type 'long unsigned int', but argument 14 has type 'long long unsigned int'
 
->  BUG: using smp_processor_id() in preemptible [00000001] code: bash/3857
->  caller is oops_begin+0xb/0x6f
->  
->  Call Trace:
->  [<ffffffff8020ab4d>] show_trace+0x34/0x4f
->  [<ffffffff8020ab7a>] dump_stack+0x12/0x17
->  [<ffffffff8030d92d>] debug_smp_processor_id+0xad/0xbc
->  [<ffffffff8042388f>] oops_begin+0xb/0x6f
->  [<ffffffff8042520b>] do_page_fault+0x66a/0x7c0
->  [<ffffffff804234bd>] error_exit+0x0/0x84
->  
-
-coming out when the kernel is trying to oops.
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/traps.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched_stats.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/traps.c~x86_64-oops_begin-fix arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~x86_64-oops_begin-fix
-+++ a/arch/x86_64/kernel/traps.c
-@@ -532,13 +532,14 @@ static unsigned int die_nest_count;
+diff -puN kernel/sched_stats.h~cfs-warning-fixes kernel/sched_stats.h
+--- a/kernel/sched_stats.h~cfs-warning-fixes
++++ a/kernel/sched_stats.h
+@@ -21,7 +21,7 @@ static int show_schedstat(struct seq_fil
  
- unsigned __kprobes long oops_begin(void)
- {
--	int cpu = smp_processor_id();
-+	int cpu;
- 	unsigned long flags;
- 
- 	oops_enter();
- 
- 	/* racy, but better than risking deadlock. */
- 	local_irq_save(flags);
-+	cpu = smp_processor_id();
- 	if (!spin_trylock(&die_lock)) { 
- 		if (cpu == die_owner) 
- 			/* nested oops. should stop eventually */;
+ 		/* runqueue-specific stats */
+ 		seq_printf(seq,
+-		    "cpu%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
++		    "cpu%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %llu %llu %lu",
+ 		    cpu, rq->yld_both_empty,
+ 		    rq->yld_act_empty, rq->yld_exp_empty, rq->yld_cnt,
+ 		    rq->sched_switch, rq->sched_cnt, rq->sched_goidle,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
