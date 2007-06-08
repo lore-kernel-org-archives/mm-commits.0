@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-pci_id-h-add-amd-northbridge-defines.patch added to -mm tree
-Date: Fri, 08 Jun 2007 12:40:37 -0700
-Message-ID: <200706081940.l58JebR5009874@imap1.linux-foundation.org>
+Subject: + driver-edac-mod-race-fix-i82875p.patch added to -mm tree
+Date: Fri, 08 Jun 2007 12:40:33 -0700
+Message-ID: <200706081940.l58JeXGR009868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60907 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935013AbXFHTkq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:40:46 -0400
+	by vger.kernel.org with ESMTP id S1752046AbXFHTkn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 15:40:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk
+Cc: juhlenko@akamai.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com
 
 
 The patch titled
-     include/linux/pci_id.h: add amd northbridge defines
+     drivers/edac: mod race fix i82875p
 has been added to the -mm tree.  Its filename is
-     include-linux-pci_id-h-add-amd-northbridge-defines.patch
+     driver-edac-mod-race-fix-i82875p.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: include/linux/pci_id.h: add amd northbridge defines
-From: Douglas Thompson <dougthompson@xmission.com>
+Subject: drivers/edac: mod race fix i82875p
+From: Jason Uhlenkott <juhlenko@akamai.com>
 
-pci_ids.h needs two of the AMD NB device-ids namely, Addressmap and the Memory
-Controller devices
+If ERRSTS indicates that there's no error then we don't need to bother reading
+the other registers.
 
-This patch adds those to the pci_id.h include file
+In addition to making the common case faster, this actually fixes a small race
+where we don't see an error but we clear the error bits anyway, potentially
+wiping away info on an error that happened in the interim (or where a CE
+arrives between the first and second read of ERRSTS, causing us to falsely
+claim "UE overwrote CE").
 
-Signed-off-by:	Douglas Thompson <dougthompson@xmission.com>
+Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci_ids.h |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/edac/i82875p_edac.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/pci_ids.h~include-linux-pci_id-h-add-amd-northbridge-defines include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~include-linux-pci_id-h-add-amd-northbridge-defines
-+++ a/include/linux/pci_ids.h
-@@ -489,6 +489,8 @@
+diff -puN drivers/edac/i82875p_edac.c~driver-edac-mod-race-fix-i82875p drivers/edac/i82875p_edac.c
+--- a/drivers/edac/i82875p_edac.c~driver-edac-mod-race-fix-i82875p
++++ a/drivers/edac/i82875p_edac.c
+@@ -198,27 +198,28 @@ static void i82875p_get_error_info(struc
+ 	 * overwritten by UE.
+ 	 */
+ 	pci_read_config_word(pdev, I82875P_ERRSTS, &info->errsts);
++
++	if (!(info->errsts & 0x0081))
++		return;
++
+ 	pci_read_config_dword(pdev, I82875P_EAP, &info->eap);
+ 	pci_read_config_byte(pdev, I82875P_DES, &info->des);
+ 	pci_read_config_byte(pdev, I82875P_DERRSYN, &info->derrsyn);
+ 	pci_read_config_word(pdev, I82875P_ERRSTS, &info->errsts2);
  
- #define PCI_VENDOR_ID_AMD		0x1022
- #define PCI_DEVICE_ID_AMD_K8_NB		0x1100
-+#define PCI_DEVICE_ID_AMD_K8_NB_ADDRMAP	0x1101
-+#define PCI_DEVICE_ID_AMD_K8_NB_MEMCTL	0x1102
- #define PCI_DEVICE_ID_AMD_K8_NB_MISC	0x1103
- #define PCI_DEVICE_ID_AMD_LANCE		0x2000
- #define PCI_DEVICE_ID_AMD_LANCE_HOME	0x2001
+-	pci_write_bits16(pdev, I82875P_ERRSTS, 0x0081, 0x0081);
+-
+ 	/*
+ 	 * If the error is the same then we can for both reads then
+ 	 * the first set of reads is valid.  If there is a change then
+ 	 * there is a CE no info and the second set of reads is valid
+ 	 * and should be UE info.
+ 	 */
+-	if (!(info->errsts2 & 0x0081))
+-		return;
+-
+ 	if ((info->errsts ^ info->errsts2) & 0x0081) {
+ 		pci_read_config_dword(pdev, I82875P_EAP, &info->eap);
+ 		pci_read_config_byte(pdev, I82875P_DES, &info->des);
+ 		pci_read_config_byte(pdev, I82875P_DERRSYN, &info->derrsyn);
+ 	}
++
++	pci_write_bits16(pdev, I82875P_ERRSTS, 0x0081, 0x0081);
+ }
+ 
+ static int i82875p_process_error_info(struct mem_ctl_info *mci,
+@@ -229,7 +230,7 @@ static int i82875p_process_error_info(st
+ 
+ 	multi_chan = mci->csrows[0].nr_channels - 1;
+ 
+-	if (!(info->errsts2 & 0x0081))
++	if (!(info->errsts & 0x0081))
+ 		return 0;
+ 
+ 	if (!handle_errors)
 _
 
-Patches currently in -mm which might be from dougthompson@xmission.com are
+Patches currently in -mm which might be from juhlenko@akamai.com are
 
-drivers-edac-add-edac_mc_find-api.patch
-drivers-edac-add-rddr2-memory-types.patch
-drivers-edac-split-out-functions-to-unique-files.patch
-drivers-edac-add-edac_device-class.patch
-drivers-edac-mc-sysfs-add-missing-mem-types.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
-drivers-edac-coreh-fix-scrubdefs.patch
-drivers-edac-new-i82443bxgz-mc-driver.patch
-drivers-edac-add-new-nmi-rescan.patch
-drivers-edac-mod-use-edac_coreh.patch
-drivers-edac-add-dev_name-getter-function.patch
 drivers-edac-new-inte-30x0-mc-driver.patch
-drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
-drivers-edac-updated-pci-monitoring.patch
-drivers-edac-mod-assert_error-check.patch
-drivers-edac-core-lindent-cleanup.patch
-drivers-edac-edac_device-sysfs-cleanup.patch
-drivers-edac-cleanup-workq-ifdefs.patch
-drivers-edac-lindent-amd76x.patch
-drivers-edac-lindent-i5000.patch
-drivers-edac-lindent-e7xxx.patch
-drivers-edac-lindent-i3000.patch
-drivers-edac-lindent-i82860.patch
-drivers-edac-lindent-i82875p.patch
-drivers-edac-lindent-e752x.patch
-drivers-edac-lindent-i82443bxgx.patch
-drivers-edac-lindent-r82600.patch
-drivers-edac-drivers-to-use-new-pci-operation.patch
-drivers-edac-add-device-sysfs-attributes.patch
-drivers-edac-device-output-clenaup.patch
-drivers-edac-add-info-kconfig.patch
-drivers-edac-update-maintainers-files-for-edac.patch
-drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
-driver-edac-add-mips-and-ppc-visibility.patch
 driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
-driver-edac-i5000-define-typo.patch
-driver-edac-remove-null-from-statics.patch
