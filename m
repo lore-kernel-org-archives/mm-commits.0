@@ -1,59 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - ffb-the-pseudo_palette-is-only-16-elements-long.patch removed from -mm tree
-Date: Fri, 08 Jun 2007 10:35:50 -0700
-Message-ID: <200706081735.l58HZoLA006397@imap1.linux-foundation.org>
+Subject: - sunxvr500fb-fix-pseudo_palette-array-size.patch removed from -mm tree
+Date: Fri, 08 Jun 2007 10:35:54 -0700
+Message-ID: <200706081735.l58HZsrR006408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933432AbXFHRlX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 13:41:23 -0400
+	by vger.kernel.org with ESMTP id S1750699AbXFHRli (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 13:41:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ffb: the pseudo_palette is only 16 elements long
+     sunxvr500fb: fix pseudo_palette array size
 has been removed from the -mm tree.  Its filename was
-     ffb-the-pseudo_palette-is-only-16-elements-long.patch
+     sunxvr500fb-fix-pseudo_palette-array-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ffb: the pseudo_palette is only 16 elements long
+Subject: sunxvr500fb: fix pseudo_palette array size
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The pseudo_palette is only 16 elements long.
+- the pseudo_palette is only 16 elements long.
+- the pseudo_palette has only 16 elements. Do not write if regno (the array
+  index) is more than 15.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ffb.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/sunxvr500.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/ffb.c~ffb-the-pseudo_palette-is-only-16-elements-long drivers/video/ffb.c
---- a/drivers/video/ffb.c~ffb-the-pseudo_palette-is-only-16-elements-long
-+++ a/drivers/video/ffb.c
-@@ -656,7 +656,7 @@ static int ffb_setcolreg(unsigned regno,
- {
- 	u32 value;
+diff -puN drivers/video/sunxvr500.c~sunxvr500fb-fix-pseudo_palette-array-size drivers/video/sunxvr500.c
+--- a/drivers/video/sunxvr500.c~sunxvr500fb-fix-pseudo_palette-array-size
++++ a/drivers/video/sunxvr500.c
+@@ -50,7 +50,7 @@ struct e3d_info {
+ 	u32			fb8_0_off;
+ 	u32			fb8_1_off;
  
--	if (regno >= 256)
-+	if (regno >= 16)
- 		return 1;
- 
- 	red >>= 8;
-@@ -903,7 +903,7 @@ ffb_init_fix(struct fb_info *info)
- struct all_info {
- 	struct fb_info info;
- 	struct ffb_par par;
--	u32 pseudo_palette[256];
-+	u32 pseudo_palette[16];
+-	u32			pseudo_palette[256];
++	u32			pseudo_palette[16];
  };
  
- static int ffb_init_one(struct of_device *op)
+ static int __devinit e3d_get_props(struct e3d_info *ep)
+@@ -126,7 +126,9 @@ static int e3d_setcolreg(unsigned regno,
+ 	blue_8 = blue >> 8;
+ 
+ 	value = (blue_8 << 24) | (green_8 << 16) | (red_8 << 8);
+-	((u32 *)info->pseudo_palette)[regno] = value;
++
++	if (info->fix.visual == FB_VISUAL_TRUECOLOR && regno < 16)
++		((u32 *)info->pseudo_palette)[regno] = value;
+ 
+ 
+ 	red_10 = red >> 6;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
