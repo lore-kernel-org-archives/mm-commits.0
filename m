@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dont-optimise-away-baud-rate-changes-when-bother-is-used.patch added to -mm tree
-Date: Fri, 08 Jun 2007 11:18:44 -0700
-Message-ID: <200706081818.l58IIjFb007634@imap1.linux-foundation.org>
+Subject: + powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch added to -mm tree
+Date: Fri, 08 Jun 2007 11:19:44 -0700
+Message-ID: <200706081819.l58IJi29007656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57042 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968736AbXFHSTK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:19:10 -0400
+	by vger.kernel.org with ESMTP id S968901AbXFHST4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:19:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, alan@redhat.com, rmk@arm.linux.org.uk
+Cc: dwmw2@infradead.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     serial: don't optimise away baud rate changes when BOTHER is used
+     PowerPC: Enable arbitary speed tty ioctls and split input/output speed
 has been added to the -mm tree.  Its filename is
-     dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+     powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: don't optimise away baud rate changes when BOTHER is used
+Subject: PowerPC: Enable arbitary speed tty ioctls and split input/output speed
 From: David Woodhouse <dwmw2@infradead.org>
 
-The uart_set_termios() function will bail out early without bothering to
-touch the hardware, if it decides that nothing "relevant" has changed. 
-Unfortunately, its idea of "relevant" doesn't include c_[io]speed.  So if
-the baud rate bits are BOTHER and you just change the speed, the change
-gets optimised away.
-
-This patch makes it ignore the old Bfoo bits in c_cflag and just check
-whether c_ispeed and c_ospeed have changed.  Those integers are always set
-appropriately for us by set_termios().
+Adding the defines/macros activates the existing code in the tty layer and
+allows this platform to use the arbitary speed ioctl setting layer
 
 Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ include/asm-powerpc/termbits.h |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN drivers/serial/serial_core.c~dont-optimise-away-baud-rate-changes-when-bother-is-used drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~dont-optimise-away-baud-rate-changes-when-bother-is-used
-+++ a/drivers/serial/serial_core.c
-@@ -1146,11 +1146,19 @@ static void uart_set_termios(struct tty_
+diff -puN include/asm-powerpc/termbits.h~powerpc-enable-arbitary-speed-tty-ioctls-and-split include/asm-powerpc/termbits.h
+--- a/include/asm-powerpc/termbits.h~powerpc-enable-arbitary-speed-tty-ioctls-and-split
++++ a/include/asm-powerpc/termbits.h
+@@ -152,6 +152,10 @@ struct ktermios {
+ #define B3000000  00034
+ #define B3500000  00035
+ #define B4000000  00036
++#define   BOTHER  00037
++
++#define CIBAUD	077600000
++#define IBSHIFT	16		/* Shift from CBAUD to CIBAUD */
  
- 	/*
- 	 * These are the bits that are used to setup various
--	 * flags in the low level driver.
--	 */
-+	 * flags in the low level driver. We can ignore the Bfoo
-+	 * bits in c_cflag; c_[io]speed will always be set
-+	 * appropriately by set_termios() in tty_ioctl.c
-+	 */
-+#ifdef CIBAUD
-+#define RELEVANT_CFLAG(cflag)	((cflag) & ~(CIBAUD|CBAUD)
-+#else
-+#define RELEVANT_CFLAG(cflag)	((cflag) & ~(CIBAUD|CBAUD)
-+#endif
- #define RELEVANT_IFLAG(iflag)	((iflag) & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
--
- 	if ((cflag ^ old_termios->c_cflag) == 0 &&
-+	    tty->termios->c_ospeed == old_termios->c_ospeed &&
-+	    tty->termios->c_ispeed == old_termios->c_ispeed &&
- 	    RELEVANT_IFLAG(tty->termios->c_iflag ^ old_termios->c_iflag) == 0)
- 		return;
- 
+ #define CSIZE	00001400
+ #define   CS5	00000000
 _
 
 Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
+powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
 use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
 git-ubi.patch
