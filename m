@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-driver-for-at32ap700x-devices-fix-4.patch added to -mm tree
-Date: Fri, 08 Jun 2007 11:03:01 -0700
-Message-ID: <200706081803.l58I31Bs007148@imap1.linux-foundation.org>
+Subject: + acpi-fix-oops-in-acpi_processor_throttling_seq_show.patch added to -mm tree
+Date: Fri, 08 Jun 2007 11:12:20 -0700
+Message-ID: <200706081812.l58ICKMm007400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57042 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35101 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969626AbXFHSDP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:03:15 -0400
+	by vger.kernel.org with ESMTP id S1757513AbXFHSMm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 14:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hcegtvedt@atmel.com, hskinnemoen@atmel.com, wim@iguana.be
+Cc: luming.yu@gmail.com, lenb@kernel.org
 
 
 The patch titled
-     at32ap700x-wdt: add iounmap if probe function fails
+     acpi: fix oops in acpi_processor_throttling_seq_show()
 has been added to the -mm tree.  Its filename is
-     watchdog-driver-for-at32ap700x-devices-fix-4.patch
+     acpi-fix-oops-in-acpi_processor_throttling_seq_show.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: at32ap700x-wdt: add iounmap if probe function fails
-From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Subject: acpi: fix oops in acpi_processor_throttling_seq_show()
+From: "Luming Yu" <luming.yu@gmail.com>
 
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/at32ap700x_wdt.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_throttling.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-4 drivers/char/watchdog/at32ap700x_wdt.c
---- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-4
-+++ a/drivers/char/watchdog/at32ap700x_wdt.c
-@@ -223,6 +223,11 @@ static int __init at32_wdt_probe(struct 
- 	}
+diff -puN drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show
++++ a/drivers/acpi/processor_throttling.c
+@@ -656,18 +656,20 @@ static int acpi_processor_throttling_seq
+ 		   pr->throttling.state_count - 1);
  
- 	wdt->regs = ioremap(regs->start, regs->end - regs->start + 1);
-+	if (!wdt->regs) {
-+		ret = -ENOMEM;
-+		dev_dbg(&pdev->dev, "could not map I/O memory\n");
-+		goto err_free;
+ 	seq_puts(seq, "states:\n");
+-	if (acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
++	if (pr->throttling.acpi_processor_get_throttling ==
++			acpi_processor_get_throttling_fadt) {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (pr->throttling.states[i].performance ? pr->
+ 				    throttling.states[i].performance / 10 : 0));
+-	else
++	} else {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (int)pr->throttling.states_tss[i].
+ 				   freqpercentage);
 +	}
- 	wdt->users = 0;
- 	wdt->miscdev.minor = WATCHDOG_MINOR;
- 	wdt->miscdev.name = "watchdog";
-@@ -238,7 +243,7 @@ static int __init at32_wdt_probe(struct 
- 	ret = misc_register(&wdt->miscdev);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "failed to register wdt miscdev\n");
--		goto err_register;
-+		goto err_iounmap;
- 	}
  
- 	platform_set_drvdata(pdev, wdt);
-@@ -247,7 +252,9 @@ static int __init at32_wdt_probe(struct 
- 
+       end:
  	return 0;
- 
--err_register:
-+err_iounmap:
-+	iounmap(wdt->regs);
-+err_free:
- 	kfree(wdt);
- 	wdt = NULL;
- 	return ret;
 _
 
-Patches currently in -mm which might be from hcegtvedt@atmel.com are
+Patches currently in -mm which might be from luming.yu@gmail.com are
 
-git-avr32.patch
-watchdog-driver-for-at32ap700x-devices.patch
-watchdog-driver-for-at32ap700x-devices-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix-2.patch
-watchdog-driver-for-at32ap700x-devices-fix-3.patch
-watchdog-driver-for-at32ap700x-devices-fix-4.patch
+git-acpi.patch
+acpi-fix-oops-in-acpi_processor_throttling_seq_show.patch
