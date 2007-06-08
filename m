@@ -1,263 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: + i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch added to -mm tree
-Date: Thu, 07 Jun 2007 17:20:58 -0700
-Message-ID: <200706080020.l580KxcA013406@imap1.linux-foundation.org>
+Subject: - pi-futex-fixes.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 17:27:03 -0700
+Message-ID: <200706080027.l580R3Oo013559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45607 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966614AbXFHAVT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:21:19 -0400
+	by vger.kernel.org with ESMTP id S933204AbXFHA2U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:28:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jesse.barnes@intel.com, ak@suse.de, jpiszcz@lucidpixels.com
+To: kuznet@ms2.inr.ac.ru, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386/x86_64: trim memory not covered by WB MTRRs
-has been added to the -mm tree.  Its filename is
-     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch
+     pi-futex fixes
+has been removed from the -mm tree.  Its filename was
+     pi-futex-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: i386/x86_64: trim memory not covered by WB MTRRs
-From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: pi-futex fixes
+From: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
 
-On some machines, buggy BIOSes don't properly setup WB MTRRs to cover all
-available RAM, meaning the last few megs (or even gigs) of memory will be
-marked uncached.  Since Linux tends to allocate from high memory addresses
-first, this causes the machine to be unusably slow as soon as the kernel
-starts really using memory (i.e.  right around init time).
+1. New entries can be added to tsk->pi_state_list after task completed
+   exit_pi_state_list(). The result is memory leakage and deadlocks.
 
-This patch works around the problem by scanning the MTRRs at boot and
-figuring out whether the current end_pfn value (setup by early e820 code)
-goes beyond the highest WB MTRR range, and if so, trimming it to match.  A
-fairly obnoxious KERN_WARNING is printed too, letting the user know that
-not all of their memory is available due to a likely BIOS bug.
+2. handle_mm_fault() is called under spinlock. The result is obvious.
 
-Something similar could be done on i386 if needed, but the boot ordering
-would be slightly different, since the MTRR code on i386 depends on the
-boot_cpu_data structure being setup.
+3. results in self-inflicted deadlock inside glibc.
+   Sometimes futex_lock_pi returns -ESRCH, when it is not expected
+   and glibc enters to for(;;) sleep() to simulate deadlock. This problem
+   is quite obvious and I think the patch is right. Though it looks like
+   each "if" in futex_lock_pi() got some stupid special case "else if". :-)
 
-Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
-Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
-Cc: Andi Kleen <ak@suse.de>
+4. sometimes futex_lock_pi() returns -EDEADLK,
+   when nobody has the lock. The reason is also obvious (see comment
+   in the patch), but correct fix is far beyond my comprehension.
+   I guess someone already saw this, the chunk:
+
+                        if (rt_mutex_trylock(&q.pi_state->pi_mutex))
+                                ret = 0;
+
+   is obviously from the same opera. But it does not work, because the
+   rtmutex is really taken at this point: wake_futex_pi() of previous
+   owner reassigned it to us. My fix works. But it looks very stupid.
+   I would think about removal of shift of ownership in wake_futex_pi()
+   and making all the work in context of process taking lock.
+
+(akpm: this doesn't vaguely apply to 2.6.21, but 2.6.21 need fixing!)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/generic.c |    8 ---
- arch/i386/kernel/cpu/mtrr/if.c      |    2 
- arch/i386/kernel/cpu/mtrr/main.c    |   53 +++++++++++++++++++-------
- arch/i386/kernel/cpu/mtrr/mtrr.h    |    1 
- arch/x86_64/kernel/bugs.c           |    1 
- arch/x86_64/kernel/setup.c          |    4 +
- include/asm-x86_64/mtrr.h           |    1 
- 7 files changed, 47 insertions(+), 23 deletions(-)
+ kernel/futex.c |   73 ++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 60 insertions(+), 13 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/generic.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/generic.c
---- a/arch/i386/kernel/cpu/mtrr/generic.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/generic.c
-@@ -13,7 +13,7 @@
- #include "mtrr.h"
- 
- struct mtrr_state {
--	struct mtrr_var_range *var_ranges;
-+	struct mtrr_var_range var_ranges[NUM_VAR_RANGES];
- 	mtrr_type fixed_ranges[NUM_FIXED_RANGES];
- 	unsigned char enabled;
- 	unsigned char have_fixed;
-@@ -87,12 +87,6 @@ void __init get_mtrr_state(void)
- 	if (!num_var_ranges)
- 		return;
- 
--	if (!mtrr_state.var_ranges) {
--		mtrr_state.var_ranges = kmalloc(num_var_ranges * sizeof (struct mtrr_var_range), 
--						GFP_KERNEL);
--		if (!mtrr_state.var_ranges)
--			return;
--	} 
- 	vrs = mtrr_state.var_ranges;
- 
- 	rdmsr(MTRRcap_MSR, lo, dummy);
-diff -puN arch/i386/kernel/cpu/mtrr/if.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/if.c
---- a/arch/i386/kernel/cpu/mtrr/if.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/if.c
-@@ -12,7 +12,7 @@
- #include "mtrr.h"
- 
- /* RED-PEN: this is accessed without any locking */
--extern unsigned int *usage_table;
-+extern unsigned int usage_table[];
- 
- 
- #define FILE_FCOUNT(f) (((struct seq_file *)((f)->private_data))->private)
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -38,8 +38,8 @@
- #include <linux/cpu.h>
- #include <linux/mutex.h>
- 
-+#include <asm/e820.h>
- #include <asm/mtrr.h>
--
- #include <asm/uaccess.h>
- #include <asm/processor.h>
- #include <asm/msr.h>
-@@ -47,7 +47,7 @@
- 
- u32 num_var_ranges = 0;
- 
--unsigned int *usage_table;
-+unsigned int usage_table[NUM_VAR_RANGES];
- static DEFINE_MUTEX(mtrr_mutex);
- 
- u64 size_or_mask, size_and_mask;
-@@ -126,11 +126,6 @@ static void __init init_table(void)
+diff -puN kernel/futex.c~pi-futex-fixes kernel/futex.c
+--- a/kernel/futex.c~pi-futex-fixes
++++ a/kernel/futex.c
+@@ -430,10 +430,6 @@ static struct task_struct * futex_find_g
+ 		p = NULL;
+ 		goto out_unlock;
  	}
- 
- 	max = num_var_ranges;
--	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
--	    == NULL) {
--		printk(KERN_ERR "mtrr: could not allocate\n");
--		return;
+-	if (p->exit_state != 0) {
+-		p = NULL;
+-		goto out_unlock;
 -	}
- 	for (i = 0; i < max; i++)
- 		usage_table[i] = 1;
- }
-@@ -594,16 +589,11 @@ struct mtrr_value {
- 	unsigned long	lsize;
- };
+ 	get_task_struct(p);
+ out_unlock:
+ 	rcu_read_unlock();
+@@ -540,6 +536,19 @@ lookup_pi_state(u32 uval, struct futex_h
+ 	if (!p)
+ 		return -ESRCH;
  
--static struct mtrr_value * mtrr_state;
-+static struct mtrr_value mtrr_state[NUM_VAR_RANGES];
++	/*
++	 * Task state transitions are protected only by tasklist_lock
++	 * and by nothing else. Better solution would be
++	 * to use ->pi_lock. But this should be done in do_exit() as well.
++	 * So, I use tasklist_lock for now.
++	 */
++	read_lock(&tasklist_lock);
++	if (p->exit_state) {
++		read_unlock(&tasklist_lock);
++		put_task_struct(p);
++		return -ESRCH;
++	}
++
+ 	pi_state = alloc_pi_state();
  
- static int mtrr_save(struct sys_device * sysdev, pm_message_t state)
- {
- 	int i;
--	int size = num_var_ranges * sizeof(struct mtrr_value);
--
--	mtrr_state = kzalloc(size,GFP_ATOMIC);
--	if (!mtrr_state)
--		return -ENOMEM;
+ 	/*
+@@ -557,6 +566,8 @@ lookup_pi_state(u32 uval, struct futex_h
+ 	pi_state->owner = p;
+ 	spin_unlock_irq(&p->pi_lock);
  
- 	for (i = 0; i < num_var_ranges; i++) {
- 		mtrr_if->get(i,
-@@ -625,7 +615,6 @@ static int mtrr_restore(struct sys_devic
- 				 mtrr_state[i].lsize,
- 				 mtrr_state[i].ltype);
++	read_unlock(&tasklist_lock);
++
+ 	put_task_struct(p);
+ 
+ 	*ps = pi_state;
+@@ -1174,7 +1185,7 @@ static int futex_requeue(u32 __user *uad
+ #ifdef CONFIG_DEBUG_PI_LIST
+ 				this->list.plist.lock = &hb2->lock;
+ #endif
+- 			}
++			}
+ 			this->key = key2;
+ 			get_futex_key_refs(&key2);
+ 			drop_count++;
+@@ -1371,7 +1382,7 @@ static int fixup_pi_state_owner(u32 __us
+ 		curval = futex_atomic_cmpxchg_inatomic(uaddr,
+ 						       uval, newval);
+ 		if (curval == -EFAULT)
+- 			ret = -EFAULT;
++			ret = -EFAULT;
+ 		if (curval == uval)
+ 			break;
+ 		uval = curval;
+@@ -1709,6 +1720,7 @@ static int futex_lock_pi(u32 __user *uad
+ 	if (unlikely(ret != 0))
+ 		goto out_release_sem;
+ 
++ retry_unlocked:
+ 	hb = queue_lock(&q, -1, NULL);
+ 
+  retry_locked:
+@@ -1813,6 +1825,19 @@ static int futex_lock_pi(u32 __user *uad
+ 			if (unlikely(curval != uval))
+ 				goto retry_locked;
+ 			ret = 0;
++		} else if (ret == -ESRCH) {
++			/*
++			 * Process could exit right now, so that robust
++			 * list was processed after we got uval. Retry:
++			 */
++			pagefault_disable();
++			curval = futex_atomic_cmpxchg_inatomic(uaddr,
++							       uval, uval);
++			pagefault_enable();
++			if (unlikely(curval == -EFAULT))
++				goto uaddr_faulted;
++			if (unlikely(curval != uval))
++				goto retry_locked;
+ 		}
+ 		goto out_unlock_release_sem;
  	}
--	kfree(mtrr_state);
- 	return 0;
- }
- 
-@@ -636,6 +625,42 @@ static struct sysdev_driver mtrr_sysdev_
- 	.resume		= mtrr_restore,
- };
- 
-+/**
-+ * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
-+ *
-+ * Some buggy BIOSes don't setup the MTRRs properly for systems with certain
-+ * memory configurations.  This routine checks to make sure the MTRRs having
-+ * a write back type cover all of the memory the kernel is intending to use.
-+ * If not, it'll trim any memory off the end by adjusting end_pfn, removing
-+ * it from the kernel's allocation pools, warning the user with an obnoxious
-+ * message.
-+ */
-+void __init mtrr_trim_uncached_memory(void)
-+{
-+	unsigned long i, base, size, highest_addr = 0;
-+	mtrr_type type;
-+
-+	/* Find highest cached pfn */
-+	for (i = 0; i < num_var_ranges; i++) {
-+		mtrr_if->get(i, &base, &size, &type);
-+		if (type != MTRR_TYPE_WRBACK)
-+			continue;
-+		base <<= PAGE_SHIFT;
-+		size <<= PAGE_SHIFT;
-+		if (highest_addr < base + size)
-+			highest_addr = base + size;
-+	}
-+
-+	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
-+		printk(KERN_WARNING "***************\n");
-+		printk(KERN_WARNING "**** WARNING: likely BIOS bug\n");
-+		printk(KERN_WARNING "**** MTRRs don't cover all of "
-+		       "memory, trimmed %ld pages\n", end_pfn -
-+		       (highest_addr >> PAGE_SHIFT));
-+		printk(KERN_WARNING "***************\n");
-+		end_pfn = highest_addr >> PAGE_SHIFT;
-+	}
-+}
- 
- /**
-  * mtrr_bp_init - initialize mtrrs on the boot CPU
-diff -puN arch/i386/kernel/cpu/mtrr/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/mtrr.h
---- a/arch/i386/kernel/cpu/mtrr/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/mtrr.h
-@@ -14,6 +14,7 @@
- #define MTRRphysMask_MSR(reg) (0x200 + 2 * (reg) + 1)
- 
- #define NUM_FIXED_RANGES 88
-+#define NUM_VAR_RANGES 256
- #define MTRRfix64K_00000_MSR 0x250
- #define MTRRfix16K_80000_MSR 0x258
- #define MTRRfix16K_A0000_MSR 0x259
-diff -puN arch/x86_64/kernel/bugs.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/x86_64/kernel/bugs.c
---- a/arch/x86_64/kernel/bugs.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/x86_64/kernel/bugs.c
-@@ -14,7 +14,6 @@
- void __init check_bugs(void)
- {
- 	identify_cpu(&boot_cpu_data);
--	mtrr_bp_init();
- #if !defined(CONFIG_SMP)
- 	printk("CPU: ");
- 	print_cpu_info(&boot_cpu_data);
-diff -puN arch/x86_64/kernel/setup.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/x86_64/kernel/setup.c
-@@ -266,6 +266,10 @@ void __init setup_arch(char **cmdline_p)
- 	 * we are rounding upwards:
+@@ -1861,6 +1886,22 @@ static int futex_lock_pi(u32 __user *uad
+ 		if (ret && q.pi_state->owner == curr) {
+ 			if (rt_mutex_trylock(&q.pi_state->pi_mutex))
+ 				ret = 0;
++			/*
++			 * Holy crap... Now futex lock returns -EDEADLK
++			 * sometimes, because ownership was passed to us while
++			 * unlock of previous owner. Who wrote this?
++			 * Please, fix this correctly. For now:
++			 */
++			if (ret == -EDEADLK) {
++				pagefault_disable();
++				uval = futex_atomic_cmpxchg_inatomic(uaddr,
++								     0, 0);
++				pagefault_enable();
++				if (uval != -EFAULT &&
++				    (uval & FUTEX_TID_MASK) == current->pid) {
++					ret = 0;
++				}
++			}
+ 		}
+ 		/* Unqueue and drop the lock */
+ 		unqueue_me_pi(&q);
+@@ -1887,16 +1928,19 @@ static int futex_lock_pi(u32 __user *uad
+ 	 * non-atomically.  Therefore, if get_user below is not
+ 	 * enough, we need to handle the fault ourselves, while
+ 	 * still holding the mmap_sem.
++	 *
++	 * ... and hb->lock. :-) --ANK
  	 */
- 	end_pfn = e820_end_of_ram();
-+	/* Trim memory not covered by WB MTRRs */
-+	mtrr_bp_init();
-+	mtrr_trim_uncached_memory();
++	queue_unlock(&q, hb);
 +
- 	num_physpages = end_pfn;
+ 	if (attempt++) {
+ 		ret = futex_handle_fault((unsigned long)uaddr, fshared,
+ 					 attempt);
+ 		if (ret)
+-			goto out_unlock_release_sem;
+-		goto retry_locked;
++			goto out_release_sem;
++		goto retry_unlocked;
+ 	}
  
- 	check_efer();
-diff -puN include/asm-x86_64/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs include/asm-x86_64/mtrr.h
---- a/include/asm-x86_64/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/include/asm-x86_64/mtrr.h
-@@ -78,6 +78,7 @@ extern int mtrr_add_page (unsigned long 
- 		     unsigned int type, char increment);
- extern int mtrr_del (int reg, unsigned long base, unsigned long size);
- extern int mtrr_del_page (int reg, unsigned long base, unsigned long size);
-+extern void mtrr_trim_uncached_memory(void);
- #  else
- static __inline__ int mtrr_add (unsigned long base, unsigned long size,
- 				unsigned int type, char increment)
+-	queue_unlock(&q, hb);
+ 	if (fshared)
+ 		up_read(fshared);
+ 
+@@ -1940,9 +1984,9 @@ retry:
+ 		goto out;
+ 
+ 	hb = hash_futex(&key);
++retry_unlocked:
+ 	spin_lock(&hb->lock);
+ 
+-retry_locked:
+ 	/*
+ 	 * To avoid races, try to do the TID -> 0 atomic transition
+ 	 * again. If it succeeds then we can return without waking
+@@ -2005,16 +2049,19 @@ pi_faulted:
+ 	 * non-atomically.  Therefore, if get_user below is not
+ 	 * enough, we need to handle the fault ourselves, while
+ 	 * still holding the mmap_sem.
++	 *
++	 * ... and hb->lock. --ANK
+ 	 */
++	spin_unlock(&hb->lock);
++
+ 	if (attempt++) {
+ 		ret = futex_handle_fault((unsigned long)uaddr, fshared,
+ 					 attempt);
+ 		if (ret)
+-			goto out_unlock;
+-		goto retry_locked;
++			goto out;
++		goto retry_unlocked;
+ 	}
+ 
+-	spin_unlock(&hb->lock);
+ 	if (fshared)
+ 		up_read(fshared);
+ 
 _
 
-Patches currently in -mm which might be from jesse.barnes@intel.com are
+Patches currently in -mm which might be from kuznet@ms2.inr.ac.ru are
 
-remove-pci_dac_dma_-apis.patch
-pci-disable-decode-of-io-memory-during-bar-sizing.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch
-i386-mtrr-clean-up-usage_table.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-vt-add-comment-for-unbind_con_driver.patch
+rt-mutex-fix-stale-return-value.patch
+rt-mutex-fix-chain-walk-early-wakeup-bug.patch
+pi-futex-fix-exit-races-and-locking-problems.patch
+pi-futex-fixes.patch
+futex-tidy-up-the-code.patch
