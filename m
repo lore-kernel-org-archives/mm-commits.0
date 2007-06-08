@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ali5451-warning-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:12:25 -0700
-Message-ID: <200706082316.l58NG1Oq015347@imap1.linux-foundation.org>
+Subject: + ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch added to -mm tree
+Date: Fri, 08 Jun 2007 16:15:56 -0700
+Message-ID: <200706082319.l58NJWkc015404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752988AbXFHXQU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:16:20 -0400
+	by vger.kernel.org with ESMTP id S1753973AbXFHXTl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:19:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     ali5451 warning fix
+     ide_scan_pcibus(): cehck __pci_register_driver return value
 has been added to the -mm tree.  Its filename is
-     ali5451-warning-fix.patch
+     ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ali5451 warning fix
+Subject: ide_scan_pcibus(): cehck __pci_register_driver return value
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/ali5451/ali5451.c: In function 'snd_ali_prepare':
-sound/pci/ali5451/ali5451.c:716: warning: 'R2' may be used uninitialized in this function
+drivers/ide/setup-pci.c: In function 'ide_scan_pcibus':
+drivers/ide/setup-pci.c:879: warning: ignoring return value of '__pci_register_driver', declared with attribute warn_unused_result
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ali5451/ali5451.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/ide/setup-pci.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN sound/pci/ali5451/ali5451.c~ali5451-warning-fix sound/pci/ali5451/ali5451.c
---- a/sound/pci/ali5451/ali5451.c~ali5451-warning-fix
-+++ a/sound/pci/ali5451/ali5451.c
-@@ -731,8 +731,7 @@ static void snd_ali_detect_spdif_rate(st
- 		return;
- 	}
+diff -puN drivers/ide/setup-pci.c~ide_scan_pcibus-cehck-__pci_register_driver-return-value drivers/ide/setup-pci.c
+--- a/drivers/ide/setup-pci.c~ide_scan_pcibus-cehck-__pci_register_driver-return-value
++++ a/drivers/ide/setup-pci.c
+@@ -872,11 +872,15 @@ void __init ide_scan_pcibus (int scan_di
+ 	 *	are post init.
+ 	 */
  
--	count = 0;
--	while (count++ <= 50000) {
-+	for (count = 0; count <= 50000; count++) {
- 		snd_ali_delay(codec, 6);
- 		bval = inb(ALI_REG(codec,ALI_SPDIF_CTRL + 1));
- 		R2 = bval & 0x1F;
+-	list_for_each_safe(l, n, &ide_pci_drivers)
+-	{
++	list_for_each_safe(l, n, &ide_pci_drivers) {
+ 		list_del(l);
+ 		d = list_entry(l, struct pci_driver, node);
+-		__pci_register_driver(d, d->driver.owner, d->driver.mod_name);
++		if (__pci_register_driver(d, d->driver.owner,
++					d->driver.mod_name)) {
++			printk(KERN_ERR "%s: failed to register driver "
++					"for %s\n", __FUNCTION__,
++					 d->driver.mod_name);
++		}
+ 	}
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +71,7 @@ git-acpi.patch
 git-acpi-tickh-needs-hrtimerh.patch
 git-acpi-add-exports.patch
 git-alsa.patch
+ali5451-warning-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
 git-cpufreq-fix.patch
@@ -221,4 +230,4 @@ reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ali5451-warning-fix.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
