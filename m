@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-first-round-of-documentation-updates.patch added to -mm tree
-Date: Thu, 07 Jun 2007 17:49:04 -0700
-Message-ID: <200706080049.l580n4x8014062@imap1.linux-foundation.org>
+Subject: + cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default.patch added to -mm tree
+Date: Thu, 07 Jun 2007 17:49:02 -0700
+Message-ID: <200706080049.l580n2f8014057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53891 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966210AbXFHAtM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:49:12 -0400
+	by vger.kernel.org with ESMTP id S965033AbXFHAtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     cpuidle: first round of documentation updates
+     cpuidle: add rating to the governors and pick the one with highest rating by default
 has been added to the -mm tree.  Its filename is
-     cpuidle-first-round-of-documentation-updates.patch
+     cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,127 +25,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpuidle: first round of documentation updates
+Subject: cpuidle: add rating to the governors and pick the one with highest rating by default
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Documentation changes based on Pavel's feedback.
+Introduce a governor rating scheme to pick the right governor by default.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cpuidle/core.txt     |    2 +-
- Documentation/cpuidle/driver.txt   |   15 ++++++++++-----
- Documentation/cpuidle/governor.txt |   12 ++++++++----
- Documentation/cpuidle/sysfs.txt    |   18 +++++++++++++-----
- 4 files changed, 32 insertions(+), 15 deletions(-)
+ drivers/cpuidle/governor.c         |   33 ++++++++++++++++++++++++---
+ drivers/cpuidle/governors/ladder.c |    1 
+ drivers/cpuidle/governors/menu.c   |    1 
+ include/linux/cpuidle.h            |    1 
+ 4 files changed, 33 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/cpuidle/core.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/core.txt
---- a/Documentation/cpuidle/core.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/core.txt
-@@ -12,6 +12,6 @@ idle policy (governor) from idle mechani
- standardized infrastructure to support independent development of
- governors and drivers.
+diff -puN drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default drivers/cpuidle/governor.c
+--- a/drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
++++ a/drivers/cpuidle/governor.c
+@@ -131,7 +131,8 @@ int cpuidle_register_governor(struct cpu
+ 	if (__cpuidle_find_governor(gov->name) == NULL) {
+ 		ret = 0;
+ 		list_add_tail(&gov->governor_list, &cpuidle_governors);
+-		if (!cpuidle_curr_governor)
++		if (!cpuidle_curr_governor ||
++		    cpuidle_curr_governor->rating < gov->rating)
+ 			cpuidle_switch_governor(gov);
+ 	}
+ 	mutex_unlock(&cpuidle_lock);
+@@ -142,6 +143,29 @@ int cpuidle_register_governor(struct cpu
+ EXPORT_SYMBOL_GPL(cpuidle_register_governor);
  
--cpuidle resides under /drivers/cpuidle.
-+cpuidle resides under drivers/cpuidle.
- 
- 
-diff -puN Documentation/cpuidle/driver.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/driver.txt
---- a/Documentation/cpuidle/driver.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/driver.txt
-@@ -7,16 +7,21 @@
- 
- 
- 
--cpuidle driver supports capability detection for a particular system. The
--init and exit routines will be called for each online CPU, with a percpu
--cpuidle_driver object and driver should fill in cpuidle_states inside
--cpuidle_driver depending on the CPU capability.
-+cpuidle driver hooks into the cpuidle infrastructure and does the
-+architecture/platform dependent part of CPU idle states. Driver
-+provides the platform idle state detection capability and also
-+has mechanisms in place to support actusl entry-exit into a CPU idle state.
+ /**
++ * cpuidle_replace_governor - find a replacement governor
++ * @exclude_rating: the rating that will be skipped while looking for
++ * new governor.
++ */
++struct cpuidle_governor *cpuidle_replace_governor(int exclude_rating)
++{
++	struct cpuidle_governor *gov;
++	struct cpuidle_governor *ret_gov = NULL;
++	unsigned int max_rating = 0;
 +
-+cpuidle driver supports capability detection for a platform using the
-+init and exit routines. They will be called for each online CPU, with a
-+percpu cpuidle_driver object and driver should fill in cpuidle_states
-+inside cpuidle_driver depending on the CPU capability.
- 
- Driver can handle dynamic state changes (like battery<->AC), by calling
- force_redetect interface.
- 
- It is possible to have more than one driver registered at the same time and
--user can switch between drivers using /sysfs interface.
-+user can switch between drivers using /sysfs interface (when enabled).
- 
- Interfaces:
- int cpuidle_register_driver(struct cpuidle_driver *drv);
-diff -puN Documentation/cpuidle/governor.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/governor.txt
---- a/Documentation/cpuidle/governor.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/governor.txt
-@@ -11,12 +11,16 @@
- cpuidle governor is policy routine that decides what idle state to enter at
- any given time. cpuidle core uses different callbacks to governor while
- handling idle entry.
--* select_state callback where governor can determine next idle state to enter
--* prepare_idle callback is called before entering an idle state
--* scan callback is called after a driver forces redetection of the states
-+* select_state() callback where governor can determine next idle state to enter
-+* prepare_idle() callback is called before entering an idle state
-+* scan() callback is called after a driver forces redetection of the states
- 
- More than one governor can be registered at the same time and
--user can switch between drivers using /sysfs interface.
-+user can switch between drivers using /sysfs interface (when supported).
++	list_for_each_entry(gov, &cpuidle_governors, governor_list) {
++		if (gov->rating == exclude_rating)
++			continue;
++		if (gov->rating > max_rating) {
++			max_rating = gov->rating;
++			ret_gov = gov;
++		}
++	}
 +
-+More than one governor part is supported for developers to easily experiment
-+with different governors. By default, most optimal governor based on your
-+kernel configuration and platform will be selected by cpuidle.
- 
- Interfaces:
- int cpuidle_register_governor(struct cpuidle_governor *gov);
-diff -puN Documentation/cpuidle/sysfs.txt~cpuidle-first-round-of-documentation-updates Documentation/cpuidle/sysfs.txt
---- a/Documentation/cpuidle/sysfs.txt~cpuidle-first-round-of-documentation-updates
-+++ a/Documentation/cpuidle/sysfs.txt
-@@ -4,14 +4,22 @@
- 
- 				cpuidle sysfs
- 
--System global cpuidle information are under
-+System global cpuidle related information and tunables are under
- /sys/devices/system/cpu/cpuidle
- 
- The current interfaces in this directory has self-explanatory names:
-+* current_driver_ro
-+* current_governor_ro
++	return ret_gov;
++}
 +
-+With cpuidle_sysfs_switch boot option (meant for developer testing)
-+following objects are visible instead.
- * available_drivers
- * available_governors
- * current_driver
- * current_governor
-+In this case user can switch the driver, governor at run time by writing
-+onto current_driver and current_governor.
-+
++/**
+  * cpuidle_unregister_governor - unregisters a governor
+  * @gov: the governor
+  */
+@@ -151,8 +175,11 @@ void cpuidle_unregister_governor(struct 
+ 		return;
  
- Per logical CPU specific cpuidle information are under
- /sys/devices/system/cpu/cpuX/cpuidle
-@@ -19,9 +27,9 @@ for each online cpu X
+ 	mutex_lock(&cpuidle_lock);
+-	if (gov == cpuidle_curr_governor)
+-		cpuidle_switch_governor(NULL);
++	if (gov == cpuidle_curr_governor) {
++		struct cpuidle_governor *new_gov;
++		new_gov = cpuidle_replace_governor(gov->rating);
++		cpuidle_switch_governor(new_gov);
++	}
+ 	list_del(&gov->governor_list);
+ 	mutex_unlock(&cpuidle_lock);
+ }
+diff -puN drivers/cpuidle/governors/ladder.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -199,6 +199,7 @@ static void ladder_exit_device(struct cp
  
- Under this percpu directory, there is a directory for each idle state supported
- by the driver, which in turn has
--* latency
--* power
--* time
--* usage
-+* latency : Latency to exit out of this idle state (in microseconds)
-+* power : Power consumed while in this idle state (in milliwatts)
-+* time : Total time spent in this idle state (in microseconds)
-+* usage : Number of times this state was entered (count)
+ static struct cpuidle_governor ladder_governor = {
+ 	.name =		"ladder",
++	.rating =	10,
+ 	.init =		ladder_init_device,
+ 	.exit =		ladder_exit_device,
+ 	.scan =		ladder_scan_device,
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
++++ a/drivers/cpuidle/governors/menu.c
+@@ -153,6 +153,7 @@ static void menu_scan_device(struct cpui
  
+ struct cpuidle_governor menu_governor = {
+ 	.name =		"menu",
++	.rating =	20,
+ 	.scan =		menu_scan_device,
+ 	.select =	menu_select,
+ 	.reflect =	menu_reflect,
+diff -puN include/linux/cpuidle.h~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default include/linux/cpuidle.h
+--- a/include/linux/cpuidle.h~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
++++ a/include/linux/cpuidle.h
+@@ -159,6 +159,7 @@ static inline int cpuidle_force_redetect
+ struct cpuidle_governor {
+ 	char			name[CPUIDLE_NAME_LEN];
+ 	struct list_head 	governor_list;
++	unsigned int		rating;
  
+ 	int  (*init)		(struct cpuidle_device *dev);
+ 	void (*exit)		(struct cpuidle_device *dev);
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
