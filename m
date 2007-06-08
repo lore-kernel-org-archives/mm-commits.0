@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rt-mutex-fix-stale-return-value.patch added to -mm tree
-Date: Thu, 07 Jun 2007 17:27:14 -0700
-Message-ID: <200706080027.l580REc9013564@imap1.linux-foundation.org>
+Subject: + rt-mutex-fix-chain-walk-early-wakeup-bug.patch added to -mm tree
+Date: Thu, 07 Jun 2007 17:27:16 -0700
+Message-ID: <200706080027.l580RGDo013567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50039 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51635 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933216AbXFHA3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:29:07 -0400
+	by vger.kernel.org with ESMTP id S933871AbXFHA3I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tglx@linutronix.de, dada1@cosmosbay.com, drepper@redhat.com, kuznet@ms2.inr.
 
 
 The patch titled
-     rt-mutex: fix stale return value
+     rt-mutex: fix chain walk early wakeup bug
 has been added to the -mm tree.  Its filename is
-     rt-mutex-fix-stale-return-value.patch
+     rt-mutex-fix-chain-walk-early-wakeup-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,18 +25,17 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rt-mutex: fix stale return value
+Subject: rt-mutex: fix chain walk early wakeup bug
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Alexey Kuznetsov found some problems in the pi-futex code.
 
-The major problem is a stale return value in rt_mutex_slowlock():
+One of the root causes is:
 
-When the pi chain walk returns -EDEADLK, but the waiter was woken up during
-the phases where the locks were dropped, the rtmutex could be acquired, but
-due to the stale return value -EDEADLK returned to the caller.
+When a wakeup happens, we do not to stop the chain walk so we follow a not
+longer relevant locking chain.
 
-Reset the return value in the retry path.
+Drop out when this happens.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -47,31 +46,32 @@ Cc: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rtmutex.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ kernel/rtmutex.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
 
-diff -puN kernel/rtmutex.c~rt-mutex-fix-stale-return-value kernel/rtmutex.c
---- a/kernel/rtmutex.c~rt-mutex-fix-stale-return-value
+diff -puN kernel/rtmutex.c~rt-mutex-fix-chain-walk-early-wakeup-bug kernel/rtmutex.c
+--- a/kernel/rtmutex.c~rt-mutex-fix-chain-walk-early-wakeup-bug
 +++ a/kernel/rtmutex.c
-@@ -636,9 +636,16 @@ rt_mutex_slowlock(struct rt_mutex *lock,
- 			 * all over without going into schedule to try
- 			 * to get the lock now:
- 			 */
--			if (unlikely(!waiter.task))
-+			if (unlikely(!waiter.task)) {
-+				/*
-+				 * Reset the return value. We might
-+				 * have returned with -EDEADLK and the
-+				 * owner released the lock while we
-+				 * were walking the pi chain.
-+				 */
-+				ret = 0;
- 				continue;
--
-+			}
- 			if (unlikely(ret))
- 				break;
- 		}
+@@ -189,6 +189,19 @@ int rt_mutex_adjust_prio_chain(struct ta
+ 	if (!waiter || !waiter->task)
+ 		goto out_unlock_pi;
+ 
++	/*
++	 * Check the orig_waiter state. After we dropped the locks,
++	 * the previous owner of the lock might have released the lock
++	 * and made us the pending owner:
++	 */
++	if (orig_waiter && !orig_waiter->task)
++		goto out_unlock_pi;
++
++	/*
++	 * Drop out, when the task has no waiters. Note,
++	 * top_waiter can be NULL, when we are in the deboosting
++	 * mode!
++	 */
+ 	if (top_waiter && (!task_has_pi_waiters(task) ||
+ 			   top_waiter != task_top_pi_waiter(task)))
+ 		goto out_unlock_pi;
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
