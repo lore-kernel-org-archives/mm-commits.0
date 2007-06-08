@@ -1,375 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: + usb-add-support-for-tru-install-c-and-new-vid-pids.patch added to -mm tree
-Date: Thu, 07 Jun 2007 17:54:01 -0700
-Message-ID: <200706080054.l580s11Y014156@imap1.linux-foundation.org>
+Subject: - numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch removed from -mm tree
+Date: Thu, 07 Jun 2007 17:58:19 -0700
+Message-ID: <200706080058.l580wJoE014230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759797AbXFHAyN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:54:13 -0400
+	by vger.kernel.org with ESMTP id S1759797AbXFHA6h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2007 20:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: linux@sierrawireless.com, greg@kroah.com
+To: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, hugh@veritas.com, lee.schermerhorn@hp.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: add support for TRU-install (C) and new VID/PIDs to Sierra Wireless driver
-has been added to the -mm tree.  Its filename is
-     usb-add-support-for-tru-install-c-and-new-vid-pids.patch
+     numa-mempolicy-allow-tunable-policy-for-system-init-fix
+has been removed from the -mm tree.  Its filename was
+     numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into numa-mempolicy-allow-tunable-policy-for-system-init.patch
 
 ------------------------------------------------------
-Subject: USB: add support for TRU-install (C) and new VID/PIDs to Sierra Wireless driver
-From: Kevin Lloyd <linux@sierrawireless.com>
+Subject: numa-mempolicy-allow-tunable-policy-for-system-init-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for the new TRU-install (C) feature (without this support new
-devices will not work), and add new UMTS device VID/PIDs.
+Propagate the fix from mount-t-tmpfs-o-mpol=-check-nodes-online.patch into
+numa-mempolicy-allow-tunable-policy-for-system-init.patch
 
-Signed-off-by: Kevin Lloyd <linux@sierrawireless.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/sierra.c |  206 +++++++++++++++++-----------------
- drivers/usb/serial/sierra.h |   25 ++++
- 2 files changed, 131 insertions(+), 100 deletions(-)
+ mm/mempolicy.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/usb/serial/sierra.c~usb-add-support-for-tru-install-c-and-new-vid-pids drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~usb-add-support-for-tru-install-c-and-new-vid-pids
-+++ a/drivers/usb/serial/sierra.c
-@@ -1,6 +1,8 @@
- /*
-   USB Driver for Sierra Wireless
- 
-+  Targeted for 2.6.22 kernel
-+
-   Copyright (C) 2006  Kevin Lloyd <linux@sierrawireless.com>
- 
-   IMPORTANT DISCLAIMER: This driver is not commercially supported by
-@@ -15,9 +17,9 @@
- 
- */
- 
--#define DRIVER_VERSION "v.1.0.6"
-+#define DRIVER_VERSION "v.1.2.3"
- #define DRIVER_AUTHOR "Kevin Lloyd <linux@sierrawireless.com>"
--#define DRIVER_DESC "USB Driver for Sierra Wireless USB modems"
-+#define DRIVER_DESC "USB Driver for Sierra Wireless modems"
- 
- #include <linux/kernel.h>
- #include <linux/jiffies.h>
-@@ -28,66 +30,53 @@
- #include <linux/usb.h>
- #include <linux/usb/serial.h>
- 
-+#include "sierra.h"
-+
-+static int debug;
- 
- static struct usb_device_id id_table [] = {
- 	{ USB_DEVICE(0x1199, 0x0017) },	/* Sierra Wireless EM5625 */
- 	{ USB_DEVICE(0x1199, 0x0018) },	/* Sierra Wireless MC5720 */
-+	{ USB_DEVICE(0x0f30, 0x1b1d) },	/* Sierra Wireless MC5720 */
- 	{ USB_DEVICE(0x1199, 0x0218) },	/* Sierra Wireless MC5720 */
- 	{ USB_DEVICE(0x1199, 0x0020) },	/* Sierra Wireless MC5725 */
- 	{ USB_DEVICE(0x1199, 0x0019) },	/* Sierra Wireless AirCard 595 */
--	{ USB_DEVICE(0x1199, 0x0120) },	/* Sierra Wireless AirCard 595U */
- 	{ USB_DEVICE(0x1199, 0x0021) },	/* Sierra Wireless AirCard 597E */
-+	{ USB_DEVICE(0x1199, 0x0120) },	/* Sierra Wireless USB Dongle 595U*/
-+
- 	{ USB_DEVICE(0x1199, 0x6802) },	/* Sierra Wireless MC8755 */
- 	{ USB_DEVICE(0x1199, 0x6804) },	/* Sierra Wireless MC8755 */
- 	{ USB_DEVICE(0x1199, 0x6803) },	/* Sierra Wireless MC8765 */
--	{ USB_DEVICE(0x1199, 0x6812) },	/* Sierra Wireless MC8775 */
-+	{ USB_DEVICE(0x1199, 0x6812) },	/* Sierra Wireless MC8775 & AC 875U */
- 	{ USB_DEVICE(0x1199, 0x6820) },	/* Sierra Wireless AirCard 875 */
-+	{ USB_DEVICE(0x1199, 0x6832) },	/* Sierra Wireless MC8780*/
-+	{ USB_DEVICE(0x1199, 0x6833) },	/* Sierra Wireless MC8781*/
-+	{ USB_DEVICE(0x1199, 0x6850) },	/* Sierra Wireless AirCard 880 */
-+	{ USB_DEVICE(0x1199, 0x6851) },	/* Sierra Wireless AirCard 881 */
-+	{ USB_DEVICE(0x1199, 0x6852) },	/* Sierra Wireless AirCard 880 E */
-+	{ USB_DEVICE(0x1199, 0x6853) },	/* Sierra Wireless AirCard 881 E */
- 
--	{ USB_DEVICE(0x1199, 0x0112) }, /* Sierra Wireless AirCard 580 */
--	{ USB_DEVICE(0x0F3D, 0x0112) }, /* AirPrime/Sierra PC 5220 */
--	{ }
--};
--MODULE_DEVICE_TABLE(usb, id_table);
-+	{ USB_DEVICE(0x1199, 0x0112), .driver_info = DEVICE_1_PORT }, /* Sierra Wireless AirCard 580 */
-+	{ USB_DEVICE(0x0F3D, 0x0112), .driver_info = DEVICE_1_PORT }, /* Airprime/Sierra PC 5220 */
- 
--static struct usb_device_id id_table_1port [] = {
--	{ USB_DEVICE(0x1199, 0x0112) }, /* Sierra Wireless AirCard 580 */
--	{ USB_DEVICE(0x0F3D, 0x0112) }, /* AirPrime/Sierra PC 5220 */
--	{ }
--};
- 
--static struct usb_device_id id_table_3port [] = {
--	{ USB_DEVICE(0x1199, 0x0017) },	/* Sierra Wireless EM5625 */
--	{ USB_DEVICE(0x1199, 0x0018) },	/* Sierra Wireless MC5720 */
--	{ USB_DEVICE(0x1199, 0x0218) },	/* Sierra Wireless MC5720 */
--	{ USB_DEVICE(0x1199, 0x0020) },	/* Sierra Wireless MC5725 */
--	{ USB_DEVICE(0x1199, 0x0019) },	/* Sierra Wireless AirCard 595 */
--	{ USB_DEVICE(0x1199, 0x0120) },	/* Sierra Wireless AirCard 595U */
--	{ USB_DEVICE(0x1199, 0x0021) },	/* Sierra Wireless AirCard 597E */
--	{ USB_DEVICE(0x1199, 0x6802) },	/* Sierra Wireless MC8755 */
--	{ USB_DEVICE(0x1199, 0x6804) },	/* Sierra Wireless MC8755 */
--	{ USB_DEVICE(0x1199, 0x6803) },	/* Sierra Wireless MC8765 */
--	{ USB_DEVICE(0x1199, 0x6812) },	/* Sierra Wireless MC8775 */
--	{ USB_DEVICE(0x1199, 0x6820) },	/* Sierra Wireless AirCard 875 */
-+	{ USB_DEVICE(0x1199, 0x0FFF), .driver_info = DEVICE_INSTALLER},
- 	{ }
- };
-+MODULE_DEVICE_TABLE(usb, id_table);
-+
-+int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id);
-+int sierra_set_power_state(struct usb_device *udev, unsigned long swiState);
-+int sierra_set_ms_mode(struct usb_device *udev, SWIMS_SET_MODE_VALUE eSocMode);
- 
- static struct usb_driver sierra_driver = {
- 	.name       = "sierra",
--	.probe      = usb_serial_probe,
-+	.probe      = sierra_probe,
- 	.disconnect = usb_serial_disconnect,
- 	.id_table   = id_table,
- 	.no_dynamic_id = 	1,
- };
- 
--
--static int debug;
--
--/* per port private data */
--#define N_IN_URB	4
--#define N_OUT_URB	4
--#define IN_BUFLEN	4096
--#define OUT_BUFLEN	128
--
- struct sierra_port_private {
- 	/* Input endpoints and buffer for this port */
- 	struct urb *in_urbs[N_IN_URB];
-@@ -399,8 +388,6 @@ static int sierra_open(struct usb_serial
- 	struct usb_serial *serial = port->serial;
- 	int i, err;
- 	struct urb *urb;
--	int result;
--	__u16 set_mode_dzero = 0x0000;
- 
- 	portdata = usb_get_serial_port_data(port);
- 
-@@ -447,12 +434,6 @@ static int sierra_open(struct usb_serial
- 
- 	port->tty->low_latency = 1;
- 
--	/* set mode to D0 */
--	result = usb_control_msg(serial->dev,
--				 usb_rcvctrlpipe(serial->dev, 0),
--				 0x00, 0x40, set_mode_dzero, 0, NULL,
--				 0, USB_CTRL_SET_TIMEOUT);
--
- 	sierra_send_setup(port);
- 
- 	return (0);
-@@ -623,47 +604,18 @@ static void sierra_shutdown(struct usb_s
+diff -puN mm/mempolicy.c~numa-mempolicy-allow-tunable-policy-for-system-init-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~numa-mempolicy-allow-tunable-policy-for-system-init-fix
++++ a/mm/mempolicy.c
+@@ -1604,6 +1604,8 @@ int mpol_parse_options(char *value, int 
+ 		*nodelist++ = '\0';
+ 		if (nodelist_parse(nodelist, *policy_nodes))
+ 			goto out;
++		if (!nodes_subset(*policy_nodes, node_online_map))
++			goto out;
  	}
- }
- 
--static struct usb_serial_driver sierra_1port_device = {
-+static struct usb_serial_driver sierra_device = {
- 	.driver = {
- 		.owner =	THIS_MODULE,
--		.name =		"sierra1",
-+		.name =		"sierra",
- 	},
--	.description       = "Sierra USB modem (1 port)",
--	.id_table          = id_table_1port,
-+	.description       = "Sierra USB modem",
-+	.id_table          = id_table,
- 	.usb_driver        = &sierra_driver,
- 	.num_interrupt_in  = NUM_DONT_CARE,
--	.num_bulk_in       = 1,
--	.num_bulk_out      = 1,
--	.num_ports         = 1,
--	.open              = sierra_open,
--	.close             = sierra_close,
--	.write             = sierra_write,
--	.write_room        = sierra_write_room,
--	.chars_in_buffer   = sierra_chars_in_buffer,
--	.throttle          = sierra_rx_throttle,
--	.unthrottle        = sierra_rx_unthrottle,
--	.ioctl             = sierra_ioctl,
--	.set_termios       = sierra_set_termios,
--	.break_ctl         = sierra_break_ctl,
--	.tiocmget          = sierra_tiocmget,
--	.tiocmset          = sierra_tiocmset,
--	.attach            = sierra_startup,
--	.shutdown          = sierra_shutdown,
--	.read_int_callback = sierra_instat_callback,
--};
--
--static struct usb_serial_driver sierra_3port_device = {
--	.driver = {
--		.owner =	THIS_MODULE,
--		.name =		"sierra3",
--	},
--	.description       = "Sierra USB modem (3 port)",
--	.id_table          = id_table_3port,
--	.usb_driver        = &sierra_driver,
--	.num_interrupt_in  = NUM_DONT_CARE,
--	.num_bulk_in       = 3,
--	.num_bulk_out      = 3,
--	.num_ports         = 3,
-+	.num_bulk_in       = DEF_NUM_PORTS,
-+	.num_bulk_out      = DEF_NUM_PORTS,
-+	.num_ports         = DEF_NUM_PORTS,
- 	.open              = sierra_open,
- 	.close             = sierra_close,
- 	.write             = sierra_write,
-@@ -685,35 +637,89 @@ static struct usb_serial_driver sierra_3
- static int __init sierra_init(void)
- {
- 	int retval;
--	retval = usb_serial_register(&sierra_1port_device);
-+	dbg ("%s", __FUNCTION__);
-+
-+	retval = usb_serial_register(&sierra_device);
- 	if (retval)
--		goto failed_1port_device_register;
--	retval = usb_serial_register(&sierra_3port_device);
-+		return retval;
-+	retval = usb_register(&sierra_driver);
- 	if (retval)
--		goto failed_3port_device_register;
-+		usb_serial_deregister(&sierra_device);
-+	return retval;
-+}
- 
-+static void __exit sierra_exit(void)
-+{
-+	usb_deregister (&sierra_driver);
-+	usb_serial_deregister(&sierra_device);
-+}
- 
--	retval = usb_register(&sierra_driver);
--	if (retval)
--		goto failed_driver_register;
- 
--	info(DRIVER_DESC ": " DRIVER_VERSION);
-+int sierra_probe(struct usb_interface *iface, const struct usb_device_id *id)
-+{
-+	int result;
-+	struct usb_device *udev;
- 
--	return 0;
-+	udev = usb_get_dev(interface_to_usbdev(iface));
- 
--failed_driver_register:
--	usb_serial_deregister(&sierra_3port_device);
--failed_3port_device_register:
--	usb_serial_deregister(&sierra_1port_device);
--failed_1port_device_register:
--	return retval;
-+	/*Set Device mode to D0 */
-+	sierra_set_power_state(udev, 0x0000);
-+
-+	/* Check if in installer mode */
-+	if (id->driver_info == DEVICE_INSTALLER)
-+	{
-+		dbg("SWIMS: FOUND DEVICE(SW)\n");
-+		result = sierra_set_ms_mode(udev, SWIMS_SET_MODE_Modem);
-+		dbg("SWIMS: swich result: %d\n",result);
-+		return result;
-+	}
-+	/* Check if composite deviec */
-+	else if (id->driver_info == DEVICE_1_PORT)
-+	{
-+		dbg("SWI: MODEM (Comp) FOUND");
-+		sierra_device.num_ports = 1;
-+		sierra_device.num_bulk_in = 1;
-+		sierra_device.num_bulk_out = 1;
-+	}
-+	else /* Device default */
-+	{
-+		dbg("SWI: MODEM FOUND");
-+		sierra_device.num_ports = DEF_NUM_PORTS;
-+		sierra_device.num_bulk_in = DEF_NUM_PORTS;
-+		sierra_device.num_bulk_out = DEF_NUM_PORTS;
-+	}
-+
-+	return usb_serial_probe(iface, id);
- }
- 
--static void __exit sierra_exit(void)
-+int sierra_set_power_state(struct usb_device *udev, unsigned long swiState)
- {
--	usb_deregister (&sierra_driver);
--	usb_serial_deregister(&sierra_1port_device);
--	usb_serial_deregister(&sierra_3port_device);
-+	int result;
-+	dbg("SWI: POWER STATE");
-+	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-+			0x00,			/* __u8 request      */
-+			0x40,			/* __u8 request type */
-+			swiState,		/* __u16 value       */
-+			0,			/* __u16 index       */
-+			NULL,			/* void *data        */
-+			0,			/* __u16 size 	     */
-+			USB_CTRL_SET_TIMEOUT);	/* int timeout 	     */
-+	return result;
-+}
-+
-+int sierra_set_ms_mode(struct usb_device *udev, SWIMS_SET_MODE_VALUE eSocMode)
-+{
-+	int result;
-+	dbg("SWIMS: MS SWITCH");
-+	result = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-+			SWIMS_USB_REQUEST_SetMode,	/* __u8 request      */
-+			SWIMS_USB_REQUEST_TYPE_SetMode,	/* __u8 request type */
-+			eSocMode,			/* __u16 value       */
-+			SWIMS_USB_INDEX_SetMode,	/* __u16 index       */
-+			NULL,				/* void *data        */
-+			0,				/* __u16 size 	     */
-+			USB_CTRL_SET_TIMEOUT);		/* int timeout       */
-+	return result;
- }
- 
- module_init(sierra_init);
-diff -puN /dev/null drivers/usb/serial/sierra.h
---- /dev/null
-+++ a/drivers/usb/serial/sierra.h
-@@ -0,0 +1,25 @@
-+#ifndef _SIERRA_MS_H
-+#define _SIERRA_MS_H
-+
-+#define SWIMS_USB_REQUEST_SetMode	0x0B
-+#define SWIMS_USB_REQUEST_TYPE_SetMode	0x40
-+#define SWIMS_USB_INDEX_SetMode		0x0000
-+#define SWIMS_SET_MODE_Modem		0x0001
-+
-+typedef __u16  SWIMS_SET_MODE_VALUE;
-+
-+enum devicetype {
-+ DEVICE_3_PORT = 0,
-+ DEVICE_1_PORT = 1,
-+ DEVICE_INSTALLER = 2,
-+};
-+
-+/* per port private data */
-+#define N_IN_URB	4
-+#define N_OUT_URB	4
-+#define IN_BUFLEN	4096
-+#define OUT_BUFLEN	1024
-+
-+#define DEF_NUM_PORTS 3
-+
-+#endif
+ 	if (!strcmp(value, "default")) {
+ 		*policy = MPOL_DEFAULT;
 _
 
-Patches currently in -mm which might be from linux@sierrawireless.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-usb-add-support-for-tru-install-c-and-new-vid-pids.patch
+document-acked-by.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-acpi-disable-acpi_processor_throttling_seq_show.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-input.patch
+git-input-fixup.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix.patch
+watchdog-driver-for-at32ap700x-devices-fix-2.patch
+git-wireless.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-mtrr-clean-up-usage_table.patch
+git-xfs.patch
+git-cryptodev.patch
+git-xtensa.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-allow-tunable-policy-for-system-init.patch
+numa-mempolicy-allow-tunable-policy-for-system-init-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-host-code-borkages.patch
+lguest-the-net-driver-include-fix.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
