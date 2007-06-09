@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gfs2_lookupi-uninitialised-var-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2007 16:42:14 -0700
-Message-ID: <200706082345.l58Njo68017722@imap1.linux-foundation.org>
+Subject: + led_colour_show-warning-fix.patch added to -mm tree
+Date: Fri, 08 Jun 2007 17:01:19 -0700
+Message-ID: <200706090001.l5901Kjv019748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49583 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43582 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754673AbXFHXqN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 19:46:13 -0400
+	by vger.kernel.org with ESMTP id S1751194AbXFIABm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2007 20:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, swhiteho@redhat.com
+Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
 
 
 The patch titled
-     gfs2_lookupi() uninitialised var fix
+     led_colour_show() warning fix
 has been added to the -mm tree.  Its filename is
-     gfs2_lookupi-uninitialised-var-fix.patch
+     led_colour_show-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gfs2_lookupi() uninitialised var fix
+Subject: led_colour_show() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/gfs2/inode.c: In function 'gfs2_lookupi':
-fs/gfs2/inode.c:392: warning: 'error' may be used uninitialized in this function
+drivers/leds/led-class.c: In function 'led_colour_show':
+drivers/leds/led-class.c:62: warning: initialization discards qualifiers from pointer target type
 
-Looks like a real bug to me.
-
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/led-class.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/gfs2/inode.c~gfs2_lookupi-uninitialised-var-fix fs/gfs2/inode.c
---- a/fs/gfs2/inode.c~gfs2_lookupi-uninitialised-var-fix
-+++ a/fs/gfs2/inode.c
-@@ -389,7 +389,7 @@ struct inode *gfs2_lookupi(struct inode 
- 	struct super_block *sb = dir->i_sb;
- 	struct gfs2_inode *dip = GFS2_I(dir);
- 	struct gfs2_holder d_gh;
--	int error;
-+	int error = 0;
- 	struct inode *inode = NULL;
- 	int unlock = 0;
+diff -puN drivers/leds/led-class.c~led_colour_show-warning-fix drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~led_colour_show-warning-fix
++++ a/drivers/leds/led-class.c
+@@ -59,7 +59,8 @@ static ssize_t led_brightness_store(stru
+ static ssize_t led_colour_show(struct class_device *dev, char *buf)
+ {
+ 	struct led_classdev *led_cdev = class_get_devdata(dev);
+-	char *colour, *str = led_cdev->name;
++	const char *colour;
++	const char *str = led_cdev->name;
+ 	ssize_t len = 0;
  
+ 	/* skip first field */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
