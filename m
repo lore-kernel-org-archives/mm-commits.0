@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-limit-post-srst-nsect-lbal-wait-to-100ms.patch added to -mm tree
-Date: Mon, 11 Jun 2007 12:41:49 -0700
-Message-ID: <200706111941.l5BJfnHF027517@imap1.linux-foundation.org>
+Subject: + swsusp-fix-userland-interface.patch added to -mm tree
+Date: Mon, 11 Jun 2007 12:55:46 -0700
+Message-ID: <200706111955.l5BJtkuV027804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38493 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56450 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753973AbXFKTl5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756205AbXFKTz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 15:41:57 -0400
+	Mon, 11 Jun 2007 15:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com
+Cc: rjw@sisk.pl
 
 
 The patch titled
-     libata: limit post SRST nsect/lbal wait to ~100ms
+     swsusp: Fix userland interface
 has been added to the -mm tree.  Its filename is
-     libata-limit-post-srst-nsect-lbal-wait-to-100ms.patch
+     swsusp-fix-userland-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: limit post SRST nsect/lbal wait to ~100ms
-From: Tejun Heo <htejun@gmail.com>
+Subject: swsusp: Fix userland interface
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-After SRST, libata used to wait for nsect/lbal to be set to 1/1 for the
-slave device.  However, some ATAPI devices don't set nsect/lbal after SRST
-and the wait itself isn't too useful as we're gonna wait for !BSY right
-after that anyway.
+Fix oops caused by 'cat /dev/snapshot', reported by Arkadiusz Miskiewicz,
+and make it impossible to thaw tasks with the help of the swsusp userland
+interface while there is a snapshot image ready to save.
 
-Before reset-seq update, nsect/lbal wait failure used to be ignored and
-caused 30sec delay during detection.  After reset-seq, all timeouts are
-considered error conditions making libata fail to detect such ATAPI
-devices.
-
-This patch limits nsect/lbal wait to around 100ms.  This should give
-acceptable behavior to such ATAPI devices while not disturbing the heavily
-used code path too much.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ kernel/power/user.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~libata-limit-post-srst-nsect-lbal-wait-to-100ms drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-limit-post-srst-nsect-lbal-wait-to-100ms
-+++ a/drivers/ata/libata-core.c
-@@ -3091,22 +3091,28 @@ static int ata_bus_post_reset(struct ata
- 		}
- 	}
+diff -puN kernel/power/user.c~swsusp-fix-userland-interface kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-fix-userland-interface
++++ a/kernel/power/user.c
+@@ -99,6 +99,8 @@ static ssize_t snapshot_read(struct file
+ 	ssize_t res;
  
--	/* if device 1 was found in ata_devchk, wait for
--	 * register access, then wait for BSY to clear
-+	/* if device 1 was found in ata_devchk, wait for register
-+	 * access briefly, then wait for BSY to clear.
- 	 */
--	while (dev1) {
--		u8 nsect, lbal;
-+	if (dev1) {
-+		int i;
+ 	data = filp->private_data;
++	if (!data->ready)
++		return -ENODATA;
+ 	res = snapshot_read_next(&data->handle, count);
+ 	if (res > 0) {
+ 		if (copy_to_user(buf, data_of(data->handle), res))
+@@ -245,7 +247,7 @@ static int snapshot_ioctl(struct inode *
+ 		break;
  
- 		ap->ops->dev_select(ap, 1);
--		nsect = ioread8(ioaddr->nsect_addr);
--		lbal = ioread8(ioaddr->lbal_addr);
--		if ((nsect == 1) && (lbal == 1))
--			break;
--		if (time_after(jiffies, deadline))
--			return -EBUSY;
--		msleep(50);	/* give drive a breather */
--	}
--	if (dev1) {
-+
-+		/* Wait for register access.  Some ATAPI devices fail
-+		 * to set nsect/lbal after reset, so don't waste too
-+		 * much time on it.  We're gonna wait for !BSY anyway.
-+		 */
-+		for (i = 0; i < 2; i++) {
-+			u8 nsect, lbal;
-+
-+			nsect = ioread8(ioaddr->nsect_addr);
-+			lbal = ioread8(ioaddr->lbal_addr);
-+			if ((nsect == 1) && (lbal == 1))
-+				break;
-+			msleep(50);	/* give drive a breather */
-+		}
-+
- 		rc = ata_wait_ready(ap, deadline);
- 		if (rc) {
- 			if (rc != -ENODEV)
+ 	case SNAPSHOT_UNFREEZE:
+-		if (!data->frozen)
++		if (!data->frozen || data->ready)
+ 			break;
+ 		mutex_lock(&pm_mutex);
+ 		thaw_processes();
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-sata_promise-use-tf-interface-for-polling-nodata-commands.patch
-git-libata-all.patch
-pata_acpi-restore-driver.patch
-libata-implement-ata_wait_after_reset.patch
-libata-limit-post-srst-nsect-lbal-wait-to-100ms.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-git-scsi-misc.patch
-update-documentation-block-barriertxt.patch
-block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch
-dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
-lib-add-idr_for_each.patch
-lib-add-idr_for_each-fix.patch
-lib-add-idr_remove_all.patch
+swsusp-fix-userland-interface.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+shrink_slab-handle-bad-shrinkers.patch
+beeping-patch-for-debugging-acpi-sleep.patch
