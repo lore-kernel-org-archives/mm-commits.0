@@ -1,81 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + net-fix-typo-in-drivers-net-usb-kconfig.patch added to -mm tree
-Date: Mon, 11 Jun 2007 12:41:04 -0700
-Message-ID: <200706111941.l5BJf4Jc027488@imap1.linux-foundation.org>
+Subject: + libata-limit-post-srst-nsect-lbal-wait-to-100ms.patch added to -mm tree
+Date: Mon, 11 Jun 2007 12:41:49 -0700
+Message-ID: <200706111941.l5BJfnHF027517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46160 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757315AbXFKTlb (ORCPT
+	by vger.kernel.org with ESMTP id S1753973AbXFKTl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 15:41:31 -0400
+	Mon, 11 Jun 2007 15:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, jeff@garzik.org, maiurana@gmail.com
+Cc: htejun@gmail.com
 
 
 The patch titled
-     net: fix typo in drivers/net/usb/Kconfig
+     libata: limit post SRST nsect/lbal wait to ~100ms
 has been added to the -mm tree.  Its filename is
-     net-fix-typo-in-drivers-net-usb-kconfig.patch
+     libata-limit-post-srst-nsect-lbal-wait-to-100ms.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: fix typo in drivers/net/usb/Kconfig
-=46rom: Sam Ravnborg <sam@ravnborg.org>
+Subject: libata: limit post SRST nsect/lbal wait to ~100ms
+From: Tejun Heo <htejun@gmail.com>
 
-Replace invisible character with a space.
+After SRST, libata used to wait for nsect/lbal to be set to 1/1 for the
+slave device.  However, some ATAPI devices don't set nsect/lbal after SRST
+and the wait itself isn't too useful as we're gonna wait for !BSY right
+after that anyway.
 
-The diff looks like this on my terminal:
--        <A0>Choose this option if you're using a host-to-host cable
--        <A0>with one of these chips.
-+         Choose this option if you're using a host-to-host cable
-+         with one of these chips.
+Before reset-seq update, nsect/lbal wait failure used to be ignored and
+caused 30sec delay during detection.  After reset-seq, all timeouts are
+considered error conditions making libata fail to detect such ATAPI
+devices.
 
-Reported-by: Massimo Maiurana <maiurana@gmail.com>
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+This patch limits nsect/lbal wait to around 100ms.  This should give
+acceptable behavior to such ATAPI devices while not disturbing the heavily
+used code path too much.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/libata-core.c |   32 +++++++++++++++++++-------------
+ 1 files changed, 19 insertions(+), 13 deletions(-)
 
-diff -puN drivers/net/usb/Kconfig~net-fix-typo-in-drivers-net-usb-kconf=
-ig drivers/net/usb/Kconfig
---- a/drivers/net/usb/Kconfig~net-fix-typo-in-drivers-net-usb-kconfig
-+++ a/drivers/net/usb/Kconfig
-@@ -313,8 +313,8 @@ config USB_KC2190
- 	boolean "KT Technology KC2190 based cables (InstaNet)"
- 	depends on USB_NET_CDC_SUBSET && EXPERIMENTAL
- 	help
--	 =A0Choose this option if you're using a host-to-host cable
--	 =A0with one of these chips.
-+	  Choose this option if you're using a host-to-host cable
-+	  with one of these chips.
-=20
- config USB_NET_ZAURUS
- 	tristate "Sharp Zaurus (stock ROMs) and compatible"
+diff -puN drivers/ata/libata-core.c~libata-limit-post-srst-nsect-lbal-wait-to-100ms drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-limit-post-srst-nsect-lbal-wait-to-100ms
++++ a/drivers/ata/libata-core.c
+@@ -3091,22 +3091,28 @@ static int ata_bus_post_reset(struct ata
+ 		}
+ 	}
+ 
+-	/* if device 1 was found in ata_devchk, wait for
+-	 * register access, then wait for BSY to clear
++	/* if device 1 was found in ata_devchk, wait for register
++	 * access briefly, then wait for BSY to clear.
+ 	 */
+-	while (dev1) {
+-		u8 nsect, lbal;
++	if (dev1) {
++		int i;
+ 
+ 		ap->ops->dev_select(ap, 1);
+-		nsect = ioread8(ioaddr->nsect_addr);
+-		lbal = ioread8(ioaddr->lbal_addr);
+-		if ((nsect == 1) && (lbal == 1))
+-			break;
+-		if (time_after(jiffies, deadline))
+-			return -EBUSY;
+-		msleep(50);	/* give drive a breather */
+-	}
+-	if (dev1) {
++
++		/* Wait for register access.  Some ATAPI devices fail
++		 * to set nsect/lbal after reset, so don't waste too
++		 * much time on it.  We're gonna wait for !BSY anyway.
++		 */
++		for (i = 0; i < 2; i++) {
++			u8 nsect, lbal;
++
++			nsect = ioread8(ioaddr->nsect_addr);
++			lbal = ioread8(ioaddr->lbal_addr);
++			if ((nsect == 1) && (lbal == 1))
++				break;
++			msleep(50);	/* give drive a breather */
++		}
++
+ 		rc = ata_wait_ready(ap, deadline);
+ 		if (rc) {
+ 			if (rc != -ENODEV)
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-origin.patch
-git-kbuild.patch
-use-posix-bre-in-headers-install-target.patch
-net-fix-typo-in-drivers-net-usb-kconfig.patch
-fix-x86_64-mm-xen-core-xen-implementation.patch
-x86-fix-section-mismatch-warnings-in-mtrr.patch
-i386-fix-section-mismatch-warning-in-intel_cacheinfo.patch
-git-newsetup.patch
-alpha-fix-trivial-section-mismatch-warnings.patch
+sata_promise-use-tf-interface-for-polling-nodata-commands.patch
+git-libata-all.patch
+pata_acpi-restore-driver.patch
+libata-implement-ata_wait_after_reset.patch
+libata-limit-post-srst-nsect-lbal-wait-to-100ms.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-scsi-misc.patch
+update-documentation-block-barriertxt.patch
+block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+lib-add-idr_for_each.patch
+lib-add-idr_for_each-fix.patch
+lib-add-idr_remove_all.patch
