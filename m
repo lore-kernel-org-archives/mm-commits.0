@@ -1,284 +1,397 @@
 From: akpm@linux-foundation.org
-Subject: + make-i386-kernel-show-the-unhandled-signals-fix.patch added to -mm tree
-Date: Mon, 11 Jun 2007 11:53:18 -0700
-Message-ID: <200706111853.l5BIrIIm026424@imap1.linux-foundation.org>
+Subject: - cobalt-remove-all-traces-of-cobalt-from-nvramc.patch removed from -mm tree
+Date: Mon, 11 Jun 2007 11:54:07 -0700
+Message-ID: <200706111854.l5BIs7xb026472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33179 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43350 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757202AbXFKSyA (ORCPT
+	by vger.kernel.org with ESMTP id S1754858AbXFKSyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 14:54:00 -0400
+	Mon, 11 Jun 2007 14:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, masouds@google.com
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-i386-kernel-show-the-unhandled-signals-fix
-has been added to the -mm tree.  Its filename is
-     make-i386-kernel-show-the-unhandled-signals-fix.patch
+     COBALT: remove all traces of COBALT from nvram.c
+has been removed from the -mm tree.  Its filename was
+     cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: make-i386-kernel-show-the-unhandled-signals-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: COBALT: remove all traces of COBALT from nvram.c
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-akpm:/usr/src/25> perl scripts/checkpatch.pl patches/$(toppatch ).patch 
-line over 80 characters
-#46: FILE: arch/i386/kernel/signal.c:203:
-+               printk("%s[%d] bad frame in sigreturn frame:%p eip:%lx esp:%lx oeax:%lx\n",
+Drop all references to the COBALT arch from drivers/char/nvram.c.
 
-printk() should include KERN_ facility level
-#46: FILE: arch/i386/kernel/signal.c:203:
-+               printk("%s[%d] bad frame in sigreturn frame:%p eip:%lx esp:%lx oeax:%lx\n",
-
-printk() should include KERN_ facility level
-#88: FILE: arch/i386/mm/fault.c:477:
-+                       printk(
-
-line over 80 characters
-#89: FILE: arch/i386/mm/fault.c:478:
-+                      "%s%s[%d]: segfault at %08lx eip %08lx esp %08lx error %lx\n",
-
-use tabs not spaces
-#270: FILE: kernel/signal.c:261:
-+               return 1;$
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Masoud Sharbiani <masouds@google.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/signal.c |    3 ++-
- arch/i386/mm/fault.c      |    4 ++--
- kernel/signal.c           |    2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/nvram.c         |  192 ---------------------------------
+ include/linux/cobalt-nvram.h |  109 ------------------
+ 2 files changed, 1 insertion(+), 300 deletions(-)
 
-diff -puN arch/i386/kernel/signal.c~make-i386-kernel-show-the-unhandled-signals-fix arch/i386/kernel/signal.c
---- a/arch/i386/kernel/signal.c~make-i386-kernel-show-the-unhandled-signals-fix
-+++ a/arch/i386/kernel/signal.c
-@@ -200,7 +200,8 @@ asmlinkage int sys_sigreturn(unsigned lo
+diff -puN drivers/char/nvram.c~cobalt-remove-all-traces-of-cobalt-from-nvramc drivers/char/nvram.c
+--- a/drivers/char/nvram.c~cobalt-remove-all-traces-of-cobalt-from-nvramc
++++ a/drivers/char/nvram.c
+@@ -42,19 +42,12 @@
  
- badframe:
- 	if (show_unhandled_signals && printk_ratelimit())
--		printk("%s[%d] bad frame in sigreturn frame:%p eip:%lx esp:%lx oeax:%lx\n",
-+		printk(KERN_INFO "%s[%d] bad frame in sigreturn frame:%p "
-+		    "eip:%lx esp:%lx oeax:%lx\n",
- 		    current->comm, current->pid, frame, regs->eip, regs->esp,
- 		    regs->orig_eax);
+ #define PC		1
+ #define ATARI		2
+-#define COBALT		3
  
-diff -puN arch/i386/mm/fault.c~make-i386-kernel-show-the-unhandled-signals-fix arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~make-i386-kernel-show-the-unhandled-signals-fix
-+++ a/arch/i386/mm/fault.c
-@@ -474,8 +474,8 @@ bad_area_nosemaphore:
+ /* select machine configuration */
+ #if defined(CONFIG_ATARI)
+ #  define MACH ATARI
+ #elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)  /* and others?? */
+-#define MACH PC
+-#  if defined(CONFIG_COBALT)
+-#    include <linux/cobalt-nvram.h>
+-#    define MACH COBALT
+-#  else
+-#    define MACH PC
+-#  endif
++#  define MACH PC
+ #else
+ #  error Cannot build nvram driver for this machine configuration.
+ #endif
+@@ -76,18 +69,6 @@
  
- 		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
- 		    printk_ratelimit()) {
--			printk(
--		       "%s%s[%d]: segfault at %08lx eip %08lx esp %08lx error %lx\n",
-+			printk(KERN_INFO "%s%s[%d]: segfault at %08lx eip %08lx"
-+					" esp %08lx error %lx\n",
- 					tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
- 					tsk->comm, tsk->pid, address, regs->eip,
- 					regs->esp, error_code);
-diff -puN kernel/signal.c~make-i386-kernel-show-the-unhandled-signals-fix kernel/signal.c
---- a/kernel/signal.c~make-i386-kernel-show-the-unhandled-signals-fix
-+++ a/kernel/signal.c
-@@ -258,7 +258,7 @@ flush_signal_handlers(struct task_struct
- int unhandled_signal(struct task_struct *tsk, int sig)
- {
- 	if (is_init(tsk))
--               return 1;
-+		return 1;
- 	if (tsk->ptrace & PT_PTRACED)
- 		return 0;
- 	return (tsk->sighand->action[sig-1].sa.sa_handler == SIG_IGN) ||
+ #endif
+ 
+-#if MACH == COBALT
+-
+-#define CHECK_DRIVER_INIT()     1
+-
+-#define NVRAM_BYTES		(128-NVRAM_FIRST_BYTE)
+-
+-#define mach_check_checksum	cobalt_check_checksum
+-#define mach_set_checksum	cobalt_set_checksum
+-#define mach_proc_infos		cobalt_proc_infos
+-
+-#endif
+-
+ #if MACH == ATARI
+ 
+ /* Special parameters for RTC in Atari machines */
+@@ -604,177 +585,6 @@ pc_proc_infos(unsigned char *nvram, char
+ 
+ #endif /* MACH == PC */
+ 
+-#if MACH == COBALT
+-
+-/* the cobalt CMOS has a wider range of its checksum */
+-static int cobalt_check_checksum(void)
+-{
+-	int i;
+-	unsigned short sum = 0;
+-	unsigned short expect;
+-
+-	for (i = COBT_CMOS_CKS_START; i <= COBT_CMOS_CKS_END; ++i) {
+-		if ((i == COBT_CMOS_CHECKSUM) || (i == (COBT_CMOS_CHECKSUM+1)))
+-			continue;
+-
+-		sum += __nvram_read_byte(i);
+-	}
+-	expect = __nvram_read_byte(COBT_CMOS_CHECKSUM) << 8 |
+-	    __nvram_read_byte(COBT_CMOS_CHECKSUM+1);
+-	return ((sum & 0xffff) == expect);
+-}
+-
+-static void cobalt_set_checksum(void)
+-{
+-	int i;
+-	unsigned short sum = 0;
+-
+-	for (i = COBT_CMOS_CKS_START; i <= COBT_CMOS_CKS_END; ++i) {
+-		if ((i == COBT_CMOS_CHECKSUM) || (i == (COBT_CMOS_CHECKSUM+1)))
+-			continue;
+-
+-		sum += __nvram_read_byte(i);
+-	}
+-
+-	__nvram_write_byte(sum >> 8, COBT_CMOS_CHECKSUM);
+-	__nvram_write_byte(sum & 0xff, COBT_CMOS_CHECKSUM+1);
+-}
+-
+-#ifdef CONFIG_PROC_FS
+-
+-static int cobalt_proc_infos(unsigned char *nvram, char *buffer, int *len,
+-	off_t *begin, off_t offset, int size)
+-{
+-	int i;
+-	unsigned int checksum;
+-	unsigned int flags;
+-	char sernum[14];
+-	char *key = "cNoEbTaWlOtR!";
+-	unsigned char bto_csum;
+-
+-	spin_lock_irq(&rtc_lock);
+-	checksum = __nvram_check_checksum();
+-	spin_unlock_irq(&rtc_lock);
+-
+-	PRINT_PROC("Checksum status: %svalid\n", checksum ? "" : "not ");
+-
+-	flags = nvram[COBT_CMOS_FLAG_BYTE_0] << 8 
+-	    | nvram[COBT_CMOS_FLAG_BYTE_1];
+-
+-	PRINT_PROC("Console: %s\n",
+-		flags & COBT_CMOS_CONSOLE_FLAG ?  "on": "off");
+-
+-	PRINT_PROC("Firmware Debug Messages: %s\n",
+-		flags & COBT_CMOS_DEBUG_FLAG ? "on": "off");
+-
+-	PRINT_PROC("Auto Prompt: %s\n",
+-		flags & COBT_CMOS_AUTO_PROMPT_FLAG ? "on": "off");
+-
+-	PRINT_PROC("Shutdown Status: %s\n",
+-		flags & COBT_CMOS_CLEAN_BOOT_FLAG ? "clean": "dirty");
+-
+-	PRINT_PROC("Hardware Probe: %s\n",
+-		flags & COBT_CMOS_HW_NOPROBE_FLAG ? "partial": "full");
+-
+-	PRINT_PROC("System Fault: %sdetected\n",
+-		flags & COBT_CMOS_SYSFAULT_FLAG ? "": "not ");
+-
+-	PRINT_PROC("Panic on OOPS: %s\n",
+-		flags & COBT_CMOS_OOPSPANIC_FLAG ? "yes": "no");
+-
+-	PRINT_PROC("Delayed Cache Initialization: %s\n",
+-		flags & COBT_CMOS_DELAY_CACHE_FLAG ? "yes": "no");
+-
+-	PRINT_PROC("Show Logo at Boot: %s\n",
+-		flags & COBT_CMOS_NOLOGO_FLAG ? "no": "yes");
+-
+-	PRINT_PROC("Boot Method: ");
+-	switch (nvram[COBT_CMOS_BOOT_METHOD]) {
+-	case COBT_CMOS_BOOT_METHOD_DISK:
+-		PRINT_PROC("disk\n");
+-		break;
+-
+-	case COBT_CMOS_BOOT_METHOD_ROM:
+-		PRINT_PROC("rom\n");
+-		break;
+-
+-	case COBT_CMOS_BOOT_METHOD_NET:
+-		PRINT_PROC("net\n");
+-		break;
+-
+-	default:
+-		PRINT_PROC("unknown\n");
+-		break;
+-	}
+-
+-	PRINT_PROC("Primary Boot Device: %d:%d\n",
+-		nvram[COBT_CMOS_BOOT_DEV0_MAJ],
+-		nvram[COBT_CMOS_BOOT_DEV0_MIN] );
+-	PRINT_PROC("Secondary Boot Device: %d:%d\n",
+-		nvram[COBT_CMOS_BOOT_DEV1_MAJ],
+-		nvram[COBT_CMOS_BOOT_DEV1_MIN] );
+-	PRINT_PROC("Tertiary Boot Device: %d:%d\n",
+-		nvram[COBT_CMOS_BOOT_DEV2_MAJ],
+-		nvram[COBT_CMOS_BOOT_DEV2_MIN] );
+-
+-	PRINT_PROC("Uptime: %d\n",
+-		nvram[COBT_CMOS_UPTIME_0] << 24 |
+-		nvram[COBT_CMOS_UPTIME_1] << 16 |
+-		nvram[COBT_CMOS_UPTIME_2] << 8  |
+-		nvram[COBT_CMOS_UPTIME_3]);
+-
+-	PRINT_PROC("Boot Count: %d\n",
+-		nvram[COBT_CMOS_BOOTCOUNT_0] << 24 |
+-		nvram[COBT_CMOS_BOOTCOUNT_1] << 16 |
+-		nvram[COBT_CMOS_BOOTCOUNT_2] << 8  |
+-		nvram[COBT_CMOS_BOOTCOUNT_3]);
+-
+-	/* 13 bytes of serial num */
+-	for (i=0 ; i<13 ; i++) {
+-		sernum[i] = nvram[COBT_CMOS_SYS_SERNUM_0 + i];
+-	}
+-	sernum[13] = '\0';
+-
+-	checksum = 0;
+-	for (i=0 ; i<13 ; i++) {
+-		checksum += sernum[i] ^ key[i];
+-	}
+-	checksum = ((checksum & 0x7f) ^ (0xd6)) & 0xff;
+-
+-	PRINT_PROC("Serial Number: %s", sernum);
+-	if (checksum != nvram[COBT_CMOS_SYS_SERNUM_CSUM]) {
+-		PRINT_PROC(" (invalid checksum)");
+-	}
+-	PRINT_PROC("\n");
+-
+-	PRINT_PROC("Rom Revison: %d.%d.%d\n", nvram[COBT_CMOS_ROM_REV_MAJ],
+-		nvram[COBT_CMOS_ROM_REV_MIN], nvram[COBT_CMOS_ROM_REV_REV]);
+-
+-	PRINT_PROC("BTO Server: %d.%d.%d.%d", nvram[COBT_CMOS_BTO_IP_0],
+-		nvram[COBT_CMOS_BTO_IP_1], nvram[COBT_CMOS_BTO_IP_2],
+-		nvram[COBT_CMOS_BTO_IP_3]);
+-	bto_csum = nvram[COBT_CMOS_BTO_IP_0] + nvram[COBT_CMOS_BTO_IP_1]
+-		+ nvram[COBT_CMOS_BTO_IP_2] + nvram[COBT_CMOS_BTO_IP_3];
+-	if (bto_csum != nvram[COBT_CMOS_BTO_IP_CSUM]) {
+-		PRINT_PROC(" (invalid checksum)");
+-	}
+-	PRINT_PROC("\n");
+-
+-	if (flags & COBT_CMOS_VERSION_FLAG
+-	 && nvram[COBT_CMOS_VERSION] >= COBT_CMOS_VER_BTOCODE) {
+-		PRINT_PROC("BTO Code: 0x%x\n",
+-			nvram[COBT_CMOS_BTO_CODE_0] << 24 |
+-			nvram[COBT_CMOS_BTO_CODE_1] << 16 |
+-			nvram[COBT_CMOS_BTO_CODE_2] << 8 |
+-			nvram[COBT_CMOS_BTO_CODE_3]);
+-	}
+-
+-	return 1;
+-}
+-#endif /* CONFIG_PROC_FS */
+-
+-#endif /* MACH == COBALT */
+-
+ #if MACH == ATARI
+ 
+ static int
+diff -puN include/linux/cobalt-nvram.h~cobalt-remove-all-traces-of-cobalt-from-nvramc /dev/null
+--- a/include/linux/cobalt-nvram.h
++++ /dev/null
+@@ -1,109 +0,0 @@
+-/*
+- * $Id: cobalt-nvram.h,v 1.20 2001/10/17 23:16:55 thockin Exp $
+- * cobalt-nvram.h : defines for the various fields in the cobalt NVRAM
+- *
+- * Copyright 2001,2002 Sun Microsystems, Inc.
+- */
+-
+-#ifndef COBALT_NVRAM_H
+-#define COBALT_NVRAM_H
+-
+-#include <linux/nvram.h>
+-
+-#define COBT_CMOS_INFO_MAX		0x7f	/* top address allowed */
+-#define COBT_CMOS_BIOS_DRIVE_INFO	0x12	/* drive info would go here */
+-
+-#define COBT_CMOS_CKS_START		NVRAM_OFFSET(0x0e)
+-#define COBT_CMOS_CKS_END		NVRAM_OFFSET(0x7f)
+-
+-/* flag bytes - 16 flags for now, leave room for more */
+-#define COBT_CMOS_FLAG_BYTE_0		NVRAM_OFFSET(0x10)
+-#define COBT_CMOS_FLAG_BYTE_1		NVRAM_OFFSET(0x11)
+-
+-/* flags in flag bytes - up to 16 */
+-#define COBT_CMOS_FLAG_MIN		0x0001
+-#define COBT_CMOS_CONSOLE_FLAG		0x0001 /* console on/off */
+-#define COBT_CMOS_DEBUG_FLAG		0x0002 /* ROM debug messages */
+-#define COBT_CMOS_AUTO_PROMPT_FLAG	0x0004 /* boot to ROM prompt? */
+-#define COBT_CMOS_CLEAN_BOOT_FLAG	0x0008 /* set by a clean shutdown */
+-#define COBT_CMOS_HW_NOPROBE_FLAG	0x0010 /* go easy on the probing */
+-#define COBT_CMOS_SYSFAULT_FLAG		0x0020 /* system fault detected */
+-#define COBT_CMOS_OOPSPANIC_FLAG	0x0040 /* panic on oops */
+-#define COBT_CMOS_DELAY_CACHE_FLAG	0x0080 /* delay cache initialization */
+-#define COBT_CMOS_NOLOGO_FLAG		0x0100 /* hide "C" logo @ boot */
+-#define COBT_CMOS_VERSION_FLAG		0x0200 /* the version field is valid */
+-#define COBT_CMOS_FLAG_MAX		0x0200
+-
+-/* leave byte 0x12 blank - Linux looks for drive info here */
+-
+-/* CMOS structure version, valid if COBT_CMOS_VERSION_FLAG is true */
+-#define COBT_CMOS_VERSION		NVRAM_OFFSET(0x13)
+-#define COBT_CMOS_VER_BTOCODE		1 /* min. version needed for btocode */
+-
+-/* index of default boot method */
+-#define COBT_CMOS_BOOT_METHOD		NVRAM_OFFSET(0x20)
+-#define COBT_CMOS_BOOT_METHOD_DISK	0
+-#define COBT_CMOS_BOOT_METHOD_ROM	1
+-#define COBT_CMOS_BOOT_METHOD_NET	2
+-
+-#define COBT_CMOS_BOOT_DEV_MIN		NVRAM_OFFSET(0x21)
+-/* major #, minor # of first through fourth boot device */
+-#define COBT_CMOS_BOOT_DEV0_MAJ		NVRAM_OFFSET(0x21)
+-#define COBT_CMOS_BOOT_DEV0_MIN		NVRAM_OFFSET(0x22)
+-#define COBT_CMOS_BOOT_DEV1_MAJ		NVRAM_OFFSET(0x23)
+-#define COBT_CMOS_BOOT_DEV1_MIN		NVRAM_OFFSET(0x24)
+-#define COBT_CMOS_BOOT_DEV2_MAJ		NVRAM_OFFSET(0x25)
+-#define COBT_CMOS_BOOT_DEV2_MIN		NVRAM_OFFSET(0x26)
+-#define COBT_CMOS_BOOT_DEV3_MAJ		NVRAM_OFFSET(0x27)
+-#define COBT_CMOS_BOOT_DEV3_MIN		NVRAM_OFFSET(0x28)
+-#define COBT_CMOS_BOOT_DEV_MAX		NVRAM_OFFSET(0x28)
+-
+-/* checksum of bytes 0xe-0x7f */
+-#define COBT_CMOS_CHECKSUM		NVRAM_OFFSET(0x2e)
+-
+-/* running uptime counter, units of 5 minutes (32 bits =~ 41000 years) */
+-#define COBT_CMOS_UPTIME_0		NVRAM_OFFSET(0x30)
+-#define COBT_CMOS_UPTIME_1		NVRAM_OFFSET(0x31)
+-#define COBT_CMOS_UPTIME_2		NVRAM_OFFSET(0x32)
+-#define COBT_CMOS_UPTIME_3		NVRAM_OFFSET(0x33)
+-
+-/* count of successful boots (32 bits) */
+-#define COBT_CMOS_BOOTCOUNT_0		NVRAM_OFFSET(0x38)
+-#define COBT_CMOS_BOOTCOUNT_1		NVRAM_OFFSET(0x39)
+-#define COBT_CMOS_BOOTCOUNT_2		NVRAM_OFFSET(0x3a)
+-#define COBT_CMOS_BOOTCOUNT_3		NVRAM_OFFSET(0x3b)
+-
+-/* 13 bytes: system serial number, same as on the back of the system */
+-#define COBT_CMOS_SYS_SERNUM_LEN	13
+-#define COBT_CMOS_SYS_SERNUM_0		NVRAM_OFFSET(0x40)
+-#define COBT_CMOS_SYS_SERNUM_1		NVRAM_OFFSET(0x41)
+-#define COBT_CMOS_SYS_SERNUM_2		NVRAM_OFFSET(0x42)
+-#define COBT_CMOS_SYS_SERNUM_3		NVRAM_OFFSET(0x43)
+-#define COBT_CMOS_SYS_SERNUM_4		NVRAM_OFFSET(0x44)
+-#define COBT_CMOS_SYS_SERNUM_5		NVRAM_OFFSET(0x45)
+-#define COBT_CMOS_SYS_SERNUM_6		NVRAM_OFFSET(0x46)
+-#define COBT_CMOS_SYS_SERNUM_7		NVRAM_OFFSET(0x47)
+-#define COBT_CMOS_SYS_SERNUM_8		NVRAM_OFFSET(0x48)
+-#define COBT_CMOS_SYS_SERNUM_9		NVRAM_OFFSET(0x49)
+-#define COBT_CMOS_SYS_SERNUM_10		NVRAM_OFFSET(0x4a)
+-#define COBT_CMOS_SYS_SERNUM_11		NVRAM_OFFSET(0x4b)
+-#define COBT_CMOS_SYS_SERNUM_12		NVRAM_OFFSET(0x4c)
+-/* checksum for serial num - 1 byte */
+-#define COBT_CMOS_SYS_SERNUM_CSUM	NVRAM_OFFSET(0x4f)
+-
+-#define COBT_CMOS_ROM_REV_MAJ		NVRAM_OFFSET(0x50)
+-#define COBT_CMOS_ROM_REV_MIN		NVRAM_OFFSET(0x51)
+-#define COBT_CMOS_ROM_REV_REV		NVRAM_OFFSET(0x52)
+-
+-#define COBT_CMOS_BTO_CODE_0		NVRAM_OFFSET(0x53)
+-#define COBT_CMOS_BTO_CODE_1		NVRAM_OFFSET(0x54)
+-#define COBT_CMOS_BTO_CODE_2		NVRAM_OFFSET(0x55)
+-#define COBT_CMOS_BTO_CODE_3		NVRAM_OFFSET(0x56)
+-
+-#define COBT_CMOS_BTO_IP_CSUM		NVRAM_OFFSET(0x57)
+-#define COBT_CMOS_BTO_IP_0		NVRAM_OFFSET(0x58)
+-#define COBT_CMOS_BTO_IP_1		NVRAM_OFFSET(0x59)
+-#define COBT_CMOS_BTO_IP_2		NVRAM_OFFSET(0x5a)
+-#define COBT_CMOS_BTO_IP_3		NVRAM_OFFSET(0x5b)
+-
+-#endif /* COBALT_NVRAM_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-document-acked-by.patch
-x86_64-oops_begin-fix.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-ali5451-warning-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
+protect-linux-console_structh-from-multiple-inclusion.patch
+ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
+viotape-use-designated-initializers-for-fops-member.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-gfs2_lookupi-uninitialised-var-fix.patch
-ib_umem_get-warning-fix.patch
-git-input.patch
-git-input-fixup.patch
-serio_raw_read-warning-fix.patch
-git-jfs-fix.patch
+git-ieee1394.patch
+input-delete-useless-reference-to-dead-module_parm-macro.patch
 git-kbuild.patch
 git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-git-selinux-allnoconfig-fix.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
+git-mmc.patch
+bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-s390.patch
 git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix-2.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
-i386-mtrr-clean-up-usage_table.patch
-make-i386-kernel-show-the-unhandled-signals-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+cris-replace-old-style-member-inits-with-designated-inits.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
+remove-apparently-useless-commented-apm_get_battery_status.patch
