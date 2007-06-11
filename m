@@ -1,33 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - cobalt-remove-all-traces-of-cobalt-from-nvramc.patch removed from -mm tree
-Date: Mon, 11 Jun 2007 11:54:07 -0700
-Message-ID: <200706111854.l5BIs7xb026472@imap1.linux-foundation.org>
+Subject: + cobalt-remove-all-references-to-cobalt-nvram.patch added to -mm tree
+Date: Mon, 11 Jun 2007 11:54:58 -0700
+Message-ID: <200706111854.l5BIswH9026489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43350 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754858AbXFKSyp (ORCPT
+	by vger.kernel.org with ESMTP id S1752480AbXFKSzh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 14:54:45 -0400
+	Mon, 11 Jun 2007 14:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpjday@mindspring.com, thockin@hockin.org
 
 
 The patch titled
-     COBALT: remove all traces of COBALT from nvram.c
-has been removed from the -mm tree.  Its filename was
-     cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
+     COBALT: remove all references to Cobalt NVRAM
+has been added to the -mm tree.  Its filename is
+     cobalt-remove-all-references-to-cobalt-nvram.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: COBALT: remove all traces of COBALT from nvram.c
+Subject: COBALT: remove all references to Cobalt NVRAM
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Drop all references to the COBALT arch from drivers/char/nvram.c.
+Remove not only the references to Cobalt NVRAM, but the header file as
+well.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Tim Hockin <thockin@hockin.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -35,8 +41,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/cobalt-nvram.h |  109 ------------------
  2 files changed, 1 insertion(+), 300 deletions(-)
 
-diff -puN drivers/char/nvram.c~cobalt-remove-all-traces-of-cobalt-from-nvramc drivers/char/nvram.c
---- a/drivers/char/nvram.c~cobalt-remove-all-traces-of-cobalt-from-nvramc
+diff -puN drivers/char/nvram.c~cobalt-remove-all-references-to-cobalt-nvram drivers/char/nvram.c
+--- a/drivers/char/nvram.c~cobalt-remove-all-references-to-cobalt-nvram
 +++ a/drivers/char/nvram.c
 @@ -42,19 +42,12 @@
  
@@ -256,7 +262,7 @@ diff -puN drivers/char/nvram.c~cobalt-remove-all-traces-of-cobalt-from-nvramc dr
  #if MACH == ATARI
  
  static int
-diff -puN include/linux/cobalt-nvram.h~cobalt-remove-all-traces-of-cobalt-from-nvramc /dev/null
+diff -puN include/linux/cobalt-nvram.h~cobalt-remove-all-references-to-cobalt-nvram /dev/null
 --- a/include/linux/cobalt-nvram.h
 +++ /dev/null
 @@ -1,109 +0,0 @@
@@ -393,5 +399,5 @@ remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
 cris-replace-old-style-member-inits-with-designated-inits.patch
 remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
 drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
 remove-apparently-useless-commented-apm_get_battery_status.patch
+cobalt-remove-all-references-to-cobalt-nvram.patch
