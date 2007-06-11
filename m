@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + i386-show-unhandled-signals-checkpatch.patch added to -mm tree
-Date: Mon, 11 Jun 2007 14:02:30 -0700
-Message-ID: <200706112102.l5BL2UWA029089@imap1.linux-foundation.org>
+Subject: - i386-show-unhandled-signals-checkpatch.patch removed from -mm tree
+Date: Mon, 11 Jun 2007 14:16:42 -0700
+Message-ID: <200706112116.l5BLGg67029328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751545AbXFKVCn (ORCPT
+	by vger.kernel.org with ESMTP id S1750876AbXFKVQz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 17:02:43 -0400
+	Mon, 11 Jun 2007 17:16:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, masouds@google.com
+To: akpm@linux-foundation.org, ak@suse.de, masouds@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      i386-show-unhandled-signals-checkpatch
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      i386-show-unhandled-signals-checkpatch.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 Subject: i386-show-unhandled-signals-checkpatch
