@@ -1,128 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + centralize-checking-for-an-acceptable-version-of-gcc.patch added to -mm tree
-Date: Mon, 11 Jun 2007 12:29:12 -0700
-Message-ID: <200706111929.l5BJTCBQ027248@imap1.linux-foundation.org>
+Subject: + net-fix-typo-in-drivers-net-usb-kconfig.patch added to -mm tree
+Date: Mon, 11 Jun 2007 12:41:04 -0700
+Message-ID: <200706111941.l5BJf4Jc027488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39081 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46160 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754702AbXFKT3V (ORCPT
+	by vger.kernel.org with ESMTP id S1757315AbXFKTlb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 15:29:21 -0400
+	Mon, 11 Jun 2007 15:41:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: sam@ravnborg.org, jeff@garzik.org, maiurana@gmail.com
 
 
 The patch titled
-     Centralize checking for an acceptable version of gcc
+     net: fix typo in drivers/net/usb/Kconfig
 has been added to the -mm tree.  Its filename is
-     centralize-checking-for-an-acceptable-version-of-gcc.patch
+     net-fix-typo-in-drivers-net-usb-kconfig.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Centralize checking for an acceptable version of gcc
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: net: fix typo in drivers/net/usb/Kconfig
+=46rom: Sam Ravnborg <sam@ravnborg.org>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Replace invisible character with a space.
+
+The diff looks like this on my terminal:
+-        <A0>Choose this option if you're using a host-to-host cable
+-        <A0>with one of these chips.
++         Choose this option if you're using a host-to-host cable
++         with one of these chips.
+
+Reported-by: Massimo Maiurana <maiurana@gmail.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |   14 +++++++++++---
- init/main.c              |   18 ------------------
- 2 files changed, 11 insertions(+), 21 deletions(-)
+ drivers/net/usb/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compiler.h~centralize-checking-for-an-acceptable-version-of-gcc include/linux/compiler.h
---- a/include/linux/compiler.h~centralize-checking-for-an-acceptable-version-of-gcc
-+++ a/include/linux/compiler.h
-@@ -36,12 +36,20 @@ extern void __chk_io_ptr(const void __io
- 
- #ifdef __KERNEL__
- 
--#if __GNUC__ >= 4
-+/*
-+ *  Start with some sanity checking on the version of gcc.
-+ */
-+
-+#if (__GNUC__ < 3) || (__GNUC__ == 3 && __GNUC_MINOR__ < 2)
-+# error Sorry, your GCC is too old. It builds incorrect kernels.
-+#elif __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
-+# warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
-+#elif __GNUC__ == 4
- # include <linux/compiler-gcc4.h>
--#elif __GNUC__ == 3 && __GNUC_MINOR__ >= 2
-+#elif __GNUC__ == 3
- # include <linux/compiler-gcc3.h>
- #else
--# error Sorry, your compiler is too old/not recognized.
-+# error Sorry, your compiler is not recognized.
- #endif
- 
- /* Intel compiler defines __GNUC__. So we will overwrite implementations
-diff -puN init/main.c~centralize-checking-for-an-acceptable-version-of-gcc init/main.c
---- a/init/main.c~centralize-checking-for-an-acceptable-version-of-gcc
-+++ a/init/main.c
-@@ -5,7 +5,6 @@
-  *
-  *  GK 2/5/95  -  Changed to support mounting root fs via NFS
-  *  Added initrd & change_root: Werner Almesberger & Hans Lermen, Feb '96
-- *  Moan early if gcc is old, avoiding bogus kernels - Paul Gortmaker, May '96
-  *  Simplified starting of init:  Michael A. Griffith <grif@acm.org> 
-  */
- 
-@@ -66,23 +65,6 @@
- #include <asm/smp.h>
- #endif
- 
--/*
-- * This is one of the first .c files built. Error out early if we have compiler
-- * trouble.
-- *
-- * Versions of gcc older than that listed below may actually compile and link
-- * okay, but the end product can have subtle run time bugs.  To avoid associated
-- * bogus bug reports, we flatly refuse to compile with a gcc that is known to be
-- * too old from the very beginning.
-- */
--#if (__GNUC__ < 3) || (__GNUC__ == 3 && __GNUC_MINOR__ < 2)
--#error Sorry, your GCC is too old. It builds incorrect kernels.
--#endif
--
--#if __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
--#warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
--#endif
--
- static int kernel_init(void *);
- 
- extern void init_IRQ(void);
+diff -puN drivers/net/usb/Kconfig~net-fix-typo-in-drivers-net-usb-kconf=
+ig drivers/net/usb/Kconfig
+--- a/drivers/net/usb/Kconfig~net-fix-typo-in-drivers-net-usb-kconfig
++++ a/drivers/net/usb/Kconfig
+@@ -313,8 +313,8 @@ config USB_KC2190
+ 	boolean "KT Technology KC2190 based cables (InstaNet)"
+ 	depends on USB_NET_CDC_SUBSET && EXPERIMENTAL
+ 	help
+-	 =A0Choose this option if you're using a host-to-host cable
+-	 =A0with one of these chips.
++	  Choose this option if you're using a host-to-host cable
++	  with one of these chips.
+=20
+ config USB_NET_ZAURUS
+ 	tristate "Sharp Zaurus (stock ROMs) and compatible"
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-protect-linux-console_structh-from-multiple-inclusion.patch
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
 git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-centralize-checking-for-an-acceptable-version-of-gcc.patch
+use-posix-bre-in-headers-install-target.patch
+net-fix-typo-in-drivers-net-usb-kconfig.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+x86-fix-section-mismatch-warnings-in-mtrr.patch
+i386-fix-section-mismatch-warning-in-intel_cacheinfo.patch
+git-newsetup.patch
+alpha-fix-trivial-section-mismatch-warnings.patch
