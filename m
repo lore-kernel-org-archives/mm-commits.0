@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + beeping-patch-for-debugging-acpi-sleep.patch added to -mm tree
-Date: Mon, 11 Jun 2007 11:55:50 -0700
-Message-ID: <200706111855.l5BItoLV026502@imap1.linux-foundation.org>
+Subject: + centralize-checking-for-an-acceptable-version-of-gcc.patch added to -mm tree
+Date: Mon, 11 Jun 2007 12:29:12 -0700
+Message-ID: <200706111929.l5BJTCBQ027248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45137 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39081 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752542AbXFKS4v (ORCPT
+	by vger.kernel.org with ESMTP id S1754702AbXFKT3V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 14:56:51 -0400
+	Mon, 11 Jun 2007 15:29:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, pavel@suse.cz, rjw@sisk.pl
+Cc: rpjday@mindspring.com
 
 
 The patch titled
-     beeping patch for debugging acpi sleep
+     Centralize checking for an acceptable version of gcc
 has been added to the -mm tree.  Its filename is
-     beeping-patch-for-debugging-acpi-sleep.patch
+     centralize-checking-for-an-acceptable-version-of-gcc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,86 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: beeping patch for debugging acpi sleep
-From: Pavel Machek <pavel@ucw.cz>
+Subject: Centralize checking for an acceptable version of gcc
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Starting beeper as soon as ACPI sleep returns is very useful in debugging
-"apparently dead" machines.  If it beeps at all, it makes sense to start
-playing with CMOS tracer.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/wakeup.S |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletion(-)
+ include/linux/compiler.h |   14 +++++++++++---
+ init/main.c              |   18 ------------------
+ 2 files changed, 11 insertions(+), 21 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/wakeup.S~beeping-patch-for-debugging-acpi-sleep arch/i386/kernel/acpi/wakeup.S
---- a/arch/i386/kernel/acpi/wakeup.S~beeping-patch-for-debugging-acpi-sleep
-+++ a/arch/i386/kernel/acpi/wakeup.S
-@@ -11,7 +11,22 @@
- #
- # If physical address of wakeup_code is 0x12345, BIOS should call us with
- # cs = 0x1234, eip = 0x05
--# 
-+#
+diff -puN include/linux/compiler.h~centralize-checking-for-an-acceptable-version-of-gcc include/linux/compiler.h
+--- a/include/linux/compiler.h~centralize-checking-for-an-acceptable-version-of-gcc
++++ a/include/linux/compiler.h
+@@ -36,12 +36,20 @@ extern void __chk_io_ptr(const void __io
+ 
+ #ifdef __KERNEL__
+ 
+-#if __GNUC__ >= 4
++/*
++ *  Start with some sanity checking on the version of gcc.
++ */
 +
-+#define BEEP \
-+	inb	$97, %al; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$3, %al; 	\
-+	outb	%al, $97; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-74, %al; 	\
-+	outb	%al, $67; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-119, %al; 	\
-+	outb	%al, $66; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$15, %al; 	\
-+	outb	%al, $66;
++#if (__GNUC__ < 3) || (__GNUC__ == 3 && __GNUC_MINOR__ < 2)
++# error Sorry, your GCC is too old. It builds incorrect kernels.
++#elif __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
++# warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
++#elif __GNUC__ == 4
+ # include <linux/compiler-gcc4.h>
+-#elif __GNUC__ == 3 && __GNUC_MINOR__ >= 2
++#elif __GNUC__ == 3
+ # include <linux/compiler-gcc3.h>
+ #else
+-# error Sorry, your compiler is too old/not recognized.
++# error Sorry, your compiler is not recognized.
+ #endif
  
- ALIGN
- 	.align	4096
-@@ -20,6 +35,9 @@ wakeup_code:
- 	wakeup_code_start = .
- 	.code16
+ /* Intel compiler defines __GNUC__. So we will overwrite implementations
+diff -puN init/main.c~centralize-checking-for-an-acceptable-version-of-gcc init/main.c
+--- a/init/main.c~centralize-checking-for-an-acceptable-version-of-gcc
++++ a/init/main.c
+@@ -5,7 +5,6 @@
+  *
+  *  GK 2/5/95  -  Changed to support mounting root fs via NFS
+  *  Added initrd & change_root: Werner Almesberger & Hans Lermen, Feb '96
+- *  Moan early if gcc is old, avoiding bogus kernels - Paul Gortmaker, May '96
+  *  Simplified starting of init:  Michael A. Griffith <grif@acm.org> 
+  */
  
-+# Uncomment this to make your computer start producing ugly noise as soon
-+# as BIOS returns to this real-mode entry point.
-+#	BEEP
-  	movw	$0xb800, %ax
- 	movw	%ax,%fs
- 	movw	$0x0e00 + 'L', %fs:(0x10)
+@@ -66,23 +65,6 @@
+ #include <asm/smp.h>
+ #endif
+ 
+-/*
+- * This is one of the first .c files built. Error out early if we have compiler
+- * trouble.
+- *
+- * Versions of gcc older than that listed below may actually compile and link
+- * okay, but the end product can have subtle run time bugs.  To avoid associated
+- * bogus bug reports, we flatly refuse to compile with a gcc that is known to be
+- * too old from the very beginning.
+- */
+-#if (__GNUC__ < 3) || (__GNUC__ == 3 && __GNUC_MINOR__ < 2)
+-#error Sorry, your GCC is too old. It builds incorrect kernels.
+-#endif
+-
+-#if __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
+-#warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
+-#endif
+-
+ static int kernel_init(void *);
+ 
+ extern void init_IRQ(void);
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-input.patch
-x86_64-pm_trace-support.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-beeping-patch-for-debugging-acpi-sleep.patch
+origin.patch
+protect-linux-console_structh-from-multiple-inclusion.patch
+ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
+viotape-use-designated-initializers-for-fops-member.patch
+git-dvb.patch
+git-ieee1394.patch
+input-delete-useless-reference-to-dead-module_parm-macro.patch
+git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-s390.patch
+git-scsi-misc.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+cris-replace-old-style-member-inits-with-designated-inits.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+remove-apparently-useless-commented-apm_get_battery_status.patch
+cobalt-remove-all-references-to-cobalt-nvram.patch
+centralize-checking-for-an-acceptable-version-of-gcc.patch
