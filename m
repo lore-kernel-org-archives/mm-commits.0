@@ -1,81 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - drop-the-superfluous-test-for-an-old-version-of-gcc.patch removed from -mm tree
-Date: Sat, 09 Jun 2007 09:32:24 -0700
-Message-ID: <200706091632.l59GWOiw008241@imap1.linux-foundation.org>
+Subject: + i386-mm-use-pte_update-in-ptep_test_and_clear_dirty.patch added to -mm tree
+Date: Mon, 11 Jun 2007 10:54:03 -0700
+Message-ID: <200706111754.l5BHs3cS025281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54311 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41518 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755383AbXFIQcc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 9 Jun 2007 12:32:32 -0400
+	by vger.kernel.org with ESMTP id S1751371AbXFKRyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 11 Jun 2007 13:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hugh@veritas.com, rientjes@google.com, zach@vmware.com
 
 
 The patch titled
-     Drop the superfluous test for an old version of gcc.
-has been removed from the -mm tree.  Its filename was
-     drop-the-superfluous-test-for-an-old-version-of-gcc.patch
+     i386 mm: use pte_update() in ptep_test_and_clear_dirty()
+has been added to the -mm tree.  Its filename is
+     i386-mm-use-pte_update-in-ptep_test_and_clear_dirty.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Drop the superfluous test for an old version of gcc.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: i386 mm: use pte_update() in ptep_test_and_clear_dirty()
+From: Hugh Dickins <hugh@veritas.com>
 
-The header file <linux/compiler.h> already enforces a suitably recent
-version of gcc, so there's no point checking for that again.
+It is not safe to use pte_update_defer() in ptep_test_and_clear_young():
+its only user, /proc/<pid>/clear_refs, drops pte lock before flushing TLB.
+Use the safe though less efficient pte_update() paravirtop in its place.
+Likewise in ptep_test_and_clear_dirty(), though that has no current use.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+These are macros (header file dependency stops them from becoming inline
+functions), so be more liberal with the underscores and parentheses.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    8 --------
- 1 file changed, 8 deletions(-)
+ include/asm-i386/pgtable.h |   26 ++++++++++++++------------
+ 1 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN init/main.c~drop-the-superfluous-test-for-an-old-version-of-gcc init/main.c
---- a/init/main.c~drop-the-superfluous-test-for-an-old-version-of-gcc
-+++ a/init/main.c
-@@ -69,15 +69,7 @@
- /*
-  * This is one of the first .c files built. Error out early if we have compiler
-  * trouble.
-- *
-- * Versions of gcc older than that listed below may actually compile and link
-- * okay, but the end product can have subtle run time bugs.  To avoid associated
-- * bogus bug reports, we flatly refuse to compile with a gcc that is known to be
-- * too old from the very beginning.
-  */
--#if (__GNUC__ < 3) || (__GNUC__ == 3 && __GNUC_MINOR__ < 2)
--#error Sorry, your GCC is too old. It builds incorrect kernels.
--#endif
+diff -puN include/asm-i386/pgtable.h~i386-mm-use-pte_update-in-ptep_test_and_clear_dirty include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~i386-mm-use-pte_update-in-ptep_test_and_clear_dirty
++++ a/include/asm-i386/pgtable.h
+@@ -295,22 +295,24 @@ do {									\
  
- #if __GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 0
- #warning gcc-4.1.0 is known to miscompile the kernel.  A different compiler version is recommended.
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define ptep_test_and_clear_dirty(vma, addr, ptep) ({			\
+-	int ret = 0;							\
+-	if (pte_dirty(*ptep))						\
+-		ret = test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte_low); \
+-	if (ret)							\
+-		pte_update_defer(vma->vm_mm, addr, ptep);		\
+-	ret;								\
++	int __ret = 0;							\
++	if (pte_dirty(*(ptep)))						\
++		__ret = test_and_clear_bit(_PAGE_BIT_DIRTY,		\
++						&(ptep)->pte_low);	\
++	if (__ret)							\
++		pte_update((vma)->vm_mm, addr, ptep);			\
++	__ret;								\
+ })
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ #define ptep_test_and_clear_young(vma, addr, ptep) ({			\
+-	int ret = 0;							\
+-	if (pte_young(*ptep))						\
+-		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED, &ptep->pte_low); \
+-	if (ret)							\
+-		pte_update_defer(vma->vm_mm, addr, ptep);		\
+-	ret;								\
++	int __ret = 0;							\
++	if (pte_young(*(ptep)))						\
++		__ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,		\
++						&(ptep)->pte_low);	\
++	if (__ret)							\
++		pte_update((vma)->vm_mm, addr, ptep);			\
++	__ret;								\
+ })
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-origin.patch
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-cobalt-remove-all-traces-of-cobalt-from-nvramc.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-drop-the-superfluous-test-for-an-old-version-of-gcc.patch
+mount-t-tmpfs-o-mpol=-check-nodes-online.patch
+i386-mm-use-pte_update-in-ptep_test_and_clear_dirty.patch
+x86_64-acpi-disable-srat-when-numa-emulation-succeeds-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+unmap_vm_area-becomes-unmap_kernel_range-for-the-public.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+hugetlbfs-use-lib-parser-fix-docs.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+prio_tree-debugging-patch.patch
