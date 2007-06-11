@@ -1,80 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - i386-show-unhandled-signals-checkpatch.patch removed from -mm tree
-Date: Mon, 11 Jun 2007 14:16:42 -0700
-Message-ID: <200706112116.l5BLGg67029328@imap1.linux-foundation.org>
+Subject: - revert-ide-ide-hpa-detect-from-resume.patch removed from -mm tree
+Date: Mon, 11 Jun 2007 14:57:11 -0700
+Message-ID: <200706112157.l5BLvB5D030095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46801 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750876AbXFKVQz (ORCPT
+	by vger.kernel.org with ESMTP id S1751418AbXFKV6I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 17:16:55 -0400
+	Mon, 11 Jun 2007 17:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, masouds@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, lt73@cs.drexel.edu, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-show-unhandled-signals-checkpatch
+     revert ide-ide-hpa-detect-from-resume
 has been removed from the -mm tree.  Its filename was
-     i386-show-unhandled-signals-checkpatch.patch
+     revert-ide-ide-hpa-detect-from-resume.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: i386-show-unhandled-signals-checkpatch
+Subject: revert ide-ide-hpa-detect-from-resume
 From: Andrew Morton <akpm@linux-foundation.org>
 
-printk() should include KERN_ facility level
-#46: FILE: arch/i386/kernel/signal.c:203:
-+		printk("%s%s[%d] bad frame in sigreturn frame:%p eip:%lx"
+Rafael said:
 
-printk() should include KERN_ facility level
-#90: FILE: arch/i386/mm/fault.c:477:
-+			printk("%s%s[%d]: segfault at %08lx eip %08lx "
+Here's the result of the search for the second patch that breaks resuming
+from RAM on HPC nx6325 (x86_64):
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+ide-ide-hpa-detect-from-resume.patch
 
+The symptom is that after the resume there's no backlight and the screen
+apparently doesn't work, 100% of the time, although apart from this the system
+seems to be functional.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Masoud Sharbiani <masouds@google.com>
+The box doesn't even have an IDE HDD, but the DVD is handled by the atiixp
+driver.
+
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Lee Trager <lt73@cs.drexel.edu>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/signal.c |    4 ++--
- arch/i386/mm/fault.c      |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/ide/ide-disk.c |   12 ------------
+ drivers/ide/ide.c      |    9 +--------
+ include/linux/ide.h    |    1 -
+ 3 files changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN arch/i386/kernel/signal.c~i386-show-unhandled-signals-checkpatch arch/i386/kernel/signal.c
---- a/arch/i386/kernel/signal.c~i386-show-unhandled-signals-checkpatch
-+++ a/arch/i386/kernel/signal.c
-@@ -200,8 +200,8 @@ asmlinkage int sys_sigreturn(unsigned lo
+diff -puN drivers/ide/ide-disk.c~revert-ide-ide-hpa-detect-from-resume drivers/ide/ide-disk.c
+--- a/drivers/ide/ide-disk.c~revert-ide-ide-hpa-detect-from-resume
++++ a/drivers/ide/ide-disk.c
+@@ -1037,17 +1037,6 @@ static void ide_disk_release(struct kref
  
- badframe:
- 	if (show_unhandled_signals && printk_ratelimit())
--		printk("%s%s[%d] bad frame in sigreturn frame:%p eip:%lx"
--		       " esp:%lx oeax:%lx\n",
-+		printk(KERN_INFO "%s%s[%d] bad frame in sigreturn frame:%p "
-+		    "eip:%lx esp:%lx oeax:%lx\n",
- 		    current->pid > 1 ? KERN_INFO : KERN_EMERG,
- 		    current->comm, current->pid, frame, regs->eip,
- 		    regs->esp, regs->orig_eax);
-diff -puN arch/i386/mm/fault.c~i386-show-unhandled-signals-checkpatch arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~i386-show-unhandled-signals-checkpatch
-+++ a/arch/i386/mm/fault.c
-@@ -474,8 +474,8 @@ bad_area_nosemaphore:
+ static int ide_disk_probe(ide_drive_t *drive);
  
- 		if (show_unhandled_signals && unhandled_signal(tsk, SIGSEGV) &&
- 		    printk_ratelimit()) {
--			printk("%s%s[%d]: segfault at %08lx eip %08lx "
--			    "esp %08lx error %lx\n",
-+			printk(KERN_INFO "%s%s[%d]: segfault at %08lx eip %08lx"
-+			    " esp %08lx error %lx\n",
- 			    tsk->pid > 1 ? KERN_INFO : KERN_EMERG,
- 			    tsk->comm, tsk->pid, address, regs->eip,
- 			    regs->esp, error_code);
+-/*
+- * On HPA drives the capacity needs to be
+- * reinitilized on resume otherwise the disk
+- * can not be used and a hard reset is required
+- */
+-static void ide_disk_resume(ide_drive_t *drive)
+-{
+-	if (idedisk_supports_hpa(drive->id))
+-		init_idedisk_capacity(drive);
+-}
+-
+ static void ide_device_shutdown(ide_drive_t *drive)
+ {
+ #ifdef	CONFIG_ALPHA
+@@ -1082,7 +1071,6 @@ static ide_driver_t idedisk_driver = {
+ 	},
+ 	.probe			= ide_disk_probe,
+ 	.remove			= ide_disk_remove,
+-	.resume			= ide_disk_resume,
+ 	.shutdown		= ide_device_shutdown,
+ 	.version		= IDEDISK_VERSION,
+ 	.media			= ide_disk,
+diff -puN drivers/ide/ide.c~revert-ide-ide-hpa-detect-from-resume drivers/ide/ide.c
+--- a/drivers/ide/ide.c~revert-ide-ide-hpa-detect-from-resume
++++ a/drivers/ide/ide.c
+@@ -1010,11 +1010,9 @@ static int generic_ide_resume(struct dev
+ {
+ 	ide_drive_t *drive = dev->driver_data;
+ 	ide_hwif_t *hwif = HWIF(drive);
+-	ide_driver_t *drv = to_ide_driver(dev->driver);
+ 	struct request rq;
+ 	struct request_pm_state rqpm;
+ 	ide_task_t args;
+-	int err;
+ 
+ 	/* Call ACPI _STM only once */
+ 	if (!(drive->dn % 2))
+@@ -1031,12 +1029,7 @@ static int generic_ide_resume(struct dev
+ 	rqpm.pm_step = ide_pm_state_start_resume;
+ 	rqpm.pm_state = PM_EVENT_ON;
+ 
+-	err = ide_do_drive_cmd(drive, &rq, ide_head_wait);
+-
+-	if (err == 0 && drv && drv->resume)
+-		drv->resume(drive);
+-
+-	return err;
++	return ide_do_drive_cmd(drive, &rq, ide_head_wait);
+ }
+ 
+ int generic_ide_ioctl(ide_drive_t *drive, struct file *file, struct block_device *bdev,
+diff -puN include/linux/ide.h~revert-ide-ide-hpa-detect-from-resume include/linux/ide.h
+--- a/include/linux/ide.h~revert-ide-ide-hpa-detect-from-resume
++++ a/include/linux/ide.h
+@@ -1002,7 +1002,6 @@ struct ide_driver_s {
+ 	struct device_driver	gen_driver;
+ 	int		(*probe)(ide_drive_t *);
+ 	void		(*remove)(ide_drive_t *);
+-	void		(*resume)(ide_drive_t *);
+ 	void		(*shutdown)(ide_drive_t *);
+ #ifdef CONFIG_IDE_PROC_FS
+ 	ide_proc_entry_t	*proc;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,7 +195,6 @@ paravirt-helper-to-disable-all-io-space-fix.patch
 i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
 i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
 i386-mtrr-clean-up-usage_table.patch
-i386-show-unhandled-signals-checkpatch.patch
 git-xfs.patch
 git-cryptodev.patch
 acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
