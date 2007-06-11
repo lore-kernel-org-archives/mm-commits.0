@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mutexh-from-attribute_containerc.patch added to -mm tree
-Date: Mon, 11 Jun 2007 12:58:06 -0700
-Message-ID: <200706111958.l5BJw6X1027837@imap1.linux-foundation.org>
+Subject: + udf-fix-possible-leakage-of-blocks.patch added to -mm tree
+Date: Mon, 11 Jun 2007 13:04:08 -0700
+Message-ID: <200706112004.l5BK48N4028002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56260 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753150AbXFKT6Q (ORCPT
+	by vger.kernel.org with ESMTP id S1755789AbXFKUEV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 15:58:16 -0400
+	Mon, 11 Jun 2007 16:04:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mst@dev.mellanox.co.il
+Cc: jack@suse.cz, gorcunov@gmail.com, sandeen@sandeen.net
 
 
 The patch titled
-     include linux/mutex.h from attribute_container.c
+     udf: fix possible leakage of blocks
 has been added to the -mm tree.  Its filename is
-     include-linux-mutexh-from-attribute_containerc.patch
+     udf-fix-possible-leakage-of-blocks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,196 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: include linux/mutex.h from attribute_container.c
-From: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
+Subject: udf: fix possible leakage of blocks
+From: Jan Kara <jack@suse.cz>
 
-attribute_container.c uses DEFINE_MUTEX, so while linux/mutex.h seems to be
-pulled in indirectly by one of the headers it includes, the right thing is
-to include linux/mutex.h directly.
+We have to take care that when we call udf_discard_prealloc() from
+udf_clear_inode() we have to write inode ourselves afterwards (otherwise,
+some changes might be lost leading to leakage of blocks, use of free blocks
+or improperly aligned extents).
 
-Signed-off-by: Michael S. Tsirkin <mst@dev.mellanox.co.il>
+Also udf_discard_prealloc() does two different things - it removes
+preallocated blocks and truncates the last extent to exactly match i_size. 
+We move the latter functionality to udf_truncate_tail_extent(), call
+udf_discard_prealloc() when last reference to a file is dropped and call
+udf_truncate_tail_extent() when inode is being removed from inode cache
+(udf_clear_inode() call).
+
+We cannot call udf_truncate_tail_extent() earlier as subsequent open+write
+would find the last block of the file mapped and happily write to the end
+of it, although the last extent says it's shorter.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Eric Sandeen <sandeen@sandeen.net>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/attribute_container.c |    1 +
- 1 files changed, 1 insertion(+)
+ fs/udf/inode.c    |   11 ++++++
+ fs/udf/truncate.c |   73 +++++++++++++++++++++++++++++++++++++-------
+ fs/udf/udfdecl.h  |    1 
+ 3 files changed, 73 insertions(+), 12 deletions(-)
 
-diff -puN drivers/base/attribute_container.c~include-linux-mutexh-from-attribute_containerc drivers/base/attribute_container.c
---- a/drivers/base/attribute_container.c~include-linux-mutexh-from-attribute_containerc
-+++ a/drivers/base/attribute_container.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/mutex.h>
+diff -puN fs/udf/inode.c~udf-fix-possible-leakage-of-blocks fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-fix-possible-leakage-of-blocks
++++ a/fs/udf/inode.c
+@@ -101,14 +101,23 @@ no_delete:
+ 	clear_inode(inode);
+ }
  
- #include "base.h"
++/*
++ * If we are going to release inode from memory, we discard preallocation and
++ * truncate last inode extent to proper length. We could use drop_inode() but it's
++ * called under inode_lock and thus we cannot mark inode dirty there. We use
++ * clear_inode() but we have to make sure to write inode as it's not written
++ * automatically.
++ */
+ void udf_clear_inode(struct inode *inode)
+ {
+ 	if (!(inode->i_sb->s_flags & MS_RDONLY)) {
+ 		lock_kernel();
++		/* Discard preallocation for directories, symlinks, etc. */
+ 		udf_discard_prealloc(inode);
++		udf_truncate_tail_extent(inode);
+ 		unlock_kernel();
++		write_inode_now(inode, 1);
+ 	}
+-
+ 	kfree(UDF_I_DATA(inode));
+ 	UDF_I_DATA(inode) = NULL;
+ }
+diff -puN fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks fs/udf/truncate.c
+--- a/fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks
++++ a/fs/udf/truncate.c
+@@ -61,7 +61,11 @@ static void extent_trunc(struct inode * 
+ 	}
+ }
+ 
+-void udf_discard_prealloc(struct inode * inode)
++/*
++ * Truncate the last extent to match i_size. This function assumes
++ * that preallocation extent is already truncated.
++ */
++void udf_truncate_tail_extent(struct inode *inode)
+ {
+ 	struct extent_position epos = { NULL, 0, {0, 0}};
+ 	kernel_lb_addr eloc;
+@@ -71,7 +75,10 @@ void udf_discard_prealloc(struct inode *
+ 	int adsize;
+ 
+ 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
+-		inode->i_size == UDF_I_LENEXTENTS(inode))
++	    inode->i_size == UDF_I_LENEXTENTS(inode))
++		return;
++	/* Are we going to delete the file anyway? */
++	if (inode->i_nlink == 0)
+ 		return;
+ 
+ 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
+@@ -79,25 +86,69 @@ void udf_discard_prealloc(struct inode *
+ 	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+-		adsize = 0;
+-
+-	epos.block = UDF_I_LOCATION(inode);
++		BUG();
+ 
+ 	/* Find the last extent in the file */
+ 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
+ 	{
+ 		etype = netype;
+ 		lbcount += elen;
+-		if (lbcount > inode->i_size && lbcount - elen < inode->i_size)
+-		{
+-			WARN_ON(lbcount - inode->i_size >= inode->i_sb->s_blocksize);
++		if (lbcount > inode->i_size) {
++			if (lbcount - inode->i_size >= inode->i_sb->s_blocksize)
++				printk(KERN_WARNING
++				       "udf_truncate_tail_extent(): Too long "
++				       "extent after EOF in inode %u: i_size: "
++				       "%Ld lbcount: %Ld extent %u+%u\n",
++				       (unsigned)inode->i_ino,
++				       (long long)inode->i_size,
++				       (long long)lbcount,
++				       (unsigned)eloc.logicalBlockNum,
++				       (unsigned)elen);
+ 			nelen = elen - (lbcount - inode->i_size);
+ 			epos.offset -= adsize;
+ 			extent_trunc(inode, &epos, eloc, etype, elen, nelen);
+ 			epos.offset += adsize;
+-			lbcount = inode->i_size;
++			if (udf_next_aext(inode, &epos, &eloc, &elen, 1) != -1)
++				printk(KERN_ERR "udf_truncate_tail_extent(): "
++				       "Extent after EOF in inode %u.\n",
++				       (unsigned)inode->i_ino);
++			break;
+ 		}
+ 	}
++	/* This inode entry is in-memory only and thus we don't have to mark
++	 * the inode dirty */
++	UDF_I_LENEXTENTS(inode) = inode->i_size;
++	brelse(epos.bh);
++}
++
++void udf_discard_prealloc(struct inode * inode)
++{
++	struct extent_position epos = { NULL, 0, {0, 0}};
++	kernel_lb_addr eloc;
++	uint32_t elen;
++	uint64_t lbcount = 0;
++	int8_t etype = -1, netype;
++	int adsize;
++
++	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
++		inode->i_size == UDF_I_LENEXTENTS(inode))
++		return;
++
++	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++		adsize = sizeof(short_ad);
++	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++		adsize = sizeof(long_ad);
++	else
++		adsize = 0;
++
++	epos.block = UDF_I_LOCATION(inode);
++
++	/* Find the last extent in the file */
++	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
++	{
++		etype = netype;
++		lbcount += elen;
++	}
+ 	if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
+ 		epos.offset -= adsize;
+ 		lbcount -= elen;
+@@ -118,9 +169,9 @@ void udf_discard_prealloc(struct inode *
+ 			mark_buffer_dirty_inode(epos.bh, inode);
+ 		}
+ 	}
++	/* This inode entry is in-memory only and thus we don't have to mark
++	 * the inode dirty */
+ 	UDF_I_LENEXTENTS(inode) = lbcount;
+-
+-	WARN_ON(lbcount != inode->i_size);
+ 	brelse(epos.bh);
+ }
+ 
+diff -puN fs/udf/udfdecl.h~udf-fix-possible-leakage-of-blocks fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-fix-possible-leakage-of-blocks
++++ a/fs/udf/udfdecl.h
+@@ -146,6 +146,7 @@ extern void udf_free_inode(struct inode 
+ extern struct inode * udf_new_inode (struct inode *, int, int *);
+ 
+ /* truncate.c */
++extern void udf_truncate_tail_extent(struct inode *);
+ extern void udf_discard_prealloc(struct inode *);
+ extern void udf_truncate_extents(struct inode *);
  
 _
 
-Patches currently in -mm which might be from mst@dev.mellanox.co.il are
+Patches currently in -mm which might be from jack@suse.cz are
 
-include-linux-mutexh-from-attribute_containerc.patch
+udf-fix-possible-leakage-of-blocks.patch
+udf-fix-possible-leakage-of-blocks-fix.patch
+ext2-fix-a-comment-when-ext2_release_file-is-called.patch
