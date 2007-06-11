@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fs_flags-fixlet.patch added to -mm tree
-Date: Mon, 11 Jun 2007 12:57:21 -0700
-Message-ID: <200706111957.l5BJvLqn027827@imap1.linux-foundation.org>
+Subject: + include-linux-mutexh-from-attribute_containerc.patch added to -mm tree
+Date: Mon, 11 Jun 2007 12:58:06 -0700
+Message-ID: <200706111958.l5BJw6X1027837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56681 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56260 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753662AbXFKT5c (ORCPT
+	by vger.kernel.org with ESMTP id S1753150AbXFKT6Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 15:57:32 -0400
+	Mon, 11 Jun 2007 15:58:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, mszeredi@suse.cz
+Cc: mst@dev.mellanox.co.il
 
 
 The patch titled
-     fuse: ->fs_flags fixlet
+     include linux/mutex.h from attribute_container.c
 has been added to the -mm tree.  Its filename is
-     fuse-fs_flags-fixlet.patch
+     include-linux-mutexh-from-attribute_containerc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: ->fs_flags fixlet
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: include linux/mutex.h from attribute_container.c
+From: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
 
-fs/fuse/inode.c:658:3: error: Initializer entry defined twice
-fs/fuse/inode.c:661:3:   also defined here
+attribute_container.c uses DEFINE_MUTEX, so while linux/mutex.h seems to be
+pulled in indirectly by one of the headers it includes, the right thing is
+to include linux/mutex.h directly.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Michael S. Tsirkin <mst@dev.mellanox.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/base/attribute_container.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN fs/fuse/inode.c~fuse-fs_flags-fixlet fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fs_flags-fixlet
-+++ a/fs/fuse/inode.c
-@@ -655,10 +655,9 @@ static int fuse_get_sb_blk(struct file_s
- static struct file_system_type fuseblk_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "fuseblk",
--	.fs_flags	= FS_HAS_SUBTYPE,
- 	.get_sb		= fuse_get_sb_blk,
- 	.kill_sb	= kill_block_super,
--	.fs_flags	= FS_REQUIRES_DEV,
-+	.fs_flags	= FS_REQUIRES_DEV | FS_HAS_SUBTYPE,
- };
+diff -puN drivers/base/attribute_container.c~include-linux-mutexh-from-attribute_containerc drivers/base/attribute_container.c
+--- a/drivers/base/attribute_container.c~include-linux-mutexh-from-attribute_containerc
++++ a/drivers/base/attribute_container.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
++#include <linux/mutex.h>
  
- static inline int register_fuseblk(void)
+ #include "base.h"
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from mst@dev.mellanox.co.il are
 
-fuse-fs_flags-fixlet.patch
-git-parisc.patch
-procfs-directory-entry-cleanup-fix.patch
-remove-capabilityh-from-mmh.patch
+include-linux-mutexh-from-attribute_containerc.patch
