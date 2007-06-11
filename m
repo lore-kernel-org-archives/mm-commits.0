@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-zero-malloc-fix-for-old-cpusets.patch added to -mm tree
-Date: Mon, 11 Jun 2007 11:40:53 -0700
-Message-ID: <200706111840.l5BIerKq026185@imap1.linux-foundation.org>
+Subject: + cpuset-zero-malloc-revert-the-old-cpuset-fix.patch added to -mm tree
+Date: Mon, 11 Jun 2007 11:45:55 -0700
+Message-ID: <200706111845.l5BIjtA2026264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37942 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754466AbXFKSlq (ORCPT
+	by vger.kernel.org with ESMTP id S1756502AbXFKSq1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 14:41:46 -0400
+	Mon, 11 Jun 2007 14:46:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: pj@sgi.com, balbir@in.ibm.com, clameter@sgi.com, dev@openvz.org, ebiederm@xm
 
 
 The patch titled
-     cpuset: zero malloc - fix for old cpusets
+     cpuset: zero malloc - revert the old cpuset fix
 has been added to the -mm tree.  Its filename is
-     cpuset-zero-malloc-fix-for-old-cpusets.patch
+     cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpuset: zero malloc - fix for old cpusets
+Subject: cpuset: zero malloc - revert the old cpuset fix
 From: Paul Jackson <pj@sgi.com>
 
 The cpuset code to present a list of tasks using a cpuset to user space could
@@ -66,17 +66,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/cpuset.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpuset-zero-malloc-fix-for-old-cpusets kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-zero-malloc-fix-for-old-cpusets
+diff -puN kernel/cpuset.c~cpuset-zero-malloc-revert-the-old-cpuset-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-zero-malloc-revert-the-old-cpuset-fix
 +++ a/kernel/cpuset.c
-@@ -1682,9 +1682,9 @@ static int pid_array_load(pid_t *pidarra
+@@ -1620,9 +1620,9 @@ static int pid_array_load(pid_t *pidarra
  
  	do_each_thread(g, p) {
  		if (p->cpuset == cs) {
--			pidarray[n++] = p->pid;
++			pidarray[n++] = p->pid;
  			if (unlikely(n == npids))
  				goto array_full;
-+			pidarray[n++] = p->pid;
+-			pidarray[n++] = p->pid;
  		}
  	} while_each_thread(g, p);
  
