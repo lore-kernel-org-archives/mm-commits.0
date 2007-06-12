@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-measure-lock-bouncing.patch added to -mm tree
-Date: Tue, 12 Jun 2007 13:58:52 -0700
-Message-ID: <200706122058.l5CKwqVm021028@imap1.linux-foundation.org>
+Subject: + lockdep-various-fixes.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:58:40 -0700
+Message-ID: <200706122058.l5CKwgBl021019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46555 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41586 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750778AbXFLU7I (ORCPT
+	by vger.kernel.org with ESMTP id S1750747AbXFLU7D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 16:59:08 -0400
+	Tue, 12 Jun 2007 16:59:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     lockstat: measure lock bouncing
+     lockdep: various fixes
 has been added to the -mm tree.  Its filename is
-     lockstat-measure-lock-bouncing.patch
+     lockdep-various-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,247 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockstat: measure lock bouncing
+Subject: lockdep: various fixes
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-    __acquire
-        |
-       lock _____
-        |        \
-        |    __contended
-        |         |
-        |        wait
-        | _______/
-        |/
-        |
-   __acquired
-        |
-   __release
-        |
-     unlock
-
-We measure acquisition and contention bouncing.
-
-This is done by recording a cpu stamp in each lock instance.
-
-Contention bouncing requires the cpu stamp to be set on acquisition. Hence we
-move __acquired into the generic path.
-
-__acquired is then used to measure acquisition bouncing by comparing the
-current cpu with the old stamp before replacing it.
-
-__contended is used to measure contention bouncing (only useful for preemptable
-locks)
+ - update the copyright notices
+ - use the default hash function
+ - fix a thinko in a BUILD_BUG_ON
+ - add a WARN_ON to spot inconsitent naming
+ - fix a termination issue in /proc/lock_stat
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |   17 ++++++++++++++++-
- kernel/lockdep.c        |   38 ++++++++++++++++++++++++++------------
- kernel/lockdep_proc.c   |   18 +++++++++++-------
- kernel/mutex.c          |    2 +-
- 4 files changed, 54 insertions(+), 21 deletions(-)
+ include/linux/lockdep.h |    3 ++-
+ kernel/lockdep.c        |   20 +++++++++++---------
+ kernel/lockdep_proc.c   |    6 +++++-
+ 3 files changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockstat-measure-lock-bouncing include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockstat-measure-lock-bouncing
+diff -puN include/linux/lockdep.h~lockdep-various-fixes include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-various-fixes
 +++ a/include/linux/lockdep.h
-@@ -130,12 +130,24 @@ struct lock_time {
- 	unsigned long			nr;
- };
- 
-+enum bounce_type {
-+	bounce_acquired_write,
-+	bounce_acquired_read,
-+	bounce_contended_write,
-+	bounce_contended_read,
-+	nr_bounce_types,
-+
-+	bounce_acquired = bounce_acquired_write,
-+	bounce_contended = bounce_contended_write,
-+};
-+
- struct lock_class_stats {
- 	unsigned long			contention_point[4];
- 	struct lock_time		read_waittime;
- 	struct lock_time		write_waittime;
- 	struct lock_time		read_holdtime;
- 	struct lock_time		write_holdtime;
-+	unsigned long			bounces[nr_bounce_types];
- };
- 
- struct lock_class_stats lock_stats(struct lock_class *class);
-@@ -150,6 +162,9 @@ struct lockdep_map {
- 	struct lock_class_key		*key;
- 	struct lock_class		*class_cache;
- 	const char			*name;
-+#ifdef CONFIG_LOCK_STAT
-+	int				cpu;
-+#endif
- };
- 
+@@ -1,7 +1,8 @@
  /*
-@@ -321,8 +336,8 @@ do {								\
- 	if (!try(_lock)) {					\
- 		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
- 		lock(_lock);					\
--		lock_acquired(&(_lock)->dep_map);		\
- 	}							\
-+	lock_acquired(&(_lock)->dep_map);			\
- } while (0)
- 
- #else /* CONFIG_LOCK_STAT */
-diff -puN kernel/lockdep.c~lockstat-measure-lock-bouncing kernel/lockdep.c
---- a/kernel/lockdep.c~lockstat-measure-lock-bouncing
+  * Runtime locking correctness validator
+  *
+- *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
++ *  Copyright (C) 2006,2007 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
++ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
+  *
+  * see Documentation/lockdep-design.txt for more details.
+  */
+diff -puN kernel/lockdep.c~lockdep-various-fixes kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-various-fixes
 +++ a/kernel/lockdep.c
-@@ -177,6 +177,9 @@ struct lock_class_stats lock_stats(struc
+@@ -5,7 +5,8 @@
+  *
+  * Started by Ingo Molnar:
+  *
+- *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
++ *  Copyright (C) 2006,2007 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
++ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
+  *
+  * this code maps all the lock dependencies as they occur in a live kernel
+  * and will warn about the following classes of locking bugs:
+@@ -37,6 +38,7 @@
+ #include <linux/debug_locks.h>
+ #include <linux/irqflags.h>
+ #include <linux/utsname.h>
++#include <linux/hash.h>
  
- 		lock_time_add(&pcs->read_holdtime, &stats.read_holdtime);
- 		lock_time_add(&pcs->write_holdtime, &stats.write_holdtime);
-+
-+		for (i = 0; i < ARRAY_SIZE(stats.bounces); i++)
-+			stats.bounces[i] += pcs->bounces[i];
- 	}
+ #include <asm/sections.h>
  
- 	return stats;
-@@ -2325,6 +2328,9 @@ void lockdep_init_map(struct lockdep_map
- 	lock->name = name;
- 	lock->key = key;
- 	lock->class_cache = NULL;
-+#ifdef CONFIG_LOCK_STAT
-+	lock->cpu = raw_smp_processor_id();
-+#endif
- 	if (subclass)
- 		register_lock_class(lock, subclass, 1);
- }
-@@ -2775,6 +2781,8 @@ found_it:
- 	stats = get_lock_stats(hlock->class);
- 	if (point < ARRAY_SIZE(stats->contention_point))
- 		stats->contention_point[i]++;
-+	if (lock->cpu != smp_processor_id())
-+		stats->bounces[bounce_contended + !!hlock->read]++;
- 	put_lock_stats(stats);
- }
+@@ -238,8 +240,7 @@ LIST_HEAD(all_lock_classes);
+  */
+ #define CLASSHASH_BITS		(MAX_LOCKDEP_KEYS_BITS - 1)
+ #define CLASSHASH_SIZE		(1UL << CLASSHASH_BITS)
+-#define CLASSHASH_MASK		(CLASSHASH_SIZE - 1)
+-#define __classhashfn(key)	((((unsigned long)key >> CLASSHASH_BITS) + (unsigned long)key) & CLASSHASH_MASK)
++#define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
+ #define classhashentry(key)	(classhash_table + __classhashfn((key)))
  
-@@ -2786,8 +2794,8 @@ __lock_acquired(struct lockdep_map *lock
- 	struct lock_class_stats *stats;
- 	unsigned int depth;
- 	u64 now;
--	s64 waittime;
--	int i;
-+	s64 waittime = 0;
-+	int i, cpu;
+ static struct list_head classhash_table[CLASSHASH_SIZE];
+@@ -250,9 +251,7 @@ static struct list_head classhash_table[
+  */
+ #define CHAINHASH_BITS		(MAX_LOCKDEP_CHAINS_BITS-1)
+ #define CHAINHASH_SIZE		(1UL << CHAINHASH_BITS)
+-#define CHAINHASH_MASK		(CHAINHASH_SIZE - 1)
+-#define __chainhashfn(chain) \
+-		(((chain >> CHAINHASH_BITS) + chain) & CHAINHASH_MASK)
++#define __chainhashfn(chain)	hash_long(chain, CHAINHASH_BITS)
+ #define chainhashentry(chain)	(chainhash_table + __chainhashfn((chain)))
  
- 	depth = curr->lockdep_depth;
- 	if (DEBUG_LOCKS_WARN_ON(!depth))
-@@ -2809,19 +2817,25 @@ __lock_acquired(struct lockdep_map *lock
- 	return;
+ static struct list_head chainhash_table[CHAINHASH_SIZE];
+@@ -676,7 +675,7 @@ look_up_lock_class(struct lockdep_map *l
+ 	 * (or spin_lock_init()) call - which acts as the key. For static
+ 	 * locks we use the lock object itself as the key.
+ 	 */
+-	BUILD_BUG_ON(sizeof(struct lock_class_key) > sizeof(struct lock_class));
++	BUILD_BUG_ON(sizeof(struct lock_class_key) > sizeof(struct lockdep_map));
  
- found_it:
--	if (!hlock->waittime_stamp)
--		return;
--
--	now = sched_clock();
--	waittime = now - hlock->waittime_stamp;
--	hlock->holdtime_stamp = now;
-+	cpu = smp_processor_id();
-+	if (hlock->waittime_stamp) {
-+		now = sched_clock();
-+		waittime = now - hlock->waittime_stamp;
-+		hlock->holdtime_stamp = now;
+ 	key = lock->key->subkeys + subclass;
+ 
+@@ -686,9 +685,12 @@ look_up_lock_class(struct lockdep_map *l
+ 	 * We can walk the hash lockfree, because the hash only
+ 	 * grows, and we are careful when adding entries to the end:
+ 	 */
+-	list_for_each_entry(class, hash_head, hash_entry)
+-		if (class->key == key)
++	list_for_each_entry(class, hash_head, hash_entry) {
++		if (class->key == key) {
++			WARN_ON_ONCE(class->name != lock->name);
+ 			return class;
++		}
 +	}
  
- 	stats = get_lock_stats(hlock->class);
--	if (hlock->read)
--		lock_time_inc(&stats->read_waittime, waittime);
--	else
--		lock_time_inc(&stats->write_waittime, waittime);
-+	if (waittime) {
-+		if (hlock->read)
-+			lock_time_inc(&stats->read_waittime, waittime);
-+		else
-+			lock_time_inc(&stats->write_waittime, waittime);
-+	}
-+	if (lock->cpu != cpu)
-+		stats->bounces[bounce_acquired + !!hlock->read]++;
- 	put_lock_stats(stats);
-+
-+	lock->cpu = cpu;
+ 	return NULL;
  }
- 
- void lock_contended(struct lockdep_map *lock, unsigned long ip)
-diff -puN kernel/lockdep_proc.c~lockstat-measure-lock-bouncing kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockstat-measure-lock-bouncing
+diff -puN kernel/lockdep_proc.c~lockdep-various-fixes kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockdep-various-fixes
 +++ a/kernel/lockdep_proc.c
-@@ -430,16 +430,18 @@ static void seq_stats(struct seq_file *m
- 		else
- 			seq_printf(m, "%40s:", name);
+@@ -5,7 +5,8 @@
+  *
+  * Started by Ingo Molnar:
+  *
+- *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
++ *  Copyright (C) 2006,2007 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
++ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
+  *
+  * Code for /proc/lockdep and /proc/lockdep_stats:
+  *
+@@ -498,6 +499,9 @@ static void *ls_start(struct seq_file *m
+ 	if (data->iter == data->stats)
+ 		seq_header(m);
  
-+		seq_printf(m, "%14lu ", stats->bounces[bounce_contended_write]);
- 		seq_lock_time(m, &stats->write_waittime);
--		seq_puts(m, " ");
-+		seq_printf(m, " %14lu ", stats->bounces[bounce_acquired_write]);
- 		seq_lock_time(m, &stats->write_holdtime);
- 		seq_puts(m, "\n");
- 	}
- 
- 	if (stats->read_holdtime.nr) {
- 		seq_printf(m, "%38s-R:", name);
-+		seq_printf(m, "%14lu ", stats->bounces[bounce_contended_read]);
- 		seq_lock_time(m, &stats->read_waittime);
--		seq_puts(m, " ");
-+		seq_printf(m, " %14lu ", stats->bounces[bounce_acquired_read]);
- 		seq_lock_time(m, &stats->read_holdtime);
- 		seq_puts(m, "\n");
- 	}
-@@ -469,26 +471,28 @@ static void seq_stats(struct seq_file *m
- 	}
- 	if (i) {
- 		seq_puts(m, "\n");
--		seq_line(m, '.', 0, 40 + 1 + 8 * (14 + 1));
-+		seq_line(m, '.', 0, 40 + 1 + 10 * (14 + 1));
- 		seq_puts(m, "\n");
- 	}
++	if (data->iter == data->iter_end)
++		data->iter = NULL;
++
+ 	return data->iter;
  }
  
- static void seq_header(struct seq_file *m)
- {
--	seq_printf(m, "lock_stat version 0.1\n");
--	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
--	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s\n",
-+	seq_printf(m, "lock_stat version 0.2\n");
-+	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
-+	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s %14s %14s\n",
- 			"class name",
-+			"con-bounces",
- 			"contentions",
- 			"waittime-min",
- 			"waittime-max",
- 			"waittime-total",
-+			"acq-bounces",
- 			"acquisitions",
- 			"holdtime-min",
- 			"holdtime-max",
- 			"holdtime-total");
--	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
-+	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
- 	seq_printf(m, "\n");
- }
- 
-diff -puN kernel/mutex.c~lockstat-measure-lock-bouncing kernel/mutex.c
---- a/kernel/mutex.c~lockstat-measure-lock-bouncing
-+++ a/kernel/mutex.c
-@@ -180,8 +180,8 @@ __mutex_lock_common(struct mutex *lock, 
- 		spin_lock_mutex(&lock->wait_lock, flags);
- 	}
- 
--	lock_acquired(&lock->dep_map);
- done:
-+	lock_acquired(&lock->dep_map);
- 	/* got the lock - rejoice! */
- 	mutex_remove_waiter(lock, &waiter, task_thread_info(task));
- 	debug_mutex_set_owner(lock, task_thread_info(task));
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
