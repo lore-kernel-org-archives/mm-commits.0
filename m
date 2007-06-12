@@ -1,81 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-fix-coldfire-timer-off-by-1.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:56:26 -0700
-Message-ID: <200706121856.l5CIuQv9018393@imap1.linux-foundation.org>
+Subject: - sata_promise-use-tf-interface-for-polling-nodata-commands.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:11 -0700
+Message-ID: <200706121857.l5CIvBMB018451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756514AbXFLS5U (ORCPT
+	by vger.kernel.org with ESMTP id S1753707AbXFLS5a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:57:20 -0400
+	Tue, 12 Jun 2007 14:57:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, gerg@uclinux.org, phdm@macqel.be, mm-commits@vger.kernel.org
+To: htejun@gmail.com, jeff@garzik.org, mikpe@it.uu.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: fix ColdFire timer off by 1
+     sata_promise: use TF interface for polling NODATA commands
 has been removed from the -mm tree.  Its filename was
-     m68knommu-fix-coldfire-timer-off-by-1.patch
+     sata_promise-use-tf-interface-for-polling-nodata-commands.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m68knommu: fix ColdFire timer off by 1
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: sata_promise: use TF interface for polling NODATA commands
+From: Tejun Heo <htejun@gmail.com>
 
-The coldfire timer runs from 0 to TRR included, then 0 again and so on.  It
-counts thus actually TRR + 1 steps for 1 tick, not TRR.  Fix that.
+sata_promise uses two different command modes - packet and TF.  Packet mode
+is intelligent low-overhead mode while TF is the same old taskfile
+interface.  As with other advanced interface (ahci/sil24),
+ATA_TFLAG_POLLING has no effect in packet mode.  However, PIO commands are
+issued using TF interface in polling mode, so pdc_interrupt() considers
+interrupts spurious if ATA_TFLAG_POLLING is set.
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+This is broken for polling NODATA commands because command is issued using
+packet mode but the interrupt handler ignores it due to ATA_TFLAG_POLLING. 
+Fix pdc_qc_issue_prot() such that ATA/ATAPI NODATA commands are issued
+using TF interface if ATA_TFLAG_POLLING is set.
+
+This patch fixes detection failure introduced by polling SETXFERMODE.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Acked-by: Mikael Pettersson <mikpe@it.uu.se>
+Acked-by: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/platform/5307/timers.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/ata/sata_promise.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/m68knommu/platform/5307/timers.c~m68knommu-fix-coldfire-timer-off-by-1 arch/m68knommu/platform/5307/timers.c
---- a/arch/m68knommu/platform/5307/timers.c~m68knommu-fix-coldfire-timer-off-by-1
-+++ a/arch/m68knommu/platform/5307/timers.c
-@@ -62,10 +62,13 @@ void coldfire_tick(void)
+diff -puN drivers/ata/sata_promise.c~sata_promise-use-tf-interface-for-polling-nodata-commands drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-use-tf-interface-for-polling-nodata-commands
++++ a/drivers/ata/sata_promise.c
+@@ -784,9 +784,12 @@ static unsigned int pdc_qc_issue_prot(st
+ 		if (qc->dev->flags & ATA_DFLAG_CDB_INTR)
+ 			break;
+ 		/*FALLTHROUGH*/
++	case ATA_PROT_NODATA:
++		if (qc->tf.flags & ATA_TFLAG_POLLING)
++			break;
++		/*FALLTHROUGH*/
+ 	case ATA_PROT_ATAPI_DMA:
+ 	case ATA_PROT_DMA:
+-	case ATA_PROT_NODATA:
+ 		pdc_packet_start(qc);
+ 		return 0;
  
- /***************************************************************************/
- 
-+static int ticks_per_intr;
-+
- void coldfire_timer_init(irq_handler_t handler)
+@@ -800,7 +803,7 @@ static unsigned int pdc_qc_issue_prot(st
+ static void pdc_tf_load_mmio(struct ata_port *ap, const struct ata_taskfile *tf)
  {
- 	__raw_writew(MCFTIMER_TMR_DISABLE, TA(MCFTIMER_TMR));
--	__raw_writetrr(((MCF_BUSCLK / 16) / HZ), TA(MCFTIMER_TRR));
-+	ticks_per_intr = (MCF_BUSCLK / 16) / HZ;
-+	__raw_writetrr(ticks_per_intr - 1, TA(MCFTIMER_TRR));
- 	__raw_writew(MCFTIMER_TMR_ENORI | MCFTIMER_TMR_CLK16 |
- 		MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, TA(MCFTIMER_TMR));
+ 	WARN_ON (tf->protocol == ATA_PROT_DMA ||
+-		 tf->protocol == ATA_PROT_NODATA);
++		 tf->protocol == ATA_PROT_ATAPI_DMA);
+ 	ata_tf_load(ap, tf);
+ }
  
-@@ -81,11 +84,10 @@ void coldfire_timer_init(irq_handler_t h
- 
- unsigned long coldfire_timer_offset(void)
+@@ -808,7 +811,7 @@ static void pdc_tf_load_mmio(struct ata_
+ static void pdc_exec_command_mmio(struct ata_port *ap, const struct ata_taskfile *tf)
  {
--	unsigned long trr, tcn, offset;
-+	unsigned long tcn, offset;
+ 	WARN_ON (tf->protocol == ATA_PROT_DMA ||
+-		 tf->protocol == ATA_PROT_NODATA);
++		 tf->protocol == ATA_PROT_ATAPI_DMA);
+ 	ata_exec_command(ap, tf);
+ }
  
- 	tcn = __raw_readw(TA(MCFTIMER_TCN));
--	trr = __raw_readtrr(TA(MCFTIMER_TRR));
--	offset = (tcn * (1000000 / HZ)) / trr;
-+	offset = ((tcn + 1) * (1000000 / HZ)) / ticks_per_intr;
- 
- 	/* Check if we just wrapped the counters and maybe missed a tick */
- 	if ((offset < (1000000 / HZ / 2)) && mcf_timerirqpending(1))
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-git-arm.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-nommu-stub-expand_stack-for-nommu-case.patch
-m68knommu-use-trhead_size-instead-of-hard-constant.patch
-m68knommu-remove-cruft-from-setup-code.patch
-m68knommu-remove-old-cache-management-cruft-from-mm-code.patch
+git-libata-all.patch
+pata_acpi-restore-driver.patch
+libata-implement-ata_wait_after_reset.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+git-scsi-misc.patch
+update-documentation-block-barriertxt.patch
+block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+lib-add-idr_for_each.patch
+lib-add-idr_for_each-fix.patch
+lib-add-idr_remove_all.patch
