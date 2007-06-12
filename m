@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-driver-for-at32ap700x-devices-fix-2.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:58:43 -0700
-Message-ID: <200706121858.l5CIwhQb018551@imap1.linux-foundation.org>
+Subject: - watchdog-driver-for-at32ap700x-devices-fix.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:58:41 -0700
+Message-ID: <200706121858.l5CIwfbU018548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751704AbXFLTDA (ORCPT
+	by vger.kernel.org with ESMTP id S1750955AbXFLTD1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:03:00 -0400
+	Tue, 12 Jun 2007 15:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hcegtvedt@atmel.com, hskinnemoen@atmel.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog-driver-for-at32ap700x-devices-fix-2
+     watchdog-driver-for-at32ap700x-devices-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-driver-for-at32ap700x-devices-fix-2.patch
+     watchdog-driver-for-at32ap700x-devices-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: watchdog-driver-for-at32ap700x-devices-fix-2
+Subject: watchdog-driver-for-at32ap700x-devices-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-standard ifdef-reduction trick.
+little fiddles.
 
 Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
@@ -33,30 +33,55 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/at32ap700x_wdt.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/char/watchdog/at32ap700x_wdt.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-2 drivers/char/watchdog/at32ap700x_wdt.c
---- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-2
+diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix drivers/char/watchdog/at32ap700x_wdt.c
+--- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix
 +++ a/drivers/char/watchdog/at32ap700x_wdt.c
-@@ -283,14 +283,15 @@ static int at32_wdt_resume(struct platfo
- 		at32_wdt_start();
+@@ -16,9 +16,8 @@
+ #include <linux/fs.h>
+ #include <linux/platform_device.h>
+ #include <linux/watchdog.h>
+-
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
+ 
+ #define TIMEOUT_MIN		1
+ #define TIMEOUT_DEFAULT		CONFIG_AT32AP700X_WDT_TIMEOUT
+@@ -120,7 +119,10 @@ static int at32_wdt_settimeout(int time)
+ 	if ((time < TIMEOUT_MIN) || (time > TIMEOUT_MAX))
+ 		return -EINVAL;
+ 
+-	/* Set new watchdog time. It will be used when at32_wdt_start() is called. */
++	/*
++	 * Set new watchdog time. It will be used when at32_wdt_start() is
++	 * called.
++	 */
+ 	wdt->timeout = time;
  	return 0;
  }
-+#else
-+#define at32_wdt_suspend NULL
-+#define at32_wdt_resume NULL
- #endif
+@@ -141,7 +143,7 @@ static int at32_wdt_ioctl(struct inode *
+ 	void __user *argp = (void __user *)arg;
+ 	int __user *p = argp;
  
- static struct platform_driver at32_wdt_driver = {
- 	.remove		= __exit_p(at32_wdt_remove),
--#ifdef CONFIG_PM
- 	.suspend	= at32_wdt_suspend,
- 	.resume		= at32_wdt_resume,
--#endif
- 	.driver		= {
- 		.name	= "at32_wdt",
- 		.owner	= THIS_MODULE,
+-	switch(cmd) {
++	switch (cmd) {
+ 	case WDIOC_KEEPALIVE:
+ 		at32_wdt_pat();
+ 		ret = 0;
+@@ -182,7 +184,8 @@ static int at32_wdt_ioctl(struct inode *
+ 	return ret;
+ }
+ 
+-static ssize_t at32_wdt_write(struct file *file, const char *data, size_t len, loff_t *ppos)
++static ssize_t at32_wdt_write(struct file *file, const char *data, size_t len,
++				loff_t *ppos)
+ {
+ 	at32_wdt_pat();
+ 	return len;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
