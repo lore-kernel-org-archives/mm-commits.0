@@ -1,166 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - fix-interleave-with-memoryless-nodes.patch removed from -mm tree
-Date: Mon, 11 Jun 2007 18:37:38 -0700
-Message-ID: <200706120137.l5C1bca8001434@imap1.linux-foundation.org>
+Subject: - mm-share-pg_readahead-and-pg_reclaim-fix-2.patch removed from -mm tree
+Date: Mon, 11 Jun 2007 20:19:21 -0700
+Message-ID: <200706120319.l5C3JLYC003112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50079 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36329 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755582AbXFLBhu (ORCPT
+	by vger.kernel.org with ESMTP id S1753706AbXFLDTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 21:37:50 -0400
+	Mon, 11 Jun 2007 23:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nacc@us.ibm.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix INTERLEAVE with memoryless nodes
+     mm-share-pg_readahead-and-pg_reclaim fix 2
 has been removed from the -mm tree.  Its filename was
-     fix-interleave-with-memoryless-nodes.patch
+     mm-share-pg_readahead-and-pg_reclaim-fix-2.patch
 
-This patch was dropped because it hasn't been tested yet
+This patch was dropped because it was folded into mm-share-pg_readahead-and-pg_reclaim.patch
 
 ------------------------------------------------------
-Subject: Fix INTERLEAVE with memoryless nodes
-From: Nishanth Aravamudan <nacc@us.ibm.com>
+Subject: mm-share-pg_readahead-and-pg_reclaim fix 2
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Based on ideas from Christoph Lameter, add checks in the INTERLEAVE paths
-for memoryless nodes.  We do not want to try interleaving onto those nodes.
+And fix bad_page() warnings.
 
-Christoph said:
-"This does not work for the address based interleaving for anonymous
-vmas.  I am not sure what to do there. We could change the calculation
-of the node to be based only on nodes with memory and then skip the
-memoryless ones. I have only added a comment to describe its brokennes
-for now."
+Now it's safe. I'm running it :)
 
-I have copied his draft's comment.
-
-Change alloc_pages_node() to fail __GFP_THISNODE allocations if the node
-is not populated.
-
-Again, Christoph said:
-"This will fix the alloc_pages_node case but not the alloc_pages() case.
-In the alloc_pages() case we do not specify a node. Implicitly it is
-understood that we (in the case of no memory policy / cpuset options)
-allocate from the nearest node. So it may be argued there that the
-GFP_THISNODE behavior of taking the first node from the zonelist is
-okay."
-
-Christoph was also worried about the performance impact on these paths,
-as am I.
-
-Finally, as he suggested, uninline alloc_pages_node() and move it to
-mempolicy.c.
-
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   14 +-------------
- mm/mempolicy.c      |   37 ++++++++++++++++++++++++++++++++-----
- 2 files changed, 33 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/linux/gfp.h~fix-interleave-with-memoryless-nodes include/linux/gfp.h
---- a/include/linux/gfp.h~fix-interleave-with-memoryless-nodes
-+++ a/include/linux/gfp.h
-@@ -130,19 +130,7 @@ static inline void arch_alloc_page(struc
- extern struct page *
- FASTCALL(__alloc_pages(gfp_t, unsigned int, struct zonelist *));
- 
--static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
--						unsigned int order)
--{
--	if (unlikely(order >= MAX_ORDER))
--		return NULL;
--
--	/* Unknown node is current node */
--	if (nid < 0)
--		nid = numa_node_id();
--
--	return __alloc_pages(gfp_mask, order,
--		NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_mask));
--}
-+extern struct page *alloc_pages_node(int, gfp_t, unsigned int);
- 
- #ifdef CONFIG_NUMA
- extern struct page *alloc_pages_current(gfp_t gfp_mask, unsigned order);
-diff -puN mm/mempolicy.c~fix-interleave-with-memoryless-nodes mm/mempolicy.c
---- a/mm/mempolicy.c~fix-interleave-with-memoryless-nodes
-+++ a/mm/mempolicy.c
-@@ -184,8 +184,12 @@ static struct mempolicy *mpol_new(int mo
- 	atomic_set(&policy->refcnt, 1);
- 	switch (mode) {
- 	case MPOL_INTERLEAVE:
--		policy->v.nodes = *nodes;
--		if (nodes_weight(*nodes) == 0) {
-+		/*
-+		 * Clear any memoryless nodes here so that v.nodes can be used
-+		 * without extra checks
-+		 */
-+		nodes_and(policy->v.nodes, *nodes, node_populated_map);
-+		if (nodes_weight(policy->v.nodes) == 0) {
- 			kmem_cache_free(policy_cache, policy);
- 			return ERR_PTR(-EINVAL);
- 		}
-@@ -578,6 +582,22 @@ long do_get_mempolicy(int *policy, nodem
- 	return err;
- }
- 
-+struct page *alloc_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
-+{
-+	if (unlikely(order >= MAX_ORDER))
-+		return NULL;
-+
-+	/* Unknown node is current node */
-+	if (nid < 0)
-+		nid = numa_node_id();
-+
-+	if ((gfp_mask & __GFP_THISNODE) && !node_populated(nid))
-+		return NULL;
-+
-+	return __alloc_pages(gfp_mask, order,
-+		NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_mask));
-+}
-+
- #ifdef CONFIG_MIGRATION
- /*
-  * page migration
-@@ -1125,9 +1145,11 @@ static unsigned interleave_nodes(struct 
- 	struct task_struct *me = current;
- 
- 	nid = me->il_next;
--	next = next_node(nid, policy->v.nodes);
--	if (next >= MAX_NUMNODES)
--		next = first_node(policy->v.nodes);
-+	do {
-+		next = next_node(nid, policy->v.nodes);
-+		if (next >= MAX_NUMNODES)
-+			next = first_node(policy->v.nodes);
-+	} while (!node_populated(next));
- 	me->il_next = next;
- 	return nid;
- }
-@@ -1191,6 +1213,11 @@ static inline unsigned interleave_nid(st
- 		 * for huge pages, since vm_pgoff is in units of small
- 		 * pages, we need to shift off the always 0 bits to get
- 		 * a useful offset.
-+		 *
-+		 * NOTE: For configurations with memoryless nodes this
-+		 * is broken since the allocation attempts on that node
-+		 * will fall back to other nodes and thus one
-+		 * neighboring node will be overallocated from.
- 		 */
- 		BUG_ON(shift < PAGE_SHIFT);
- 		off = vma->vm_pgoff >> (shift - PAGE_SHIFT);
+diff -puN mm/page_alloc.c~mm-share-pg_readahead-and-pg_reclaim-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-share-pg_readahead-and-pg_reclaim-fix-2
++++ a/mm/page_alloc.c
+@@ -454,12 +454,6 @@ static inline int free_pages_check(struc
+ 			1 << PG_reserved |
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
+-	/*
+-	 * PageReclaim == PageTail. It is only an error
+-	 * for PageReclaim to be set if PageCompound is clear.
+-	 */
+-	if (unlikely(!PageCompound(page) && PageReclaim(page)))
+-		bad_page(page);
+ 	if (PageDirty(page))
+ 		__ClearPageDirty(page);
+ 	/*
+@@ -604,7 +598,6 @@ static int prep_new_page(struct page *pa
+ 			1 << PG_locked	|
+ 			1 << PG_active	|
+ 			1 << PG_dirty	|
+-			1 << PG_reclaim	|
+ 			1 << PG_slab    |
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
 _
 
-Patches currently in -mm which might be from nacc@us.ibm.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-hugetlb-remove-unnecessary-nid-initialization.patch
-gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
-add-populated_map-to-account-for-memoryless-nodes.patch
-add-populated_map-to-account-for-memoryless-nodes-fix.patch
-fix-interleave-with-memoryless-nodes.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
+readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+readahead-pass-real-splice-size.patch
+mm-share-pg_readahead-and-pg_reclaim.patch
+mm-share-pg_readahead-and-pg_reclaim-fix-2.patch
