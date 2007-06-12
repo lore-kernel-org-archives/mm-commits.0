@@ -1,86 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-diva-fix-section-mismatch.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:08 -0700
-Message-ID: <200706121857.l5CIv89b018448@imap1.linux-foundation.org>
+Subject: - m68knommu-fix-coldfire-timer-off-by-1.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:56:26 -0700
+Message-ID: <200706121856.l5CIuQv9018393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51850 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756876AbXFLS5Y (ORCPT
+	by vger.kernel.org with ESMTP id S1756514AbXFLS5U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:57:24 -0400
+	Tue, 12 Jun 2007 14:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, armin@melware.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, gerg@uclinux.org, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn/diva: fix section mismatch
+     m68knommu: fix ColdFire timer off by 1
 has been removed from the -mm tree.  Its filename was
-     isdn-diva-fix-section-mismatch.patch
+     m68knommu-fix-coldfire-timer-off-by-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isdn/diva: fix section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: m68knommu: fix ColdFire timer off by 1
+From: Greg Ungerer <gerg@snapgear.com>
 
-__exit function is used by both init and exit routines, so it cannot
-be marked __init.  (from allyesconfig)
+The coldfire timer runs from 0 to TRR included, then 0 again and so on.  It
+counts thus actually TRR + 1 steps for 1 tick, not TRR.  Fix that.
 
-WARNING: drivers/built-in.o(.text+0x9b83cf): Section mismatch: reference to .exit.text: (between 'divasfunc_exit' and 'didd_callback')
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Karsten Keil <kkeil@suse.de>
-Acked-by: Armin Schindler <armin@melware.de>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/divasfunc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/m68knommu/platform/5307/timers.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/divasfunc.c~isdn-diva-fix-section-mismatch drivers/isdn/hardware/eicon/divasfunc.c
---- a/drivers/isdn/hardware/eicon/divasfunc.c~isdn-diva-fix-section-mismatch
-+++ a/drivers/isdn/hardware/eicon/divasfunc.c
-@@ -195,7 +195,7 @@ static int DIVA_INIT_FUNCTION connect_di
- /*
-  * disconnect from didd
-  */
--static void DIVA_EXIT_FUNCTION disconnect_didd(void)
-+static void disconnect_didd(void)
- {
- 	IDI_SYNC_REQ req;
+diff -puN arch/m68knommu/platform/5307/timers.c~m68knommu-fix-coldfire-timer-off-by-1 arch/m68knommu/platform/5307/timers.c
+--- a/arch/m68knommu/platform/5307/timers.c~m68knommu-fix-coldfire-timer-off-by-1
++++ a/arch/m68knommu/platform/5307/timers.c
+@@ -62,10 +62,13 @@ void coldfire_tick(void)
  
+ /***************************************************************************/
+ 
++static int ticks_per_intr;
++
+ void coldfire_timer_init(irq_handler_t handler)
+ {
+ 	__raw_writew(MCFTIMER_TMR_DISABLE, TA(MCFTIMER_TMR));
+-	__raw_writetrr(((MCF_BUSCLK / 16) / HZ), TA(MCFTIMER_TRR));
++	ticks_per_intr = (MCF_BUSCLK / 16) / HZ;
++	__raw_writetrr(ticks_per_intr - 1, TA(MCFTIMER_TRR));
+ 	__raw_writew(MCFTIMER_TMR_ENORI | MCFTIMER_TMR_CLK16 |
+ 		MCFTIMER_TMR_RESTART | MCFTIMER_TMR_ENABLE, TA(MCFTIMER_TMR));
+ 
+@@ -81,11 +84,10 @@ void coldfire_timer_init(irq_handler_t h
+ 
+ unsigned long coldfire_timer_offset(void)
+ {
+-	unsigned long trr, tcn, offset;
++	unsigned long tcn, offset;
+ 
+ 	tcn = __raw_readw(TA(MCFTIMER_TCN));
+-	trr = __raw_readtrr(TA(MCFTIMER_TRR));
+-	offset = (tcn * (1000000 / HZ)) / trr;
++	offset = ((tcn + 1) * (1000000 / HZ)) / ticks_per_intr;
+ 
+ 	/* Check if we just wrapped the counters and maybe missed a tick */
+ 	if ((offset < (1000000 / HZ / 2)) && mcf_timerirqpending(1))
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
-git-acpi.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-git-wireless.patch
-add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-x86_64-use-null-for-pointer.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+git-arm.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+nommu-stub-expand_stack-for-nommu-case.patch
+m68knommu-use-trhead_size-instead-of-hard-constant.patch
+m68knommu-remove-cruft-from-setup-code.patch
+m68knommu-remove-old-cache-management-cruft-from-mm-code.patch
