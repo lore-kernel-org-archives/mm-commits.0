@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-add-common-orderly_poweroff.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:37:31 -0700
-Message-ID: <200706121937.l5CJbVAX019693@imap1.linux-foundation.org>
+Subject: + i386-show-unhandled-signals-fix.patch added to -mm tree
+Date: Tue, 12 Jun 2007 12:40:34 -0700
+Message-ID: <200706121940.l5CJeYrN019728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47105 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752026AbXFLThn (ORCPT
+	by vger.kernel.org with ESMTP id S1752624AbXFLTks (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:37:43 -0400
+	Tue, 12 Jun 2007 15:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, jeremy@goop.org
+Cc: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, masouds@google.com
 
 
 The patch titled
-     fix x86_64-mm-add-common-orderly_poweroff
+     i386-show-unhandled-signals-fix
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-add-common-orderly_poweroff.patch
+     i386-show-unhandled-signals-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-add-common-orderly_poweroff
+Subject: i386-show-unhandled-signals-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 No new sysctls (I've asked Eric for documentation which explains why)
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Masoud Sharbiani <masouds@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 -
+ include/linux/sysctl.h |    3 ---
  kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/sysctl.h~fix-x86_64-mm-add-common-orderly_poweroff include/linux/sysctl.h
---- a/include/linux/sysctl.h~fix-x86_64-mm-add-common-orderly_poweroff
+diff -puN include/linux/sysctl.h~i386-show-unhandled-signals-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~i386-show-unhandled-signals-fix
 +++ a/include/linux/sysctl.h
-@@ -165,7 +165,6 @@ enum
- 	KERN_MAX_LOCK_DEPTH=74,
- 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
- 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
--	KERN_POWEROFF_CMD=77,	/* string: poweroff command line */
+@@ -835,9 +835,6 @@ enum {
  };
  
+ /* CTL_DEBUG names: */
+-enum {
+-	DEBUG_UNHANDLED_SIGNALS = 1,
+-};
  
-diff -puN kernel/sysctl.c~fix-x86_64-mm-add-common-orderly_poweroff kernel/sysctl.c
---- a/kernel/sysctl.c~fix-x86_64-mm-add-common-orderly_poweroff
+ /* CTL_DEV names: */
+ enum {
+diff -puN kernel/sysctl.c~i386-show-unhandled-signals-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~i386-show-unhandled-signals-fix
 +++ a/kernel/sysctl.c
-@@ -225,7 +225,7 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
+@@ -1047,7 +1047,7 @@ static ctl_table fs_table[] = {
+ static ctl_table debug_table[] = {
+ #ifdef CONFIG_X86
  	{
--		.ctl_name	= KERN_POWEROFF_CMD,
+-		.ctl_name	= DEBUG_UNHANDLED_SIGNALS,
 +		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "poweroff_cmd",
- 		.data		= &poweroff_cmd,
- 		.maxlen		= POWEROFF_CMD_PATH_LEN,
+ 		.procname	= "show-unhandled-signals",
+ 		.data		= &show_unhandled_signals,
+ 		.maxlen		= sizeof(int),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +140,7 @@ paravirt-helper-to-disable-all-io-space-fix.patch
 i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
 i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
 i386-mtrr-clean-up-usage_table.patch
+i386-show-unhandled-signals-fix.patch
 git-xfs.patch
 git-cryptodev.patch
 acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
