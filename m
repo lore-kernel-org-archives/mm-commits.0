@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + driver-edac-i5000-code-tidying.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:55:25 -0700
-Message-ID: <200706121955.l5CJtP6d019980@imap1.linux-foundation.org>
+Subject: + driver-edac-edac_device-code-tidying.patch added to -mm tree
+Date: Tue, 12 Jun 2007 12:55:27 -0700
+Message-ID: <200706121955.l5CJtRbV019983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41286 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752026AbXFLT4B (ORCPT
+	by vger.kernel.org with ESMTP id S1752764AbXFLT4E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:56:01 -0400
+	Tue, 12 Jun 2007 15:56:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dougthompson@xmission.com
 
 
 The patch titled
-     drivers/edac: i5000 code tidying
+     drivers/edac: edac_device code tidying
 has been added to the -mm tree.  Its filename is
-     driver-edac-i5000-code-tidying.patch
+     driver-edac-edac_device-code-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,324 +26,450 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/edac: i5000 code tidying
+Subject: drivers/edac: edac_device code tidying
 From: Douglas Thompson <dougthompson@xmission.com>
 
-Various code style conformance patches on the i5000 driver
+For the file edac_device.c perform some coding style enhancements
+Add some function header comments
+Made for better readability commands
 
 Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |   71 +++++++++++++++++-------------------
- 1 files changed, 35 insertions(+), 36 deletions(-)
+ drivers/edac/edac_core.h         |   11 ---
+ drivers/edac/edac_device.c       |  105 ++++++++++++++---------------
+ drivers/edac/edac_device_sysfs.c |   22 ++----
+ 3 files changed, 62 insertions(+), 76 deletions(-)
 
-diff -puN drivers/edac/i5000_edac.c~driver-edac-i5000-code-tidying drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~driver-edac-i5000-code-tidying
-+++ a/drivers/edac/i5000_edac.c
-@@ -384,18 +384,18 @@ struct i5000_error_info {
+diff -puN drivers/edac/edac_core.h~driver-edac-edac_device-code-tidying drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~driver-edac-edac_device-code-tidying
++++ a/drivers/edac/edac_core.h
+@@ -470,8 +470,6 @@ struct edac_device_counter {
+ 	u32 ce_count;
+ };
  
- static struct edac_pci_ctl_info *i5000_pci;
+-#define INC_COUNTER(cnt)	(cnt++)
+-
+ /*
+  * An array of these is passed to the alloc() function
+  * to specify attributes of the edac_block
+@@ -632,15 +630,6 @@ struct edac_device_ctl_info {
+ #define to_edac_device_ctl_work(w) \
+ 		container_of(w,struct edac_device_ctl_info,work)
  
--/******************************************************************************
-+/*
-  *	i5000_get_error_info	Retrieve the hardware error information from
-  *				the hardware and cache it in the 'info'
-  *				structure
-  */
- static void i5000_get_error_info(struct mem_ctl_info *mci,
--				 struct i5000_error_info * info)
-+				 struct i5000_error_info *info)
+-/* Function to calc the number of delay jiffies from poll_msec */
+-static inline void edac_device_calc_delay(struct edac_device_ctl_info *edac_dev)
+-{
+-	/* convert from msec to jiffies */
+-	edac_dev->delay = edac_dev->poll_msec * HZ / 1000;
+-}
+-
+-#define edac_calc_delay(dev) dev->delay = dev->poll_msec * HZ / 1000;
+-
+ /*
+  * The alloc() and free() functions for the 'edac_device' control info
+  * structure. A MC driver will allocate one of these for each edac_device
+diff -puN drivers/edac/edac_device.c~driver-edac-edac_device-code-tidying drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~driver-edac-edac_device-code-tidying
++++ a/drivers/edac/edac_device.c
+@@ -20,6 +20,7 @@
+ #include <linux/highmem.h>
+ #include <linux/timer.h>
+ #include <linux/slab.h>
++#include <linux/jiffies.h>
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/sysdev.h>
+@@ -31,20 +32,10 @@
+ #include "edac_core.h"
+ #include "edac_module.h"
+ 
+-/* lock to memory controller's control array */
++/* lock to memory controller's control array 'edac_device_list' */
+ static DECLARE_MUTEX(device_ctls_mutex);
+ static struct list_head edac_device_list = LIST_HEAD_INIT(edac_device_list);
+ 
+-static inline void lock_device_list(void)
+-{
+-	down(&device_ctls_mutex);
+-}
+-
+-static inline void unlock_device_list(void)
+-{
+-	up(&device_ctls_mutex);
+-}
+-
+ #ifdef CONFIG_EDAC_DEBUG
+ static void edac_device_dump_device(struct edac_device_ctl_info *edac_dev)
  {
- 	struct i5000_pvt *pvt;
- 	u32 value;
+@@ -58,20 +49,25 @@ static void edac_device_dump_device(stru
+ #endif				/* CONFIG_EDAC_DEBUG */
  
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
+ /*
+- * The alloc() and free() functions for the 'edac_device' control info
+- * structure. A MC driver will allocate one of these for each edac_device
+- * it is going to control/register with the EDAC CORE.
++ * edac_device_alloc_ctl_info()
++ *	Allocate a new edac device control info structure
++ *
++ *	The control structure is allocated in complete chunk
++ *	from the OS. It is in turn sub allocated to the
++ *	various objects that compose the struture
++ *
++ *	The structure has a 'nr_instance' array within itself.
++ *	Each instance represents a major component
++ *		Example:  L1 cache and L2 cache are 2 instance components
++ *
++ *	Within each instance is an array of 'nr_blocks' blockoffsets
+  */
+ struct edac_device_ctl_info *edac_device_alloc_ctl_info(
+ 	unsigned sz_private,
+-	char *edac_device_name,
+-	unsigned nr_instances,
+-	char *edac_block_name,
+-	unsigned nr_blocks,
+-	unsigned offset_value,
+-	struct edac_attrib_spec
+-	*attrib_spec,
+-	unsigned nr_attribs)
++	char *edac_device_name, unsigned nr_instances,
++	char *edac_block_name, unsigned nr_blocks,
++	unsigned offset_value,		/* zero, 1, or other based offset */
++	struct edac_attrib_spec *attrib_spec, unsigned nr_attribs)
+ {
+ 	struct edac_device_ctl_info *dev_ctl;
+ 	struct edac_device_instance *dev_inst, *inst;
+@@ -90,7 +86,7 @@ struct edac_device_ctl_info *edac_device
+ 	 * to be at least as stringent as what the compiler would
+ 	 * provide if we could simply hardcode everything into a single struct.
+ 	 */
+-	dev_ctl = (struct edac_device_ctl_info *)0;
++	dev_ctl = (struct edac_device_ctl_info *)NULL;
  
- 	/* read in the 1st FATAL error register */
- 	pci_read_config_dword(pvt->branchmap_werrors, FERR_FAT_FBD, &value);
-@@ -457,7 +457,7 @@ static void i5000_get_error_info(struct 
+ 	/* Calc the 'end' offset past the ctl_info structure */
+ 	dev_inst = (struct edac_device_instance *)
+@@ -114,7 +110,8 @@ struct edac_device_ctl_info *edac_device
+ 	total_size = ((unsigned long)pvt) + sz_private;
+ 
+ 	/* Allocate the amount of memory for the set of control structures */
+-	if ((dev_ctl = kmalloc(total_size, GFP_KERNEL)) == NULL)
++	dev_ctl = kzalloc(total_size, GFP_KERNEL);
++	if (dev_ctl == NULL)
+ 		return NULL;
+ 
+ 	/* Adjust pointers so they point within the memory we just allocated
+@@ -128,14 +125,12 @@ struct edac_device_ctl_info *edac_device
+ 		(((char *)dev_ctl) + ((unsigned long)dev_attrib));
+ 	pvt = sz_private ? (((char *)dev_ctl) + ((unsigned long)pvt)) : NULL;
+ 
+-	memset(dev_ctl, 0, total_size);	/* clear all fields */
+ 	dev_ctl->nr_instances = nr_instances;
+ 	dev_ctl->instances = dev_inst;
+ 	dev_ctl->pvt_info = pvt;
+ 
+-	/* Name of this edac device, ensure null terminated */
+-	snprintf(dev_ctl->name, sizeof(dev_ctl->name), "%s", edac_device_name);
+-	dev_ctl->name[sizeof(dev_ctl->name) - 1] = '\0';
++	/* Name of this edac device */
++	snprintf(dev_ctl->name,sizeof(dev_ctl->name),"%s",edac_device_name);
+ 
+ 	/* Initialize every Instance */
+ 	for (instance = 0; instance < nr_instances; instance++) {
+@@ -148,7 +143,6 @@ struct edac_device_ctl_info *edac_device
+ 		/* name of this instance */
+ 		snprintf(inst->name, sizeof(inst->name),
+ 			 "%s%u", edac_device_name, instance);
+-		inst->name[sizeof(inst->name) - 1] = '\0';
+ 
+ 		/* Initialize every block in each instance */
+ 		for (block = 0; block < nr_blocks; block++) {
+@@ -159,7 +153,6 @@ struct edac_device_ctl_info *edac_device
+ 			blk->attribs = attrib_p;
+ 			snprintf(blk->name, sizeof(blk->name),
+ 				 "%s%d", edac_block_name, block+offset_value);
+-			blk->name[sizeof(blk->name) - 1] = '\0';
+ 
+ 			debugf1("%s() instance=%d block=%d name=%s\n",
+ 				__func__, instance, block, blk->name);
+@@ -186,7 +179,6 @@ struct edac_device_ctl_info *edac_device
+ 
+ 	return dev_ctl;
+ }
+-
+ EXPORT_SYMBOL_GPL(edac_device_alloc_ctl_info);
+ 
+ /*
+@@ -198,12 +190,17 @@ void edac_device_free_ctl_info(struct ed
+ {
+ 	kfree(ctl_info);
+ }
+-
+ EXPORT_SYMBOL_GPL(edac_device_free_ctl_info);
+ 
+ /*
+  * find_edac_device_by_dev
+  *	scans the edac_device list for a specific 'struct device *'
++ *
++ *	lock to be held prior to call:	device_ctls_mutex
++ *
++ *	Return:
++ *		pointer to control structure managing 'dev'
++ *		NULL if not found on list
+  */
+ static struct edac_device_ctl_info *find_edac_device_by_dev(struct device *dev)
+ {
+@@ -226,6 +223,9 @@ static struct edac_device_ctl_info *find
+  * add_edac_dev_to_global_list
+  *	Before calling this function, caller must
+  *	assign a unique value to edac_dev->dev_idx.
++ *
++ *	lock to be held prior to call:	device_ctls_mutex
++ *
+  *	Return:
+  *		0 on success
+  *		1 on failure.
+@@ -238,7 +238,8 @@ static int add_edac_dev_to_global_list(s
+ 	insert_before = &edac_device_list;
+ 
+ 	/* Determine if already on the list */
+-	if (unlikely((rover = find_edac_device_by_dev(edac_dev->dev)) != NULL))
++	rover = find_edac_device_by_dev(edac_dev->dev);
++	if (unlikely(rover != NULL))
+ 		goto fail0;
+ 
+ 	/* Insert in ascending order by 'dev_idx', so find position */
+@@ -274,6 +275,8 @@ fail1:
+ 
+ /*
+  * complete_edac_device_list_del
++ *
++ *	callback function when reference count is zero
+  */
+ static void complete_edac_device_list_del(struct rcu_head *head)
+ {
+@@ -286,6 +289,9 @@ static void complete_edac_device_list_de
+ 
+ /*
+  * del_edac_device_from_global_list
++ *
++ *	remove the RCU, setup for a callback call, then wait for the
++ *	callback to occur
+  */
+ static void del_edac_device_from_global_list(struct edac_device_ctl_info
+ 						*edac_device)
+@@ -325,8 +331,7 @@ struct edac_device_ctl_info *edac_device
+ 
+ 	return NULL;
+ }
+-
+-EXPORT_SYMBOL(edac_device_find);
++EXPORT_SYMBOL_GPL(edac_device_find);
+ 
+ /*
+  * edac_device_workq_function
+@@ -338,7 +343,7 @@ static void edac_device_workq_function(s
+ 	struct edac_device_ctl_info *edac_dev = to_edac_device_ctl_work(d_work);
+ 
+ 	//debugf0("%s() here and running\n", __func__);
+-	lock_device_list();
++	down(&device_ctls_mutex);
+ 
+ 	/* Only poll controllers that are running polled and have a check */
+ 	if ((edac_dev->op_state == OP_RUNNING_POLL) &&
+@@ -346,7 +351,7 @@ static void edac_device_workq_function(s
+ 			edac_dev->edac_check(edac_dev);
  	}
- }
  
--/******************************************************************************
-+/*
-  * i5000_process_fatal_error_info(struct mem_ctl_info *mci,
-  * 					struct i5000_error_info *info,
-  * 					int handle_errors);
-@@ -465,7 +465,7 @@ static void i5000_get_error_info(struct 
-  *	handle the Intel FATAL errors, if any
-  */
- static void i5000_process_fatal_error_info(struct mem_ctl_info *mci,
--					struct i5000_error_info * info,
-+					struct i5000_error_info *info,
- 					int handle_errors)
+-	unlock_device_list();
++	up(&device_ctls_mutex);
+ 
+ 	/* Reschedule */
+ 	queue_delayed_work(edac_workqueue, &edac_dev->work, edac_dev->delay);
+@@ -363,7 +368,7 @@ void edac_device_workq_setup(struct edac
+ 	debugf0("%s()\n", __func__);
+ 
+ 	edac_dev->poll_msec = msec;
+-	edac_calc_delay(edac_dev);	/* Calc delay jiffies */
++	edac_dev->delay = msecs_to_jiffies(msec);	/* Calc delay jiffies */
+ 
+ 	INIT_DELAYED_WORK(&edac_dev->work, edac_device_workq_function);
+ 	queue_delayed_work(edac_workqueue, &edac_dev->work, edac_dev->delay);
+@@ -391,7 +396,7 @@ void edac_device_workq_teardown(struct e
+ void edac_device_reset_delay_period(struct edac_device_ctl_info *edac_dev,
+ 					unsigned long value)
  {
- 	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
-@@ -530,7 +530,7 @@ static void i5000_process_fatal_error_in
- 	edac_mc_handle_fbd_ue(mci, rank, channel, channel + 1, msg);
+-	lock_device_list();
++	down(&device_ctls_mutex);
+ 
+ 	/* cancel the current workq request */
+ 	edac_device_workq_teardown(edac_dev);
+@@ -399,7 +404,7 @@ void edac_device_reset_delay_period(stru
+ 	/* restart the workq request, with new delay value */
+ 	edac_device_workq_setup(edac_dev, value);
+ 
+-	unlock_device_list();
++	up(&device_ctls_mutex);
  }
  
--/******************************************************************************
-+/*
-  * i5000_process_fatal_error_info(struct mem_ctl_info *mci,
-  * 				struct i5000_error_info *info,
-  * 				int handle_errors);
-@@ -538,7 +538,7 @@ static void i5000_process_fatal_error_in
-  *	handle the Intel NON-FATAL errors, if any
-  */
- static void i5000_process_nonfatal_error_info(struct mem_ctl_info *mci,
--					struct i5000_error_info * info,
-+					struct i5000_error_info *info,
- 					int handle_errors)
- {
- 	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
-@@ -666,12 +666,12 @@ static void i5000_process_nonfatal_error
- 	}
- }
+ /**
+@@ -423,7 +428,7 @@ int edac_device_add_device(struct edac_d
+ 	if (edac_debug_level >= 3)
+ 		edac_device_dump_device(edac_dev);
+ #endif
+-	lock_device_list();
++	down(&device_ctls_mutex);
  
--/******************************************************************************
-+/*
-  *	i5000_process_error_info	Process the error info that is
-  *	in the 'info' structure, previously retrieved from hardware
-  */
- static void i5000_process_error_info(struct mem_ctl_info *mci,
--				struct i5000_error_info * info,
-+				struct i5000_error_info *info,
- 				int handle_errors)
- {
- 	/* First handle any fatal errors that occurred */
-@@ -681,7 +681,7 @@ static void i5000_process_error_info(str
- 	i5000_process_nonfatal_error_info(mci, info, handle_errors);
- }
+ 	if (add_edac_dev_to_global_list(edac_dev))
+ 		goto fail0;
+@@ -461,7 +466,7 @@ int edac_device_add_device(struct edac_d
+ 				dev_name(edac_dev),
+ 				edac_op_state_toString(edac_dev->op_state));
  
--/******************************************************************************
-+/*
-  *	i5000_clear_error	Retrieve any error from the hardware
-  *				but do NOT process that error.
-  *				Used for 'clearing' out of previous errors
-@@ -694,7 +694,7 @@ static void i5000_clear_error(struct mem
- 	i5000_get_error_info(mci, &info);
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_check_error	Retrieve and process errors reported by the
-  *				hardware. Called by the Core module.
-  */
-@@ -706,7 +706,7 @@ static void i5000_check_error(struct mem
- 	i5000_process_error_info(mci, &info, 1);
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_get_devices	Find and perform 'get' operation on the MCH's
-  *			device/functions we want to reference for this driver
-  *
-@@ -718,7 +718,7 @@ static int i5000_get_devices(struct mem_
- 	struct i5000_pvt *pvt;
- 	struct pci_dev *pdev;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	/* Attempt to 'get' the MCH register we want */
- 	pdev = NULL;
-@@ -827,7 +827,7 @@ static int i5000_get_devices(struct mem_
+-	unlock_device_list();
++	up(&device_ctls_mutex);
  	return 0;
+ 
+ fail1:
+@@ -469,10 +474,9 @@ fail1:
+ 	del_edac_device_from_global_list(edac_dev);
+ 
+ fail0:
+-	unlock_device_list();
++	up(&device_ctls_mutex);
+ 	return 1;
  }
+-
+ EXPORT_SYMBOL_GPL(edac_device_add_device);
  
--/******************************************************************************
-+/*
-  *	i5000_put_devices	'put' all the devices that we have
-  *				reserved via 'get'
-  */
-@@ -835,19 +835,18 @@ static void i5000_put_devices(struct mem
- {
- 	struct i5000_pvt *pvt;
+ /**
+@@ -494,10 +498,12 @@ struct edac_device_ctl_info *edac_device
  
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
+ 	debugf0("MC: %s()\n", __func__);
  
- 	pci_dev_put(pvt->branchmap_werrors);	/* FUNC 1 */
- 	pci_dev_put(pvt->fsb_error_regs);	/* FUNC 2 */
- 	pci_dev_put(pvt->branch_0);	/* DEV 21 */
+-	lock_device_list();
++	down(&device_ctls_mutex);
  
- 	/* Only if more than 2 channels do we release the second branch */
--	if (pvt->maxch >= CHANNELS_PER_BRANCH) {
-+	if (pvt->maxch >= CHANNELS_PER_BRANCH)
- 		pci_dev_put(pvt->branch_1);	/* DEV 22 */
+-	if ((edac_dev = find_edac_device_by_dev(dev)) == NULL) {
+-		unlock_device_list();
++	/* Find the structure on the list, if not there, then leave */
++	edac_dev = find_edac_device_by_dev(dev);
++	if (edac_dev == NULL) {
++		up(&device_ctls_mutex);
+ 		return NULL;
+ 	}
+ 
+@@ -513,7 +519,7 @@ struct edac_device_ctl_info *edac_device
+ 	/* deregister from global list */
+ 	del_edac_device_from_global_list(edac_dev);
+ 
+-	unlock_device_list();
++	up(&device_ctls_mutex);
+ 
+ 	edac_printk(KERN_INFO, EDAC_MC,
+ 		"Removed device %d for %s %s: DEV %s\n",
+@@ -522,7 +528,6 @@ struct edac_device_ctl_info *edac_device
+ 
+ 	return edac_dev;
+ }
+-
+ EXPORT_SYMBOL_GPL(edac_device_del_device);
+ 
+ static inline int edac_device_get_log_ce(struct edac_device_ctl_info *edac_dev)
+@@ -585,7 +590,6 @@ void edac_device_handle_ce(struct edac_d
+ 				edac_dev->ctl_name, instance->name,
+ 				block ? block->name : "N/A", msg);
+ }
+-
+ EXPORT_SYMBOL_GPL(edac_device_handle_ce);
+ 
+ /*
+@@ -637,5 +641,4 @@ void edac_device_handle_ue(struct edac_d
+ 			edac_dev->ctl_name, instance->name,
+ 			block ? block->name : "N/A", msg);
+ }
+-
+ EXPORT_SYMBOL_GPL(edac_device_handle_ue);
+diff -puN drivers/edac/edac_device_sysfs.c~driver-edac-edac_device-code-tidying drivers/edac/edac_device_sysfs.c
+--- a/drivers/edac/edac_device_sysfs.c~driver-edac-edac_device-code-tidying
++++ a/drivers/edac/edac_device_sysfs.c
+@@ -292,8 +292,8 @@ static void edac_device_ctrl_instance_re
+ /* instance specific attribute structure */
+ struct instance_attribute {
+ 	struct attribute attr;
+-	 ssize_t(*show) (struct edac_device_instance *, char *);
+-	 ssize_t(*store) (struct edac_device_instance *, const char *, size_t);
++	ssize_t(*show) (struct edac_device_instance *, char *);
++	ssize_t(*store) (struct edac_device_instance *, const char *, size_t);
+ };
+ 
+ /* Function to 'show' fields from the edac_dev 'instance' structure */
+@@ -540,9 +540,8 @@ static int edac_device_create_instance(s
+ 	for (i = 0; i < instance->nr_blocks; i++) {
+ 		err = edac_device_create_block(edac_dev, instance, i);
+ 		if (err) {
+-			for (j = 0; j < i; j++) {
++			for (j = 0; j < i; j++)
+ 				edac_device_delete_block(edac_dev, instance, j);
+-			}
+ 			return err;
+ 		}
+ 	}
+@@ -566,9 +565,8 @@ static void edac_device_delete_instance(
+ 	instance = &edac_dev->instances[idx];
+ 
+ 	/* unregister all blocks in this instance */
+-	for (i = 0; i < instance->nr_blocks; i++) {
++	for (i = 0; i < instance->nr_blocks; i++)
+ 		edac_device_delete_block(edac_dev, instance, i);
+-	}
+ 
+ 	/* unregister this instance's kobject */
+ 	init_completion(&instance->kobj_complete);
+@@ -593,9 +591,8 @@ static int edac_device_create_instances(
+ 		err = edac_device_create_instance(edac_dev, i);
+ 		if (err) {
+ 			/* unwind previous instances on error */
+-			for (j = 0; j < i; j++) {
++			for (j = 0; j < i; j++)
+ 				edac_device_delete_instance(edac_dev, j);
+-			}
+ 			return err;
+ 		}
+ 	}
+@@ -612,9 +609,8 @@ static void edac_device_delete_instances
+ 	int i;
+ 
+ 	/* iterate over creation of the instances */
+-	for (i = 0; i < edac_dev->nr_instances; i++) {
++	for (i = 0; i < edac_dev->nr_instances; i++)
+ 		edac_device_delete_instance(edac_dev, i);
 -	}
  }
  
--/******************************************************************************
-+/*
-  *	determine_amb_resent
-  *
-  *		the information is contained in NUM_MTRS different registers
-@@ -879,7 +878,7 @@ static int determine_amb_present_reg(str
- 	return amb_present;
- }
+ /******************* edac_dev sysfs ctor/dtor  code *************/
+@@ -637,9 +633,8 @@ static int edac_device_add_sysfs_attribu
+ 	while (sysfs_attrib->attr.name != NULL) {
+ 		err = sysfs_create_file(&edac_dev->kobj,
+ 				(struct attribute*) sysfs_attrib);
+-		if (err) {
++		if (err)
+ 			return err;
+-		}
  
--/******************************************************************************
-+/*
-  * determine_mtr(pvt, csrow, channel)
-  *
-  *	return the proper MTR register as determine by the csrow and channel desired
-@@ -896,7 +895,7 @@ static int determine_mtr(struct i5000_pv
- 	return mtr;
- }
- 
--/******************************************************************************
-+/*
-  */
- static void decode_mtr(int slot_row, u16 mtr)
- {
-@@ -951,7 +950,7 @@ static void handle_channel(struct i5000_
+ 		sysfs_attrib++;
  	}
- }
+@@ -696,9 +691,8 @@ int edac_device_create_sysfs(struct edac
  
--/******************************************************************************
-+/*
-  *	calculate_dimm_size
-  *
-  *	also will output a DIMM matrix map, if debug is enabled, for viewing
-@@ -1037,7 +1036,7 @@ static void calculate_dimm_size(struct i
- 	kfree(mem_buffer);
- }
+ 	/* Create the first level instance directories */
+ 	err = edac_device_create_instances(edac_dev);
+-	if (err) {
++	if (err)
+ 		goto err_remove_link;
+-	}
  
--/******************************************************************************
-+/*
-  *	i5000_get_mc_regs	read in the necessary registers and
-  *				cache locally
-  *
-@@ -1053,7 +1052,7 @@ static void i5000_get_mc_regs(struct mem
- 	int maxdimmperch;
- 	int way0, way1;
+ 	return 0;
  
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	pci_read_config_dword(pvt->system_address, AMBASE,
- 			(u32 *) & pvt->ambase);
-@@ -1151,7 +1150,7 @@ static void i5000_get_mc_regs(struct mem
- 	calculate_dimm_size(pvt);
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_init_csrows	Initialize the 'csrows' table within
-  *				the mci control	structure with the
-  *				addressing of memory.
-@@ -1171,7 +1170,7 @@ static int i5000_init_csrows(struct mem_
- 	int channel;
- 	int csrow;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	channel_count = pvt->maxch;
- 	max_csrows = pvt->maxdimmperch * 2;
-@@ -1221,7 +1220,7 @@ static int i5000_init_csrows(struct mem_
- 	return empty;
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_enable_error_reporting
-  *			Turn on the memory reporting features of the hardware
-  */
-@@ -1230,7 +1229,7 @@ static void i5000_enable_error_reporting
- 	struct i5000_pvt *pvt;
- 	u32 fbd_error_mask;
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 
- 	/* Read the FBD Error Mask Register */
- 	pci_read_config_dword(pvt->branchmap_werrors, EMASK_FBD,
-@@ -1243,7 +1242,7 @@ static void i5000_enable_error_reporting
- 			fbd_error_mask);
- }
- 
--/******************************************************************************
-+/*
-  * i5000_get_dimm_and_channel_counts(pdev, &num_csrows, &num_channels)
-  *
-  *	ask the device how many channels are present and how many CSROWS
-@@ -1265,7 +1264,7 @@ static void i5000_get_dimm_and_channel_c
- 	*num_channels = (int)value;
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_probe1	Probe for ONE instance of device to see if it is
-  *			present.
-  *	return:
-@@ -1329,7 +1328,7 @@ static int i5000_probe1(struct pci_dev *
- 
- 	mci->dev = &pdev->dev;	/* record ptr  to the generic device */
- 
--	pvt = (struct i5000_pvt *)mci->pvt_info;
-+	pvt = mci->pvt_info;
- 	pvt->system_address = pdev;	/* Record this device in our private */
- 	pvt->maxch = num_channels;
- 	pvt->maxdimmperch = num_dimms_per_channel;
-@@ -1401,7 +1400,7 @@ fail0:
- 	return -ENODEV;
- }
- 
--/******************************************************************************
-+/*
-  *	i5000_init_one	constructor for one instance of device
-  *
-  * 	returns:
-@@ -1424,7 +1423,7 @@ static int __devinit i5000_init_one(stru
- 	return i5000_probe1(pdev, id->driver_data);
- }
- 
--/**************************************************************************
-+/*
-  *	i5000_remove_one	destructor for one instance of device
-  *
-  */
-@@ -1446,7 +1445,7 @@ static void __devexit i5000_remove_one(s
- 	edac_mc_free(mci);
- }
- 
--/**************************************************************************
-+/*
-  *	pci_device_id	table for which devices we are looking for
-  *
-  *	The "E500P" device is the first device supported.
-@@ -1460,7 +1459,7 @@ static const struct pci_device_id i5000_
- 
- MODULE_DEVICE_TABLE(pci, i5000_pci_tbl);
- 
--/**************************************************************************
-+/*
-  *	i5000_driver	pci_driver structure for this module
-  *
-  */
-@@ -1471,7 +1470,7 @@ static struct pci_driver i5000_driver = 
- 	.id_table = i5000_pci_tbl,
- };
- 
--/**************************************************************************
-+/*
-  *	i5000_init		Module entry function
-  *			Try to initialize this module for its devices
-  */
-@@ -1486,7 +1485,7 @@ static int __init i5000_init(void)
- 	return (pci_rc < 0) ? pci_rc : 0;
- }
- 
--/**************************************************************************
-+/*
-  *	i5000_exit()	Module exit function
-  *			Unregister the driver
-  */
 _
 
 Patches currently in -mm which might be from dougthompson@xmission.com are
