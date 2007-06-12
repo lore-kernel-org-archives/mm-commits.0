@@ -1,52 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - libata-correct-abuse-of-language.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:58:05 -0700
-Message-ID: <200706121858.l5CIw5SC018516@imap1.linux-foundation.org>
+Subject: - maintainers-corrections.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:33 -0700
+Message-ID: <200706121857.l5CIvXpq018482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42251 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750795AbXFLTEf (ORCPT
+	by vger.kernel.org with ESMTP id S1751229AbXFLTE4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:04:35 -0400
+	Tue, 12 Jun 2007 15:04:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: correct abuse of language
+     MAINTAINERS: corrections
 has been removed from the -mm tree.  Its filename was
-     libata-correct-abuse-of-language.patch
+     maintainers-corrections.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: correct abuse of language
+Subject: MAINTAINERS: corrections
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The controller is not reporting an unlawful type, it is reporting an invalid
-type.  Illegal specifically means "prohibited by law"
+The UFS entry was misformatted
+The NEC V850 links are all broken
+The Berkshire watchdog links are all broken
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   17 ++++-------------
+ 1 files changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-correct-abuse-of-language drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-correct-abuse-of-language
-+++ a/drivers/ata/libata-core.c
-@@ -1697,7 +1697,7 @@ int ata_dev_read_id(struct ata_device *d
+diff -puN MAINTAINERS~maintainers-corrections MAINTAINERS
+--- a/MAINTAINERS~maintainers-corrections
++++ a/MAINTAINERS
+@@ -782,11 +782,6 @@ M:	rathamahata@php4.ru
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
  
- 	/* sanity check */
- 	rc = -EINVAL;
--	reason = "device reports illegal type";
-+	reason = "device reports invalid type";
+-BERKSHIRE PRODUCTS PC WATCHDOG DRIVER
+-P:	Kenji Hollis
+-W:	http://ftp.bitgate.com/pcwd/
+-S:	Maintained
+-
+ BFS FILE SYSTEM
+ P:	Tigran A. Aivazian
+ M:	tigran@aivazian.fsnet.co.uk
+@@ -3904,10 +3899,6 @@ S:	Maintained
  
- 	if (class == ATA_DEV_ATA) {
- 		if (!ata_id_is_ata(id) && !ata_id_is_cfa(id))
+ UCLINUX FOR NEC V850
+ P:	Miles Bader
+-M:	uclinux-v850@lsi.nec.co.jp
+-W:	http://www.ic.nec.co.jp/micro/uclinux/eng/
+-W:	http://www.ee.nec.de/uclinux/
+-S:	Supported
+ 
+ UCLINUX FOR RENESAS H8/300
+ P:	Yoshinori Sato
+@@ -3916,10 +3907,10 @@ W:	http://uclinux-h8.sourceforge.jp/
+ S:	Supported
+ 
+ UFS FILESYSTEM
+-P: Evgeniy Dushistov
+-M: dushistov@mail.ru
+-L: linux-kernel@vger.kernel.org
+-S: Maintained
++P:	Evgeniy Dushistov
++M:	dushistov@mail.ru
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
+ 
+ USB DIAMOND RIO500 DRIVER
+ P:	Cesar Miquel
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
