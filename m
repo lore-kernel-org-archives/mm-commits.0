@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-softlockup-to-be-runtime-disabled.patch added to -mm tree
-Date: Mon, 11 Jun 2007 21:20:42 -0700
-Message-ID: <200706120420.l5C4KgDe004112@imap1.linux-foundation.org>
+Subject: + s3c24xx-spi-controllers-both-select-bitbang.patch added to -mm tree
+Date: Mon, 11 Jun 2007 21:20:47 -0700
+Message-ID: <200706120420.l5C4Kl6h004115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752218AbXFLEVE (ORCPT
+	by vger.kernel.org with ESMTP id S1755582AbXFLEVK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 00:21:04 -0400
+	Tue, 12 Jun 2007 00:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, mingo@elte.hu
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Allow softlockup to be runtime disabled
+     S3c24xx SPI controllers both select 'bitbang'
 has been added to the -mm tree.  Its filename is
-     allow-softlockup-to-be-runtime-disabled.patch
+     s3c24xx-spi-controllers-both-select-bitbang.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Allow softlockup to be runtime disabled
-From: Dave Jones <davej@redhat.com>
+Subject: S3c24xx SPI controllers both select 'bitbang'
+From: David Brownell <david-b@pacbell.net>
 
-It's useful sometimes to disable the softlockup checker at boottime. 
-Especially if it triggers during a distro install.
+Tweak Kconfig for the S3C24XX SPI controller drivers.  Both use the bitbang
+framework; only one previously said that.  Plus in this case "select" is
+the right way to manage that dependency, since folk will not know up front
+to enable bitbang in order to even see those S3C drivers in order to enable
+them.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 ++
- init/main.c                         |   12 +++++++++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/spi/Kconfig |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~allow-softlockup-to-be-runtime-disabled Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~allow-softlockup-to-be-runtime-disabled
-+++ a/Documentation/kernel-parameters.txt
-@@ -1245,6 +1245,8 @@ and is between 256 and 4096 characters. 
+diff -puN drivers/spi/Kconfig~s3c24xx-spi-controllers-both-select-bitbang drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~s3c24xx-spi-controllers-both-select-bitbang
++++ a/drivers/spi/Kconfig
+@@ -154,12 +154,14 @@ config SPI_PXA2XX
+ config SPI_S3C24XX
+ 	tristate "Samsung S3C24XX series SPI"
+ 	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
++	select SPI_BITBANG
+ 	help
+ 	  SPI driver for Samsung S3C24XX series ARM SoCs
  
- 	nosmp		[SMP] Tells an SMP kernel to act as a UP kernel.
- 
-+	nosoftlockup	[KNL] Disable the soft-lockup detector.
-+
- 	nosync		[HW,M68K] Disables sync negotiation for all devices.
- 
- 	notsc		[BUGS=X86-32] Disable Time Stamp Counter
-diff -puN init/main.c~allow-softlockup-to-be-runtime-disabled init/main.c
---- a/init/main.c~allow-softlockup-to-be-runtime-disabled
-+++ a/init/main.c
-@@ -709,6 +709,15 @@ static void __init do_basic_setup(void)
- 	do_initcalls();
- }
- 
-+static int __initdata nosoftlockup;
-+
-+static int __init nosoftlockup_setup(char *str)
-+{
-+	nosoftlockup = 1;
-+	return 1;
-+}
-+__setup("nosoftlockup", nosoftlockup_setup);
-+
- static void __init do_pre_smp_initcalls(void)
- {
- 	extern int spawn_ksoftirqd(void);
-@@ -718,7 +727,8 @@ static void __init do_pre_smp_initcalls(
- 	migration_init();
- #endif
- 	spawn_ksoftirqd();
--	spawn_softlockup_task();
-+	if (!nosoftlockup)
-+		spawn_softlockup_task();
- }
- 
- static void run_init_process(char *init_filename)
+ config SPI_S3C24XX_GPIO
+ 	tristate "Samsung S3C24XX series SPI by GPIO"
+-	depends on SPI_MASTER && ARCH_S3C2410 && SPI_BITBANG && EXPERIMENTAL
++	depends on SPI_MASTER && ARCH_S3C2410 && EXPERIMENTAL
++	select SPI_BITBANG
+ 	help
+ 	  SPI driver for Samsung S3C24XX series ARM SoCs using
+ 	  GPIO lines to provide the SPI bus. This can be used where
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-document-acked-by.patch
-git-alsa.patch
-git-agpgart.patch
-git-cpufreq.patch
-i386-remove-support-for-the-rise-cpu.patch
-fix-up-codingstyle-in-isofs.patch
-undeprecate-raw-driver.patch
-fix-typo-in-prefetchh.patch
-allow-softlockup-to-be-runtime-disabled.patch
+git-avr32.patch
+git-leds.patch
+git-mmc.patch
+git-backlight.patch
+char-genrtc-use-wait_event_interruptible.patch
+spi-controller-drivers-check-for-unsupported-modes.patch
+spi-controller-drivers-check-for-unsupported-modes-update.patch
+spi-add-3wire-mode-flag.patch
+spi-add-3wire-mode-flag-fix.patch
+spidev-compiler-warning-gone.patch
+spi_lm70llp-parport-adapter-driver-correction.patch
+spi_mpc83xxc-underclocking-hotfix.patch
+atmel_spi-minor-updates.patch
+s3c24xx-spi-controllers-both-select-bitbang.patch
+rtc-ds1307-cleanups.patch
+rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
+thecus-n2100-register-rtc-rs5c372-i2c-device.patch
+rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
+rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
