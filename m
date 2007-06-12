@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-various-fixes-checkpatch.patch added to -mm tree
-Date: Tue, 12 Jun 2007 13:58:46 -0700
-Message-ID: <200706122058.l5CKwkRQ021022@imap1.linux-foundation.org>
+Subject: + lockstat-measure-lock-bouncing.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:58:52 -0700
+Message-ID: <200706122058.l5CKwqVm021028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36418 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750745AbXFLU7D (ORCPT
+	by vger.kernel.org with ESMTP id S1750778AbXFLU7I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 16:59:03 -0400
+	Tue, 12 Jun 2007 16:59:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
+Cc: a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     lockdep-various-fixes-checkpatch
+     lockstat: measure lock bouncing
 has been added to the -mm tree.  Its filename is
-     lockdep-various-fixes-checkpatch.patch
+     lockstat-measure-lock-bouncing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,211 +26,270 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep-various-fixes-checkpatch
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lockstat: measure lock bouncing
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+    __acquire
+        |
+       lock _____
+        |        \
+        |    __contended
+        |         |
+        |        wait
+        | _______/
+        |/
+        |
+   __acquired
+        |
+   __release
+        |
+     unlock
+
+We measure acquisition and contention bouncing.
+
+This is done by recording a cpu stamp in each lock instance.
+
+Contention bouncing requires the cpu stamp to be set on acquisition. Hence we
+move __acquired into the generic path.
+
+__acquired is then used to measure acquisition bouncing by comparing the
+current cpu with the old stamp before replacing it.
+
+__contended is used to measure contention bouncing (only useful for preemptable
+locks)
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ include/linux/lockdep.h |   17 ++++++++++++++++-
+ kernel/lockdep.c        |   38 ++++++++++++++++++++++++++------------
+ kernel/lockdep_proc.c   |   18 +++++++++++-------
+ kernel/mutex.c          |    2 +-
+ 4 files changed, 54 insertions(+), 21 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-various-fixes-checkpatch kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-various-fixes-checkpatch
+diff -puN include/linux/lockdep.h~lockstat-measure-lock-bouncing include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockstat-measure-lock-bouncing
++++ a/include/linux/lockdep.h
+@@ -130,12 +130,24 @@ struct lock_time {
+ 	unsigned long			nr;
+ };
+ 
++enum bounce_type {
++	bounce_acquired_write,
++	bounce_acquired_read,
++	bounce_contended_write,
++	bounce_contended_read,
++	nr_bounce_types,
++
++	bounce_acquired = bounce_acquired_write,
++	bounce_contended = bounce_contended_write,
++};
++
+ struct lock_class_stats {
+ 	unsigned long			contention_point[4];
+ 	struct lock_time		read_waittime;
+ 	struct lock_time		write_waittime;
+ 	struct lock_time		read_holdtime;
+ 	struct lock_time		write_holdtime;
++	unsigned long			bounces[nr_bounce_types];
+ };
+ 
+ struct lock_class_stats lock_stats(struct lock_class *class);
+@@ -150,6 +162,9 @@ struct lockdep_map {
+ 	struct lock_class_key		*key;
+ 	struct lock_class		*class_cache;
+ 	const char			*name;
++#ifdef CONFIG_LOCK_STAT
++	int				cpu;
++#endif
+ };
+ 
+ /*
+@@ -321,8 +336,8 @@ do {								\
+ 	if (!try(_lock)) {					\
+ 		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
+ 		lock(_lock);					\
+-		lock_acquired(&(_lock)->dep_map);		\
+ 	}							\
++	lock_acquired(&(_lock)->dep_map);			\
+ } while (0)
+ 
+ #else /* CONFIG_LOCK_STAT */
+diff -puN kernel/lockdep.c~lockstat-measure-lock-bouncing kernel/lockdep.c
+--- a/kernel/lockdep.c~lockstat-measure-lock-bouncing
 +++ a/kernel/lockdep.c
-@@ -675,7 +675,8 @@ look_up_lock_class(struct lockdep_map *l
- 	 * (or spin_lock_init()) call - which acts as the key. For static
- 	 * locks we use the lock object itself as the key.
- 	 */
--	BUILD_BUG_ON(sizeof(struct lock_class_key) > sizeof(struct lockdep_map));
-+	BUILD_BUG_ON(sizeof(struct lock_class_key) >
-+			sizeof(struct lockdep_map));
+@@ -177,6 +177,9 @@ struct lock_class_stats lock_stats(struc
  
- 	key = lock->key->subkeys + subclass;
+ 		lock_time_add(&pcs->read_holdtime, &stats.read_holdtime);
+ 		lock_time_add(&pcs->write_holdtime, &stats.write_holdtime);
++
++		for (i = 0; i < ARRAY_SIZE(stats.bounces); i++)
++			stats.bounces[i] += pcs->bounces[i];
+ 	}
  
+ 	return stats;
+@@ -2325,6 +2328,9 @@ void lockdep_init_map(struct lockdep_map
+ 	lock->name = name;
+ 	lock->key = key;
+ 	lock->class_cache = NULL;
++#ifdef CONFIG_LOCK_STAT
++	lock->cpu = raw_smp_processor_id();
++#endif
+ 	if (subclass)
+ 		register_lock_class(lock, subclass, 1);
+ }
+@@ -2775,6 +2781,8 @@ found_it:
+ 	stats = get_lock_stats(hlock->class);
+ 	if (point < ARRAY_SIZE(stats->contention_point))
+ 		stats->contention_point[i]++;
++	if (lock->cpu != smp_processor_id())
++		stats->bounces[bounce_contended + !!hlock->read]++;
+ 	put_lock_stats(stats);
+ }
+ 
+@@ -2786,8 +2794,8 @@ __lock_acquired(struct lockdep_map *lock
+ 	struct lock_class_stats *stats;
+ 	unsigned int depth;
+ 	u64 now;
+-	s64 waittime;
+-	int i;
++	s64 waittime = 0;
++	int i, cpu;
+ 
+ 	depth = curr->lockdep_depth;
+ 	if (DEBUG_LOCKS_WARN_ON(!depth))
+@@ -2809,19 +2817,25 @@ __lock_acquired(struct lockdep_map *lock
+ 	return;
+ 
+ found_it:
+-	if (!hlock->waittime_stamp)
+-		return;
+-
+-	now = sched_clock();
+-	waittime = now - hlock->waittime_stamp;
+-	hlock->holdtime_stamp = now;
++	cpu = smp_processor_id();
++	if (hlock->waittime_stamp) {
++		now = sched_clock();
++		waittime = now - hlock->waittime_stamp;
++		hlock->holdtime_stamp = now;
++	}
+ 
+ 	stats = get_lock_stats(hlock->class);
+-	if (hlock->read)
+-		lock_time_inc(&stats->read_waittime, waittime);
+-	else
+-		lock_time_inc(&stats->write_waittime, waittime);
++	if (waittime) {
++		if (hlock->read)
++			lock_time_inc(&stats->read_waittime, waittime);
++		else
++			lock_time_inc(&stats->write_waittime, waittime);
++	}
++	if (lock->cpu != cpu)
++		stats->bounces[bounce_acquired + !!hlock->read]++;
+ 	put_lock_stats(stats);
++
++	lock->cpu = cpu;
+ }
+ 
+ void lock_contended(struct lockdep_map *lock, unsigned long ip)
+diff -puN kernel/lockdep_proc.c~lockstat-measure-lock-bouncing kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-measure-lock-bouncing
++++ a/kernel/lockdep_proc.c
+@@ -430,16 +430,18 @@ static void seq_stats(struct seq_file *m
+ 		else
+ 			seq_printf(m, "%40s:", name);
+ 
++		seq_printf(m, "%14lu ", stats->bounces[bounce_contended_write]);
+ 		seq_lock_time(m, &stats->write_waittime);
+-		seq_puts(m, " ");
++		seq_printf(m, " %14lu ", stats->bounces[bounce_acquired_write]);
+ 		seq_lock_time(m, &stats->write_holdtime);
+ 		seq_puts(m, "\n");
+ 	}
+ 
+ 	if (stats->read_holdtime.nr) {
+ 		seq_printf(m, "%38s-R:", name);
++		seq_printf(m, "%14lu ", stats->bounces[bounce_contended_read]);
+ 		seq_lock_time(m, &stats->read_waittime);
+-		seq_puts(m, " ");
++		seq_printf(m, " %14lu ", stats->bounces[bounce_acquired_read]);
+ 		seq_lock_time(m, &stats->read_holdtime);
+ 		seq_puts(m, "\n");
+ 	}
+@@ -469,26 +471,28 @@ static void seq_stats(struct seq_file *m
+ 	}
+ 	if (i) {
+ 		seq_puts(m, "\n");
+-		seq_line(m, '.', 0, 40 + 1 + 8 * (14 + 1));
++		seq_line(m, '.', 0, 40 + 1 + 10 * (14 + 1));
+ 		seq_puts(m, "\n");
+ 	}
+ }
+ 
+ static void seq_header(struct seq_file *m)
+ {
+-	seq_printf(m, "lock_stat version 0.1\n");
+-	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
+-	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s\n",
++	seq_printf(m, "lock_stat version 0.2\n");
++	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
++	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s %14s %14s\n",
+ 			"class name",
++			"con-bounces",
+ 			"contentions",
+ 			"waittime-min",
+ 			"waittime-max",
+ 			"waittime-total",
++			"acq-bounces",
+ 			"acquisitions",
+ 			"holdtime-min",
+ 			"holdtime-max",
+ 			"holdtime-total");
+-	seq_line(m, '-', 0, 40 + 1 + 8 * (14 + 1));
++	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
+ 	seq_printf(m, "\n");
+ }
+ 
+diff -puN kernel/mutex.c~lockstat-measure-lock-bouncing kernel/mutex.c
+--- a/kernel/mutex.c~lockstat-measure-lock-bouncing
++++ a/kernel/mutex.c
+@@ -180,8 +180,8 @@ __mutex_lock_common(struct mutex *lock, 
+ 		spin_lock_mutex(&lock->wait_lock, flags);
+ 	}
+ 
+-	lock_acquired(&lock->dep_map);
+ done:
++	lock_acquired(&lock->dep_map);
+ 	/* got the lock - rejoice! */
+ 	mutex_remove_waiter(lock, &waiter, task_thread_info(task));
+ 	debug_mutex_set_owner(lock, task_thread_info(task));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-git-input-fixup.patch
-serio_raw_read-warning-fix.patch
-git-jfs-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-git-r8169-fixup.patch
-git-selinux.patch
-git-selinux-fixup.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-vs-git-net.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
-i386-mtrr-clean-up-usage_table.patch
-i386-show-unhandled-signals-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-udf-fix-possible-leakage-of-blocks-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
+lumpy-reclaim-v4.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
 percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
 lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
 lockstat-core-infrastructure-fix-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-human-readability-tweaks-fix.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+lockdep-various-fixes.patch
 lockdep-various-fixes-checkpatch.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
+lockstat-measure-lock-bouncing.patch
 lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+lockstat-better-class-name-representation.patch
