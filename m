@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-tle620x-power-switch-driver.patch added to -mm tree
-Date: Tue, 12 Jun 2007 14:19:21 -0700
-Message-ID: <200706122119.l5CLJQSB021384@imap1.linux-foundation.org>
+Subject: + drivers-edac-new-i82443bxgz-mc-driver-broken.patch added to -mm tree
+Date: Tue, 12 Jun 2007 14:21:18 -0700
+Message-ID: <200706122121.l5CLLICX021444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751254AbXFLVUZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751373AbXFLVVc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 17:20:25 -0400
+	Tue, 12 Jun 2007 17:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben@trinity.fluff.org, ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: akpm@linux-foundation.org, dougthompson@xmission.com, greg@kroah.com, tim@buttersideup.com
 
 
 The patch titled
-     SPI: tle620x power switch driver
+     drivers-edac-new-i82443bxgz-mc-driver-broken
 has been added to the -mm tree.  Its filename is
-     spi-tle620x-power-switch-driver.patch
+     drivers-edac-new-i82443bxgz-mc-driver-broken.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,417 +26,214 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPI: tle620x power switch driver
-From: Ben Dooks <ben@trinity.fluff.org>
+Subject: drivers-edac-new-i82443bxgz-mc-driver-broken
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for the Infineon TLE62x0 series of low-side driver chips, such
-as the TLE6220 or TLE6230.  These can be viewed as output GPIOs specialized
-for power switching applications.  The driver provides a userspace
-interface to those GPIOs, and to the switch status they provide.
+It will claim the PCi devices from under intel_agp.ko's feet.  Greg is brewing
+some fix for that.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Douglas Thompson <dougthompson@xmission.com>
+Cc: Tim Small <tim@buttersideup.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig         |    9 
- drivers/spi/Makefile        |    1 
- drivers/spi/tle62x0.c       |  328 ++++++++++++++++++++++++++++++++++
- include/linux/spi/tle62x0.h |   24 ++
- 4 files changed, 362 insertions(+)
+ drivers/edac/Kconfig |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/spi/Kconfig~spi-tle620x-power-switch-driver drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~spi-tle620x-power-switch-driver
-+++ a/drivers/spi/Kconfig
-@@ -198,6 +198,15 @@ config SPI_SPIDEV
- 	  Note that this application programming interface is EXPERIMENTAL
- 	  and hence SUBJECT TO CHANGE WITHOUT NOTICE while it stabilizes.
- 
-+config SPI_TLE62X0
-+	tristate "Infineon TLE62X0 (for power switching)"
-+	depends on SPI_MASTER && SYSFS
-+	help
-+	  SPI driver for Infineon TLE62X0 series line driver chips,
-+	  such as the TLE6220, TLE6230 and TLE6240.  This provides a
-+	  sysfs interface, with each line presented as a kind of GPIO
-+	  exposing both switch control and diagnostic feedback.
-+
- #
- # Add new SPI protocol masters in alphabetical order above this line
- #
-diff -puN drivers/spi/Makefile~spi-tle620x-power-switch-driver drivers/spi/Makefile
---- a/drivers/spi/Makefile~spi-tle620x-power-switch-driver
-+++ a/drivers/spi/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24x
- # SPI protocol drivers (device/link on bus)
- obj-$(CONFIG_SPI_AT25)		+= at25.o
- obj-$(CONFIG_SPI_SPIDEV)	+= spidev.o
-+obj-$(CONFIG_SPI_TLE62X0)	+= tle62x0.o
- # 	... add above this line ...
- 
- # SPI slave controller drivers (upstream link)
-diff -puN /dev/null drivers/spi/tle62x0.c
---- /dev/null
-+++ a/drivers/spi/tle62x0.c
-@@ -0,0 +1,328 @@
-+/*
-+ * tle62x0.c -- support Infineon TLE62x0 driver chips
-+ *
-+ * Copyright (c) 2007 Simtec Electronics
-+ *	Ben Dooks, <ben@simtec.co.uk>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+
-+#include <linux/spi/spi.h>
-+#include <linux/spi/tle62x0.h>
-+
-+
-+#define CMD_READ	0x00
-+#define CMD_SET		0xff
-+
-+#define DIAG_NORMAL	0x03
-+#define DIAG_OVERLOAD	0x02
-+#define DIAG_OPEN	0x01
-+#define DIAG_SHORTGND	0x00
-+
-+struct tle62x0_state {
-+	struct spi_device	*us;
-+	struct mutex		lock;
-+	unsigned int		nr_gpio;
-+	unsigned int		gpio_state;
-+
-+	unsigned char		tx_buff[4];
-+	unsigned char		rx_buff[4];
-+};
-+
-+static int to_gpio_num(struct device_attribute *attr);
-+
-+static inline int tle62x0_write(struct tle62x0_state *st)
-+{
-+	unsigned char *buff = st->tx_buff;
-+	unsigned int gpio_state = st->gpio_state;
-+
-+	buff[0] = CMD_SET;
-+
-+	if (st->nr_gpio == 16) {
-+		buff[1] = gpio_state >> 8;
-+		buff[2] = gpio_state;
-+	} else {
-+		buff[1] = gpio_state;
-+	}
-+
-+	dev_dbg(&st->us->dev, "buff %02x,%02x,%02x\n",
-+		buff[0], buff[1], buff[2]);
-+
-+	return spi_write(st->us, buff, (st->nr_gpio == 16) ? 3 : 2);
-+}
-+
-+static inline int tle62x0_read(struct tle62x0_state *st)
-+{
-+	unsigned char *txbuff = st->tx_buff;
-+	struct spi_transfer xfer = {
-+		.tx_buf		= txbuff,
-+		.rx_buf		= st->rx_buff,
-+		.len		= (st->nr_gpio * 2) / 8,
-+	};
-+	struct spi_message msg;
-+
-+	txbuff[0] = CMD_READ;
-+	txbuff[1] = 0x00;
-+	txbuff[2] = 0x00;
-+	txbuff[3] = 0x00;
-+
-+	spi_message_init(&msg);
-+	spi_message_add_tail(&xfer, &msg);
-+
-+	return spi_sync(st->us, &msg);
-+}
-+
-+static unsigned char *decode_fault(unsigned int fault_code)
-+{
-+	fault_code &= 3;
-+
-+	switch (fault_code) {
-+	case DIAG_NORMAL:
-+		return "N";
-+	case DIAG_OVERLOAD:
-+		return "V";
-+	case DIAG_OPEN:
-+		return "O";
-+	case DIAG_SHORTGND:
-+		return "G";
-+	}
-+
-+	return "?";
-+}
-+
-+static ssize_t tle62x0_status_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct tle62x0_state *st = dev_get_drvdata(dev);
-+	char *bp = buf;
-+	unsigned char *buff = st->rx_buff;
-+	unsigned long fault = 0;
-+	int ptr;
-+	int ret;
-+
-+	mutex_lock(&st->lock);
-+	ret = tle62x0_read(st);
-+
-+	dev_dbg(dev, "tle62x0_read() returned %d\n", ret);
-+
-+	for (ptr = 0; ptr < (st->nr_gpio * 2)/8; ptr += 1) {
-+		fault <<= 8;
-+		fault  |= ((unsigned long)buff[ptr]);
-+
-+		dev_dbg(dev, "byte %d is %02x\n", ptr, buff[ptr]);
-+	}
-+
-+	for (ptr = 0; ptr < st->nr_gpio; ptr++) {
-+		bp += sprintf(bp, "%s ", decode_fault(fault >> (ptr * 2)));
-+	}
-+
-+	*bp++ = '\n';
-+
-+	mutex_unlock(&st->lock);
-+	return bp - buf;
-+}
-+
-+static DEVICE_ATTR(status_show, S_IRUGO, tle62x0_status_show, NULL);
-+
-+static ssize_t tle62x0_gpio_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct tle62x0_state *st = dev_get_drvdata(dev);
-+	int gpio_num = to_gpio_num(attr);
-+	int value;
-+
-+	mutex_lock(&st->lock);
-+	value = (st->gpio_state >> gpio_num) & 1;
-+	mutex_unlock(&st->lock);
-+
-+	return snprintf(buf, PAGE_SIZE, "%d", value);
-+}
-+
-+static ssize_t tle62x0_gpio_store(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t len)
-+{
-+	struct tle62x0_state *st = dev_get_drvdata(dev);
-+	int gpio_num = to_gpio_num(attr);
-+	unsigned long val;
-+	char *endp;
-+
-+	val = simple_strtoul(buf, &endp, 0);
-+	if (buf == endp)
-+		return -EINVAL;
-+
-+	dev_dbg(dev, "setting gpio %d to %ld\n", gpio_num, val);
-+
-+	mutex_lock(&st->lock);
-+
-+	if (val)
-+		st->gpio_state |= 1 << gpio_num;
-+	else
-+		st->gpio_state &= ~(1 << gpio_num);
-+
-+	tle62x0_write(st);
-+	mutex_unlock(&st->lock);
-+
-+	return len;
-+}
-+
-+static DEVICE_ATTR(gpio1, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio2, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio3, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio4, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio5, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio6, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio7, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio8, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio9, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio10, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio11, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio12, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio13, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio14, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio15, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+static DEVICE_ATTR(gpio16, S_IWUSR|S_IRUGO,
-+		tle62x0_gpio_show, tle62x0_gpio_store);
-+
-+static struct device_attribute *gpio_attrs[] = {
-+	[0]		= &dev_attr_gpio1,
-+	[1]		= &dev_attr_gpio2,
-+	[2]		= &dev_attr_gpio3,
-+	[3]		= &dev_attr_gpio4,
-+	[4]		= &dev_attr_gpio5,
-+	[5]		= &dev_attr_gpio6,
-+	[6]		= &dev_attr_gpio7,
-+	[7]		= &dev_attr_gpio8,
-+	[8]		= &dev_attr_gpio9,
-+	[9]		= &dev_attr_gpio10,
-+	[10]		= &dev_attr_gpio11,
-+	[11]		= &dev_attr_gpio12,
-+	[12]		= &dev_attr_gpio13,
-+	[13]		= &dev_attr_gpio14,
-+	[14]		= &dev_attr_gpio15,
-+	[15]		= &dev_attr_gpio16
-+};
-+
-+static int to_gpio_num(struct device_attribute *attr)
-+{
-+	int ptr;
-+
-+	for (ptr = 0; ptr < ARRAY_SIZE(gpio_attrs); ptr++) {
-+		if (gpio_attrs[ptr] == attr)
-+			return ptr;
-+	}
-+
-+	return -1;
-+}
-+
-+static int __devinit tle62x0_probe(struct spi_device *spi)
-+{
-+	struct tle62x0_state *st;
-+	struct tle62x0_pdata *pdata;
-+	int ptr;
-+	int ret;
-+
-+	pdata = spi->dev.platform_data;
-+	if (pdata == NULL) {
-+		dev_err(&spi->dev, "no device data specified\n");
-+		return -EINVAL;
-+	}
-+
-+	st = kzalloc(sizeof(struct tle62x0_state), GFP_KERNEL);
-+	if (st == NULL) {
-+		dev_err(&spi->dev, "no memory for device state\n");
-+		return -ENOMEM;
-+	}
-+
-+	st->us = spi;
-+	st->nr_gpio = pdata->gpio_count;
-+	st->gpio_state = pdata->init_state;
-+
-+	mutex_init(&st->lock);
-+
-+	ret = device_create_file(&spi->dev, &dev_attr_status_show);
-+	if (ret) {
-+		dev_err(&spi->dev, "cannot create status attribute\n");
-+		goto err_status;
-+	}
-+
-+	for (ptr = 0; ptr < pdata->gpio_count; ptr++) {
-+		ret = device_create_file(&spi->dev, gpio_attrs[ptr]);
-+		if (ret) {
-+			dev_err(&spi->dev, "cannot create gpio attribute\n");
-+			goto err_gpios;
-+		}
-+	}
-+
-+	/* tle62x0_write(st); */
-+	spi_set_drvdata(spi, st);
-+	return 0;
-+
-+ err_gpios:
-+	for (; ptr > 0; ptr--)
-+		device_remove_file(&spi->dev, gpio_attrs[ptr]);
-+
-+	device_remove_file(&spi->dev, &dev_attr_status_show);
-+
-+ err_status:
-+	kfree(st);
-+	return ret;
-+}
-+
-+static int __devexit tle62x0_remove(struct spi_device *spi)
-+{
-+	struct tle62x0_state *st = spi_get_drvdata(spi);
-+	int ptr;
-+
-+	for (ptr = 0; ptr < st->nr_gpio; ptr++)
-+		device_remove_file(&spi->dev, gpio_attrs[ptr]);
-+
-+	kfree(st);
-+	return 0;
-+}
-+
-+static struct spi_driver tle62x0_driver = {
-+	.driver = {
-+		.name	= "tle62x0",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= tle62x0_probe,
-+	.remove		= __devexit_p(tle62x0_remove),
-+};
-+
-+static __init int tle62x0_init(void)
-+{
-+	return spi_register_driver(&tle62x0_driver);
-+}
-+
-+static __exit void tle62x0_exit(void)
-+{
-+	spi_unregister_driver(&tle62x0_driver);
-+}
-+
-+module_init(tle62x0_init);
-+module_exit(tle62x0_exit);
-+
-+MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
-+MODULE_DESCRIPTION("TLE62x0 SPI driver");
-+MODULE_LICENSE("GPL v2");
-diff -puN /dev/null include/linux/spi/tle62x0.h
---- /dev/null
-+++ a/include/linux/spi/tle62x0.h
-@@ -0,0 +1,24 @@
-+/*
-+ * tle62x0.h - platform glue to Infineon TLE62x0 driver chips
-+ *
-+ * Copyright 2007 Simtec Electronics
-+ *	Ben Dooks <ben@simtec.co.uk>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+*/
-+
-+struct tle62x0_pdata {
-+	unsigned int		init_state;
-+	unsigned int		gpio_count;
-+};
+diff -puN drivers/edac/Kconfig~drivers-edac-new-i82443bxgz-mc-driver-broken drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-new-i82443bxgz-mc-driver-broken
++++ a/drivers/edac/Kconfig
+@@ -76,6 +76,7 @@ config EDAC_E752X
+ config EDAC_I82443BXGX
+ 	tristate "Intel 82443BX/GX (440BX/GX)"
+ 	depends on EDAC_MM_EDAC && PCI && X86_32
++	depends on BROKEN
+ 	help
+ 	  Support for error detection and correction on the Intel
+ 	  82443BX/GX memory controllers (440BX/GX chipsets).
 _
 
-Patches currently in -mm which might be from ben@trinity.fluff.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-spi-tle620x-power-switch-driver.patch
+origin.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+git-input-fixup.patch
+serio_raw_read-warning-fix.patch
+git-jfs-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+git-r8169-fixup.patch
+git-selinux.patch
+git-selinux-fixup.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-vs-git-net.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
+i386-mtrr-clean-up-usage_table.patch
+i386-show-unhandled-signals-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+udf-fix-possible-leakage-of-blocks-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
