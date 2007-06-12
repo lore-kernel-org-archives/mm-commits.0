@@ -1,58 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-lock_cpu_hotplug_interruptible-definition.patch added to -mm tree
-Date: Tue, 12 Jun 2007 14:26:02 -0700
-Message-ID: <200706122126.l5CLQ2hC021504@imap1.linux-foundation.org>
+Subject: - add-werror-implicit-function-declaration.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 15:00:24 -0700
+Message-ID: <200706122204.l5CM48ri022265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40821 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157AbXFLV0L (ORCPT
+	by vger.kernel.org with ESMTP id S1751770AbXFLWEZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 17:26:11 -0400
+	Tue, 12 Jun 2007 18:04:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ntl@pobox.com
+To: davej@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused lock_cpu_hotplug_interruptible definition
-has been added to the -mm tree.  Its filename is
-     remove-unused-lock_cpu_hotplug_interruptible-definition.patch
+     Add -Werror-implicit-function-declaration
+has been removed from the -mm tree.  Its filename was
+     add-werror-implicit-function-declaration.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: remove unused lock_cpu_hotplug_interruptible definition
-From: Nathan Lynch <ntl@pobox.com>
+Subject: Add -Werror-implicit-function-declaration
+From: Dave Jones <davej@redhat.com>
 
-aa95387774039096c11803c04011f1aa42d85758 removed the implementation of
-lock_cpu_hotplug_interruptible and all users of it.  This stub definition
-for !CONFIG_HOTPLUG_CPU was left over -- kill it now.
+Add -Werror-implicit-function-declaration
+This makes builds fail sooner if something is implicitly defined instead
+of having to wait half an hour for it to fail at the linking stage.
 
-Signed-off-by: Nathan Lynch <ntl@pobox.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    1 -
- 1 files changed, 1 deletion(-)
+ Makefile |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cpu.h~remove-unused-lock_cpu_hotplug_interruptible-definition include/linux/cpu.h
---- a/include/linux/cpu.h~remove-unused-lock_cpu_hotplug_interruptible-definition
-+++ a/include/linux/cpu.h
-@@ -120,7 +120,6 @@ static inline void cpuhotplug_mutex_unlo
+diff -puN Makefile~add-werror-implicit-function-declaration Makefile
+--- a/Makefile~add-werror-implicit-function-declaration
++++ a/Makefile
+@@ -313,7 +313,8 @@ LINUXINCLUDE    := -Iinclude \
+ CPPFLAGS        := -D__KERNEL__ $(LINUXINCLUDE)
  
- #define lock_cpu_hotplug()	do { } while (0)
- #define unlock_cpu_hotplug()	do { } while (0)
--#define lock_cpu_hotplug_interruptible() 0
- #define hotcpu_notifier(fn, pri)	do { (void)(fn); } while (0)
- #define register_hotcpu_notifier(nb)	do { (void)(nb); } while (0)
- #define unregister_hotcpu_notifier(nb)	do { (void)(nb); } while (0)
+ CFLAGS          := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+-                   -fno-strict-aliasing -fno-common
++		   -fno-strict-aliasing -fno-common \
++		   -Werror-implicit-function-declaration
+ AFLAGS          := -D__ASSEMBLY__
+ 
+ # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 _
 
-Patches currently in -mm which might be from ntl@pobox.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
-remove-unused-lock_cpu_hotplug_interruptible-definition.patch
+origin.patch
+git-alsa.patch
+git-cpufreq.patch
+git-netdev-all.patch
+i386-remove-support-for-the-rise-cpu.patch
+fix-up-codingstyle-in-isofs.patch
+undeprecate-raw-driver.patch
+fix-typo-in-prefetchh.patch
+allow-softlockup-to-be-runtime-disabled.patch
+add-werror-implicit-function-declaration.patch
