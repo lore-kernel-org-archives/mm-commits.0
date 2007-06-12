@@ -1,224 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: - make-disable_console_suspend-runtime-configurable.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 13:33:12 -0700
-Message-ID: <200706122033.l5CKXDYw020673@imap1.linux-foundation.org>
+Subject: + lockstat-measure-lock-bouncing-checkpatch.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:58:54 -0700
+Message-ID: <200706122058.l5CKwsaA021034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60883 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755523AbXFLUeA (ORCPT
+	by vger.kernel.org with ESMTP id S1750794AbXFLU7I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 16:34:00 -0400
+	Tue, 12 Jun 2007 16:59:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: seife@suse.de, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     make disable_console_suspend runtime configurable
-has been removed from the -mm tree.  Its filename was
-     make-disable_console_suspend-runtime-configurable.patch
+     lockstat-measure-lock-bouncing-checkpatch
+has been added to the -mm tree.  Its filename is
+     lockstat-measure-lock-bouncing-checkpatch.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: make disable_console_suspend runtime configurable
-From: Stefan Seyfried <seife@suse.de>
+Subject: lockstat-measure-lock-bouncing-checkpatch
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I hate having to recompile the kernel, just to be able to debug suspend. 
-Remove CONFIG_DISABLE_CONSOLE_SUSPEND, replace it by a sysctl in
-/proc/sys/kernel/disable_console_suspend.
-
-Signed-off-by: Stefan Seyfried <seife@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/basic-pm-debugging.txt |   16 +++++++++-------
- drivers/serial/serial_core.c               |    8 ++------
- include/linux/console.h                    |    7 ++-----
- kernel/power/Kconfig                       |   11 -----------
- kernel/printk.c                            |    7 +++++--
- kernel/sysctl.c                            |    9 +++++++++
- 6 files changed, 27 insertions(+), 31 deletions(-)
+ kernel/lockdep_proc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/power/basic-pm-debugging.txt~make-disable_console_suspend-runtime-configurable Documentation/power/basic-pm-debugging.txt
---- a/Documentation/power/basic-pm-debugging.txt~make-disable_console_suspend-runtime-configurable
-+++ a/Documentation/power/basic-pm-debugging.txt
-@@ -78,13 +78,15 @@ c) Advanced debugging
- In case the STD does not work on your system even in the minimal configuration
- and compiling more drivers as modules is not practical or some modules cannot
- be unloaded, you can use one of the more advanced debugging techniques to find
--the problem.  First, if there is a serial port in your box, you can set the
--CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
--messages using the serial console.  This may provide you with some information
--about the reasons of the suspend (resume) failure.  Alternatively, it may be
--possible to use a FireWire port for debugging with firescope
--(ftp://ftp.firstfloor.org/pub/ak/firescope/).  On i386 it is also possible to
--use the PM_TRACE mechanism documented in Documentation/s2ram.txt .
-+the problem.  First, if there is a serial port in your box, you can
-+
-+# echo 1 > /proc/sys/kernel/disable_console_suspend
-+
-+and try to log kernel messages using the serial console.  This may provide you
-+with some information about the reasons of the suspend (resume) failure.
-+Alternatively, it may be possible to use a FireWire port for debugging with
-+firescope (ftp://ftp.firstfloor.org/pub/ak/firescope/).  On i386 it is also
-+possible to use the PM_TRACE mechanism documented in Documentation/s2ram.txt .
- 
- 2. Testing suspend to RAM (STR)
- 
-diff -puN drivers/serial/serial_core.c~make-disable_console_suspend-runtime-configurable drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~make-disable_console_suspend-runtime-configurable
-+++ a/drivers/serial/serial_core.c
-@@ -1948,12 +1948,10 @@ int uart_suspend_port(struct uart_driver
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (disable_console_suspend && uart_console(port)) {
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
--#endif
- 
- 	if (state->info && state->info->flags & UIF_INITIALIZED) {
- 		const struct uart_ops *ops = port->ops;
-@@ -1996,12 +1994,10 @@ int uart_resume_port(struct uart_driver 
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (disable_console_suspend && uart_console(port)) {
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
--#endif
- 
- 	uart_change_pm(state, 0);
- 
-diff -puN include/linux/console.h~make-disable_console_suspend-runtime-configurable include/linux/console.h
---- a/include/linux/console.h~make-disable_console_suspend-runtime-configurable
-+++ a/include/linux/console.h
-@@ -64,6 +64,8 @@ extern const struct consw vga_con;	/* VG
- extern const struct consw newport_con;	/* SGI Newport console  */
- extern const struct consw prom_con;	/* SPARC PROM console */
- 
-+extern int disable_console_suspend;
-+
- int con_is_bound(const struct consw *csw);
- int register_con_driver(const struct consw *csw, int first, int last);
- int unregister_con_driver(const struct consw *csw);
-@@ -122,14 +124,9 @@ extern void console_stop(struct console 
- extern void console_start(struct console *);
- extern int is_console_locked(void);
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
- /* Suspend and resume console messages over PM events */
- extern void suspend_console(void);
- extern void resume_console(void);
--#else
--static inline void suspend_console(void) {}
--static inline void resume_console(void) {}
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
- 
- int mda_console_init(void);
- void prom_con_init(void);
-diff -puN include/linux/sysctl.h~make-disable_console_suspend-runtime-configurable include/linux/sysctl.h
-diff -puN kernel/power/Kconfig~make-disable_console_suspend-runtime-configurable kernel/power/Kconfig
---- a/kernel/power/Kconfig~make-disable_console_suspend-runtime-configurable
-+++ a/kernel/power/Kconfig
-@@ -44,17 +44,6 @@ config PM_VERBOSE
- 	---help---
- 	This option enables verbose messages from the Power Management code.
- 
--config DISABLE_CONSOLE_SUSPEND
--	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
--	depends on PM_DEBUG
--	default n
--	---help---
--	This option turns off the console suspend mechanism that prevents
--	debug messages from reaching the console during the suspend/resume
--	operations.  This may be helpful when debugging device drivers'
--	suspend/resume routines, but may itself lead to problems, for example
--	if netconsole is used.
--
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
- 	depends on PM_DEBUG && X86 && EXPERIMENTAL
-diff -puN kernel/printk.c~make-disable_console_suspend-runtime-configurable kernel/printk.c
---- a/kernel/printk.c~make-disable_console_suspend-runtime-configurable
-+++ a/kernel/printk.c
-@@ -76,6 +76,7 @@ struct console *console_drivers;
-  * locked without the console sempahore held
-  */
- static int console_locked, console_suspended;
-+int disable_console_suspend;
- 
- /*
-  * logbuf_lock protects log_buf, log_start, log_end, con_start and logged_chars
-@@ -745,7 +746,6 @@ int __init update_console_cmdline(char *
- 	return -1;
- }
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
- /**
-  * suspend_console - suspend the console subsystem
-  *
-@@ -753,6 +753,8 @@ int __init update_console_cmdline(char *
-  */
- void suspend_console(void)
+diff -puN kernel/lockdep_proc.c~lockstat-measure-lock-bouncing-checkpatch kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockstat-measure-lock-bouncing-checkpatch
++++ a/kernel/lockdep_proc.c
+@@ -480,7 +480,8 @@ static void seq_header(struct seq_file *
  {
-+	if (disable_console_suspend)
-+		return;
- 	printk("Suspending console(s)\n");
- 	acquire_console_sem();
- 	console_suspended = 1;
-@@ -760,10 +762,11 @@ void suspend_console(void)
- 
- void resume_console(void)
- {
-+	if (disable_console_suspend)
-+		return;
- 	console_suspended = 0;
- 	release_console_sem();
- }
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
- 
- /**
-  * acquire_console_sem - lock the console system for exclusive use.
-diff -puN kernel/sysctl.c~make-disable_console_suspend-runtime-configurable kernel/sysctl.c
---- a/kernel/sysctl.c~make-disable_console_suspend-runtime-configurable
-+++ a/kernel/sysctl.c
-@@ -46,6 +46,7 @@
- #include <linux/nfs_fs.h>
- #include <linux/acpi.h>
- #include <linux/reboot.h>
-+#include <linux/console.h>
- 
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -585,6 +586,14 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
- #endif
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "disable_console_suspend",
-+		.data		= &disable_console_suspend,
-+		.maxlen		= sizeof (int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- #ifdef CONFIG_IA64
- 	{
- 		.ctl_name	= KERN_IA64_UNALIGNED,
+ 	seq_printf(m, "lock_stat version 0.2\n");
+ 	seq_line(m, '-', 0, 40 + 1 + 10 * (14 + 1));
+-	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s %14s %14s\n",
++	seq_printf(m, "%40s %14s %14s %14s %14s %14s %14s %14s %14s "
++			"%14s %14s\n",
+ 			"class name",
+ 			"con-bounces",
+ 			"contentions",
 _
 
-Patches currently in -mm which might be from seife@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-make-disable_console_suspend-runtime-configurable.patch
+origin.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+git-input-fixup.patch
+serio_raw_read-warning-fix.patch
+git-jfs-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+git-r8169-fixup.patch
+git-selinux.patch
+git-selinux-fixup.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-vs-git-net.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
+i386-mtrr-clean-up-usage_table.patch
+i386-show-unhandled-signals-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+udf-fix-possible-leakage-of-blocks-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
