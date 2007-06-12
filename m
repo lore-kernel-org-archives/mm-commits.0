@@ -1,57 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-driver-for-at32ap700x-devices-fix-3.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:58:45 -0700
-Message-ID: <200706121858.l5CIwjho018554@imap1.linux-foundation.org>
+Subject: - net-fix-typo-in-drivers-net-usb-kconfig.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:58:16 -0700
+Message-ID: <200706121858.l5CIwG26018532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49307 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751243AbXFLTF5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750768AbXFLTGT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:05:57 -0400
+	Tue, 12 Jun 2007 15:06:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hcegtvedt@atmel.com, hskinnemoen@atmel.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, jeff@garzik.org, maiurana@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     at32ap700x-wdt: add missing iounmap in _remove
+     net: fix typo in drivers/net/usb/Kconfig
 has been removed from the -mm tree.  Its filename was
-     watchdog-driver-for-at32ap700x-devices-fix-3.patch
+     net-fix-typo-in-drivers-net-usb-kconfig.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: at32ap700x-wdt: add missing iounmap in _remove
-From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Subject: net: fix typo in drivers/net/usb/Kconfig
+=46rom: Sam Ravnborg <sam@ravnborg.org>
 
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Replace invisible character with a space.
+
+The diff looks like this on my terminal:
+-        <A0>Choose this option if you're using a host-to-host cable
+-        <A0>with one of these chips.
++         Choose this option if you're using a host-to-host cable
++         with one of these chips.
+
+Reported-by: Massimo Maiurana <maiurana@gmail.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/watchdog/at32ap700x_wdt.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/net/usb/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-3 drivers/char/watchdog/at32ap700x_wdt.c
---- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-3
-+++ a/drivers/char/watchdog/at32ap700x_wdt.c
-@@ -257,6 +257,7 @@ static int __exit at32_wdt_remove(struct
- {
- 	if (wdt && platform_get_drvdata(pdev) == wdt) {
- 		misc_deregister(&wdt->miscdev);
-+		iounmap(wdt->regs);
- 		kfree(wdt);
- 		wdt = NULL;
- 		platform_set_drvdata(pdev, NULL);
+diff -puN drivers/net/usb/Kconfig~net-fix-typo-in-drivers-net-usb-kconf=
+ig drivers/net/usb/Kconfig
+--- a/drivers/net/usb/Kconfig~net-fix-typo-in-drivers-net-usb-kconfig
++++ a/drivers/net/usb/Kconfig
+@@ -313,8 +313,8 @@ config USB_KC2190
+ 	boolean "KT Technology KC2190 based cables (InstaNet)"
+ 	depends on USB_NET_CDC_SUBSET && EXPERIMENTAL
+ 	help
+-	 =A0Choose this option if you're using a host-to-host cable
+-	 =A0with one of these chips.
++	  Choose this option if you're using a host-to-host cable
++	  with one of these chips.
+=20
+ config USB_NET_ZAURUS
+ 	tristate "Sharp Zaurus (stock ROMs) and compatible"
 _
 
-Patches currently in -mm which might be from hcegtvedt@atmel.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-git-avr32.patch
-git-watchdog.patch
-rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
-rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+origin.patch
+git-kbuild.patch
+use-posix-bre-in-headers-install-target.patch
+git-netdev-all.patch
+fix-x86_64-mm-xen-core-xen-implementation.patch
+x86-fix-section-mismatch-warnings-in-mtrr.patch
+i386-fix-section-mismatch-warning-in-intel_cacheinfo.patch
+git-newsetup.patch
+alpha-fix-trivial-section-mismatch-warnings.patch
