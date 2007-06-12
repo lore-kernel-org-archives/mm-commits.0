@@ -1,328 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - hexdump-more-output-formatting.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:35 -0700
-Message-ID: <200706121857.l5CIvZ4X018485@imap1.linux-foundation.org>
+Subject: - libata-core-sff-fix-multiple-assumptions-about-dma.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:58:07 -0700
+Message-ID: <200706121858.l5CIw78U018519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39258 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771AbXFLTFn (ORCPT
+	by vger.kernel.org with ESMTP id S1751238AbXFLTFL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:05:43 -0400
+	Tue, 12 Jun 2007 15:05:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hexdump: more output formatting
+     libata-core/sff: fix multiple assumptions about DMA
 has been removed from the -mm tree.  Its filename was
-     hexdump-more-output-formatting.patch
+     libata-core-sff-fix-multiple-assumptions-about-dma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hexdump: more output formatting
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: libata-core/sff: fix multiple assumptions about DMA
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add a prefix string parameter.  Callers are responsible for any string
-length/alignment that they want to see in the output.  I.e., callers should
-pad strings to achieve alignment if they want that.
+The ata IRQ ack functions are only used when debugging.  Unfortunately almost
+every controller that calls them can cause crashes in some configurations as
+there are missing checks for bmdma presence.
 
-Add rowsize parameter.  This is the number of raw data bytes to be printed
-per line.  Must be 16 or 32.
+In addition ata_port_start insists of installing DMA buffers and pad buffers
+for controllers regardless.  The SFF controllers actually need to make that
+decision dynamically at controller setup time and all need the same helper -
+so we add ata_sff_port_start.  Future patches will switch the SFF drivers to
+use this.
 
-Add a groupsize parameter.  This allows callers to dump values as 1-byte,
-2-byte, 4-byte, or 8-byte numbers.  Default is 1-byte numbers.  If the
-total length is not an even multiple of groupsize, 1-byte numbers are
-printed.
-
-Add an "ascii" output parameter.  This causes ASCII data output following
-the hex data output.
-
-Clean up some doc examples.
-
-Align the ASCII output on all lines that are produced by one call.
-
-Add a new interface, print_hex_dump_bytes(), that is a shortcut to
-print_hex_dump(), using default parameter values to print 16 bytes in
-byte-size chunks of hex + ASCII output, using printk level KERN_DEBUG.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   12 ++-
- lib/hexdump.c          |  149 +++++++++++++++++++++++++++++++--------
- 2 files changed, 129 insertions(+), 32 deletions(-)
+ drivers/ata/libata-core.c |    1 
+ drivers/ata/libata-sff.c  |   37 ++++++++++++++++++++++++++++--------
+ include/linux/libata.h    |    1 
+ 3 files changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/kernel.h~hexdump-more-output-formatting include/linux/kernel.h
---- a/include/linux/kernel.h~hexdump-more-output-formatting
-+++ a/include/linux/kernel.h
-@@ -218,10 +218,14 @@ enum {
- 	DUMP_PREFIX_ADDRESS,
- 	DUMP_PREFIX_OFFSET
- };
--extern void hex_dump_to_buffer(const void *buf, size_t len, char *linebuf,
--				size_t linebuflen);
--extern void print_hex_dump(const char *level, int prefix_type,
--				void *buf, size_t len);
-+extern void hex_dump_to_buffer(const void *buf, size_t len,
-+				int rowsize, int groupsize,
-+				char *linebuf, size_t linebuflen, bool ascii);
-+extern void print_hex_dump(const char *level, const char *prefix_str,
-+				int prefix_type, int rowsize, int groupsize,
-+				void *buf, size_t len, bool ascii);
-+extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-+			void *buf, size_t len);
- #define hex_asc(x)	"0123456789abcdef"[x]
- 
- #ifdef DEBUG
-diff -puN lib/hexdump.c~hexdump-more-output-formatting lib/hexdump.c
---- a/lib/hexdump.c~hexdump-more-output-formatting
-+++ a/lib/hexdump.c
-@@ -16,42 +16,98 @@
-  * hex_dump_to_buffer - convert a blob of data to "hex ASCII" in memory
-  * @buf: data blob to dump
-  * @len: number of bytes in the @buf
-+ * @rowsize: number of bytes to print per line; must be 16 or 32
-+ * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
-  * @linebuf: where to put the converted data
-  * @linebuflen: total size of @linebuf, including space for terminating NUL
-+ * @ascii: include ASCII after the hex output
-  *
-  * hex_dump_to_buffer() works on one "line" of output at a time, i.e.,
-- * 16 bytes of input data converted to hex + ASCII output.
-+ * 16 or 32 bytes of input data converted to hex + ASCII output.
-  *
-  * Given a buffer of u8 data, hex_dump_to_buffer() converts the input data
-  * to a hex + ASCII dump at the supplied memory location.
-  * The converted output is always NUL-terminated.
-  *
-  * E.g.:
-- *	hex_dump_to_buffer(frame->data, frame->len, linebuf, sizeof(linebuf));
-+ *   hex_dump_to_buffer(frame->data, frame->len, 16, 1,
-+ *			linebuf, sizeof(linebuf), 1);
-  *
-  * example output buffer:
-- * 40414243 44454647 48494a4b 4c4d4e4f  @ABCDEFGHIJKLMNO
-+ * 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f  @ABCDEFGHIJKLMNO
-  */
--void hex_dump_to_buffer(const void *buf, size_t len, char *linebuf,
--			size_t linebuflen)
-+void hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
-+			int groupsize, char *linebuf, size_t linebuflen,
-+			bool ascii)
+diff -puN drivers/ata/libata-core.c~libata-core-sff-fix-multiple-assumptions-about-dma drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-core-sff-fix-multiple-assumptions-about-dma
++++ a/drivers/ata/libata-core.c
+@@ -6821,6 +6821,7 @@ EXPORT_SYMBOL_GPL(ata_check_status);
+ EXPORT_SYMBOL_GPL(ata_altstatus);
+ EXPORT_SYMBOL_GPL(ata_exec_command);
+ EXPORT_SYMBOL_GPL(ata_port_start);
++EXPORT_SYMBOL_GPL(ata_sff_port_start);
+ EXPORT_SYMBOL_GPL(ata_interrupt);
+ EXPORT_SYMBOL_GPL(ata_do_set_mode);
+ EXPORT_SYMBOL_GPL(ata_data_xfer);
+diff -puN drivers/ata/libata-sff.c~libata-core-sff-fix-multiple-assumptions-about-dma drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-core-sff-fix-multiple-assumptions-about-dma
++++ a/drivers/ata/libata-sff.c
+@@ -80,25 +80,25 @@ u8 ata_dummy_irq_on (struct ata_port *ap
+ u8 ata_irq_ack(struct ata_port *ap, unsigned int chk_drq)
  {
- 	const u8 *ptr = buf;
- 	u8 ch;
- 	int j, lx = 0;
-+	int ascii_column;
+ 	unsigned int bits = chk_drq ? ATA_BUSY | ATA_DRQ : ATA_BUSY;
+-	u8 host_stat, post_stat, status;
++	u8 host_stat = 0, post_stat = 0, status;
  
--	for (j = 0; (j < 16) && (j < len) && (lx + 3) < linebuflen; j++) {
--		if (j && !(j % 4))
-+	if (rowsize != 16 && rowsize != 32)
-+		rowsize = 16;
-+
-+	if (!len)
-+		goto nil;
-+	if (len > rowsize)		/* limit to one line at a time */
-+		len = rowsize;
-+	if ((len % groupsize) != 0)	/* no mixed size output */
-+		groupsize = 1;
-+
-+	switch (groupsize) {
-+	case 8: {
-+		const u64 *ptr8 = buf;
-+		int ngroups = len / groupsize;
-+
-+		for (j = 0; j < ngroups; j++)
-+			lx += scnprintf(linebuf + lx, linebuflen - lx,
-+				"%16.16llx ", (unsigned long long)*(ptr8 + j));
-+		ascii_column = 17 * ngroups + 2;
-+		break;
+ 	status = ata_busy_wait(ap, bits, 1000);
+ 	if (status & bits)
+ 		if (ata_msg_err(ap))
+ 			printk(KERN_ERR "abnormal status 0x%X\n", status);
+ 
+-	/* get controller status; clear intr, err bits */
+-	host_stat = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
+-	iowrite8(host_stat | ATA_DMA_INTR | ATA_DMA_ERR,
+-		 ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
+-
+-	post_stat = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
++	if (ap->ioaddr.bmdma_addr) {
++		/* get controller status; clear intr, err bits */
++		host_stat = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
++		iowrite8(host_stat | ATA_DMA_INTR | ATA_DMA_ERR,
++			 ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
+ 
++		post_stat = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
 +	}
-+
-+	case 4: {
-+		const u32 *ptr4 = buf;
-+		int ngroups = len / groupsize;
-+
-+		for (j = 0; j < ngroups; j++)
-+			lx += scnprintf(linebuf + lx, linebuflen - lx,
-+				"%8.8x ", *(ptr4 + j));
-+		ascii_column = 9 * ngroups + 2;
-+		break;
-+	}
-+
-+	case 2: {
-+		const u16 *ptr2 = buf;
-+		int ngroups = len / groupsize;
-+
-+		for (j = 0; j < ngroups; j++)
-+			lx += scnprintf(linebuf + lx, linebuflen - lx,
-+				"%4.4x ", *(ptr2 + j));
-+		ascii_column = 5 * ngroups + 2;
-+		break;
-+	}
-+
-+	default:
-+		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
-+		     j++) {
-+			ch = ptr[j];
-+			linebuf[lx++] = hex_asc(ch >> 4);
-+			linebuf[lx++] = hex_asc(ch & 0x0f);
- 			linebuf[lx++] = ' ';
--		ch = ptr[j];
--		linebuf[lx++] = hex_asc(ch >> 4);
--		linebuf[lx++] = hex_asc(ch & 0x0f);
-+		}
-+		ascii_column = 3 * rowsize + 2;
-+		break;
- 	}
--	if ((lx + 2) < linebuflen) {
--		linebuf[lx++] = ' ';
-+	if (!ascii)
-+		goto nil;
-+
-+	while (lx < (linebuflen - 1) && lx < (ascii_column - 1))
- 		linebuf[lx++] = ' ';
--	}
--	for (j = 0; (j < 16) && (j < len) && (lx + 2) < linebuflen; j++)
-+	for (j = 0; (j < rowsize) && (j < len) && (lx + 2) < linebuflen; j++)
- 		linebuf[lx++] = isprint(ptr[j]) ? ptr[j] : '.';
-+nil:
- 	linebuf[lx++] = '\0';
+ 	if (ata_msg_intr(ap))
+ 		printk(KERN_INFO "%s: irq ack: host_stat 0x%X, new host_stat 0x%X, drv_stat 0x%X\n",
+ 			__FUNCTION__,
+ 			host_stat, post_stat, status);
+-
+ 	return status;
  }
- EXPORT_SYMBOL(hex_dump_to_buffer);
-@@ -59,46 +115,83 @@ EXPORT_SYMBOL(hex_dump_to_buffer);
- /**
-  * print_hex_dump - print a text hex dump to syslog for a binary blob of data
-  * @level: kernel log level (e.g. KERN_DEBUG)
-+ * @prefix_str: string to prefix each line with;
-+ *  caller supplies trailing spaces for alignment if desired
-  * @prefix_type: controls whether prefix of an offset, address, or none
-  *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
-+ * @rowsize: number of bytes to print per line; must be 16 or 32
-+ * @groupsize: number of bytes to print at a time (1, 2, 4, 8; default = 1)
-  * @buf: data blob to dump
-  * @len: number of bytes in the @buf
-+ * @ascii: include ASCII after the hex output
-  *
-  * Given a buffer of u8 data, print_hex_dump() prints a hex + ASCII dump
-  * to the kernel log at the specified kernel log level, with an optional
-  * leading prefix.
-  *
-+ * print_hex_dump() works on one "line" of output at a time, i.e.,
-+ * 16 or 32 bytes of input data converted to hex + ASCII output.
-+ * print_hex_dump() iterates over the entire input @buf, breaking it into
-+ * "line size" chunks to format and print.
-+ *
-  * E.g.:
-- *   print_hex_dump(KERN_DEBUG, DUMP_PREFIX_ADDRESS, frame->data, frame->len);
-+ *   print_hex_dump(KERN_DEBUG, "raw data: ", DUMP_PREFIX_ADDRESS,
-+ *		16, 1, frame->data, frame->len, 1);
-  *
-- * Example output using %DUMP_PREFIX_OFFSET:
-- * 0009ab42: 40414243 44454647 48494a4b 4c4d4e4f  @ABCDEFGHIJKLMNO
-- * Example output using %DUMP_PREFIX_ADDRESS:
-- * ffffffff88089af0: 70717273 74757677 78797a7b 7c7d7e7f  pqrstuvwxyz{|}~.
-+ * Example output using %DUMP_PREFIX_OFFSET and 1-byte mode:
-+ * 0009ab42: 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f  @ABCDEFGHIJKLMNO
-+ * Example output using %DUMP_PREFIX_ADDRESS and 4-byte mode:
-+ * ffffffff88089af0: 73727170 77767574 7b7a7978 7f7e7d7c  pqrstuvwxyz{|}~.
-  */
--void print_hex_dump(const char *level, int prefix_type, void *buf, size_t len)
-+void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
-+			int rowsize, int groupsize,
-+			void *buf, size_t len, bool ascii)
- {
- 	u8 *ptr = buf;
- 	int i, linelen, remaining = len;
--	unsigned char linebuf[100];
-+	unsigned char linebuf[200];
  
--	for (i = 0; i < len; i += 16) {
--		linelen = min(remaining, 16);
--		remaining -= 16;
--		hex_dump_to_buffer(ptr + i, linelen, linebuf, sizeof(linebuf));
-+	if (rowsize != 16 && rowsize != 32)
-+		rowsize = 16;
-+
-+	for (i = 0; i < len; i += rowsize) {
-+		linelen = min(remaining, rowsize);
-+		remaining -= rowsize;
-+		hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
-+				linebuf, sizeof(linebuf), ascii);
- 
- 		switch (prefix_type) {
- 		case DUMP_PREFIX_ADDRESS:
--			printk("%s%*p: %s\n", level,
-+			printk("%s%s%*p: %s\n", level, prefix_str,
- 				(int)(2 * sizeof(void *)), ptr + i, linebuf);
- 			break;
- 		case DUMP_PREFIX_OFFSET:
--			printk("%s%.8x: %s\n", level, i, linebuf);
-+			printk("%s%s%.8x: %s\n", level, prefix_str, i, linebuf);
- 			break;
- 		default:
--			printk("%s%s\n", level, linebuf);
-+			printk("%s%s%s\n", level, prefix_str, linebuf);
- 			break;
- 		}
- 	}
+@@ -516,6 +516,27 @@ void ata_bmdma_post_internal_cmd(struct 
+ 		ata_bmdma_stop(qc);
  }
- EXPORT_SYMBOL(print_hex_dump);
-+
+ 
 +/**
-+ * print_hex_dump_bytes - shorthand form of print_hex_dump() with default params
-+ * @prefix_str: string to prefix each line with;
-+ *  caller supplies trailing spaces for alignment if desired
-+ * @prefix_type: controls whether prefix of an offset, address, or none
-+ *  is printed (%DUMP_PREFIX_OFFSET, %DUMP_PREFIX_ADDRESS, %DUMP_PREFIX_NONE)
-+ * @buf: data blob to dump
-+ * @len: number of bytes in the @buf
++ *	ata_sff_port_start - Set port up for dma.
++ *	@ap: Port to initialize
 + *
-+ * Calls print_hex_dump(), with log level of KERN_DEBUG,
-+ * rowsize of 16, groupsize of 1, and ASCII output included.
++ *	Called just after data structures for each port are
++ *	initialized.  Allocates space for PRD table if the device
++ *	is DMA capable SFF.
++ *
++ *	May be used as the port_start() entry in ata_port_operations.
++ *
++ *	LOCKING:
++ *	Inherited from caller.
 + */
-+void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-+			void *buf, size_t len)
++
++int ata_sff_port_start(struct ata_port *ap)
 +{
-+	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, 16, 1,
-+			buf, len, 1);
++	if (ap->ioaddr.bmdma_addr)
++		return ata_port_start(ap);
++	return 0;
 +}
-+EXPORT_SYMBOL(print_hex_dump_bytes);
++
+ #ifdef CONFIG_PCI
+ 
+ static int ata_resources_present(struct pci_dev *pdev, int port)
+diff -puN include/linux/libata.h~libata-core-sff-fix-multiple-assumptions-about-dma include/linux/libata.h
+--- a/include/linux/libata.h~libata-core-sff-fix-multiple-assumptions-about-dma
++++ a/include/linux/libata.h
+@@ -780,6 +780,7 @@ extern u8 ata_check_status(struct ata_po
+ extern u8 ata_altstatus(struct ata_port *ap);
+ extern void ata_exec_command(struct ata_port *ap, const struct ata_taskfile *tf);
+ extern int ata_port_start (struct ata_port *ap);
++extern int ata_sff_port_start (struct ata_port *ap);
+ extern irqreturn_t ata_interrupt (int irq, void *dev_instance);
+ extern void ata_data_xfer(struct ata_device *adev, unsigned char *buf,
+ 			  unsigned int buflen, int write_data);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
-git-acpi.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
+tty-restore-locked-ioctl-file-op.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+git-libata-all.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
 add-pci_try_set_mwi.patch
-git-unionfs.patch
-git-wireless.patch
+git-scsi-misc.patch
 add-pci_try_set_mwi-prism54pci.patch
-git-ipwireless_cs.patch
-x86_64-use-null-for-pointer.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
 doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+audit-add-tty-input-auditing-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
