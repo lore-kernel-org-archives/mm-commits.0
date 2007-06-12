@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kill-vmalloc_earlyreserve.patch added to -mm tree
-Date: Tue, 12 Jun 2007 13:23:50 -0700
-Message-ID: <200706122023.l5CKNo2J020543@imap1.linux-foundation.org>
+Subject: + x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:23:56 -0700
+Message-ID: <200706122023.l5CKNuGK020556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54719 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59714 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756582AbXFLUX5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756826AbXFLUYG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 16:23:57 -0400
+	Tue, 12 Jun 2007 16:24:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com
+Cc: jbeulich@novell.com, ak@suse.de
 
 
 The patch titled
-     kill vmalloc_earlyreserve
+     x86: smp-alt-once option is only useful with HOTPLUG_CPU
 has been added to the -mm tree.  Its filename is
-     kill-vmalloc_earlyreserve.patch
+     x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill vmalloc_earlyreserve
+Subject: x86: smp-alt-once option is only useful with HOTPLUG_CPU
 From: "Jan Beulich" <jbeulich@novell.com>
 
-This symbol got orphaned quite a while ago.
+Hence remove its handling in the opposite case.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/pgtable.h |    2 +-
- include/linux/mm.h         |    1 -
- mm/memory.c                |    2 --
- 3 files changed, 1 insertion(+), 4 deletions(-)
+ arch/i386/kernel/alternative.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-i386/pgtable.h~kill-vmalloc_earlyreserve include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~kill-vmalloc_earlyreserve
-+++ a/include/asm-i386/pgtable.h
-@@ -79,7 +79,7 @@ void paging_init(void);
-  * area for the same reason. ;)
-  */
- #define VMALLOC_OFFSET	(8*1024*1024)
--#define VMALLOC_START	(((unsigned long) high_memory + vmalloc_earlyreserve + \
-+#define VMALLOC_START	(((unsigned long) high_memory + \
- 			2*VMALLOC_OFFSET-1) & ~(VMALLOC_OFFSET-1))
- #ifdef CONFIG_HIGHMEM
- # define VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)
-diff -puN include/linux/mm.h~kill-vmalloc_earlyreserve include/linux/mm.h
---- a/include/linux/mm.h~kill-vmalloc_earlyreserve
-+++ a/include/linux/mm.h
-@@ -26,7 +26,6 @@ extern unsigned long max_mapnr;
+diff -puN arch/i386/kernel/alternative.c~x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~x86-smp-alt-once-option-is-only-useful-with-hotplug_cpu
++++ a/arch/i386/kernel/alternative.c
+@@ -5,9 +5,8 @@
+ #include <asm/alternative.h>
+ #include <asm/sections.h>
  
- extern unsigned long num_physpages;
- extern void * high_memory;
--extern unsigned long vmalloc_earlyreserve;
- extern int page_cluster;
+-static int noreplace_smp     = 0;
+-static int smp_alt_once      = 0;
+-static int debug_alternative = 0;
++#ifdef CONFIG_HOTPLUG_CPU
++static int smp_alt_once;
  
- #ifdef CONFIG_SYSCTL
-diff -puN mm/memory.c~kill-vmalloc_earlyreserve mm/memory.c
---- a/mm/memory.c~kill-vmalloc_earlyreserve
-+++ a/mm/memory.c
-@@ -78,11 +78,9 @@ unsigned long num_physpages;
-  * and ZONE_HIGHMEM.
-  */
- void * high_memory;
--unsigned long vmalloc_earlyreserve;
+ static int __init bootonly(char *str)
+ {
+@@ -15,6 +14,11 @@ static int __init bootonly(char *str)
+ 	return 1;
+ }
+ __setup("smp-alt-boot", bootonly);
++#else
++#define smp_alt_once 1
++#endif
++
++static int debug_alternative;
  
- EXPORT_SYMBOL(num_physpages);
- EXPORT_SYMBOL(high_memory);
--EXPORT_SYMBOL(vmalloc_earlyreserve);
+ static int __init debug_alt(char *str)
+ {
+@@ -23,6 +27,8 @@ static int __init debug_alt(char *str)
+ }
+ __setup("debug-alternative", debug_alt);
  
- int randomize_va_space __read_mostly = 1;
++static int noreplace_smp;
++
+ static int __init setup_noreplace_smp(char *str)
+ {
+ 	noreplace_smp = 1;
+@@ -376,8 +382,6 @@ void __init alternative_instructions(voi
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	if (num_possible_cpus() < 2)
+ 		smp_alt_once = 1;
+-#else
+-	smp_alt_once = 1;
+ #endif
  
+ #ifdef CONFIG_SMP
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
