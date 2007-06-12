@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-r8169-fixup.patch added to -mm tree
-Date: Tue, 12 Jun 2007 11:23:47 -0700
-Message-ID: <200706121823.l5CINlZu017840@imap1.linux-foundation.org>
+Subject: + git-wireless-vs-git-net.patch added to -mm tree
+Date: Tue, 12 Jun 2007 11:28:37 -0700
+Message-ID: <200706121828.l5CISbTO017908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45957 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54198 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756592AbXFLSXz (ORCPT
+	by vger.kernel.org with ESMTP id S1756624AbXFLS2p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:23:55 -0400
+	Tue, 12 Jun 2007 14:28:45 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CINqmw006851
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CISghq007073
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:23:53 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:28:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-r8169-fixup
+     git-wireless vs git-net
 has been added to the -mm tree.  Its filename is
-     git-r8169-fixup.patch
+     git-wireless-vs-git-net.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,39 +30,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-r8169-fixup
+Subject: git-wireless vs git-net
 From: Andrew Morton <akpm@linux-foundation.org>
+
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ net/mac80211/ieee80211_ioctl.c |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN drivers/net/r8169.c~git-r8169-fixup drivers/net/r8169.c
---- a/drivers/net/r8169.c~git-r8169-fixup
-+++ a/drivers/net/r8169.c
-@@ -2578,17 +2578,16 @@ static inline void rtl8169_rx_csum(struc
+diff -puN net/mac80211/ieee80211_ioctl.c~git-wireless-vs-git-net net/mac80211/ieee80211_ioctl.c
+--- a/net/mac80211/ieee80211_ioctl.c~git-wireless-vs-git-net
++++ a/net/mac80211/ieee80211_ioctl.c
+@@ -2036,29 +2036,6 @@ static int ieee80211_ioctl_giwrate(struc
+ 	return 0;
  }
  
- static inline int rtl8169_try_rx_copy(struct sk_buff **sk_buff, int pkt_size,
--				      struct RxDesc *desc, int rx_buf_sz,
--				      unsigned int align)
-+				      struct RxDesc *desc, int rx_buf_sz)
- {
- 	int ret = -1;
- 
- 	if (pkt_size < rx_copybreak) {
- 		struct sk_buff *skb;
- 
--		skb = dev_alloc_skb(pkt_size + align);
-+		skb = dev_alloc_skb(pkt_size + NET_IP_ALIGN);
- 		if (skb) {
--			skb_reserve(skb, (align - 1) & (unsigned long)skb->data);
-+			skb_reserve(skb, NET_IP_ALIGN);
- 			skb_copy_to_linear_data(skb, sk_buff[0]->data, pkt_size);
- 			*sk_buff = skb;
- 			rtl8169_mark_to_asic(desc, rx_buf_sz);
+-static int ieee80211_ioctl_giwrate(struct net_device *dev,
+-				  struct iw_request_info *info,
+-				  struct iw_param *rate, char *extra)
+-{
+-	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
+-	struct sta_info *sta;
+-	struct ieee80211_sub_if_data *sdata;
+-
+-	sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+-	if (sdata->type == IEEE80211_IF_TYPE_STA)
+-		sta = sta_info_get(local, sdata->u.sta.bssid);
+-	else
+-		return -EOPNOTSUPP;
+-	if (!sta)
+-		return -ENODEV;
+-	if (sta->txrate < local->oper_hw_mode->num_rates)
+-		rate->value = local->oper_hw_mode->rates[sta->txrate].rate * 100000;
+-	else
+-		rate->value = 0;
+-	sta_info_put(sta);
+-	return 0;
+-}
+-
+ static int ieee80211_ioctl_siwrts(struct net_device *dev,
+ 				  struct iw_request_info *info,
+ 				  struct iw_param *rts, char *extra)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,16 +115,14 @@ git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
 git-r8169-fixup.patch
 git-selinux.patch
-git-selinux-allnoconfig-fix.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
 git-watchdog.patch
-watchdog-driver-for-at32ap700x-devices-fix.patch
-watchdog-driver-for-at32ap700x-devices-fix-2.patch
 git-wireless.patch
+git-wireless-vs-git-net.patch
 x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
 revert-x86_64-mm-verify-cpu-rename.patch
 revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
