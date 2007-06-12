@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:43:07 -0700
-Message-ID: <200706121943.l5CJh7lB019782@imap1.linux-foundation.org>
+Subject: + ptrace_pokedata-consolidation.patch added to -mm tree
+Date: Tue, 12 Jun 2007 12:51:15 -0700
+Message-ID: <200706121951.l5CJpFDJ019910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49490 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44901 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752026AbXFLTnV (ORCPT
+	by vger.kernel.org with ESMTP id S1752678AbXFLTwn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:43:21 -0400
+	Tue, 12 Jun 2007 15:52:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, mel@csn.ul.ie
+Cc: adobriyan@gmail.com, hch@lst.de, linux-arch@vger.kernel.org
 
 
 The patch titled
-     allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
+     PTRACE_POKEDATA consolidation
 has been added to the -mm tree.  Its filename is
-     allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+     ptrace_pokedata-consolidation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,223 +26,410 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PTRACE_POKEDATA consolidation
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-No new sysctls (I've asked Eric for documentation which explains why)
+Identical implementations of PTRACE_POKEDATA go into generic_ptrace_pokedata()
+function.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+AFAICS, fix bug on xtensa where successful PTRACE_POKEDATA will nevertheless
+return EPERM.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ arch/alpha/kernel/ptrace.c         |    4 +---
+ arch/arm/kernel/ptrace.c           |    7 +------
+ arch/arm26/kernel/ptrace.c         |    7 +------
+ arch/avr32/kernel/ptrace.c         |    6 +-----
+ arch/cris/arch-v10/kernel/ptrace.c |    7 +------
+ arch/cris/arch-v32/kernel/ptrace.c |    7 +------
+ arch/frv/kernel/ptrace.c           |    4 +---
+ arch/h8300/kernel/ptrace.c         |    5 +----
+ arch/i386/kernel/ptrace.c          |    5 +----
+ arch/m32r/kernel/ptrace.c          |   12 +++---------
+ arch/m68k/kernel/ptrace.c          |    3 +--
+ arch/m68knommu/kernel/ptrace.c     |    5 +----
+ arch/mips/kernel/ptrace.c          |    6 +-----
+ arch/powerpc/kernel/ptrace.c       |    6 +-----
+ arch/s390/kernel/ptrace.c          |    5 +----
+ arch/sh/kernel/ptrace.c            |    5 +----
+ arch/sh64/kernel/ptrace.c          |    5 +----
+ arch/um/kernel/ptrace.c            |    6 +-----
+ arch/v850/kernel/ptrace.c          |    6 +-----
+ arch/x86_64/kernel/ptrace.c        |    5 +----
+ arch/xtensa/kernel/ptrace.c        |    5 +----
+ include/linux/ptrace.h             |    1 +
+ kernel/ptrace.c                    |    8 ++++++++
+ 23 files changed, 32 insertions(+), 98 deletions(-)
 
-diff -puN include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3 include/linux/sysctl.h
---- a/include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
-+++ a/include/linux/sysctl.h
-@@ -207,7 +207,6 @@ enum
- 	VM_PANIC_ON_OOM=33,	/* panic at out-of-memory */
- 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
- 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
--	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
+diff -puN arch/alpha/kernel/ptrace.c~ptrace_pokedata-consolidation arch/alpha/kernel/ptrace.c
+--- a/arch/alpha/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/alpha/kernel/ptrace.c
+@@ -315,9 +315,7 @@ do_sys_ptrace(long request, long pid, lo
+ 	/* When I and D space are separate, this will have to be fixed.  */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		tmp = data;
+-		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 1);
+-		ret = (copied == sizeof(tmp)) ? 0 : -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
  
- 	/* s390 vm cmm sysctls */
- 	VM_CMM_PAGES=1111,
-diff -puN kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3 kernel/sysctl.c
---- a/kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
-+++ a/kernel/sysctl.c
-@@ -754,7 +754,7 @@ static ctl_table vm_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	 },
- 	 {
--		.ctl_name	= VM_HUGETLB_TREAT_MOVABLE,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "hugepages_treat_as_movable",
- 		.data		= &hugepages_treat_as_movable,
- 		.maxlen		= sizeof(int),
+ 	case PTRACE_POKEUSR: /* write the specified register */
+diff -puN arch/arm/kernel/ptrace.c~ptrace_pokedata-consolidation arch/arm/kernel/ptrace.c
+--- a/arch/arm/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/arm/kernel/ptrace.c
+@@ -677,12 +677,7 @@ long arch_ptrace(struct task_struct *chi
+ 		 */
+ 		case PTRACE_POKETEXT:
+ 		case PTRACE_POKEDATA:
+-			ret = access_process_vm(child, addr, &data,
+-						sizeof(unsigned long), 1);
+-			if (ret == sizeof(unsigned long))
+-				ret = 0;
+-			else
+-				ret = -EIO;
++			ret = generic_ptrace_pokedata(child, addr, data);
+ 			break;
+ 
+ 		case PTRACE_POKEUSR:
+diff -puN arch/arm26/kernel/ptrace.c~ptrace_pokedata-consolidation arch/arm26/kernel/ptrace.c
+--- a/arch/arm26/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/arm26/kernel/ptrace.c
+@@ -551,12 +551,7 @@ long arch_ptrace(struct task_struct *chi
+ 		 */
+ 		case PTRACE_POKETEXT:
+ 		case PTRACE_POKEDATA:
+-			ret = access_process_vm(child, addr, &data,
+-						sizeof(unsigned long), 1);
+-			if (ret == sizeof(unsigned long))
+-				ret = 0;
+-			else
+-				ret = -EIO;
++			ret = generic_ptrace_pokedata(child, addr, data);
+ 			break;
+ 
+ 		case PTRACE_POKEUSR:
+diff -puN arch/avr32/kernel/ptrace.c~ptrace_pokedata-consolidation arch/avr32/kernel/ptrace.c
+--- a/arch/avr32/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/avr32/kernel/ptrace.c
+@@ -176,11 +176,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* Write the word in data at location addr */
+ 	case PTRACE_POKETEXT:
+ 	case PTRACE_POKEDATA:
+-		ret = access_process_vm(child, addr, &data, sizeof(data), 1);
+-		if (ret == sizeof(data))
+-			ret = 0;
+-		else
+-			ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR:
+diff -puN arch/cris/arch-v10/kernel/ptrace.c~ptrace_pokedata-consolidation arch/cris/arch-v10/kernel/ptrace.c
+--- a/arch/cris/arch-v10/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/cris/arch-v10/kernel/ptrace.c
+@@ -103,12 +103,7 @@ long arch_ptrace(struct task_struct *chi
+ 		/* Write the word at location address. */
+ 		case PTRACE_POKETEXT:
+ 		case PTRACE_POKEDATA:
+-			ret = 0;
+-			
+-			if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-				break;
+-			
+-			ret = -EIO;
++			ret = generic_ptrace_pokedata(child, addr, data);
+ 			break;
+  
+  		/* Write the word at location address in the USER area. */
+diff -puN arch/cris/arch-v32/kernel/ptrace.c~ptrace_pokedata-consolidation arch/cris/arch-v32/kernel/ptrace.c
+--- a/arch/cris/arch-v32/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/cris/arch-v32/kernel/ptrace.c
+@@ -146,12 +146,7 @@ long arch_ptrace(struct task_struct *chi
+ 		/* Write the word at location address. */
+ 		case PTRACE_POKETEXT:
+ 		case PTRACE_POKEDATA:
+-			ret = 0;
+-
+-			if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-				break;
+-
+-			ret = -EIO;
++			ret = generic_ptrace_pokedata(child, addr, data);
+ 			break;
+ 
+  		/* Write the word at location address in the USER area. */
+diff -puN arch/frv/kernel/ptrace.c~ptrace_pokedata-consolidation arch/frv/kernel/ptrace.c
+--- a/arch/frv/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/frv/kernel/ptrace.c
+@@ -168,9 +168,7 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = -EIO;
+ 		if (is_user_addr_valid(child, addr, sizeof(tmp)) < 0)
+ 			break;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1) != sizeof(data))
+-			break;
+-		ret = 0;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/h8300/kernel/ptrace.c~ptrace_pokedata-consolidation arch/h8300/kernel/ptrace.c
+--- a/arch/h8300/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/h8300/kernel/ptrace.c
+@@ -111,10 +111,7 @@ long arch_ptrace(struct task_struct *chi
+       /* when I and D space are separate, this will have to be fixed. */
+ 		case PTRACE_POKETEXT: /* write the word at location addr. */
+ 		case PTRACE_POKEDATA:
+-			ret = 0;
+-			if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-				break;
+-			ret = -EIO;
++			ret = generic_ptrace_pokedata(child, addr, data);
+ 			break;
+ 
+ 		case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/i386/kernel/ptrace.c~ptrace_pokedata-consolidation arch/i386/kernel/ptrace.c
+--- a/arch/i386/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/i386/kernel/ptrace.c
+@@ -387,10 +387,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/m32r/kernel/ptrace.c~ptrace_pokedata-consolidation arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/m32r/kernel/ptrace.c
+@@ -619,15 +619,9 @@ do_ptrace(long request, struct task_stru
+ 	 */
+ 	case PTRACE_POKETEXT:
+ 	case PTRACE_POKEDATA:
+-		ret = access_process_vm(child, addr, &data, sizeof(data), 1);
+-		if (ret == sizeof(data)) {
+-			ret = 0;
+-			if (request == PTRACE_POKETEXT) {
+-				invalidate_cache();
+-			}
+-		} else {
+-			ret = -EIO;
+-		}
++		ret = generic_ptrace_pokedata(child, addr, data);
++		if (ret == 0 && request == PTRACE_POKETEXT)
++			invalidate_cache();
+ 		break;
+ 
+ 	/*
+diff -puN arch/m68k/kernel/ptrace.c~ptrace_pokedata-consolidation arch/m68k/kernel/ptrace.c
+--- a/arch/m68k/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/m68k/kernel/ptrace.c
+@@ -157,8 +157,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT:	/* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1) != sizeof(data))
+-			goto out_eio;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR:	/* write the word at location addr in the USER area */
+diff -puN arch/m68knommu/kernel/ptrace.c~ptrace_pokedata-consolidation arch/m68knommu/kernel/ptrace.c
+--- a/arch/m68knommu/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/m68knommu/kernel/ptrace.c
+@@ -151,10 +151,7 @@ long arch_ptrace(struct task_struct *chi
+ 		/* when I and D space are separate, this will have to be fixed. */
+ 		case PTRACE_POKETEXT: /* write the word at location addr. */
+ 		case PTRACE_POKEDATA:
+-			ret = 0;
+-			if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-				break;
+-			ret = -EIO;
++			ret = generic_ptrace_pokedata(child, addr, data);
+ 			break;
+ 
+ 		case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/mips/kernel/ptrace.c~ptrace_pokedata-consolidation arch/mips/kernel/ptrace.c
+--- a/arch/mips/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/mips/kernel/ptrace.c
+@@ -305,11 +305,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1)
+-		    == sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR: {
+diff -puN arch/powerpc/kernel/ptrace.c~ptrace_pokedata-consolidation arch/powerpc/kernel/ptrace.c
+--- a/arch/powerpc/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/powerpc/kernel/ptrace.c
+@@ -292,11 +292,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* If I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1)
+-				== sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	/* write the word at location addr in the USER area */
+diff -puN arch/s390/kernel/ptrace.c~ptrace_pokedata-consolidation arch/s390/kernel/ptrace.c
+--- a/arch/s390/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/s390/kernel/ptrace.c
+@@ -314,10 +314,7 @@ do_ptrace_normal(struct task_struct *chi
+ 		/* Remove high order bit from address (only for 31 bit). */
+ 		addr &= PSW_ADDR_INSN;
+ 		/* write the word at location addr. */
+-		copied = access_process_vm(child, addr, &data, sizeof(data),1);
+-		if (copied != sizeof(data))
+-			return -EIO;
+-		return 0;
++		return generic_ptrace_pokedata(child, addr, data);
+ 
+ 	case PTRACE_POKEUSR:
+ 		/* write the word at location addr in the USER area */
+diff -puN arch/sh/kernel/ptrace.c~ptrace_pokedata-consolidation arch/sh/kernel/ptrace.c
+--- a/arch/sh/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/sh/kernel/ptrace.c
+@@ -127,10 +127,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/sh64/kernel/ptrace.c~ptrace_pokedata-consolidation arch/sh64/kernel/ptrace.c
+--- a/arch/sh64/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/sh64/kernel/ptrace.c
+@@ -158,10 +158,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR:
+diff -puN arch/um/kernel/ptrace.c~ptrace_pokedata-consolidation arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/um/kernel/ptrace.c
+@@ -64,11 +64,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = -EIO;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 
+-				      1) != sizeof(data))
+-			break;
+-		ret = 0;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/v850/kernel/ptrace.c~ptrace_pokedata-consolidation arch/v850/kernel/ptrace.c
+--- a/arch/v850/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/v850/kernel/ptrace.c
+@@ -126,11 +126,7 @@ long arch_ptrace(struct task_struct *chi
+ 
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		rval = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1)
+-		    == sizeof(data))
+-			break;
+-		rval = -EIO;
++		rval = generic_ptrace_pokedata(child, addr, data);
+ 		goto out;
+ 
+ 	/* Read/write the word at location ADDR in the registers.  */
+diff -puN arch/x86_64/kernel/ptrace.c~ptrace_pokedata-consolidation arch/x86_64/kernel/ptrace.c
+--- a/arch/x86_64/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/x86_64/kernel/ptrace.c
+@@ -359,10 +359,7 @@ long arch_ptrace(struct task_struct *chi
+ 	/* when I and D space are separate, this will have to be fixed. */
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		ret = 0;
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1) == sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		break;
+ 
+ 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
+diff -puN arch/xtensa/kernel/ptrace.c~ptrace_pokedata-consolidation arch/xtensa/kernel/ptrace.c
+--- a/arch/xtensa/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/arch/xtensa/kernel/ptrace.c
+@@ -128,10 +128,7 @@ long arch_ptrace(struct task_struct *chi
+ 
+ 	case PTRACE_POKETEXT: /* write the word at location addr. */
+ 	case PTRACE_POKEDATA:
+-		if (access_process_vm(child, addr, &data, sizeof(data), 1)
+-		    == sizeof(data))
+-			break;
+-		ret = -EIO;
++		ret = generic_ptrace_pokedata(child, addr, data);
+ 		goto out;
+ 
+ 	case PTRACE_POKEUSR:
+diff -puN include/linux/ptrace.h~ptrace_pokedata-consolidation include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace_pokedata-consolidation
++++ a/include/linux/ptrace.h
+@@ -111,6 +111,7 @@ static inline void ptrace_unlink(struct 
+ }
+ 
+ int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data);
++int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data);
+ 
+ #ifndef force_successful_syscall_return
+ /*
+diff -puN kernel/ptrace.c~ptrace_pokedata-consolidation kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace_pokedata-consolidation
++++ a/kernel/ptrace.c
+@@ -501,3 +501,11 @@ int generic_ptrace_peekdata(struct task_
+ 		return -EIO;
+ 	return put_user(tmp, (unsigned long __user *)data);
+ }
++
++int generic_ptrace_pokedata(struct task_struct *tsk, long addr, long data)
++{
++	int copied;
++
++	copied = access_process_vm(tsk, addr, &data, sizeof(data), 1);
++	return (copied == sizeof(data)) ? 0 : -EIO;
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-git-input-fixup.patch
-serio_raw_read-warning-fix.patch
-git-jfs-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
+fuse-fs_flags-fixlet.patch
 git-parisc.patch
-git-r8169-fixup.patch
-git-selinux.patch
-git-selinux-fixup.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-vs-git-net.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
-i386-mtrr-clean-up-usage_table.patch
-i386-show-unhandled-signals-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-make-disable_console_suspend-runtime-configurable-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-udf-fix-possible-leakage-of-blocks-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
 procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+remove-capabilityh-from-mmh.patch
+ptrace_peekdata-consolidation.patch
+ptrace_pokedata-consolidation.patch
