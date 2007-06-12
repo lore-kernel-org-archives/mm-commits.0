@@ -1,81 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - pata-add-the-mcp73-77-support-to-pata-driver.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:58:03 -0700
-Message-ID: <200706121858.l5CIw3fQ018513@imap1.linux-foundation.org>
+Subject: - checkpatch-produce-fewer-lines-of-output.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:31 -0700
+Message-ID: <200706121857.l5CIvVOj018479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57549 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750980AbXFLTEI (ORCPT
+	by vger.kernel.org with ESMTP id S1750947AbXFLTEK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:04:08 -0400
+	Tue, 12 Jun 2007 15:04:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peerchen@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PATA: add the MCP73/77 support to PATA driver
+     checkpatch: produce fewer lines of output
 has been removed from the -mm tree.  Its filename was
-     pata-add-the-mcp73-77-support-to-pata-driver.patch
+     checkpatch-produce-fewer-lines-of-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PATA: add the MCP73/77 support to PATA driver
-From: "Peer Chen" <peerchen@gmail.com>
+Subject: checkpatch: produce fewer lines of output
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-Add the MCP73/MCP77 support to PATA driver.
+Produce one less line of output per flagged incident.
 
-Signed-off-by: Peer Chen <peerchen@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Change this:
+
+use tabs not spaces
+PATCH: /home/rddunlap/arcmsr1200014.patch4:756:
+FILE: b/drivers/scsi/arcmsr/arcmsr_hba.c:1843:
++                     return PCI_ERS_RESULT_NEED_RESET;$
+
+to this:
+
+use tabs not spaces
+#756: FILE: b/drivers/scsi/arcmsr/arcmsr_hba.c:1843:
++                     return PCI_ERS_RESULT_NEED_RESET;$
+
+
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c    |    2 ++
- drivers/ide/pci/amd74xx.c |    2 ++
- include/linux/pci_ids.h   |    2 ++
- 3 files changed, 6 insertions(+)
+ scripts/checkpatch.pl |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_amd.c~pata-add-the-mcp73-77-support-to-pata-driver drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~pata-add-the-mcp73-77-support-to-pata-driver
-+++ a/drivers/ata/pata_amd.c
-@@ -693,6 +693,8 @@ static const struct pci_device_id amd[] 
- 	{ PCI_VDEVICE(NVIDIA,	PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_IDE),	8 },
- 	{ PCI_VDEVICE(NVIDIA,	PCI_DEVICE_ID_NVIDIA_NFORCE_MCP65_IDE),	8 },
- 	{ PCI_VDEVICE(NVIDIA,	PCI_DEVICE_ID_NVIDIA_NFORCE_MCP67_IDE),	8 },
-+	{ PCI_VDEVICE(NVIDIA,	PCI_DEVICE_ID_NVIDIA_NFORCE_MCP73_IDE),	8 },
-+	{ PCI_VDEVICE(NVIDIA,	PCI_DEVICE_ID_NVIDIA_NFORCE_MCP77_IDE),	8 },
- 	{ PCI_VDEVICE(AMD,	PCI_DEVICE_ID_AMD_CS5536_IDE),		9 },
+diff -puN scripts/checkpatch.pl~checkpatch-produce-fewer-lines-of-output scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-produce-fewer-lines-of-output
++++ a/scripts/checkpatch.pl
+@@ -290,8 +290,8 @@ sub process {
+ 		}
  
- 	{ },
-diff -puN drivers/ide/pci/amd74xx.c~pata-add-the-mcp73-77-support-to-pata-driver drivers/ide/pci/amd74xx.c
---- a/drivers/ide/pci/amd74xx.c~pata-add-the-mcp73-77-support-to-pata-driver
-+++ a/drivers/ide/pci/amd74xx.c
-@@ -76,6 +76,8 @@ static struct amd_ide_chip {
- 	{ PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_IDE,	0x50, AMD_UDMA_133 },
- 	{ PCI_DEVICE_ID_NVIDIA_NFORCE_MCP65_IDE,	0x50, AMD_UDMA_133 },
- 	{ PCI_DEVICE_ID_NVIDIA_NFORCE_MCP67_IDE,	0x50, AMD_UDMA_133 },
-+	{ PCI_DEVICE_ID_NVIDIA_NFORCE_MCP73_IDE,	0x50, AMD_UDMA_133 },
-+	{ PCI_DEVICE_ID_NVIDIA_NFORCE_MCP77_IDE,	0x50, AMD_UDMA_133 },
- 	{ PCI_DEVICE_ID_AMD_CS5536_IDE,			0x40, AMD_UDMA_100 },
- 	{ 0 }
- };
-diff -puN include/linux/pci_ids.h~pata-add-the-mcp73-77-support-to-pata-driver include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~pata-add-the-mcp73-77-support-to-pata-driver
-+++ a/include/linux/pci_ids.h
-@@ -1234,6 +1234,8 @@
- #define PCI_DEVICE_ID_NVIDIA_NVENET_26              0x054E
- #define PCI_DEVICE_ID_NVIDIA_NVENET_27              0x054F
- #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP67_IDE       0x0560
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP73_IDE       0x056C
-+#define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP77_IDE       0x0759
+ #make up the handle for any error we report on this line
+-		$here = "PATCH: $ARGV:$linenr:";
+-		$here .= "\nFILE: $realfile:$realline:" if ($realcnt != 0);
++		$here = "#$linenr: ";
++		$here .= "FILE: $realfile:$realline:" if ($realcnt != 0);
  
- #define PCI_VENDOR_ID_IMS		0x10e0
- #define PCI_DEVICE_ID_IMS_TT128		0x9128
+ 		my $herecurr = "$here\n$line\n\n";
+ 		my $hereprev = "$here\n$prevline\n$line\n\n";
 _
 
-Patches currently in -mm which might be from peerchen@gmail.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
-git-alsa.patch
+git-jfs-fix.patch
+x86_64-pm_trace-support.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+crc7-support.patch
+crc7-support-fix.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
