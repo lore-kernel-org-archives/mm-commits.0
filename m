@@ -1,66 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-selinux-allnoconfig-fix.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:58:18 -0700
-Message-ID: <200706121858.l5CIwIi9018537@imap1.linux-foundation.org>
+Subject: - watchdog-driver-for-at32ap700x-devices-fix-2.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:58:43 -0700
+Message-ID: <200706121858.l5CIwhQb018551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35158 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750798AbXFLTCn (ORCPT
+	by vger.kernel.org with ESMTP id S1751704AbXFLTDA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:02:43 -0400
+	Tue, 12 Jun 2007 15:03:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hcegtvedt@atmel.com, hskinnemoen@atmel.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-selinux: allnoconfig fix
+     watchdog-driver-for-at32ap700x-devices-fix-2
 has been removed from the -mm tree.  Its filename was
-     git-selinux-allnoconfig-fix.patch
+     watchdog-driver-for-at32ap700x-devices-fix-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-selinux: allnoconfig fix
+Subject: watchdog-driver-for-at32ap700x-devices-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Documentation/SubmitChecklist, rule 2
+standard ifdef-reduction trick.
 
-(rediffed)
-
-(please don't put new entries at the end of the table: it's guaranteed to
-maximise patch rejects.  Instead, randomise them)
-
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/watchdog/at32ap700x_wdt.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~git-selinux-allnoconfig-fix kernel/sysctl.c
---- a/kernel/sysctl.c~git-selinux-allnoconfig-fix
-+++ a/kernel/sysctl.c
-@@ -615,6 +615,7 @@ static ctl_table kern_table[] = {
- 		.proc_handler   = &proc_dointvec,
- 	},
+diff -puN drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-2 drivers/char/watchdog/at32ap700x_wdt.c
+--- a/drivers/char/watchdog/at32ap700x_wdt.c~watchdog-driver-for-at32ap700x-devices-fix-2
++++ a/drivers/char/watchdog/at32ap700x_wdt.c
+@@ -283,14 +283,15 @@ static int at32_wdt_resume(struct platfo
+ 		at32_wdt_start();
+ 	return 0;
+ }
++#else
++#define at32_wdt_suspend NULL
++#define at32_wdt_resume NULL
  #endif
-+#ifdef CONFIG_SECURITY
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "mmap_min_addr",
-@@ -623,7 +624,7 @@ static ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
--
-+#endif
- 	{ .ctl_name = 0 }
- };
  
+ static struct platform_driver at32_wdt_driver = {
+ 	.remove		= __exit_p(at32_wdt_remove),
+-#ifdef CONFIG_PM
+ 	.suspend	= at32_wdt_suspend,
+ 	.resume		= at32_wdt_resume,
+-#endif
+ 	.driver		= {
+ 		.name	= "at32_wdt",
+ 		.owner	= THIS_MODULE,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
