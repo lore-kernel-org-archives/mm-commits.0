@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-pass-real-splice-size.patch added to -mm tree
-Date: Mon, 11 Jun 2007 20:19:41 -0700
-Message-ID: <200706120319.l5C3Jfm3003120@imap1.linux-foundation.org>
+Subject: + readahead-move-synchronous-readahead-call-out-of-splice-loop.patch added to -mm tree
+Date: Mon, 11 Jun 2007 20:19:57 -0700
+Message-ID: <200706120319.l5C3JvhR003127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36885 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752659AbXFLDUA (ORCPT
+	by vger.kernel.org with ESMTP id S1753065AbXFLDUO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 23:20:00 -0400
+	Mon, 11 Jun 2007 23:20:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wfg@mail.ustc.edu.cn, jens.axboe@oracle.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: pass real splice size
+     readahead: move synchronous readahead call out of splice loop
 has been added to the -mm tree.  Its filename is
-     readahead-pass-real-splice-size.patch
+     readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,17 +26,17 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: pass real splice size
+Subject: readahead: move synchronous readahead call out of splice loop
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Pass real splice size to page_cache_readahead_ondemand().
+Move synchronous page_cache_readahead_ondemand() call out of splice loop.
 
-The splice code works in chunks of 16 pages internally.  The readahead code
-should be told of the overall splice size, instead of the internal chunk size.
- Otherwize bad things may happen.  Imagine some 17-page random splice reads. 
-The code before this patch will result in two readahead calls: readahead(16);
-readahead(1); That leads to one 16-page I/O and one 32-page I/O: one extra I/O
-and 31 readahead miss pages.
+This avoids one pointless page allocation/insertion in case of non-zero
+ra_pages, or many pointless readahead calls in case of zero ra_pages.
+
+Note that if a user sets ra_pages to less than PIPE_BUFFERS=16 pages, he will
+not get expected readahead behavior anyway.  The splice code works in batches
+of 16 pages, which can be taken as another form of synchronous readahead.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Jens Axboe <jens.axboe@oracle.com>
@@ -44,52 +44,41 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ fs/splice.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/splice.c~readahead-pass-real-splice-size fs/splice.c
---- a/fs/splice.c~readahead-pass-real-splice-size
+diff -puN fs/splice.c~readahead-move-synchronous-readahead-call-out-of-splice-loop fs/splice.c
+--- a/fs/splice.c~readahead-move-synchronous-readahead-call-out-of-splice-loop
 +++ a/fs/splice.c
-@@ -267,7 +267,7 @@ __generic_file_splice_read(struct file *
- 			   unsigned int flags)
- {
- 	struct address_space *mapping = in->f_mapping;
--	unsigned int loff, nr_pages;
-+	unsigned int loff, nr_pages, req_pages;
- 	struct page *pages[PIPE_BUFFERS];
- 	struct partial_page partial[PIPE_BUFFERS];
- 	struct page *page;
-@@ -284,10 +284,8 @@ __generic_file_splice_read(struct file *
- 
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	loff = *ppos & ~PAGE_CACHE_MASK;
--	nr_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
--
--	if (nr_pages > PIPE_BUFFERS)
--		nr_pages = PIPE_BUFFERS;
-+	req_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-+	nr_pages = min(req_pages, (unsigned)PIPE_BUFFERS);
+@@ -299,12 +299,16 @@ __generic_file_splice_read(struct file *
+ 	 * Lookup the (hopefully) full range of pages we need.
+ 	 */
+ 	spd.nr_pages = find_get_pages_contig(mapping, index, nr_pages, pages);
++	index += spd.nr_pages;
  
  	/*
- 	 * Now fill in the holes:
-@@ -307,7 +305,7 @@ __generic_file_splice_read(struct file *
+ 	 * If find_get_pages_contig() returned fewer pages than we needed,
+-	 * allocate the rest.
++	 * readahead/allocate the rest.
  	 */
- 	if (spd.nr_pages < nr_pages)
- 		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--				NULL, index, nr_pages - spd.nr_pages);
-+				NULL, index, req_pages - spd.nr_pages);
- 
+-	index += spd.nr_pages;
++	if (spd.nr_pages < nr_pages)
++		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
++				NULL, index, nr_pages - spd.nr_pages);
++
  	while (spd.nr_pages < nr_pages) {
  		/*
-@@ -363,7 +361,7 @@ __generic_file_splice_read(struct file *
- 
- 		if (PageReadahead(page))
- 			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--					page, index, nr_pages - page_nr);
-+					page, index, req_pages - page_nr);
- 
- 		/*
- 		 * If the page isn't uptodate, we may need to start io on it
+ 		 * Page could be there, find_get_pages_contig() breaks on
+@@ -312,9 +316,6 @@ __generic_file_splice_read(struct file *
+ 		 */
+ 		page = find_get_page(mapping, index);
+ 		if (!page) {
+-			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
+-					NULL, index, nr_pages - spd.nr_pages);
+-
+ 			/*
+ 			 * page didn't exist, allocate one.
+ 			 */
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
