@@ -1,158 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - uml-get-declaration-of-simple_strtoul.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:06 -0700
-Message-ID: <200706121857.l5CIv6gS018445@imap1.linux-foundation.org>
+Subject: - char-stallion-alloc-tty-before-pci-devices-init.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:02 -0700
+Message-ID: <200706121857.l5CIv22m018439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34122 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755994AbXFLS5R (ORCPT
+	by vger.kernel.org with ESMTP id S1753338AbXFLS5R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Jun 2007 14:57:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, ingo@akana.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: get declaration of simple_strtoul
+     Char: stallion, alloc tty before pci devices init
 has been removed from the -mm tree.  Its filename was
-     uml-get-declaration-of-simple_strtoul.patch
+     char-stallion-alloc-tty-before-pci-devices-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: get declaration of simple_strtoul
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Char: stallion, alloc tty before pci devices init
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Include linux/kernel.h wherever simple_strtoul is used.  This kills a
-compile warning in stderr_console.c and potential ones in the other files.
+this causes oops, because pci probe function calls tty_register_device for
+each device found. Thanks to Ingo.
 
-This also fixes a bunch of style violations in exitcode.c.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: "Ingo Korb" <ingo@akana.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c           |    1 
- arch/um/drivers/stderr_console.c |    1 
- arch/um/drivers/ubd_kern.c       |    1 
- arch/um/kernel/exitcode.c        |   39 ++++++++++++-----------------
- 4 files changed, 20 insertions(+), 22 deletions(-)
+ drivers/char/stallion.c |   73 +++++++++++++++++---------------------
+ 1 files changed, 34 insertions(+), 39 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-get-declaration-of-simple_strtoul arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-get-declaration-of-simple_strtoul
-+++ a/arch/um/drivers/line.c
-@@ -3,6 +3,7 @@
-  * Licensed under the GPL
-  */
+diff -puN drivers/char/stallion.c~char-stallion-alloc-tty-before-pci-devices-init drivers/char/stallion.c
+--- a/drivers/char/stallion.c~char-stallion-alloc-tty-before-pci-devices-init
++++ a/drivers/char/stallion.c
+@@ -4710,6 +4710,29 @@ static int __init stallion_module_init(v
+ 	spin_lock_init(&stallion_lock);
+ 	spin_lock_init(&brd_lock);
  
-+#include "linux/kernel.h"
- #include "linux/sched.h"
- #include "linux/slab.h"
- #include "linux/list.h"
-diff -puN arch/um/drivers/stderr_console.c~uml-get-declaration-of-simple_strtoul arch/um/drivers/stderr_console.c
---- a/arch/um/drivers/stderr_console.c~uml-get-declaration-of-simple_strtoul
-+++ a/arch/um/drivers/stderr_console.c
-@@ -1,3 +1,4 @@
-+#include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/console.h>
- 
-diff -puN arch/um/drivers/ubd_kern.c~uml-get-declaration-of-simple_strtoul arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~uml-get-declaration-of-simple_strtoul
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -20,6 +20,7 @@
- #define MAJOR_NR UBD_MAJOR
- #define UBD_SHIFT 4
- 
-+#include "linux/kernel.h"
- #include "linux/module.h"
- #include "linux/blkdev.h"
- #include "linux/hdreg.h"
-diff -puN arch/um/kernel/exitcode.c~uml-get-declaration-of-simple_strtoul arch/um/kernel/exitcode.c
---- a/arch/um/kernel/exitcode.c~uml-get-declaration-of-simple_strtoul
-+++ a/arch/um/kernel/exitcode.c
-@@ -1,8 +1,9 @@
--/* 
-+/*
-  * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-  * Licensed under the GPL
-  */
- 
-+#include "linux/kernel.h"
- #include "linux/init.h"
- #include "linux/ctype.h"
- #include "linux/proc_fs.h"
-@@ -24,11 +25,14 @@ static int read_proc_exitcode(char *page
- 	val = uml_exitcode;
- 	len = sprintf(page, "%d\n", val);
- 	len -= off;
--	if(len <= off+count) *eof = 1;
-+	if(len <= off+count)
-+		*eof = 1;
- 	*start = page + off;
--	if(len > count) len = count;
--	if(len < 0) len = 0;
--	return(len);
-+	if(len > count)
-+		len = count;
-+	if(len < 0)
-+		len = 0;
-+	return len;
- }
- 
- static int write_proc_exitcode(struct file *file, const char __user *buffer,
-@@ -38,12 +42,14 @@ static int write_proc_exitcode(struct fi
- 	int tmp;
- 
- 	if(copy_from_user(buf, buffer, count))
--		return(-EFAULT);
-+		return -EFAULT;
++	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
++	if (!stl_serial) {
++		retval = -ENOMEM;
++		goto err;
++	}
 +
- 	tmp = simple_strtol(buf, &end, 0);
- 	if((*end != '\0') && !isspace(*end))
--		return(-EINVAL);
-+		return -EINVAL;
++	stl_serial->owner = THIS_MODULE;
++	stl_serial->driver_name = stl_drvname;
++	stl_serial->name = "ttyE";
++	stl_serial->major = STL_SERIALMAJOR;
++	stl_serial->minor_start = 0;
++	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
++	stl_serial->subtype = SERIAL_TYPE_NORMAL;
++	stl_serial->init_termios = stl_deftermios;
++	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
++	tty_set_operations(stl_serial, &stl_ops);
 +
- 	uml_exitcode = tmp;
--	return(count);
-+	return count;
- }
++	retval = tty_register_driver(stl_serial);
++	if (retval) {
++		printk("STALLION: failed to register serial driver\n");
++		goto err_frtty;
++	}
++
+ /*
+  *	Find any dynamically supported boards. That is via module load
+  *	line options.
+@@ -4739,13 +4762,9 @@ static int __init stallion_module_init(v
  
- static int make_proc_exitcode(void)
-@@ -54,24 +60,13 @@ static int make_proc_exitcode(void)
- 	if(ent == NULL){
- 		printk(KERN_WARNING "make_proc_exitcode : Failed to register "
- 		       "/proc/exitcode\n");
--		return(0);
-+		return 0;
+ 	/* this has to be _after_ isa finding because of locking */
+ 	retval = pci_register_driver(&stl_pcidriver);
+-	if (retval && stl_nrbrds == 0)
+-		goto err;
+-
+-	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
+-	if (!stl_serial) {
+-		retval = -ENOMEM;
+-		goto err_pcidr;
++	if (retval && stl_nrbrds == 0) {
++		printk(KERN_ERR "STALLION: can't register pci driver\n");
++		goto err_unrtty;
  	}
  
- 	ent->read_proc = read_proc_exitcode;
- 	ent->write_proc = write_proc_exitcode;
--	
--	return(0);
+ /*
+@@ -4756,43 +4775,18 @@ static int __init stallion_module_init(v
+ 		printk("STALLION: failed to register serial board device\n");
+ 
+ 	stallion_class = class_create(THIS_MODULE, "staliomem");
+-	if (IS_ERR(stallion_class)) {
+-		retval = PTR_ERR(stallion_class);
+-		goto err_reg;
+-	}
++	if (IS_ERR(stallion_class))
++		printk("STALLION: failed to create class\n");
+ 	for (i = 0; i < 4; i++)
+ 		class_device_create(stallion_class, NULL,
+ 				    MKDEV(STL_SIOMEMMAJOR, i), NULL,
+ 				    "staliomem%d", i);
+ 
+-	stl_serial->owner = THIS_MODULE;
+-	stl_serial->driver_name = stl_drvname;
+-	stl_serial->name = "ttyE";
+-	stl_serial->major = STL_SERIALMAJOR;
+-	stl_serial->minor_start = 0;
+-	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
+-	stl_serial->subtype = SERIAL_TYPE_NORMAL;
+-	stl_serial->init_termios = stl_deftermios;
+-	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+-	tty_set_operations(stl_serial, &stl_ops);
+-
+-	retval = tty_register_driver(stl_serial);
+-	if (retval) {
+-		printk("STALLION: failed to register serial driver\n");
+-		goto err_clsdev;
+-	}
+-
+ 	return 0;
+-err_clsdev:
+-	for (i = 0; i < 4; i++)
+-		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
+-	class_destroy(stallion_class);
+-err_reg:
+-	unregister_chrdev(STL_SIOMEMMAJOR, "staliomem");
++err_unrtty:
++	tty_unregister_driver(stl_serial);
++err_frtty:
+ 	put_tty_driver(stl_serial);
+-err_pcidr:
+-	pci_unregister_driver(&stl_pcidriver);
+-	stl_free_isabrds();
+ err:
+ 	return retval;
+ }
+@@ -4821,8 +4815,6 @@ static void __exit stallion_module_exit(
+ 			tty_unregister_device(stl_serial,
+ 				brdp->brdnr * STL_MAXPORTS + j);
+ 	}
+-	tty_unregister_driver(stl_serial);
+-	put_tty_driver(stl_serial);
+ 
+ 	for (i = 0; i < 4; i++)
+ 		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
+@@ -4834,6 +4826,9 @@ static void __exit stallion_module_exit(
+ 	pci_unregister_driver(&stl_pcidriver);
+ 
+ 	stl_free_isabrds();
 +
-+	return 0;
++	tty_unregister_driver(stl_serial);
++	put_tty_driver(stl_serial);
  }
  
- __initcall(make_proc_exitcode);
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
+ module_init(stallion_module_init);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-hostfs-convert-to-new-aops.patch
-uml-fix-request-sector-update.patch
+rocketc-fix-unchecked-mutex_lock_interruptible.patch
+char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
+char-mxser_new-fix-sparse-warning.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+char-genrtc-use-wait_event_interruptible.patch
+char-n_r3964-use-wait_event_interruptible.patch
+char-ip2-use-msleep-for-sleeping.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+char-cyclades-add-firmware-loading.patch
+char-cyclades-fix-sparse-warning.patch
+char-isicom-cleanup-locking.patch
+char-isicom-del_timer-at-exit.patch
+char-isicom-proper-variables-types.patch
+char-moxa-eliminate-busy-waiting.patch
+char-specialix-remove-busy-waiting.patch
+char-riscom8-eliminate-busy-loop.patch
+char-vt-use-kzalloc.patch
+char-vt-use-array_size.patch
+char-kconfig-mxser_new-remove-experimental-comment.patch
+char-stallion-remove-user-class-report-request.patch
+shrink_slab-handle-bad-shrinkers.patch
