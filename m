@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-vs-git-net.patch added to -mm tree
-Date: Tue, 12 Jun 2007 11:28:37 -0700
-Message-ID: <200706121828.l5CISbTO017908@imap1.linux-foundation.org>
+Subject: + git-selinux-fixup.patch added to -mm tree
+Date: Tue, 12 Jun 2007 11:32:06 -0700
+Message-ID: <200706121832.l5CIW69o017957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54198 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756624AbXFLS2p (ORCPT
+	by vger.kernel.org with ESMTP id S1755503AbXFLScN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:28:45 -0400
+	Tue, 12 Jun 2007 14:32:13 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CISghq007073
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CIWB3a007194
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:28:43 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:32:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-wireless vs git-net
+     git-selinux-fixup
 has been added to the -mm tree.  Its filename is
-     git-wireless-vs-git-net.patch
+     git-selinux-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,50 +30,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless vs git-net
+Subject: git-selinux-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
-
-
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/ieee80211_ioctl.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ fs/splice.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN net/mac80211/ieee80211_ioctl.c~git-wireless-vs-git-net net/mac80211/ieee80211_ioctl.c
---- a/net/mac80211/ieee80211_ioctl.c~git-wireless-vs-git-net
-+++ a/net/mac80211/ieee80211_ioctl.c
-@@ -2036,29 +2036,6 @@ static int ieee80211_ioctl_giwrate(struc
- 	return 0;
+diff -puN fs/splice.c~git-selinux-fixup fs/splice.c
+--- a/fs/splice.c~git-selinux-fixup
++++ a/fs/splice.c
+@@ -950,8 +950,6 @@ static long do_splice_to(struct file *in
+ 	if (unlikely(ret < 0))
+ 		return ret;
+ 
+-<<<<<<< HEAD/fs/splice.c
+-=======
+ 	ret = security_file_permission(in, MAY_READ);
+ 	if (unlikely(ret < 0))
+ 		return ret;
+@@ -964,7 +962,6 @@ static long do_splice_to(struct file *in
+ 	if (unlikely(left < len))
+ 		len = left;
+ 
+->>>>>>> /fs/splice.c
+ 	return in->f_op->splice_read(in, ppos, pipe, len, flags);
  }
  
--static int ieee80211_ioctl_giwrate(struct net_device *dev,
--				  struct iw_request_info *info,
--				  struct iw_param *rate, char *extra)
--{
--	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
--	struct sta_info *sta;
--	struct ieee80211_sub_if_data *sdata;
--
--	sdata = IEEE80211_DEV_TO_SUB_IF(dev);
--	if (sdata->type == IEEE80211_IF_TYPE_STA)
--		sta = sta_info_get(local, sdata->u.sta.bssid);
--	else
--		return -EOPNOTSUPP;
--	if (!sta)
--		return -ENODEV;
--	if (sta->txrate < local->oper_hw_mode->num_rates)
--		rate->value = local->oper_hw_mode->rates[sta->txrate].rate * 100000;
--	else
--		rate->value = 0;
--	sta_info_put(sta);
--	return 0;
--}
--
- static int ieee80211_ioctl_siwrts(struct net_device *dev,
- 				  struct iw_request_info *info,
- 				  struct iw_param *rts, char *extra)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +100,7 @@ git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
 git-r8169-fixup.patch
 git-selinux.patch
+git-selinux-fixup.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
