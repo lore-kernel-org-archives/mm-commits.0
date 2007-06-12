@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace_peekdata-consolidation.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:51:13 -0700
-Message-ID: <200706121951.l5CJpDQd019907@imap1.linux-foundation.org>
+Subject: + driver-edac-i5000-code-tidying.patch added to -mm tree
+Date: Tue, 12 Jun 2007 12:55:25 -0700
+Message-ID: <200706121955.l5CJtP6d019980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752714AbXFLTwn (ORCPT
+	by vger.kernel.org with ESMTP id S1752026AbXFLT4B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:52:43 -0400
+	Tue, 12 Jun 2007 15:56:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, hch@lst.de, linux-arch@vger.kernel.org
+Cc: dougthompson@xmission.com
 
 
 The patch titled
-     PTRACE_PEEKDATA consolidation
+     drivers/edac: i5000 code tidying
 has been added to the -mm tree.  Its filename is
-     ptrace_peekdata-consolidation.patch
+     driver-edac-i5000-code-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,524 +26,369 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PTRACE_PEEKDATA consolidation
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: drivers/edac: i5000 code tidying
+From: Douglas Thompson <dougthompson@xmission.com>
 
-Identical implementations of PTRACE_PEEKDATA go into generic_ptrace_peekdata()
-function.
+Various code style conformance patches on the i5000 driver
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/ptrace.c           |    8 +-------
- arch/arm26/kernel/ptrace.c         |    8 +-------
- arch/avr32/kernel/ptrace.c         |    7 +------
- arch/cris/arch-v10/kernel/ptrace.c |   14 ++------------
- arch/frv/kernel/ptrace.c           |   12 ++----------
- arch/i386/kernel/ptrace.c          |   12 ++----------
- arch/m32r/kernel/ptrace.c          |    7 +------
- arch/m68k/kernel/ptrace.c          |    5 +----
- arch/m68knommu/kernel/ptrace.c     |   12 ++----------
- arch/mips/kernel/ptrace.c          |   12 ++----------
- arch/parisc/kernel/ptrace.c        |   13 ++-----------
- arch/powerpc/kernel/ptrace.c       |   12 ++----------
- arch/s390/kernel/ptrace.c          |    6 +-----
- arch/sh/kernel/ptrace.c            |   12 ++----------
- arch/sh64/kernel/ptrace.c          |   12 ++----------
- arch/um/kernel/ptrace.c            |   12 ++----------
- arch/v850/kernel/ptrace.c          |    8 ++------
- arch/x86_64/kernel/ptrace.c        |   12 ++----------
- arch/xtensa/kernel/ptrace.c        |   12 +-----------
- include/linux/ptrace.h             |    1 +
- kernel/ptrace.c                    |   11 +++++++++++
- 21 files changed, 43 insertions(+), 165 deletions(-)
+ drivers/edac/i5000_edac.c |   71 +++++++++++++++++-------------------
+ 1 files changed, 35 insertions(+), 36 deletions(-)
 
-diff -puN arch/arm/kernel/ptrace.c~ptrace_peekdata-consolidation arch/arm/kernel/ptrace.c
---- a/arch/arm/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/arm/kernel/ptrace.c
-@@ -657,7 +657,6 @@ static int ptrace_setcrunchregs(struct t
+diff -puN drivers/edac/i5000_edac.c~driver-edac-i5000-code-tidying drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~driver-edac-i5000-code-tidying
++++ a/drivers/edac/i5000_edac.c
+@@ -384,18 +384,18 @@ struct i5000_error_info {
  
- long arch_ptrace(struct task_struct *child, long request, long addr, long data)
+ static struct edac_pci_ctl_info *i5000_pci;
+ 
+-/******************************************************************************
++/*
+  *	i5000_get_error_info	Retrieve the hardware error information from
+  *				the hardware and cache it in the 'info'
+  *				structure
+  */
+ static void i5000_get_error_info(struct mem_ctl_info *mci,
+-				 struct i5000_error_info * info)
++				 struct i5000_error_info *info)
  {
--	unsigned long tmp;
- 	int ret;
+ 	struct i5000_pvt *pvt;
+ 	u32 value;
  
- 	switch (request) {
-@@ -666,12 +665,7 @@ long arch_ptrace(struct task_struct *chi
- 		 */
- 		case PTRACE_PEEKTEXT:
- 		case PTRACE_PEEKDATA:
--			ret = access_process_vm(child, addr, &tmp,
--						sizeof(unsigned long), 0);
--			if (ret == sizeof(unsigned long))
--				ret = put_user(tmp, (unsigned long __user *) data);
--			else
--				ret = -EIO;
-+			ret = generic_ptrace_peekdata(child, addr, data);
- 			break;
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
  
- 		case PTRACE_PEEKUSR:
-diff -puN arch/arm26/kernel/ptrace.c~ptrace_peekdata-consolidation arch/arm26/kernel/ptrace.c
---- a/arch/arm26/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/arm26/kernel/ptrace.c
-@@ -531,7 +531,6 @@ static int ptrace_setfpregs(struct task_
- 
- long arch_ptrace(struct task_struct *child, long request, long addr, long data)
- {
--	unsigned long tmp;
- 	int ret;
- 
- 	switch (request) {
-@@ -540,12 +539,7 @@ long arch_ptrace(struct task_struct *chi
- 		 */
- 		case PTRACE_PEEKTEXT:
- 		case PTRACE_PEEKDATA:
--			ret = access_process_vm(child, addr, &tmp,
--						sizeof(unsigned long), 0);
--			if (ret == sizeof(unsigned long))
--				ret = put_user(tmp, (unsigned long *) data);
--			else
--				ret = -EIO;
-+			ret = generic_ptrace_peekdata(child, addr, data);
- 			break;
- 
- 		case PTRACE_PEEKUSR:
-diff -puN arch/avr32/kernel/ptrace.c~ptrace_peekdata-consolidation arch/avr32/kernel/ptrace.c
---- a/arch/avr32/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/avr32/kernel/ptrace.c
-@@ -153,7 +153,6 @@ static int ptrace_setregs(struct task_st
- 
- long arch_ptrace(struct task_struct *child, long request, long addr, long data)
- {
--	unsigned long tmp;
- 	int ret;
- 
- 	pr_debug("arch_ptrace(%ld, %d, %#lx, %#lx)\n",
-@@ -166,11 +165,7 @@ long arch_ptrace(struct task_struct *chi
- 	/* Read the word at location addr in the child process */
- 	case PTRACE_PEEKTEXT:
- 	case PTRACE_PEEKDATA:
--		ret = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		if (ret == sizeof(tmp))
--			ret = put_user(tmp, (unsigned long __user *)data);
--		else
--			ret = -EIO;
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
- 
- 	case PTRACE_PEEKUSR:
-diff -puN arch/cris/arch-v10/kernel/ptrace.c~ptrace_peekdata-consolidation arch/cris/arch-v10/kernel/ptrace.c
---- a/arch/cris/arch-v10/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/cris/arch-v10/kernel/ptrace.c
-@@ -83,19 +83,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 		/* Read word at location address. */ 
- 		case PTRACE_PEEKTEXT:
--		case PTRACE_PEEKDATA: {
--			unsigned long tmp;
--			int copied;
--
--			copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--			ret = -EIO;
--			
--			if (copied != sizeof(tmp))
--				break;
--			
--			ret = put_user(tmp,datap);
-+		case PTRACE_PEEKDATA:
-+			ret = generic_ptrace_peekdata(child, addr, data);
- 			break;
--		}
- 
- 		/* Read the word at location address in the USER area. */
- 		case PTRACE_PEEKUSR: {
-diff -puN arch/frv/kernel/ptrace.c~ptrace_peekdata-consolidation arch/frv/kernel/ptrace.c
---- a/arch/frv/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/frv/kernel/ptrace.c
-@@ -112,20 +112,12 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 		/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
--	case PTRACE_PEEKDATA: {
--		int copied;
--
-+	case PTRACE_PEEKDATA:
- 		ret = -EIO;
- 		if (is_user_addr_valid(child, addr, sizeof(tmp)) < 0)
- 			break;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		if (copied != sizeof(tmp))
--			break;
--
--		ret = put_user(tmp,(unsigned long *) data);
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 		/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/i386/kernel/ptrace.c~ptrace_peekdata-consolidation arch/i386/kernel/ptrace.c
---- a/arch/i386/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/i386/kernel/ptrace.c
-@@ -358,17 +358,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */ 
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp, datap);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/m32r/kernel/ptrace.c~ptrace_peekdata-consolidation arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -595,7 +595,6 @@ void ptrace_disable(struct task_struct *
- static int
- do_ptrace(long request, struct task_struct *child, long addr, long data)
- {
--	unsigned long tmp;
- 	int ret;
- 
- 	switch (request) {
-@@ -604,11 +603,7 @@ do_ptrace(long request, struct task_stru
- 	 */
- 	case PTRACE_PEEKTEXT:
- 	case PTRACE_PEEKDATA:
--		ret = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		if (ret == sizeof(tmp))
--			ret = put_user(tmp,(unsigned long __user *) data);
--		else
--			ret = -EIO;
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
- 
- 	/*
-diff -puN arch/m68k/kernel/ptrace.c~ptrace_peekdata-consolidation arch/m68k/kernel/ptrace.c
---- a/arch/m68k/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/m68k/kernel/ptrace.c
-@@ -128,10 +128,7 @@ long arch_ptrace(struct task_struct *chi
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT:	/* read word at location addr. */
- 	case PTRACE_PEEKDATA:
--		i = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		if (i != sizeof(tmp))
--			goto out_eio;
--		ret = put_user(tmp, (unsigned long *)data);
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
- 
- 	/* read the word at location addr in the USER area. */
-diff -puN arch/m68knommu/kernel/ptrace.c~ptrace_peekdata-consolidation arch/m68knommu/kernel/ptrace.c
---- a/arch/m68knommu/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/m68knommu/kernel/ptrace.c
-@@ -106,17 +106,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 		/* when I and D space are separate, these will need to be fixed. */
- 		case PTRACE_PEEKTEXT: /* read word at location addr. */ 
--		case PTRACE_PEEKDATA: {
--			unsigned long tmp;
--			int copied;
--
--			copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--			ret = -EIO;
--			if (copied != sizeof(tmp))
--				break;
--			ret = put_user(tmp,(unsigned long *) data);
-+		case PTRACE_PEEKDATA:
-+			ret = generic_ptrace_peekdata(child, addr, data);
- 			break;
--		}
- 
- 		/* read the word at location addr in the USER area. */
- 		case PTRACE_PEEKUSR: {
-diff -puN arch/mips/kernel/ptrace.c~ptrace_peekdata-consolidation arch/mips/kernel/ptrace.c
---- a/arch/mips/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/mips/kernel/ptrace.c
-@@ -174,17 +174,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp,(unsigned long __user *) data);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* Read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/parisc/kernel/ptrace.c~ptrace_peekdata-consolidation arch/parisc/kernel/ptrace.c
---- a/arch/parisc/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/parisc/kernel/ptrace.c
-@@ -87,10 +87,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */ 
- 	case PTRACE_PEEKDATA: {
--		int copied;
--
- #ifdef CONFIG_64BIT
- 		if (__is_compat_task(child)) {
-+			int copied;
- 			unsigned int tmp;
- 
- 			addr &= 0xffffffffL;
-@@ -105,15 +104,7 @@ long arch_ptrace(struct task_struct *chi
- 		}
- 		else
- #endif
--		{
--			unsigned long tmp;
--
--			copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--			ret = -EIO;
--			if (copied != sizeof(tmp))
--				goto out_tsk;
--			ret = put_user(tmp,(unsigned long *) data);
--		}
-+			ret = generic_ptrace_peekdata(child, addr, data);
- 		goto out_tsk;
+ 	/* read in the 1st FATAL error register */
+ 	pci_read_config_dword(pvt->branchmap_werrors, FERR_FAT_FBD, &value);
+@@ -457,7 +457,7 @@ static void i5000_get_error_info(struct 
  	}
+ }
  
-diff -puN arch/powerpc/kernel/ptrace.c~ptrace_peekdata-consolidation arch/powerpc/kernel/ptrace.c
---- a/arch/powerpc/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/powerpc/kernel/ptrace.c
-@@ -256,17 +256,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp,(unsigned long __user *) data);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/s390/kernel/ptrace.c~ptrace_peekdata-consolidation arch/s390/kernel/ptrace.c
---- a/arch/s390/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/s390/kernel/ptrace.c
-@@ -294,7 +294,6 @@ poke_user(struct task_struct *child, add
- static int
- do_ptrace_normal(struct task_struct *child, long request, long addr, long data)
+-/******************************************************************************
++/*
+  * i5000_process_fatal_error_info(struct mem_ctl_info *mci,
+  * 					struct i5000_error_info *info,
+  * 					int handle_errors);
+@@ -465,7 +465,7 @@ static void i5000_get_error_info(struct 
+  *	handle the Intel FATAL errors, if any
+  */
+ static void i5000_process_fatal_error_info(struct mem_ctl_info *mci,
+-					struct i5000_error_info * info,
++					struct i5000_error_info *info,
+ 					int handle_errors)
  {
--	unsigned long tmp;
- 	ptrace_area parea; 
- 	int copied, ret;
- 
-@@ -304,10 +303,7 @@ do_ptrace_normal(struct task_struct *chi
- 		/* Remove high order bit from address (only for 31 bit). */
- 		addr &= PSW_ADDR_INSN;
- 		/* read word at location addr. */
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		if (copied != sizeof(tmp))
--			return -EIO;
--		return put_user(tmp, (unsigned long __force __user *) data);
-+		return generic_ptrace_peekdata(child, addr, data);
- 
- 	case PTRACE_PEEKUSR:
- 		/* read the word at location addr in the USER area. */
-diff -puN arch/sh/kernel/ptrace.c~ptrace_peekdata-consolidation arch/sh/kernel/ptrace.c
---- a/arch/sh/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/sh/kernel/ptrace.c
-@@ -91,17 +91,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp,(unsigned long *) data);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/sh64/kernel/ptrace.c~ptrace_peekdata-consolidation arch/sh64/kernel/ptrace.c
---- a/arch/sh64/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/sh64/kernel/ptrace.c
-@@ -129,17 +129,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp,(unsigned long *) data);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/um/kernel/ptrace.c~ptrace_peekdata-consolidation arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/um/kernel/ptrace.c
-@@ -52,17 +52,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 		/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */ 
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		ret = -EIO;
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp, p);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* read the word at location addr in the USER area. */
-         case PTRACE_PEEKUSR:
-diff -puN arch/v850/kernel/ptrace.c~ptrace_peekdata-consolidation arch/v850/kernel/ptrace.c
---- a/arch/v850/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/v850/kernel/ptrace.c
-@@ -117,15 +117,11 @@ long arch_ptrace(struct task_struct *chi
- 	int rval;
- 
- 	switch (request) {
--		unsigned long val, copied;
-+		unsigned long val;
- 
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
- 	case PTRACE_PEEKDATA:
--		copied = access_process_vm(child, addr, &val, sizeof(val), 0);
--		rval = -EIO;
--		if (copied != sizeof(val))
--			break;
--		rval = put_user(val, (unsigned long *)data);
-+		rval = generic_ptrace_peekdata(child, addr, data);
- 		goto out;
- 
- 	case PTRACE_POKETEXT: /* write the word at location addr. */
-diff -puN arch/x86_64/kernel/ptrace.c~ptrace_peekdata-consolidation arch/x86_64/kernel/ptrace.c
---- a/arch/x86_64/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/x86_64/kernel/ptrace.c
-@@ -313,17 +313,9 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	/* when I and D space are separate, these will need to be fixed. */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */ 
--	case PTRACE_PEEKDATA: {
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp,(unsigned long __user *) data);
-+	case PTRACE_PEEKDATA:
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		break;
--	}
- 
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR: {
-diff -puN arch/xtensa/kernel/ptrace.c~ptrace_peekdata-consolidation arch/xtensa/kernel/ptrace.c
---- a/arch/xtensa/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/arch/xtensa/kernel/ptrace.c
-@@ -50,18 +50,8 @@ long arch_ptrace(struct task_struct *chi
- 	switch (request) {
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
- 	case PTRACE_PEEKDATA:
--	{
--		unsigned long tmp;
--		int copied;
--
--		copied = access_process_vm(child, addr, &tmp, sizeof(tmp), 0);
--		ret = -EIO;
--		if (copied != sizeof(tmp))
--			break;
--		ret = put_user(tmp,(unsigned long *) data);
--
-+		ret = generic_ptrace_peekdata(child, addr, data);
- 		goto out;
--	}
- 
- 	/* Read the word at location addr in the USER area.  */
- 
-diff -puN include/linux/ptrace.h~ptrace_peekdata-consolidation include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace_peekdata-consolidation
-+++ a/include/linux/ptrace.h
-@@ -110,6 +110,7 @@ static inline void ptrace_unlink(struct 
- 		__ptrace_unlink(child);
+ 	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
+@@ -530,7 +530,7 @@ static void i5000_process_fatal_error_in
+ 	edac_mc_handle_fbd_ue(mci, rank, channel, channel + 1, msg);
  }
  
-+int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data);
- 
- #ifndef force_successful_syscall_return
- /*
-diff -puN kernel/ptrace.c~ptrace_peekdata-consolidation kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace_peekdata-consolidation
-+++ a/kernel/ptrace.c
-@@ -490,3 +490,14 @@ asmlinkage long sys_ptrace(long request,
- 	return ret;
+-/******************************************************************************
++/*
+  * i5000_process_fatal_error_info(struct mem_ctl_info *mci,
+  * 				struct i5000_error_info *info,
+  * 				int handle_errors);
+@@ -538,7 +538,7 @@ static void i5000_process_fatal_error_in
+  *	handle the Intel NON-FATAL errors, if any
+  */
+ static void i5000_process_nonfatal_error_info(struct mem_ctl_info *mci,
+-					struct i5000_error_info * info,
++					struct i5000_error_info *info,
+ 					int handle_errors)
+ {
+ 	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
+@@ -666,12 +666,12 @@ static void i5000_process_nonfatal_error
+ 	}
  }
- #endif /* __ARCH_SYS_PTRACE */
-+
-+int generic_ptrace_peekdata(struct task_struct *tsk, long addr, long data)
-+{
-+	unsigned long tmp;
-+	int copied;
-+
-+	copied = access_process_vm(tsk, addr, &tmp, sizeof(tmp), 0);
-+	if (copied != sizeof(tmp))
-+		return -EIO;
-+	return put_user(tmp, (unsigned long __user *)data);
-+}
+ 
+-/******************************************************************************
++/*
+  *	i5000_process_error_info	Process the error info that is
+  *	in the 'info' structure, previously retrieved from hardware
+  */
+ static void i5000_process_error_info(struct mem_ctl_info *mci,
+-				struct i5000_error_info * info,
++				struct i5000_error_info *info,
+ 				int handle_errors)
+ {
+ 	/* First handle any fatal errors that occurred */
+@@ -681,7 +681,7 @@ static void i5000_process_error_info(str
+ 	i5000_process_nonfatal_error_info(mci, info, handle_errors);
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_clear_error	Retrieve any error from the hardware
+  *				but do NOT process that error.
+  *				Used for 'clearing' out of previous errors
+@@ -694,7 +694,7 @@ static void i5000_clear_error(struct mem
+ 	i5000_get_error_info(mci, &info);
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_check_error	Retrieve and process errors reported by the
+  *				hardware. Called by the Core module.
+  */
+@@ -706,7 +706,7 @@ static void i5000_check_error(struct mem
+ 	i5000_process_error_info(mci, &info, 1);
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_get_devices	Find and perform 'get' operation on the MCH's
+  *			device/functions we want to reference for this driver
+  *
+@@ -718,7 +718,7 @@ static int i5000_get_devices(struct mem_
+ 	struct i5000_pvt *pvt;
+ 	struct pci_dev *pdev;
+ 
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
+ 
+ 	/* Attempt to 'get' the MCH register we want */
+ 	pdev = NULL;
+@@ -827,7 +827,7 @@ static int i5000_get_devices(struct mem_
+ 	return 0;
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_put_devices	'put' all the devices that we have
+  *				reserved via 'get'
+  */
+@@ -835,19 +835,18 @@ static void i5000_put_devices(struct mem
+ {
+ 	struct i5000_pvt *pvt;
+ 
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
+ 
+ 	pci_dev_put(pvt->branchmap_werrors);	/* FUNC 1 */
+ 	pci_dev_put(pvt->fsb_error_regs);	/* FUNC 2 */
+ 	pci_dev_put(pvt->branch_0);	/* DEV 21 */
+ 
+ 	/* Only if more than 2 channels do we release the second branch */
+-	if (pvt->maxch >= CHANNELS_PER_BRANCH) {
++	if (pvt->maxch >= CHANNELS_PER_BRANCH)
+ 		pci_dev_put(pvt->branch_1);	/* DEV 22 */
+-	}
+ }
+ 
+-/******************************************************************************
++/*
+  *	determine_amb_resent
+  *
+  *		the information is contained in NUM_MTRS different registers
+@@ -879,7 +878,7 @@ static int determine_amb_present_reg(str
+ 	return amb_present;
+ }
+ 
+-/******************************************************************************
++/*
+  * determine_mtr(pvt, csrow, channel)
+  *
+  *	return the proper MTR register as determine by the csrow and channel desired
+@@ -896,7 +895,7 @@ static int determine_mtr(struct i5000_pv
+ 	return mtr;
+ }
+ 
+-/******************************************************************************
++/*
+  */
+ static void decode_mtr(int slot_row, u16 mtr)
+ {
+@@ -951,7 +950,7 @@ static void handle_channel(struct i5000_
+ 	}
+ }
+ 
+-/******************************************************************************
++/*
+  *	calculate_dimm_size
+  *
+  *	also will output a DIMM matrix map, if debug is enabled, for viewing
+@@ -1037,7 +1036,7 @@ static void calculate_dimm_size(struct i
+ 	kfree(mem_buffer);
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_get_mc_regs	read in the necessary registers and
+  *				cache locally
+  *
+@@ -1053,7 +1052,7 @@ static void i5000_get_mc_regs(struct mem
+ 	int maxdimmperch;
+ 	int way0, way1;
+ 
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
+ 
+ 	pci_read_config_dword(pvt->system_address, AMBASE,
+ 			(u32 *) & pvt->ambase);
+@@ -1151,7 +1150,7 @@ static void i5000_get_mc_regs(struct mem
+ 	calculate_dimm_size(pvt);
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_init_csrows	Initialize the 'csrows' table within
+  *				the mci control	structure with the
+  *				addressing of memory.
+@@ -1171,7 +1170,7 @@ static int i5000_init_csrows(struct mem_
+ 	int channel;
+ 	int csrow;
+ 
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
+ 
+ 	channel_count = pvt->maxch;
+ 	max_csrows = pvt->maxdimmperch * 2;
+@@ -1221,7 +1220,7 @@ static int i5000_init_csrows(struct mem_
+ 	return empty;
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_enable_error_reporting
+  *			Turn on the memory reporting features of the hardware
+  */
+@@ -1230,7 +1229,7 @@ static void i5000_enable_error_reporting
+ 	struct i5000_pvt *pvt;
+ 	u32 fbd_error_mask;
+ 
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
+ 
+ 	/* Read the FBD Error Mask Register */
+ 	pci_read_config_dword(pvt->branchmap_werrors, EMASK_FBD,
+@@ -1243,7 +1242,7 @@ static void i5000_enable_error_reporting
+ 			fbd_error_mask);
+ }
+ 
+-/******************************************************************************
++/*
+  * i5000_get_dimm_and_channel_counts(pdev, &num_csrows, &num_channels)
+  *
+  *	ask the device how many channels are present and how many CSROWS
+@@ -1265,7 +1264,7 @@ static void i5000_get_dimm_and_channel_c
+ 	*num_channels = (int)value;
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_probe1	Probe for ONE instance of device to see if it is
+  *			present.
+  *	return:
+@@ -1329,7 +1328,7 @@ static int i5000_probe1(struct pci_dev *
+ 
+ 	mci->dev = &pdev->dev;	/* record ptr  to the generic device */
+ 
+-	pvt = (struct i5000_pvt *)mci->pvt_info;
++	pvt = mci->pvt_info;
+ 	pvt->system_address = pdev;	/* Record this device in our private */
+ 	pvt->maxch = num_channels;
+ 	pvt->maxdimmperch = num_dimms_per_channel;
+@@ -1401,7 +1400,7 @@ fail0:
+ 	return -ENODEV;
+ }
+ 
+-/******************************************************************************
++/*
+  *	i5000_init_one	constructor for one instance of device
+  *
+  * 	returns:
+@@ -1424,7 +1423,7 @@ static int __devinit i5000_init_one(stru
+ 	return i5000_probe1(pdev, id->driver_data);
+ }
+ 
+-/**************************************************************************
++/*
+  *	i5000_remove_one	destructor for one instance of device
+  *
+  */
+@@ -1446,7 +1445,7 @@ static void __devexit i5000_remove_one(s
+ 	edac_mc_free(mci);
+ }
+ 
+-/**************************************************************************
++/*
+  *	pci_device_id	table for which devices we are looking for
+  *
+  *	The "E500P" device is the first device supported.
+@@ -1460,7 +1459,7 @@ static const struct pci_device_id i5000_
+ 
+ MODULE_DEVICE_TABLE(pci, i5000_pci_tbl);
+ 
+-/**************************************************************************
++/*
+  *	i5000_driver	pci_driver structure for this module
+  *
+  */
+@@ -1471,7 +1470,7 @@ static struct pci_driver i5000_driver = 
+ 	.id_table = i5000_pci_tbl,
+ };
+ 
+-/**************************************************************************
++/*
+  *	i5000_init		Module entry function
+  *			Try to initialize this module for its devices
+  */
+@@ -1486,7 +1485,7 @@ static int __init i5000_init(void)
+ 	return (pci_rc < 0) ? pci_rc : 0;
+ }
+ 
+-/**************************************************************************
++/*
+  *	i5000_exit()	Module exit function
+  *			Unregister the driver
+  */
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
-fuse-fs_flags-fixlet.patch
-git-parisc.patch
-procfs-directory-entry-cleanup-fix.patch
-remove-capabilityh-from-mmh.patch
-ptrace_peekdata-consolidation.patch
-ptrace_pokedata-consolidation.patch
+drivers-edac-add-edac_mc_find-api.patch
+drivers-edac-add-rddr2-memory-types.patch
+drivers-edac-split-out-functions-to-unique-files.patch
+drivers-edac-add-edac_device-class.patch
+drivers-edac-mc-sysfs-add-missing-mem-types.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
+drivers-edac-coreh-fix-scrubdefs.patch
+drivers-edac-new-i82443bxgz-mc-driver.patch
+drivers-edac-add-new-nmi-rescan.patch
+drivers-edac-mod-use-edac_coreh.patch
+drivers-edac-add-dev_name-getter-function.patch
+drivers-edac-new-inte-30x0-mc-driver.patch
+drivers-edac-mod-mc-to-use-workq-instead-of-kthread.patch
+drivers-edac-updated-pci-monitoring.patch
+drivers-edac-mod-assert_error-check.patch
+drivers-edac-core-lindent-cleanup.patch
+drivers-edac-edac_device-sysfs-cleanup.patch
+drivers-edac-cleanup-workq-ifdefs.patch
+drivers-edac-lindent-amd76x.patch
+drivers-edac-lindent-i5000.patch
+drivers-edac-lindent-e7xxx.patch
+drivers-edac-lindent-i3000.patch
+drivers-edac-lindent-i82860.patch
+drivers-edac-lindent-i82875p.patch
+drivers-edac-lindent-e752x.patch
+drivers-edac-lindent-i82443bxgx.patch
+drivers-edac-lindent-r82600.patch
+drivers-edac-drivers-to-use-new-pci-operation.patch
+drivers-edac-add-device-sysfs-attributes.patch
+drivers-edac-device-output-clenaup.patch
+drivers-edac-add-info-kconfig.patch
+drivers-edac-update-maintainers-files-for-edac.patch
+drivers-edac-cleanup-spaces-gotos-after-lindent-messup.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
+driver-edac-i5000-define-typo.patch
+driver-edac-remove-null-from-statics.patch
+driver-edac-i5000-code-tidying.patch
+driver-edac-edac_device-code-tidying.patch
+driver-edac-mod-edac_align_ptr-function.patch
+driver-edac-mod-edac_opt_state_to_string-function.patch
+driver-edac-remove-file-edac_mc-h.patch
