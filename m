@@ -1,38 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - rt-mutex-fix-chain-walk-early-wakeup-bug.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:19 -0700
-Message-ID: <200706121857.l5CIvJZO018457@imap1.linux-foundation.org>
+Subject: - rt-mutex-fix-stale-return-value.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:14 -0700
+Message-ID: <200706121857.l5CIvEKU018454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35597 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54106 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751282AbXFLTLF (ORCPT
+	by vger.kernel.org with ESMTP id S1751528AbXFLTLJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:11:05 -0400
+	Tue, 12 Jun 2007 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, dada1@cosmosbay.com, drepper@redhat.com, kuznet@ms2.inr.ac.ru, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rt-mutex: fix chain walk early wakeup bug
+     rt-mutex: fix stale return value
 has been removed from the -mm tree.  Its filename was
-     rt-mutex-fix-chain-walk-early-wakeup-bug.patch
+     rt-mutex-fix-stale-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rt-mutex: fix chain walk early wakeup bug
+Subject: rt-mutex: fix stale return value
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Alexey Kuznetsov found some problems in the pi-futex code.
 
-One of the root causes is:
+The major problem is a stale return value in rt_mutex_slowlock():
 
-When a wakeup happens, we do not to stop the chain walk so we follow a not
-longer relevant locking chain.
+When the pi chain walk returns -EDEADLK, but the waiter was woken up during
+the phases where the locks were dropped, the rtmutex could be acquired, but
+due to the stale return value -EDEADLK returned to the caller.
 
-Drop out when this happens.
+Reset the return value in the retry path.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Acked-by: Ingo Molnar <mingo@elte.hu>
@@ -43,32 +44,31 @@ Cc: Eric Dumazet <dada1@cosmosbay.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rtmutex.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+)
+ kernel/rtmutex.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/rtmutex.c~rt-mutex-fix-chain-walk-early-wakeup-bug kernel/rtmutex.c
---- a/kernel/rtmutex.c~rt-mutex-fix-chain-walk-early-wakeup-bug
+diff -puN kernel/rtmutex.c~rt-mutex-fix-stale-return-value kernel/rtmutex.c
+--- a/kernel/rtmutex.c~rt-mutex-fix-stale-return-value
 +++ a/kernel/rtmutex.c
-@@ -189,6 +189,19 @@ int rt_mutex_adjust_prio_chain(struct ta
- 	if (!waiter || !waiter->task)
- 		goto out_unlock_pi;
- 
-+	/*
-+	 * Check the orig_waiter state. After we dropped the locks,
-+	 * the previous owner of the lock might have released the lock
-+	 * and made us the pending owner:
-+	 */
-+	if (orig_waiter && !orig_waiter->task)
-+		goto out_unlock_pi;
-+
-+	/*
-+	 * Drop out, when the task has no waiters. Note,
-+	 * top_waiter can be NULL, when we are in the deboosting
-+	 * mode!
-+	 */
- 	if (top_waiter && (!task_has_pi_waiters(task) ||
- 			   top_waiter != task_top_pi_waiter(task)))
- 		goto out_unlock_pi;
+@@ -636,9 +636,16 @@ rt_mutex_slowlock(struct rt_mutex *lock,
+ 			 * all over without going into schedule to try
+ 			 * to get the lock now:
+ 			 */
+-			if (unlikely(!waiter.task))
++			if (unlikely(!waiter.task)) {
++				/*
++				 * Reset the return value. We might
++				 * have returned with -EDEADLK and the
++				 * owner released the lock while we
++				 * were walking the pi chain.
++				 */
++				ret = 0;
+ 				continue;
+-
++			}
+ 			if (unlikely(ret))
+ 				break;
+ 		}
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
