@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-minor-nx-handling-adjustment.patch added to -mm tree
-Date: Tue, 12 Jun 2007 13:23:39 -0700
-Message-ID: <200706122023.l5CKNdwh020525@imap1.linux-foundation.org>
+Subject: + modpost-white-list-pattern-adjustment.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:23:46 -0700
+Message-ID: <200706122023.l5CKNkcf020537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43066 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755083AbXFLUXw (ORCPT
+	by vger.kernel.org with ESMTP id S1756223AbXFLUXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 16:23:52 -0400
+	Tue, 12 Jun 2007 16:23:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, ak@suse.de
+Cc: jbeulich@novell.com, sam@ravnborg.org
 
 
 The patch titled
-     i386: minor nx handling adjustment
+     modpost white list pattern adjustment
 has been added to the -mm tree.  Its filename is
-     i386-minor-nx-handling-adjustment.patch
+     modpost-white-list-pattern-adjustment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: minor nx handling adjustment
+Subject: modpost white list pattern adjustment
 From: "Jan Beulich" <jbeulich@novell.com>
 
-Constrain __supported_pte_mask and NX handling to just the PAE kernel.
+gcc puts data into .data.rel or .data.rel.* on some architectures (e.g.
+ia64) or under certain conditions, so whatever is legal relative to
+.data should also be legal for those other sections. Fixes a few
+modpost warnings on ia64.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/init.c     |    7 ++++---
- include/asm-i386/page.h |    1 -
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ scripts/mod/modpost.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/mm/init.c~i386-minor-nx-handling-adjustment arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~i386-minor-nx-handling-adjustment
-+++ a/arch/i386/mm/init.c
-@@ -472,6 +472,10 @@ void zap_low_mappings (void)
- 	flush_tlb_all();
- }
+diff -puN scripts/mod/modpost.c~modpost-white-list-pattern-adjustment scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~modpost-white-list-pattern-adjustment
++++ a/scripts/mod/modpost.c
+@@ -608,7 +608,7 @@ static int strrcmp(const char *s, const 
+  *   warn here.
+  *   the pattern is identified by:
+  *   tosec   = .init.text | .exit.text | .init.data
+- *   fromsec = .data
++ *   fromsec = .data | .data.rel | .data.rel.*
+  *   atsym = *driver, *_template, *_sht, *_ops, *_probe, *probe_one, *_console, *_timer
+  *
+  * Pattern 3:
+@@ -671,7 +671,9 @@ static int secref_whitelist(const char *
+ 	    (strcmp(tosec, ".exit.text") != 0) &&
+ 	    (strcmp(tosec, ".init.data") != 0))
+ 		f2 = 0;
+-	if (strcmp(fromsec, ".data") != 0)
++	if (strcmp(fromsec, ".data") != 0 &&
++	    strcmp(fromsec, ".data.rel") != 0 &&
++	    strncmp(fromsec, ".data.rel.", strlen(".data.rel.")) != 0)
+ 		f2 = 0;
  
-+int nx_enabled = 0;
-+
-+#ifdef CONFIG_X86_PAE
-+
- static int disable_nx __initdata = 0;
- u64 __supported_pte_mask __read_mostly = ~_PAGE_NX;
- EXPORT_SYMBOL_GPL(__supported_pte_mask);
-@@ -501,9 +505,6 @@ static int __init noexec_setup(char *str
- }
- early_param("noexec", noexec_setup);
- 
--int nx_enabled = 0;
--#ifdef CONFIG_X86_PAE
--
- static void __init set_nx(void)
- {
- 	unsigned int v[4], l, h;
-diff -puN include/asm-i386/page.h~i386-minor-nx-handling-adjustment include/asm-i386/page.h
---- a/include/asm-i386/page.h~i386-minor-nx-handling-adjustment
-+++ a/include/asm-i386/page.h
-@@ -44,7 +44,6 @@
- extern int nx_enabled;
- 
- #ifdef CONFIG_X86_PAE
--extern unsigned long long __supported_pte_mask;
- typedef struct { unsigned long pte_low, pte_high; } pte_t;
- typedef struct { unsigned long long pmd; } pmd_t;
- typedef struct { unsigned long long pgd; } pgd_t;
+ 	for (s = pat2sym; *s; s++)
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
