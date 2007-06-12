@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-werror-implicit-function-declaration.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:59:29 -0700
-Message-ID: <200706121959.l5CJxT78020085@imap1.linux-foundation.org>
+Subject: + use-is_power_of_2-in-cxgb3-cxgb3_mainc.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:00:23 -0700
+Message-ID: <200706122000.l5CK0N7R020114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45782 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56025 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753122AbXFLT7t (ORCPT
+	by vger.kernel.org with ESMTP id S1753366AbXFLUAa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:59:49 -0400
+	Tue, 12 Jun 2007 16:00:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, sam@ravnborg.org
+Cc: vignesh.babu@wipro.com
 
 
 The patch titled
-     Add -Werror-implicit-function-declaration
+     use is_power_of_2() in cxgb3/cxgb3_main.c
 has been added to the -mm tree.  Its filename is
-     add-werror-implicit-function-declaration.patch
+     use-is_power_of_2-in-cxgb3-cxgb3_mainc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add -Werror-implicit-function-declaration
-From: Dave Jones <davej@redhat.com>
+Subject: use is_power_of_2() in cxgb3/cxgb3_main.c
+From: vignesh babu <vignesh.babu@wipro.com>
 
-Add -Werror-implicit-function-declaration
-This makes builds fail sooner if something is implicitly defined instead
-of having to wait half an hour for it to fail at the linking stage.
+Replace (n & (n-1)) with is_power_of_2()
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/cxgb3/cxgb3_main.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Makefile~add-werror-implicit-function-declaration Makefile
---- a/Makefile~add-werror-implicit-function-declaration
-+++ a/Makefile
-@@ -313,7 +313,8 @@ LINUXINCLUDE    := -Iinclude \
- CPPFLAGS        := -D__KERNEL__ $(LINUXINCLUDE)
+diff -puN drivers/net/cxgb3/cxgb3_main.c~use-is_power_of_2-in-cxgb3-cxgb3_mainc drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~use-is_power_of_2-in-cxgb3-cxgb3_mainc
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -43,6 +43,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/rtnetlink.h>
+ #include <linux/firmware.h>
++#include <linux/log2.h>
+ #include <asm/uaccess.h>
  
- CFLAGS          := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
--                   -fno-strict-aliasing -fno-common
-+		   -fno-strict-aliasing -fno-common \
-+		   -Werror-implicit-function-declaration
- AFLAGS          := -D__ASSEMBLY__
- 
- # Read KERNELRELEASE from include/config/kernel.release (if it exists)
+ #include "common.h"
+@@ -1818,8 +1819,8 @@ static int cxgb_extension_ioctl(struct n
+ 			return -EBUSY;
+ 		if (copy_from_user(&m, useraddr, sizeof(m)))
+ 			return -EFAULT;
+-		if (!m.rx_pg_sz || (m.rx_pg_sz & (m.rx_pg_sz - 1)) ||
+-			!m.tx_pg_sz || (m.tx_pg_sz & (m.tx_pg_sz - 1)))
++		if (!is_power_of_2(m.rx_pg_sz) ||
++			!is_power_of_2(m.tx_pg_sz))
+ 			return -EINVAL;	/* not power of 2 */
+ 		if (!(m.rx_pg_sz & 0x14000))
+ 			return -EINVAL;	/* not 16KB or 64KB */
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from vignesh.babu@wipro.com are
 
-origin.patch
-git-alsa.patch
-git-cpufreq.patch
-git-netdev-all.patch
-i386-remove-support-for-the-rise-cpu.patch
-fix-up-codingstyle-in-isofs.patch
-undeprecate-raw-driver.patch
-fix-typo-in-prefetchh.patch
-allow-softlockup-to-be-runtime-disabled.patch
-add-werror-implicit-function-declaration.patch
+use-is_power_of_2-in-cxgb3-cxgb3_mainc.patch
