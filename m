@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-create_new_namespaces-return-value.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:26:49 -0700
-Message-ID: <200706121926.l5CJQnqq019217@imap1.linux-foundation.org>
+Subject: + make-disable_console_suspend-runtime-configurable-fix.patch added to -mm tree
+Date: Tue, 12 Jun 2007 12:34:41 -0700
+Message-ID: <200706121934.l5CJYf6X019606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55971 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53067 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbXFLT2O (ORCPT
+	by vger.kernel.org with ESMTP id S1752909AbXFLTfP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:28:14 -0400
+	Tue, 12 Jun 2007 15:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, pbadari@us.ibm.com, serue@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, seife@suse.de
 
 
 The patch titled
-     fix create_new_namespaces() return value
+     make-disable_console_suspend-runtime-configurable-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-create_new_namespaces-return-value.patch
+     make-disable_console_suspend-runtime-configurable-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,171 +26,222 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix create_new_namespaces() return value
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: make-disable_console_suspend-runtime-configurable-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Modify create_new_namespaces() to also use the errors returned by the
-copy_*_ns routines and not to systematically return ENOMEM.
+No new sysctls...
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Stefan Seyfried <seife@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c          |    4 ++--
- kernel/nsproxy.c        |   23 +++++++++++++++++------
- kernel/user_namespace.c |    6 +++---
- kernel/utsname.c        |   10 ++++++----
- 4 files changed, 28 insertions(+), 15 deletions(-)
+ include/linux/sysctl.h |    1 -
+ kernel/sysctl.c        |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~mm-fix-create_new_namespaces-return-value fs/namespace.c
---- a/fs/namespace.c~mm-fix-create_new_namespaces-return-value
-+++ a/fs/namespace.c
-@@ -1451,7 +1451,7 @@ static struct mnt_namespace *dup_mnt_ns(
+diff -puN include/linux/sysctl.h~make-disable_console_suspend-runtime-configurable-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~make-disable_console_suspend-runtime-configurable-fix
++++ a/include/linux/sysctl.h
+@@ -166,7 +166,6 @@ enum
+ 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
+ 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
+ 	KERN_POWEROFF_CMD=77,	/* string: poweroff command line */
+-	KERN_CONSOLE_SUSPEND=78, /* int: disable consoles on system suspend */
+ };
  
- 	new_ns = kmalloc(sizeof(struct mnt_namespace), GFP_KERNEL);
- 	if (!new_ns)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
  
- 	atomic_set(&new_ns->count, 1);
- 	INIT_LIST_HEAD(&new_ns->list);
-@@ -1465,7 +1465,7 @@ static struct mnt_namespace *dup_mnt_ns(
- 	if (!new_ns->root) {
- 		up_write(&namespace_sem);
- 		kfree(new_ns);
--		return NULL;
-+		return ERR_PTR(-ENOMEM);;
- 	}
- 	spin_lock(&vfsmount_lock);
- 	list_add_tail(&new_ns->list, &new_ns->root->mnt_list);
-diff -puN kernel/nsproxy.c~mm-fix-create_new_namespaces-return-value kernel/nsproxy.c
---- a/kernel/nsproxy.c~mm-fix-create_new_namespaces-return-value
-+++ a/kernel/nsproxy.c
-@@ -58,30 +58,41 @@ static struct nsproxy *create_new_namesp
- 			struct fs_struct *new_fs)
- {
- 	struct nsproxy *new_nsp;
-+	int err;
- 
- 	new_nsp = clone_nsproxy(tsk->nsproxy);
- 	if (!new_nsp)
- 		return ERR_PTR(-ENOMEM);
- 
- 	new_nsp->mnt_ns = copy_mnt_ns(flags, tsk->nsproxy->mnt_ns, new_fs);
--	if (IS_ERR(new_nsp->mnt_ns))
-+	if (IS_ERR(new_nsp->mnt_ns)) {
-+		err = PTR_ERR(new_nsp->mnt_ns);
- 		goto out_ns;
-+	}
- 
- 	new_nsp->uts_ns = copy_utsname(flags, tsk->nsproxy->uts_ns);
--	if (IS_ERR(new_nsp->uts_ns))
-+	if (IS_ERR(new_nsp->uts_ns)) {
-+		err = PTR_ERR(new_nsp->uts_ns);
- 		goto out_uts;
-+	}
- 
- 	new_nsp->ipc_ns = copy_ipcs(flags, tsk->nsproxy->ipc_ns);
--	if (IS_ERR(new_nsp->ipc_ns))
-+	if (IS_ERR(new_nsp->ipc_ns)) {
-+		err = PTR_ERR(new_nsp->ipc_ns);
- 		goto out_ipc;
-+	}
- 
- 	new_nsp->pid_ns = copy_pid_ns(flags, tsk->nsproxy->pid_ns);
--	if (IS_ERR(new_nsp->pid_ns))
-+	if (IS_ERR(new_nsp->pid_ns)) {
-+		err = PTR_ERR(new_nsp->pid_ns);
- 		goto out_pid;
-+	}
- 
- 	new_nsp->user_ns = copy_user_ns(flags, tsk->nsproxy->user_ns);
--	if (IS_ERR(new_nsp->user_ns))
-+	if (IS_ERR(new_nsp->user_ns)) {
-+		err = PTR_ERR(new_nsp->user_ns);
- 		goto out_user;
-+	}
- 
- 	return new_nsp;
- 
-@@ -99,7 +110,7 @@ out_uts:
- 		put_mnt_ns(new_nsp->mnt_ns);
- out_ns:
- 	kfree(new_nsp);
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(err);
- }
- 
- /*
-diff -puN kernel/user_namespace.c~mm-fix-create_new_namespaces-return-value kernel/user_namespace.c
---- a/kernel/user_namespace.c~mm-fix-create_new_namespaces-return-value
-+++ a/kernel/user_namespace.c
-@@ -34,7 +34,7 @@ static struct user_namespace *clone_user
- 
- 	ns = kmalloc(sizeof(struct user_namespace), GFP_KERNEL);
- 	if (!ns)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 
- 	kref_init(&ns->kref);
- 
-@@ -45,7 +45,7 @@ static struct user_namespace *clone_user
- 	ns->root_user = alloc_uid(ns, 0);
- 	if (!ns->root_user) {
- 		kfree(ns);
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	/* Reset current->user with a new one */
-@@ -53,7 +53,7 @@ static struct user_namespace *clone_user
- 	if (!new_user) {
- 		free_uid(ns->root_user);
- 		kfree(ns);
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	switch_uid(new_user);
-diff -puN kernel/utsname.c~mm-fix-create_new_namespaces-return-value kernel/utsname.c
---- a/kernel/utsname.c~mm-fix-create_new_namespaces-return-value
-+++ a/kernel/utsname.c
-@@ -13,6 +13,7 @@
- #include <linux/uts.h>
- #include <linux/utsname.h>
- #include <linux/version.h>
-+#include <linux/err.h>
- 
- /*
-  * Clone a new ns copying an original utsname, setting refcount to 1
-@@ -24,10 +25,11 @@ static struct uts_namespace *clone_uts_n
- 	struct uts_namespace *ns;
- 
- 	ns = kmalloc(sizeof(struct uts_namespace), GFP_KERNEL);
--	if (ns) {
--		memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
--		kref_init(&ns->kref);
--	}
-+	if (!ns)
-+		return ERR_PTR(-ENOMEM);
-+
-+	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
-+	kref_init(&ns->kref);
- 	return ns;
- }
- 
+diff -puN kernel/sysctl.c~make-disable_console_suspend-runtime-configurable-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~make-disable_console_suspend-runtime-configurable-fix
++++ a/kernel/sysctl.c
+@@ -587,7 +587,7 @@ static ctl_table kern_table[] = {
+ 	},
+ #endif
+ 	{
+-		.ctl_name	= KERN_CONSOLE_SUSPEND,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "disable_console_suspend",
+ 		.data		= &disable_console_suspend,
+ 		.maxlen		= sizeof (int),
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-merge-nopfn-into-fault-spufs-fix.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-containersv10-add-tasks-file-interface-fix-2.patch
+origin.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+git-input-fixup.patch
+serio_raw_read-warning-fix.patch
+git-jfs-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-parisc.patch
+git-r8169-fixup.patch
+git-selinux.patch
+git-selinux-fixup.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-vs-git-net.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
+i386-mtrr-clean-up-usage_table.patch
+git-xfs.patch
+git-cryptodev.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+make-disable_console_suspend-runtime-configurable-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+udf-fix-possible-leakage-of-blocks-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
