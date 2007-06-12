@@ -1,82 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - protect-linux-console_structh-from-multiple-inclusion.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:40 -0700
-Message-ID: <200706121857.l5CIvexd018491@imap1.linux-foundation.org>
+Subject: - ahci-add-mcp73-mcp77-support-to-ahci-driver.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:58:01 -0700
+Message-ID: <200706121858.l5CIw1xM018510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42499 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771AbXFLTBW (ORCPT
+	by vger.kernel.org with ESMTP id S1751088AbXFLTBm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:01:22 -0400
+	Tue, 12 Jun 2007 15:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: peerchen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Protect <linux/console_struct.h> from multiple inclusion
+     ahci: Add MCP73/MCP77 support to AHCI driver
 has been removed from the -mm tree.  Its filename was
-     protect-linux-console_structh-from-multiple-inclusion.patch
+     ahci-add-mcp73-mcp77-support-to-ahci-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Protect <linux/console_struct.h> from multiple inclusion
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: ahci: Add MCP73/MCP77 support to AHCI driver
+From: "Peer Chen" <peerchen@gmail.com>
 
-Prevent <linux/console_struct.h> from being included more than once,
-otherwise you get a redefinition error if you happen to include
-<linux/vt_kern.h> first.
+Add the MCP73/MCP77 support to ahci driver.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Peer Chen <peerchen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/console_struct.h |    5 +++++
- 1 files changed, 5 insertions(+)
+ drivers/ata/ahci.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN include/linux/console_struct.h~protect-linux-console_structh-from-multiple-inclusion include/linux/console_struct.h
---- a/include/linux/console_struct.h~protect-linux-console_structh-from-multiple-inclusion
-+++ a/include/linux/console_struct.h
-@@ -9,6 +9,9 @@
-  * to achieve effects such as fast scrolling by changing the origin.
-  */
+diff -puN drivers/ata/ahci.c~ahci-add-mcp73-mcp77-support-to-ahci-driver drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-add-mcp73-mcp77-support-to-ahci-driver
++++ a/drivers/ata/ahci.c
+@@ -442,6 +442,30 @@ static const struct pci_device_id ahci_p
+ 	{ PCI_VDEVICE(NVIDIA, 0x0559), board_ahci },		/* MCP67 */
+ 	{ PCI_VDEVICE(NVIDIA, 0x055a), board_ahci },		/* MCP67 */
+ 	{ PCI_VDEVICE(NVIDIA, 0x055b), board_ahci },		/* MCP67 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f0), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f1), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f2), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f3), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f4), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f5), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f6), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f7), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f8), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07f9), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07fa), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x07fb), board_ahci },		/* MCP73 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad0), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad1), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad2), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad3), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad4), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad5), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad6), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad7), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad8), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ad9), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0ada), board_ahci },		/* MCP77 */
++	{ PCI_VDEVICE(NVIDIA, 0x0adb), board_ahci },		/* MCP77 */
  
-+#ifndef _LINUX_CONSOLE_STRUCT_H
-+#define _LINUX_CONSOLE_STRUCT_H
-+
- #include <linux/wait.h>
- #include <linux/vt.h>
- #include <linux/workqueue.h>
-@@ -130,3 +133,5 @@ extern void vc_SAK(struct work_struct *w
- #define CUR_DEFAULT CUR_UNDERLINE
- 
- #define CON_IS_VISIBLE(conp) (*conp->vc_display_fg == conp)
-+
-+#endif /* _LINUX_CONSOLE_STRUCT_H */
+ 	/* SiS */
+ 	{ PCI_VDEVICE(SI, 0x1184), board_ahci }, /* SiS 966 */
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from peerchen@gmail.com are
 
 origin.patch
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
-git-kvm.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-centralize-checking-for-an-acceptable-version-of-gcc.patch
+git-alsa.patch
