@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-show-unhandled-signals-fix.patch added to -mm tree
-Date: Tue, 12 Jun 2007 12:40:34 -0700
-Message-ID: <200706121940.l5CJeYrN019728@imap1.linux-foundation.org>
+Subject: + allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch added to -mm tree
+Date: Tue, 12 Jun 2007 12:43:07 -0700
+Message-ID: <200706121943.l5CJh7lB019782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49490 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624AbXFLTks (ORCPT
+	by vger.kernel.org with ESMTP id S1752026AbXFLTnV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:40:48 -0400
+	Tue, 12 Jun 2007 15:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, masouds@google.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, mel@csn.ul.ie
 
 
 The patch titled
-     i386-show-unhandled-signals-fix
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
 has been added to the -mm tree.  Its filename is
-     i386-show-unhandled-signals-fix.patch
+     allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-show-unhandled-signals-fix
+Subject: allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
 No new sysctls (I've asked Eric for documentation which explains why)
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Masoud Sharbiani <masouds@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    3 ---
+ include/linux/sysctl.h |    1 -
  kernel/sysctl.c        |    2 +-
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/sysctl.h~i386-show-unhandled-signals-fix include/linux/sysctl.h
---- a/include/linux/sysctl.h~i386-show-unhandled-signals-fix
+diff -puN include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3 include/linux/sysctl.h
+--- a/include/linux/sysctl.h~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
 +++ a/include/linux/sysctl.h
-@@ -835,9 +835,6 @@ enum {
- };
+@@ -207,7 +207,6 @@ enum
+ 	VM_PANIC_ON_OOM=33,	/* panic at out-of-memory */
+ 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
+ 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
+-	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
  
- /* CTL_DEBUG names: */
--enum {
--	DEBUG_UNHANDLED_SIGNALS = 1,
--};
- 
- /* CTL_DEV names: */
- enum {
-diff -puN kernel/sysctl.c~i386-show-unhandled-signals-fix kernel/sysctl.c
---- a/kernel/sysctl.c~i386-show-unhandled-signals-fix
+ 	/* s390 vm cmm sysctls */
+ 	VM_CMM_PAGES=1111,
+diff -puN kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3 kernel/sysctl.c
+--- a/kernel/sysctl.c~allow-huge-page-allocations-to-use-gfp_high_movable-fix-3
 +++ a/kernel/sysctl.c
-@@ -1047,7 +1047,7 @@ static ctl_table fs_table[] = {
- static ctl_table debug_table[] = {
- #ifdef CONFIG_X86
- 	{
--		.ctl_name	= DEBUG_UNHANDLED_SIGNALS,
+@@ -754,7 +754,7 @@ static ctl_table vm_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	 },
+ 	 {
+-		.ctl_name	= VM_HUGETLB_TREAT_MOVABLE,
 +		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "show-unhandled-signals",
- 		.data		= &show_unhandled_signals,
+ 		.procname	= "hugepages_treat_as_movable",
+ 		.data		= &hugepages_treat_as_movable,
  		.maxlen		= sizeof(int),
 _
 
@@ -163,6 +160,7 @@ create-the-zone_movable-zone-fix.patch
 create-the-zone_movable-zone-fix-2.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
 allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
 maps2-move-the-page-walker-code-to-lib.patch
 maps2-move-the-page-walker-code-to-lib-fix.patch
 maps2-add-proc-pid-pagemap-interface.patch
