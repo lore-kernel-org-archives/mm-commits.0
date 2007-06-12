@@ -1,252 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - document-acked-by.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:56:37 -0700
-Message-ID: <200706121856.l5CIubGT018402@imap1.linux-foundation.org>
+Subject: - slab-fix-alien-cache-handling.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:56:43 -0700
+Message-ID: <200706121856.l5CIuhoE018412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38402 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38430 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753830AbXFLS4w (ORCPT
+	by vger.kernel.org with ESMTP id S1754652AbXFLS46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:56:52 -0400
+	Tue, 12 Jun 2007 14:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@redhat.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, lethal@linux-sh.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     document Acked-by:
+     slab: fix alien cache handling
 has been removed from the -mm tree.  Its filename was
-     document-acked-by.patch
+     slab-fix-alien-cache-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: document Acked-by:
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slab: fix alien cache handling
+From: Christoph Lameter <clameter@sgi.com>
 
-Explain what we use Acked-by: for, and how it differs from Signed-off-by:
+cache_free_alien must be called regardless if we use alien caches or not.
+cache_free_alien() will do the right thing if there are no alien caches
+available.
 
-Acked-by: Dave Jones <davej@redhat.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Pekka J Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |   26 +++++++++++++++++++++++++-
- 1 files changed, 25 insertions(+), 1 deletion(-)
+ mm/slab.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/SubmittingPatches~document-acked-by Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~document-acked-by
-+++ a/Documentation/SubmittingPatches
-@@ -340,8 +340,32 @@ now, but you can do this to mark interna
- point out some special detail about the sign-off. 
+diff -puN mm/slab.c~slab-fix-alien-cache-handling mm/slab.c
+--- a/mm/slab.c~slab-fix-alien-cache-handling
++++ a/mm/slab.c
+@@ -3539,7 +3539,7 @@ static inline void __cache_free(struct k
+ 	check_irq_off();
+ 	objp = cache_free_debugcheck(cachep, objp, __builtin_return_address(0));
  
+-	if (use_alien_caches && cache_free_alien(cachep, objp))
++	if (cache_free_alien(cachep, objp))
+ 		return;
  
-+13) When to use Acked-by:
- 
--13) The canonical patch format
-+The Signed-off-by: tag indicates that the signer was involved in the
-+development of the patch, or that he/she was in the patch's delivery path.
-+
-+If a person was not directly involved in the preparation or handling of a
-+patch but wishes to signify and record their approval of it then they can
-+arrange to have an Acked-by: line added to the patch's changelog.
-+
-+Acked-by: is often used by the maintainer of the affected code when that
-+maintainer neither contributed to nor forwarded the patch.
-+
-+Acked-by: is not as formal as Signed-off-by:.  It is a record that the acker
-+has at least reviewed the patch and has indicated acceptance.  Hence patch
-+mergers will sometimes manually convert an acker's "yep, looks good to me"
-+into an Acked-by:.
-+
-+Acked-by: does not necessarily indicate acknowledgement of the entire patch.
-+For example, if a patch affects multiple subsystems and has an Acked-by: from
-+one subsystem maintainer then this usually indicates acknowledgement of just
-+the part which affects that maintainer's code.  Judgement should be used here.
-+ When in doubt people should refer to the original discussion in the mailing
-+list archives.
-+
-+
-+14) The canonical patch format
- 
- The canonical patch subject line is:
- 
+ 	if (likely(ac->avail < ac->limit)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-git-input-fixup.patch
-serio_raw_read-warning-fix.patch
-git-jfs-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+group-short-lived-and-reclaimable-kernel-allocations-fix.patch
+cpuset-zero-malloc-fix-for-old-cpusets.patch
+fix-get_policy-for-stacked-shared-memory-files.patch
 git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-git-r8169-fixup.patch
-git-selinux.patch
-git-selinux-fixup.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-vs-git-net.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
-i386-mtrr-clean-up-usage_table.patch
-git-xfs.patch
-git-cryptodev.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
 change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
 slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
+numa-mempolicy-trivial-debug-fixes.patch
+add-populated_map-to-account-for-memoryless-nodes.patch
+add-populated_map-to-account-for-memoryless-nodes-fix.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-udf-fix-possible-leakage-of-blocks-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
