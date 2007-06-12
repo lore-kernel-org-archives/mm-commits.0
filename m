@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + handle-kernelcore=-generic-fix.patch added to -mm tree
-Date: Tue, 12 Jun 2007 13:28:33 -0700
-Message-ID: <200706122028.l5CKSXk1020620@imap1.linux-foundation.org>
+Subject: + mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch added to -mm tree
+Date: Tue, 12 Jun 2007 13:32:15 -0700
+Message-ID: <200706122032.l5CKWFqE020656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54026 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43098 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754005AbXFLU3U (ORCPT
+	by vger.kernel.org with ESMTP id S1752597AbXFLUdG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 16:29:20 -0400
+	Tue, 12 Jun 2007 16:33:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, mel@csn.ul.ie
+Cc: bunk@stusta.de, kernel@kolivas.org
 
 
 The patch titled
-     make cmdline_parse_kernelcore() static
+     make mm/swap_prefetch.c:remove_from_swapped_list() static
 has been added to the -mm tree.  Its filename is
-     handle-kernelcore=-generic-fix.patch
+     mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make cmdline_parse_kernelcore() static
+Subject: make mm/swap_prefetch.c:remove_from_swapped_list() static
 From: Adrian Bunk <bunk@stusta.de>
 
-Acked-by: Mel Gorman <mel@csn.ul.ie> 
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Con Kolivas <kernel@kolivas.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap-prefetch.h |    5 -----
+ mm/swap_prefetch.c            |    2 +-
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~handle-kernelcore=-generic-fix mm/page_alloc.c
---- a/mm/page_alloc.c~handle-kernelcore=-generic-fix
-+++ a/mm/page_alloc.c
-@@ -3779,7 +3779,7 @@ void __init free_area_init_nodes(unsigne
-  * kernelcore=size sets the amount of memory for use for allocations that
-  * cannot be reclaimed or migrated.
-  */
--int __init cmdline_parse_kernelcore(char *p)
-+static int __init cmdline_parse_kernelcore(char *p)
+diff -puN include/linux/swap-prefetch.h~mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list include/linux/swap-prefetch.h
+--- a/include/linux/swap-prefetch.h~mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list
++++ a/include/linux/swap-prefetch.h
+@@ -30,7 +30,6 @@ static inline int get_swap_entry_node(st
+ }
+ 
+ extern void add_to_swapped_list(struct page *page);
+-extern void remove_from_swapped_list(const unsigned long index);
+ extern void delay_swap_prefetch(void);
+ extern void prepare_swap_prefetch(void);
+ 
+@@ -43,10 +42,6 @@ static inline void prepare_swap_prefetch
  {
- 	unsigned long long coremem;
- 	if (!p)
+ }
+ 
+-static inline void remove_from_swapped_list(const unsigned long __unused)
+-{
+-}
+-
+ static inline void delay_swap_prefetch(void)
+ {
+ }
+diff -puN mm/swap_prefetch.c~mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list mm/swap_prefetch.c
+--- a/mm/swap_prefetch.c~mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list
++++ a/mm/swap_prefetch.c
+@@ -128,7 +128,7 @@ out_locked:
+  * look up the entry from the index without having to iterate over the whole
+  * list.
+  */
+-void remove_from_swapped_list(const unsigned long index)
++static void remove_from_swapped_list(const unsigned long index)
+ {
+ 	struct swapped_entry *entry;
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -90,6 +114,7 @@ pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
 kernel-sched_fairc-make-code-static.patch
 fs-proc-basec-make-a-struct-static.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
 drivers-edac-core-make-functions-static.patch
 lockstat-human-readability-tweaks-fix.patch
 reiser4-export-remove_from_page_cache.patch
