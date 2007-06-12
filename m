@@ -1,245 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: + dirty_writeback_centisecs_handler-cleanup.patch added to -mm tree
-Date: Tue, 12 Jun 2007 11:52:52 -0700
-Message-ID: <200706121852.l5CIqqhK018332@imap1.linux-foundation.org>
+Subject: - loop-preallocate-eight-loop-devices.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:56:34 -0700
+Message-ID: <200706121856.l5CIuYvL018399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756816AbXFLSw7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754559AbXFLS4r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:52:59 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CIqvTi008064
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:52:58 -0700
+	Tue, 12 Jun 2007 14:56:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: kenchen@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dirty_writeback_centisecs_handler() cleanup
-has been added to the -mm tree.  Its filename is
-     dirty_writeback_centisecs_handler-cleanup.patch
+     loop: preallocate eight loop devices
+has been removed from the -mm tree.  Its filename was
+     loop-preallocate-eight-loop-devices.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dirty_writeback_centisecs_handler() cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: loop: preallocate eight loop devices
+From: "Ken Chen" <kenchen@google.com>
 
-Repair indenting bustage.
+The kernel on-demand loop device instantiation breaks several user space
+tools as the tools are not ready to cope with the "on-demand feature".  Fix
+it by instantiate default 8 loop devices and also reinstate max_loop module
+parameter.
 
+Signed-off-by: Ken Chen <kenchen@google.com>
+Acked-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/block/loop.c |  100 +++++++++++++++++++++++++++++++++--------
+ 1 files changed, 82 insertions(+), 18 deletions(-)
 
-diff -puN mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup mm/page-writeback.c
---- a/mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup
-+++ a/mm/page-writeback.c
-@@ -476,15 +476,13 @@ static void wb_kupdate(unsigned long arg
-  * sysctl handler for /proc/sys/vm/dirty_writeback_centisecs
+diff -puN drivers/block/loop.c~loop-preallocate-eight-loop-devices drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-preallocate-eight-loop-devices
++++ a/drivers/block/loop.c
+@@ -1354,7 +1354,7 @@ static struct block_device_operations lo
   */
- int dirty_writeback_centisecs_handler(ctl_table *table, int write,
--		struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
-+	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
+ static int max_loop;
+ module_param(max_loop, int, 0);
+-MODULE_PARM_DESC(max_loop, "obsolete, loop device is created on-demand");
++MODULE_PARM_DESC(max_loop, "Maximum number of loop devices");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_BLOCKDEV_MAJOR(LOOP_MAJOR);
+ 
+@@ -1394,16 +1394,11 @@ int loop_unregister_transfer(int number)
+ EXPORT_SYMBOL(loop_register_transfer);
+ EXPORT_SYMBOL(loop_unregister_transfer);
+ 
+-static struct loop_device *loop_init_one(int i)
++static struct loop_device *loop_alloc(int i)
  {
- 	proc_dointvec_userhz_jiffies(table, write, file, buffer, length, ppos);
--	if (dirty_writeback_interval) {
--		mod_timer(&wb_timer,
--			jiffies + dirty_writeback_interval);
--		} else {
-+	if (dirty_writeback_interval)
-+		mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
-+	else
- 		del_timer(&wb_timer);
+ 	struct loop_device *lo;
+ 	struct gendisk *disk;
+ 
+-	list_for_each_entry(lo, &loop_devices, lo_list) {
+-		if (lo->lo_number == i)
+-			return lo;
 -	}
- 	return 0;
+-
+ 	lo = kzalloc(sizeof(*lo), GFP_KERNEL);
+ 	if (!lo)
+ 		goto out;
+@@ -1427,8 +1422,6 @@ static struct loop_device *loop_init_one
+ 	disk->private_data	= lo;
+ 	disk->queue		= lo->lo_queue;
+ 	sprintf(disk->disk_name, "loop%d", i);
+-	add_disk(disk);
+-	list_add_tail(&lo->lo_list, &loop_devices);
+ 	return lo;
+ 
+ out_free_queue:
+@@ -1439,15 +1432,37 @@ out:
+ 	return NULL;
  }
  
+-static void loop_del_one(struct loop_device *lo)
++static void loop_free(struct loop_device *lo)
+ {
+-	del_gendisk(lo->lo_disk);
+ 	blk_cleanup_queue(lo->lo_queue);
+ 	put_disk(lo->lo_disk);
+ 	list_del(&lo->lo_list);
+ 	kfree(lo);
+ }
+ 
++static struct loop_device *loop_init_one(int i)
++{
++	struct loop_device *lo;
++
++	list_for_each_entry(lo, &loop_devices, lo_list) {
++		if (lo->lo_number == i)
++			return lo;
++	}
++
++	lo = loop_alloc(i);
++	if (lo) {
++		add_disk(lo->lo_disk);
++		list_add_tail(&lo->lo_list, &loop_devices);
++	}
++	return lo;
++}
++
++static void loop_del_one(struct loop_device *lo)
++{
++	del_gendisk(lo->lo_disk);
++	loop_free(lo);
++}
++
+ static struct kobject *loop_probe(dev_t dev, int *part, void *data)
+ {
+ 	struct loop_device *lo;
+@@ -1464,28 +1479,77 @@ static struct kobject *loop_probe(dev_t 
+ 
+ static int __init loop_init(void)
+ {
+-	if (register_blkdev(LOOP_MAJOR, "loop"))
+-		return -EIO;
+-	blk_register_region(MKDEV(LOOP_MAJOR, 0), 1UL << MINORBITS,
+-				  THIS_MODULE, loop_probe, NULL, NULL);
++	int i, nr;
++	unsigned long range;
++	struct loop_device *lo, *next;
++
++	/*
++	 * loop module now has a feature to instantiate underlying device
++	 * structure on-demand, provided that there is an access dev node.
++	 * However, this will not work well with user space tool that doesn't
++	 * know about such "feature".  In order to not break any existing
++	 * tool, we do the following:
++	 *
++	 * (1) if max_loop is specified, create that many upfront, and this
++	 *     also becomes a hard limit.
++	 * (2) if max_loop is not specified, create 8 loop device on module
++	 *     load, user can further extend loop device by create dev node
++	 *     themselves and have kernel automatically instantiate actual
++	 *     device on-demand.
++	 */
++	if (max_loop > 1UL << MINORBITS)
++		return -EINVAL;
+ 
+ 	if (max_loop) {
+-		printk(KERN_INFO "loop: the max_loop option is obsolete "
+-				 "and will be removed in March 2008\n");
++		nr = max_loop;
++		range = max_loop;
++	} else {
++		nr = 8;
++		range = 1UL << MINORBITS;
++	}
+ 
++	if (register_blkdev(LOOP_MAJOR, "loop"))
++		return -EIO;
++
++	for (i = 0; i < nr; i++) {
++		lo = loop_alloc(i);
++		if (!lo)
++			goto Enomem;
++		list_add_tail(&lo->lo_list, &loop_devices);
+ 	}
++
++	/* point of no return */
++
++	list_for_each_entry(lo, &loop_devices, lo_list)
++		add_disk(lo->lo_disk);
++
++	blk_register_region(MKDEV(LOOP_MAJOR, 0), range,
++				  THIS_MODULE, loop_probe, NULL, NULL);
++
+ 	printk(KERN_INFO "loop: module loaded\n");
+ 	return 0;
++
++Enomem:
++	printk(KERN_INFO "loop: out of memory\n");
++
++	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
++		loop_free(lo);
++
++	unregister_blkdev(LOOP_MAJOR, "loop");
++	return -ENOMEM;
+ }
+ 
+ static void __exit loop_exit(void)
+ {
++	unsigned long range;
+ 	struct loop_device *lo, *next;
+ 
++	range = max_loop ? max_loop :  1UL << MINORBITS;
++
+ 	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
+ 		loop_del_one(lo);
+ 
+-	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), 1UL << MINORBITS);
++	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
+ 	if (unregister_blkdev(LOOP_MAJOR, "loop"))
+ 		printk(KERN_WARNING "loop: cannot unregister blkdev\n");
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-git-input-fixup.patch
-serio_raw_read-warning-fix.patch
-git-jfs-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-parisc.patch
-git-r8169-fixup.patch
-git-selinux.patch
-git-selinux-fixup.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-vs-git-net.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
-i386-mtrr-clean-up-usage_table.patch
-git-xfs.patch
-git-cryptodev.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-udf-fix-possible-leakage-of-blocks-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
