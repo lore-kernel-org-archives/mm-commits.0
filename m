@@ -1,72 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-oops_begin-fix.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:26 -0700
-Message-ID: <200706121857.l5CIvQ4b018473@imap1.linux-foundation.org>
+Subject: - ali5451-warning-fix.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:42 -0700
+Message-ID: <200706121857.l5CIvgBv018495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45777 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36576 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753344AbXFLTAV (ORCPT
+	by vger.kernel.org with ESMTP id S1752373AbXFLTAY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:00:21 -0400
+	Tue, 12 Jun 2007 15:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: oops_begin() fix
+     ali5451 warning fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-oops_begin-fix.patch
+     ali5451-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: oops_begin() fix
+Subject: ali5451 warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We don't want to see this:
+sound/pci/ali5451/ali5451.c: In function 'snd_ali_prepare':
+sound/pci/ali5451/ali5451.c:716: warning: 'R2' may be used uninitialized in this function
 
->  BUG: using smp_processor_id() in preemptible [00000001] code: bash/3857
->  caller is oops_begin+0xb/0x6f
->  
->  Call Trace:
->  [<ffffffff8020ab4d>] show_trace+0x34/0x4f
->  [<ffffffff8020ab7a>] dump_stack+0x12/0x17
->  [<ffffffff8030d92d>] debug_smp_processor_id+0xad/0xbc
->  [<ffffffff8042388f>] oops_begin+0xb/0x6f
->  [<ffffffff8042520b>] do_page_fault+0x66a/0x7c0
->  [<ffffffff804234bd>] error_exit+0x0/0x84
->  
-
-coming out when the kernel is trying to oops.
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/traps.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ sound/pci/ali5451/ali5451.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/traps.c~x86_64-oops_begin-fix arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~x86_64-oops_begin-fix
-+++ a/arch/x86_64/kernel/traps.c
-@@ -465,13 +465,14 @@ static unsigned int die_nest_count;
+diff -puN sound/pci/ali5451/ali5451.c~ali5451-warning-fix sound/pci/ali5451/ali5451.c
+--- a/sound/pci/ali5451/ali5451.c~ali5451-warning-fix
++++ a/sound/pci/ali5451/ali5451.c
+@@ -731,8 +731,7 @@ static void snd_ali_detect_spdif_rate(st
+ 		return;
+ 	}
  
- unsigned __kprobes long oops_begin(void)
- {
--	int cpu = smp_processor_id();
-+	int cpu;
- 	unsigned long flags;
- 
- 	oops_enter();
- 
- 	/* racy, but better than risking deadlock. */
- 	local_irq_save(flags);
-+	cpu = smp_processor_id();
- 	if (!spin_trylock(&die_lock)) { 
- 		if (cpu == die_owner) 
- 			/* nested oops. should stop eventually */;
+-	count = 0;
+-	while (count++ <= 50000) {
++	for (count = 0; count <= 50000; count++) {
+ 		snd_ali_delay(codec, 6);
+ 		bval = inb(ALI_REG(codec,ALI_SPDIF_CTRL + 1));
+ 		R2 = bval & 0x1F;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
