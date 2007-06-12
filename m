@@ -1,183 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - char-stallion-alloc-tty-before-pci-devices-init.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:02 -0700
-Message-ID: <200706121857.l5CIv22m018439@imap1.linux-foundation.org>
+Subject: - update-feature-removal-scheduletxt-to-include-deprecated-functions.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:56:39 -0700
+Message-ID: <200706121856.l5CIudsH018405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57399 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753338AbXFLS5R (ORCPT
+	by vger.kernel.org with ESMTP id S1756514AbXFLS5R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Jun 2007 14:57:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, ingo@akana.de, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, alloc tty before pci devices init
+     update feature-removal-schedule.txt to include deprecated functions
 has been removed from the -mm tree.  Its filename was
-     char-stallion-alloc-tty-before-pci-devices-init.patch
+     update-feature-removal-scheduletxt-to-include-deprecated-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: stallion, alloc tty before pci devices init
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: update feature-removal-schedule.txt to include deprecated functions
+From: Andy Whitcroft <apw@shadowen.org>
 
-this causes oops, because pci probe function calls tty_register_device for
-each device found. Thanks to Ingo.
+Now that deprecated functions are detected out of
+Documentation/feature-removal-schedule.txt update this to include
+kernel_thread.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: "Ingo Korb" <ingo@akana.de>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |   73 +++++++++++++++++---------------------
- 1 files changed, 34 insertions(+), 39 deletions(-)
+ Documentation/feature-removal-schedule.txt |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/char/stallion.c~char-stallion-alloc-tty-before-pci-devices-init drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-alloc-tty-before-pci-devices-init
-+++ a/drivers/char/stallion.c
-@@ -4710,6 +4710,29 @@ static int __init stallion_module_init(v
- 	spin_lock_init(&stallion_lock);
- 	spin_lock_init(&brd_lock);
- 
-+	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
-+	if (!stl_serial) {
-+		retval = -ENOMEM;
-+		goto err;
-+	}
-+
-+	stl_serial->owner = THIS_MODULE;
-+	stl_serial->driver_name = stl_drvname;
-+	stl_serial->name = "ttyE";
-+	stl_serial->major = STL_SERIALMAJOR;
-+	stl_serial->minor_start = 0;
-+	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
-+	stl_serial->subtype = SERIAL_TYPE_NORMAL;
-+	stl_serial->init_termios = stl_deftermios;
-+	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
-+	tty_set_operations(stl_serial, &stl_ops);
-+
-+	retval = tty_register_driver(stl_serial);
-+	if (retval) {
-+		printk("STALLION: failed to register serial driver\n");
-+		goto err_frtty;
-+	}
-+
- /*
-  *	Find any dynamically supported boards. That is via module load
-  *	line options.
-@@ -4739,13 +4762,9 @@ static int __init stallion_module_init(v
- 
- 	/* this has to be _after_ isa finding because of locking */
- 	retval = pci_register_driver(&stl_pcidriver);
--	if (retval && stl_nrbrds == 0)
--		goto err;
--
--	stl_serial = alloc_tty_driver(STL_MAXBRDS * STL_MAXPORTS);
--	if (!stl_serial) {
--		retval = -ENOMEM;
--		goto err_pcidr;
-+	if (retval && stl_nrbrds == 0) {
-+		printk(KERN_ERR "STALLION: can't register pci driver\n");
-+		goto err_unrtty;
- 	}
- 
- /*
-@@ -4756,43 +4775,18 @@ static int __init stallion_module_init(v
- 		printk("STALLION: failed to register serial board device\n");
- 
- 	stallion_class = class_create(THIS_MODULE, "staliomem");
--	if (IS_ERR(stallion_class)) {
--		retval = PTR_ERR(stallion_class);
--		goto err_reg;
--	}
-+	if (IS_ERR(stallion_class))
-+		printk("STALLION: failed to create class\n");
- 	for (i = 0; i < 4; i++)
- 		class_device_create(stallion_class, NULL,
- 				    MKDEV(STL_SIOMEMMAJOR, i), NULL,
- 				    "staliomem%d", i);
- 
--	stl_serial->owner = THIS_MODULE;
--	stl_serial->driver_name = stl_drvname;
--	stl_serial->name = "ttyE";
--	stl_serial->major = STL_SERIALMAJOR;
--	stl_serial->minor_start = 0;
--	stl_serial->type = TTY_DRIVER_TYPE_SERIAL;
--	stl_serial->subtype = SERIAL_TYPE_NORMAL;
--	stl_serial->init_termios = stl_deftermios;
--	stl_serial->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
--	tty_set_operations(stl_serial, &stl_ops);
--
--	retval = tty_register_driver(stl_serial);
--	if (retval) {
--		printk("STALLION: failed to register serial driver\n");
--		goto err_clsdev;
--	}
--
- 	return 0;
--err_clsdev:
--	for (i = 0; i < 4; i++)
--		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
--	class_destroy(stallion_class);
--err_reg:
--	unregister_chrdev(STL_SIOMEMMAJOR, "staliomem");
-+err_unrtty:
-+	tty_unregister_driver(stl_serial);
-+err_frtty:
- 	put_tty_driver(stl_serial);
--err_pcidr:
--	pci_unregister_driver(&stl_pcidriver);
--	stl_free_isabrds();
- err:
- 	return retval;
- }
-@@ -4821,8 +4815,6 @@ static void __exit stallion_module_exit(
- 			tty_unregister_device(stl_serial,
- 				brdp->brdnr * STL_MAXPORTS + j);
- 	}
--	tty_unregister_driver(stl_serial);
--	put_tty_driver(stl_serial);
- 
- 	for (i = 0; i < 4; i++)
- 		class_device_destroy(stallion_class, MKDEV(STL_SIOMEMMAJOR, i));
-@@ -4834,6 +4826,9 @@ static void __exit stallion_module_exit(
- 	pci_unregister_driver(&stl_pcidriver);
- 
- 	stl_free_isabrds();
-+
-+	tty_unregister_driver(stl_serial);
-+	put_tty_driver(stl_serial);
- }
- 
- module_init(stallion_module_init);
+diff -puN Documentation/feature-removal-schedule.txt~update-feature-removal-scheduletxt-to-include-deprecated-functions Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~update-feature-removal-scheduletxt-to-include-deprecated-functions
++++ a/Documentation/feature-removal-schedule.txt
+@@ -104,6 +104,7 @@ Who:	Dominik Brodowski <linux@brodo.de>
+ What:	remove EXPORT_SYMBOL(kernel_thread)
+ When:	August 2006
+ Files:	arch/*/kernel/*_ksyms.c
++Funcs:	kernel_thread
+ Why:	kernel_thread is a low-level implementation detail.  Drivers should
+         use the <linux/kthread.h> API instead which shields them from
+ 	implementation details and provides a higherlevel interface that
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-rocketc-fix-unchecked-mutex_lock_interruptible.patch
-char-n_hdlc-allow-restartsys-retval-of-tty-write.patch
-char-mxser_new-fix-sparse-warning.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-char-genrtc-use-wait_event_interruptible.patch
-char-n_r3964-use-wait_event_interruptible.patch
-char-ip2-use-msleep-for-sleeping.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-char-cyclades-add-firmware-loading.patch
-char-cyclades-fix-sparse-warning.patch
-char-isicom-cleanup-locking.patch
-char-isicom-del_timer-at-exit.patch
-char-isicom-proper-variables-types.patch
-char-moxa-eliminate-busy-waiting.patch
-char-specialix-remove-busy-waiting.patch
-char-riscom8-eliminate-busy-loop.patch
-char-vt-use-kzalloc.patch
-char-vt-use-array_size.patch
-char-kconfig-mxser_new-remove-experimental-comment.patch
-char-stallion-remove-user-class-report-request.patch
-shrink_slab-handle-bad-shrinkers.patch
+group-short-lived-and-reclaimable-kernel-allocations-fix.patch
+i386-move-the-kernel-to-16mb-for-numa-q.patch
+gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+allow-page_owner-to-be-set-on-any-architecture.patch
