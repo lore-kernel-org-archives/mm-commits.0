@@ -1,54 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - ali5451-warning-fix.patch removed from -mm tree
-Date: Tue, 12 Jun 2007 11:57:42 -0700
-Message-ID: <200706121857.l5CIvgBv018495@imap1.linux-foundation.org>
+Subject: - gfs2_lookupi-uninitialised-var-fix.patch removed from -mm tree
+Date: Tue, 12 Jun 2007 11:57:57 -0700
+Message-ID: <200706121857.l5CIvvIB018504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37549 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752373AbXFLTAY (ORCPT
+	by vger.kernel.org with ESMTP id S1750727AbXFLTAj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 15:00:24 -0400
+	Tue, 12 Jun 2007 15:00:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ali5451 warning fix
+     gfs2_lookupi() uninitialised var fix
 has been removed from the -mm tree.  Its filename was
-     ali5451-warning-fix.patch
+     gfs2_lookupi-uninitialised-var-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ali5451 warning fix
+Subject: gfs2_lookupi() uninitialised var fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/ali5451/ali5451.c: In function 'snd_ali_prepare':
-sound/pci/ali5451/ali5451.c:716: warning: 'R2' may be used uninitialized in this function
+fs/gfs2/inode.c: In function 'gfs2_lookupi':
+fs/gfs2/inode.c:392: warning: 'error' may be used uninitialized in this function
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Looks like a real bug to me.
+
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ali5451/ali5451.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/gfs2/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/pci/ali5451/ali5451.c~ali5451-warning-fix sound/pci/ali5451/ali5451.c
---- a/sound/pci/ali5451/ali5451.c~ali5451-warning-fix
-+++ a/sound/pci/ali5451/ali5451.c
-@@ -731,8 +731,7 @@ static void snd_ali_detect_spdif_rate(st
- 		return;
- 	}
+diff -puN fs/gfs2/inode.c~gfs2_lookupi-uninitialised-var-fix fs/gfs2/inode.c
+--- a/fs/gfs2/inode.c~gfs2_lookupi-uninitialised-var-fix
++++ a/fs/gfs2/inode.c
+@@ -389,7 +389,7 @@ struct inode *gfs2_lookupi(struct inode 
+ 	struct super_block *sb = dir->i_sb;
+ 	struct gfs2_inode *dip = GFS2_I(dir);
+ 	struct gfs2_holder d_gh;
+-	int error;
++	int error = 0;
+ 	struct inode *inode = NULL;
+ 	int unlock = 0;
  
--	count = 0;
--	while (count++ <= 50000) {
-+	for (count = 0; count <= 50000; count++) {
- 		snd_ali_delay(codec, 6);
- 		bval = inb(ALI_REG(codec,ALI_SPDIF_CTRL + 1));
- 		R2 = bval & 0x1F;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
