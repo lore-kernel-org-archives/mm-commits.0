@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-move-synchronous-readahead-call-out-of-splice-loop.patch added to -mm tree
-Date: Mon, 11 Jun 2007 20:19:57 -0700
-Message-ID: <200706120319.l5C3JvhR003127@imap1.linux-foundation.org>
+Subject: + allow-softlockup-to-be-runtime-disabled.patch added to -mm tree
+Date: Mon, 11 Jun 2007 21:20:42 -0700
+Message-ID: <200706120420.l5C4KgDe004112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52903 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753065AbXFLDUO (ORCPT
+	by vger.kernel.org with ESMTP id S1752218AbXFLEVE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2007 23:20:14 -0400
+	Tue, 12 Jun 2007 00:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, jens.axboe@oracle.com, rusty@rustcorp.com.au
+Cc: davej@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     readahead: move synchronous readahead call out of splice loop
+     Allow softlockup to be runtime disabled
 has been added to the -mm tree.  Its filename is
-     readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+     allow-softlockup-to-be-runtime-disabled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: move synchronous readahead call out of splice loop
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: Allow softlockup to be runtime disabled
+From: Dave Jones <davej@redhat.com>
 
-Move synchronous page_cache_readahead_ondemand() call out of splice loop.
+It's useful sometimes to disable the softlockup checker at boottime. 
+Especially if it triggers during a distro install.
 
-This avoids one pointless page allocation/insertion in case of non-zero
-ra_pages, or many pointless readahead calls in case of zero ra_pages.
-
-Note that if a user sets ra_pages to less than PIPE_BUFFERS=16 pages, he will
-not get expected readahead behavior anyway.  The splice code works in batches
-of 16 pages, which can be taken as another form of synchronous readahead.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt |    2 ++
+ init/main.c                         |   12 +++++++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN fs/splice.c~readahead-move-synchronous-readahead-call-out-of-splice-loop fs/splice.c
---- a/fs/splice.c~readahead-move-synchronous-readahead-call-out-of-splice-loop
-+++ a/fs/splice.c
-@@ -299,12 +299,16 @@ __generic_file_splice_read(struct file *
- 	 * Lookup the (hopefully) full range of pages we need.
- 	 */
- 	spd.nr_pages = find_get_pages_contig(mapping, index, nr_pages, pages);
-+	index += spd.nr_pages;
+diff -puN Documentation/kernel-parameters.txt~allow-softlockup-to-be-runtime-disabled Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~allow-softlockup-to-be-runtime-disabled
++++ a/Documentation/kernel-parameters.txt
+@@ -1245,6 +1245,8 @@ and is between 256 and 4096 characters. 
  
- 	/*
- 	 * If find_get_pages_contig() returned fewer pages than we needed,
--	 * allocate the rest.
-+	 * readahead/allocate the rest.
- 	 */
--	index += spd.nr_pages;
-+	if (spd.nr_pages < nr_pages)
-+		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
-+				NULL, index, nr_pages - spd.nr_pages);
+ 	nosmp		[SMP] Tells an SMP kernel to act as a UP kernel.
+ 
++	nosoftlockup	[KNL] Disable the soft-lockup detector.
 +
- 	while (spd.nr_pages < nr_pages) {
- 		/*
- 		 * Page could be there, find_get_pages_contig() breaks on
-@@ -312,9 +316,6 @@ __generic_file_splice_read(struct file *
- 		 */
- 		page = find_get_page(mapping, index);
- 		if (!page) {
--			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--					NULL, index, nr_pages - spd.nr_pages);
--
- 			/*
- 			 * page didn't exist, allocate one.
- 			 */
+ 	nosync		[HW,M68K] Disables sync negotiation for all devices.
+ 
+ 	notsc		[BUGS=X86-32] Disable Time Stamp Counter
+diff -puN init/main.c~allow-softlockup-to-be-runtime-disabled init/main.c
+--- a/init/main.c~allow-softlockup-to-be-runtime-disabled
++++ a/init/main.c
+@@ -709,6 +709,15 @@ static void __init do_basic_setup(void)
+ 	do_initcalls();
+ }
+ 
++static int __initdata nosoftlockup;
++
++static int __init nosoftlockup_setup(char *str)
++{
++	nosoftlockup = 1;
++	return 1;
++}
++__setup("nosoftlockup", nosoftlockup_setup);
++
+ static void __init do_pre_smp_initcalls(void)
+ {
+ 	extern int spawn_ksoftirqd(void);
+@@ -718,7 +727,8 @@ static void __init do_pre_smp_initcalls(
+ 	migration_init();
+ #endif
+ 	spawn_ksoftirqd();
+-	spawn_softlockup_task();
++	if (!nosoftlockup)
++		spawn_softlockup_task();
+ }
+ 
+ static void run_init_process(char *init_filename)
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from davej@redhat.com are
 
-readahead-introduce-pg_readahead.patch
-readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
-readahead-min_ra_pages-max_ra_pages-macros.patch
-readahead-data-structure-and-routines.patch
-readahead-on-demand-readahead-logic.patch
-readahead-convert-filemap-invocations.patch
-readahead-convert-splice-invocations.patch
-readahead-convert-ext3-ext4-invocations.patch
-readahead-remove-the-old-algorithm.patch
-readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
-readahead-pass-real-splice-size.patch
-mm-share-pg_readahead-and-pg_reclaim.patch
+document-acked-by.patch
+git-alsa.patch
+git-agpgart.patch
+git-cpufreq.patch
+i386-remove-support-for-the-rise-cpu.patch
+fix-up-codingstyle-in-isofs.patch
+undeprecate-raw-driver.patch
+fix-typo-in-prefetchh.patch
+allow-softlockup-to-be-runtime-disabled.patch
