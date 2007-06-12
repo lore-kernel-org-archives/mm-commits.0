@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch added to -mm tree
-Date: Tue, 12 Jun 2007 11:47:13 -0700
-Message-ID: <200706121847.l5CIlDJK018223@imap1.linux-foundation.org>
+Subject: + dirty_writeback_centisecs_handler-cleanup.patch added to -mm tree
+Date: Tue, 12 Jun 2007 11:52:52 -0700
+Message-ID: <200706121852.l5CIqqhK018332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42855 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756785AbXFLSr1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756816AbXFLSw7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:47:27 -0400
+	Tue, 12 Jun 2007 14:52:59 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CIqvTi008064
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:52:58 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com, npiggin@suse.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fs-introduce-write_begin-write_end-and-perform_write-aops-fix
+     dirty_writeback_centisecs_handler() cleanup
 has been added to the -mm tree.  Its filename is
-     fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+     dirty_writeback_centisecs_handler-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +30,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs-introduce-write_begin-write_end-and-perform_write-aops-fix
+Subject: dirty_writeback_centisecs_handler() cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Repair indenting bustage.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page-writeback.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix mm/filemap.c
---- a/mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix
-+++ a/mm/filemap.c
-@@ -1957,7 +1957,7 @@ int pagecache_write_end(struct file *fil
- 	const struct address_space_operations *aops = mapping->a_ops;
- 	int ret;
+diff -puN mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup mm/page-writeback.c
+--- a/mm/page-writeback.c~dirty_writeback_centisecs_handler-cleanup
++++ a/mm/page-writeback.c
+@@ -476,15 +476,13 @@ static void wb_kupdate(unsigned long arg
+  * sysctl handler for /proc/sys/vm/dirty_writeback_centisecs
+  */
+ int dirty_writeback_centisecs_handler(ctl_table *table, int write,
+-		struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
++	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
+ {
+ 	proc_dointvec_userhz_jiffies(table, write, file, buffer, length, ppos);
+-	if (dirty_writeback_interval) {
+-		mod_timer(&wb_timer,
+-			jiffies + dirty_writeback_interval);
+-		} else {
++	if (dirty_writeback_interval)
++		mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
++	else
+ 		del_timer(&wb_timer);
+-	}
+ 	return 0;
+ }
  
--	if (aops->write_begin) {
-+	if (aops->write_end) {
- 		ret = aops->write_end(file, mapping, pos, len, copied,
- 							page, fsdata);
- 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -183,6 +198,7 @@ taskstats-add-context-switch-counters-fix.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
 revert-vanishing-ioctl-handler-debugging.patch
 binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
