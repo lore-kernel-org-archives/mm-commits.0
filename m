@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-ioat-vs-git-md-accel.patch added to -mm tree
-Date: Tue, 12 Jun 2007 11:21:41 -0700
-Message-ID: <200706121821.l5CILf17017821@imap1.linux-foundation.org>
+Subject: + git-r8169-fixup.patch added to -mm tree
+Date: Tue, 12 Jun 2007 11:23:47 -0700
+Message-ID: <200706121823.l5CINlZu017840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49708 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45957 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755819AbXFLSVs (ORCPT
+	by vger.kernel.org with ESMTP id S1756592AbXFLSXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Jun 2007 14:21:48 -0400
+	Tue, 12 Jun 2007 14:23:55 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CILkEr006762
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5CINqmw006851
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:21:47 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 12 Jun 2007 11:23:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-ioat-vs-git-md-accel
+     git-r8169-fixup
 has been added to the -mm tree.  Its filename is
-     git-ioat-vs-git-md-accel.patch
+     git-r8169-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,30 +30,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ioat-vs-git-md-accel
+Subject: git-r8169-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioatdma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/r8169.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/dma/ioatdma.c.rej~git-ioat-vs-git-md-accel drivers/dma/ioatdma.c.rej
-diff -puN drivers/dma/ioatdma.c~git-ioat-vs-git-md-accel drivers/dma/ioatdma.c
---- a/drivers/dma/ioatdma.c~git-ioat-vs-git-md-accel
-+++ a/drivers/dma/ioatdma.c
-@@ -341,8 +341,8 @@ ioat_tx_submit(struct dma_async_tx_descr
- 	spin_unlock_bh(&ioat_chan->desc_lock);
- 
- 	if (append)
--		ioatdma_chan_write8(ioat_chan, IOAT_CHANCMD_OFFSET,
--					IOAT_CHANCMD_APPEND);
-+		writeb(IOAT_CHANCMD_APPEND,
-+		       ioat_chan->reg_base + IOAT_CHANCMD_OFFSET);
- 	return cookie;
+diff -puN drivers/net/r8169.c~git-r8169-fixup drivers/net/r8169.c
+--- a/drivers/net/r8169.c~git-r8169-fixup
++++ a/drivers/net/r8169.c
+@@ -2578,17 +2578,16 @@ static inline void rtl8169_rx_csum(struc
  }
  
+ static inline int rtl8169_try_rx_copy(struct sk_buff **sk_buff, int pkt_size,
+-				      struct RxDesc *desc, int rx_buf_sz,
+-				      unsigned int align)
++				      struct RxDesc *desc, int rx_buf_sz)
+ {
+ 	int ret = -1;
+ 
+ 	if (pkt_size < rx_copybreak) {
+ 		struct sk_buff *skb;
+ 
+-		skb = dev_alloc_skb(pkt_size + align);
++		skb = dev_alloc_skb(pkt_size + NET_IP_ALIGN);
+ 		if (skb) {
+-			skb_reserve(skb, (align - 1) & (unsigned long)skb->data);
++			skb_reserve(skb, NET_IP_ALIGN);
+ 			skb_copy_to_linear_data(skb, sk_buff[0]->data, pkt_size);
+ 			*sk_buff = skb;
+ 			rtl8169_mark_to_asic(desc, rx_buf_sz);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +102,7 @@ git-battery.patch
 git-ioat-vs-git-md-accel.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 git-parisc.patch
+git-r8169-fixup.patch
 git-selinux.patch
 git-selinux-allnoconfig-fix.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
