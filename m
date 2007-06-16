@@ -1,202 +1,317 @@
 From: akpm@linux-foundation.org
-Subject: + slub-minimum-alignment-fixes.patch added to -mm tree
-Date: Thu, 14 Jun 2007 19:15:54 -0700
-Message-ID: <200706150215.l5F2Fsku008399@imap1.linux-foundation.org>
+Subject: - git-input-fixup.patch removed from -mm tree
+Date: Sat, 16 Jun 2007 08:09:01 -0700
+Message-ID: <200706161509.l5GF91wx012400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50599 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751981AbXFOCQI (ORCPT
+	by vger.kernel.org with ESMTP id S1757354AbXFPPJm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Jun 2007 22:16:08 -0400
+	Sat, 16 Jun 2007 11:09:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, hskinnemoen@atmel.com
+To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: minimum alignment fixes
-has been added to the -mm tree.  Its filename is
-     slub-minimum-alignment-fixes.patch
+     git-input-fixup
+has been removed from the -mm tree.  Its filename was
+     git-input-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: SLUB: minimum alignment fixes
-From: Christoph Lameter <clameter@sgi.com>
+Subject: git-input-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If ARCH_KMALLOC_MINALIGN is set to a value greater than 8 (SLUBs smallest
-kmalloc cache) then SLUB may generate duplicate slabs in sysfs (yes again)
-because the object size is padded to reach ARCH_KMALLOC_MINALIGN.  Thus the
-size of the small slabs is all the same.
+Try to repair conflicts in git-input.patch
 
-No arch sets ARCH_KMALLOC_MINALIGN larger than 8 though except mips which
-for some reason wants a 128 byte alignment.
-
-This patch increases the size of the smallest cache if
-ARCH_KMALLOC_MINALIGN is greater than 8.  In that case more and more of the
-smallest caches are disabled.
-
-If we do that then the count of the active general caches that is displayed
-on boot is not correct anymore since we may skip elements of the kmalloc
-array.  So count them separately.
-
-This approach was tested by Havard yesterday.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   13 +++++++++++--
- mm/slub.c                |   20 +++++++++++++++-----
- 2 files changed, 26 insertions(+), 7 deletions(-)
+ drivers/input/evdev.c    |    6 ------
+ drivers/input/joydev.c   |    6 ------
+ drivers/input/mousedev.c |   18 ------------------
+ drivers/input/tsdev.c    |    6 ------
+ 4 files changed, 36 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-minimum-alignment-fixes include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-minimum-alignment-fixes
-+++ a/include/linux/slub_def.h
-@@ -28,7 +28,7 @@ struct kmem_cache {
- 	int size;		/* The size of an object including meta data */
- 	int objsize;		/* The size of an object without meta data */
- 	int offset;		/* Free pointer offset. */
--	unsigned int order;
-+	int order;
+diff -puN drivers/input/evdev.c~git-input-fixup drivers/input/evdev.c
+--- a/drivers/input/evdev.c~git-input-fixup
++++ a/drivers/input/evdev.c
+@@ -700,16 +700,10 @@ static void evdev_disconnect(struct inpu
+ 		input_close_device(handle);
+ 		list_for_each_entry(client, &evdev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
+-<<<<<<< HEAD/drivers/input/evdev.c
+-		wake_up_interruptible(&evdev->wait);
+-	} else
+-		evdev_free(evdev);
+-=======
+ 		wake_up_interruptible(&evdev->wait);
+ 	}
  
- 	/*
- 	 * Avoid an extra cache line for UP, SMP and for the node local to
-@@ -56,7 +56,13 @@ struct kmem_cache {
- /*
-  * Kmalloc subsystem.
-  */
--#define KMALLOC_SHIFT_LOW 3
-+#if defined(ARCH_KMALLOC_MINALIGN) && ARCH_KMALLOC_MINALIGN > 8
-+#define KMALLOC_MIN_SIZE ARCH_KMALLOC_MINALIGN
-+#else
-+#define KMALLOC_MIN_SIZE 8
-+#endif
-+
-+#define KMALLOC_SHIFT_LOW ilog2(KMALLOC_MIN_SIZE)
- 
- /*
-  * We keep the general caches in an array of slab caches that are used for
-@@ -76,6 +82,9 @@ static inline int kmalloc_index(size_t s
- 	if (size > KMALLOC_MAX_SIZE)
- 		return -1;
- 
-+	if (size <= KMALLOC_MIN_SIZE)
-+		return KMALLOC_SHIFT_LOW;
-+
- 	if (size > 64 && size <= 96)
- 		return 1;
- 	if (size > 128 && size <= 192)
-diff -puN mm/slub.c~slub-minimum-alignment-fixes mm/slub.c
---- a/mm/slub.c~slub-minimum-alignment-fixes
-+++ a/mm/slub.c
-@@ -2436,6 +2436,7 @@ EXPORT_SYMBOL(krealloc);
- void __init kmem_cache_init(void)
- {
- 	int i;
-+	int caches = 0;
- 
- #ifdef CONFIG_NUMA
- 	/*
-@@ -2446,20 +2447,29 @@ void __init kmem_cache_init(void)
- 	create_kmalloc_cache(&kmalloc_caches[0], "kmem_cache_node",
- 		sizeof(struct kmem_cache_node), GFP_KERNEL);
- 	kmalloc_caches[0].refcount = -1;
-+	caches++;
- #endif
- 
- 	/* Able to allocate the per node structures */
- 	slab_state = PARTIAL;
- 
- 	/* Caches that are not of the two-to-the-power-of size */
--	create_kmalloc_cache(&kmalloc_caches[1],
-+	if (KMALLOC_MIN_SIZE <= 64) {
-+		create_kmalloc_cache(&kmalloc_caches[1],
- 				"kmalloc-96", 96, GFP_KERNEL);
--	create_kmalloc_cache(&kmalloc_caches[2],
-+		caches++;
-+	}
-+	if (KMALLOC_MIN_SIZE <= 128) {
-+		create_kmalloc_cache(&kmalloc_caches[2],
- 				"kmalloc-192", 192, GFP_KERNEL);
-+		caches++;
-+	}
- 
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
-+	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
- 		create_kmalloc_cache(&kmalloc_caches[i],
- 			"kmalloc", 1 << i, GFP_KERNEL);
-+		caches++;
-+	}
- 
- 	slab_state = UP;
- 
-@@ -2476,8 +2486,8 @@ void __init kmem_cache_init(void)
- 				nr_cpu_ids * sizeof(struct page *);
- 
- 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
--		" Processors=%d, Nodes=%d\n",
--		KMALLOC_SHIFT_HIGH, cache_line_size(),
-+		" CPUs=%d, Nodes=%d\n",
-+		caches, cache_line_size(),
- 		slub_min_order, slub_max_order, slub_min_objects,
- 		nr_cpu_ids, nr_node_ids);
+ 	put_device(&evdev->dev);
+->>>>>>> /drivers/input/evdev.c
  }
+ 
+ static const struct input_device_id evdev_ids[] = {
+diff -puN drivers/input/joydev.c~git-input-fixup drivers/input/joydev.c
+--- a/drivers/input/joydev.c~git-input-fixup
++++ a/drivers/input/joydev.c
+@@ -597,16 +597,10 @@ static void joydev_disconnect(struct inp
+ 		input_close_device(handle);
+ 		list_for_each_entry(client, &joydev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
+-<<<<<<< HEAD/drivers/input/joydev.c
+-		wake_up_interruptible(&joydev->wait);
+-	} else
+-		joydev_free(joydev);
+-=======
+ 		wake_up_interruptible(&joydev->wait);
+ 	}
+ 
+ 	put_device(&joydev->dev);
+->>>>>>> /drivers/input/joydev.c
+ }
+ 
+ static const struct input_device_id joydev_blacklist[] = {
+diff -puN drivers/input/mousedev.c~git-input-fixup drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~git-input-fixup
++++ a/drivers/input/mousedev.c
+@@ -802,25 +802,7 @@ static void mousedev_disconnect(struct i
+ 
+ 	mixdev_remove_device(mousedev);
+ 	input_unregister_handle(handle);
+-<<<<<<< HEAD/drivers/input/mousedev.c
+-
+-	sysfs_remove_link(&input_class.subsys.kobj, mousedev->name);
+-	class_device_destroy(&input_class,
+-			MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + mousedev->minor));
+-	mousedev->exist = 0;
+-
+-	mixdev_remove_device(mousedev);
+-
+-	if (mousedev->open) {
+-		input_close_device(handle);
+-		list_for_each_entry(client, &mousedev->client_list, node)
+-			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
+-		wake_up_interruptible(&mousedev->wait);
+-	} else
+-		mousedev_free(mousedev);
+-=======
+ 	mousedev_destroy(mousedev);
+->>>>>>> /drivers/input/mousedev.c
+ }
+ 
+ static const struct input_device_id mousedev_ids[] = {
+diff -puN drivers/input/tsdev.c~git-input-fixup drivers/input/tsdev.c
+--- a/drivers/input/tsdev.c~git-input-fixup
++++ a/drivers/input/tsdev.c
+@@ -477,16 +477,10 @@ static void tsdev_disconnect(struct inpu
+ 		input_close_device(handle);
+ 		list_for_each_entry(client, &tsdev->client_list, node)
+ 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
+-<<<<<<< HEAD/drivers/input/tsdev.c
+-		wake_up_interruptible(&tsdev->wait);
+-	} else
+-		tsdev_free(tsdev);
+-=======
+ 		wake_up_interruptible(&tsdev->wait);
+ 	}
+ 
+ 	put_device(&tsdev->dev);
+->>>>>>> /drivers/input/tsdev.c
+ }
+ 
+ static const struct input_device_id tsdev_ids[] = {
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-group-short-lived-and-reclaimable-kernel-allocations-fix.patch
-cpuset-zero-malloc-fix-for-old-cpusets.patch
-slub-minimum-alignment-fixes.patch
-fix-get_policy-for-stacked-shared-memory-files.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+udf-fix-possible-leakage-of-blocks-fix.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+git-input-fixup.patch
+serio_raw_read-warning-fix.patch
+git-jfs-fix.patch
+git-kbuild.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+fix-ide-aec62xx-remove-init_dma-method-take-2.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+git-e1000.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-r8169-fixup.patch
+git-selinux.patch
+git-selinux-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-vs-git-net.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
+i386-mtrr-clean-up-usage_table.patch
+i386-show-unhandled-signals-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
 slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-populated_map-to-account-for-memoryless-nodes.patch
-add-populated_map-to-account-for-memoryless-nodes-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
