@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - rework-ptep_set_access_flags-and-fix-sun4c-fix.patch removed from -mm tree
-Date: Sat, 16 Jun 2007 08:57:13 -0700
-Message-ID: <200706161557.l5GFvE9D017452@imap1.linux-foundation.org>
+Subject: - rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch removed from -mm tree
+Date: Sat, 16 Jun 2007 08:57:17 -0700
+Message-ID: <200706161557.l5GFvHJo017459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55044 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753506AbXFPQC3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753519AbXFPQCb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Jun 2007 12:02:29 -0400
+	Sat, 16 Jun 2007 12:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, davem@davemloft.net, hugh@veritas.com, mark@mtfhpc.demon.co.uk, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rework-ptep_set_access_flags-and-fix-sun4c-fix
+     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
 has been removed from the -mm tree.  Its filename was
-     rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
 
 This patch was dropped because it was folded into rework-ptep_set_access_flags-and-fix-sun4c.patch
 
 ------------------------------------------------------
-Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix
+Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+less revolting in 80-col display
 
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: David Miller <davem@davemloft.net>
@@ -33,30 +35,34 @@ Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pgtable.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-ia64/pgtable.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix
+diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
 +++ a/include/asm-ia64/pgtable.h
-@@ -546,8 +546,8 @@ extern void lazy_mmu_prot_update (pte_t 
+@@ -544,11 +544,11 @@ extern void lazy_mmu_prot_update (pte_t 
+ })
+ #else
  # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
- ({										\
- 	int __changed = !pte_same(*(__ptep), __entry);				\
--	if (__changed) {							\
--		ptep_establish(__vma, __addr, __ptep, __entry)			\
-+	if (__changed)							\
-+		ptep_establish(__vma, __addr, __ptep, __entry);			\
- 	__changed;								\
+-({										\
+-	int __changed = !pte_same(*(__ptep), __entry);				\
++({									\
++	int __changed = !pte_same(*(__ptep), __entry);			\
+ 	if (__changed)							\
+-		ptep_establish(__vma, __addr, __ptep, __entry);			\
+-	__changed;								\
++		ptep_establish(__vma, __addr, __ptep, __entry);		\
++	__changed;							\
  })
  #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rework-ptep_set_access_flags-and-fix-sun4c.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
 rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
 udf-fix-possible-leakage-of-blocks-fix.patch
 git-acpi.patch
