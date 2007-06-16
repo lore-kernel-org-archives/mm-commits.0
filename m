@@ -1,131 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-input-fixup.patch removed from -mm tree
-Date: Sat, 16 Jun 2007 08:09:01 -0700
-Message-ID: <200706161509.l5GF91wx012400@imap1.linux-foundation.org>
+Subject: - fix-gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision.patch removed from -mm tree
+Date: Sat, 16 Jun 2007 08:20:20 -0700
+Message-ID: <200706161520.l5GFKLiT013498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41088 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59498 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757354AbXFPPJm (ORCPT
+	by vger.kernel.org with ESMTP id S1756849AbXFPPU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Jun 2007 11:09:42 -0400
+	Sat, 16 Jun 2007 11:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-input-fixup
+     fix gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision
 has been removed from the -mm tree.  Its filename was
-     git-input-fixup.patch
+     fix-gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because I dropped gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision due to IDE reject storm
 
 ------------------------------------------------------
-Subject: git-input-fixup
+Subject: fix gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Try to repair conflicts in git-input.patch
+drivers/atm/iphase.c: In function 'ia_init':
+drivers/atm/iphase.c:2307: warning: suggest parentheses around assignment used as truth value
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/evdev.c    |    6 ------
- drivers/input/joydev.c   |    6 ------
- drivers/input/mousedev.c |   18 ------------------
- drivers/input/tsdev.c    |    6 ------
- 4 files changed, 36 deletions(-)
+ drivers/atm/iphase.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/evdev.c~git-input-fixup drivers/input/evdev.c
---- a/drivers/input/evdev.c~git-input-fixup
-+++ a/drivers/input/evdev.c
-@@ -700,16 +700,10 @@ static void evdev_disconnect(struct inpu
- 		input_close_device(handle);
- 		list_for_each_entry(client, &evdev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--<<<<<<< HEAD/drivers/input/evdev.c
--		wake_up_interruptible(&evdev->wait);
--	} else
--		evdev_free(evdev);
--=======
- 		wake_up_interruptible(&evdev->wait);
- 	}
- 
- 	put_device(&evdev->dev);
-->>>>>>> /drivers/input/evdev.c
- }
- 
- static const struct input_device_id evdev_ids[] = {
-diff -puN drivers/input/joydev.c~git-input-fixup drivers/input/joydev.c
---- a/drivers/input/joydev.c~git-input-fixup
-+++ a/drivers/input/joydev.c
-@@ -597,16 +597,10 @@ static void joydev_disconnect(struct inp
- 		input_close_device(handle);
- 		list_for_each_entry(client, &joydev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--<<<<<<< HEAD/drivers/input/joydev.c
--		wake_up_interruptible(&joydev->wait);
--	} else
--		joydev_free(joydev);
--=======
- 		wake_up_interruptible(&joydev->wait);
- 	}
- 
- 	put_device(&joydev->dev);
-->>>>>>> /drivers/input/joydev.c
- }
- 
- static const struct input_device_id joydev_blacklist[] = {
-diff -puN drivers/input/mousedev.c~git-input-fixup drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~git-input-fixup
-+++ a/drivers/input/mousedev.c
-@@ -802,25 +802,7 @@ static void mousedev_disconnect(struct i
- 
- 	mixdev_remove_device(mousedev);
- 	input_unregister_handle(handle);
--<<<<<<< HEAD/drivers/input/mousedev.c
--
--	sysfs_remove_link(&input_class.subsys.kobj, mousedev->name);
--	class_device_destroy(&input_class,
--			MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + mousedev->minor));
--	mousedev->exist = 0;
--
--	mixdev_remove_device(mousedev);
--
--	if (mousedev->open) {
--		input_close_device(handle);
--		list_for_each_entry(client, &mousedev->client_list, node)
--			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--		wake_up_interruptible(&mousedev->wait);
--	} else
--		mousedev_free(mousedev);
--=======
- 	mousedev_destroy(mousedev);
-->>>>>>> /drivers/input/mousedev.c
- }
- 
- static const struct input_device_id mousedev_ids[] = {
-diff -puN drivers/input/tsdev.c~git-input-fixup drivers/input/tsdev.c
---- a/drivers/input/tsdev.c~git-input-fixup
-+++ a/drivers/input/tsdev.c
-@@ -477,16 +477,10 @@ static void tsdev_disconnect(struct inpu
- 		input_close_device(handle);
- 		list_for_each_entry(client, &tsdev->client_list, node)
- 			kill_fasync(&client->fasync, SIGIO, POLL_HUP);
--<<<<<<< HEAD/drivers/input/tsdev.c
--		wake_up_interruptible(&tsdev->wait);
--	} else
--		tsdev_free(tsdev);
--=======
- 		wake_up_interruptible(&tsdev->wait);
- 	}
- 
- 	put_device(&tsdev->dev);
-->>>>>>> /drivers/input/tsdev.c
- }
- 
- static const struct input_device_id tsdev_ids[] = {
+diff -puN drivers/atm/iphase.c~fix-gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision drivers/atm/iphase.c
+--- a/drivers/atm/iphase.c~fix-gregkh-pci-pci-change-all-drivers-to-use-pci_device-revision
++++ a/drivers/atm/iphase.c
+@@ -2304,8 +2304,8 @@ static int __devinit ia_init(struct atm_
+ 	real_base = pci_resource_start (iadev->pci, 0);
+ 	iadev->irq = iadev->pci->irq;
+ 		  
+-	if (error = pci_read_config_word(iadev->pci, PCI_COMMAND,&command))
+-	{  
++	error = pci_read_config_word(iadev->pci, PCI_COMMAND, &command);
++	if (error) {
+ 		printk(KERN_ERR DEV_LABEL "(itf %d): init error 0x%x\n",  
+ 				dev->number,error);  
+ 		return -EINVAL;  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,15 +72,12 @@ git-dvb.patch
 git-gfs2-nmw.patch
 git-infiniband.patch
 git-input.patch
-git-input-fixup.patch
 serio_raw_read-warning-fix.patch
-git-jfs-fix.patch
 git-kbuild.patch
-git-kvm.patch
+git-kbuild-fixup.patch
 git-leds.patch
 led_colour_show-warning-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-fix-ide-aec62xx-remove-init_dma-method-take-2.patch
 ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 git-md-accel.patch
 git-mips-fixup.patch
@@ -165,7 +85,6 @@ use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
 git-netdev-all.patch
 sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-git-e1000.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-ioat-vs-git-md-accel.patch
