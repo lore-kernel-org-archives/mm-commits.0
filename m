@@ -1,140 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - git-jfs-fix.patch removed from -mm tree
-Date: Sat, 16 Jun 2007 08:31:09 -0700
-Message-ID: <200706161531.l5GFV950014683@imap1.linux-foundation.org>
+Subject: - fix-ide-aec62xx-remove-init_dma-method-take-2.patch removed from -mm tree
+Date: Sat, 16 Jun 2007 08:31:15 -0700
+Message-ID: <200706161531.l5GFVFiW014718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59431 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757489AbXFPPbZ (ORCPT
+	by vger.kernel.org with ESMTP id S1757492AbXFPPb1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Jun 2007 11:31:25 -0400
+	Sat, 16 Jun 2007 11:31:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rdunlap@xenotime.net, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-jfs: fix print_hex_dump() calls
+     fix ide-aec62xx-remove-init_dma-method-take-2
 has been removed from the -mm tree.  Its filename was
-     git-jfs-fix.patch
+     fix-ide-aec62xx-remove-init_dma-method-take-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-jfs: fix print_hex_dump() calls
+Subject: fix ide-aec62xx-remove-init_dma-method-take-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We changed print_hex_dump(), sorry.
-
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_imap.c     |    3 ++-
- fs/jfs/jfs_logmgr.c   |   15 +++++++++------
- fs/jfs/jfs_metapage.c |    3 ++-
- fs/jfs/jfs_txnmgr.c   |   14 ++++++++------
- fs/jfs/xattr.c        |    4 ++--
- 5 files changed, 23 insertions(+), 16 deletions(-)
+ drivers/ide/pci/aec62xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jfs/jfs_imap.c~git-jfs-fix fs/jfs/jfs_imap.c
---- a/fs/jfs/jfs_imap.c~git-jfs-fix
-+++ a/fs/jfs/jfs_imap.c
-@@ -891,7 +891,8 @@ int diFree(struct inode *ip)
- 	 */
- 	if (iagno >= imap->im_nextiag) {
- 		printk(KERN_ERR "Dump of imap:\n");
--		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, imap, 32);
-+		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+				imap, 32, true);
- 		jfs_error(ip->i_sb,
- 			  "diFree: inum = %d, iagno = %d, nextiag = %d",
- 			  (uint) inum, iagno, imap->im_nextiag);
-diff -puN fs/jfs/jfs_logmgr.c~git-jfs-fix fs/jfs/jfs_logmgr.c
---- a/fs/jfs/jfs_logmgr.c~git-jfs-fix
-+++ a/fs/jfs/jfs_logmgr.c
-@@ -1627,16 +1627,19 @@ void jfs_flush_journal(struct jfs_log *l
- 			if (lp->xflag & COMMIT_PAGE) {
- 				struct metapage *mp = (struct metapage *)lp;
- 				printk (KERN_ERR "orphan metapage:\n");
--				print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
--					       lp, sizeof(struct metapage));
-+				print_hex_dump(KERN_ERR, "",
-+					DUMP_PREFIX_ADDRESS, 32, 1,
-+					lp, sizeof(struct metapage), true);
- 				printk (KERN_ERR "page:\n");
--				print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
--					       mp->page, sizeof(struct page));
-+				print_hex_dump(KERN_ERR, "",
-+					DUMP_PREFIX_ADDRESS, 32, 1,
-+					mp->page, sizeof(struct page), true);
- 			}
- 			else {
- 				printk (KERN_ERR "orphan tblock:\n");
--				print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
--					       lp, sizeof(struct tblock));
-+				print_hex_dump(KERN_ERR, "",
-+					DUMP_PREFIX_ADDRESS, 32, 1,
-+					lp, sizeof(struct tblock), true);
- 			}
- 		}
- 	}
-diff -puN fs/jfs/jfs_metapage.c~git-jfs-fix fs/jfs/jfs_metapage.c
---- a/fs/jfs/jfs_metapage.c~git-jfs-fix
-+++ a/fs/jfs/jfs_metapage.c
-@@ -473,7 +473,8 @@ add_failed:
- 	goto skip;
- dump_bio:
- 	printk(KERN_ERR "JFS: dump of bio:\n");
--	print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, bio, sizeof(*bio));
-+	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+			bio, sizeof(*bio), true);
- skip:
- 	bio_put(bio);
- 	unlock_page(page);
-diff -puN fs/jfs/jfs_txnmgr.c~git-jfs-fix fs/jfs/jfs_txnmgr.c
---- a/fs/jfs/jfs_txnmgr.c~git-jfs-fix
-+++ a/fs/jfs/jfs_txnmgr.c
-@@ -831,15 +831,17 @@ struct tlock *txLock(tid_t tid, struct i
- 	if (jfs_ip->fileset != AGGREGATE_I) {
- 		printk(KERN_ERR "txLock: trying to lock locked page!");
- 		printk(KERN_ERR "ip:\n");
--		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, ip, sizeof(*ip));
-+		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+				ip, sizeof(*ip), true);
- 		printk(KERN_ERR "mp:\n");
--		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, mp, sizeof(*mp));
-+		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+				mp, sizeof(*mp), true);
- 		printk(KERN_ERR "Locker's tblk:\n");
--		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
--			       tid_to_tblock(tid), sizeof(struct tblock));
-+		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+			       tid_to_tblock(tid), sizeof(struct tblock), true);
- 		printk(KERN_ERR "Tlock:\n");
--		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, tlck,
--			       sizeof(*tlck));
-+		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+			       tlck, sizeof(*tlck), true);
- 		BUG();
- 	}
- 	INCREMENT(stattx.waitlock);	/* statistics */
-diff -puN fs/jfs/xattr.c~git-jfs-fix fs/jfs/xattr.c
---- a/fs/jfs/xattr.c~git-jfs-fix
-+++ a/fs/jfs/xattr.c
-@@ -590,8 +590,8 @@ static int ea_get(struct inode *inode, s
-       size_check:
- 	if (EALIST_SIZE(ea_buf->xattr) != ea_size) {
- 		printk(KERN_ERR "ea_get: invalid extended attribute\n");
--		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, ea_buf->xattr,
--			       ea_size);
-+		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
-+				ea_buf->xattr, ea_size, true);
- 		ea_release(inode, ea_buf);
- 		rc = -EIO;
- 		goto clean_up;
+diff -puN drivers/ide/pci/aec62xx.c~fix-ide-aec62xx-remove-init_dma-method-take-2 drivers/ide/pci/aec62xx.c
+--- a/drivers/ide/pci/aec62xx.c~fix-ide-aec62xx-remove-init_dma-method-take-2
++++ a/drivers/ide/pci/aec62xx.c
+@@ -234,7 +234,7 @@ static void __devinit init_hwif_aec62xx(
+ 		pci_read_config_byte (dev, 0x54, &reg54);
+ 		pci_write_config_byte(dev, 0x54, (reg54 & ~mask));
+ 		spin_unlock_irqrestore(&ide_lock, flags);
+-	} else if (!hwif->udma_four)
++	} else if (!hwif->udma_four) {
+ 		u8 ata66 = 0, mask = hwif->channel ? 0x02 : 0x01;
+ 
+ 		pci_read_config_byte(hwif->pci_dev, 0x49, &ata66);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
