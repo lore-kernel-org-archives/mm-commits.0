@@ -1,97 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: - git-input-make-xpad_play_effect-static.patch removed from -mm tree
-Date: Sat, 16 Jun 2007 08:31:06 -0700
-Message-ID: <200706161531.l5GFV6Pr014674@imap1.linux-foundation.org>
+Subject: - git-jfs-fix.patch removed from -mm tree
+Date: Sat, 16 Jun 2007 08:31:09 -0700
+Message-ID: <200706161531.l5GFV950014683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49021 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59431 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756536AbXFPPbX (ORCPT
+	by vger.kernel.org with ESMTP id S1757489AbXFPPbZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Jun 2007 11:31:23 -0400
+	Sat, 16 Jun 2007 11:31:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dtor@mail.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rdunlap@xenotime.net, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-input: make xpad_play_effect() static
+     git-jfs: fix print_hex_dump() calls
 has been removed from the -mm tree.  Its filename was
-     git-input-make-xpad_play_effect-static.patch
+     git-jfs-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-input: make xpad_play_effect() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: git-jfs: fix print_hex_dump() calls
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make the needlessly global xpad_play_effect() static.
+We changed print_hex_dump(), sorry.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joystick/xpad.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/jfs/jfs_imap.c     |    3 ++-
+ fs/jfs/jfs_logmgr.c   |   15 +++++++++------
+ fs/jfs/jfs_metapage.c |    3 ++-
+ fs/jfs/jfs_txnmgr.c   |   14 ++++++++------
+ fs/jfs/xattr.c        |    4 ++--
+ 5 files changed, 23 insertions(+), 16 deletions(-)
 
-diff -puN drivers/input/joystick/xpad.c~git-input-make-xpad_play_effect-static drivers/input/joystick/xpad.c
---- a/drivers/input/joystick/xpad.c~git-input-make-xpad_play_effect-static
-+++ a/drivers/input/joystick/xpad.c
-@@ -376,7 +376,8 @@ exit:
- 		   __FUNCTION__, retval);
- }
- 
--int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect *effect)
-+static int xpad_play_effect(struct input_dev *dev, void *data,
-+			    struct ff_effect *effect)
- {
- 	struct usb_xpad *xpad = input_get_drvdata(dev);
- 
+diff -puN fs/jfs/jfs_imap.c~git-jfs-fix fs/jfs/jfs_imap.c
+--- a/fs/jfs/jfs_imap.c~git-jfs-fix
++++ a/fs/jfs/jfs_imap.c
+@@ -891,7 +891,8 @@ int diFree(struct inode *ip)
+ 	 */
+ 	if (iagno >= imap->im_nextiag) {
+ 		printk(KERN_ERR "Dump of imap:\n");
+-		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, imap, 32);
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++				imap, 32, true);
+ 		jfs_error(ip->i_sb,
+ 			  "diFree: inum = %d, iagno = %d, nextiag = %d",
+ 			  (uint) inum, iagno, imap->im_nextiag);
+diff -puN fs/jfs/jfs_logmgr.c~git-jfs-fix fs/jfs/jfs_logmgr.c
+--- a/fs/jfs/jfs_logmgr.c~git-jfs-fix
++++ a/fs/jfs/jfs_logmgr.c
+@@ -1627,16 +1627,19 @@ void jfs_flush_journal(struct jfs_log *l
+ 			if (lp->xflag & COMMIT_PAGE) {
+ 				struct metapage *mp = (struct metapage *)lp;
+ 				printk (KERN_ERR "orphan metapage:\n");
+-				print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
+-					       lp, sizeof(struct metapage));
++				print_hex_dump(KERN_ERR, "",
++					DUMP_PREFIX_ADDRESS, 32, 1,
++					lp, sizeof(struct metapage), true);
+ 				printk (KERN_ERR "page:\n");
+-				print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
+-					       mp->page, sizeof(struct page));
++				print_hex_dump(KERN_ERR, "",
++					DUMP_PREFIX_ADDRESS, 32, 1,
++					mp->page, sizeof(struct page), true);
+ 			}
+ 			else {
+ 				printk (KERN_ERR "orphan tblock:\n");
+-				print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
+-					       lp, sizeof(struct tblock));
++				print_hex_dump(KERN_ERR, "",
++					DUMP_PREFIX_ADDRESS, 32, 1,
++					lp, sizeof(struct tblock), true);
+ 			}
+ 		}
+ 	}
+diff -puN fs/jfs/jfs_metapage.c~git-jfs-fix fs/jfs/jfs_metapage.c
+--- a/fs/jfs/jfs_metapage.c~git-jfs-fix
++++ a/fs/jfs/jfs_metapage.c
+@@ -473,7 +473,8 @@ add_failed:
+ 	goto skip;
+ dump_bio:
+ 	printk(KERN_ERR "JFS: dump of bio:\n");
+-	print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, bio, sizeof(*bio));
++	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++			bio, sizeof(*bio), true);
+ skip:
+ 	bio_put(bio);
+ 	unlock_page(page);
+diff -puN fs/jfs/jfs_txnmgr.c~git-jfs-fix fs/jfs/jfs_txnmgr.c
+--- a/fs/jfs/jfs_txnmgr.c~git-jfs-fix
++++ a/fs/jfs/jfs_txnmgr.c
+@@ -831,15 +831,17 @@ struct tlock *txLock(tid_t tid, struct i
+ 	if (jfs_ip->fileset != AGGREGATE_I) {
+ 		printk(KERN_ERR "txLock: trying to lock locked page!");
+ 		printk(KERN_ERR "ip:\n");
+-		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, ip, sizeof(*ip));
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++				ip, sizeof(*ip), true);
+ 		printk(KERN_ERR "mp:\n");
+-		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, mp, sizeof(*mp));
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++				mp, sizeof(*mp), true);
+ 		printk(KERN_ERR "Locker's tblk:\n");
+-		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS,
+-			       tid_to_tblock(tid), sizeof(struct tblock));
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++			       tid_to_tblock(tid), sizeof(struct tblock), true);
+ 		printk(KERN_ERR "Tlock:\n");
+-		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, tlck,
+-			       sizeof(*tlck));
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++			       tlck, sizeof(*tlck), true);
+ 		BUG();
+ 	}
+ 	INCREMENT(stattx.waitlock);	/* statistics */
+diff -puN fs/jfs/xattr.c~git-jfs-fix fs/jfs/xattr.c
+--- a/fs/jfs/xattr.c~git-jfs-fix
++++ a/fs/jfs/xattr.c
+@@ -590,8 +590,8 @@ static int ea_get(struct inode *inode, s
+       size_check:
+ 	if (EALIST_SIZE(ea_buf->xattr) != ea_size) {
+ 		printk(KERN_ERR "ea_get: invalid extended attribute\n");
+-		print_hex_dump(KERN_ERR, DUMP_PREFIX_ADDRESS, ea_buf->xattr,
+-			       ea_size);
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 32, 1,
++				ea_buf->xattr, ea_size, true);
+ 		ea_release(inode, ea_buf);
+ 		rc = -EIO;
+ 		goto clean_up;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+udf-fix-possible-leakage-of-blocks-fix.patch
 git-acpi.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
 git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
 git-input.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
+serio_raw_read-warning-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+git-r8169-fixup.patch
+git-selinux.patch
+git-selinux-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-remove-sonypi_camera_command.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
+i386-mtrr-clean-up-usage_table.patch
+i386-show-unhandled-signals-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
