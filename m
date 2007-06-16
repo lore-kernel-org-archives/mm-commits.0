@@ -1,103 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-possible-leakage-of-blocks-fix.patch removed from -mm tree
-Date: Sat, 16 Jun 2007 08:58:21 -0700
-Message-ID: <200706161558.l5GFwLLv017564@imap1.linux-foundation.org>
+Subject: - rework-ptep_set_access_flags-and-fix-sun4c-fix.patch removed from -mm tree
+Date: Sat, 16 Jun 2007 08:57:13 -0700
+Message-ID: <200706161557.l5GFvE9D017452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753309AbXFPP6f (ORCPT
+	by vger.kernel.org with ESMTP id S1753506AbXFPQC3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Jun 2007 11:58:35 -0400
+	Sat, 16 Jun 2007 12:02:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gorcunov@gmail.com, jack@suse.cz, sandeen@sandeen.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, davem@davemloft.net, hugh@veritas.com, mark@mtfhpc.demon.co.uk, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf-fix-possible-leakage-of-blocks-fix
+     rework-ptep_set_access_flags-and-fix-sun4c-fix
 has been removed from the -mm tree.  Its filename was
-     udf-fix-possible-leakage-of-blocks-fix.patch
+     rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
 
-This patch was dropped because it was folded into udf-fix-possible-leakage-of-blocks.patch
+This patch was dropped because it was folded into rework-ptep_set_access_flags-and-fix-sun4c.patch
 
 ------------------------------------------------------
-Subject: udf-fix-possible-leakage-of-blocks-fix
+Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ake checkpatch.pl happier.
-
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Eric Sandeen <sandeen@sandeen.net>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c    |    6 +++---
- fs/udf/truncate.c |   12 ++++--------
- 2 files changed, 7 insertions(+), 11 deletions(-)
+ include/asm-ia64/pgtable.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-fix-possible-leakage-of-blocks-fix fs/udf/inode.c
---- a/fs/udf/inode.c~udf-fix-possible-leakage-of-blocks-fix
-+++ a/fs/udf/inode.c
-@@ -103,9 +103,9 @@ no_delete:
- 
- /*
-  * If we are going to release inode from memory, we discard preallocation and
-- * truncate last inode extent to proper length. We could use drop_inode() but it's
-- * called under inode_lock and thus we cannot mark inode dirty there. We use
-- * clear_inode() but we have to make sure to write inode as it's not written
-+ * truncate last inode extent to proper length. We could use drop_inode() but
-+ * it's called under inode_lock and thus we cannot mark inode dirty there.  We
-+ * use clear_inode() but we have to make sure to write inode as it's not written
-  * automatically.
-  */
- void udf_clear_inode(struct inode *inode)
-diff -puN fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks-fix fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks-fix
-+++ a/fs/udf/truncate.c
-@@ -121,7 +121,7 @@ void udf_truncate_tail_extent(struct ino
- 	brelse(epos.bh);
- }
- 
--void udf_discard_prealloc(struct inode * inode)
-+void udf_discard_prealloc(struct inode *inode)
- {
- 	struct extent_position epos = { NULL, 0, {0, 0}};
- 	kernel_lb_addr eloc;
-@@ -144,8 +144,7 @@ void udf_discard_prealloc(struct inode *
- 	epos.block = UDF_I_LOCATION(inode);
- 
- 	/* Find the last extent in the file */
--	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
--	{
-+	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1) {
- 		etype = netype;
- 		lbcount += elen;
- 	}
-@@ -153,13 +152,10 @@ void udf_discard_prealloc(struct inode *
- 		epos.offset -= adsize;
- 		lbcount -= elen;
- 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
--		if (!epos.bh)
--		{
-+		if (!epos.bh) {
- 			UDF_I_LENALLOC(inode) = epos.offset - udf_file_entry_alloc_offset(inode);
- 			mark_inode_dirty(inode);
--		}
--		else
--		{
-+		} else {
- 			struct allocExtDesc *aed = (struct allocExtDesc *)(epos.bh->b_data);
- 			aed->lengthAllocDescs = cpu_to_le32(epos.offset - sizeof(struct allocExtDesc));
- 			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
+diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix
++++ a/include/asm-ia64/pgtable.h
+@@ -546,8 +546,8 @@ extern void lazy_mmu_prot_update (pte_t 
+ # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
+ ({										\
+ 	int __changed = !pte_same(*(__ptep), __entry);				\
+-	if (__changed) {							\
+-		ptep_establish(__vma, __addr, __ptep, __entry)			\
++	if (__changed)							\
++		ptep_establish(__vma, __addr, __ptep, __entry);			\
+ 	__changed;								\
+ })
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rework-ptep_set_access_flags-and-fix-sun4c.patch
-udf-fix-possible-leakage-of-blocks.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix.patch
+rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
 udf-fix-possible-leakage-of-blocks-fix.patch
 git-acpi.patch
 git-acpi-tickh-needs-hrtimerh.patch
