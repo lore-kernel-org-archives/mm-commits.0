@@ -1,241 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch removed from -mm tree
-Date: Sat, 16 Jun 2007 08:57:17 -0700
-Message-ID: <200706161557.l5GFvHJo017459@imap1.linux-foundation.org>
+Subject: + sched-fix-sysrq-n-normalize-rt-tasks.patch added to -mm tree
+Date: Sun, 17 Jun 2007 10:03:10 -0700
+Message-ID: <200706171703.l5HH3BJb006841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38242 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753519AbXFPQCb (ORCPT
+	by vger.kernel.org with ESMTP id S1753645AbXFQRDb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Jun 2007 12:02:31 -0400
+	Sun, 17 Jun 2007 13:03:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, davem@davemloft.net, hugh@veritas.com, mark@mtfhpc.demon.co.uk, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu, gene.heskett@gmail.com, stable@kernel.org
 
 
 The patch titled
-     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
-has been removed from the -mm tree.  Its filename was
-     rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
+     sched: fix SysRq-N (normalize RT tasks)
+has been added to the -mm tree.  Its filename is
+     sched-fix-sysrq-n-normalize-rt-tasks.patch
 
-This patch was dropped because it was folded into rework-ptep_set_access_flags-and-fix-sun4c.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched: fix SysRq-N (normalize RT tasks)
+From: Ingo Molnar <mingo@elte.hu>
 
-less revolting in 80-col display
+Gene Heskett reported the following problem while testing CFS: SysRq-N is
+not always effective in normalizing tasks back to SCHED_OTHER.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+The reason for that turns out to be the following bug: normalize_rt_tasks()
+uses for_each_process() to iterate through all tasks in the system.  The
+problem is, this method does not iterate through all tasks, it iterates
+through all thread groups.  The proper mechanism to enumerate all tasks is
+to use a do_each_thread() + while_each_thread() loop.
+
+Reported-by: Gene Heskett <gene.heskett@gmail.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pgtable.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/sched.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~rework-ptep_set_access_flags-and-fix-sun4c-fix-fix
-+++ a/include/asm-ia64/pgtable.h
-@@ -544,11 +544,11 @@ extern void lazy_mmu_prot_update (pte_t 
- })
- #else
- # define ptep_set_access_flags(__vma, __addr, __ptep, __entry, __safely_writable) \
--({										\
--	int __changed = !pte_same(*(__ptep), __entry);				\
-+({									\
-+	int __changed = !pte_same(*(__ptep), __entry);			\
- 	if (__changed)							\
--		ptep_establish(__vma, __addr, __ptep, __entry);			\
--	__changed;								\
-+		ptep_establish(__vma, __addr, __ptep, __entry);		\
-+	__changed;							\
- })
- #endif
+diff -puN kernel/sched.c~sched-fix-sysrq-n-normalize-rt-tasks kernel/sched.c
+--- a/kernel/sched.c~sched-fix-sysrq-n-normalize-rt-tasks
++++ a/kernel/sched.c
+@@ -7071,12 +7071,13 @@ EXPORT_SYMBOL(__might_sleep);
+ void normalize_rt_tasks(void)
+ {
+ 	struct prio_array *array;
+-	struct task_struct *p;
++	struct task_struct *g, *p;
+ 	unsigned long flags;
+ 	struct rq *rq;
+ 
+ 	read_lock_irq(&tasklist_lock);
+-	for_each_process(p) {
++
++	do_each_thread(g, p) {
+ 		if (!rt_task(p))
+ 			continue;
+ 
+@@ -7094,7 +7095,8 @@ void normalize_rt_tasks(void)
+ 
+ 		__task_rq_unlock(rq);
+ 		spin_unlock_irqrestore(&p->pi_lock, flags);
+-	}
++	} while_each_thread(g, p);
++
+ 	read_unlock_irq(&tasklist_lock);
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-origin.patch
-rework-ptep_set_access_flags-and-fix-sun4c.patch
-rework-ptep_set_access_flags-and-fix-sun4c-fix-fix.patch
-udf-fix-possible-leakage-of-blocks-fix.patch
-git-acpi.patch
-git-acpi-tickh-needs-hrtimerh.patch
+sched-fix-sysrq-n-normalize-rt-tasks.patch
 git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-git-r8169-fixup.patch
+git-kvm.patch
 git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
-revert-x86_64-mm-cpa-cache-flush.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
 x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
-i386-mtrr-clean-up-usage_table.patch
-i386-show-unhandled-signals-fix.patch
-git-xfs.patch
-git-cryptodev.patch
-acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+introduce-write_trylock_irqsave.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
+pie-randomization.patch
 vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+introduce-o_cloexec-take-2.patch
+introduce-o_cloexec-parisc-fix.patch
+o_cloexec-for-scm_rights.patch
 o_cloexec-for-scm_rights-fix.patch
 o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
+futex-tidy-up-the-code.patch
+improve-behaviour-of-spurious-irq-detect.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+lock-debugging-loop-nicer-in-mark_rt_mutex_waiters.patch
+allow-softlockup-to-be-runtime-disabled.patch
+cfs-scheduler.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-v14-rc2-mm1.patch
 cfs-scheduler-warning-fixes.patch
+cfs-scheduler-v15-rc3-mm1.patch
+fs-proc-basec-make-a-struct-static.patch
 cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
+schedstats-fix-printk-format.patch
+cfs-scheduler-v16.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
 lockstat-core-infrastructure-fix.patch
 lockstat-core-infrastructure-fix-fix.patch
 lockstat-core-infrastructure-fix-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+lockdep-various-fixes.patch
 lockdep-various-fixes-checkpatch.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
+lockstat-measure-lock-bouncing.patch
 lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+lockstat-better-class-name-representation.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
