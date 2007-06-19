@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-checkpatchpl-to-version-005.patch added to -mm tree
-Date: Tue, 19 Jun 2007 13:54:49 -0700
-Message-ID: <200706192054.l5JKsnxf020966@imap1.linux-foundation.org>
+Subject: + alpha-fix-alignment-problem-in-csum_ipv6_magic.patch added to -mm tree
+Date: Tue, 19 Jun 2007 13:55:44 -0700
+Message-ID: <200706192055.l5JKtir0020980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35591 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753482AbXFSUzs (ORCPT
+	by vger.kernel.org with ESMTP id S1753614AbXFSU4M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 16:55:48 -0400
+	Tue, 19 Jun 2007 16:56:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+Cc: ink@jurassic.park.msu.ru, jailbird@alcatraz.fdf.net, rth@twiddle.net
 
 
 The patch titled
-     update checkpatch.pl to version 0.05
+     alpha: fix alignment problem in csum_ipv6_magic()
 has been added to the -mm tree.  Its filename is
-     update-checkpatchpl-to-version-005.patch
+     alpha-fix-alignment-problem-in-csum_ipv6_magic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,476 +26,192 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update checkpatch.pl to version 0.05
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: alpha: fix alignment problem in csum_ipv6_magic()
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-This version brings a some new tests, and a host of changes to fix
-false positives, of particular note:
+Hopefully this fixes http://bugzilla.kernel.org/show_bug.cgi?id=8635
 
- - detect 'var ++;' and 'var --;' as a bad combination
- - multistatement #defines are now checked based on statement count
- - multistatement #defines with initialisation correctly reported
- - checks the location of the inline keywords
- - EXPORT_SYMBOL for variables are now understood
- - typedefs are loosened to handle sparse etc
+The struct in6_addr passed to csum_ipv6_magic() is 4 byte aligned, so we
+can't use the regular 64-bit loads.  Since the cost of handling of 4 byte
+and 1 byte aligned 64-bit data is roughly the same, this code can cope with
+any src/dst [mis]alignment.
 
-This version of checkpatch.pl can be found at the following URL:
-
-      http://www.shadowen.org/~apw/public/checkpatch/checkpatch.pl-0.05
-
-Full Changelog:
-
-Andy Whitcroft (18):
-      Version: 0.05
-      macro definition checks should be for a single statement
-      avoid assignements only in if conditionals
-      declarations of function pointers need no space
-      multiline macros which are purely initialisation cannot be wrapped
-      EXPORT_SYMBOL can also directly follow a variable definition
-      check on the location of the inline keyword
-      EXPORT_SYMBOL needs to allow for attributes
-      ensure we do not find C99 // in strings
-      handle malformed #include lines
-      accept the {0,} form
-      typedefs are sensible for defining function pointer parameters
-      ensure { handling correctly handles nested switch() statements
-      trailing whitespace checks are not anchored
-      typedefs for sparse bitwise annotations make sense
-      update the type matcher to include sparse annotations
-      clean up indent and spacing
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Dustin Marquess <jailbird@alcatraz.fdf.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  183 ++++++++++++++++++++++++++++------------
- 1 files changed, 129 insertions(+), 54 deletions(-)
+ arch/alpha/lib/csum_ipv6_magic.S     |   51 ++++++++++++++++++-------
+ arch/alpha/lib/ev6-csum_ipv6_magic.S |   42 ++++++++++++++++----
+ 2 files changed, 70 insertions(+), 23 deletions(-)
 
-diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-005 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-005
-+++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
+diff -puN arch/alpha/lib/csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic arch/alpha/lib/csum_ipv6_magic.S
+--- a/arch/alpha/lib/csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic
++++ a/arch/alpha/lib/csum_ipv6_magic.S
+@@ -7,6 +7,9 @@
+  *                                __u32 len,
+  *                                unsigned short proto,
+  *                                unsigned int csum);
++ *
++ * Misalignment handling (which costs 16 instructions / 8 cycles)
++ * added by Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+  */
  
--my $V = '0.04';
-+my $V = '0.05';
+ 	.globl csum_ipv6_magic
+@@ -16,37 +19,57 @@
+ csum_ipv6_magic:
+ 	.prologue 0
  
- use Getopt::Long qw(:config no_auto_abbrev);
+-	ldq	$0,0($16)	# e0    : load src & dst addr words
++	ldq_u	$0,0($16)	# e0    : load src & dst addr words
+ 	zapnot	$20,15,$20	# .. e1 : zero extend incoming csum
+ 	extqh	$18,1,$4	# e0    : byte swap len & proto while we wait
+-	ldq	$1,8($16)	# .. e1 :
++	ldq_u	$21,7($16)	# .. e1 : handle misalignment
  
-@@ -17,11 +17,13 @@ my $quiet = 0;
- my $tree = 1;
- my $chk_signoff = 1;
- my $chk_patch = 1;
-+my $tst_type = 0;
- GetOptions(
- 	'q|quiet'	=> \$quiet,
- 	'tree!'		=> \$tree,
- 	'signoff!'	=> \$chk_signoff,
- 	'patch!'	=> \$chk_patch,
-+	'test-type!'	=> \$tst_type,
- ) or exit;
+ 	extbl	$18,1,$5	# e0	:
+-	ldq	$2,0($17)	# .. e1 :
++	ldq_u	$1,8($16)	# .. e1 :
+ 	extbl	$18,2,$6	# e0 	:
+-	ldq	$3,8($17)	# .. e1 :
++	ldq_u	$22,15($16)	# .. e1 :
  
- my $exit = 0;
-@@ -151,7 +153,7 @@ sub sanitise_line {
- }
- 
- sub ctx_block_get {
--	my ($linenr, $remain, $outer) = @_;
-+	my ($linenr, $remain, $outer, $open, $close) = @_;
- 	my $line;
- 	my $start = $linenr - 1;
- 	my $blk = '';
-@@ -165,8 +167,8 @@ sub ctx_block_get {
- 
- 		$blk .= $rawlines[$line];
- 
--		@o = ($blk =~ /\{/g);
--		@c = ($blk =~ /\}/g);
-+		@o = ($blk =~ /$open/g);
-+		@c = ($blk =~ /$close/g);
- 
- 		if (!$outer || (scalar(@o) - scalar(@c)) == 1) {
- 			push(@res, $rawlines[$line]);
-@@ -180,12 +182,17 @@ sub ctx_block_get {
- sub ctx_block_outer {
- 	my ($linenr, $remain) = @_;
- 
--	return ctx_block_get($linenr, $remain, 1);
-+	return ctx_block_get($linenr, $remain, 1, '\{', '\}');
- }
- sub ctx_block {
- 	my ($linenr, $remain) = @_;
- 
--	return ctx_block_get($linenr, $remain, 0);
-+	return ctx_block_get($linenr, $remain, 0, '\{', '\}');
-+}
-+sub ctx_statement {
-+	my ($linenr, $remain) = @_;
+ 	extbl	$18,3,$18	# e0	:
++	ldq_u	$2,0($17)	# .. e1 :
+ 	sra	$4,32,$4	# e0	:
++	ldq_u	$23,7($17)	# .. e1 :
 +
-+	return ctx_block_get($linenr, $remain, 0, '\(', '\)');
- }
- 
- sub ctx_locate_comment {
-@@ -264,9 +271,30 @@ sub process {
- 	my $in_comment = 0;
- 	my $first_line = 0;
- 
-+	my $ident	= '[A-Za-z\d_]+';
-+	my $storage	= '(?:extern|static)';
-+	my $sparse	= '(?:__user|__kernel|__force|__iomem)';
-+	my $type	= '(?:unsigned\s+)?' .
-+			  '(?:void|char|short|int|long|unsigned|float|double|' .
-+			  'long\s+long|' .
-+			  "struct\\s+${ident}|" .
-+			  "union\\s+${ident}|" .
-+			  "${ident}_t)" .
-+			  "(?:\\s+$sparse)*" .
-+			  '(?:\s*\*+)?';
-+	my $attribute	= '(?:__read_mostly|__init|__initdata)';
++	extql	$0,$16,$0	# e0	:
++	ldq_u	$3,8($17)	# .. e1 :
++	extqh	$21,$16,$21	# e0	:
++	ldq_u	$24,15($17)	# .. e1 :
 +
-+	my $Ident	= $ident;
-+	my $Type	= $type;
-+	my $Storage	= $storage;
-+	my $Declare	= "(?:$storage\\s+)?$type";
-+	my $Attribute	= $attribute;
+ 	sll	$5,16,$5	# e0	:
++	or	$0,$21,$0	# .. e1 : 1st src word complete
++	extql	$1,$16,$1	# e0	:
+ 	addq	$20,$0,$20	# .. e1 : begin summing the words
+ 
+-	sll	$6,8,$6		# e0	:
++	extqh	$22,$16,$22	# e0	:
+ 	cmpult	$20,$0,$0	# .. e1 :
+-	extwh	$19,7,$7	# e0    :
+-	or	$4,$18,$18	# .. e1 :
++	sll	$6,8,$6		# e0	:
++	or	$1,$22,$1	# .. e1 : 2nd src word complete
+ 
+-	extbl	$19,1,$19	# e0    :
++	extql	$2,$17,$2	# e0	:
++	or	$4,$18,$18	# .. e1 :
++	extqh	$23,$17,$23	# e0	:
+ 	or	$5,$6,$5	# .. e1 :
+-	or	$18,$5,$18	# e0    : len complete
+-	or	$19,$7,$19	# .. e1 :
+ 
+-	sll	$19,48,$19	# e0    :
++	extql	$3,$17,$3	# e0	:
++	or	$2,$23,$2	# .. e1 : 1st dst word complete
++	extqh	$24,$17,$24	# e0	:
++	or	$18,$5,$18	# .. e1 : len complete
 +
- 	foreach my $line (@lines) {
- 		$linenr++;
- 
-+		my $rawline = $line;
++	extwh	$19,7,$7	# e0    :
++	or	$3,$24,$3	# .. e1 : 2nd dst word complete
++	extbl	$19,1,$19	# e0    :
+ 	addq	$20,$1,$20	# .. e1 :
+-	sra	$19,32,$19	# e0    : proto complete
 +
- #extract the filename as it passes
- 		if ($line=~/^\+\+\+\s+(\S+)/) {
- 			$realfile=$1;
-@@ -361,7 +389,7 @@ sub process {
- 		next if ($realfile !~ /\.(h|c|s|S|pl|sh)$/);
++	or	$19,$7,$19	# e0    :
+ 	cmpult	$20,$1,$1	# .. e1 :
++	sll	$19,48,$19	# e0    :
++	nop			# .. e0 :
  
- #trailing whitespace
--		if ($line=~/\+.*\S\s+$/) {
-+		if ($line=~/^\+.*\S\s+$/) {
- 			my $herevet = "$here\n" . cat_vet($line) . "\n\n";
- 			print "trailing whitespace\n";
- 			print "$herevet";
-@@ -392,17 +420,20 @@ sub process {
- 		#
- 		next if ($in_comment);
+-	nop			# e0    :
++	sra	$19,32,$19	# e0    : proto complete
+ 	addq	$20,$2,$20	# .. e1 :
+ 	cmpult	$20,$2,$2	# e0    :
+ 	addq	$20,$3,$20	# .. e1 :
+@@ -84,7 +107,7 @@ csum_ipv6_magic:
+ 	extwl	$0,2,$1		# e0    : fold 17-bit value
+ 	zapnot	$0,3,$0		# .. e1 :
+ 	addq	$0,$1,$0	# e0    :
+-	not	$0,$0		# e1    : and complement.
++	not	$0,$0		# .. e1 : and complement.
  
--		# Remove comments from the line before processing.
-+# Remove comments from the line before processing.
- 		$line =~ s@/\*.*\*/@@g;
- 		$line =~ s@/\*.*@@;
- 		$line =~ s@.*\*/@@;
+ 	zapnot	$0,3,$0		# e0    :
+ 	ret			# .. e1 :
+diff -puN arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic arch/alpha/lib/ev6-csum_ipv6_magic.S
+--- a/arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic
++++ a/arch/alpha/lib/ev6-csum_ipv6_magic.S
+@@ -46,6 +46,10 @@
+  * add the 3 low ushorts together, generating a uint
+  * a final add of the 2 lower ushorts
+  * truncating the result.
++ *
++ * Misalignment handling added by Ivan Kokshaysky <ink@jurassic.park.msu.ru>
++ * The cost is 16 instructions (~8 cycles), including two extra loads which
++ * may cause additional delay in rare cases (load-load replay traps).
+  */
  
--		#
--		# Checks which may be anchored in the context.
--		#
-+# Standardise the strings and chars within the input to simplify matching.
-+		$line = sanitise_line($line);
+ 	.globl csum_ipv6_magic
+@@ -55,25 +59,45 @@
+ csum_ipv6_magic:
+ 	.prologue 0
+ 
+-	ldq	$0,0($16)	# L : Latency: 3
++	ldq_u	$0,0($16)	# L : Latency: 3
+ 	inslh	$18,7,$4	# U : 0000000000AABBCC
+-	ldq	$1,8($16)	# L : Latency: 3
++	ldq_u	$1,8($16)	# L : Latency: 3
+ 	sll	$19,8,$7	# U : U L U L : 0x00000000 00aabb00
+ 
++	and	$16,7,$6	# E : src misalignment
++	ldq_u	$5,15($16)	# L : Latency: 3
+ 	zapnot	$20,15,$20	# U : zero extend incoming csum
+-	ldq	$2,0($17)	# L : Latency: 3
+-	sll	$19,24,$19	# U : U L L U : 0x000000aa bb000000
+-	inswl	$18,3,$18	# U : 000000CCDD000000
++	ldq_u	$2,0($17)	# L : U L U L : Latency: 3
 +
-+#
-+# Checks which may be anchored in the context.
-+#
- 
--		# Check for switch () and associated case and default
--		# statements should be at the same indent.
-+# Check for switch () and associated case and default
-+# statements should be at the same indent.
- 		if ($line=~/\bswitch\s*\(.*\)/) {
- 			my $err = '';
- 			my $sep = '';
-@@ -428,9 +459,30 @@ sub process {
- #ignore lines not being added
- 		if ($line=~/^[^\+]/) {next;}
- 
--		#
--		# Checks which are anchored on the added line.
--		#
-+# TEST: allow direct testing of the type matcher.
-+		if ($tst_type && $line =~ /^.$Declare$/) {
-+			print "TEST: is type $Declare\n";
-+			print "$herecurr";
-+			$clean = 0;
-+			next;
-+		}
++	extql	$0,$6,$0	# U :
++	extqh	$1,$6,$22	# U :
++	ldq_u	$3,8($17)	# L : Latency: 3
++	sll	$19,24,$19	# U : U U L U : 0x000000aa bb000000
 +
-+#
-+# Checks which are anchored on the added line.
-+#
++	cmoveq	$6,$31,$22	# E : src aligned?
++	ldq_u	$23,15($17)	# L : Latency: 3
++	or	$18,$4,$18	# E : 000000CCDDAABBCC
++	extql	$1,$6,$1	# U : U L L U :
+ 
+-	ldq	$3,8($17)	# L : Latency: 3
+-	bis	$18,$4,$18	# E : 000000CCDDAABBCC
++	or	$0,$22,$0	# E : 1st src word complete
++	extqh	$5,$6,$5	# U :
+ 	addl	$19,$7,$19	# E : <sign bits>bbaabb00
+-	nop			# E : U L U L
++	and	$17,7,$6	# E : L U L U : dst misalignment
+ 
++	inswl	$18,3,$18	# U : 000000CCDD000000
++	or	$1,$5,$1	# E : 2nd src word complete
++	extql	$2,$6,$2	# U :
++	extqh	$3,$6,$22	# U : U L U U :
 +
-+# check for malformed paths in #include statements (uses RAW line)
-+		if ($rawline =~ m{^.#\s*include\s+[<"](.*)[">]}) {
-+			my $path = $1;
-+			if ($path =~ m{//}) {
-+				print "malformed #include filename\n";
-+				print "$herecurr";
-+				$clean = 0;
-+			}
-+			# Sanitise this special form of string.
-+			$path = 'X' x length($path);
-+			$line =~ s{\<.*\>}{<$path>};
-+		}
- 
- # no C99 // comments
- 		if ($line =~ m{//}) {
-@@ -441,47 +493,44 @@ sub process {
- 		# Remove C99 comments.
- 		$line =~ s@//.*@@;
- 
--		# Standardise the strings and chars within the input
--		# to simplify matching.
--		$line = sanitise_line($line);
--
- #EXPORT_SYMBOL should immediately follow its function closing }.
--		if (($line =~ /EXPORT_SYMBOL.*\(.*\)/) ||
--		    ($line =~ /EXPORT_UNUSED_SYMBOL.*\(.*\)/)) {
-+		if (($line =~ /EXPORT_SYMBOL.*\((.*)\)/) ||
-+		    ($line =~ /EXPORT_UNUSED_SYMBOL.*\((.*)\)/)) {
-+			my $name = $1;
- 			if (($prevline !~ /^}/) &&
- 			   ($prevline !~ /^\+}/) &&
--			   ($prevline !~ /^ }/)) {
--				print "EXPORT_SYMBOL(func); should immediately follow its function\n";
-+			   ($prevline !~ /^ }/) &&
-+			   ($prevline !~ /\s$name(?:\s+$Attribute)?\s*(?:;|=)/)) {
-+				print "EXPORT_SYMBOL(foo); should immediately follow its function/variable\n";
- 				print "$herecurr";
- 				$clean = 0;
- 			}
- 		}
- 
--		# check for static initialisers.
-+# check for static initialisers.
- 		if ($line=~/\s*static\s.*=\s+(0|NULL);/) {
- 			print "do not initialise statics to 0 or NULL\n";
- 			print "$herecurr";
- 			$clean = 0;
- 		}
- 
--		# check for new typedefs.
--		if ($line=~/\s*typedef\s/) {
-+# check for new typedefs, only function parameters and sparse annotations
-+# make sense.
-+		if ($line =~ /\btypedef\s/ &&
-+		    $line !~ /\btypedef\s+$Type\s+\(\s*$Ident\s*\)\s*\(/ &&
-+		    $line !~ /\b__bitwise(?:__|)\b/) {
- 			print "do not add new typedefs\n";
- 			print "$herecurr";
- 			$clean = 0;
- 		}
- 
- # * goes on variable not on type
--		my $type = '(?:char|short|int|long|unsigned|float|double|' .
--			   'struct\s+[A-Za-z\d_]+|' .
--			   'union\s+[A-Za-z\d_]+)';
--
- 		if ($line =~ m{[A-Za-z\d_]+(\*+) [A-Za-z\d_]+}) {
- 			print "\"foo$1 bar\" should be \"foo $1bar\"\n";
- 			print "$herecurr";
- 			$clean = 0;
- 		}
--		if ($line =~ m{$type (\*) [A-Za-z\d_]+} ||
-+		if ($line =~ m{$Type (\*) [A-Za-z\d_]+} ||
- 		    $line =~ m{[A-Za-z\d_]+ (\*\*+) [A-Za-z\d_]+}) {
- 			print "\"foo $1 bar\" should be \"foo $1bar\"\n";
- 			print "$herecurr";
-@@ -530,13 +579,16 @@ sub process {
- 			}
- 		}
- 
--#function brace can't be on same line, except for #defines of do while, or if closed on same line
-+# function brace can't be on same line, except for #defines of do while,
-+# or if closed on same line
- 		if (($line=~/[A-Za-z\d_]+\**\s+\**[A-Za-z\d_]+\(.*\).* {/) and
- 		    !($line=~/\#define.*do\s{/) and !($line=~/}/)) {
- 			print "braces following function declarations go on the next line\n";
- 			print "$herecurr";
- 			$clean = 0;
- 		}
++	cmoveq	$6,$31,$22	# E : dst aligned?
++	extql	$3,$6,$3	# U :
+ 	addq	$20,$0,$20	# E : begin summing the words
++	extqh	$23,$6,$23	# U : L U L U :
 +
-+# Check operator spacing.
- 		# Note we expand the line with the leading + as the real
- 		# line will be displayed with the leading + and the tabs
- 		# will therefore also expand that way.
-@@ -544,7 +596,6 @@ sub process {
- 		$opline = expand_tabs($opline);
- 		$opline =~ s/^./ /;
- 		if (!($line=~/\#\s*include/)) {
--			# Check operator spacing.
- 			my @elements = split(/(<<=|>>=|<=|>=|==|!=|\+=|-=|\*=|\/=|%=|\^=|\|=|&=|->|<<|>>|<|>|=|!|~|&&|\|\||,|\^|\+\+|--|;|&|\||\+|-|\*|\/\/|\/)/, $opline);
- 			my $off = 0;
- 			for (my $n = 0; $n < $#elements; $n += 2) {
-@@ -572,8 +623,8 @@ sub process {
- 				# Pick up the preceeding and succeeding characters.
- 				my $ca = substr($opline, $off - 1, 1);
- 				my $cc = '';
--				if (length($opline) > ($off + length($elements[$n]))) {
--					$cc = substr($opline, $off + 1 + length($elements[$n]), 1);
-+				if (length($opline) >= ($off + length($elements[$n + 1]))) {
-+					$cc = substr($opline, $off + length($elements[$n + 1]), 1);
- 				}
+ 	srl	$18,16,$4	# U : 0000000000CCDDAA
++	or	$2,$22,$2	# E : 1st dst word complete
+ 	zap	$19,0x3,$19	# U : <sign bits>bbaa0000
+-	nop			# E : L U U L
++	or	$3,$23,$3	# E : U L U L : 2nd dst word complete
  
- 				my $ctx = "${a}x${c}";
-@@ -598,7 +649,7 @@ sub process {
- 
- 				# , must have a space on the right.
- 				} elsif ($op eq ',') {
--					if ($ctx !~ /.xW|.xE/) {
-+					if ($ctx !~ /.xW|.xE/ && $cc ne '}') {
- 						print "need space after that '$op' $at\n";
- 						print "$hereptr";
- 						$clean = 0;
-@@ -619,11 +670,16 @@ sub process {
- 
- 				# unary ++ and unary -- are allowed no space on one side.
- 				} elsif ($op eq '++' or $op eq '--') {
--					if ($ctx !~ /[WOB]x[^W]|[^W]x[WOB]/) {
-+					if ($ctx !~ /[WOB]x[^W]/ && $ctx !~ /[^W]x[WOB]/) {
- 						print "need space one side of that '$op' $at\n";
- 						print "$hereptr";
- 						$clean = 0;
- 					}
-+					if ($ctx =~ /Wx./ && $cc eq ';') {
-+						print "no space before that '$op' $at\n";
-+						print "$hereptr";
-+						$clean = 0;
-+					}
- 
- 				# & is both unary and binary
- 				# unary:
-@@ -656,7 +712,7 @@ sub process {
- 							print "$hereptr";
- 							$clean = 0;
- 						}
--					} elsif ($ctx !~ /VxV|[EW]x[WE]|[EWB]x[VO]|OxV|WxB/) {
-+					} elsif ($ctx !~ /VxV|[EW]x[WE]|[EWB]x[VO]|OxV|WxB|BxB/) {
- 						print "need space before that '$op' $at\n";
- 						print "$hereptr";
- 						$clean = 0;
-@@ -705,9 +761,9 @@ sub process {
- 		}
- 
- # Check for illegal assignment in if conditional.
--		if ($line=~/\b(if|while)\s*\(.*[^<>!=]=[^=].*\)/) {
-+		if ($line=~/\bif\s*\(.*[^<>!=]=[^=].*\)/) {
- 			#next if ($line=~/\".*\Q$op\E.*\"/ or $line=~/\'\Q$op\E\'/);
--			print "do not use assignment in condition\n";
-+			print "do not use assignment in if condition\n";
- 			print "$herecurr";
- 			$clean = 0;
- 		}
-@@ -735,8 +791,8 @@ sub process {
- 			$clean = 0;
- 		}
- 
--#warn if <asm/foo.h> is #included and <linux/foo.h> is available.
--		if ($tree && $line =~ qr|\s*\#\s*include\s*\<asm\/(.*)\.h\>|) {
-+#warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
-+		if ($tree && $rawline =~ m{^.\#\s*include\s*\<asm\/(.*)\.h\>}) {
- 			my $checkfile = "include/linux/$1.h";
- 			if (-f $checkfile) {
- 				print "Use #include <linux/$1.h> instead of <asm/$1.h>\n";
-@@ -745,7 +801,8 @@ sub process {
- 			}
- 		}
- 
--#if/while/etc brace do not go on next line, unless #defining a do while loop, or if that brace on the next line is for something else
-+# if/while/etc brace do not go on next line, unless defining a do while loop,
-+# or if that brace on the next line is for something else
- 		if ($prevline=~/\b(if|while|for|switch)\s*\(/) {
- 			my @opened = $prevline=~/\(/g;
- 			my @closed = $prevline=~/\)/g;
-@@ -767,25 +824,36 @@ sub process {
- 			}
- 
- 			if (($prevline=~/\b(if|while|for|switch)\s*\(.*\)\s*$/) and ($next_line=~/{/) and
--			   !($next_line=~/\b(if|while|for)/) and !($next_line=~/\#define.*do.*while/)) {
-+			   !($next_line=~/\b(if|while|for|switch)/) and !($next_line=~/\#define.*do.*while/)) {
- 				print "That { should be on the previous line\n";
- 				print "$here\n$display_segment\n$next_line\n\n";
- 				$clean = 0;
- 			}
- 		}
- 
--#multiline macros should be enclosed in a do while loop
--		if (($prevline=~/\#define.*\\/) and !($prevline=~/do\s+{/) and
--		   !($prevline=~/\(\{/) and ($line=~/;\s*\\/) and
--		   !($line=~/do.*{/) and !($line=~/\(\{/)) {
--			print "Macros with multiple statements should be enclosed in a do - while loop\n";
--			print "$hereprev";
--			$clean = 0;
-+# multi-statement macros should be enclosed in a do while loop, grab the
-+# first statement and ensure its the whole macro if its not enclosed
-+# in a known goot container
-+		if (($prevline=~/\#define.*\\/) and
-+		   !($prevline=~/do\s+{/) and !($prevline=~/\(\{/) and
-+		   !($line=~/do.*{/) and !($line=~/\(\{/) and
-+		   !($line=~/^.\s*$Declare\s/)) {
-+			# Grab the first statement, if that is the entire macro
-+			# its ok.  This may start either on the #define line
-+			# or the one below.
-+			my $ctx1 = join('', ctx_statement($linenr - 1, $realcnt + 1));
-+			my $ctx2 = join('', ctx_statement($linenr, $realcnt));
-+
-+			if ($ctx1 =~ /\\$/ && $ctx2 =~ /\\$/) {
-+				print "Macros with multiple statements should be enclosed in a do - while loop\n";
-+				print "$hereprev";
-+				$clean = 0;
-+			}
- 		}
- 
--# don't include deprecated include files
-+# don't include deprecated include files (uses RAW line)
- 		for my $inc (@dep_includes) {
--			if ($line =~ m@\#\s*include\s*\<$inc>@) {
-+			if ($rawline =~ m@\#\s*include\s*\<$inc>@) {
- 				print "Don't use <$inc>: see Documentation/feature-removal-schedule.txt\n";
- 				print "$herecurr";
- 				$clean = 0;
-@@ -845,6 +913,13 @@ sub process {
- 			print "$herecurr";
- 			$clean = 0;
- 		}
-+
-+		if ($line =~ /$Type\s+(?:inline|__always_inline)\b/ ||
-+		    $line =~ /\b(?:inline|always_inline)\s+$Storage/) {
-+			print "inline keyword should sit between storage class and type\n";
-+			print "$herecurr";
-+			$clean = 0;
-+		}
- 	}
- 
- 	if ($chk_patch && !$is_patch) {
+ 	cmpult	$20,$0,$0	# E :
+ 	addq	$20,$1,$20	# E :
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-update-checkpatchpl-to-version-005.patch
-i386-move-the-kernel-to-16mb-for-numa-q.patch
-gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-remove-alloc_zeroed_user_highpage.patch
-create-the-zone_movable-zone.patch
-handle-kernelcore=-generic.patch
-lumpy-reclaim-v4.patch
-lumpy-move-to-using-pfn_valid_within.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
-allow-page_owner-to-be-set-on-any-architecture.patch
+alpha-fix-alignment-problem-in-csum_ipv6_magic.patch
+alpha-fix-trivial-section-mismatch-warnings.patch
+make-sure-nobodys-leaking-resources.patch
