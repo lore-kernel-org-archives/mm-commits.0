@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:19:20 -0700
-Message-ID: <200706191919.l5JJJKbc019060@imap1.linux-foundation.org>
+Subject: + slub-faster-more-efficient-slab-determination-for-__kmalloc.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:19:26 -0700
+Message-ID: <200706191919.l5JJJRh3019069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56065 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52283 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933306AbXFSTT3 (ORCPT
+	by vger.kernel.org with ESMTP id S933530AbXFSTTg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:19:29 -0400
+	Tue, 19 Jun 2007 15:19:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: add some more inlines and #ifdef CONFIG_SLUB_DEBUG
+     SLUB: faster more efficient slab determination for __kmalloc
 has been added to the -mm tree.  Its filename is
-     slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
+     slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,134 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: add some more inlines and #ifdef CONFIG_SLUB_DEBUG
+Subject: SLUB: faster more efficient slab determination for __kmalloc
 From: Christoph Lameter <clameter@sgi.com>
 
-Add #ifdefs around data structures only needed if debugging is compiled into
-SLUB.
+kmalloc_index is a long series of comparisons.  The attempt to replace
+kmalloc_index with something more efficient like ilog2 failed due to compiler
+issues with constant folding on gcc 3.3 / powerpc.
 
-Add inlines to small functions to reduce code size.
+kmalloc_index()'es long list of comparisons works fine for constant folding
+since all the comparisons are optimized away.  However, SLUB also uses
+kmalloc_index to determine the slab to use for the __kmalloc_xxx functions. 
+This leads to a large set of comparisons in get_slab().
+
+The patch here allows to get rid of that list of comparisons in get_slab():
+
+1. If the requested size is larger than 192 then we can simply use
+   fls to determine the slab index since all larger slabs are
+   of the power of two type.
+
+2. If the requested size is smaller then we cannot use fls since there
+   are non power of two caches to be considered. However, the sizes are
+   in a managable range. So we divide the size by 8. Then we have only
+   24 possibilities left and then we simply look up the kmalloc index
+   in a table.
+
+Code size of slub.o decreases by more than 200 bytes through this patch.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    4 ++++
- mm/slub.c                |   13 +++++++------
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ mm/slub.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 64 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-add-some-more-inlines-and-ifdef-config_slub_debug include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-add-some-more-inlines-and-ifdef-config_slub_debug
-+++ a/include/linux/slub_def.h
-@@ -16,7 +16,9 @@ struct kmem_cache_node {
- 	unsigned long nr_partial;
- 	atomic_long_t nr_slabs;
- 	struct list_head partial;
-+#ifdef CONFIG_SLUB_DEBUG
- 	struct list_head full;
-+#endif
- };
- 
- /*
-@@ -44,7 +46,9 @@ struct kmem_cache {
- 	int align;		/* Alignment */
- 	const char *name;	/* Name (only for display!) */
- 	struct list_head list;	/* List of slab caches */
-+#ifdef CONFIG_SLUB_DEBUG
- 	struct kobject kobj;	/* For sysfs */
-+#endif
- 
- #ifdef CONFIG_NUMA
- 	int defrag_ratio;
-diff -puN mm/slub.c~slub-add-some-more-inlines-and-ifdef-config_slub_debug mm/slub.c
---- a/mm/slub.c~slub-add-some-more-inlines-and-ifdef-config_slub_debug
+diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc mm/slub.c
+--- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc
 +++ a/mm/slub.c
-@@ -259,9 +259,10 @@ static int sysfs_slab_add(struct kmem_ca
- static int sysfs_slab_alias(struct kmem_cache *, const char *);
- static void sysfs_slab_remove(struct kmem_cache *);
- #else
--static int sysfs_slab_add(struct kmem_cache *s) { return 0; }
--static int sysfs_slab_alias(struct kmem_cache *s, const char *p) { return 0; }
--static void sysfs_slab_remove(struct kmem_cache *s) {}
-+static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
-+static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
-+							{ return 0; }
-+static inline void sysfs_slab_remove(struct kmem_cache *s) {}
+@@ -2323,20 +2323,59 @@ static noinline struct kmem_cache *dma_k
+ }
  #endif
  
- /********************************************************************
-@@ -1405,7 +1406,7 @@ static void deactivate_slab(struct kmem_
- 	unfreeze_slab(s, page);
++/*
++ * Conversion table for small slabs sizes / 8 to the index in the
++ * kmalloc array. This is necessary for slabs < 192 since we have non power
++ * of two cache sizes there. The size of larger slabs can be determined using
++ * fls.
++ */
++static s8 size_index[24] = {
++	3,	/* 8 */
++	4,	/* 16 */
++	5,	/* 24 */
++	5,	/* 32 */
++	6,	/* 40 */
++	6,	/* 48 */
++	6,	/* 56 */
++	6,	/* 64 */
++	1,	/* 72 */
++	1,	/* 80 */
++	1,	/* 88 */
++	1,	/* 96 */
++	7,	/* 104 */
++	7,	/* 112 */
++	7,	/* 120 */
++	7,	/* 128 */
++	2,	/* 136 */
++	2,	/* 144 */
++	2,	/* 152 */
++	2,	/* 160 */
++	2,	/* 168 */
++	2,	/* 176 */
++	2,	/* 184 */
++	2	/* 192 */
++};
++
+ static struct kmem_cache *get_slab(size_t size, gfp_t flags)
+ {
+-	int index = kmalloc_index(size);
++	int index;
+ 
+-	if (!index)
+-		return ZERO_SIZE_PTR;
++	if (size <= 192) {
++		if (!size)
++			return ZERO_SIZE_PTR;
+ 
+-	/* Allocation too large? */
+-	if (index < 0)
+-		return NULL;
++		index = size_index[(size - 1) / 8];
++	} else {
++		if (size > KMALLOC_MAX_SIZE)
++			return NULL;
++
++		index = fls(size - 1) + 1;
++	}
+ 
+ #ifdef CONFIG_ZONE_DMA
+-	if ((flags & SLUB_DMA))
++	if (unlikely((flags & SLUB_DMA)))
+ 		return dma_kmalloc_cache(index, flags);
++
+ #endif
+ 	return &kmalloc_caches[index];
  }
+@@ -2551,6 +2590,24 @@ void __init kmem_cache_init(void)
+ 		caches++;
+ 	}
  
--static void flush_slab(struct kmem_cache *s, struct page *page, int cpu)
-+static inline void flush_slab(struct kmem_cache *s, struct page *page, int cpu)
- {
- 	slab_lock(page);
- 	deactivate_slab(s, page, cpu);
-@@ -1415,7 +1416,7 @@ static void flush_slab(struct kmem_cache
-  * Flush cpu slab.
-  * Called from IPI handler with interrupts disabled.
-  */
--static void __flush_cpu_slab(struct kmem_cache *s, int cpu)
-+static inline void __flush_cpu_slab(struct kmem_cache *s, int cpu)
- {
- 	struct page *page = s->cpu_slab[cpu];
++
++	/*
++	 * Patch up the size_index table if we have strange large alignment
++	 * requirements for the kmalloc array. This is only the case for
++	 * mips it seems. The standard arches will not generate any code here.
++	 *
++	 * Largest permitted alignment is 256 bytes due to the way we
++	 * handle the index determination for the smaller caches.
++	 *
++	 * Make sure that nothing crazy happens if someone starts tinkering
++	 * around with ARCH_KMALLOC_MINALIGN
++	 */
++	BUG_ON(KMALLOC_MIN_SIZE > 256 ||
++		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
++
++	for (i = 8; i < KMALLOC_MIN_SIZE;i++)
++		size_index[(i - 1) / 8] = KMALLOC_SHIFT_LOW;
++
+ 	slab_state = UP;
  
-@@ -2175,7 +2176,7 @@ static int free_list(struct kmem_cache *
- /*
-  * Release all resources used by a slab cache.
-  */
--static int kmem_cache_close(struct kmem_cache *s)
-+static inline int kmem_cache_close(struct kmem_cache *s)
- {
- 	int node;
- 
+ 	/* Provide the correct kmalloc names now that the caches are up */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
