@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-check-sm501-id-register-on-initialisation.patch added to -mm tree
-Date: Tue, 19 Jun 2007 11:32:26 -0700
-Message-ID: <200706191832.l5JIWQR2018128@imap1.linux-foundation.org>
+Subject: + sm501-add-documentation-sm501txt.patch added to -mm tree
+Date: Tue, 19 Jun 2007 11:32:24 -0700
+Message-ID: <200706191832.l5JIWOrl018125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53470 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760619AbXFSSdr (ORCPT
+	by vger.kernel.org with ESMTP id S1760498AbXFSSdq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 14:33:47 -0400
+	Tue, 19 Jun 2007 14:33:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ben-linux@fluff.org
 
 
 The patch titled
-     SM501: Check SM501 ID register on initialisation
+     SM501: Add Documentation/SM501.txt
 has been added to the -mm tree.  Its filename is
-     sm501-check-sm501-id-register-on-initialisation.patch
+     sm501-add-documentation-sm501txt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SM501: Check SM501 ID register on initialisation
+Subject: SM501: Add Documentation/SM501.txt
 From: Ben Dooks <ben-linux@fluff.org>
 
-When binding the driver, check the ID register for a valid identity, in case
-the SM501 is not functioning correctly.
+Add documentation for the SM501 in Documentation/SM501.txt outlining the SM501
+driver.
 
 Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c        |   14 ++++++++++----
- include/linux/sm501-regs.h |    3 +++
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ Documentation/SM501.txt |   66 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 66 insertions(+)
 
-diff -puN drivers/mfd/sm501.c~sm501-check-sm501-id-register-on-initialisation drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-check-sm501-id-register-on-initialisation
-+++ a/drivers/mfd/sm501.c
-@@ -893,6 +893,7 @@ static int sm501_init_dev(struct sm501_d
- {
- 	resource_size_t mem_avail;
- 	unsigned long dramctrl;
-+	unsigned long devid;
- 	int ret;
- 
- 	mutex_init(&sm->clock_lock);
-@@ -900,13 +901,18 @@ static int sm501_init_dev(struct sm501_d
- 
- 	INIT_LIST_HEAD(&sm->devices);
- 
--	dramctrl = readl(sm->regs + SM501_DRAM_CONTROL);
-+	devid = readl(sm->regs + SM501_DEVICEID);
- 
-+	if ((devid & SM501_DEVICEID_IDMASK) != SM501_DEVICEID_SM501) {
-+		dev_err(sm->dev, "incorrect device id %08lx\n", devid);
-+		return -EINVAL;
-+	}
+diff -puN /dev/null Documentation/SM501.txt
+--- /dev/null
++++ a/Documentation/SM501.txt
+@@ -0,0 +1,66 @@
++			SM501 Driver
++			============
 +
-+	dramctrl = readl(sm->regs + SM501_DRAM_CONTROL);
- 	mem_avail = sm501_mem_local[(dramctrl >> 13) & 0x7];
- 
--	dev_info(sm->dev, "SM501 At %p: Version %08x, %ld Mb, IRQ %d\n",
--		 sm->regs, readl(sm->regs + SM501_DEVICEID),
--		 (unsigned long)mem_avail >> 20, sm->irq);
-+	dev_info(sm->dev, "SM501 At %p: Version %08lx, %ld Mb, IRQ %d\n",
-+		 sm->regs, devid, (unsigned long)mem_avail >> 20, sm->irq);
- 
- 	sm501_dump_gate(sm);
- 
-diff -puN include/linux/sm501-regs.h~sm501-check-sm501-id-register-on-initialisation include/linux/sm501-regs.h
---- a/include/linux/sm501-regs.h~sm501-check-sm501-id-register-on-initialisation
-+++ a/include/linux/sm501-regs.h
-@@ -109,6 +109,9 @@
- #define SM501_DEVICEID			(0x000060)
- /* 0x050100A0 */
- 
-+#define SM501_DEVICEID_SM501		(0x05010000)
-+#define SM501_DEVICEID_IDMASK		(0xffff0000)
++Copyright 2006, 2007 Simtec Electronics
 +
- #define SM501_PLLCLOCK_COUNT		(0x000064)
- #define SM501_MISC_TIMING		(0x000068)
- #define SM501_CURRENT_SDRAM_CLOCK	(0x00006C)
++Core
++----
++
++The core driver in drivers/mfd provides common services for the
++drivers which manage the specific hardware blocks. These services
++include locking for common registers, clock control and resource
++management.
++
++The core registers drivers for both PCI and generic bus based
++chips via the platform device and driver system.
++
++On detection of a device, the core initialises the chip (which may
++be specified by the platform data) and then exports the selected
++peripheral set as platform devices for the specific drivers.
++
++The core re-uses the platform device system as the platform device
++system provides enough features to support the drivers without the
++need to create a new bus-type and the associated code to go with it.
++
++
++Resources
++---------
++
++Each peripheral has a view of the device which is implicitly narrowed to
++the specific set of resources that peripheral requires in order to
++function correctly.
++
++The centralised memory allocation allows the driver to ensure that the
++maximum possible resource allocation can be made to the video subsystem
++as this is by-far the most resource-sensitive of the on-chip functions.
++
++The primary issue with memory allocation is that of moving the video
++buffers once a display mode is chosen. Indeed when a video mode change
++occurs the memory footprint of the video subsystem changes.
++
++Since video memory is difficult to move without changing the display
++(unless sufficient contiguous memory can be provided for the old and new
++modes simultaneously) the video driver fully utilises the memory area
++given to it by aligning fb0 to the start of the area and fb1 to the end
++of it. Any memory left over in the middle is used for the acceleration
++functions, which are transient and thus their location is less critical
++as it can be moved.
++
++
++Configuration
++-------------
++
++The platform device driver uses a set of platform data to pass
++configurations through to the core and the subsidiary drivers
++so that there can be support for more than one system carrying
++an SM501 built into a single kernel image.
++
++The PCI driver assumes that the PCI card behaves as per the Silicon
++Motion reference design.
++
++There is an errata (AB-5) affecting the selection of the
++of the M1XCLK and M1CLK frequencies. These two clocks
++must be sourced from the same PLL, although they can then
++be divided down individually. If this is not set, then SM501 may
++lock and hang the whole system. The driver will refuse to
++attach if the PLL selection is different.
 _
 
 Patches currently in -mm which might be from ben-linux@fluff.org are
