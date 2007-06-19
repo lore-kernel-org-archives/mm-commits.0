@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-compat_u64-and-compat_s64-types.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:30:02 -0700
-Message-ID: <200706191930.l5JJU2VR019280@imap1.linux-foundation.org>
+Subject: + slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:52:05 -0700
+Message-ID: <200706191952.l5JJq5tF019673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43195 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34087 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758549AbXFSTfZ (ORCPT
+	by vger.kernel.org with ESMTP id S1761182AbXFSTwN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:35:25 -0400
+	Tue, 19 Jun 2007 15:52:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, ak@suse.de, benh@kernel.crashing.org, davem@davemloft.net, dwmw2@infradead.org, linux-arch@vger.kernel.org, vtaras@openvz.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Introduce compat_u64 and compat_s64 types
+     SLUB: fix behavior if the text output of list_locations overflows PAGE_SIZE
 has been added to the -mm tree.  Its filename is
-     introduce-compat_u64-and-compat_s64-types.patch
+     slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,144 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Introduce compat_u64 and compat_s64 types
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: SLUB: fix behavior if the text output of list_locations overflows PAGE_SIZE
+From: Christoph Lameter <clameter@sgi.com>
 
-One common problem with 32 bit system call and ioctl emulation is the
-different alignment rules between i386 and 64 bit machines.  A number of
-drivers work around this by marking the compat structures as
-'attribute((packed))', which is not the right solution because it breaks
-all the non-x86 architectures that want to use the same compat code.
+If slabs are allocated or freed from a large set of call sites (typical for
+the kmalloc area) then we may create more output than fits into a single
+PAGE and sysfs only gives us one page.  The output should be truncated. 
+This patch fixes the checks to do the truncation properly.
 
-Hopefully, this patch improves the situation, it introduces two new types,
-compat_u64 and compat_s64.  These are defined on all architectures to have
-the same size and alignment as the 32 bit version of u64 and s64.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Vasily Tarasov <vtaras@openvz.org>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/compat.h    |    2 ++
- include/asm-mips/compat.h    |    2 ++
- include/asm-parisc/compat.h  |    2 ++
- include/asm-powerpc/compat.h |    2 ++
- include/asm-s390/compat.h    |    2 ++
- include/asm-sparc64/compat.h |    2 ++
- include/asm-x86_64/compat.h  |    2 ++
- 7 files changed, 14 insertions(+)
+ mm/slub.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-ia64/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-ia64/compat.h
---- a/include/asm-ia64/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-ia64/compat.h
-@@ -31,8 +31,10 @@ typedef s32		compat_timer_t;
+diff -puN mm/slub.c~slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size mm/slub.c
+--- a/mm/slub.c~slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size
++++ a/mm/slub.c
+@@ -3042,13 +3042,15 @@ static int list_locations(struct kmem_ca
+ 			n += sprintf(buf + n, " pid=%ld",
+ 				l->min_pid);
  
- typedef s32		compat_int_t;
- typedef s32		compat_long_t;
-+typedef s64 __attribute__((aligned(4))) compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
-+typedef u64 __attribute__((aligned(4))) compat_u64;
+-		if (num_online_cpus() > 1 && !cpus_empty(l->cpus)) {
++		if (num_online_cpus() > 1 && !cpus_empty(l->cpus) &&
++				n < PAGE_SIZE - 60) {
+ 			n += sprintf(buf + n, " cpus=");
+ 			n += cpulist_scnprintf(buf + n, PAGE_SIZE - n - 50,
+ 					l->cpus);
+ 		}
  
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-diff -puN include/asm-mips/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-mips/compat.h
---- a/include/asm-mips/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-mips/compat.h
-@@ -37,8 +37,10 @@ typedef s32		compat_key_t;
- 
- typedef s32		compat_int_t;
- typedef s32		compat_long_t;
-+typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
-+typedef u64		compat_u64;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-diff -puN include/asm-parisc/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-parisc/compat.h
---- a/include/asm-parisc/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-parisc/compat.h
-@@ -31,8 +31,10 @@ typedef s32	compat_timer_t;
- 
- typedef s32	compat_int_t;
- typedef s32	compat_long_t;
-+typedef s64	compat_s64;
- typedef u32	compat_uint_t;
- typedef u32	compat_ulong_t;
-+typedef u64	compat_u64;
- 
- struct compat_timespec {
- 	compat_time_t		tv_sec;
-diff -puN include/asm-powerpc/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-powerpc/compat.h
---- a/include/asm-powerpc/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-powerpc/compat.h
-@@ -33,8 +33,10 @@ typedef s32		compat_timer_t;
- 
- typedef s32		compat_int_t;
- typedef s32		compat_long_t;
-+typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
-+typedef u64		compat_u64;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-diff -puN include/asm-s390/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-s390/compat.h
---- a/include/asm-s390/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-s390/compat.h
-@@ -60,8 +60,10 @@ typedef s32		compat_timer_t;
- 
- typedef s32		compat_int_t;
- typedef s32		compat_long_t;
-+typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
-+typedef u64		compat_u64;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-diff -puN include/asm-sparc64/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-sparc64/compat.h
---- a/include/asm-sparc64/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-sparc64/compat.h
-@@ -31,8 +31,10 @@ typedef s32		compat_timer_t;
- 
- typedef s32		compat_int_t;
- typedef s32		compat_long_t;
-+typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
-+typedef u64		compat_u64;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-diff -puN include/asm-x86_64/compat.h~introduce-compat_u64-and-compat_s64-types include/asm-x86_64/compat.h
---- a/include/asm-x86_64/compat.h~introduce-compat_u64-and-compat_s64-types
-+++ a/include/asm-x86_64/compat.h
-@@ -33,8 +33,10 @@ typedef s32		compat_key_t;
- 
- typedef s32		compat_int_t;
- typedef s32		compat_long_t;
-+typedef s64 __attribute__((aligned(4))) compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
-+typedef u64 __attribute__((aligned(4))) compat_u64;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
+-		if (num_online_nodes() > 1 && !nodes_empty(l->nodes)) {
++		if (num_online_nodes() > 1 && !nodes_empty(l->nodes) &&
++				n < PAGE_SIZE - 60) {
+ 			n += sprintf(buf + n, " nodes=");
+ 			n += nodelist_scnprintf(buf + n, PAGE_SIZE - n - 50,
+ 					l->nodes);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-powerpc.patch
-8xx-mpc885ads-pcmcia-support.patch
-dts-kill-hardcoded-phandles.patch
-mm-merge-nopfn-into-fault-spufs-fix.patch
-8xx-fix-whitespace-and-indentation.patch
-introduce-compat_u64-and-compat_s64-types.patch
-fallocate-implementation-on-i86-x86_64-and-powerpc.patch
+slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
+git-ubi.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
+numa-mempolicy-trivial-debug-fixes.patch
+add-populated_map-to-account-for-memoryless-nodes.patch
+add-populated_map-to-account-for-memoryless-nodes-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of.patch
+slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
+slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
+slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
+slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
+slab-allocators-support-__gfp_zero-in-all-allocators.patch
+slab-allocators-cleanup-zeroing-allocations.patch
+slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
+slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
+slub-extract-dma_kmalloc_cache-from-get_cache.patch
+slub-do-proper-locking-during-dma-slab-creation.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
