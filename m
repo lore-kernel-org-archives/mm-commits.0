@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:19:03 -0700
-Message-ID: <200706191919.l5JJJ3fs019039@imap1.linux-foundation.org>
+Subject: + slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:19:08 -0700
+Message-ID: <200706191919.l5JJJ8H5019045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52035 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39070 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933507AbXFSTTN (ORCPT
+	by vger.kernel.org with ESMTP id S933508AbXFSTTU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:19:13 -0400
+	Tue, 19 Jun 2007 15:19:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     SLUB Debug: fix initial object debug state of NUMA bootstrap objects
+     Slab allocators: consistent ZERO_SIZE_PTR support and NULL result semantics
 has been added to the -mm tree.  Its filename is
-     slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
+     slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,297 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB Debug: fix initial object debug state of NUMA bootstrap objects
+Subject: Slab allocators: consistent ZERO_SIZE_PTR support and NULL result semantics
 From: Christoph Lameter <clameter@sgi.com>
 
-The function we are calling to initialize object debug state during early NUMA
-bootstrap sets up an inactive object giving it the wrong redzone signature. 
-The bootstrap nodes are active objects and should have active redzone
-signatures.
+Define ZERO_OR_NULL_PTR macro to be able to remove the checks from the
+allocators.  Move ZERO_SIZE_PTR related stuff into slab.h.
 
-Currently slab validation complains and reverts the object to active state.
+Make ZERO_SIZE_PTR work for all slab allocators and get rid of the
+WARN_ON_ONCE(size == 0) that is still remaining in SLAB.
+
+Make slub return NULL like the other allocators if a too large memory segment
+is requested via __kmalloc.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ include/linux/slab.h     |   13 +++++++++++++
+ include/linux/slab_def.h |   12 ++++++++++++
+ include/linux/slub_def.h |   11 -----------
+ mm/slab.c                |   14 ++++++++------
+ mm/slob.c                |   11 +++++++----
+ mm/slub.c                |   29 ++++++++++++++++-------------
+ mm/util.c                |    2 +-
+ 7 files changed, 57 insertions(+), 35 deletions(-)
 
-diff -puN mm/slub.c~slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects mm/slub.c
---- a/mm/slub.c~slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects
+diff -puN include/linux/slab.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics include/linux/slab.h
+--- a/include/linux/slab.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
++++ a/include/linux/slab.h
+@@ -33,6 +33,19 @@
+ #define SLAB_RECLAIM_ACCOUNT	0x00020000UL		/* Objects are reclaimable */
+ #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
+ /*
++ * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
++ *
++ * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
++ *
++ * ZERO_SIZE_PTR can be passed to kfree though in the same way that NULL can.
++ * Both make kfree a no-op.
++ */
++#define ZERO_SIZE_PTR ((void *)16)
++
++#define ZERO_OR_NULL_PTR(x) ((unsigned long)(x) < \
++				(unsigned long)ZERO_SIZE_PTR)
++
++/*
+  * struct kmem_cache related prototypes
+  */
+ void __init kmem_cache_init(void);
+diff -puN include/linux/slab_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics include/linux/slab_def.h
+--- a/include/linux/slab_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
++++ a/include/linux/slab_def.h
+@@ -29,6 +29,10 @@ static inline void *kmalloc(size_t size,
+ {
+ 	if (__builtin_constant_p(size)) {
+ 		int i = 0;
++
++		if (!size)
++			return ZERO_SIZE_PTR;
++
+ #define CACHE(x) \
+ 		if (size <= x) \
+ 			goto found; \
+@@ -55,6 +59,10 @@ static inline void *kzalloc(size_t size,
+ {
+ 	if (__builtin_constant_p(size)) {
+ 		int i = 0;
++
++		if (!size)
++			return ZERO_SIZE_PTR;
++
+ #define CACHE(x) \
+ 		if (size <= x) \
+ 			goto found; \
+@@ -84,6 +92,10 @@ static inline void *kmalloc_node(size_t 
+ {
+ 	if (__builtin_constant_p(size)) {
+ 		int i = 0;
++
++		if (!size)
++			return ZERO_SIZE_PTR;
++
+ #define CACHE(x) \
+ 		if (size <= x) \
+ 			goto found; \
+diff -puN include/linux/slub_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
++++ a/include/linux/slub_def.h
+@@ -160,17 +160,6 @@ static inline struct kmem_cache *kmalloc
+ #endif
+ 
+ 
+-/*
+- * ZERO_SIZE_PTR will be returned for zero sized kmalloc requests.
+- *
+- * Dereferencing ZERO_SIZE_PTR will lead to a distinct access fault.
+- *
+- * ZERO_SIZE_PTR can be passed to kfree though in the same way that NULL can.
+- * Both make kfree a no-op.
+- */
+-#define ZERO_SIZE_PTR ((void *)16)
+-
+-
+ static inline void *kmalloc(size_t size, gfp_t flags)
+ {
+ 	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
+diff -puN mm/slab.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/slab.c
+--- a/mm/slab.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
++++ a/mm/slab.c
+@@ -774,7 +774,9 @@ static inline struct kmem_cache *__find_
+ 	 */
+ 	BUG_ON(malloc_sizes[INDEX_AC].cs_cachep == NULL);
+ #endif
+-	WARN_ON_ONCE(size == 0);
++	if (!size)
++		return ZERO_SIZE_PTR;
++
+ 	while (size > csizep->cs_size)
+ 		csizep++;
+ 
+@@ -2340,7 +2342,7 @@ kmem_cache_create (const char *name, siz
+ 		 * this should not happen at all.
+ 		 * But leave a BUG_ON for some lucky dude.
+ 		 */
+-		BUG_ON(!cachep->slabp_cache);
++		BUG_ON(ZERO_OR_NULL_PTR(cachep->slabp_cache));
+ 	}
+ 	cachep->ctor = ctor;
+ 	cachep->name = name;
+@@ -3642,8 +3644,8 @@ __do_kmalloc_node(size_t size, gfp_t fla
+ 	struct kmem_cache *cachep;
+ 
+ 	cachep = kmem_find_general_cachep(size, flags);
+-	if (unlikely(cachep == NULL))
+-		return NULL;
++	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
++		return cachep;
+ 	return kmem_cache_alloc_node(cachep, flags, node);
+ }
+ 
+@@ -3749,7 +3751,7 @@ void kfree(const void *objp)
+ 	struct kmem_cache *c;
+ 	unsigned long flags;
+ 
+-	if (unlikely(!objp))
++	if (unlikely(ZERO_OR_NULL_PTR(objp)))
+ 		return;
+ 	local_irq_save(flags);
+ 	kfree_debugcheck(objp);
+@@ -4436,7 +4438,7 @@ const struct seq_operations slabstats_op
+  */
+ size_t ksize(const void *objp)
+ {
+-	if (unlikely(objp == NULL))
++	if (unlikely(ZERO_OR_NULL_PTR(objp)))
+ 		return 0;
+ 
+ 	return obj_size(virt_to_cache(objp));
+diff -puN mm/slob.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/slob.c
+--- a/mm/slob.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
++++ a/mm/slob.c
+@@ -306,7 +306,7 @@ static void slob_free(void *block, int s
+ 	slobidx_t units;
+ 	unsigned long flags;
+ 
+-	if (!block)
++	if (ZERO_OR_NULL_PTR(block))
+ 		return;
+ 	BUG_ON(!size);
+ 
+@@ -384,10 +384,13 @@ out:
+ 
+ void *__kmalloc(size_t size, gfp_t gfp)
+ {
++	unsigned int *m;
+ 	int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
+ 
+ 	if (size < PAGE_SIZE - align) {
+-		unsigned int *m;
++		if (!size)
++			return ZERO_SIZE_PTR;
++
+ 		m = slob_alloc(size + align, gfp, align);
+ 		if (m)
+ 			*m = size;
+@@ -411,7 +414,7 @@ void kfree(const void *block)
+ {
+ 	struct slob_page *sp;
+ 
+-	if (!block)
++	if (ZERO_OR_NULL_PTR(block))
+ 		return;
+ 
+ 	sp = (struct slob_page *)virt_to_page(block);
+@@ -430,7 +433,7 @@ size_t ksize(const void *block)
+ {
+ 	struct slob_page *sp;
+ 
+-	if (!block)
++	if (ZERO_OR_NULL_PTR(block))
+ 		return 0;
+ 
+ 	sp = (struct slob_page *)virt_to_page(block);
+diff -puN mm/slub.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/slub.c
+--- a/mm/slub.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
 +++ a/mm/slub.c
-@@ -1893,7 +1893,8 @@ static struct kmem_cache_node * __init e
- 	page->freelist = get_freepointer(kmalloc_caches, n);
- 	page->inuse++;
- 	kmalloc_caches->node[node] = n;
--	setup_object_debug(kmalloc_caches, page, n);
-+	init_object(kmalloc_caches, n, 1);
-+	init_tracking(kmalloc_caches, n);
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
- 	add_partial(n, page);
+@@ -2280,10 +2280,11 @@ static struct kmem_cache *get_slab(size_
+ 	int index = kmalloc_index(size);
+ 
+ 	if (!index)
+-		return NULL;
++		return ZERO_SIZE_PTR;
+ 
+ 	/* Allocation too large? */
+-	BUG_ON(index < 0);
++	if (index < 0)
++		return NULL;
+ 
+ #ifdef CONFIG_ZONE_DMA
+ 	if ((flags & SLUB_DMA)) {
+@@ -2324,9 +2325,10 @@ void *__kmalloc(size_t size, gfp_t flags
+ {
+ 	struct kmem_cache *s = get_slab(size, flags);
+ 
+-	if (s)
+-		return slab_alloc(s, flags, -1, __builtin_return_address(0));
+-	return ZERO_SIZE_PTR;
++	if (ZERO_OR_NULL_PTR(s))
++		return s;
++
++	return slab_alloc(s, flags, -1, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__kmalloc);
+ 
+@@ -2335,9 +2337,10 @@ void *__kmalloc_node(size_t size, gfp_t 
+ {
+ 	struct kmem_cache *s = get_slab(size, flags);
+ 
+-	if (s)
+-		return slab_alloc(s, flags, node, __builtin_return_address(0));
+-	return ZERO_SIZE_PTR;
++	if (ZERO_OR_NULL_PTR(s))
++		return s;
++
++	return slab_alloc(s, flags, node, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__kmalloc_node);
+ #endif
+@@ -2388,7 +2391,7 @@ void kfree(const void *x)
+ 	 * this comparison would be true for all "negative" pointers
+ 	 * (which would cover the whole upper half of the address space).
+ 	 */
+-	if ((unsigned long)x <= (unsigned long)ZERO_SIZE_PTR)
++	if (ZERO_OR_NULL_PTR(x))
+ 		return;
+ 
+ 	page = virt_to_head_page(x);
+@@ -2707,8 +2710,8 @@ void *__kmalloc_track_caller(size_t size
+ {
+ 	struct kmem_cache *s = get_slab(size, gfpflags);
+ 
+-	if (!s)
+-		return ZERO_SIZE_PTR;
++	if (ZERO_OR_NULL_PTR(s))
++		return s;
+ 
+ 	return slab_alloc(s, gfpflags, -1, caller);
+ }
+@@ -2718,8 +2721,8 @@ void *__kmalloc_node_track_caller(size_t
+ {
+ 	struct kmem_cache *s = get_slab(size, gfpflags);
+ 
+-	if (!s)
+-		return ZERO_SIZE_PTR;
++	if (ZERO_OR_NULL_PTR(s))
++		return s;
+ 
+ 	return slab_alloc(s, gfpflags, node, caller);
+ }
+diff -puN mm/util.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics mm/util.c
+--- a/mm/util.c~slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics
++++ a/mm/util.c
+@@ -99,7 +99,7 @@ void *krealloc(const void *p, size_t new
+ 
+ 	if (unlikely(!new_size)) {
+ 		kfree(p);
+-		return NULL;
++		return ZERO_SIZE_PTR;
+ 	}
+ 
+ 	ks = ksize(p);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
