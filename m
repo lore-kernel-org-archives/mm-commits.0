@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-lzo1x-algorithm-to-the-kernel.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:00:26 -0700
-Message-ID: <200706191900.l5JJ0Q40018640@imap1.linux-foundation.org>
+Subject: + slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:19:03 -0700
+Message-ID: <200706191919.l5JJJ3fs019039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37924 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52035 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764357AbXFSTBe (ORCPT
+	by vger.kernel.org with ESMTP id S933507AbXFSTTN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:01:34 -0400
+	Tue, 19 Jun 2007 15:19:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpurdie@openedhand.com, nitingupta910@gmail.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Add LZO1X algorithm to the kernel
+     SLUB Debug: fix initial object debug state of NUMA bootstrap objects
 has been added to the -mm tree.  Its filename is
-     add-lzo1x-algorithm-to-the-kernel.patch
+     slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,658 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add LZO1X algorithm to the kernel
-From: Richard Purdie <rpurdie@openedhand.com>
+Subject: SLUB Debug: fix initial object debug state of NUMA bootstrap objects
+From: Christoph Lameter <clameter@sgi.com>
 
-This is a hybrid version of the patch to add the LZO1X compression
-algorithm to the kernel.  Nitin and myself have merged the best parts of
-the various patches to form this version which we're both happy with (and
-are jointly signing off).
+The function we are calling to initialize object debug state during early NUMA
+bootstrap sets up an inactive object giving it the wrong redzone signature. 
+The bootstrap nodes are active objects and should have active redzone
+signatures.
 
-The performance of this version is equivalent to the original minilzo code
-it was based on.  Bytecode comparisons have also been made on ARM, i386 and
-x86_64 with favourable results.
+Currently slab validation complains and reverts the object to active state.
 
-There are several users of LZO lined up including jffs2, crypto and reiser4
-since its much faster than zlib.
-
-Signed-off-by: Nitin Gupta <nitingupta910@gmail.com>
-Signed-off-by: Richard Purdie <rpurdie@openedhand.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lzo.h        |   44 ++++++
- lib/Kconfig                |    6 
- lib/Makefile               |    2 
- lib/lzo/Makefile           |    5 
- lib/lzo/lzo1x_compress.c   |  226 +++++++++++++++++++++++++++++++
- lib/lzo/lzo1x_decompress.c |  254 +++++++++++++++++++++++++++++++++++
- lib/lzo/lzodefs.h          |   43 +++++
- 7 files changed, 580 insertions(+)
+ mm/slub.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null include/linux/lzo.h
---- /dev/null
-+++ a/include/linux/lzo.h
-@@ -0,0 +1,44 @@
-+#ifndef __LZO_H__
-+#define __LZO_H__
-+/*
-+ *  LZO Public Kernel Interface
-+ *  A mini subset of the LZO real-time data compression library
-+ *
-+ *  Copyright (C) 1996-2005 Markus F.X.J. Oberhumer <markus@oberhumer.com>
-+ *
-+ *  The full LZO package can be found at:
-+ *  http://www.oberhumer.com/opensource/lzo/
-+ *
-+ *  Changed for kernel use by:
-+ *  Nitin Gupta <nitingupta910@gmail.com>
-+ *  Richard Purdie <rpurdie@openedhand.com>
-+ */
-+
-+#define LZO1X_MEM_COMPRESS	(16384 * sizeof(unsigned char *))
-+#define LZO1X_1_MEM_COMPRESS	LZO1X_MEM_COMPRESS
-+
-+#define lzo1x_worst_compress(x) (x + (x / 64) + 16 + 3)
-+
-+/* This requires 'workmem' of size LZO1X_1_MEM_COMPRESS */
-+int lzo1x_1_compress(const unsigned char *src, size_t src_len,
-+			unsigned char *dst, size_t *dst_len, void *wrkmem);
-+
-+/* safe decompression with overrun testing */
-+int lzo1x_decompress_safe(const unsigned char *src, size_t src_len,
-+			unsigned char *dst, size_t *dst_len);
-+
-+/*
-+ * Return values (< 0 = Error)
-+ */
-+#define LZO_E_OK			0
-+#define LZO_E_ERROR			(-1)
-+#define LZO_E_OUT_OF_MEMORY		(-2)
-+#define LZO_E_NOT_COMPRESSIBLE		(-3)
-+#define LZO_E_INPUT_OVERRUN		(-4)
-+#define LZO_E_OUTPUT_OVERRUN		(-5)
-+#define LZO_E_LOOKBEHIND_OVERRUN	(-6)
-+#define LZO_E_EOF_NOT_FOUND		(-7)
-+#define LZO_E_INPUT_NOT_CONSUMED	(-8)
-+#define LZO_E_NOT_YET_IMPLEMENTED	(-9)
-+
-+#endif
-diff -puN lib/Kconfig~add-lzo1x-algorithm-to-the-kernel lib/Kconfig
---- a/lib/Kconfig~add-lzo1x-algorithm-to-the-kernel
-+++ a/lib/Kconfig
-@@ -64,6 +64,12 @@ config ZLIB_INFLATE
- config ZLIB_DEFLATE
- 	tristate
- 
-+config LZO_COMPRESS
-+	tristate
-+
-+config LZO_DECOMPRESS
-+	tristate
-+
- #
- # Generic allocator support is selected if needed
- #
-diff -puN lib/Makefile~add-lzo1x-algorithm-to-the-kernel lib/Makefile
---- a/lib/Makefile~add-lzo1x-algorithm-to-the-kernel
-+++ a/lib/Makefile
-@@ -49,6 +49,8 @@ obj-$(CONFIG_GENERIC_ALLOCATOR) += genal
- obj-$(CONFIG_ZLIB_INFLATE) += zlib_inflate/
- obj-$(CONFIG_ZLIB_DEFLATE) += zlib_deflate/
- obj-$(CONFIG_REED_SOLOMON) += reed_solomon/
-+obj-$(CONFIG_LZO_COMPRESS) += lzo/
-+obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
- 
- obj-$(CONFIG_TEXTSEARCH) += textsearch.o
- obj-$(CONFIG_TEXTSEARCH_KMP) += ts_kmp.o
-diff -puN /dev/null lib/lzo/Makefile
---- /dev/null
-+++ a/lib/lzo/Makefile
-@@ -0,0 +1,5 @@
-+lzo_compress-objs := lzo1x_compress.o
-+lzo_decompress-objs := lzo1x_decompress.o
-+
-+obj-$(CONFIG_LZO_COMPRESS) += lzo_compress.o
-+obj-$(CONFIG_LZO_DECOMPRESS) += lzo_decompress.o
-diff -puN /dev/null lib/lzo/lzo1x_compress.c
---- /dev/null
-+++ a/lib/lzo/lzo1x_compress.c
-@@ -0,0 +1,226 @@
-+/*
-+ *  LZO1X Compressor from MiniLZO
-+ *
-+ *  Copyright (C) 1996-2005 Markus F.X.J. Oberhumer <markus@oberhumer.com>
-+ *
-+ *  The full LZO package can be found at:
-+ *  http://www.oberhumer.com/opensource/lzo/
-+ *
-+ *  Changed for kernel use by:
-+ *  Nitin Gupta <nitingupta910@gmail.com>
-+ *  Richard Purdie <rpurdie@openedhand.com>
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/lzo.h>
-+#include <asm/unaligned.h>
-+#include "lzodefs.h"
-+
-+static noinline size_t
-+_lzo1x_1_do_compress(const unsigned char *in, size_t in_len,
-+		unsigned char *out, size_t *out_len, void *wrkmem)
-+{
-+	const unsigned char * const in_end = in + in_len;
-+	const unsigned char * const ip_end = in + in_len - M2_MAX_LEN - 5;
-+	const unsigned char ** const dict = wrkmem;
-+	const unsigned char *ip = in, *ii = ip;
-+	const unsigned char *end, *m, *m_pos;
-+	size_t m_off, m_len, dindex;
-+	unsigned char *op = out;
-+
-+	ip += 4;
-+
-+	for (;;) {
-+		dindex = ((0x21 * DX3(ip, 5, 5, 6)) >> 5) & D_MASK;
-+		m_pos = dict[dindex];
-+
-+		if (m_pos < in)
-+			goto literal;
-+
-+		if (ip == m_pos || (ip - m_pos) > M4_MAX_OFFSET)
-+			goto literal;
-+
-+		m_off = ip - m_pos;
-+		if (m_off <= M2_MAX_OFFSET || m_pos[3] == ip[3])
-+			goto try_match;
-+
-+		dindex = (dindex & (D_MASK & 0x7ff)) ^ (D_HIGH | 0x1f);
-+		m_pos = dict[dindex];
-+
-+		if (m_pos < in)
-+			goto literal;
-+
-+		if (ip == m_pos || (ip - m_pos) > M4_MAX_OFFSET)
-+			goto literal;
-+
-+		m_off = ip - m_pos;
-+		if (m_off <= M2_MAX_OFFSET || m_pos[3] == ip[3])
-+			goto try_match;
-+
-+		goto literal;
-+
-+try_match:
-+		if (get_unaligned((const unsigned short *)m_pos)
-+				== get_unaligned((const unsigned short *)ip)) {
-+			if (likely(m_pos[2] == ip[2]))
-+					goto match;
-+		}
-+
-+literal:
-+		dict[dindex] = ip;
-+		++ip;
-+		if (unlikely(ip >= ip_end))
-+			break;
-+		continue;
-+
-+match:
-+		dict[dindex] = ip;
-+		if (ip != ii) {
-+			size_t t = ip - ii;
-+
-+			if (t <= 3) {
-+				op[-2] |= t;
-+			} else if (t <= 18) {
-+				*op++ = (t - 3);
-+			} else {
-+				size_t tt = t - 18;
-+
-+				*op++ = 0;
-+				while (tt > 255) {
-+					tt -= 255;
-+					*op++ = 0;
-+				}
-+				*op++ = tt;
-+			}
-+			do {
-+				*op++ = *ii++;
-+			} while (--t > 0);
-+		}
-+
-+		ip += 3;
-+		if (m_pos[3] != *ip++ || m_pos[4] != *ip++
-+				|| m_pos[5] != *ip++ || m_pos[6] != *ip++
-+				|| m_pos[7] != *ip++ || m_pos[8] != *ip++) {
-+			--ip;
-+			m_len = ip - ii;
-+
-+			if (m_off <= M2_MAX_OFFSET) {
-+				m_off -= 1;
-+				*op++ = (((m_len - 1) << 5)
-+						| ((m_off & 7) << 2));
-+				*op++ = (m_off >> 3);
-+			} else if (m_off <= M3_MAX_OFFSET) {
-+				m_off -= 1;
-+				*op++ = (M3_MARKER | (m_len - 2));
-+				goto m3_m4_offset;
-+			} else {
-+				m_off -= 0x4000;
-+
-+				*op++ = (M4_MARKER | ((m_off & 0x4000) >> 11)
-+						| (m_len - 2));
-+				goto m3_m4_offset;
-+			}
-+		} else {
-+			end = in_end;
-+			m = m_pos + M2_MAX_LEN + 1;
-+
-+			while (ip < end && *m == *ip) {
-+				m++;
-+				ip++;
-+			}
-+			m_len = ip - ii;
-+
-+			if (m_off <= M3_MAX_OFFSET) {
-+				m_off -= 1;
-+				if (m_len <= 33) {
-+					*op++ = (M3_MARKER | (m_len - 2));
-+				} else {
-+					m_len -= 33;
-+					*op++ = M3_MARKER | 0;
-+					goto m3_m4_len;
-+				}
-+			} else {
-+				m_off -= 0x4000;
-+				if (m_len <= M4_MAX_LEN) {
-+					*op++ = (M4_MARKER
-+						| ((m_off & 0x4000) >> 11)
-+						| (m_len - 2));
-+				} else {
-+					m_len -= M4_MAX_LEN;
-+					*op++ = (M4_MARKER
-+						| ((m_off & 0x4000) >> 11));
-+m3_m4_len:
-+					while (m_len > 255) {
-+						m_len -= 255;
-+						*op++ = 0;
-+					}
-+
-+					*op++ = (m_len);
-+				}
-+			}
-+m3_m4_offset:
-+			*op++ = ((m_off & 63) << 2);
-+			*op++ = (m_off >> 6);
-+		}
-+
-+		ii = ip;
-+		if (unlikely(ip >= ip_end))
-+			break;
-+	}
-+
-+	*out_len = op - out;
-+	return in_end - ii;
-+}
-+
-+int lzo1x_1_compress(const unsigned char *in, size_t in_len, unsigned char *out,
-+			size_t *out_len, void *wrkmem)
-+{
-+	const unsigned char *ii;
-+	unsigned char *op = out;
-+	size_t t;
-+
-+	if (unlikely(in_len <= M2_MAX_LEN + 5)) {
-+		t = in_len;
-+	} else {
-+		t = _lzo1x_1_do_compress(in, in_len, op, out_len, wrkmem);
-+		op += *out_len;
-+	}
-+
-+	if (t > 0) {
-+		ii = in + in_len - t;
-+
-+		if (op == out && t <= 238) {
-+			*op++ = (17 + t);
-+		} else if (t <= 3) {
-+			op[-2] |= t;
-+		} else if (t <= 18) {
-+			*op++ = (t - 3);
-+		} else {
-+			size_t tt = t - 18;
-+
-+			*op++ = 0;
-+			while (tt > 255) {
-+				tt -= 255;
-+				*op++ = 0;
-+			}
-+
-+			*op++ = tt;
-+		}
-+		do {
-+			*op++ = *ii++;
-+		} while (--t > 0);
-+	}
-+
-+	*op++ = M4_MARKER | 1;
-+	*op++ = 0;
-+	*op++ = 0;
-+
-+	*out_len = op - out;
-+	return LZO_E_OK;
-+}
-+EXPORT_SYMBOL_GPL(lzo1x_1_compress);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("LZO1X-1 Compressor");
-+
-diff -puN /dev/null lib/lzo/lzo1x_decompress.c
---- /dev/null
-+++ a/lib/lzo/lzo1x_decompress.c
-@@ -0,0 +1,254 @@
-+/*
-+ *  LZO1X Decompressor from MiniLZO
-+ *
-+ *  Copyright (C) 1996-2005 Markus F.X.J. Oberhumer <markus@oberhumer.com>
-+ *
-+ *  The full LZO package can be found at:
-+ *  http://www.oberhumer.com/opensource/lzo/
-+ *
-+ *  Changed for kernel use by:
-+ *  Nitin Gupta <nitingupta910@gmail.com>
-+ *  Richard Purdie <rpurdie@openedhand.com>
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/lzo.h>
-+#include <asm/byteorder.h>
-+#include <asm/unaligned.h>
-+#include "lzodefs.h"
-+
-+#define HAVE_IP(x, ip_end, ip) ((size_t)(ip_end - ip) < (x))
-+#define HAVE_OP(x, op_end, op) ((size_t)(op_end - op) < (x))
-+#define HAVE_LB(m_pos, out, op) (m_pos < out || m_pos >= op)
-+
-+#define COPY4(dst, src)	\
-+		put_unaligned(get_unaligned((const u32 *)(src)), (u32 *)(dst))
-+
-+int lzo1x_decompress_safe(const unsigned char *in, size_t in_len,
-+			unsigned char *out, size_t *out_len)
-+{
-+	const unsigned char * const ip_end = in + in_len;
-+	unsigned char * const op_end = out + *out_len;
-+	const unsigned char *ip = in, *m_pos;
-+	unsigned char *op = out;
-+	size_t t;
-+
-+	*out_len = 0;
-+
-+	if (*ip > 17) {
-+		t = *ip++ - 17;
-+		if (t < 4)
-+			goto match_next;
-+		if (HAVE_OP(t, op_end, op))
-+			goto output_overrun;
-+		if (HAVE_IP(t + 1, ip_end, ip))
-+			goto input_overrun;
-+		do {
-+			*op++ = *ip++;
-+		} while (--t > 0);
-+		goto first_literal_run;
-+	}
-+
-+	while ((ip < ip_end)) {
-+		t = *ip++;
-+		if (t >= 16)
-+			goto match;
-+		if (t == 0) {
-+			if (HAVE_IP(1, ip_end, ip))
-+				goto input_overrun;
-+			while (*ip == 0) {
-+				t += 255;
-+				ip++;
-+				if (HAVE_IP(1, ip_end, ip))
-+					goto input_overrun;
-+			}
-+			t += 15 + *ip++;
-+		}
-+		if (HAVE_OP(t + 3, op_end, op))
-+			goto output_overrun;
-+		if (HAVE_IP(t + 4, ip_end, ip))
-+			goto input_overrun;
-+
-+		COPY4(op, ip);
-+		op += 4;
-+		ip += 4;
-+		if (--t > 0) {
-+			if (t >= 4) {
-+				do {
-+					COPY4(op, ip);
-+					op += 4;
-+					ip += 4;
-+					t -= 4;
-+				} while (t >= 4);
-+				if (t > 0) {
-+					do {
-+						*op++ = *ip++;
-+					} while (--t > 0);
-+				}
-+			} else {
-+				do {
-+					*op++ = *ip++;
-+				} while (--t > 0);
-+			}
-+		}
-+
-+first_literal_run:
-+		t = *ip++;
-+		if (t >= 16)
-+			goto match;
-+		m_pos = op - (1 + M2_MAX_OFFSET);
-+		m_pos -= t >> 2;
-+		m_pos -= *ip++ << 2;
-+
-+		if (HAVE_LB(m_pos, out, op))
-+			goto lookbehind_overrun;
-+
-+		if (HAVE_OP(3, op_end, op))
-+			goto output_overrun;
-+		*op++ = *m_pos++;
-+		*op++ = *m_pos++;
-+		*op++ = *m_pos;
-+
-+		goto match_done;
-+
-+		do {
-+match:
-+			if (t >= 64) {
-+				m_pos = op - 1;
-+				m_pos -= (t >> 2) & 7;
-+				m_pos -= *ip++ << 3;
-+				t = (t >> 5) - 1;
-+				if (HAVE_LB(m_pos, out, op))
-+					goto lookbehind_overrun;
-+				if (HAVE_OP(t + 3 - 1, op_end, op))
-+					goto output_overrun;
-+				goto copy_match;
-+			} else if (t >= 32) {
-+				t &= 31;
-+				if (t == 0) {
-+					if (HAVE_IP(1, ip_end, ip))
-+						goto input_overrun;
-+					while (*ip == 0) {
-+						t += 255;
-+						ip++;
-+						if (HAVE_IP(1, ip_end, ip))
-+							goto input_overrun;
-+					}
-+					t += 31 + *ip++;
-+				}
-+				m_pos = op - 1;
-+				m_pos -= le16_to_cpu(get_unaligned(
-+					(const unsigned short *)ip)) >> 2;
-+				ip += 2;
-+			} else if (t >= 16) {
-+				m_pos = op;
-+				m_pos -= (t & 8) << 11;
-+
-+				t &= 7;
-+				if (t == 0) {
-+					if (HAVE_IP(1, ip_end, ip))
-+						goto input_overrun;
-+					while (*ip == 0) {
-+						t += 255;
-+						ip++;
-+						if (HAVE_IP(1, ip_end, ip))
-+							goto input_overrun;
-+					}
-+					t += 7 + *ip++;
-+				}
-+				m_pos -= le16_to_cpu(get_unaligned(
-+					(const unsigned short *)ip) >> 2);
-+				ip += 2;
-+				if (m_pos == op)
-+					goto eof_found;
-+				m_pos -= 0x4000;
-+			} else {
-+				m_pos = op - 1;
-+				m_pos -= t >> 2;
-+				m_pos -= *ip++ << 2;
-+
-+				if (HAVE_LB(m_pos, out, op))
-+					goto lookbehind_overrun;
-+				if (HAVE_OP(2, op_end, op))
-+					goto output_overrun;
-+
-+				*op++ = *m_pos++;
-+				*op++ = *m_pos;
-+				goto match_done;
-+			}
-+
-+			if (HAVE_LB(m_pos, out, op))
-+				goto lookbehind_overrun;
-+			if (HAVE_OP(t + 3 - 1, op_end, op))
-+				goto output_overrun;
-+
-+			if (t >= 2 * 4 - (3 - 1) && (op - m_pos) >= 4) {
-+				COPY4(op, m_pos);
-+				op += 4;
-+				m_pos += 4;
-+				t -= 4 - (3 - 1);
-+				do {
-+					COPY4(op, m_pos);
-+					op += 4;
-+					m_pos += 4;
-+					t -= 4;
-+				} while (t >= 4);
-+				if (t > 0)
-+					do {
-+						*op++ = *m_pos++;
-+					} while (--t > 0);
-+			} else {
-+copy_match:
-+				*op++ = *m_pos++;
-+				*op++ = *m_pos++;
-+				do {
-+					*op++ = *m_pos++;
-+				} while (--t > 0);
-+			}
-+match_done:
-+			t = ip[-2] & 3;
-+			if (t == 0)
-+				break;
-+match_next:
-+			if (HAVE_OP(t, op_end, op))
-+				goto output_overrun;
-+			if (HAVE_IP(t + 1, ip_end, ip))
-+				goto input_overrun;
-+
-+			*op++ = *ip++;
-+			if (t > 1) {
-+				*op++ = *ip++;
-+				if (t > 2)
-+					*op++ = *ip++;
-+			}
-+
-+			t = *ip++;
-+		} while (ip < ip_end);
-+	}
-+
-+	*out_len = op - out;
-+	return LZO_E_EOF_NOT_FOUND;
-+
-+eof_found:
-+	*out_len = op - out;
-+	return (ip == ip_end ? LZO_E_OK :
-+		(ip < ip_end ? LZO_E_INPUT_NOT_CONSUMED : LZO_E_INPUT_OVERRUN));
-+input_overrun:
-+	*out_len = op - out;
-+	return LZO_E_INPUT_OVERRUN;
-+
-+output_overrun:
-+	*out_len = op - out;
-+	return LZO_E_OUTPUT_OVERRUN;
-+
-+lookbehind_overrun:
-+	*out_len = op - out;
-+	return LZO_E_LOOKBEHIND_OVERRUN;
-+}
-+
-+EXPORT_SYMBOL_GPL(lzo1x_decompress_safe);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("LZO1X Decompressor");
-+
-diff -puN /dev/null lib/lzo/lzodefs.h
---- /dev/null
-+++ a/lib/lzo/lzodefs.h
-@@ -0,0 +1,43 @@
-+/*
-+ *  lzodefs.h -- architecture, OS and compiler specific defines
-+ *
-+ *  Copyright (C) 1996-2005 Markus F.X.J. Oberhumer <markus@oberhumer.com>
-+ *
-+ *  The full LZO package can be found at:
-+ *  http://www.oberhumer.com/opensource/lzo/
-+ *
-+ *  Changed for kernel use by:
-+ *  Nitin Gupta <nitingupta910@gmail.com>
-+ *  Richard Purdie <rpurdie@openedhand.com>
-+ */
-+
-+#define LZO_VERSION		0x2020
-+#define LZO_VERSION_STRING	"2.02"
-+#define LZO_VERSION_DATE	"Oct 17 2005"
-+
-+#define M1_MAX_OFFSET	0x0400
-+#define M2_MAX_OFFSET	0x0800
-+#define M3_MAX_OFFSET	0x4000
-+#define M4_MAX_OFFSET	0xbfff
-+
-+#define M1_MIN_LEN	2
-+#define M1_MAX_LEN	2
-+#define M2_MIN_LEN	3
-+#define M2_MAX_LEN	8
-+#define M3_MIN_LEN	3
-+#define M3_MAX_LEN	33
-+#define M4_MIN_LEN	3
-+#define M4_MAX_LEN	9
-+
-+#define M1_MARKER	0
-+#define M2_MARKER	64
-+#define M3_MARKER	32
-+#define M4_MARKER	16
-+
-+#define D_BITS		14
-+#define D_MASK		((1u << D_BITS) - 1)
-+#define D_HIGH		((D_MASK >> 1) + 1)
-+
-+#define DX2(p, s1, s2)	(((((size_t)((p)[2]) << (s2)) ^ (p)[1]) \
-+							<< (s1)) ^ (p)[0])
-+#define DX3(p, s1, s2, s3)	((DX2((p)+1, s2, s3) << (s1)) ^ (p)[0])
+diff -puN mm/slub.c~slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects mm/slub.c
+--- a/mm/slub.c~slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects
++++ a/mm/slub.c
+@@ -1893,7 +1893,8 @@ static struct kmem_cache_node * __init e
+ 	page->freelist = get_freepointer(kmalloc_caches, n);
+ 	page->inuse++;
+ 	kmalloc_caches->node[node] = n;
+-	setup_object_debug(kmalloc_caches, page, n);
++	init_object(kmalloc_caches, n, 1);
++	init_tracking(kmalloc_caches, n);
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+ 	add_partial(n, page);
 _
 
-Patches currently in -mm which might be from rpurdie@openedhand.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-leds.patch
-add-lzo1x-algorithm-to-the-kernel.patch
+git-ubi.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
+numa-mempolicy-trivial-debug-fixes.patch
+add-populated_map-to-account-for-memoryless-nodes.patch
+add-populated_map-to-account-for-memoryless-nodes-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of.patch
+slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
+slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
+slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
+slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
+slab-allocators-support-__gfp_zero-in-all-allocators.patch
+slab-allocators-cleanup-zeroing-allocations.patch
+slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
+slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
+slub-extract-dma_kmalloc_cache-from-get_cache.patch
+slub-do-proper-locking-during-dma-slab-creation.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
