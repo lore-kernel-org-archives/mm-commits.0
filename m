@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc_class-is-no-longer-considered-experimental.patch added to -mm tree
-Date: Tue, 19 Jun 2007 11:19:13 -0700
-Message-ID: <200706191819.l5JIJDit017824@imap1.linux-foundation.org>
+Subject: + kerneldoc-fix-in-libata.patch added to -mm tree
+Date: Tue, 19 Jun 2007 11:20:12 -0700
+Message-ID: <200706191820.l5JIKCCQ017864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42785 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752569AbXFSSTZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760734AbXFSSUa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 14:19:25 -0400
+	Tue, 19 Jun 2007 14:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it
+Cc: henne@nachtwindheim.de
 
 
 The patch titled
-     RTC_CLASS is no longer considered EXPERIMENTAL
+     kerneldoc fix in libata
 has been added to the -mm tree.  Its filename is
-     rtc_class-is-no-longer-considered-experimental.patch
+     kerneldoc-fix-in-libata.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC_CLASS is no longer considered EXPERIMENTAL
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: kerneldoc fix in libata
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-RTC class is mature enough.
+Fix parameter name from ata_dev_reread_id() in libata-core.c for kerneldoc.
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/ata/libata-core.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc_class-is-no-longer-considered-experimental drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc_class-is-no-longer-considered-experimental
-+++ a/drivers/rtc/Kconfig
-@@ -10,7 +10,6 @@ config RTC_LIB
+diff -puN drivers/ata/libata-core.c~kerneldoc-fix-in-libata drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~kerneldoc-fix-in-libata
++++ a/drivers/ata/libata-core.c
+@@ -3665,7 +3665,7 @@ static int ata_dev_same_device(struct at
  
- config RTC_CLASS
- 	tristate "RTC class"
--	depends on EXPERIMENTAL
- 	default n
- 	select RTC_LIB
- 	help
+ /**
+  *	ata_dev_reread_id - Re-read IDENTIFY data
+- *	@adev: target ATA device
++ *	@dev: target ATA device
+  *	@readid_flags: read ID flags
+  *
+  *	Re-read IDENTIFY page and make sure @dev is still attached to
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
 
-rtc_class-is-no-longer-considered-experimental.patch
+kerneldoc-fix-in-libata.patch
