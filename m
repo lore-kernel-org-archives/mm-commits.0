@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asus_acpi-fix-oops-on-non-asus-machines.patch added to -mm tree
-Date: Tue, 19 Jun 2007 13:22:04 -0700
-Message-ID: <200706192022.l5JKM408020353@imap1.linux-foundation.org>
+Subject: + mm-more-__meminit-annotations.patch added to -mm tree
+Date: Tue, 19 Jun 2007 13:23:09 -0700
+Message-ID: <200706192023.l5JKN9u5020371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761890AbXFSUW3 (ORCPT
+	by vger.kernel.org with ESMTP id S1762312AbXFSUXT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 16:22:29 -0400
+	Tue, 19 Jun 2007 16:23:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maxime@tralhalla.org, lenb@kernel.org, rpurdie@rpsys.net
+Cc: lethal@linux-sh.org, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     asus_acpi: fix oops on non-asus machines
+     mm: more __meminit annotations
 has been added to the -mm tree.  Its filename is
-     asus_acpi-fix-oops-on-non-asus-machines.patch
+     mm-more-__meminit-annotations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: asus_acpi: fix oops on non-asus machines
-From: Maxime Austruy <maxime@tralhalla.org>
+Subject: mm: more __meminit annotations
+From: Paul Mundt <lethal@linux-sh.org>
 
-If asus_acpi_init doesn't find any device it knows about, it mistakenly
-returns a "success" error code even though it cleans up after itself.  Later
-when trying to rmmod asus_acpi, the module_exit routine would try to clean up
-one more time and we would end up calling
-acpi_bus_unregister_driver(&asus_hotk_driver) twice.  This patch addresses
-this first problem by returning -ENODEV when no appropriate device is found.  
+Currently zone_spanned_pages_in_node() and zone_absent_pages_in_node() are
+non-static for ARCH_POPULATES_NODE_MAP and static otherwise.  However, only
+the non-static versions are __meminit annotated, despite only being called
+from __meminit functions in either case.
 
-Then there was also another bug with the code handling the return value of
-backlight_device_register.  If this function ever failed, the driver would
-cleanup by calling the module_exit routine from module_init, but it would
-still return "success".  So any attempt to rmmod this module would result in
-asus_acpi_exit being called twice but it's not ready to handle it (I haven't
-hit this bug, just found it by code inspection).  This patch fixes that by
-inserting a return -ENODEV; at the end of this error handling path.
+zone_init_free_lists() is currently non-static and not __meminit annotated
+either, despite only being called once in the entire tree by
+init_currently_empty_zone(), which too is __meminit.  So make it static and
+properly annotated.
 
-Signed-off-by: Maxime Austruy <maxime@tralhalla.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-fix-oops-on-non-asus-machines drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-fix-oops-on-non-asus-machines
-+++ a/drivers/acpi/asus_acpi.c
-@@ -1398,7 +1398,7 @@ static int __init asus_acpi_init(void)
- 	if (!asus_hotk_found) {
- 		acpi_bus_unregister_driver(&asus_hotk_driver);
- 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
--		return result;
-+		return -ENODEV;
+diff -puN mm/page_alloc.c~mm-more-__meminit-annotations mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-more-__meminit-annotations
++++ a/mm/page_alloc.c
+@@ -2189,8 +2189,8 @@ void __meminit memmap_init_zone(unsigned
  	}
+ }
  
- 	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
-@@ -1407,6 +1407,7 @@ static int __init asus_acpi_init(void)
- 		printk(KERN_ERR "Could not register asus backlight device\n");
- 		asus_backlight_device = NULL;
- 		asus_acpi_exit();
-+		return -ENODEV;
- 	}
-         asus_backlight_device->props.max_brightness = 15;
+-void zone_init_free_lists(struct pglist_data *pgdat, struct zone *zone,
+-				unsigned long size)
++static void __meminit zone_init_free_lists(struct pglist_data *pgdat,
++				struct zone *zone, unsigned long size)
+ {
+ 	int order;
+ 	for (order = 0; order < MAX_ORDER ; order++) {
+@@ -2667,7 +2667,7 @@ void __meminit get_pfn_range_for_nid(uns
+  * Return the number of pages a zone spans in a node, including holes
+  * present_pages = zone_spanned_pages_in_node() - zone_absent_pages_in_node()
+  */
+-unsigned long __meminit zone_spanned_pages_in_node(int nid,
++static unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *ignored)
+ {
+@@ -2755,7 +2755,7 @@ unsigned long __init absent_pages_in_ran
+ }
  
+ /* Return the number of page frames in holes in a zone on a node */
+-unsigned long __meminit zone_absent_pages_in_node(int nid,
++static unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *ignored)
+ {
+@@ -2772,14 +2772,14 @@ unsigned long __meminit zone_absent_page
+ }
+ 
+ #else
+-static inline unsigned long zone_spanned_pages_in_node(int nid,
++static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
+ 					unsigned long zone_type,
+ 					unsigned long *zones_size)
+ {
+ 	return zones_size[zone_type];
+ }
+ 
+-static inline unsigned long zone_absent_pages_in_node(int nid,
++static inline unsigned long __meminit zone_absent_pages_in_node(int nid,
+ 						unsigned long zone_type,
+ 						unsigned long *zholes_size)
+ {
 _
 
-Patches currently in -mm which might be from maxime@tralhalla.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-asus_acpi-fix-oops-on-non-asus-machines.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+numa-mempolicy-trivial-debug-fixes.patch
+mm-more-__meminit-annotations.patch
+pvr2fb-fix-pseudo_palette-array-overrun-and-typecast.patch
+fb-epson1355fb-kill-off-dead-sh-support.patch
