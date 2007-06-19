@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-do-proper-locking-during-dma-slab-creation.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:19:24 -0700
-Message-ID: <200706191919.l5JJJOCg019066@imap1.linux-foundation.org>
+Subject: + slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:19:20 -0700
+Message-ID: <200706191919.l5JJJKbc019060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43940 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56065 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933527AbXFSTTd (ORCPT
+	by vger.kernel.org with ESMTP id S933306AbXFSTT3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:19:33 -0400
+	Tue, 19 Jun 2007 15:19:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: do proper locking during dma slab creation
+     SLUB: add some more inlines and #ifdef CONFIG_SLUB_DEBUG
 has been added to the -mm tree.  Its filename is
-     slub-do-proper-locking-during-dma-slab-creation.patch
+     slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: do proper locking during dma slab creation
+Subject: SLUB: add some more inlines and #ifdef CONFIG_SLUB_DEBUG
 From: Christoph Lameter <clameter@sgi.com>
 
-We modify the kmalloc_cache_dma[] array without proper locking.  Do the proper
-locking and undo the dma cache creation if another processor has already
-created it.
+Add #ifdefs around data structures only needed if debugging is compiled into
+SLUB.
+
+Add inlines to small functions to reduce code size.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+ include/linux/slub_def.h |    4 ++++
+ mm/slub.c                |   13 +++++++------
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN mm/slub.c~slub-do-proper-locking-during-dma-slab-creation mm/slub.c
---- a/mm/slub.c~slub-do-proper-locking-during-dma-slab-creation
+diff -puN include/linux/slub_def.h~slub-add-some-more-inlines-and-ifdef-config_slub_debug include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-add-some-more-inlines-and-ifdef-config_slub_debug
++++ a/include/linux/slub_def.h
+@@ -16,7 +16,9 @@ struct kmem_cache_node {
+ 	unsigned long nr_partial;
+ 	atomic_long_t nr_slabs;
+ 	struct list_head partial;
++#ifdef CONFIG_SLUB_DEBUG
+ 	struct list_head full;
++#endif
+ };
+ 
+ /*
+@@ -44,7 +46,9 @@ struct kmem_cache {
+ 	int align;		/* Alignment */
+ 	const char *name;	/* Name (only for display!) */
+ 	struct list_head list;	/* List of slab caches */
++#ifdef CONFIG_SLUB_DEBUG
+ 	struct kobject kobj;	/* For sysfs */
++#endif
+ 
+ #ifdef CONFIG_NUMA
+ 	int defrag_ratio;
+diff -puN mm/slub.c~slub-add-some-more-inlines-and-ifdef-config_slub_debug mm/slub.c
+--- a/mm/slub.c~slub-add-some-more-inlines-and-ifdef-config_slub_debug
 +++ a/mm/slub.c
-@@ -2311,8 +2311,15 @@ static noinline struct kmem_cache *dma_k
- 	text = kasprintf(flags & ~SLUB_DMA, "kmalloc_dma-%d",
- 			(unsigned int)realsize);
- 	s = create_kmalloc_cache(x, text, realsize, flags);
--	kmalloc_caches_dma[index] = s;
--	return s;
-+	down_write(&slub_lock);
-+	if (!kmalloc_caches_dma[index]) {
-+		kmalloc_caches_dma[index] = s;
-+		up_write(&slub_lock);
-+		return s;
-+	}
-+	up_write(&slub_lock);
-+	kmem_cache_destroy(s);
-+	return kmalloc_caches_dma[index];
- }
+@@ -259,9 +259,10 @@ static int sysfs_slab_add(struct kmem_ca
+ static int sysfs_slab_alias(struct kmem_cache *, const char *);
+ static void sysfs_slab_remove(struct kmem_cache *);
+ #else
+-static int sysfs_slab_add(struct kmem_cache *s) { return 0; }
+-static int sysfs_slab_alias(struct kmem_cache *s, const char *p) { return 0; }
+-static void sysfs_slab_remove(struct kmem_cache *s) {}
++static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
++static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
++							{ return 0; }
++static inline void sysfs_slab_remove(struct kmem_cache *s) {}
  #endif
+ 
+ /********************************************************************
+@@ -1405,7 +1406,7 @@ static void deactivate_slab(struct kmem_
+ 	unfreeze_slab(s, page);
+ }
+ 
+-static void flush_slab(struct kmem_cache *s, struct page *page, int cpu)
++static inline void flush_slab(struct kmem_cache *s, struct page *page, int cpu)
+ {
+ 	slab_lock(page);
+ 	deactivate_slab(s, page, cpu);
+@@ -1415,7 +1416,7 @@ static void flush_slab(struct kmem_cache
+  * Flush cpu slab.
+  * Called from IPI handler with interrupts disabled.
+  */
+-static void __flush_cpu_slab(struct kmem_cache *s, int cpu)
++static inline void __flush_cpu_slab(struct kmem_cache *s, int cpu)
+ {
+ 	struct page *page = s->cpu_slab[cpu];
+ 
+@@ -2175,7 +2176,7 @@ static int free_list(struct kmem_cache *
+ /*
+  * Release all resources used by a slab cache.
+  */
+-static int kmem_cache_close(struct kmem_cache *s)
++static inline int kmem_cache_close(struct kmem_cache *s)
+ {
+ 	int node;
  
 _
 
