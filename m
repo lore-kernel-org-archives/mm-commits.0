@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-faster-more-efficient-slab-determination-for-__kmalloc.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:19:26 -0700
-Message-ID: <200706191919.l5JJJRh3019069@imap1.linux-foundation.org>
+Subject: + diskquota-32bit-quota-tools-on-64bit-architectures.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:33:35 -0700
+Message-ID: <200706191933.l5JJXZ53019331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933530AbXFSTTg (ORCPT
+	by vger.kernel.org with ESMTP id S1758812AbXFSTeB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:19:36 -0400
+	Tue, 19 Jun 2007 15:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: vtaras@openvz.org, ak@suse.de, jack@ucw.cz, linux-arch@vger.kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     SLUB: faster more efficient slab determination for __kmalloc
+     diskquota: 32bit quota tools on 64bit architectures
 has been added to the -mm tree.  Its filename is
-     slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
+     diskquota-32bit-quota-tools-on-64bit-architectures.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,188 +26,210 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: faster more efficient slab determination for __kmalloc
-From: Christoph Lameter <clameter@sgi.com>
+Subject: diskquota: 32bit quota tools on 64bit architectures
+From: Vasily Tarasov <vtaras@openvz.org>
 
-kmalloc_index is a long series of comparisons.  The attempt to replace
-kmalloc_index with something more efficient like ilog2 failed due to compiler
-issues with constant folding on gcc 3.3 / powerpc.
+OpenVZ Linux kernel team has discovered the problem with 32bit quota tools
+working on 64bit architectures.  In 2.6.10 kernel sys32_quotactl() function
+was replaced by sys_quotactl() with the comment "sys_quotactl seems to be
+32/64bit clean, enable it for 32bit" However this isn't right.  Look at
+if_dqblk structure:
 
-kmalloc_index()'es long list of comparisons works fine for constant folding
-since all the comparisons are optimized away.  However, SLUB also uses
-kmalloc_index to determine the slab to use for the __kmalloc_xxx functions. 
-This leads to a large set of comparisons in get_slab().
+struct if_dqblk {
+        __u64 dqb_bhardlimit;
+        __u64 dqb_bsoftlimit;
+        __u64 dqb_curspace;
+        __u64 dqb_ihardlimit;
+        __u64 dqb_isoftlimit;
+        __u64 dqb_curinodes;
+        __u64 dqb_btime;
+        __u64 dqb_itime;
+        __u32 dqb_valid;
+};
 
-The patch here allows to get rid of that list of comparisons in get_slab():
+For 32 bit quota tools sizeof(if_dqblk) == 0x44.
+But for 64 bit kernel its size is 0x48, 'cause of alignment!
+Thus we got a problem. Attached patch reintroduce sys32_quotactl() function,
+that handles this and related situations.
 
-1. If the requested size is larger than 192 then we can simply use
-   fls to determine the slab index since all larger slabs are
-   of the power of two type.
-
-2. If the requested size is smaller then we cannot use fls since there
-   are non power of two caches to be considered. However, the sizes are
-   in a managable range. So we divide the size by 8. Then we have only
-   24 possibilities left and then we simply look up the kmalloc index
-   in a table.
-
-Code size of slub.o decreases by more than 200 bytes through this patch.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Vasily Tarasov <vtaras@openvz.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   71 ++++++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 64 insertions(+), 7 deletions(-)
+ arch/ia64/ia32/ia32_entry.S  |    2 
+ arch/x86_64/ia32/ia32entry.S |    2 
+ fs/quota.c                   |  118 +++++++++++++++++++++++++++++++++
+ 3 files changed, 120 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc mm/slub.c
---- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc
-+++ a/mm/slub.c
-@@ -2323,20 +2323,59 @@ static noinline struct kmem_cache *dma_k
- }
- #endif
+diff -puN arch/ia64/ia32/ia32_entry.S~diskquota-32bit-quota-tools-on-64bit-architectures arch/ia64/ia32/ia32_entry.S
+--- a/arch/ia64/ia32/ia32_entry.S~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/arch/ia64/ia32/ia32_entry.S
+@@ -304,7 +304,7 @@ ia32_syscall_table:
+ 	data8 sys_ni_syscall	/* init_module */
+ 	data8 sys_ni_syscall	/* delete_module */
+ 	data8 sys_ni_syscall	/* get_kernel_syms */  /* 130 */
+-	data8 sys_quotactl
++	data8 sys32_quotactl
+ 	data8 sys_getpgid
+ 	data8 sys_fchdir
+ 	data8 sys_ni_syscall	/* sys_bdflush */
+diff -puN arch/x86_64/ia32/ia32entry.S~diskquota-32bit-quota-tools-on-64bit-architectures arch/x86_64/ia32/ia32entry.S
+--- a/arch/x86_64/ia32/ia32entry.S~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/arch/x86_64/ia32/ia32entry.S
+@@ -526,7 +526,7 @@ ia32_sys_call_table:
+ 	.quad sys_init_module
+ 	.quad sys_delete_module
+ 	.quad quiet_ni_syscall		/* 130  get_kernel_syms */
+-	.quad sys_quotactl
++	.quad sys32_quotactl
+ 	.quad sys_getpgid
+ 	.quad sys_fchdir
+ 	.quad quiet_ni_syscall	/* bdflush */
+diff -puN fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures fs/quota.c
+--- a/fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures
++++ a/fs/quota.c
+@@ -10,12 +10,14 @@
+ #include <linux/slab.h>
+ #include <asm/current.h>
+ #include <asm/uaccess.h>
++#include <asm/compat.h>
+ #include <linux/kernel.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+ #include <linux/buffer_head.h>
+ #include <linux/capability.h>
+ #include <linux/quotaops.h>
++#include <linux/types.h>
  
+ /* Check validity of generic quotactl commands */
+ static int generic_quotactl_valid(struct super_block *sb, int type, int cmd, qid_t id)
+@@ -384,3 +386,119 @@ asmlinkage long sys_quotactl(unsigned in
+ 
+ 	return ret;
+ }
++
++#if defined(CONFIG_X86_64) || defined(CONFIG_IA64)
 +/*
-+ * Conversion table for small slabs sizes / 8 to the index in the
-+ * kmalloc array. This is necessary for slabs < 192 since we have non power
-+ * of two cache sizes there. The size of larger slabs can be determined using
-+ * fls.
++ * This code works only for 32 bit quota tools over 64 bit OS (x86_64, ia64)
++ * and is necessary due to alignment problems.
 + */
-+static s8 size_index[24] = {
-+	3,	/* 8 */
-+	4,	/* 16 */
-+	5,	/* 24 */
-+	5,	/* 32 */
-+	6,	/* 40 */
-+	6,	/* 48 */
-+	6,	/* 56 */
-+	6,	/* 64 */
-+	1,	/* 72 */
-+	1,	/* 80 */
-+	1,	/* 88 */
-+	1,	/* 96 */
-+	7,	/* 104 */
-+	7,	/* 112 */
-+	7,	/* 120 */
-+	7,	/* 128 */
-+	2,	/* 136 */
-+	2,	/* 144 */
-+	2,	/* 152 */
-+	2,	/* 160 */
-+	2,	/* 168 */
-+	2,	/* 176 */
-+	2,	/* 184 */
-+	2	/* 192 */
++struct compat_if_dqblk {
++	compat_u64 dqb_bhardlimit;
++	compat_u64 dqb_bsoftlimit;
++	compat_u64 dqb_curspace;
++	compat_u64 dqb_ihardlimit;
++	compat_u64 dqb_isoftlimit;
++	compat_u64 dqb_curinodes;
++	compat_u64 dqb_btime;
++	compat_u64 dqb_itime;
++	compat_uint_t dqb_valid;
 +};
 +
- static struct kmem_cache *get_slab(size_t size, gfp_t flags)
- {
--	int index = kmalloc_index(size);
-+	int index;
- 
--	if (!index)
--		return ZERO_SIZE_PTR;
-+	if (size <= 192) {
-+		if (!size)
-+			return ZERO_SIZE_PTR;
- 
--	/* Allocation too large? */
--	if (index < 0)
--		return NULL;
-+		index = size_index[(size - 1) / 8];
-+	} else {
-+		if (size > KMALLOC_MAX_SIZE)
-+			return NULL;
++/* XFS structures */
++struct compat_fs_qfilestat {
++	compat_u64 dqb_bhardlimit;
++	compat_u64 qfs_nblks;
++	compat_uint_t qfs_nextents;
++};
 +
-+		index = fls(size - 1) + 1;
++struct compat_fs_quota_stat {
++	__s8		qs_version;
++	__u16		qs_flags;
++	__s8		qs_pad;
++	struct compat_fs_qfilestat	qs_uquota;
++	struct compat_fs_qfilestat	qs_gquota;
++	compat_uint_t	qs_incoredqs;
++	compat_int_t	qs_btimelimit;
++	compat_int_t	qs_itimelimit;
++	compat_int_t	qs_rtbtimelimit;
++	__u16		qs_bwarnlimit;
++	__u16		qs_iwarnlimit;
++};
++
++asmlinkage long sys32_quotactl(unsigned int cmd, const char __user *special,
++						qid_t id, void __user *addr)
++{
++	unsigned int cmds;
++	struct if_dqblk __user *dqblk;
++	struct compat_if_dqblk __user *compat_dqblk;
++	struct fs_quota_stat __user *fsqstat;
++	struct compat_fs_quota_stat __user *compat_fsqstat;
++	compat_uint_t data;
++	u16 xdata;
++	long ret;
++
++	cmds = cmd >> SUBCMDSHIFT;
++
++	switch (cmds) {
++	case Q_GETQUOTA:
++		dqblk = compat_alloc_user_space(sizeof(struct if_dqblk));
++		compat_dqblk = addr;
++		ret = sys_quotactl(cmd, special, id, dqblk);
++		if (ret)
++			break;
++		if (copy_in_user(compat_dqblk, dqblk, sizeof(*compat_dqblk)) ||
++			get_user(data, &dqblk->dqb_valid) ||
++			put_user(data, &compat_dqblk->dqb_valid))
++			ret = -EFAULT;
++		break;
++	case Q_SETQUOTA:
++		dqblk = compat_alloc_user_space(sizeof(struct if_dqblk));
++		compat_dqblk = addr;
++		ret = -EFAULT;
++		if (copy_in_user(dqblk, compat_dqblk, sizeof(*compat_dqblk)) ||
++			get_user(data, &compat_dqblk->dqb_valid) ||
++			put_user(data, &dqblk->dqb_valid))
++			break;
++		ret = sys_quotactl(cmd, special, id, dqblk);
++		break;
++	case Q_XGETQSTAT:
++		fsqstat = compat_alloc_user_space(sizeof(struct fs_quota_stat));
++		compat_fsqstat = addr;
++		ret = sys_quotactl(cmd, special, id, fsqstat);
++		if (ret)
++			break;
++		ret = -EFAULT;
++		/* Copying qs_version, qs_flags, qs_pad */
++		if (copy_in_user(compat_fsqstat, fsqstat,
++			offsetof(struct compat_fs_quota_stat, qs_uquota)))
++			break;
++		/* Copying qs_uquota */
++		if (copy_in_user(&compat_fsqstat->qs_uquota,
++			&fsqstat->qs_uquota,
++			sizeof(compat_fsqstat->qs_uquota)) ||
++			get_user(data, &fsqstat->qs_uquota.qfs_nextents) ||
++			put_user(data, &compat_fsqstat->qs_uquota.qfs_nextents))
++			break;
++		/* Copying qs_gquota */
++		if (copy_in_user(&compat_fsqstat->qs_gquota,
++			&fsqstat->qs_gquota,
++			sizeof(compat_fsqstat->qs_gquota)) ||
++			get_user(data, &fsqstat->qs_gquota.qfs_nextents) ||
++			put_user(data, &compat_fsqstat->qs_gquota.qfs_nextents))
++			break;
++		/* Copying the rest */
++		if (copy_in_user(&compat_fsqstat->qs_incoredqs,
++			&fsqstat->qs_incoredqs,
++			sizeof(struct compat_fs_quota_stat) -
++			offsetof(struct compat_fs_quota_stat, qs_incoredqs)) ||
++			get_user(xdata, &fsqstat->qs_iwarnlimit) ||
++			put_user(xdata, &compat_fsqstat->qs_iwarnlimit))
++			break;
++		ret = 0;
++		break;
++	default:
++		ret = sys_quotactl(cmd, special, id, addr);
 +	}
- 
- #ifdef CONFIG_ZONE_DMA
--	if ((flags & SLUB_DMA))
-+	if (unlikely((flags & SLUB_DMA)))
- 		return dma_kmalloc_cache(index, flags);
-+
- #endif
- 	return &kmalloc_caches[index];
- }
-@@ -2551,6 +2590,24 @@ void __init kmem_cache_init(void)
- 		caches++;
- 	}
- 
-+
-+	/*
-+	 * Patch up the size_index table if we have strange large alignment
-+	 * requirements for the kmalloc array. This is only the case for
-+	 * mips it seems. The standard arches will not generate any code here.
-+	 *
-+	 * Largest permitted alignment is 256 bytes due to the way we
-+	 * handle the index determination for the smaller caches.
-+	 *
-+	 * Make sure that nothing crazy happens if someone starts tinkering
-+	 * around with ARCH_KMALLOC_MINALIGN
-+	 */
-+	BUG_ON(KMALLOC_MIN_SIZE > 256 ||
-+		(KMALLOC_MIN_SIZE & (KMALLOC_MIN_SIZE - 1)));
-+
-+	for (i = 8; i < KMALLOC_MIN_SIZE;i++)
-+		size_index[(i - 1) / 8] = KMALLOC_SHIFT_LOW;
-+
- 	slab_state = UP;
- 
- 	/* Provide the correct kmalloc names now that the caches are up */
++	return ret;
++}
++#endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from vtaras@openvz.org are
 
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-populated_map-to-account-for-memoryless-nodes.patch
-add-populated_map-to-account-for-memoryless-nodes-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+introduce-compat_u64-and-compat_s64-types.patch
+diskquota-32bit-quota-tools-on-64bit-architectures.patch
