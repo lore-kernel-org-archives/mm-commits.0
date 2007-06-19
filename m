@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-clock-updates-and-checks.patch added to -mm tree
-Date: Tue, 19 Jun 2007 11:32:20 -0700
-Message-ID: <200706191832.l5JIWKim018119@imap1.linux-foundation.org>
+Subject: + sm501-initialise-sdram-clock-before-bus-clocks.patch added to -mm tree
+Date: Tue, 19 Jun 2007 11:32:16 -0700
+Message-ID: <200706191832.l5JIWGLb018113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54354 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49050 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757713AbXFSSdh (ORCPT
+	by vger.kernel.org with ESMTP id S1761464AbXFSSdf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 14:33:37 -0400
+	Tue, 19 Jun 2007 14:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org
+Cc: ben-linux@fluff.org, vince@simtec.co.uk
 
 
 The patch titled
-     SM501: Clock updates and checks
+     SM501: initialise SDRAM clock before bus clocks
 has been added to the -mm tree.  Its filename is
-     sm501-clock-updates-and-checks.patch
+     sm501-initialise-sdram-clock-before-bus-clocks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,94 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SM501: Clock updates and checks
+Subject: SM501: initialise SDRAM clock before bus clocks
 From: Ben Dooks <ben-linux@fluff.org>
 
-Ensure that the M1XCLK and MCLK are sourced from the same PLL (and refuse to
-bind the driver if they are not).
+This init sequence of setting the SDRAM clock before the bus clock is
+recommend by Silicon Motion to stop problems with writes not sticking into
+registers.
 
-Update the PCI to safe initialisation values, as 72MHz is the maximum clock
-for 33MHz PCI bus mastering.
-
+Signed-off-by: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c        |   32 ++++++++++++++++++++++++++++++--
- include/linux/sm501-regs.h |    5 +++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ drivers/mfd/sm501.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-clock-updates-and-checks drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-clock-updates-and-checks
+diff -puN drivers/mfd/sm501.c~sm501-initialise-sdram-clock-before-bus-clocks drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-initialise-sdram-clock-before-bus-clocks
 +++ a/drivers/mfd/sm501.c
-@@ -855,6 +855,24 @@ static void sm501_init_regs(struct sm501
- 		dev_info(sm->dev, "setting MCLK to %ld\n", init->mclk);
- 		sm501_set_clock(sm->dev, SM501_CLOCK_MCLK, init->mclk);
+@@ -843,15 +843,15 @@ static void sm501_init_regs(struct sm501
+ 	sm501_init_reg(sm, SM501_GPIO31_0_CONTROL, &init->gpio_low);
+ 	sm501_init_reg(sm, SM501_GPIO63_32_CONTROL, &init->gpio_high);
+ 
+-	if (init->mclk) {
+-		dev_info(sm->dev, "setting MCLK to %ld\n", init->mclk);
+-		sm501_set_clock(sm->dev, SM501_CLOCK_MCLK, init->mclk);
+-	}
+-
+ 	if (init->m1xclk) {
+ 		dev_info(sm->dev, "setting M1XCLK to %ld\n", init->m1xclk);
+ 		sm501_set_clock(sm->dev, SM501_CLOCK_M1XCLK, init->m1xclk);
  	}
 +
-+}
-+
-+/* Check the PLL sources for the M1CLK and M1XCLK
-+ *
-+ * If the M1CLK and M1XCLKs are not sourced from the same PLL, then
-+ * there is a risk (see errata AB-5) that the SM501 will cease proper
-+ * function. If this happens, then it is likely the SM501 will
-+ * hang the system.
-+*/
-+
-+static int sm501_check_clocks(struct sm501_devdata *sm)
-+{
-+	unsigned long pwrmode = readl(sm->regs + SM501_CURRENT_CLOCK);
-+	unsigned long msrc = (pwrmode & SM501_POWERMODE_M_SRC);
-+	unsigned long m1src = (pwrmode & SM501_POWERMODE_M1_SRC);
-+
-+	return ((msrc == 0 && m1src != 0) || (msrc != 0 && m1src == 0));
++	if (init->mclk) {
++		dev_info(sm->dev, "setting MCLK to %ld\n", init->mclk);
++		sm501_set_clock(sm->dev, SM501_CLOCK_MCLK, init->mclk);
++	}
  }
  
  static unsigned int sm501_mem_local[] = {
-@@ -911,6 +929,12 @@ static int sm501_init_dev(struct sm501_d
- 		}
- 	}
- 
-+	ret = sm501_check_clocks(sm);
-+	if (ret) {
-+		dev_err(sm->dev, "M1X and M clocks sourced from different PLLs\n");
-+		return -EINVAL;
-+	}
-+
- 	/* always create a framebuffer */
- 	sm501_register_display(sm, &mem_avail);
- 
-@@ -1044,8 +1068,12 @@ static struct sm501_initdata sm501_pci_i
- 	},
- 
- 	.devices	= SM501_USE_ALL,
--	.mclk		= 100 * MHZ,
--	.m1xclk		= 160 * MHZ,
-+
-+	/* Errata AB-3 says that 72MHz is the fastest available
-+	 * for 33MHZ PCI with proper bus-mastering operation */
-+
-+	.mclk		= 72 * MHZ,
-+	.m1xclk		= 144 * MHZ,
- };
- 
- static struct sm501_platdata_fbsub sm501_pdata_fbsub = {
-diff -puN include/linux/sm501-regs.h~sm501-clock-updates-and-checks include/linux/sm501-regs.h
---- a/include/linux/sm501-regs.h~sm501-clock-updates-and-checks
-+++ a/include/linux/sm501-regs.h
-@@ -64,6 +64,11 @@
- #define SM501_DEBUG_CONTROL		(0x000034)
- 
- /* power management */
-+#define SM501_POWERMODE_P2X_SRC		(1<<29)
-+#define SM501_POWERMODE_V2X_SRC		(1<<20)
-+#define SM501_POWERMODE_M_SRC		(1<<12)
-+#define SM501_POWERMODE_M1_SRC		(1<<4)
-+
- #define SM501_CURRENT_GATE		(0x000038)
- #define SM501_CURRENT_CLOCK		(0x00003C)
- #define SM501_POWER_MODE_0_GATE		(0x000040)
 _
 
 Patches currently in -mm which might be from ben-linux@fluff.org are
