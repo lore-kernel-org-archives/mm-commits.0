@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fix-next_interval-determination-in-idle_balance.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:55:38 -0700
-Message-ID: <200706191955.l5JJtcDv019759@imap1.linux-foundation.org>
+Subject: + asus_acpi-fix-oops-on-non-asus-machines.patch added to -mm tree
+Date: Tue, 19 Jun 2007 13:22:04 -0700
+Message-ID: <200706192022.l5JKM408020353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45133 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48302 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757559AbXFST4D (ORCPT
+	by vger.kernel.org with ESMTP id S1761890AbXFSUW3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:56:03 -0400
+	Tue, 19 Jun 2007 16:22:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, mingo@elte.hu, stable@kernel.org, vatsa@linux.vnet.ibm.com
+Cc: maxime@tralhalla.org, lenb@kernel.org, rpurdie@rpsys.net
 
 
 The patch titled
-     sched: fix next_interval determination in idle_balance()
+     asus_acpi: fix oops on non-asus machines
 has been added to the -mm tree.  Its filename is
-     sched-fix-next_interval-determination-in-idle_balance.patch
+     asus_acpi-fix-oops-on-non-asus-machines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: fix next_interval determination in idle_balance()
-From: Christoph Lameter <clameter@sgi.com>
+Subject: asus_acpi: fix oops on non-asus machines
+From: Maxime Austruy <maxime@tralhalla.org>
 
-The intervals of domains that do not have SD_BALANCE_NEWIDLE must be
-considered for the calculation of the time of the next balance.  Otherwise
-we may defer rebalancing forever.
+If asus_acpi_init doesn't find any device it knows about, it mistakenly
+returns a "success" error code even though it cleans up after itself.  Later
+when trying to rmmod asus_acpi, the module_exit routine would try to clean up
+one more time and we would end up calling
+acpi_bus_unregister_driver(&asus_hotk_driver) twice.  This patch addresses
+this first problem by returning -ENODEV when no appropriate device is found.  
 
-Siddha also spotted that the conversion of the balance interval
-to jiffies is missing. Fix that to.
+Then there was also another bug with the code handling the return value of
+backlight_device_register.  If this function ever failed, the driver would
+cleanup by calling the module_exit routine from module_init, but it would
+still return "success".  So any attempt to rmmod this module would result in
+asus_acpi_exit being called twice but it's not ready to handle it (I haven't
+hit this bug, just found it by code inspection).  This patch fixes that by
+inserting a return -ENODEV; at the end of this error handling path.
 
-
-also continue the loop if !(sd->flags & SD_LOAD_BALANCE).
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Signed-off-by: Maxime Austruy <maxime@tralhalla.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   22 +++++++++++++---------
- 1 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/acpi/asus_acpi.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-fix-next_interval-determination-in-idle_balance kernel/sched.c
---- a/kernel/sched.c~sched-fix-next_interval-determination-in-idle_balance
-+++ a/kernel/sched.c
-@@ -2887,17 +2887,21 @@ static void idle_balance(int this_cpu, s
- 	unsigned long next_balance = jiffies + 60 *  HZ;
- 
- 	for_each_domain(this_cpu, sd) {
--		if (sd->flags & SD_BALANCE_NEWIDLE) {
-+		unsigned long interval;
-+
-+		if (!(sd->flags & SD_LOAD_BALANCE))
-+			continue;
-+
-+		if (sd->flags & SD_BALANCE_NEWIDLE)
- 			/* If we've pulled tasks over stop searching: */
- 			pulled_task = load_balance_newidle(this_cpu,
--							this_rq, sd);
--			if (time_after(next_balance,
--				  sd->last_balance + sd->balance_interval))
--				next_balance = sd->last_balance
--						+ sd->balance_interval;
--			if (pulled_task)
--				break;
--		}
-+								this_rq, sd);
-+
-+		interval = msecs_to_jiffies(sd->balance_interval);
-+		if (time_after(next_balance, sd->last_balance + interval))
-+			next_balance = sd->last_balance + interval;
-+		if (pulled_task)
-+			break;
+diff -puN drivers/acpi/asus_acpi.c~asus_acpi-fix-oops-on-non-asus-machines drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~asus_acpi-fix-oops-on-non-asus-machines
++++ a/drivers/acpi/asus_acpi.c
+@@ -1398,7 +1398,7 @@ static int __init asus_acpi_init(void)
+ 	if (!asus_hotk_found) {
+ 		acpi_bus_unregister_driver(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+-		return result;
++		return -ENODEV;
  	}
- 	if (!pulled_task)
- 		/*
+ 
+ 	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
+@@ -1407,6 +1407,7 @@ static int __init asus_acpi_init(void)
+ 		printk(KERN_ERR "Could not register asus backlight device\n");
+ 		asus_backlight_device = NULL;
+ 		asus_acpi_exit();
++		return -ENODEV;
+ 	}
+         asus_backlight_device->props.max_brightness = 15;
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from maxime@tralhalla.org are
 
-slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
-sched-fix-next_interval-determination-in-idle_balance.patch
-git-ubi.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-gfph-gfp_thisnode-can-go-to-other-nodes-if-some-are-unpopulated.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-populated_map-to-account-for-memoryless-nodes.patch
-add-populated_map-to-account-for-memoryless-nodes-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+asus_acpi-fix-oops-on-non-asus-machines.patch
