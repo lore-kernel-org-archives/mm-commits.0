@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sm501-add-documentation-sm501txt.patch added to -mm tree
-Date: Tue, 19 Jun 2007 11:32:24 -0700
-Message-ID: <200706191832.l5JIWOrl018125@imap1.linux-foundation.org>
+Subject: + add-a-kmem_cache-for-nsproxy-objects.patch added to -mm tree
+Date: Tue, 19 Jun 2007 11:43:18 -0700
+Message-ID: <200706191843.l5JIhIr0018310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760498AbXFSSdq (ORCPT
+	by vger.kernel.org with ESMTP id S1762408AbXFSSnp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 14:33:46 -0400
+	Tue, 19 Jun 2007 14:43:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org
+Cc: clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, xemul@openvz.org
 
 
 The patch titled
-     SM501: Add Documentation/SM501.txt
+     add a kmem_cache for nsproxy objects
 has been added to the -mm tree.  Its filename is
-     sm501-add-documentation-sm501txt.patch
+     add-a-kmem_cache-for-nsproxy-objects.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,99 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SM501: Add Documentation/SM501.txt
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: add a kmem_cache for nsproxy objects
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-Add documentation for the SM501 in Documentation/SM501.txt outlining the SM501
-driver.
+It should improve performance in some scenarii where a lot of
+these nsproxy objects are created by unsharing namespaces. This is
+a typical use of virtual servers that are being created or entered.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+This is also a good tool to find leaks and gather statistics on
+namespace usage.
+
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SM501.txt |   66 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 66 insertions(+)
+ kernel/nsproxy.c |   21 +++++++++++++++++----
+ 1 files changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null Documentation/SM501.txt
---- /dev/null
-+++ a/Documentation/SM501.txt
-@@ -0,0 +1,66 @@
-+			SM501 Driver
-+			============
+diff -puN kernel/nsproxy.c~add-a-kmem_cache-for-nsproxy-objects kernel/nsproxy.c
+--- a/kernel/nsproxy.c~add-a-kmem_cache-for-nsproxy-objects
++++ a/kernel/nsproxy.c
+@@ -21,6 +21,8 @@
+ #include <linux/utsname.h>
+ #include <linux/pid_namespace.h>
+ 
++static struct kmem_cache *nsproxy_cachep;
 +
-+Copyright 2006, 2007 Simtec Electronics
+ struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
+ 
+ static inline void get_nsproxy(struct nsproxy *ns)
+@@ -43,9 +45,11 @@ static inline struct nsproxy *clone_nspr
+ {
+ 	struct nsproxy *ns;
+ 
+-	ns = kmemdup(orig, sizeof(struct nsproxy), GFP_KERNEL);
+-	if (ns)
++	ns = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
++	if (ns) {
++		memcpy(ns, orig, sizeof(struct nsproxy));
+ 		atomic_set(&ns->count, 1);
++	}
+ 	return ns;
+ }
+ 
+@@ -109,7 +113,7 @@ out_uts:
+ 	if (new_nsp->mnt_ns)
+ 		put_mnt_ns(new_nsp->mnt_ns);
+ out_ns:
+-	kfree(new_nsp);
++	kmem_cache_free(nsproxy_cachep, new_nsp);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -160,7 +164,7 @@ void free_nsproxy(struct nsproxy *ns)
+ 		put_pid_ns(ns->pid_ns);
+ 	if (ns->user_ns)
+ 		put_user_ns(ns->user_ns);
+-	kfree(ns);
++	kmem_cache_free(nsproxy_cachep, ns);
+ }
+ 
+ /*
+@@ -185,3 +189,12 @@ int unshare_nsproxy_namespaces(unsigned 
+ 		err = PTR_ERR(*new_nsp);
+ 	return err;
+ }
 +
-+Core
-+----
++static int __init nsproxy_cache_init(void)
++{
++	nsproxy_cachep = kmem_cache_create("nsproxy", sizeof(struct nsproxy),
++					   0, SLAB_PANIC, NULL, NULL);
++	return 0;
++}
 +
-+The core driver in drivers/mfd provides common services for the
-+drivers which manage the specific hardware blocks. These services
-+include locking for common registers, clock control and resource
-+management.
-+
-+The core registers drivers for both PCI and generic bus based
-+chips via the platform device and driver system.
-+
-+On detection of a device, the core initialises the chip (which may
-+be specified by the platform data) and then exports the selected
-+peripheral set as platform devices for the specific drivers.
-+
-+The core re-uses the platform device system as the platform device
-+system provides enough features to support the drivers without the
-+need to create a new bus-type and the associated code to go with it.
-+
-+
-+Resources
-+---------
-+
-+Each peripheral has a view of the device which is implicitly narrowed to
-+the specific set of resources that peripheral requires in order to
-+function correctly.
-+
-+The centralised memory allocation allows the driver to ensure that the
-+maximum possible resource allocation can be made to the video subsystem
-+as this is by-far the most resource-sensitive of the on-chip functions.
-+
-+The primary issue with memory allocation is that of moving the video
-+buffers once a display mode is chosen. Indeed when a video mode change
-+occurs the memory footprint of the video subsystem changes.
-+
-+Since video memory is difficult to move without changing the display
-+(unless sufficient contiguous memory can be provided for the old and new
-+modes simultaneously) the video driver fully utilises the memory area
-+given to it by aligning fb0 to the start of the area and fb1 to the end
-+of it. Any memory left over in the middle is used for the acceleration
-+functions, which are transient and thus their location is less critical
-+as it can be moved.
-+
-+
-+Configuration
-+-------------
-+
-+The platform device driver uses a set of platform data to pass
-+configurations through to the core and the subsidiary drivers
-+so that there can be support for more than one system carrying
-+an SM501 built into a single kernel image.
-+
-+The PCI driver assumes that the PCI card behaves as per the Silicon
-+Motion reference design.
-+
-+There is an errata (AB-5) affecting the selection of the
-+of the M1XCLK and M1CLK frequencies. These two clocks
-+must be sourced from the same PLL, although they can then
-+be divided down individually. If this is not set, then SM501 may
-+lock and hang the whole system. The driver will refuse to
-+attach if the PLL selection is different.
++module_init(nsproxy_cache_init);
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
-spi-tle620x-power-switch-driver.patch
-sm501-suspend-support.patch
-sm501-suspend-support-fix.patch
-sm501-initialise-sdram-clock-before-bus-clocks.patch
-sm501-fix-sm501_init_reg-mask-set-order.patch
-sm501-clock-updates-and-checks.patch
-sm501-clock-updates-and-checks-fix.patch
-sm501-add-documentation-sm501txt.patch
-sm501-check-sm501-id-register-on-initialisation.patch
+fix-refcounting-of-nsproxy-object-when-unshared.patch
+mm-merge-nopfn-into-fault-spufs-fix.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+add-a-kmem_cache-for-nsproxy-objects.patch
+containersv10-add-tasks-file-interface-fix-2.patch
