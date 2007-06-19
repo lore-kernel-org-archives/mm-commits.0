@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch added to -mm tree
-Date: Tue, 19 Jun 2007 12:52:05 -0700
-Message-ID: <200706191952.l5JJq5tF019673@imap1.linux-foundation.org>
+Subject: + sched-fix-next_interval-determination-in-idle_balance.patch added to -mm tree
+Date: Tue, 19 Jun 2007 12:55:38 -0700
+Message-ID: <200706191955.l5JJtcDv019759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34087 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45133 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761182AbXFSTwN (ORCPT
+	by vger.kernel.org with ESMTP id S1757559AbXFST4D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 15:52:13 -0400
+	Tue, 19 Jun 2007 15:56:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, mingo@elte.hu, stable@kernel.org, vatsa@linux.vnet.ibm.com
 
 
 The patch titled
-     SLUB: fix behavior if the text output of list_locations overflows PAGE_SIZE
+     sched: fix next_interval determination in idle_balance()
 has been added to the -mm tree.  Its filename is
-     slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
+     sched-fix-next_interval-determination-in-idle_balance.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: fix behavior if the text output of list_locations overflows PAGE_SIZE
+Subject: sched: fix next_interval determination in idle_balance()
 From: Christoph Lameter <clameter@sgi.com>
 
-If slabs are allocated or freed from a large set of call sites (typical for
-the kmalloc area) then we may create more output than fits into a single
-PAGE and sysfs only gives us one page.  The output should be truncated. 
-This patch fixes the checks to do the truncation properly.
+The intervals of domains that do not have SD_BALANCE_NEWIDLE must be
+considered for the calculation of the time of the next balance.  Otherwise
+we may defer rebalancing forever.
+
+Siddha also spotted that the conversion of the balance interval
+to jiffies is missing. Fix that to.
+
+
+also continue the loop if !(sd->flags & SD_LOAD_BALANCE).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ kernel/sched.c |   22 +++++++++++++---------
+ 1 files changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN mm/slub.c~slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size mm/slub.c
---- a/mm/slub.c~slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size
-+++ a/mm/slub.c
-@@ -3042,13 +3042,15 @@ static int list_locations(struct kmem_ca
- 			n += sprintf(buf + n, " pid=%ld",
- 				l->min_pid);
+diff -puN kernel/sched.c~sched-fix-next_interval-determination-in-idle_balance kernel/sched.c
+--- a/kernel/sched.c~sched-fix-next_interval-determination-in-idle_balance
++++ a/kernel/sched.c
+@@ -2887,17 +2887,21 @@ static void idle_balance(int this_cpu, s
+ 	unsigned long next_balance = jiffies + 60 *  HZ;
  
--		if (num_online_cpus() > 1 && !cpus_empty(l->cpus)) {
-+		if (num_online_cpus() > 1 && !cpus_empty(l->cpus) &&
-+				n < PAGE_SIZE - 60) {
- 			n += sprintf(buf + n, " cpus=");
- 			n += cpulist_scnprintf(buf + n, PAGE_SIZE - n - 50,
- 					l->cpus);
- 		}
- 
--		if (num_online_nodes() > 1 && !nodes_empty(l->nodes)) {
-+		if (num_online_nodes() > 1 && !nodes_empty(l->nodes) &&
-+				n < PAGE_SIZE - 60) {
- 			n += sprintf(buf + n, " nodes=");
- 			n += nodelist_scnprintf(buf + n, PAGE_SIZE - n - 50,
- 					l->nodes);
+ 	for_each_domain(this_cpu, sd) {
+-		if (sd->flags & SD_BALANCE_NEWIDLE) {
++		unsigned long interval;
++
++		if (!(sd->flags & SD_LOAD_BALANCE))
++			continue;
++
++		if (sd->flags & SD_BALANCE_NEWIDLE)
+ 			/* If we've pulled tasks over stop searching: */
+ 			pulled_task = load_balance_newidle(this_cpu,
+-							this_rq, sd);
+-			if (time_after(next_balance,
+-				  sd->last_balance + sd->balance_interval))
+-				next_balance = sd->last_balance
+-						+ sd->balance_interval;
+-			if (pulled_task)
+-				break;
+-		}
++								this_rq, sd);
++
++		interval = msecs_to_jiffies(sd->balance_interval);
++		if (time_after(next_balance, sd->last_balance + interval))
++			next_balance = sd->last_balance + interval;
++		if (pulled_task)
++			break;
+ 	}
+ 	if (!pulled_task)
+ 		/*
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
 
 slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
+sched-fix-next_interval-determination-in-idle_balance.patch
 git-ubi.patch
 quicklist-support-for-x86_64.patch
 change-zonelist-order-zonelist-order-selection-logic.patch
