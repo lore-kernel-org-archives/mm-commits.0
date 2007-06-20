@@ -1,170 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: + uml-use-generic-bug.patch added to -mm tree
-Date: Tue, 19 Jun 2007 16:01:26 -0700
-Message-ID: <200706192301.l5JN1Q4t023526@imap1.linux-foundation.org>
+Subject: - add-populated_map-to-account-for-memoryless-nodes.patch removed from -mm tree
+Date: Tue, 19 Jun 2007 20:29:01 -0700
+Message-ID: <200706200329.l5K3T1Mk027097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41772 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753795AbXFSXCG (ORCPT
+	by vger.kernel.org with ESMTP id S1757227AbXFTD3M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Jun 2007 19:02:06 -0400
+	Tue, 19 Jun 2007 23:29:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jdike@linux.intel.com
+To: nacc@us.ibm.com, anton@samba.org, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: use generic BUG
-has been added to the -mm tree.  Its filename is
-     uml-use-generic-bug.patch
+     Add populated_map to account for memoryless nodes
+has been removed from the -mm tree.  Its filename was
+     add-populated_map-to-account-for-memoryless-nodes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: uml: use generic BUG
-From: Nick Piggin <npiggin@suse.de>
+Subject: Add populated_map to account for memoryless nodes
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Get UML to use the generic bug support rather than arch specific one.
+Split up Lee and Anton's original patch
+(http://marc.info/?l=linux-mm&m=118133042025995&w=2), to allow for the
+populated_map changes to go in on their own.
 
-If I insert an artificial bug right before loading init, I get this:
+Add a populated_map nodemask to indicate a node has memory or not.  We have
+run into a number of issues (in practice and in code) with assumptions
+about every node having memory.  Having this nodemask allows us to fix
+these issues; in particular, THISNODE allocations will come from the node
+specified, only, and the INTERLEAVE policy will be able to do the right
+thing with memoryless nodes.
 
- Kernel panic - not syncing: Kernel mode signal 4
-
- EIP: 0023:[<0819d501>] CPU: 0 Not tainted ESP: 002b:f7fd4fbc EFLAGS: 00000246
-    Not tainted
-    EAX: 00000000 EBX: 00007870 ECX: 00000013 EDX: 00007870
-    ESI: 0000786d EDI: 00000011 EBP: f7fd4fd8 DS: 002b ES: 002b
-    08273bec:  [<0806e814>] show_regs+0x104/0x106
-    08273c08:  [<08058927>] panic_exit+0x2c/0x4b
-    08273c18:  [<08080ee7>] notifier_call_chain+0x32/0x5b
-    08273c38:  [<08080fbd>] __atomic_notifier_call_chain+0x30/0x32
-    08273c54:  [<08080fee>] atomic_notifier_call_chain+0x2f/0x31
-    08273c70:  [<08073b88>] panic+0x75/0x131
-    08273c94:  [<080586c7>] relay_signal+0x87/0x95
-    08273cb0:  [<0806b9ee>] sig_handler_common_skas+0x9e/0x120
-    08273cd8:  [<08067738>] sig_handler+0x28/0x4f
-    08273cec:  [<0806792e>] handle_signal+0x53/0x89
-    08273d0c:  [<08069f60>] hard_handler+0x18/0x28
-    08273d1c:  [<ffffe500>] transitions+0xf7d598b8/0xfffffff0
-
-With this patch in place, this is how it looks:
-
- BUG: failure at init/main.c:779/init_post()!
- Kernel panic - not syncing: BUG!
-
- EIP: 0023:[<081a65d1>] CPU: 0 Not tainted ESP: 002b:f7f0dfbc EFLAGS: 00000246
-    Not tainted
-    EAX: 00000000 EBX: 000069db ECX: 00000013 EDX: 000069db
-    ESI: 000069d8 EDI: 00000011 EBP: f7f0dfd8 DS: 002b ES: 002b
-    098efedc:  [<0806e9a4>] show_regs+0x104/0x106
-    098efef8:  [<080589c7>] panic_exit+0x2c/0x4b
-    098eff08:  [<080818d7>] notifier_call_chain+0x32/0x5b
-    098eff28:  [<080819ad>] __atomic_notifier_call_chain+0x30/0x32
-    098eff44:  [<080819de>] atomic_notifier_call_chain+0x2f/0x31
-    098eff60:  [<08073f28>] panic+0x75/0x131
-    098eff84:  [<080541d5>] init_post+0xcd/0xe8
-    098eff9c:  [<08048ad4>] kernel_init+0x8e/0x9a
-    098effb4:  [<08066dee>] run_kernel_thread+0x41/0x53
-    098effe0:  [<08058e75>] new_thread_handler+0x62/0x8b
-    098efffc:  [<a55a5a5a>] 0xa55a5a5a
-
-[ jdike - added BUG_TABLE to linker script ]
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Anton Blanchard <anton@samba.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/bug.h        |    2 +-
- include/asm-um/common.lds.S |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/linux/nodemask.h |   10 ++++++++++
+ mm/page_alloc.c          |   10 ++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN include/asm-um/bug.h~uml-use-generic-bug include/asm-um/bug.h
---- a/include/asm-um/bug.h~uml-use-generic-bug
-+++ a/include/asm-um/bug.h
-@@ -1,6 +1,6 @@
- #ifndef __UM_BUG_H
- #define __UM_BUG_H
+diff -puN include/linux/nodemask.h~add-populated_map-to-account-for-memoryless-nodes include/linux/nodemask.h
+--- a/include/linux/nodemask.h~add-populated_map-to-account-for-memoryless-nodes
++++ a/include/linux/nodemask.h
+@@ -64,12 +64,16 @@
+  *
+  * int node_online(node)		Is some node online?
+  * int node_possible(node)		Is some node possible?
++ * int node_populated(node)		Is some node populated?
+  *
+  * int any_online_node(mask)		First online node in mask
+  *
+  * node_set_online(node)		set bit 'node' in node_online_map
+  * node_set_offline(node)		clear bit 'node' in node_online_map
+  *
++ * node_set_populated(node)		set bit 'node' in node_populated_map
++ * node_not_populated(node)		clear bit 'node' in node_populated_map
++ *
+  * for_each_node(node)			for-loop node over node_possible_map
+  * for_each_online_node(node)		for-loop node over node_online_map
+  *
+@@ -344,12 +348,14 @@ static inline void __nodes_remap(nodemas
  
--#include <asm/arch/bug.h>
-+#include <asm-generic/bug.h>
+ extern nodemask_t node_online_map;
+ extern nodemask_t node_possible_map;
++extern nodemask_t node_populated_map;
  
- #endif
-diff -puN include/asm-um/common.lds.S~uml-use-generic-bug include/asm-um/common.lds.S
---- a/include/asm-um/common.lds.S~uml-use-generic-bug
-+++ a/include/asm-um/common.lds.S
-@@ -20,6 +20,8 @@
-   __ex_table : { *(__ex_table) }
-   __stop___ex_table = .;
+ #if MAX_NUMNODES > 1
+ #define num_online_nodes()	nodes_weight(node_online_map)
+ #define num_possible_nodes()	nodes_weight(node_possible_map)
+ #define node_online(node)	node_isset((node), node_online_map)
+ #define node_possible(node)	node_isset((node), node_possible_map)
++#define node_populated(node)	node_isset((node), node_populated_map)
+ #define first_online_node	first_node(node_online_map)
+ #define next_online_node(nid)	next_node((nid), node_online_map)
+ extern int nr_node_ids;
+@@ -358,6 +364,7 @@ extern int nr_node_ids;
+ #define num_possible_nodes()	1
+ #define node_online(node)	((node) == 0)
+ #define node_possible(node)	((node) == 0)
++#define node_populated(node)	((node) == 0)
+ #define first_online_node	0
+ #define next_online_node(nid)	(MAX_NUMNODES)
+ #define nr_node_ids		1
+@@ -375,6 +382,9 @@ extern int nr_node_ids;
+ #define node_set_online(node)	   set_bit((node), node_online_map.bits)
+ #define node_set_offline(node)	   clear_bit((node), node_online_map.bits)
  
-+  BUG_TABLE
++#define node_set_populated(node)   set_bit((node), node_populated_map.bits)
++#define node_not_populated(node)   clear_bit((node), node_populated_map.bits)
 +
-   __uml_setup_start = .;
-   .uml.setup.init : { *(.uml.setup.init) }
-   __uml_setup_end = .;
+ #define for_each_node(node)	   for_each_node_mask((node), node_possible_map)
+ #define for_each_online_node(node) for_each_node_mask((node), node_online_map)
+ 
+diff -puN mm/page_alloc.c~add-populated_map-to-account-for-memoryless-nodes mm/page_alloc.c
+--- a/mm/page_alloc.c~add-populated_map-to-account-for-memoryless-nodes
++++ a/mm/page_alloc.c
+@@ -54,6 +54,9 @@ nodemask_t node_online_map __read_mostly
+ EXPORT_SYMBOL(node_online_map);
+ nodemask_t node_possible_map __read_mostly = NODE_MASK_ALL;
+ EXPORT_SYMBOL(node_possible_map);
++nodemask_t node_populated_map __read_mostly = NODE_MASK_NONE;
++EXPORT_SYMBOL(node_populated_map);
++
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+ long nr_swap_pages;
+@@ -1967,6 +1970,13 @@ static void build_zonelists(pg_data_t *p
+ 		/* calculate node order -- i.e., DMA last! */
+ 		build_zonelists_in_zone_order(pgdat, j);
+ 	}
++
++	/*
++	 * record populated zones for use when INTERLEAVE'ing or using
++	 * GFP_THISNODE
++	 */
++	if (pgdat->node_present_pages)
++		node_set_populated(local_node);
+ }
+ 
+ /* Construct the zonelist performance cache - see further mmzone.h */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-uml-use-generic-bug.patch
-slob-rework-freelist-handling.patch
-slob-remove-bigblock-tracking.patch
-slob-improved-alignment-handling.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-mm-merge-nopfn-into-fault-spufs-fix.patch
-mm-remove-legacy-cruft.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext4-convert-to-new-aops.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-udf-convert-to-new-aops.patch
-sysv-convert-to-new-aops.patch
-minix-convert-to-new-aops.patch
-jfs-convert-to-new-aops.patch
-fix-read-truncate-race.patch
-mm-document-fault_data-and-flags.patch
-fs-introduce-some-page-buffer-invariants.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+hugetlb-remove-unnecessary-nid-initialization.patch
+add-populated_map-to-account-for-memoryless-nodes.patch
+add-populated_map-to-account-for-memoryless-nodes-fix.patch
