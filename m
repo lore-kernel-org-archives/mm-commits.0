@@ -1,88 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-mm-xen-core-xen-implementation.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:21 -0700
-Message-ID: <200706231928.l5NJSLhr022138@imap1.linux-foundation.org>
+Subject: - shm-fix-the-filename-of-hugetlb-sysv-shared-memory.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:51 -0700
+Message-ID: <200706231927.l5NJRpCK022095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55075 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755477AbXFWTe4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755492AbXFWTe6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:56 -0400
+	Sat, 23 Jun 2007 15:34:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, ebiederm@xmission.com, jeremy@xensource.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, acahalan@gmail.com, pbadari@us.ibm.com, serge@hallyn.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen_start_kernel is __init, so startup_xen should be too
+     shm: fix the filename of hugetlb sysv shared memory
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-mm-xen-core-xen-implementation.patch
+     shm-fix-the-filename-of-hugetlb-sysv-shared-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xen_start_kernel is __init, so startup_xen should be too
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: shm: fix the filename of hugetlb sysv shared memory
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-This needs an update to modpost to prevent warning about the reference from
-.note* to the .init.text section.
+Some user space tools need to identify SYSV shared memory when examining
+/proc/<pid>/maps.  To do so they look for a block device with major zero, a
+dentry named SYSV<sysv key>, and having the minor of the internal sysv
+shared memory kernel mount.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andi Kleen <ak@suse.de>
+To help these tools and to make it easier for people just browsing
+/proc/<pid>/maps this patch modifies hugetlb sysv shared memory to use the
+SYSV<key> dentry naming convention.
+
+User space tools will still have to be aware that hugetlb sysv shared
+memory lives on a different internal kernel mount and so has a different
+block device minor number from the rest of sysv shared memory.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Albert Cahalan <acahalan@gmail.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/xen-head.S |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/hugetlbfs/inode.c    |    7 ++-----
+ include/linux/hugetlb.h |    4 ++--
+ ipc/shm.c               |    6 +++---
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation arch/i386/xen/xen-head.S
---- a/arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation
-+++ a/arch/i386/xen/xen-head.S
-@@ -7,11 +7,13 @@
- #include <asm/boot.h>
- #include <xen/interface/elfnote.h>
+diff -puN fs/hugetlbfs/inode.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory
++++ a/fs/hugetlbfs/inode.c
+@@ -736,15 +736,13 @@ static int can_do_hugetlb_shm(void)
+ 			can_do_mlock());
+ }
  
-+.pushsection .init.text,"ax",@progbits
- ENTRY(startup_xen)
- 	movl %esi,xen_start_info
- 	cld
-  	movl $(init_thread_union+THREAD_SIZE),%esp
- 	jmp xen_start_kernel
-+.popsection
+-struct file *hugetlb_zero_setup(size_t size)
++struct file *hugetlb_file_setup(const char *name, size_t size)
+ {
+ 	int error = -ENOMEM;
+ 	struct file *file;
+ 	struct inode *inode;
+ 	struct dentry *dentry, *root;
+ 	struct qstr quick_string;
+-	char buf[16];
+-	static atomic_t counter;
  
- .pushsection ".bss.page_aligned"
- 	.align PAGE_SIZE_asm
+ 	if (!hugetlbfs_vfsmount)
+ 		return ERR_PTR(-ENOENT);
+@@ -756,8 +754,7 @@ struct file *hugetlb_zero_setup(size_t s
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	root = hugetlbfs_vfsmount->mnt_root;
+-	snprintf(buf, 16, "%u", atomic_inc_return(&counter));
+-	quick_string.name = buf;
++	quick_string.name = name;
+ 	quick_string.len = strlen(quick_string.name);
+ 	quick_string.hash = 0;
+ 	dentry = d_alloc(root, &quick_string);
+diff -puN include/linux/hugetlb.h~shm-fix-the-filename-of-hugetlb-sysv-shared-memory include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~shm-fix-the-filename-of-hugetlb-sysv-shared-memory
++++ a/include/linux/hugetlb.h
+@@ -163,7 +163,7 @@ static inline struct hugetlbfs_sb_info *
+ 
+ extern const struct file_operations hugetlbfs_file_operations;
+ extern struct vm_operations_struct hugetlb_vm_ops;
+-struct file *hugetlb_zero_setup(size_t);
++struct file *hugetlb_file_setup(const char *name, size_t);
+ int hugetlb_get_quota(struct address_space *mapping);
+ void hugetlb_put_quota(struct address_space *mapping);
+ 
+@@ -185,7 +185,7 @@ static inline void set_file_hugepages(st
+ 
+ #define is_file_hugepages(file)		0
+ #define set_file_hugepages(file)	BUG()
+-#define hugetlb_zero_setup(size)	ERR_PTR(-ENOSYS)
++#define hugetlb_file_setup(name,size)	ERR_PTR(-ENOSYS)
+ 
+ #endif /* !CONFIG_HUGETLBFS */
+ 
+diff -puN ipc/shm.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory ipc/shm.c
+--- a/ipc/shm.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory
++++ a/ipc/shm.c
+@@ -366,9 +366,10 @@ static int newseg (struct ipc_namespace 
+ 		return error;
+ 	}
+ 
++	sprintf (name, "SYSV%08x", key);
+ 	if (shmflg & SHM_HUGETLB) {
+-		/* hugetlb_zero_setup takes care of mlock user accounting */
+-		file = hugetlb_zero_setup(size);
++		/* hugetlb_file_setup takes care of mlock user accounting */
++		file = hugetlb_file_setup(name, size);
+ 		shp->mlock_user = current->user;
+ 	} else {
+ 		int acctflag = VM_ACCOUNT;
+@@ -379,7 +380,6 @@ static int newseg (struct ipc_namespace 
+ 		if  ((shmflg & SHM_NORESERVE) &&
+ 				sysctl_overcommit_memory != OVERCOMMIT_NEVER)
+ 			acctflag = 0;
+-		sprintf (name, "SYSV%08x", key);
+ 		file = shmem_file_setup(name, size, acctflag);
+ 	}
+ 	error = PTR_ERR(file);
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
+fix-refcounting-of-nsproxy-object-when-unshared.patch
+dvb_en_50221-convert-to-kthread-api.patch
 git-kbuild.patch
-add-kstrndup-fix.patch
-xen-build-fix.patch
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-i-oat-for-kexec.patch
 fix-x86_64-mm-add-common-orderly_poweroff.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
-paravirt-helper-to-disable-all-io-space-fix-2.patch
-paravirt-helper-to-disable-all-io-space-fix-3.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-tidy-up-usermode-helper-waiting-a-bit-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-lguest-the-guest-code.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+i386-show-unhandled-signals-fix.patch
+x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+buffer-kill-old-incorrect-comment.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+add-a-kmem_cache-for-nsproxy-objects.patch
+update-procfs-guide-doc-of-read_func.patch
+namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
