@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-remove-extra-is_rdonly-check.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:53:25 -0700
-Message-ID: <200706231653.l5NGrMKd019674@imap1.linux-foundation.org>
+Subject: + ext4-zero_user_page-conversion.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:54:26 -0700
+Message-ID: <200706231654.l5NGsN2a019749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39861 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761251AbXFWQx4 (ORCPT
+	by vger.kernel.org with ESMTP id S1759057AbXFWQy5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:53:56 -0400
+	Sat, 23 Jun 2007 12:54:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, linux-ext4@vger.kernel.org
+Cc: sandeen@redhat.com, tytso@mit.edu
 
 
 The patch titled
-     ext3: remove extra IS_RDONLY() check
+     ext4: zero_user_page() conversions
 has been added to the -mm tree.  Its filename is
-     ext3-remove-extra-is_rdonly-check.patch
+     ext4-zero_user_page-conversion.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: remove extra IS_RDONLY() check
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: ext4: zero_user_page() conversions
+From: Eric Sandeen <sandeen@redhat.com>
 
-ext3_change_inode_journal_flag() is only called from one location:
-ext3_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY()
-call in it so this one is superfluous.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/inode.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-remove-extra-is_rdonly-check fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-remove-extra-is_rdonly-check
-+++ a/fs/ext3/inode.c
-@@ -3235,7 +3235,7 @@ int ext3_change_inode_journal_flag(struc
+diff -puN fs/ext4/inode.c~ext4-zero_user_page-conversion fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-zero_user_page-conversion
++++ a/fs/ext4/inode.c
+@@ -1830,7 +1830,6 @@ int ext4_block_truncate_page(handle_t *h
+ 	struct inode *inode = mapping->host;
+ 	struct buffer_head *bh;
+ 	int err = 0;
+-	void *kaddr;
+ 
+ 	if ((EXT4_I(inode)->i_flags & EXT4_EXTENTS_FL) &&
+ 			test_opt(inode->i_sb, EXTENTS) &&
+@@ -1847,10 +1846,7 @@ int ext4_block_truncate_page(handle_t *h
  	 */
+ 	if (!page_has_buffers(page) && test_opt(inode->i_sb, NOBH) &&
+ 	     ext4_should_writeback_data(inode) && PageUptodate(page)) {
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		memset(kaddr + offset, 0, length);
+-		flush_dcache_page(page);
+-		kunmap_atomic(kaddr, KM_USER0);
++		zero_user_page(page, offset, length, KM_USER0);
+ 		set_page_dirty(page);
+ 		goto unlock;
+ 	}
+@@ -1903,10 +1899,7 @@ int ext4_block_truncate_page(handle_t *h
+ 			goto unlock;
+ 	}
  
- 	journal = EXT3_JOURNAL(inode);
--	if (is_journal_aborted(journal) || IS_RDONLY(inode))
-+	if (is_journal_aborted(journal))
- 		return -EROFS;
+-	kaddr = kmap_atomic(page, KM_USER0);
+-	memset(kaddr + offset, 0, length);
+-	flush_dcache_page(page);
+-	kunmap_atomic(kaddr, KM_USER0);
++	zero_user_page(page, offset, length, KM_USER0);
  
- 	journal_lock_updates(journal);
+ 	BUFFER_TRACE(bh, "zeroed end of block");
+ 
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-document-nlink-function.patch
-ext3-remove-extra-is_rdonly-check.patch
-ext4-remove-extra-is_rdonly-check.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-page-owner-tracking-leak-detector.patch
+cifs-zero_user_page-conversion.patch
+gfs2-zero_user_page-conversion.patch
+ocfs2-zero_user_page-conversion.patch
+ext4-zero_user_page-conversion.patch
