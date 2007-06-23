@@ -1,132 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - posix-timers-prevent-softirq-starvation-by-small-intervals.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:59 -0700
-Message-ID: <200706231927.l5NJRxp6022104@imap1.linux-foundation.org>
+Subject: - x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 16:58:23 -0700
+Message-ID: <200706232358.l5NNwNlI030496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51461 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42418 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755791AbXFWTfk (ORCPT
+	by vger.kernel.org with ESMTP id S1752123AbXFWX6e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:35:40 -0400
+	Sat, 23 Jun 2007 19:58:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, drepper@redhat.com, jan.kiszka@web.de, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: suresh.b.siddha@intel.com, ak@suse.de, djwong@us.ibm.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     posix-timers: prevent softirq starvation by small intervals and SIG_IGN
+     x86_64, irq: use mask/unmask and proper locking in fixup_irqs()
 has been removed from the -mm tree.  Its filename was
-     posix-timers-prevent-softirq-starvation-by-small-intervals.patch
+     x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: posix-timers: prevent softirq starvation by small intervals and SIG_IGN
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: x86_64, irq: use mask/unmask and proper locking in fixup_irqs()
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-posix-timers which deliver an ignored signal are currently rearmed in the
-timer softirq: This is necessary because the timer needs to be delivered
-again when SIG_IGN is removed.  This is not a problem, when the interval is
-reasonable.
+Force irq migration path during cpu offline, is not using proper locks and
+irq_chip mask/unmask routines.  This will result in some races(especially
+the device generating the interrupt can see some inconsistent state,
+resulting in issues like stuck irq,..).
 
-With high resolution timers enabled one might arm a posix timer with a very
-small interval and ignore the signal.  This might lead to a softirq
-starvation when the interval is so small that the timer is requeued onto
-the softirq pending list right away.
+Appended patch fixes the issue by taking proper lock and encapsulating
+irq_chip set_affinity() with a mask() before and an unmask() after.
 
-This problem was pointed out by Jan Kiszka. Thanks Jan !
+This fixes a MSI irq stuck issue reported by Darrick Wong.
 
-The correct solution would be to stop the timer, when the signal is ignored
-and rearm it when SIG_IGN is removed.  Unfortunately this requires
-modification in sigaction and involves non trivial sighand locking.  It's
-too late in the release cycle for such a change.
+There are several more general bugs in this area(irq migration in the
+process context). For example,
 
-For now we just keep the timer running and enforce that the timer only
-fires every jiffie.  This does not break anything as we keep the overrun
-counter correct.  It adds a little inaccuracy to the timer_gettime()
-interface, but...
+1. Possibility of missing edge triggered irq.
+2. Reliable method of migrating level triggered irq in the process context.
 
-The more complex change is necessary anyway to fix another short coming of
-the current implementation, which I discovered while looking at this
-problem: A pending signal is discarded when SIG_IGN is set.  In case that a
-posixtimer signal is pending then it is discarded as well, but when SIG_IGN
-is removed later nothing rearms the timer.  This is not new, it's that way
-since posix timers have been merged.  So nothing to worry about right now.
+We plan to look and close these in the near future.
 
-I have a working solution to fix all of this, but the impact is too large
-for both stable and 2.6.22.  I'm going to send it out for review in the
-next days.
-
-This should go into 2.6.21.stable as well.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Jan Kiszka <jan.kiszka@web.de>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Stable Team <stable@kernel.org>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Reported-by: Darrick Wong <djwong@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |   35 +++++++++++++++++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/irq.c |   30 +++++++++++++++++++++++++++---
+ 1 files changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-prevent-softirq-starvation-by-small-intervals kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-prevent-softirq-starvation-by-small-intervals
-+++ a/kernel/posix-timers.c
-@@ -353,9 +353,40 @@ static enum hrtimer_restart posix_timer_
- 		 * it should be restarted.
- 		 */
- 		if (timr->it.real.interval.tv64 != 0) {
-+			ktime_t now = hrtimer_cb_get_time(timer);
+diff -puN arch/x86_64/kernel/irq.c~x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs arch/x86_64/kernel/irq.c
+--- a/arch/x86_64/kernel/irq.c~x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs
++++ a/arch/x86_64/kernel/irq.c
+@@ -144,17 +144,41 @@ void fixup_irqs(cpumask_t map)
+ 
+ 	for (irq = 0; irq < NR_IRQS; irq++) {
+ 		cpumask_t mask;
++		int break_affinity = 0;
++		int set_affinity = 1;
 +
-+			/*
-+			 * FIXME: What we really want, is to stop this
-+			 * timer completely and restart it in case the
-+			 * SIG_IGN is removed. This is a non trivial
-+			 * change which involves sighand locking
-+			 * (sigh !), which we don't want to do late in
-+			 * the release cycle.
-+			 *
-+			 * For now we just let timers with an interval
-+			 * less than a jiffie expire every jiffie to
-+			 * avoid softirq starvation in case of SIG_IGN
-+			 * and a very small interval, which would put
-+			 * the timer right back on the softirq pending
-+			 * list. By moving now ahead of time we trick
-+			 * hrtimer_forward() to expire the timer
-+			 * later, while we still maintain the overrun
-+			 * accuracy, but have some inconsistency in
-+			 * the timer_gettime() case. This is at least
-+			 * better than a starved softirq. A more
-+			 * complex fix which solves also another related
-+			 * inconsistency is already in the pipeline.
-+			 */
-+#ifdef CONFIG_HIGH_RES_TIMERS
-+			{
-+				ktime_t kj = ktime_set(0, NSEC_PER_SEC / HZ);
+ 		if (irq == 2)
+ 			continue;
+ 
++		/* interrupt's are disabled at this point */
++		spin_lock(&irq_desc[irq].lock);
 +
-+				if (timr->it.real.interval.tv64 < kj.tv64)
-+					now = ktime_add(now, kj);
-+			}
-+#endif
- 			timr->it_overrun +=
--				hrtimer_forward(timer,
--						hrtimer_cb_get_time(timer),
-+				hrtimer_forward(timer, now,
- 						timr->it.real.interval);
- 			ret = HRTIMER_RESTART;
- 			++timr->it_requeue_pending;
++		if (!irq_has_action(irq) ||
++		    cpus_equal(irq_desc[irq].affinity, map)) {
++			spin_unlock(&irq_desc[irq].lock);
++			continue;
++		}
++
+ 		cpus_and(mask, irq_desc[irq].affinity, map);
+-		if (any_online_cpu(mask) == NR_CPUS) {
+-			printk("Breaking affinity for irq %i\n", irq);
++		if (cpus_empty(mask)) {
++			break_affinity = 1;
+ 			mask = map;
+ 		}
++
++		irq_desc[irq].chip->mask(irq);
++
+ 		if (irq_desc[irq].chip->set_affinity)
+ 			irq_desc[irq].chip->set_affinity(irq, mask);
+-		else if (irq_desc[irq].action && !(warned++))
++		else if (!(warned++))
++			set_affinity = 0;
++
++		irq_desc[irq].chip->unmask(irq);
++
++		spin_unlock(&irq_desc[irq].lock);
++
++		if (break_affinity && set_affinity)
++			printk("Broke affinity for irq %i\n", irq);
++		else if (!set_affinity)
+ 			printk("Cannot set affinity for irq %i\n", irq);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-origin.patch
-git-acpi-add-exports.patch
-git-arm.patch
-i386-hpet-check-if-the-counter-works.patch
-remove-clockevents_releaserequest_device.patch
-add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
-improve-behaviour-of-spurious-irq-detect.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-lguest-the-host-code.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs.patch
