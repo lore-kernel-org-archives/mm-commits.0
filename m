@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-allocators-max_order-one-off-fix.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:47:04 -0700
-Message-ID: <200706231647.l5NGl1m7019463@imap1.linux-foundation.org>
+Subject: + document-nlink-function.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:47:02 -0700
+Message-ID: <200706231646.l5NGkxBc019460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56347 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762AbXFWQrJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755769AbXFWQrR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:47:09 -0400
+	Sat, 23 Jun 2007 12:47:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: haveblue@us.ibm.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     slab allocators: MAX_ORDER one off fix
+     document nlink function
 has been added to the -mm tree.  Its filename is
-     slab-allocators-max_order-one-off-fix.patch
+     document-nlink-function.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,91 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab allocators: MAX_ORDER one off fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: document nlink function
+From: Dave Hansen <haveblue@us.ibm.com>
 
-MAX_ORDER is the first order that is not possible.
+These should have been documented from the beginning.  Fix it.
 
-Use MAX_ORDER - 1 to calculate the larges possible object size in slab.h
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/fs.h |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN include/linux/slab.h~slab-allocators-max_order-one-off-fix include/linux/slab.h
---- a/include/linux/slab.h~slab-allocators-max_order-one-off-fix
-+++ a/include/linux/slab.h
-@@ -82,8 +82,8 @@ static inline void *kmem_cache_alloc_nod
-  * to do various tricks to work around compiler limitations in order to
-  * ensure proper constant folding.
-  */
--#define KMALLOC_SHIFT_HIGH	((MAX_ORDER + PAGE_SHIFT) <= 25 ? \
--				(MAX_ORDER + PAGE_SHIFT) : 25)
-+#define KMALLOC_SHIFT_HIGH	((MAX_ORDER + PAGE_SHIFT - 1) <= 25 ? \
-+				(MAX_ORDER + PAGE_SHIFT - 1) : 25)
+diff -puN include/linux/fs.h~document-nlink-function include/linux/fs.h
+--- a/include/linux/fs.h~document-nlink-function
++++ a/include/linux/fs.h
+@@ -1211,6 +1211,14 @@ static inline void mark_inode_dirty_sync
+ 	__mark_inode_dirty(inode, I_DIRTY_SYNC);
+ }
  
- #define KMALLOC_MAX_SIZE	(1UL << KMALLOC_SHIFT_HIGH)
- #define KMALLOC_MAX_ORDER	(KMALLOC_SHIFT_HIGH - PAGE_SHIFT)
++/**
++ * inc_nlink - directly increment an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  Currently,
++ * it is only here for parity with dec_nlink().
++ */
+ static inline void inc_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink++;
+@@ -1222,11 +1230,30 @@ static inline void inode_inc_link_count(
+ 	mark_inode_dirty(inode);
+ }
+ 
++/**
++ * drop_nlink - directly drop an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  In cases
++ * where we are attempting to track writes to the
++ * filesystem, a decrement to zero means an imminent
++ * write when the file is truncated and actually unlinked
++ * on the filesystem.
++ */
+ static inline void drop_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink--;
+ }
+ 
++/**
++ * clear_nlink - directly zero an inode's link count
++ * @inode: inode
++ *
++ * This is a low-level filesystem helper to replace any
++ * direct filesystem manipulation of i_nlink.  See
++ * drop_nlink() for why we care about i_nlink hitting zero.
++ */
+ static inline void clear_nlink(struct inode *inode)
+ {
+ 	inode->i_nlink = 0;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
-sched-fix-next_interval-determination-in-idle_balance.patch
-slab-allocators-max_order-one-off-fix.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+document-nlink-function.patch
+ext3-remove-extra-is_rdonly-check.patch
+ext4-remove-extra-is_rdonly-check.patch
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+page-owner-tracking-leak-detector.patch
