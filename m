@@ -1,51 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - do-not-select-macintosh-drivers-by-default.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:06 -0700
-Message-ID: <200706231928.l5NJS6R5022114@imap1.linux-foundation.org>
+Subject: - gfs2-zero_user_page-conversion.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:11 -0700
+Message-ID: <200706231928.l5NJSB2Y022122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33418 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43385 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752759AbXFWTeg (ORCPT
+	by vger.kernel.org with ESMTP id S1753031AbXFWTej (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:36 -0400
+	Sat, 23 Jun 2007 15:34:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Do not select macintosh drivers by default
+     gfs2: zero_user_page() conversions
 has been removed from the -mm tree.  Its filename was
-     do-not-select-macintosh-drivers-by-default.patch
+     gfs2-zero_user_page-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Do not select macintosh drivers by default
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: gfs2: zero_user_page() conversions
+From: Eric Sandeen <sandeen@redhat.com>
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/gfs2/ops_address.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/macintosh/Kconfig~do-not-select-macintosh-drivers-by-default drivers/macintosh/Kconfig
---- a/drivers/macintosh/Kconfig~do-not-select-macintosh-drivers-by-default
-+++ a/drivers/macintosh/Kconfig
-@@ -2,7 +2,7 @@
- menuconfig MACINTOSH_DRIVERS
- 	bool "Macintosh device drivers"
- 	depends on PPC || MAC || X86
--	default y
-+	default y if PPC || MAC
- 
- if MACINTOSH_DRIVERS
- 
+diff -puN fs/gfs2/ops_address.c~gfs2-zero_user_page-conversion fs/gfs2/ops_address.c
+--- a/fs/gfs2/ops_address.c~gfs2-zero_user_page-conversion
++++ a/fs/gfs2/ops_address.c
+@@ -208,10 +208,7 @@ static int stuffed_readpage(struct gfs2_
+ 	 * so we need to supply one here. It doesn't happen often.
+ 	 */
+ 	if (unlikely(page->index)) {
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		memset(kaddr, 0, PAGE_CACHE_SIZE);
+-		kunmap_atomic(kaddr, KM_USER0);
+-		flush_dcache_page(page);
++		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
+ 		SetPageUptodate(page);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from sandeen@redhat.com are
+
+cifs-zero_user_page-conversion.patch
+git-ocfs2.patch
+ext4-zero_user_page-conversion.patch
