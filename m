@@ -1,79 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-use-null-for-pointer.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:28 -0700
-Message-ID: <200706231928.l5NJSS5h022150@imap1.linux-foundation.org>
+Subject: - udf-fix-possible-leakage-of-blocks.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:45 -0700
+Message-ID: <200706231927.l5NJRjPG022087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54031 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755332AbXFWTeu (ORCPT
+	by vger.kernel.org with ESMTP id S1754247AbXFWTes (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:50 -0400
+	Sat, 23 Jun 2007 15:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, gorcunov@gmail.com, sandeen@sandeen.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: use NULL for pointer
+     udf: fix possible leakage of blocks
 has been removed from the -mm tree.  Its filename was
-     x86_64-use-null-for-pointer.patch
+     udf-fix-possible-leakage-of-blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: use NULL for pointer
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: udf: fix possible leakage of blocks
+From: Jan Kara <jack@suse.cz>
 
-Use NULL instead of 0 for pointer:
-arch/x86_64/kernel/vsyscall.c:183:21: warning: Using plain integer as NULL pointer
+We have to take care that when we call udf_discard_prealloc() from
+udf_clear_inode() we have to write inode ourselves afterwards (otherwise,
+some changes might be lost leading to leakage of blocks, use of free blocks
+or improperly aligned extents).
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Also udf_discard_prealloc() does two different things - it removes
+preallocated blocks and truncates the last extent to exactly match i_size. 
+We move the latter functionality to udf_truncate_tail_extent(), call
+udf_discard_prealloc() when last reference to a file is dropped and call
+udf_truncate_tail_extent() when inode is being removed from inode cache
+(udf_clear_inode() call).
+
+We cannot call udf_truncate_tail_extent() earlier as subsequent open+write
+would find the last block of the file mapped and happily write to the end
+of it, although the last extent says it's shorter.
+
+[akpm@linux-foundation.org: Make checkpatch.pl happier]
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Eric Sandeen <sandeen@sandeen.net>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/vsyscall.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/udf/inode.c    |   11 +++++-
+ fs/udf/truncate.c |   79 +++++++++++++++++++++++++++++++++++---------
+ fs/udf/udfdecl.h  |    1 
+ 3 files changed, 74 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86_64/kernel/vsyscall.c~x86_64-use-null-for-pointer arch/x86_64/kernel/vsyscall.c
---- a/arch/x86_64/kernel/vsyscall.c~x86_64-use-null-for-pointer
-+++ a/arch/x86_64/kernel/vsyscall.c
-@@ -180,7 +180,7 @@ time_t __vsyscall(1) vtime(time_t *t)
- 	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
- 		return time_syscall(t);
+diff -puN fs/udf/inode.c~udf-fix-possible-leakage-of-blocks fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-fix-possible-leakage-of-blocks
++++ a/fs/udf/inode.c
+@@ -100,14 +100,23 @@ no_delete:
+ 	clear_inode(inode);
+ }
  
--	vgettimeofday(&tv, 0);
-+	vgettimeofday(&tv, NULL);
- 	result = tv.tv_sec;
- 	if (t)
- 		*t = result;
++/*
++ * If we are going to release inode from memory, we discard preallocation and
++ * truncate last inode extent to proper length. We could use drop_inode() but
++ * it's called under inode_lock and thus we cannot mark inode dirty there.  We
++ * use clear_inode() but we have to make sure to write inode as it's not written
++ * automatically.
++ */
+ void udf_clear_inode(struct inode *inode)
+ {
+ 	if (!(inode->i_sb->s_flags & MS_RDONLY)) {
+ 		lock_kernel();
++		/* Discard preallocation for directories, symlinks, etc. */
+ 		udf_discard_prealloc(inode);
++		udf_truncate_tail_extent(inode);
+ 		unlock_kernel();
++		write_inode_now(inode, 1);
+ 	}
+-
+ 	kfree(UDF_I_DATA(inode));
+ 	UDF_I_DATA(inode) = NULL;
+ }
+diff -puN fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks fs/udf/truncate.c
+--- a/fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks
++++ a/fs/udf/truncate.c
+@@ -61,7 +61,11 @@ static void extent_trunc(struct inode * 
+ 	}
+ }
+ 
+-void udf_discard_prealloc(struct inode * inode)
++/*
++ * Truncate the last extent to match i_size. This function assumes
++ * that preallocation extent is already truncated.
++ */
++void udf_truncate_tail_extent(struct inode *inode)
+ {
+ 	struct extent_position epos = { NULL, 0, {0, 0}};
+ 	kernel_lb_addr eloc;
+@@ -71,7 +75,10 @@ void udf_discard_prealloc(struct inode *
+ 	int adsize;
+ 
+ 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
+-		inode->i_size == UDF_I_LENEXTENTS(inode))
++	    inode->i_size == UDF_I_LENEXTENTS(inode))
++		return;
++	/* Are we going to delete the file anyway? */
++	if (inode->i_nlink == 0)
+ 		return;
+ 
+ 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
+@@ -79,36 +86,76 @@ void udf_discard_prealloc(struct inode *
+ 	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+-		adsize = 0;
+-
+-	epos.block = UDF_I_LOCATION(inode);
++		BUG();
+ 
+ 	/* Find the last extent in the file */
+ 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
+ 	{
+ 		etype = netype;
+ 		lbcount += elen;
+-		if (lbcount > inode->i_size && lbcount - elen < inode->i_size)
+-		{
+-			WARN_ON(lbcount - inode->i_size >= inode->i_sb->s_blocksize);
++		if (lbcount > inode->i_size) {
++			if (lbcount - inode->i_size >= inode->i_sb->s_blocksize)
++				printk(KERN_WARNING
++				       "udf_truncate_tail_extent(): Too long "
++				       "extent after EOF in inode %u: i_size: "
++				       "%Ld lbcount: %Ld extent %u+%u\n",
++				       (unsigned)inode->i_ino,
++				       (long long)inode->i_size,
++				       (long long)lbcount,
++				       (unsigned)eloc.logicalBlockNum,
++				       (unsigned)elen);
+ 			nelen = elen - (lbcount - inode->i_size);
+ 			epos.offset -= adsize;
+ 			extent_trunc(inode, &epos, eloc, etype, elen, nelen);
+ 			epos.offset += adsize;
+-			lbcount = inode->i_size;
++			if (udf_next_aext(inode, &epos, &eloc, &elen, 1) != -1)
++				printk(KERN_ERR "udf_truncate_tail_extent(): "
++				       "Extent after EOF in inode %u.\n",
++				       (unsigned)inode->i_ino);
++			break;
+ 		}
+ 	}
++	/* This inode entry is in-memory only and thus we don't have to mark
++	 * the inode dirty */
++	UDF_I_LENEXTENTS(inode) = inode->i_size;
++	brelse(epos.bh);
++}
++
++void udf_discard_prealloc(struct inode *inode)
++{
++	struct extent_position epos = { NULL, 0, {0, 0}};
++	kernel_lb_addr eloc;
++	uint32_t elen;
++	uint64_t lbcount = 0;
++	int8_t etype = -1, netype;
++	int adsize;
++
++	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
++		inode->i_size == UDF_I_LENEXTENTS(inode))
++		return;
++
++	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++		adsize = sizeof(short_ad);
++	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++		adsize = sizeof(long_ad);
++	else
++		adsize = 0;
++
++	epos.block = UDF_I_LOCATION(inode);
++
++	/* Find the last extent in the file */
++	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1) {
++		etype = netype;
++		lbcount += elen;
++	}
+ 	if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
+ 		epos.offset -= adsize;
+ 		lbcount -= elen;
+ 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
+-		if (!epos.bh)
+-		{
++		if (!epos.bh) {
+ 			UDF_I_LENALLOC(inode) = epos.offset - udf_file_entry_alloc_offset(inode);
+ 			mark_inode_dirty(inode);
+-		}
+-		else
+-		{
++		} else {
+ 			struct allocExtDesc *aed = (struct allocExtDesc *)(epos.bh->b_data);
+ 			aed->lengthAllocDescs = cpu_to_le32(epos.offset - sizeof(struct allocExtDesc));
+ 			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
+@@ -118,9 +165,9 @@ void udf_discard_prealloc(struct inode *
+ 			mark_buffer_dirty_inode(epos.bh, inode);
+ 		}
+ 	}
++	/* This inode entry is in-memory only and thus we don't have to mark
++	 * the inode dirty */
+ 	UDF_I_LENEXTENTS(inode) = lbcount;
+-
+-	WARN_ON(lbcount != inode->i_size);
+ 	brelse(epos.bh);
+ }
+ 
+diff -puN fs/udf/udfdecl.h~udf-fix-possible-leakage-of-blocks fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-fix-possible-leakage-of-blocks
++++ a/fs/udf/udfdecl.h
+@@ -146,6 +146,7 @@ extern void udf_free_inode(struct inode 
+ extern struct inode * udf_new_inode (struct inode *, int, int *);
+ 
+ /* truncate.c */
++extern void udf_truncate_tail_extent(struct inode *);
+ extern void udf_discard_prealloc(struct inode *);
+ extern void udf_truncate_extents(struct inode *);
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-git-acpi.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-doc-oops-tracing-add-code-decode-info.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+ext2-fix-a-comment-when-ext2_release_file-is-called.patch
+ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling.patch
+ext4-fix-deadlock-in-ext4_remount-and-orphan-list-handling.patch
