@@ -1,170 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - shm-fix-the-filename-of-hugetlb-sysv-shared-memory.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:51 -0700
-Message-ID: <200706231927.l5NJRpCK022095@imap1.linux-foundation.org>
+Subject: - intel_agp-dont-load-if-no-igd-and-agp-port.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:04 -0700
+Message-ID: <200706231928.l5NJS4sH022111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755492AbXFWTe6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755516AbXFWTe7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:58 -0400
+	Sat, 23 Jun 2007 15:34:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, acahalan@gmail.com, pbadari@us.ibm.com, serge@hallyn.com, mm-commits@vger.kernel.org
+To: zhenyu.z.wang@intel.com, carlo@alinoe.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shm: fix the filename of hugetlb sysv shared memory
+     intel_agp: don't load if no IGD and AGP port
 has been removed from the -mm tree.  Its filename was
-     shm-fix-the-filename-of-hugetlb-sysv-shared-memory.patch
+     intel_agp-dont-load-if-no-igd-and-agp-port.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: shm: fix the filename of hugetlb sysv shared memory
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: intel_agp: don't load if no IGD and AGP port
+From: Wang Zhenyu <zhenyu.z.wang@intel.com>
 
-Some user space tools need to identify SYSV shared memory when examining
-/proc/<pid>/maps.  To do so they look for a block device with major zero, a
-dentry named SYSV<sysv key>, and having the minor of the internal sysv
-shared memory kernel mount.
+After i915 chip, GMCH has no AGP port.  Origin bridge driver in device
+table will try to access illegal regs like APBASE, APSIZE, etc.  This may
+cause problem.
 
-To help these tools and to make it easier for people just browsing
-/proc/<pid>/maps this patch modifies hugetlb sysv shared memory to use the
-SYSV<key> dentry naming convention.
+So mark them as NULL in the table, we won't load if no IGD got detect and
+bridge has no AGP port.
 
-User space tools will still have to be aware that hugetlb sysv shared
-memory lives on a different internal kernel mount and so has a different
-block device minor number from the rest of sysv shared memory.
+(Carlo's original bug report: "Somewhere between 2.6.18 and 2.6.19, a patch
+was added to the kernel that makes it hang on my machine after the message:
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Albert Cahalan <acahalan@gmail.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+apgart: Detected an Intel 965G Chipset.
+
+When I upgraded to 2.6.22-rc4 (from debian trunk), I still ran
+into this same bug.")
+
+Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Reported-by: Carlo Wood <carlo@alinoe.com>
+Testted-by: Carlo Wood <carlo@alinoe.com>
+Acked-by: Carlo Wood <carlo@alinoe.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |    7 ++-----
- include/linux/hugetlb.h |    4 ++--
- ipc/shm.c               |    6 +++---
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/char/agp/intel-agp.c |   35 +++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory
-+++ a/fs/hugetlbfs/inode.c
-@@ -736,15 +736,13 @@ static int can_do_hugetlb_shm(void)
- 			can_do_mlock());
- }
+diff -puN drivers/char/agp/intel-agp.c~intel_agp-dont-load-if-no-igd-and-agp-port drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel_agp-dont-load-if-no-igd-and-agp-port
++++ a/drivers/char/agp/intel-agp.c
+@@ -1850,35 +1850,35 @@ static const struct intel_driver_descrip
+ 		&intel_845_driver, &intel_830_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82875_HB, 0, 0, "i875", &intel_845_driver, NULL },
+ 	{ PCI_DEVICE_ID_INTEL_82915G_HB, PCI_DEVICE_ID_INTEL_82915G_IG, 0, "915G",
+-		&intel_845_driver, &intel_915_driver },
++		NULL, &intel_915_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82915GM_HB, PCI_DEVICE_ID_INTEL_82915GM_IG, 0, "915GM",
+-		&intel_845_driver, &intel_915_driver },
++		NULL, &intel_915_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82945G_HB, PCI_DEVICE_ID_INTEL_82945G_IG, 0, "945G",
+-		&intel_845_driver, &intel_915_driver },
++		NULL, &intel_915_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GM_IG, 1, "945GM",
+-		&intel_845_driver, &intel_915_driver },
++		NULL, &intel_915_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GME_IG, 0, "945GME",
+-		&intel_845_driver, &intel_915_driver },
++		NULL, &intel_915_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82946GZ_HB, PCI_DEVICE_ID_INTEL_82946GZ_IG, 0, "946GZ",
+-		&intel_845_driver, &intel_i965_driver },
++		NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82965G_1_HB, PCI_DEVICE_ID_INTEL_82965G_1_IG, 0, "965G",
+-		&intel_845_driver, &intel_i965_driver },
++		NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82965Q_HB, PCI_DEVICE_ID_INTEL_82965Q_IG, 0, "965Q",
+-		&intel_845_driver, &intel_i965_driver },
++		NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82965G_HB, PCI_DEVICE_ID_INTEL_82965G_IG, 0, "965G",
+-		&intel_845_driver, &intel_i965_driver },
++		NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GM_IG, 1, "965GM",
+-		&intel_845_driver, &intel_i965_driver },
++		NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GME_IG, 0, "965GME/GLE",
+-		&intel_845_driver, &intel_i965_driver },
++		NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_7505_0, 0, 0, "E7505", &intel_7505_driver, NULL },
+ 	{ PCI_DEVICE_ID_INTEL_7205_0, 0, 0, "E7205", &intel_7505_driver, NULL },
+ 	{ PCI_DEVICE_ID_INTEL_G33_HB, PCI_DEVICE_ID_INTEL_G33_IG, 0, "G33",
+-		&intel_845_driver, &intel_g33_driver },
++		NULL, &intel_g33_driver },
+ 	{ PCI_DEVICE_ID_INTEL_Q35_HB, PCI_DEVICE_ID_INTEL_Q35_IG, 0, "Q35",
+-		&intel_845_driver, &intel_g33_driver },
++		NULL, &intel_g33_driver },
+ 	{ PCI_DEVICE_ID_INTEL_Q33_HB, PCI_DEVICE_ID_INTEL_Q33_IG, 0, "Q33",
+-		&intel_845_driver, &intel_g33_driver },
++		NULL, &intel_g33_driver },
+ 	{ 0, 0, 0, NULL, NULL, NULL }
+ };
  
--struct file *hugetlb_zero_setup(size_t size)
-+struct file *hugetlb_file_setup(const char *name, size_t size)
- {
- 	int error = -ENOMEM;
- 	struct file *file;
- 	struct inode *inode;
- 	struct dentry *dentry, *root;
- 	struct qstr quick_string;
--	char buf[16];
--	static atomic_t counter;
- 
- 	if (!hugetlbfs_vfsmount)
- 		return ERR_PTR(-ENOENT);
-@@ -756,8 +754,7 @@ struct file *hugetlb_zero_setup(size_t s
- 		return ERR_PTR(-ENOMEM);
- 
- 	root = hugetlbfs_vfsmount->mnt_root;
--	snprintf(buf, 16, "%u", atomic_inc_return(&counter));
--	quick_string.name = buf;
-+	quick_string.name = name;
- 	quick_string.len = strlen(quick_string.name);
- 	quick_string.hash = 0;
- 	dentry = d_alloc(root, &quick_string);
-diff -puN include/linux/hugetlb.h~shm-fix-the-filename-of-hugetlb-sysv-shared-memory include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~shm-fix-the-filename-of-hugetlb-sysv-shared-memory
-+++ a/include/linux/hugetlb.h
-@@ -163,7 +163,7 @@ static inline struct hugetlbfs_sb_info *
- 
- extern const struct file_operations hugetlbfs_file_operations;
- extern struct vm_operations_struct hugetlb_vm_ops;
--struct file *hugetlb_zero_setup(size_t);
-+struct file *hugetlb_file_setup(const char *name, size_t);
- int hugetlb_get_quota(struct address_space *mapping);
- void hugetlb_put_quota(struct address_space *mapping);
- 
-@@ -185,7 +185,7 @@ static inline void set_file_hugepages(st
- 
- #define is_file_hugepages(file)		0
- #define set_file_hugepages(file)	BUG()
--#define hugetlb_zero_setup(size)	ERR_PTR(-ENOSYS)
-+#define hugetlb_file_setup(name,size)	ERR_PTR(-ENOSYS)
- 
- #endif /* !CONFIG_HUGETLBFS */
- 
-diff -puN ipc/shm.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory ipc/shm.c
---- a/ipc/shm.c~shm-fix-the-filename-of-hugetlb-sysv-shared-memory
-+++ a/ipc/shm.c
-@@ -366,9 +366,10 @@ static int newseg (struct ipc_namespace 
- 		return error;
+@@ -1924,8 +1924,11 @@ static int __devinit agp_intel_probe(str
  	}
  
-+	sprintf (name, "SYSV%08x", key);
- 	if (shmflg & SHM_HUGETLB) {
--		/* hugetlb_zero_setup takes care of mlock user accounting */
--		file = hugetlb_zero_setup(size);
-+		/* hugetlb_file_setup takes care of mlock user accounting */
-+		file = hugetlb_file_setup(name, size);
- 		shp->mlock_user = current->user;
- 	} else {
- 		int acctflag = VM_ACCOUNT;
-@@ -379,7 +380,6 @@ static int newseg (struct ipc_namespace 
- 		if  ((shmflg & SHM_NORESERVE) &&
- 				sysctl_overcommit_memory != OVERCOMMIT_NEVER)
- 			acctflag = 0;
--		sprintf (name, "SYSV%08x", key);
- 		file = shmem_file_setup(name, size, acctflag);
- 	}
- 	error = PTR_ERR(file);
+ 	if (bridge->driver == NULL) {
+-		printk(KERN_WARNING PFX "Failed to find bridge device "
+-			"(chip_id: %04x)\n", intel_agp_chipsets[i].gmch_chip_id);
++		/* bridge has no AGP and no IGD detected */
++		if (cap_ptr)
++			printk(KERN_WARNING PFX "Failed to find bridge device "
++				"(chip_id: %04x)\n",
++				intel_agp_chipsets[i].gmch_chip_id);
+ 		agp_put_bridge(bridge);
+ 		return -ENODEV;
+         }
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
 
-fix-refcounting-of-nsproxy-object-when-unshared.patch
-dvb_en_50221-convert-to-kthread-api.patch
-git-kbuild.patch
-fix-i-oat-for-kexec.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-i386-show-unhandled-signals-fix.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-buffer-kill-old-incorrect-comment.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-add-a-kmem_cache-for-nsproxy-objects.patch
-update-procfs-guide-doc-of-read_func.patch
-namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
+origin.patch
