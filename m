@@ -1,61 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fs_flags-fixlet.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:16 -0700
-Message-ID: <200706231927.l5NJRGZw022046@imap1.linux-foundation.org>
+Subject: - md-fix-two-raid10-bugs.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:18 -0700
+Message-ID: <200706231927.l5NJRIGa022049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43684 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752781AbXFWT10 (ORCPT
+	by vger.kernel.org with ESMTP id S1753744AbXFWT1d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:27:26 -0400
+	Sat, 23 Jun 2007 15:27:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: ->fs_flags fixlet
+     md: fix two raid10 bugs
 has been removed from the -mm tree.  Its filename was
-     fuse-fs_flags-fixlet.patch
+     md-fix-two-raid10-bugs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: ->fs_flags fixlet
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: md: fix two raid10 bugs
+From: NeilBrown <neilb@suse.de>
 
-fs/fuse/inode.c:658:3: error: Initializer entry defined twice
-fs/fuse/inode.c:661:3:   also defined here
+1/ When resyncing a degraded raid10 which has more than 2 copies of each block,
+  garbage can get synced on top of good data.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Miklos Szeredi <mszeredi@suse.cz>
+2/ We round the wrong way in part of the device size calculation, which
+  can cause confusion.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/md/raid10.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/fuse/inode.c~fuse-fs_flags-fixlet fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fs_flags-fixlet
-+++ a/fs/fuse/inode.c
-@@ -655,10 +655,9 @@ static int fuse_get_sb_blk(struct file_s
- static struct file_system_type fuseblk_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "fuseblk",
--	.fs_flags	= FS_HAS_SUBTYPE,
- 	.get_sb		= fuse_get_sb_blk,
- 	.kill_sb	= kill_block_super,
--	.fs_flags	= FS_REQUIRES_DEV,
-+	.fs_flags	= FS_REQUIRES_DEV | FS_HAS_SUBTYPE,
- };
+diff -puN drivers/md/raid10.c~md-fix-two-raid10-bugs drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-fix-two-raid10-bugs
++++ a/drivers/md/raid10.c
+@@ -1867,6 +1867,7 @@ static sector_t sync_request(mddev_t *md
+ 			int d = r10_bio->devs[i].devnum;
+ 			bio = r10_bio->devs[i].bio;
+ 			bio->bi_end_io = NULL;
++			clear_bit(BIO_UPTODATE, &bio->bi_flags);
+ 			if (conf->mirrors[d].rdev == NULL ||
+ 			    test_bit(Faulty, &conf->mirrors[d].rdev->flags))
+ 				continue;
+@@ -2037,6 +2038,11 @@ static int run(mddev_t *mddev)
+ 	/* 'size' is now the number of chunks in the array */
+ 	/* calculate "used chunks per device" in 'stride' */
+ 	stride = size * conf->copies;
++
++	/* We need to round up when dividing by raid_disks to
++	 * get the stride size.
++	 */
++	stride += conf->raid_disks - 1;
+ 	sector_div(stride, conf->raid_disks);
+ 	mddev->size = stride  << (conf->chunk_shift-1);
  
- static inline int register_fuseblk(void)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-procfs-directory-entry-cleanup-fix.patch
-remove-capabilityh-from-mmh.patch
-ptrace_peekdata-consolidation.patch
-ptrace_pokedata-consolidation.patch
+git-md-accel.patch
+block-drop-unnecessary-bvec-rewinding-from-flush_dry_bio_endio.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+fix-read-truncate-race.patch
+make-sure-readv-stops-reading-when-it-hits-end-of-file.patch
+knfsd-exportfs-add-exportfsh-header.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+knfsd-exportfs-add-procedural-interface-for-nfsd.patch
+knfsd-exportfs-remove-call-macro.patch
+knfsd-exportfs-untangle-isdir-logic-in-find_exported_dentry.patch
+knfsd-exportfs-move-acceptable-check-into-find_acceptable_alias.patch
+knfsd-exportfs-add-find_disconnected_root-helper.patch
+knfsd-exportfs-split-out-reconnecting-a-dentry-from-find_exported_dentry.patch
+nfsd-warning-fix.patch
+use-menuconfig-objects-ii-md.patch
+md-improve-message-about-invalid-superblock-during-autodetect.patch
+md-improve-the-is_mddev_idle-test-fix.patch
+md-check-that-internal-bitmap-does-not-overlap-other-data.patch
+md-change-bitmap_unplug-and-others-to-void-functions.patch
+fs-introduce-vfs_path_lookup.patch
+sunrpc-use-vfs_path_lookup.patch
+nfsctl-use-vfs_path_lookup.patch
+fs-mark-link_path_walk-static.patch
+fs-remove-path_walk-export.patch
