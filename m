@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-zero_user_page-conversion.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:54:26 -0700
-Message-ID: <200706231654.l5NGsN2a019749@imap1.linux-foundation.org>
+Subject: + hfsplus-fix-mount-uid-gid-bug.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:53:21 -0700
+Message-ID: <200706231653.l5NGrIap019666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759057AbXFWQy5 (ORCPT
+	by vger.kernel.org with ESMTP id S1759201AbXFWQ4X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:54:57 -0400
+	Sat, 23 Jun 2007 12:56:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, tytso@mit.edu
+Cc: wyatt@banksresearch.com, zippel@linux-m68k.org
 
 
 The patch titled
-     ext4: zero_user_page() conversions
+     HFSPlus: fix mount uid/gid bug
 has been added to the -mm tree.  Its filename is
-     ext4-zero_user_page-conversion.patch
+     hfsplus-fix-mount-uid-gid-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4: zero_user_page() conversions
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: HFSPlus: fix mount uid/gid bug
+From: Wyatt Banks <wyatt@banksresearch.com>
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+HFSPlus: fix broken logic for mount uid=xxx,gid=xxx. (bug 3533)
+
+This is a patch to address bug 3533.
+
+The 2 lines that should be setting the uid/gid:
+
+if (!inode->i_uid && !mode)
+if (!inode->i_gid && !mode)
+
+always evaluate as false.  mode is the BSD file type and mode bits.
+These lines do nothing since the file type bits are not masked off
+with S_IFMT.
+
+References:
+
+http://bugzilla.kernel.org/show_bug.cgi?id=3533
+http://developer.apple.com/technotes/tn/tn1150.html
+
+Signed-off-by: Wyatt Banks <wyatt@banksresearch.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ fs/hfsplus/hfsplus_fs.h |    2 ++
+ fs/hfsplus/inode.c      |    4 ++--
+ fs/hfsplus/options.c    |    2 ++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext4/inode.c~ext4-zero_user_page-conversion fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-zero_user_page-conversion
-+++ a/fs/ext4/inode.c
-@@ -1830,7 +1830,6 @@ int ext4_block_truncate_page(handle_t *h
- 	struct inode *inode = mapping->host;
- 	struct buffer_head *bh;
- 	int err = 0;
--	void *kaddr;
+diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-fix-mount-uid-gid-bug fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfsplus-fix-mount-uid-gid-bug
++++ a/fs/hfsplus/hfsplus_fs.h
+@@ -139,6 +139,8 @@ struct hfsplus_sb_info {
+ 	uid_t uid;
+ 	gid_t gid;
  
- 	if ((EXT4_I(inode)->i_flags & EXT4_EXTENTS_FL) &&
- 			test_opt(inode->i_sb, EXTENTS) &&
-@@ -1847,10 +1846,7 @@ int ext4_block_truncate_page(handle_t *h
- 	 */
- 	if (!page_has_buffers(page) && test_opt(inode->i_sb, NOBH) &&
- 	     ext4_should_writeback_data(inode) && PageUptodate(page)) {
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr + offset, 0, length);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, offset, length, KM_USER0);
- 		set_page_dirty(page);
- 		goto unlock;
- 	}
-@@ -1903,10 +1899,7 @@ int ext4_block_truncate_page(handle_t *h
- 			goto unlock;
- 	}
++	int uid_provided, gid_provided;
++
+ 	int part, session;
  
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, length);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
-+	zero_user_page(page, offset, length, KM_USER0);
+ 	unsigned long flags;
+diff -puN fs/hfsplus/inode.c~hfsplus-fix-mount-uid-gid-bug fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~hfsplus-fix-mount-uid-gid-bug
++++ a/fs/hfsplus/inode.c
+@@ -186,11 +186,11 @@ static void hfsplus_get_perms(struct ino
+ 	mode = be16_to_cpu(perms->mode);
  
- 	BUFFER_TRACE(bh, "zeroed end of block");
+ 	inode->i_uid = be32_to_cpu(perms->owner);
+-	if (!inode->i_uid && !mode)
++	if (HFSPLUS_SB(sb).uid_provided)
+ 		inode->i_uid = HFSPLUS_SB(sb).uid;
  
+ 	inode->i_gid = be32_to_cpu(perms->group);
+-	if (!inode->i_gid && !mode)
++	if (HFSPLUS_SB(sb).gid_provided)
+ 		inode->i_gid = HFSPLUS_SB(sb).gid;
+ 
+ 	if (dir) {
+diff -puN fs/hfsplus/options.c~hfsplus-fix-mount-uid-gid-bug fs/hfsplus/options.c
+--- a/fs/hfsplus/options.c~hfsplus-fix-mount-uid-gid-bug
++++ a/fs/hfsplus/options.c
+@@ -106,6 +106,7 @@ int hfsplus_parse_options(char *input, s
+ 				return 0;
+ 			}
+ 			sbi->uid = (uid_t)tmp;
++			sbi->uid_provided = 1;
+ 			break;
+ 		case opt_gid:
+ 			if (match_int(&args[0], &tmp)) {
+@@ -113,6 +114,7 @@ int hfsplus_parse_options(char *input, s
+ 				return 0;
+ 			}
+ 			sbi->gid = (gid_t)tmp;
++			sbi->gid_provided = 1;
+ 			break;
+ 		case opt_part:
+ 			if (match_int(&args[0], &sbi->part)) {
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from wyatt@banksresearch.com are
 
-cifs-zero_user_page-conversion.patch
-gfs2-zero_user_page-conversion.patch
-ocfs2-zero_user_page-conversion.patch
-ext4-zero_user_page-conversion.patch
+hfsplus-change-kmalloc-memset-to-kzalloc.patch
+hfsplus-fix-mount-uid-gid-bug.patch
+hfsplus-fix-mount-uid-gid-bug-tidy.patch
