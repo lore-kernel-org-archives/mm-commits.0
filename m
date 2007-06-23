@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-clear-proper-mpsc-interrupt-cause-bits.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:51:32 -0700
-Message-ID: <200706231651.l5NGpTXT019594@imap1.linux-foundation.org>
+Subject: + x86-64-disable-the-gart-in-shutdown.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:51:19 -0700
+Message-ID: <200706231651.l5NGpGLp019565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59059 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756518AbXFWQvn (ORCPT
+	by vger.kernel.org with ESMTP id S1756493AbXFWQvm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:51:43 -0400
+	Sat, 23 Jun 2007 12:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaylubo@motorola.com, mgreer@mvista.com
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM
 
 
 The patch titled
-     serial: clear proper MPSC interrupt cause bits
+     x86-64: disable the GART in shutdown
 has been added to the -mm tree.  Its filename is
-     serial-clear-proper-mpsc-interrupt-cause-bits.patch
+     x86-64-disable-the-gart-in-shutdown.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,132 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: clear proper MPSC interrupt cause bits
-From: Jay Lubomirski <jaylubo@motorola.com>
+Subject: x86-64: disable the GART in shutdown
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Don't clobber the interrupt cause bits for both MPSC controllers when
-clearing the interrupt for one of them.  Just clear the one that is
-supposed to be cleared.
+For K8 system: 4G RAM with memory hole remapping enabled, or more than 4G
+RAM installed.  when mem is allocated for GART, it will do the memset for
+clear.  and for kexec case, the first kernel already enable that, the
+memset in second kernel will cause the system restart.  solution will be:
+in second kernel: disable that at first before we try to allocate mem for
+it.  or in the first kernel: do disable that before shutdown.
 
-Signed-off-by: Jay Lubomirski <jaylubo@motorola.com>
-Acked-by: Mark A. Greer <mgreer@mvista.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpsc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/pci-dma.c  |    7 +++++++
+ arch/x86_64/kernel/pci-gart.c |   20 ++++++++++++++++++++
+ arch/x86_64/kernel/reboot.c   |    4 ++++
+ include/asm-x86_64/proto.h    |    2 ++
+ 4 files changed, 33 insertions(+)
 
-diff -puN drivers/serial/mpsc.c~serial-clear-proper-mpsc-interrupt-cause-bits drivers/serial/mpsc.c
---- a/drivers/serial/mpsc.c~serial-clear-proper-mpsc-interrupt-cause-bits
-+++ a/drivers/serial/mpsc.c
-@@ -503,7 +503,8 @@ mpsc_sdma_intr_ack(struct mpsc_port_info
- 
- 	if (pi->mirror_regs)
- 		pi->shared_regs->SDMA_INTR_CAUSE_m = 0;
--	writel(0, pi->shared_regs->sdma_intr_base + SDMA_INTR_CAUSE);
-+	writeb(0x00, pi->shared_regs->sdma_intr_base + SDMA_INTR_CAUSE +
-+	       pi->port.line);
- 	return;
+diff -puN arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -321,6 +321,13 @@ static int __init pci_iommu_init(void)
+ 	return 0;
  }
  
++void pci_iommu_shutdown(void)
++{
++#ifdef CONFIG_IOMMU
++	gart_iommu_shutdown();
++#endif
++}
++
+ #ifdef CONFIG_PCI
+ /* Many VIA bridges seem to corrupt data for DAC. Disable it here */
+ 
+diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -571,6 +571,26 @@ static const struct dma_mapping_ops gart
+ 	.unmap_sg = gart_unmap_sg,
+ };
+ 
++void gart_iommu_shutdown(void)
++{
++	struct pci_dev *dev;
++	int i;
++
++	if (dma_ops != &gart_dma_ops)
++		return;
++
++	for (i = 0; i < num_k8_northbridges; i++) {
++		u32 ctl;
++
++		dev = k8_northbridges[i];
++		pci_read_config_dword(dev, 0x90, &ctl);
++
++		ctl &= ~1;
++
++		pci_write_config_dword(dev, 0x90, ctl);
++	}
++}
++
+ void __init gart_iommu_init(void)
+ { 
+ 	struct agp_kern_info info;
+diff -puN arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/reboot.c
+--- a/arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/reboot.c
+@@ -16,6 +16,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <asm/apic.h>
++#include <asm/proto.h>
+ 
+ /*
+  * Power off function, if any
+@@ -81,6 +82,7 @@ static inline void kb_wait(void)
+ void machine_shutdown(void)
+ {
+ 	unsigned long flags;
++
+ 	/* Stop the cpus and apics */
+ #ifdef CONFIG_SMP
+ 	int reboot_cpu_id;
+@@ -111,6 +113,8 @@ void machine_shutdown(void)
+ 	disable_IO_APIC();
+ 
+ 	local_irq_restore(flags);
++
++	pci_iommu_shutdown();
+ }
+ 
+ void machine_emergency_restart(void)
+diff -puN include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown
++++ a/include/asm-x86_64/proto.h
+@@ -83,11 +83,13 @@ extern int exception_trace;
+ extern unsigned cpu_khz;
+ extern unsigned tsc_khz;
+ 
++extern void pci_iommu_shutdown(void);
+ extern void no_iommu_init(void);
+ extern int force_iommu, no_iommu;
+ extern int iommu_detected;
+ #ifdef CONFIG_IOMMU
+ extern void gart_iommu_init(void);
++extern void gart_iommu_shutdown(void);
+ extern void __init gart_parse_options(char *);
+ extern void iommu_hole_init(void);
+ extern int fallback_aper_order;
 _
 
-Patches currently in -mm which might be from jaylubo@motorola.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-serial-clear-proper-mpsc-interrupt-cause-bits.patch
+serial-assert-dtr-for-serial-console-devices.patch
+x86-64-disable-the-gart-in-shutdown.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
