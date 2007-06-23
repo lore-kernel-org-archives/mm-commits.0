@@ -1,153 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-disable-the-gart-in-shutdown.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 10:06:51 -0700
-Message-ID: <200706231706.l5NH6ppC019970@imap1.linux-foundation.org>
+Subject: + pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch added to -mm tree
+Date: Sat, 23 Jun 2007 10:13:06 -0700
+Message-ID: <200706231713.l5NHD6lX020042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53941 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759926AbXFWRHv (ORCPT
+	by vger.kernel.org with ESMTP id S1756371AbXFWROU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 13:07:51 -0400
+	Sat, 23 Jun 2007 13:14:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, grundler@parisc-linux.org, hugh@veritas.com, kyle@mcmartin.ca, willy@debian.org
 
 
 The patch titled
-     x86-64: disable the GART in shutdown
-has been removed from the -mm tree.  Its filename was
-     x86-64-disable-the-gart-in-shutdown.patch
+     pa-risc-use-page-allocator-instead-of-slab-allocator-fix
+has been added to the -mm tree.  Its filename is
+     pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64: disable the GART in shutdown
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: pa-risc-use-page-allocator-instead-of-slab-allocator-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-For K8 system: 4G RAM with memory hole remapping enabled, or more than 4G
-RAM installed.  when mem is allocated for GART, it will do the memset for
-clear.  and for kexec case, the first kernel already enable that, the
-memset in second kernel will cause the system restart.  solution will be:
-in second kernel: disable that at first before we try to allocate mem for
-it.  or in the first kernel: do disable that before shutdown.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Grant Grundler <grundler@parisc-linux.org>,
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-dma.c  |    7 +++++++
- arch/x86_64/kernel/pci-gart.c |   20 ++++++++++++++++++++
- arch/x86_64/kernel/reboot.c   |    4 ++++
- include/asm-x86_64/proto.h    |    2 ++
- 4 files changed, 33 insertions(+)
+ arch/parisc/kernel/pci-dma.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-dma.c
---- a/arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/pci-dma.c
-@@ -321,6 +321,13 @@ static int __init pci_iommu_init(void)
- 	return 0;
- }
- 
-+void pci_iommu_shutdown(void)
-+{
-+#ifdef CONFIG_IOMMU
-+	gart_iommu_shutdown();
-+#endif
-+}
-+
- #ifdef CONFIG_PCI
- /* Many VIA bridges seem to corrupt data for DAC. Disable it here */
- 
-diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-gart.c
---- a/arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/pci-gart.c
-@@ -571,6 +571,26 @@ static const struct dma_mapping_ops gart
- 	.unmap_sg = gart_unmap_sg,
- };
- 
-+void gart_iommu_shutdown(void)
-+{
-+	struct pci_dev *dev;
-+	int i;
-+
-+	if (dma_ops != &gart_dma_ops)
-+		return;
-+
-+	for (i = 0; i < num_k8_northbridges; i++) {
-+		u32 ctl;
-+
-+		dev = k8_northbridges[i];
-+		pci_read_config_dword(dev, 0x90, &ctl);
-+
-+		ctl &= ~1;
-+
-+		pci_write_config_dword(dev, 0x90, ctl);
-+	}
-+}
-+
- void __init gart_iommu_init(void)
- { 
- 	struct agp_kern_info info;
-diff -puN arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/reboot.c
---- a/arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/reboot.c
-@@ -16,6 +16,7 @@
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
- #include <asm/apic.h>
-+#include <asm/proto.h>
- 
- /*
-  * Power off function, if any
-@@ -81,6 +82,7 @@ static inline void kb_wait(void)
- void machine_shutdown(void)
+diff -puN arch/parisc/kernel/pci-dma.c~pa-risc-use-page-allocator-instead-of-slab-allocator-fix arch/parisc/kernel/pci-dma.c
+--- a/arch/parisc/kernel/pci-dma.c~pa-risc-use-page-allocator-instead-of-slab-allocator-fix
++++ a/arch/parisc/kernel/pci-dma.c
+@@ -569,11 +569,10 @@ static void *fail_alloc_consistent(struc
+ static void *pa11_dma_alloc_noncoherent(struct device *dev, size_t size,
+ 					  dma_addr_t *dma_handle, gfp_t flag)
  {
- 	unsigned long flags;
-+
- 	/* Stop the cpus and apics */
- #ifdef CONFIG_SMP
- 	int reboot_cpu_id;
-@@ -111,6 +113,8 @@ void machine_shutdown(void)
- 	disable_IO_APIC();
+-	void *addr = NULL;
++	void *addr;
  
- 	local_irq_restore(flags);
-+
-+	pci_iommu_shutdown();
- }
+-	/* rely on kmalloc to be cacheline aligned */
+ 	addr = (void *)__get_free_pages(flag, get_order(size));
+-	if(addr)
++	if (addr)
+ 		*dma_handle = (dma_addr_t)virt_to_phys(addr);
  
- void machine_emergency_restart(void)
-diff -puN include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown
-+++ a/include/asm-x86_64/proto.h
-@@ -83,11 +83,13 @@ extern int exception_trace;
- extern unsigned cpu_khz;
- extern unsigned tsc_khz;
- 
-+extern void pci_iommu_shutdown(void);
- extern void no_iommu_init(void);
- extern int force_iommu, no_iommu;
- extern int iommu_detected;
- #ifdef CONFIG_IOMMU
- extern void gart_iommu_init(void);
-+extern void gart_iommu_shutdown(void);
- extern void __init gart_parse_options(char *);
- extern void iommu_hole_init(void);
- extern int fallback_aper_order;
+ 	return addr;
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-serial-assert-dtr-for-serial-console-devices.patch
-x86-64-disable-the-gart-in-shutdown.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+sm501-suspend-support-fix.patch
+sm501-clock-updates-and-checks-fix.patch
+x86_64-fix-misplaced-continue-in-mcec-tidy.patch
+git-acpi.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+git-selinux.patch
+git-selinux-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+revert-x86_64-mm-cpa-cache-flush.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
+i386-mtrr-clean-up-usage_table.patch
+i386-show-unhandled-signals-fix.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+blink-only-blink-when-parameter-is-set-fix.patch
+hfsplus-fix-mount-uid-gid-bug-tidy.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
