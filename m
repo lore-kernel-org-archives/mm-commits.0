@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-fix-mount-uid-gid-bug.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:53:21 -0700
-Message-ID: <200706231653.l5NGrIap019666@imap1.linux-foundation.org>
+Subject: + ppp-fix-osize-too-small-errors-when-decoding.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:51:27 -0700
+Message-ID: <200706231651.l5NGpOgt019591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59929 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759201AbXFWQ4X (ORCPT
+	by vger.kernel.org with ESMTP id S1759717AbXFWQ4q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:56:23 -0400
+	Sat, 23 Jun 2007 12:56:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wyatt@banksresearch.com, zippel@linux-m68k.org
+Cc: konstantin.sharlaimov@gmail.com, Matt_Domsch@dell.com, davem@davemloft.net, james.cameron@hp.com, paulus@samba.org, vsu@altlinux.ru
 
 
 The patch titled
-     HFSPlus: fix mount uid/gid bug
+     ppp: fix osize too small errors when decoding mppe
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-mount-uid-gid-bug.patch
+     ppp-fix-osize-too-small-errors-when-decoding.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HFSPlus: fix mount uid/gid bug
-From: Wyatt Banks <wyatt@banksresearch.com>
+Subject: ppp: fix osize too small errors when decoding mppe
+From: Konstantin Sharlaimov <konstantin.sharlaimov@gmail.com>
 
-HFSPlus: fix broken logic for mount uid=xxx,gid=xxx. (bug 3533)
+The mppe_decompress() function required a buffer that is 1 byte too small
+when receiving a message of mru size.  This fixes buffer allocation to
+prevent this from occurring.
 
-This is a patch to address bug 3533.
+As Sergey Vlasov pointed out,
+ppp_mppe-account-for-osize-too-small-errors-in.patch may cause buffer
+overflows on certain data.  Here is another patch that should eliminate the
+"osize too small" errors.  Instead of patching mppe_decompress itself, I
+have patched ppp_decompress_frame so it would allocate the required extra
+byte when using mppe compression.
 
-The 2 lines that should be setting the uid/gid:
-
-if (!inode->i_uid && !mode)
-if (!inode->i_gid && !mode)
-
-always evaluate as false.  mode is the BSD file type and mode bits.
-These lines do nothing since the file type bits are not masked off
-with S_IFMT.
-
-References:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=3533
-http://developer.apple.com/technotes/tn/tn1150.html
-
-Signed-off-by: Wyatt Banks <wyatt@banksresearch.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Konstantin Sharlaimov <konstantin.sharlaimov@gmail.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: James Cameron <james.cameron@hp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Sergey Vlasov <vsu@altlinux.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_fs.h |    2 ++
- fs/hfsplus/inode.c      |    4 ++--
- fs/hfsplus/options.c    |    2 ++
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/net/ppp_generic.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-fix-mount-uid-gid-bug fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-fix-mount-uid-gid-bug
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -139,6 +139,8 @@ struct hfsplus_sb_info {
- 	uid_t uid;
- 	gid_t gid;
+diff -puN drivers/net/ppp_generic.c~ppp-fix-osize-too-small-errors-when-decoding drivers/net/ppp_generic.c
+--- a/drivers/net/ppp_generic.c~ppp-fix-osize-too-small-errors-when-decoding
++++ a/drivers/net/ppp_generic.c
+@@ -1708,7 +1708,18 @@ ppp_decompress_frame(struct ppp *ppp, st
+ 		goto err;
  
-+	int uid_provided, gid_provided;
+ 	if (proto == PPP_COMP) {
+-		ns = dev_alloc_skb(ppp->mru + PPP_HDRLEN);
++		int obuff_size;
 +
- 	int part, session;
- 
- 	unsigned long flags;
-diff -puN fs/hfsplus/inode.c~hfsplus-fix-mount-uid-gid-bug fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~hfsplus-fix-mount-uid-gid-bug
-+++ a/fs/hfsplus/inode.c
-@@ -186,11 +186,11 @@ static void hfsplus_get_perms(struct ino
- 	mode = be16_to_cpu(perms->mode);
- 
- 	inode->i_uid = be32_to_cpu(perms->owner);
--	if (!inode->i_uid && !mode)
-+	if (HFSPLUS_SB(sb).uid_provided)
- 		inode->i_uid = HFSPLUS_SB(sb).uid;
- 
- 	inode->i_gid = be32_to_cpu(perms->group);
--	if (!inode->i_gid && !mode)
-+	if (HFSPLUS_SB(sb).gid_provided)
- 		inode->i_gid = HFSPLUS_SB(sb).gid;
- 
- 	if (dir) {
-diff -puN fs/hfsplus/options.c~hfsplus-fix-mount-uid-gid-bug fs/hfsplus/options.c
---- a/fs/hfsplus/options.c~hfsplus-fix-mount-uid-gid-bug
-+++ a/fs/hfsplus/options.c
-@@ -106,6 +106,7 @@ int hfsplus_parse_options(char *input, s
- 				return 0;
- 			}
- 			sbi->uid = (uid_t)tmp;
-+			sbi->uid_provided = 1;
- 			break;
- 		case opt_gid:
- 			if (match_int(&args[0], &tmp)) {
-@@ -113,6 +114,7 @@ int hfsplus_parse_options(char *input, s
- 				return 0;
- 			}
- 			sbi->gid = (gid_t)tmp;
-+			sbi->gid_provided = 1;
- 			break;
- 		case opt_part:
- 			if (match_int(&args[0], &sbi->part)) {
++		switch(ppp->rcomp->compress_proto) {
++		case CI_MPPE:
++			obuff_size = ppp->mru + PPP_HDRLEN + 1;
++			break;
++		default:
++			obuff_size = ppp->mru + PPP_HDRLEN;
++			break;
++		}
++
++		ns = dev_alloc_skb(obuff_size);
+ 		if (ns == 0) {
+ 			printk(KERN_ERR "ppp_decompress_frame: no memory\n");
+ 			goto err;
 _
 
-Patches currently in -mm which might be from wyatt@banksresearch.com are
+Patches currently in -mm which might be from konstantin.sharlaimov@gmail.com are
 
-hfsplus-change-kmalloc-memset-to-kzalloc.patch
-hfsplus-fix-mount-uid-gid-bug.patch
-hfsplus-fix-mount-uid-gid-bug-tidy.patch
+ppp-fix-osize-too-small-errors-when-decoding.patch
