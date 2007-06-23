@@ -1,57 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-zero_user_page-conversion.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:11 -0700
-Message-ID: <200706231928.l5NJSB2Y022122@imap1.linux-foundation.org>
+Subject: - kerneldoc-fix-in-libata.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:15 -0700
+Message-ID: <200706231928.l5NJSFib022128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43385 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753031AbXFWTej (ORCPT
+	by vger.kernel.org with ESMTP id S1752657AbXFWTef (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:39 -0400
+	Sat, 23 Jun 2007 15:34:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: henne@nachtwindheim.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2: zero_user_page() conversions
+     kerneldoc fix in libata
 has been removed from the -mm tree.  Its filename was
-     gfs2-zero_user_page-conversion.patch
+     kerneldoc-fix-in-libata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gfs2: zero_user_page() conversions
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: kerneldoc fix in libata
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Fix parameter name from ata_dev_reread_id() in libata-core.c for kerneldoc.
+
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_address.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/ata/libata-core.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/gfs2/ops_address.c~gfs2-zero_user_page-conversion fs/gfs2/ops_address.c
---- a/fs/gfs2/ops_address.c~gfs2-zero_user_page-conversion
-+++ a/fs/gfs2/ops_address.c
-@@ -208,10 +208,7 @@ static int stuffed_readpage(struct gfs2_
- 	 * so we need to supply one here. It doesn't happen often.
- 	 */
- 	if (unlikely(page->index)) {
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr, 0, PAGE_CACHE_SIZE);
--		kunmap_atomic(kaddr, KM_USER0);
--		flush_dcache_page(page);
-+		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
- 		SetPageUptodate(page);
- 		return 0;
- 	}
+diff -puN drivers/ata/libata-core.c~kerneldoc-fix-in-libata drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~kerneldoc-fix-in-libata
++++ a/drivers/ata/libata-core.c
+@@ -3665,7 +3665,7 @@ static int ata_dev_same_device(struct at
+ 
+ /**
+  *	ata_dev_reread_id - Re-read IDENTIFY data
+- *	@adev: target ATA device
++ *	@dev: target ATA device
+  *	@readid_flags: read ID flags
+  *
+  *	Re-read IDENTIFY page and make sure @dev is still attached to
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
 
-cifs-zero_user_page-conversion.patch
-git-ocfs2.patch
-ext4-zero_user_page-conversion.patch
+origin.patch
+kerneldoc-fix-in-audit_core_dumps.patch
