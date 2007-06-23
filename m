@@ -1,83 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - toshica_acpi-fix-section-mismatch-in-allyesconfig.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:09 -0700
-Message-ID: <200706231927.l5NJR9Wj022034@imap1.linux-foundation.org>
+Subject: - swsusp-fix-userland-interface.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:11 -0700
+Message-ID: <200706231927.l5NJRBu9022038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36662 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39568 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754723AbXFWT2A (ORCPT
+	by vger.kernel.org with ESMTP id S1754766AbXFWT2C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:28:00 -0400
+	Sat, 23 Jun 2007 15:28:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, len.brown@intel.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     toshiba_acpi: fix section mismatch in allyesconfig
+     swsusp: Fix userland interface
 has been removed from the -mm tree.  Its filename was
-     toshica_acpi-fix-section-mismatch-in-allyesconfig.patch
+     swsusp-fix-userland-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: toshiba_acpi: fix section mismatch in allyesconfig
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: swsusp: Fix userland interface
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Fix section error (allyesconfig).  The exit function is called from init,
-so functions that are called by the exit function cannot be marked __exit.
+Fix oops caused by 'cat /dev/snapshot', reported by Arkadiusz Miskiewicz,
+and make it impossible to thaw tasks with the help of the swsusp userland
+interface while there is a snapshot image ready to save.
 
-WARNING: drivers/built-in.o(.text+0xe5bc6): Section mismatch: reference to .exit.
-text: (between 'toshiba_acpi_exit' and 'hci_raw')
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/toshiba_acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/power/user.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/toshiba_acpi.c~toshica_acpi-fix-section-mismatch-in-allyesconfig drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c~toshica_acpi-fix-section-mismatch-in-allyesconfig
-+++ a/drivers/acpi/toshiba_acpi.c
-@@ -524,7 +524,7 @@ static acpi_status __init add_device(voi
- 	return AE_OK;
- }
+diff -puN kernel/power/user.c~swsusp-fix-userland-interface kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-fix-userland-interface
++++ a/kernel/power/user.c
+@@ -99,6 +99,8 @@ static ssize_t snapshot_read(struct file
+ 	ssize_t res;
  
--static acpi_status __exit remove_device(void)
-+static acpi_status remove_device(void)
- {
- 	ProcItem *item;
+ 	data = filp->private_data;
++	if (!data->ready)
++		return -ENODATA;
+ 	res = snapshot_read_next(&data->handle, count);
+ 	if (res > 0) {
+ 		if (copy_to_user(buf, data_of(data->handle), res))
+@@ -245,7 +247,7 @@ static int snapshot_ioctl(struct inode *
+ 		break;
  
+ 	case SNAPSHOT_UNFREEZE:
+-		if (!data->frozen)
++		if (!data->frozen || data->ready)
+ 			break;
+ 		mutex_lock(&pm_mutex);
+ 		thaw_processes();
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-git-acpi.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-doc-oops-tracing-add-code-decode-info.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+shrink_slab-handle-bad-shrinkers.patch
+beeping-patch-for-debugging-acpi-sleep.patch
