@@ -1,81 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - fix-get_policy-for-stacked-shared-memory-files.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:48 -0700
-Message-ID: <200706231927.l5NJRm8O022092@imap1.linux-foundation.org>
+Subject: - s390-spinlock-initializer-cleanup.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:19 -0700
+Message-ID: <200706231928.l5NJSJ3E022135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755257AbXFWTfV (ORCPT
+	by vger.kernel.org with ESMTP id S1755646AbXFWTf0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:35:21 -0400
+	Sat, 23 Jun 2007 15:35:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, ak@suse.de, bill.irwin@oracle.com, clameter@sgi.com, dean@arctic.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, heiko.carstens@de.ibm.com, jeff@garzik.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix get_policy for stacked shared memory files
+     S390: Spinlock initializer cleanup
 has been removed from the -mm tree.  Its filename was
-     fix-get_policy-for-stacked-shared-memory-files.patch
+     s390-spinlock-initializer-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugetlb: fix get_policy for stacked shared memory files
-From: Adam Litke <agl@us.ibm.com>
+Subject: S390: Spinlock initializer cleanup
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Here's another breakage as a result of shared memory stacked files :(
-
-The NUMA policy for a VMA is determined by checking the following (in the
-order given):
-
-1) vma->vm_ops->get_policy() (if defined)
-2) vma->vm_policy (if defined)
-3) task->mempolicy (if defined)
-4) Fall back to default_policy
-
-By switching to stacked files for shared memory, get_policy() is now always
-set to shm_get_policy which is a wrapper function.  This causes us to stop
-at step 1, which yields NULL for hugetlb instead of task->mempolicy which
-was the previous (and correct) result.
-
-This patch modifies the shm_get_policy() wrapper to maintain steps 1-3 for
-the wrapped vm_ops.
-
-(akpm: the refcounting of mempolicies is busted and this patch does nothing to
-improve it)
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Acked-by: William Irwin <bill.irwin@oracle.com>
-Cc: dean gaudet <dean@arctic.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/s390/net/netiucv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/shm.c~fix-get_policy-for-stacked-shared-memory-files ipc/shm.c
---- a/ipc/shm.c~fix-get_policy-for-stacked-shared-memory-files
-+++ a/ipc/shm.c
-@@ -254,8 +254,10 @@ struct mempolicy *shm_get_policy(struct 
+diff -puN drivers/s390/net/netiucv.c~s390-spinlock-initializer-cleanup drivers/s390/net/netiucv.c
+--- a/drivers/s390/net/netiucv.c~s390-spinlock-initializer-cleanup
++++ a/drivers/s390/net/netiucv.c
+@@ -212,7 +212,7 @@ struct iucv_connection {
+  */
+ static struct list_head iucv_connection_list =
+ 	LIST_HEAD_INIT(iucv_connection_list);
+-static rwlock_t iucv_connection_rwlock = RW_LOCK_UNLOCKED;
++DEFINE_RWLOCK(iucv_connection_rwlock);
  
- 	if (sfd->vm_ops->get_policy)
- 		pol = sfd->vm_ops->get_policy(vma, addr);
--	else
-+	else if (vma->vm_policy)
- 		pol = vma->vm_policy;
-+	else
-+		pol = current->mempolicy;
- 	return pol;
- }
- #endif
+ /**
+  * Representation of event-data for the
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-convert-hugetlbfs-to-use-vm_ops-fault.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
+origin.patch
+git-acpi-add-exports.patch
+git-arm.patch
+i386-hpet-check-if-the-counter-works.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+lguest-the-host-code.patch
