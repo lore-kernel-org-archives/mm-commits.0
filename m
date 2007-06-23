@@ -1,66 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch added to -mm tree
-Date: Sat, 23 Jun 2007 10:13:06 -0700
-Message-ID: <200706231713.l5NHD6lX020042@imap1.linux-foundation.org>
+Subject: - revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:10:06 -0700
+Message-ID: <200706231910.l5NJA6OJ021734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53941 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53880 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756371AbXFWROU (ORCPT
+	by vger.kernel.org with ESMTP id S1752707AbXFWTKW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 13:14:20 -0400
+	Sat, 23 Jun 2007 15:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, grundler@parisc-linux.org, hugh@veritas.com, kyle@mcmartin.ca, willy@debian.org
+To: akpm@linux-foundation.org, ak@suse.de, nanhai.zou@intel.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pa-risc-use-page-allocator-instead-of-slab-allocator-fix
-has been added to the -mm tree.  Its filename is
-     pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+     revert x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
+has been removed from the -mm tree.  Its filename was
+     revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: pa-risc-use-page-allocator-instead-of-slab-allocator-fix
+Subject: revert x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>,
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
+Drop this.  x86_64-allocate-sparsemem-memmap-above-4g.patch is better.
+
+Cc: Zou Nan hai <nanhai.zou@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Siddha, Suresh <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/pci-dma.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/asm-x86_64/mmzone.h |    5 -----
+ include/linux/bootmem.h     |    3 ---
+ mm/sparse.c                 |    5 -----
+ 3 files changed, 13 deletions(-)
 
-diff -puN arch/parisc/kernel/pci-dma.c~pa-risc-use-page-allocator-instead-of-slab-allocator-fix arch/parisc/kernel/pci-dma.c
---- a/arch/parisc/kernel/pci-dma.c~pa-risc-use-page-allocator-instead-of-slab-allocator-fix
-+++ a/arch/parisc/kernel/pci-dma.c
-@@ -569,11 +569,10 @@ static void *fail_alloc_consistent(struc
- static void *pa11_dma_alloc_noncoherent(struct device *dev, size_t size,
- 					  dma_addr_t *dma_handle, gfp_t flag)
- {
--	void *addr = NULL;
-+	void *addr;
+diff -puN include/asm-x86_64/mmzone.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 include/asm-x86_64/mmzone.h
+--- a/include/asm-x86_64/mmzone.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
++++ a/include/asm-x86_64/mmzone.h
+@@ -52,10 +52,5 @@ extern int pfn_valid(unsigned long pfn);
+ #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1uL))
+ #endif
  
--	/* rely on kmalloc to be cacheline aligned */
- 	addr = (void *)__get_free_pages(flag, get_order(size));
--	if(addr)
-+	if (addr)
- 		*dma_handle = (dma_addr_t)virt_to_phys(addr);
+-#define ARCH_HAS_ALLOC_BOOTMEM_HIGH_NODE 1
+-#define alloc_bootmem_high_node(pgdat,size) \
+-({__alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, (4UL*1024*1024*1024), 0);})
+-
+-
+ #endif
+ #endif
+diff -puN include/linux/bootmem.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 include/linux/bootmem.h
+--- a/include/linux/bootmem.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
++++ a/include/linux/bootmem.h
+@@ -132,8 +132,5 @@ extern void *alloc_large_system_hash(con
+ #endif
+ extern int hashdist;		/* Distribute hashes across NUMA nodes? */
  
- 	return addr;
+-#ifndef ARCH_HAS_ALLOC_BOOTMEM_HIGH_NODE
+-#define alloc_bootmem_high_node(pgdat, size) ({NULL;})
+-#endif
+ 
+ #endif /* _LINUX_BOOTMEM_H */
+diff -puN mm/sparse.c~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 mm/sparse.c
+--- a/mm/sparse.c~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
++++ a/mm/sparse.c
+@@ -230,11 +230,6 @@ static struct page __init *sparse_early_
+ 	if (map)
+ 		return map;
+ 
+-	map = alloc_bootmem_high_node(NODE_DATA(nid),
+-			sizeof(struct page) * PAGES_PER_SECTION);
+-        if (map)
+-                return map;
+-
+ 	map = alloc_bootmem_node(NODE_DATA(nid),
+ 			sizeof(struct page) * PAGES_PER_SECTION);
+ 	if (map)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 sm501-suspend-support-fix.patch
 sm501-clock-updates-and-checks-fix.patch
 x86_64-fix-misplaced-continue-in-mcec-tidy.patch
@@ -82,6 +105,7 @@ git-input.patch
 serio_raw_read-warning-fix.patch
 git-kbuild.patch
 git-kbuild-fixup.patch
+git-kvm.patch
 git-leds.patch
 led_colour_show-warning-fix.patch
 drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
@@ -106,6 +130,7 @@ scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
 git-watchdog.patch
+git-wireless.patch
 x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
 revert-x86_64-mm-verify-cpu-rename.patch
 revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
