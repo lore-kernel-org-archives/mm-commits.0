@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-procfs-guide-doc-of-read_func.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:53:19 -0700
-Message-ID: <200706231653.l5NGrG6a019663@imap1.linux-foundation.org>
+Subject: + implement-file-posix-capabilities-fix.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:52:29 -0700
+Message-ID: <200706231652.l5NGqQtj019637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40097 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761070AbXFWQxm (ORCPT
+	by vger.kernel.org with ESMTP id S1760726AbXFWQxP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:53:42 -0400
+	Sat, 23 Jun 2007 12:53:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cscott@laptop.org, ebiederm@xmission.com, rdunlap@xenotime.net
+Cc: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     update procfs-guide doc of read_func
+     file capabilities: make file capabilities option EXPERIMENTAL
 has been added to the -mm tree.  Its filename is
-     update-procfs-guide-doc-of-read_func.patch
+     implement-file-posix-capabilities-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,141 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update procfs-guide doc of read_func
-From: "C. Scott Ananian" <cscott@laptop.org>
+Subject: file capabilities: make file capabilities option EXPERIMENTAL
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-The procfs-guide claims that 'the parameter start doesn't seem to be used
-anywhere in the kernel'.  This is out of date.  In linux/fs/proc/generic.c
-we find a very nice description of the parameters to read_func.  The
-appended patch replaces the bogus description with this (as far as I know)
-accurate one.
+Make file capabilities depend upon CONFIG_EXPERIMENTAL, as few people have
+used them to date.
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/procfs-guide.tmpl |   82 ++++++++++++++++------
- 1 file changed, 63 insertions(+), 19 deletions(-)
+ security/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DocBook/procfs-guide.tmpl~update-procfs-guide-doc-of-read_func Documentation/DocBook/procfs-guide.tmpl
---- a/Documentation/DocBook/procfs-guide.tmpl~update-procfs-guide-doc-of-read_func
-+++ a/Documentation/DocBook/procfs-guide.tmpl
-@@ -352,49 +352,93 @@ entry->write_proc = write_proc_foo;
-       <funcsynopsis>
- 	<funcprototype>
- 	  <funcdef>int <function>read_func</function></funcdef>
--	  <paramdef>char* <parameter>page</parameter></paramdef>
-+	  <paramdef>char* <parameter>buffer</parameter></paramdef>
- 	  <paramdef>char** <parameter>start</parameter></paramdef>
- 	  <paramdef>off_t <parameter>off</parameter></paramdef>
- 	  <paramdef>int <parameter>count</parameter></paramdef>
--	  <paramdef>int* <parameter>eof</parameter></paramdef>
-+	  <paramdef>int* <parameter>peof</parameter></paramdef>
- 	  <paramdef>void* <parameter>data</parameter></paramdef>
- 	</funcprototype>
-       </funcsynopsis>
+diff -puN security/Kconfig~implement-file-posix-capabilities-fix security/Kconfig
+--- a/security/Kconfig~implement-file-posix-capabilities-fix
++++ a/security/Kconfig
+@@ -81,8 +81,8 @@ config SECURITY_CAPABILITIES
+ 	  If you are unsure how to answer this question, answer Y.
  
-       <para>
-         The read function should write its information into the
--        <parameter>page</parameter>. For proper use, the function
--        should start writing at an offset of
--        <parameter>off</parameter> in <parameter>page</parameter> and
--        write at most <parameter>count</parameter> bytes, but because
--        most read functions are quite simple and only return a small
--        amount of information, these two parameters are usually
--        ignored (it breaks pagers like <literal>more</literal> and
--        <literal>less</literal>, but <literal>cat</literal> still
--        works).
-+        <parameter>buffer</parameter>, which will be exactly
-+        <literal>PAGE_SIZE</literal> bytes long.
-       </para>
- 
-       <para>
--        If the <parameter>off</parameter> and
--        <parameter>count</parameter> parameters are properly used,
--        <parameter>eof</parameter> should be used to signal that the
-+        The parameter
-+        <parameter>peof</parameter> should be used to signal that the
-         end of the file has been reached by writing
-         <literal>1</literal> to the memory location
--        <parameter>eof</parameter> points to.
-+        <parameter>peof</parameter> points to.
-       </para>
- 
-       <para>
--        The parameter <parameter>start</parameter> doesn't seem to be
--        used anywhere in the kernel. The <parameter>data</parameter>
-+        The <parameter>data</parameter>
-         parameter can be used to create a single call back function for
-         several files, see <xref linkend="usingdata"/>.
-       </para>
- 
-       <para>
--        The <function>read_func</function> function must return the
--        number of bytes written into the <parameter>page</parameter>.
-+        The rest of the parameters and the return value are described
-+	by a comment in <filename>fs/proc/generic.c</filename> as follows:
-       </para>
- 
-+      <blockquote>
-+        <para>
-+	You have three ways to return data:
-+       	</para>
-+        <orderedlist>
-+          <listitem>
-+            <para>
-+	      Leave <literal>*start = NULL</literal>.  (This is the default.)
-+	      Put the data of the requested offset at that
-+	      offset within the buffer.  Return the number (<literal>n</literal>)
-+	      of bytes there are from the beginning of the
-+	      buffer up to the last byte of data.  If the
-+	      number of supplied bytes (<literal>= n - offset</literal>) is
-+	      greater than zero and you didn't signal eof
-+	      and the reader is prepared to take more data
-+	      you will be called again with the requested
-+	      offset advanced by the number of bytes
-+	      absorbed.  This interface is useful for files
-+	      no larger than the buffer.
-+	    </para>
-+	  </listitem>
-+	  <listitem>
-+            <para>
-+	      Set <literal>*start</literal> to an unsigned long value less than
-+	      the buffer address but greater than zero.
-+	      Put the data of the requested offset at the
-+	      beginning of the buffer.  Return the number of
-+	      bytes of data placed there.  If this number is
-+	      greater than zero and you didn't signal eof
-+	      and the reader is prepared to take more data
-+	      you will be called again with the requested
-+	      offset advanced by <literal>*start</literal>.  This interface is
-+	      useful when you have a large file consisting
-+	      of a series of blocks which you want to count
-+	      and return as wholes.
-+	      (Hack by Paul.Russell@rustcorp.com.au)
-+	    </para>
-+	  </listitem>
-+	  <listitem>
-+            <para>
-+	      Set <literal>*start</literal> to an address within the buffer.
-+	      Put the data of the requested offset at <literal>*start</literal>.
-+	      Return the number of bytes of data placed there.
-+	      If this number is greater than zero and you
-+	      didn't signal eof and the reader is prepared to
-+	      take more data you will be called again with the
-+	      requested offset advanced by the number of bytes
-+	      absorbed.
-+	    </para>
-+	  </listitem>
-+	</orderedlist>
-+      </blockquote>
-+
-       <para>
-         <xref linkend="example"/> shows how to use a read call back
-         function.
+ config SECURITY_FILE_CAPABILITIES
+-	bool "File POSIX Capabilities"
+-	depends on SECURITY=n || SECURITY_CAPABILITIES!=n
++	bool "File POSIX Capabilities (EXPERIMENTAL)"
++	depends on (SECURITY=n || SECURITY_CAPABILITIES!=n) && EXPERIMENTAL
+ 	default n
+ 	help
+ 	  This enables filesystem capabilities, allowing you to give
 _
 
-Patches currently in -mm which might be from cscott@laptop.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-update-procfs-guide-doc-of-read_func.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
