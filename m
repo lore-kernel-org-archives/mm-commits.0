@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mark-calibrate_xor_blocks-__init.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:49:01 -0700
-Message-ID: <200706231648.l5NGmwiu019525@imap1.linux-foundation.org>
+Subject: + ide-stop-mapping-roms.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:48:59 -0700
+Message-ID: <200706231648.l5NGmuIH019520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59077 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758914AbXFWQtN (ORCPT
+	by vger.kernel.org with ESMTP id S1759059AbXFWQtQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:49:13 -0400
+	Sat, 23 Jun 2007 12:49:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     mark calibrate_xor_blocks() __init
+     ide: stop mapping ROMs
 has been added to the -mm tree.  Its filename is
-     mark-calibrate_xor_blocks-__init.patch
+     ide-stop-mapping-roms.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,77 +26,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mark calibrate_xor_blocks() __init
-From: Adrian Bunk <bunk@stusta.de>
+Subject: ide: stop mapping ROMs
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-calibrate_xor_blocks() can be marked __init.
+Various old IDE drivers go mapping ROM devices for no apparent reason and
+without using the ROM mapping API we now have.  They don't actually use the
+ROM they map and the new libata drivers are happy without it being mapped
+so rather than port them lets just junk it for the next -rc1.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/xor.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/pci/aec62xx.c      |    6 ------
+ drivers/ide/pci/hpt34x.c       |   11 ++---------
+ drivers/ide/pci/hpt366.c       |    8 --------
+ drivers/ide/pci/pdc202xx_new.c |    7 -------
+ drivers/ide/pci/pdc202xx_old.c |    8 --------
+ 5 files changed, 2 insertions(+), 38 deletions(-)
 
-diff -puN crypto/xor.c~mark-calibrate_xor_blocks-__init crypto/xor.c
---- a/crypto/xor.c~mark-calibrate_xor_blocks-__init
-+++ a/crypto/xor.c
-@@ -95,7 +95,7 @@ do_xor_speed(struct xor_block_template *
- 	       speed / 1000, speed % 1000);
+diff -puN drivers/ide/pci/aec62xx.c~ide-stop-mapping-roms drivers/ide/pci/aec62xx.c
+--- a/drivers/ide/pci/aec62xx.c~ide-stop-mapping-roms
++++ a/drivers/ide/pci/aec62xx.c
+@@ -174,12 +174,6 @@ static unsigned int __devinit init_chips
+ {
+ 	int bus_speed = system_bus_clock();
+ 
+-	if (dev->resource[PCI_ROM_RESOURCE].start) {
+-		pci_write_config_dword(dev, PCI_ROM_ADDRESS, dev->resource[PCI_ROM_RESOURCE].start | PCI_ROM_ADDRESS_ENABLE);
+-		printk(KERN_INFO "%s: ROM enabled at 0x%08lx\n", name,
+-			(unsigned long)dev->resource[PCI_ROM_RESOURCE].start);
+-	}
+-
+ 	if (bus_speed <= 33)
+ 		pci_set_drvdata(dev, (void *) aec6xxx_33_base);
+ 	else
+diff -puN drivers/ide/pci/hpt34x.c~ide-stop-mapping-roms drivers/ide/pci/hpt34x.c
+--- a/drivers/ide/pci/hpt34x.c~ide-stop-mapping-roms
++++ a/drivers/ide/pci/hpt34x.c
+@@ -120,17 +120,10 @@ static unsigned int __devinit init_chips
+ 	pci_write_config_byte(dev, HPT34X_PCI_INIT_REG, 0x00);
+ 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+ 
+-	if (cmd & PCI_COMMAND_MEMORY) {
+-		if (pci_resource_start(dev, PCI_ROM_RESOURCE)) {
+-			pci_write_config_dword(dev, PCI_ROM_ADDRESS,
+-				dev->resource[PCI_ROM_RESOURCE].start | PCI_ROM_ADDRESS_ENABLE);
+-			printk(KERN_INFO "HPT345: ROM enabled at 0x%08lx\n",
+-				(unsigned long)dev->resource[PCI_ROM_RESOURCE].start);
+-		}
++	if (cmd & PCI_COMMAND_MEMORY)
+ 		pci_write_config_byte(dev, PCI_LATENCY_TIMER, 0xF0);
+-	} else {
++	else
+ 		pci_write_config_byte(dev, PCI_LATENCY_TIMER, 0x20);
+-	}
+ 
+ 	/*
+ 	 * Since 20-23 can be assigned and are R/W, we correct them.
+diff -puN drivers/ide/pci/hpt366.c~ide-stop-mapping-roms drivers/ide/pci/hpt366.c
+--- a/drivers/ide/pci/hpt366.c~ide-stop-mapping-roms
++++ a/drivers/ide/pci/hpt366.c
+@@ -993,14 +993,6 @@ static unsigned int __devinit init_chips
+ 	 */
+ 	*info = *(struct hpt_info *)pci_get_drvdata(dev);
+ 
+-	/*
+-	 * FIXME: Not portable. Also, why do we enable the ROM in the first place?
+-	 * We don't seem to be using it.
+-	 */
+-	if (dev->resource[PCI_ROM_RESOURCE].start)
+-		pci_write_config_dword(dev, PCI_ROM_ADDRESS,
+-			dev->resource[PCI_ROM_RESOURCE].start | PCI_ROM_ADDRESS_ENABLE);
+-
+ 	pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE, (L1_CACHE_BYTES / 4));
+ 	pci_write_config_byte(dev, PCI_LATENCY_TIMER, 0x78);
+ 	pci_write_config_byte(dev, PCI_MIN_GNT, 0x08);
+diff -puN drivers/ide/pci/pdc202xx_new.c~ide-stop-mapping-roms drivers/ide/pci/pdc202xx_new.c
+--- a/drivers/ide/pci/pdc202xx_new.c~ide-stop-mapping-roms
++++ a/drivers/ide/pci/pdc202xx_new.c
+@@ -372,13 +372,6 @@ static unsigned int __devinit init_chips
+ 	int f, r;
+ 	u8 pll_ctl0, pll_ctl1;
+ 
+-	if (dev->resource[PCI_ROM_RESOURCE].start) {
+-		pci_write_config_dword(dev, PCI_ROM_ADDRESS,
+-			dev->resource[PCI_ROM_RESOURCE].start | PCI_ROM_ADDRESS_ENABLE);
+-		printk(KERN_INFO "%s: ROM enabled at 0x%08lx\n", name,
+-			(unsigned long)dev->resource[PCI_ROM_RESOURCE].start);
+-	}
+-
+ #ifdef CONFIG_PPC_PMAC
+ 	apple_kiwi_init(dev);
+ #endif
+diff -puN drivers/ide/pci/pdc202xx_old.c~ide-stop-mapping-roms drivers/ide/pci/pdc202xx_old.c
+--- a/drivers/ide/pci/pdc202xx_old.c~ide-stop-mapping-roms
++++ a/drivers/ide/pci/pdc202xx_old.c
+@@ -316,14 +316,6 @@ static void pdc202xx_reset (ide_drive_t 
+ static unsigned int __devinit init_chipset_pdc202xx(struct pci_dev *dev,
+ 							const char *name)
+ {
+-	/* This doesn't appear needed */
+-	if (dev->resource[PCI_ROM_RESOURCE].start) {
+-		pci_write_config_dword(dev, PCI_ROM_ADDRESS,
+-			dev->resource[PCI_ROM_RESOURCE].start | PCI_ROM_ADDRESS_ENABLE);
+-		printk(KERN_INFO "%s: ROM enabled at 0x%08lx\n", name,
+-			(unsigned long)dev->resource[PCI_ROM_RESOURCE].start);
+-	}
+-
+ 	return dev->irq;
  }
  
--static int
-+static int __init
- calibrate_xor_blocks(void)
- {
- 	void *b1, *b2;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-acpi.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+git-libata-all.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-mark-calibrate_xor_blocks-__init.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
+pata_ali-more-work.patch
+hpt374-is-udma100-not-udma133.patch
+ide-fix-a-theoretical-ooops-case.patch
+ide-stop-mapping-roms.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+add-pci_try_set_mwi.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-remove-sonypi_camera_command.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+ppa-coding-police-and-printk-levels.patch
+x86-64-disable-the-gart-in-shutdown.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+audit-add-tty-input-auditing-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
