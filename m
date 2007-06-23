@@ -1,57 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - uml-kill-x86_64-stack_top_max.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:27 -0700
-Message-ID: <200706231927.l5NJRRVf022063@imap1.linux-foundation.org>
+Subject: - md-fix-bug-in-error-handling-during-raid1-repair.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:20 -0700
+Message-ID: <200706231927.l5NJRKYQ022054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753858AbXFWT1f (ORCPT
+	by vger.kernel.org with ESMTP id S1753820AbXFWT1h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:27:35 -0400
+	Sat, 23 Jun 2007 15:27:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: maccetta@laurelnetworks.com, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: kill x86_64 STACK_TOP_MAX
+     md: fix bug in error handling during raid1 repair
 has been removed from the -mm tree.  Its filename was
-     uml-kill-x86_64-stack_top_max.patch
+     md-fix-bug-in-error-handling-during-raid1-repair.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: kill x86_64 STACK_TOP_MAX
-From: Jeff Dike <jdike@addtoit.com>
+Subject: md: fix bug in error handling during raid1 repair
+From: Mike Accetta <maccetta@laurelnetworks.com>
 
-The x86_64 a.out.h got a definition of STACK_TOP_MAX, which interferes with
-the UML version.  So, just undef it like STACK_TOP.
+If raid1/repair (which reads all block and fixes any differences it finds)
+hits a read error, it doesn't reset the bio for writing before writing
+correct data back, so the read error isn't fixed, and the device probably
+gets a zero-length write which it might complain about.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/a.out.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/raid1.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-um/a.out.h~uml-kill-x86_64-stack_top_max include/asm-um/a.out.h
---- a/include/asm-um/a.out.h~uml-kill-x86_64-stack_top_max
-+++ a/include/asm-um/a.out.h
-@@ -5,6 +5,7 @@
- #include "choose-mode.h"
- 
- #undef STACK_TOP
-+#undef STACK_TOP_MAX
- 
- extern unsigned long stacksizelim;
- 
+diff -puN drivers/md/raid1.c~md-fix-bug-in-error-handling-during-raid1-repair drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-fix-bug-in-error-handling-during-raid1-repair
++++ a/drivers/md/raid1.c
+@@ -1240,17 +1240,24 @@ static void sync_request_write(mddev_t *
+ 			}
+ 		r1_bio->read_disk = primary;
+ 		for (i=0; i<mddev->raid_disks; i++)
+-			if (r1_bio->bios[i]->bi_end_io == end_sync_read &&
+-			    test_bit(BIO_UPTODATE, &r1_bio->bios[i]->bi_flags)) {
++			if (r1_bio->bios[i]->bi_end_io == end_sync_read) {
+ 				int j;
+ 				int vcnt = r1_bio->sectors >> (PAGE_SHIFT- 9);
+ 				struct bio *pbio = r1_bio->bios[primary];
+ 				struct bio *sbio = r1_bio->bios[i];
+-				for (j = vcnt; j-- ; )
+-					if (memcmp(page_address(pbio->bi_io_vec[j].bv_page),
+-						   page_address(sbio->bi_io_vec[j].bv_page),
+-						   PAGE_SIZE))
+-						break;
++
++				if (test_bit(BIO_UPTODATE, &sbio->bi_flags)) {
++					for (j = vcnt; j-- ; ) {
++						struct page *p, *s;
++						p = pbio->bi_io_vec[j].bv_page;
++						s = sbio->bi_io_vec[j].bv_page;
++						if (memcmp(page_address(p),
++							   page_address(s),
++							   PAGE_SIZE))
++							break;
++					}
++				} else
++					j = 0;
+ 				if (j >= 0)
+ 					mddev->resync_mismatches += r1_bio->sectors;
+ 				if (j < 0 || test_bit(MD_RECOVERY_CHECK, &mddev->recovery)) {
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
-
-uml-add-asm-paravirth.patch
-hostfs-convert-to-new-aops.patch
-uml-fix-request-sector-update.patch
-uml-use-get_free_pages-to-allocate-kernel-stacks.patch
-uml-add-stack-usage-monitoring.patch
+Patches currently in -mm which might be from maccetta@laurelnetworks.com are
