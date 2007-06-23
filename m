@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + document-nlink-function.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:47:02 -0700
-Message-ID: <200706231646.l5NGkxBc019460@imap1.linux-foundation.org>
+Subject: + alpha-fix-alignment-problem-in-csum_ipv6_magic-fix.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:46:55 -0700
+Message-ID: <200706231646.l5NGkqcs019457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46811 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54391 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755769AbXFWQrR (ORCPT
+	by vger.kernel.org with ESMTP id S1756493AbXFWQrU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:47:17 -0400
+	Sat, 23 Jun 2007 12:47:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: ink@jurassic.park.msu.ru, jailbird@alcatraz.fdf.net, rth@twiddle.net
 
 
 The patch titled
-     document nlink function
+     alpha-fix-alignment-problem-in-csum_ipv6_magic fix
 has been added to the -mm tree.  Its filename is
-     document-nlink-function.patch
+     alpha-fix-alignment-problem-in-csum_ipv6_magic-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: document nlink function
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: alpha-fix-alignment-problem-in-csum_ipv6_magic fix
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-These should have been documented from the beginning.  Fix it.
+On Thu, Jun 21, 2007 at 04:35:01PM -0700, Andrew Morton wrote:
+> In http://bugzilla.kernel.org/show_bug.cgi?id=8659, Dustin is reporting
+> that this patch broke tcp-on-ipv6.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Oops. Two instructions operating on the 'len' arg ($18) got swapped...
+This should fix ev6 version, ev5 one seems to be ok.
+
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Dustin Marquess <jailbird@alcatraz.fdf.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ arch/alpha/lib/ev6-csum_ipv6_magic.S |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/fs.h~document-nlink-function include/linux/fs.h
---- a/include/linux/fs.h~document-nlink-function
-+++ a/include/linux/fs.h
-@@ -1211,6 +1211,14 @@ static inline void mark_inode_dirty_sync
- 	__mark_inode_dirty(inode, I_DIRTY_SYNC);
- }
+diff -puN arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic-fix arch/alpha/lib/ev6-csum_ipv6_magic.S
+--- a/arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic-fix
++++ a/arch/alpha/lib/ev6-csum_ipv6_magic.S
+@@ -76,18 +76,18 @@ csum_ipv6_magic:
  
-+/**
-+ * inc_nlink - directly increment an inode's link count
-+ * @inode: inode
-+ *
-+ * This is a low-level filesystem helper to replace any
-+ * direct filesystem manipulation of i_nlink.  Currently,
-+ * it is only here for parity with dec_nlink().
-+ */
- static inline void inc_nlink(struct inode *inode)
- {
- 	inode->i_nlink++;
-@@ -1222,11 +1230,30 @@ static inline void inode_inc_link_count(
- 	mark_inode_dirty(inode);
- }
+ 	cmoveq	$6,$31,$22	# E : src aligned?
+ 	ldq_u	$23,15($17)	# L : Latency: 3
+-	or	$18,$4,$18	# E : 000000CCDDAABBCC
+-	extql	$1,$6,$1	# U : U L L U :
++	inswl	$18,3,$18	# U : 000000CCDD000000
++	addl	$19,$7,$19	# E : U L U L : <sign bits>bbaabb00
  
-+/**
-+ * drop_nlink - directly drop an inode's link count
-+ * @inode: inode
-+ *
-+ * This is a low-level filesystem helper to replace any
-+ * direct filesystem manipulation of i_nlink.  In cases
-+ * where we are attempting to track writes to the
-+ * filesystem, a decrement to zero means an imminent
-+ * write when the file is truncated and actually unlinked
-+ * on the filesystem.
-+ */
- static inline void drop_nlink(struct inode *inode)
- {
- 	inode->i_nlink--;
- }
+ 	or	$0,$22,$0	# E : 1st src word complete
+-	extqh	$5,$6,$5	# U :
+-	addl	$19,$7,$19	# E : <sign bits>bbaabb00
+-	and	$17,7,$6	# E : L U L U : dst misalignment
++	extql	$1,$6,$1	# U :
++	or	$18,$4,$18	# E : 000000CCDDAABBCC
++	extqh	$5,$6,$5	# U : L U L U
  
-+/**
-+ * clear_nlink - directly zero an inode's link count
-+ * @inode: inode
-+ *
-+ * This is a low-level filesystem helper to replace any
-+ * direct filesystem manipulation of i_nlink.  See
-+ * drop_nlink() for why we care about i_nlink hitting zero.
-+ */
- static inline void clear_nlink(struct inode *inode)
- {
- 	inode->i_nlink = 0;
+-	inswl	$18,3,$18	# U : 000000CCDD000000
+-	or	$1,$5,$1	# E : 2nd src word complete
++	and	$17,7,$6	# E : dst misalignment
+ 	extql	$2,$6,$2	# U :
+-	extqh	$3,$6,$22	# U : U L U U :
++	or	$1,$5,$1	# E : 2nd src word complete
++	extqh	$3,$6,$22	# U : L U L U :
+ 
+ 	cmoveq	$6,$31,$22	# E : dst aligned?
+ 	extql	$3,$6,$3	# U :
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-document-nlink-function.patch
-ext3-remove-extra-is_rdonly-check.patch
-ext4-remove-extra-is_rdonly-check.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-page-owner-tracking-leak-detector.patch
+alpha-fix-alignment-problem-in-csum_ipv6_magic.patch
+alpha-fix-alignment-problem-in-csum_ipv6_magic-fix.patch
+alpha-fix-trivial-section-mismatch-warnings.patch
+make-sure-nobodys-leaking-resources.patch
