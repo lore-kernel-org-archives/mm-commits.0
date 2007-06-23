@@ -1,115 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:49:08 -0700
-Message-ID: <200706231649.l5NGn5Uc019530@imap1.linux-foundation.org>
+Subject: + cxgb2-handle-possible-null-pointer-dereferencing-take-2.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:49:20 -0700
+Message-ID: <200706231649.l5NGnHvo019543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34385 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759361AbXFWQtU (ORCPT
+	by vger.kernel.org with ESMTP id S1758650AbXFWQtZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:49:20 -0400
+	Sat, 23 Jun 2007 12:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: pradeep.rautela@gmail.com
 
 
 The patch titled
-     cafe_nand.c: the OLPC laptop is not available for $100
+     cxgb2: handle possible NULL pointer dereferencing
 has been added to the -mm tree.  Its filename is
-     cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
+     cxgb2-handle-possible-null-pointer-dereferencing-take-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cafe_nand.c: the OLPC laptop is not available for $100
-=46rom: Adrian Bunk <bunk@stusta.de>
+Subject: cxgb2: handle possible NULL pointer dereferencing
+From: "pradeep singh" <pradeep.rautela@gmail.com>
 
-The price might drop to $100 in a few years.
-
-But currently, a more reasonable name might be "$175 laptop".
-
-Let's simply call it "OLPC laptop" without any price tag.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Pradeep Singh <pradeep.rautela@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/chelsio/cxgb2.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/mtd/nand/Kconfig~cafe_nandc-the-olpc-laptop-is-not-av=
-ailable-for-100 drivers/mtd/nand/Kconfig
---- a/drivers/mtd/nand/Kconfig~cafe_nandc-the-olpc-laptop-is-not-availa=
-ble-for-100
-+++ a/drivers/mtd/nand/Kconfig
-@@ -237,7 +237,7 @@ config MTD_NAND_CAFE
- 	select REED_SOLOMON
- 	select REED_SOLOMON_DEC16
- 	help
--	  Use NAND flash attached to the CAF=C3=89 chip designed for the $100
-+	  Use NAND flash attached to the CAF=C3=89 chip designed for the OLPC
- 	  laptop.
-=20
- config MTD_NAND_CS553X
+diff -puN drivers/net/chelsio/cxgb2.c~cxgb2-handle-possible-null-pointer-dereferencing-take-2 drivers/net/chelsio/cxgb2.c
+--- a/drivers/net/chelsio/cxgb2.c~cxgb2-handle-possible-null-pointer-dereferencing-take-2
++++ a/drivers/net/chelsio/cxgb2.c
+@@ -1022,6 +1022,11 @@ static int __devinit init_one(struct pci
+ 	mmio_start = pci_resource_start(pdev, 0);
+ 	mmio_len = pci_resource_len(pdev, 0);
+ 	bi = t1_get_board_info(ent->driver_data);
++	if (!bi) {
++		CH_ERR("%s: Board info array index out of range\n",
++			pci_name(pdev));
++		goto out_disable_pdev;
++	}
+ 
+ 	for (i = 0; i < bi->port_number; ++i) {
+ 		struct net_device *netdev;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from pradeep.rautela@gmail.com are
 
-git-acpi.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-=
-dma.patch
-mark-calibrate_xor_blocks-__init.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=3D-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-remove-sonypi_camera_command.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped=
-_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+cxgb2-handle-possible-null-pointer-dereferencing-take-2.patch
