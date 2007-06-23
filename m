@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hpt374-is-udma100-not-udma133.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:48:55 -0700
-Message-ID: <200706231648.l5NGmqpw019512@imap1.linux-foundation.org>
+Subject: + ide-fix-a-theoretical-ooops-case.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:48:57 -0700
+Message-ID: <200706231648.l5NGmsba019516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43649 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60023 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758306AbXFWQtH (ORCPT
+	by vger.kernel.org with ESMTP id S1758306AbXFWQtJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:49:07 -0400
+	Sat, 23 Jun 2007 12:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     HPT374 is UDMA100 not UDMA133
+     ide: fix a theoretical Ooops case
 has been added to the -mm tree.  Its filename is
-     hpt374-is-udma100-not-udma133.patch
+     ide-fix-a-theoretical-ooops-case.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HPT374 is UDMA100 not UDMA133
+Subject: ide: fix a theoretical Ooops case
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Propagate change from drivers/ide
+Found by a static analyser.  It is in theory possible we dereference
+dev->id when it has become invalid.  Re-order to avoid this.
+
+Not needed for new-ide as we no longer support the crazy exabyte nest stuff
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |    4 ++--
+ drivers/ide/ide-probe.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~hpt374-is-udma100-not-udma133 drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~hpt374-is-udma100-not-udma133
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -931,13 +931,13 @@ static int hpt37x_init_one(struct pci_de
- 		.udma_mask = 0x7f,
- 		.port_ops = &hpt372_port_ops
- 	};
--	/* HPT374 - UDMA133 */
-+	/* HPT374 - UDMA100 */
- 	static const struct ata_port_info info_hpt374 = {
- 		.sht = &hpt37x_sht,
- 		.flags = ATA_FLAG_SLAVE_POSS,
- 		.pio_mask = 0x1f,
- 		.mwdma_mask = 0x07,
--		.udma_mask = 0x7f,
-+		.udma_mask = 0x3f,
- 		.port_ops = &hpt374_port_ops
- 	};
- 
+diff -puN drivers/ide/ide-probe.c~ide-fix-a-theoretical-ooops-case drivers/ide/ide-probe.c
+--- a/drivers/ide/ide-probe.c~ide-fix-a-theoretical-ooops-case
++++ a/drivers/ide/ide-probe.c
+@@ -574,11 +574,11 @@ static inline u8 probe_for_drive (ide_dr
+ 			/* look for ATAPI device */
+ 			(void) do_probe(drive, WIN_PIDENTIFY);
+ 		}
+-		if (strstr(drive->id->model, "E X A B Y T E N E S T"))
+-			enable_nest(drive);
+ 		if (!drive->present)
+ 			/* drive not found */
+ 			return 0;
++		if (strstr(drive->id->model, "E X A B Y T E N E S T"))
++			enable_nest(drive);
+ 	
+ 		/* identification failed? */
+ 		if (!drive->id_read) {
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
