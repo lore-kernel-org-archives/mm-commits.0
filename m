@@ -1,127 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - paravirt-helper-to-disable-all-io-space.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:24 -0700
-Message-ID: <200706231928.l5NJSOnJ022144@imap1.linux-foundation.org>
+Subject: - pata_it821x-partially-fix-dma-in-raid-mode.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:13 -0700
+Message-ID: <200706231928.l5NJSDOG022125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46186 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45346 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754652AbXFWTes (ORCPT
+	by vger.kernel.org with ESMTP id S1755208AbXFWTeu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:48 -0400
+	Sat, 23 Jun 2007 15:34:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@xensource.com, ak@suse.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: bzolnier@gmail.com, alan@redhat.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paravirt: helper to disable all IO space
+     pata_it821x: (partially) fix DMA in RAID mode
 has been removed from the -mm tree.  Its filename was
-     paravirt-helper-to-disable-all-io-space.patch
+     pata_it821x-partially-fix-dma-in-raid-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: paravirt: helper to disable all IO space
-From: Jeremy Fitzhardinge <jeremy@xensource.com>
+Subject: pata_it821x: (partially) fix DMA in RAID mode
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-In a virtual environment, device drivers such as legacy IDE will waste quite a
-lot of time probing for their devices which will never appear.  This helper
-function allows a paravirt implementation to lay claim to the whole iomem and
-ioport space, thereby disabling all device drivers trying to claim IO
-resources.
+Code intended to check DMA status was checking DMA command register.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Moreover firmware seems to "forget" to set DMA capable bit for the slave
+device (at least in RAID mode but without ITE RAID volumes) so check device
+ID for DMA capable bit when deciding whether to use DMA and remove DMA
+status check completely.
+
+Thanks to Pavol Simo for the bugreport and testing the initial fix.
+
+This change unfortunately still doesn't fix DMA in RAID mode (which works
+fine with IDE it821x) but Alan is working on the missing pieces
+(pata_it821x vs libata EH issues).
+
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |   33 +++++++++++++++++++++++++++++++++
- arch/i386/xen/setup.c       |    2 ++
- include/asm-i386/paravirt.h |    1 +
- 3 files changed, 36 insertions(+)
+ drivers/ata/pata_it821x.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt-helper-to-disable-all-io-space
-+++ a/arch/i386/kernel/paravirt.c
-@@ -228,6 +228,39 @@ static int __init print_banner(void)
- }
- core_initcall(print_banner);
+diff -puN drivers/ata/pata_it821x.c~pata_it821x-partially-fix-dma-in-raid-mode drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~pata_it821x-partially-fix-dma-in-raid-mode
++++ a/drivers/ata/pata_it821x.c
+@@ -2,6 +2,7 @@
+  * pata_it821x.c 	- IT821x PATA for new ATA layer
+  *			  (C) 2005 Red Hat Inc
+  *			  Alan Cox <alan@redhat.com>
++ *			  (C) 2007 Bartlomiej Zolnierkiewicz
+  *
+  * based upon
+  *
+@@ -79,7 +80,7 @@
  
-+static struct resource reserve_ioports = {
-+	.start = 0,
-+	.end = IO_SPACE_LIMIT,
-+	.name = "paravirt-ioport",
-+	.flags = IORESOURCE_IO | IORESOURCE_BUSY,
-+};
-+
-+static struct resource reserve_iomem = {
-+	.start = 0,
-+	.end = -1,
-+	.name = "paravirt-iomem",
-+	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
-+};
-+
-+/*
-+ * Reserve the whole legacy IO space to prevent any legacy drivers
-+ * from wasting time probing for their hardware.  This is a fairly
-+ * brute-force approach to disabling all non-virtual drivers.
-+ *
-+ * Note that this must be called very early to have any effect.
-+ */
-+int paravirt_disable_iospace(void)
-+{
-+	int ret = 0;
-+
-+	ret = request_resource(&ioport_resource, &reserve_ioports);
-+	if (ret == 0)
-+		ret = request_resource(&iomem_resource, &reserve_iomem);
-+
-+	return ret;
-+}
-+
-+
- struct paravirt_ops paravirt_ops = {
- 	.name = "bare hardware",
- 	.paravirt_enabled = 0,
-diff -puN arch/i386/xen/setup.c~paravirt-helper-to-disable-all-io-space arch/i386/xen/setup.c
---- a/arch/i386/xen/setup.c~paravirt-helper-to-disable-all-io-space
-+++ a/arch/i386/xen/setup.c
-@@ -8,12 +8,14 @@
- #include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/pm.h>
-+#include <linux/ioport.h>
  
- #include <asm/elf.h>
- #include <asm/e820.h>
- #include <asm/setup.h>
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
-+#include <asm/io.h>
+ #define DRV_NAME "pata_it821x"
+-#define DRV_VERSION "0.3.6"
++#define DRV_VERSION "0.3.7"
  
- #include <xen/interface/physdev.h>
- #include <xen/features.h>
-diff -puN include/asm-i386/paravirt.h~paravirt-helper-to-disable-all-io-space include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt-helper-to-disable-all-io-space
-+++ a/include/asm-i386/paravirt.h
-@@ -262,6 +262,7 @@ unsigned paravirt_patch_default(u8 type,
- unsigned paravirt_patch_insns(void *site, unsigned len,
- 			      const char *start, const char *end);
+ struct it821x_dev
+ {
+@@ -460,14 +461,8 @@ static unsigned int it821x_passthru_qc_i
  
-+int paravirt_disable_iospace(void);
+ static int it821x_smart_set_mode(struct ata_port *ap, struct ata_device **unused)
+ {
+-	int dma_enabled = 0;
+ 	int i;
  
- /*
-  * This generates an indirect call based on the operation type number.
+-	/* Bits 5 and 6 indicate if DMA is active on master/slave */
+-	/* It is possible that BMDMA isn't allocated */
+-	if (ap->ioaddr.bmdma_addr)
+-		dma_enabled = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
+-
+ 	for (i = 0; i < ATA_MAX_DEVICES; i++) {
+ 		struct ata_device *dev = &ap->device[i];
+ 		if (ata_dev_enabled(dev)) {
+@@ -476,7 +471,7 @@ static int it821x_smart_set_mode(struct 
+ 			dev->dma_mode = XFER_MW_DMA_0;
+ 			/* We do need the right mode information for DMA or PIO
+ 			   and this comes from the current configuration flags */
+-			if (dma_enabled & (1 << (5 + i))) {
++			if (ata_id_has_dma(dev->id)) {
+ 				ata_dev_printk(dev, KERN_INFO, "configured for DMA\n");
+ 				dev->xfer_mode = XFER_MW_DMA_0;
+ 				dev->xfer_shift = ATA_SHIFT_MWDMA;
 _
 
-Patches currently in -mm which might be from jeremy@xensource.com are
+Patches currently in -mm which might be from bzolnier@gmail.com are
 
-git-kbuild.patch
-add-kstrndup-fix.patch
-more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-paravirt-helper-to-disable-all-io-space-fix-2.patch
-paravirt-helper-to-disable-all-io-space-fix-3.patch
+origin.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+fix-jvc-cdrom-drive-lockup.patch
+use-no_pci_devices-in-pci-searchc.patch
