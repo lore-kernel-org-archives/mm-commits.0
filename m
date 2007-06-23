@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:51:39 -0700
-Message-ID: <200706231651.l5NGpat6019600@imap1.linux-foundation.org>
+Subject: + update-procfs-guide-doc-of-read_func.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:53:19 -0700
+Message-ID: <200706231653.l5NGrG6a019663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50716 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48880 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754848AbXFWQwa (ORCPT
+	by vger.kernel.org with ESMTP id S1761070AbXFWQxm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:52:30 -0400
+	Sat, 23 Jun 2007 12:53:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, bjorn.helgaas@hp.com, kraxel@suse.de, rmk@arm.linux.org.uk, yinghai.lu@Sun.COM
+Cc: cscott@laptop.org, ebiederm@xmission.com, rdunlap@xenotime.net
 
 
 The patch titled
-     serial: convert early_uart to earlycon for 8250 fix 3 alias
+     update procfs-guide doc of read_func
 has been added to the -mm tree.  Its filename is
-     serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+     update-procfs-guide-doc-of-read_func.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: convert early_uart to earlycon for 8250 fix 3 alias
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: update procfs-guide doc of read_func
+From: "C. Scott Ananian" <cscott@laptop.org>
 
-make the console=uart,io,0x3f8,9600n8 like console=uart8250,io,0x3f8,9600
-suggested by Andy Whitcroft.
+The procfs-guide claims that 'the parameter start doesn't seem to be used
+anywhere in the kernel'.  This is out of date.  In linux/fs/proc/generic.c
+we find a very nice description of the parameters to read_func.  The
+appended patch replaces the bogus description with this (as far as I know)
+accurate one.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Gerd Hoffmann <kraxel@suse.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    8 ++++----
- drivers/serial/8250_early.c         |   15 ++++++++++++---
- 2 files changed, 16 insertions(+), 7 deletions(-)
+ Documentation/DocBook/procfs-guide.tmpl |   82 ++++++++++++++++------
+ 1 file changed, 63 insertions(+), 19 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias
-+++ a/Documentation/kernel-parameters.txt
-@@ -467,16 +467,16 @@ and is between 256 and 4096 characters. 
- 			Documentation/networking/netconsole.txt for an
- 			alternative.
+diff -puN Documentation/DocBook/procfs-guide.tmpl~update-procfs-guide-doc-of-read_func Documentation/DocBook/procfs-guide.tmpl
+--- a/Documentation/DocBook/procfs-guide.tmpl~update-procfs-guide-doc-of-read_func
++++ a/Documentation/DocBook/procfs-guide.tmpl
+@@ -352,49 +352,93 @@ entry->write_proc = write_proc_foo;
+       <funcsynopsis>
+ 	<funcprototype>
+ 	  <funcdef>int <function>read_func</function></funcdef>
+-	  <paramdef>char* <parameter>page</parameter></paramdef>
++	  <paramdef>char* <parameter>buffer</parameter></paramdef>
+ 	  <paramdef>char** <parameter>start</parameter></paramdef>
+ 	  <paramdef>off_t <parameter>off</parameter></paramdef>
+ 	  <paramdef>int <parameter>count</parameter></paramdef>
+-	  <paramdef>int* <parameter>eof</parameter></paramdef>
++	  <paramdef>int* <parameter>peof</parameter></paramdef>
+ 	  <paramdef>void* <parameter>data</parameter></paramdef>
+ 	</funcprototype>
+       </funcsynopsis>
  
--		uart8250,io,<addr>[,options]
--		uart8250,mmio,<addr>[,options]
-+		uart[8250],io,<addr>[,options]
-+		uart[8250],mmio,<addr>[,options]
- 			Start an early, polled-mode console on the 8250/16550
- 			UART at the specified I/O port or MMIO address,
- 			switching to the matching ttyS device later.  The
- 			options are the same as for ttyS, above.
+       <para>
+         The read function should write its information into the
+-        <parameter>page</parameter>. For proper use, the function
+-        should start writing at an offset of
+-        <parameter>off</parameter> in <parameter>page</parameter> and
+-        write at most <parameter>count</parameter> bytes, but because
+-        most read functions are quite simple and only return a small
+-        amount of information, these two parameters are usually
+-        ignored (it breaks pagers like <literal>more</literal> and
+-        <literal>less</literal>, but <literal>cat</literal> still
+-        works).
++        <parameter>buffer</parameter>, which will be exactly
++        <literal>PAGE_SIZE</literal> bytes long.
+       </para>
  
- 	earlycon=	[KNL] Output early console device and options.
--		uart8250,io,<addr>[,options]
--		uart8250,mmio,<addr>[,options]
-+		uart[8250],io,<addr>[,options]
-+		uart[8250],mmio,<addr>[,options]
- 			Start an early, polled-mode console on the 8250/16550
- 			UART at the specified I/O port or MMIO address.
- 			The options are the same as for ttyS, above.
-diff -puN drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias drivers/serial/8250_early.c
---- a/drivers/serial/8250_early.c~serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias
-+++ a/drivers/serial/8250_early.c
-@@ -210,8 +210,11 @@ int __init setup_early_serial8250_consol
- 	int err;
+       <para>
+-        If the <parameter>off</parameter> and
+-        <parameter>count</parameter> parameters are properly used,
+-        <parameter>eof</parameter> should be used to signal that the
++        The parameter
++        <parameter>peof</parameter> should be used to signal that the
+         end of the file has been reached by writing
+         <literal>1</literal> to the memory location
+-        <parameter>eof</parameter> points to.
++        <parameter>peof</parameter> points to.
+       </para>
  
- 	options = strstr(cmdline, "uart8250,");
--	if (!options)
--		return 0;
-+	if (!options) {
-+		options = strstr(cmdline, "uart,");
-+		if (!options)
-+			return 0;
-+	}
+       <para>
+-        The parameter <parameter>start</parameter> doesn't seem to be
+-        used anywhere in the kernel. The <parameter>data</parameter>
++        The <parameter>data</parameter>
+         parameter can be used to create a single call back function for
+         several files, see <xref linkend="usingdata"/>.
+       </para>
  
- 	options = strchr(cmdline, ',') + 1;
- 	if ((err = early_serial8250_setup(options)) < 0)
-@@ -227,6 +230,7 @@ int __init serial8250_find_port_for_earl
- 	struct early_serial8250_device *device = &early_device;
- 	struct uart_port *port = &device->port;
- 	int line;
-+	int ret;
+       <para>
+-        The <function>read_func</function> function must return the
+-        number of bytes written into the <parameter>page</parameter>.
++        The rest of the parameters and the return value are described
++	by a comment in <filename>fs/proc/generic.c</filename> as follows:
+       </para>
  
- 	if (!device->port.membase && !device->port.iobase)
- 		return -ENODEV;
-@@ -235,8 +239,13 @@ int __init serial8250_find_port_for_earl
- 	if (line < 0)
- 		return -ENODEV;
- 
--	return update_console_cmdline("uart", 8250,
-+	ret = update_console_cmdline("uart", 8250,
-+			     "ttyS", line, device->options);
-+	if (ret < 0)
-+		ret = update_console_cmdline("uart", 0,
- 				     "ttyS", line, device->options);
++      <blockquote>
++        <para>
++	You have three ways to return data:
++       	</para>
++        <orderedlist>
++          <listitem>
++            <para>
++	      Leave <literal>*start = NULL</literal>.  (This is the default.)
++	      Put the data of the requested offset at that
++	      offset within the buffer.  Return the number (<literal>n</literal>)
++	      of bytes there are from the beginning of the
++	      buffer up to the last byte of data.  If the
++	      number of supplied bytes (<literal>= n - offset</literal>) is
++	      greater than zero and you didn't signal eof
++	      and the reader is prepared to take more data
++	      you will be called again with the requested
++	      offset advanced by the number of bytes
++	      absorbed.  This interface is useful for files
++	      no larger than the buffer.
++	    </para>
++	  </listitem>
++	  <listitem>
++            <para>
++	      Set <literal>*start</literal> to an unsigned long value less than
++	      the buffer address but greater than zero.
++	      Put the data of the requested offset at the
++	      beginning of the buffer.  Return the number of
++	      bytes of data placed there.  If this number is
++	      greater than zero and you didn't signal eof
++	      and the reader is prepared to take more data
++	      you will be called again with the requested
++	      offset advanced by <literal>*start</literal>.  This interface is
++	      useful when you have a large file consisting
++	      of a series of blocks which you want to count
++	      and return as wholes.
++	      (Hack by Paul.Russell@rustcorp.com.au)
++	    </para>
++	  </listitem>
++	  <listitem>
++            <para>
++	      Set <literal>*start</literal> to an address within the buffer.
++	      Put the data of the requested offset at <literal>*start</literal>.
++	      Return the number of bytes of data placed there.
++	      If this number is greater than zero and you
++	      didn't signal eof and the reader is prepared to
++	      take more data you will be called again with the
++	      requested offset advanced by the number of bytes
++	      absorbed.
++	    </para>
++	  </listitem>
++	</orderedlist>
++      </blockquote>
 +
-+	return ret;
- }
- 
- early_param("earlycon", setup_early_serial8250_console);
+       <para>
+         <xref linkend="example"/> shows how to use a read call back
+         function.
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from cscott@laptop.org are
 
-serial-assert-dtr-for-serial-console-devices.patch
-x86-64-disable-the-gart-in-shutdown.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+update-procfs-guide-doc-of-read_func.patch
