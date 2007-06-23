@@ -1,74 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - asus_acpi-fix-oops-on-non-asus-machines.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:33 -0700
-Message-ID: <200706231928.l5NJSXwL022156@imap1.linux-foundation.org>
+Subject: - fix-x86_64-mm-xen-core-xen-implementation.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:21 -0700
+Message-ID: <200706231928.l5NJSLhr022138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50153 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55075 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755468AbXFWTez (ORCPT
+	by vger.kernel.org with ESMTP id S1755477AbXFWTe4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:55 -0400
+	Sat, 23 Jun 2007 15:34:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maxime@tralhalla.org, lenb@kernel.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, ebiederm@xmission.com, jeremy@xensource.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asus_acpi: fix oops on non-asus machines
+     xen_start_kernel is __init, so startup_xen should be too
 has been removed from the -mm tree.  Its filename was
-     asus_acpi-fix-oops-on-non-asus-machines.patch
+     fix-x86_64-mm-xen-core-xen-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: asus_acpi: fix oops on non-asus machines
-From: Maxime Austruy <maxime@tralhalla.org>
+Subject: xen_start_kernel is __init, so startup_xen should be too
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-If asus_acpi_init doesn't find any device it knows about, it mistakenly
-returns a "success" error code even though it cleans up after itself.  Later
-when trying to rmmod asus_acpi, the module_exit routine would try to clean up
-one more time and we would end up calling
-acpi_bus_unregister_driver(&asus_hotk_driver) twice.  This patch addresses
-this first problem by returning -ENODEV when no appropriate device is found.  
+This needs an update to modpost to prevent warning about the reference from
+.note* to the .init.text section.
 
-Then there was also another bug with the code handling the return value of
-backlight_device_register.  If this function ever failed, the driver would
-cleanup by calling the module_exit routine from module_init, but it would
-still return "success".  So any attempt to rmmod this module would result in
-asus_acpi_exit being called twice but it's not ready to handle it (I haven't
-hit this bug, just found it by code inspection).  This patch fixes that by
-inserting a return -ENODEV; at the end of this error handling path.
-
-Signed-off-by: Maxime Austruy <maxime@tralhalla.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/xen/xen-head.S |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-fix-oops-on-non-asus-machines drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-fix-oops-on-non-asus-machines
-+++ a/drivers/acpi/asus_acpi.c
-@@ -1398,7 +1398,7 @@ static int __init asus_acpi_init(void)
- 	if (!asus_hotk_found) {
- 		acpi_bus_unregister_driver(&asus_hotk_driver);
- 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
--		return result;
-+		return -ENODEV;
- 	}
+diff -puN arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation arch/i386/xen/xen-head.S
+--- a/arch/i386/xen/xen-head.S~fix-x86_64-mm-xen-core-xen-implementation
++++ a/arch/i386/xen/xen-head.S
+@@ -7,11 +7,13 @@
+ #include <asm/boot.h>
+ #include <xen/interface/elfnote.h>
  
- 	asus_backlight_device = backlight_device_register("asus",NULL,NULL,
-@@ -1407,6 +1407,7 @@ static int __init asus_acpi_init(void)
- 		printk(KERN_ERR "Could not register asus backlight device\n");
- 		asus_backlight_device = NULL;
- 		asus_acpi_exit();
-+		return -ENODEV;
- 	}
-         asus_backlight_device->props.max_brightness = 15;
++.pushsection .init.text,"ax",@progbits
+ ENTRY(startup_xen)
+ 	movl %esi,xen_start_info
+ 	cld
+  	movl $(init_thread_union+THREAD_SIZE),%esp
+ 	jmp xen_start_kernel
++.popsection
  
+ .pushsection ".bss.page_aligned"
+ 	.align PAGE_SIZE_asm
 _
 
-Patches currently in -mm which might be from maxime@tralhalla.org are
+Patches currently in -mm which might be from jeremy@goop.org are
+
+git-kbuild.patch
+add-kstrndup-fix.patch
+xen-build-fix.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+paravirt-helper-to-disable-all-io-space-fix-2.patch
+paravirt-helper-to-disable-all-io-space-fix-3.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+tidy-up-usermode-helper-waiting-a-bit-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+lguest-the-guest-code.patch
