@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-zero_user_page-conversion.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:49:32 -0700
-Message-ID: <200706231649.l5NGnTkS019548@imap1.linux-foundation.org>
+Subject: + usb-take-over-usblp.patch added to -mm tree
+Date: Sat, 23 Jun 2007 09:50:40 -0700
+Message-ID: <200706231650.l5NGobI9019562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60129 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45627 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756289AbXFWQuZ (ORCPT
+	by vger.kernel.org with ESMTP id S1758848AbXFWQvA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 12:50:25 -0400
+	Sat, 23 Jun 2007 12:51:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, mark.fasheh@oracle.com
+Cc: zaitcev@redhat.com, vojtech@suse.cz
 
 
 The patch titled
-     ocfs2: zero_user_page() conversions
+     USB: take over usblp
 has been added to the -mm tree.  Its filename is
-     ocfs2-zero_user_page-conversion.patch
+     usb-take-over-usblp.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ocfs2: zero_user_page() conversions
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: USB: take over usblp
+From: Pete Zaitcev <zaitcev@redhat.com>
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Vojtech agreed to pass usblp over to me, so if you find bugs don't bug him.
+
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Signed-off-by: Vojtech Pavlik <vojtech@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-zero_user_page-conversion fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-zero_user_page-conversion
-+++ a/fs/ocfs2/aops.c
-@@ -739,18 +739,13 @@ int ocfs2_map_page_blocks(struct page *p
- 	bh = head;
- 	block_start = 0;
- 	do {
--		void *kaddr;
--
- 		block_end = block_start + bsize;
- 		if (block_end <= from)
- 			goto next_bh;
- 		if (block_start >= to)
- 			break;
+diff -puN MAINTAINERS~usb-take-over-usblp MAINTAINERS
+--- a/MAINTAINERS~usb-take-over-usblp
++++ a/MAINTAINERS
+@@ -3761,12 +3761,12 @@ L:	linux-usb-devel@lists.sourceforge.net
+ W:	http://pegasus2.sourceforge.net/
+ S:	Maintained
  
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr+block_start, 0, bh->b_size);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, block_start, bh->b_size, KM_USER0);
- 		set_buffer_uptodate(bh);
- 		mark_buffer_dirty(bh);
+-USB PRINTER DRIVER
+-P:	Vojtech Pavlik
+-M:	vojtech@suse.cz
++USB PRINTER DRIVER (usblp)
++P:	Pete Zaitcev
++M:	zaitcev@redhat.com
+ L:	linux-usb-users@lists.sourceforge.net
+ L:	linux-usb-devel@lists.sourceforge.net
+-S:	Maintained
++S:	Supported
  
-@@ -895,15 +890,11 @@ static void ocfs2_zero_new_buffers(struc
- 			if (block_end > from && block_start < to) {
- 				if (!PageUptodate(page)) {
- 					unsigned start, end;
--					void *kaddr;
- 
- 					start = max(from, block_start);
- 					end = min(to, block_end);
- 
--					kaddr = kmap_atomic(page, KM_USER0);
--					memset(kaddr+start, 0, end - start);
--					flush_dcache_page(page);
--					kunmap_atomic(kaddr, KM_USER0);
-+					zero_user_page(page, start, end - start, KM_USER0);
- 					set_buffer_uptodate(bh);
- 				}
- 
+ USB RTL8150 DRIVER
+ P:	Petko Manolov
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from zaitcev@redhat.com are
 
-cifs-zero_user_page-conversion.patch
-gfs2-zero_user_page-conversion.patch
-ocfs2-zero_user_page-conversion.patch
-ext4-zero_user_page-conversion.patch
+drivers-block-ubc-use-list_for_each_entry.patch
+usb-take-over-usblp.patch
