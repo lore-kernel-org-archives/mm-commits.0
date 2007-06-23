@@ -1,84 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-remove-extra-is_rdonly-check.patch added to -mm tree
-Date: Sat, 23 Jun 2007 09:54:28 -0700
-Message-ID: <200706231654.l5NGsPNl019755@imap1.linux-foundation.org>
+Subject: - x86-64-disable-the-gart-in-shutdown.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 10:06:51 -0700
+Message-ID: <200706231706.l5NH6ppC019970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39468 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755252AbXFWREl (ORCPT
+	by vger.kernel.org with ESMTP id S1759926AbXFWRHv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 13:04:41 -0400
+	Sat, 23 Jun 2007 13:07:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, linux-ext4@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: remove extra IS_RDONLY() check
-has been added to the -mm tree.  Its filename is
-     ext4-remove-extra-is_rdonly-check.patch
+     x86-64: disable the GART in shutdown
+has been removed from the -mm tree.  Its filename was
+     x86-64-disable-the-gart-in-shutdown.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ext4: remove extra IS_RDONLY() check
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: x86-64: disable the GART in shutdown
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-ext4_change_inode_journal_flag() is only called from one location:
-ext4_ioctl(EXT3_IOC_SETFLAGS).  That ioctl case already has a IS_RDONLY()
-call in it so this one is superfluous.
+For K8 system: 4G RAM with memory hole remapping enabled, or more than 4G
+RAM installed.  when mem is allocated for GART, it will do the memset for
+clear.  and for kexec case, the first kernel already enable that, the
+memset in second kernel will cause the system restart.  solution will be:
+in second kernel: disable that at first before we try to allocate mem for
+it.  or in the first kernel: do disable that before shutdown.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/pci-dma.c  |    7 +++++++
+ arch/x86_64/kernel/pci-gart.c |   20 ++++++++++++++++++++
+ arch/x86_64/kernel/reboot.c   |    4 ++++
+ include/asm-x86_64/proto.h    |    2 ++
+ 4 files changed, 33 insertions(+)
 
-diff -puN fs/ext4/inode.c~ext4-remove-extra-is_rdonly-check fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-remove-extra-is_rdonly-check
-+++ a/fs/ext4/inode.c
-@@ -3352,7 +3352,7 @@ int ext4_change_inode_journal_flag(struc
- 	 */
+diff -puN arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -321,6 +321,13 @@ static int __init pci_iommu_init(void)
+ 	return 0;
+ }
  
- 	journal = EXT4_JOURNAL(inode);
--	if (is_journal_aborted(journal) || IS_RDONLY(inode))
-+	if (is_journal_aborted(journal))
- 		return -EROFS;
++void pci_iommu_shutdown(void)
++{
++#ifdef CONFIG_IOMMU
++	gart_iommu_shutdown();
++#endif
++}
++
+ #ifdef CONFIG_PCI
+ /* Many VIA bridges seem to corrupt data for DAC. Disable it here */
  
- 	jbd2_journal_lock_updates(journal);
+diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -571,6 +571,26 @@ static const struct dma_mapping_ops gart
+ 	.unmap_sg = gart_unmap_sg,
+ };
+ 
++void gart_iommu_shutdown(void)
++{
++	struct pci_dev *dev;
++	int i;
++
++	if (dma_ops != &gart_dma_ops)
++		return;
++
++	for (i = 0; i < num_k8_northbridges; i++) {
++		u32 ctl;
++
++		dev = k8_northbridges[i];
++		pci_read_config_dword(dev, 0x90, &ctl);
++
++		ctl &= ~1;
++
++		pci_write_config_dword(dev, 0x90, ctl);
++	}
++}
++
+ void __init gart_iommu_init(void)
+ { 
+ 	struct agp_kern_info info;
+diff -puN arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/reboot.c
+--- a/arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown
++++ a/arch/x86_64/kernel/reboot.c
+@@ -16,6 +16,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <asm/apic.h>
++#include <asm/proto.h>
+ 
+ /*
+  * Power off function, if any
+@@ -81,6 +82,7 @@ static inline void kb_wait(void)
+ void machine_shutdown(void)
+ {
+ 	unsigned long flags;
++
+ 	/* Stop the cpus and apics */
+ #ifdef CONFIG_SMP
+ 	int reboot_cpu_id;
+@@ -111,6 +113,8 @@ void machine_shutdown(void)
+ 	disable_IO_APIC();
+ 
+ 	local_irq_restore(flags);
++
++	pci_iommu_shutdown();
+ }
+ 
+ void machine_emergency_restart(void)
+diff -puN include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown
++++ a/include/asm-x86_64/proto.h
+@@ -83,11 +83,13 @@ extern int exception_trace;
+ extern unsigned cpu_khz;
+ extern unsigned tsc_khz;
+ 
++extern void pci_iommu_shutdown(void);
+ extern void no_iommu_init(void);
+ extern int force_iommu, no_iommu;
+ extern int iommu_detected;
+ #ifdef CONFIG_IOMMU
+ extern void gart_iommu_init(void);
++extern void gart_iommu_shutdown(void);
+ extern void __init gart_parse_options(char *);
+ extern void iommu_hole_init(void);
+ extern int fallback_aper_order;
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-document-nlink-function.patch
-ext3-remove-extra-is_rdonly-check.patch
-ext4-remove-extra-is_rdonly-check.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-page-owner-tracking-leak-detector.patch
+serial-assert-dtr-for-serial-console-devices.patch
+x86-64-disable-the-gart-in-shutdown.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
