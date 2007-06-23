@@ -1,125 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - intel_agp-dont-load-if-no-igd-and-agp-port.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:04 -0700
-Message-ID: <200706231928.l5NJS4sH022111@imap1.linux-foundation.org>
+Subject: - ocfs2-zero_user_page-conversion.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:28:17 -0700
+Message-ID: <200706231928.l5NJSHTg022132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34926 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755516AbXFWTe7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752890AbXFWTfN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:59 -0400
+	Sat, 23 Jun 2007 15:35:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenyu.z.wang@intel.com, carlo@alinoe.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel_agp: don't load if no IGD and AGP port
+     ocfs2: zero_user_page() conversions
 has been removed from the -mm tree.  Its filename was
-     intel_agp-dont-load-if-no-igd-and-agp-port.patch
+     ocfs2-zero_user_page-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: intel_agp: don't load if no IGD and AGP port
-From: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Subject: ocfs2: zero_user_page() conversions
+From: Eric Sandeen <sandeen@redhat.com>
 
-After i915 chip, GMCH has no AGP port.  Origin bridge driver in device
-table will try to access illegal regs like APBASE, APSIZE, etc.  This may
-cause problem.
-
-So mark them as NULL in the table, we won't load if no IGD got detect and
-bridge has no AGP port.
-
-(Carlo's original bug report: "Somewhere between 2.6.18 and 2.6.19, a patch
-was added to the kernel that makes it hang on my machine after the message:
-
-apgart: Detected an Intel 965G Chipset.
-
-When I upgraded to 2.6.22-rc4 (from debian trunk), I still ran
-into this same bug.")
-
-Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
-Reported-by: Carlo Wood <carlo@alinoe.com>
-Testted-by: Carlo Wood <carlo@alinoe.com>
-Acked-by: Carlo Wood <carlo@alinoe.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |   35 +++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ fs/ocfs2/aops.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-dont-load-if-no-igd-and-agp-port drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-dont-load-if-no-igd-and-agp-port
-+++ a/drivers/char/agp/intel-agp.c
-@@ -1850,35 +1850,35 @@ static const struct intel_driver_descrip
- 		&intel_845_driver, &intel_830_driver },
- 	{ PCI_DEVICE_ID_INTEL_82875_HB, 0, 0, "i875", &intel_845_driver, NULL },
- 	{ PCI_DEVICE_ID_INTEL_82915G_HB, PCI_DEVICE_ID_INTEL_82915G_IG, 0, "915G",
--		&intel_845_driver, &intel_915_driver },
-+		NULL, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82915GM_HB, PCI_DEVICE_ID_INTEL_82915GM_IG, 0, "915GM",
--		&intel_845_driver, &intel_915_driver },
-+		NULL, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82945G_HB, PCI_DEVICE_ID_INTEL_82945G_IG, 0, "945G",
--		&intel_845_driver, &intel_915_driver },
-+		NULL, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GM_IG, 1, "945GM",
--		&intel_845_driver, &intel_915_driver },
-+		NULL, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82945GM_HB, PCI_DEVICE_ID_INTEL_82945GME_IG, 0, "945GME",
--		&intel_845_driver, &intel_915_driver },
-+		NULL, &intel_915_driver },
- 	{ PCI_DEVICE_ID_INTEL_82946GZ_HB, PCI_DEVICE_ID_INTEL_82946GZ_IG, 0, "946GZ",
--		&intel_845_driver, &intel_i965_driver },
-+		NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_82965G_1_HB, PCI_DEVICE_ID_INTEL_82965G_1_IG, 0, "965G",
--		&intel_845_driver, &intel_i965_driver },
-+		NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_82965Q_HB, PCI_DEVICE_ID_INTEL_82965Q_IG, 0, "965Q",
--		&intel_845_driver, &intel_i965_driver },
-+		NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_82965G_HB, PCI_DEVICE_ID_INTEL_82965G_IG, 0, "965G",
--		&intel_845_driver, &intel_i965_driver },
-+		NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GM_IG, 1, "965GM",
--		&intel_845_driver, &intel_i965_driver },
-+		NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_82965GM_HB, PCI_DEVICE_ID_INTEL_82965GME_IG, 0, "965GME/GLE",
--		&intel_845_driver, &intel_i965_driver },
-+		NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_7505_0, 0, 0, "E7505", &intel_7505_driver, NULL },
- 	{ PCI_DEVICE_ID_INTEL_7205_0, 0, 0, "E7205", &intel_7505_driver, NULL },
- 	{ PCI_DEVICE_ID_INTEL_G33_HB, PCI_DEVICE_ID_INTEL_G33_IG, 0, "G33",
--		&intel_845_driver, &intel_g33_driver },
-+		NULL, &intel_g33_driver },
- 	{ PCI_DEVICE_ID_INTEL_Q35_HB, PCI_DEVICE_ID_INTEL_Q35_IG, 0, "Q35",
--		&intel_845_driver, &intel_g33_driver },
-+		NULL, &intel_g33_driver },
- 	{ PCI_DEVICE_ID_INTEL_Q33_HB, PCI_DEVICE_ID_INTEL_Q33_IG, 0, "Q33",
--		&intel_845_driver, &intel_g33_driver },
-+		NULL, &intel_g33_driver },
- 	{ 0, 0, 0, NULL, NULL, NULL }
- };
+diff -puN fs/ocfs2/aops.c~ocfs2-zero_user_page-conversion fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-zero_user_page-conversion
++++ a/fs/ocfs2/aops.c
+@@ -739,18 +739,13 @@ int ocfs2_map_page_blocks(struct page *p
+ 	bh = head;
+ 	block_start = 0;
+ 	do {
+-		void *kaddr;
+-
+ 		block_end = block_start + bsize;
+ 		if (block_end <= from)
+ 			goto next_bh;
+ 		if (block_start >= to)
+ 			break;
  
-@@ -1924,8 +1924,11 @@ static int __devinit agp_intel_probe(str
- 	}
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		memset(kaddr+block_start, 0, bh->b_size);
+-		flush_dcache_page(page);
+-		kunmap_atomic(kaddr, KM_USER0);
++		zero_user_page(page, block_start, bh->b_size, KM_USER0);
+ 		set_buffer_uptodate(bh);
+ 		mark_buffer_dirty(bh);
  
- 	if (bridge->driver == NULL) {
--		printk(KERN_WARNING PFX "Failed to find bridge device "
--			"(chip_id: %04x)\n", intel_agp_chipsets[i].gmch_chip_id);
-+		/* bridge has no AGP and no IGD detected */
-+		if (cap_ptr)
-+			printk(KERN_WARNING PFX "Failed to find bridge device "
-+				"(chip_id: %04x)\n",
-+				intel_agp_chipsets[i].gmch_chip_id);
- 		agp_put_bridge(bridge);
- 		return -ENODEV;
-         }
+@@ -895,15 +890,11 @@ static void ocfs2_zero_new_buffers(struc
+ 			if (block_end > from && block_start < to) {
+ 				if (!PageUptodate(page)) {
+ 					unsigned start, end;
+-					void *kaddr;
+ 
+ 					start = max(from, block_start);
+ 					end = min(to, block_end);
+ 
+-					kaddr = kmap_atomic(page, KM_USER0);
+-					memset(kaddr+start, 0, end - start);
+-					flush_dcache_page(page);
+-					kunmap_atomic(kaddr, KM_USER0);
++					zero_user_page(page, start, end - start, KM_USER0);
+ 					set_buffer_uptodate(bh);
+ 				}
+ 
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-origin.patch
+cifs-zero_user_page-conversion.patch
+git-ocfs2.patch
+ext4-zero_user_page-conversion.patch
