@@ -1,84 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:10:06 -0700
-Message-ID: <200706231910.l5NJA6OJ021734@imap1.linux-foundation.org>
+Subject: - revert-x86_64-mm-cpa-cache-flush.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:10:24 -0700
+Message-ID: <200706231910.l5NJAOc3021741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752707AbXFWTKW (ORCPT
+	by vger.kernel.org with ESMTP id S1752759AbXFWTKe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:10:22 -0400
+	Sat, 23 Jun 2007 15:10:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, nanhai.zou@intel.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
+     revert x86_64-mm-cpa-cache-flush
 has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
+     revert-x86_64-mm-cpa-cache-flush.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
+Subject: revert x86_64-mm-cpa-cache-flush
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Drop this.  x86_64-allocate-sparsemem-memmap-above-4g.patch is better.
+This causes my dual-pIII to hang after "write protecting kernel memory".
 
-Cc: Zou Nan hai <nanhai.zou@intel.com>
+config: http://userweb.kernel.org/~akpm/config-vmm.txt
+
 Cc: Andi Kleen <ak@suse.de>
-Cc: Siddha, Suresh <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/mmzone.h |    5 -----
- include/linux/bootmem.h     |    3 ---
- mm/sparse.c                 |    5 -----
- 3 files changed, 13 deletions(-)
+ arch/i386/mm/pageattr.c   |    7 ++-----
+ arch/x86_64/mm/pageattr.c |    7 +++----
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-x86_64/mmzone.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 include/asm-x86_64/mmzone.h
---- a/include/asm-x86_64/mmzone.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
-+++ a/include/asm-x86_64/mmzone.h
-@@ -52,10 +52,5 @@ extern int pfn_valid(unsigned long pfn);
- #define FAKE_NODE_MIN_HASH_MASK	(~(FAKE_NODE_MIN_SIZE - 1uL))
- #endif
- 
--#define ARCH_HAS_ALLOC_BOOTMEM_HIGH_NODE 1
--#define alloc_bootmem_high_node(pgdat,size) \
--({__alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, (4UL*1024*1024*1024), 0);})
+diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush
++++ a/arch/i386/mm/pageattr.c
+@@ -170,11 +170,11 @@ __change_page_attr(struct page *page, pg
+ 	 * time (not via split_large_page) and in turn we must not
+ 	 * replace it with a largepage.
+ 	 */
 -
--
- #endif
- #endif
-diff -puN include/linux/bootmem.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 include/linux/bootmem.h
---- a/include/linux/bootmem.h~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
-+++ a/include/linux/bootmem.h
-@@ -132,8 +132,5 @@ extern void *alloc_large_system_hash(con
- #endif
- extern int hashdist;		/* Distribute hashes across NUMA nodes? */
+-	list_add(&kpte_page->lru, &df_list);
+ 	if (!PageReserved(kpte_page)) {
+ 		if (cpu_has_pse && (page_private(kpte_page) == 0)) {
++			ClearPagePrivate(kpte_page);
+ 			paravirt_release_pt(page_to_pfn(kpte_page));
++			list_add(&kpte_page->lru, &df_list);
+ 			revert_page(kpte_page, address);
+ 		}
+ 	}
+@@ -230,9 +230,6 @@ void global_flush_tlb(void)
+ 	list_for_each_entry_safe(pg, next, &l, lru) {
+ 		if (cpu_has_clflush)
+ 			flush_map(page_address(pg));
+-		if (page_private(pg) != 0)
+-			continue;
+-		ClearPagePrivate(pg);
+ 		__free_page(pg);
+ 	}
+ }
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cache-flush
++++ a/arch/x86_64/mm/pageattr.c
+@@ -158,9 +158,10 @@ __change_page_attr(unsigned long address
+ 	/* on x86-64 the direct mapping set at boot is not using 4k pages */
+  	BUG_ON(PageReserved(kpte_page));
  
--#ifndef ARCH_HAS_ALLOC_BOOTMEM_HIGH_NODE
--#define alloc_bootmem_high_node(pgdat, size) ({NULL;})
--#endif
+-	save_page(kpte_page);
+-	if (page_private(kpte_page) == 0)
++	if (page_private(kpte_page) == 0) {
++		save_page(kpte_page);
+ 		revert_page(address, ref_prot);
++ 	}
+ 	return 0;
+ } 
  
- #endif /* _LINUX_BOOTMEM_H */
-diff -puN mm/sparse.c~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64 mm/sparse.c
---- a/mm/sparse.c~revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64
-+++ a/mm/sparse.c
-@@ -230,11 +230,6 @@ static struct page __init *sparse_early_
- 	if (map)
- 		return map;
+@@ -232,8 +233,6 @@ void global_flush_tlb(void)
+ 	flush_map(&l);
  
--	map = alloc_bootmem_high_node(NODE_DATA(nid),
--			sizeof(struct page) * PAGES_PER_SECTION);
--        if (map)
--                return map;
--
- 	map = alloc_bootmem_node(NODE_DATA(nid),
- 			sizeof(struct page) * PAGES_PER_SECTION);
- 	if (map)
+ 	list_for_each_entry_safe(pg, next, &l, lru) {
+-		if (page_private(pg) != 0)
+-			continue;
+ 		ClearPagePrivate(pg);
+ 		__free_page(pg);
+ 	} 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,7 +143,6 @@ git-watchdog.patch
 git-wireless.patch
 x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
 revert-x86_64-mm-verify-cpu-rename.patch
-revert-x86_64-mm-allocate-sparsemem-memmap-above-4g-on-x86_64.patch
 revert-x86_64-mm-cpa-cache-flush.patch
 fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
 fix-x86_64-mm-sched-clock-share.patch
