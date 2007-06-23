@@ -1,230 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-possible-leakage-of-blocks.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:45 -0700
-Message-ID: <200706231927.l5NJRjPG022087@imap1.linux-foundation.org>
+Subject: - sched-fix-sysrq-n-normalize-rt-tasks.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:54 -0700
+Message-ID: <200706231927.l5NJRsZ4022098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54031 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46893 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754247AbXFWTes (ORCPT
+	by vger.kernel.org with ESMTP id S1755351AbXFWTev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:34:48 -0400
+	Sat, 23 Jun 2007 15:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, gorcunov@gmail.com, sandeen@sandeen.net, mm-commits@vger.kernel.org
+To: mingo@elte.hu, gene.heskett@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: fix possible leakage of blocks
+     sched: fix SysRq-N (normalize RT tasks)
 has been removed from the -mm tree.  Its filename was
-     udf-fix-possible-leakage-of-blocks.patch
+     sched-fix-sysrq-n-normalize-rt-tasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: udf: fix possible leakage of blocks
-From: Jan Kara <jack@suse.cz>
+Subject: sched: fix SysRq-N (normalize RT tasks)
+From: Ingo Molnar <mingo@elte.hu>
 
-We have to take care that when we call udf_discard_prealloc() from
-udf_clear_inode() we have to write inode ourselves afterwards (otherwise,
-some changes might be lost leading to leakage of blocks, use of free blocks
-or improperly aligned extents).
+Gene Heskett reported the following problem while testing CFS: SysRq-N is
+not always effective in normalizing tasks back to SCHED_OTHER.
 
-Also udf_discard_prealloc() does two different things - it removes
-preallocated blocks and truncates the last extent to exactly match i_size. 
-We move the latter functionality to udf_truncate_tail_extent(), call
-udf_discard_prealloc() when last reference to a file is dropped and call
-udf_truncate_tail_extent() when inode is being removed from inode cache
-(udf_clear_inode() call).
+The reason for that turns out to be the following bug: normalize_rt_tasks()
+uses for_each_process() to iterate through all tasks in the system.  The
+problem is, this method does not iterate through all tasks, it iterates
+through all thread groups.  The proper mechanism to enumerate all tasks is
+to use a do_each_thread() + while_each_thread() loop.
 
-We cannot call udf_truncate_tail_extent() earlier as subsequent open+write
-would find the last block of the file mapped and happily write to the end
-of it, although the last extent says it's shorter.
-
-[akpm@linux-foundation.org: Make checkpatch.pl happier]
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Eric Sandeen <sandeen@sandeen.net>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Reported-by: Gene Heskett <gene.heskett@gmail.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c    |   11 +++++-
- fs/udf/truncate.c |   79 +++++++++++++++++++++++++++++++++++---------
- fs/udf/udfdecl.h  |    1 
- 3 files changed, 74 insertions(+), 17 deletions(-)
+ kernel/sched.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-fix-possible-leakage-of-blocks fs/udf/inode.c
---- a/fs/udf/inode.c~udf-fix-possible-leakage-of-blocks
-+++ a/fs/udf/inode.c
-@@ -100,14 +100,23 @@ no_delete:
- 	clear_inode(inode);
- }
- 
-+/*
-+ * If we are going to release inode from memory, we discard preallocation and
-+ * truncate last inode extent to proper length. We could use drop_inode() but
-+ * it's called under inode_lock and thus we cannot mark inode dirty there.  We
-+ * use clear_inode() but we have to make sure to write inode as it's not written
-+ * automatically.
-+ */
- void udf_clear_inode(struct inode *inode)
+diff -puN kernel/sched.c~sched-fix-sysrq-n-normalize-rt-tasks kernel/sched.c
+--- a/kernel/sched.c~sched-fix-sysrq-n-normalize-rt-tasks
++++ a/kernel/sched.c
+@@ -7071,12 +7071,13 @@ EXPORT_SYMBOL(__might_sleep);
+ void normalize_rt_tasks(void)
  {
- 	if (!(inode->i_sb->s_flags & MS_RDONLY)) {
- 		lock_kernel();
-+		/* Discard preallocation for directories, symlinks, etc. */
- 		udf_discard_prealloc(inode);
-+		udf_truncate_tail_extent(inode);
- 		unlock_kernel();
-+		write_inode_now(inode, 1);
- 	}
--
- 	kfree(UDF_I_DATA(inode));
- 	UDF_I_DATA(inode) = NULL;
+ 	struct prio_array *array;
+-	struct task_struct *p;
++	struct task_struct *g, *p;
+ 	unsigned long flags;
+ 	struct rq *rq;
+ 
+ 	read_lock_irq(&tasklist_lock);
+-	for_each_process(p) {
++
++	do_each_thread(g, p) {
+ 		if (!rt_task(p))
+ 			continue;
+ 
+@@ -7094,7 +7095,8 @@ void normalize_rt_tasks(void)
+ 
+ 		__task_rq_unlock(rq);
+ 		spin_unlock_irqrestore(&p->pi_lock, flags);
+-	}
++	} while_each_thread(g, p);
++
+ 	read_unlock_irq(&tasklist_lock);
  }
-diff -puN fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-fix-possible-leakage-of-blocks
-+++ a/fs/udf/truncate.c
-@@ -61,7 +61,11 @@ static void extent_trunc(struct inode * 
- 	}
- }
- 
--void udf_discard_prealloc(struct inode * inode)
-+/*
-+ * Truncate the last extent to match i_size. This function assumes
-+ * that preallocation extent is already truncated.
-+ */
-+void udf_truncate_tail_extent(struct inode *inode)
- {
- 	struct extent_position epos = { NULL, 0, {0, 0}};
- 	kernel_lb_addr eloc;
-@@ -71,7 +75,10 @@ void udf_discard_prealloc(struct inode *
- 	int adsize;
- 
- 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
--		inode->i_size == UDF_I_LENEXTENTS(inode))
-+	    inode->i_size == UDF_I_LENEXTENTS(inode))
-+		return;
-+	/* Are we going to delete the file anyway? */
-+	if (inode->i_nlink == 0)
- 		return;
- 
- 	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
-@@ -79,36 +86,76 @@ void udf_discard_prealloc(struct inode *
- 	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
- 		adsize = sizeof(long_ad);
- 	else
--		adsize = 0;
--
--	epos.block = UDF_I_LOCATION(inode);
-+		BUG();
- 
- 	/* Find the last extent in the file */
- 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1)
- 	{
- 		etype = netype;
- 		lbcount += elen;
--		if (lbcount > inode->i_size && lbcount - elen < inode->i_size)
--		{
--			WARN_ON(lbcount - inode->i_size >= inode->i_sb->s_blocksize);
-+		if (lbcount > inode->i_size) {
-+			if (lbcount - inode->i_size >= inode->i_sb->s_blocksize)
-+				printk(KERN_WARNING
-+				       "udf_truncate_tail_extent(): Too long "
-+				       "extent after EOF in inode %u: i_size: "
-+				       "%Ld lbcount: %Ld extent %u+%u\n",
-+				       (unsigned)inode->i_ino,
-+				       (long long)inode->i_size,
-+				       (long long)lbcount,
-+				       (unsigned)eloc.logicalBlockNum,
-+				       (unsigned)elen);
- 			nelen = elen - (lbcount - inode->i_size);
- 			epos.offset -= adsize;
- 			extent_trunc(inode, &epos, eloc, etype, elen, nelen);
- 			epos.offset += adsize;
--			lbcount = inode->i_size;
-+			if (udf_next_aext(inode, &epos, &eloc, &elen, 1) != -1)
-+				printk(KERN_ERR "udf_truncate_tail_extent(): "
-+				       "Extent after EOF in inode %u.\n",
-+				       (unsigned)inode->i_ino);
-+			break;
- 		}
- 	}
-+	/* This inode entry is in-memory only and thus we don't have to mark
-+	 * the inode dirty */
-+	UDF_I_LENEXTENTS(inode) = inode->i_size;
-+	brelse(epos.bh);
-+}
-+
-+void udf_discard_prealloc(struct inode *inode)
-+{
-+	struct extent_position epos = { NULL, 0, {0, 0}};
-+	kernel_lb_addr eloc;
-+	uint32_t elen;
-+	uint64_t lbcount = 0;
-+	int8_t etype = -1, netype;
-+	int adsize;
-+
-+	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
-+		inode->i_size == UDF_I_LENEXTENTS(inode))
-+		return;
-+
-+	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
-+		adsize = sizeof(short_ad);
-+	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
-+		adsize = sizeof(long_ad);
-+	else
-+		adsize = 0;
-+
-+	epos.block = UDF_I_LOCATION(inode);
-+
-+	/* Find the last extent in the file */
-+	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1) {
-+		etype = netype;
-+		lbcount += elen;
-+	}
- 	if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30)) {
- 		epos.offset -= adsize;
- 		lbcount -= elen;
- 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
--		if (!epos.bh)
--		{
-+		if (!epos.bh) {
- 			UDF_I_LENALLOC(inode) = epos.offset - udf_file_entry_alloc_offset(inode);
- 			mark_inode_dirty(inode);
--		}
--		else
--		{
-+		} else {
- 			struct allocExtDesc *aed = (struct allocExtDesc *)(epos.bh->b_data);
- 			aed->lengthAllocDescs = cpu_to_le32(epos.offset - sizeof(struct allocExtDesc));
- 			if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-@@ -118,9 +165,9 @@ void udf_discard_prealloc(struct inode *
- 			mark_buffer_dirty_inode(epos.bh, inode);
- 		}
- 	}
-+	/* This inode entry is in-memory only and thus we don't have to mark
-+	 * the inode dirty */
- 	UDF_I_LENEXTENTS(inode) = lbcount;
--
--	WARN_ON(lbcount != inode->i_size);
- 	brelse(epos.bh);
- }
- 
-diff -puN fs/udf/udfdecl.h~udf-fix-possible-leakage-of-blocks fs/udf/udfdecl.h
---- a/fs/udf/udfdecl.h~udf-fix-possible-leakage-of-blocks
-+++ a/fs/udf/udfdecl.h
-@@ -146,6 +146,7 @@ extern void udf_free_inode(struct inode 
- extern struct inode * udf_new_inode (struct inode *, int, int *);
- 
- /* truncate.c */
-+extern void udf_truncate_tail_extent(struct inode *);
- extern void udf_discard_prealloc(struct inode *);
- extern void udf_truncate_extents(struct inode *);
  
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-ext2-fix-a-comment-when-ext2_release_file-is-called.patch
-ext3-fix-deadlock-in-ext3_remount-and-orphan-list-handling.patch
-ext4-fix-deadlock-in-ext4_remount-and-orphan-list-handling.patch
+origin.patch
+sched-fix-next_interval-determination-in-idle_balance.patch
+git-acpi-add-exports.patch
+git-kvm.patch
+git-selinux.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+introduce-write_trylock_irqsave.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+pie-randomization.patch
+vdso-print-fatal-signals.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+introduce-o_cloexec-take-2.patch
+introduce-o_cloexec-parisc-fix.patch
+o_cloexec-for-scm_rights.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+allow-softlockup-to-be-runtime-disabled.patch
+cfs-scheduler.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-v14-rc2-mm1.patch
+cfs-scheduler-warning-fixes.patch
+cfs-scheduler-v15-rc3-mm1.patch
+fs-proc-basec-make-a-struct-static.patch
+cfs-warning-fixes.patch
+schedstats-fix-printk-format.patch
+cfs-scheduler-v16.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+lockdep-various-fixes.patch
+lockdep-various-fixes-checkpatch.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
+lockstat-measure-lock-bouncing.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+lockstat-better-class-name-representation.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
