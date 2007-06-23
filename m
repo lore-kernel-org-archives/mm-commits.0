@@ -1,208 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - slub-minimum-alignment-fixes.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:27:42 -0700
-Message-ID: <200706231927.l5NJRghT022079@imap1.linux-foundation.org>
+Subject: - random-fix-output-buffer-folding.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:29 -0700
+Message-ID: <200706231927.l5NJRTIN022066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36217 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754473AbXFWT1y (ORCPT
+	by vger.kernel.org with ESMTP id S1754586AbXFWT1z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:27:54 -0400
+	Sat, 23 Jun 2007 15:27:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, linux@horizon.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: minimum alignment fixes
+     random: fix output buffer folding
 has been removed from the -mm tree.  Its filename was
-     slub-minimum-alignment-fixes.patch
+     random-fix-output-buffer-folding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: minimum alignment fixes
-From: Christoph Lameter <clameter@sgi.com>
+Subject: random: fix output buffer folding
+From: Matt Mackall <mpm@selenic.com>
 
-If ARCH_KMALLOC_MINALIGN is set to a value greater than 8 (SLUBs smallest
-kmalloc cache) then SLUB may generate duplicate slabs in sysfs (yes again)
-because the object size is padded to reach ARCH_KMALLOC_MINALIGN.  Thus the
-size of the small slabs is all the same.
+(As reported by linux@horizon.com)
 
-No arch sets ARCH_KMALLOC_MINALIGN larger than 8 though except mips which
-for some reason wants a 128 byte alignment.
+Folding is done to minimize the theoretical possibility of systematic
+weakness in the particular bits of the SHA1 hash output.  The result of
+this bug is that 16 out of 80 bits are un-folded.  Without a major new
+vulnerability being found in SHA1, this is harmless, but still worth
+fixing.
 
-This patch increases the size of the smallest cache if
-ARCH_KMALLOC_MINALIGN is greater than 8.  In that case more and more of the
-smallest caches are disabled.
-
-If we do that then the count of the active general caches that is displayed
-on boot is not correct anymore since we may skip elements of the kmalloc
-array.  So count them separately.
-
-This approach was tested by Havard yesterday.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: <linux@horizon.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   13 +++++++++++--
- mm/slub.c                |   20 +++++++++++++++-----
- 2 files changed, 26 insertions(+), 7 deletions(-)
+ drivers/char/random.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/slub_def.h~slub-minimum-alignment-fixes include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-minimum-alignment-fixes
-+++ a/include/linux/slub_def.h
-@@ -28,7 +28,7 @@ struct kmem_cache {
- 	int size;		/* The size of an object including meta data */
- 	int objsize;		/* The size of an object without meta data */
- 	int offset;		/* Free pointer offset. */
--	unsigned int order;
-+	int order;
+diff -puN drivers/char/random.c~random-fix-output-buffer-folding drivers/char/random.c
+--- a/drivers/char/random.c~random-fix-output-buffer-folding
++++ a/drivers/char/random.c
+@@ -794,7 +794,7 @@ static void extract_buf(struct entropy_s
  
- 	/*
- 	 * Avoid an extra cache line for UP, SMP and for the node local to
-@@ -56,7 +56,13 @@ struct kmem_cache {
- /*
-  * Kmalloc subsystem.
-  */
--#define KMALLOC_SHIFT_LOW 3
-+#if defined(ARCH_KMALLOC_MINALIGN) && ARCH_KMALLOC_MINALIGN > 8
-+#define KMALLOC_MIN_SIZE ARCH_KMALLOC_MINALIGN
-+#else
-+#define KMALLOC_MIN_SIZE 8
-+#endif
-+
-+#define KMALLOC_SHIFT_LOW ilog2(KMALLOC_MIN_SIZE)
- 
- /*
-  * We keep the general caches in an array of slab caches that are used for
-@@ -76,6 +82,9 @@ static inline int kmalloc_index(size_t s
- 	if (size > KMALLOC_MAX_SIZE)
- 		return -1;
- 
-+	if (size <= KMALLOC_MIN_SIZE)
-+		return KMALLOC_SHIFT_LOW;
-+
- 	if (size > 64 && size <= 96)
- 		return 1;
- 	if (size > 128 && size <= 192)
-diff -puN mm/slub.c~slub-minimum-alignment-fixes mm/slub.c
---- a/mm/slub.c~slub-minimum-alignment-fixes
-+++ a/mm/slub.c
-@@ -2436,6 +2436,7 @@ EXPORT_SYMBOL(krealloc);
- void __init kmem_cache_init(void)
- {
- 	int i;
-+	int caches = 0;
- 
- #ifdef CONFIG_NUMA
- 	/*
-@@ -2446,20 +2447,29 @@ void __init kmem_cache_init(void)
- 	create_kmalloc_cache(&kmalloc_caches[0], "kmem_cache_node",
- 		sizeof(struct kmem_cache_node), GFP_KERNEL);
- 	kmalloc_caches[0].refcount = -1;
-+	caches++;
- #endif
- 
- 	/* Able to allocate the per node structures */
- 	slab_state = PARTIAL;
- 
- 	/* Caches that are not of the two-to-the-power-of size */
--	create_kmalloc_cache(&kmalloc_caches[1],
-+	if (KMALLOC_MIN_SIZE <= 64) {
-+		create_kmalloc_cache(&kmalloc_caches[1],
- 				"kmalloc-96", 96, GFP_KERNEL);
--	create_kmalloc_cache(&kmalloc_caches[2],
-+		caches++;
-+	}
-+	if (KMALLOC_MIN_SIZE <= 128) {
-+		create_kmalloc_cache(&kmalloc_caches[2],
- 				"kmalloc-192", 192, GFP_KERNEL);
-+		caches++;
-+	}
- 
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
-+	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
- 		create_kmalloc_cache(&kmalloc_caches[i],
- 			"kmalloc", 1 << i, GFP_KERNEL);
-+		caches++;
-+	}
- 
- 	slab_state = UP;
- 
-@@ -2476,8 +2486,8 @@ void __init kmem_cache_init(void)
- 				nr_cpu_ids * sizeof(struct page *);
- 
- 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
--		" Processors=%d, Nodes=%d\n",
--		KMALLOC_SHIFT_HIGH, cache_line_size(),
-+		" CPUs=%d, Nodes=%d\n",
-+		caches, cache_line_size(),
- 		slub_min_order, slub_max_order, slub_min_objects,
- 		nr_cpu_ids, nr_node_ids);
+ 	buf[0] ^= buf[3];
+ 	buf[1] ^= buf[4];
+-	buf[0] ^= rol32(buf[3], 16);
++	buf[2] ^= rol32(buf[2], 16);
+ 	memcpy(out, buf, EXTRACT_SIZE);
+ 	memset(buf, 0, sizeof(buf));
  }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
-origin.patch
-slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
-sched-fix-next_interval-determination-in-idle_balance.patch
-slab-allocators-max_order-one-off-fix.patch
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
