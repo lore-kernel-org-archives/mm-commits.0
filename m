@@ -1,65 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - handle-wrapping-in-expand_upwards.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 12:28:02 -0700
-Message-ID: <200706231928.l5NJS29B022107@imap1.linux-foundation.org>
+Subject: - posix-timers-prevent-softirq-starvation-by-small-intervals.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 12:27:59 -0700
+Message-ID: <200706231927.l5NJRxp6022104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38586 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51461 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755728AbXFWTf3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755791AbXFWTfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 15:35:29 -0400
+	Sat, 23 Jun 2007 15:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, kyle@parisc-linux.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, drepper@redhat.com, jan.kiszka@web.de, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Handle wrapping in expand_upwards()
+     posix-timers: prevent softirq starvation by small intervals and SIG_IGN
 has been removed from the -mm tree.  Its filename was
-     handle-wrapping-in-expand_upwards.patch
+     posix-timers-prevent-softirq-starvation-by-small-intervals.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Handle wrapping in expand_upwards()
-From: Helge Deller <deller@gmx.de>
+Subject: posix-timers: prevent softirq starvation by small intervals and SIG_IGN
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Function expand_upwards() did not guarded against wrapping around to
-address 0.  This fixes the adjtimex02 testcase from the Linux Test Project
-on a 32bit PARISC kernel.
+posix-timers which deliver an ignored signal are currently rearmed in the
+timer softirq: This is necessary because the timer needs to be delivered
+again when SIG_IGN is removed.  This is not a problem, when the interval is
+reasonable.
 
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Kyle McMartin <kyle@parisc-linux.org>
+With high resolution timers enabled one might arm a posix timer with a very
+small interval and ignore the signal.  This might lead to a softirq
+starvation when the interval is so small that the timer is requeued onto
+the softirq pending list right away.
+
+This problem was pointed out by Jan Kiszka. Thanks Jan !
+
+The correct solution would be to stop the timer, when the signal is ignored
+and rearm it when SIG_IGN is removed.  Unfortunately this requires
+modification in sigaction and involves non trivial sighand locking.  It's
+too late in the release cycle for such a change.
+
+For now we just keep the timer running and enforce that the timer only
+fires every jiffie.  This does not break anything as we keep the overrun
+counter correct.  It adds a little inaccuracy to the timer_gettime()
+interface, but...
+
+The more complex change is necessary anyway to fix another short coming of
+the current implementation, which I discovered while looking at this
+problem: A pending signal is discarded when SIG_IGN is set.  In case that a
+posixtimer signal is pending then it is discarded as well, but when SIG_IGN
+is removed later nothing rearms the timer.  This is not new, it's that way
+since posix timers have been merged.  So nothing to worry about right now.
+
+I have a working solution to fix all of this, but the impact is too large
+for both stable and 2.6.22.  I'm going to send it out for review in the
+next days.
+
+This should go into 2.6.21.stable as well.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Jan Kiszka <jan.kiszka@web.de>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Stable Team <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/posix-timers.c |   35 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~handle-wrapping-in-expand_upwards mm/mmap.c
---- a/mm/mmap.c~handle-wrapping-in-expand_upwards
-+++ a/mm/mmap.c
-@@ -1536,9 +1536,14 @@ int expand_upwards(struct vm_area_struct
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_sem in read mode.  We need the
- 	 * anon_vma lock to serialize against concurrent expand_stacks.
-+	 * Also guard against wrapping around to address 0.
- 	 */
--	address += 4 + PAGE_SIZE - 1;
--	address &= PAGE_MASK;
-+	if (address < PAGE_ALIGN(address+4))
-+		address = PAGE_ALIGN(address+4);
-+	else {
-+		anon_vma_unlock(vma);
-+		return -ENOMEM;
-+	}
- 	error = 0;
- 
- 	/* Somebody else might have raced and expanded it already */
+diff -puN kernel/posix-timers.c~posix-timers-prevent-softirq-starvation-by-small-intervals kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-prevent-softirq-starvation-by-small-intervals
++++ a/kernel/posix-timers.c
+@@ -353,9 +353,40 @@ static enum hrtimer_restart posix_timer_
+ 		 * it should be restarted.
+ 		 */
+ 		if (timr->it.real.interval.tv64 != 0) {
++			ktime_t now = hrtimer_cb_get_time(timer);
++
++			/*
++			 * FIXME: What we really want, is to stop this
++			 * timer completely and restart it in case the
++			 * SIG_IGN is removed. This is a non trivial
++			 * change which involves sighand locking
++			 * (sigh !), which we don't want to do late in
++			 * the release cycle.
++			 *
++			 * For now we just let timers with an interval
++			 * less than a jiffie expire every jiffie to
++			 * avoid softirq starvation in case of SIG_IGN
++			 * and a very small interval, which would put
++			 * the timer right back on the softirq pending
++			 * list. By moving now ahead of time we trick
++			 * hrtimer_forward() to expire the timer
++			 * later, while we still maintain the overrun
++			 * accuracy, but have some inconsistency in
++			 * the timer_gettime() case. This is at least
++			 * better than a starved softirq. A more
++			 * complex fix which solves also another related
++			 * inconsistency is already in the pipeline.
++			 */
++#ifdef CONFIG_HIGH_RES_TIMERS
++			{
++				ktime_t kj = ktime_set(0, NSEC_PER_SEC / HZ);
++
++				if (timr->it.real.interval.tv64 < kj.tv64)
++					now = ktime_add(now, kj);
++			}
++#endif
+ 			timr->it_overrun +=
+-				hrtimer_forward(timer,
+-						hrtimer_cb_get_time(timer),
++				hrtimer_forward(timer, now,
+ 						timr->it.real.interval);
+ 			ret = HRTIMER_RESTART;
+ 			++timr->it_requeue_pending;
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
+git-acpi-add-exports.patch
+git-arm.patch
+i386-hpet-check-if-the-counter-works.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+lguest-the-host-code.patch
