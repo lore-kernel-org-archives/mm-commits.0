@@ -1,65 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-clock-updates-and-checks-fix.patch removed from -mm tree
-Date: Sat, 23 Jun 2007 17:14:10 -0700
-Message-ID: <200706240014.l5O0EAhO030721@imap1.linux-foundation.org>
+Subject: - x86_64-fix-misplaced-continue-in-mcec-tidy.patch removed from -mm tree
+Date: Sat, 23 Jun 2007 17:14:50 -0700
+Message-ID: <200706240014.l5O0EoUX030730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46166 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39705 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752959AbXFXAOu (ORCPT
+	by vger.kernel.org with ESMTP id S1753420AbXFXAPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Jun 2007 20:14:50 -0400
+	Sat, 23 Jun 2007 20:15:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben-linux@fluff.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, jwise@google.com, thockin@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501-clock-updates-and-checks-fix
+     x86_64-fix-misplaced-continue-in-mcec-tidy
 has been removed from the -mm tree.  Its filename was
-     sm501-clock-updates-and-checks-fix.patch
+     x86_64-fix-misplaced-continue-in-mcec-tidy.patch
 
-This patch was dropped because it was folded into sm501-clock-updates-and-checks.patch
+This patch was dropped because it was folded into x86_64-fix-misplaced-continue-in-mcec.patch
 
 ------------------------------------------------------
-Subject: sm501-clock-updates-and-checks-fix
+Subject: x86_64-fix-misplaced-continue-in-mcec-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-line over 80 characters
-#79: FILE: drivers/mfd/sm501.c:924:
-+		dev_err(sm->dev, "M1X and M clocks sourced from different PLLs\n");
+labels should not be indented
+#56: FILE: arch/x86_64/kernel/mce.c:613:
++	 timeout:
+
+use tabs not spaces
+#57: FILE: arch/x86_64/kernel/mce.c:614:
++^I 	;$
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
-Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Joshua Wise <jwise@google.com>
+Cc: Tim Hockin <thockin@google.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/mce.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-clock-updates-and-checks-fix drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-clock-updates-and-checks-fix
-+++ a/drivers/mfd/sm501.c
-@@ -931,7 +931,8 @@ static int sm501_init_dev(struct sm501_d
+diff -puN arch/x86_64/kernel/mce.c~x86_64-fix-misplaced-continue-in-mcec-tidy arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~x86_64-fix-misplaced-continue-in-mcec-tidy
++++ a/arch/x86_64/kernel/mce.c
+@@ -506,8 +506,8 @@ static ssize_t mce_read(struct file *fil
+ 		smp_rmb();
+ 		err |= copy_to_user(buf, mcelog.entry + i, sizeof(struct mce));
+ 		buf += sizeof(struct mce); 
+-	 timeout:
+-	 	;
++ timeout:
++		;
+ 	} 
  
- 	ret = sm501_check_clocks(sm);
- 	if (ret) {
--		dev_err(sm->dev, "M1X and M clocks sourced from different PLLs\n");
-+		dev_err(sm->dev, "M1X and M clocks sourced from different "
-+					"PLLs\n");
- 		return -EINVAL;
- 	}
- 
+ 	memset(mcelog.entry, 0, next * sizeof(struct mce));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-sm501-clock-updates-and-checks.patch
-sm501-clock-updates-and-checks-fix.patch
+x86_64-fix-misplaced-continue-in-mcec.patch
 x86_64-fix-misplaced-continue-in-mcec-tidy.patch
 acpi-preserve-the-ebx-value-in-acpi_copy_wakeup_routine.patch
 git-acpi.patch
