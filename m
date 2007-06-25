@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-mpol_interleave-behavior-for-memoryless-nodes.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:29:11 -0700
-Message-ID: <200706251829.l5PITBrE007910@imap1.linux-foundation.org>
+Subject: + fix-gfp_thisnode-behavior-for-memoryless-nodes.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:29:07 -0700
+Message-ID: <200706251829.l5PIT7Jn007903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33942 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752821AbXFYS3c (ORCPT
+	by vger.kernel.org with ESMTP id S1752987AbXFYS3e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:29:32 -0400
+	Mon, 25 Jun 2007 14:29:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, nacc@us.ibm.com, rien
 
 
 The patch titled
-     Fix MPOL_INTERLEAVE behavior for memoryless nodes
+     Fix GFP_THISNODE behavior for memoryless nodes
 has been added to the -mm tree.  Its filename is
-     fix-mpol_interleave-behavior-for-memoryless-nodes.patch
+     fix-gfp_thisnode-behavior-for-memoryless-nodes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,16 +26,24 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix MPOL_INTERLEAVE behavior for memoryless nodes
+Subject: Fix GFP_THISNODE behavior for memoryless nodes
 From: clameter@sgi.com
 
-MPOL_INTERLEAVE currently simply loops over all nodes.  Allocations on
-memoryless nodes will be redirected to nodes with memory.  This results in
-an imbalance because the neighboring nodes to memoryless nodes will get
-significantly more interleave hits that the rest of the nodes.
+GFP_THISNODE checks that the zone selected is within the pgdat (node) of the
+first zone of a nodelist.  That only works if the node has memory.  A
+memoryless node will have its first zone on another pgdat (node).
 
-We can avoid this imbalance by clearing the nodes in the interleave node
-set that have no memory.
+Thus GFP_THISNODE may be returning memory on other nodes.  GFP_THISNODE should
+fail if there is no local memory on a node.
+
+So we add a check to verify that the node specified has memory in
+alloc_pages_node().  If the node has no memory then return NULL.
+
+The case of alloc_pages(GFP_THISNODE) is not changed.  alloc_pages() (with no
+memory policies in effect) is understood to prefer the current node.  If a
+process is running on a node with no memory then its default allocations come
+from the next neighboring node.  GFP_THISNODE will then force the memory to
+come from that node.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
@@ -45,22 +53,26 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ include/linux/gfp.h |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN mm/mempolicy.c~fix-mpol_interleave-behavior-for-memoryless-nodes mm/mempolicy.c
---- a/mm/mempolicy.c~fix-mpol_interleave-behavior-for-memoryless-nodes
-+++ a/mm/mempolicy.c
-@@ -185,7 +185,8 @@ static struct mempolicy *mpol_new(int mo
- 	switch (mode) {
- 	case MPOL_INTERLEAVE:
- 		policy->v.nodes = *nodes;
--		if (nodes_weight(*nodes) == 0) {
-+		nodes_and(policy->v.nodes, policy->v.nodes, node_memory_map);
-+		if (nodes_weight(policy->v.nodes) == 0) {
- 			kmem_cache_free(policy_cache, policy);
- 			return ERR_PTR(-EINVAL);
- 		}
+diff -puN include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes include/linux/gfp.h
+--- a/include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes
++++ a/include/linux/gfp.h
+@@ -134,6 +134,13 @@ static inline struct page *alloc_pages_n
+ 	if (nid < 0)
+ 		nid = numa_node_id();
+ 
++	/*
++	 * Check for the special case that GFP_THISNODE is used on a
++	 * memoryless node
++	 */
++	if ((gfp_mask & __GFP_THISNODE) && !node_memory(nid))
++		return NULL;
++
+ 	return __alloc_pages(gfp_mask, order,
+ 		NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_mask));
+ }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
