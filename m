@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gfp_thisnode-behavior-for-memoryless-nodes-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:29:09 -0700
-Message-ID: <200706251829.l5PIT9c0007907@imap1.linux-foundation.org>
+Subject: + fix-mpol_interleave-behavior-for-memoryless-nodes.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:29:11 -0700
+Message-ID: <200706251829.l5PITBrE007910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49067 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276AbXFYS32 (ORCPT
+	by vger.kernel.org with ESMTP id S1752821AbXFYS3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:29:28 -0400
+	Mon, 25 Jun 2007 14:29:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, rientjes@google.com
+Cc: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, nacc@us.ibm.com, rientjes@google.com
 
 
 The patch titled
-     Fix GFP_THISNODE behavior for memoryless nodes (fix)
+     Fix MPOL_INTERLEAVE behavior for memoryless nodes
 has been added to the -mm tree.  Its filename is
-     fix-gfp_thisnode-behavior-for-memoryless-nodes-fix.patch
+     fix-mpol_interleave-behavior-for-memoryless-nodes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix GFP_THISNODE behavior for memoryless nodes (fix)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Fix MPOL_INTERLEAVE behavior for memoryless nodes
+From: clameter@sgi.com
 
-Use unlikely
+MPOL_INTERLEAVE currently simply loops over all nodes.  Allocations on
+memoryless nodes will be redirected to nodes with memory.  This results in
+an imbalance because the neighboring nodes to memoryless nodes will get
+significantly more interleave hits that the rest of the nodes.
 
-Signed-off-cy: Christoph Lameter <clameter@sgi.com>
+We can avoid this imbalance by clearing the nodes in the interleave node
+set that have no memory.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes-fix include/linux/gfp.h
---- a/include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes-fix
-+++ a/include/linux/gfp.h
-@@ -138,7 +138,7 @@ static inline struct page *alloc_pages_n
- 	 * Check for the special case that GFP_THISNODE is used on a
- 	 * memoryless node
- 	 */
--	if ((gfp_mask & __GFP_THISNODE) && !node_memory(nid))
-+	if (unlikely((gfp_mask & __GFP_THISNODE) && !node_memory(nid)))
- 		return NULL;
- 
- 	return __alloc_pages(gfp_mask, order,
+diff -puN mm/mempolicy.c~fix-mpol_interleave-behavior-for-memoryless-nodes mm/mempolicy.c
+--- a/mm/mempolicy.c~fix-mpol_interleave-behavior-for-memoryless-nodes
++++ a/mm/mempolicy.c
+@@ -185,7 +185,8 @@ static struct mempolicy *mpol_new(int mo
+ 	switch (mode) {
+ 	case MPOL_INTERLEAVE:
+ 		policy->v.nodes = *nodes;
+-		if (nodes_weight(*nodes) == 0) {
++		nodes_and(policy->v.nodes, policy->v.nodes, node_memory_map);
++		if (nodes_weight(policy->v.nodes) == 0) {
+ 			kmem_cache_free(policy_cache, policy);
+ 			return ERR_PTR(-EINVAL);
+ 		}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
