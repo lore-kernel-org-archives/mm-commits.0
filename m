@@ -1,96 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - libata-check-for-an-support-update.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 15:47:44 -0700
-Message-ID: <200706252247.l5PMli9U012899@imap1.linux-foundation.org>
+Subject: - libata-send-event-when-an-received.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 15:47:52 -0700
+Message-ID: <200706252247.l5PMlq5P012918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752537AbXFYWrv (ORCPT
+	by vger.kernel.org with ESMTP id S1752620AbXFYWr7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 18:47:51 -0400
+	Mon, 25 Jun 2007 18:47:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: check for AN support (update)
+     libata: send event when AN received
 has been removed from the -mm tree.  Its filename was
-     libata-check-for-an-support-update.patch
+     libata-send-event-when-an-received.patch
 
 This patch was dropped because my copy is out of date
 
 ------------------------------------------------------
-Subject: libata: check for AN support (update)
+Subject: libata: send event when AN received
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Modify ata_dev_set_AN to take a second argument 'enable'.  This
-boolean indicates to the function whether SETFEATURES_SATA_ENABLE
-or SETFEATURES_SATA_DISABLE should be passed to the device.
+When we get an SDB FIS with the 'N' bit set, we should send an event to user
+space to indicate that there has been a media change.  This will be done via
+the block device.
 
 Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/ata/ahci.c        |   22 ++++++++++++++++++++++
+ drivers/ata/libata-scsi.c |   16 ++++++++++++++++
+ include/linux/libata.h    |    1 +
+ 3 files changed, 39 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~libata-check-for-an-support-update drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-check-for-an-support-update
-+++ a/drivers/ata/libata-core.c
-@@ -70,7 +70,7 @@ const unsigned long sata_deb_timing_long
- static unsigned int ata_dev_init_params(struct ata_device *dev,
- 					u16 heads, u16 sectors);
- static unsigned int ata_dev_set_xfermode(struct ata_device *dev);
--static unsigned int ata_dev_set_AN(struct ata_device *dev);
-+static unsigned int ata_dev_set_AN(struct ata_device *dev, u8 enable);
- static void ata_dev_xfermask(struct ata_device *dev);
+diff -puN drivers/ata/ahci.c~libata-send-event-when-an-received drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~libata-send-event-when-an-received
++++ a/drivers/ata/ahci.c
+@@ -1280,6 +1280,28 @@ static void ahci_port_intr(struct ata_po
+ 		return;
+ 	}
  
- unsigned int ata_print_id = 1;
-@@ -1976,7 +1976,7 @@ int ata_dev_configure(struct ata_device 
- 		if ((ap->flags & ATA_FLAG_AN) && ata_id_has_AN(id)) {
- 			int err;
- 			/* issue SET feature command to turn this on */
--			err = ata_dev_set_AN(dev);
-+			err = ata_dev_set_AN(dev, SETFEATURES_SATA_ENABLE);
- 			if (err)
- 				ata_dev_printk(dev, KERN_ERR,
- 						"unable to set AN, err %x\n",
-@@ -3981,6 +3981,7 @@ static unsigned int ata_dev_set_xfermode
++	if (status & PORT_IRQ_SDB_FIS) {
++		/*
++		 * if this is an ATAPI device with AN turned on,
++		 * then we should interrogate the device to
++		 * determine the cause of the interrupt
++		 *
++		 * for AN - this we should check the SDB FIS
++		 * and find the I and N bits set
++		 */
++		const u32 *f = pp->rx_fis + RX_FIS_SDB;
++
++		/* check the 'N' bit in word 0 of the FIS */
++		if (f[0] & (1 << 15)) {
++			int port_addr =  ((f[0] & 0x00000f00) >> 8);
++			struct ata_device *adev;
++			if (port_addr < ATA_MAX_DEVICES) {
++				adev = &ap->device[port_addr];
++				if (adev->flags & ATA_DFLAG_AN)
++					ata_scsi_media_change_notify(adev);
++			}
++		}
++	}
+ 	if (ap->sactive)
+ 		qc_active = readl(port_mmio + PORT_SCR_ACT);
+ 	else
+diff -puN drivers/ata/libata-scsi.c~libata-send-event-when-an-received drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata-send-event-when-an-received
++++ a/drivers/ata/libata-scsi.c
+@@ -3041,6 +3041,22 @@ static void ata_scsi_remove_dev(struct a
+ }
+ 
  /**
-  *	ata_dev_set_AN - Issue SET FEATURES - SATA FEATURES
-  *	@dev: Device to which command will be sent
-+ *	@enable: Whether to enable or disable the feature
++ *	ata_scsi_media_change_notify - send media change event
++ *	@atadev: Pointer to the disk device with media change event
++ *
++ *	Tell the block layer to send a media change notification
++ *	event.
++ *
++ * 	LOCKING:
++ * 	interrupt context, may not sleep.
++ */
++void ata_scsi_media_change_notify(struct ata_device *atadev)
++{
++	genhd_media_change_notify(atadev->sdev->disk);
++}
++EXPORT_SYMBOL_GPL(ata_scsi_media_change_notify);
++
++/**
+  *	ata_scsi_hotplug - SCSI part of hotplug
+  *	@work: Pointer to ATA port to perform SCSI hotplug on
   *
-  *	Issue SET FEATURES - SATA FEATURES command to device @dev
-  *	on port @ap with sector count set to indicate Asynchronous
-@@ -3992,7 +3993,7 @@ static unsigned int ata_dev_set_xfermode
-  *	RETURNS:
-  *	0 on success, AC_ERR_* mask otherwise.
-  */
--static unsigned int ata_dev_set_AN(struct ata_device *dev)
-+static unsigned int ata_dev_set_AN(struct ata_device *dev, u8 enable)
- {
- 	struct ata_taskfile tf;
- 	unsigned int err_mask;
-@@ -4002,7 +4003,7 @@ static unsigned int ata_dev_set_AN(struc
- 
- 	ata_tf_init(dev, &tf);
- 	tf.command = ATA_CMD_SET_FEATURES;
--	tf.feature = SETFEATURES_SATA_ENABLE;
-+	tf.feature = enable;
- 	tf.flags |= ATA_TFLAG_ISADDR | ATA_TFLAG_DEVICE;
- 	tf.protocol = ATA_PROT_NODATA;
- 	tf.nsect = SATA_AN;
+diff -puN include/linux/libata.h~libata-send-event-when-an-received include/linux/libata.h
+--- a/include/linux/libata.h~libata-send-event-when-an-received
++++ a/include/linux/libata.h
+@@ -737,6 +737,7 @@ extern void ata_host_init(struct ata_hos
+ extern int ata_scsi_detect(struct scsi_host_template *sht);
+ extern int ata_scsi_ioctl(struct scsi_device *dev, int cmd, void __user *arg);
+ extern int ata_scsi_queuecmd(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd *));
++extern void ata_scsi_media_change_notify(struct ata_device *atadev);
+ extern void ata_sas_port_destroy(struct ata_port *);
+ extern struct ata_port *ata_sas_port_alloc(struct ata_host *,
+ 					   struct ata_port_info *, struct Scsi_Host *);
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
 git-acpi.patch
-libata-check-for-an-support-update.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-scsi-save-disk-in-scsi_device.patch
 libata-send-event-when-an-received.patch
 cpci_hotplug-convert-to-use-the-kthread-api.patch
