@@ -1,65 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - char-stallion-fix-oops-during-init-with-isa-cards.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:01 -0700
-Message-ID: <200706250921.l5P9L180031065@imap1.linux-foundation.org>
+Subject: - volatile-considered-harmful-take-3.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:10 -0700
+Message-ID: <200706250921.l5P9LApl031074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36282 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751414AbXFYJVR (ORCPT
+	by vger.kernel.org with ESMTP id S1751710AbXFYJVS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:21:17 -0400
+	Mon, 25 Jun 2007 05:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ml@akana.de, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: corbet@lwn.net, jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, fix oops during init with ISA cards
+     "volatile considered harmful"
 has been removed from the -mm tree.  Its filename was
-     char-stallion-fix-oops-during-init-with-isa-cards.patch
+     volatile-considered-harmful-take-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: stallion, fix oops during init with ISA cards
-From: Ingo Korb <ml@akana.de>
+Subject: "volatile considered harmful"
+From: Jonathan Corbet <corbet@lwn.net>
 
-The stallion driver oopses while initializing ISA cards due to an
-uninitialized variable.  This patch changes the initialisation order to
-match the PCI code path.
+Encourage developers to avoid the volatile type class in kernel code.
 
-Signed-off-by: Ingo Korb <ml@akana.de>
-Acked-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/volatile-considered-harmful.txt |  119 ++++++++++++++++
+ 1 file changed, 119 insertions(+)
 
-diff -puN drivers/char/stallion.c~char-stallion-fix-oops-during-init-with-isa-cards drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-fix-oops-during-init-with-isa-cards
-+++ a/drivers/char/stallion.c
-@@ -4753,13 +4753,14 @@ static int __init stallion_module_init(v
- 		brdp->ioaddr2 = conf.ioaddr2;
- 		brdp->irq = conf.irq;
- 		brdp->irqtype = conf.irqtype;
--		if (stl_brdinit(brdp))
-+		stl_brds[brdp->brdnr] = brdp;
-+		if (stl_brdinit(brdp)) {
-+			stl_brds[brdp->brdnr] = NULL;
- 			kfree(brdp);
--		else {
-+		} else {
- 			for (j = 0; j < brdp->nrports; j++)
- 				tty_register_device(stl_serial,
- 					brdp->brdnr * STL_MAXPORTS + j, NULL);
--			stl_brds[brdp->brdnr] = brdp;
- 			stl_nrbrds = i + 1;
- 		}
- 	}
+diff -puN /dev/null Documentation/volatile-considered-harmful.txt
+--- /dev/null
++++ a/Documentation/volatile-considered-harmful.txt
+@@ -0,0 +1,119 @@
++Why the "volatile" type class should not be used
++------------------------------------------------
++
++C programmers have often taken volatile to mean that the variable could be
++changed outside of the current thread of execution; as a result, they are
++sometimes tempted to use it in kernel code when shared data structures are
++being used.  In other words, they have been known to treat volatile types
++as a sort of easy atomic variable, which they are not.  The use of volatile in
++kernel code is almost never correct; this document describes why.
++
++The key point to understand with regard to volatile is that its purpose is
++to suppress optimization, which is almost never what one really wants to
++do.  In the kernel, one must protect shared data structures against
++unwanted concurrent access, which is very much a different task.  The
++process of protecting against unwanted concurrency will also avoid almost
++all optimization-related problems in a more efficient way.
++
++Like volatile, the kernel primitives which make concurrent access to data
++safe (spinlocks, mutexes, memory barriers, etc.) are designed to prevent
++unwanted optimization.  If they are being used properly, there will be no
++need to use volatile as well.  If volatile is still necessary, there is
++almost certainly a bug in the code somewhere.  In properly-written kernel
++code, volatile can only serve to slow things down.
++
++Consider a typical block of kernel code:
++
++    spin_lock(&the_lock);
++    do_something_on(&shared_data);
++    do_something_else_with(&shared_data);
++    spin_unlock(&the_lock);
++
++If all the code follows the locking rules, the value of shared_data cannot
++change unexpectedly while the_lock is held.  Any other code which might
++want to play with that data will be waiting on the lock.  The spinlock
++primitives act as memory barriers - they are explicitly written to do so -
++meaning that data accesses will not be optimized across them.  So the
++compiler might think it knows what will be in shared_data, but the
++spin_lock() call, since it acts as a memory barrier, will force it to
++forget anything it knows.  There will be no optimization problems with
++accesses to that data.
++
++If shared_data were declared volatile, the locking would still be
++necessary.  But the compiler would also be prevented from optimizing access
++to shared_data _within_ the critical section, when we know that nobody else
++can be working with it.  While the lock is held, shared_data is not
++volatile.  When dealing with shared data, proper locking makes volatile
++unnecessary - and potentially harmful.
++
++The volatile storage class was originally meant for memory-mapped I/O
++registers.  Within the kernel, register accesses, too, should be protected
++by locks, but one also does not want the compiler "optimizing" register
++accesses within a critical section.  But, within the kernel, I/O memory
++accesses are always done through accessor functions; accessing I/O memory
++directly through pointers is frowned upon and does not work on all
++architectures.  Those accessors are written to prevent unwanted
++optimization, so, once again, volatile is unnecessary.
++
++Another situation where one might be tempted to use volatile is
++when the processor is busy-waiting on the value of a variable.  The right
++way to perform a busy wait is:
++
++    while (my_variable != what_i_want)
++        cpu_relax();
++
++The cpu_relax() call can lower CPU power consumption or yield to a
++hyperthreaded twin processor; it also happens to serve as a memory barrier,
++so, once again, volatile is unnecessary.  Of course, busy-waiting is
++generally an anti-social act to begin with.
++
++There are still a few rare situations where volatile makes sense in the
++kernel:
++
++  - The above-mentioned accessor functions might use volatile on
++    architectures where direct I/O memory access does work.  Essentially,
++    each accessor call becomes a little critical section on its own and
++    ensures that the access happens as expected by the programmer.
++
++  - Inline assembly code which changes memory, but which has no other
++    visible side effects, risks being deleted by GCC.  Adding the volatile
++    keyword to asm statements will prevent this removal.
++
++  - The jiffies variable is special in that it can have a different value
++    every time it is referenced, but it can be read without any special
++    locking.  So jiffies can be volatile, but the addition of other
++    variables of this type is strongly frowned upon.  Jiffies is considered
++    to be a "stupid legacy" issue (Linus's words) in this regard; fixing it
++    would be more trouble than it is worth.
++
++  - Pointers to data structures in coherent memory which might be modified
++    by I/O devices can, sometimes, legitimately be volatile.  A ring buffer
++    used by a network adapter, where that adapter changes pointers to
++    indicate which descriptors have been processed, is an example of this
++    type of situation.
++
++For most code, none of the above justifications for volatile apply.  As a
++result, the use of volatile is likely to be seen as a bug and will bring
++additional scrutiny to the code.  Developers who are tempted to use
++volatile should take a step back and think about what they are truly trying
++to accomplish.
++
++Patches to remove volatile variables are generally welcome - as long as
++they come with a justification which shows that the concurrency issues have
++been properly thought through.
++
++
++NOTES
++-----
++
++[1] http://lwn.net/Articles/233481/
++[2] http://lwn.net/Articles/233482/
++
++CREDITS
++-------
++
++Original impetus and research by Randy Dunlap
++Written by Jonathan Corbet
++Improvements via coments from Satyam Sharma, Johannes Stezenbach, Jesper
++	Juhl, Heikki Orsila, H. Peter Anvin, Philipp Hahn, and Stefan
++	Richter.
 _
 
-Patches currently in -mm which might be from ml@akana.de are
-
-char-istallion-initlocking-fixes-try-2.patch
+Patches currently in -mm which might be from corbet@lwn.net are
