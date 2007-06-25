@@ -1,62 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - usb-take-over-usblp.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:40 -0700
-Message-ID: <200706250921.l5P9LeYv031136@imap1.linux-foundation.org>
+Subject: - ppp-fix-osize-too-small-errors-when-decoding.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:42 -0700
+Message-ID: <200706250921.l5P9Lge8031139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42049 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751710AbXFYJYo (ORCPT
+	by vger.kernel.org with ESMTP id S1751755AbXFYJYq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:24:44 -0400
+	Mon, 25 Jun 2007 05:24:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zaitcev@redhat.com, vojtech@suse.cz, mm-commits@vger.kernel.org
+To: konstantin.sharlaimov@gmail.com, Matt_Domsch@dell.com, davem@davemloft.net, james.cameron@hp.com, paulus@samba.org, vsu@altlinux.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: take over usblp
+     ppp: fix osize too small errors when decoding mppe
 has been removed from the -mm tree.  Its filename was
-     usb-take-over-usblp.patch
+     ppp-fix-osize-too-small-errors-when-decoding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB: take over usblp
-From: Pete Zaitcev <zaitcev@redhat.com>
+Subject: ppp: fix osize too small errors when decoding mppe
+From: Konstantin Sharlaimov <konstantin.sharlaimov@gmail.com>
 
-Vojtech agreed to pass usblp over to me, so if you find bugs don't bug him.
+The mppe_decompress() function required a buffer that is 1 byte too small
+when receiving a message of mru size.  This fixes buffer allocation to
+prevent this from occurring.
 
-Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
-Signed-off-by: Vojtech Pavlik <vojtech@suse.cz>
+As Sergey Vlasov pointed out,
+ppp_mppe-account-for-osize-too-small-errors-in.patch may cause buffer
+overflows on certain data.  Here is another patch that should eliminate the
+"osize too small" errors.  Instead of patching mppe_decompress itself, I
+have patched ppp_decompress_frame so it would allocate the required extra
+byte when using mppe compression.
+
+Signed-off-by: Konstantin Sharlaimov <konstantin.sharlaimov@gmail.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: James Cameron <james.cameron@hp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Sergey Vlasov <vsu@altlinux.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ppp_generic.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~usb-take-over-usblp MAINTAINERS
---- a/MAINTAINERS~usb-take-over-usblp
-+++ a/MAINTAINERS
-@@ -3761,12 +3761,12 @@ L:	linux-usb-devel@lists.sourceforge.net
- W:	http://pegasus2.sourceforge.net/
- S:	Maintained
+diff -puN drivers/net/ppp_generic.c~ppp-fix-osize-too-small-errors-when-decoding drivers/net/ppp_generic.c
+--- a/drivers/net/ppp_generic.c~ppp-fix-osize-too-small-errors-when-decoding
++++ a/drivers/net/ppp_generic.c
+@@ -1708,7 +1708,18 @@ ppp_decompress_frame(struct ppp *ppp, st
+ 		goto err;
  
--USB PRINTER DRIVER
--P:	Vojtech Pavlik
--M:	vojtech@suse.cz
-+USB PRINTER DRIVER (usblp)
-+P:	Pete Zaitcev
-+M:	zaitcev@redhat.com
- L:	linux-usb-users@lists.sourceforge.net
- L:	linux-usb-devel@lists.sourceforge.net
--S:	Maintained
-+S:	Supported
- 
- USB RTL8150 DRIVER
- P:	Petko Manolov
+ 	if (proto == PPP_COMP) {
+-		ns = dev_alloc_skb(ppp->mru + PPP_HDRLEN);
++		int obuff_size;
++
++		switch(ppp->rcomp->compress_proto) {
++		case CI_MPPE:
++			obuff_size = ppp->mru + PPP_HDRLEN + 1;
++			break;
++		default:
++			obuff_size = ppp->mru + PPP_HDRLEN;
++			break;
++		}
++
++		ns = dev_alloc_skb(obuff_size);
+ 		if (ns == 0) {
+ 			printk(KERN_ERR "ppp_decompress_frame: no memory\n");
+ 			goto err;
 _
 
-Patches currently in -mm which might be from zaitcev@redhat.com are
-
-drivers-block-ubc-use-list_for_each_entry.patch
+Patches currently in -mm which might be from konstantin.sharlaimov@gmail.com are
