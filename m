@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch added to -mm tree
-Date: Mon, 25 Jun 2007 15:42:54 -0700
-Message-ID: <200706252242.l5PMgsZd012823@imap1.linux-foundation.org>
+Subject: + export-usb_gadgetfsh-to-userspace.patch added to -mm tree
+Date: Mon, 25 Jun 2007 15:44:39 -0700
+Message-ID: <200706252244.l5PMidh5012841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50704 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147AbXFYWnC (ORCPT
+	by vger.kernel.org with ESMTP id S1752376AbXFYWou (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 18:43:02 -0400
+	Mon, 25 Jun 2007 18:44:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: hskinnemoen@atmel.com
 
 
 The patch titled
-     i386 uaccess.h: replace hard-coded constant with appropriate macro from kernel.h
+     Export usb_gadgetfs.h to userspace
 has been added to the -mm tree.  Its filename is
-     i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+     export-usb_gadgetfsh-to-userspace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 uaccess.h: replace hard-coded constant with appropriate macro from kernel.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Export usb_gadgetfs.h to userspace
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+The gadgetfs test program from http://www.linux-usb.org/gadget/ depends on
+it.  I assume most other users of gadgetfs needs this header too.
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/uaccess.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/Kbuild |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/asm-i386/uaccess.h~i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh include/asm-i386/uaccess.h
---- a/include/asm-i386/uaccess.h~i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh
-+++ a/include/asm-i386/uaccess.h
-@@ -581,7 +581,7 @@ long __must_check __strncpy_from_user(ch
-  * If there is a limit on the length of a valid string, you may wish to
-  * consider using strnlen_user() instead.
-  */
--#define strlen_user(str) strnlen_user(str, ~0UL >> 1)
-+#define strlen_user(str) strnlen_user(str, LONG_MAX)
- 
- long strnlen_user(const char __user *str, long n);
- unsigned long __must_check clear_user(void __user *mem, unsigned long len);
+diff -puN include/linux/Kbuild~export-usb_gadgetfsh-to-userspace include/linux/Kbuild
+--- a/include/linux/Kbuild~export-usb_gadgetfsh-to-userspace
++++ a/include/linux/Kbuild
+@@ -152,6 +152,7 @@ header-y += tipc.h
+ header-y += toshiba.h
+ header-y += ultrasound.h
+ header-y += un.h
++header-y += usb_gadgetfs.h
+ header-y += utime.h
+ header-y += video_decoder.h
+ header-y += video_encoder.h
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
-git-kvm.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+git-avr32.patch
+export-usb_gadgetfsh-to-userspace.patch
 git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-remove-final-two-references-to-__obsolete_setup-macro.patch
-cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
+atmel_serial-fix-break-handling.patch
+atmel_spi-minor-updates.patch
+rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
+rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
