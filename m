@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-fix-section-mismatch.patch added to -mm tree
-Date: Mon, 25 Jun 2007 16:27:23 -0700
-Message-ID: <200706252327.l5PNRNNQ013770@imap1.linux-foundation.org>
+Subject: + alsa-fix-ice1712-section-mismatch.patch added to -mm tree
+Date: Mon, 25 Jun 2007 16:41:43 -0700
+Message-ID: <200706252341.l5PNfhs5014024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41335 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53721 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752282AbXFYX1h (ORCPT
+	by vger.kernel.org with ESMTP id S1751531AbXFYXl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 19:27:37 -0400
+	Mon, 25 Jun 2007 19:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     ALSA: fix section mismatch
+     ALSA: fix ice1712 section mismatch
 has been added to the -mm tree.  Its filename is
-     alsa-fix-section-mismatch.patch
+     alsa-fix-ice1712-section-mismatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA: fix section mismatch
+Subject: ALSA: fix ice1712 section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix shared init/exit function attributes:
-WARNING: sound/built-in.o(.exit.text+0x4a1): Section mismatch: reference to .init.text: (between 'alsa_card_virmidi_exit' and 'alsa_card_serial_exit')
-WARNING: sound/built-in.o(.exit.text+0x4c1): Section mismatch: reference to .init.text: (between 'alsa_card_serial_exit' and 'ac97_bus_exit')
+Cannot mix const and __initdata:
+sound/pci/ice1712/prodigy192.c:708: error: ak4114_controls causes a section type conflict
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Jaroslav Kysela <perex@suse.cz>
@@ -39,34 +38,21 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/drivers/serial-u16550.c |    2 +-
- sound/drivers/virmidi.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ sound/pci/ice1712/prodigy192.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/drivers/serial-u16550.c~alsa-fix-section-mismatch sound/drivers/serial-u16550.c
---- a/sound/drivers/serial-u16550.c~alsa-fix-section-mismatch
-+++ a/sound/drivers/serial-u16550.c
-@@ -998,7 +998,7 @@ static struct platform_driver snd_serial
- 	},
- };
+diff -puN sound/pci/ice1712/prodigy192.c~alsa-fix-ice1712-section-mismatch sound/pci/ice1712/prodigy192.c
+--- a/sound/pci/ice1712/prodigy192.c~alsa-fix-ice1712-section-mismatch
++++ a/sound/pci/ice1712/prodigy192.c
+@@ -705,7 +705,7 @@ static int ak4114_input_sw_put(struct sn
+ }
  
--static void __init_or_module snd_serial_unregister_all(void)
-+static void snd_serial_unregister_all(void)
- {
- 	int i;
  
-diff -puN sound/drivers/virmidi.c~alsa-fix-section-mismatch sound/drivers/virmidi.c
---- a/sound/drivers/virmidi.c~alsa-fix-section-mismatch
-+++ a/sound/drivers/virmidi.c
-@@ -145,7 +145,7 @@ static struct platform_driver snd_virmid
- 	},
- };
- 
--static void __init_or_module snd_virmidi_unregister_all(void)
-+static void snd_virmidi_unregister_all(void)
- {
- 	int i;
- 
+-static const struct snd_kcontrol_new ak4114_controls[] __devinitdata = {
++static struct snd_kcontrol_new ak4114_controls[] __devinitdata = {
+ 	{
+ 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ 		.name = "MIODIO IEC958 Capture Input",
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -74,6 +60,7 @@ Patches currently in -mm which might be from randy.dunlap@oracle.com are
 eventfd-clean-compile-when-config_eventfd=n.patch
 mtrr-cyrix-fix-sections.patch
 ioatdma-fix-section-mismatches.patch
+alsa-fix-ice1712-section-mismatch.patch
 git-acpi.patch
 alsa-use-__devexit_p.patch
 alsa-fix-section-mismatch.patch
