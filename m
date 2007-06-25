@@ -1,60 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - audit-fix-oops-removing-watch-if-audit-disabled.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:23 -0700
-Message-ID: <200706250921.l5P9LNgF031092@imap1.linux-foundation.org>
+Subject: - usb-take-over-usblp.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:40 -0700
+Message-ID: <200706250921.l5P9LeYv031136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53194 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32855 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751683AbXFYJYn (ORCPT
+	by vger.kernel.org with ESMTP id S1751710AbXFYJYo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:24:43 -0400
+	Mon, 25 Jun 2007 05:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tonyj@suse.de, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: zaitcev@redhat.com, vojtech@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: fix oops removing watch if audit disabled
+     USB: take over usblp
 has been removed from the -mm tree.  Its filename was
-     audit-fix-oops-removing-watch-if-audit-disabled.patch
+     usb-take-over-usblp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: audit: fix oops removing watch if audit disabled
-From: Tony Jones <tonyj@suse.de>
+Subject: USB: take over usblp
+From: Pete Zaitcev <zaitcev@redhat.com>
 
-Removing a watched file will oops if audit is disabled (auditctl -e 0).
+Vojtech agreed to pass usblp over to me, so if you find bugs don't bug him.
 
-To reproduce:
-- auditctl -e 1
-- touch /tmp/foo
-- auditctl -w /tmp/foo
-- auditctl -e 0
-- rm /tmp/foo (or mv)
-
-Signed-off-by: Tony Jones <tonyj@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Signed-off-by: Vojtech Pavlik <vojtech@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditfilter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/auditfilter.c~audit-fix-oops-removing-watch-if-audit-disabled kernel/auditfilter.c
---- a/kernel/auditfilter.c~audit-fix-oops-removing-watch-if-audit-disabled
-+++ a/kernel/auditfilter.c
-@@ -947,7 +947,7 @@ static void audit_update_watch(struct au
+diff -puN MAINTAINERS~usb-take-over-usblp MAINTAINERS
+--- a/MAINTAINERS~usb-take-over-usblp
++++ a/MAINTAINERS
+@@ -3761,12 +3761,12 @@ L:	linux-usb-devel@lists.sourceforge.net
+ W:	http://pegasus2.sourceforge.net/
+ S:	Maintained
  
- 		/* If the update involves invalidating rules, do the inode-based
- 		 * filtering now, so we don't omit records. */
--		if (invalidating &&
-+		if (invalidating && current->audit_context &&
- 		    audit_filter_inodes(current, current->audit_context) == AUDIT_RECORD_CONTEXT)
- 			audit_set_auditable(current->audit_context);
+-USB PRINTER DRIVER
+-P:	Vojtech Pavlik
+-M:	vojtech@suse.cz
++USB PRINTER DRIVER (usblp)
++P:	Pete Zaitcev
++M:	zaitcev@redhat.com
+ L:	linux-usb-users@lists.sourceforge.net
+ L:	linux-usb-devel@lists.sourceforge.net
+-S:	Maintained
++S:	Supported
  
+ USB RTL8150 DRIVER
+ P:	Petko Manolov
 _
 
-Patches currently in -mm which might be from tonyj@suse.de are
+Patches currently in -mm which might be from zaitcev@redhat.com are
+
+drivers-block-ubc-use-list_for_each_entry.patch
