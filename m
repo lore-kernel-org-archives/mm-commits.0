@@ -1,145 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - sched-fix-next_interval-determination-in-idle_balance.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:20:50 -0700
-Message-ID: <200706250920.l5P9KoLY031052@imap1.linux-foundation.org>
+Subject: - uml-use-generic-bug.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:04 -0700
+Message-ID: <200706250921.l5P9L4L8031068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56704 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751335AbXFYJVM (ORCPT
+	by vger.kernel.org with ESMTP id S1751396AbXFYJVQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:21:12 -0400
+	Mon, 25 Jun 2007 05:21:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, stable@kernel.org, vatsa@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix next_interval determination in idle_balance()
+     uml: use generic BUG
 has been removed from the -mm tree.  Its filename was
-     sched-fix-next_interval-determination-in-idle_balance.patch
+     uml-use-generic-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix next_interval determination in idle_balance()
-From: Christoph Lameter <clameter@sgi.com>
+Subject: uml: use generic BUG
+From: Nick Piggin <npiggin@suse.de>
 
-The intervals of domains that do not have SD_BALANCE_NEWIDLE must be
-considered for the calculation of the time of the next balance.  Otherwise
-we may defer rebalancing forever.
+Get UML to use the generic bug support rather than arch specific one.
 
-Siddha also spotted that the conversion of the balance interval
-to jiffies is missing. Fix that to.
+If I insert an artificial bug right before loading init, I get this:
 
+ Kernel panic - not syncing: Kernel mode signal 4
 
-also continue the loop if !(sd->flags & SD_LOAD_BALANCE).
+ EIP: 0023:[<0819d501>] CPU: 0 Not tainted ESP: 002b:f7fd4fbc EFLAGS: 00000246
+    Not tainted
+    EAX: 00000000 EBX: 00007870 ECX: 00000013 EDX: 00007870
+    ESI: 0000786d EDI: 00000011 EBP: f7fd4fd8 DS: 002b ES: 002b
+    08273bec:  [<0806e814>] show_regs+0x104/0x106
+    08273c08:  [<08058927>] panic_exit+0x2c/0x4b
+    08273c18:  [<08080ee7>] notifier_call_chain+0x32/0x5b
+    08273c38:  [<08080fbd>] __atomic_notifier_call_chain+0x30/0x32
+    08273c54:  [<08080fee>] atomic_notifier_call_chain+0x2f/0x31
+    08273c70:  [<08073b88>] panic+0x75/0x131
+    08273c94:  [<080586c7>] relay_signal+0x87/0x95
+    08273cb0:  [<0806b9ee>] sig_handler_common_skas+0x9e/0x120
+    08273cd8:  [<08067738>] sig_handler+0x28/0x4f
+    08273cec:  [<0806792e>] handle_signal+0x53/0x89
+    08273d0c:  [<08069f60>] hard_handler+0x18/0x28
+    08273d1c:  [<ffffe500>] transitions+0xf7d598b8/0xfffffff0
 
-Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+With this patch in place, this is how it looks:
 
-It did in fact trigger under all three of mainline, CFS, and -rt including CFS
--- see below for a couple of emails from last Friday giving results for these
-three on the AMD box (where it happened) and on a single-quad NUMA-Q system
-(where it did not, at least not with such severity).
+ BUG: failure at init/main.c:779/init_post()!
+ Kernel panic - not syncing: BUG!
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+ EIP: 0023:[<081a65d1>] CPU: 0 Not tainted ESP: 002b:f7f0dfbc EFLAGS: 00000246
+    Not tainted
+    EAX: 00000000 EBX: 000069db ECX: 00000013 EDX: 000069db
+    ESI: 000069d8 EDI: 00000011 EBP: f7f0dfd8 DS: 002b ES: 002b
+    098efedc:  [<0806e9a4>] show_regs+0x104/0x106
+    098efef8:  [<080589c7>] panic_exit+0x2c/0x4b
+    098eff08:  [<080818d7>] notifier_call_chain+0x32/0x5b
+    098eff28:  [<080819ad>] __atomic_notifier_call_chain+0x30/0x32
+    098eff44:  [<080819de>] atomic_notifier_call_chain+0x2f/0x31
+    098eff60:  [<08073f28>] panic+0x75/0x131
+    098eff84:  [<080541d5>] init_post+0xcd/0xe8
+    098eff9c:  [<08048ad4>] kernel_init+0x8e/0x9a
+    098effb4:  [<08066dee>] run_kernel_thread+0x41/0x53
+    098effe0:  [<08058e75>] new_thread_handler+0x62/0x8b
+    098efffc:  [<a55a5a5a>] 0xa55a5a5a
+
+[ jdike - added BUG_TABLE to linker script ]
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ include/asm-um/bug.h        |    2 +-
+ include/asm-um/common.lds.S |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-fix-next_interval-determination-in-idle_balance kernel/sched.c
---- a/kernel/sched.c~sched-fix-next_interval-determination-in-idle_balance
-+++ a/kernel/sched.c
-@@ -2938,17 +2938,21 @@ static void idle_balance(int this_cpu, s
- 	unsigned long next_balance = jiffies + 60 *  HZ;
+diff -puN include/asm-um/bug.h~uml-use-generic-bug include/asm-um/bug.h
+--- a/include/asm-um/bug.h~uml-use-generic-bug
++++ a/include/asm-um/bug.h
+@@ -1,6 +1,6 @@
+ #ifndef __UM_BUG_H
+ #define __UM_BUG_H
  
- 	for_each_domain(this_cpu, sd) {
--		if (sd->flags & SD_BALANCE_NEWIDLE) {
-+		unsigned long interval;
+-#include <asm/arch/bug.h>
++#include <asm-generic/bug.h>
+ 
+ #endif
+diff -puN include/asm-um/common.lds.S~uml-use-generic-bug include/asm-um/common.lds.S
+--- a/include/asm-um/common.lds.S~uml-use-generic-bug
++++ a/include/asm-um/common.lds.S
+@@ -20,6 +20,8 @@
+   __ex_table : { *(__ex_table) }
+   __stop___ex_table = .;
+ 
++  BUG_TABLE
 +
-+		if (!(sd->flags & SD_LOAD_BALANCE))
-+			continue;
-+
-+		if (sd->flags & SD_BALANCE_NEWIDLE)
- 			/* If we've pulled tasks over stop searching: */
- 			pulled_task = load_balance_newidle(this_cpu,
--							this_rq, sd);
--			if (time_after(next_balance,
--				  sd->last_balance + sd->balance_interval))
--				next_balance = sd->last_balance
--						+ sd->balance_interval;
--			if (pulled_task)
--				break;
--		}
-+								this_rq, sd);
-+
-+		interval = msecs_to_jiffies(sd->balance_interval);
-+		if (time_after(next_balance, sd->last_balance + interval))
-+			next_balance = sd->last_balance + interval;
-+		if (pulled_task)
-+			break;
- 	}
- 	if (!pulled_task)
- 		/*
+   __uml_setup_start = .;
+   .uml.setup.init : { *(.uml.setup.init) }
+   __uml_setup_end = .;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+mm-merge-nopfn-into-fault-spufs-fix.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+mm-document-fault_data-and-flags.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
