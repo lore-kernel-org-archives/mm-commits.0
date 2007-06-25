@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:35:22 -0700
-Message-ID: <200706251835.l5PIZM9k008010@imap1.linux-foundation.org>
+Subject: + kernel-utf-8-handling-fix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:37:25 -0700
+Message-ID: <200706251837.l5PIbPsb008050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42483 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751703AbXFYSfs (ORCPT
+	by vger.kernel.org with ESMTP id S1751891AbXFYSig (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:35:48 -0400
+	Mon, 25 Jun 2007 14:38:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, pchen@nvidia.com
+Cc: bunk@stusta.de, adaplas@pol.net, dtor@mail.ru, jengelh@gmx.de, patrakov@ums.usu.ru
 
 
 The patch titled
-     drivers/ata/sata_nv.c: make 3 functions static
+     make drivers/char/selection.c:store_utf8() static
 has been added to the -mm tree.  Its filename is
-     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+     kernel-utf-8-handling-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/ata/sata_nv.c: make 3 functions static
+Subject: make drivers/char/selection.c:store_utf8() static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes 3 needlessly global functions static.
+This patch makes the needlessly global store_utf8() static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Kuan Luo <kluo@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jan Engelhardt <jengelh@gmx.de>
+Cc: Alexander E. Patrakov <patrakov@ums.usu.ru>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/selection.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
-+++ a/drivers/ata/sata_nv.c
-@@ -314,7 +314,7 @@ static int nv_ncqintr_sdbfis(struct ata_
- static int nv_ncqintr_dmasetupfis(struct ata_port *ap);
- static void ncq_clear_singlefis(struct ata_port *ap, u32 val);
- static u32 ncq_ownfisintr_value (struct ata_port *ap);
--void ncq_hotplug(struct ata_port *ap, u32 fis);
-+static void ncq_hotplug(struct ata_port *ap, u32 fis);
- static irqreturn_t nv_mcp55_interrupt(int irq, void *dev_instance);
- static int ncq_interrupt(struct ata_port *ap, u32 fis);
- static int nv_scsi_queuecmd(struct scsi_cmnd *cmd,
-@@ -1931,7 +1931,7 @@ static void ncq_stop(struct ata_port *ap
- 	ncq_clear(ap);
+diff -puN drivers/char/selection.c~kernel-utf-8-handling-fix drivers/char/selection.c
+--- a/drivers/char/selection.c~kernel-utf-8-handling-fix
++++ a/drivers/char/selection.c
+@@ -112,7 +112,7 @@ static inline unsigned short limit(const
  }
  
--int nv_std_prereset(struct ata_port *ap, unsigned long deadline)
-+static int nv_std_prereset(struct ata_port *ap, unsigned long deadline)
+ /* stores the char in UTF8 and returns the number of bytes used (1-3) */
+-int store_utf8(u16 c, char *p)
++static int store_utf8(u16 c, char *p)
  {
- 	struct ata_eh_context *ehc = &ap->eh_context;
- 
-@@ -2265,7 +2265,7 @@ back_out:
- 	return 0;
- }
- 
--u32 ncq_valid_dhfisflag(struct nv_port_priv *pp)
-+static u32 ncq_valid_dhfisflag(struct nv_port_priv *pp)
- {
- 	u32 valid = (pp->dhfis_flags == pp->qc_active);
- 
-@@ -2332,7 +2332,7 @@ static void fis_dump(struct ata_port *ap
- #endif
- 
- 
--void ncq_hotplug(struct ata_port *ap, u32 fis)
-+static void ncq_hotplug(struct ata_port *ap, u32 fis)
- {
- 	u32 serror;
- 	struct ata_eh_info *ehi = &ap->eh_info;
+ 	if (c < 0x80) {
+ 		/*  0******* */
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -121,8 +94,8 @@ maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
 swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
 more-scheduled-oss-driver-removal.patch
+kernel-utf-8-handling-fix.patch
 remove-sonypi_camera_command.patch
-make-drivers-char-selectioncstore_utf8-static.patch
 ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
