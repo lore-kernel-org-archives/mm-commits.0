@@ -1,52 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - numa-introduce-node_memory_map-fix.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 11:53:07 -0700
-Message-ID: <200706251853.l5PIr7NU008336@imap1.linux-foundation.org>
+Subject: - fix-mpol_interleave-behavior-for-memoryless-nodes.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 11:53:16 -0700
+Message-ID: <200706251853.l5PIrGX7008345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37417 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752273AbXFYSxc (ORCPT
+	by vger.kernel.org with ESMTP id S1753059AbXFYSxg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:53:32 -0400
+	Mon, 25 Jun 2007 14:53:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, nacc@us.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NUMA: introduce node_memory_map (fix)
+     Fix MPOL_INTERLEAVE behavior for memoryless nodes
 has been removed from the -mm tree.  Its filename was
-     numa-introduce-node_memory_map-fix.patch
+     fix-mpol_interleave-behavior-for-memoryless-nodes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: NUMA: introduce node_memory_map (fix)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Fix MPOL_INTERLEAVE behavior for memoryless nodes
+From: clameter@sgi.com
+
+MPOL_INTERLEAVE currently simply loops over all nodes.  Allocations on
+memoryless nodes will be redirected to nodes with memory.  This results in
+an imbalance because the neighboring nodes to memoryless nodes will get
+significantly more interleave hits that the rest of the nodes.
+
+We can avoid this imbalance by clearing the nodes in the interleave node
+set that have no memory.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/nodemask.h~numa-introduce-node_memory_map-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~numa-introduce-node_memory_map-fix
-+++ a/include/linux/nodemask.h
-@@ -72,7 +72,7 @@
-  * node_set_offline(node)		clear bit 'node' in node_online_map
-  *
-  * node_set_memory(node)		set bit 'node' in node_memory_map
-- * node_clear_memoryd(node)		clear bit 'node' in node_memory_map
-+ * node_clear_memory(node)		clear bit 'node' in node_memory_map
-  *
-  * for_each_node(node)			for-loop node over node_possible_map
-  * for_each_online_node(node)		for-loop node over node_online_map
+diff -puN mm/mempolicy.c~fix-mpol_interleave-behavior-for-memoryless-nodes mm/mempolicy.c
+--- a/mm/mempolicy.c~fix-mpol_interleave-behavior-for-memoryless-nodes
++++ a/mm/mempolicy.c
+@@ -185,7 +185,8 @@ static struct mempolicy *mpol_new(int mo
+ 	switch (mode) {
+ 	case MPOL_INTERLEAVE:
+ 		policy->v.nodes = *nodes;
+-		if (nodes_weight(*nodes) == 0) {
++		nodes_and(policy->v.nodes, policy->v.nodes, node_memory_map);
++		if (nodes_weight(policy->v.nodes) == 0) {
+ 			kmem_cache_free(policy_cache, policy);
+ 			return ERR_PTR(-EINVAL);
+ 		}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -67,9 +77,6 @@ slub-support-slub_debug-on-by-default.patch
 slub-support-slub_debug-on-by-default-tidy.patch
 numa-mempolicy-dynamic-interleave-map-for-system-init.patch
 numa-mempolicy-trivial-debug-fixes.patch
-numa-introduce-node_memory_map-fix.patch
-fix-gfp_thisnode-behavior-for-memoryless-nodes.patch
-fix-gfp_thisnode-behavior-for-memoryless-nodes-fix.patch
 fix-mpol_interleave-behavior-for-memoryless-nodes.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 group-short-lived-and-reclaimable-kernel-allocations.patch
