@@ -1,34 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fix-nmi_watchdog=2-bootup-hang-take-2.patch added to -mm tree
-Date: Mon, 25 Jun 2007 12:01:25 -0700
-Message-ID: <200706251901.l5PJ1PmU008465@imap1.linux-foundation.org>
+Subject: - fix-nmi_watchdog=2-bootup-hang-take-2.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 12:02:42 -0700
+Message-ID: <200706251902.l5PJ2gHT008496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53758 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55172 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751343AbXFYTCi (ORCPT
+	by vger.kernel.org with ESMTP id S1752210AbXFYTDo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 15:02:38 -0400
+	Mon, 25 Jun 2007 15:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: B.Steinbrink@gmx.de, andi@firstfloor.org, jeremy@goop.org, mingo@elte.hu, rusty@rustcorp.com.au
+To: B.Steinbrink@gmx.de, andi@firstfloor.org, jeremy@goop.org, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
      fix nmi_watchdog=3D2 bootup hang
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fix-nmi_watchdog=3D2-bootup-hang-take-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: fix nmi_watchdog=3D2 bootup hang
