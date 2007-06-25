@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + numa-introduce-node_memory_map-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:29:05 -0700
-Message-ID: <200706251829.l5PIT5xo007898@imap1.linux-foundation.org>
+Subject: + fix-gfp_thisnode-behavior-for-memoryless-nodes-fix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:29:09 -0700
+Message-ID: <200706251829.l5PIT9c0007907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46904 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49067 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276AbXFYS3U (ORCPT
+	by vger.kernel.org with ESMTP id S1752276AbXFYS32 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:29:20 -0400
+	Mon, 25 Jun 2007 14:29:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, rientjes@google.com
 
 
 The patch titled
-     NUMA: introduce node_memory_map (fix)
+     Fix GFP_THISNODE behavior for memoryless nodes (fix)
 has been added to the -mm tree.  Its filename is
-     numa-introduce-node_memory_map-fix.patch
+     fix-gfp_thisnode-behavior-for-memoryless-nodes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NUMA: introduce node_memory_map (fix)
+Subject: Fix GFP_THISNODE behavior for memoryless nodes (fix)
 From: Christoph Lameter <clameter@sgi.com>
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Use unlikely
+
+Signed-off-cy: Christoph Lameter <clameter@sgi.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    2 +-
+ include/linux/gfp.h |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nodemask.h~numa-introduce-node_memory_map-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~numa-introduce-node_memory_map-fix
-+++ a/include/linux/nodemask.h
-@@ -72,7 +72,7 @@
-  * node_set_offline(node)		clear bit 'node' in node_online_map
-  *
-  * node_set_memory(node)		set bit 'node' in node_memory_map
-- * node_clear_memoryd(node)		clear bit 'node' in node_memory_map
-+ * node_clear_memory(node)		clear bit 'node' in node_memory_map
-  *
-  * for_each_node(node)			for-loop node over node_possible_map
-  * for_each_online_node(node)		for-loop node over node_online_map
+diff -puN include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes-fix include/linux/gfp.h
+--- a/include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes-fix
++++ a/include/linux/gfp.h
+@@ -138,7 +138,7 @@ static inline struct page *alloc_pages_n
+ 	 * Check for the special case that GFP_THISNODE is used on a
+ 	 * memoryless node
+ 	 */
+-	if ((gfp_mask & __GFP_THISNODE) && !node_memory(nid))
++	if (unlikely((gfp_mask & __GFP_THISNODE) && !node_memory(nid)))
+ 		return NULL;
+ 
+ 	return __alloc_pages(gfp_mask, order,
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
