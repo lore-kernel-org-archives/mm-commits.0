@@ -1,119 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-clock-updates-and-checks.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:20:41 -0700
-Message-ID: <200706250920.l5P9KfxX031038@imap1.linux-foundation.org>
+Subject: - alpha-fix-alignment-problem-in-csum_ipv6_magic.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:20:56 -0700
+Message-ID: <200706250920.l5P9KusW031062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60069 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751832AbXFYJVW (ORCPT
+	by vger.kernel.org with ESMTP id S1751876AbXFYJVX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:21:22 -0400
+	Mon, 25 Jun 2007 05:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, jailbird@alcatraz.fdf.net, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SM501: Clock updates and checks
+     alpha: fix alignment problem in csum_ipv6_magic()
 has been removed from the -mm tree.  Its filename was
-     sm501-clock-updates-and-checks.patch
+     alpha-fix-alignment-problem-in-csum_ipv6_magic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SM501: Clock updates and checks
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: alpha: fix alignment problem in csum_ipv6_magic()
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Ensure that the M1XCLK and MCLK are sourced from the same PLL (and refuse to
-bind the driver if they are not).
+Hopefully this fixes http://bugzilla.kernel.org/show_bug.cgi?id=8635
 
-Update the PCI to safe initialisation values, as 72MHz is the maximum clock
-for 33MHz PCI bus mastering.
+The struct in6_addr passed to csum_ipv6_magic() is 4 byte aligned, so we
+can't use the regular 64-bit loads.  Since the cost of handling of 4 byte
+and 1 byte aligned 64-bit data is roughly the same, this code can cope with
+any src/dst [mis]alignment.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Dustin Marquess <jailbird@alcatraz.fdf.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c        |   33 +++++++++++++++++++++++++++++++--
- include/linux/sm501-regs.h |    5 +++++
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ arch/alpha/lib/csum_ipv6_magic.S     |   51 ++++++++++++++++++-------
+ arch/alpha/lib/ev6-csum_ipv6_magic.S |   42 ++++++++++++++++----
+ 2 files changed, 70 insertions(+), 23 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-clock-updates-and-checks drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-clock-updates-and-checks
-+++ a/drivers/mfd/sm501.c
-@@ -855,6 +855,24 @@ static void sm501_init_regs(struct sm501
- 		dev_info(sm->dev, "setting MCLK to %ld\n", init->mclk);
- 		sm501_set_clock(sm->dev, SM501_CLOCK_MCLK, init->mclk);
- 	}
-+
-+}
-+
-+/* Check the PLL sources for the M1CLK and M1XCLK
+diff -puN arch/alpha/lib/csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic arch/alpha/lib/csum_ipv6_magic.S
+--- a/arch/alpha/lib/csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic
++++ a/arch/alpha/lib/csum_ipv6_magic.S
+@@ -7,6 +7,9 @@
+  *                                __u32 len,
+  *                                unsigned short proto,
+  *                                unsigned int csum);
 + *
-+ * If the M1CLK and M1XCLKs are not sourced from the same PLL, then
-+ * there is a risk (see errata AB-5) that the SM501 will cease proper
-+ * function. If this happens, then it is likely the SM501 will
-+ * hang the system.
-+*/
-+
-+static int sm501_check_clocks(struct sm501_devdata *sm)
-+{
-+	unsigned long pwrmode = readl(sm->regs + SM501_CURRENT_CLOCK);
-+	unsigned long msrc = (pwrmode & SM501_POWERMODE_M_SRC);
-+	unsigned long m1src = (pwrmode & SM501_POWERMODE_M1_SRC);
-+
-+	return ((msrc == 0 && m1src != 0) || (msrc != 0 && m1src == 0));
- }
++ * Misalignment handling (which costs 16 instructions / 8 cycles)
++ * added by Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+  */
  
- static unsigned int sm501_mem_local[] = {
-@@ -911,6 +929,13 @@ static int sm501_init_dev(struct sm501_d
- 		}
- 	}
+ 	.globl csum_ipv6_magic
+@@ -16,37 +19,57 @@
+ csum_ipv6_magic:
+ 	.prologue 0
  
-+	ret = sm501_check_clocks(sm);
-+	if (ret) {
-+		dev_err(sm->dev, "M1X and M clocks sourced from different "
-+					"PLLs\n");
-+		return -EINVAL;
-+	}
+-	ldq	$0,0($16)	# e0    : load src & dst addr words
++	ldq_u	$0,0($16)	# e0    : load src & dst addr words
+ 	zapnot	$20,15,$20	# .. e1 : zero extend incoming csum
+ 	extqh	$18,1,$4	# e0    : byte swap len & proto while we wait
+-	ldq	$1,8($16)	# .. e1 :
++	ldq_u	$21,7($16)	# .. e1 : handle misalignment
+ 
+ 	extbl	$18,1,$5	# e0	:
+-	ldq	$2,0($17)	# .. e1 :
++	ldq_u	$1,8($16)	# .. e1 :
+ 	extbl	$18,2,$6	# e0 	:
+-	ldq	$3,8($17)	# .. e1 :
++	ldq_u	$22,15($16)	# .. e1 :
+ 
+ 	extbl	$18,3,$18	# e0	:
++	ldq_u	$2,0($17)	# .. e1 :
+ 	sra	$4,32,$4	# e0	:
++	ldq_u	$23,7($17)	# .. e1 :
 +
- 	/* always create a framebuffer */
- 	sm501_register_display(sm, &mem_avail);
- 
-@@ -1048,8 +1073,12 @@ static struct sm501_initdata sm501_pci_i
- 	},
- 
- 	.devices	= SM501_USE_ALL,
--	.mclk		= 100 * MHZ,
--	.m1xclk		= 160 * MHZ,
++	extql	$0,$16,$0	# e0	:
++	ldq_u	$3,8($17)	# .. e1 :
++	extqh	$21,$16,$21	# e0	:
++	ldq_u	$24,15($17)	# .. e1 :
 +
-+	/* Errata AB-3 says that 72MHz is the fastest available
-+	 * for 33MHZ PCI with proper bus-mastering operation */
-+
-+	.mclk		= 72 * MHZ,
-+	.m1xclk		= 144 * MHZ,
- };
+ 	sll	$5,16,$5	# e0	:
++	or	$0,$21,$0	# .. e1 : 1st src word complete
++	extql	$1,$16,$1	# e0	:
+ 	addq	$20,$0,$20	# .. e1 : begin summing the words
  
- static struct sm501_platdata_fbsub sm501_pdata_fbsub = {
-diff -puN include/linux/sm501-regs.h~sm501-clock-updates-and-checks include/linux/sm501-regs.h
---- a/include/linux/sm501-regs.h~sm501-clock-updates-and-checks
-+++ a/include/linux/sm501-regs.h
-@@ -64,6 +64,11 @@
- #define SM501_DEBUG_CONTROL		(0x000034)
+-	sll	$6,8,$6		# e0	:
++	extqh	$22,$16,$22	# e0	:
+ 	cmpult	$20,$0,$0	# .. e1 :
+-	extwh	$19,7,$7	# e0    :
+-	or	$4,$18,$18	# .. e1 :
++	sll	$6,8,$6		# e0	:
++	or	$1,$22,$1	# .. e1 : 2nd src word complete
  
- /* power management */
-+#define SM501_POWERMODE_P2X_SRC		(1<<29)
-+#define SM501_POWERMODE_V2X_SRC		(1<<20)
-+#define SM501_POWERMODE_M_SRC		(1<<12)
-+#define SM501_POWERMODE_M1_SRC		(1<<4)
+-	extbl	$19,1,$19	# e0    :
++	extql	$2,$17,$2	# e0	:
++	or	$4,$18,$18	# .. e1 :
++	extqh	$23,$17,$23	# e0	:
+ 	or	$5,$6,$5	# .. e1 :
+-	or	$18,$5,$18	# e0    : len complete
+-	or	$19,$7,$19	# .. e1 :
+ 
+-	sll	$19,48,$19	# e0    :
++	extql	$3,$17,$3	# e0	:
++	or	$2,$23,$2	# .. e1 : 1st dst word complete
++	extqh	$24,$17,$24	# e0	:
++	or	$18,$5,$18	# .. e1 : len complete
 +
- #define SM501_CURRENT_GATE		(0x000038)
- #define SM501_CURRENT_CLOCK		(0x00003C)
- #define SM501_POWER_MODE_0_GATE		(0x000040)
++	extwh	$19,7,$7	# e0    :
++	or	$3,$24,$3	# .. e1 : 2nd dst word complete
++	extbl	$19,1,$19	# e0    :
+ 	addq	$20,$1,$20	# .. e1 :
+-	sra	$19,32,$19	# e0    : proto complete
++
++	or	$19,$7,$19	# e0    :
+ 	cmpult	$20,$1,$1	# .. e1 :
++	sll	$19,48,$19	# e0    :
++	nop			# .. e0 :
+ 
+-	nop			# e0    :
++	sra	$19,32,$19	# e0    : proto complete
+ 	addq	$20,$2,$20	# .. e1 :
+ 	cmpult	$20,$2,$2	# e0    :
+ 	addq	$20,$3,$20	# .. e1 :
+@@ -84,7 +107,7 @@ csum_ipv6_magic:
+ 	extwl	$0,2,$1		# e0    : fold 17-bit value
+ 	zapnot	$0,3,$0		# .. e1 :
+ 	addq	$0,$1,$0	# e0    :
+-	not	$0,$0		# e1    : and complement.
++	not	$0,$0		# .. e1 : and complement.
+ 
+ 	zapnot	$0,3,$0		# e0    :
+ 	ret			# .. e1 :
+diff -puN arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic arch/alpha/lib/ev6-csum_ipv6_magic.S
+--- a/arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic
++++ a/arch/alpha/lib/ev6-csum_ipv6_magic.S
+@@ -46,6 +46,10 @@
+  * add the 3 low ushorts together, generating a uint
+  * a final add of the 2 lower ushorts
+  * truncating the result.
++ *
++ * Misalignment handling added by Ivan Kokshaysky <ink@jurassic.park.msu.ru>
++ * The cost is 16 instructions (~8 cycles), including two extra loads which
++ * may cause additional delay in rare cases (load-load replay traps).
+  */
+ 
+ 	.globl csum_ipv6_magic
+@@ -55,25 +59,45 @@
+ csum_ipv6_magic:
+ 	.prologue 0
+ 
+-	ldq	$0,0($16)	# L : Latency: 3
++	ldq_u	$0,0($16)	# L : Latency: 3
+ 	inslh	$18,7,$4	# U : 0000000000AABBCC
+-	ldq	$1,8($16)	# L : Latency: 3
++	ldq_u	$1,8($16)	# L : Latency: 3
+ 	sll	$19,8,$7	# U : U L U L : 0x00000000 00aabb00
+ 
++	and	$16,7,$6	# E : src misalignment
++	ldq_u	$5,15($16)	# L : Latency: 3
+ 	zapnot	$20,15,$20	# U : zero extend incoming csum
+-	ldq	$2,0($17)	# L : Latency: 3
+-	sll	$19,24,$19	# U : U L L U : 0x000000aa bb000000
++	ldq_u	$2,0($17)	# L : U L U L : Latency: 3
++
++	extql	$0,$6,$0	# U :
++	extqh	$1,$6,$22	# U :
++	ldq_u	$3,8($17)	# L : Latency: 3
++	sll	$19,24,$19	# U : U U L U : 0x000000aa bb000000
++
++	cmoveq	$6,$31,$22	# E : src aligned?
++	ldq_u	$23,15($17)	# L : Latency: 3
+ 	inswl	$18,3,$18	# U : 000000CCDD000000
++	addl	$19,$7,$19	# E : U L U L : <sign bits>bbaabb00
+ 
+-	ldq	$3,8($17)	# L : Latency: 3
+-	bis	$18,$4,$18	# E : 000000CCDDAABBCC
+-	addl	$19,$7,$19	# E : <sign bits>bbaabb00
+-	nop			# E : U L U L
++	or	$0,$22,$0	# E : 1st src word complete
++	extql	$1,$6,$1	# U :
++	or	$18,$4,$18	# E : 000000CCDDAABBCC
++	extqh	$5,$6,$5	# U : L U L U
++
++	and	$17,7,$6	# E : dst misalignment
++	extql	$2,$6,$2	# U :
++	or	$1,$5,$1	# E : 2nd src word complete
++	extqh	$3,$6,$22	# U : L U L U :
+ 
++	cmoveq	$6,$31,$22	# E : dst aligned?
++	extql	$3,$6,$3	# U :
+ 	addq	$20,$0,$20	# E : begin summing the words
++	extqh	$23,$6,$23	# U : L U L U :
++
+ 	srl	$18,16,$4	# U : 0000000000CCDDAA
++	or	$2,$22,$2	# E : 1st dst word complete
+ 	zap	$19,0x3,$19	# U : <sign bits>bbaa0000
+-	nop			# E : L U U L
++	or	$3,$23,$3	# E : U L U L : 2nd dst word complete
+ 
+ 	cmpult	$20,$0,$0	# E :
+ 	addq	$20,$1,$20	# E :
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-git-watchdog.patch
-spi-tle620x-power-switch-driver.patch
+alpha-fix-trivial-section-mismatch-warnings.patch
+make-sure-nobodys-leaking-resources.patch
