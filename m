@@ -1,80 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-save-disk-in-scsi_device.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 15:47:50 -0700
-Message-ID: <200706252247.l5PMloHZ012915@imap1.linux-foundation.org>
+Subject: + update-x86_64-mm-xen-use-iret-directly-where-possible.patch added to -mm tree
+Date: Mon, 25 Jun 2007 15:59:08 -0700
+Message-ID: <200706252259.l5PMx85V013183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752615AbXFYWr5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751881AbXFYW7k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 18:47:57 -0400
+	Mon, 25 Jun 2007 18:59:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com
 
 
 The patch titled
-     SCSI: save disk in scsi_device
-has been removed from the -mm tree.  Its filename was
-     scsi-save-disk-in-scsi_device.patch
+     update x86_64-mm-xen-use-iret-directly-where-possible
+has been added to the -mm tree.  Its filename is
+     update-x86_64-mm-xen-use-iret-directly-where-possible.patch
 
-This patch was dropped because my copy is out of date
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: SCSI: save disk in scsi_device
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: update x86_64-mm-xen-use-iret-directly-where-possible
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Give anyone who has access to scsi_device access to the genhd struct as well.
+There's only a minor code change from the version you've got, but the
+comments are more accurate.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.c          |    1 +
- drivers/scsi/sr.c          |    1 +
- include/scsi/scsi_device.h |    2 +-
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/xen/xen-asm.S |   56 +++++++++++++++++++++++++-------------
+ 1 files changed, 37 insertions(+), 19 deletions(-)
 
-diff -puN drivers/scsi/sd.c~scsi-save-disk-in-scsi_device drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-save-disk-in-scsi_device
-+++ a/drivers/scsi/sd.c
-@@ -1673,6 +1673,7 @@ static int sd_probe(struct device *dev)
+diff -puN arch/i386/xen/xen-asm.S~update-x86_64-mm-xen-use-iret-directly-where-possible arch/i386/xen/xen-asm.S
+--- a/arch/i386/xen/xen-asm.S~update-x86_64-mm-xen-use-iret-directly-where-possible
++++ a/arch/i386/xen/xen-asm.S
+@@ -108,14 +108,28 @@ ENDPATCH(xen_restore_fl_direct)
+ 	      4: cs
+ 	esp-> 0: eip
  
- 	dev_set_drvdata(dev, sdkp);
- 	add_disk(gd);
-+	sdp->disk = gd;
+-	This attempts to make sure that any pending events are dealt with
+-	on return to usermode, but there is a small window in which an event
+-	can happen just before entering usermode.  This has three effects:
+-	 - There can be interrupt recursion on the stack, which is
+-	   unbounded in theory (but very unlikely in practice)
+-	 - New softirq events can be queued up, but they won't get
+-	   processed until the cpu next enters and leaves the kernel.
+-	 - Signals likewise.
++	This attempts to make sure that any pending events are dealt
++	with on return to usermode, but there is a small window in
++	which an event can happen just before entering usermode.  If
++	the nested interrupt ends up setting one of the TIF_WORK_MASK
++	pending work flags, they will not be tested again before
++	returning to usermode. This means that a process can end up
++	with pending work, which will be unprocessed until the process
++	enters and leaves the kernel again, which could be an
++	unbounded amount of time.  This means that a pending signal or
++	reschedule event could be indefinitely delayed.
++
++	The fix is to notice a nested interrupt in the critical
++	window, and if one occurs, then fold the nested interrupt into
++	the current interrupt stack frame, and re-process it
++	iteratively rather than recursively.  This means that it will
++	exit via the normal path, and all pending work will be dealt
++	with appropriately.
++
++	Because the nested interrupt handler needs to deal with the
++	current stack state in whatever form its in, we keep things
++	simple by only using a single register which is pushed/popped
++	on the stack.
  
- 	sd_printk(KERN_NOTICE, sdkp, "Attached SCSI %sdisk\n",
- 		  sdp->removable ? "removable " : "");
-diff -puN drivers/scsi/sr.c~scsi-save-disk-in-scsi_device drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-save-disk-in-scsi_device
-+++ a/drivers/scsi/sr.c
-@@ -606,6 +606,7 @@ static int sr_probe(struct device *dev)
- 	if (sdev->media_change_notify)
- 		disk->flags |= GENHD_FL_MEDIA_CHANGE_NOTIFY;
- 	add_disk(disk);
-+	sdev->disk = disk;
+ 	Non-direct iret could be done in the same way, but it would
+ 	require an annoying amount of code duplication.  We'll assume
+@@ -127,9 +141,6 @@ ENTRY(xen_iret_direct)
+ 	testl $(X86_EFLAGS_VM | XEN_EFLAGS_NMI), 8(%esp)
+ 	jnz hyper_iret
  
- 	sdev_printk(KERN_DEBUG, sdev,
- 		    "Attached scsi CD-ROM %s\n", cd->cdi.name);
-diff -puN include/scsi/scsi_device.h~scsi-save-disk-in-scsi_device include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~scsi-save-disk-in-scsi_device
-+++ a/include/scsi/scsi_device.h
-@@ -140,7 +140,7 @@ struct scsi_device {
- 
- 	struct device		sdev_gendev;
- 	struct class_device	sdev_classdev;
+-	/* check IF state we're restoring */
+-	testb $X86_EFLAGS_IF>>8, 8+1(%esp)
 -
-+	struct gendisk 		*disk;
- 	struct execute_work	ew; /* used to get process context on put */
+ 	push %eax
+ 	ESP_OFFSET=4	# bytes pushed onto stack
  
- 	enum scsi_device_state sdev_state;
+@@ -144,6 +155,9 @@ ENTRY(xen_iret_direct)
+ 	movl $per_cpu__xen_vcpu_info, %eax
+ #endif
+ 
++	/* check IF state we're restoring */
++	testb $X86_EFLAGS_IF>>8, 8+1+ESP_OFFSET(%esp)
++
+ 	/* Maybe enable events.  Once this happens we could get a
+ 	   recursive event, so the critical region starts immediately
+ 	   afterwards.  However, if that happens we don't end up
+@@ -187,7 +201,7 @@ hyper_iret:
+ 
+    The stack format at this point is:
+ 	----------------
+-	 ss		:
++	 ss		: (ss/esp may be present if we came from usermode)
+ 	 esp		:
+ 	 eflags		}  outer exception info
+ 	 cs		}
+@@ -219,17 +233,21 @@ hyper_iret:
+    The only caveat is that if the outer eax hasn't been
+    restored yet (ie, it's still on stack), we need to insert
+    its value into the SAVE_ALL state before going on, since
+-   its usermode state which we eventually need to restore.
++   it's usermode state which we eventually need to restore.
+  */
+ ENTRY(xen_iret_crit_fixup)
+ 	/* offsets +4 for return address */
+ 
+-	/* Paranoia: make sure we're really coming from userspace.
+-	   Once could imagine a case where userspace jumps into
+-	   the critical range address, but just before the CPU
+-	   delivers a GP, it decides to deliver an interrupt
+-	   instead.  Unlikely?  Definitely.  Easy to avoid?
+-	   Yes. (Some virtual environments get this wrong.) */
++	/*
++	   Paranoia: Make sure we're really coming from userspace.
++	   One could imagine a case where userspace jumps into the
++	   critical range address, but just before the CPU delivers a GP,
++	   it decides to deliver an interrupt instead.  Unlikely?
++	   Definitely.  Easy to avoid?  Yes.  The Intel documents
++	   explicitly say that the reported EIP for a bad jump is the
++	   jump instruction itself, not the destination, but some virtual
++	   environments get this wrong.
++	 */
+ 	movl PT_CS+4(%esp), %ecx
+ 	andl $SEGMENT_RPL_MASK, %ecx
+ 	cmpl $USER_RPL, %ecx
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-git-acpi.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
+git-kbuild.patch
+add-kstrndup-fix.patch
+xen-build-fix.patch
+fix-x86_64-mm-xen-xen-smp-guest-support.patch
+more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+tidy-up-usermode-helper-waiting-a-bit-fix.patch
+update-x86_64-mm-xen-use-iret-directly-where-possible.patch
+x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
+paravirt-helper-to-disable-all-io-space-fix-2.patch
+paravirt-helper-to-disable-all-io-space-fix-3.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+lguest-the-guest-code.patch
