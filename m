@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + make-drivers-acpi-oslcosi_linux-static.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:33:13 -0700
-Message-ID: <200706251833.l5PIXD1M007982@imap1.linux-foundation.org>
+Subject: + drivers-acpi-processor_throttlingc-make-2-functions.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:33:15 -0700
+Message-ID: <200706251833.l5PIXFdD007985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57682 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752053AbXFYSdd (ORCPT
+	by vger.kernel.org with ESMTP id S1752421AbXFYSdg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:33:33 -0400
+	Mon, 25 Jun 2007 14:33:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de, lenb@kernel.org
 
 
 The patch titled
-     make drivers/acpi/osl.c:osi_linux static
+     drivers/acpi/processor_throttling.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     make-drivers-acpi-oslcosi_linux-static.patch
+     drivers-acpi-processor_throttlingc-make-2-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make drivers/acpi/osl.c:osi_linux static
+Subject: drivers/acpi/processor_throttling.c: make 2 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the needlessly global osi_linux static.
+This patch makes 2 needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_throttling.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static
-+++ a/drivers/acpi/osl.c
-@@ -77,7 +77,7 @@ static struct workqueue_struct *kacpi_no
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+diff -puN drivers/acpi/processor_throttling.c~drivers-acpi-processor_throttlingc-make-2-functions drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~drivers-acpi-processor_throttlingc-make-2-functions
++++ a/drivers/acpi/processor_throttling.c
+@@ -410,7 +410,8 @@ static int acpi_processor_get_throttling
+ 	return pr->throttling.acpi_processor_get_throttling(pr);
+ }
  
--int osi_linux;		/* disable _OSI(Linux) by default */
-+static int osi_linux;		/* disable _OSI(Linux) by default */
+-int acpi_processor_set_throttling_fadt(struct acpi_processor *pr, int state)
++static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
++					      int state)
+ {
+ 	u32 value = 0;
+ 	u32 duty_mask = 0;
+@@ -482,7 +483,8 @@ int acpi_processor_set_throttling_fadt(s
+ 	return 0;
+ }
  
- #ifdef CONFIG_DMI
- static struct __initdata dmi_system_id acpi_osl_dmi_table[];
+-int acpi_processor_set_throttling_ptc(struct acpi_processor *pr, int state)
++static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
++					     int state)
+ {
+ 	u32 value = 0;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
