@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-use-__devexit_p.patch added to -mm tree
-Date: Mon, 25 Jun 2007 16:27:21 -0700
-Message-ID: <200706252327.l5PNRLIZ013767@imap1.linux-foundation.org>
+Subject: + alsa-more-section-mismatches.patch added to -mm tree
+Date: Mon, 25 Jun 2007 16:27:25 -0700
+Message-ID: <200706252327.l5PNRPVN013773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53351 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751987AbXFYX1g (ORCPT
+	by vger.kernel.org with ESMTP id S1752324AbXFYX1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 19:27:36 -0400
+	Mon, 25 Jun 2007 19:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     ALSA: use __devexit_p
+     ALSA: more section mismatches
 has been added to the -mm tree.  Its filename is
-     alsa-use-__devexit_p.patch
+     alsa-more-section-mismatches.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA: use __devexit_p
+Subject: ALSA: more section mismatches
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Change __devexit to __devexit_p:
-sound/isa/opl3sa2.c:956: error: expected expression before '__attribute__'
+Something about __init_or_module isn't working as expected (?).
+CONFIG_HOTPLUG=y
+CONFIG_MODULES=n
+
+Fix shared init/exit code helper:
+WARNING: sound/built-in.o(.exit.text+0x243): Section mismatch: reference to .init.text: (between 'alsa_card_mpu401_exit' and 'ac97_bus_exit')
+WARNING: sound/built-in.o(.exit.text+0x21b): Section mismatch: reference to .init.text: (between 'alsa_card_dummy_exit' and 'alsa_card_serial_exit')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Jaroslav Kysela <perex@suse.cz>
@@ -38,21 +43,34 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/isa/opl3sa2.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ sound/drivers/dummy.c         |    2 +-
+ sound/drivers/mpu401/mpu401.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/isa/opl3sa2.c~alsa-use-__devexit_p sound/isa/opl3sa2.c
---- a/sound/isa/opl3sa2.c~alsa-use-__devexit_p
-+++ a/sound/isa/opl3sa2.c
-@@ -953,7 +953,7 @@ static int snd_opl3sa2_isa_resume(struct
- static struct isa_driver snd_opl3sa2_isa_driver = {
- 	.match		= snd_opl3sa2_isa_match,
- 	.probe		= snd_opl3sa2_isa_probe,
--	.remove		= __devexit( snd_opl3sa2_isa_remove),
-+	.remove		= __devexit_p(snd_opl3sa2_isa_remove),
- #ifdef CONFIG_PM
- 	.suspend	= snd_opl3sa2_isa_suspend,
- 	.resume		= snd_opl3sa2_isa_resume,
+diff -puN sound/drivers/dummy.c~alsa-more-section-mismatches sound/drivers/dummy.c
+--- a/sound/drivers/dummy.c~alsa-more-section-mismatches
++++ a/sound/drivers/dummy.c
+@@ -659,7 +659,7 @@ static struct platform_driver snd_dummy_
+ 	},
+ };
+ 
+-static void __init_or_module snd_dummy_unregister_all(void)
++static void snd_dummy_unregister_all(void)
+ {
+ 	int i;
+ 
+diff -puN sound/drivers/mpu401/mpu401.c~alsa-more-section-mismatches sound/drivers/mpu401/mpu401.c
+--- a/sound/drivers/mpu401/mpu401.c~alsa-more-section-mismatches
++++ a/sound/drivers/mpu401/mpu401.c
+@@ -228,7 +228,7 @@ static struct pnp_driver snd_mpu401_pnp_
+ static struct pnp_driver snd_mpu401_pnp_driver;
+ #endif
+ 
+-static void __init_or_module snd_mpu401_unregister_all(void)
++static void snd_mpu401_unregister_all(void)
+ {
+ 	int i;
+ 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
