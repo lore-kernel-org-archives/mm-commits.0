@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-cpuidle-governors-menuc-make-a-struct-static.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:33:17 -0700
-Message-ID: <200706251833.l5PIXHma007988@imap1.linux-foundation.org>
+Subject: + drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:35:22 -0700
+Message-ID: <200706251835.l5PIZM9k008010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52528 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52866 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752424AbXFYSdh (ORCPT
+	by vger.kernel.org with ESMTP id S1751703AbXFYSfs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:33:37 -0400
+	Mon, 25 Jun 2007 14:35:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, lenb@kernel.org
+Cc: bunk@stusta.de, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, pchen@nvidia.com
 
 
 The patch titled
-     drivers/cpuidle/governors/menu.c: make a struct static
+     drivers/ata/sata_nv.c: make 3 functions static
 has been added to the -mm tree.  Its filename is
-     drivers-cpuidle-governors-menuc-make-a-struct-static.patch
+     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/cpuidle/governors/menu.c: make a struct static
+Subject: drivers/ata/sata_nv.c: make 3 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the needlessly global struct menu_governor static.
+This patch makes 3 needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Kuan Luo <kluo@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/sata_nv.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-make-a-struct-static drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-make-a-struct-static
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -151,7 +151,7 @@ static void menu_scan_device(struct cpui
- 	data->deepest_bm_state = i - 1;
+diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
++++ a/drivers/ata/sata_nv.c
+@@ -314,7 +314,7 @@ static int nv_ncqintr_sdbfis(struct ata_
+ static int nv_ncqintr_dmasetupfis(struct ata_port *ap);
+ static void ncq_clear_singlefis(struct ata_port *ap, u32 val);
+ static u32 ncq_ownfisintr_value (struct ata_port *ap);
+-void ncq_hotplug(struct ata_port *ap, u32 fis);
++static void ncq_hotplug(struct ata_port *ap, u32 fis);
+ static irqreturn_t nv_mcp55_interrupt(int irq, void *dev_instance);
+ static int ncq_interrupt(struct ata_port *ap, u32 fis);
+ static int nv_scsi_queuecmd(struct scsi_cmnd *cmd,
+@@ -1931,7 +1931,7 @@ static void ncq_stop(struct ata_port *ap
+ 	ncq_clear(ap);
  }
  
--struct cpuidle_governor menu_governor = {
-+static struct cpuidle_governor menu_governor = {
- 	.name =		"menu",
- 	.rating =	20,
- 	.scan =		menu_scan_device,
+-int nv_std_prereset(struct ata_port *ap, unsigned long deadline)
++static int nv_std_prereset(struct ata_port *ap, unsigned long deadline)
+ {
+ 	struct ata_eh_context *ehc = &ap->eh_context;
+ 
+@@ -2265,7 +2265,7 @@ back_out:
+ 	return 0;
+ }
+ 
+-u32 ncq_valid_dhfisflag(struct nv_port_priv *pp)
++static u32 ncq_valid_dhfisflag(struct nv_port_priv *pp)
+ {
+ 	u32 valid = (pp->dhfis_flags == pp->qc_active);
+ 
+@@ -2332,7 +2332,7 @@ static void fis_dump(struct ata_port *ap
+ #endif
+ 
+ 
+-void ncq_hotplug(struct ata_port *ap, u32 fis)
++static void ncq_hotplug(struct ata_port *ap, u32 fis)
+ {
+ 	u32 serror;
+ 	struct ata_eh_info *ehi = &ap->eh_info;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -63,8 +93,8 @@ make-drivers-char-hvc_consoleckhvcd-static.patch
 git-dvb.patch
 git-input.patch
 git-kvm.patch
-drivers-ata-sata_nvc-make-3-functions-static.patch
 testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 mark-calibrate_xor_blocks-__init.patch
 git-mmc.patch
 nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
