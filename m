@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch added to -mm tree
-Date: Mon, 25 Jun 2007 16:50:13 -0700
-Message-ID: <200706252350.l5PNoEhF014130@imap1.linux-foundation.org>
+Date: Mon, 25 Jun 2007 16:50:27 -0700
+Message-ID: <200706252350.l5PNoR9f014136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43258 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36624 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbXFYXue (ORCPT
+	by vger.kernel.org with ESMTP id S1751792AbXFYXuq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 19:50:34 -0400
+	Mon, 25 Jun 2007 19:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -61,7 +61,7 @@ Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Reported-by: Darrick Wong <djwong@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
