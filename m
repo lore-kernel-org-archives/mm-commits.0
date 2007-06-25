@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + is_power_of_2-ext3-superc.patch added to -mm tree
-Date: Mon, 25 Jun 2007 12:12:12 -0700
-Message-ID: <200706251912.l5PJCCRX008680@imap1.linux-foundation.org>
+Subject: + is_power_of_2-ext4-superc.patch added to -mm tree
+Date: Mon, 25 Jun 2007 12:13:44 -0700
+Message-ID: <200706251913.l5PJDiCa008705__35695.2799404555$1182798876$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36258 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751520AbXFYTMT (ORCPT
+	by vger.kernel.org with ESMTP id S1754232AbXFYTNv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 15:12:19 -0400
+	Mon, 25 Jun 2007 15:13:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vignesh.babu@wipro.com
+Cc: vignesh.babu@wipro.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
      is_power_of_2: ext3/super.c
 has been added to the -mm tree.  Its filename is
-     is_power_of_2-ext3-superc.patch
+     is_power_of_2-ext4-superc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -32,16 +32,17 @@ From: vignesh babu <vignesh.babu@wipro.com>
 Replace (n & (n-1)) in the context of power of 2 checks with is_power_of_2()
 
 Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    3 ++-
+ fs/ext4/super.c |    3 ++-
  1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/super.c~is_power_of_2-ext3-superc fs/ext3/super.c
---- a/fs/ext3/super.c~is_power_of_2-ext3-superc
-+++ a/fs/ext3/super.c
-@@ -35,6 +35,7 @@
+diff -puN fs/ext4/super.c~is_power_of_2-ext4-superc fs/ext4/super.c
+--- a/fs/ext4/super.c~is_power_of_2-ext4-superc
++++ a/fs/ext4/super.c
+@@ -36,6 +36,7 @@
  #include <linux/namei.h>
  #include <linux/quotaops.h>
  #include <linux/seq_file.h>
@@ -49,15 +50,15 @@ diff -puN fs/ext3/super.c~is_power_of_2-ext3-superc fs/ext3/super.c
  
  #include <asm/uaccess.h>
  
-@@ -1574,7 +1575,7 @@ static int ext3_fill_super (struct super
+@@ -1662,7 +1663,7 @@ static int ext4_fill_super (struct super
  		sbi->s_inode_size = le16_to_cpu(es->s_inode_size);
  		sbi->s_first_ino = le32_to_cpu(es->s_first_ino);
- 		if ((sbi->s_inode_size < EXT3_GOOD_OLD_INODE_SIZE) ||
+ 		if ((sbi->s_inode_size < EXT4_GOOD_OLD_INODE_SIZE) ||
 -		    (sbi->s_inode_size & (sbi->s_inode_size - 1)) ||
 +		    (!is_power_of_2(sbi->s_inode_size)) ||
  		    (sbi->s_inode_size > blocksize)) {
  			printk (KERN_ERR
- 				"EXT3-fs: unsupported inode size: %d\n",
+ 				"EXT4-fs: unsupported inode size: %d\n",
 _
 
 Patches currently in -mm which might be from vignesh.babu@wipro.com are
@@ -66,3 +67,5 @@ git-ubi.patch
 use-is_power_of_2-in-cxgb3-cxgb3_mainc.patch
 use-is_power_of_2-in-myri10ge-myri10gec.patch
 is_power_of_2-ext3-superc.patch
+is_power_of_2-ext4-superc.patch
+is_pwoer_of_2-jbd.patch
