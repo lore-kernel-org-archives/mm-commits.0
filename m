@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ixgbe-introduce-new-10gbe-driver-for-intel-82598-based-pci.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:39:51 -0700
-Message-ID: <200706251839.l5PIdpbq008086@imap1.linux-foundation.org>
+Subject: - ixgbe-introduce-new-10gbe-driver-for-intel-82598-based-pci.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 11:43:27 -0700
+Message-ID: <200706251843.l5PIhR9a008160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34156 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751939AbXFYSkB (ORCPT
+	by vger.kernel.org with ESMTP id S1752123AbXFYSnm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:40:01 -0400
+	Mon, 25 Jun 2007 14:43:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ayyappan.veeraiyan@intel.com
+To: ayyappan.veeraiyan@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      ixgbe: Introduce new 10GbE driver for Intel 82598 based PCI Express adapters
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ixgbe-introduce-new-10gbe-driver-for-intel-82598-based-pci.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I took the git tree instead
 
 ------------------------------------------------------
 Subject: ixgbe: Introduce new 10GbE driver for Intel 82598 based PCI Express adapters
@@ -9392,4 +9388,5 @@ _
 
 Patches currently in -mm which might be from ayyappan.veeraiyan@intel.com are
 
+git-ixgbe.patch
 ixgbe-introduce-new-10gbe-driver-for-intel-82598-based-pci.patch
