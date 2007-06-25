@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + is_power_of_2-jbd.patch added to -mm tree
-Date: Mon, 25 Jun 2007 12:15:44 -0700
-Message-ID: <200706251915.l5PJFij1008738@imap1.linux-foundation.org>
+Subject: + eventfd-clean-compile-when-config_eventfd=n.patch added to -mm tree
+Date: Mon, 25 Jun 2007 14:27:42 -0700
+Message-ID: <200706252127.l5PLRgMb011173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54081 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35719 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750880AbXFYTQR (ORCPT
+	by vger.kernel.org with ESMTP id S1751882AbXFYV2h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 15:16:17 -0400
+	Mon, 25 Jun 2007 17:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vignesh.babu@wipro.com
+Cc: randy.dunlap@oracle.com, davidel@xmailserver.org
 
 
 The patch titled
-     is_power_of_2(): jbd
+     eventfd: clean compile when CONFIG_EVENTFD=n
 has been added to the -mm tree.  Its filename is
-     is_power_of_2-jbd.patch
+     eventfd-clean-compile-when-config_eventfd=n.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: is_power_of_2(): jbd
-From: vignesh babu <vignesh.babu@wipro.com>
+Subject: eventfd: clean compile when CONFIG_EVENTFD=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Replace (n & (n-1)) in the context of power of 2 checks with
-is_power_of_2().
+Fix gcc warning and add parameter checking when CONFIG_EVENTFD=n:
 
-Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+fs/aio.c: In function 'aio_complete':
+fs/aio.c:955: warning: statement with no effect
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/revoke.c  |    5 +++--
- fs/jbd2/revoke.c |    5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ include/linux/eventfd.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/jbd/revoke.c~is_power_of_2-jbd fs/jbd/revoke.c
---- a/fs/jbd/revoke.c~is_power_of_2-jbd
-+++ a/fs/jbd/revoke.c
-@@ -68,6 +68,7 @@
- #include <linux/list.h>
- #include <linux/init.h>
- #endif
-+#include <linux/log2.h>
+diff -puN include/linux/eventfd.h~eventfd-clean-compile-when-config_eventfd=n include/linux/eventfd.h
+--- a/include/linux/eventfd.h~eventfd-clean-compile-when-config_eventfd=n
++++ a/include/linux/eventfd.h
+@@ -19,7 +19,8 @@ int eventfd_signal(struct file *file, in
+ #else /* CONFIG_EVENTFD */
  
- static struct kmem_cache *revoke_record_cache;
- static struct kmem_cache *revoke_table_cache;
-@@ -215,7 +216,7 @@ int journal_init_revoke(journal_t *journ
- 	journal->j_revoke = journal->j_revoke_table[0];
+ #define eventfd_fget(fd) ERR_PTR(-ENOSYS)
+-#define eventfd_signal(f, n) 0
++static inline int eventfd_signal(struct file *file, int n)
++{ return 0; }
  
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
- 
-@@ -242,7 +243,7 @@ int journal_init_revoke(journal_t *journ
- 	journal->j_revoke = journal->j_revoke_table[1];
- 
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
- 
-diff -puN fs/jbd2/revoke.c~is_power_of_2-jbd fs/jbd2/revoke.c
---- a/fs/jbd2/revoke.c~is_power_of_2-jbd
-+++ a/fs/jbd2/revoke.c
-@@ -68,6 +68,7 @@
- #include <linux/list.h>
- #include <linux/init.h>
- #endif
-+#include <linux/log2.h>
- 
- static struct kmem_cache *jbd2_revoke_record_cache;
- static struct kmem_cache *jbd2_revoke_table_cache;
-@@ -212,7 +213,7 @@ int jbd2_journal_init_revoke(journal_t *
- 	journal->j_revoke = journal->j_revoke_table[0];
- 
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
- 
-@@ -239,7 +240,7 @@ int jbd2_journal_init_revoke(journal_t *
- 	journal->j_revoke = journal->j_revoke_table[1];
- 
- 	/* Check that the hash_size is a power of two */
--	J_ASSERT ((hash_size & (hash_size-1)) == 0);
-+	J_ASSERT(is_power_of_2(hash_size));
- 
- 	journal->j_revoke->hash_size = hash_size;
+ #endif /* CONFIG_EVENTFD */
  
 _
 
-Patches currently in -mm which might be from vignesh.babu@wipro.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-ubi.patch
-use-is_power_of_2-in-cxgb3-cxgb3_mainc.patch
-use-is_power_of_2-in-myri10ge-myri10gec.patch
-is_power_of_2-ext3-superc.patch
-is_power_of_2-jbd.patch
-is_power_of_2-ext4-superc.patch
+eventfd-clean-compile-when-config_eventfd=n.patch
+git-acpi.patch
+romfs-printk-format-warnings.patch
+mtd-use-null-for-pointer.patch
+add-pci_try_set_mwi.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+fs-clarify-dummy-member-in-struct.patch
+sony-laptop-use-null-for-pointer.patch
+hugetlbfs-use-lib-parser-fix-docs.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+doc-oops-tracing-add-code-decode-info.patch
+schedstats-fix-printk-format.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+profile-likely-unlikely-macros.patch
