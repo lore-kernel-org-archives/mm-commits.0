@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-description-in-documentation-filesystems-vfstxt-typo-fixed.patch added to -mm tree
-Date: Mon, 25 Jun 2007 16:23:04 -0700
-Message-ID: <200706252323.l5PNN4JS013688@imap1.linux-foundation.org>
+Subject: + libata-add-ich8m-pciids-to-ata_piix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 16:24:59 -0700
+Message-ID: <200706252324.l5PNOxFB013720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56377 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751658AbXFYXXL (ORCPT
+	by vger.kernel.org with ESMTP id S1752196AbXFYXZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 19:23:11 -0400
+	Mon, 25 Jun 2007 19:25:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de
+Cc: chunkeey@web.de, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
 
 
 The patch titled
-     update description in Documentation/filesystems/vfs.txt
+     libata: add ICH8M PCIIDs to ATA_PIIX
 has been added to the -mm tree.  Its filename is
-     update-description-in-documentation-filesystems-vfstxt-typo-fixed.patch
+     libata-add-ich8m-pciids-to-ata_piix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update description in Documentation/filesystems/vfs.txt
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: libata: add ICH8M PCIIDs to ATA_PIIX
+From: Chr <chunkeey@web.de>
 
-Update the description of struct file_system_type and get_sb() in
-Documentation/filesystems/vfs.txt to match the current code.
+Add a necessary PCIID for Santa Rosa's PATA controller.
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Signed-off-by: Christian Lamparter <chunkeey@web.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.txt |   22 +++++++++++++---------
- 1 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/ata/ata_piix.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN Documentation/filesystems/vfs.txt~update-description-in-documentation-filesystems-vfstxt-typo-fixed Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~update-description-in-documentation-filesystems-vfstxt-typo-fixed
-+++ a/Documentation/filesystems/vfs.txt
-@@ -3,7 +3,7 @@
+diff -puN drivers/ata/ata_piix.c~libata-add-ich8m-pciids-to-ata_piix drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~libata-add-ich8m-pciids-to-ata_piix
++++ a/drivers/ata/ata_piix.c
+@@ -200,6 +200,8 @@ static const struct pci_device_id piix_p
+ 	/* ICH7/7-R (i945, i975) UDMA 100*/
+ 	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
+ 	{ 0x8086, 0x269E, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
++	/* ICH8 Mobile PATA Controller */
++	{ 0x8086, 0x2850, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
  
- 	Original author: Richard Gooch <rgooch@atnf.csiro.au>
- 
--		  Last updated on October 28, 2005
-+		  Last updated on June 24, 2007.
- 
-   Copyright (C) 1999 Richard Gooch
-   Copyright (C) 2005 Pekka Enberg
-@@ -107,7 +107,7 @@ file /proc/filesystems.
- struct file_system_type
- -----------------------
- 
--This describes the filesystem. As of kernel 2.6.13, the following
-+This describes the filesystem. As of kernel 2.6.22, the following
- members are defined:
- 
- struct file_system_type {
-@@ -119,6 +119,8 @@ struct file_system_type {
-         struct module *owner;
-         struct file_system_type * next;
-         struct list_head fs_supers;
-+	struct lock_class_key s_lock_key;
-+	struct lock_class_key s_umount_key;
- };
- 
-   name: the name of the filesystem type, such as "ext2", "iso9660",
-@@ -137,11 +139,12 @@ struct file_system_type {
- 
-   next: for internal VFS use: you should initialize this to NULL
- 
-+  s_lock_key, s_umount_key: lockdep-specific
-+
- The get_sb() method has the following arguments:
- 
--  struct super_block *sb: the superblock structure. This is partially
--	initialized by the VFS and the rest must be initialized by the
--	get_sb() method
-+  struct file_system_type *fs_type: decribes the filesystem, partly initialized
-+  	by the specific filesystem code
- 
-   int flags: mount flags
- 
-@@ -150,12 +153,13 @@ The get_sb() method has the following ar
-   void *data: arbitrary mount options, usually comes as an ASCII
- 	string
- 
--  int silent: whether or not to be silent on error
-+  struct vfsmount *mnt: a vfs-internal representation of a mount point
- 
- The get_sb() method must determine if the block device specified
--in the superblock contains a filesystem of the type the method
--supports. On success the method returns the superblock pointer, on
--failure it returns NULL.
-+in the dev_name and fs_type contains a filesystem of the type the method
-+supports. If it succeeds in opening the named block device, it initializes a
-+struct super_block descriptor for the filesystem contained by the block device.
-+On failure it returns an error.
- 
- The most interesting member of the superblock structure that the
- get_sb() method fills in is the "s_op" field. This is a pointer to
+ 	/* NOTE: The following PCI ids must be kept in sync with the
+ 	 * list in drivers/pci/quirks.c.
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from chunkeey@web.de are
 
-update-description-in-documentation-filesystems-vfstxt-typo-fixed.patch
+libata-add-ich8m-pciids-to-ata_piix.patch
