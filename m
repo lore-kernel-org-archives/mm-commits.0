@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gfp_thisnode-behavior-for-memoryless-nodes.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:29:07 -0700
-Message-ID: <200706251829.l5PIT7Jn007903@imap1.linux-foundation.org>
+Subject: + numa-introduce-node_memory_map.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:29:03 -0700
+Message-ID: <200706251829.l5PIT32t007895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752987AbXFYS3e (ORCPT
+	by vger.kernel.org with ESMTP id S1752696AbXFYS3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:29:34 -0400
+	Mon, 25 Jun 2007 14:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, lee.schermerhorn@hp.com, nacc@us.ibm.com, rientjes@google.com
+Cc: clameter@sgi.com, Lee.Schermerhorn@hp.com, ak@suse.de, lee.schermerhorn@hp.com, nacc@us.ibm.com, rientjes@google.com
 
 
 The patch titled
-     Fix GFP_THISNODE behavior for memoryless nodes
+     NUMA: introduce node_memory_map
 has been added to the -mm tree.  Its filename is
-     fix-gfp_thisnode-behavior-for-memoryless-nodes.patch
+     numa-introduce-node_memory_map.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix GFP_THISNODE behavior for memoryless nodes
-From: clameter@sgi.com
+Subject: NUMA: introduce node_memory_map
+From: Christoph Lameter <clameter@sgi.com>
 
-GFP_THISNODE checks that the zone selected is within the pgdat (node) of the
-first zone of a nodelist.  That only works if the node has memory.  A
-memoryless node will have its first zone on another pgdat (node).
+It is necessary to know if nodes have memory since we have recently
+begun to add support for memoryless nodes. For that purpose we introduce
+a new bitmap called
 
-Thus GFP_THISNODE may be returning memory on other nodes.  GFP_THISNODE should
-fail if there is no local memory on a node.
+node_memory_map
 
-So we add a check to verify that the node specified has memory in
-alloc_pages_node().  If the node has no memory then return NULL.
+A node has its bit in node_memory_map set if it has memory. If a node
+has memory then it has at least one zone defined in its pgdat structure
+that is located in the pgdat itself.
 
-The case of alloc_pages(GFP_THISNODE) is not changed.  alloc_pages() (with no
-memory policies in effect) is understood to prefer the current node.  If a
-process is running on a node with no memory then its default allocations come
-from the next neighboring node.  GFP_THISNODE will then force the memory to
-come from that node.
+The node_memory_map can then be used in various places to insure that we
+do the right thing when we encounter a memoryless node.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    7 +++++++
- 1 files changed, 7 insertions(+)
+ include/linux/nodemask.h |   11 +++++++++++
+ mm/page_alloc.c          |    6 ++++++
+ 2 files changed, 17 insertions(+)
 
-diff -puN include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes include/linux/gfp.h
---- a/include/linux/gfp.h~fix-gfp_thisnode-behavior-for-memoryless-nodes
-+++ a/include/linux/gfp.h
-@@ -134,6 +134,13 @@ static inline struct page *alloc_pages_n
- 	if (nid < 0)
- 		nid = numa_node_id();
+diff -puN include/linux/nodemask.h~numa-introduce-node_memory_map include/linux/nodemask.h
+--- a/include/linux/nodemask.h~numa-introduce-node_memory_map
++++ a/include/linux/nodemask.h
+@@ -64,12 +64,16 @@
+  *
+  * int node_online(node)		Is some node online?
+  * int node_possible(node)		Is some node possible?
++ * int node_memory(node)		Does a node have memory?
+  *
+  * int any_online_node(mask)		First online node in mask
+  *
+  * node_set_online(node)		set bit 'node' in node_online_map
+  * node_set_offline(node)		clear bit 'node' in node_online_map
+  *
++ * node_set_memory(node)		set bit 'node' in node_memory_map
++ * node_clear_memoryd(node)		clear bit 'node' in node_memory_map
++ *
+  * for_each_node(node)			for-loop node over node_possible_map
+  * for_each_online_node(node)		for-loop node over node_online_map
+  *
+@@ -344,12 +348,14 @@ static inline void __nodes_remap(nodemas
  
-+	/*
-+	 * Check for the special case that GFP_THISNODE is used on a
-+	 * memoryless node
-+	 */
-+	if ((gfp_mask & __GFP_THISNODE) && !node_memory(nid))
-+		return NULL;
+ extern nodemask_t node_online_map;
+ extern nodemask_t node_possible_map;
++extern nodemask_t node_memory_map;
+ 
+ #if MAX_NUMNODES > 1
+ #define num_online_nodes()	nodes_weight(node_online_map)
+ #define num_possible_nodes()	nodes_weight(node_possible_map)
+ #define node_online(node)	node_isset((node), node_online_map)
+ #define node_possible(node)	node_isset((node), node_possible_map)
++#define node_memory(node)	node_isset((node), node_memory_map)
+ #define first_online_node	first_node(node_online_map)
+ #define next_online_node(nid)	next_node((nid), node_online_map)
+ extern int nr_node_ids;
+@@ -358,6 +364,8 @@ extern int nr_node_ids;
+ #define num_possible_nodes()	1
+ #define node_online(node)	((node) == 0)
+ #define node_possible(node)	((node) == 0)
++#define node_memory(node)	((node) == 0)
++#define node_populated(node)	((node) == 0)
+ #define first_online_node	0
+ #define next_online_node(nid)	(MAX_NUMNODES)
+ #define nr_node_ids		1
+@@ -375,6 +383,9 @@ extern int nr_node_ids;
+ #define node_set_online(node)	   set_bit((node), node_online_map.bits)
+ #define node_set_offline(node)	   clear_bit((node), node_online_map.bits)
+ 
++#define node_set_memory(node)     set_bit((node), node_memory_map.bits)
++#define node_clear_memory(node)   clear_bit((node), node_memory_map.bits)
 +
- 	return __alloc_pages(gfp_mask, order,
- 		NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_mask));
+ #define for_each_node(node)	   for_each_node_mask((node), node_possible_map)
+ #define for_each_online_node(node) for_each_node_mask((node), node_online_map)
+ 
+diff -puN mm/page_alloc.c~numa-introduce-node_memory_map mm/page_alloc.c
+--- a/mm/page_alloc.c~numa-introduce-node_memory_map
++++ a/mm/page_alloc.c
+@@ -54,6 +54,9 @@ nodemask_t node_online_map __read_mostly
+ EXPORT_SYMBOL(node_online_map);
+ nodemask_t node_possible_map __read_mostly = NODE_MASK_ALL;
+ EXPORT_SYMBOL(node_possible_map);
++nodemask_t node_memory_map __read_mostly = NODE_MASK_NONE;
++EXPORT_SYMBOL(node_memory_map);
++
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+ long nr_swap_pages;
+@@ -1967,6 +1970,9 @@ static void build_zonelists(pg_data_t *p
+ 		/* calculate node order -- i.e., DMA last! */
+ 		build_zonelists_in_zone_order(pgdat, j);
+ 	}
++
++	if (pgdat->node_present_pages)
++		node_set_memory(local_node);
  }
+ 
+ /* Construct the zonelist performance cache - see further mmzone.h */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
