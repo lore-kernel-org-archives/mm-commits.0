@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + numa-introduce-node_memory_map.patch added to -mm tree
-Date: Mon, 25 Jun 2007 11:29:03 -0700
-Message-ID: <200706251829.l5PIT32t007895@imap1.linux-foundation.org>
+Subject: + make-drivers-acpi-oslcosi_linux-static.patch added to -mm tree
+Date: Mon, 25 Jun 2007 11:33:13 -0700
+Message-ID: <200706251833.l5PIXD1M007982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752696AbXFYS3x (ORCPT
+	by vger.kernel.org with ESMTP id S1752053AbXFYSdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 14:29:53 -0400
+	Mon, 25 Jun 2007 14:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, Lee.Schermerhorn@hp.com, ak@suse.de, lee.schermerhorn@hp.com, nacc@us.ibm.com, rientjes@google.com
+Cc: bunk@stusta.de, lenb@kernel.org
 
 
 The patch titled
-     NUMA: introduce node_memory_map
+     make drivers/acpi/osl.c:osi_linux static
 has been added to the -mm tree.  Its filename is
-     numa-introduce-node_memory_map.patch
+     make-drivers-acpi-oslcosi_linux-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,172 +26,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NUMA: introduce node_memory_map
-From: Christoph Lameter <clameter@sgi.com>
+Subject: make drivers/acpi/osl.c:osi_linux static
+From: Adrian Bunk <bunk@stusta.de>
 
-It is necessary to know if nodes have memory since we have recently
-begun to add support for memoryless nodes. For that purpose we introduce
-a new bitmap called
+This patch makes the needlessly global osi_linux static.
 
-node_memory_map
-
-A node has its bit in node_memory_map set if it has memory. If a node
-has memory then it has at least one zone defined in its pgdat structure
-that is located in the pgdat itself.
-
-The node_memory_map can then be used in various places to insure that we
-do the right thing when we encounter a memoryless node.
-
-Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |   11 +++++++++++
- mm/page_alloc.c          |    6 ++++++
- 2 files changed, 17 insertions(+)
+ drivers/acpi/osl.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nodemask.h~numa-introduce-node_memory_map include/linux/nodemask.h
---- a/include/linux/nodemask.h~numa-introduce-node_memory_map
-+++ a/include/linux/nodemask.h
-@@ -64,12 +64,16 @@
-  *
-  * int node_online(node)		Is some node online?
-  * int node_possible(node)		Is some node possible?
-+ * int node_memory(node)		Does a node have memory?
-  *
-  * int any_online_node(mask)		First online node in mask
-  *
-  * node_set_online(node)		set bit 'node' in node_online_map
-  * node_set_offline(node)		clear bit 'node' in node_online_map
-  *
-+ * node_set_memory(node)		set bit 'node' in node_memory_map
-+ * node_clear_memoryd(node)		clear bit 'node' in node_memory_map
-+ *
-  * for_each_node(node)			for-loop node over node_possible_map
-  * for_each_online_node(node)		for-loop node over node_online_map
-  *
-@@ -344,12 +348,14 @@ static inline void __nodes_remap(nodemas
+diff -puN drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static
++++ a/drivers/acpi/osl.c
+@@ -77,7 +77,7 @@ static struct workqueue_struct *kacpi_no
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
  
- extern nodemask_t node_online_map;
- extern nodemask_t node_possible_map;
-+extern nodemask_t node_memory_map;
+-int osi_linux;		/* disable _OSI(Linux) by default */
++static int osi_linux;		/* disable _OSI(Linux) by default */
  
- #if MAX_NUMNODES > 1
- #define num_online_nodes()	nodes_weight(node_online_map)
- #define num_possible_nodes()	nodes_weight(node_possible_map)
- #define node_online(node)	node_isset((node), node_online_map)
- #define node_possible(node)	node_isset((node), node_possible_map)
-+#define node_memory(node)	node_isset((node), node_memory_map)
- #define first_online_node	first_node(node_online_map)
- #define next_online_node(nid)	next_node((nid), node_online_map)
- extern int nr_node_ids;
-@@ -358,6 +364,8 @@ extern int nr_node_ids;
- #define num_possible_nodes()	1
- #define node_online(node)	((node) == 0)
- #define node_possible(node)	((node) == 0)
-+#define node_memory(node)	((node) == 0)
-+#define node_populated(node)	((node) == 0)
- #define first_online_node	0
- #define next_online_node(nid)	(MAX_NUMNODES)
- #define nr_node_ids		1
-@@ -375,6 +383,9 @@ extern int nr_node_ids;
- #define node_set_online(node)	   set_bit((node), node_online_map.bits)
- #define node_set_offline(node)	   clear_bit((node), node_online_map.bits)
- 
-+#define node_set_memory(node)     set_bit((node), node_memory_map.bits)
-+#define node_clear_memory(node)   clear_bit((node), node_memory_map.bits)
-+
- #define for_each_node(node)	   for_each_node_mask((node), node_possible_map)
- #define for_each_online_node(node) for_each_node_mask((node), node_online_map)
- 
-diff -puN mm/page_alloc.c~numa-introduce-node_memory_map mm/page_alloc.c
---- a/mm/page_alloc.c~numa-introduce-node_memory_map
-+++ a/mm/page_alloc.c
-@@ -54,6 +54,9 @@ nodemask_t node_online_map __read_mostly
- EXPORT_SYMBOL(node_online_map);
- nodemask_t node_possible_map __read_mostly = NODE_MASK_ALL;
- EXPORT_SYMBOL(node_possible_map);
-+nodemask_t node_memory_map __read_mostly = NODE_MASK_NONE;
-+EXPORT_SYMBOL(node_memory_map);
-+
- unsigned long totalram_pages __read_mostly;
- unsigned long totalreserve_pages __read_mostly;
- long nr_swap_pages;
-@@ -1967,6 +1970,9 @@ static void build_zonelists(pg_data_t *p
- 		/* calculate node order -- i.e., DMA last! */
- 		build_zonelists_in_zone_order(pgdat, j);
- 	}
-+
-+	if (pgdat->node_present_pages)
-+		node_set_memory(local_node);
- }
- 
- /* Construct the zonelist performance cache - see further mmzone.h */
+ #ifdef CONFIG_DMI
+ static struct __initdata dmi_system_id acpi_osl_dmi_table[];
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-numa-introduce-node_memory_map.patch
-numa-introduce-node_memory_map-fix.patch
-fix-gfp_thisnode-behavior-for-memoryless-nodes.patch
-fix-gfp_thisnode-behavior-for-memoryless-nodes-fix.patch
-fix-mpol_interleave-behavior-for-memoryless-nodes.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+git-acpi.patch
+make-drivers-acpi-oslcosi_linux-static.patch
+drivers-acpi-processor_throttlingc-make-2-functions.patch
+drivers-cpuidle-governors-menuc-make-a-struct-static.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
+git-dvb.patch
+git-input.patch
+git-kvm.patch
+drivers-ata-sata_nvc-make-3-functions-static.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+mark-calibrate_xor_blocks-__init.patch
+git-mmc.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
+git-battery.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
+handle-kernelcore=-generic-fix.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+more-scheduled-oss-driver-removal.patch
+remove-sonypi_camera_command.patch
+make-drivers-char-selectioncstore_utf8-static.patch
+ext2-reservations.patch
 revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+kernel-sched_fairc-make-code-static.patch
+fs-proc-basec-make-a-struct-static.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks-fix.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
