@@ -1,55 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - uml-add-asm-paravirth.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:07 -0700
-Message-ID: <200706250921.l5P9L7Mw031071@imap1.linux-foundation.org>
+Subject: - sm501-fix-sm501_init_reg-mask-set-order.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:20:39 -0700
+Message-ID: <200706250920.l5P9Kdsp031035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54228 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48437 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751843AbXFYJVT (ORCPT
+	by vger.kernel.org with ESMTP id S1751875AbXFYJVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:21:19 -0400
+	Mon, 25 Jun 2007 05:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: add asm/paravirt.h
+     SM501: Fix sm501_init_reg() mask/set order
 has been removed from the -mm tree.  Its filename was
-     uml-add-asm-paravirth.patch
+     sm501-fix-sm501_init_reg-mask-set-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: add asm/paravirt.h
-From: Jeff Dike <jdike@addtoit.com>
+Subject: SM501: Fix sm501_init_reg() mask/set order
+From: Ben Dooks <ben-linux@fluff.org>
 
-Add asm-um/paravirt.h so that i386 headers that get pulled into UML
-don't cause build failures when they want asm/paravirt.h.
+The order of the set and mask operation in sm501_init_reg() was setting and
+then masking the bits set.  Correct the order so that we do not end up with
+288MHz SDRAM clocks on certain systems.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/paravirt.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/mfd/sm501.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null include/asm-um/paravirt.h
---- /dev/null
-+++ a/include/asm-um/paravirt.h
-@@ -0,0 +1,6 @@
-+#ifndef __UM_PARAVIRT_H
-+#define __UM_PARAVIRT_H
-+
-+#include "asm/arch/paravirt.h"
-+
-+#endif
+diff -puN drivers/mfd/sm501.c~sm501-fix-sm501_init_reg-mask-set-order drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-fix-sm501_init_reg-mask-set-order
++++ a/drivers/mfd/sm501.c
+@@ -813,6 +813,9 @@ static DEVICE_ATTR(dbg_regs, 0666, sm501
+ /* sm501_init_reg
+  *
+  * Helper function for the init code to setup a register
++ *
++ * clear the bits which are set in r->mask, and then set
++ * the bits set in r->set.
+ */
+ 
+ static inline void sm501_init_reg(struct sm501_devdata *sm,
+@@ -822,8 +825,8 @@ static inline void sm501_init_reg(struct
+ 	unsigned long tmp;
+ 
+ 	tmp = readl(sm->regs + reg);
+-	tmp |= r->set;
+ 	tmp &= ~r->mask;
++	tmp |= r->set;
+ 	writel(tmp, sm->regs + reg);
+ }
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-hostfs-convert-to-new-aops.patch
-uml-fix-request-sector-update.patch
-uml-use-get_free_pages-to-allocate-kernel-stacks.patch
-uml-add-stack-usage-monitoring.patch
+git-watchdog.patch
+spi-tle620x-power-switch-driver.patch
