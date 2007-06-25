@@ -1,109 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - ide-fix-a-theoretical-ooops-case.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:36 -0700
-Message-ID: <200706250921.l5P9LavM031129@imap1.linux-foundation.org>
+Subject: - x86_64-fix-misplaced-continue-in-mcec.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:19 -0700
+Message-ID: <200706250921.l5P9LJpg031086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751396AbXFYJYn (ORCPT
+	by vger.kernel.org with ESMTP id S1751403AbXFYJYn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 25 Jun 2007 05:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: jwise@google.com, ak@suse.de, thockin@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: fix a theoretical Ooops case
+     x86_64: fix misplaced `continue' in mce.c
 has been removed from the -mm tree.  Its filename was
-     ide-fix-a-theoretical-ooops-case.patch
+     x86_64-fix-misplaced-continue-in-mcec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide: fix a theoretical Ooops case
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: x86_64: fix misplaced `continue' in mce.c
+From: Joshua Wise <jwise@google.com>
 
-Found by a static analyser.  It is in theory possible we dereference
-dev->id when it has become invalid.  Re-order to avoid this.
+Background:
+  When a userspace application wants to know about machine check events, it
+  opens /dev/mcelog and does a read(). Usually, we found that this interface
+  works well, but in some cases, when the system was taking large numbers of
+  machine check exceptions, the read() would hang. The system would output a
+  soft-lockup warning, and the daemon reading from /dev/mcelog would suck up
+  as much of a single CPU as it could spinning in system space.
 
-Not needed for new-ide as we no longer support the crazy exabyte nest stuff
+Description:
+  This patch fixes this bug. In particular, there was a "continue" inside a
+  timeout loop that presumably was intended to break out of the outer loop,
+  but instead caused the inner loop to continue. This patch also makes the
+  condition for the break-out a little more evident by changing a
+  !time_before to a time_after_eq.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Result:
+  The read() no longer hangs in this test case.
+
+Testing:
+  On my system, I could replicate the bug with the following command:
+    # for i in `seq 15000`; do ./inject_sbe.sh; done
+  where inject_sbe.sh contains commands to inject a single-bit error into the
+  next memory write transaction.
+
+Patch:
+  This patch is against git f1518a088bde6aea49e7c472ed6ab96178fcba3e.
+
+Signed-off-by: Joshua Wise <jwise@google.com>
+Signed-off-by: Tim Hockin <thockin@google.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-probe.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/mce.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/ide-probe.c~ide-fix-a-theoretical-ooops-case drivers/ide/ide-probe.c
---- a/drivers/ide/ide-probe.c~ide-fix-a-theoretical-ooops-case
-+++ a/drivers/ide/ide-probe.c
-@@ -574,11 +574,11 @@ static inline u8 probe_for_drive (ide_dr
- 			/* look for ATAPI device */
- 			(void) do_probe(drive, WIN_PIDENTIFY);
+diff -puN arch/x86_64/kernel/mce.c~x86_64-fix-misplaced-continue-in-mcec arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~x86_64-fix-misplaced-continue-in-mcec
++++ a/arch/x86_64/kernel/mce.c
+@@ -497,15 +497,17 @@ static ssize_t mce_read(struct file *fil
+ 	for (i = 0; i < next; i++) {		
+ 		unsigned long start = jiffies;
+ 		while (!mcelog.entry[i].finished) {
+-			if (!time_before(jiffies, start + 2)) {
++			if (time_after_eq(jiffies, start + 2)) {
+ 				memset(mcelog.entry + i,0, sizeof(struct mce));
+-				continue;
++				goto timeout;
+ 			}
+ 			cpu_relax();
  		}
--		if (strstr(drive->id->model, "E X A B Y T E N E S T"))
--			enable_nest(drive);
- 		if (!drive->present)
- 			/* drive not found */
- 			return 0;
-+		if (strstr(drive->id->model, "E X A B Y T E N E S T"))
-+			enable_nest(drive);
- 	
- 		/* identification failed? */
- 		if (!drive->id_read) {
+ 		smp_rmb();
+ 		err |= copy_to_user(buf, mcelog.entry + i, sizeof(struct mce));
+ 		buf += sizeof(struct mce); 
++ timeout:
++		;
+ 	} 
+ 
+ 	memset(mcelog.entry, 0, next * sizeof(struct mce));
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-lots-of-architectures-enable-arbitary-speed-tty-support.patch
-powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
-ia64-arbitary-speed-tty-ioctl-support.patch
-git-libata-all.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-hpt374-is-udma100-not-udma133.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-ppa-coding-police-and-printk-levels.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-h8300-enable-arbitary-speed-tty-port-setup.patch
-arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
-m32r-enable-arbitary-speed-tty-rate-setting.patch
-etrax-enable-arbitary-speed-setting-on-tty-ports.patch
-v850-enable-arbitary-speed-tty-ioctls.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
-update-zilog-timeout.patch
-edd-switch-to-pci_get-based-api.patch
-mpu401-warning-fixes.patch
-char-tty_ioctl-use-wait_event_interruptible_timeout.patch
-char-tty_ioctl-little-whitespace-cleanup.patch
-intel-rng-undo-mess-made-by-an-80-column-extremist.patch
-improve-behaviour-of-spurious-irq-detect.patch
-audit-add-tty-input-auditing.patch
-audit-add-tty-input-auditing-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-i2o_cfg_passthru-cleanup.patch
-i2o_cfg_passthru-cleanup-fix.patch
-wrong-memory-access-in-i2o_block_device_lock.patch
-i2o-message-leak-in-i2o_msg_post_wait_mem.patch
-i2o-proc-reading-oops.patch
-i2o-debug-output-cleanup.patch
-coredump-masking-bound-suid_dumpable-sysctl.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-coredump-masking-add-an-interface-for-core-dump-filter.patch
-coredump-masking-elf-enable-core-dump-filtering.patch
-coredump-masking-elf-fdpic-remove-an-unused-argument.patch
-coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
-coredump-masking-documentation-for-proc-pid-coredump_filter.patch
-driver-edac-add-mips-and-ppc-visibility.patch
-driver-edac-mod-race-fix-i82875p.patch
-driver-edac-fix-ignored-return-i82875p.patch
-include-linux-pci_id-h-add-amd-northbridge-defines.patch
+Patches currently in -mm which might be from jwise@google.com are
