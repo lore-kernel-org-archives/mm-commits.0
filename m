@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 14:51:01 -0700
-Message-ID: <200706252151.l5PLp1lt011659@imap1.linux-foundation.org>
+Subject: - i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 14:51:09 -0700
+Message-ID: <200706252151.l5PLp97D011668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47164 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752995AbXFYVvL (ORCPT
+	by vger.kernel.org with ESMTP id S1756593AbXFYVvT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 17:51:11 -0400
+	Mon, 25 Jun 2007 17:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, jesse.barnes@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
+     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2
 has been removed from the -mm tree.  Its filename was
-     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
 
 This patch was dropped because it was folded into i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch
 
 ------------------------------------------------------
-Subject: i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
+Subject: i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/cpu/mtrr/main.c: In function 'mtrr_trim_uncached_memory':
-arch/i386/kernel/cpu/mtrr/main.c:655: error: 'end_pfn' undeclared (first use in this function)
-arch/i386/kernel/cpu/mtrr/main.c:655: error: (Each undeclared identifier is reported only once
-arch/i386/kernel/cpu/mtrr/main.c:655: error: for each function it appears in.)
+arch/x86_64/kernel/setup.c: In function 'setup_arch':
+arch/x86_64/kernel/setup.c:271: warning: implicit declaration of function 'mtrr_trim_uncached_memory'
+
+arch/x86_64/kernel/built-in.o: In function `setup_arch':
+: undefined reference to `mtrr_trim_uncached_memory'
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: Jesse Barnes <jesse.barnes@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-x86_64/mtrr.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -625,6 +625,7 @@ static struct sysdev_driver mtrr_sysdev_
- 	.resume		= mtrr_restore,
- };
- 
-+#ifdef CONFIG_X86_64
- /**
-  * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
-  *
-@@ -661,6 +662,7 @@ void __init mtrr_trim_uncached_memory(vo
- 		end_pfn = highest_addr >> PAGE_SHIFT;
- 	}
+diff -puN include/asm-x86_64/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2 include/asm-x86_64/mtrr.h
+--- a/include/asm-x86_64/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2
++++ a/include/asm-x86_64/mtrr.h
+@@ -100,7 +100,9 @@ static __inline__ int mtrr_del_page (int
+ {
+     return -ENODEV;
  }
-+#endif
+-
++static inline void mtrr_trim_uncached_memory(void)
++{
++}
+ #endif /* CONFIG_MTRR */
  
- /**
-  * mtrr_bp_init - initialize mtrrs on the boot CPU
+ #ifdef CONFIG_COMPAT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,7 +123,6 @@ x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
 i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch
-i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix.patch
 i386-x86_64-trim-memory-not-covered-by-wb-mtrrs-fix-2.patch
 i386-mtrr-clean-up-usage_table.patch
 i386-show-unhandled-signals-fix.patch
