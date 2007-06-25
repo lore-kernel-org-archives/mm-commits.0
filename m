@@ -1,89 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-fix-misplaced-continue-in-mcec.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:19 -0700
-Message-ID: <200706250921.l5P9LJpg031086@imap1.linux-foundation.org>
+Subject: - audit-fix-oops-removing-watch-if-audit-disabled.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:23 -0700
+Message-ID: <200706250921.l5P9LNgF031092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53194 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751403AbXFYJYn (ORCPT
+	by vger.kernel.org with ESMTP id S1751683AbXFYJYn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 25 Jun 2007 05:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jwise@google.com, ak@suse.de, thockin@google.com, mm-commits@vger.kernel.org
+To: tonyj@suse.de, stable@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: fix misplaced `continue' in mce.c
+     audit: fix oops removing watch if audit disabled
 has been removed from the -mm tree.  Its filename was
-     x86_64-fix-misplaced-continue-in-mcec.patch
+     audit-fix-oops-removing-watch-if-audit-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: fix misplaced `continue' in mce.c
-From: Joshua Wise <jwise@google.com>
+Subject: audit: fix oops removing watch if audit disabled
+From: Tony Jones <tonyj@suse.de>
 
-Background:
-  When a userspace application wants to know about machine check events, it
-  opens /dev/mcelog and does a read(). Usually, we found that this interface
-  works well, but in some cases, when the system was taking large numbers of
-  machine check exceptions, the read() would hang. The system would output a
-  soft-lockup warning, and the daemon reading from /dev/mcelog would suck up
-  as much of a single CPU as it could spinning in system space.
+Removing a watched file will oops if audit is disabled (auditctl -e 0).
 
-Description:
-  This patch fixes this bug. In particular, there was a "continue" inside a
-  timeout loop that presumably was intended to break out of the outer loop,
-  but instead caused the inner loop to continue. This patch also makes the
-  condition for the break-out a little more evident by changing a
-  !time_before to a time_after_eq.
+To reproduce:
+- auditctl -e 1
+- touch /tmp/foo
+- auditctl -w /tmp/foo
+- auditctl -e 0
+- rm /tmp/foo (or mv)
 
-Result:
-  The read() no longer hangs in this test case.
-
-Testing:
-  On my system, I could replicate the bug with the following command:
-    # for i in `seq 15000`; do ./inject_sbe.sh; done
-  where inject_sbe.sh contains commands to inject a single-bit error into the
-  next memory write transaction.
-
-Patch:
-  This patch is against git f1518a088bde6aea49e7c472ed6ab96178fcba3e.
-
-Signed-off-by: Joshua Wise <jwise@google.com>
-Signed-off-by: Tim Hockin <thockin@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Tony Jones <tonyj@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/mce.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/auditfilter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/mce.c~x86_64-fix-misplaced-continue-in-mcec arch/x86_64/kernel/mce.c
---- a/arch/x86_64/kernel/mce.c~x86_64-fix-misplaced-continue-in-mcec
-+++ a/arch/x86_64/kernel/mce.c
-@@ -497,15 +497,17 @@ static ssize_t mce_read(struct file *fil
- 	for (i = 0; i < next; i++) {		
- 		unsigned long start = jiffies;
- 		while (!mcelog.entry[i].finished) {
--			if (!time_before(jiffies, start + 2)) {
-+			if (time_after_eq(jiffies, start + 2)) {
- 				memset(mcelog.entry + i,0, sizeof(struct mce));
--				continue;
-+				goto timeout;
- 			}
- 			cpu_relax();
- 		}
- 		smp_rmb();
- 		err |= copy_to_user(buf, mcelog.entry + i, sizeof(struct mce));
- 		buf += sizeof(struct mce); 
-+ timeout:
-+		;
- 	} 
+diff -puN kernel/auditfilter.c~audit-fix-oops-removing-watch-if-audit-disabled kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-fix-oops-removing-watch-if-audit-disabled
++++ a/kernel/auditfilter.c
+@@ -947,7 +947,7 @@ static void audit_update_watch(struct au
  
- 	memset(mcelog.entry, 0, next * sizeof(struct mce));
+ 		/* If the update involves invalidating rules, do the inode-based
+ 		 * filtering now, so we don't omit records. */
+-		if (invalidating &&
++		if (invalidating && current->audit_context &&
+ 		    audit_filter_inodes(current, current->audit_context) == AUDIT_RECORD_CONTEXT)
+ 			audit_set_auditable(current->audit_context);
+ 
 _
 
-Patches currently in -mm which might be from jwise@google.com are
+Patches currently in -mm which might be from tonyj@suse.de are
