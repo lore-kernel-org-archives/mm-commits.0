@@ -1,218 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-suspend-support.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:20:33 -0700
-Message-ID: <200706250920.l5P9KXwV031025@imap1.linux-foundation.org>
+Subject: - fix-refcounting-of-nsproxy-object-when-unshared.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:20:25 -0700
+Message-ID: <200706250920.l5P9KPgk031018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33243 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751414AbXFYJVS (ORCPT
+	by vger.kernel.org with ESMTP id S1751586AbXFYJVT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:21:18 -0400
+	Mon, 25 Jun 2007 05:21:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, mm-commits@vger.kernel.org
+To: clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, oleg@tv-sign.ru, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SM501: suspend support
+     fix refcounting of nsproxy object when unshared
 has been removed from the -mm tree.  Its filename was
-     sm501-suspend-support.patch
+     fix-refcounting-of-nsproxy-object-when-unshared.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SM501: suspend support
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: fix refcounting of nsproxy object when unshared
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-This patch adds support for suspending the core (mfd driver) of the SM501.
+When a namespace is unshared, a refcount on the previous nsproxy is
+abusively taken, leading to a memory leak of nsproxy objects.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |  113 +++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 105 insertions(+), 8 deletions(-)
+ kernel/nsproxy.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-suspend-support drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-suspend-support
-+++ a/drivers/mfd/sm501.c
-@@ -41,6 +41,9 @@ struct sm501_devdata {
- 	struct resource			*regs_claim;
- 	struct sm501_platdata		*platdata;
+diff -puN kernel/nsproxy.c~fix-refcounting-of-nsproxy-object-when-unshared kernel/nsproxy.c
+--- a/kernel/nsproxy.c~fix-refcounting-of-nsproxy-object-when-unshared
++++ a/kernel/nsproxy.c
+@@ -145,13 +145,11 @@ void free_nsproxy(struct nsproxy *ns)
  
-+	unsigned int			 in_suspend;
-+	unsigned long			 pm_misc;
-+
- 	int				 unit_power[20];
- 	unsigned int			 pdev_id;
- 	unsigned int			 irq;
-@@ -169,10 +172,41 @@ x		 "M %ld.%ld (%ld), MX1 %ld.%ld (%ld)\
- 		fmt_freq(decode_div(pll2, pm1, 8,  1<<12, 15, misc_div)),
- 		fmt_freq(decode_div(pll2, pm1, 0,  1<<4,  15, misc_div)));
- }
--#else
--static void sm501_dump_clk(struct sm501_devdata *sm)
-+
-+static void sm501_dump_regs(struct sm501_devdata *sm)
+ /*
+  * Called from unshare. Unshare all the namespaces part of nsproxy.
+- * On sucess, returns the new nsproxy and a reference to old nsproxy
+- * to make sure it stays around.
++ * On success, returns the new nsproxy.
+  */
+ int unshare_nsproxy_namespaces(unsigned long unshare_flags,
+ 		struct nsproxy **new_nsp, struct fs_struct *new_fs)
  {
-+	void __iomem *regs = sm->regs;
-+
-+	dev_info(sm->dev, "System Control   %08x\n",
-+			readl(regs + SM501_SYSTEM_CONTROL));
-+	dev_info(sm->dev, "Misc Control     %08x\n",
-+			readl(regs + SM501_MISC_CONTROL));
-+	dev_info(sm->dev, "GPIO Control Low %08x\n",
-+			readl(regs + SM501_GPIO31_0_CONTROL));
-+	dev_info(sm->dev, "GPIO Control Hi  %08x\n",
-+			readl(regs + SM501_GPIO63_32_CONTROL));
-+	dev_info(sm->dev, "DRAM Control     %08x\n",
-+			readl(regs + SM501_DRAM_CONTROL));
-+	dev_info(sm->dev, "Arbitration Ctrl %08x\n",
-+			readl(regs + SM501_ARBTRTN_CONTROL));
-+	dev_info(sm->dev, "Misc Timing      %08x\n",
-+			readl(regs + SM501_MISC_TIMING));
-+}
-+
-+static void sm501_dump_gate(struct sm501_devdata *sm)
-+{
-+	dev_info(sm->dev, "CurrentGate      %08x\n",
-+			readl(sm->regs + SM501_CURRENT_GATE));
-+	dev_info(sm->dev, "CurrentClock     %08x\n",
-+			readl(sm->regs + SM501_CURRENT_CLOCK));
-+	dev_info(sm->dev, "PowerModeControl %08x\n",
-+			readl(sm->regs + SM501_POWER_MODE_CONTROL));
+-	struct nsproxy *old_ns = current->nsproxy;
+ 	int err = 0;
+ 
+ 	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC)))
+@@ -170,13 +168,9 @@ int unshare_nsproxy_namespaces(unsigned 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	get_nsproxy(old_ns);
+-
+ 	*new_nsp = create_new_namespaces(unshare_flags, current,
+ 				new_fs ? new_fs : current->fs);
+-	if (IS_ERR(*new_nsp)) {
++	if (IS_ERR(*new_nsp))
+ 		err = PTR_ERR(*new_nsp);
+-		put_nsproxy(old_ns);
+-	}
+ 	return err;
  }
-+
-+#else
-+static inline void sm501_dump_gate(struct sm501_devdata *sm) { }
-+static inline void sm501_dump_regs(struct sm501_devdata *sm) { }
-+static inline void sm501_dump_clk(struct sm501_devdata *sm) { }
- #endif
- 
- /* sm501_sync_regs
-@@ -185,9 +219,21 @@ static void sm501_sync_regs(struct sm501
- 	readl(sm->regs);
- }
- 
-+static inline void sm501_mdelay(struct sm501_devdata *sm, unsigned int delay)
-+{
-+	/* during suspend/resume, we are currently not allowed to sleep,
-+	 * so change to using mdelay() instead of msleep() if we
-+	 * are in one of these paths */
-+
-+	if (sm->in_suspend)
-+		mdelay(delay);
-+	else
-+		msleep(delay);
-+}
-+
- /* sm501_misc_control
-  *
-- * alters the misceleneous control parameters
-+ * alters the miscellaneous control parameters
- */
- 
- int sm501_misc_control(struct device *dev,
-@@ -368,7 +414,7 @@ int sm501_unit_power(struct device *dev,
- 	dev_dbg(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
- 		gate, clock, mode);
- 
--	msleep(16);
-+	sm501_mdelay(sm, 16);
- 
-  already:
- 	mutex_unlock(&sm->clock_lock);
-@@ -538,7 +584,7 @@ unsigned long sm501_set_clock(struct dev
- 	dev_info(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
- 		 gate, clock, mode);
- 
--	msleep(16);
-+	sm501_mdelay(sm, 16);
- 	mutex_unlock(&sm->clock_lock);
- 
- 	sm501_dump_clk(sm);
-@@ -841,9 +887,7 @@ static int sm501_init_dev(struct sm501_d
- 		 sm->regs, readl(sm->regs + SM501_DEVICEID),
- 		 (unsigned long)mem_avail >> 20, sm->irq);
- 
--	dev_info(sm->dev, "CurrentGate      %08x\n", readl(sm->regs+0x38));
--	dev_info(sm->dev, "CurrentClock     %08x\n", readl(sm->regs+0x3c));
--	dev_info(sm->dev, "PowerModeControl %08x\n", readl(sm->regs+0x54));
-+	sm501_dump_gate(sm);
- 
- 	ret = device_create_file(sm->dev, &dev_attr_dbg_regs);
- 	if (ret)
-@@ -933,6 +977,57 @@ static int sm501_plat_probe(struct platf
- 
- }
- 
-+#ifdef CONFIG_PM
-+/* power management support */
-+
-+static int sm501_plat_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct sm501_devdata *sm = platform_get_drvdata(pdev);
-+
-+	sm->in_suspend = 1;
-+	sm->pm_misc = readl(sm->regs + SM501_MISC_CONTROL);
-+
-+	sm501_dump_regs(sm);
-+	return 0;
-+}
-+
-+static int sm501_plat_resume(struct platform_device *pdev)
-+{
-+	struct sm501_devdata *sm = platform_get_drvdata(pdev);
-+
-+	sm501_dump_regs(sm);
-+	sm501_dump_gate(sm);
-+	sm501_dump_clk(sm);
-+
-+	/* check to see if we are in the same state as when suspended */
-+
-+	if (readl(sm->regs + SM501_MISC_CONTROL) != sm->pm_misc) {
-+		dev_info(sm->dev, "SM501_MISC_CONTROL changed over sleep\n");
-+		writel(sm->pm_misc, sm->regs + SM501_MISC_CONTROL);
-+
-+		/* our suspend causes the controller state to change,
-+		 * either by something attempting setup, power loss,
-+		 * or an external reset event on power change */
-+
-+		if (sm->platdata && sm->platdata->init) {
-+			sm501_init_regs(sm, sm->platdata->init);
-+		}
-+	}
-+
-+	/* dump our state from resume */
-+
-+	sm501_dump_regs(sm);
-+	sm501_dump_clk(sm);
-+
-+	sm->in_suspend = 0;
-+
-+	return 0;
-+}
-+#else
-+#define sm501_plat_suspend NULL
-+#define sm501_plat_resume NULL
-+#endif
-+
- /* Initialisation data for PCI devices */
- 
- static struct sm501_initdata sm501_pci_initdata = {
-@@ -1126,6 +1221,8 @@ static struct platform_driver sm501_plat
- 	},
- 	.probe		= sm501_plat_probe,
- 	.remove		= sm501_plat_remove,
-+	.suspend	= sm501_plat_suspend,
-+	.resume		= sm501_plat_resume,
- };
- 
- static int __init sm501_base_init(void)
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
-git-watchdog.patch
-spi-tle620x-power-switch-driver.patch
+mm-merge-nopfn-into-fault-spufs-fix.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+add-a-kmem_cache-for-nsproxy-objects.patch
+namespace-ensure-clone_flags-are-always-stored-in-an-unsigned-long.patch
+containersv10-add-tasks-file-interface-fix-2.patch
