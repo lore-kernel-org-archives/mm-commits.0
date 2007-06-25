@@ -1,212 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-alignment-problem-in-csum_ipv6_magic.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:20:56 -0700
-Message-ID: <200706250920.l5P9KusW031062@imap1.linux-foundation.org>
+Subject: - sm501-add-documentation-sm501txt.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:20:43 -0700
+Message-ID: <200706250920.l5P9KhVs031041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751876AbXFYJVX (ORCPT
+	by vger.kernel.org with ESMTP id S1751843AbXFYJVY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:21:23 -0400
+	Mon, 25 Jun 2007 05:21:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, jailbird@alcatraz.fdf.net, rth@twiddle.net, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix alignment problem in csum_ipv6_magic()
+     SM501: Add Documentation/SM501.txt
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-alignment-problem-in-csum_ipv6_magic.patch
+     sm501-add-documentation-sm501txt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: fix alignment problem in csum_ipv6_magic()
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: SM501: Add Documentation/SM501.txt
+From: Ben Dooks <ben-linux@fluff.org>
 
-Hopefully this fixes http://bugzilla.kernel.org/show_bug.cgi?id=8635
+Add documentation for the SM501 in Documentation/SM501.txt outlining the SM501
+driver.
 
-The struct in6_addr passed to csum_ipv6_magic() is 4 byte aligned, so we
-can't use the regular 64-bit loads.  Since the cost of handling of 4 byte
-and 1 byte aligned 64-bit data is roughly the same, this code can cope with
-any src/dst [mis]alignment.
-
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Dustin Marquess <jailbird@alcatraz.fdf.net>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/lib/csum_ipv6_magic.S     |   51 ++++++++++++++++++-------
- arch/alpha/lib/ev6-csum_ipv6_magic.S |   42 ++++++++++++++++----
- 2 files changed, 70 insertions(+), 23 deletions(-)
+ Documentation/SM501.txt |   66 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN arch/alpha/lib/csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic arch/alpha/lib/csum_ipv6_magic.S
---- a/arch/alpha/lib/csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic
-+++ a/arch/alpha/lib/csum_ipv6_magic.S
-@@ -7,6 +7,9 @@
-  *                                __u32 len,
-  *                                unsigned short proto,
-  *                                unsigned int csum);
-+ *
-+ * Misalignment handling (which costs 16 instructions / 8 cycles)
-+ * added by Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-  */
- 
- 	.globl csum_ipv6_magic
-@@ -16,37 +19,57 @@
- csum_ipv6_magic:
- 	.prologue 0
- 
--	ldq	$0,0($16)	# e0    : load src & dst addr words
-+	ldq_u	$0,0($16)	# e0    : load src & dst addr words
- 	zapnot	$20,15,$20	# .. e1 : zero extend incoming csum
- 	extqh	$18,1,$4	# e0    : byte swap len & proto while we wait
--	ldq	$1,8($16)	# .. e1 :
-+	ldq_u	$21,7($16)	# .. e1 : handle misalignment
- 
- 	extbl	$18,1,$5	# e0	:
--	ldq	$2,0($17)	# .. e1 :
-+	ldq_u	$1,8($16)	# .. e1 :
- 	extbl	$18,2,$6	# e0 	:
--	ldq	$3,8($17)	# .. e1 :
-+	ldq_u	$22,15($16)	# .. e1 :
- 
- 	extbl	$18,3,$18	# e0	:
-+	ldq_u	$2,0($17)	# .. e1 :
- 	sra	$4,32,$4	# e0	:
-+	ldq_u	$23,7($17)	# .. e1 :
+diff -puN /dev/null Documentation/SM501.txt
+--- /dev/null
++++ a/Documentation/SM501.txt
+@@ -0,0 +1,66 @@
++			SM501 Driver
++			============
 +
-+	extql	$0,$16,$0	# e0	:
-+	ldq_u	$3,8($17)	# .. e1 :
-+	extqh	$21,$16,$21	# e0	:
-+	ldq_u	$24,15($17)	# .. e1 :
++Copyright 2006, 2007 Simtec Electronics
 +
- 	sll	$5,16,$5	# e0	:
-+	or	$0,$21,$0	# .. e1 : 1st src word complete
-+	extql	$1,$16,$1	# e0	:
- 	addq	$20,$0,$20	# .. e1 : begin summing the words
- 
--	sll	$6,8,$6		# e0	:
-+	extqh	$22,$16,$22	# e0	:
- 	cmpult	$20,$0,$0	# .. e1 :
--	extwh	$19,7,$7	# e0    :
--	or	$4,$18,$18	# .. e1 :
-+	sll	$6,8,$6		# e0	:
-+	or	$1,$22,$1	# .. e1 : 2nd src word complete
- 
--	extbl	$19,1,$19	# e0    :
-+	extql	$2,$17,$2	# e0	:
-+	or	$4,$18,$18	# .. e1 :
-+	extqh	$23,$17,$23	# e0	:
- 	or	$5,$6,$5	# .. e1 :
--	or	$18,$5,$18	# e0    : len complete
--	or	$19,$7,$19	# .. e1 :
- 
--	sll	$19,48,$19	# e0    :
-+	extql	$3,$17,$3	# e0	:
-+	or	$2,$23,$2	# .. e1 : 1st dst word complete
-+	extqh	$24,$17,$24	# e0	:
-+	or	$18,$5,$18	# .. e1 : len complete
++Core
++----
 +
-+	extwh	$19,7,$7	# e0    :
-+	or	$3,$24,$3	# .. e1 : 2nd dst word complete
-+	extbl	$19,1,$19	# e0    :
- 	addq	$20,$1,$20	# .. e1 :
--	sra	$19,32,$19	# e0    : proto complete
++The core driver in drivers/mfd provides common services for the
++drivers which manage the specific hardware blocks. These services
++include locking for common registers, clock control and resource
++management.
 +
-+	or	$19,$7,$19	# e0    :
- 	cmpult	$20,$1,$1	# .. e1 :
-+	sll	$19,48,$19	# e0    :
-+	nop			# .. e0 :
- 
--	nop			# e0    :
-+	sra	$19,32,$19	# e0    : proto complete
- 	addq	$20,$2,$20	# .. e1 :
- 	cmpult	$20,$2,$2	# e0    :
- 	addq	$20,$3,$20	# .. e1 :
-@@ -84,7 +107,7 @@ csum_ipv6_magic:
- 	extwl	$0,2,$1		# e0    : fold 17-bit value
- 	zapnot	$0,3,$0		# .. e1 :
- 	addq	$0,$1,$0	# e0    :
--	not	$0,$0		# e1    : and complement.
-+	not	$0,$0		# .. e1 : and complement.
- 
- 	zapnot	$0,3,$0		# e0    :
- 	ret			# .. e1 :
-diff -puN arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic arch/alpha/lib/ev6-csum_ipv6_magic.S
---- a/arch/alpha/lib/ev6-csum_ipv6_magic.S~alpha-fix-alignment-problem-in-csum_ipv6_magic
-+++ a/arch/alpha/lib/ev6-csum_ipv6_magic.S
-@@ -46,6 +46,10 @@
-  * add the 3 low ushorts together, generating a uint
-  * a final add of the 2 lower ushorts
-  * truncating the result.
-+ *
-+ * Misalignment handling added by Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-+ * The cost is 16 instructions (~8 cycles), including two extra loads which
-+ * may cause additional delay in rare cases (load-load replay traps).
-  */
- 
- 	.globl csum_ipv6_magic
-@@ -55,25 +59,45 @@
- csum_ipv6_magic:
- 	.prologue 0
- 
--	ldq	$0,0($16)	# L : Latency: 3
-+	ldq_u	$0,0($16)	# L : Latency: 3
- 	inslh	$18,7,$4	# U : 0000000000AABBCC
--	ldq	$1,8($16)	# L : Latency: 3
-+	ldq_u	$1,8($16)	# L : Latency: 3
- 	sll	$19,8,$7	# U : U L U L : 0x00000000 00aabb00
- 
-+	and	$16,7,$6	# E : src misalignment
-+	ldq_u	$5,15($16)	# L : Latency: 3
- 	zapnot	$20,15,$20	# U : zero extend incoming csum
--	ldq	$2,0($17)	# L : Latency: 3
--	sll	$19,24,$19	# U : U L L U : 0x000000aa bb000000
-+	ldq_u	$2,0($17)	# L : U L U L : Latency: 3
++The core registers drivers for both PCI and generic bus based
++chips via the platform device and driver system.
 +
-+	extql	$0,$6,$0	# U :
-+	extqh	$1,$6,$22	# U :
-+	ldq_u	$3,8($17)	# L : Latency: 3
-+	sll	$19,24,$19	# U : U U L U : 0x000000aa bb000000
++On detection of a device, the core initialises the chip (which may
++be specified by the platform data) and then exports the selected
++peripheral set as platform devices for the specific drivers.
 +
-+	cmoveq	$6,$31,$22	# E : src aligned?
-+	ldq_u	$23,15($17)	# L : Latency: 3
- 	inswl	$18,3,$18	# U : 000000CCDD000000
-+	addl	$19,$7,$19	# E : U L U L : <sign bits>bbaabb00
- 
--	ldq	$3,8($17)	# L : Latency: 3
--	bis	$18,$4,$18	# E : 000000CCDDAABBCC
--	addl	$19,$7,$19	# E : <sign bits>bbaabb00
--	nop			# E : U L U L
-+	or	$0,$22,$0	# E : 1st src word complete
-+	extql	$1,$6,$1	# U :
-+	or	$18,$4,$18	# E : 000000CCDDAABBCC
-+	extqh	$5,$6,$5	# U : L U L U
++The core re-uses the platform device system as the platform device
++system provides enough features to support the drivers without the
++need to create a new bus-type and the associated code to go with it.
 +
-+	and	$17,7,$6	# E : dst misalignment
-+	extql	$2,$6,$2	# U :
-+	or	$1,$5,$1	# E : 2nd src word complete
-+	extqh	$3,$6,$22	# U : L U L U :
- 
-+	cmoveq	$6,$31,$22	# E : dst aligned?
-+	extql	$3,$6,$3	# U :
- 	addq	$20,$0,$20	# E : begin summing the words
-+	extqh	$23,$6,$23	# U : L U L U :
 +
- 	srl	$18,16,$4	# U : 0000000000CCDDAA
-+	or	$2,$22,$2	# E : 1st dst word complete
- 	zap	$19,0x3,$19	# U : <sign bits>bbaa0000
--	nop			# E : L U U L
-+	or	$3,$23,$3	# E : U L U L : 2nd dst word complete
- 
- 	cmpult	$20,$0,$0	# E :
- 	addq	$20,$1,$20	# E :
++Resources
++---------
++
++Each peripheral has a view of the device which is implicitly narrowed to
++the specific set of resources that peripheral requires in order to
++function correctly.
++
++The centralised memory allocation allows the driver to ensure that the
++maximum possible resource allocation can be made to the video subsystem
++as this is by-far the most resource-sensitive of the on-chip functions.
++
++The primary issue with memory allocation is that of moving the video
++buffers once a display mode is chosen. Indeed when a video mode change
++occurs the memory footprint of the video subsystem changes.
++
++Since video memory is difficult to move without changing the display
++(unless sufficient contiguous memory can be provided for the old and new
++modes simultaneously) the video driver fully utilises the memory area
++given to it by aligning fb0 to the start of the area and fb1 to the end
++of it. Any memory left over in the middle is used for the acceleration
++functions, which are transient and thus their location is less critical
++as it can be moved.
++
++
++Configuration
++-------------
++
++The platform device driver uses a set of platform data to pass
++configurations through to the core and the subsidiary drivers
++so that there can be support for more than one system carrying
++an SM501 built into a single kernel image.
++
++The PCI driver assumes that the PCI card behaves as per the Silicon
++Motion reference design.
++
++There is an errata (AB-5) affecting the selection of the
++of the M1XCLK and M1CLK frequencies. These two clocks
++must be sourced from the same PLL, although they can then
++be divided down individually. If this is not set, then SM501 may
++lock and hang the whole system. The driver will refuse to
++attach if the PLL selection is different.
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-alpha-fix-trivial-section-mismatch-warnings.patch
-make-sure-nobodys-leaking-resources.patch
+git-watchdog.patch
+spi-tle620x-power-switch-driver.patch
