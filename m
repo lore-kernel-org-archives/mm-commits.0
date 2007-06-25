@@ -1,110 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-max_order-one-off-fix.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:21:14 -0700
-Message-ID: <200706250921.l5P9LE8R031080@imap1.linux-foundation.org>
+Subject: - include-linux-mutexh-from-attribute_containerc.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:21:33 -0700
+Message-ID: <200706250921.l5P9LXWL031124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50970 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751334AbXFYJYe (ORCPT
+	by vger.kernel.org with ESMTP id S1751783AbXFYJYe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 25 Jun 2007 05:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: mst@dev.mellanox.co.il, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab allocators: MAX_ORDER one off fix
+     include linux/mutex.h from attribute_container.c
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-max_order-one-off-fix.patch
+     include-linux-mutexh-from-attribute_containerc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab allocators: MAX_ORDER one off fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: include linux/mutex.h from attribute_container.c
+From: "Michael S. Tsirkin" <mst@dev.mellanox.co.il>
 
-MAX_ORDER is the first order that is not possible.
+attribute_container.c uses DEFINE_MUTEX, so while linux/mutex.h seems to be
+pulled in indirectly by one of the headers it includes, the right thing is
+to include linux/mutex.h directly.
 
-Use MAX_ORDER - 1 to calculate the larges possible object size in slab.h
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Michael S. Tsirkin <mst@dev.mellanox.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/attribute_container.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/linux/slab.h~slab-allocators-max_order-one-off-fix include/linux/slab.h
---- a/include/linux/slab.h~slab-allocators-max_order-one-off-fix
-+++ a/include/linux/slab.h
-@@ -82,8 +82,8 @@ static inline void *kmem_cache_alloc_nod
-  * to do various tricks to work around compiler limitations in order to
-  * ensure proper constant folding.
-  */
--#define KMALLOC_SHIFT_HIGH	((MAX_ORDER + PAGE_SHIFT) <= 25 ? \
--				(MAX_ORDER + PAGE_SHIFT) : 25)
-+#define KMALLOC_SHIFT_HIGH	((MAX_ORDER + PAGE_SHIFT - 1) <= 25 ? \
-+				(MAX_ORDER + PAGE_SHIFT - 1) : 25)
+diff -puN drivers/base/attribute_container.c~include-linux-mutexh-from-attribute_containerc drivers/base/attribute_container.c
+--- a/drivers/base/attribute_container.c~include-linux-mutexh-from-attribute_containerc
++++ a/drivers/base/attribute_container.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
++#include <linux/mutex.h>
  
- #define KMALLOC_MAX_SIZE	(1UL << KMALLOC_SHIFT_HIGH)
- #define KMALLOC_MAX_ORDER	(KMALLOC_SHIFT_HIGH - PAGE_SHIFT)
+ #include "base.h"
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from mst@dev.mellanox.co.il are
 
-git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
-change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+git-infiniband.patch
