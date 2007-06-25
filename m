@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-more-section-mismatches.patch added to -mm tree
-Date: Mon, 25 Jun 2007 16:27:25 -0700
-Message-ID: <200706252327.l5PNRPVN013773@imap1.linux-foundation.org>
+Subject: + alsa-fix-section-mismatch.patch added to -mm tree
+Date: Mon, 25 Jun 2007 16:27:23 -0700
+Message-ID: <200706252327.l5PNRNNQ013770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41335 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752324AbXFYX1k (ORCPT
+	by vger.kernel.org with ESMTP id S1752282AbXFYX1h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 19:27:40 -0400
+	Mon, 25 Jun 2007 19:27:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     ALSA: more section mismatches
+     ALSA: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     alsa-more-section-mismatches.patch
+     alsa-fix-section-mismatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,16 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA: more section mismatches
+Subject: ALSA: fix section mismatch
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Something about __init_or_module isn't working as expected (?).
-CONFIG_HOTPLUG=y
-CONFIG_MODULES=n
-
-Fix shared init/exit code helper:
-WARNING: sound/built-in.o(.exit.text+0x243): Section mismatch: reference to .init.text: (between 'alsa_card_mpu401_exit' and 'ac97_bus_exit')
-WARNING: sound/built-in.o(.exit.text+0x21b): Section mismatch: reference to .init.text: (between 'alsa_card_dummy_exit' and 'alsa_card_serial_exit')
+Fix shared init/exit function attributes:
+WARNING: sound/built-in.o(.exit.text+0x4a1): Section mismatch: reference to .init.text: (between 'alsa_card_virmidi_exit' and 'alsa_card_serial_exit')
+WARNING: sound/built-in.o(.exit.text+0x4c1): Section mismatch: reference to .init.text: (between 'alsa_card_serial_exit' and 'ac97_bus_exit')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Jaroslav Kysela <perex@suse.cz>
@@ -43,31 +39,31 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/drivers/dummy.c         |    2 +-
- sound/drivers/mpu401/mpu401.c |    2 +-
+ sound/drivers/serial-u16550.c |    2 +-
+ sound/drivers/virmidi.c       |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/drivers/dummy.c~alsa-more-section-mismatches sound/drivers/dummy.c
---- a/sound/drivers/dummy.c~alsa-more-section-mismatches
-+++ a/sound/drivers/dummy.c
-@@ -659,7 +659,7 @@ static struct platform_driver snd_dummy_
+diff -puN sound/drivers/serial-u16550.c~alsa-fix-section-mismatch sound/drivers/serial-u16550.c
+--- a/sound/drivers/serial-u16550.c~alsa-fix-section-mismatch
++++ a/sound/drivers/serial-u16550.c
+@@ -998,7 +998,7 @@ static struct platform_driver snd_serial
  	},
  };
  
--static void __init_or_module snd_dummy_unregister_all(void)
-+static void snd_dummy_unregister_all(void)
+-static void __init_or_module snd_serial_unregister_all(void)
++static void snd_serial_unregister_all(void)
  {
  	int i;
  
-diff -puN sound/drivers/mpu401/mpu401.c~alsa-more-section-mismatches sound/drivers/mpu401/mpu401.c
---- a/sound/drivers/mpu401/mpu401.c~alsa-more-section-mismatches
-+++ a/sound/drivers/mpu401/mpu401.c
-@@ -228,7 +228,7 @@ static struct pnp_driver snd_mpu401_pnp_
- static struct pnp_driver snd_mpu401_pnp_driver;
- #endif
+diff -puN sound/drivers/virmidi.c~alsa-fix-section-mismatch sound/drivers/virmidi.c
+--- a/sound/drivers/virmidi.c~alsa-fix-section-mismatch
++++ a/sound/drivers/virmidi.c
+@@ -145,7 +145,7 @@ static struct platform_driver snd_virmid
+ 	},
+ };
  
--static void __init_or_module snd_mpu401_unregister_all(void)
-+static void snd_mpu401_unregister_all(void)
+-static void __init_or_module snd_virmidi_unregister_all(void)
++static void snd_virmidi_unregister_all(void)
  {
  	int i;
  
