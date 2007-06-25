@@ -1,127 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - console-utf-8-fixes-fix.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 02:20:30 -0700
-Message-ID: <200706250920.l5P9KUcB031021@imap1.linux-foundation.org>
+Subject: - slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 02:20:48 -0700
+Message-ID: <200706250920.l5P9KmF4031049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49067 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093AbXFYJUq (ORCPT
+	by vger.kernel.org with ESMTP id S1751334AbXFYJU4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 05:20:46 -0400
+	Mon, 25 Jun 2007 05:20:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: egmont@uhulinux.hu, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     console UTF-8 fixes (fix)
+     SLUB: fix behavior if the text output of list_locations overflows PAGE_SIZE
 has been removed from the -mm tree.  Its filename was
-     console-utf-8-fixes-fix.patch
+     slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: console UTF-8 fixes (fix)
-From: Egmont Koblinger <egmont@uhulinux.hu>
+Subject: SLUB: fix behavior if the text output of list_locations overflows PAGE_SIZE
+From: Christoph Lameter <clameter@sgi.com>
 
-Recently my console UTF-8 patch went mainline.  Here is an additional patch
-that fixes two nasty issues and improves a third one, namely:
+If slabs are allocated or freed from a large set of call sites (typical for
+the kmalloc area) then we may create more output than fits into a single
+PAGE and sysfs only gives us one page.  The output should be truncated. 
+This patch fixes the checks to do the truncation properly.
 
-1. My patch changed the behavior if a glyph is not found in the Unicode
-   mapping table. Previously for Unicode values less than 256 or 512 the
-   kernel tried to display the glyph from that position of the glyph table,
-   which could lead to a different accented letter being displayed. I
-   removed this fallback possibility and changed it to display the
-   replacement symbol.
-
-   As Behdad pointed out, some fonts (e.g. sun12x22 from the kbd package)
-   lack Unicode mapping information, hence all you get is lots of question
-   marks. Though theoretically it's actually a user-space bug (the font
-   should be fixed), Behdad and I both believe that it'd be good to work
-   around in the kernel by re-introducing the fallback solution for ASCII
-   characters only. This sounds a quite reasonable decision, since all fonts
-   ship the ASCII characters in the first 128 positions. This way users
-   won't be surprised by lots of question marks just because s/he issued a
-   not-so-perfectly parameterized setfont command. As this fallback is only
-   re-introduced for code points below 128, you still won't see an accented
-   letter replaced by another, but at least you'll always get the English
-   letters right.
-
-2. My patch introduced "question mark with inverted color attributes" as a
-   last resort fallback glyph. Though it perfectly works on VGA console, on
-   framebuffer you may end up with question marks that are highlighed but
-   shouldn't be, and normal characters that are accidentally highlighed.
-   This is caused by missing FLUSHes when changing the color attribute.
-
-3. I've updated the table of double-width character based on Markus's
-   updated version. Only ten new code poings (one interval) is added.
-
-Signed-off-by: Egmont Koblinger <egmont@uhulinux.hu>
-
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/slub.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/vt.c~console-utf-8-fixes-fix drivers/char/vt.c
---- a/drivers/char/vt.c~console-utf-8-fixes-fix
-+++ a/drivers/char/vt.c
-@@ -1956,7 +1956,7 @@ char con_buf[CON_BUF_SIZE];
- DEFINE_MUTEX(con_buf_mtx);
+diff -puN mm/slub.c~slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size mm/slub.c
+--- a/mm/slub.c~slub-fix-behavior-if-the-text-output-of-list_locations-overflows-page_size
++++ a/mm/slub.c
+@@ -3042,13 +3042,15 @@ static int list_locations(struct kmem_ca
+ 			n += sprintf(buf + n, " pid=%ld",
+ 				l->min_pid);
  
- /* is_double_width() is based on the wcwidth() implementation by
-- * Markus Kuhn -- 2003-05-20 (Unicode 4.0)
-+ * Markus Kuhn -- 2007-05-26 (Unicode 5.0)
-  * Latest version: http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
-  */
- struct interval {
-@@ -1988,8 +1988,8 @@ static int is_double_width(uint32_t ucs)
- 	static const struct interval double_width[] = {
- 		{ 0x1100, 0x115F }, { 0x2329, 0x232A }, { 0x2E80, 0x303E },
- 		{ 0x3040, 0xA4CF }, { 0xAC00, 0xD7A3 }, { 0xF900, 0xFAFF },
--		{ 0xFE30, 0xFE6F }, { 0xFF00, 0xFF60 }, { 0xFFE0, 0xFFE6 },
--		{ 0x20000, 0x2FFFD }, { 0x30000, 0x3FFFD }
-+		{ 0xFE10, 0xFE19 }, { 0xFE30, 0xFE6F }, { 0xFF00, 0xFF60 },
-+		{ 0xFFE0, 0xFFE6 }, { 0x20000, 0x2FFFD }, { 0x30000, 0x3FFFD }
- 	};
- 	return bisearch(ucs, double_width,
- 		sizeof(double_width) / sizeof(*double_width) - 1);
-@@ -2187,9 +2187,12 @@ rescan_last_byte:
- 				    continue; /* nothing to display */
- 				}
- 				/* Glyph not found */
--				if (!(vc->vc_utf && !vc->vc_disp_ctrl) && !(c & ~charmask)) {
-+				if ((!(vc->vc_utf && !vc->vc_disp_ctrl) || c < 128) && !(c & ~charmask)) {
- 				    /* In legacy mode use the glyph we get by a 1:1 mapping.
--				       This would make absolutely no sense with Unicode in mind. */
-+				       This would make absolutely no sense with Unicode in mind,
-+				       but do this for ASCII characters since a font may lack
-+				       Unicode mapping info and we don't want to end up with
-+				       having question marks only. */
- 				    tc = c;
- 				} else {
- 				    /* Display U+FFFD. If it's not found, display an inverse question mark. */
-@@ -2213,6 +2216,7 @@ rescan_last_byte:
- 				} else {
- 					vc_attr = ((vc->vc_attr) & 0x88) | (((vc->vc_attr) & 0x70) >> 4) | (((vc->vc_attr) & 0x07) << 4);
- 				}
-+				FLUSH
- 			}
+-		if (num_online_cpus() > 1 && !cpus_empty(l->cpus)) {
++		if (num_online_cpus() > 1 && !cpus_empty(l->cpus) &&
++				n < PAGE_SIZE - 60) {
+ 			n += sprintf(buf + n, " cpus=");
+ 			n += cpulist_scnprintf(buf + n, PAGE_SIZE - n - 50,
+ 					l->cpus);
+ 		}
  
- 			while (1) {
-@@ -2246,6 +2250,10 @@ rescan_last_byte:
- 				if (tc < 0) tc = ' ';
- 			}
- 
-+			if (inverse) {
-+				FLUSH
-+			}
-+
- 			if (rescan) {
- 				rescan = 0;
- 				inverse = 0;
+-		if (num_online_nodes() > 1 && !nodes_empty(l->nodes)) {
++		if (num_online_nodes() > 1 && !nodes_empty(l->nodes) &&
++				n < PAGE_SIZE - 60) {
+ 			n += sprintf(buf + n, " nodes=");
+ 			n += nodelist_scnprintf(buf + n, PAGE_SIZE - n - 50,
+ 					l->nodes);
 _
 
-Patches currently in -mm which might be from egmont@uhulinux.hu are
+Patches currently in -mm which might be from clameter@sgi.com are
+
+git-ubi.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+change-zonelist-order-v6-zonelist-fix.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+numa-mempolicy-trivial-debug-fixes.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of.patch
+slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
+slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
+slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
+slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
+slab-allocators-support-__gfp_zero-in-all-allocators.patch
+slab-allocators-cleanup-zeroing-allocations.patch
+slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
+slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
+slub-extract-dma_kmalloc_cache-from-get_cache.patch
+slub-do-proper-locking-during-dma-slab-creation.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
+add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
