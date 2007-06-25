@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-disable-the-gart-in-shutdown.patch added to -mm tree
-Date: Mon, 25 Jun 2007 15:08:34 -0700
-Message-ID: <200706252208.l5PM8Y7g012199@imap1.linux-foundation.org>
+Subject: + sys_time-speedup.patch added to -mm tree
+Date: Mon, 25 Jun 2007 15:15:16 -0700
+Message-ID: <200706252215.l5PMFGkF012306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41203 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbXFYWJL (ORCPT
+	by vger.kernel.org with ESMTP id S1752287AbXFYWQT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 18:09:11 -0400
+	Mon, 25 Jun 2007 18:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@Sun.COM
+Cc: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     x86-64: disable the GART in shutdown
+     sys_time() speedup
 has been added to the -mm tree.  Its filename is
-     x86-64-disable-the-gart-in-shutdown.patch
+     sys_time-speedup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,149 +26,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-64: disable the GART in shutdown
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: sys_time() speedup
+From: Ingo Molnar <mingo@elte.hu>
 
-For K8 system: 4G RAM with memory hole remapping enabled, or more than 4G
-RAM installed.  when using kexec to load second kernel.  In the second
-kernel, when mem is allocated for GART, it will do the memset for clear, it
-will cause restart, because some device still used that for dma.  solution
-will be:
+Improve performance of sys_time().  sys_time() returns time in seconds, but
+it does so by calling do_gettimeofday() and then returning the tv_sec
+portion of the GTOD time.  But the data structure "xtime", which is updated
+by every timer/scheduler tick, already offers HZ granularity time.
 
-in second kernel: disable that at first before we try to allocate mem for
-it.  or in the first kernel: do disable that before shutdown. 
-Andi/Eric/Alan prefer to second one for clean shutdown in first kernel. 
-Andi also point out need to consider to AGP enable but mem less 4G case
-too.
+The patch improves the sysbench OLTP macrobenchmark significantly:
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+2.6.22-rc6:
+
+#threads
+   1:        transactions:                        3733   (373.21 per sec.)
+   2:        transactions:                        6676   (667.46 per sec.)
+   3:        transactions:                        6957   (695.50 per sec.)
+   4:        transactions:                        7055   (705.48 per sec.)
+   5:        transactions:                        6596   (659.33 per sec.)
+
+2.6.22-rc6 + sys_time.patch:
+
+   1:        transactions:                        4005   (400.47 per sec.)
+   2:        transactions:                        7379   (737.77 per sec.)
+   3:        transactions:                        7347   (734.49 per sec.)
+   4:        transactions:                        7468   (746.65 per sec.)
+   5:        transactions:                        7428   (742.47 per sec.)
+
+Mixed API uses of gettimeofday() and time() are guaranteed to be coherent
+via the use of a at-most-once-per-second slowpath that updates xtime.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-dma.c  |    5 +++++
- arch/x86_64/kernel/pci-gart.c |   20 ++++++++++++++++++++
- arch/x86_64/kernel/reboot.c   |    4 ++++
- include/asm-x86_64/proto.h    |    7 +++++++
- 4 files changed, 36 insertions(+)
+ kernel/time.c |   27 ++++++++++++++++++++++-----
+ 1 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-dma.c
---- a/arch/x86_64/kernel/pci-dma.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/pci-dma.c
-@@ -321,6 +321,11 @@ static int __init pci_iommu_init(void)
- 	return 0;
- }
- 
-+void pci_iommu_shutdown(void)
-+{
-+	gart_iommu_shutdown();
-+}
-+
- #ifdef CONFIG_PCI
- /* Many VIA bridges seem to corrupt data for DAC. Disable it here */
- 
-diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/pci-gart.c
---- a/arch/x86_64/kernel/pci-gart.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/pci-gart.c
-@@ -571,6 +571,26 @@ static const struct dma_mapping_ops gart
- 	.unmap_sg = gart_unmap_sg,
- };
- 
-+void gart_iommu_shutdown(void)
-+{
-+	struct pci_dev *dev;
-+	int i;
-+
-+	if (no_agp && (dma_ops != &gart_dma_ops))
-+		return;
-+
-+        for (i = 0; i < num_k8_northbridges; i++) {
-+                u32 ctl;
-+
-+                dev = k8_northbridges[i];
-+                pci_read_config_dword(dev, 0x90, &ctl);
-+
-+                ctl &= ~1;
-+
-+                pci_write_config_dword(dev, 0x90, ctl);
-+        }
-+}
-+
- void __init gart_iommu_init(void)
- { 
- 	struct agp_kern_info info;
-diff -puN arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown arch/x86_64/kernel/reboot.c
---- a/arch/x86_64/kernel/reboot.c~x86-64-disable-the-gart-in-shutdown
-+++ a/arch/x86_64/kernel/reboot.c
-@@ -16,6 +16,7 @@
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
- #include <asm/apic.h>
-+#include <asm/proto.h>
- 
- /*
-  * Power off function, if any
-@@ -81,6 +82,7 @@ static inline void kb_wait(void)
- void machine_shutdown(void)
+diff -puN kernel/time.c~sys_time-speedup kernel/time.c
+--- a/kernel/time.c~sys_time-speedup
++++ a/kernel/time.c
+@@ -57,14 +57,17 @@ EXPORT_SYMBOL(sys_tz);
+  */
+ asmlinkage long sys_time(time_t __user * tloc)
  {
- 	unsigned long flags;
-+
- 	/* Stop the cpus and apics */
- #ifdef CONFIG_SMP
- 	int reboot_cpu_id;
-@@ -111,6 +113,8 @@ void machine_shutdown(void)
- 	disable_IO_APIC();
+-	time_t i;
+-	struct timeval tv;
++	/*
++	 * We read xtime.tv_sec atomically - it's updated
++	 * atomically by update_wall_time(), so no need to
++	 * even read-lock the xtime seqlock:
++	 */
++	time_t i = xtime.tv_sec;
  
- 	local_irq_restore(flags);
+-	do_gettimeofday(&tv);
+-	i = tv.tv_sec;
++	smp_rmb(); /* sys_time() results are coherent */
+ 
+ 	if (tloc) {
+-		if (put_user(i,tloc))
++		if (put_user(i, tloc))
+ 			i = -EFAULT;
+ 	}
+ 	return i;
+@@ -373,6 +376,20 @@ void do_gettimeofday (struct timeval *tv
+ 
+ 	tv->tv_sec = sec;
+ 	tv->tv_usec = usec;
 +
-+	pci_iommu_shutdown();
++	/*
++	 * Make sure xtime.tv_sec [returned by sys_time()] always
++	 * follows the gettimeofday() result precisely. This
++	 * condition is extremely unlikely, it can hit at most
++	 * once per second:
++	 */
++	if (unlikely(xtime.tv_sec != tv->tv_sec)) {
++		unsigned long flags;
++
++		write_seqlock_irqsave(&xtime_lock);
++		update_wall_time();
++		write_seqlock_irqrestore(&xtime_lock);
++	}
  }
  
- void machine_emergency_restart(void)
-diff -puN include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~x86-64-disable-the-gart-in-shutdown
-+++ a/include/asm-x86_64/proto.h
-@@ -83,11 +83,13 @@ extern int exception_trace;
- extern unsigned cpu_khz;
- extern unsigned tsc_khz;
- 
-+extern void pci_iommu_shutdown(void);
- extern void no_iommu_init(void);
- extern int force_iommu, no_iommu;
- extern int iommu_detected;
- #ifdef CONFIG_IOMMU
- extern void gart_iommu_init(void);
-+extern void gart_iommu_shutdown(void);
- extern void __init gart_parse_options(char *);
- extern void iommu_hole_init(void);
- extern int fallback_aper_order;
-@@ -99,6 +101,11 @@ extern int fix_aperture;
- #else
- #define iommu_aperture 0
- #define iommu_aperture_allowed 0
-+
-+static inline void gart_iommu_shutdown(void)
-+{
-+}
-+
- #endif
- 
- extern int reboot_force;
+ EXPORT_SYMBOL(do_gettimeofday);
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-serial-assert-dtr-for-serial-console-devices.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+git-acpi-add-exports.patch
+git-kvm.patch
+git-selinux.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+introduce-write_trylock_irqsave.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+pie-randomization.patch
+vdso-print-fatal-signals.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+introduce-o_cloexec-take-2.patch
+introduce-o_cloexec-parisc-fix.patch
+o_cloexec-for-scm_rights.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+allow-softlockup-to-be-runtime-disabled.patch
+sys_time-speedup.patch
+cfs-scheduler.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-v14-rc2-mm1.patch
+cfs-scheduler-warning-fixes.patch
+cfs-scheduler-v15-rc3-mm1.patch
+fs-proc-basec-make-a-struct-static.patch
+cfs-warning-fixes.patch
+schedstats-fix-printk-format.patch
+cfs-scheduler-v16.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+fix-raw_spinlock_t-vs-lockdep.patch
+lockdep-sanitise-config_prove_locking.patch
+lockdep-reduce-the-ifdeffery.patch
+lockstat-core-infrastructure.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
+lockdep-various-fixes.patch
+lockdep-various-fixes-checkpatch.patch
+lockdep-fixup-sk_callback_lock-annotation.patch
+lockstat-measure-lock-bouncing.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+lockstat-better-class-name-representation.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
