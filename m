@@ -1,135 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch removed from -mm tree
-Date: Mon, 25 Jun 2007 18:58:53 -0700
-Message-ID: <200706260158.l5Q1wruc016044@imap1.linux-foundation.org>
+Subject: + jprobes-remove-jprobe_entry.patch added to -mm tree
+Date: Mon, 25 Jun 2007 19:04:33 -0700
+Message-ID: <200706260204.l5Q24XHt016161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751272AbXFZB7p (ORCPT
+	by vger.kernel.org with ESMTP id S1752131AbXFZCEs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 21:59:45 -0400
+	Mon, 25 Jun 2007 22:04:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, htejun@gmail.com, jeff@garzik.org, kluo@nvidia.com, pchen@nvidia.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: michael@ellerman.id.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, prasanna@in.ibm.com
 
 
 The patch titled
-     drivers/ata/sata_nv.c: make 3 functions static
-has been removed from the -mm tree.  Its filename was
-     drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+     jprobes: remove JPROBE_ENTRY()
+has been added to the -mm tree.  Its filename is
+     jprobes-remove-jprobe_entry.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/ata/sata_nv.c: make 3 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: jprobes: remove JPROBE_ENTRY()
+From: Michael Ellerman <michael@ellerman.id.au>
 
-This patch makes 3 needlessly global functions static.
+AFAICT now that jprobe.entry is a void *, JPROBE_ENTRY doesn't do anything
+useful - so remove it ..
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Kuan Luo <kluo@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+I've left a do-nothing version so that out-of-tree jprobes code will still
+compile without modifications.
+
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/kprobes.txt     |    8 +-------
+ include/asm-i386/kprobes.h    |    1 -
+ include/asm-ia64/kprobes.h    |    2 --
+ include/asm-powerpc/kprobes.h |    2 --
+ include/asm-s390/kprobes.h    |    2 --
+ include/asm-sparc64/kprobes.h |    1 -
+ include/asm-x86_64/kprobes.h  |    1 -
+ include/linux/kprobes.h       |    3 +++
+ net/dccp/probe.c              |    2 +-
+ net/ipv4/tcp_probe.c          |    2 +-
+ 10 files changed, 6 insertions(+), 18 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
-+++ a/drivers/ata/sata_nv.c
-@@ -314,7 +314,7 @@ static int nv_ncqintr_sdbfis(struct ata_
- static int nv_ncqintr_dmasetupfis(struct ata_port *ap);
- static void ncq_clear_singlefis(struct ata_port *ap, u32 val);
- static u32 ncq_ownfisintr_value (struct ata_port *ap);
--void ncq_hotplug(struct ata_port *ap, u32 fis);
-+static void ncq_hotplug(struct ata_port *ap, u32 fis);
- static irqreturn_t nv_mcp55_interrupt(int irq, void *dev_instance);
- static int ncq_interrupt(struct ata_port *ap, u32 fis);
- static int nv_scsi_queuecmd(struct scsi_cmnd *cmd,
-@@ -1931,7 +1931,7 @@ static void ncq_stop(struct ata_port *ap
- 	ncq_clear(ap);
+diff -puN Documentation/kprobes.txt~jprobes-remove-jprobe_entry Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~jprobes-remove-jprobe_entry
++++ a/Documentation/kprobes.txt
+@@ -247,12 +247,6 @@ control to Kprobes.)  If the probed func
+ fastcall, or anything else that affects how args are passed, the
+ handler's declaration must match.
+ 
+-NOTE: A macro JPROBE_ENTRY is provided to handle architecture-specific
+-aliasing of jp->entry. In the interest of portability, it is advised
+-to use:
+-
+-	jp->entry = JPROBE_ENTRY(handler);
+-
+ register_jprobe() returns 0 on success, or a negative errno otherwise.
+ 
+ 4.3 register_kretprobe
+@@ -518,7 +512,7 @@ long jdo_fork(unsigned long clone_flags,
  }
  
--int nv_std_prereset(struct ata_port *ap, unsigned long deadline)
-+static int nv_std_prereset(struct ata_port *ap, unsigned long deadline)
- {
- 	struct ata_eh_context *ehc = &ap->eh_context;
+ static struct jprobe my_jprobe = {
+-	.entry = JPROBE_ENTRY(jdo_fork)
++	.entry = jdo_fork
+ };
  
-@@ -2265,7 +2265,7 @@ back_out:
- 	return 0;
+ static int __init jprobe_init(void)
+diff -puN include/asm-i386/kprobes.h~jprobes-remove-jprobe_entry include/asm-i386/kprobes.h
+--- a/include/asm-i386/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/asm-i386/kprobes.h
+@@ -44,7 +44,6 @@ typedef u8 kprobe_opcode_t;
+ 	? (MAX_STACK_SIZE) \
+ 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
+ 
+-#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
+ #define ARCH_SUPPORTS_KRETPROBES
+ #define  ARCH_INACTIVE_KPROBE_COUNT 0
+ #define flush_insn_slot(p)	do { } while (0)
+diff -puN include/asm-ia64/kprobes.h~jprobes-remove-jprobe_entry include/asm-ia64/kprobes.h
+--- a/include/asm-ia64/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/asm-ia64/kprobes.h
+@@ -82,8 +82,6 @@ struct kprobe_ctlblk {
+ 	struct prev_kprobe prev_kprobe[ARCH_PREV_KPROBE_SZ];
+ };
+ 
+-#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
+-
+ #define ARCH_SUPPORTS_KRETPROBES
+ #define  ARCH_INACTIVE_KPROBE_COUNT 1
+ 
+diff -puN include/asm-powerpc/kprobes.h~jprobes-remove-jprobe_entry include/asm-powerpc/kprobes.h
+--- a/include/asm-powerpc/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/asm-powerpc/kprobes.h
+@@ -73,12 +73,10 @@ typedef unsigned int kprobe_opcode_t;
+ 	}								\
  }
  
--u32 ncq_valid_dhfisflag(struct nv_port_priv *pp)
-+static u32 ncq_valid_dhfisflag(struct nv_port_priv *pp)
- {
- 	u32 valid = (pp->dhfis_flags == pp->qc_active);
- 
-@@ -2332,7 +2332,7 @@ static void fis_dump(struct ata_port *ap
+-#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)((func_descr_t *)pentry)
+ #define is_trap(instr)	(IS_TW(instr) || IS_TD(instr) || \
+ 			IS_TWI(instr) || IS_TDI(instr))
+ #else
+ /* Use stock kprobe_lookup_name since ppc32 doesn't use function descriptors */
+-#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)(pentry)
+ #define is_trap(instr)	(IS_TW(instr) || IS_TWI(instr))
  #endif
  
+diff -puN include/asm-s390/kprobes.h~jprobes-remove-jprobe_entry include/asm-s390/kprobes.h
+--- a/include/asm-s390/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/asm-s390/kprobes.h
+@@ -46,8 +46,6 @@ typedef u16 kprobe_opcode_t;
+ 	? (MAX_STACK_SIZE) \
+ 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
  
--void ncq_hotplug(struct ata_port *ap, u32 fis)
-+static void ncq_hotplug(struct ata_port *ap, u32 fis)
- {
- 	u32 serror;
- 	struct ata_eh_info *ehi = &ap->eh_info;
+-#define JPROBE_ENTRY(pentry) (kprobe_opcode_t *)(pentry)
+-
+ #define ARCH_SUPPORTS_KRETPROBES
+ #define ARCH_INACTIVE_KPROBE_COUNT 0
+ 
+diff -puN include/asm-sparc64/kprobes.h~jprobes-remove-jprobe_entry include/asm-sparc64/kprobes.h
+--- a/include/asm-sparc64/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/asm-sparc64/kprobes.h
+@@ -10,7 +10,6 @@ typedef u32 kprobe_opcode_t;
+ #define BREAKPOINT_INSTRUCTION_2 0x91d02071 /* ta 0x71 */
+ #define MAX_INSN_SIZE 2
+ 
+-#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
+ #define arch_remove_kprobe(p)	do {} while (0)
+ #define  ARCH_INACTIVE_KPROBE_COUNT 0
+ 
+diff -puN include/asm-x86_64/kprobes.h~jprobes-remove-jprobe_entry include/asm-x86_64/kprobes.h
+--- a/include/asm-x86_64/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/asm-x86_64/kprobes.h
+@@ -42,7 +42,6 @@ typedef u8 kprobe_opcode_t;
+ 	? (MAX_STACK_SIZE) \
+ 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
+ 
+-#define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
+ #define ARCH_SUPPORTS_KRETPROBES
+ #define  ARCH_INACTIVE_KPROBE_COUNT 1
+ 
+diff -puN include/linux/kprobes.h~jprobes-remove-jprobe_entry include/linux/kprobes.h
+--- a/include/linux/kprobes.h~jprobes-remove-jprobe_entry
++++ a/include/linux/kprobes.h
+@@ -119,6 +119,9 @@ struct jprobe {
+ 	void *entry;	/* probe handling code to jump to */
+ };
+ 
++/* For backward compatibility with old code using JPROBE_ENTRY() */
++#define JPROBE_ENTRY(handler)	(handler)
++
+ DECLARE_PER_CPU(struct kprobe *, current_kprobe);
+ DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
+ 
+diff -puN net/dccp/probe.c~jprobes-remove-jprobe_entry net/dccp/probe.c
+--- a/net/dccp/probe.c~jprobes-remove-jprobe_entry
++++ a/net/dccp/probe.c
+@@ -112,7 +112,7 @@ static struct jprobe dccp_send_probe = {
+ 	.kp	= {
+ 		.symbol_name = "dccp_sendmsg",
+ 	},
+-	.entry	= JPROBE_ENTRY(jdccp_sendmsg),
++	.entry	= jdccp_sendmsg,
+ };
+ 
+ static int dccpprobe_open(struct inode *inode, struct file *file)
+diff -puN net/ipv4/tcp_probe.c~jprobes-remove-jprobe_entry net/ipv4/tcp_probe.c
+--- a/net/ipv4/tcp_probe.c~jprobes-remove-jprobe_entry
++++ a/net/ipv4/tcp_probe.c
+@@ -115,7 +115,7 @@ static struct jprobe tcp_probe = {
+ 	.kp = {
+ 		.symbol_name	= "tcp_rcv_established",
+ 	},
+-	.entry	= JPROBE_ENTRY(jtcp_rcv_established),
++	.entry	= jtcp_rcv_established,
+ };
+ 
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-mark-calibrate_xor_blocks-__init.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+jprobes-make-struct-jprobeentry-a-void.patch
+jprobes-remove-jprobe_entry.patch
+jprobes-make-jprobes-a-little-safer-for-users.patch
