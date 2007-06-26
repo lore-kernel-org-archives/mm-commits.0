@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + containers-implement-namespace-tracking-subsystem-v3.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:58:47 -0700
-Message-ID: <200706262158.l5QLwmZe003003@imap1.linux-foundation.org>
+Subject: + uml-xterm-driver-tidying.patch added to -mm tree
+Date: Tue, 26 Jun 2007 15:05:39 -0700
+Message-ID: <200706262205.l5QM5d7G003181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47940 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55454 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755969AbXFZWAO (ORCPT
+	by vger.kernel.org with ESMTP id S1757374AbXFZWFt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 18:00:14 -0400
+	Tue, 26 Jun 2007 18:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, vatsa@in.ibm.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     containers: implement namespace tracking subsystem (v3)
+     uml: xterm driver tidying
 has been added to the -mm tree.  Its filename is
-     containers-implement-namespace-tracking-subsystem-v3.patch
+     uml-xterm-driver-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,345 +26,455 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containers: implement namespace tracking subsystem (v3)
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: uml: xterm driver tidying
+From: Jeff Dike <jdike@addtoit.com>
 
-When a task enters a new namespace via a clone() or unshare(), a new container
-is created and the task moves into it.
+Major tidying of the xterm console driver:
+	got rid of the tt-mode gdb support
+	tidied up the includes
+	fixed lots of style violations
+	replaced os_* calls with glibc calls in xterm.c
+	all printk calls now have a severity indicator
+	the error paths of xterm_open are closer to being right
 
-This version names containers which are automatically created using
-container_clone() as "node_<pid>" where pid is the pid of the unsharing or
-cloned process.  (Thanks Pavel for the idea) This is safe because if the
-process unshares again, it will create
-
-	/containers/(...)/node_<pid>/node_<pid>
-
-The only possibilities (AFAICT) for a -EEXIST on unshare are
-
-	1. pid wraparound
-	2. a process fails an unshare, then tries again.
-
-Case 1 is unlikely enough that I ignore it (at least for now).  In case 2, the
-node_<pid> will be empty and can be rmdir'ed to make the subsequent unshare()
-succeed.
-
-Changelog:
-	Name cloned containers as "node_<pid>".
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_subsys.h |    6 +
- include/linux/nsproxy.h          |    7 ++
- init/Kconfig                     |    9 ++
- kernel/Makefile                  |    1 
- kernel/container.c               |   23 ++++--
- kernel/ns_container.c            |   99 +++++++++++++++++++++++++++++
- kernel/nsproxy.c                 |   15 ++++
- 7 files changed, 151 insertions(+), 9 deletions(-)
+ arch/um/drivers/ssl.c           |    2 
+ arch/um/drivers/stdio_console.c |    2 
+ arch/um/drivers/xterm.c         |  173 +++++++++++++++---------------
+ arch/um/drivers/xterm_kern.c    |   49 ++------
+ arch/um/include/chan_user.h     |    2 
+ 5 files changed, 105 insertions(+), 123 deletions(-)
 
-diff -puN include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/container_subsys.h
---- a/include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3
-+++ a/include/linux/container_subsys.h
-@@ -24,3 +24,9 @@ SUBSYS(debug)
- #endif
+diff -puN arch/um/drivers/ssl.c~uml-xterm-driver-tidying arch/um/drivers/ssl.c
+--- a/arch/um/drivers/ssl.c~uml-xterm-driver-tidying
++++ a/arch/um/drivers/ssl.c
+@@ -42,8 +42,6 @@ static struct chan_opts opts = {
+ 	.announce 	= ssl_announce,
+ 	.xterm_title	= "Serial Line #%d",
+ 	.raw		= 1,
+-	.tramp_stack 	= 0,
+-	.in_kernel 	= 1,
+ };
  
- /* */
-+
-+#ifdef CONFIG_CONTAINER_NS
-+SUBSYS(ns)
-+#endif
-+
-+/* */
-diff -puN include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3
-+++ a/include/linux/nsproxy.h
-@@ -55,4 +55,11 @@ static inline void exit_task_namespaces(
- 		put_nsproxy(ns);
- 	}
- }
-+
-+#ifdef CONFIG_CONTAINER_NS
-+int ns_container_clone(struct task_struct *tsk);
-+#else
-+static inline int ns_container_clone(struct task_struct *tsk) { return 0; }
-+#endif
-+
- #endif
-diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem-v3 init/Kconfig
---- a/init/Kconfig~containers-implement-namespace-tracking-subsystem-v3
-+++ a/init/Kconfig
-@@ -347,6 +347,15 @@ config CONTAINER_CPUACCT
- 	  Provides a simple Resource Controller for monitoring the
- 	  total CPU consumed by the tasks in a container
+ static int ssl_config(char *str, char **error_out);
+diff -puN arch/um/drivers/stdio_console.c~uml-xterm-driver-tidying arch/um/drivers/stdio_console.c
+--- a/arch/um/drivers/stdio_console.c~uml-xterm-driver-tidying
++++ a/arch/um/drivers/stdio_console.c
+@@ -46,8 +46,6 @@ static struct chan_opts opts = {
+ 	.announce 	= stdio_announce,
+ 	.xterm_title	= "Virtual Console #%d",
+ 	.raw		= 1,
+-	.tramp_stack 	= 0,
+-	.in_kernel 	= 1,
+ };
  
-+config CONTAINER_NS
-+        bool "Namespace container subsystem"
-+        select CONTAINERS
-+        help
-+          Provides a simple namespace container subsystem to
-+          provide hierarchical naming of sets of namespaces,
-+          for instance virtual servers and checkpoint/restart
-+          jobs.
-+
- config PROC_PID_CPUSET
- 	bool "Include legacy /proc/<pid>/cpuset file"
- 	depends on CPUSETS
-diff -puN kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3 kernel/Makefile
---- a/kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3
-+++ a/kernel/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_CONTAINERS) += container.o
- obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
- obj-$(CONFIG_CPUSETS) += cpuset.o
- obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
-+obj-$(CONFIG_CONTAINER_NS) += ns_container.o
- obj-$(CONFIG_IKCONFIG) += configs.o
- obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
- obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
-diff -puN kernel/container.c~containers-implement-namespace-tracking-subsystem-v3 kernel/container.c
---- a/kernel/container.c~containers-implement-namespace-tracking-subsystem-v3
-+++ a/kernel/container.c
-@@ -2355,12 +2355,6 @@ void container_exit(struct task_struct *
- 		put_css_group_taskexit(cg);
- }
- 
--static atomic_t namecnt;
--static void get_unused_name(char *buf)
--{
--	sprintf(buf, "node%d", atomic_inc_return(&namecnt));
--}
--
- /**
-  * container_clone - duplicate the current container in the hierarchy
-  * that the given subsystem is attached to, and move this task into
-@@ -2370,7 +2364,7 @@ int container_clone(struct task_struct *
- {
- 	struct dentry *dentry;
- 	int ret = 0;
--	char nodename[32];
-+	char nodename[MAX_CONTAINER_TYPE_NAMELEN];
- 	struct container *parent, *child;
- 	struct inode *inode;
- 	struct css_group *cg;
-@@ -2394,6 +2388,9 @@ int container_clone(struct task_struct *
- 	}
- 	cg = tsk->containers;
- 	parent = task_container(tsk, subsys->subsys_id);
-+
-+	snprintf(nodename, MAX_CONTAINER_TYPE_NAMELEN, "node_%d", tsk->pid);
-+
- 	/* Pin the hierarchy */
- 	atomic_inc(&parent->root->sb->s_active);
- 
-@@ -2402,7 +2399,6 @@ int container_clone(struct task_struct *
- 	mutex_unlock(&container_mutex);
- 
- 	/* Now do the VFS work to create a container */
--	get_unused_name(nodename);
- 	inode = parent->dentry->d_inode;
- 
- 	/* Hold the parent directory mutex across this operation to
-@@ -2475,8 +2471,14 @@ int container_clone(struct task_struct *
- 	return ret;
- }
- 
--/* See if "cont" is a descendant of the current task's container in
-+/*
-+ * See if "cont" is a descendant of the current task's container in
-  * the appropriate hierarchy
-+ *
-+ * If we are sending in dummytop, then presumably we are creating
-+ * the top container in the subsystem.
-+ *
-+ * Called only by the ns (nsproxy) container.
+ static int con_config(char *str, char **error_out);
+diff -puN arch/um/drivers/xterm.c~uml-xterm-driver-tidying arch/um/drivers/xterm.c
+--- a/arch/um/drivers/xterm.c~uml-xterm-driver-tidying
++++ a/arch/um/drivers/xterm.c
+@@ -1,22 +1,20 @@
+ /* 
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
   */
- int container_is_descendant(const struct container *cont)
+ 
+-#include <stdio.h>
+ #include <stdlib.h>
++#include <stdio.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
+ #include <termios.h>
+-#include <signal.h>
+-#include <sched.h>
+-#include <sys/socket.h>
+-#include "kern_util.h"
+ #include "chan_user.h"
+-#include "user.h"
+ #include "os.h"
++#include "init.h"
++#include "user.h"
+ #include "xterm.h"
++#include "kern_constants.h"
+ 
+ struct xterm_chan {
+ 	int pid;
+@@ -25,25 +23,21 @@ struct xterm_chan {
+ 	int device;
+ 	int raw;
+ 	struct termios tt;
+-	unsigned long stack;
+-	int direct_rcv;
+ };
+ 
+-/* Not static because it's called directly by the tt mode gdb code */
+-void *xterm_init(char *str, int device, const struct chan_opts *opts)
++static void *xterm_init(char *str, int device, const struct chan_opts *opts)
  {
-@@ -2484,6 +2486,9 @@ int container_is_descendant(const struct
- 	struct container *target;
- 	int subsys_id;
+ 	struct xterm_chan *data;
  
-+	if (cont == dummytop)
-+		return 1;
-+
- 	get_first_subsys(cont, NULL, &subsys_id);
- 	target = task_container(current, subsys_id);
- 	while (cont != target && cont!= cont->top_container)
-diff -puN /dev/null kernel/ns_container.c
---- /dev/null
-+++ a/kernel/ns_container.c
-@@ -0,0 +1,99 @@
-+/*
-+ * ns_container.c - namespace container subsystem
-+ *
-+ * Copyright 2006, 2007 IBM Corp
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/container.h>
-+#include <linux/fs.h>
-+
-+struct ns_container {
-+	struct container_subsys_state css;
-+	spinlock_t lock;
-+};
-+
-+struct container_subsys ns_subsys;
-+
-+static inline struct ns_container *container_to_ns(
-+		struct container *container)
-+{
-+	return container_of(container_subsys_state(container, ns_subsys_id),
-+			    struct ns_container, css);
-+}
-+
-+int ns_container_clone(struct task_struct *task)
-+{
-+	return container_clone(task, &ns_subsys);
-+}
-+
-+/*
-+ * Rules:
-+ *   1. you can only enter a container which is a child of your current
-+ *     container
-+ *   2. you can only place another process into a container if
-+ *     a. you have CAP_SYS_ADMIN
-+ *     b. your container is an ancestor of task's destination container
-+ *       (hence either you are in the same container as task, or in an
-+ *        ancestor container thereof)
-+ */
-+static int ns_can_attach(struct container_subsys *ss,
-+		struct container *new_container, struct task_struct *task)
-+{
-+	struct container *orig;
-+
-+	if (current != task) {
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+
-+		if (!container_is_descendant(new_container))
-+			return -EPERM;
-+	}
-+
-+	if (atomic_read(&new_container->count) != 0)
-+		return -EPERM;
-+
-+	orig = task_container(task, ns_subsys_id);
-+	if (orig && orig != new_container->parent)
-+		return -EPERM;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Rules: you can only create a container if
-+ *     1. you are capable(CAP_SYS_ADMIN)
-+ *     2. the target container is a descendant of your own container
-+ */
-+static int ns_create(struct container_subsys *ss, struct container *container)
-+{
-+	struct ns_container *ns_container;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+	if (!container_is_descendant(container))
-+		return -EPERM;
-+
-+	ns_container = kzalloc(sizeof(*ns_container), GFP_KERNEL);
-+	if (!ns_container) return -ENOMEM;
-+	spin_lock_init(&ns_container->lock);
-+	container->subsys[ns_subsys.subsys_id] = &ns_container->css;
-+	return 0;
-+}
-+
-+static void ns_destroy(struct container_subsys *ss,
-+			struct container *container)
-+{
-+	struct ns_container *ns_container;
-+
-+	ns_container = container_to_ns(container);
-+	kfree(ns_container);
-+}
-+
-+struct container_subsys ns_subsys = {
-+	.name = "ns",
-+	.can_attach = ns_can_attach,
-+	.create = ns_create,
-+	.destroy  = ns_destroy,
-+	.subsys_id = ns_subsys_id,
-+};
-diff -puN kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3 kernel/nsproxy.c
---- a/kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3
-+++ a/kernel/nsproxy.c
-@@ -146,7 +146,14 @@ int copy_namespaces(unsigned long flags,
- 		goto out;
- 	}
- 
-+	err = ns_container_clone(tsk);
-+	if (err) {
-+		put_nsproxy(new_ns);
-+		goto out;
-+	}
-+
- 	tsk->nsproxy = new_ns;
-+
- out:
- 	put_nsproxy(old_ns);
- 	return err;
-@@ -187,6 +194,14 @@ int unshare_nsproxy_namespaces(unsigned 
- 				new_fs ? new_fs : current->fs);
- 	if (IS_ERR(*new_nsp))
- 		err = PTR_ERR(*new_nsp);
-+		goto out;
-+	}
-+
-+	err = ns_container_clone(current);
-+	if (err)
-+		put_nsproxy(*new_nsp);
-+
-+out:
- 	return err;
+ 	data = malloc(sizeof(*data));
+-	if(data == NULL) return(NULL);
+-	*data = ((struct xterm_chan) { .pid 		= -1, 
++	if (data == NULL)
++		return NULL;
++	*data = ((struct xterm_chan) { .pid 		= -1,
+ 				       .helper_pid 	= -1,
+-				       .device 		= device, 
++				       .device 		= device,
+ 				       .title 		= opts->xterm_title,
+-				       .raw  		= opts->raw,
+-				       .stack 		= opts->tramp_stack,
+-				       .direct_rcv 	= !opts->in_kernel } );
+-	return(data);
++				       .raw  		= opts->raw } );
++	return data;
  }
  
+ /* Only changed by xterm_setup, which is a setup */
+@@ -57,16 +51,22 @@ static int __init xterm_setup(char *line
+ 	terminal_emulator = line;
+ 
+ 	line = strchr(line, ',');
+-	if(line == NULL) return(0);
++	if (line == NULL)
++		return 0;
++
+ 	*line++ = '\0';
+-	if(*line) title_switch = line;
++	if (*line)
++		title_switch = line;
+ 
+ 	line = strchr(line, ',');
+-	if(line == NULL) return(0);
++	if (line == NULL)
++		return 0;
++
+ 	*line++ = '\0';
+-	if(*line) exec_switch = line;
++	if (*line)
++		exec_switch = line;
+ 
+-	return(0);
++	return 0;
+ }
+ 
+ __uml_setup("xterm=", xterm_setup,
+@@ -82,114 +82,128 @@ __uml_setup("xterm=", xterm_setup,
+ "    are 'xterm=gnome-terminal,-t,-x'.\n\n"
+ );
+ 
+-/* XXX This badly needs some cleaning up in the error paths
+- * Not static because it's called directly by the tt mode gdb code
+- */
+-int xterm_open(int input, int output, int primary, void *d,
++static int xterm_open(int input, int output, int primary, void *d,
+ 		      char **dev_out)
+ {
+ 	struct xterm_chan *data = d;
+-	unsigned long stack;
+ 	int pid, fd, new, err;
+ 	char title[256], file[] = "/tmp/xterm-pipeXXXXXX";
+-	char *argv[] = { terminal_emulator, title_switch, title, exec_switch, 
++	char *argv[] = { terminal_emulator, title_switch, title, exec_switch,
+ 			 "/usr/lib/uml/port-helper", "-uml-socket",
+ 			 file, NULL };
+ 
+-	if(os_access(argv[4], OS_ACC_X_OK) < 0)
++	if (access(argv[4], X_OK) < 0)
+ 		argv[4] = "port-helper";
+ 
+ 	/* Check that DISPLAY is set, this doesn't guarantee the xterm
+ 	 * will work but w/o it we can be pretty sure it won't. */
+-	if (!getenv("DISPLAY")) {
+-		printk("xterm_open: $DISPLAY not set.\n");
++	if (getenv("DISPLAY") == NULL) {
++		printk(UM_KERN_ERR "xterm_open: $DISPLAY not set.\n");
+ 		return -ENODEV;
+ 	}
+ 
++	/*
++	 * This business of getting a descriptor to a temp file,
++	 * deleting the file and closing the descriptor is just to get
++	 * a known-unused name for the Unix socket that we really
++	 * want.
++	 */
+ 	fd = mkstemp(file);
+-	if(fd < 0){
++	if (fd < 0) {
+ 		err = -errno;
+-		printk("xterm_open : mkstemp failed, errno = %d\n", errno);
++		printk(UM_KERN_ERR "xterm_open : mkstemp failed, errno = %d\n",
++		       errno);
+ 		return err;
+ 	}
+ 
+-	if(unlink(file)){
++	if (unlink(file)) {
+ 		err = -errno;
+-		printk("xterm_open : unlink failed, errno = %d\n", errno);
++		printk(UM_KERN_ERR "xterm_open : unlink failed, errno = %d\n",
++		       errno);
+ 		return err;
+ 	}
+-	os_close_file(fd);
++	close(fd);
+ 
+ 	fd = os_create_unix_socket(file, sizeof(file), 1);
+-	if(fd < 0){
+-		printk("xterm_open : create_unix_socket failed, errno = %d\n", 
+-		       -fd);
+-		return(fd);
++	if (fd < 0) {
++		printk(UM_KERN_ERR "xterm_open : create_unix_socket failed, "
++		       "errno = %d\n", -fd);
++		return fd;
+ 	}
+ 
+ 	sprintf(title, data->title, data->device);
+-	stack = data->stack;
+-	pid = run_helper(NULL, NULL, argv, &stack);
+-	if(pid < 0){
+-		printk("xterm_open : run_helper failed, errno = %d\n", -pid);
+-		return(pid);
++	pid = run_helper(NULL, NULL, argv, NULL);
++	if (pid < 0) {
++		err = pid;
++		printk(UM_KERN_ERR "xterm_open : run_helper failed, "
++		       "errno = %d\n", -err);
++		goto out_close1;
+ 	}
+ 
+-	if (data->direct_rcv) {
+-		new = os_rcv_fd(fd, &data->helper_pid);
+-	} else {
+-		err = os_set_fd_block(fd, 0);
+-		if(err < 0){
+-			printk("xterm_open : failed to set descriptor "
+-			       "non-blocking, err = %d\n", -err);
+-			return(err);
+-		}
+-		new = xterm_fd(fd, &data->helper_pid);
++	err = os_set_fd_block(fd, 0);
++	if (err < 0) {
++		printk(UM_KERN_ERR "xterm_open : failed to set descriptor "
++		       "non-blocking, err = %d\n", -err);
++		goto out_kill;
+ 	}
+-	if(new < 0){
+-		printk("xterm_open : os_rcv_fd failed, err = %d\n", -new);
+-		goto out;
++
++	new = xterm_fd(fd, &data->helper_pid);
++	if (new < 0) {
++		err = new;
++		printk(UM_KERN_ERR "xterm_open : os_rcv_fd failed, err = %d\n",
++		       -err);
++		goto out_kill;
+ 	}
+ 
+ 	err = os_set_fd_block(new, 0);
+ 	if (err) {
+-		printk("xterm_open : failed to set xterm descriptor "
+-		       "non-blocking, err = %d\n", -err);
+-		goto out;
++		printk(UM_KERN_ERR "xterm_open : failed to set xterm "
++		       "descriptor non-blocking, err = %d\n", -err);
++		goto out_close2;
+ 	}
+ 
+ 	CATCH_EINTR(err = tcgetattr(new, &data->tt));
+-	if(err){
++	if (err) {
+ 		new = err;
+-		goto out;
++		goto out_close2;
+ 	}
+ 
+-	if(data->raw){
++	if (data->raw) {
+ 		err = raw(new);
+-		if(err){
++		if (err) {
+ 			new = err;
+-			goto out;
++			goto out_close2;
+ 		}
+ 	}
+ 
++	unlink(file);
+ 	data->pid = pid;
+ 	*dev_out = NULL;
+- out:
+-	unlink(file);
+-	return(new);
++
++	return new;
++
++ out_close2:
++	close(new);
++ out_kill:
++	os_kill_process(pid, 1);
++ out_close1:
++	close(fd);
++
++	return err;
+ }
+ 
+-/* Not static because it's called directly by the tt mode gdb code */
+-void xterm_close(int fd, void *d)
++static void xterm_close(int fd, void *d)
+ {
+ 	struct xterm_chan *data = d;
+ 	
+-	if(data->pid != -1) 
++	if (data->pid != -1)
+ 		os_kill_process(data->pid, 1);
+ 	data->pid = -1;
+-	if(data->helper_pid != -1) 
++
++	if (data->helper_pid != -1)
+ 		os_kill_process(data->helper_pid, 0);
+ 	data->helper_pid = -1;
++
+ 	os_close_file(fd);
+ }
+ 
+@@ -210,14 +224,3 @@ const struct chan_ops xterm_ops = {
+ 	.free		= xterm_free,
+ 	.winch		= 1,
+ };
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/drivers/xterm_kern.c~uml-xterm-driver-tidying arch/um/drivers/xterm_kern.c
+--- a/arch/um/drivers/xterm_kern.c~uml-xterm-driver-tidying
++++ a/arch/um/drivers/xterm_kern.c
+@@ -1,18 +1,14 @@
+ /* 
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/errno.h"
+-#include "linux/slab.h"
+-#include "linux/signal.h"
+-#include "linux/interrupt.h"
+-#include "asm/irq.h"
+-#include "irq_user.h"
++#include <linux/slab.h>
++#include <linux/completion.h>
++#include <linux/irqreturn.h>
++#include <asm/irq.h>
+ #include "irq_kern.h"
+-#include "kern_util.h"
+ #include "os.h"
+-#include "xterm.h"
+ 
+ struct xterm_wait {
+ 	struct completion ready;
+@@ -27,12 +23,13 @@ static irqreturn_t xterm_interrupt(int i
+ 	int fd;
+ 
+ 	fd = os_rcv_fd(xterm->fd, &xterm->pid);
+-	if(fd == -EAGAIN)
+-		return(IRQ_NONE);
++	if (fd == -EAGAIN)
++		return IRQ_NONE;
+ 
+ 	xterm->new_fd = fd;
+ 	complete(&xterm->ready);
+-	return(IRQ_HANDLED);
++
++	return IRQ_HANDLED;
+ }
+ 
+ int xterm_fd(int socket, int *pid_out)
+@@ -41,22 +38,21 @@ int xterm_fd(int socket, int *pid_out)
+ 	int err, ret;
+ 
+ 	data = kmalloc(sizeof(*data), GFP_KERNEL);
+-	if(data == NULL){
++	if (data == NULL) {
+ 		printk(KERN_ERR "xterm_fd : failed to allocate xterm_wait\n");
+-		return(-ENOMEM);
++		return -ENOMEM;
+ 	}
+ 
+ 	/* This is a locked semaphore... */
+-	*data = ((struct xterm_wait) 
+-		{ .fd 		= socket,
+-		  .pid 		= -1,
+-		  .new_fd 	= -1 });
++	*data = ((struct xterm_wait) { .fd 		= socket,
++				       .pid 		= -1,
++				       .new_fd	 	= -1 });
+ 	init_completion(&data->ready);
+ 
+-	err = um_request_irq(XTERM_IRQ, socket, IRQ_READ, xterm_interrupt, 
++	err = um_request_irq(XTERM_IRQ, socket, IRQ_READ, xterm_interrupt,
+ 			     IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
+ 			     "xterm", data);
+-	if (err){
++	if (err) {
+ 		printk(KERN_ERR "xterm_fd : failed to get IRQ for xterm, "
+ 		       "err = %d\n",  err);
+ 		ret = err;
+@@ -76,16 +72,5 @@ int xterm_fd(int socket, int *pid_out)
+  out:
+ 	kfree(data);
+ 
+-	return(ret);
++	return ret;
+ }
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/include/chan_user.h~uml-xterm-driver-tidying arch/um/include/chan_user.h
+--- a/arch/um/include/chan_user.h~uml-xterm-driver-tidying
++++ a/arch/um/include/chan_user.h
+@@ -12,8 +12,6 @@ struct chan_opts {
+ 	void (*const announce)(char *dev_name, int dev);
+ 	char *xterm_title;
+ 	const int raw;
+-	const unsigned long tramp_stack;
+-	const int in_kernel;
+ };
+ 
+ enum chan_init_pri { INIT_STATIC, INIT_ALL, INIT_ONE };
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
+tun-tap-allow-group-ownership-of-tun-tap-devices.patch
+hostfs-convert-to-new-aops.patch
+uml-fix-request-sector-update.patch
+uml-use-get_free_pages-to-allocate-kernel-stacks.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
+uml-xterm-driver-tidying.patch
+uml-pty-channel-tidying.patch
+uml-handle-errors-on-opening-host-side-of-consoles.patch
+uml-sigio-support-cleanup.patch
+uml-eliminate-kernel-allocator-wrappers.patch
