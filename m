@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-convert-to-new-aops-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:39:30 -0700
-Message-ID: <200706262139.l5QLdUjW002631@imap1.linux-foundation.org>
+Subject: + ext4-convert-to-new-aops-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:40:03 -0700
+Message-ID: <200706262140.l5QLe3aS002654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57928 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751482AbXFZVkT (ORCPT
+	by vger.kernel.org with ESMTP id S1752196AbXFZVkz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:40:19 -0400
+	Tue, 26 Jun 2007 17:40:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com
 
 
 The patch titled
-     ext3-convert-to-new-aops fix
+     ext4-convert-to-new-aops fix
 has been added to the -mm tree.  Its filename is
-     ext3-convert-to-new-aops-fix.patch
+     ext4-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3-convert-to-new-aops fix
+Subject: ext4-convert-to-new-aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 Don't move journal_stop from under page lock.
-
-Fixes: ext3-convert-to-new-aops.patch
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Badari Pulavarty <pbadari@gmail.com>
@@ -40,12 +38,12 @@ Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ fs/ext4/inode.c |   44 +++++++++++++++++++++++++++++++++++++-------
  1 files changed, 37 insertions(+), 7 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-convert-to-new-aops-fix
-+++ a/fs/ext3/inode.c
+diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops-fix fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-convert-to-new-aops-fix
++++ a/fs/ext4/inode.c
 @@ -36,6 +36,7 @@
  #include <linux/mpage.h>
  #include <linux/uio.h>
@@ -54,16 +52,16 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
  #include "xattr.h"
  #include "acl.h"
  
-@@ -1217,6 +1218,31 @@ static int write_end_fn(handle_t *handle
+@@ -1215,6 +1216,31 @@ static int write_end_fn(handle_t *handle
  }
  
  /*
-+ * Generic write_end handler for ordered and writeback ext3 journal modes.
++ * Generic write_end handler for ordered and writeback ext4 journal modes.
 + * We can't use generic_write_end, because that unlocks the page and we need to
-+ * unlock the page after ext3_journal_stop, but ext3_journal_stop must run
++ * unlock the page after ext4_journal_stop, but ext4_journal_stop must run
 + * after block_write_end.
 + */
-+static int ext3_generic_write_end(struct file *file,
++static int ext4_generic_write_end(struct file *file,
 +				struct address_space *mapping,
 +				loff_t pos, unsigned len, unsigned copied,
 +				struct page *page, void *fsdata)
@@ -86,12 +84,12 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
   * We need to pick up the new inode size which generic_commit_write gave us
   * `file' can be NULL - eg, when called from page_symlink().
   *
-@@ -1250,17 +1276,17 @@ static int ext3_ordered_write_end(struct
+@@ -1248,17 +1274,17 @@ static int ext4_ordered_write_end(struct
  		new_i_size = pos + copied;
- 		if (new_i_size > EXT3_I(inode)->i_disksize)
- 			EXT3_I(inode)->i_disksize = new_i_size;
+ 		if (new_i_size > EXT4_I(inode)->i_disksize)
+ 			EXT4_I(inode)->i_disksize = new_i_size;
 -		copied = generic_write_end(file, mapping, pos, len, copied,
-+		copied = ext3_generic_write_end(file, mapping, pos, len, copied,
++		copied = ext4_generic_write_end(file, mapping, pos, len, copied,
  							page, fsdata);
  		if (copied < 0)
  			ret = copied;
@@ -99,7 +97,7 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
 -		unlock_page(page);
 -		page_cache_release(page);
  	}
- 	ret2 = ext3_journal_stop(handle);
+ 	ret2 = ext4_journal_stop(handle);
  	if (!ret)
  		ret = ret2;
 +	unlock_page(page);
@@ -108,17 +106,17 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
  	return ret ? ret : copied;
  }
  
-@@ -1278,7 +1304,7 @@ static int ext3_writeback_write_end(stru
- 	if (new_i_size > EXT3_I(inode)->i_disksize)
- 		EXT3_I(inode)->i_disksize = new_i_size;
+@@ -1276,7 +1302,7 @@ static int ext4_writeback_write_end(stru
+ 	if (new_i_size > EXT4_I(inode)->i_disksize)
+ 		EXT4_I(inode)->i_disksize = new_i_size;
  
 -	copied = generic_write_end(file, mapping, pos, len, copied,
-+	copied = ext3_generic_write_end(file, mapping, pos, len, copied,
++	copied = ext4_generic_write_end(file, mapping, pos, len, copied,
  							page, fsdata);
  	if (copied < 0)
  		ret = copied;
-@@ -1286,6 +1312,9 @@ static int ext3_writeback_write_end(stru
- 	ret2 = ext3_journal_stop(handle);
+@@ -1284,6 +1310,9 @@ static int ext4_writeback_write_end(stru
+ 	ret2 = ext4_journal_stop(handle);
  	if (!ret)
  		ret = ret2;
 +	unlock_page(page);
@@ -127,7 +125,7 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
  	return ret ? ret : copied;
  }
  
-@@ -1313,8 +1342,6 @@ static int ext3_journalled_write_end(str
+@@ -1311,8 +1340,6 @@ static int ext4_journalled_write_end(str
  				to, &partial, write_end_fn);
  	if (!partial)
  		SetPageUptodate(page);
@@ -135,9 +133,9 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
 -	page_cache_release(page);
  	if (pos+copied > inode->i_size)
  		i_size_write(inode, pos+copied);
- 	EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
-@@ -1328,6 +1355,9 @@ static int ext3_journalled_write_end(str
- 	ret2 = ext3_journal_stop(handle);
+ 	EXT4_I(inode)->i_state |= EXT4_STATE_JDATA;
+@@ -1326,6 +1353,9 @@ static int ext4_journalled_write_end(str
+ 	ret2 = ext4_journal_stop(handle);
  	if (!ret)
  		ret = ret2;
 +	unlock_page(page);
@@ -184,6 +182,7 @@ ext2-convert-to-new-aops.patch
 ext3-convert-to-new-aops.patch
 ext3-convert-to-new-aops-fix.patch
 ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
 xfs-convert-to-new-aops.patch
 fs-new-cont-helpers.patch
 fat-convert-to-new-aops.patch
