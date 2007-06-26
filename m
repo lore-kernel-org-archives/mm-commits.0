@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:52:12 -0700
-Message-ID: <200706262152.l5QLqCCn002852@imap1.linux-foundation.org>
+Subject: + containers-implement-subsys-post_clone.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:58:45 -0700
+Message-ID: <200706262158.l5QLwkb3003000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752877AbXFZVwZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755154AbXFZV77 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:52:25 -0400
+	Tue, 26 Jun 2007 17:59:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com, npiggin@suse.de
+Cc: serue@us.ibm.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, menage@google.com, pj@sgi.com, vatsa@in.ibm.com
 
 
 The patch titled
-     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix
+     containers: implement subsys->post_clone()
 has been added to the -mm tree.  Its filename is
-     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+     containers-implement-subsys-post_clone.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,225 +26,180 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: containers: implement subsys->post_clone()
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+container_clone() in one step creates a new container and moves the current
+task into it.  Since cpusets do not automatically fill in the allowed cpus and
+mems, and do not allow a task to be attached without these filled in,
+composing the ns subsystem, which uses container_clone(), and the cpuset
+subsystem, results in sys_unshare() (and clone(CLONE_NEWNS)) always being
+denied.
+
+To allow the two subsystems to be meaningfully composed, implement
+subsystem->post_clone(), called from container_clone() after creating the new
+container.
+
+Only the cpuset_post_clone() is currently implemented.  If any sibling
+containers have exclusive cpus or mems, then the cpus and mems are not filled
+in for the new container, meaning that unshare/clone(CLONE_NEWNS) will be
+denied.  However so long as no siblings have exclusive cpus or mems, the new
+container's cpus and mems are inherited from the parent container.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/mmap.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ Documentation/containers.txt |    7 ++++++
+ include/linux/container.h    |    1 
+ kernel/container.c           |    7 ++++++
+ kernel/cpuset.c              |   37 +++++++++++++++++++++++++++++++++
+ 4 files changed, 52 insertions(+)
 
-diff -puN fs/ocfs2/mmap.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix
-+++ a/fs/ocfs2/mmap.c
-@@ -208,7 +208,7 @@ out:
+diff -puN Documentation/containers.txt~containers-implement-subsys-post_clone Documentation/containers.txt
+--- a/Documentation/containers.txt~containers-implement-subsys-post_clone
++++ a/Documentation/containers.txt
+@@ -514,6 +514,13 @@ include/linux/container.h for details). 
+ method can return an error code, the error code is currently not
+ always handled well.
+ 
++void post_clone(struct container_subsys *ss, struct container *cont)
++
++Called at the end of container_clone() to do any paramater
++initialization which might be required before a task could attach.  For
++example in cpusets, no task may attach before 'cpus' and 'mems' are set
++up.
++
+ void bind(struct container_subsys *ss, struct container *root)
+ LL=callback_mutex
+ 
+diff -puN include/linux/container.h~containers-implement-subsys-post_clone include/linux/container.h
+--- a/include/linux/container.h~containers-implement-subsys-post_clone
++++ a/include/linux/container.h
+@@ -216,6 +216,7 @@ struct container_subsys {
+ 	void (*exit)(struct container_subsys *ss, struct task_struct *task);
+ 	int (*populate)(struct container_subsys *ss,
+ 			struct container *cont);
++	void (*post_clone)(struct container_subsys *ss, struct container *cont);
+ 	void (*bind)(struct container_subsys *ss, struct container *root);
+ 	int subsys_id;
+ 	int active;
+diff -puN kernel/container.c~containers-implement-subsys-post_clone kernel/container.c
+--- a/kernel/container.c~containers-implement-subsys-post_clone
++++ a/kernel/container.c
+@@ -2375,6 +2375,7 @@ int container_clone(struct task_struct *
+ 	struct inode *inode;
+ 	struct css_group *cg;
+ 	struct containerfs_root *root;
++	struct container_subsys *ss;
+ 
+ 	/* We shouldn't be called by an unregistered subsystem */
+ 	BUG_ON(!subsys->active);
+@@ -2454,6 +2455,12 @@ int container_clone(struct task_struct *
+ 		goto again;
+ 	}
+ 
++	/* do any required auto-setup */
++	for_each_subsys(root, ss) {
++		if (ss->post_clone)
++			ss->post_clone(ss, child);
++	}
++
+ 	/* All seems fine. Finish by moving the task into the new container */
+ 	ret = attach_task(child, tsk);
+ 	mutex_unlock(&container_mutex);
+diff -puN kernel/cpuset.c~containers-implement-subsys-post_clone kernel/cpuset.c
+--- a/kernel/cpuset.c~containers-implement-subsys-post_clone
++++ a/kernel/cpuset.c
+@@ -1190,6 +1190,42 @@ int cpuset_populate(struct container_sub
  }
  
- static struct vm_operations_struct ocfs2_file_vm_ops = {
--	.nopage		= ocfs2_fault,
-+	.fault		= ocfs2_fault,
- 	.page_mkwrite	= ocfs2_page_mkwrite,
+ /*
++ * post_clone() is called at the end of container_clone().
++ * 'container' was just created automatically as a result of
++ * a container_clone(), and the current task is about to
++ * be moved into 'container'.
++ *
++ * Currently we refuse to set up the container - thereby
++ * refusing the task to be entered, and as a result refusing
++ * the sys_unshare() or clone() which initiated it - if any
++ * sibling cpusets have exclusive cpus or mem.
++ *
++ * If this becomes a problem for some users who wish to
++ * allow that scenario, then cpuset_post_clone() could be
++ * changed to grant parent->cpus_allowed-sibling_cpus_exclusive
++ * (and likewise for mems) to the new container.
++ */
++void cpuset_post_clone(struct container_subsys *ss,
++		struct container *container)
++{
++	struct container *parent, *child;
++	struct cpuset *cs, *parent_cs;
++
++	parent = container->parent;
++	list_for_each_entry(child, &parent->children, sibling) {
++		cs = container_cs(child);
++		if (is_mem_exclusive(cs) || is_cpu_exclusive(cs))
++			return;
++	}
++	cs = container_cs(container);
++	parent_cs = container_cs(parent);
++
++	cs->mems_allowed = parent_cs->mems_allowed;
++	cs->cpus_allowed = parent_cs->cpus_allowed;
++	return;
++}
++
++/*
+  *	cpuset_create - create a cpuset
+  *	parent:	cpuset that will be parent of the new cpuset.
+  *	name:		name of the new cpuset. Will be strcpy'ed.
+@@ -1249,6 +1285,7 @@ struct container_subsys cpuset_subsys = 
+ 	.can_attach = cpuset_can_attach,
+ 	.attach = cpuset_attach,
+ 	.populate = cpuset_populate,
++	.post_clone = cpuset_post_clone,
+ 	.subsys_id = cpuset_subsys_id,
+ 	.early_init = 1,
  };
- 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix-2.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
 containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem.patch
 containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
 containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
 containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
 containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
 containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
 containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
 containersv10-simple-debug-info-subsystem-fix.patch
 containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
