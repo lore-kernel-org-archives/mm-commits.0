@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:22 -0700
-Message-ID: <200706260007.l5Q07M6k014400@imap1.linux-foundation.org>
+Subject: + tick-management-spread-timer-interrupt.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:36 -0700
+Message-ID: <200706260007.l5Q07acS014421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48187 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753398AbXFZAIO (ORCPT
+	by vger.kernel.org with ESMTP id S1754884AbXFZAIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:08:14 -0400
+	Mon, 25 Jun 2007 20:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: us15@os.inf.tu-dresden.de, lenb@kernel.org, tglx@linutronix.de
+Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ACPI: move timer broadcast and pmtimer access before C3 arbiter shutdown
+     tick management: spread timer interrupt
 has been added to the -mm tree.  Its filename is
-     acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+     tick-management-spread-timer-interrupt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: move timer broadcast and pmtimer access before C3 arbiter shutdown
-From: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+Subject: tick management: spread timer interrupt
+From: john stultz <johnstul@us.ibm.com>
 
-The chipset doc for IHC4 tells us:
+After discussing w/ Thomas over IRC, it seems the issue is the sched tick
+fires on every cpu at the same time, causing extra lock contention.
 
-1.In general, software should not attempt any non-posted accesses during
-arbiter disable except to the ICH4's power management registers.  This implies
-that interrupt handlers for any unmasked hardware interrupts and SMI/NMI
-should check ARB_DIS status before reading from ICH devices.
+This smaller change, adds an extra offset per cpu so the ticks don't line up. 
+This patch also drops the idle latency from 40us down to under 20us.
 
-So it's not a good idea to access ICH devices after arbiter shut down.
-
-Signed-off-by: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+Signed-off-by: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    7 ++++++-
+ kernel/time/tick-sched.c |    7 ++++++-
  1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown
-+++ a/drivers/acpi/processor_idle.c
-@@ -989,6 +989,12 @@ static int acpi_idle_enter_c3(struct cpu
- 		return 0;
- 	}
+diff -puN kernel/time/tick-sched.c~tick-management-spread-timer-interrupt kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-management-spread-timer-interrupt
++++ a/kernel/time/tick-sched.c
+@@ -573,6 +573,7 @@ void tick_setup_sched_timer(void)
+ {
+ 	struct tick_sched *ts = &__get_cpu_var(tick_cpu_sched);
+ 	ktime_t now = ktime_get();
++	u64 offset;
  
-+	/*
-+	 * Must be done before busmaster disable as we might need to
-+	 * access HPET !
-+	 */
-+	acpi_state_timer_broadcast(pr, cx, 1);
-+
- 	/* disable bus master */
- 	if (pr->flags.bm_check) {
- 		spin_lock(&c3_lock);
-@@ -1008,7 +1014,6 @@ static int acpi_idle_enter_c3(struct cpu
+ 	/*
+ 	 * Emulate tick processing via per-CPU hrtimers:
+@@ -581,8 +582,12 @@ void tick_setup_sched_timer(void)
+ 	ts->sched_timer.function = tick_sched_timer;
+ 	ts->sched_timer.cb_mode = HRTIMER_CB_IRQSAFE_NO_SOFTIRQ;
  
- 	/* Get start time (ticks) */
- 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--	acpi_state_timer_broadcast(pr, cx, 1);
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+-	/* Get the next period */
++	/* Get the next period (per cpu) */
+ 	ts->sched_timer.expires = tick_init_jiffy_update();
++	offset = ktime_to_ns(tick_period) >> 1;
++	do_div(offset, NR_CPUS);
++	offset *= smp_processor_id();
++	ts->sched_timer.expires = ktime_add_ns(ts->sched_timer.expires, offset);
  
+ 	for (;;) {
+ 		hrtimer_forward(&ts->sched_timer, now, tick_period);
 _
 
-Patches currently in -mm which might be from us15@os.inf.tu-dresden.de are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+git-acpi-add-exports.patch
+i386-hpet-check-if-the-counter-works.patch
+clockevents-fix-typo-in-acpi_pmc.patch
+timekeeping-fixup-shadow-variable-argument.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+introduce-boot-based-time.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix-2.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix-3.patch
+use-boot-based-time-for-uptime-in-proc.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+sys_time-speedup.patch
