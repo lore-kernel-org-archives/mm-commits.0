@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-refactor-ascii-to-unicode-conversion-routine.patch added to -mm tree
-Date: Mon, 25 Jun 2007 22:02:37 -0700
-Message-ID: <200706260502.l5Q52bpR018822@imap1.linux-foundation.org>
+Subject: + fix-section-mismatch-in-chipsfb.patch added to -mm tree
+Date: Mon, 25 Jun 2007 22:07:56 -0700
+Message-ID: <200706260507.l5Q57uAo018907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751456AbXFZFCx (ORCPT
+	by vger.kernel.org with ESMTP id S1751752AbXFZFIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 01:02:53 -0400
+	Tue, 26 Jun 2007 01:08:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: duaneg@dghda.com, zippel@linux-m68k.org
+Cc: olaf@aepfle.de, adaplas@pol.net
 
 
 The patch titled
-     HFS+: refactor ASCII to unicode conversion routine for later reuse
+     fix section mismatch in chipsfb
 has been added to the -mm tree.  Its filename is
-     hfs-refactor-ascii-to-unicode-conversion-routine.patch
+     fix-section-mismatch-in-chipsfb.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,161 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HFS+: refactor ASCII to unicode conversion routine for later reuse
-From: Duane Griffin <duaneg@dghda.com>
+Subject: fix section mismatch in chipsfb
+From: Olaf Hering <olaf@aepfle.de>
 
-The HFS+ filesystem is case-insensitive and does automatic unicode
-decomposition by default, but does not provide custom dentry operations.  This
-can lead to multiple dentries being cached for lookups on a filename with
-varying case and/or character (de)composition.
+WARNING: drivers/built-in.o(.text+0x8742a): Section mismatch: reference to .init.data:chipsfb_fix (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+WARNING: drivers/built-in.o(.text+0x87432): Section mismatch: reference to .init.data:chipsfb_fix (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+WARNING: drivers/built-in.o(.text+0x87442): Section mismatch: reference to .init.data:chipsfb_var (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+WARNING: drivers/built-in.o(.text+0x8744a): Section mismatch: reference to .init.data:chipsfb_var (between 'chipsfb_pci_init' and 'chipsfb_set_par')
 
-These patches add custom dentry hash and comparison operations for
-case-sensitive and/or automatically decomposing HFS+ filesystems.  Unicode
-decomposition and case-folding are performed as required to ensure equivalent
-filenames are hashed to the same values and compare as equal.
+init_chips is only called from chipsfb_pci_init
+chipsfb_fix and chipsfb_var are only referenced from init_chips
 
-
-This patch:
-
-Refactor existing HFS+ ASCII to unicode string conversion routine to split out
-character conversion functionality.  This will be reused by the custom dentry
-hash and comparison routines.  This approach avoids unnecessary memory
-allocation compared to using the string conversion routine directly in the new
-functions.
-
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/unicode.c |  105 +++++++++++++++++++++++------------------
- 1 file changed, 60 insertions(+), 45 deletions(-)
+ drivers/video/chipsfb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine fs/hfsplus/unicode.c
---- a/fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine
-+++ a/fs/hfsplus/unicode.c
-@@ -239,58 +239,73 @@ out:
- 	return res;
+diff -puN drivers/video/chipsfb.c~fix-section-mismatch-in-chipsfb drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~fix-section-mismatch-in-chipsfb
++++ a/drivers/video/chipsfb.c
+@@ -292,7 +292,7 @@ static void __init chips_hw_init(void)
+ 		write_fr(chips_init_fr[i].addr, chips_init_fr[i].data);
  }
  
--int hfsplus_asc2uni(struct super_block *sb, struct hfsplus_unistr *ustr, const char *astr, int len)
-+/*
-+ * Convert one or more ASCII characters into a single unicode character.
-+ * Returns the number of ASCII characters corresponding to the unicode char.
-+ */
-+static inline int asc2unichar(struct super_block *sb, const char *astr, int len,
-+			      wchar_t *uc)
- {
--	struct nls_table *nls = HFSPLUS_SB(sb).nls;
--	int size, off, decompose;
-+	int size = HFSPLUS_SB(sb).nls->char2uni(astr, len, uc);
-+	if (size <= 0) {
-+		*uc = '?';
-+		size = 1;
-+	}
-+	switch (*uc) {
-+	case 0x2400:
-+		*uc = 0;
-+		break;
-+	case ':':
-+		*uc = '/';
-+		break;
-+	}
-+	return size;
-+}
-+
-+/* Decomposes a single unicode character. */
-+static inline u16 *decompose_unichar(wchar_t uc, int *size)
-+{
-+	int off;
-+
-+	off = hfsplus_decompose_table[(uc >> 12) & 0xf];
-+	if (off == 0 || off == 0xffff)
-+		return NULL;
-+
-+	off = hfsplus_decompose_table[off + ((uc >> 8) & 0xf)];
-+	if (!off)
-+		return NULL;
-+
-+	off = hfsplus_decompose_table[off + ((uc >> 4) & 0xf)];
-+	if (!off)
-+		return NULL;
-+
-+	off = hfsplus_decompose_table[off + (uc & 0xf)];
-+	*size = off & 3;
-+	return hfsplus_decompose_table + (off / 4);
-+}
-+
-+int hfsplus_asc2uni(struct super_block *sb, struct hfsplus_unistr *ustr,
-+		    const char *astr, int len)
-+{
-+	int size, dsize, decompose;
-+	u16 *dstr, outlen = 0;
- 	wchar_t c;
--	u16 outlen = 0;
+-static struct fb_fix_screeninfo chipsfb_fix __initdata = {
++static struct fb_fix_screeninfo chipsfb_fix __devinitdata = {
+ 	.id =		"C&T 65550",
+ 	.type =		FB_TYPE_PACKED_PIXELS,
+ 	.visual =	FB_VISUAL_PSEUDOCOLOR,
+@@ -309,7 +309,7 @@ static struct fb_fix_screeninfo chipsfb_
+ 	.smem_len =	0x100000,	/* 1MB */
+ };
  
- 	decompose = !(HFSPLUS_SB(sb).flags & HFSPLUS_SB_NODECOMPOSE);
--
- 	while (outlen < HFSPLUS_MAX_STRLEN && len > 0) {
--		size = nls->char2uni(astr, len, &c);
--		if (size <= 0) {
--			c = '?';
--			size = 1;
--		}
--		astr += size;
--		len -= size;
--		switch (c) {
--		case 0x2400:
--			c = 0;
--			break;
--		case ':':
--			c = '/';
--			break;
--		}
--		if (c >= 0xc0 && decompose) {
--			off = hfsplus_decompose_table[(c >> 12) & 0xf];
--			if (!off)
--				goto done;
--			if (off == 0xffff) {
--				goto done;
--			}
--			off = hfsplus_decompose_table[off + ((c >> 8) & 0xf)];
--			if (!off)
--				goto done;
--			off = hfsplus_decompose_table[off + ((c >> 4) & 0xf)];
--			if (!off)
--				goto done;
--			off = hfsplus_decompose_table[off + (c & 0xf)];
--			size = off & 3;
--			if (!size)
--				goto done;
--			off /= 4;
--			if (outlen + size > HFSPLUS_MAX_STRLEN)
-+		size = asc2unichar(sb, astr, len, &c);
-+
-+		if (decompose && (dstr = decompose_unichar(c, &dsize))) {
-+			if (outlen + dsize > HFSPLUS_MAX_STRLEN)
- 				break;
- 			do {
--				ustr->unicode[outlen++] = cpu_to_be16(hfsplus_decompose_table[off++]);
--			} while (--size > 0);
--			continue;
--		}
--	done:
--		ustr->unicode[outlen++] = cpu_to_be16(c);
-+				ustr->unicode[outlen++] = cpu_to_be16(*dstr++);
-+			} while (--dsize > 0);
-+		} else
-+			ustr->unicode[outlen++] = cpu_to_be16(c);
-+
-+		astr += size;
-+		len -= size;
- 	}
- 	ustr->length = cpu_to_be16(outlen);
- 	if (len > 0)
+-static struct fb_var_screeninfo chipsfb_var __initdata = {
++static struct fb_var_screeninfo chipsfb_var __devinitdata = {
+ 	.xres = 800,
+ 	.yres = 600,
+ 	.xres_virtual = 800,
+@@ -330,7 +330,7 @@ static struct fb_var_screeninfo chipsfb_
+ 	.vsync_len = 8,
+ };
+ 
+-static void __init init_chips(struct fb_info *p, unsigned long addr)
++static void __devinit init_chips(struct fb_info *p, unsigned long addr)
+ {
+ 	memset(p->screen_base, 0, 0x100000);
+ 
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-hfs-refactor-ascii-to-unicode-conversion-routine.patch
-hfs-add-custom-dentry-hash-and-comparison-operations.patch
+atyfb-fix-xclk-frequency-on-apple-ibook1.patch
+fix-section-mismatch-in-chipsfb.patch
+keep-track-of-network-interface-renaming.patch
