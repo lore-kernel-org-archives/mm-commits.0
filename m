@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-sbsc-remove-dead-code.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:43:51 -0700
-Message-ID: <200706261943.l5QJhp9i000852@imap1.linux-foundation.org>
+Subject: + cdrom_sysctl_info-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:45:48 -0700
+Message-ID: <200706261945.l5QJjmtY000877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55015 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757286AbXFZToG (ORCPT
+	by vger.kernel.org with ESMTP id S1757224AbXFZTp6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:44:06 -0400
+	Tue, 26 Jun 2007 15:45:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, len.brown@intel.com, vladimir.p.lebedev@intel.com
+Cc: hidave.darkstar@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     drivers/acpi/sbs.c: remove dead code
+     cdrom_sysctl_info fix
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-sbsc-remove-dead-code.patch
+     cdrom_sysctl_info-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,100 +26,230 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/acpi/sbs.c: remove dead code
-From: Adrian Bunk <bunk@stusta.de>
+Subject: cdrom_sysctl_info fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Remove dead code spotted by the Coverity checker.
+cdrom_sysctl_info may cause buffer overwrite.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Vladimir Lebedev <vladimir.p.lebedev@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sbs.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/cdrom/cdrom.c |  186 +++++++++++++++++++++-------------------
+ 1 files changed, 102 insertions(+), 84 deletions(-)
 
-diff -puN drivers/acpi/sbs.c~drivers-acpi-sbsc-remove-dead-code drivers/acpi/sbs.c
---- a/drivers/acpi/sbs.c~drivers-acpi-sbsc-remove-dead-code
-+++ a/drivers/acpi/sbs.c
-@@ -1409,7 +1409,7 @@ static int acpi_sbs_update_run(struct ac
- 	char dir_name[32];
- 	int do_battery_init = 0, do_ac_init = 0;
- 	int old_remaining_capacity = 0;
--	int update_ac = 1, update_battery = 1;
-+	int update_battery = 1;
- 	int up_tm = update_time;
+diff -puN drivers/cdrom/cdrom.c~cdrom_sysctl_info-fix drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~cdrom_sysctl_info-fix
++++ a/drivers/cdrom/cdrom.c
+@@ -3290,102 +3290,120 @@ static struct cdrom_sysctl_settings {
+ } cdrom_sysctl_settings;
  
- 	if (sbs_zombie(sbs)) {
-@@ -1429,10 +1429,6 @@ static int acpi_sbs_update_run(struct ac
+ static int cdrom_sysctl_info(ctl_table *ctl, int write, struct file * filp,
+-                           void __user *buffer, size_t *lenp, loff_t *ppos)
++				void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-        int pos;
++	int pos;
+ 	struct cdrom_device_info *cdi;
+ 	char *info = cdrom_sysctl_settings.info;
++	int size = sizeof(cdrom_sysctl_settings.info);
+ 	
+ 	if (!*lenp || (*ppos && !write)) {
+ 		*lenp = 0;
+ 		return 0;
+ 	}
  
- 	sbs->run_cnt++;
- 
--	if (!update_ac && !update_battery) {
--		goto end;
--	}
+-	pos = sprintf(info, "CD-ROM information, " VERSION "\n");
++	pos = scnprintf(info, size, "CD-ROM information, " VERSION "\n");
+ 	
+-	pos += sprintf(info+pos, "\ndrive name:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%s", cdi->name);
 -
- 	old_ac_present = sbs->ac.ac_present;
+-	pos += sprintf(info+pos, "\ndrive speed:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", cdi->speed);
+-
+-	pos += sprintf(info+pos, "\ndrive # of slots:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", cdi->capacity);
+-
+-	pos += sprintf(info+pos, "\nCan close tray:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_CLOSE_TRAY) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan open tray:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_OPEN_TRAY) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan lock tray:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_LOCK) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan change speed:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_SELECT_SPEED) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan select disk:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_SELECT_DISC) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan read multisession:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_MULTI_SESSION) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan read MCN:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_MCN) != 0);
+-
+-	pos += sprintf(info+pos, "\nReports media changed:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_MEDIA_CHANGED) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan play audio:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_PLAY_AUDIO) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan write CD-R:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_CD_R) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan write CD-RW:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_CD_RW) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan read DVD:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_DVD) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan write DVD-R:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_DVD_R) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan write DVD-RAM:");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_DVD_RAM) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan read MRW:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_MRW) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan write MRW:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_MRW_W) != 0);
+-
+-	pos += sprintf(info+pos, "\nCan write RAM:\t");
+-	for (cdi=topCdromPtr;cdi!=NULL;cdi=cdi->next)
+-	    pos += sprintf(info+pos, "\t%d", CDROM_CAN(CDC_RAM) != 0);
++	pos += scnprintf(info + pos, size - pos, "\ndrive name:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%s", cdi->name);
++
++	pos += scnprintf(info + pos, size - pos, "\ndrive speed:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d", cdi->speed);
++
++	pos += scnprintf(info + pos, size - pos, "\ndrive # of slots:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d", cdi->capacity);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan close tray:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_CLOSE_TRAY) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan open tray:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_OPEN_TRAY) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan lock tray:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_LOCK) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan change speed:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_SELECT_SPEED) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan select disk:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_SELECT_DISC) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan read multisession:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_MULTI_SESSION) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan read MCN:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_MCN) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nReports media changed:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_MEDIA_CHANGED) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan play audio:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_PLAY_AUDIO) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan write CD-R:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_CD_R) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan write CD-RW:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_CD_RW) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan read DVD:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_DVD) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan write DVD-R:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_DVD_R) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan write DVD-RAM:");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_DVD_RAM) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan read MRW:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_MRW) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan write MRW:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_MRW_W) != 0);
++
++	pos += scnprintf(info + pos, size - pos, "\nCan write RAM:\t");
++	for (cdi = topCdromPtr; cdi != NULL; cdi = cdi->next)
++		pos += scnprintf(info + pos, size - pos, "\t%d",
++					CDROM_CAN(CDC_RAM) != 0);
  
- 	result = acpi_ac_get_present(sbs);
+-	strcpy(info+pos,"\n\n");
++	scnprintf(info + pos, size - pos, "\n\n");
+ 		
+-        return proc_dostring(ctl, write, filp, buffer, lenp, ppos);
++	return proc_dostring(ctl, write, filp, buffer, lenp, ppos);
+ }
+ 
+ /* Unfortunately, per device settings are not implemented through
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-mark-calibrate_xor_blocks-__init.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-kernel-sys_nic-should-include-linux-syscallsh.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+cdrom_sysctl_info-fix.patch
+remove-useless-tolower-in-isofs.patch
