@@ -1,260 +1,342 @@
 From: akpm@linux-foundation.org
-Subject: + sprint_symbol-cleanup.patch added to -mm tree
-Date: Tue, 26 Jun 2007 00:52:43 -0700
-Message-ID: <200706260752.l5Q7qhuR021193@imap1.linux-foundation.org>
+Subject: - readahead-split-ondemand-readahead-interface-into-two-functions.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 01:24:47 -0700
+Message-ID: <200706260824.l5Q8Ol7F021745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51892 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39141 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751217AbXFZHwu (ORCPT
+	by vger.kernel.org with ESMTP id S1752778AbXFZIZM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 03:52:50 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5Q7qm24001141
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2007 00:52:49 -0700
+	Tue, 26 Jun 2007 04:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sprint_symbol() cleanup
-has been added to the -mm tree.  Its filename is
-     sprint_symbol-cleanup.patch
+     readahead: split ondemand readahead interface into two functions
+has been removed from the -mm tree.  Its filename was
+     readahead-split-ondemand-readahead-interface-into-two-functions.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sprint_symbol() cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: readahead: split ondemand readahead interface into two functions
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Remove pointless `else'.
+Split ondemand readahead interface into two functions.  I think this
+makes it a little clearer for non-readahead experts (like Rusty).
 
+Internally they both call ondemand_readahead(), but the page argument
+is changed to an obvious boolean flag.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/ext3/dir.c      |    4 -
+ fs/ext4/dir.c      |    4 -
+ fs/splice.c        |    8 +--
+ include/linux/mm.h |   20 ++++++---
+ mm/filemap.c       |   10 ++--
+ mm/readahead.c     |   95 ++++++++++++++++++++++++++-----------------
+ 6 files changed, 85 insertions(+), 56 deletions(-)
 
-diff -puN kernel/kallsyms.c~sprint_symbol-cleanup kernel/kallsyms.c
---- a/kernel/kallsyms.c~sprint_symbol-cleanup
-+++ a/kernel/kallsyms.c
-@@ -317,13 +317,12 @@ int sprint_symbol(char *buffer, unsigned
- 	name = kallsyms_lookup(address, &size, &offset, &modname, namebuf);
- 	if (!name)
- 		return sprintf(buffer, "0x%lx", address);
--	else {
--		if (modname)
--			return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
+diff -puN fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext3/dir.c
+--- a/fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/fs/ext3/dir.c
+@@ -139,10 +139,10 @@ static int ext3_readdir(struct file * fi
+ 			pgoff_t index = map_bh.b_blocknr >>
+ 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
+ 			if (!ra_has_index(&filp->f_ra, index))
+-				page_cache_readahead_ondemand(
++				page_cache_sync_readahead(
+ 					sb->s_bdev->bd_inode->i_mapping,
+ 					&filp->f_ra, filp,
+-					NULL, index, 1);
++					index, 1);
+ 			filp->f_ra.prev_index = index;
+ 			bh = ext3_bread(NULL, inode, blk, 0, &err);
+ 		}
+diff -puN fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext4/dir.c
+--- a/fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/fs/ext4/dir.c
+@@ -138,10 +138,10 @@ static int ext4_readdir(struct file * fi
+ 			pgoff_t index = map_bh.b_blocknr >>
+ 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
+ 			if (!ra_has_index(&filp->f_ra, index))
+-				page_cache_readahead_ondemand(
++				page_cache_sync_readahead(
+ 					sb->s_bdev->bd_inode->i_mapping,
+ 					&filp->f_ra, filp,
+-					NULL, index, 1);
++					index, 1);
+ 			filp->f_ra.prev_index = index;
+ 			bh = ext4_bread(NULL, inode, blk, 0, &err);
+ 		}
+diff -puN fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/splice.c
+--- a/fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/fs/splice.c
+@@ -304,8 +304,8 @@ __generic_file_splice_read(struct file *
+ 	 * readahead/allocate the rest.
+ 	 */
+ 	if (spd.nr_pages < nr_pages)
+-		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
+-				NULL, index, req_pages - spd.nr_pages);
++		page_cache_sync_readahead(mapping, &in->f_ra, in,
++				index, req_pages - spd.nr_pages);
+ 
+ 	while (spd.nr_pages < nr_pages) {
+ 		/*
+@@ -360,8 +360,8 @@ __generic_file_splice_read(struct file *
+ 		page = pages[page_nr];
+ 
+ 		if (PageReadahead(page))
+-			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
+-					page, index, req_pages - page_nr);
++			page_cache_async_readahead(mapping, &in->f_ra, in,
++  					page, index, req_pages - page_nr);
+ 
+ 		/*
+ 		 * If the page isn't uptodate, we may need to start io on it
+diff -puN include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions include/linux/mm.h
+--- a/include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/include/linux/mm.h
+@@ -1150,12 +1150,20 @@ int do_page_cache_readahead(struct addre
+ 			pgoff_t offset, unsigned long nr_to_read);
+ int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read);
+-unsigned long page_cache_readahead_ondemand(struct address_space *mapping,
+-			  struct file_ra_state *ra,
+-			  struct file *filp,
+-			  struct page *page,
+-			  pgoff_t offset,
+-			  unsigned long size);
 +
-+	if (modname)
-+		return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
- 				size, modname);
--		else
--			return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
--	}
-+	else
-+		return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
++void page_cache_sync_readahead(struct address_space *mapping,
++			       struct file_ra_state *ra,
++			       struct file *filp,
++			       pgoff_t offset,
++			       unsigned long size);
++
++void page_cache_async_readahead(struct address_space *mapping,
++				struct file_ra_state *ra,
++				struct file *filp,
++				struct page *pg,
++				pgoff_t offset,
++				unsigned long size);
++
+ unsigned long max_sane_readahead(unsigned long nr);
+ 
+ /* Do stack extension */
+diff -puN mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/filemap.c
+--- a/mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/mm/filemap.c
+@@ -887,15 +887,15 @@ void do_generic_mapping_read(struct addr
+ find_page:
+ 		page = find_get_page(mapping, index);
+ 		if (!page) {
+-			page_cache_readahead_ondemand(mapping,
+-					&ra, filp, page,
++			page_cache_sync_readahead(mapping,
++					&ra, filp,
+ 					index, last_index - index);
+ 			page = find_get_page(mapping, index);
+ 			if (unlikely(page == NULL))
+ 				goto no_cached_page;
+ 		}
+ 		if (PageReadahead(page)) {
+-			page_cache_readahead_ondemand(mapping,
++			page_cache_async_readahead(mapping,
+ 					&ra, filp, page,
+ 					index, last_index - index);
+ 		}
+@@ -1359,14 +1359,14 @@ retry_find:
+ 	 */
+ 	if (VM_SequentialReadHint(vma)) {
+ 		if (!page) {
+-			page_cache_readahead_ondemand(mapping, ra, file, page,
++			page_cache_sync_readahead(mapping, ra, file,
+ 							   fdata->pgoff, 1);
+ 			page = find_lock_page(mapping, fdata->pgoff);
+ 			if (!page)
+ 				goto no_cached_page;
+ 		}
+ 		if (PageReadahead(page)) {
+-			page_cache_readahead_ondemand(mapping, ra, file, page,
++			page_cache_async_readahead(mapping, ra, file, page,
+ 							   fdata->pgoff, 1);
+ 		}
+ 	}
+diff -puN mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/readahead.c
+--- a/mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions
++++ a/mm/readahead.c
+@@ -351,7 +351,7 @@ static unsigned long get_next_ra_size(st
+ static unsigned long
+ ondemand_readahead(struct address_space *mapping,
+ 		   struct file_ra_state *ra, struct file *filp,
+-		   struct page *page, pgoff_t offset,
++		   bool hit_readahead_marker, pgoff_t offset,
+ 		   unsigned long req_size)
+ {
+ 	unsigned long max;	/* max readahead pages */
+@@ -379,7 +379,7 @@ ondemand_readahead(struct address_space 
+ 	 * Standalone, small read.
+ 	 * Read as is, and do not pollute the readahead state.
+ 	 */
+-	if (!page && !sequential) {
++	if (!hit_readahead_marker && !sequential) {
+ 		return __do_page_cache_readahead(mapping, filp,
+ 						offset, req_size, 0);
+ 	}
+@@ -400,7 +400,7 @@ ondemand_readahead(struct address_space 
+ 	 * E.g. interleaved reads.
+ 	 * Not knowing its readahead pos/size, bet on the minimal possible one.
+ 	 */
+-	if (page) {
++	if (hit_readahead_marker) {
+ 		ra_index++;
+ 		ra_size = min(4 * ra_size, max);
+ 	}
+@@ -413,50 +413,71 @@ fill_ra:
  }
  
- /* Look up a kernel symbol and print it to the kernel messages. */
+ /**
+- * page_cache_readahead_ondemand - generic file readahead
++ * page_cache_sync_readahead - generic file readahead
+  * @mapping: address_space which holds the pagecache and I/O vectors
+  * @ra: file_ra_state which holds the readahead state
+  * @filp: passed on to ->readpage() and ->readpages()
+- * @page: the page at @offset, or NULL if non-present
+- * @offset: start offset into @mapping, in PAGE_CACHE_SIZE units
++ * @offset: start offset into @mapping, in pagecache page-sized units
+  * @req_size: hint: total size of the read which the caller is performing in
+- *            PAGE_CACHE_SIZE units
++ *            pagecache pages
+  *
+- * page_cache_readahead_ondemand() is the entry point of readahead logic.
+- * This function should be called when it is time to perform readahead:
+- * 1) @page == NULL
+- *    A cache miss happened, time for synchronous readahead.
+- * 2) @page != NULL && PageReadahead(@page)
+- *    A look-ahead hit occured, time for asynchronous readahead.
++ * page_cache_sync_readahead() should be called when a cache miss happened:
++ * it will submit the read.  The readahead logic may decide to piggyback more
++ * pages onto the read request if access patterns suggest it will improve
++ * performance.
+  */
+-unsigned long
+-page_cache_readahead_ondemand(struct address_space *mapping,
+-				struct file_ra_state *ra, struct file *filp,
+-				struct page *page, pgoff_t offset,
+-				unsigned long req_size)
++void page_cache_sync_readahead(struct address_space *mapping,
++			       struct file_ra_state *ra, struct file *filp,
++			       pgoff_t offset, unsigned long req_size)
+ {
+ 	/* no read-ahead */
+ 	if (!ra->ra_pages)
+-		return 0;
++		return;
+ 
+-	if (page) {
+-		/*
+-		 * It can be PG_reclaim.
+-		 */
+-		if (PageWriteback(page))
+-			return 0;
+-
+-		ClearPageReadahead(page);
+-
+-		/*
+-		 * Defer asynchronous read-ahead on IO congestion.
+-		 */
+-		if (bdi_read_congested(mapping->backing_dev_info))
+-			return 0;
+-	}
++	/* do read-ahead */
++	ondemand_readahead(mapping, ra, filp, false, offset, req_size);
++}
++EXPORT_SYMBOL_GPL(page_cache_sync_readahead);
++
++/**
++ * page_cache_async_readahead - file readahead for marked pages
++ * @mapping: address_space which holds the pagecache and I/O vectors
++ * @ra: file_ra_state which holds the readahead state
++ * @filp: passed on to ->readpage() and ->readpages()
++ * @page: the page at @offset which has the PG_readahead flag set
++ * @offset: start offset into @mapping, in pagecache page-sized units
++ * @req_size: hint: total size of the read which the caller is performing in
++ *            pagecache pages
++ *
++ * page_cache_async_ondemand() should be called when a page is used which
++ * has the PG_readahead flag: this is a marker to suggest that the application
++ * has used up enough of the readahead window that we should start pulling in
++ * more pages. */
++void
++page_cache_async_readahead(struct address_space *mapping,
++			   struct file_ra_state *ra, struct file *filp,
++			   struct page *page, pgoff_t offset,
++			   unsigned long req_size)
++{
++	/* no read-ahead */
++	if (!ra->ra_pages)
++		return;
++
++	/*
++	 * Same bit is used for PG_readahead and PG_reclaim.
++	 */
++	if (PageWriteback(page))
++		return;
++
++	ClearPageReadahead(page);
++
++	/*
++	 * Defer asynchronous read-ahead on IO congestion.
++	 */
++	if (bdi_read_congested(mapping->backing_dev_info))
++		return;
+ 
+ 	/* do read-ahead */
+-	return ondemand_readahead(mapping, ra, filp, page,
+-					offset, req_size);
++	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
+ }
+-EXPORT_SYMBOL_GPL(page_cache_readahead_ondemand);
++EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-x86_64-set-the-irq_chip-name-for-lapic.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+use-menuconfig-objects-ii-module-menu.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
 cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-sprint_symbol-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix.patch
-revoke-wire-up-i386-system-calls.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
 lguest-the-host-code.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
 lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
+readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+readahead-pass-real-splice-size.patch
+mm-share-pg_readahead-and-pg_reclaim.patch
+readahead-split-ondemand-readahead-interface-into-two-functions.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
