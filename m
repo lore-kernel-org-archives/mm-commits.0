@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-rtc-m41t80-driver-take-2.patch added to -mm tree
-Date: Mon, 25 Jun 2007 22:23:19 -0700
-Message-ID: <200706260523.l5Q5NJvw019142@imap1.linux-foundation.org>
+Subject: + rtc-add-rtc-m41t80-driver-take-2-fix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 22:24:00 -0700
+Message-ID: <200706260524.l5Q5O0Wp019152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38804 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752363AbXFZFXx (ORCPT
+	by vger.kernel.org with ESMTP id S1755180AbXFZFYf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 01:23:53 -0400
+	Tue, 26 Jun 2007 01:24:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, ab@mycable.de, david-b@pacbell.net, mgreer@mvista.com
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, ab@mycable.de, anemo@mba.ocn.ne.jp, david-b@pacbell.net, mgreer@mvista.com
 
 
 The patch titled
-     rtc: add rtc-m41t80 driver
+     rtc-add-rtc-m41t80-driver-take-2-fix
 has been added to the -mm tree.  Its filename is
-     rtc-add-rtc-m41t80-driver-take-2.patch
+     rtc-add-rtc-m41t80-driver-take-2-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,703 +26,219 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: add rtc-m41t80 driver
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: rtc-add-rtc-m41t80-driver-take-2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is a new-style i2c driver for ST M41T80 series RTC chip, derived from
-works by Alexander Bigga <ab@mycable.de> who wrote the original
-rtc-m41txx.c based on drivers/i2c/chips/m41t00.c driver.
-
-This driver supports M41T8[0-4] and M41ST8[457].  The old m41t00 driver
-supports M41T00, M41T81 and M41T85(M41ST85).  While the M41T00 chip is now
-supported by rtc-ds1307 driver, this driver does not include support for
-the chip.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: Alexander Bigga <ab@mycable.de>
-Acked-by: Mark A. Greer <mgreer@mvista.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexander Bigga <ab@mycable.de>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Cc: David Brownell <david-b@pacbell.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |   12 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-m41t80.c |  629 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 642 insertions(+)
+ drivers/rtc/rtc-m41t80.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-m41t80-driver-take-2 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-m41t80-driver-take-2
-+++ a/drivers/rtc/Kconfig
-@@ -281,6 +281,18 @@ config RTC_DRV_DS1742
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ds1742.
- 
-+config RTC_DRV_M41T80
-+	tristate "ST M41T80 series RTC"
-+	depends on RTC_CLASS && I2C
-+	help
-+	  If you say Y here you will get support for the
-+	  ST M41T80 RTC chips series. Currently following chips are
-+	  supported: M41T80, M41T81, M41T82, M41T83, M41ST84, M41ST85
-+	  and M41ST87.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-m41t80.
-+
- config RTC_DRV_M48T86
- 	tristate "ST M48T86/Dallas DS12887"
- 	depends on RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-m41t80-driver-take-2 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-rtc-m41t80-driver-take-2
-+++ a/drivers/rtc/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf
- obj-$(CONFIG_RTC_DRV_RS5C372)	+= rtc-rs5c372.o
- obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
- obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
-+obj-$(CONFIG_RTC_DRV_M41T80)	+= rtc-m41t80.o
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
- obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
-diff -puN /dev/null drivers/rtc/rtc-m41t80.c
---- /dev/null
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-m41t80-driver-take-2-fix drivers/rtc/Kconfig
+diff -puN drivers/rtc/Makefile~rtc-add-rtc-m41t80-driver-take-2-fix drivers/rtc/Makefile
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-add-rtc-m41t80-driver-take-2-fix drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-add-rtc-m41t80-driver-take-2-fix
 +++ a/drivers/rtc/rtc-m41t80.c
-@@ -0,0 +1,629 @@
-+/*
-+ * I2C client/driver for the ST M41T80 family of i2c rtc chips.
-+ *
-+ * Author: Alexander Bigga <ab@mycable.de>
-+ *
-+ * Based on m41t00.c by Mark A. Greer <mgreer@mvista.com>
-+ *
-+ * 2006 (c) mycable GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/i2c.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+
-+#define M41T80_REG_SSEC	0
-+#define M41T80_REG_SEC	1
-+#define M41T80_REG_MIN	2
-+#define M41T80_REG_HOUR	3
-+#define M41T80_REG_WDAY	4
-+#define M41T80_REG_DAY	5
-+#define M41T80_REG_MON	6
-+#define M41T80_REG_YEAR	7
-+#define M41T80_REG_ALARM_MON	0xa
-+#define M41T80_REG_ALARM_DAY	0xb
-+#define M41T80_REG_ALARM_HOUR	0xc
-+#define M41T80_REG_ALARM_MIN	0xd
-+#define M41T80_REG_ALARM_SEC	0xe
-+#define M41T80_REG_FLAGS	0xf
-+#define M41T80_REG_SQW	0x13
-+
-+#define M41T80_DATETIME_REG_SIZE	(M41T80_REG_YEAR + 1)
-+#define M41T80_ALARM_REG_SIZE	\
-+	(M41T80_REG_ALARM_SEC + 1 - M41T80_REG_ALARM_MON)
-+
-+#define M41T80_SEC_ST		(1 << 7)	/* ST: Stop Bit */
-+#define M41T80_ALMON_AFE	(1 << 7)	/* AFE: AF Enable Bit */
-+#define M41T80_ALMON_SQWE	(1 << 6)	/* SQWE: SQW Enable Bit */
-+#define M41T80_ALHOUR_HT	(1 << 6)	/* HT: Halt Update Bit */
-+#define M41T80_FLAGS_AF		(1 << 6)	/* AF: Alarm Flag Bit */
-+#define M41T80_FLAGS_BATT_LOW	(1 << 4)	/* BL: Battery Low Bit */
-+
-+#define M41T80_FEATURE_HT	(1 << 0)
-+#define M41T80_FEATURE_BL	(1 << 1)
-+
-+#define DRV_VERSION "0.05"
-+
-+struct m41t80_chip_info {
-+	const char *name;
-+	u8 features;
-+};
-+
-+static const struct m41t80_chip_info m41t80_chip_info_tbl[] = {
-+	{
-+		.name		= "m41t80",
-+		.features	= 0,
-+	},
-+	{
-+		.name		= "m41t81",
-+		.features	= M41T80_FEATURE_HT,
-+	},
-+	{
-+		.name		= "m41t81s",
-+		.features	= M41T80_FEATURE_HT | M41T80_FEATURE_BL,
-+	},
-+	{
-+		.name		= "m41t82",
-+		.features	= M41T80_FEATURE_HT | M41T80_FEATURE_BL,
-+	},
-+	{
-+		.name		= "m41t83",
-+		.features	= M41T80_FEATURE_HT | M41T80_FEATURE_BL,
-+	},
-+	{
-+		.name		= "m41st84",
-+		.features	= M41T80_FEATURE_HT | M41T80_FEATURE_BL,
-+	},
-+	{
-+		.name		= "m41st85",
-+		.features	= M41T80_FEATURE_HT | M41T80_FEATURE_BL,
-+	},
-+	{
-+		.name		= "m41st87",
-+		.features	= M41T80_FEATURE_HT | M41T80_FEATURE_BL,
-+	},
-+};
-+
-+struct m41t80_data {
+@@ -492,7 +492,7 @@ static int m41t80_probe(struct i2c_clien
+ 	int i, rc = 0;
+ 	struct rtc_device *rtc = NULL;
+ 	struct rtc_time tm;
+-	const static struct m41t80_chip_info *chip;
 +	const struct m41t80_chip_info *chip;
-+	struct rtc_device *rtc;
-+};
-+
-+static int m41t80_get_datetime(struct i2c_client *client,
-+			       struct rtc_time *tm)
-+{
-+	u8 buf[M41T80_DATETIME_REG_SIZE], dt_addr[1] = { M41T80_REG_SEC };
-+	struct i2c_msg msgs[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 1,
-+			.buf	= dt_addr,
-+		},
-+		{
-+			.addr	= client->addr,
-+			.flags	= I2C_M_RD,
-+			.len	= M41T80_DATETIME_REG_SIZE - M41T80_REG_SEC,
-+			.buf	= buf + M41T80_REG_SEC,
-+		},
-+	};
-+
-+	if (i2c_transfer(client->adapter, msgs, 2) < 0) {
-+		dev_err(&client->dev, "read error\n");
-+		return -EIO;
-+	}
-+
-+	tm->tm_sec = BCD2BIN(buf[M41T80_REG_SEC] & 0x7f);
-+	tm->tm_min = BCD2BIN(buf[M41T80_REG_MIN] & 0x7f);
-+	tm->tm_hour = BCD2BIN(buf[M41T80_REG_HOUR] & 0x3f);
-+	tm->tm_mday = BCD2BIN(buf[M41T80_REG_DAY] & 0x3f);
-+	tm->tm_wday = buf[M41T80_REG_WDAY] & 0x07;
-+	tm->tm_mon = BCD2BIN(buf[M41T80_REG_MON] & 0x1f) - 1;
-+
-+	/* assume 20YY not 19YY, and ignore the Century Bit */
-+	tm->tm_year = BCD2BIN(buf[M41T80_REG_YEAR]) + 100;
-+	return 0;
-+}
-+
-+/* Sets the given date and time to the real time clock. */
-+static int m41t80_set_datetime(struct i2c_client *client, struct rtc_time *tm)
-+{
-+	u8 wbuf[1 + M41T80_DATETIME_REG_SIZE];
-+	u8 *buf = &wbuf[1];
-+	u8 dt_addr[1] = { M41T80_REG_SEC };
-+	struct i2c_msg msgs_in[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 1,
-+			.buf	= dt_addr,
-+		},
-+		{
-+			.addr	= client->addr,
-+			.flags	= I2C_M_RD,
-+			.len	= M41T80_DATETIME_REG_SIZE - M41T80_REG_SEC,
-+			.buf	= buf + M41T80_REG_SEC,
-+		},
-+	};
-+	struct i2c_msg msgs[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 1 + M41T80_DATETIME_REG_SIZE,
-+			.buf	= wbuf,
-+		 },
-+	};
-+
-+	/* Read current reg values into buf[1..7] */
-+	if (i2c_transfer(client->adapter, msgs_in, 2) < 0) {
-+		dev_err(&client->dev, "read error\n");
-+		return -EIO;
-+	}
-+
-+	wbuf[0] = 0; /* offset into rtc's regs */
-+	/* Merge time-data and register flags into buf[0..7] */
-+	buf[M41T80_REG_SSEC] = 0;
-+	buf[M41T80_REG_SEC] =
-+		BIN2BCD(tm->tm_sec) | (buf[M41T80_REG_SEC] & ~0x7f);
-+	buf[M41T80_REG_MIN] =
-+		BIN2BCD(tm->tm_min) | (buf[M41T80_REG_MIN] & ~0x7f);
-+	buf[M41T80_REG_HOUR] =
-+		BIN2BCD(tm->tm_hour) | (buf[M41T80_REG_HOUR] & ~0x3f) ;
-+	buf[M41T80_REG_WDAY] =
-+		(tm->tm_wday & 0x07) | (buf[M41T80_REG_WDAY] & ~0x07);
-+	buf[M41T80_REG_DAY] =
-+		BIN2BCD(tm->tm_mday) | (buf[M41T80_REG_DAY] & ~0x3f);
-+	buf[M41T80_REG_MON] =
-+		BIN2BCD(tm->tm_mon + 1) | (buf[M41T80_REG_MON] & ~0x1f);
-+	/* assume 20YY not 19YY */
-+	buf[M41T80_REG_YEAR] = BIN2BCD(tm->tm_year % 100);
-+
-+	if (i2c_transfer(client->adapter, msgs, 1) != 1) {
-+		dev_err(&client->dev, "write error\n");
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+#if defined(CONFIG_RTC_INTF_PROC) || defined(CONFIG_RTC_INTF_PROC_MODULE)
-+static int m41t80_rtc_proc(struct device *dev, struct seq_file *seq)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct m41t80_data *clientdata = i2c_get_clientdata(client);
-+	u8 reg;
-+
-+	if (clientdata->chip->features & M41T80_FEATURE_BL) {
-+		reg = i2c_smbus_read_byte_data(client, M41T80_REG_FLAGS);
-+		seq_printf(seq, "battery\t\t: %s\n",
-+			   (reg & M41T80_FLAGS_BATT_LOW) ? "exhausted" : "ok");
-+	}
-+	return 0;
-+}
-+#else
-+#define m41t80_rtc_proc NULL
-+#endif
-+
-+static int m41t80_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	return m41t80_get_datetime(to_i2c_client(dev), tm);
-+}
-+
-+static int m41t80_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	return m41t80_set_datetime(to_i2c_client(dev), tm);
-+}
-+
-+#if defined(CONFIG_RTC_INTF_DEV) || defined(CONFIG_RTC_INTF_DEV_MODULE)
-+static int
-+m41t80_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int rc;
-+
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+	case RTC_AIE_ON:
-+		break;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	rc = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_MON);
-+	if (rc < 0)
-+		goto err;
-+	switch (cmd) {
-+	case RTC_AIE_OFF:
-+		rc &= ~M41T80_ALMON_AFE;
-+		break;
-+	case RTC_AIE_ON:
-+		rc |= M41T80_ALMON_AFE;
-+		break;
-+	}
-+	if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON, rc) < 0)
-+		goto err;
-+	return 0;
-+err:
-+	return -EIO;
-+}
-+#else
-+#define	m41t80_rtc_ioctl NULL
-+#endif
-+
-+static int m41t80_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *t)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 wbuf[1 + M41T80_ALARM_REG_SIZE];
-+	u8 *buf = &wbuf[1];
-+	u8 *reg = buf - M41T80_REG_ALARM_MON;
-+	u8 dt_addr[1] = { M41T80_REG_ALARM_MON };
-+	struct i2c_msg msgs_in[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 1,
-+			.buf	= dt_addr,
-+		},
-+		{
-+			.addr	= client->addr,
-+			.flags	= I2C_M_RD,
-+			.len	= M41T80_ALARM_REG_SIZE,
-+			.buf	= buf,
-+		},
-+	};
-+	struct i2c_msg msgs[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 1 + M41T80_ALARM_REG_SIZE,
-+			.buf	= wbuf,
-+		 },
-+	};
-+
-+	if (i2c_transfer(client->adapter, msgs_in, 2) < 0) {
-+		dev_err(&client->dev, "read error\n");
-+		return -EIO;
-+	}
-+	reg[M41T80_REG_ALARM_MON] &= ~(0x1f | M41T80_ALMON_AFE);
-+	reg[M41T80_REG_ALARM_DAY] = 0;
-+	reg[M41T80_REG_ALARM_HOUR] &= ~(0x3f | 0x80);
-+	reg[M41T80_REG_ALARM_MIN] = 0;
-+	reg[M41T80_REG_ALARM_SEC] = 0;
-+
-+	wbuf[0] = M41T80_REG_ALARM_MON; /* offset into rtc's regs */
-+	reg[M41T80_REG_ALARM_SEC] |= t->time.tm_sec >= 0 ?
-+		BIN2BCD(t->time.tm_sec) : 0x80;
-+	reg[M41T80_REG_ALARM_MIN] |= t->time.tm_min >= 0 ?
-+		BIN2BCD(t->time.tm_min) : 0x80;
-+	reg[M41T80_REG_ALARM_HOUR] |= t->time.tm_hour >= 0 ?
-+		BIN2BCD(t->time.tm_hour) : 0x80;
-+	reg[M41T80_REG_ALARM_DAY] |= t->time.tm_mday >= 0 ?
-+		BIN2BCD(t->time.tm_mday) : 0x80;
-+	if (t->time.tm_mon >= 0)
-+		reg[M41T80_REG_ALARM_MON] |= BIN2BCD(t->time.tm_mon + 1);
-+	else
-+		reg[M41T80_REG_ALARM_DAY] |= 0x40;
-+
-+	if (i2c_transfer(client->adapter, msgs, 1) != 1) {
-+		dev_err(&client->dev, "write error\n");
-+		return -EIO;
-+	}
-+
-+	if (t->enabled) {
-+		reg[M41T80_REG_ALARM_MON] |= M41T80_ALMON_AFE;
-+		if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
-+					      reg[M41T80_REG_ALARM_MON]) < 0) {
-+			dev_err(&client->dev, "write error\n");
-+			return -EIO;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int m41t80_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 buf[M41T80_ALARM_REG_SIZE + 1]; /* all alarm regs and flags */
-+	u8 dt_addr[1] = { M41T80_REG_ALARM_MON };
-+	u8 *reg = buf - M41T80_REG_ALARM_MON;
-+	struct i2c_msg msgs[] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0,
-+			.len	= 1,
-+			.buf	= dt_addr,
-+		},
-+		{
-+			.addr	= client->addr,
-+			.flags	= I2C_M_RD,
-+			.len	= M41T80_ALARM_REG_SIZE + 1,
-+			.buf	= buf,
-+		},
-+	};
-+
-+	if (i2c_transfer(client->adapter, msgs, 2) < 0) {
-+		dev_err(&client->dev, "read error\n");
-+		return -EIO;
-+	}
-+	t->time.tm_sec = -1;
-+	t->time.tm_min = -1;
-+	t->time.tm_hour = -1;
-+	t->time.tm_mday = -1;
-+	t->time.tm_mon = -1;
-+	if (!(reg[M41T80_REG_ALARM_SEC] & 0x80))
-+		t->time.tm_sec = BCD2BIN(reg[M41T80_REG_ALARM_SEC] & 0x7f);
-+	if (!(reg[M41T80_REG_ALARM_MIN] & 0x80))
-+		t->time.tm_min = BCD2BIN(reg[M41T80_REG_ALARM_MIN] & 0x7f);
-+	if (!(reg[M41T80_REG_ALARM_HOUR] & 0x80))
-+		t->time.tm_hour = BCD2BIN(reg[M41T80_REG_ALARM_HOUR] & 0x3f);
-+	if (!(reg[M41T80_REG_ALARM_DAY] & 0x80))
-+		t->time.tm_mday = BCD2BIN(reg[M41T80_REG_ALARM_DAY] & 0x3f);
-+	if (!(reg[M41T80_REG_ALARM_DAY] & 0x40))
-+		t->time.tm_mon = BCD2BIN(reg[M41T80_REG_ALARM_MON] & 0x1f) - 1;
-+	t->time.tm_year = -1;
-+	t->time.tm_wday = -1;
-+	t->time.tm_yday = -1;
-+	t->time.tm_isdst = -1;
-+	t->enabled = !!(reg[M41T80_REG_ALARM_MON] & M41T80_ALMON_AFE);
-+	t->pending = !!(reg[M41T80_REG_FLAGS] & M41T80_FLAGS_AF);
-+	return 0;
-+}
-+
-+static struct rtc_class_ops m41t80_rtc_ops = {
-+	.read_time = m41t80_rtc_read_time,
-+	.set_time = m41t80_rtc_set_time,
-+	.read_alarm = m41t80_rtc_read_alarm,
-+	.set_alarm = m41t80_rtc_set_alarm,
-+	.proc = m41t80_rtc_proc,
-+	.ioctl = m41t80_rtc_ioctl,
-+};
-+
-+#if defined(CONFIG_RTC_INTF_SYSFS) || defined(CONFIG_RTC_INTF_SYSFS_MODULE)
-+static ssize_t m41t80_sysfs_show_flags(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int val;
-+
-+	val = i2c_smbus_read_byte_data(client, M41T80_REG_FLAGS);
-+	if (val < 0)
-+		return -EIO;
-+	return sprintf(buf, "%#x\n", val);
-+}
-+static DEVICE_ATTR(flags, S_IRUGO, m41t80_sysfs_show_flags, NULL);
-+
-+static ssize_t m41t80_sysfs_show_sqwfreq(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int val;
-+
-+	val = i2c_smbus_read_byte_data(client, M41T80_REG_SQW);
-+	if (val < 0)
-+		return -EIO;
-+	val = (val >> 4) & 0xf;
-+	switch (val) {
-+	case 0:
-+		break;
-+	case 1:
-+		val = 32768;
-+		break;
-+	default:
-+		val = 32768 >> val;
-+	}
-+	return sprintf(buf, "%d\n", val);
-+}
-+static ssize_t m41t80_sysfs_set_sqwfreq(struct device *dev,
-+				struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int almon, sqw;
-+	int val = simple_strtoul(buf, NULL, 0);
-+
-+	if (val) {
-+		if (!is_power_of_2(val))
-+			return -EINVAL;
-+		val = ilog2(val);
-+		if (val == 15)
-+			val = 1;
-+		else if (val < 14)
-+			val = 15 - val;
-+		else
-+			return -EINVAL;
-+	}
-+	/* disable SQW, set SQW frequency & re-enable */
-+	almon = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_MON);
-+	if (almon < 0)
-+		return -EIO;
-+	sqw = i2c_smbus_read_byte_data(client, M41T80_REG_SQW);
-+	if (sqw < 0)
-+		return -EIO;
-+	sqw = (sqw & 0x0f) | (val << 4);
-+	if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
-+				      almon & ~M41T80_ALMON_SQWE) < 0 ||
-+	    i2c_smbus_write_byte_data(client, M41T80_REG_SQW, sqw) < 0)
-+		return -EIO;
-+	if (val && i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
-+					     almon | M41T80_ALMON_SQWE) < 0)
-+		return -EIO;
-+	return count;
-+}
-+static DEVICE_ATTR(sqwfreq, S_IRUGO | S_IWUSR,
-+		   m41t80_sysfs_show_sqwfreq, m41t80_sysfs_set_sqwfreq);
-+
-+static struct attribute *attrs[] = {
-+	&dev_attr_flags.attr,
-+	&dev_attr_sqwfreq.attr,
-+	NULL,
-+};
-+static struct attribute_group attr_group = {
-+	.attrs = attrs,
-+};
-+
-+static int m41t80_sysfs_register(struct device *dev)
-+{
-+	return sysfs_create_group(&dev->kobj, &attr_group);
-+}
-+#else
-+static int m41t80_sysfs_register(struct device *dev)
-+{
-+	return 0;
-+}
-+#endif
-+
-+/*
-+ *****************************************************************************
-+ *
-+ *	Driver Interface
-+ *
-+ *****************************************************************************
-+ */
-+static int m41t80_probe(struct i2c_client *client)
-+{
-+	int i, rc = 0;
-+	struct rtc_device *rtc = NULL;
-+	struct rtc_time tm;
-+	const static struct m41t80_chip_info *chip;
-+	struct m41t80_data *clientdata = NULL;
-+
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C
-+				     | I2C_FUNC_SMBUS_BYTE_DATA)) {
-+		rc = -ENODEV;
-+		goto exit;
-+	}
-+
-+	dev_info(&client->dev,
-+		 "chip found, driver version " DRV_VERSION "\n");
-+
-+	chip = NULL;
-+	for (i = 0; i < ARRAY_SIZE(m41t80_chip_info_tbl); i++) {
-+		if (!strcmp(m41t80_chip_info_tbl[i].name, client->name)) {
-+			chip = &m41t80_chip_info_tbl[i];
-+			break;
-+		}
-+	}
-+	if (!chip) {
-+		dev_err(&client->dev, "%s is not supported\n", client->name);
-+		rc = -ENODEV;
-+		goto exit;
-+	}
-+
-+	clientdata = kzalloc(sizeof(*clientdata), GFP_KERNEL);
-+	if (!clientdata) {
-+		rc = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	rtc = rtc_device_register(client->name, &client->dev,
-+				  &m41t80_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		rc = PTR_ERR(rtc);
-+		rtc = NULL;
-+		goto exit;
-+	}
-+
-+	clientdata->rtc = rtc;
-+	clientdata->chip = chip;
-+	i2c_set_clientdata(client, clientdata);
-+
-+	/* Make sure HT (Halt Update) bit is cleared */
-+	rc = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_HOUR);
-+	if (rc < 0)
-+		goto ht_err;
-+
-+	if (rc & M41T80_ALHOUR_HT) {
-+		if (chip->features & M41T80_FEATURE_HT) {
-+			m41t80_get_datetime(client, &tm);
-+			dev_info(&client->dev, "HT bit was set!\n");
-+			dev_info(&client->dev,
-+				 "Power Down at "
-+				 "%04i-%02i-%02i %02i:%02i:%02i\n",
-+				 tm.tm_year + 1900,
-+				 tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
-+				 tm.tm_min, tm.tm_sec);
-+		}
-+		if (i2c_smbus_write_byte_data(client,
-+					      M41T80_REG_ALARM_HOUR,
-+					      rc & ~M41T80_ALHOUR_HT) < 0)
-+			goto ht_err;
-+	}
-+
-+	/* Make sure ST (stop) bit is cleared */
-+	rc = i2c_smbus_read_byte_data(client, M41T80_REG_SEC);
-+	if (rc < 0)
-+		goto st_err;
-+
-+	if (rc & M41T80_SEC_ST) {
-+		if (i2c_smbus_write_byte_data(client, M41T80_REG_SEC,
-+					      rc & ~M41T80_SEC_ST) < 0)
-+			goto st_err;
-+	}
-+
-+	rc = m41t80_sysfs_register(&client->dev);
-+	if (rc)
-+		goto exit;
-+
-+	return 0;
-+
-+st_err:
-+	rc = -EIO;
-+	dev_err(&client->dev, "Can't clear ST bit\n");
-+	goto exit;
-+ht_err:
-+	rc = -EIO;
-+	dev_err(&client->dev, "Can't clear HT bit\n");
-+	goto exit;
-+
-+exit:
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+	kfree(clientdata);
-+	return rc;
-+}
-+
-+static int m41t80_remove(struct i2c_client *client)
-+{
-+	struct m41t80_data *clientdata = i2c_get_clientdata(client);
-+	struct rtc_device *rtc = clientdata->rtc;
-+
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+	kfree(clientdata);
-+
-+	return 0;
-+}
-+
-+static struct i2c_driver m41t80_driver = {
-+	.driver = {
-+		.name = "m41t80",
-+	},
-+	.probe = m41t80_probe,
-+	.remove = m41t80_remove,
-+};
-+
-+static int __init m41t80_rtc_init(void)
-+{
-+	return i2c_add_driver(&m41t80_driver);
-+}
-+
-+static void __exit m41t80_rtc_exit(void)
-+{
-+	i2c_del_driver(&m41t80_driver);
-+}
-+
-+MODULE_AUTHOR("Alexander Bigga <ab@mycable.de>");
-+MODULE_DESCRIPTION("ST Microelectronics M41T80 series RTC I2C Client Driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
-+
-+module_init(m41t80_rtc_init);
-+module_exit(m41t80_rtc_exit);
+ 	struct m41t80_data *clientdata = NULL;
+ 
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
+ioatdma-fix-section-mismatches.patch
+x86_64-set-the-irq_chip-name-for-lapic.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
 git-kbuild.patch
-git-mips.patch
-mips-make-resources-for-ds1742-static-__initdata.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-watchdog-support-for-rtc-m41t80-driver-take-2.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+git-selinux.patch
+git-selinux-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+nick-broke-stuff.patch
+nick-broke-more-stuff.patch
+nick-broke-even-more-stuff.patch
+nick-really-did-it-this-time.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+blink-only-blink-when-parameter-is-set-fix.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+nick-broke-reiser4-too.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
