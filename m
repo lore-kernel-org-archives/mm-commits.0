@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:58 -0700
-Message-ID: <200706260007.l5Q07wcw014459@imap1.linux-foundation.org>
+Subject: + acpi-remove-the-useless-ifdef-code.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:08:04 -0700
+Message-ID: <200706260008.l5Q084Bh014468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50446 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58161 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752753AbXFZAP3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752650AbXFZAPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:15:29 -0400
+	Mon, 25 Jun 2007 20:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     x86_64: remove dead code and other janitor work in tsc.c
+     ACPI: remove the useless ifdef code
 has been added to the -mm tree.  Its filename is
-     x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+     acpi-remove-the-useless-ifdef-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,100 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: remove dead code and other janitor work in tsc.c
+Subject: ACPI: remove the useless ifdef code
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Remove unused code and variables and do some codingstyle / whitespace
-cleanups while at it.
+The conversion of x86-64 to clock events makes the
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+ n the timer broadcast functions useless. Remove it.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/tsc.c |   41 +++++++++----------------------------
- 1 files changed, 11 insertions(+), 30 deletions(-)
+ drivers/acpi/processor_idle.c |   12 ------------
+ 1 files changed, 12 deletions(-)
 
-diff -puN arch/x86_64/kernel/tsc.c~x86_64-remove-dead-code-and-other-janitor-work-in-tscc arch/x86_64/kernel/tsc.c
---- a/arch/x86_64/kernel/tsc.c~x86_64-remove-dead-code-and-other-janitor-work-in-tscc
-+++ a/arch/x86_64/kernel/tsc.c
-@@ -35,25 +35,9 @@ static inline int check_tsc_unstable(voi
-  * first tick after the change will be slightly wrong.
-  */
+diff -puN drivers/acpi/processor_idle.c~acpi-remove-the-useless-ifdef-code drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-remove-the-useless-ifdef-code
++++ a/drivers/acpi/processor_idle.c
+@@ -203,21 +203,12 @@ static void acpi_timer_check_state(int s
  
--#include <linux/workqueue.h>
--
--static unsigned int cpufreq_delayed_issched = 0;
--static unsigned int cpufreq_init = 0;
--static struct work_struct cpufreq_delayed_get_work;
--
--static void handle_cpufreq_delayed_get(struct work_struct *v)
--{
--	unsigned int cpu;
--	for_each_online_cpu(cpu) {
--		cpufreq_get(cpu);
--	}
--	cpufreq_delayed_issched = 0;
--}
--
--static unsigned int  ref_freq = 0;
--static unsigned long loops_per_jiffy_ref = 0;
--
--static unsigned long tsc_khz_ref = 0;
-+static unsigned int  ref_freq;
-+static unsigned long loops_per_jiffy_ref;
-+static unsigned long tsc_khz_ref;
- 
- static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
- 				 void *data)
-@@ -97,10 +81,8 @@ static struct notifier_block time_cpufre
- 
- static int __init cpufreq_tsc(void)
+ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
  {
--	INIT_WORK(&cpufreq_delayed_get_work, handle_cpufreq_delayed_get);
--	if (!cpufreq_register_notifier(&time_cpufreq_notifier_block,
--				       CPUFREQ_TRANSITION_NOTIFIER))
--		cpufreq_init = 1;
-+	cpufreq_register_notifier(&time_cpufreq_notifier_block,
-+				  CPUFREQ_TRANSITION_NOTIFIER);
- 	return 0;
- }
+-#ifdef CONFIG_GENERIC_CLOCKEVENTS
+ 	unsigned long reason;
  
-@@ -108,8 +90,6 @@ core_initcall(cpufreq_tsc);
+ 	reason = pr->power.timer_broadcast_on_state < INT_MAX ?
+ 		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
  
- #endif
- 
--static int tsc_unstable = 0;
+ 	clockevents_notify(reason, &pr->id);
+-#else
+-	cpumask_t mask = cpumask_of_cpu(pr->id);
 -
- /*
-  * Make an educated guess if the TSC is trustworthy and synchronized
-  * over all CPUs.
-@@ -122,17 +102,18 @@ __cpuinit int unsynchronized_tsc(void)
- #endif
- 	/* Most intel systems have synchronized TSCs except for
- 	   multi node systems */
-- 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
-+	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
- #ifdef CONFIG_ACPI
- 		/* But TSC doesn't tick in C3 so don't use it there */
--		if (acpi_gbl_FADT.header.length > 0 && acpi_gbl_FADT.C3latency < 1000)
-+		if (acpi_gbl_FADT.header.length > 0 &&
-+		    acpi_gbl_FADT.C3latency < 1000)
- 			return 1;
- #endif
-- 		return 0;
-+		return 0;
- 	}
- 
-- 	/* Assume multi socket systems are not synchronized */
-- 	return num_present_cpus() > 1;
-+	/* Assume multi socket systems are not synchronized */
-+	return num_present_cpus() > 1;
+-	if (pr->power.timer_broadcast_on_state < INT_MAX)
+-		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
+-	else
+-		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
+-#endif
  }
  
- int __init notsc_setup(char *s)
+ /* Power(C) State timer broadcast control */
+@@ -225,8 +216,6 @@ static void acpi_state_timer_broadcast(s
+ 				       struct acpi_processor_cx *cx,
+ 				       int broadcast)
+ {
+-#ifdef CONFIG_GENERIC_CLOCKEVENTS
+-
+ 	int state = cx - pr->power.states;
+ 
+ 	if (state >= pr->power.timer_broadcast_on_state) {
+@@ -236,7 +225,6 @@ static void acpi_state_timer_broadcast(s
+ 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
+ 		clockevents_notify(reason, &pr->id);
+ 	}
+-#endif
+ }
+ 
+ #else
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
