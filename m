@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-2.patch added to -mm tree
-Date: Mon, 25 Jun 2007 21:49:36 -0700
-Message-ID: <200706260449.l5Q4nacx018609@imap1.linux-foundation.org>
+Subject: + mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch added to -mm tree
+Date: Mon, 25 Jun 2007 21:52:23 -0700
+Message-ID: <200706260452.l5Q4qNt2018655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54698 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752007AbXFZEtw (ORCPT
+	by vger.kernel.org with ESMTP id S1751487AbXFZEwd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 00:49:52 -0400
+	Tue, 26 Jun 2007 00:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hcegtvedt@atmel.com, a.zummo@towertech.it, david-b@pacbell.net, hskinnemoen@atmel.com
+Cc: toshi.okajima@jp.fujitsu.com, tytso@mit.edu
 
 
 The patch titled
-     driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices fix 2
+     mistaken ext4_inode_bitmap for ext4_block_bitmap
 has been added to the -mm tree.  Its filename is
-     driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-2.patch
+     mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices fix 2
-From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Subject: mistaken ext4_inode_bitmap for ext4_block_bitmap
+From: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
 
-rtc-at32ap700x driver updated to 2.6.22-rc4-mm2 kernel
+In ext4_new_blocks(), one of two ext4_block_bitmap() calls should be
+ext4_inode_bitmap() call.  It is not harmful in normal processing, but it
+should be fixed.
 
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Signed-off-by: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at32ap700x.c |    2 +-
+ fs/ext4/balloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-at32ap700x.c~driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-2 drivers/rtc/rtc-at32ap700x.c
---- a/drivers/rtc/rtc-at32ap700x.c~driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-2
-+++ a/drivers/rtc/rtc-at32ap700x.c
-@@ -202,7 +202,7 @@ static irqreturn_t at32_rtc_interrupt(in
- 				& ~RTC_BIT(CTRL_TOPEN));
- 		rtc_writel(rtc, VAL, rtc->alarm_time);
- 		events = RTC_AF | RTC_IRQF;
--		rtc_update_irq(&rtc->rtc->class_dev, 1, events);
-+		rtc_update_irq(rtc->rtc, 1, events);
- 		ret = IRQ_HANDLED;
- 	}
+diff -puN fs/ext4/balloc.c~mistaken-ext4_inode_bitmap-for-ext4_block_bitmap fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~mistaken-ext4_inode_bitmap-for-ext4_block_bitmap
++++ a/fs/ext4/balloc.c
+@@ -1585,7 +1585,7 @@ allocated:
+ 	ret_block = grp_alloc_blk + ext4_group_first_block_no(sb, group_no);
  
+ 	if (in_range(ext4_block_bitmap(sb, gdp), ret_block, num) ||
+-	    in_range(ext4_block_bitmap(sb, gdp), ret_block, num) ||
++	    in_range(ext4_inode_bitmap(sb, gdp), ret_block, num) ||
+ 	    in_range(ret_block, ext4_inode_table(sb, gdp),
+ 		     EXT4_SB(sb)->s_itb_per_group) ||
+ 	    in_range(ret_block + num - 1, ext4_inode_table(sb, gdp),
 _
 
-Patches currently in -mm which might be from hcegtvedt@atmel.com are
+Patches currently in -mm which might be from toshi.okajima@jp.fujitsu.com are
 
-git-avr32.patch
-git-input.patch
-git-watchdog.patch
-rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
-rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-2.patch
+mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch
