@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-driver-for-ds1216-chips.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:35:17 -0700
-Message-ID: <200706262135.l5QLZHot002546@imap1.linux-foundation.org>
+Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:38:07 -0700
+Message-ID: <200706262138.l5QLc7ow002612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52986 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53990 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbXFZVfa (ORCPT
+	by vger.kernel.org with ESMTP id S1751817AbXFZVjB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:35:30 -0400
+	Tue, 26 Jun 2007 17:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tsbogend@alpha.franken.de, a.zummo@towertech.it
+Cc: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com
 
 
 The patch titled
-     RTC driver for DS1216 chips
+     fs-introduce-write_begin-write_end-and-perform_write-aops fix 3
 has been added to the -mm tree.  Its filename is
-     rtc-driver-for-ds1216-chips.patch
+     fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,283 +26,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC driver for DS1216 chips
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: fs-introduce-write_begin-write_end-and-perform_write-aops fix 3
+From: Nick Piggin <npiggin@suse.de>
 
-RTC driver for Dallas/Maxim DS126 chips used in SNI RM200/RM400
+Dmitriy noticed some weird code I had in __page_symlink that is wrong.
 
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Fixes: fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Badari Pulavarty <pbadari@gmail.com>
+Cc: Dmitriy Monakhov <dmonakhov@sw.ru>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    6 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1216.c |  226 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 233 insertions(+)
+ fs/namei.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-driver-for-ds1216-chips drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-driver-for-ds1216-chips
-+++ a/drivers/rtc/Kconfig
-@@ -261,6 +261,12 @@ config RTC_DRV_CMOS
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-cmos.
+diff -puN fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3 fs/namei.c
+--- a/fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3
++++ a/fs/namei.c
+@@ -2702,21 +2702,20 @@ int __page_symlink(struct inode *inode, 
+ 	char *kaddr;
  
-+config RTC_DRV_DS1216
-+	tristate "Dallas DS1216"
-+	depends on RTC_CLASS && SNI_RM
-+	help
-+	  If you say yes here you get support for the Dallas DS1216 RTC chips.
-+
- config RTC_DRV_DS1553
- 	tristate "Dallas DS1553"
- 	depends on RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-driver-for-ds1216-chips drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-driver-for-ds1216-chips
-+++ a/drivers/rtc/Makefile
-@@ -44,3 +44,4 @@ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-a
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
- obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
- obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
-+obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
-diff -puN /dev/null drivers/rtc/rtc-ds1216.c
---- /dev/null
-+++ a/drivers/rtc/rtc-ds1216.c
-@@ -0,0 +1,226 @@
-+/*
-+ * Dallas DS1216 RTC driver
-+ *
-+ * Copyright (c) 2007 Thomas Bogendoerfer
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <linux/bcd.h>
-+
-+#define DRV_VERSION "0.1"
-+
-+struct ds1216_regs {
-+	u8 tsec;
-+	u8 sec;
-+	u8 min;
-+	u8 hour;
-+	u8 wday;
-+	u8 mday;
-+	u8 month;
-+	u8 year;
-+};
-+
-+#define DS1216_HOUR_1224       (1 << 7)
-+#define DS1216_HOUR_AMPM       (1 << 5)
-+
-+struct ds1216_priv {
-+	struct rtc_device *rtc;
-+	void __iomem *ioaddr;
-+	size_t size;
-+	unsigned long baseaddr;
-+};
-+
-+static u8 magic[] = {
-+	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
-+};
-+
-+/*
-+ * Read the 64 bit we'd like to have - It a series
-+ * of 64 bits showing up in the LSB of the base register.
-+ *
-+ */
-+static void ds1216_read(u8 __iomem *ioaddr, u8 *buf)
-+{
-+	unsigned char c;
-+	int i, j;
-+
-+	for (i = 0; i < 8; i++) {
-+		c = 0;
-+		for (j = 0; j < 8; j++)
-+			c |= (readb(ioaddr) & 0x1) << j;
-+		buf[i] = c;
-+	}
-+}
-+
-+static void ds1216_write(u8 __iomem *ioaddr, u8 *buf)
-+{
-+	unsigned char c;
-+	int i, j;
-+
-+	for (i = 0; i < 8; i++) {
-+		c = buf[i];
-+		for (j = 0; j < 8; j++) {
-+			writeb (c, ioaddr);
-+			c = c >> 1;
-+		}
-+	}
-+}
-+
-+static void ds1216_switch_ds_to_clock(u8 __iomem *ioaddr)
-+{
-+	/* Reset magic pointer */
-+	readb(ioaddr);
-+	/* Write 64 bit magic to DS1216 */
-+	ds1216_write(ioaddr, magic);
-+}
-+
-+static int ds1216_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct ds1216_priv *priv = platform_get_drvdata(pdev);
-+	struct ds1216_regs regs;
-+
-+	ds1216_switch_ds_to_clock(priv->ioaddr);
-+	ds1216_read(priv->ioaddr, (u8 *)&regs);
-+
-+	tm->tm_sec = BCD2BIN(regs.sec);
-+	tm->tm_min = BCD2BIN(regs.min);
-+	if (regs.hour & DS1216_HOUR_1224) {
-+		/* AM/PM mode */
-+		tm->tm_hour = BCD2BIN(regs.hour & 0x1f);
-+		if (regs.hour & DS1216_HOUR_AMPM)
-+			tm->tm_hour += 12;
-+	} else
-+		tm->tm_hour = BCD2BIN(regs.hour & 0x3f);
-+	tm->tm_wday = (regs.wday & 7) - 1;
-+	tm->tm_mday = BCD2BIN(regs.mday & 0x3f);
-+	tm->tm_mon = BCD2BIN(regs.month & 0x1f);
-+	tm->tm_year = BCD2BIN(regs.year);
-+	if (tm->tm_year < 70)
-+		tm->tm_year += 100;
-+	return 0;
-+}
-+
-+static int ds1216_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct ds1216_priv *priv = platform_get_drvdata(pdev);
-+	struct ds1216_regs regs;
-+
-+	ds1216_switch_ds_to_clock(priv->ioaddr);
-+	ds1216_read(priv->ioaddr, (u8 *)&regs);
-+
-+	regs.tsec = 0; /* clear 0.1 and 0.01 seconds */
-+	regs.sec = BIN2BCD(tm->tm_sec);
-+	regs.min = BIN2BCD(tm->tm_min);
-+	regs.hour &= DS1216_HOUR_1224;
-+	if (regs.hour && tm->tm_hour > 12) {
-+		regs.hour |= DS1216_HOUR_AMPM;
-+		tm->tm_hour -= 12;
-+	}
-+	regs.hour |= BIN2BCD(tm->tm_hour);
-+	regs.wday &= ~7;
-+	regs.wday |= tm->tm_wday;
-+	regs.mday = BIN2BCD(tm->tm_mday);
-+	regs.month = BIN2BCD(tm->tm_mon);
-+	regs.year = BIN2BCD(tm->tm_year % 100);
-+
-+	ds1216_switch_ds_to_clock(priv->ioaddr);
-+	ds1216_write(priv->ioaddr, (u8 *)&regs);
-+	return 0;
-+}
-+
-+static const struct rtc_class_ops ds1216_rtc_ops = {
-+	.read_time	= ds1216_rtc_read_time,
-+	.set_time	= ds1216_rtc_set_time,
-+};
-+
-+static int __devinit ds1216_rtc_probe(struct platform_device *pdev)
-+{
-+	struct rtc_device *rtc;
-+	struct resource *res;
-+	struct ds1216_priv *priv;
-+	int ret = 0;
-+	u8 dummy[8];
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
-+		return -ENODEV;
-+	priv = kzalloc(sizeof *priv, GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+	priv->size = res->end - res->start + 1;
-+	if (!request_mem_region(res->start, priv->size, pdev->name)) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+	priv->baseaddr = res->start;
-+	priv->ioaddr = ioremap(priv->baseaddr, priv->size);
-+	if (!priv->ioaddr) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+	rtc = rtc_device_register("ds1216", &pdev->dev,
-+				  &ds1216_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		ret = PTR_ERR(rtc);
-+		goto out;
-+	}
-+	priv->rtc = rtc;
-+	platform_set_drvdata(pdev, priv);
-+
-+	/* dummy read to get clock into a known state */
-+	ds1216_read (priv->ioaddr, dummy);
-+	return 0;
-+
-+out:
-+	if (priv->rtc)
-+		rtc_device_unregister(priv->rtc);
-+	if (priv->ioaddr)
-+		iounmap(priv->ioaddr);
-+	if (priv->baseaddr)
-+		release_mem_region(priv->baseaddr, priv->size);
-+	kfree(priv);
-+	return ret;
-+}
-+
-+static int __devexit ds1216_rtc_remove(struct platform_device *pdev)
-+{
-+	struct ds1216_priv *priv = platform_get_drvdata(pdev);
-+
-+	rtc_device_unregister(priv->rtc);
-+	iounmap(priv->ioaddr);
-+	release_mem_region(priv->baseaddr, priv->size);
-+	kfree(priv);
-+	return 0;
-+}
-+
-+static struct platform_driver ds1216_rtc_platform_driver = {
-+	.driver		= {
-+		.name	= "rtc-ds1216",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= ds1216_rtc_probe,
-+	.remove		= __devexit_p(ds1216_rtc_remove),
-+};
-+
-+static int __init ds1216_rtc_init(void)
-+{
-+	return platform_driver_register(&ds1216_rtc_platform_driver);
-+}
-+
-+static void __exit ds1216_rtc_exit(void)
-+{
-+	platform_driver_unregister(&ds1216_rtc_platform_driver);
-+}
-+
-+MODULE_AUTHOR("Thomas Bogendoerfer <tsbogend@alpha.franken.de>");
-+MODULE_DESCRIPTION("DS1216 RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
-+
-+module_init(ds1216_rtc_init);
-+module_exit(ds1216_rtc_exit);
+ retry:
+-	err = pagecache_write_begin(NULL, mapping, 0, PAGE_CACHE_SIZE,
++	err = pagecache_write_begin(NULL, mapping, 0, len-1,
+ 				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
+ 	if (err)
+ 		goto fail;
+ 
+ 	kaddr = kmap_atomic(page, KM_USER0);
+ 	memcpy(kaddr, symname, len-1);
+-	memset(kaddr+len-1, 0, PAGE_CACHE_SIZE-(len-1));
+ 	kunmap_atomic(kaddr, KM_USER0);
+ 
+-	err = pagecache_write_end(NULL, mapping, 0, PAGE_CACHE_SIZE, PAGE_CACHE_SIZE,
++	err = pagecache_write_end(NULL, mapping, 0, len-1, len-1,
+ 							page, fsdata);
+ 	if (err < 0)
+ 		goto fail;
+-	if (err < PAGE_CACHE_SIZE)
++	if (err < len-1)
+ 		goto retry;
+ 
+ 	mark_inode_dirty(inode);
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-extract-chip-specific-code-out-of-lasi_82596c.patch
-extract-chip-specific-code-out-of-lasi_82596c-update.patch
-ethernet-driver-for-eisa-only-sni-rm200-rm400-machines.patch
-ethernet-driver-for-eisa-only-sni-rm200-rm400-machines-update.patch
-git-scsi-misc.patch
-rtc-driver-for-ds1216-chips.patch
-rtc-driver-for-ds1216-chips-fix.patch
+mm-kill-validate_anon_vma-to-avoid-mapcount-bug.patch
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+mm-merge-nopfn-into-fault-spufs-fix.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+minix-convert-to-new-aops.patch
+jfs-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+mm-document-fault_data-and-flags.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
