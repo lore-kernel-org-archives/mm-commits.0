@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ich-force-hpet-ich5-quirk-to-force-detect-enable.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:20:41 -0700
-Message-ID: <200706261920.l5QJKfDd000385@imap1.linux-foundation.org>
+Subject: + ich-force-hpet-late-initialization-of-hpet-after-quirk.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:20:39 -0700
+Message-ID: <200706261920.l5QJKdYZ000378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49170 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756774AbXFZTVj (ORCPT
+	by vger.kernel.org with ESMTP id S1758117AbXFZTVm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:21:39 -0400
+	Tue, 26 Jun 2007 15:21:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.c
 
 
 The patch titled
-     ICH Force HPET: ICH5 quirk to force detect enable
+     ICH Force HPET: late initialization of hpet after quirk
 has been added to the -mm tree.  Its filename is
-     ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+     ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ICH Force HPET: ICH5 quirk to force detect enable
+Subject: ICH Force HPET: late initialization of hpet after quirk
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-force_enable hpet for ICH5.
+Enable HPET later during boot, after the force detect in PCI quirks.  Also add
+a call to repeat the force enabling at resume time.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -40,172 +41,132 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c   |    2 
- arch/i386/kernel/quirks.c |  101 +++++++++++++++++++++++++++++++++++-
- include/asm-i386/hpet.h   |    2 
- include/linux/pci_ids.h   |    1 
- 4 files changed, 103 insertions(+), 3 deletions(-)
+ arch/i386/kernel/hpet.c |   50 ++++++++++++++++++++++++++++++++++----
+ include/asm-i386/hpet.h |    1 
+ 2 files changed, 46 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~ich-force-hpet-ich5-quirk-to-force-detect-enable arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~ich-force-hpet-ich5-quirk-to-force-detect-enable
+diff -puN arch/i386/kernel/hpet.c~ich-force-hpet-late-initialization-of-hpet-after-quirk arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~ich-force-hpet-late-initialization-of-hpet-after-quirk
 +++ a/arch/i386/kernel/hpet.c
-@@ -195,7 +195,7 @@ static void hpet_start_counter(void)
+@@ -25,6 +25,8 @@ extern struct clock_event_device *global
+  */
+ unsigned long hpet_address;
  
- static void hpet_resume_device(void)
++static void __iomem * hpet_virt_address;
++
+ #ifdef CONFIG_X86_64
+ 
+ #include <asm/pgtable.h>
+@@ -34,19 +36,22 @@ static inline void hpet_set_mapping(void
  {
--	ich_force_hpet_resume();
-+	force_hpet_resume();
+ 	set_fixmap_nocache(FIX_HPET_BASE, hpet_address);
+ 	__set_fixmap(VSYSCALL_HPET, hpet_address, PAGE_KERNEL_VSYSCALL_NOCACHE);
++	hpet_virt_address = (void __iomem *)fix_to_virt(FIX_HPET_BASE);
++
  }
  
- static void hpet_restart_counter(void)
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable
-+++ a/arch/i386/kernel/quirks.c
-@@ -54,9 +54,15 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
- #if defined(CONFIG_HPET_TIMER)
- unsigned long force_hpet_address;
- 
-+static enum {
-+	NONE_FORCE_HPET_RESUME,
-+	OLD_ICH_FORCE_HPET_RESUME,
-+	ICH_FORCE_HPET_RESUME
-+} force_hpet_resume_type;
-+
- static void __iomem *rcba_base;
- 
--void ich_force_hpet_resume(void)
-+static void ich_force_hpet_resume(void)
+ static inline void __iomem *hpet_get_virt_address(void)
  {
- 	u32 val;
+-	return (void __iomem *)fix_to_virt(FIX_HPET_BASE);
++	return hpet_virt_address;
+ }
  
-@@ -133,6 +139,7 @@ static void ich_force_enable_hpet(struct
- 		iounmap(rcba_base);
- 		printk(KERN_DEBUG "Failed to force enable HPET\n");
- 	} else {
-+		force_hpet_resume_type = ICH_FORCE_HPET_RESUME;
- 		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
- 			       force_hpet_address);
- 	}
-@@ -148,4 +155,96 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
-                          ich_force_enable_hpet);
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_1,
-                          ich_force_enable_hpet);
-+
-+
-+static struct pci_dev *cached_dev;
-+
-+static void old_ich_force_hpet_resume(void)
+-static inline void hpet_clear_mapping(void) { }
++static inline void hpet_clear_mapping(void)
 +{
-+	u32 val, gen_cntl;
-+
-+	if (!force_hpet_address || !cached_dev)
-+		return;
-+
-+	pci_read_config_dword(cached_dev, 0xD0, &gen_cntl);
-+	gen_cntl &= (~(0x7 << 15));
-+	gen_cntl |= (0x4 << 15);
-+
-+	pci_write_config_dword(cached_dev, 0xD0, gen_cntl);
-+	pci_read_config_dword(cached_dev, 0xD0, &gen_cntl);
-+	val = gen_cntl >> 15;
-+	val &= 0x7;
-+	if (val == 0x4)
-+		printk(KERN_DEBUG "Force enabled HPET at resume\n");
-+	else
-+		BUG();
++	hpet_virt_address = NULL;
++}
+ 
+ #else
+ 
+-static void __iomem * hpet_virt_address;
+-
+ static inline unsigned long hpet_readl(unsigned long a)
+ {
+ 	return readl(hpet_virt_address + a);
+@@ -173,6 +178,7 @@ static struct clock_event_device hpet_cl
+ 	.set_next_event = hpet_legacy_next_event,
+ 	.shift		= 32,
+ 	.irq		= 0,
++	.rating		= 50,
+ };
+ 
+ static void hpet_start_counter(void)
+@@ -187,6 +193,17 @@ static void hpet_start_counter(void)
+ 	hpet_writel(cfg, HPET_CFG);
+ }
+ 
++static void hpet_resume_device(void)
++{
++	ich_force_hpet_resume();
 +}
 +
-+static void old_ich_force_enable_hpet(struct pci_dev *dev)
++static void hpet_restart_counter(void)
 +{
-+	u32 val, gen_cntl;
-+
-+	if (hpet_address || force_hpet_address)
-+		return;
-+
-+	pci_read_config_dword(dev, 0xD0, &gen_cntl);
-+	/*
-+	 * Bit 17 is HPET enable bit.
-+	 * Bit 16:15 control the HPET base address.
-+	 */
-+	val = gen_cntl >> 15;
-+	val &= 0x7;
-+	if (val & 0x4) {
-+		val &= 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
-+			       force_hpet_address);
-+		cached_dev = dev;
-+		return;
-+	}
-+
-+	/*
-+	 * HPET is disabled. Trying enabling at FED00000 and check
-+	 * whether it sticks
-+	 */
-+	gen_cntl &= (~(0x7 << 15));
-+	gen_cntl |= (0x4 << 15);
-+	pci_write_config_dword(dev, 0xD0, gen_cntl);
-+
-+	pci_read_config_dword(dev, 0xD0, &gen_cntl);
-+
-+	val = gen_cntl >> 15;
-+	val &= 0x7;
-+	if (val & 0x4) {
-+		/* HPET is enabled in HPTC. Just not reported by BIOS */
-+		val &= 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+			       force_hpet_address);
-+		force_hpet_resume_type = OLD_ICH_FORCE_HPET_RESUME;
-+		return;
-+	}
-+
-+	printk(KERN_DEBUG "Failed to force enable HPET\n");
++	hpet_resume_device();
++	hpet_start_counter();
 +}
 +
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801EB_0,
-+                         old_ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801EB_12,
-+                         old_ich_force_enable_hpet);
-+
-+void force_hpet_resume(void)
-+{
-+	switch (force_hpet_resume_type) {
-+	    case ICH_FORCE_HPET_RESUME:
-+		return ich_force_hpet_resume();
-+
-+	    case OLD_ICH_FORCE_HPET_RESUME:
-+		return old_ich_force_hpet_resume();
-+
-+	    default:
-+		break;
-+	}
-+}
-+
+ static void hpet_enable_legacy_int(void)
+ {
+ 	unsigned long cfg = hpet_readl(HPET_CFG);
+@@ -308,7 +325,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.shift		= HPET_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+-	.resume		= hpet_start_counter,
++	.resume		= hpet_restart_counter,
+ #ifdef CONFIG_X86_64
+ 	.vread		= vread_hpet,
  #endif
-diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich5-quirk-to-force-detect-enable include/asm-i386/hpet.h
---- a/include/asm-i386/hpet.h~ich-force-hpet-ich5-quirk-to-force-detect-enable
-+++ a/include/asm-i386/hpet.h
-@@ -73,7 +73,7 @@ extern int hpet_enable(void);
- #include <asm/vsyscall.h>
- #endif
+@@ -371,6 +388,9 @@ int __init hpet_enable(void)
+ {
+ 	unsigned long id;
  
--void ich_force_hpet_resume(void);
-+void force_hpet_resume(void);
++	if (hpet_get_virt_address())
++		return 0;
++
+ 	if (!is_hpet_capable())
+ 		return 0;
  
+@@ -415,6 +435,26 @@ out_nohpet:
+ }
+ 
+ 
++static int __init hpet_late_init(void)
++{
++	if (boot_hpet_disable)
++		return -ENODEV;
++
++	if (!hpet_address) {
++		if (!force_hpet_address)
++			return -ENODEV;
++
++		hpet_address = force_hpet_address;
++		hpet_enable();
++		if (!hpet_get_virt_address())
++			return -ENODEV;
++	}
++
++	return 0;
++}
++fs_initcall(hpet_late_init);
++
++
  #ifdef CONFIG_HPET_EMULATE_RTC
  
-diff -puN include/linux/pci_ids.h~ich-force-hpet-ich5-quirk-to-force-detect-enable include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~ich-force-hpet-ich5-quirk-to-force-detect-enable
-+++ a/include/linux/pci_ids.h
-@@ -2225,6 +2225,7 @@
- #define PCI_DEVICE_ID_INTEL_82801EB_5	0x24d5
- #define PCI_DEVICE_ID_INTEL_82801EB_6	0x24d6
- #define PCI_DEVICE_ID_INTEL_82801EB_11	0x24db
-+#define PCI_DEVICE_ID_INTEL_82801EB_12	0x24dc
- #define PCI_DEVICE_ID_INTEL_82801EB_13	0x24dd
- #define PCI_DEVICE_ID_INTEL_ESB_1	0x25a1
- #define PCI_DEVICE_ID_INTEL_ESB_2	0x25a2
+ /* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
+diff -puN include/asm-i386/hpet.h~ich-force-hpet-late-initialization-of-hpet-after-quirk include/asm-i386/hpet.h
+--- a/include/asm-i386/hpet.h~ich-force-hpet-late-initialization-of-hpet-after-quirk
++++ a/include/asm-i386/hpet.h
+@@ -64,6 +64,7 @@
+ 
+ /* hpet memory map physical address */
+ extern unsigned long hpet_address;
++extern unsigned long force_hpet_address;
+ extern int is_hpet_enabled(void);
+ extern int hpet_enable(void);
+ 
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
