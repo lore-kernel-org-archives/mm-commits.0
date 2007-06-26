@@ -1,244 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-support-for-the-st-m48t59-rtc-fix.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 12:11:27 -0700
-Message-ID: <200706261911.l5QJBRKK032577@imap1.linux-foundation.org>
+Subject: + pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:12:39 -0700
+Message-ID: <200706261912.l5QJCdAR032634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57636 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41727 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758374AbXFZTMI (ORCPT
+	by vger.kernel.org with ESMTP id S1759534AbXFZTOL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:12:08 -0400
+	Tue, 26 Jun 2007 15:14:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, rongkai.zhan@windriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, u.luckas@road.de
 
 
 The patch titled
-     rtc-add-support-for-the-st-m48t59-rtc-fix
-has been removed from the -mm tree.  Its filename was
-     rtc-add-support-for-the-st-m48t59-rtc-fix.patch
+     PM: prevent frozen user mode helpers from failing the freezing of tasks
+has been added to the -mm tree.  Its filename is
+     pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-add-support-for-the-st-m48t59-rtc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PM: prevent frozen user mode helpers from failing the freezing of tasks
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
+At present, if a user mode helper is running while
+usermodehelper_pm_callback() is executed, the helper may be frozen and the
+completion in call_usermodehelper_exec() won't be completed until user
+space processes are thawed.  As a result, the freezing of kernel threads
+may fail, which is not desirable.
+
+Prevent this from happening by introducing a counter of running user mode
+helpers and allowing usermodehelper_pm_callback() to succeed for action =
+PM_HIBERNATION_PREPARE or action = PM_SUSPEND_PREPARE only if there are no
+helpers running.  [Namely, usermodehelper_pm_callback() waits for at most
+RUNNING_HELPERS_TIMEOUT for the number of running helpers to become zero
+and fails if that doesn't happen.]
+
+Special thanks to Uli Luckas <u.luckas@road.de>, Pavel Machek
+<pavel@ucw.cz> and Oleg Nesterov <oleg@tv-sign.ru> for reviewing the
+previous versions of this patch and for very useful comments.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Uli Luckas <u.luckas@road.de>
+Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kmod.c |   78 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 68 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-the-st-m48t59-rtc-fix drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-the-st-m48t59-rtc-fix
-+++ a/drivers/rtc/Kconfig
-@@ -313,6 +313,7 @@ config RTC_DRV_M48T86
- config RTC_DRV_M48T59
- 	tristate "ST M48T59"
- 	depends on RTC_CLASS
-+	depends on PPC
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M48T59 RTC chip.
+diff -puN kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2 kernel/kmod.c
+--- a/kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2
++++ a/kernel/kmod.c
+@@ -41,14 +41,6 @@ extern int max_threads;
+ 
+ static struct workqueue_struct *khelper_wq;
+ 
+-/*
+- * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
+- * immediately returning -EBUSY.  Used for preventing user land processes from
+- * being created after the user land has been frozen during a system-wide
+- * hibernation or suspend operation.
+- */
+-static int usermodehelper_disabled;
+-
+ #ifdef CONFIG_KMOD
+ 
+ /*
+@@ -275,15 +267,55 @@ static void __call_usermodehelper(struct
+ 	}
+ }
+ 
++#ifdef CONFIG_PM
++/*
++ * If set, call_usermodehelper_exec() will exit immediately returning -EBUSY
++ * (used for preventing user land processes from being created after the user
++ * land has been frozen during a system-wide hibernation or suspend operation).
++ */
++static int usermodehelper_disabled;
++
++/* Number of helpers running */
++static atomic_t running_helpers = ATOMIC_INIT(0);
++
++/*
++ * Wait queue head used by usermodehelper_pm_callback() to wait for all running
++ * helpers to finish.
++ */
++static DECLARE_WAIT_QUEUE_HEAD(running_helpers_waitq);
++
++/*
++ * Time to wait for running_helpers to become zero before the setting of
++ * usermodehelper_disabled in usermodehelper_pm_callback() fails
++ */
++#define RUNNING_HELPERS_TIMEOUT	(5 * HZ)
++
+ static int usermodehelper_pm_callback(struct notifier_block *nfb,
+ 					unsigned long action,
+ 					void *ignored)
+ {
++	long retval;
++
+ 	switch (action) {
+ 	case PM_HIBERNATION_PREPARE:
+ 	case PM_SUSPEND_PREPARE:
+ 		usermodehelper_disabled = 1;
+-		return NOTIFY_OK;
++		smp_mb();
++		/*
++		 * From now on call_usermodehelper_exec() won't start any new
++		 * helpers, so it is sufficient if running_helpers turns out to
++		 * be zero at one point (it may be increased later, but that
++		 * doesn't matter).
++		 */
++		retval = wait_event_timeout(running_helpers_waitq,
++					atomic_read(&running_helpers) == 0,
++					RUNNING_HELPERS_TIMEOUT);
++		if (retval) {
++			return NOTIFY_OK;
++		} else {
++			usermodehelper_disabled = 0;
++			return NOTIFY_BAD;
++		}
+ 	case PM_POST_HIBERNATION:
+ 	case PM_POST_SUSPEND:
+ 		usermodehelper_disabled = 0;
+@@ -293,6 +325,30 @@ static int usermodehelper_pm_callback(st
+ 	return NOTIFY_DONE;
+ }
+ 
++static void helper_lock(void)
++{
++	atomic_inc(&running_helpers);
++	smp_mb__after_atomic_inc();
++}
++
++static void helper_unlock(void)
++{
++	if (atomic_dec_and_test(&running_helpers))
++		wake_up(&running_helpers_waitq);
++}
++
++static void register_pm_notifier_callback(void)
++{
++	pm_notifier(usermodehelper_pm_callback, 0);
++}
++#else /* CONFIG_PM */
++#define usermodehelper_disabled	0
++
++static inline void helper_lock(void) {}
++static inline void helper_unlock(void) {}
++static inline void register_pm_notifier_callback(void) {}
++#endif /* CONFIG_PM */
++
+ /**
+  * call_usermodehelper_setup - prepare to call a usermode helper
+  * @path - path to usermode executable
+@@ -397,6 +453,7 @@ int call_usermodehelper_exec(struct subp
+ 	DECLARE_COMPLETION_ONSTACK(done);
+ 	int retval;
+ 
++	helper_lock();
+ 	if (sub_info->path[0] == '\0') {
+ 		retval = 0;
+ 		goto out;
+@@ -418,6 +475,7 @@ int call_usermodehelper_exec(struct subp
+ 
+   out:
+ 	call_usermodehelper_freeinfo(sub_info);
++	helper_unlock();
+ 	return retval;
+ }
+ EXPORT_SYMBOL(call_usermodehelper_exec);
+@@ -459,5 +517,5 @@ void __init usermodehelper_init(void)
+ {
+ 	khelper_wq = create_singlethread_workqueue("khelper");
+ 	BUG_ON(!khelper_wq);
+-	pm_notifier(usermodehelper_pm_callback, 0);
++	register_pm_notifier_callback();
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+x86_64-set-the-irq_chip-name-for-lapic.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
+x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch
 x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix-2.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
 freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix.patch
 pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+pm-reduce-code-duplication-between-mainc-and-userc.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+shrink_slab-handle-bad-shrinkers.patch
+beeping-patch-for-debugging-acpi-sleep.patch
