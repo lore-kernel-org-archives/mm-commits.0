@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alloc_pages-debug.patch added to -mm tree
-Date: Mon, 25 Jun 2007 22:29:56 -0700
-Message-ID: <200706260529.l5Q5Tuox019220@imap1.linux-foundation.org>
+Subject: + intel-iommu-iova-allocation-and-management-routines-fix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 23:42:54 -0700
+Message-ID: <200706260642.l5Q6gsBU020223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54532 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752863AbXFZFaD (ORCPT
+	by vger.kernel.org with ESMTP id S1750797AbXFZGnR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 01:30:03 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5Q5U1j2029466
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 25 Jun 2007 22:30:02 -0700
+	Tue, 26 Jun 2007 02:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ak@suse.de, anil.s.keshavamurthy@intel.com, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     alloc_pages debug
+     intel-iommu-iova-allocation-and-management-routines-fix
 has been added to the -mm tree.  Its filename is
-     alloc_pages-debug.patch
+     intel-iommu-iova-allocation-and-management-routines-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,29 +26,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alloc_pages debug
+Subject: intel-iommu-iova-allocation-and-management-routines-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Well?  Should it?
+- Those inlines don't do anything, and if they later do do something, it'll
+  be the wrong thing.
 
+- coding style fixes
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/iova.c |   14 +++++++-------
+ drivers/pci/iova.h |    6 +++---
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~alloc_pages-debug mm/page_alloc.c
---- a/mm/page_alloc.c~alloc_pages-debug
-+++ a/mm/page_alloc.c
-@@ -1483,7 +1483,7 @@ restart:
- 	z = zonelist->zones;  /* the list of zones suitable for gfp_mask */
- 
- 	if (unlikely(*z == NULL)) {
--		/* Should this ever happen?? */
-+		WARN_ON_ONCE(1);
- 		return NULL;
+diff -puN drivers/pci/iova.c~intel-iommu-iova-allocation-and-management-routines-fix drivers/pci/iova.c
+--- a/drivers/pci/iova.c~intel-iommu-iova-allocation-and-management-routines-fix
++++ a/drivers/pci/iova.c
+@@ -33,7 +33,7 @@ __get_cached_rbnode(struct iova_domain *
  	}
+ }
  
+-static inline void
++static void
+ __cached_rbnode_insert_update(struct iova_domain *iovad,
+ 	unsigned long limit_pfn, struct iova *new)
+ {
+@@ -42,7 +42,7 @@ __cached_rbnode_insert_update(struct iov
+ 	iovad->cached32_node = &new->node;
+ }
+ 
+-static inline void
++static void
+ __cached_rbnode_delete_update(struct iova_domain *iovad, struct iova *free)
+ {
+ 	struct iova *cached_iova;
+@@ -57,7 +57,7 @@ __cached_rbnode_delete_update(struct iov
+ 		iovad->cached32_node = rb_next(&free->node);
+ }
+ 
+-static inline int __alloc_iova_range(struct iova_domain *iovad,
++static int __alloc_iova_range(struct iova_domain *iovad,
+ 	unsigned long size, unsigned long limit_pfn, struct iova *new)
+ {
+ 	struct rb_node *curr = NULL;
+@@ -243,18 +243,18 @@ void put_iova_domain(struct iova_domain 
+ 	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
+ }
+ 
+-static inline int
++static int
+ __is_range_overlap(struct rb_node *node,
+ 	unsigned long pfn_lo, unsigned long pfn_hi)
+ {
+-	struct iova * iova = container_of(node, struct iova, node);
++	struct iova *iova = container_of(node, struct iova, node);
+ 
+ 	if ((pfn_lo <= iova->pfn_hi) && (pfn_hi >= iova->pfn_lo))
+ 		return 1;
+ 	return 0;
+ }
+ 
+-static inline struct iova *
++static struct iova *
+ __insert_new_range(struct iova_domain *iovad,
+ 	unsigned long pfn_lo, unsigned long pfn_hi)
+ {
+@@ -270,7 +270,7 @@ __insert_new_range(struct iova_domain *i
+ 	return iova;
+ }
+ 
+-static inline void
++static void
+ __adjust_overlap_range(struct iova *iova,
+ 	unsigned long *pfn_lo, unsigned long *pfn_hi)
+ {
+diff -puN drivers/pci/iova.h~intel-iommu-iova-allocation-and-management-routines-fix drivers/pci/iova.h
+--- a/drivers/pci/iova.h~intel-iommu-iova-allocation-and-management-routines-fix
++++ a/drivers/pci/iova.h
+@@ -50,13 +50,13 @@ struct iova *alloc_iova_mem(void);
+ void free_iova_mem(struct iova *iova);
+ void free_iova(struct iova_domain *iovad, unsigned long pfn);
+ void __free_iova(struct iova_domain *iovad, struct iova *iova);
+-struct iova * alloc_iova(struct iova_domain *iovad, unsigned long size,
++struct iova *alloc_iova(struct iova_domain *iovad, unsigned long size,
+ 	unsigned long limit_pfn);
+-struct iova * reserve_iova(struct iova_domain *iovad, unsigned long pfn_lo,
++struct iova *reserve_iova(struct iova_domain *iovad, unsigned long pfn_lo,
+ 	unsigned long pfn_hi);
+ void copy_reserved_iova(struct iova_domain *from, struct iova_domain *to);
+ void init_iova_domain(struct iova_domain *iovad);
+-struct iova * find_iova(struct iova_domain *iovad, unsigned long pfn);
++struct iova *find_iova(struct iova_domain *iovad, unsigned long pfn);
+ void put_iova_domain(struct iova_domain *iovad);
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -214,6 +294,10 @@ lguest-the-host-code.patch
 lguest-the-net-driver.patch
 fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
 fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
 cfs-scheduler-warning-fixes.patch
 cfs-warning-fixes.patch
@@ -240,5 +324,5 @@ reiser4.patch
 reiser4-fix.patch
 nick-broke-reiser4-too.patch
 check_dirty_inode_list.patch
-w1-build-fix.patch
 alloc_pages-debug.patch
+w1-build-fix.patch
