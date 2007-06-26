@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-split-ondemand-readahead-interface-into-two-functions.patch added to -mm tree
-Date: Tue, 26 Jun 2007 01:26:07 -0700
-Message-ID: <200706260826.l5Q8Q7mV021759@imap1.linux-foundation.org>
+Subject: + readahead-sanify-file_ra_state-names.patch added to -mm tree
+Date: Tue, 26 Jun 2007 01:26:09 -0700
+Message-ID: <200706260826.l5Q8Q98M021762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36377 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbXFZI0g (ORCPT
+	by vger.kernel.org with ESMTP id S1751343AbXFZI0m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 04:26:36 -0400
+	Tue, 26 Jun 2007 04:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
 
 
 The patch titled
-     readahead: split ondemand readahead interface into two functions
+     readahead: sanify file_ra_state names
 has been added to the -mm tree.  Its filename is
-     readahead-split-ondemand-readahead-interface-into-two-functions.patch
+     readahead-sanify-file_ra_state-names.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,288 +26,246 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: split ondemand readahead interface into two functions
+Subject: readahead: sanify file_ra_state names
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Split ondemand readahead interface into two functions.  I think this makes it
-a little clearer for non-readahead experts (like Rusty).
+Rename some file_ra_state variables and remove some accessors.
 
-Internally they both call ondemand_readahead(), but the page argument is
-changed to an obvious boolean flag.
+It results in much simpler code.
+Kudos to Rusty!
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c      |    4 -
- fs/ext4/dir.c      |    4 -
- fs/splice.c        |    6 +-
- include/linux/mm.h |   20 ++++++---
- mm/filemap.c       |   10 ++--
- mm/readahead.c     |   95 ++++++++++++++++++++++++++-----------------
- 6 files changed, 84 insertions(+), 55 deletions(-)
+ include/linux/fs.h |   61 +++-----------------------------------
+ mm/readahead.c     |   68 +++++++++++++++----------------------------
+ 2 files changed, 31 insertions(+), 98 deletions(-)
 
-diff -puN fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext3/dir.c
---- a/fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/fs/ext3/dir.c
-@@ -139,10 +139,10 @@ static int ext3_readdir(struct file * fi
- 			pgoff_t index = map_bh.b_blocknr >>
- 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
- 			if (!ra_has_index(&filp->f_ra, index))
--				page_cache_readahead_ondemand(
-+				page_cache_sync_readahead(
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
--					NULL, index, 1);
-+					index, 1);
- 			filp->f_ra.prev_index = index;
- 			bh = ext3_bread(NULL, inode, blk, 0, &err);
- 		}
-diff -puN fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext4/dir.c
---- a/fs/ext4/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/fs/ext4/dir.c
-@@ -138,10 +138,10 @@ static int ext4_readdir(struct file * fi
- 			pgoff_t index = map_bh.b_blocknr >>
- 					(PAGE_CACHE_SHIFT - inode->i_blkbits);
- 			if (!ra_has_index(&filp->f_ra, index))
--				page_cache_readahead_ondemand(
-+				page_cache_sync_readahead(
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
--					NULL, index, 1);
-+					index, 1);
- 			filp->f_ra.prev_index = index;
- 			bh = ext4_bread(NULL, inode, blk, 0, &err);
- 		}
-diff -puN fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/splice.c
---- a/fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/fs/splice.c
-@@ -304,8 +304,8 @@ __generic_file_splice_read(struct file *
- 	 * readahead/allocate the rest.
- 	 */
- 	if (spd.nr_pages < nr_pages)
--		page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--				NULL, index, req_pages - spd.nr_pages);
-+		page_cache_sync_readahead(mapping, &in->f_ra, in,
-+				index, req_pages - spd.nr_pages);
+diff -puN include/linux/fs.h~readahead-sanify-file_ra_state-names include/linux/fs.h
+--- a/include/linux/fs.h~readahead-sanify-file_ra_state-names
++++ a/include/linux/fs.h
+@@ -757,16 +757,12 @@ struct fown_struct {
  
- 	while (spd.nr_pages < nr_pages) {
- 		/*
-@@ -360,7 +360,7 @@ __generic_file_splice_read(struct file *
- 		page = pages[page_nr];
+ /*
+  * Track a single file's readahead state
+- *
+- *  ================#============|==================#==================|
+- *                  ^            ^                  ^                  ^
+- *  file_ra_state.la_index    .ra_index   .lookahead_index   .readahead_index
+  */
+ struct file_ra_state {
+-	pgoff_t la_index;               /* enqueue time */
+-	pgoff_t ra_index;               /* begin offset */
+-	pgoff_t lookahead_index;        /* time to do next readahead */
+-	pgoff_t readahead_index;        /* end offset */
++	pgoff_t start;                  /* where readahead started */
++	unsigned long size;             /* # of readahead pages */
++	unsigned long async_size;       /* do asynchronous readahead when
++					   there are only # of pages ahead */
  
- 		if (PageReadahead(page))
--			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
-+			page_cache_async_readahead(mapping, &in->f_ra, in,
- 					page, index, req_pages - page_nr);
+ 	unsigned long ra_pages;		/* Maximum readahead window */
+ 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
+@@ -776,59 +772,14 @@ struct file_ra_state {
+ };
  
- 		/*
-diff -puN include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions include/linux/mm.h
---- a/include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/include/linux/mm.h
-@@ -1150,12 +1150,20 @@ int do_page_cache_readahead(struct addre
- 			pgoff_t offset, unsigned long nr_to_read);
- int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read);
--unsigned long page_cache_readahead_ondemand(struct address_space *mapping,
--			  struct file_ra_state *ra,
--			  struct file *filp,
--			  struct page *page,
--			  pgoff_t offset,
--			  unsigned long size);
-+
-+void page_cache_sync_readahead(struct address_space *mapping,
-+			       struct file_ra_state *ra,
-+			       struct file *filp,
-+			       pgoff_t offset,
-+			       unsigned long size);
-+
-+void page_cache_async_readahead(struct address_space *mapping,
-+				struct file_ra_state *ra,
-+				struct file *filp,
-+				struct page *pg,
-+				pgoff_t offset,
-+				unsigned long size);
-+
- unsigned long max_sane_readahead(unsigned long nr);
+ /*
+- * Measuring read-ahead sizes.
+- *
+- *                  |----------- readahead size ------------>|
+- *  ===#============|==================#=====================|
+- *     |------- invoke interval ------>|-- lookahead size -->|
+- */
+-static inline unsigned long ra_readahead_size(struct file_ra_state *ra)
+-{
+-	return ra->readahead_index - ra->ra_index;
+-}
+-
+-static inline unsigned long ra_lookahead_size(struct file_ra_state *ra)
+-{
+-	return ra->readahead_index - ra->lookahead_index;
+-}
+-
+-static inline unsigned long ra_invoke_interval(struct file_ra_state *ra)
+-{
+-	return ra->lookahead_index - ra->la_index;
+-}
+-
+-/*
+  * Check if @index falls in the readahead windows.
+  */
+ static inline int ra_has_index(struct file_ra_state *ra, pgoff_t index)
+ {
+-	return (index >= ra->la_index &&
+-		index <  ra->readahead_index);
+-}
+-
+-/*
+- * Where is the old read-ahead and look-ahead?
+- */
+-static inline void ra_set_index(struct file_ra_state *ra,
+-				pgoff_t la_index, pgoff_t ra_index)
+-{
+-	ra->la_index = la_index;
+-	ra->ra_index = ra_index;
++	return (index >= ra->start &&
++		index <  ra->start + ra->size);
+ }
  
- /* Do stack extension */
-diff -puN mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/filemap.c
---- a/mm/filemap.c~readahead-split-ondemand-readahead-interface-into-two-functions
-+++ a/mm/filemap.c
-@@ -887,15 +887,15 @@ void do_generic_mapping_read(struct addr
- find_page:
- 		page = find_get_page(mapping, index);
- 		if (!page) {
--			page_cache_readahead_ondemand(mapping,
--					&ra, filp, page,
-+			page_cache_sync_readahead(mapping,
-+					&ra, filp,
- 					index, last_index - index);
- 			page = find_get_page(mapping, index);
- 			if (unlikely(page == NULL))
- 				goto no_cached_page;
- 		}
- 		if (PageReadahead(page)) {
--			page_cache_readahead_ondemand(mapping,
-+			page_cache_async_readahead(mapping,
- 					&ra, filp, page,
- 					index, last_index - index);
- 		}
-@@ -1359,14 +1359,14 @@ retry_find:
- 	 */
- 	if (VM_SequentialReadHint(vma)) {
- 		if (!page) {
--			page_cache_readahead_ondemand(mapping, ra, file, page,
-+			page_cache_sync_readahead(mapping, ra, file,
- 							   fdata->pgoff, 1);
- 			page = find_lock_page(mapping, fdata->pgoff);
- 			if (!page)
- 				goto no_cached_page;
- 		}
- 		if (PageReadahead(page)) {
--			page_cache_readahead_ondemand(mapping, ra, file, page,
-+			page_cache_async_readahead(mapping, ra, file, page,
- 							   fdata->pgoff, 1);
- 		}
- 	}
-diff -puN mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions mm/readahead.c
---- a/mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-functions
+-/*
+- * Where is the new read-ahead and look-ahead?
+- */
+-static inline void ra_set_size(struct file_ra_state *ra,
+-				unsigned long ra_size, unsigned long la_size)
+-{
+-	ra->readahead_index = ra->ra_index + ra_size;
+-	ra->lookahead_index = ra->ra_index + ra_size - la_size;
+-}
+-
+-unsigned long ra_submit(struct file_ra_state *ra,
+-		       struct address_space *mapping, struct file *filp);
+-
+ struct file {
+ 	/*
+ 	 * fu_list becomes invalid after file_free is called and queued via
+diff -puN mm/readahead.c~readahead-sanify-file_ra_state-names mm/readahead.c
+--- a/mm/readahead.c~readahead-sanify-file_ra_state-names
 +++ a/mm/readahead.c
-@@ -351,7 +351,7 @@ static unsigned long get_next_ra_size(st
- static unsigned long
- ondemand_readahead(struct address_space *mapping,
- 		   struct file_ra_state *ra, struct file *filp,
--		   struct page *page, pgoff_t offset,
-+		   bool hit_readahead_marker, pgoff_t offset,
+@@ -245,21 +245,16 @@ unsigned long max_sane_readahead(unsigne
+ /*
+  * Submit IO for the read-ahead request in file_ra_state.
+  */
+-unsigned long ra_submit(struct file_ra_state *ra,
++static unsigned long ra_submit(struct file_ra_state *ra,
+ 		       struct address_space *mapping, struct file *filp)
+ {
+-	unsigned long ra_size;
+-	unsigned long la_size;
+ 	int actual;
+ 
+-	ra_size = ra_readahead_size(ra);
+-	la_size = ra_lookahead_size(ra);
+ 	actual = __do_page_cache_readahead(mapping, filp,
+-					ra->ra_index, ra_size, la_size);
++					ra->start, ra->size, ra->async_size);
+ 
+ 	return actual;
+ }
+-EXPORT_SYMBOL_GPL(ra_submit);
+ 
+ /*
+  * Set the initial window size, round to next power of 2 and square
+@@ -288,7 +283,7 @@ static unsigned long get_init_ra_size(un
+ static unsigned long get_next_ra_size(struct file_ra_state *ra,
+ 						unsigned long max)
+ {
+-	unsigned long cur = ra->readahead_index - ra->ra_index;
++	unsigned long cur = ra->size;
+ 	unsigned long newsize;
+ 
+ 	if (cur < max / 16)
+@@ -305,28 +300,21 @@ static unsigned long get_next_ra_size(st
+  * The fields in struct file_ra_state represent the most-recently-executed
+  * readahead attempt:
+  *
+- *                    |-------- last readahead window -------->|
+- *       |-- application walking here -->|
+- * ======#============|==================#=====================|
+- *       ^la_index    ^ra_index          ^lookahead_index      ^readahead_index
+- *
+- * [ra_index, readahead_index) represents the last readahead window.
+- *
+- * [la_index, lookahead_index] is where the application would be walking(in
+- * the common case of cache-cold sequential reads): the last window was
+- * established when the application was at la_index, and the next window will
+- * be bring in when the application reaches lookahead_index.
++ *                        |<----- async_size ---------|
++ *     |------------------- size -------------------->|
++ *     |==================#===========================|
++ *     ^start             ^page marked with PG_readahead
+  *
+  * To overlap application thinking time and disk I/O time, we do
+  * `readahead pipelining': Do not wait until the application consumed all
+  * readahead pages and stalled on the missing page at readahead_index;
+- * Instead, submit an asynchronous readahead I/O as early as the application
+- * reads on the page at lookahead_index. Normally lookahead_index will be
+- * equal to ra_index, for maximum pipelining.
++ * Instead, submit an asynchronous readahead I/O as soon as there are
++ * only async_size pages left in the readahead window. Normally async_size
++ * will be equal to size, for maximum pipelining.
+  *
+  * In interleaved sequential reads, concurrent streams on the same fd can
+  * be invalidating each other's readahead state. So we flag the new readahead
+- * page at lookahead_index with PG_readahead, and use it as readahead
++ * page at (start+size-async_size) with PG_readahead, and use it as readahead
+  * indicator. The flag won't be set on already cached pages, to avoid the
+  * readahead-for-nothing fuss, saving pointless page cache lookups.
+  *
+@@ -355,24 +343,21 @@ ondemand_readahead(struct address_space 
  		   unsigned long req_size)
  {
  	unsigned long max;	/* max readahead pages */
-@@ -379,7 +379,7 @@ ondemand_readahead(struct address_space 
- 	 * Standalone, small read.
- 	 * Read as is, and do not pollute the readahead state.
+-	pgoff_t ra_index;	/* readahead index */
+-	unsigned long ra_size;	/* readahead size */
+-	unsigned long la_size;	/* lookahead size */
+ 	int sequential;
+ 
+ 	max = ra->ra_pages;
+ 	sequential = (offset - ra->prev_index <= 1UL) || (req_size > max);
+ 
+ 	/*
+-	 * Lookahead/readahead hit, assume sequential access.
++	 * It's the expected callback offset, assume sequential access.
+ 	 * Ramp up sizes, and push forward the readahead window.
  	 */
--	if (!page && !sequential) {
-+	if (!hit_readahead_marker && !sequential) {
- 		return __do_page_cache_readahead(mapping, filp,
- 						offset, req_size, 0);
+-	if (offset && (offset == ra->lookahead_index ||
+-			offset == ra->readahead_index)) {
+-		ra_index = ra->readahead_index;
+-		ra_size = get_next_ra_size(ra, max);
+-		la_size = ra_size;
+-		goto fill_ra;
++	if (offset && (offset == (ra->start + ra->size - ra->async_size) ||
++			offset == (ra->start + ra->size))) {
++		ra->start += ra->size;
++		ra->size = get_next_ra_size(ra, max);
++		ra->async_size = ra->size;
++		goto readit;
  	}
-@@ -400,7 +400,7 @@ ondemand_readahead(struct address_space 
+ 
+ 	/*
+@@ -391,24 +376,21 @@ ondemand_readahead(struct address_space 
+ 	 * 	- oversize random read
+ 	 * Start readahead for it.
+ 	 */
+-	ra_index = offset;
+-	ra_size = get_init_ra_size(req_size, max);
+-	la_size = ra_size > req_size ? ra_size - req_size : ra_size;
++	ra->start = offset;
++	ra->size = get_init_ra_size(req_size, max);
++	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
+ 
+ 	/*
+-	 * Hit on a lookahead page without valid readahead state.
++	 * Hit on a marked page without valid readahead state.
  	 * E.g. interleaved reads.
  	 * Not knowing its readahead pos/size, bet on the minimal possible one.
  	 */
--	if (page) {
-+	if (hit_readahead_marker) {
- 		ra_index++;
- 		ra_size = min(4 * ra_size, max);
+ 	if (hit_readahead_marker) {
+-		ra_index++;
+-		ra_size = min(4 * ra_size, max);
++		ra->start++;
++		ra->size = get_next_ra_size(ra, max);
  	}
-@@ -413,50 +413,71 @@ fill_ra:
+ 
+-fill_ra:
+-	ra_set_index(ra, offset, ra_index);
+-	ra_set_size(ra, ra_size, la_size);
+-
++readit:
+ 	return ra_submit(ra, mapping, filp);
  }
  
- /**
-- * page_cache_readahead_ondemand - generic file readahead
-+ * page_cache_sync_readahead - generic file readahead
-  * @mapping: address_space which holds the pagecache and I/O vectors
-  * @ra: file_ra_state which holds the readahead state
-  * @filp: passed on to ->readpage() and ->readpages()
-- * @page: the page at @offset, or NULL if non-present
-- * @offset: start offset into @mapping, in PAGE_CACHE_SIZE units
-+ * @offset: start offset into @mapping, in pagecache page-sized units
-  * @req_size: hint: total size of the read which the caller is performing in
-- *            PAGE_CACHE_SIZE units
-+ *            pagecache pages
-  *
-- * page_cache_readahead_ondemand() is the entry point of readahead logic.
-- * This function should be called when it is time to perform readahead:
-- * 1) @page == NULL
-- *    A cache miss happened, time for synchronous readahead.
-- * 2) @page != NULL && PageReadahead(@page)
-- *    A look-ahead hit occured, time for asynchronous readahead.
-+ * page_cache_sync_readahead() should be called when a cache miss happened:
-+ * it will submit the read.  The readahead logic may decide to piggyback more
-+ * pages onto the read request if access patterns suggest it will improve
-+ * performance.
-  */
--unsigned long
--page_cache_readahead_ondemand(struct address_space *mapping,
--				struct file_ra_state *ra, struct file *filp,
--				struct page *page, pgoff_t offset,
--				unsigned long req_size)
-+void page_cache_sync_readahead(struct address_space *mapping,
-+			       struct file_ra_state *ra, struct file *filp,
-+			       pgoff_t offset, unsigned long req_size)
- {
- 	/* no read-ahead */
- 	if (!ra->ra_pages)
--		return 0;
-+		return;
- 
--	if (page) {
--		/*
--		 * It can be PG_reclaim.
--		 */
--		if (PageWriteback(page))
--			return 0;
--
--		ClearPageReadahead(page);
--
--		/*
--		 * Defer asynchronous read-ahead on IO congestion.
--		 */
--		if (bdi_read_congested(mapping->backing_dev_info))
--			return 0;
--	}
-+	/* do read-ahead */
-+	ondemand_readahead(mapping, ra, filp, false, offset, req_size);
-+}
-+EXPORT_SYMBOL_GPL(page_cache_sync_readahead);
-+
-+/**
-+ * page_cache_async_readahead - file readahead for marked pages
-+ * @mapping: address_space which holds the pagecache and I/O vectors
-+ * @ra: file_ra_state which holds the readahead state
-+ * @filp: passed on to ->readpage() and ->readpages()
-+ * @page: the page at @offset which has the PG_readahead flag set
-+ * @offset: start offset into @mapping, in pagecache page-sized units
-+ * @req_size: hint: total size of the read which the caller is performing in
-+ *            pagecache pages
-+ *
-+ * page_cache_async_ondemand() should be called when a page is used which
-+ * has the PG_readahead flag: this is a marker to suggest that the application
-+ * has used up enough of the readahead window that we should start pulling in
-+ * more pages. */
-+void
-+page_cache_async_readahead(struct address_space *mapping,
-+			   struct file_ra_state *ra, struct file *filp,
-+			   struct page *page, pgoff_t offset,
-+			   unsigned long req_size)
-+{
-+	/* no read-ahead */
-+	if (!ra->ra_pages)
-+		return;
-+
-+	/*
-+	 * Same bit is used for PG_readahead and PG_reclaim.
-+	 */
-+	if (PageWriteback(page))
-+		return;
-+
-+	ClearPageReadahead(page);
-+
-+	/*
-+	 * Defer asynchronous read-ahead on IO congestion.
-+	 */
-+	if (bdi_read_congested(mapping->backing_dev_info))
-+		return;
- 
- 	/* do read-ahead */
--	return ondemand_readahead(mapping, ra, filp, page,
--					offset, req_size);
-+	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
- }
--EXPORT_SYMBOL_GPL(page_cache_readahead_ondemand);
-+EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
