@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcspkr-use-the-global-pit-lock.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:42 -0700
-Message-ID: <200706260007.l5Q07gGw014430@imap1.linux-foundation.org>
+Subject: + i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:46 -0700
+Message-ID: <200706260007.l5Q07k9E014436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752545AbXFZAI2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752728AbXFZAI3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:08:28 -0400
+	Mon, 25 Jun 2007 20:08:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, dtor@mail.ru, mingo@elte.hu
+Cc: tglx@linutronix.de, ak@suse.de, mingo@elte.hu
 
 
 The patch titled
-     pcspkr: use the global PIT lock
+     i386: PIT stop only, when in periodic or oneshot mode
 has been added to the -mm tree.  Its filename is
-     pcspkr-use-the-global-pit-lock.patch
+     i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcspkr: use the global PIT lock
+Subject: i386: PIT stop only, when in periodic or oneshot mode
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Replace the pcspkr private PIT lock by the global PIT lock to serialize the
-PIT access all over the place.
+The patch is necessary on one of my boxen, where programming the stop
+sequence twice leads to PIT malfunction.
+
+Sigh !
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/time.c   |    2 ++
- drivers/input/misc/pcspkr.c |   11 ++++++++---
- include/asm-x86_64/i8253.h  |    6 ++++++
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ arch/i386/kernel/i8253.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/time.c~pcspkr-use-the-global-pit-lock arch/x86_64/kernel/time.c
---- a/arch/x86_64/kernel/time.c~pcspkr-use-the-global-pit-lock
-+++ a/arch/x86_64/kernel/time.c
-@@ -33,6 +33,7 @@
- #include <acpi/acpi_bus.h>
- #endif
- #include <asm/8253pit.h>
-+#include <asm/i8253.h>
- #include <asm/pgtable.h>
- #include <asm/vsyscall.h>
- #include <asm/timex.h>
-@@ -51,6 +52,7 @@ static char *timename = NULL;
- DEFINE_SPINLOCK(rtc_lock);
- EXPORT_SYMBOL(rtc_lock);
- DEFINE_SPINLOCK(i8253_lock);
-+EXPORT_SYMBOL(i8253_lock);
+diff -puN arch/i386/kernel/i8253.c~i386-pit-stop-only-when-in-periodic-or-oneshot-mode arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~i386-pit-stop-only-when-in-periodic-or-oneshot-mode
++++ a/arch/i386/kernel/i8253.c
+@@ -48,9 +48,12 @@ static void init_pit_timer(enum clock_ev
  
- volatile unsigned long __jiffies __section_jiffies = INITIAL_JIFFIES;
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
+ 	case CLOCK_EVT_MODE_UNUSED:
+-		outb_p(0x30, PIT_MODE);
+-		outb_p(0, PIT_CH0);	/* LSB */
+-		outb_p(0, PIT_CH0);	/* MSB */
++		if (evt->mode == CLOCK_EVT_MODE_PERIODIC ||
++		    evt->mode == CLOCK_EVT_MODE_ONESHOT) {
++			outb_p(0x30, PIT_MODE);
++			outb_p(0, PIT_CH0);
++			outb_p(0, PIT_CH0);
++		}
+ 		break;
  
-diff -puN drivers/input/misc/pcspkr.c~pcspkr-use-the-global-pit-lock drivers/input/misc/pcspkr.c
---- a/drivers/input/misc/pcspkr.c~pcspkr-use-the-global-pit-lock
-+++ a/drivers/input/misc/pcspkr.c
-@@ -24,7 +24,12 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@u
- MODULE_DESCRIPTION("PC Speaker beeper driver");
- MODULE_LICENSE("GPL");
- 
--static DEFINE_SPINLOCK(i8253_beep_lock);
-+#ifdef CONFIG_X86
-+/* Use the global PIT lock ! */
-+#include <asm/i8253.h>
-+#else
-+static DEFINE_SPINLOCK(i8253_lock);
-+#endif
- 
- static int pcspkr_event(struct input_dev *dev, unsigned int type, unsigned int code, int value)
- {
-@@ -43,7 +48,7 @@ static int pcspkr_event(struct input_dev
- 	if (value > 20 && value < 32767)
- 		count = PIT_TICK_RATE / value;
- 
--	spin_lock_irqsave(&i8253_beep_lock, flags);
-+	spin_lock_irqsave(&i8253_lock, flags);
- 
- 	if (count) {
- 		/* enable counter 2 */
-@@ -58,7 +63,7 @@ static int pcspkr_event(struct input_dev
- 		outb(inb_p(0x61) & 0xFC, 0x61);
- 	}
- 
--	spin_unlock_irqrestore(&i8253_beep_lock, flags);
-+	spin_unlock_irqrestore(&i8253_lock, flags);
- 
- 	return 0;
- }
-diff -puN /dev/null include/asm-x86_64/i8253.h
---- /dev/null
-+++ a/include/asm-x86_64/i8253.h
-@@ -0,0 +1,6 @@
-+#ifndef __ASM_I8253_H__
-+#define __ASM_I8253_H__
-+
-+extern spinlock_t i8253_lock;
-+
-+#endif	/* __ASM_I8253_H__ */
+ 	case CLOCK_EVT_MODE_ONESHOT:
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
