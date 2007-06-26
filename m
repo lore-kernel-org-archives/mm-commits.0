@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-hpet-restore-vread.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:08:06 -0700
-Message-ID: <200706260008.l5Q086SH014471@imap1.linux-foundation.org>
+Subject: + x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:58 -0700
+Message-ID: <200706260007.l5Q07wcw014459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47415 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751563AbXFZAPP (ORCPT
+	by vger.kernel.org with ESMTP id S1752753AbXFZAP3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:15:15 -0400
+	Mon, 25 Jun 2007 20:15:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sebastien.dugue@bull.net, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     x86_64: hpet restore vread
+     x86_64: remove dead code and other janitor work in tsc.c
 has been added to the -mm tree.  Its filename is
-     x86_64-hpet-restore-vread.patch
+     x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,137 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: hpet restore vread
-From: Sebastien Dugue <sebastien.dugue@bull.net>
+Subject: x86_64: remove dead code and other janitor work in tsc.c
+From: Thomas Gleixner <tglx@linutronix.de>
 
-It seems the hpet clocksource's vread method was lost in the x86_64 conversion
-to clockevents.  So here it is.
+Remove unused code and variables and do some codingstyle / whitespace
+cleanups while at it.
 
-Signed-off-by: Sebastien Dugue <sebastien.dugue@bull.net>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ arch/x86_64/kernel/tsc.c |   41 +++++++++----------------------------
+ 1 files changed, 11 insertions(+), 30 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~x86_64-hpet-restore-vread arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~x86_64-hpet-restore-vread
-+++ a/arch/i386/kernel/hpet.c
-@@ -255,6 +255,13 @@ static cycle_t read_hpet(void)
- 	return (cycle_t)hpet_readl(HPET_COUNTER);
+diff -puN arch/x86_64/kernel/tsc.c~x86_64-remove-dead-code-and-other-janitor-work-in-tscc arch/x86_64/kernel/tsc.c
+--- a/arch/x86_64/kernel/tsc.c~x86_64-remove-dead-code-and-other-janitor-work-in-tscc
++++ a/arch/x86_64/kernel/tsc.c
+@@ -35,25 +35,9 @@ static inline int check_tsc_unstable(voi
+  * first tick after the change will be slightly wrong.
+  */
+ 
+-#include <linux/workqueue.h>
+-
+-static unsigned int cpufreq_delayed_issched = 0;
+-static unsigned int cpufreq_init = 0;
+-static struct work_struct cpufreq_delayed_get_work;
+-
+-static void handle_cpufreq_delayed_get(struct work_struct *v)
+-{
+-	unsigned int cpu;
+-	for_each_online_cpu(cpu) {
+-		cpufreq_get(cpu);
+-	}
+-	cpufreq_delayed_issched = 0;
+-}
+-
+-static unsigned int  ref_freq = 0;
+-static unsigned long loops_per_jiffy_ref = 0;
+-
+-static unsigned long tsc_khz_ref = 0;
++static unsigned int  ref_freq;
++static unsigned long loops_per_jiffy_ref;
++static unsigned long tsc_khz_ref;
+ 
+ static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
+ 				 void *data)
+@@ -97,10 +81,8 @@ static struct notifier_block time_cpufre
+ 
+ static int __init cpufreq_tsc(void)
+ {
+-	INIT_WORK(&cpufreq_delayed_get_work, handle_cpufreq_delayed_get);
+-	if (!cpufreq_register_notifier(&time_cpufreq_notifier_block,
+-				       CPUFREQ_TRANSITION_NOTIFIER))
+-		cpufreq_init = 1;
++	cpufreq_register_notifier(&time_cpufreq_notifier_block,
++				  CPUFREQ_TRANSITION_NOTIFIER);
+ 	return 0;
  }
  
-+#ifdef CONFIG_X86_64
-+static cycle_t __vsyscall_fn vread_hpet(void)
-+{
-+	return readl((const void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
-+}
-+#endif
-+
- static struct clocksource clocksource_hpet = {
- 	.name		= "hpet",
- 	.rating		= 250,
-@@ -263,6 +270,9 @@ static struct clocksource clocksource_hp
- 	.shift		= HPET_SHIFT,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- 	.resume		= hpet_start_counter,
-+#ifdef CONFIG_X86_64
-+	.vread		= vread_hpet,
-+#endif
- };
+@@ -108,8 +90,6 @@ core_initcall(cpufreq_tsc);
  
+ #endif
+ 
+-static int tsc_unstable = 0;
+-
  /*
+  * Make an educated guess if the TSC is trustworthy and synchronized
+  * over all CPUs.
+@@ -122,17 +102,18 @@ __cpuinit int unsynchronized_tsc(void)
+ #endif
+ 	/* Most intel systems have synchronized TSCs except for
+ 	   multi node systems */
+- 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
++	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
+ #ifdef CONFIG_ACPI
+ 		/* But TSC doesn't tick in C3 so don't use it there */
+-		if (acpi_gbl_FADT.header.length > 0 && acpi_gbl_FADT.C3latency < 1000)
++		if (acpi_gbl_FADT.header.length > 0 &&
++		    acpi_gbl_FADT.C3latency < 1000)
+ 			return 1;
+ #endif
+- 		return 0;
++		return 0;
+ 	}
+ 
+- 	/* Assume multi socket systems are not synchronized */
+- 	return num_present_cpus() > 1;
++	/* Assume multi socket systems are not synchronized */
++	return num_present_cpus() > 1;
+ }
+ 
+ int __init notsc_setup(char *s)
 _
 
-Patches currently in -mm which might be from sebastien.dugue@bull.net are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
+git-acpi-add-exports.patch
+git-arm.patch
+i386-hpet-check-if-the-counter-works.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+timekeeping-fixup-shadow-variable-argument.patch
+timerc-cleanup-recently-introduced-whitespace-damage.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+pcspkr-use-the-global-pit-lock.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+i386-remove-volatile-in-apicc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
 x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+sys_time-speedup.patch
+lguest-the-host-code.patch
