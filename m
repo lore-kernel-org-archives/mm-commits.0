@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ehea-whitespace-cleanup.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:14:51 -0700
-Message-ID: <200706262114.l5QLEpGP002223@imap1.linux-foundation.org>
+Subject: + extract-chip-specific-code-out-of-lasi_82596c-update.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:28:19 -0700
+Message-ID: <200706262128.l5QLSJCE002452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33469 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758294AbXFZVPd (ORCPT
+	by vger.kernel.org with ESMTP id S1758149AbXFZV27 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:15:33 -0400
+	Tue, 26 Jun 2007 17:28:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ossthema@de.ibm.com, meder@de.ibm.com, raisch@de.ibm.com, stefan.roscher@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com
+Cc: tsbogend@alpha.franken.de
 
 
 The patch titled
-     ehea: whitespace cleanup
+     Extract chip specific code out of lasi_82596.c (update)
 has been added to the -mm tree.  Its filename is
-     ehea-whitespace-cleanup.patch
+     extract-chip-specific-code-out-of-lasi_82596c-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,373 +26,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehea: whitespace cleanup
-From: Jan-Bernd Themann <ossthema@de.ibm.com>
+Subject: Extract chip specific code out of lasi_82596.c (update)
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Fix several whitespace issues.
+Below is an updated patch with changes recommended/requested by Andrew
 
-Signed-off-by: Jan-Bernd Themann <themann@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Marcus Eder <meder@de.ibm.com>
-Cc: Thomas Klein <tklein@de.ibm.com>
-Cc: Stefan Roscher <stefan.roscher@de.ibm.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea.h      |   14 +++----
- drivers/net/ehea/ehea_hw.h   |   24 ++++++-------
- drivers/net/ehea/ehea_main.c |   32 +++++++++--------
- drivers/net/ehea/ehea_qmr.c  |   60 ++++++++++++++++-----------------
- 4 files changed, 66 insertions(+), 64 deletions(-)
+ drivers/net/lasi_82596.c |   14 +++-----------
+ drivers/net/lib82596.c   |   22 ++++++++++++----------
+ 2 files changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN drivers/net/ehea/ehea.h~ehea-whitespace-cleanup drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~ehea-whitespace-cleanup
-+++ a/drivers/net/ehea/ehea.h
-@@ -39,7 +39,7 @@
- #include <asm/io.h>
+diff -puN drivers/net/lasi_82596.c~extract-chip-specific-code-out-of-lasi_82596c-update drivers/net/lasi_82596.c
+--- a/drivers/net/lasi_82596.c~extract-chip-specific-code-out-of-lasi_82596c-update
++++ a/drivers/net/lasi_82596.c
+@@ -115,9 +115,6 @@
+ #define SWAP32(x)   (((u32)(x)<<16) | ((((u32)(x)))>>16))
+ #define SWAP16(x)   (x)
  
- #define DRV_NAME	"ehea"
--#define DRV_VERSION	"EHEA_0064"
-+#define DRV_VERSION	"EHEA_0065"
- 
- #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
- 	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
-@@ -136,10 +136,10 @@ void ehea_dump(void *adr, int len, char 
- 	(0xffffffffffffffffULL >> ((64 - (mask)) & 0xffff))
- 
- #define EHEA_BMASK_SET(mask, value) \
--        ((EHEA_BMASK_MASK(mask) & ((u64)(value))) << EHEA_BMASK_SHIFTPOS(mask))
-+	((EHEA_BMASK_MASK(mask) & ((u64)(value))) << EHEA_BMASK_SHIFTPOS(mask))
- 
- #define EHEA_BMASK_GET(mask, value) \
--        (EHEA_BMASK_MASK(mask) & (((u64)(value)) >> EHEA_BMASK_SHIFTPOS(mask)))
-+	(EHEA_BMASK_MASK(mask) & (((u64)(value)) >> EHEA_BMASK_SHIFTPOS(mask)))
- 
- /*
-  * Generic ehea page
-@@ -190,7 +190,7 @@ struct ehea_av;
-  * Queue attributes passed to ehea_create_qp()
-  */
- struct ehea_qp_init_attr {
--        /* input parameter */
-+	/* input parameter */
- 	u32 qp_token;           /* queue token */
- 	u8 low_lat_rq1;
- 	u8 signalingtype;       /* cqe generation flag */
-@@ -212,7 +212,7 @@ struct ehea_qp_init_attr {
- 	u64 recv_cq_handle;
- 	u64 aff_eq_handle;
- 
--        /* output parameter */
-+	/* output parameter */
- 	u32 qp_nr;
- 	u16 act_nr_send_wqes;
- 	u16 act_nr_rwqes_rq1;
-@@ -279,12 +279,12 @@ struct ehea_qp {
-  * Completion Queue attributes
-  */
- struct ehea_cq_attr {
--        /* input parameter */
-+	/* input parameter */
- 	u32 max_nr_of_cqes;
- 	u32 cq_token;
- 	u64 eq_handle;
- 
--        /* output parameter */
-+	/* output parameter */
- 	u32 act_nr_of_cqes;
- 	u32 nr_pages;
- };
-diff -puN drivers/net/ehea/ehea_hw.h~ehea-whitespace-cleanup drivers/net/ehea/ehea_hw.h
---- a/drivers/net/ehea/ehea_hw.h~ehea-whitespace-cleanup
-+++ a/drivers/net/ehea/ehea_hw.h
-@@ -211,34 +211,34 @@ static inline void epa_store_acc(struct 
- }
- 
- #define epa_store_eq(epa, offset, value)\
--        epa_store(epa, EQTEMM_OFFSET(offset), value)
-+	epa_store(epa, EQTEMM_OFFSET(offset), value)
- #define epa_load_eq(epa, offset)\
--        epa_load(epa, EQTEMM_OFFSET(offset))
-+	epa_load(epa, EQTEMM_OFFSET(offset))
- 
- #define epa_store_cq(epa, offset, value)\
--        epa_store(epa, CQTEMM_OFFSET(offset), value)
-+	epa_store(epa, CQTEMM_OFFSET(offset), value)
- #define epa_load_cq(epa, offset)\
--        epa_load(epa, CQTEMM_OFFSET(offset))
-+	epa_load(epa, CQTEMM_OFFSET(offset))
- 
- #define epa_store_qp(epa, offset, value)\
--        epa_store(epa, QPTEMM_OFFSET(offset), value)
-+	epa_store(epa, QPTEMM_OFFSET(offset), value)
- #define epa_load_qp(epa, offset)\
--        epa_load(epa, QPTEMM_OFFSET(offset))
-+	epa_load(epa, QPTEMM_OFFSET(offset))
- 
- #define epa_store_qped(epa, offset, value)\
--        epa_store(epa, QPEDMM_OFFSET(offset), value)
-+	epa_store(epa, QPEDMM_OFFSET(offset), value)
- #define epa_load_qped(epa, offset)\
--        epa_load(epa, QPEDMM_OFFSET(offset))
-+	epa_load(epa, QPEDMM_OFFSET(offset))
- 
- #define epa_store_mrmw(epa, offset, value)\
--        epa_store(epa, MRMWMM_OFFSET(offset), value)
-+	epa_store(epa, MRMWMM_OFFSET(offset), value)
- #define epa_load_mrmw(epa, offset)\
--        epa_load(epa, MRMWMM_OFFSET(offset))
-+	epa_load(epa, MRMWMM_OFFSET(offset))
- 
- #define epa_store_base(epa, offset, value)\
--        epa_store(epa, HCAGR_OFFSET(offset), value)
-+	epa_store(epa, HCAGR_OFFSET(offset), value)
- #define epa_load_base(epa, offset)\
--        epa_load(epa, HCAGR_OFFSET(offset))
-+	epa_load(epa, HCAGR_OFFSET(offset))
- 
- static inline void ehea_update_sqa(struct ehea_qp *qp, u16 nr_wqes)
- {
-diff -puN drivers/net/ehea/ehea_main.c~ehea-whitespace-cleanup drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-whitespace-cleanup
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -81,7 +81,7 @@ MODULE_PARM_DESC(use_mcs, " 0:NAPI, 1:Mu
- static int port_name_cnt = 0;
- 
- static int __devinit ehea_probe_adapter(struct ibmebus_dev *dev,
--                                        const struct of_device_id *id);
-+					const struct of_device_id *id);
- 
- static int __devexit ehea_remove(struct ibmebus_dev *dev);
- 
-@@ -236,7 +236,7 @@ static int ehea_refill_rq_def(struct ehe
- 
- 		rwqe = ehea_get_next_rwqe(qp, rq_nr);
- 		rwqe->wr_id = EHEA_BMASK_SET(EHEA_WR_ID_TYPE, wqe_type)
--		            | EHEA_BMASK_SET(EHEA_WR_ID_INDEX, index);
-+			    | EHEA_BMASK_SET(EHEA_WR_ID_INDEX, index);
- 		rwqe->sg_list[0].l_key = pr->recv_mr.lkey;
- 		rwqe->sg_list[0].vaddr = (u64)skb->data;
- 		rwqe->sg_list[0].len = packet_size;
-@@ -427,7 +427,7 @@ static struct ehea_cqe *ehea_proc_rwqes(
- 						break;
- 				}
- 				skb_copy_to_linear_data(skb, ((char*)cqe) + 64,
--					       cqe->num_bytes_transfered - 4);
-+						 cqe->num_bytes_transfered - 4);
- 				ehea_fill_skb(port->netdev, skb, cqe);
- 			} else if (rq == 2) {  /* RQ2 */
- 				skb = get_skb_by_index(skb_arr_rq2,
-@@ -618,7 +618,7 @@ static struct ehea_port *ehea_get_port(s
- 
- 	for (i = 0; i < EHEA_MAX_PORTS; i++)
- 		if (adapter->port[i])
--	                if (adapter->port[i]->logical_port_id == logical_port)
-+			if (adapter->port[i]->logical_port_id == logical_port)
- 				return adapter->port[i];
- 	return NULL;
- }
-@@ -1695,6 +1695,7 @@ static void ehea_xmit2(struct sk_buff *s
- {
- 	if (skb->protocol == htons(ETH_P_IP)) {
- 		const struct iphdr *iph = ip_hdr(skb);
-+
- 		/* IPv4 */
- 		swqe->tx_control |= EHEA_SWQE_CRC
- 				 | EHEA_SWQE_IP_CHECKSUM
-@@ -1705,13 +1706,12 @@ static void ehea_xmit2(struct sk_buff *s
- 		write_ip_start_end(swqe, skb);
- 
- 		if (iph->protocol == IPPROTO_UDP) {
--			if ((iph->frag_off & IP_MF) ||
--			    (iph->frag_off & IP_OFFSET))
-+			if ((iph->frag_off & IP_MF)
-+			    || (iph->frag_off & IP_OFFSET))
- 				/* IP fragment, so don't change cs */
- 				swqe->tx_control &= ~EHEA_SWQE_TCP_CHECKSUM;
- 			else
- 				write_udp_offset_end(swqe, skb);
+-static inline void CA(struct net_device *dev);
+-static inline void MPU_PORT(struct net_device *dev, int c, dma_addr_t x);
 -
- 		} else if (iph->protocol == IPPROTO_TCP) {
- 			write_tcp_offset_end(swqe, skb);
- 		}
-@@ -1739,6 +1739,7 @@ static void ehea_xmit3(struct sk_buff *s
+ #include "lib82596.c"
  
- 	if (skb->protocol == htons(ETH_P_IP)) {
- 		const struct iphdr *iph = ip_hdr(skb);
-+
- 		/* IPv4 */
- 		write_ip_start_end(swqe, skb);
+ MODULE_AUTHOR("Richard Hirst");
+@@ -126,13 +123,13 @@ MODULE_LICENSE("GPL");
+ module_param(i596_debug, int, 0);
+ MODULE_PARM_DESC(i596_debug, "lasi_82596 debug mask");
  
-@@ -1751,8 +1752,8 @@ static void ehea_xmit3(struct sk_buff *s
- 			write_tcp_offset_end(swqe, skb);
- 
- 		} else if (iph->protocol == IPPROTO_UDP) {
--			if ((iph->frag_off & IP_MF) ||
--			    (iph->frag_off & IP_OFFSET))
-+			if ((iph->frag_off & IP_MF)
-+			    || (iph->frag_off & IP_OFFSET))
- 				/* IP fragment, so don't change cs */
- 				swqe->tx_control |= EHEA_SWQE_CRC
- 						 | EHEA_SWQE_IMM_DATA_PRESENT;
-@@ -2407,7 +2408,7 @@ static void __devinit logical_port_relea
+-static inline void CA(struct net_device *dev)
++static inline void ca(struct net_device *dev)
+ {
+ 	gsc_writel(0, dev->base_addr + PA_CHANNEL_ATTENTION);
  }
  
- static int ehea_driver_sysfs_add(struct device *dev,
--                                 struct device_driver *driver)
-+				 struct device_driver *driver)
- {
- 	int ret;
  
-@@ -2424,7 +2425,7 @@ static int ehea_driver_sysfs_add(struct 
+-static inline void MPU_PORT(struct net_device *dev, int c, dma_addr_t x)
++static void mpu_port(struct net_device *dev, int c, dma_addr_t x)
+ {
+ 	struct i596_private *lp = netdev_priv(dev);
+ 
+@@ -160,14 +157,8 @@ lan_init_chip(struct parisc_device *dev)
+ 	struct	net_device *netdevice;
+ 	struct i596_private *lp;
+ 	int	retval;
+-	static int init;
+ 	int i;
+ 
+-	if (init == 0) {
+-		printk(KERN_INFO LASI_82596_DRIVER_VERSION "\n");
+-		init++;
+-	}
+-
+ 	if (!dev->irq) {
+ 		printk(KERN_ERR "%s: IRQ not found for i82596 at 0x%lx\n",
+ 			__FILE__, dev->hpa.start);
+@@ -234,6 +225,7 @@ static struct parisc_driver lan_driver =
+ 
+ static int __devinit lasi_82596_init(void)
+ {
++	printk(KERN_INFO LASI_82596_DRIVER_VERSION "\n");
+ 	return register_parisc_driver(&lan_driver);
  }
  
- static void ehea_driver_sysfs_remove(struct device *dev,
--                                     struct device_driver *driver)
-+				     struct device_driver *driver)
- {
- 	struct device_driver *drv = driver;
+diff -puN drivers/net/lib82596.c~extract-chip-specific-code-out-of-lasi_82596c-update drivers/net/lib82596.c
+--- a/drivers/net/lib82596.c~extract-chip-specific-code-out-of-lasi_82596c-update
++++ a/drivers/net/lib82596.c
+@@ -357,6 +357,8 @@ static void i596_add_cmd(struct net_devi
+ static void i596_tx_timeout (struct net_device *dev);
+ static void print_eth(unsigned char *buf, char *str);
+ static void set_multicast_list(struct net_device *dev);
++static inline void ca(struct net_device *dev);
++static void mpu_port(struct net_device *dev, int c, dma_addr_t x);
  
-@@ -2453,7 +2454,7 @@ static struct device *ehea_register_port
+ static int rx_ring_size = RX_RING_SIZE;
+ static int ticks_limit = 100;
+@@ -558,7 +560,7 @@ static int init_i596_mem(struct net_devi
+ 	struct i596_dma *dma = lp->dma;
+ 	unsigned long flags;
+ 
+-	MPU_PORT(dev, PORT_RESET, 0);
++	mpu_port(dev, PORT_RESET, 0);
+ 	udelay(100);			/* Wait 100us - seems to help */
+ 
+ 	/* change the scp address */
+@@ -580,8 +582,8 @@ static int init_i596_mem(struct net_devi
+ 	DMA_WBACK(dev, &(dma->iscp), sizeof(struct i596_iscp));
+ 	DMA_WBACK(dev, &(dma->scb), sizeof(struct i596_scb));
+ 
+-	MPU_PORT(dev, PORT_ALTSCP, virt_to_dma(lp, &dma->scp));
+-	CA(dev);
++	mpu_port(dev, PORT_ALTSCP, virt_to_dma(lp, &dma->scp));
++	ca(dev);
+ 	if (wait_istat(dev, dma, 1000, "initialization timed out"))
+ 		goto failed;
+ 	DEB(DEB_INIT, printk(KERN_DEBUG
+@@ -628,7 +630,7 @@ static int init_i596_mem(struct net_devi
+ 	dma->scb.rfd = SWAP32(virt_to_dma(lp, dma->rfds));
+ 	DMA_WBACK(dev, &(dma->scb), sizeof(struct i596_scb));
+ 
+-	CA(dev);
++	ca(dev);
+ 
+ 	spin_unlock_irqrestore (&lp->lock, flags);
+ 	if (wait_cmd(dev, dma, 1000, "RX_START not processed"))
+@@ -641,7 +643,7 @@ failed_free_irq:
+ 	free_irq(dev->irq, dev);
+ failed:
+ 	printk(KERN_ERR "%s: Failed to initialise 82596\n", dev->name);
+-	MPU_PORT(dev, PORT_RESET, 0);
++	mpu_port(dev, PORT_RESET, 0);
+ 	return -1;
+ }
+ 
+@@ -857,7 +859,7 @@ static inline void i596_reset(struct net
+ 	/* FIXME: this command might cause an lpmc */
+ 	lp->dma->scb.command = SWAP16(CUC_ABORT | RX_ABORT);
+ 	DMA_WBACK(dev, &(lp->dma->scb), sizeof(struct i596_scb));
+-	CA(dev);
++	ca(dev);
+ 
+ 	/* wait for shutdown */
+ 	wait_cmd(dev, lp->dma, 1000, "i596_reset 2 timed out");
+@@ -898,7 +900,7 @@ static void i596_add_cmd(struct net_devi
+ 		dma->scb.cmd = SWAP32(virt_to_dma(lp, &cmd->status));
+ 		dma->scb.command = SWAP16(CUC_START);
+ 		DMA_WBACK(dev, &(dma->scb), sizeof(struct i596_scb));
+-		CA(dev);
++		ca(dev);
+ 	}
+ 	lp->cmd_tail = cmd;
+ 	lp->cmd_backlog++;
+@@ -961,7 +963,7 @@ static void i596_tx_timeout (struct net_
+ 		DEB(DEB_ERRORS, printk(KERN_DEBUG "Kicking board.\n"));
+ 		lp->dma->scb.command = SWAP16(CUC_START | RX_START);
+ 		DMA_WBACK_INV(dev, &(lp->dma->scb), sizeof(struct i596_scb));
+-		CA (dev);
++		ca (dev);
+ 		lp->last_restart = lp->stats.tx_packets;
  	}
  
- 	ret = device_create_file(&port->ofdev.dev, &dev_attr_log_port_id);
--        if (ret) {
-+	if (ret) {
- 		ehea_error("failed to register attributes, ret=%d", ret);
- 		goto out_unreg_of_dev;
- 	}
-@@ -2601,6 +2602,7 @@ static int ehea_setup_ports(struct ehea_
- {
- 	struct device_node *lhea_dn;
- 	struct device_node *eth_dn = NULL;
-+
- 	const u32 *dn_log_port_id;
- 	int i = 0;
+@@ -1304,7 +1306,7 @@ static irqreturn_t i596_interrupt(int ir
+ 	 acknowledgement aside from acking the 82596 might be needed
+ 	 here...  but it's running acceptably without */
  
-@@ -2608,7 +2610,7 @@ static int ehea_setup_ports(struct ehea_
- 	while ((eth_dn = of_get_next_child(lhea_dn, eth_dn))) {
+-	CA(dev);
++	ca(dev);
  
- 		dn_log_port_id = of_get_property(eth_dn, "ibm,hea-port-no",
--						    NULL);
-+						 NULL);
- 		if (!dn_log_port_id) {
- 			ehea_error("bad device node: eth_dn name=%s",
- 				   eth_dn->full_name);
-@@ -2648,7 +2650,7 @@ static struct device_node *ehea_get_eth_
- 	while ((eth_dn = of_get_next_child(lhea_dn, eth_dn))) {
+ 	wait_cmd(dev, dma, 100, "i596 interrupt, exit timeout");
+ 	DEB(DEB_INTS, printk(KERN_DEBUG "%s: exiting interrupt.\n", dev->name));
+@@ -1331,7 +1333,7 @@ static int i596_close(struct net_device 
+ 	lp->dma->scb.command = SWAP16(CUC_ABORT | RX_ABORT);
+ 	DMA_WBACK(dev, &lp->dma->scb, sizeof(struct i596_scb));
  
- 		dn_log_port_id = of_get_property(eth_dn, "ibm,hea-port-no",
--						    NULL);
-+						 NULL);
- 		if (dn_log_port_id)
- 			if (*dn_log_port_id == logical_port_id)
- 				return eth_dn;
-@@ -2789,7 +2791,7 @@ static int __devinit ehea_probe_adapter(
- 	adapter->ebus_dev = dev;
+-	CA(dev);
++	ca(dev);
  
- 	adapter_handle = of_get_property(dev->ofdev.node, "ibm,hea-handle",
--					    NULL);
-+					 NULL);
- 	if (adapter_handle)
- 		adapter->handle = *adapter_handle;
- 
-diff -puN drivers/net/ehea/ehea_qmr.c~ehea-whitespace-cleanup drivers/net/ehea/ehea_qmr.c
---- a/drivers/net/ehea/ehea_qmr.c~ehea-whitespace-cleanup
-+++ a/drivers/net/ehea/ehea_qmr.c
-@@ -211,7 +211,7 @@ u64 ehea_destroy_cq_res(struct ehea_cq *
- 	u64 hret;
- 	u64 adapter_handle = cq->adapter->handle;
- 
--        /* deregister all previous registered pages */
-+	/* deregister all previous registered pages */
- 	hret = ehea_h_free_resource(adapter_handle, cq->fw_handle, force);
- 	if (hret != H_SUCCESS)
- 		return hret;
-@@ -362,7 +362,7 @@ int ehea_destroy_eq(struct ehea_eq *eq)
- 	if (hret != H_SUCCESS) {
- 		ehea_error("destroy EQ failed");
- 		return -EIO;
--        }
-+	}
- 
- 	return 0;
- }
-@@ -507,44 +507,44 @@ out_freemem:
- 
- u64 ehea_destroy_qp_res(struct ehea_qp *qp, u64 force)
- {
--        u64 hret;
--        struct ehea_qp_init_attr *qp_attr = &qp->init_attr;
-+	u64 hret;
-+	struct ehea_qp_init_attr *qp_attr = &qp->init_attr;
- 
- 
--        ehea_h_disable_and_get_hea(qp->adapter->handle, qp->fw_handle);
--        hret = ehea_h_free_resource(qp->adapter->handle, qp->fw_handle, force);
--        if (hret != H_SUCCESS)
--                return hret;
-+	ehea_h_disable_and_get_hea(qp->adapter->handle, qp->fw_handle);
-+	hret = ehea_h_free_resource(qp->adapter->handle, qp->fw_handle, force);
-+	if (hret != H_SUCCESS)
-+		return hret;
- 
--        hw_queue_dtor(&qp->hw_squeue);
--        hw_queue_dtor(&qp->hw_rqueue1);
-+	hw_queue_dtor(&qp->hw_squeue);
-+	hw_queue_dtor(&qp->hw_rqueue1);
- 
--        if (qp_attr->rq_count > 1)
--                hw_queue_dtor(&qp->hw_rqueue2);
--        if (qp_attr->rq_count > 2)
--                hw_queue_dtor(&qp->hw_rqueue3);
--        kfree(qp);
-+	if (qp_attr->rq_count > 1)
-+		hw_queue_dtor(&qp->hw_rqueue2);
-+	if (qp_attr->rq_count > 2)
-+		hw_queue_dtor(&qp->hw_rqueue3);
-+	kfree(qp);
- 
--        return hret;
-+	return hret;
- }
- 
- int ehea_destroy_qp(struct ehea_qp *qp)
- {
--        u64 hret;
--        if (!qp)
--                return 0;
--
--        if ((hret = ehea_destroy_qp_res(qp, NORMAL_FREE)) == H_R_STATE) {
--                ehea_error_data(qp->adapter, qp->fw_handle);
--                hret = ehea_destroy_qp_res(qp, FORCE_FREE);
--        }
--
--        if (hret != H_SUCCESS) {
--                ehea_error("destroy QP failed");
--                return -EIO;
--        }
-+	u64 hret;
-+	if (!qp)
-+		return 0;
-+
-+	if ((hret = ehea_destroy_qp_res(qp, NORMAL_FREE)) == H_R_STATE) {
-+		ehea_error_data(qp->adapter, qp->fw_handle);
-+		hret = ehea_destroy_qp_res(qp, FORCE_FREE);
-+	}
-+
-+	if (hret != H_SUCCESS) {
-+		ehea_error("destroy QP failed");
-+		return -EIO;
-+	}
- 
--        return 0;
-+	return 0;
- }
- 
- int ehea_reg_kernel_mr(struct ehea_adapter *adapter, struct ehea_mr *mr)
+ 	wait_cmd(dev, lp->dma, 100, "close2 timed out");
+ 	spin_unlock_irqrestore(&lp->lock, flags);
 _
 
-Patches currently in -mm which might be from ossthema@de.ibm.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-ehea-whitespace-cleanup.patch
+extract-chip-specific-code-out-of-lasi_82596c.patch
+extract-chip-specific-code-out-of-lasi_82596c-update.patch
+ethernet-driver-for-eisa-only-sni-rm200-rm400-machines.patch
+git-scsi-misc.patch
