@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-the-dead-cyberstormiii_scsi-option.patch added to -mm tree
-Date: Tue, 26 Jun 2007 00:02:21 -0700
-Message-ID: <200706260702.l5Q72LkC020528@imap1.linux-foundation.org>
+Subject: + sata_promise-sata-hotplug-support.patch added to -mm tree
+Date: Tue, 26 Jun 2007 00:04:51 -0700
+Message-ID: <200706260704.l5Q74pBx020572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52385 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751755AbXFZHDD (ORCPT
+	by vger.kernel.org with ESMTP id S1751289AbXFZHFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 03:03:03 -0400
+	Tue, 26 Jun 2007 03:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: mikpe@it.uu.se, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     remove the dead CYBERSTORMIII_SCSI option
+     sata_promise: SATA hotplug support
 has been added to the -mm tree.  Its filename is
-     remove-the-dead-cyberstormiii_scsi-option.patch
+     sata_promise-sata-hotplug-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,132 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove the dead CYBERSTORMIII_SCSI option
-From: Adrian Bunk <bunk@stusta.de>
+Subject: sata_promise: SATA hotplug support
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-Not converted to the 2.6 kconfig system and no code in the tree.
+This patch enables hotplugging of SATA devices in the sata_promise driver. 
+It's been tested successfully on both first- and second-generation Promise
+SATA chips: SATA150 TX2plus, SATAII150 TX2plus, SATA300 TX2plus, and SATA300
+TX4.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+The only quirk I've seen is that hotplugging (insertion) on the
+first-generation SATA150 TX2plus requires a lengthier EH sequence than on the
+second-generation chips.  On the second-generation chips a simple soft reset
+seems to suffice, but on the first-generation chip there's a "port is slow to
+respond" after the initial soft reset, after which libata issues a hard reset,
+and then the device is recognised.
+
+The hotplug checks are high up in the interrupt handling path, not deep down
+in error_intr as in ahci/sata_sil24.  That's because the chip doesn't signal
+hotplug status changes in the per-port status register: instead a global
+register contains hotplug control and status flags for all ports.  I
+considered following the ahci/sata_sil24 structure, but that would have
+required non-trivial changes to the interrupt handling path, so I chose to
+keep the hotplug changes simple and unobtrusive.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/ata/sata_promise.c |   40 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~remove-the-dead-cyberstormiii_scsi-option drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~remove-the-dead-cyberstormiii_scsi-option
-+++ a/drivers/scsi/Kconfig
-@@ -1779,8 +1779,6 @@ config SCSI_SUNESP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called esp.
+diff -puN drivers/ata/sata_promise.c~sata_promise-sata-hotplug-support drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-sata-hotplug-support
++++ a/drivers/ata/sata_promise.c
+@@ -45,7 +45,7 @@
+ #include "sata_promise.h"
  
--#      bool 'Cyberstorm Mk III SCSI support (EXPERIMENTAL)' CONFIG_CYBERSTORMIII_SCSI
--
- config ZFCP
- 	tristate "FCP host bus adapter driver for IBM eServer zSeries"
- 	depends on S390 && QDIO && SCSI
+ #define DRV_NAME	"sata_promise"
+-#define DRV_VERSION	"2.08"
++#define DRV_VERSION	"2.09"
+ 
+ enum {
+ 	PDC_MAX_PORTS		= 4,
+@@ -716,6 +716,9 @@ static irqreturn_t pdc_interrupt (int ir
+ 	unsigned int i, tmp;
+ 	unsigned int handled = 0;
+ 	void __iomem *mmio_base;
++	unsigned int hotplug_offset, ata_no;
++	u32 hotplug_status;
++	int is_sataii_tx4;
+ 
+ 	VPRINTK("ENTER\n");
+ 
+@@ -726,10 +729,20 @@ static irqreturn_t pdc_interrupt (int ir
+ 
+ 	mmio_base = host->iomap[PDC_MMIO_BAR];
+ 
++	/* read and clear hotplug flags for all ports */
++	if (host->ports[0]->flags & PDC_FLAG_GEN_II)
++		hotplug_offset = PDC2_SATA_PLUG_CSR;
++	else
++		hotplug_offset = PDC_SATA_PLUG_CSR;
++	hotplug_status = readl(mmio_base + hotplug_offset);
++	if (hotplug_status & 0xff)
++		writel(hotplug_status | 0xff, mmio_base + hotplug_offset);
++	hotplug_status &= 0xff;	/* clear uninteresting bits */
++
+ 	/* reading should also clear interrupts */
+ 	mask = readl(mmio_base + PDC_INT_SEQMASK);
+ 
+-	if (mask == 0xffffffff) {
++	if (mask == 0xffffffff && hotplug_status == 0) {
+ 		VPRINTK("QUICK EXIT 2\n");
+ 		return IRQ_NONE;
+ 	}
+@@ -737,16 +750,33 @@ static irqreturn_t pdc_interrupt (int ir
+ 	spin_lock(&host->lock);
+ 
+ 	mask &= 0xffff;		/* only 16 tags possible */
+-	if (!mask) {
++	if (mask == 0 && hotplug_status == 0) {
+ 		VPRINTK("QUICK EXIT 3\n");
+ 		goto done_irq;
+ 	}
+ 
+ 	writel(mask, mmio_base + PDC_INT_SEQMASK);
+ 
++	is_sataii_tx4 = pdc_is_sataii_tx4(host->ports[0]->flags);
++
+ 	for (i = 0; i < host->n_ports; i++) {
+ 		VPRINTK("port %u\n", i);
+ 		ap = host->ports[i];
++
++		/* check for a plug or unplug event */
++		ata_no = pdc_port_no_to_ata_no(i, is_sataii_tx4);
++		tmp = hotplug_status & (0x11 << ata_no);
++		if (tmp && ap &&
++		    !(ap->flags & ATA_FLAG_DISABLED)) {
++			struct ata_eh_info *ehi = &ap->eh_info;
++			ata_ehi_clear_desc(ehi);
++			ata_ehi_hotplugged(ehi);
++			ata_ehi_push_desc(ehi, "hotplug_status %#x", tmp);
++			ata_port_freeze(ap);
++			continue;
++		}
++
++		/* check for a packet interrupt */
+ 		tmp = mask & (1 << (i + 1));
+ 		if (tmp && ap &&
+ 		    !(ap->flags & ATA_FLAG_DISABLED)) {
+@@ -902,9 +932,9 @@ static void pdc_host_init(struct ata_hos
+ 	tmp = readl(mmio + hotplug_offset);
+ 	writel(tmp | 0xff, mmio + hotplug_offset);
+ 
+-	/* mask plug/unplug ints */
++	/* unmask plug/unplug ints */
+ 	tmp = readl(mmio + hotplug_offset);
+-	writel(tmp | 0xff0000, mmio + hotplug_offset);
++	writel(tmp & ~0xff0000, mmio + hotplug_offset);
+ 
+ 	/* don't initialise TBG or SLEW on 2nd generation chips */
+ 	if (is_gen2)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-mark-calibrate_xor_blocks-__init.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+sata_promise-cleanups.patch
+sata_promise-sata-hotplug-support.patch
