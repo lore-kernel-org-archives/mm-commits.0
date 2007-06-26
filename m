@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-iova-allocation-and-management-routines.patch added to -mm tree
-Date: Mon, 25 Jun 2007 23:42:52 -0700
-Message-ID: <200706260642.l5Q6gq6g020220@imap1.linux-foundation.org>
+Subject: + intel-iommu-dmar-detection-and-parsing-logic.patch added to -mm tree
+Date: Mon, 25 Jun 2007 23:42:43 -0700
+Message-ID: <200706260642.l5Q6ghZo020203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48921 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751881AbXFZGnP (ORCPT
+	by vger.kernel.org with ESMTP id S1751922AbXFZGnS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 02:43:15 -0400
+	Tue, 26 Jun 2007 02:43:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.com, suresh.b.siddha@intel.com
+Cc: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, lenb@kernel.org, muli@il.ibm.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     Intel IOMMU: IOVA allocation and management routines
+     Intel IOMMU: DMAR detection and parsing logic
 has been added to the -mm tree.  Its filename is
-     intel-iommu-iova-allocation-and-management-routines.patch
+     intel-iommu-dmar-detection-and-parsing-logic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,18 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Intel IOMMU: IOVA allocation and management routines
+Subject: Intel IOMMU: DMAR detection and parsing logic
 From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-This code implements a generic IOVA allocation and management.  As per Dave's
-suggestion we are now allocating IO virtual address from Higher DMA limit
-address rather than lower end address and this eliminated the need to preserve
-the IO virtual address for multiple devices sharing the same domain virtual
-address.
+This patch supports the upcomming Intel IOMMU hardware a.k.a.  Intel(R)
+Virtualization Technology for Directed I/O Architecture and the hardware spec
+for the same can be found here
+http://www.intel.com/technology/virtualization/index.htm
 
-Also this code uses red black trees to store the allocated and reserved iova
-nodes.  This showed a good performance improvements over previous linear
-linked list.
+
+This patch:
+
+Add support for early detection and parsing of DMAR's (DMA Remapping) reported
+to OS via ACPI tables.
+
+DMA remapping(DMAR) devices support enables independent address translations
+for Direct Memory Access(DMA) from Devices.  These DMA remapping devices are
+reported via ACPI tables and includes pci device scope covered by these DMA
+remapping device.
+
+For detailed info on the specification of "Intel(R) Virtualization Technology
+for Directed I/O Architecture" please see
+http://www.intel.com/technology/virtualization/index.htm
 
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -49,434 +59,515 @@ Cc: Ashok Raj <ashok.raj@intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/iova.c |  351 +++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/iova.h |   62 +++++++
- 2 files changed, 413 insertions(+)
+ arch/x86_64/Kconfig   |   11 +
+ drivers/pci/Makefile  |    3 
+ drivers/pci/dmar.c    |  327 ++++++++++++++++++++++++++++++++++++++++
+ include/acpi/actbl1.h |   27 ++-
+ include/linux/dmar.h  |   52 ++++++
+ 5 files changed, 413 insertions(+), 7 deletions(-)
 
-diff -puN /dev/null drivers/pci/iova.c
+diff -puN arch/x86_64/Kconfig~intel-iommu-dmar-detection-and-parsing-logic arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~intel-iommu-dmar-detection-and-parsing-logic
++++ a/arch/x86_64/Kconfig
+@@ -748,6 +748,17 @@ config PCI_MMCONFIG
+ 	bool "Support mmconfig PCI config space access"
+ 	depends on PCI && ACPI
+ 
++config DMAR
++	bool "Support for DMA Remapping Devices (EXPERIMENTAL)"
++	depends on PCI_MSI && ACPI && EXPERIMENTAL
++	default y
++	help
++	  DMA remapping(DMAR) devices support enables independent address
++	  translations for Direct Memory Access(DMA) from Devices.
++	  These DMA remapping devices are reported via ACPI tables
++	  and includes pci device scope covered by these DMA
++	  remapping device.
++
+ source "drivers/pci/pcie/Kconfig"
+ 
+ source "drivers/pci/Kconfig"
+diff -puN drivers/pci/Makefile~intel-iommu-dmar-detection-and-parsing-logic drivers/pci/Makefile
+--- a/drivers/pci/Makefile~intel-iommu-dmar-detection-and-parsing-logic
++++ a/drivers/pci/Makefile
+@@ -20,6 +20,9 @@ obj-$(CONFIG_PCI_MSI) += msi.o
+ # Build the Hypertransport interrupt support
+ obj-$(CONFIG_HT_IRQ) += htirq.o
+ 
++# Build Intel IOMMU support
++obj-$(CONFIG_DMAR) += dmar.o
++
+ #
+ # Some architectures use the generic PCI setup functions
+ #
+diff -puN /dev/null drivers/pci/dmar.c
 --- /dev/null
-+++ a/drivers/pci/iova.c
-@@ -0,0 +1,351 @@
++++ a/drivers/pci/dmar.c
+@@ -0,0 +1,327 @@
 +/*
 + * Copyright (c) 2006, Intel Corporation.
 + *
-+ * This file is released under the GPLv2.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
 + *
-+ * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
++ * Place - Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * 	Copyright (C) Ashok Raj <ashok.raj@intel.com>
++ *	Copyright (C) Shaohua Li <shaohua.li@intel.com>
++ *	Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ *
++ * 	This file implements early detection/parsing of DMA Remapping Devices
++ * reported to OS through BIOS via DMA remapping reporting (DMAR) ACPI
++ * tables.
 + */
 +
-+#include "iova.h"
++#include <linux/pci.h>
++#include <linux/dmar.h>
 +
-+void
-+init_iova_domain(struct iova_domain *iovad)
++#undef PREFIX
++#define PREFIX "DMAR:"
++
++/* No locks are needed as DMA remapping hardware unit
++ * list is constructed at boot time and hotplug of
++ * these units are not supported by the architecture.
++ */
++LIST_HEAD(dmar_drhd_units);
++LIST_HEAD(dmar_rmrr_units);
++
++static struct acpi_table_header * __initdata dmar_tbl;
++
++static void __init dmar_register_drhd_unit(struct dmar_drhd_unit *drhd)
 +{
-+	spin_lock_init(&iovad->iova_alloc_lock);
-+	spin_lock_init(&iovad->iova_rbtree_lock);
-+	iovad->rbroot = RB_ROOT;
-+	iovad->cached32_node = NULL;
-+
++	/*
++	 * add INCLUDE_ALL at the tail, so scan the list will find it at
++	 * the very end.
++	 */
++	if (drhd->include_all)
++		list_add_tail(&drhd->list, &dmar_drhd_units);
++	else
++		list_add(&drhd->list, &dmar_drhd_units);
 +}
 +
-+static struct rb_node *
-+__get_cached_rbnode(struct iova_domain *iovad, unsigned long *limit_pfn)
++static void __init dmar_register_rmrr_unit(struct dmar_rmrr_unit *rmrr)
 +{
-+	if ((*limit_pfn != DMA_32BIT_PFN) ||
-+		(iovad->cached32_node == NULL))
-+		return rb_last(&iovad->rbroot);
-+	else {
-+		struct rb_node *prev_node = rb_prev(iovad->cached32_node);
-+		struct iova *curr_iova =
-+			container_of(iovad->cached32_node, struct iova, node);
-+		*limit_pfn = curr_iova->pfn_lo - 1;
-+		return prev_node;
++	list_add(&rmrr->list, &dmar_rmrr_units);
++}
++
++static int __init dmar_parse_one_dev_scope(struct acpi_dmar_device_scope *scope,
++					   struct pci_dev **dev, u16 segment)
++{
++	struct pci_bus *bus;
++	struct pci_dev *pdev = NULL;
++	struct acpi_dmar_pci_path *path;
++	int count;
++
++	bus = pci_find_bus(segment, scope->bus);
++	path = (struct acpi_dmar_pci_path *)(scope + 1);
++	count = (scope->length - sizeof(struct acpi_dmar_device_scope))
++		/ sizeof(struct acpi_dmar_pci_path);
++
++	while (count) {
++		if (pdev)
++			pci_dev_put(pdev);
++		/*
++		 * Some BIOSes list non-exist devices in DMAR table, just
++		 * ignore it
++		 */
++		if (!bus) {
++			printk(KERN_WARNING
++			PREFIX "Device scope bus [%d] not found\n",
++			scope->bus);
++			break;
++		}
++		pdev = pci_get_slot(bus, PCI_DEVFN(path->dev, path->fn));
++		if (!pdev) {
++			printk(KERN_WARNING PREFIX
++			"Device scope device [%04x:%02x:%02x.%02x] not found\n",
++				segment, bus->number, path->dev, path->fn);
++			break;
++		}
++		path ++;
++		count --;
++		bus = pdev->subordinate;
 +	}
-+}
-+
-+static inline void
-+__cached_rbnode_insert_update(struct iova_domain *iovad,
-+	unsigned long limit_pfn, struct iova *new)
-+{
-+	if (limit_pfn != DMA_32BIT_PFN)
-+		return;
-+	iovad->cached32_node = &new->node;
-+}
-+
-+static inline void
-+__cached_rbnode_delete_update(struct iova_domain *iovad, struct iova *free)
-+{
-+	struct iova *cached_iova;
-+	struct rb_node *curr;
-+
-+	if (!iovad->cached32_node)
-+		return;
-+	curr = iovad->cached32_node;
-+	cached_iova = container_of(curr, struct iova, node);
-+
-+	if (free->pfn_lo >= cached_iova->pfn_lo)
-+		iovad->cached32_node = rb_next(&free->node);
-+}
-+
-+static inline int __alloc_iova_range(struct iova_domain *iovad,
-+	unsigned long size, unsigned long limit_pfn, struct iova *new)
-+{
-+	struct rb_node *curr = NULL;
-+	unsigned long flags;
-+	unsigned long saved_pfn;
-+
-+	/* Walk the tree backwards */
-+	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
-+	saved_pfn = limit_pfn;
-+	curr = __get_cached_rbnode(iovad, &limit_pfn);
-+	while (curr) {
-+		struct iova *curr_iova = container_of(curr, struct iova, node);
-+		if (limit_pfn < curr_iova->pfn_lo)
-+			goto move_left;
-+		if (limit_pfn < curr_iova->pfn_hi)
-+			goto adjust_limit_pfn;
-+		if ((curr_iova->pfn_hi + size) <= limit_pfn)
-+			break;	/* found a free slot */
-+adjust_limit_pfn:
-+		limit_pfn = curr_iova->pfn_lo - 1;
-+move_left:
-+		curr = rb_prev(curr);
++	if (!pdev) {
++		printk(KERN_WARNING PREFIX
++		"Device scope device [%04x:%02x:%02x.%02x] not found\n",
++		segment, scope->bus, path->dev, path->fn);
++		*dev = NULL;
++		return 0;
 +	}
-+
-+	if ((!curr) && !(IOVA_START_PFN + size <= limit_pfn)) {
-+		spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
-+		return -ENOMEM;
++	if ((scope->entry_type == ACPI_DMAR_SCOPE_TYPE_ENDPOINT && \
++			pdev->subordinate) || (scope->entry_type == \
++			ACPI_DMAR_SCOPE_TYPE_BRIDGE && !pdev->subordinate)) {
++		pci_dev_put(pdev);
++		printk(KERN_WARNING PREFIX
++			"Device scope type does not match for %s\n",
++			 pci_name(pdev));
++		return -EINVAL;
 +	}
-+	new->pfn_hi = limit_pfn;
-+	new->pfn_lo = limit_pfn - size + 1;
-+
-+	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++	*dev = pdev;
 +	return 0;
 +}
 +
-+static void
-+iova_insert_rbtree(struct rb_root *root, struct iova *iova)
++static int __init dmar_parse_dev_scope(void *start, void *end, int *cnt,
++				       struct pci_dev ***devices, u16 segment)
 +{
-+	struct rb_node **new = &(root->rb_node), *parent = NULL;
-+	/* Figure out where to put new node */
-+	while (*new) {
-+		struct iova *this = container_of(*new, struct iova, node);
-+		parent = *new;
-+
-+		if (iova->pfn_lo < this->pfn_lo)
-+			new = &((*new)->rb_left);
-+		else if (iova->pfn_lo > this->pfn_lo)
-+			new = &((*new)->rb_right);
-+		else
-+			BUG(); /* this should not happen */
-+	}
-+	/* Add new node and rebalance tree. */
-+	rb_link_node(&iova->node, parent, new);
-+	rb_insert_color(&iova->node, root);
-+}
-+
-+/**
-+ * alloc_iova - allocates an iova
-+ * @iovad - iova domain in question
-+ * @size - size of page frames to allocate
-+ * @limit_pfn - max limit address
-+ * This function allocates an iova in the range limit_pfn to IOVA_START_PFN
-+ * looking from limit_pfn instead from IOVA_START_PFN.
-+ */
-+struct iova *
-+alloc_iova(struct iova_domain *iovad, unsigned long size,
-+	unsigned long limit_pfn)
-+{
-+	unsigned long flags;
-+	struct iova *new_iova;
++	struct acpi_dmar_device_scope *scope;
++	void * tmp = start;
++	int index;
 +	int ret;
 +
-+	new_iova = alloc_iova_mem();
-+	if (!new_iova)
-+		return NULL;
-+
-+	spin_lock_irqsave(&iovad->iova_alloc_lock, flags);
-+	ret = __alloc_iova_range(iovad, size, limit_pfn, new_iova);
-+
-+	if (ret) {
-+		spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
-+		free_iova_mem(new_iova);
-+		return NULL;
++	*cnt = 0;
++	while (start < end) {
++		scope = start;
++		if (scope->entry_type == ACPI_DMAR_SCOPE_TYPE_ENDPOINT ||
++		    scope->entry_type == ACPI_DMAR_SCOPE_TYPE_BRIDGE)
++			(*cnt)++;
++		else
++			printk(KERN_WARNING PREFIX
++				"Unsupported device scope\n");
++		start += scope->length;
 +	}
++	if (*cnt == 0)
++		return 0;
 +
-+	/* Insert the new_iova into domain rbtree by holding writer lock */
-+	spin_lock(&iovad->iova_rbtree_lock);
-+	iova_insert_rbtree(&iovad->rbroot, new_iova);
-+	__cached_rbnode_insert_update(iovad, limit_pfn, new_iova);
-+	spin_unlock(&iovad->iova_rbtree_lock);
++	*devices = kcalloc(*cnt, sizeof(struct pci_dev *), GFP_KERNEL);
++	if (!*devices)
++		return -ENOMEM;
 +
-+	spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
-+
-+	return new_iova;
-+}
-+
-+/**
-+ * find_iova - find's an iova for a given pfn
-+ * @iovad - iova domain in question.
-+ * pfn - page frame number
-+ * This function finds and returns an iova belonging to the
-+ * given doamin which matches the given pfn.
-+ */
-+struct iova *find_iova(struct iova_domain *iovad, unsigned long pfn)
-+{
-+	unsigned long flags;
-+	struct rb_node *node;
-+
-+	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
-+	node = iovad->rbroot.rb_node;
-+	while (node) {
-+		struct iova *iova = container_of(node, struct iova, node);
-+
-+		/* If pfn falls within iova's range, return iova */
-+		if ((pfn >= iova->pfn_lo) && (pfn <= iova->pfn_hi)) {
-+			spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
-+			return iova;
++	start = tmp;
++	index = 0;
++	while (start < end) {
++		scope = start;
++		if (scope->entry_type == ACPI_DMAR_SCOPE_TYPE_ENDPOINT ||
++		    scope->entry_type == ACPI_DMAR_SCOPE_TYPE_BRIDGE) {
++			ret = dmar_parse_one_dev_scope(scope,
++				&(*devices)[index], segment);
++			if (ret) {
++				kfree(*devices);
++				return ret;
++			}
++			index ++;
 +		}
-+
-+		if (pfn < iova->pfn_lo)
-+			node = node->rb_left;
-+		else if (pfn > iova->pfn_lo)
-+			node = node->rb_right;
++		start += scope->length;
 +	}
 +
-+	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
-+	return NULL;
-+}
-+
-+/**
-+ * __free_iova - frees the given iova
-+ * @iovad: iova domain in question.
-+ * @iova: iova in question.
-+ * Frees the given iova belonging to the giving domain
-+ */
-+void
-+__free_iova(struct iova_domain *iovad, struct iova *iova)
-+{
-+	unsigned long flags;
-+
-+	if (iova) {
-+		spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
-+		__cached_rbnode_delete_update(iovad, iova);
-+		rb_erase(&iova->node, &iovad->rbroot);
-+		spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
-+		free_iova_mem(iova);
-+	}
-+}
-+
-+/**
-+ * free_iova - finds and frees the iova for a given pfn
-+ * @iovad: - iova domain in question.
-+ * @pfn: - pfn that is allocated previously
-+ * This functions finds an iova for a given pfn and then
-+ * frees the iova from that domain.
-+ */
-+void
-+free_iova(struct iova_domain *iovad, unsigned long pfn)
-+{
-+	struct iova *iova = find_iova(iovad, pfn);
-+	__free_iova(iovad, iova);
-+
-+}
-+
-+/**
-+ * put_iova_domain - destroys the iova doamin
-+ * @iovad: - iova domain in question.
-+ * All the iova's in that domain are destroyed.
-+ */
-+void put_iova_domain(struct iova_domain *iovad)
-+{
-+	struct rb_node *node;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
-+	node = rb_first(&iovad->rbroot);
-+	while (node) {
-+		struct iova *iova = container_of(node, struct iova, node);
-+		rb_erase(node, &iovad->rbroot);
-+		free_iova_mem(iova);
-+		node = rb_first(&iovad->rbroot);
-+	}
-+	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
-+}
-+
-+static inline int
-+__is_range_overlap(struct rb_node *node,
-+	unsigned long pfn_lo, unsigned long pfn_hi)
-+{
-+	struct iova * iova = container_of(node, struct iova, node);
-+
-+	if ((pfn_lo <= iova->pfn_hi) && (pfn_hi >= iova->pfn_lo))
-+		return 1;
 +	return 0;
 +}
 +
-+static inline struct iova *
-+__insert_new_range(struct iova_domain *iovad,
-+	unsigned long pfn_lo, unsigned long pfn_hi)
++/**
++ * dmar_parse_one_drhd - parses exactly one DMA remapping hardware definition
++ * structure which uniquely represent one DMA remapping hardware unit
++ * present in the platform
++ */
++static int __init
++dmar_parse_one_drhd(struct acpi_dmar_header *header)
 +{
-+	struct iova *iova;
++	struct acpi_dmar_hardware_unit *drhd;
++	struct dmar_drhd_unit *dmaru;
++	int ret = 0;
++	static int include_all;
 +
-+	iova = alloc_iova_mem();
-+	if (!iova)
-+		return iova;
++	dmaru = kzalloc(sizeof(*dmaru), GFP_KERNEL);
++	if (!dmaru)
++		return -ENOMEM;
 +
-+	iova->pfn_hi = pfn_hi;
-+	iova->pfn_lo = pfn_lo;
-+	iova_insert_rbtree(&iovad->rbroot, iova);
-+	return iova;
++	drhd = (struct acpi_dmar_hardware_unit *)header;
++	dmaru->reg_base_addr = drhd->address;
++	dmaru->include_all = drhd->flags & 0x1; /* BIT0: INCLUDE_ALL */
++
++	if (!dmaru->include_all)
++		ret = dmar_parse_dev_scope((void *)(drhd + 1),
++				((void *)drhd) + header->length,
++				&dmaru->devices_cnt, &dmaru->devices,
++				drhd->segment);
++	else {
++		/* Only allow one INCLUDE_ALL */
++		if (include_all) {
++			printk(KERN_WARNING PREFIX "Only one INCLUDE_ALL "
++				"device scope is allowed\n");
++			ret = -EINVAL;
++		}
++		include_all = 1;
++	}
++
++	if (ret || (dmaru->devices_cnt == 0 && !dmaru->include_all))
++		kfree(dmaru);
++	else
++		dmar_register_drhd_unit(dmaru);
++	return ret;
 +}
 +
-+static inline void
-+__adjust_overlap_range(struct iova *iova,
-+	unsigned long *pfn_lo, unsigned long *pfn_hi)
++static int __init
++dmar_parse_one_rmrr(struct acpi_dmar_header *header)
 +{
-+	if (*pfn_lo < iova->pfn_lo)
-+		iova->pfn_lo = *pfn_lo;
-+	if (*pfn_hi > iova->pfn_hi)
-+		*pfn_lo = iova->pfn_hi + 1;
++	struct acpi_dmar_reserved_memory *rmrr;
++	struct dmar_rmrr_unit *rmrru;
++	int ret = 0;
++
++	rmrru = kzalloc(sizeof(*rmrru), GFP_KERNEL);
++	if (!rmrru)
++		return -ENOMEM;
++
++	rmrr = (struct acpi_dmar_reserved_memory *)header;
++	rmrru->base_address = rmrr->base_address;
++	rmrru->end_address = rmrr->end_address;
++	ret = dmar_parse_dev_scope((void *)(rmrr + 1),
++		((void *)rmrr) + header->length,
++		&rmrru->devices_cnt, &rmrru->devices, rmrr->segment);
++
++	if (ret || (rmrru->devices_cnt == 0))
++		kfree(rmrru);
++	else
++		dmar_register_rmrr_unit(rmrru);
++	return ret;
++}
++
++static void __init
++dmar_table_print_dmar_entry(struct acpi_dmar_header *header)
++{
++	struct acpi_dmar_hardware_unit *drhd;
++	struct acpi_dmar_reserved_memory *rmrr;
++
++	switch (header->type) {
++	case ACPI_DMAR_TYPE_HARDWARE_UNIT:
++		drhd = (struct acpi_dmar_hardware_unit *)header;
++		printk (KERN_INFO PREFIX
++			"DRHD (flags: 0x%08x)base: 0x%016Lx\n",
++			drhd->flags, drhd->address);
++		break;
++	case ACPI_DMAR_TYPE_RESERVED_MEMORY:
++		rmrr = (struct acpi_dmar_reserved_memory *)header;
++
++		printk (KERN_INFO PREFIX
++			"RMRR base: 0x%016Lx end: 0x%016Lx\n",
++			rmrr->base_address, rmrr->end_address);
++		break;
++	}
 +}
 +
 +/**
-+ * reserve_iova - reserves an iova in the given range
-+ * @iovad: - iova domain pointer
-+ * @pfn_lo: - lower page frame address
-+ * @pfn_hi:- higher pfn adderss
-+ * This function allocates reserves the address range from pfn_lo to pfn_hi so
-+ * that this address is not dished out as part of alloc_iova.
++ * parse_dmar_table - parses the DMA reporting table
 + */
-+struct iova *
-+reserve_iova(struct iova_domain *iovad,
-+	unsigned long pfn_lo, unsigned long pfn_hi)
++static int __init
++parse_dmar_table(void)
 +{
-+	struct rb_node *node;
-+	unsigned long flags;
-+	struct iova *iova;
-+	unsigned int overlap = 0;
++	struct acpi_table_dmar *dmar;
++	struct acpi_dmar_header *entry_header;
++	int ret = 0;
 +
-+	spin_lock_irqsave(&iovad->iova_alloc_lock, flags);
-+	spin_lock(&iovad->iova_rbtree_lock);
-+	for (node = rb_first(&iovad->rbroot); node; node = rb_next(node)) {
-+		if (__is_range_overlap(node, pfn_lo, pfn_hi)) {
-+			iova = container_of(node, struct iova, node);
-+			__adjust_overlap_range(iova, &pfn_lo, &pfn_hi);
-+			if ((pfn_lo >= iova->pfn_lo) &&
-+				(pfn_hi <= iova->pfn_hi))
-+				goto finish;
-+			overlap = 1;
++	dmar = (struct acpi_table_dmar *)dmar_tbl;
 +
-+		} else if (overlap)
-+				break;
++	if (!dmar->width) {
++		printk (KERN_WARNING PREFIX "Zero: Invalid DMAR haw\n");
++		return -EINVAL;
 +	}
 +
-+	/* We are here either becasue this is the first reserver node
-+	 * or need to insert remaining non overlap addr range
-+	 */
-+	iova = __insert_new_range(iovad, pfn_lo, pfn_hi);
-+finish:
++	printk (KERN_INFO PREFIX "Host address width %d\n",
++		dmar->width + 1);
 +
-+	spin_unlock(&iovad->iova_rbtree_lock);
-+	spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
-+	return iova;
++	entry_header = (struct acpi_dmar_header *)(dmar + 1);
++	while (((unsigned long)entry_header) <
++			(((unsigned long)dmar) + dmar_tbl->length)) {
++		dmar_table_print_dmar_entry(entry_header);
++
++		switch (entry_header->type) {
++		case ACPI_DMAR_TYPE_HARDWARE_UNIT:
++			ret = dmar_parse_one_drhd(entry_header);
++			break;
++		case ACPI_DMAR_TYPE_RESERVED_MEMORY:
++			ret = dmar_parse_one_rmrr(entry_header);
++			break;
++		default:
++			printk(KERN_WARNING PREFIX
++				"Unknown DMAR structure type\n");
++			ret = 0; /* for forward compatibility */
++			break;
++		}
++		if (ret)
++			break;
++
++		entry_header = ((void *)entry_header + entry_header->length);
++	}
++	return ret;
++}
++
++
++int __init dmar_table_init(void)
++{
++
++	parse_dmar_table();
++	if (list_empty(&dmar_drhd_units)) {
++		printk(KERN_ERR PREFIX "No DMAR devices found\n");
++		return -ENODEV;
++	}
++	return 0;
 +}
 +
 +/**
-+ * copy_reserved_iova - copies the reserved between domains
-+ * @from: - source doamin from where to copy
-+ * @to: - destination domin where to copy
-+ * This function copies reserved iova's from one doamin to
-+ * other.
++ * early_dmar_detect - checks to see if the platform supports DMAR devices
 + */
-+void
-+copy_reserved_iova(struct iova_domain *from, struct iova_domain *to)
++int __init early_dmar_detect(void)
 +{
-+	unsigned long flags;
-+	struct rb_node *node;
++	acpi_status status = AE_OK;
 +
-+	spin_lock_irqsave(&from->iova_alloc_lock, flags);
-+	spin_lock(&from->iova_rbtree_lock);
-+	for (node = rb_first(&from->rbroot); node; node = rb_next(node)) {
-+		struct iova *iova = container_of(node, struct iova, node);
-+		struct iova *new_iova;
-+		new_iova = reserve_iova(to, iova->pfn_lo, iova->pfn_hi);
-+		if (!new_iova)
-+			printk(KERN_ERR "Reserve iova range %lx@%lx failed\n",
-+				iova->pfn_lo, iova->pfn_lo);
++	/* if we could find DMAR table, then there are DMAR devices */
++	status = acpi_get_table(ACPI_SIG_DMAR, 0,
++				(struct acpi_table_header **)&dmar_tbl);
++
++	if (ACPI_SUCCESS(status) && !dmar_tbl) {
++		printk (KERN_WARNING PREFIX "Unable to map DMAR\n");
++		status = AE_NOT_FOUND;
 +	}
-+	spin_unlock(&from->iova_rbtree_lock);
-+	spin_unlock_irqrestore(&from->iova_alloc_lock, flags);
++
++	return (ACPI_SUCCESS(status) ? 1 : 0);
 +}
-diff -puN /dev/null drivers/pci/iova.h
+diff -puN include/acpi/actbl1.h~intel-iommu-dmar-detection-and-parsing-logic include/acpi/actbl1.h
+--- a/include/acpi/actbl1.h~intel-iommu-dmar-detection-and-parsing-logic
++++ a/include/acpi/actbl1.h
+@@ -257,7 +257,8 @@ struct acpi_table_dbgp {
+ struct acpi_table_dmar {
+ 	struct acpi_table_header header;	/* Common ACPI table header */
+ 	u8 width;		/* Host Address Width */
+-	u8 reserved[11];
++	u8 flags;
++	u8 reserved[10];
+ };
+ 
+ /* DMAR subtable header */
+@@ -265,8 +266,6 @@ struct acpi_table_dmar {
+ struct acpi_dmar_header {
+ 	u16 type;
+ 	u16 length;
+-	u8 flags;
+-	u8 reserved[3];
+ };
+ 
+ /* Values for subtable type in struct acpi_dmar_header */
+@@ -274,13 +273,15 @@ struct acpi_dmar_header {
+ enum acpi_dmar_type {
+ 	ACPI_DMAR_TYPE_HARDWARE_UNIT = 0,
+ 	ACPI_DMAR_TYPE_RESERVED_MEMORY = 1,
+-	ACPI_DMAR_TYPE_RESERVED = 2	/* 2 and greater are reserved */
++	ACPI_DMAR_TYPE_ATSR = 2,
++	ACPI_DMAR_TYPE_RESERVED = 3	/* 3 and greater are reserved */
+ };
+ 
+ struct acpi_dmar_device_scope {
+ 	u8 entry_type;
+ 	u8 length;
+-	u8 segment;
++	u16 reserved;
++	u8 enumeration_id;
+ 	u8 bus;
+ };
+ 
+@@ -290,7 +291,14 @@ enum acpi_dmar_scope_type {
+ 	ACPI_DMAR_SCOPE_TYPE_NOT_USED = 0,
+ 	ACPI_DMAR_SCOPE_TYPE_ENDPOINT = 1,
+ 	ACPI_DMAR_SCOPE_TYPE_BRIDGE = 2,
+-	ACPI_DMAR_SCOPE_TYPE_RESERVED = 3	/* 3 and greater are reserved */
++	ACPI_DMAR_SCOPE_TYPE_IOAPIC = 3,
++	ACPI_DMAR_SCOPE_TYPE_HPET = 4,
++	ACPI_DMAR_SCOPE_TYPE_RESERVED = 5	/* 5 and greater are reserved */
++};
++
++struct acpi_dmar_pci_path {
++	u8 dev;
++	u8 fn;
+ };
+ 
+ /*
+@@ -301,6 +309,9 @@ enum acpi_dmar_scope_type {
+ 
+ struct acpi_dmar_hardware_unit {
+ 	struct acpi_dmar_header header;
++	u8 flags;
++	u8 reserved;
++	u16 segment;
+ 	u64 address;		/* Register Base Address */
+ };
+ 
+@@ -312,7 +323,9 @@ struct acpi_dmar_hardware_unit {
+ 
+ struct acpi_dmar_reserved_memory {
+ 	struct acpi_dmar_header header;
+-	u64 address;		/* 4_k aligned base address */
++	u16 reserved;
++	u16 segment;
++	u64 base_address;		/* 4_k aligned base address */
+ 	u64 end_address;	/* 4_k aligned limit address */
+ };
+ 
+diff -puN /dev/null include/linux/dmar.h
 --- /dev/null
-+++ a/drivers/pci/iova.h
-@@ -0,0 +1,62 @@
++++ a/include/linux/dmar.h
+@@ -0,0 +1,52 @@
 +/*
 + * Copyright (c) 2006, Intel Corporation.
 + *
-+ * This file is released under the GPLv2.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
 + *
-+ * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
 + *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
++ * Place - Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * Copyright (C) Ashok Raj <ashok.raj@intel.com>
++ * Copyright (C) Shaohua Li <shaohua.li@intel.com>
 + */
 +
-+#ifndef _IOVA_H_
-+#define _IOVA_H_
++#ifndef __DMAR_H__
++#define __DMAR_H__
 +
++#include <linux/acpi.h>
 +#include <linux/types.h>
-+#include <linux/kernel.h>
-+#include <linux/rbtree.h>
-+#include <linux/dma-mapping.h>
 +
-+/*
-+ * We need a fixed PAGE_SIZE of 4K irrespective of
-+ * arch PAGE_SIZE for IOMMU page tables.
-+ */
-+#define PAGE_SHIFT_4K		(12)
-+#define PAGE_SIZE_4K		(1UL << PAGE_SHIFT_4K)
-+#define PAGE_MASK_4K		(((u64)-1) << PAGE_SHIFT_4K)
-+#define PAGE_ALIGN_4K(addr)	(((addr) + PAGE_SIZE_4K - 1) & PAGE_MASK_4K)
 +
-+#define IOVA_START_ADDR		(0x1000)
-+#define IOVA_START_PFN		(IOVA_START_ADDR >> PAGE_SHIFT_4K)
++extern int dmar_table_init(void);
++extern int early_dmar_detect(void);
 +
-+#define IOVA_PFN(addr)		((addr) >> PAGE_SHIFT_4K)
-+#define DMA_32BIT_PFN	IOVA_PFN(DMA_32BIT_MASK)
-+#define DMA_64BIT_PFN	IOVA_PFN(DMA_64BIT_MASK)
++extern struct list_head dmar_drhd_units;
++extern struct list_head dmar_rmrr_units;
 +
-+/* iova structure */
-+struct iova {
-+	struct rb_node	node;
-+	unsigned long	pfn_hi; /* IOMMU dish out addr hi */
-+	unsigned long	pfn_lo; /* IOMMU dish out addr lo */
++struct dmar_drhd_unit {
++	struct list_head list;		/* list of drhd units	*/
++	u64	reg_base_addr;		/* register base address*/
++	struct	pci_dev **devices; 	/* target device array	*/
++	int	devices_cnt;		/* target device count	*/
++	u8	ignored:1; 		/* ignore drhd		*/
++	u8	include_all:1;
++	struct intel_iommu *iommu;
 +};
 +
-+/* holds all the iova translations for a domain */
-+struct iova_domain {
-+	spinlock_t	iova_alloc_lock;/* Lock to protect iova  allocation */
-+	spinlock_t	iova_rbtree_lock; /* Lock to protect update of rbtree */
-+	struct rb_root	rbroot;		/* iova domain rbtree root */
-+	struct rb_node	*cached32_node; /* Save last alloced node */
++struct dmar_rmrr_unit {
++	struct list_head list;		/* list of rmrr units	*/
++	u64	base_address;		/* reserved base address*/
++	u64	end_address;		/* reserved end address */
++	struct pci_dev **devices;	/* target devices */
++	int	devices_cnt;		/* target device count */
 +};
 +
-+struct iova *alloc_iova_mem(void);
-+void free_iova_mem(struct iova *iova);
-+void free_iova(struct iova_domain *iovad, unsigned long pfn);
-+void __free_iova(struct iova_domain *iovad, struct iova *iova);
-+struct iova * alloc_iova(struct iova_domain *iovad, unsigned long size,
-+	unsigned long limit_pfn);
-+struct iova * reserve_iova(struct iova_domain *iovad, unsigned long pfn_lo,
-+	unsigned long pfn_hi);
-+void copy_reserved_iova(struct iova_domain *from, struct iova_domain *to);
-+void init_iova_domain(struct iova_domain *iovad);
-+struct iova * find_iova(struct iova_domain *iovad, unsigned long pfn);
-+void put_iova_domain(struct iova_domain *iovad);
-+
-+#endif
++#endif /* __DMAR_H__ */
 _
 
 Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
