@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + containers-implement-subsys-post_clone.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:58:45 -0700
-Message-ID: <200706262158.l5QLwkb3003000@imap1.linux-foundation.org>
+Subject: + containers-implement-namespace-tracking-subsystem-v3.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:58:47 -0700
+Message-ID: <200706262158.l5QLwmZe003003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47940 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755154AbXFZV77 (ORCPT
+	by vger.kernel.org with ESMTP id S1755969AbXFZWAO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:59:59 -0400
+	Tue, 26 Jun 2007 18:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: serue@us.ibm.com, balbir@in.ibm.com, dev@openvz.org, ebiederm@xmission.com, 
 
 
 The patch titled
-     containers: implement subsys->post_clone()
+     containers: implement namespace tracking subsystem (v3)
 has been added to the -mm tree.  Its filename is
-     containers-implement-subsys-post_clone.patch
+     containers-implement-namespace-tracking-subsystem-v3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,25 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containers: implement subsys->post_clone()
+Subject: containers: implement namespace tracking subsystem (v3)
 From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-container_clone() in one step creates a new container and moves the current
-task into it.  Since cpusets do not automatically fill in the allowed cpus and
-mems, and do not allow a task to be attached without these filled in,
-composing the ns subsystem, which uses container_clone(), and the cpuset
-subsystem, results in sys_unshare() (and clone(CLONE_NEWNS)) always being
-denied.
+When a task enters a new namespace via a clone() or unshare(), a new container
+is created and the task moves into it.
 
-To allow the two subsystems to be meaningfully composed, implement
-subsystem->post_clone(), called from container_clone() after creating the new
-container.
+This version names containers which are automatically created using
+container_clone() as "node_<pid>" where pid is the pid of the unsharing or
+cloned process.  (Thanks Pavel for the idea) This is safe because if the
+process unshares again, it will create
 
-Only the cpuset_post_clone() is currently implemented.  If any sibling
-containers have exclusive cpus or mems, then the cpus and mems are not filled
-in for the new container, meaning that unshare/clone(CLONE_NEWNS) will be
-denied.  However so long as no siblings have exclusive cpus or mems, the new
-container's cpus and mems are inherited from the parent container.
+	/containers/(...)/node_<pid>/node_<pid>
+
+The only possibilities (AFAICT) for a -EEXIST on unshare are
+
+	1. pid wraparound
+	2. a process fails an unshare, then tries again.
+
+Case 1 is unlikely enough that I ignore it (at least for now).  In case 2, the
+node_<pid> will be empty and can be rmdir'ed to make the subsequent unshare()
+succeed.
+
+Changelog:
+	Name cloned containers as "node_<pid>".
 
 Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Cc: Paul Menage <menage@google.com>
@@ -58,118 +63,278 @@ Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/containers.txt |    7 ++++++
- include/linux/container.h    |    1 
- kernel/container.c           |    7 ++++++
- kernel/cpuset.c              |   37 +++++++++++++++++++++++++++++++++
- 4 files changed, 52 insertions(+)
+ include/linux/container_subsys.h |    6 +
+ include/linux/nsproxy.h          |    7 ++
+ init/Kconfig                     |    9 ++
+ kernel/Makefile                  |    1 
+ kernel/container.c               |   23 ++++--
+ kernel/ns_container.c            |   99 +++++++++++++++++++++++++++++
+ kernel/nsproxy.c                 |   15 ++++
+ 7 files changed, 151 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/containers.txt~containers-implement-subsys-post_clone Documentation/containers.txt
---- a/Documentation/containers.txt~containers-implement-subsys-post_clone
-+++ a/Documentation/containers.txt
-@@ -514,6 +514,13 @@ include/linux/container.h for details). 
- method can return an error code, the error code is currently not
- always handled well.
+diff -puN include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/container_subsys.h
+--- a/include/linux/container_subsys.h~containers-implement-namespace-tracking-subsystem-v3
++++ a/include/linux/container_subsys.h
+@@ -24,3 +24,9 @@ SUBSYS(debug)
+ #endif
  
-+void post_clone(struct container_subsys *ss, struct container *cont)
+ /* */
 +
-+Called at the end of container_clone() to do any paramater
-+initialization which might be required before a task could attach.  For
-+example in cpusets, no task may attach before 'cpus' and 'mems' are set
-+up.
++#ifdef CONFIG_CONTAINER_NS
++SUBSYS(ns)
++#endif
 +
- void bind(struct container_subsys *ss, struct container *root)
- LL=callback_mutex
- 
-diff -puN include/linux/container.h~containers-implement-subsys-post_clone include/linux/container.h
---- a/include/linux/container.h~containers-implement-subsys-post_clone
-+++ a/include/linux/container.h
-@@ -216,6 +216,7 @@ struct container_subsys {
- 	void (*exit)(struct container_subsys *ss, struct task_struct *task);
- 	int (*populate)(struct container_subsys *ss,
- 			struct container *cont);
-+	void (*post_clone)(struct container_subsys *ss, struct container *cont);
- 	void (*bind)(struct container_subsys *ss, struct container *root);
- 	int subsys_id;
- 	int active;
-diff -puN kernel/container.c~containers-implement-subsys-post_clone kernel/container.c
---- a/kernel/container.c~containers-implement-subsys-post_clone
-+++ a/kernel/container.c
-@@ -2375,6 +2375,7 @@ int container_clone(struct task_struct *
- 	struct inode *inode;
- 	struct css_group *cg;
- 	struct containerfs_root *root;
-+	struct container_subsys *ss;
- 
- 	/* We shouldn't be called by an unregistered subsystem */
- 	BUG_ON(!subsys->active);
-@@ -2454,6 +2455,12 @@ int container_clone(struct task_struct *
- 		goto again;
++/* */
+diff -puN include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3 include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~containers-implement-namespace-tracking-subsystem-v3
++++ a/include/linux/nsproxy.h
+@@ -55,4 +55,11 @@ static inline void exit_task_namespaces(
+ 		put_nsproxy(ns);
  	}
- 
-+	/* do any required auto-setup */
-+	for_each_subsys(root, ss) {
-+		if (ss->post_clone)
-+			ss->post_clone(ss, child);
-+	}
+ }
 +
- 	/* All seems fine. Finish by moving the task into the new container */
- 	ret = attach_task(child, tsk);
- 	mutex_unlock(&container_mutex);
-diff -puN kernel/cpuset.c~containers-implement-subsys-post_clone kernel/cpuset.c
---- a/kernel/cpuset.c~containers-implement-subsys-post_clone
-+++ a/kernel/cpuset.c
-@@ -1190,6 +1190,42 @@ int cpuset_populate(struct container_sub
++#ifdef CONFIG_CONTAINER_NS
++int ns_container_clone(struct task_struct *tsk);
++#else
++static inline int ns_container_clone(struct task_struct *tsk) { return 0; }
++#endif
++
+ #endif
+diff -puN init/Kconfig~containers-implement-namespace-tracking-subsystem-v3 init/Kconfig
+--- a/init/Kconfig~containers-implement-namespace-tracking-subsystem-v3
++++ a/init/Kconfig
+@@ -347,6 +347,15 @@ config CONTAINER_CPUACCT
+ 	  Provides a simple Resource Controller for monitoring the
+ 	  total CPU consumed by the tasks in a container
+ 
++config CONTAINER_NS
++        bool "Namespace container subsystem"
++        select CONTAINERS
++        help
++          Provides a simple namespace container subsystem to
++          provide hierarchical naming of sets of namespaces,
++          for instance virtual servers and checkpoint/restart
++          jobs.
++
+ config PROC_PID_CPUSET
+ 	bool "Include legacy /proc/<pid>/cpuset file"
+ 	depends on CPUSETS
+diff -puN kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3 kernel/Makefile
+--- a/kernel/Makefile~containers-implement-namespace-tracking-subsystem-v3
++++ a/kernel/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_CONTAINERS) += container.o
+ obj-$(CONFIG_CONTAINER_DEBUG) += container_debug.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
+ obj-$(CONFIG_CONTAINER_CPUACCT) += cpu_acct.o
++obj-$(CONFIG_CONTAINER_NS) += ns_container.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+ obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
+ obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
+diff -puN kernel/container.c~containers-implement-namespace-tracking-subsystem-v3 kernel/container.c
+--- a/kernel/container.c~containers-implement-namespace-tracking-subsystem-v3
++++ a/kernel/container.c
+@@ -2355,12 +2355,6 @@ void container_exit(struct task_struct *
+ 		put_css_group_taskexit(cg);
  }
  
- /*
-+ * post_clone() is called at the end of container_clone().
-+ * 'container' was just created automatically as a result of
-+ * a container_clone(), and the current task is about to
-+ * be moved into 'container'.
+-static atomic_t namecnt;
+-static void get_unused_name(char *buf)
+-{
+-	sprintf(buf, "node%d", atomic_inc_return(&namecnt));
+-}
+-
+ /**
+  * container_clone - duplicate the current container in the hierarchy
+  * that the given subsystem is attached to, and move this task into
+@@ -2370,7 +2364,7 @@ int container_clone(struct task_struct *
+ {
+ 	struct dentry *dentry;
+ 	int ret = 0;
+-	char nodename[32];
++	char nodename[MAX_CONTAINER_TYPE_NAMELEN];
+ 	struct container *parent, *child;
+ 	struct inode *inode;
+ 	struct css_group *cg;
+@@ -2394,6 +2388,9 @@ int container_clone(struct task_struct *
+ 	}
+ 	cg = tsk->containers;
+ 	parent = task_container(tsk, subsys->subsys_id);
++
++	snprintf(nodename, MAX_CONTAINER_TYPE_NAMELEN, "node_%d", tsk->pid);
++
+ 	/* Pin the hierarchy */
+ 	atomic_inc(&parent->root->sb->s_active);
+ 
+@@ -2402,7 +2399,6 @@ int container_clone(struct task_struct *
+ 	mutex_unlock(&container_mutex);
+ 
+ 	/* Now do the VFS work to create a container */
+-	get_unused_name(nodename);
+ 	inode = parent->dentry->d_inode;
+ 
+ 	/* Hold the parent directory mutex across this operation to
+@@ -2475,8 +2471,14 @@ int container_clone(struct task_struct *
+ 	return ret;
+ }
+ 
+-/* See if "cont" is a descendant of the current task's container in
++/*
++ * See if "cont" is a descendant of the current task's container in
+  * the appropriate hierarchy
 + *
-+ * Currently we refuse to set up the container - thereby
-+ * refusing the task to be entered, and as a result refusing
-+ * the sys_unshare() or clone() which initiated it - if any
-+ * sibling cpusets have exclusive cpus or mem.
++ * If we are sending in dummytop, then presumably we are creating
++ * the top container in the subsystem.
 + *
-+ * If this becomes a problem for some users who wish to
-+ * allow that scenario, then cpuset_post_clone() could be
-+ * changed to grant parent->cpus_allowed-sibling_cpus_exclusive
-+ * (and likewise for mems) to the new container.
++ * Called only by the ns (nsproxy) container.
+  */
+ int container_is_descendant(const struct container *cont)
+ {
+@@ -2484,6 +2486,9 @@ int container_is_descendant(const struct
+ 	struct container *target;
+ 	int subsys_id;
+ 
++	if (cont == dummytop)
++		return 1;
++
+ 	get_first_subsys(cont, NULL, &subsys_id);
+ 	target = task_container(current, subsys_id);
+ 	while (cont != target && cont!= cont->top_container)
+diff -puN /dev/null kernel/ns_container.c
+--- /dev/null
++++ a/kernel/ns_container.c
+@@ -0,0 +1,99 @@
++/*
++ * ns_container.c - namespace container subsystem
++ *
++ * Copyright 2006, 2007 IBM Corp
 + */
-+void cpuset_post_clone(struct container_subsys *ss,
++
++#include <linux/module.h>
++#include <linux/container.h>
++#include <linux/fs.h>
++
++struct ns_container {
++	struct container_subsys_state css;
++	spinlock_t lock;
++};
++
++struct container_subsys ns_subsys;
++
++static inline struct ns_container *container_to_ns(
 +		struct container *container)
 +{
-+	struct container *parent, *child;
-+	struct cpuset *cs, *parent_cs;
++	return container_of(container_subsys_state(container, ns_subsys_id),
++			    struct ns_container, css);
++}
 +
-+	parent = container->parent;
-+	list_for_each_entry(child, &parent->children, sibling) {
-+		cs = container_cs(child);
-+		if (is_mem_exclusive(cs) || is_cpu_exclusive(cs))
-+			return;
-+	}
-+	cs = container_cs(container);
-+	parent_cs = container_cs(parent);
-+
-+	cs->mems_allowed = parent_cs->mems_allowed;
-+	cs->cpus_allowed = parent_cs->cpus_allowed;
-+	return;
++int ns_container_clone(struct task_struct *task)
++{
++	return container_clone(task, &ns_subsys);
 +}
 +
 +/*
-  *	cpuset_create - create a cpuset
-  *	parent:	cpuset that will be parent of the new cpuset.
-  *	name:		name of the new cpuset. Will be strcpy'ed.
-@@ -1249,6 +1285,7 @@ struct container_subsys cpuset_subsys = 
- 	.can_attach = cpuset_can_attach,
- 	.attach = cpuset_attach,
- 	.populate = cpuset_populate,
-+	.post_clone = cpuset_post_clone,
- 	.subsys_id = cpuset_subsys_id,
- 	.early_init = 1,
- };
++ * Rules:
++ *   1. you can only enter a container which is a child of your current
++ *     container
++ *   2. you can only place another process into a container if
++ *     a. you have CAP_SYS_ADMIN
++ *     b. your container is an ancestor of task's destination container
++ *       (hence either you are in the same container as task, or in an
++ *        ancestor container thereof)
++ */
++static int ns_can_attach(struct container_subsys *ss,
++		struct container *new_container, struct task_struct *task)
++{
++	struct container *orig;
++
++	if (current != task) {
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++
++		if (!container_is_descendant(new_container))
++			return -EPERM;
++	}
++
++	if (atomic_read(&new_container->count) != 0)
++		return -EPERM;
++
++	orig = task_container(task, ns_subsys_id);
++	if (orig && orig != new_container->parent)
++		return -EPERM;
++
++	return 0;
++}
++
++/*
++ * Rules: you can only create a container if
++ *     1. you are capable(CAP_SYS_ADMIN)
++ *     2. the target container is a descendant of your own container
++ */
++static int ns_create(struct container_subsys *ss, struct container *container)
++{
++	struct ns_container *ns_container;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	if (!container_is_descendant(container))
++		return -EPERM;
++
++	ns_container = kzalloc(sizeof(*ns_container), GFP_KERNEL);
++	if (!ns_container) return -ENOMEM;
++	spin_lock_init(&ns_container->lock);
++	container->subsys[ns_subsys.subsys_id] = &ns_container->css;
++	return 0;
++}
++
++static void ns_destroy(struct container_subsys *ss,
++			struct container *container)
++{
++	struct ns_container *ns_container;
++
++	ns_container = container_to_ns(container);
++	kfree(ns_container);
++}
++
++struct container_subsys ns_subsys = {
++	.name = "ns",
++	.can_attach = ns_can_attach,
++	.create = ns_create,
++	.destroy  = ns_destroy,
++	.subsys_id = ns_subsys_id,
++};
+diff -puN kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3 kernel/nsproxy.c
+--- a/kernel/nsproxy.c~containers-implement-namespace-tracking-subsystem-v3
++++ a/kernel/nsproxy.c
+@@ -146,7 +146,14 @@ int copy_namespaces(unsigned long flags,
+ 		goto out;
+ 	}
+ 
++	err = ns_container_clone(tsk);
++	if (err) {
++		put_nsproxy(new_ns);
++		goto out;
++	}
++
+ 	tsk->nsproxy = new_ns;
++
+ out:
+ 	put_nsproxy(old_ns);
+ 	return err;
+@@ -187,6 +194,14 @@ int unshare_nsproxy_namespaces(unsigned 
+ 				new_fs ? new_fs : current->fs);
+ 	if (IS_ERR(*new_nsp))
+ 		err = PTR_ERR(*new_nsp);
++		goto out;
++	}
++
++	err = ns_container_clone(current);
++	if (err)
++		put_nsproxy(*new_nsp);
++
++out:
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from serue@us.ibm.com are
