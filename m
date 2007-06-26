@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch added to -mm tree
-Date: Mon, 25 Jun 2007 21:52:23 -0700
-Message-ID: <200706260452.l5Q4qNt2018655@imap1.linux-foundation.org>
+Subject: + hfs-refactor-ascii-to-unicode-conversion-routine.patch added to -mm tree
+Date: Mon, 25 Jun 2007 22:01:59 -0700
+Message-ID: <200706260501.l5Q51xNX018809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52516 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751487AbXFZEwd (ORCPT
+	by vger.kernel.org with ESMTP id S1756743AbXFZFCP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 00:52:33 -0400
+	Tue, 26 Jun 2007 01:02:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: toshi.okajima@jp.fujitsu.com, tytso@mit.edu
+Cc: duaneg@dghda.com, zippel@linux-m68k.org
 
 
 The patch titled
-     mistaken ext4_inode_bitmap for ext4_block_bitmap
+     HFS+: refactor ASCII to unicode conversion routine for later reuse
 has been added to the -mm tree.  Its filename is
-     mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch
+     hfs-refactor-ascii-to-unicode-conversion-routine.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,148 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mistaken ext4_inode_bitmap for ext4_block_bitmap
-From: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
+Subject: HFS+: refactor ASCII to unicode conversion routine for later reuse
+From: Duane Griffin <duaneg@dghda.com>
 
-In ext4_new_blocks(), one of two ext4_block_bitmap() calls should be
-ext4_inode_bitmap() call.  It is not harmful in normal processing, but it
-should be fixed.
+Refactor existing HFS+ ASCII to unicode string conversion routine to split out
+character conversion functionality.  This will be reused by the custom dentry
+hash and comparison routines.  This approach avoids unnecessary memory
+allocation compared to using the string conversion routine directly in the new
+functions.
 
-Signed-off-by: Toshiyuki Okajima <toshi.okajima@jp.fujitsu.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hfsplus/unicode.c |  105 +++++++++++++++++++++++------------------
+ 1 file changed, 60 insertions(+), 45 deletions(-)
 
-diff -puN fs/ext4/balloc.c~mistaken-ext4_inode_bitmap-for-ext4_block_bitmap fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~mistaken-ext4_inode_bitmap-for-ext4_block_bitmap
-+++ a/fs/ext4/balloc.c
-@@ -1585,7 +1585,7 @@ allocated:
- 	ret_block = grp_alloc_blk + ext4_group_first_block_no(sb, group_no);
+diff -puN fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine fs/hfsplus/unicode.c
+--- a/fs/hfsplus/unicode.c~hfs-refactor-ascii-to-unicode-conversion-routine
++++ a/fs/hfsplus/unicode.c
+@@ -239,58 +239,73 @@ out:
+ 	return res;
+ }
  
- 	if (in_range(ext4_block_bitmap(sb, gdp), ret_block, num) ||
--	    in_range(ext4_block_bitmap(sb, gdp), ret_block, num) ||
-+	    in_range(ext4_inode_bitmap(sb, gdp), ret_block, num) ||
- 	    in_range(ret_block, ext4_inode_table(sb, gdp),
- 		     EXT4_SB(sb)->s_itb_per_group) ||
- 	    in_range(ret_block + num - 1, ext4_inode_table(sb, gdp),
+-int hfsplus_asc2uni(struct super_block *sb, struct hfsplus_unistr *ustr, const char *astr, int len)
++/*
++ * Convert one or more ASCII characters into a single unicode character.
++ * Returns the number of ASCII characters corresponding to the unicode char.
++ */
++static inline int asc2unichar(struct super_block *sb, const char *astr, int len,
++			      wchar_t *uc)
+ {
+-	struct nls_table *nls = HFSPLUS_SB(sb).nls;
+-	int size, off, decompose;
++	int size = HFSPLUS_SB(sb).nls->char2uni(astr, len, uc);
++	if (size <= 0) {
++		*uc = '?';
++		size = 1;
++	}
++	switch (*uc) {
++	case 0x2400:
++		*uc = 0;
++		break;
++	case ':':
++		*uc = '/';
++		break;
++	}
++	return size;
++}
++
++/* Decomposes a single unicode character. */
++static inline u16 *decompose_unichar(wchar_t uc, int *size)
++{
++	int off;
++
++	off = hfsplus_decompose_table[(uc >> 12) & 0xf];
++	if (off == 0 || off == 0xffff)
++		return NULL;
++
++	off = hfsplus_decompose_table[off + ((uc >> 8) & 0xf)];
++	if (!off)
++		return NULL;
++
++	off = hfsplus_decompose_table[off + ((uc >> 4) & 0xf)];
++	if (!off)
++		return NULL;
++
++	off = hfsplus_decompose_table[off + (uc & 0xf)];
++	*size = off & 3;
++	return hfsplus_decompose_table + (off / 4);
++}
++
++int hfsplus_asc2uni(struct super_block *sb, struct hfsplus_unistr *ustr,
++		    const char *astr, int len)
++{
++	int size, dsize, decompose;
++	u16 *dstr, outlen = 0;
+ 	wchar_t c;
+-	u16 outlen = 0;
+ 
+ 	decompose = !(HFSPLUS_SB(sb).flags & HFSPLUS_SB_NODECOMPOSE);
+-
+ 	while (outlen < HFSPLUS_MAX_STRLEN && len > 0) {
+-		size = nls->char2uni(astr, len, &c);
+-		if (size <= 0) {
+-			c = '?';
+-			size = 1;
+-		}
+-		astr += size;
+-		len -= size;
+-		switch (c) {
+-		case 0x2400:
+-			c = 0;
+-			break;
+-		case ':':
+-			c = '/';
+-			break;
+-		}
+-		if (c >= 0xc0 && decompose) {
+-			off = hfsplus_decompose_table[(c >> 12) & 0xf];
+-			if (!off)
+-				goto done;
+-			if (off == 0xffff) {
+-				goto done;
+-			}
+-			off = hfsplus_decompose_table[off + ((c >> 8) & 0xf)];
+-			if (!off)
+-				goto done;
+-			off = hfsplus_decompose_table[off + ((c >> 4) & 0xf)];
+-			if (!off)
+-				goto done;
+-			off = hfsplus_decompose_table[off + (c & 0xf)];
+-			size = off & 3;
+-			if (!size)
+-				goto done;
+-			off /= 4;
+-			if (outlen + size > HFSPLUS_MAX_STRLEN)
++		size = asc2unichar(sb, astr, len, &c);
++
++		if (decompose && (dstr = decompose_unichar(c, &dsize))) {
++			if (outlen + dsize > HFSPLUS_MAX_STRLEN)
+ 				break;
+ 			do {
+-				ustr->unicode[outlen++] = cpu_to_be16(hfsplus_decompose_table[off++]);
+-			} while (--size > 0);
+-			continue;
+-		}
+-	done:
+-		ustr->unicode[outlen++] = cpu_to_be16(c);
++				ustr->unicode[outlen++] = cpu_to_be16(*dstr++);
++			} while (--dsize > 0);
++		} else
++			ustr->unicode[outlen++] = cpu_to_be16(c);
++
++		astr += size;
++		len -= size;
+ 	}
+ 	ustr->length = cpu_to_be16(outlen);
+ 	if (len > 0)
 _
 
-Patches currently in -mm which might be from toshi.okajima@jp.fujitsu.com are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
-mistaken-ext4_inode_bitmap-for-ext4_block_bitmap.patch
+hfs-refactor-ascii-to-unicode-conversion-routine.patch
+hfs-add-custom-dentry-hash-and-comparison-operations.patch
