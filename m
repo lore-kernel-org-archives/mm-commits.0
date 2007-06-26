@@ -1,51 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - nick-broke-more-stuff.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 14:46:45 -0700
-Message-ID: <200706262146.l5QLkjhb002757@imap1.linux-foundation.org>
+Subject: - nick-broke-even-more-stuff.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 14:47:01 -0700
+Message-ID: <200706262147.l5QLl12P002783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57316 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751789AbXFZVqw (ORCPT
+	by vger.kernel.org with ESMTP id S1757072AbXFZVrI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:46:52 -0400
+	Tue, 26 Jun 2007 17:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nick-broke-more-stuff
+     nick-broke-even-more-stuff
 has been removed from the -mm tree.  Its filename was
-     nick-broke-more-stuff.patch
+     nick-broke-even-more-stuff.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: nick-broke-more-stuff
+Subject: nick-broke-even-more-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/minix/dir.c: In function 'minix_add_link':
-fs/minix/dir.c:285: warning: implicit declaration of function '__minix_write_begin'
+fs/sysv/dir.c: In function 'sysv_add_link':
+fs/sysv/dir.c:225: warning: implicit declaration of function '__sysv_write_begin'
 
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~nick-broke-more-stuff fs/Kconfig
---- a/fs/Kconfig~nick-broke-more-stuff
+diff -puN fs/Kconfig~nick-broke-even-more-stuff fs/Kconfig
+--- a/fs/Kconfig~nick-broke-even-more-stuff
 +++ a/fs/Kconfig
-@@ -463,6 +463,7 @@ config OCFS2_DEBUG_MASKLOG
+@@ -1481,7 +1481,7 @@ config QNX4FS_RW
  
- config MINIX_FS
- 	tristate "Minix fs support"
-+	depends on BROKEN
+ config SYSV_FS
+ 	tristate "System V/Xenix/V7/Coherent file system support"
+-	depends on BLOCK
++	depends on BLOCK && BROKEN
  	help
- 	  Minix is a simple operating system used in many classes about OS's.
- 	  The minix file system (method to organize files on a hard disk
+ 	  SCO, Xenix and Coherent are commercial Unix systems for Intel
+ 	  machines, and Version 7 was used on the DEC PDP-11. Saying Y
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -134,7 +135,6 @@ invalidate_mapping_pages-add-cond_resched.patch
 slub-support-slub_debug-on-by-default-tidy.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
 nick-broke-stuff.patch
-nick-broke-more-stuff.patch
 nick-broke-even-more-stuff.patch
 nick-really-did-it-this-time.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
