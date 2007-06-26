@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-portman2x4-section-mismatch.patch added to -mm tree
-Date: Tue, 26 Jun 2007 15:37:16 -0700
-Message-ID: <200706262237.l5QMbGhK003832@imap1.linux-foundation.org>
+Subject: + ubi-one-less-bug-usage.patch added to -mm tree
+Date: Tue, 26 Jun 2007 15:38:16 -0700
+Message-ID: <200706262238.l5QMcGER003854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54305 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbXFZWhc (ORCPT
+	by vger.kernel.org with ESMTP id S1751114AbXFZWiZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 18:37:32 -0400
+	Tue, 26 Jun 2007 18:38:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     ALSA portman2x4 section mismatch
+     UBI: one less BUG usage
 has been added to the -mm tree.  Its filename is
-     alsa-portman2x4-section-mismatch.patch
+     ubi-one-less-bug-usage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA portman2x4 section mismatch
+Subject: UBI: one less BUG usage
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-FIx section mismatch when CONFIG_HOTPLUG=n:
-
-WARNING: sound/built-in.o(.exit.text+0x271): Section mismatch: reference to .init.text:snd_p
-ortman_unregister_all (between 'snd_portman_module_exit' and 'alsa_mpu401_uart_exit')
+Eliminate one BUG() usage.  The callers of major_to_device() already handle
+and report errors.  This is just another error to return.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/drivers/portman2x4.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/ubi/cdev.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN sound/drivers/portman2x4.c~alsa-portman2x4-section-mismatch sound/drivers/portman2x4.c
---- a/sound/drivers/portman2x4.c~alsa-portman2x4-section-mismatch
-+++ a/sound/drivers/portman2x4.c
-@@ -833,7 +833,7 @@ static struct platform_driver snd_portma
- /*********************************************************************
-  * module init stuff
-  *********************************************************************/
--static void __init_or_module snd_portman_unregister_all(void)
-+static void snd_portman_unregister_all(void)
- {
- 	int i;
+diff -puN drivers/mtd/ubi/cdev.c~ubi-one-less-bug-usage drivers/mtd/ubi/cdev.c
+--- a/drivers/mtd/ubi/cdev.c~ubi-one-less-bug-usage
++++ a/drivers/mtd/ubi/cdev.c
+@@ -63,7 +63,7 @@ static struct ubi_device *major_to_devic
+ 	for (i = 0; i < ubi_devices_cnt; i++)
+ 		if (ubi_devices[i] && ubi_devices[i]->major == major)
+ 			return ubi_devices[i];
+-	BUG();
++	return ERR_PTR(-ENODEV);
+ }
  
+ /**
+@@ -127,6 +127,9 @@ static int vol_cdev_open(struct inode *i
+ 	int vol_id = iminor(inode) - 1;
+ 	int mode;
+ 
++	if (IS_ERR(ubi))
++		return PTR_ERR(ubi);
++
+ 	if (file->f_mode & FMODE_WRITE)
+ 		mode = UBI_READWRITE;
+ 	else
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -71,6 +77,7 @@ alsa-portman2x4-section-mismatch.patch
 fix-gregkh-driver-nozomi.patch
 romfs-printk-format-warnings.patch
 mtd-use-null-for-pointer.patch
+ubi-one-less-bug-usage.patch
 add-pci_try_set_mwi.patch
 git-scsi-misc.patch
 git-unionfs.patch
