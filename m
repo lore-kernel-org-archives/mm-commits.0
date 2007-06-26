@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-at91_mci-typo.patch added to -mm tree
-Date: Tue, 26 Jun 2007 00:06:21 -0700
-Message-ID: <200706260706.l5Q76LTi020595@imap1.linux-foundation.org>
+Subject: + fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch added to -mm tree
+Date: Tue, 26 Jun 2007 00:10:15 -0700
+Message-ID: <200706260710.l5Q7AFC9020637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38645 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100AbXFZHGe (ORCPT
+	by vger.kernel.org with ESMTP id S1750797AbXFZHK1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 03:06:34 -0400
+	Tue, 26 Jun 2007 03:10:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas.ferre@rfo.atmel.com, drzeus@drzeus.cx
+Cc: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com
 
 
 The patch titled
-     mmc: at91_mci typo
+     xfs: fix XFS_IOC_FSGEOMETRY_V1 in compat mode
 has been added to the -mm tree.  Its filename is
-     mmc-at91_mci-typo.patch
+     fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,153 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmc: at91_mci typo
-From: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Subject: xfs: fix XFS_IOC_FSGEOMETRY_V1 in compat mode
+From: Michal Marek <mmarek@suse.cz>
 
-Typo fix in at91_mci driver : standardized the typo (at91_mci everywhere)
+i386 struct xfs_fsop_geom_v1 has no padding after the last member, so the size
+is different.
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl32.c |   42 ++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-typo drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-typo
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -131,7 +131,7 @@ struct at91mci_host
- /*
-  * Copy from sg to a dma block - used for transfers
-  */
--static inline void at91mci_sg_to_dma(struct at91mci_host *host, struct mmc_data *data)
-+static inline void at91_mci_sg_to_dma(struct at91mci_host *host, struct mmc_data *data)
- {
- 	unsigned int len, i, size;
- 	unsigned *dmabuf = host->buffer;
-@@ -180,7 +180,7 @@ static inline void at91mci_sg_to_dma(str
- /*
-  * Prepare a dma read
-  */
--static void at91mci_pre_dma_read(struct at91mci_host *host)
-+static void at91_mci_pre_dma_read(struct at91mci_host *host)
- {
- 	int i;
- 	struct scatterlist *sg;
-@@ -248,7 +248,7 @@ static void at91mci_pre_dma_read(struct 
- /*
-  * Handle after a dma read
-  */
--static void at91mci_post_dma_read(struct at91mci_host *host)
-+static void at91_mci_post_dma_read(struct at91mci_host *host)
- {
- 	struct mmc_command *cmd;
- 	struct mmc_data *data;
-@@ -299,7 +299,7 @@ static void at91mci_post_dma_read(struct
- 
- 	/* Is there another transfer to trigger? */
- 	if (host->transfer_index < data->sg_len)
--		at91mci_pre_dma_read(host);
-+		at91_mci_pre_dma_read(host);
- 	else {
- 		at91_mci_write(host, AT91_MCI_IER, AT91_MCI_RXBUFF);
- 		at91_mci_write(host, ATMEL_PDC_PTCR, ATMEL_PDC_RXTDIS | ATMEL_PDC_TXTDIS);
-@@ -464,7 +464,7 @@ static unsigned int at91_mci_send_comman
- 			host->buffer = NULL;
- 			host->total_length = 0;
- 
--			at91mci_pre_dma_read(host);
-+			at91_mci_pre_dma_read(host);
- 			ier = AT91_MCI_ENDRX /* | AT91_MCI_RXBUFF */;
- 		}
- 		else {
-@@ -476,7 +476,7 @@ static unsigned int at91_mci_send_comman
- 						  host->total_length,
- 						  &host->physical_address, GFP_KERNEL);
- 
--			at91mci_sg_to_dma(host, data);
-+			at91_mci_sg_to_dma(host, data);
- 
- 			pr_debug("Transmitting %d bytes\n", host->total_length);
- 
-@@ -506,7 +506,7 @@ static unsigned int at91_mci_send_comman
- /*
-  * Wait for a command to complete
-  */
--static void at91mci_process_command(struct at91mci_host *host, struct mmc_command *cmd)
-+static void at91_mci_process_command(struct at91mci_host *host, struct mmc_command *cmd)
- {
- 	unsigned int ier;
- 
-@@ -521,15 +521,15 @@ static void at91mci_process_command(stru
- /*
-  * Process the next step in the request
-  */
--static void at91mci_process_next(struct at91mci_host *host)
-+static void at91_mci_process_next(struct at91mci_host *host)
- {
- 	if (!(host->flags & FL_SENT_COMMAND)) {
- 		host->flags |= FL_SENT_COMMAND;
--		at91mci_process_command(host, host->request->cmd);
-+		at91_mci_process_command(host, host->request->cmd);
- 	}
- 	else if ((!(host->flags & FL_SENT_STOP)) && host->request->stop) {
- 		host->flags |= FL_SENT_STOP;
--		at91mci_process_command(host, host->request->stop);
-+		at91_mci_process_command(host, host->request->stop);
- 	}
- 	else
- 		mmc_request_done(host->mmc, host->request);
-@@ -538,7 +538,7 @@ static void at91mci_process_next(struct 
- /*
-  * Handle a command that has been completed
-  */
--static void at91mci_completed_command(struct at91mci_host *host)
-+static void at91_mci_completed_command(struct at91mci_host *host)
- {
- 	struct mmc_command *cmd = host->cmd;
- 	unsigned int status;
-@@ -583,7 +583,7 @@ static void at91mci_completed_command(st
- 	else
- 		cmd->error = MMC_ERR_NONE;
- 
--	at91mci_process_next(host);
-+	at91_mci_process_next(host);
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsgeometry_v1-in-compat-mode fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsgeometry_v1-in-compat-mode
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -75,6 +75,42 @@ xfs_ioctl32_flock(
+ 	return (unsigned long)p;
  }
  
- /*
-@@ -595,7 +595,7 @@ static void at91_mci_request(struct mmc_
- 	host->request = mrq;
- 	host->flags = 0;
++typedef struct compat_xfs_fsop_geom_v1 {
++	__u32		blocksize;	/* filesystem (data) block size */
++	__u32		rtextsize;	/* realtime extent size		*/
++	__u32		agblocks;	/* fsblocks in an AG		*/
++	__u32		agcount;	/* number of allocation groups	*/
++	__u32		logblocks;	/* fsblocks in the log		*/
++	__u32		sectsize;	/* (data) sector size, bytes	*/
++	__u32		inodesize;	/* inode size in bytes		*/
++	__u32		imaxpct;	/* max allowed inode space(%)	*/
++	__u64		datablocks;	/* fsblocks in data subvolume	*/
++	__u64		rtblocks;	/* fsblocks in realtime subvol	*/
++	__u64		rtextents;	/* rt extents in realtime subvol*/
++	__u64		logstart;	/* starting fsblock of the log	*/
++	unsigned char	uuid[16];	/* unique id of the filesystem	*/
++	__u32		sunit;		/* stripe unit, fsblocks	*/
++	__u32		swidth;		/* stripe width, fsblocks	*/
++	__s32		version;	/* structure version		*/
++	__u32		flags;		/* superblock version flags	*/
++	__u32		logsectsize;	/* log sector size, bytes	*/
++	__u32		rtsectsize;	/* realtime sector size, bytes	*/
++	__u32		dirblocksize;	/* directory block size, bytes	*/
++} __attribute__((packed)) compat_xfs_fsop_geom_v1_t;
++
++#define XFS_IOC_FSGEOMETRY_V1_32  \
++	_IOR ('X', 100, struct compat_xfs_fsop_geom_v1)
++
++STATIC unsigned long xfs_ioctl32_geom_v1(unsigned long arg)
++{
++	compat_xfs_fsop_geom_v1_t __user *p32 = (void __user *)arg;
++	xfs_fsop_geom_v1_t __user *p = compat_alloc_user_space(sizeof(*p));
++
++	if (copy_in_user(p, p32, sizeof(*p32)))
++		return -EFAULT;
++	return (unsigned long)p;
++}
++
+ #else
  
--	at91mci_process_next(host);
-+	at91_mci_process_next(host);
- }
+ typedef struct xfs_fsop_bulkreq32 {
+@@ -118,7 +154,6 @@ xfs_compat_ioctl(
  
- /*
-@@ -708,7 +708,7 @@ static irqreturn_t at91_mci_irq(int irq,
+ 	switch (cmd) {
+ 	case XFS_IOC_DIOINFO:
+-	case XFS_IOC_FSGEOMETRY_V1:
+ 	case XFS_IOC_FSGEOMETRY:
+ 	case XFS_IOC_GETVERSION:
+ 	case XFS_IOC_GETXFLAGS:
+@@ -166,6 +201,10 @@ xfs_compat_ioctl(
+ 		arg = xfs_ioctl32_flock(arg);
+ 		cmd = _NATIVE_IOC(cmd, struct xfs_flock64);
+ 		break;
++	case XFS_IOC_FSGEOMETRY_V1_32:
++		arg = xfs_ioctl32_geom_v1(arg);
++		cmd = _NATIVE_IOC(cmd, struct xfs_fsop_geom_v1);
++		break;
  
- 		if (int_status & AT91_MCI_ENDRX) {
- 			pr_debug("Receive has ended\n");
--			at91mci_post_dma_read(host);
-+			at91_mci_post_dma_read(host);
- 		}
+ #else /* These are handled fine if no alignment issues */
+ 	case XFS_IOC_ALLOCSP:
+@@ -176,6 +215,7 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_FREESP64:
+ 	case XFS_IOC_RESVSP64:
+ 	case XFS_IOC_UNRESVSP64:
++	case XFS_IOC_FSGEOMETRY_V1:
+ 		break;
  
- 		if (int_status & AT91_MCI_NOTBUSY) {
-@@ -737,7 +737,7 @@ static irqreturn_t at91_mci_irq(int irq,
- 	if (completed) {
- 		pr_debug("Completed command\n");
- 		at91_mci_write(host, AT91_MCI_IDR, 0xffffffff);
--		at91mci_completed_command(host);
-+		at91_mci_completed_command(host);
- 	} else
- 		at91_mci_write(host, AT91_MCI_IDR, int_status);
- 
+ 	/* xfs_bstat_t still has wrong u32 vs u64 alignment */
 _
 
-Patches currently in -mm which might be from nicolas.ferre@rfo.atmel.com are
+Patches currently in -mm which might be from mmarek@suse.cz are
 
-git-arm.patch
-mmc-at91_mci-typo.patch
-atmel_serial-fix-break-handling.patch
+fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
+fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mode.patch
+fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.patch
