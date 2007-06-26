@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sysv-convert-to-new-aops-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:41:46 -0700
-Message-ID: <200706262141.l5QLfkFK002674@imap1.linux-foundation.org>
+Subject: + ufs-convert-to-new-aops-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:42:11 -0700
+Message-ID: <200706262142.l5QLgBj0002703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57349 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60340 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752670AbXFZVlz (ORCPT
+	by vger.kernel.org with ESMTP id S1759233AbXFZVmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:41:55 -0400
+	Tue, 26 Jun 2007 17:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     sysv: convert to new aops fix
+     ufs: convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     sysv-convert-to-new-aops-fix.patch
+     ufs-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysv: convert to new aops fix
+Subject: ufs: convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/sysv.h |    3 +++
+ fs/ufs/util.h |    3 +++
  1 files changed, 3 insertions(+)
 
-diff -puN fs/sysv/sysv.h~sysv-convert-to-new-aops-fix fs/sysv/sysv.h
---- a/fs/sysv/sysv.h~sysv-convert-to-new-aops-fix
-+++ a/fs/sysv/sysv.h
-@@ -136,6 +136,9 @@ extern unsigned long sysv_count_free_blo
+diff -puN fs/ufs/util.h~ufs-convert-to-new-aops-fix fs/ufs/util.h
+--- a/fs/ufs/util.h~ufs-convert-to-new-aops-fix
++++ a/fs/ufs/util.h
+@@ -231,6 +231,9 @@ ufs_set_inode_gid(struct super_block *sb
  
- /* itree.c */
- extern void sysv_truncate(struct inode *);
-+extern int __sysv_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata);
+ extern dev_t ufs_get_inode_dev(struct super_block *, struct ufs_inode_info *);
+ extern void ufs_set_inode_dev(struct super_block *, struct ufs_inode_info *, dev_t);
++extern int __ufs_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata);
  
- /* inode.c */
- extern int sysv_write_inode(struct inode *, int);
+ /*
+  * These functions manipulate ufs buffers
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -106,6 +106,7 @@ fuse-convert-to-new-aops.patch
 hostfs-convert-to-new-aops.patch
 jffs2-convert-to-new-aops.patch
 ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
 udf-convert-to-new-aops.patch
 sysv-convert-to-new-aops.patch
 sysv-convert-to-new-aops-fix.patch
