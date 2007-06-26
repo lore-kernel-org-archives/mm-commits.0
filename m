@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-sigio-support-cleanup.patch added to -mm tree
-Date: Tue, 26 Jun 2007 13:37:21 -0700
-Message-ID: <200706262037.l5QKbL84001631@imap1.linux-foundation.org>
+Subject: + uml-pty-channel-tidying.patch added to -mm tree
+Date: Tue, 26 Jun 2007 13:37:17 -0700
+Message-ID: <200706262037.l5QKbHu5001621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758170AbXFZUiA (ORCPT
+	by vger.kernel.org with ESMTP id S1758357AbXFZUiD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 16:38:00 -0400
+	Tue, 26 Jun 2007 16:38:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: SIGIO support cleanup
+     uml: pty channel tidying
 has been added to the -mm tree.  Its filename is
-     uml-sigio-support-cleanup.patch
+     uml-pty-channel-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,311 +26,195 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: SIGIO support cleanup
+Subject: uml: pty channel tidying
 From: Jeff Dike <jdike@addtoit.com>
 
-Cleanup of the SIGWINCH support.
+Cleanup, mostly style violations.
 
-Some code and comment reformatting.
+Tidied the includes.
 
-The stack used for SIGWINCH threads was leaked.  This is now fixed by storing
-it with the pid and other information, and freeing it when the thread is
-killed.
+getmaster returns a real errno, which pty_open returns if there's a
+problem.
 
-If something goes wrong with a WIGWINCH thread, and this is discovered in the
-interrupt handler, the winch record would leak.  It is now freed, except that
-the IRQ isn't freed.  This is hard to do from interrupt context.  This has the
-side-effect that the IRQ system maintains a reference to the freed structure,
-but that shouldn't cause a problem since the descriptor is disabled.
+The printks now have severity.
 
-register_winch_irq is now much better about cleaning up after an
-initialization failure.
+Changed os_* calls to call libc directly.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_user.c     |   70 ++++++++++++++++--------------
- arch/um/drivers/line.c          |   60 ++++++++++++++++---------
- arch/um/include/chan_user.h     |    3 -
- arch/um/os-Linux/skas/process.c |    2 
- 4 files changed, 80 insertions(+), 55 deletions(-)
+ arch/um/drivers/pty.c |   76 +++++++++++++++++++++-------------------
+ 1 files changed, 40 insertions(+), 36 deletions(-)
 
-diff -puN arch/um/drivers/chan_user.c~uml-sigio-support-cleanup arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-sigio-support-cleanup
-+++ a/arch/um/drivers/chan_user.c
-@@ -51,19 +51,21 @@ error:
- /*
-  * UML SIGWINCH handling
-  *
-- * The point of this is to handle SIGWINCH on consoles which have host ttys and
-- * relay them inside UML to whatever might be running on the console and cares
-- * about the window size (since SIGWINCH notifies about terminal size changes).
-+ * The point of this is to handle SIGWINCH on consoles which have host
-+ * ttys and relay them inside UML to whatever might be running on the
-+ * console and cares about the window size (since SIGWINCH notifies
-+ * about terminal size changes).
-  *
-- * So, we have a separate thread for each host tty attached to a UML device
-- * (side-issue - I'm annoyed that one thread can't have multiple controlling
-- * ttys for purposed of handling SIGWINCH, but I imagine there are other reasons
-- * that doesn't make any sense).
-+ * So, we have a separate thread for each host tty attached to a UML
-+ * device (side-issue - I'm annoyed that one thread can't have
-+ * multiple controlling ttys for the purpose of handling SIGWINCH, but
-+ * I imagine there are other reasons that doesn't make any sense).
-  *
-- * SIGWINCH can't be received synchronously, so you have to set up to receive it
-- * as a signal.  That being the case, if you are going to wait for it, it is
-- * convenient to sit in sigsuspend() and wait for the signal to bounce you out of
-- * it (see below for how we make sure to exit only on SIGWINCH).
-+ * SIGWINCH can't be received synchronously, so you have to set up to
-+ * receive it as a signal.  That being the case, if you are going to
-+ * wait for it, it is convenient to sit in sigsuspend() and wait for
-+ * the signal to bounce you out of it (see below for how we make sure
-+ * to exit only on SIGWINCH).
+diff -puN arch/um/drivers/pty.c~uml-pty-channel-tidying arch/um/drivers/pty.c
+--- a/arch/um/drivers/pty.c~uml-pty-channel-tidying
++++ a/arch/um/drivers/pty.c
+@@ -1,5 +1,5 @@
+ /* 
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
   */
  
- static void winch_handler(int sig)
-@@ -112,7 +114,8 @@ static int winch_thread(void *arg)
+@@ -7,12 +7,14 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
++#include <fcntl.h>
+ #include <errno.h>
+ #include <termios.h>
++#include <sys/stat.h>
+ #include "chan_user.h"
+-#include "user.h"
+-#include "kern_util.h"
+ #include "os.h"
++#include "user.h"
++#include "kern_constants.h"
+ #include "um_malloc.h"
  
- 	err = os_new_tty_pgrp(pty_fd, os_getpid());
- 	if(err < 0){
--		printk("winch_thread : new_tty_pgrp failed, err = %d\n", -err);
-+		printk("winch_thread : new_tty_pgrp failed on fd %d, "
-+		       "err = %d\n", pty_fd, -err);
- 		exit(1);
- 	}
+ struct pty_chan {
+@@ -28,11 +30,13 @@ static void *pty_chan_init(char *str, in
+ 	struct pty_chan *data;
  
-@@ -126,8 +129,9 @@ static int winch_thread(void *arg)
- 		       "err = %d\n", -count);
- 
- 	while(1){
--		/* This will be interrupted by SIGWINCH only, since other signals
--		 * are blocked.*/
-+		/* This will be interrupted by SIGWINCH only, since
-+		 * other signals are blocked.
-+		 */
- 		sigsuspend(&sigs);
- 
- 		count = os_write_file(pipe_fd, &c, sizeof(c));
-@@ -137,10 +141,10 @@ static int winch_thread(void *arg)
- 	}
+ 	data = um_kmalloc(sizeof(*data));
+-	if(data == NULL) return(NULL);
++	if (data == NULL)
++		return NULL;
++
+ 	*data = ((struct pty_chan) { .announce  	= opts->announce, 
+ 				     .dev  		= device,
+ 				     .raw  		= opts->raw });
+-	return(data);
++	return data;
  }
  
--static int winch_tramp(int fd, struct tty_struct *tty, int *fd_out)
-+static int winch_tramp(int fd, struct tty_struct *tty, int *fd_out,
-+		       unsigned long *stack_out)
- {
- 	struct winch_data data;
--	unsigned long stack;
- 	int fds[2], n, err;
- 	char c;
+ static int pts_open(int input, int output, int primary, void *d,
+@@ -43,31 +47,35 @@ static int pts_open(int input, int outpu
+ 	int fd, err;
  
-@@ -153,9 +157,11 @@ static int winch_tramp(int fd, struct tt
- 	data = ((struct winch_data) { .pty_fd 		= fd,
- 				      .pipe_fd 		= fds[1] } );
- 	/* CLONE_FILES so this thread doesn't hold open files which are open
--	 * now, but later closed.  This is a problem with /dev/net/tun.
-+	 * now, but later closed in a different thread.  This is a
-+	 * problem with /dev/net/tun, which if held open by this
-+	 * thread, prevents the TUN/TAP device from being reused.
- 	 */
--	err = run_helper_thread(winch_thread, &data, CLONE_FILES, &stack, 0);
-+	err = run_helper_thread(winch_thread, &data, CLONE_FILES, stack_out, 0);
- 	if(err < 0){
- 		printk("fork of winch_thread failed - errno = %d\n", -err);
- 		goto out_close;
-@@ -181,25 +187,25 @@ static int winch_tramp(int fd, struct tt
- 
- void register_winch(int fd, struct tty_struct *tty)
- {
--	int pid, thread, thread_fd = -1;
--	int count;
-+	unsigned long stack;
-+	int pid, thread, count, thread_fd = -1;
- 	char c = 1;
- 
- 	if(!isatty(fd))
- 		return;
- 
- 	pid = tcgetpgrp(fd);
--	if(!CHOOSE_MODE_PROC(is_tracer_winch, is_skas_winch, pid, fd,
--			     tty) && (pid == -1)){
--		thread = winch_tramp(fd, tty, &thread_fd);
--		if(thread > 0){
--			register_winch_irq(thread_fd, fd, thread, tty);
--
--			count = os_write_file(thread_fd, &c, sizeof(c));
--			if(count != sizeof(c))
--				printk("register_winch : failed to write "
--				       "synchronization byte, err = %d\n",
--					-count);
--		}
-+	if (!CHOOSE_MODE_PROC(is_tracer_winch, is_skas_winch, pid, fd, tty) &&
-+	    (pid == -1)) {
-+		thread = winch_tramp(fd, tty, &thread_fd, &stack);
-+		if (thread < 0)
-+			return;
-+
-+		register_winch_irq(thread_fd, fd, thread, tty, stack);
-+
-+		count = os_write_file(thread_fd, &c, sizeof(c));
-+		if(count != sizeof(c))
-+			printk("register_winch : failed to write "
-+			       "synchronization byte, err = %d\n", -count);
+ 	fd = get_pty();
+-	if(fd < 0){
++	if (fd < 0) {
+ 		err = -errno;
+-		printk("open_pts : Failed to open pts\n");
++		printk(UM_KERN_ERR "open_pts : Failed to open pts\n");
+ 		return err;
  	}
- }
-diff -puN arch/um/drivers/line.c~uml-sigio-support-cleanup arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-sigio-support-cleanup
-+++ a/arch/um/drivers/line.c
-@@ -749,8 +749,24 @@ struct winch {
- 	int tty_fd;
- 	int pid;
- 	struct tty_struct *tty;
-+	unsigned long stack;
- };
+-	if(data->raw){
++
++	if (data->raw) {
+ 		CATCH_EINTR(err = tcgetattr(fd, &data->tt));
+-		if(err)
+-			return(err);
++		if (err)
++			return err;
  
-+static void free_winch(struct winch *winch, int free_irq_ok)
-+{
-+	list_del(&winch->list);
+ 		err = raw(fd);
+-		if(err)
+-			return(err);
++		if (err)
++			return err;
+ 	}
+ 
+ 	dev = ptsname(fd);
+ 	sprintf(data->dev_name, "%s", dev);
+ 	*dev_out = data->dev_name;
 +
-+	if (winch->pid != -1)
-+		os_kill_process(winch->pid, 1);
-+	if (winch->fd != -1)
-+		os_close_file(winch->fd);
-+	if (winch->stack != 0)
-+		free_stack(winch->stack, 0);
-+	if (free_irq_ok)
-+		free_irq(WINCH_IRQ, winch);
-+	kfree(winch);
-+}
+ 	if (data->announce)
+ 		(*data->announce)(dev, data->dev);
+-	return(fd);
 +
- static irqreturn_t winch_interrupt(int irq, void *data)
++	return fd;
+ }
+ 
+ static int getmaster(char *line)
  {
- 	struct winch *winch = data;
-@@ -767,12 +783,13 @@ static irqreturn_t winch_interrupt(int i
- 				       "errno = %d\n", -err);
- 				printk("fd %d is losing SIGWINCH support\n",
- 				       winch->tty_fd);
-+				free_winch(winch, 0);
- 				return IRQ_HANDLED;
++	struct stat buf;
+ 	char *pty, *bank, *cp;
+ 	int master, err;
+ 
+@@ -75,24 +83,29 @@ static int getmaster(char *line)
+ 	for (bank = "pqrs"; *bank; bank++) {
+ 		line[strlen("/dev/pty")] = *bank;
+ 		*pty = '0';
+-		if (os_stat_file(line, NULL) < 0)
++		/* Did we hit the end ? */
++		if ((stat(line, &buf) < 0) && (errno == ENOENT))
+ 			break;
++
+ 		for (cp = "0123456789abcdef"; *cp; cp++) {
+ 			*pty = *cp;
+-			master = os_open_file(line, of_rdwr(OPENFLAGS()), 0);
++			master = open(line, O_RDWR);
+ 			if (master >= 0) {
+ 				char *tp = &line[strlen("/dev/")];
+ 
+ 				/* verify slave side is usable */
+ 				*tp = 't';
+-				err = os_access(line, OS_ACC_RW_OK);
++				err = access(line, R_OK | W_OK);
+ 				*tp = 'p';
+-				if(err == 0) return(master);
+-				(void) os_close_file(master);
++				if(!err)
++					return master;
++				close(master);
  			}
- 			goto out;
  		}
  	}
--	tty  = winch->tty;
-+	tty = winch->tty;
- 	if (tty != NULL) {
- 		line = tty->driver_data;
- 		chan_window_size(&line->chan_list, &tty->winsize.ws_row,
-@@ -785,43 +802,44 @@ static irqreturn_t winch_interrupt(int i
- 	return IRQ_HANDLED;
- }
- 
--void register_winch_irq(int fd, int tty_fd, int pid, struct tty_struct *tty)
-+void register_winch_irq(int fd, int tty_fd, int pid, struct tty_struct *tty,
-+			unsigned long stack)
- {
- 	struct winch *winch;
- 
- 	winch = kmalloc(sizeof(*winch), GFP_KERNEL);
- 	if (winch == NULL) {
- 		printk("register_winch_irq - kmalloc failed\n");
--		return;
-+		goto cleanup;
- 	}
- 
- 	*winch = ((struct winch) { .list  	= LIST_HEAD_INIT(winch->list),
- 				   .fd  	= fd,
- 				   .tty_fd 	= tty_fd,
- 				   .pid  	= pid,
--				   .tty 	= tty });
-+				   .tty 	= tty,
-+				   .stack	= stack });
+-	return(-1);
 +
-+	if (um_request_irq(WINCH_IRQ, fd, IRQ_READ, winch_interrupt,
-+			   IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
-+			   "winch", winch) < 0) {
-+		printk("register_winch_irq - failed to register IRQ\n");
-+		goto out_free;
-+	}
- 
- 	spin_lock(&winch_handler_lock);
- 	list_add(&winch->list, &winch_handlers);
- 	spin_unlock(&winch_handler_lock);
- 
--	if(um_request_irq(WINCH_IRQ, fd, IRQ_READ, winch_interrupt,
--			  IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
--			  "winch", winch) < 0)
--		printk("register_winch_irq - failed to register IRQ\n");
--}
--
--static void free_winch(struct winch *winch)
--{
--	list_del(&winch->list);
--
--	if(winch->pid != -1)
--		os_kill_process(winch->pid, 1);
--	if(winch->fd != -1)
--		os_close_file(winch->fd);
-+	return;
- 
--	free_irq(WINCH_IRQ, winch);
-+ out_free:
- 	kfree(winch);
-+ cleanup:
-+	os_kill_process(pid, 1);
-+	os_close_file(fd);
-+	if (stack != 0)
-+		free_stack(stack, 0);
++	printk(UM_KERN_ERR "getmaster - no usable host pty devices\n");
++	return -ENOENT;
  }
  
- static void unregister_winch(struct tty_struct *tty)
-@@ -834,7 +852,7 @@ static void unregister_winch(struct tty_
- 	list_for_each(ele, &winch_handlers){
- 		winch = list_entry(ele, struct winch, list);
-                 if(winch->tty == tty){
--			free_winch(winch);
-+			free_winch(winch, 1);
- 			break;
-                 }
-         }
-@@ -850,7 +868,7 @@ static void winch_cleanup(void)
+ static int pty_open(int input, int output, int primary, void *d,
+@@ -103,20 +116,22 @@ static int pty_open(int input, int outpu
+ 	char dev[sizeof("/dev/ptyxx\0")] = "/dev/ptyxx";
  
- 	list_for_each_safe(ele, next, &winch_handlers){
- 		winch = list_entry(ele, struct winch, list);
--		free_winch(winch);
-+		free_winch(winch, 1);
+ 	fd = getmaster(dev);
+-	if(fd < 0)
+-		return(-errno);
++	if (fd < 0)
++		return fd;
+ 
+ 	if(data->raw){
+ 		err = raw(fd);
+-		if(err)
+-			return(err);
++		if (err)
++			return err;
  	}
+ 	
+-	if(data->announce) (*data->announce)(dev, data->dev);
++	if (data->announce)
++		(*data->announce)(dev, data->dev);
  
- 	spin_unlock(&winch_handler_lock);
-diff -puN arch/um/include/chan_user.h~uml-sigio-support-cleanup arch/um/include/chan_user.h
---- a/arch/um/include/chan_user.h~uml-sigio-support-cleanup
-+++ a/arch/um/include/chan_user.h
-@@ -44,7 +44,8 @@ extern void generic_free(void *data);
- 
- struct tty_struct;
- extern void register_winch(int fd,  struct tty_struct *tty);
--extern void register_winch_irq(int fd, int tty_fd, int pid, struct tty_struct *tty);
-+extern void register_winch_irq(int fd, int tty_fd, int pid,
-+			       struct tty_struct *tty, unsigned long stack);
- 
- #define __channel_help(fn, prefix) \
- __uml_help(fn, prefix "[0-9]*=<channel description>\n" \
-diff -puN arch/um/os-Linux/skas/process.c~uml-sigio-support-cleanup arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-sigio-support-cleanup
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -41,7 +41,7 @@ int is_skas_winch(int pid, int fd, void 
- 	if(pid != os_getpgrp())
- 		return(0);
- 
--	register_winch_irq(-1, fd, -1, data);
-+	register_winch_irq(-1, fd, -1, data, 0);
- 	return(1);
+ 	sprintf(data->dev_name, "%s", dev);
+ 	*dev_out = data->dev_name;
+-	return(fd);
++
++	return fd;
  }
  
+ const struct chan_ops pty_ops = {
+@@ -144,14 +159,3 @@ const struct chan_ops pts_ops = {
+ 	.free		= generic_free,
+ 	.winch		= 0,
+ };
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
