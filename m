@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-the-new-percpu-interface-for-shared-data-version-4.patch added to -mm tree
-Date: Tue, 26 Jun 2007 15:29:19 -0700
-Message-ID: <200706262229.l5QMTJgY003696@imap1.linux-foundation.org>
+Subject: + define-new-percpu-interface-for-shared-data-version-4.patch added to -mm tree
+Date: Tue, 26 Jun 2007 15:29:16 -0700
+Message-ID: <200706262229.l5QMTHhH003693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42180 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48882 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757372AbXFZW3n (ORCPT
+	by vger.kernel.org with ESMTP id S1757235AbXFZW3m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 18:29:43 -0400
+	Tue, 26 Jun 2007 18:29:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fenghua.yu@intel.com, ak@suse.de, clameter@sgi.com, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, tony.luck@intel.com
+Cc: fenghua.yu@intel.com, ak@suse.de, clameter@sgi.com, linux-arch@vger.kernel.org, rusty@rustcorp.com.au, suresh.b.siddha@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     use the new percpu interface for shared data
+     define new percpu interface for shared data
 has been added to the -mm tree.  Its filename is
-     use-the-new-percpu-interface-for-shared-data-version-4.patch
+     define-new-percpu-interface-for-shared-data-version-4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,495 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use the new percpu interface for shared data
+Subject: define new percpu interface for shared data
 From: Fenghua Yu <fenghua.yu@intel.com>
 
-Currently most of the per cpu data, which is accessed by different cpus,
-has a ____cacheline_aligned_in_smp attribute.  Move all this data to the
-new per cpu shared data section: .data.percpu.shared_aligned.
+per cpu data section contains two types of data.  One set which is
+exclusively accessed by the local cpu and the other set which is per cpu,
+but also shared by remote cpus.  In the current kernel, these two sets are
+not clearely separated out.  This can potentially cause the same data
+cacheline shared between the two sets of data, which will result in
+unnecessary bouncing of the cacheline between cpus.
 
-This will seperate the percpu data which is referenced frequently by other
-cpus from the local only percpu data.
+One way to fix the problem is to cacheline align the remotely accessed per
+cpu data, both at the beginning and at the end.  Because of the padding at
+both ends, this will likely cause some memory wastage and also the
+interface to achieve this is not clean.
+
+This patch:
+
+Moves the remotely accessed per cpu data (which is currently marked
+as ____cacheline_aligned_in_smp) into a different section, where all the data
+elements are cacheline aligned. And as such, this differentiates the local
+only data and remotely accessed data cleanly.
 
 Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Christoph Lameter <clameter@sgi.com>
+Cc: <linux-arch@vger.kernel.org>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/init_task.c   |    2 +-
- arch/i386/kernel/irq.c         |    2 +-
- arch/ia64/kernel/smp.c         |    2 +-
- arch/x86_64/kernel/init_task.c |    2 +-
- kernel/sched.c                 |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ arch/alpha/kernel/vmlinux.lds.S   |    5 +----
+ arch/arm/kernel/vmlinux.lds.S     |    1 +
+ arch/cris/arch-v32/vmlinux.lds.S  |    5 +----
+ arch/frv/kernel/vmlinux.lds.S     |    5 +----
+ arch/i386/kernel/vmlinux.lds.S    |    1 +
+ arch/ia64/kernel/vmlinux.lds.S    |    1 +
+ arch/m32r/kernel/vmlinux.lds.S    |    5 +----
+ arch/mips/kernel/vmlinux.lds.S    |    5 +----
+ arch/parisc/kernel/vmlinux.lds.S  |    7 +++----
+ arch/powerpc/kernel/vmlinux.lds.S |    1 +
+ arch/ppc/kernel/vmlinux.lds.S     |    5 +----
+ arch/s390/kernel/vmlinux.lds.S    |    5 +----
+ arch/sh/kernel/vmlinux.lds.S      |    5 +----
+ arch/sh64/kernel/vmlinux.lds.S    |    5 ++++-
+ arch/sparc/kernel/vmlinux.lds.S   |    5 +----
+ arch/sparc64/kernel/vmlinux.lds.S |    6 ++----
+ arch/x86_64/kernel/vmlinux.lds.S  |    6 ++----
+ arch/xtensa/kernel/vmlinux.lds.S  |    5 +----
+ include/asm-generic/percpu.h      |    8 ++++++++
+ include/asm-generic/vmlinux.lds.h |    8 ++++++++
+ include/asm-i386/percpu.h         |    5 +++++
+ include/asm-ia64/percpu.h         |   10 ++++++++++
+ include/asm-powerpc/percpu.h      |    7 +++++++
+ include/asm-s390/percpu.h         |    7 +++++++
+ include/asm-sparc64/percpu.h      |    7 +++++++
+ include/asm-x86_64/percpu.h       |    7 +++++++
+ 26 files changed, 84 insertions(+), 53 deletions(-)
 
-diff -puN arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/i386/kernel/init_task.c
---- a/arch/i386/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4
-+++ a/arch/i386/kernel/init_task.c
-@@ -42,5 +42,5 @@ EXPORT_SYMBOL(init_task);
-  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
-  * no more per-task TSS's.
-  */ 
--DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
-+DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
+diff -puN arch/alpha/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/alpha/kernel/vmlinux.lds.S
+--- a/arch/alpha/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/alpha/kernel/vmlinux.lds.S
+@@ -69,10 +69,7 @@ SECTIONS
+   . = ALIGN(8);
+   SECURITY_INIT
  
-diff -puN arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/i386/kernel/irq.c
---- a/arch/i386/kernel/irq.c~use-the-new-percpu-interface-for-shared-data-version-4
-+++ a/arch/i386/kernel/irq.c
-@@ -21,7 +21,7 @@
- #include <asm/apic.h>
- #include <asm/uaccess.h>
+-  . = ALIGN(8192);
+-  __per_cpu_start = .;
+-  .data.percpu : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(8192)
  
--DEFINE_PER_CPU(irq_cpustat_t, irq_stat) ____cacheline_internodealigned_in_smp;
-+DEFINE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
- EXPORT_PER_CPU_SYMBOL(irq_stat);
+   . = ALIGN(2*8192);
+   __init_end = .;
+diff -puN arch/arm/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/arm/kernel/vmlinux.lds.S
+--- a/arch/arm/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/arm/kernel/vmlinux.lds.S
+@@ -66,6 +66,7 @@ SECTIONS
+ 		. = ALIGN(4096);
+ 		__per_cpu_start = .;
+ 			*(.data.percpu)
++			*(.data.percpu.shared_aligned)
+ 		__per_cpu_end = .;
+ #ifndef CONFIG_XIP_KERNEL
+ 		__init_begin = _stext;
+diff -puN arch/cris/arch-v32/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/cris/arch-v32/vmlinux.lds.S
+--- a/arch/cris/arch-v32/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/cris/arch-v32/vmlinux.lds.S
+@@ -91,10 +91,7 @@ SECTIONS
+ 	}
+ 	SECURITY_INIT
  
- DEFINE_PER_CPU(struct pt_regs *, irq_regs);
-diff -puN arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/ia64/kernel/smp.c
---- a/arch/ia64/kernel/smp.c~use-the-new-percpu-interface-for-shared-data-version-4
-+++ a/arch/ia64/kernel/smp.c
-@@ -82,7 +82,7 @@ static volatile struct call_data_struct 
- #define IPI_KDUMP_CPU_STOP	3
+-	. =  ALIGN (8192);
+-	__per_cpu_start = .;
+-	.data.percpu  : { *(.data.percpu) }
+-	__per_cpu_end = .;
++	PERCPU(8192)
  
- /* This needs to be cacheline aligned because it is written to by *other* CPUs.  */
--static DEFINE_PER_CPU(u64, ipi_operation) ____cacheline_aligned;
-+static DEFINE_PER_CPU_SHARED_ALIGNED(u64, ipi_operation);
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	.init.ramfs : {
+diff -puN arch/frv/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/frv/kernel/vmlinux.lds.S
+--- a/arch/frv/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/frv/kernel/vmlinux.lds.S
+@@ -57,10 +57,7 @@ SECTIONS
+   __alt_instructions_end = .;
+  .altinstr_replacement : { *(.altinstr_replacement) }
  
- extern void cpu_halt (void);
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
  
-diff -puN arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4 arch/x86_64/kernel/init_task.c
---- a/arch/x86_64/kernel/init_task.c~use-the-new-percpu-interface-for-shared-data-version-4
-+++ a/arch/x86_64/kernel/init_task.c
-@@ -44,7 +44,7 @@ EXPORT_SYMBOL(init_task);
-  * section. Since TSS's are completely CPU-local, we want them
-  * on exact cacheline boundaries, to eliminate cacheline ping-pong.
-  */ 
--DEFINE_PER_CPU(struct tss_struct, init_tss) ____cacheline_internodealigned_in_smp = INIT_TSS;
-+DEFINE_PER_CPU_SHARED_ALIGNED(struct tss_struct, init_tss) = INIT_TSS;
+ #ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+diff -puN arch/i386/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -183,6 +183,7 @@ SECTIONS
+   .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
+ 	__per_cpu_start = .;
+ 	*(.data.percpu)
++	*(.data.percpu.shared_aligned)
+ 	__per_cpu_end = .;
+   }
+   . = ALIGN(4096);
+diff -puN arch/ia64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/ia64/kernel/vmlinux.lds.S
+--- a/arch/ia64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/ia64/kernel/vmlinux.lds.S
+@@ -206,6 +206,7 @@ SECTIONS
+ 	{
+ 		__per_cpu_start = .;
+ 		*(.data.percpu)
++		*(.data.percpu.shared_aligned)
+ 		__per_cpu_end = .;
+ 	}
+   . = __phys_per_cpu_start + PERCPU_PAGE_SIZE;	/* ensure percpu data fits
+diff -puN arch/m32r/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/m32r/kernel/vmlinux.lds.S
+--- a/arch/m32r/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/m32r/kernel/vmlinux.lds.S
+@@ -110,10 +110,7 @@ SECTIONS
+   __initramfs_end = .;
+ #endif
  
- /* Copies of the original ist values from the tss are only accessed during
-  * debugging, no special alignment required.
-diff -puN kernel/sched.c~use-the-new-percpu-interface-for-shared-data-version-4 kernel/sched.c
---- a/kernel/sched.c~use-the-new-percpu-interface-for-shared-data-version-4
-+++ a/kernel/sched.c
-@@ -304,7 +304,7 @@ struct rq {
- 	struct lock_class_key rq_lock_key;
- };
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
+   . = ALIGN(4096);
+   __init_end = .;
+   /* freed after init ends here */
+diff -puN arch/mips/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/mips/kernel/vmlinux.lds.S
+--- a/arch/mips/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/mips/kernel/vmlinux.lds.S
+@@ -119,10 +119,7 @@ SECTIONS
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
+ #endif
+-  . = ALIGN(_PAGE_SIZE);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(_PAGE_SIZE)
+   . = ALIGN(_PAGE_SIZE);
+   __init_end = .;
+   /* freed after init ends here */
+diff -puN arch/parisc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/parisc/kernel/vmlinux.lds.S
+--- a/arch/parisc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/parisc/kernel/vmlinux.lds.S
+@@ -181,10 +181,9 @@ SECTIONS
+   .init.ramfs : { *(.init.ramfs) }
+   __initramfs_end = .;
+ #endif
+-  . = ALIGN(ASM_PAGE_SIZE);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++
++  PERCPU(ASM_PAGE_SIZE)
++
+   . = ALIGN(ASM_PAGE_SIZE);
+   __init_end = .;
+   /* freed after init ends here */
+diff -puN arch/powerpc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/powerpc/kernel/vmlinux.lds.S
+--- a/arch/powerpc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/powerpc/kernel/vmlinux.lds.S
+@@ -143,6 +143,7 @@ SECTIONS
+ 	.data.percpu : {
+ 		__per_cpu_start = .;
+ 		*(.data.percpu)
++		*(.data.percpu.shared_aligned)
+ 		__per_cpu_end = .;
+ 	}
  
--static DEFINE_PER_CPU(struct rq, runqueues) ____cacheline_aligned_in_smp;
-+static DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
- static DEFINE_MUTEX(sched_hotcpu_mutex);
+diff -puN arch/ppc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/ppc/kernel/vmlinux.lds.S
+--- a/arch/ppc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/ppc/kernel/vmlinux.lds.S
+@@ -130,10 +130,7 @@ SECTIONS
+   __ftr_fixup : { *(__ftr_fixup) }
+   __stop___ftr_fixup = .;
  
- static inline int cpu_of(struct rq *rq)
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+   . = ALIGN(4096);
+diff -puN arch/s390/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/s390/kernel/vmlinux.lds.S
+--- a/arch/s390/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/s390/kernel/vmlinux.lds.S
+@@ -107,10 +107,7 @@ SECTIONS
+   . = ALIGN(2);
+   __initramfs_end = .;
+ #endif
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
+   . = ALIGN(4096);
+   __init_end = .;
+   /* freed after init ends here */
+diff -puN arch/sh/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/sh/kernel/vmlinux.lds.S
+--- a/arch/sh/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/sh/kernel/vmlinux.lds.S
+@@ -60,10 +60,7 @@ SECTIONS
+   . = ALIGN(PAGE_SIZE);
+   __nosave_end = .;
+ 
+-  . = ALIGN(PAGE_SIZE);
+-  __per_cpu_start = .;
+-  .data.percpu : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(PAGE_SIZE)
+   .data.cacheline_aligned : { *(.data.cacheline_aligned) }
+ 
+   _edata = .;			/* End of data section */
+diff -puN arch/sh64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/sh64/kernel/vmlinux.lds.S
+--- a/arch/sh64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/sh64/kernel/vmlinux.lds.S
+@@ -87,7 +87,10 @@ SECTIONS
+ 
+   . = ALIGN(PAGE_SIZE);
+   __per_cpu_start = .;
+-  .data.percpu : C_PHYS(.data.percpu) { *(.data.percpu) }
++  .data.percpu : C_PHYS(.data.percpu) {
++	*(.data.percpu)
++	*(.data.percpu.shared_aligned)
++  }
+   __per_cpu_end = . ;
+   .data.cacheline_aligned : C_PHYS(.data.cacheline_aligned) { *(.data.cacheline_aligned) }
+ 
+diff -puN arch/sparc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/sparc/kernel/vmlinux.lds.S
+--- a/arch/sparc/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/sparc/kernel/vmlinux.lds.S
+@@ -65,10 +65,7 @@ SECTIONS
+   __initramfs_end = .;
+ #endif
+ 
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
+   . = ALIGN(4096);
+   __init_end = .;
+   . = ALIGN(32);
+diff -puN arch/sparc64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/sparc64/kernel/vmlinux.lds.S
+--- a/arch/sparc64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/sparc64/kernel/vmlinux.lds.S
+@@ -90,10 +90,8 @@ SECTIONS
+   __initramfs_end = .;
+ #endif
+ 
+-  . = ALIGN(PAGE_SIZE);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(PAGE_SIZE)
++
+   . = ALIGN(PAGE_SIZE);
+   __init_end = .;
+   __bss_start = .;
+diff -puN arch/x86_64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/x86_64/kernel/vmlinux.lds.S
+--- a/arch/x86_64/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/x86_64/kernel/vmlinux.lds.S
+@@ -210,10 +210,8 @@ SECTIONS
+   __initramfs_end = .;
+ #endif
+ 
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
++
+   . = ALIGN(4096);
+   __init_end = .;
+ 
+diff -puN arch/xtensa/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4 arch/xtensa/kernel/vmlinux.lds.S
+--- a/arch/xtensa/kernel/vmlinux.lds.S~define-new-percpu-interface-for-shared-data-version-4
++++ a/arch/xtensa/kernel/vmlinux.lds.S
+@@ -190,10 +190,7 @@ SECTIONS
+   __initramfs_end = .;
+ #endif
+ 
+-  . = ALIGN(4096);
+-  __per_cpu_start = .;
+-  .data.percpu  : { *(.data.percpu) }
+-  __per_cpu_end = .;
++  PERCPU(4096)
+ 
+ 
+   /* We need this dummy segment here */
+diff -puN include/asm-generic/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-generic/percpu.h
+--- a/include/asm-generic/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-generic/percpu.h
+@@ -14,6 +14,11 @@ extern unsigned long __per_cpu_offset[NR
+ #define DEFINE_PER_CPU(type, name) \
+     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
++    __attribute__((__section__(".data.percpu.shared_aligned"))) \
++    __typeof__(type) per_cpu__##name				\
++    ____cacheline_aligned_in_smp
++
+ /* var is in discarded region: offset to particular copy we want */
+ #define per_cpu(var, cpu) (*({				\
+ 	extern int simple_identifier_##var(void);	\
+@@ -34,6 +39,9 @@ do {								\
+ #define DEFINE_PER_CPU(type, name) \
+     __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
++    DEFINE_PER_CPU(type, name)
++
+ #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
+ #define __get_cpu_var(var)			per_cpu__##var
+ #define __raw_get_cpu_var(var)			per_cpu__##var
+diff -puN include/asm-generic/vmlinux.lds.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -267,3 +267,11 @@
+   	*(.initcall7.init)						\
+   	*(.initcall7s.init)
+ 
++#define PERCPU(align)							\
++	. = ALIGN(align);						\
++	__per_cpu_start = .;						\
++	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
++		*(.data.percpu)						\
++		*(.data.percpu.shared_aligned)				\
++	}								\
++	__per_cpu_end = .;
+diff -puN include/asm-i386/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-i386/percpu.h
+--- a/include/asm-i386/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-i386/percpu.h
+@@ -54,6 +54,11 @@ extern unsigned long __per_cpu_offset[];
+ #define DEFINE_PER_CPU(type, name) \
+     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
++    __attribute__((__section__(".data.percpu.shared_aligned"))) \
++    __typeof__(type) per_cpu__##name				\
++    ____cacheline_aligned_in_smp
++
+ /* We can use this directly for local CPU (faster). */
+ DECLARE_PER_CPU(unsigned long, this_cpu_off);
+ 
+diff -puN include/asm-ia64/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-ia64/percpu.h
+--- a/include/asm-ia64/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-ia64/percpu.h
+@@ -29,6 +29,16 @@
+ 	__attribute__((__section__(".data.percpu")))		\
+ 	__SMALL_ADDR_AREA __typeof__(type) per_cpu__##name
+ 
++#ifdef CONFIG_SMP
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
++	__attribute__((__section__(".data.percpu.shared_aligned")))	\
++	__SMALL_ADDR_AREA __typeof__(type) per_cpu__##name		\
++	____cacheline_aligned_in_smp
++#else
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
++	DEFINE_PER_CPU(type, name)
++#endif
++
+ /*
+  * Pretty much a literal copy of asm-generic/percpu.h, except that percpu_modcopy() is an
+  * external routine, to avoid include-hell.
+diff -puN include/asm-powerpc/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-powerpc/percpu.h
+--- a/include/asm-powerpc/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-powerpc/percpu.h
+@@ -20,6 +20,11 @@
+ #define DEFINE_PER_CPU(type, name) \
+     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
++    __attribute__((__section__(".data.percpu.shared_aligned"))) \
++    __typeof__(type) per_cpu__##name				\
++    ____cacheline_aligned_in_smp
++
+ /* var is in discarded region: offset to particular copy we want */
+ #define per_cpu(var, cpu) (*RELOC_HIDE(&per_cpu__##var, __per_cpu_offset(cpu)))
+ #define __get_cpu_var(var) (*RELOC_HIDE(&per_cpu__##var, __my_cpu_offset()))
+@@ -40,6 +45,8 @@ extern void setup_per_cpu_areas(void);
+ 
+ #define DEFINE_PER_CPU(type, name) \
+     __typeof__(type) per_cpu__##name
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
++    DEFINE_PER_CPU(type, name)
+ 
+ #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
+ #define __get_cpu_var(var)			per_cpu__##var
+diff -puN include/asm-s390/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-s390/percpu.h
+--- a/include/asm-s390/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-s390/percpu.h
+@@ -41,6 +41,11 @@ extern unsigned long __per_cpu_offset[NR
+     __attribute__((__section__(".data.percpu"))) \
+     __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
++    __attribute__((__section__(".data.percpu.shared_aligned"))) \
++    __typeof__(type) per_cpu__##name				\
++    ____cacheline_aligned_in_smp
++
+ #define __get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
+ #define __raw_get_cpu_var(var) __reloc_hide(var,S390_lowcore.percpu_offset)
+ #define per_cpu(var,cpu) __reloc_hide(var,__per_cpu_offset[cpu])
+@@ -59,6 +64,8 @@ do {								\
+ 
+ #define DEFINE_PER_CPU(type, name) \
+     __typeof__(type) per_cpu__##name
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
++    DEFINE_PER_CPU(type, name)
+ 
+ #define __get_cpu_var(var) __reloc_hide(var,0)
+ #define __raw_get_cpu_var(var) __reloc_hide(var,0)
+diff -puN include/asm-sparc64/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-sparc64/percpu.h
+--- a/include/asm-sparc64/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-sparc64/percpu.h
+@@ -18,6 +18,11 @@ extern unsigned long __per_cpu_shift;
+ #define DEFINE_PER_CPU(type, name) \
+     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
++    __attribute__((__section__(".data.percpu.shared_aligned"))) \
++    __typeof__(type) per_cpu__##name				\
++    ____cacheline_aligned_in_smp
++
+ register unsigned long __local_per_cpu_offset asm("g5");
+ 
+ /* var is in discarded region: offset to particular copy we want */
+@@ -38,6 +43,8 @@ do {								\
+ #define real_setup_per_cpu_areas()		do { } while (0)
+ #define DEFINE_PER_CPU(type, name) \
+     __typeof__(type) per_cpu__##name
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
++    DEFINE_PER_CPU(type, name)
+ 
+ #define per_cpu(var, cpu)			(*((void)cpu, &per_cpu__##var))
+ #define __get_cpu_var(var)			per_cpu__##var
+diff -puN include/asm-x86_64/percpu.h~define-new-percpu-interface-for-shared-data-version-4 include/asm-x86_64/percpu.h
+--- a/include/asm-x86_64/percpu.h~define-new-percpu-interface-for-shared-data-version-4
++++ a/include/asm-x86_64/percpu.h
+@@ -20,6 +20,11 @@
+ #define DEFINE_PER_CPU(type, name) \
+     __attribute__((__section__(".data.percpu"))) __typeof__(type) per_cpu__##name
+ 
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		\
++    __attribute__((__section__(".data.percpu.shared_aligned"))) \
++    __typeof__(type) per_cpu__##name				\
++    ____cacheline_internodealigned_in_smp
++
+ /* var is in discarded region: offset to particular copy we want */
+ #define per_cpu(var, cpu) (*({				\
+ 	extern int simple_identifier_##var(void);	\
+@@ -46,6 +51,8 @@ extern void setup_per_cpu_areas(void);
+ 
+ #define DEFINE_PER_CPU(type, name) \
+     __typeof__(type) per_cpu__##name
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)	\
++    DEFINE_PER_CPU(type, name)
+ 
+ #define per_cpu(var, cpu)			(*((void)(cpu), &per_cpu__##var))
+ #define __get_cpu_var(var)			per_cpu__##var
 _
 
 Patches currently in -mm which might be from fenghua.yu@intel.com are
