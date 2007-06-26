@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-pci-generic-helper-function.patch added to -mm tree
-Date: Mon, 25 Jun 2007 23:42:46 -0700
-Message-ID: <200706260642.l5Q6gkSh020211@imap1.linux-foundation.org>
+Subject: + intel-iommu-clflush_cache_range-now-takes-size-param.patch added to -mm tree
+Date: Mon, 25 Jun 2007 23:42:50 -0700
+Message-ID: <200706260642.l5Q6gokK020217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51166 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751198AbXFZGnN (ORCPT
+	by vger.kernel.org with ESMTP id S1751882AbXFZGnP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 02:43:13 -0400
+	Tue, 26 Jun 2007 02:43:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@in
 
 
 The patch titled
-     Intel IOMMU: PCI generic helper function
+     Intel IOMMU: clflush_cache_range now takes size param
 has been added to the -mm tree.  Its filename is
-     intel-iommu-pci-generic-helper-function.patch
+     intel-iommu-clflush_cache_range-now-takes-size-param.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,16 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Intel IOMMU: PCI generic helper function
+Subject: Intel IOMMU: clflush_cache_range now takes size param
 From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-When devices are under a p2p bridge, upstream transactions get replaced by the
-device id of the bridge as it owns the PCIE transaction.  Hence its necessary
-to setup translations on behalf of the bridge as well.  Due to this limitation
-all devices under a p2p share the same domain in a DMAR.
-
-We just cache the type of device, if its a native PCIe device
-or not for later use.
+Introduce the size param for clflush_cache_range().
 
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -50,110 +44,46 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.h    |    1 +
- drivers/pci/probe.c  |   14 ++++++++++++++
- drivers/pci/search.c |   30 ++++++++++++++++++++++++++++++
- include/linux/pci.h  |    2 ++
- 4 files changed, 47 insertions(+)
+ arch/x86_64/mm/pageattr.c       |    6 +++---
+ include/asm-x86_64/cacheflush.h |    1 +
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/pci.h~intel-iommu-pci-generic-helper-function drivers/pci/pci.h
---- a/drivers/pci/pci.h~intel-iommu-pci-generic-helper-function
-+++ a/drivers/pci/pci.h
-@@ -92,3 +92,4 @@ pci_match_one_device(const struct pci_de
- 	return NULL;
- }
+diff -puN arch/x86_64/mm/pageattr.c~intel-iommu-clflush_cache_range-now-takes-size-param arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~intel-iommu-clflush_cache_range-now-takes-size-param
++++ a/arch/x86_64/mm/pageattr.c
+@@ -61,10 +61,10 @@ static struct page *split_large_page(uns
+ 	return base;
+ } 
  
-+struct pci_dev *pci_find_upstream_pcie_bridge(struct pci_dev *pdev);
-diff -puN drivers/pci/probe.c~intel-iommu-pci-generic-helper-function drivers/pci/probe.c
---- a/drivers/pci/probe.c~intel-iommu-pci-generic-helper-function
-+++ a/drivers/pci/probe.c
-@@ -861,6 +861,19 @@ static void pci_release_dev(struct devic
- 	kfree(pci_dev);
- }
- 
-+static void set_pcie_port_type(struct pci_dev *pdev)
-+{
-+	int pos;
-+	u16 reg16;
-+
-+	pos = pci_find_capability(pdev, PCI_CAP_ID_EXP);
-+	if (!pos)
-+		return;
-+	pdev->is_pcie = 1;
-+	pci_read_config_word(pdev, pos + PCI_EXP_FLAGS, &reg16);
-+	pdev->pcie_type = (reg16 & PCI_EXP_FLAGS_TYPE) >> 4;
-+}
-+
- /**
-  * pci_cfg_space_size - get the configuration space size of the PCI device.
-  * @dev: PCI device
-@@ -975,6 +988,7 @@ pci_scan_device(struct pci_bus *bus, int
- 	dev->device = (l >> 16) & 0xffff;
- 	dev->cfg_size = pci_cfg_space_size(dev);
- 	dev->error_state = pci_channel_io_normal;
-+	set_pcie_port_type(dev);
- 
- 	/* Assume 32-bit PCI; let 64-bit PCI cards (which are far rarer)
- 	   set this higher, assuming the system even supports it.  */
-diff -puN drivers/pci/search.c~intel-iommu-pci-generic-helper-function drivers/pci/search.c
---- a/drivers/pci/search.c~intel-iommu-pci-generic-helper-function
-+++ a/drivers/pci/search.c
-@@ -14,6 +14,36 @@
- #include "pci.h"
- 
- DECLARE_RWSEM(pci_bus_sem);
-+/*
-+ * find the upstream PCIE-to-PCI bridge of a PCI device
-+ * if the device is PCIE, return NULL
-+ * if the device isn't connected to a PCIE bridge (that is its parent is a
-+ * legacy PCI bridge and the bridge is directly connected to bus 0), return its
-+ * parent
-+ */
-+struct pci_dev *
-+pci_find_upstream_pcie_bridge(struct pci_dev *pdev)
-+{
-+	struct pci_dev *tmp = NULL;
-+
-+	if (pdev->is_pcie)
-+		return NULL;
-+	while (1) {
-+		if (!pdev->bus->self)
-+			break;
-+		pdev = pdev->bus->self;
-+		/* a p2p bridge */
-+		if (!pdev->is_pcie) {
-+			tmp = pdev;
-+			continue;
-+		}
-+		/* PCI device should connect to a PCIE bridge */
-+		BUG_ON(pdev->pcie_type != PCI_EXP_TYPE_PCI_BRIDGE);
-+		return pdev;
-+	}
-+
-+	return tmp;
-+}
- 
- static struct pci_bus *pci_do_find_bus(struct pci_bus *bus, unsigned char busnr)
+-static void cache_flush_page(void *adr)
++void clflush_cache_range(void *adr, int size)
  {
-diff -puN include/linux/pci.h~intel-iommu-pci-generic-helper-function include/linux/pci.h
---- a/include/linux/pci.h~intel-iommu-pci-generic-helper-function
-+++ a/include/linux/pci.h
-@@ -141,6 +141,7 @@ struct pci_dev {
- 	unsigned int	class;		/* 3 bytes: (base,sub,prog-if) */
- 	u8		revision;	/* PCI revision, low byte of class word */
- 	u8		hdr_type;	/* PCI header type (`multi' flag masked out) */
-+	u8		pcie_type;	/* PCI-E device/port type */
- 	u8		rom_base_reg;	/* which config register controls the ROM */
- 	u8		pin;  		/* which interrupt pin this device uses */
+ 	int i;
+-	for (i = 0; i < PAGE_SIZE; i += boot_cpu_data.x86_clflush_size)
++	for (i = 0; i < size; i += boot_cpu_data.x86_clflush_size)
+ 		asm volatile("clflush (%0)" :: "r" (adr + i));
+ }
  
-@@ -183,6 +184,7 @@ struct pci_dev {
- 	unsigned int 	msi_enabled:1;
- 	unsigned int	msix_enabled:1;
- 	unsigned int	is_managed:1;
-+	unsigned int	is_pcie:1;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
+@@ -79,7 +79,7 @@ static void flush_kernel_map(void *arg)
+ 		asm volatile("wbinvd" ::: "memory");
+ 	else list_for_each_entry(pg, l, lru) {
+ 		void *adr = page_address(pg);
+-		cache_flush_page(adr);
++		cache_flush_page(adr, PAGE_SIZE);
+ 	}
+ 	__flush_tlb_all();
+ }
+diff -puN include/asm-x86_64/cacheflush.h~intel-iommu-clflush_cache_range-now-takes-size-param include/asm-x86_64/cacheflush.h
+--- a/include/asm-x86_64/cacheflush.h~intel-iommu-clflush_cache_range-now-takes-size-param
++++ a/include/asm-x86_64/cacheflush.h
+@@ -27,6 +27,7 @@
+ void global_flush_tlb(void); 
+ int change_page_attr(struct page *page, int numpages, pgprot_t prot);
+ int change_page_attr_addr(unsigned long addr, int numpages, pgprot_t prot);
++void clflush_cache_range(void *addr, int size);
  
- 	u32		saved_config_space[16]; /* config space saved at suspend time */
+ #ifdef CONFIG_DEBUG_RODATA
+ void mark_rodata_ro(void);
 _
 
 Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
