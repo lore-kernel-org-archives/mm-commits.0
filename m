@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + move-seccomp-from-proc-to-a-prctl.patch added to -mm tree
-Date: Tue, 26 Jun 2007 13:58:10 -0700
-Message-ID: <200706262058.l5QKwA7W001977@imap1.linux-foundation.org>
+Subject: + make-seccomp-zerocost-in-schedule.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:02:25 -0700
+Message-ID: <200706262102.l5QL2PjC002049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39891 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757950AbXFZU6Z (ORCPT
+	by vger.kernel.org with ESMTP id S1758565AbXFZVCn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 16:58:25 -0400
+	Tue, 26 Jun 2007 17:02:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andrea@cpushare.com
+Cc: andrea@cpushare.com, ak@suse.de
 
 
 The patch titled
-     move seccomp from /proc to a prctl
+     make seccomp zerocost in schedule
 has been added to the -mm tree.  Its filename is
-     move-seccomp-from-proc-to-a-prctl.patch
+     make-seccomp-zerocost-in-schedule.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,245 +26,216 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: move seccomp from /proc to a prctl
+Subject: make seccomp zerocost in schedule
 From: Andrea Arcangeli <andrea@cpushare.com>
 
-This reduces the memory footprint and it enforces that only the current
-task can enable seccomp on itself (this is a requirement for a
-strightforward [modulo preempt ;) ] TIF_NOTSC implementation).
+This follows a suggestion from Chuck Ebbert on how to make seccomp
+absolutely zerocost in schedule too.  The only remaining footprint of
+seccomp is in terms of the bzImage size that becomes a few bytes (perhaps
+even a few kbytes) larger, measure it if you care in the embedded.
 
 Signed-off-by: Andrea Arcangeli <andrea@cpushare.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c          |   72 --------------------------------------
- include/linux/prctl.h   |    4 ++
- include/linux/seccomp.h |   15 ++++++-
- kernel/seccomp.c        |   26 +++++++++++++
- kernel/sys.c            |    8 ++++
- 5 files changed, 51 insertions(+), 74 deletions(-)
+ arch/i386/kernel/process.c     |   73 ++++++++++++++++---------------
+ include/asm-i386/processor.h   |    4 +
+ include/asm-i386/thread_info.h |    5 +-
+ include/linux/seccomp.h        |   10 ----
+ kernel/seccomp.c               |    3 +
+ 5 files changed, 50 insertions(+), 45 deletions(-)
 
-diff -puN fs/proc/base.c~move-seccomp-from-proc-to-a-prctl fs/proc/base.c
---- a/fs/proc/base.c~move-seccomp-from-proc-to-a-prctl
-+++ a/fs/proc/base.c
-@@ -67,7 +67,6 @@
- #include <linux/mount.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
--#include <linux/seccomp.h>
- #include <linux/cpuset.h>
- #include <linux/audit.h>
- #include <linux/poll.h>
-@@ -781,71 +780,6 @@ static const struct file_operations proc
- };
- #endif
- 
--#ifdef CONFIG_SECCOMP
--static ssize_t seccomp_read(struct file *file, char __user *buf,
--			    size_t count, loff_t *ppos)
--{
--	struct task_struct *tsk = get_proc_task(file->f_dentry->d_inode);
--	char __buf[20];
--	size_t len;
--
--	if (!tsk)
--		return -ESRCH;
--	/* no need to print the trailing zero, so use only len */
--	len = sprintf(__buf, "%u\n", tsk->seccomp.mode);
--	put_task_struct(tsk);
--
--	return simple_read_from_buffer(buf, count, ppos, __buf, len);
--}
--
--static ssize_t seccomp_write(struct file *file, const char __user *buf,
--			     size_t count, loff_t *ppos)
--{
--	struct task_struct *tsk = get_proc_task(file->f_dentry->d_inode);
--	char __buf[20], *end;
--	unsigned int seccomp_mode;
--	ssize_t result;
--
--	result = -ESRCH;
--	if (!tsk)
--		goto out_no_task;
--
--	/* can set it only once to be even more secure */
--	result = -EPERM;
--	if (unlikely(tsk->seccomp.mode))
--		goto out;
--
--	result = -EFAULT;
--	memset(__buf, 0, sizeof(__buf));
--	count = min(count, sizeof(__buf) - 1);
--	if (copy_from_user(__buf, buf, count))
--		goto out;
--
--	seccomp_mode = simple_strtoul(__buf, &end, 0);
--	if (*end == '\n')
--		end++;
--	result = -EINVAL;
--	if (seccomp_mode && seccomp_mode <= NR_SECCOMP_MODES) {
--		tsk->seccomp.mode = seccomp_mode;
--		set_tsk_thread_flag(tsk, TIF_SECCOMP);
--	} else
--		goto out;
--	result = -EIO;
--	if (unlikely(!(end - __buf)))
--		goto out;
--	result = end - __buf;
--out:
--	put_task_struct(tsk);
--out_no_task:
--	return result;
--}
--
--static const struct file_operations proc_seccomp_operations = {
--	.read		= seccomp_read,
--	.write		= seccomp_write,
--};
--#endif /* CONFIG_SECCOMP */
--
- #ifdef CONFIG_FAULT_INJECTION
- static ssize_t proc_fault_inject_read(struct file * file, char __user * buf,
- 				      size_t count, loff_t *ppos)
-@@ -1941,9 +1875,6 @@ static const struct pid_entry tgid_base_
- 	REG("numa_maps",  S_IRUGO, numa_maps),
- #endif
- 	REG("mem",        S_IRUSR|S_IWUSR, mem),
--#ifdef CONFIG_SECCOMP
--	REG("seccomp",    S_IRUSR|S_IWUSR, seccomp),
--#endif
- 	LNK("cwd",        cwd),
- 	LNK("root",       root),
- 	LNK("exe",        exe),
-@@ -2232,9 +2163,6 @@ static const struct pid_entry tid_base_s
- 	REG("numa_maps", S_IRUGO, numa_maps),
- #endif
- 	REG("mem",       S_IRUSR|S_IWUSR, mem),
--#ifdef CONFIG_SECCOMP
--	REG("seccomp",   S_IRUSR|S_IWUSR, seccomp),
--#endif
- 	LNK("cwd",       cwd),
- 	LNK("root",      root),
- 	LNK("exe",       exe),
-diff -puN include/linux/prctl.h~move-seccomp-from-proc-to-a-prctl include/linux/prctl.h
---- a/include/linux/prctl.h~move-seccomp-from-proc-to-a-prctl
-+++ a/include/linux/prctl.h
-@@ -59,4 +59,8 @@
- # define PR_ENDIAN_LITTLE	1	/* True little endian mode */
- # define PR_ENDIAN_PPC_LITTLE	2	/* "PowerPC" pseudo little endian */
- 
-+/* Get/set process seccomp mode */
-+#define PR_GET_SECCOMP	21
-+#define PR_SET_SECCOMP	22
-+
- #endif /* _LINUX_PRCTL_H */
-diff -puN include/linux/seccomp.h~move-seccomp-from-proc-to-a-prctl include/linux/seccomp.h
---- a/include/linux/seccomp.h~move-seccomp-from-proc-to-a-prctl
-+++ a/include/linux/seccomp.h
-@@ -4,8 +4,6 @@
- 
- #ifdef CONFIG_SECCOMP
- 
--#define NR_SECCOMP_MODES 1
--
- #include <linux/thread_info.h>
- #include <asm/seccomp.h>
- 
-@@ -23,6 +21,9 @@ static inline int has_secure_computing(s
- 	return unlikely(test_ti_thread_flag(ti, TIF_SECCOMP));
+diff -puN arch/i386/kernel/process.c~make-seccomp-zerocost-in-schedule arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~make-seccomp-zerocost-in-schedule
++++ a/arch/i386/kernel/process.c
+@@ -550,8 +550,31 @@ int dump_task_regs(struct task_struct *t
+ 	return 1;
  }
  
-+extern long prctl_get_seccomp(void);
-+extern long prctl_set_seccomp(unsigned long);
+-static noinline void __switch_to_xtra(struct task_struct *next_p,
+-				    struct tss_struct *tss)
++#ifdef CONFIG_SECCOMP
++void hard_disable_TSC(void)
++{
++	write_cr4(read_cr4() | X86_CR4_TSD);
++}
++void disable_TSC(void)
++{
++	preempt_disable();
++	if (!test_and_set_thread_flag(TIF_NOTSC))
++		/*
++		 * Must flip the CPU state synchronously with
++		 * TIF_NOTSC in the current running context.
++		 */
++		hard_disable_TSC();
++	preempt_enable();
++}
++void hard_enable_TSC(void)
++{
++	write_cr4(read_cr4() & ~X86_CR4_TSD);
++}
++#endif /* CONFIG_SECCOMP */
 +
- #else /* CONFIG_SECCOMP */
++static noinline void
++__switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
++		 struct tss_struct *tss)
+ {
+ 	struct thread_struct *next;
  
- typedef struct { } seccomp_t;
-@@ -34,6 +35,16 @@ static inline int has_secure_computing(s
- 	return 0;
+@@ -567,6 +590,17 @@ static noinline void __switch_to_xtra(st
+ 		set_debugreg(next->debugreg[7], 7);
+ 	}
+ 
++#ifdef CONFIG_SECCOMP
++	if (test_tsk_thread_flag(prev_p, TIF_NOTSC) ^
++	    test_tsk_thread_flag(next_p, TIF_NOTSC)) {
++		/* prev and next are different */
++		if (test_tsk_thread_flag(next_p, TIF_NOTSC))
++			hard_disable_TSC();
++		else
++			hard_enable_TSC();
++	}
++#endif
++
+ 	if (!test_tsk_thread_flag(next_p, TIF_IO_BITMAP)) {
+ 		/*
+ 		 * Disable the bitmap via an invalid offset. We still cache
+@@ -598,33 +632,6 @@ static noinline void __switch_to_xtra(st
  }
- 
-+static inline long prctl_get_seccomp(void)
-+{
-+	return -EINVAL;
-+}
-+
-+static inline long prctl_set_seccomp(unsigned long arg2)
-+{
-+	return -EINVAL;
-+}
-+
- #endif /* CONFIG_SECCOMP */
- 
- #endif /* _LINUX_SECCOMP_H */
-diff -puN kernel/seccomp.c~move-seccomp-from-proc-to-a-prctl kernel/seccomp.c
---- a/kernel/seccomp.c~move-seccomp-from-proc-to-a-prctl
-+++ a/kernel/seccomp.c
-@@ -10,6 +10,7 @@
- #include <linux/sched.h>
- 
- /* #define SECCOMP_DEBUG 1 */
-+#define NR_SECCOMP_MODES 1
  
  /*
-  * Secure computing mode 1 allows only read/write/exit/sigreturn.
-@@ -54,3 +55,28 @@ void __secure_computing(int this_syscall
- #endif
- 	do_exit(SIGKILL);
+- * This function selects if the context switch from prev to next
+- * has to tweak the TSC disable bit in the cr4.
+- */
+-static inline void disable_tsc(struct task_struct *prev_p,
+-			       struct task_struct *next_p)
+-{
+-	struct thread_info *prev, *next;
+-
+-	/*
+-	 * gcc should eliminate the ->thread_info dereference if
+-	 * has_secure_computing returns 0 at compile time (SECCOMP=n).
+-	 */
+-	prev = task_thread_info(prev_p);
+-	next = task_thread_info(next_p);
+-
+-	if (has_secure_computing(prev) || has_secure_computing(next)) {
+-		/* slow path here */
+-		if (has_secure_computing(prev) &&
+-		    !has_secure_computing(next)) {
+-			write_cr4(read_cr4() & ~X86_CR4_TSD);
+-		} else if (!has_secure_computing(prev) &&
+-			   has_secure_computing(next))
+-			write_cr4(read_cr4() | X86_CR4_TSD);
+-	}
+-}
+-
+-/*
+  *	switch_to(x,yn) should switch tasks from x to y.
+  *
+  * We fsave/fwait so that an exception goes off at the right time
+@@ -701,11 +708,9 @@ struct task_struct fastcall * __switch_t
+ 	/*
+ 	 * Now maybe handle debug registers and/or IO bitmaps
+ 	 */
+-	if (unlikely((task_thread_info(next_p)->flags & _TIF_WORK_CTXSW)
+-	    || test_tsk_thread_flag(prev_p, TIF_IO_BITMAP)))
+-		__switch_to_xtra(next_p, tss);
+-
+-	disable_tsc(prev_p, next_p);
++	if (unlikely(task_thread_info(prev_p)->flags & _TIF_WORK_CTXSW_PREV ||
++		     task_thread_info(next_p)->flags & _TIF_WORK_CTXSW_NEXT))
++		__switch_to_xtra(prev_p, next_p, tss);
+ 
+ 	/*
+ 	 * Leave lazy mode, flushing any hypercalls made here.
+diff -puN include/asm-i386/processor.h~make-seccomp-zerocost-in-schedule include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~make-seccomp-zerocost-in-schedule
++++ a/include/asm-i386/processor.h
+@@ -227,6 +227,10 @@ extern int bootloader_type;
+ 
+ #define HAVE_ARCH_PICK_MMAP_LAYOUT
+ 
++extern void hard_disable_TSC(void);
++extern void disable_TSC(void);
++extern void hard_enable_TSC(void);
++
+ /*
+  * Size of io_bitmap.
+  */
+diff -puN include/asm-i386/thread_info.h~make-seccomp-zerocost-in-schedule include/asm-i386/thread_info.h
+--- a/include/asm-i386/thread_info.h~make-seccomp-zerocost-in-schedule
++++ a/include/asm-i386/thread_info.h
+@@ -136,6 +136,7 @@ static inline struct thread_info *curren
+ #define TIF_DEBUG		17	/* uses debug registers */
+ #define TIF_IO_BITMAP		18	/* uses I/O bitmap */
+ #define TIF_FREEZE		19	/* is freezing for suspend */
++#define TIF_NOTSC		20	/* TSC is not accessible in userland */
+ 
+ #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+@@ -149,6 +150,7 @@ static inline struct thread_info *curren
+ #define _TIF_DEBUG		(1<<TIF_DEBUG)
+ #define _TIF_IO_BITMAP		(1<<TIF_IO_BITMAP)
+ #define _TIF_FREEZE		(1<<TIF_FREEZE)
++#define _TIF_NOTSC		(1<<TIF_NOTSC)
+ 
+ /* work to do on interrupt/exception return */
+ #define _TIF_WORK_MASK \
+@@ -158,7 +160,8 @@ static inline struct thread_info *curren
+ #define _TIF_ALLWORK_MASK	(0x0000FFFF & ~_TIF_SECCOMP)
+ 
+ /* flags to check in __switch_to() */
+-#define _TIF_WORK_CTXSW (_TIF_DEBUG|_TIF_IO_BITMAP)
++#define _TIF_WORK_CTXSW_NEXT (_TIF_IO_BITMAP | _TIF_NOTSC | _TIF_DEBUG)
++#define _TIF_WORK_CTXSW_PREV (_TIF_IO_BITMAP | _TIF_NOTSC)
+ 
+ /*
+  * Thread-synchronous status.
+diff -puN include/linux/seccomp.h~make-seccomp-zerocost-in-schedule include/linux/seccomp.h
+--- a/include/linux/seccomp.h~make-seccomp-zerocost-in-schedule
++++ a/include/linux/seccomp.h
+@@ -16,11 +16,6 @@ static inline void secure_computing(int 
+ 		__secure_computing(this_syscall);
  }
-+
-+long prctl_get_seccomp(void)
-+{
-+	return current->seccomp.mode;
-+}
-+
-+long prctl_set_seccomp(unsigned long seccomp_mode)
-+{
-+	long ret;
-+
-+	/* can set it only once to be even more secure */
-+	ret = -EPERM;
-+	if (unlikely(current->seccomp.mode))
-+		goto out;
-+
-+	ret = -EINVAL;
-+	if (seccomp_mode && seccomp_mode <= NR_SECCOMP_MODES) {
-+		current->seccomp.mode = seccomp_mode;
-+		set_thread_flag(TIF_SECCOMP);
-+		ret = 0;
-+	}
-+
-+ out:
-+	return ret;
-+}
-diff -puN kernel/sys.c~move-seccomp-from-proc-to-a-prctl kernel/sys.c
---- a/kernel/sys.c~move-seccomp-from-proc-to-a-prctl
-+++ a/kernel/sys.c
-@@ -31,6 +31,7 @@
- #include <linux/cn_proc.h>
- #include <linux/getcpu.h>
- #include <linux/task_io_accounting_ops.h>
-+#include <linux/seccomp.h>
  
- #include <linux/compat.h>
- #include <linux/syscalls.h>
-@@ -2242,6 +2243,13 @@ asmlinkage long sys_prctl(int option, un
- 			error = SET_ENDIAN(current, arg2);
- 			break;
+-static inline int has_secure_computing(struct thread_info *ti)
+-{
+-	return unlikely(test_ti_thread_flag(ti, TIF_SECCOMP));
+-}
+-
+ extern long prctl_get_seccomp(void);
+ extern long prctl_set_seccomp(unsigned long);
  
-+		case PR_GET_SECCOMP:
-+			error = prctl_get_seccomp();
-+			break;
-+		case PR_SET_SECCOMP:
-+			error = prctl_set_seccomp(arg2);
-+			break;
-+
- 		default:
- 			error = -EINVAL;
- 			break;
+@@ -29,11 +24,6 @@ extern long prctl_set_seccomp(unsigned l
+ typedef struct { } seccomp_t;
+ 
+ #define secure_computing(x) do { } while (0)
+-/* static inline to preserve typechecking */
+-static inline int has_secure_computing(struct thread_info *ti)
+-{
+-	return 0;
+-}
+ 
+ static inline long prctl_get_seccomp(void)
+ {
+diff -puN kernel/seccomp.c~make-seccomp-zerocost-in-schedule kernel/seccomp.c
+--- a/kernel/seccomp.c~make-seccomp-zerocost-in-schedule
++++ a/kernel/seccomp.c
+@@ -74,6 +74,9 @@ long prctl_set_seccomp(unsigned long sec
+ 	if (seccomp_mode && seccomp_mode <= NR_SECCOMP_MODES) {
+ 		current->seccomp.mode = seccomp_mode;
+ 		set_thread_flag(TIF_SECCOMP);
++#ifdef TIF_NOTSC
++		disable_TSC();
++#endif
+ 		ret = 0;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from andrea@cpushare.com are
 
 move-seccomp-from-proc-to-a-prctl.patch
+make-seccomp-zerocost-in-schedule.patch
