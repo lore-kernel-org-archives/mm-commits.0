@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:20:37 -0700
-Message-ID: <200706261920.l5QJKb1N000375@imap1.linux-foundation.org>
+Subject: + ich-force-hpet-ich5-quirk-to-force-detect-enable.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:20:41 -0700
+Message-ID: <200706261920.l5QJKfDd000385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34901 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758250AbXFZTVZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756774AbXFZTVj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:21:25 -0400
+	Tue, 26 Jun 2007 15:21:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.c
 
 
 The patch titled
-     ICH Force HPET: ICH7 or later quirk to force detect enable
+     ICH Force HPET: ICH5 quirk to force detect enable
 has been added to the -mm tree.  Its filename is
-     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+     ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,16 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ICH Force HPET: ICH7 or later quirk to force detect enable
+Subject: ICH Force HPET: ICH5 quirk to force detect enable
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Force detect and/or enable HPET on ICH chipsets.  This patch just handles the
-detection part and following patches use this information.  Adds a function to
-repeat the force enabling during resume time.
-
-Using HPET this way, instead of PIT increases the time CPUs can reside in
-C-state when system is totally idle.  On my test system with Core 2 Duo,
-average C-state residency goes up from ~20mS to ~80mS.
+force_enable hpet for ICH5.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -46,137 +40,172 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |  101 ++++++++++++++++++++++++++++++++++++
+ arch/i386/kernel/hpet.c   |    2 
+ arch/i386/kernel/quirks.c |  101 +++++++++++++++++++++++++++++++++++-
  include/asm-i386/hpet.h   |    2 
- 2 files changed, 103 insertions(+)
+ include/linux/pci_ids.h   |    1 
+ 4 files changed, 103 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
+diff -puN arch/i386/kernel/hpet.c~ich-force-hpet-ich5-quirk-to-force-detect-enable arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~ich-force-hpet-ich5-quirk-to-force-detect-enable
++++ a/arch/i386/kernel/hpet.c
+@@ -195,7 +195,7 @@ static void hpet_start_counter(void)
+ 
+ static void hpet_resume_device(void)
+ {
+-	ich_force_hpet_resume();
++	force_hpet_resume();
+ }
+ 
+ static void hpet_restart_counter(void)
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable
 +++ a/arch/i386/kernel/quirks.c
-@@ -4,6 +4,8 @@
- #include <linux/pci.h>
- #include <linux/irq.h>
+@@ -54,9 +54,15 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
+ #if defined(CONFIG_HPET_TIMER)
+ unsigned long force_hpet_address;
  
-+#include <asm/hpet.h>
++static enum {
++	NONE_FORCE_HPET_RESUME,
++	OLD_ICH_FORCE_HPET_RESUME,
++	ICH_FORCE_HPET_RESUME
++} force_hpet_resume_type;
 +
- #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
+ static void __iomem *rcba_base;
  
- static void __devinit quirk_intel_irqbalance(struct pci_dev *dev)
-@@ -48,3 +50,102 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7525_MCH,	quirk_intel_irqbalance);
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7520_MCH,	quirk_intel_irqbalance);
- #endif
+-void ich_force_hpet_resume(void)
++static void ich_force_hpet_resume(void)
+ {
+ 	u32 val;
+ 
+@@ -133,6 +139,7 @@ static void ich_force_enable_hpet(struct
+ 		iounmap(rcba_base);
+ 		printk(KERN_DEBUG "Failed to force enable HPET\n");
+ 	} else {
++		force_hpet_resume_type = ICH_FORCE_HPET_RESUME;
+ 		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
+ 			       force_hpet_address);
+ 	}
+@@ -148,4 +155,96 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+                          ich_force_enable_hpet);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_1,
+                          ich_force_enable_hpet);
 +
-+#if defined(CONFIG_HPET_TIMER)
-+unsigned long force_hpet_address;
 +
-+static void __iomem *rcba_base;
++static struct pci_dev *cached_dev;
 +
-+void ich_force_hpet_resume(void)
++static void old_ich_force_hpet_resume(void)
 +{
-+	u32 val;
++	u32 val, gen_cntl;
 +
-+	if (!force_hpet_address)
++	if (!force_hpet_address || !cached_dev)
 +		return;
 +
-+	if (rcba_base == NULL)
-+		BUG();
++	pci_read_config_dword(cached_dev, 0xD0, &gen_cntl);
++	gen_cntl &= (~(0x7 << 15));
++	gen_cntl |= (0x4 << 15);
 +
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80)) {
-+		/* HPET disabled in HPTC. Trying to enable */
-+		writel(val | 0x80, rcba_base + 0x3404);
-+	}
-+
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80))
-+		BUG();
-+	else
++	pci_write_config_dword(cached_dev, 0xD0, gen_cntl);
++	pci_read_config_dword(cached_dev, 0xD0, &gen_cntl);
++	val = gen_cntl >> 15;
++	val &= 0x7;
++	if (val == 0x4)
 +		printk(KERN_DEBUG "Force enabled HPET at resume\n");
-+
-+	return;
++	else
++		BUG();
 +}
 +
-+static void ich_force_enable_hpet(struct pci_dev *dev)
++static void old_ich_force_enable_hpet(struct pci_dev *dev)
 +{
-+	u32 val, rcba;
-+	int err = 0;
++	u32 val, gen_cntl;
 +
 +	if (hpet_address || force_hpet_address)
 +		return;
 +
-+	pci_read_config_dword(dev, 0xF0, &rcba);
-+	rcba &= 0xFFFFC000;
-+	if (rcba == 0) {
-+		printk(KERN_DEBUG "RCBA disabled. Cannot force enable HPET\n");
++	pci_read_config_dword(dev, 0xD0, &gen_cntl);
++	/*
++	 * Bit 17 is HPET enable bit.
++	 * Bit 16:15 control the HPET base address.
++	 */
++	val = gen_cntl >> 15;
++	val &= 0x7;
++	if (val & 0x4) {
++		val &= 0x3;
++		force_hpet_address = 0xFED00000 | (val << 12);
++		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
++			       force_hpet_address);
++		cached_dev = dev;
 +		return;
 +	}
 +
-+	/* use bits 31:14, 16 kB aligned */
-+	rcba_base = ioremap_nocache(rcba, 0x4000);
-+	if (rcba_base == NULL) {
-+		printk(KERN_DEBUG "ioremap failed. Cannot force enable HPET\n");
-+		return;
-+	}
++	/*
++	 * HPET is disabled. Trying enabling at FED00000 and check
++	 * whether it sticks
++	 */
++	gen_cntl &= (~(0x7 << 15));
++	gen_cntl |= (0x4 << 15);
++	pci_write_config_dword(dev, 0xD0, gen_cntl);
 +
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(rcba_base + 0x3404);
++	pci_read_config_dword(dev, 0xD0, &gen_cntl);
 +
-+	if (val & 0x80) {
++	val = gen_cntl >> 15;
++	val &= 0x7;
++	if (val & 0x4) {
 +		/* HPET is enabled in HPTC. Just not reported by BIOS */
-+		val = val & 0x3;
++		val &= 0x3;
 +		force_hpet_address = 0xFED00000 | (val << 12);
 +		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
 +			       force_hpet_address);
-+		iounmap(rcba_base);
++		force_hpet_resume_type = OLD_ICH_FORCE_HPET_RESUME;
 +		return;
 +	}
 +
-+	/* HPET disabled in HPTC. Trying to enable */
-+	writel(val | 0x80, rcba_base + 0x3404);
++	printk(KERN_DEBUG "Failed to force enable HPET\n");
++}
 +
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80)) {
-+		err = 1;
-+	} else {
-+		val = val & 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+	}
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801EB_0,
++                         old_ich_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801EB_12,
++                         old_ich_force_enable_hpet);
 +
-+	if (err) {
-+		force_hpet_address = 0;
-+		iounmap(rcba_base);
-+		printk(KERN_DEBUG "Failed to force enable HPET\n");
-+	} else {
-+		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+			       force_hpet_address);
++void force_hpet_resume(void)
++{
++	switch (force_hpet_resume_type) {
++	    case ICH_FORCE_HPET_RESUME:
++		return ich_force_hpet_resume();
++
++	    case OLD_ICH_FORCE_HPET_RESUME:
++		return old_ich_force_hpet_resume();
++
++	    default:
++		break;
 +	}
 +}
 +
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_0,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_1,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_1,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_31,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_1,
-+                         ich_force_enable_hpet);
-+#endif
-diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable include/asm-i386/hpet.h
---- a/include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
+ #endif
+diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich5-quirk-to-force-detect-enable include/asm-i386/hpet.h
+--- a/include/asm-i386/hpet.h~ich-force-hpet-ich5-quirk-to-force-detect-enable
 +++ a/include/asm-i386/hpet.h
-@@ -72,6 +72,8 @@ extern int hpet_enable(void);
+@@ -73,7 +73,7 @@ extern int hpet_enable(void);
  #include <asm/vsyscall.h>
  #endif
  
-+void ich_force_hpet_resume(void);
-+
+-void ich_force_hpet_resume(void);
++void force_hpet_resume(void);
+ 
  #ifdef CONFIG_HPET_EMULATE_RTC
  
- #include <linux/interrupt.h>
+diff -puN include/linux/pci_ids.h~ich-force-hpet-ich5-quirk-to-force-detect-enable include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~ich-force-hpet-ich5-quirk-to-force-detect-enable
++++ a/include/linux/pci_ids.h
+@@ -2225,6 +2225,7 @@
+ #define PCI_DEVICE_ID_INTEL_82801EB_5	0x24d5
+ #define PCI_DEVICE_ID_INTEL_82801EB_6	0x24d6
+ #define PCI_DEVICE_ID_INTEL_82801EB_11	0x24db
++#define PCI_DEVICE_ID_INTEL_82801EB_12	0x24dc
+ #define PCI_DEVICE_ID_INTEL_82801EB_13	0x24dd
+ #define PCI_DEVICE_ID_INTEL_ESB_1	0x25a1
+ #define PCI_DEVICE_ID_INTEL_ESB_2	0x25a2
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
