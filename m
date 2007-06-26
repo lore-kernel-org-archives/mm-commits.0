@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clockevents-fix-device-replacement.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:34 -0700
-Message-ID: <200706260007.l5Q07YCZ014418@imap1.linux-foundation.org>
+Subject: + nohz-fix-nohz-x86-dyntick-idle-handling.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:19 -0700
+Message-ID: <200706260007.l5Q07J9b014397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47103 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755380AbXFZAIX (ORCPT
+	by vger.kernel.org with ESMTP id S1754714AbXFZAIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:08:23 -0400
+	Mon, 25 Jun 2007 20:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, johnstul@us.ibm.com
+Cc: tglx@linutronix.de, abelay@novell.com, davem@davemloft.net, lenb@kernel.org, lethal@linux-sh.org, mingo@elte.hu, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     clockevents: fix device replacement
+     NOHZ: fix nohz x86 dyntick idle handling
 has been added to the -mm tree.  Its filename is
-     clockevents-fix-device-replacement.patch
+     nohz-fix-nohz-x86-dyntick-idle-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clockevents: fix device replacement
+Subject: NOHZ: fix nohz x86 dyntick idle handling
 From: Thomas Gleixner <tglx@linutronix.de>
 
-When a device is replaced by a better rated device, then the broadcast
-mode needs to be evaluated again. When the new device has no requirement
-for broadcasting, then the broadcast bits for the CPU must be cleared.
+The cpuidle patches moved the tick nohz handling from irq_exit into the inner
+idle loop.  The change is correct as it covers non interrupt based wakeups
+(e.g DMA) on x86 as well, but the move breaks ARM, SH and SPARC64.
+
+Keep the original implementation and deselet the irq exit code for those
+architectures which have idle wakeups without interrupts.
+
+This way the non affected architectures are not burdened with the extra
+changes in the idle implementation.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Adam Belay <abelay@novell.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Dave Miller <davem@davemloft.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |   29 ++++++++++++++++++++++++++++-
- 1 files changed, 28 insertions(+), 1 deletion(-)
+ arch/i386/Kconfig |    4 ++++
+ kernel/softirq.c  |    5 +++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN kernel/time/tick-broadcast.c~clockevents-fix-device-replacement kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~clockevents-fix-device-replacement
-+++ a/kernel/time/tick-broadcast.c
-@@ -31,6 +31,12 @@ struct tick_device tick_broadcast_device
- static cpumask_t tick_broadcast_mask;
- static DEFINE_SPINLOCK(tick_broadcast_lock);
+diff -puN arch/i386/Kconfig~nohz-fix-nohz-x86-dyntick-idle-handling arch/i386/Kconfig
+--- a/arch/i386/Kconfig~nohz-fix-nohz-x86-dyntick-idle-handling
++++ a/arch/i386/Kconfig
+@@ -31,6 +31,10 @@ config GENERIC_CLOCKEVENTS_BROADCAST
+ 	default y
+ 	depends on X86_LOCAL_APIC
  
-+#ifdef CONFIG_TICK_ONESHOT
-+static void tick_broadcast_clear_oneshot(int cpu);
-+#else
-+static inline void tick_broadcast_clear_oneshot(int cpu) { }
++config NONIRQ_WAKEUP
++	bool
++	default y
++
+ config LOCKDEP_SUPPORT
+ 	bool
+ 	default y
+diff -puN kernel/softirq.c~nohz-fix-nohz-x86-dyntick-idle-handling kernel/softirq.c
+--- a/kernel/softirq.c~nohz-fix-nohz-x86-dyntick-idle-handling
++++ a/kernel/softirq.c
+@@ -303,6 +303,11 @@ void irq_exit(void)
+ 	if (!in_interrupt() && local_softirq_pending())
+ 		invoke_softirq();
+ 
++#if defined(CONFIG_NO_HZ) && !defined(CONFIG_NONIRQ_WAKEUP)
++	/* Make sure that timer wheel updates are propagated */
++	if (!in_interrupt() && idle_cpu(smp_processor_id()) && !need_resched())
++		tick_nohz_stop_sched_tick();
 +#endif
-+
- /*
-  * Debugging: see timer_list.c
-  */
-@@ -99,8 +105,19 @@ int tick_device_uses_broadcast(struct cl
- 		cpu_set(cpu, tick_broadcast_mask);
- 		tick_broadcast_start_periodic(tick_broadcast_device.evtdev);
- 		ret = 1;
--	}
-+	} else {
-+		/*
-+		 * When the new device is not affected by the stop
-+		 * feature and the cpu is marked in the broadcast mask
-+		 * then clear the broadcast bit.
-+		 */
-+		if (!(dev->features & CLOCK_EVT_FEAT_C3STOP)) {
-+			int cpu = smp_processor_id();
- 
-+			cpu_clear(cpu, tick_broadcast_mask);
-+			tick_broadcast_clear_oneshot(cpu);
-+		}
-+	}
- 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
- 	return ret;
- }
-@@ -487,6 +504,16 @@ out:
- 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+ 	preempt_enable_no_resched();
  }
  
-+/*
-+ * Reset the one shot broadcast for a cpu
-+ *
-+ * Called with tick_broadcast_lock held
-+ */
-+static void tick_broadcast_clear_oneshot(int cpu)
-+{
-+	cpu_clear(cpu, tick_broadcast_oneshot_mask);
-+}
-+
- /**
-  * tick_broadcast_setup_highres - setup the broadcast device for highres
-  */
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
