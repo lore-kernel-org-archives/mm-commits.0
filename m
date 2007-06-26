@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch added to -mm tree
-Date: Mon, 25 Jun 2007 21:12:56 -0700
-Message-ID: <200706260412.l5Q4CucK018073@imap1.linux-foundation.org>
+Subject: + drivers-pmc-msp71xx-gpio-char-driver.patch added to -mm tree
+Date: Mon, 25 Jun 2007 21:15:44 -0700
+Message-ID: <200706260415.l5Q4FiBm018108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36533 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754150AbXFZENQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756227AbXFZEQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 00:13:16 -0400
+	Tue, 26 Jun 2007 00:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, hancockr@shaw.ca, jbarnes@virtuousgeek.org, lenb@kernel.org, rajesh.shah@intel.com, torvalds@linux-foundation.org
+Cc: stjeanma@pmc-sierra.com, Brian_Oostenbrink@pmc-sierra.com, Dan_Doucette@pmc-sierra.com, Marc_St-Jean@pmc-sierra.com, david-b@pacbell.net, ralf@linux-mips.org
 
 
 The patch titled
-     mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
+     drivers: PMC MSP71xx GPIO char driver
 has been added to the -mm tree.  Its filename is
-     mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+     drivers-pmc-msp71xx-gpio-char-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,226 +26,962 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers: PMC MSP71xx GPIO char driver
+From: Marc St-Jean <stjeanma@pmc-sierra.com>
 
-drivers/acpi/bus.c: In function `acpi_init':
-drivers/acpi/bus.c:760: warning: implicit declaration of function `pci_mmcfg_late_init'
+Add a GPIO char driver for the PMC-Sierra MSP71xx devices.
 
-Fix this by always including pci.h in drivers/acpi/bus.c.
-
-Also remove unneeded inclusion of asm/pci.h (linux/pci.h did that)
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Rajesh Shah <rajesh.shah@intel.com>
-Cc: Robert Hancock <hancockr@shaw.ca>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Marc St-Jean <Marc_St-Jean@pmc-sierra.com>
+Cc: <Brian_Oostenbrink@pmc-sierra.com>
+Cc: <Dan_Doucette@pmc-sierra.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bus.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/char/Kconfig                           |    4 
+ drivers/char/Makefile                          |    1 
+ drivers/char/pmcmsp_gpio.c                     |  649 +++++++++++++++
+ include/asm-mips/pmc-sierra/msp71xx/msp_gpio.h |  253 +++++
+ 4 files changed, 907 insertions(+)
 
-diff -puN drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2-3 drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources-fix-2-3
-+++ a/drivers/acpi/bus.c
-@@ -34,9 +34,8 @@
- #include <linux/proc_fs.h>
- #ifdef CONFIG_X86
- #include <asm/mpspec.h>
--#include <linux/pci.h>
--#include <asm/pci.h>
- #endif
-+#include <linux/pci.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
+diff -puN drivers/char/Kconfig~drivers-pmc-msp71xx-gpio-char-driver drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-pmc-msp71xx-gpio-char-driver
++++ a/drivers/char/Kconfig
+@@ -384,6 +384,10 @@ config NOZOMI
+ 	  To compile this driver as a module, choose M here, the module
+ 	  will be called nozomi.
  
++config PMCMSP_GPIO
++	tristate "PMC MSP 7120 GPIO device support"
++	depends on MIPS && (PMC_MSP7120_EVAL || PMC_MSP7120_GW || PMC_MSP7120_FPGA)
++
+ config AU1000_UART
+ 	bool "Enable Au1000 UART Support"
+ 	depends on SERIAL_NONSTANDARD && MIPS
+diff -puN drivers/char/Makefile~drivers-pmc-msp71xx-gpio-char-driver drivers/char/Makefile
+--- a/drivers/char/Makefile~drivers-pmc-msp71xx-gpio-char-driver
++++ a/drivers/char/Makefile
+@@ -86,6 +86,7 @@ obj-$(CONFIG_I8K)		+= i8k.o
+ obj-$(CONFIG_DS1620)		+= ds1620.o
+ obj-$(CONFIG_HW_RANDOM)		+= hw_random/
+ obj-$(CONFIG_COBALT_LCD)	+= lcd.o
++obj-$(CONFIG_PMCMSP_GPIO)	+= pmcmsp_gpio.o
+ obj-$(CONFIG_PPDEV)		+= ppdev.o
+ obj-$(CONFIG_NWBUTTON)		+= nwbutton.o
+ obj-$(CONFIG_NWFLASH)		+= nwflash.o
+diff -puN /dev/null drivers/char/pmcmsp_gpio.c
+--- /dev/null
++++ a/drivers/char/pmcmsp_gpio.c
+@@ -0,0 +1,649 @@
++/*
++ * Driver for the PMC MSP71xx reference board GPIO pins
++ *
++ * Copyright 2005-2007 PMC-Sierra, Inc.
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
++ *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
++ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
++ *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
++ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
++ *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
++ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ *  You should have received a copy of the  GNU General Public License along
++ *  with this program; if not, write  to the Free Software Foundation, Inc.,
++ *  675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/ioport.h>
++#include <linux/spinlock.h>
++#include <linux/miscdevice.h>
++#include <linux/fs.h>
++#include <linux/kthread.h>
++#include <linux/sched.h>
++#include <linux/completion.h>
++#include <linux/freezer.h>
++#include <linux/io.h>
++
++#include <asm/war.h>
++
++#include <msp_regs.h>
++#include <msp_regops.h>
++#include <msp_gpio.h>
++
++/* -- Private definitions -- */
++
++/* Special bitflags and whatnot for the driver's convenience */
++#define GPIO_REG_COUNT		4
++#define GPIO_CFG_SHIFT(i)	(i * 4)
++#define GPIO_CFG_PINMASK	0xf
++
++static const u32 gpio_data_count[] = { 2, 4, 4, 6 };
++static const u32 gpio_data_shift[] = { 0, 2, 6, 10 };
++static const u32 gpio_data_mask[] = { 0x03, 0x0f, 0x0f, 0x3f };
++static u32 *const gpio_data_reg[] = {
++	(u32 *)GPIO_DATA1_REG, (u32 *)GPIO_DATA2_REG,
++	(u32 *)GPIO_DATA3_REG, (u32 *)GPIO_DATA4_REG,
++};
++static const u32 gpio_cfg_mask[] = { 0x0000ff, 0x00ffff, 0x00ffff, 0xffffff };
++static u32 *const gpio_cfg_reg[] = {
++	(u32 *)GPIO_CFG1_REG, (u32 *)GPIO_CFG2_REG,
++	(u32 *)GPIO_CFG3_REG, (u32 *)GPIO_CFG4_REG,
++};
++
++/* Maps MODE to allowed pin mask */
++static const u32 gpio_mode_allowed[] = {
++	0xfffff,	/* Mode 0 - INPUT */
++	0x00000,	/* Mode 1 - INTERRUPT */
++	0x00030,	/* Mode 2 - UART_INPUT (GPIO 4, 5)*/
++	0, 0, 0, 0, 0,	/* Modes 3, 4, 5, 6, and 7 are reserved */
++	0xfffff,	/* Mode 8 - OUTPUT */
++	0x0000f,	/* Mode 9 - UART_OUTPUT/PERF_TIMERA (GPIO 0,1,2,3) */
++	0x00003,	/* Mode a - PERF_TIMERB (GPIO 0, 1) */
++	0x00000,	/* Mode b - Not really a mode! */
++};
++
++/* The extended gpio register */
++
++#define EXTENDED_GPIO_COUNT	4
++#define EXTENDED_GPIO_SHIFT	16
++#define EXTENDED_GPIO_MASK	0x0f
++
++#define EXTENDED_GPIO_DATA_SHIFT(i)	(i * 2)
++#define EXTENDED_GPIO_DATA_MASK(i)	(0x3 << (i*2))
++#define EXTENDED_GPIO_DATA_SET		0x2
++#define EXTENDED_GPIO_DATA_CLR		0x1
++#define EXTENDED_GPIO_CFG_SHIFT(i)	((i * 2) + 16)
++#define EXTENDED_GPIO_CFG_MASK(i)	(0x3 << ((i*2)+16))
++#define EXTENDED_GPIO_CFG_DISABLE	0x2
++#define EXTENDED_GPIO_CFG_ENABLE	0x1
++
++/* -- Data structures -- */
++
++static DEFINE_SPINLOCK(msp_gpio_spinlock);
++
++static struct task_struct *msp_blinkthread;
++static DEFINE_SPINLOCK(msp_blink_lock);
++static DECLARE_COMPLETION(msp_blink_wait);
++
++struct blink_table {
++	u32 count;
++	u32 period;
++	u32 dcycle;
++};
++
++static struct blink_table blink_table[MSP_NUM_GPIOS];
++
++/* -- Utility functions -- */
++
++/* Reads the data bits from a single register set */
++static u32 msp_gpio_read_data_basic(int reg)
++{
++	return read_reg32(gpio_data_reg[reg], gpio_data_mask[reg]);
++}
++
++/* Reads the data bits from the extended register set */
++static u32 msp_gpio_read_data_extended(void)
++{
++	int pin;
++	u32 reg = *EXTENDED_GPIO_REG;
++	u32 retval = 0;
++
++	for (pin = 0; pin < EXTENDED_GPIO_COUNT; pin++) {
++		u32 bit = 0;
++
++		/*
++		 * In output mode, read CLR bit
++		 * In input mode, read SET bit
++		 */
++		if (reg & (EXTENDED_GPIO_CFG_ENABLE <<
++				EXTENDED_GPIO_CFG_SHIFT(pin)))
++			bit = EXTENDED_GPIO_DATA_CLR <<
++				EXTENDED_GPIO_DATA_SHIFT(pin);
++		else
++			bit = EXTENDED_GPIO_DATA_SET <<
++				EXTENDED_GPIO_DATA_SHIFT(pin);
++
++		if (reg & bit)
++			retval |= 1 << pin;
++	}
++
++	return retval;
++}
++
++/*
++ * Reads the current state of all 20 pins, putting the values in
++ * the lowest 20 bits (1=HI, 0=LO)
++ */
++static u32 msp_gpio_read_data(void)
++{
++	int reg;
++	u32 retval = 0;
++
++	spin_lock(&msp_gpio_spinlock);
++	for (reg = 0; reg < GPIO_REG_COUNT; reg++)
++		retval |= msp_gpio_read_data_basic(reg) <<
++				gpio_data_shift[reg];
++	retval |= msp_gpio_read_data_extended() << EXTENDED_GPIO_SHIFT;
++	spin_unlock(&msp_gpio_spinlock);
++
++	pr_debug("%s: 0x%08x\n", __FUNCTION__, retval);
++
++	return retval;
++}
++
++/*
++ * This assumes both data and mask are register-ready, and does
++ * the set atomically
++ */
++static void msp_gpio_write_data_basic(int reg, u32 data, u32 mask)
++{
++	set_value_reg32(gpio_data_reg[reg], mask, data);
++}
++
++/*
++ * The four lowest bits of 'data' and 'mask' are used, and the set
++ * is done atomically
++ */
++static void msp_gpio_write_data_extended(u32 data, u32 mask)
++{
++	int i;
++	u32 tmpmask = 0xffffffff, tmpdata = 0;
++
++	/* Set all SET/CLR values based on data bits passed in */
++	for (i = 0; i < EXTENDED_GPIO_COUNT; i++) {
++		if (mask & (1 << i)) {
++			if (data & (1 << i))
++				/* Set the bit HI */
++				tmpdata |= EXTENDED_GPIO_DATA_SET <<
++					   EXTENDED_GPIO_DATA_SHIFT(i);
++			else
++				/* Set the bit LO */
++				tmpdata |= EXTENDED_GPIO_DATA_CLR <<
++					   EXTENDED_GPIO_DATA_SHIFT(i);
++		}
++	}
++
++	set_value_reg32(EXTENDED_GPIO_REG, tmpmask, tmpdata);
++}
++
++/*
++ * Sets all masked GPIOs based on the first 20 bits of the data
++ * passed in (1=HI, 0=LO)
++ */
++static void msp_gpio_write_data(u32 data, u32 mask)
++{
++	int reg;
++
++	spin_lock(&msp_gpio_spinlock);
++	for (reg = 0; reg < GPIO_REG_COUNT; reg++) {
++		u32 tmpdata = (data >> gpio_data_shift[reg]) &
++					gpio_data_mask[reg];
++		u32 tmpmask = (mask >> gpio_data_shift[reg]) &
++					gpio_data_mask[reg];
++		if (tmpmask > 0)
++			msp_gpio_write_data_basic(reg, tmpdata, tmpmask);
++	}
++	msp_gpio_write_data_extended(data >> EXTENDED_GPIO_SHIFT,
++					mask >> EXTENDED_GPIO_SHIFT);
++	spin_unlock(&msp_gpio_spinlock);
++}
++
++/* Reads the config bits from a single register set */
++static u32 msp_gpio_read_cfg_basic(int reg)
++{
++	return read_reg32(gpio_cfg_reg[reg], gpio_cfg_mask[reg]);
++}
++
++/*
++ * This assumes both data and mask are register-ready, and does
++ * the write atomically
++ */
++static void msp_gpio_write_cfg_basic(int reg, u32 data, u32 mask)
++{
++	set_value_reg32(gpio_cfg_reg[reg], mask, data);
++}
++
++/*
++ * Reads the configuration of the extended pins, returning the current
++ * configuration in the lowest 4 bits (1-output, 0-input)
++ */
++static u32 msp_gpio_read_cfg_extended(void)
++{
++	int i;
++	u32 reg = *EXTENDED_GPIO_REG;
++	u32 retval = 0;
++
++	/* Read all ENABLE/DISABLE values and translate to single bits */
++	for (i = 0; i < EXTENDED_GPIO_COUNT; i++) {
++		if (reg & (EXTENDED_GPIO_CFG_ENABLE <<
++				EXTENDED_GPIO_CFG_SHIFT(i)))
++			/* Pin is OUTPUT */
++			retval |= 1 << i;
++		else
++			/* Pin is INPUT */
++			retval &= ~(1 << i);
++	}
++
++	return retval;
++}
++
++/*
++ * Sets the masked extended pins to (1-output, 0-input)
++ * (uses 4 lowest bits of the mask)
++ * Does the write atomically
++ */
++static void msp_gpio_write_cfg_extended(u32 data, u32 mask)
++{
++	int i;
++	u32 tmpmask = 0xffffffff, tmpdata = 0;
++
++	/* Set all ENABLE/DISABLE values based on mask bits passed in */
++	for (i = 0; i < EXTENDED_GPIO_COUNT; i++) {
++		if (mask & (1 << i)) {
++			if (data & (1 << i))
++				/* Set the pin to OUTPUT */
++				tmpdata |= EXTENDED_GPIO_CFG_ENABLE <<
++					   EXTENDED_GPIO_CFG_SHIFT(i);
++			else
++				/* Set the pin to INPUT */
++				tmpdata |= EXTENDED_GPIO_CFG_DISABLE <<
++					   EXTENDED_GPIO_CFG_SHIFT(i);
++		}
++	}
++
++	set_value_reg32(EXTENDED_GPIO_REG, tmpmask, tmpdata);
++}
++
++/*
++ * Sets all GPIOs to input/output based on the first 20 bits of the mask
++ * (1-output, 0-input)
++ */
++static void msp_gpio_write_cfg(enum msp_gpio_mode mode, u32 mask)
++{
++	int reg;
++	u32 extdata = 0, extmask = 0;
++
++	spin_lock(&msp_gpio_spinlock);
++	for (reg = 0; reg < GPIO_REG_COUNT; reg++) {
++		int pin;
++		u32 tmpdata = 0, tmpmask = 0;
++		for (pin = 0; pin < gpio_data_count[reg]; pin++) {
++			if (mask & (1 << (gpio_data_shift[reg] + pin))) {
++				tmpmask |= GPIO_CFG_PINMASK <<
++					   GPIO_CFG_SHIFT(pin);
++				tmpdata |= (u32)mode <<
++					   GPIO_CFG_SHIFT(pin);
++			}
++		}
++		if (tmpmask)
++			msp_gpio_write_cfg_basic(reg, tmpdata, tmpmask);
++	}
++
++	extmask = mask >> EXTENDED_GPIO_SHIFT;
++	if (mode == MSP_GPIO_INPUT)
++		extdata = 0;
++	else if (mode == MSP_GPIO_OUTPUT)
++		extdata = 0xf;
++	else
++		extmask = 0;
++	if (extmask)
++		msp_gpio_write_cfg_extended(extdata, extmask);
++	spin_unlock(&msp_gpio_spinlock);
++}
++
++/*
++ * Reads all GPIO config values and checks if they match the pin mode given,
++ * placing the result in the lowest 20 bits of the result, one bit per pin
++ * (1-pin matches mode give, 0-pin does not match)
++ */
++static u32 msp_gpio_read_cfg(u32 mode)
++{
++	u32 retval = 0;
++	int reg;
++
++	spin_lock(&msp_gpio_spinlock);
++	for (reg = 0; reg < GPIO_REG_COUNT; reg++) {
++		int pin;
++		u32 tmpdata = msp_gpio_read_cfg_basic(reg);
++		for (pin = 0; pin < gpio_data_count[reg]; pin++) {
++			u32 val = (tmpdata >> GPIO_CFG_SHIFT(pin)) &
++					GPIO_CFG_PINMASK;
++			if (val == mode)
++				retval |= 1 << (gpio_data_shift[reg] + pin);
++		}
++	}
++
++	/* Extended pins only have INPUT or OUTPUT pins */
++	if (mode == MSP_GPIO_INPUT)
++		retval |= (~msp_gpio_read_cfg_extended() & EXTENDED_GPIO_MASK)
++			  << EXTENDED_GPIO_SHIFT;
++	else if (mode == MSP_GPIO_OUTPUT)
++		retval |= (msp_gpio_read_cfg_extended() & EXTENDED_GPIO_MASK)
++			  << EXTENDED_GPIO_SHIFT;
++	spin_unlock(&msp_gpio_spinlock);
++
++	pr_debug("%s(0x%02x): 0x%08x\n", __FUNCTION__, mode, retval);
++
++	return retval;
++}
++
++/* -- Public functions -- */
++
++/*
++ * Reads the bits specified by the mask and puts the values in data.
++ * May include output statuses also, if in mask.
++ *
++ * Returns 0 on success
++ */
++int msp_gpio_in(u32 *data, u32 mask)
++{
++	*data = msp_gpio_read_data() & mask;
++
++	return 0;
++}
++EXPORT_SYMBOL(msp_gpio_in);
++
++/*
++ * Sets the specified data on the masked pins
++ *
++ * Returns 0 on success or one of the following:
++ *  -EINVAL if any of the pins in the mask are not free or not already
++ *  in output mode
++ */
++int msp_gpio_out(u32 data, u32 mask)
++{
++	if ((mask & ~MSP_GPIO_FREE_MASK) != 0) {
++		printk(KERN_WARNING
++			"Invalid GPIO mask - References non-free pins\n");
++		return -EINVAL;
++	}
++	if ((mask & ~msp_gpio_read_cfg(MSP_GPIO_OUTPUT)) != 0) {
++		printk(KERN_WARNING
++			"Invalid GPIO mask - Cannot set non-output pins\n");
++		return -EINVAL;
++	}
++
++	msp_gpio_noblink(mask);
++	msp_gpio_write_data(data, mask);
++
++	return 0;
++}
++EXPORT_SYMBOL(msp_gpio_out);
++
++/*
++ * Sets masked pins to the specified msp_gpio_mode
++ *
++ * Returns 0 on success or one of the following:
++ *  -EINVAL if any of the pins in the mask are not free or if any pins
++ *  are not allowed to be set to the specified mode
++ */
++int msp_gpio_mode(enum msp_gpio_mode mode, u32 mask)
++{
++	u32 allowedmask;
++
++	if ((mask & ~MSP_GPIO_FREE_MASK) != 0) {
++		printk(KERN_WARNING
++			"Invalid GPIO mask - References non-free pins\n");
++		return -EINVAL;
++	}
++
++	/* Enforce pin-mode rules */
++	allowedmask = gpio_mode_allowed[mode];
++	if ((mask & ~allowedmask) != 0) {
++		printk(KERN_WARNING
++			"Invalid GPIO mode for masked pins\n");
++		return -EINVAL;
++	}
++
++	msp_gpio_noblink(mask);
++	msp_gpio_write_cfg(mode, mask);
++
++	return 0;
++}
++EXPORT_SYMBOL(msp_gpio_mode);
++
++/*
++ * Stops the specified GPIOs from blinking
++ */
++int msp_gpio_noblink(u32 mask)
++{
++	int i;
++
++	if ((mask & ~msp_gpio_read_cfg(MSP_GPIO_OUTPUT)) != 0)
++		return -EINVAL;
++
++	spin_lock(&msp_blink_lock);
++	for (i = 0; i < MSP_NUM_GPIOS; i++) {
++		if (mask & (1 << i)) {
++			blink_table[i].count = 0;
++			blink_table[i].period = 0;
++			blink_table[i].dcycle = 0;
++		}
++	}
++	spin_unlock(&msp_blink_lock);
++
++	msp_gpio_write_data(0, mask);
++
++	return 0;
++}
++EXPORT_SYMBOL(msp_gpio_noblink);
++
++/*
++ * Configures GPIO(s) to blink
++ *  - mask shows which GPIOs to blink
++ *  - period is the time in 100ths of a second for the total period
++ *    (0 disables blinking)
++ *  - dcycle is the percentage of the period where the GPIO is HI
++ */
++int msp_gpio_blink(u32 mask, u32 period, u32 dcycle)
++{
++	int i;
++
++	if ((mask & ~msp_gpio_read_cfg(MSP_GPIO_OUTPUT)) != 0) {
++		printk(KERN_WARNING
++			"Invalid GPIO mask - Cannot blink non-output pins\n");
++		return -EINVAL;
++	}
++
++	if (period == 0)
++		return msp_gpio_noblink(mask);
++
++	spin_lock(&msp_blink_lock);
++	for (i = 0; i < MSP_NUM_GPIOS; i++) {
++		if (mask & (1 << i)) {
++			blink_table[i].count = 0;
++			blink_table[i].period = period;
++			blink_table[i].dcycle = dcycle;
++		}
++	}
++	spin_unlock(&msp_blink_lock);
++
++	complete(&msp_blink_wait);
++
++	return 0;
++}
++EXPORT_SYMBOL(msp_gpio_blink);
++
++/* -- File functions -- */
++
++static int msp_gpio_open(struct inode *inode, struct file *file)
++{
++	return 0;
++}
++
++static int msp_gpio_release(struct inode *inode, struct file *file)
++{
++	return 0;
++}
++
++static int msp_gpio_ioctl(struct inode *inode, struct file *file,
++			  unsigned int cmd, unsigned long arg)
++{
++	static struct msp_gpio_ioctl_io_data data;
++	static struct msp_gpio_ioctl_blink_data blink;
++
++	switch (cmd) {
++	case MSP_GPIO_BLINK:
++		if (copy_from_user(&blink,
++		    (struct msp_gpio_ioctl_blink_data *)arg, sizeof(blink)))
++			return -EFAULT;
++		break;
++	default:
++		if (copy_from_user(&data,
++		    (struct msp_gpio_ioctl_io_data *)arg, sizeof(data)))
++			return -EFAULT;
++		break;
++	}
++
++	switch (cmd) {
++	case MSP_GPIO_IN:
++		if (msp_gpio_in(&data.data, data.mask))
++			return -EFAULT;
++		if (copy_to_user((struct msp_gpio_ioctl_io_data *)arg,
++		    &data, sizeof(data)))
++			return -EFAULT;
++		break;
++	case MSP_GPIO_OUT:
++		if (msp_gpio_out(data.data, data.mask))
++			return -EFAULT;
++		break;
++	case MSP_GPIO_MODE:
++		if (msp_gpio_mode(data.data, data.mask))
++			return -EFAULT;
++		break;
++	case MSP_GPIO_BLINK:
++		if (msp_gpio_blink(blink.mask, blink.period, blink.dcycle))
++			return -EFAULT;
++		break;
++	default:
++		return -ENOIOCTLCMD;
++	}
++
++	return 0;
++}
++
++static struct file_operations msp_gpio_fops = {
++	.owner		= THIS_MODULE,
++	.ioctl		= msp_gpio_ioctl,
++	.open		= msp_gpio_open,
++	.release	= msp_gpio_release,
++};
++
++static struct miscdevice msp_gpio_miscdev = {
++	MISC_DYNAMIC_MINOR,
++	"pmcmsp_gpio",
++	&msp_gpio_fops
++};
++
++static int msp_gpio_blinkthread(void *none)
++{
++	int firstrun = 1;
++
++	do {
++		u32 mask = 0, data = 0;
++		int i, blinking = 0;
++		spin_lock(&msp_blink_lock);
++		for (i = 0; i < MSP_NUM_GPIOS; i++) {
++			/* use blink_table[i].period as 'blink enabled' test */
++			if (blink_table[i].period) {
++				blinking = 1;
++				mask |= 1 << i;
++				blink_table[i].count++;
++
++				if (blink_table[i].count >=
++				    blink_table[i].period)
++					blink_table[i].count = 0;
++
++				if (blink_table[i].count <
++				    (blink_table[i].period *
++				    blink_table[i].dcycle / 100))
++					data |= 1 << i;
++			}
++		}
++		spin_unlock(&msp_blink_lock);
++
++		if (!firstrun || blinking)
++			msp_gpio_write_data(data, mask);
++		else
++			firstrun = 0;
++
++		if (blinking)
++			schedule_timeout_interruptible(HZ/100);
++		else
++			wait_for_completion_interruptible(&msp_blink_wait);
++
++		/* make swsusp happy with our thread */
++		try_to_freeze();
++	} while (!kthread_should_stop());
++
++	return 0;
++}
++
++/* -- Module functions -- */
++
++static int __init msp_gpio_init(void)
++{
++	if (misc_register(&msp_gpio_miscdev)) {
++		printk(KERN_ERR "Device registration failed\n");
++		goto err_miscdev;
++	}
++
++	msp_blinkthread = kthread_run(msp_gpio_blinkthread, NULL, "gpio_blink");
++	if (msp_blinkthread == NULL) {
++		printk(KERN_ERR "Could not start kthread\n");
++		goto err_blinkthread;
++	}
++
++	printk(KERN_WARNING "MSP7120 GPIO subsystem initialized\n");
++	return 0;
++
++err_blinkthread:
++	misc_deregister(&msp_gpio_miscdev);
++err_miscdev:
++	return -ENOMEM;
++}
++
++static void __exit msp_gpio_exit(void)
++{
++	complete(&msp_blink_wait);
++	kthread_stop(msp_blinkthread);
++
++	misc_deregister(&msp_gpio_miscdev);
++}
++
++MODULE_DESCRIPTION("PMC MSP GPIO driver");
++MODULE_LICENSE("GPL");
++
++module_init(msp_gpio_init);
++module_exit(msp_gpio_exit);
+diff -puN /dev/null include/asm-mips/pmc-sierra/msp71xx/msp_gpio.h
+--- /dev/null
++++ a/include/asm-mips/pmc-sierra/msp71xx/msp_gpio.h
+@@ -0,0 +1,253 @@
++/*
++ * Driver for the PMC MSP71xx reference board GPIO pins
++ *
++ * Copyright 2005-2007 PMC-Sierra, Inc.
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
++ *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
++ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
++ *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
++ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
++ *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
++ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ *  You should have received a copy of the  GNU General Public License along
++ *  with this program; if not, write  to the Free Software Foundation, Inc.,
++ *  675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef __MSP_GPIO_H__
++#define __MSP_GPIO_H__
++
++#ifdef __KERNEL__
++#include <linux/ioctl.h>
++#endif
++
++/* Bit flags and masks for GPIOs */
++#define MSP_NUM_GPIOS		20
++#define MSP_GPIO_ALL_MASK 	((1 << MSP_NUM_GPIOS) - 1)
++#define MSP_GPIO_NONE_MASK 	0LL
++#define MSP_GPIO_FREE_MASK	MSP_GPIO_ALL_MASK
++
++/* GPIO modes */
++enum msp_gpio_mode {
++	MSP_GPIO_INPUT		= 0x0,
++	/* MSP_GPIO_ INTERRUPT	= 0x1,	Not supported yet */
++	MSP_GPIO_UART_INPUT	= 0x2,	/* Only GPIO 4 or 5 */
++	MSP_GPIO_OUTPUT		= 0x8,
++	MSP_GPIO_UART_OUTPUT	= 0x9,	/* Only GPIO 2 or 3 */
++	MSP_GPIO_PERIF_TIMERA	= 0x9,	/* Only GPIO 0 or 1 */
++	MSP_GPIO_PERIF_TIMERB	= 0xa,	/* Only GPIO 0 or 1 */
++	MSP_GPIO_UNKNOWN	= 0xb,  /* No such GPIO or mode */
++};
++
++/*
++ * Inline functions available even when GPIO driver is disabled
++ */
++
++/* This gives you the 'register relative offset gpio' numbers */
++inline static u32
++basic_offset_gpio(u32 gpio)
++{
++	/* GPIO 0 and 1 on the first register */
++	if (gpio < 2)
++		return gpio;
++	/* GPIO 2, 3, 4, and 5 on the second register */
++	else if (gpio < 6)
++		return gpio - 2;
++	/* GPIO 6, 7, 8, and 9 on the third register */
++	else if (gpio < 10)
++		return gpio - 6;
++	/* GPIO 10, 11, 12, 13, 14, and 15 on the fourth register */
++	else
++		return gpio - 10;
++}
++
++/* These take the 'register relative offset gpio' number */
++inline static u32
++basic_data_reg_mask(u32 ogpio)
++{
++	return 1 << ogpio;
++}
++
++inline static u32
++basic_mode_reg_shift(u32 ogpio)
++{
++	return ogpio * 4;
++}
++
++inline static u32
++basic_mode_reg_value(enum msp_gpio_mode mode, u32 ogpio)
++{
++	return mode << basic_mode_reg_shift(ogpio);
++}
++
++inline static u32
++basic_mode_reg_mask(u32 ogpio)
++{
++	return basic_mode_reg_value(0xf, ogpio);
++}
++
++inline static u32
++basic_mode_reg_from_reg(u32 data, u32 ogpio)
++{
++	return (data & basic_mode_reg_mask(ogpio)) >>
++			basic_mode_reg_shift(ogpio);
++}
++
++/* These take the actual GPIO number (0 through 15) */
++inline static u32
++basic_data_mask(u32 gpio)
++{
++	return basic_data_reg_mask(basic_offset_gpio(gpio));
++}
++
++inline static u32
++basic_mode_mask(u32 gpio)
++{
++	return basic_mode_reg_mask(basic_offset_gpio(gpio));
++}
++
++inline static u32
++basic_mode(enum msp_gpio_mode mode, u32 gpio)
++{
++	return basic_mode_reg_value(mode, basic_offset_gpio(gpio));
++}
++
++inline static u32
++basic_mode_shift(u32 gpio)
++{
++	return basic_mode_reg_shift(basic_offset_gpio(gpio));
++}
++
++inline static u32
++basic_mode_from_reg(u32 data, u32 gpio)
++{
++	return basic_mode_reg_from_reg(data, basic_offset_gpio(gpio));
++}
++
++/* This gives you the extended 'register relative offset gpio' number */
++inline static u32
++extended_offset_gpio(u32 gpio)
++{
++	return gpio - 16;
++}
++
++/* These take the 'register relative offset gpio' number */
++inline static u32
++extended_reg_disable(u32 ogpio)
++{
++	return 0x2 << ((ogpio * 2) + 16);
++}
++
++inline static u32
++extended_reg_enable(u32 ogpio)
++{
++	return 0x1 << ((ogpio * 2) + 16);
++}
++
++inline static u32
++extended_reg_set(u32 ogpio)
++{
++	return 0x2 << (ogpio * 2);
++}
++
++inline static u32
++extended_reg_clr(u32 ogpio)
++{
++	return 0x1 << (ogpio * 2);
++}
++
++/* These take the actual GPIO number (16 through 19) */
++inline static u32
++extended_disable(u32 gpio)
++{
++	return extended_reg_disable(extended_offset_gpio(gpio));
++}
++
++inline static u32
++extended_enable(u32 gpio)
++{
++	return extended_reg_enable(extended_offset_gpio(gpio));
++}
++
++inline static u32
++extended_set(u32 gpio)
++{
++	return extended_reg_set(extended_offset_gpio(gpio));
++}
++
++inline static u32
++extended_clr(u32 gpio)
++{
++	return extended_reg_clr(extended_offset_gpio(gpio));
++}
++
++#ifdef __KERNEL__
++/*
++ * IOCTL structs and macros
++ */
++struct msp_gpio_ioctl_io_data {
++	u32 data;
++	u32 mask;
++};
++
++struct msp_gpio_ioctl_blink_data {
++	u32 mask;
++	u32 period;
++	u32 dcycle;
++};
++
++#define MSP_GPIO_IOCTL_BASE	'Z'
++
++/* Reads the current data bits */
++#define MSP_GPIO_IN	_IOWR(MSP_GPIO_IOCTL_BASE, 0, \
++			      struct msp_gpio_ioctl_io_data)
++
++/* Writes data bits */
++#define MSP_GPIO_OUT	_IOW(MSP_GPIO_IOCTL_BASE, 1, \
++			      struct msp_gpio_ioctl_io_data)
++
++/* Sets all masked pins to the msp_gpio_mode given in the data field */
++#define MSP_GPIO_MODE	_IOW(MSP_GPIO_IOCTL_BASE, 2, \
++			      struct msp_gpio_ioctl_io_data)
++
++/*
++ * Starts any masked LEDs blinking with parameters as follows:
++ *   - period - The time in 100ths of a second for a single period
++ *              (set to '0' to stop blinking)
++ *   - dcycle - The 'duty cycle' - what percentage of the period should
++ *              the gpio be on?
++ */
++#define MSP_GPIO_BLINK	_IOW(MSP_GPIO_IOCTL_BASE, 3, \
++			      struct msp_gpio_ioctl_blink_data)
++
++/*
++ * Public driver functions available to other modules.
++ */
++
++/* Reads the bits specified by the mask and puts the values in data */
++extern int msp_gpio_in(u32 *data, u32 mask);
++
++/* Sets the specified data on the masked pins */
++extern int msp_gpio_out(u32 data, u32 mask);
++
++/* Sets masked pins to the specified msp_gpio_mode */
++extern int msp_gpio_mode(enum msp_gpio_mode mode, u32 mask);
++
++/* Stops the specified GPIOs from blinking */
++extern int msp_gpio_noblink(u32 mask);
++
++/* Configures GPIO(s) to blink */
++extern int msp_gpio_blink(u32 mask, u32 period, u32 dcycle);
++#endif /* __KERNEL__ */
++
++#endif /* !__MSP_GPIO_H__ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stjeanma@pmc-sierra.com are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-x86_64-set-the-irq_chip-name-for-lapic.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
