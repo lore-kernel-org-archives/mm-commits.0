@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch added to -mm tree
-Date: Mon, 25 Jun 2007 21:33:27 -0700
-Message-ID: <200706260433.l5Q4XRmn018374@imap1.linux-foundation.org>
+Subject: + madvise_need_mmap_write-usage.patch added to -mm tree
+Date: Mon, 25 Jun 2007 21:37:08 -0700
+Message-ID: <200706260437.l5Q4b84P018445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60402 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191AbXFZEdq (ORCPT
+	by vger.kernel.org with ESMTP id S1751112AbXFZEhc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 00:33:46 -0400
+	Tue, 26 Jun 2007 00:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru
+Cc: jbaron@redhat.com, hch@lst.de, nacc@us.ibm.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE
+     speed up madvise_need_mmap_write() usage
 has been added to the -mm tree.  Its filename is
-     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+     madvise_need_mmap_write-usage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,123 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE
-From: Jeff Dike <jdike@addtoit.com>
+Subject: speed up madvise_need_mmap_write() usage
+From: Jason Baron <jbaron@redhat.com>
 
-Add generic exit-time stack-depth checking to CONFIG_DEBUG_STACK_USAGE.
+In the new madvise_need_mmap_write() call we can avoid an extra case
+statement and function call as follows.
 
-This also adds UML support.
-
-Tested on UML and i386.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Jason Baron <jbaron@redhat.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig.debug        |    9 +++++++++
- arch/um/defconfig            |    1 +
- include/asm-um/thread_info.h |    9 +++++++++
- kernel/exit.c                |   24 ++++++++++++++++++++++++
- 4 files changed, 43 insertions(+)
+ mm/madvise.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/Kconfig.debug~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage arch/um/Kconfig.debug
---- a/arch/um/Kconfig.debug~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/arch/um/Kconfig.debug
-@@ -47,4 +47,13 @@ config GCOV
-         If you're involved in UML kernel development and want to use gcov,
-         say Y.  If you're unsure, say N.
+diff -puN mm/madvise.c~madvise_need_mmap_write-usage mm/madvise.c
+--- a/mm/madvise.c~madvise_need_mmap_write-usage
++++ a/mm/madvise.c
+@@ -287,9 +287,11 @@ asmlinkage long sys_madvise(unsigned lon
+ 	struct vm_area_struct * vma, *prev;
+ 	int unmapped_error = 0;
+ 	int error = -EINVAL;
++	int write;
+ 	size_t len;
  
-+config DEBUG_STACK_USAGE
-+	bool "Stack utilization instrumentation"
-+	default N
-+	help
-+	  Track the maximum kernel stack usage - this will look at each
-+	  kernel stack at process exit and log it if it's the deepest
-+	  stack seen so far.
-+
-+	  This option will slow down process creation and destruction somewhat.
- endmenu
-diff -puN arch/um/defconfig~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage arch/um/defconfig
---- a/arch/um/defconfig~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/arch/um/defconfig
-@@ -527,3 +527,4 @@ CONFIG_FORCED_INLINING=y
- # CONFIG_RCU_TORTURE_TEST is not set
- # CONFIG_GPROF is not set
- # CONFIG_GCOV is not set
-+# CONFIG_DEBUG_STACK_USAGE is not set
-diff -puN include/asm-um/thread_info.h~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/include/asm-um/thread_info.h
-@@ -52,10 +52,19 @@ static inline struct thread_info *curren
- 	return ti;
- }
- 
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+
-+#define alloc_thread_info(tsk) \
-+	((struct thread_info *) __get_free_pages(GFP_KERNEL | __GFP_ZERO, \
-+						 CONFIG_KERNEL_STACK_ORDER))
-+#else
-+
- /* thread information allocation */
- #define alloc_thread_info(tsk) \
- 	((struct thread_info *) __get_free_pages(GFP_KERNEL, \
- 						 CONFIG_KERNEL_STACK_ORDER))
-+#endif
-+
- #define free_thread_info(ti) \
- 	free_pages((unsigned long)(ti),CONFIG_KERNEL_STACK_ORDER)
- 
-diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage kernel/exit.c
---- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage
-+++ a/kernel/exit.c
-@@ -868,6 +868,27 @@ static void exit_notify(struct task_stru
- 		release_task(tsk);
- }
- 
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+static void check_stack_usage(void)
-+{
-+	static DEFINE_SPINLOCK(low_water_lock);
-+	static int lowest_to_date = THREAD_SIZE;
-+	unsigned long *n = end_of_stack(current), free;
-+
-+	while (*n == 0)
-+		n++;
-+	free = (unsigned long)n - (unsigned long)end_of_stack(current);
-+
-+	spin_lock(&low_water_lock);
-+	if (free < lowest_to_date) {
-+		printk(KERN_WARNING "Greatest stack depth - %ld bytes left\n",
-+		       free);
-+		lowest_to_date = free;
-+	}
-+	spin_unlock(&low_water_lock);
-+}
-+#endif
-+
- fastcall NORET_TYPE void do_exit(long code)
- {
- 	struct task_struct *tsk = current;
-@@ -959,6 +980,9 @@ fastcall NORET_TYPE void do_exit(long co
- 	exit_sem(tsk);
- 	__exit_files(tsk);
- 	__exit_fs(tsk);
-+#ifdef CONFIG_DEBUG_STACK_USAGE
-+	check_stack_usage();
-+#endif
- 	exit_thread();
- 	cpuset_exit(tsk);
- 	exit_keys(tsk);
+-	if (madvise_need_mmap_write(behavior))
++	write = madvise_need_mmap_write(behavior);
++	if (write)
+ 		down_write(&current->mm->mmap_sem);
+ 	else
+ 		down_read(&current->mm->mmap_sem);
+@@ -354,7 +356,7 @@ asmlinkage long sys_madvise(unsigned lon
+ 			vma = find_vma(current->mm, start);
+ 	}
+ out:
+-	if (madvise_need_mmap_write(behavior))
++	if (write)
+ 		up_write(&current->mm->mmap_sem);
+ 	else
+ 		up_read(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jbaron@redhat.com are
 
-hostfs-convert-to-new-aops.patch
-uml-fix-request-sector-update.patch
-uml-use-get_free_pages-to-allocate-kernel-stacks.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-uml-add-stack-usage-monitoring.patch
+madvise_need_mmap_write-usage.patch
+lockdep-sanitise-config_prove_locking.patch
+lockstat-core-infrastructure.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockstat-human-readability-tweaks.patch
+lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
