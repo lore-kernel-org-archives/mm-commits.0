@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-howto-update-urls-of-git-trees.patch added to -mm tree
-Date: Mon, 25 Jun 2007 22:11:18 -0700
-Message-ID: <200706260511.l5Q5BIsN018945@imap1.linux-foundation.org>
+Subject: + containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch added to -mm tree
+Date: Mon, 25 Jun 2007 22:18:34 -0700
+Message-ID: <200706260518.l5Q5IYP6019041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51222 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50080 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756763AbXFZFLd (ORCPT
+	by vger.kernel.org with ESMTP id S1750897AbXFZFSy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 01:11:33 -0400
+	Tue, 26 Jun 2007 01:18:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefanr@s5r6.in-berlin.de
+Cc: dhaval@linux.vnet.ibm.com, menage@google.com
 
 
 The patch titled
-     Documentation/HOWTO: update URLs of git trees
+     Fix for bad lock balance in Containers
 has been added to the -mm tree.  Its filename is
-     documentation-howto-update-urls-of-git-trees.patch
+     containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation/HOWTO: update URLs of git trees
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Fix for bad lock balance in Containers
+From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 
-Also, remove outdated 1394 tree and mention MAINTAINERS as pointer to
-development trees.
+I have been going through the containers code and trying it out. I tried
+mounting the same hierarchy at two different points and I got a bad
+locking balance warning.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+=====================================
+[ BUG: bad unlock balance detected! ]
+-------------------------------------
+mount/4467 is trying to release lock (&type->s_umount_key) at:
+[<c017de3b>] vfs_kern_mount+0x5b/0x70
+but there are no more locks to release!
+
+other info that might help us debug this:
+no locks held by mount/4467.
+
+stack backtrace:
+ [<c0105b9f>] show_trace_log_lvl+0x19/0x2e
+ [<c0105bc6>] show_trace+0x12/0x14
+ [<c0105cb1>] dump_stack+0x14/0x16
+ [<c0142c1a>] print_unlock_inbalance_bug+0xcc/0xd6
+ [<c0142c93>] check_unlock+0x6f/0x75
+ [<c0142ee0>] __lock_release+0x1e/0x51
+ [<c014312c>] lock_release+0x4c/0x64
+ [<c013bd9d>] up_write+0x16/0x2b
+ [<c017de3b>] vfs_kern_mount+0x5b/0x70
+ [<c018fae7>] do_new_mount+0x85/0xe6
+ [<c019013f>] do_mount+0x185/0x199
+ [<c01903ab>] sys_mount+0x71/0xa6
+ [<c0104d6a>] sysenter_past_esp+0x5f/0x99
+ =======================
+
+Going through the code, I realised this is because when the container is
+already mounted at one point, when being remounted, it just does a
+simple_set_mnt which does not update s_umount which causes the warning
+to come. This also cause umount to hang the second time.
+
+The correct method would be allocate the superblock using sget (or a
+variant) which would call grab_super correctly and set these locks.
+Seeing the code which is there, some part of grab_super is already done
+in container_get_sb where the root->sb->s_active is updated. So I have
+called down_write there as well to get the locking balance. However I
+believe that this is not the correct approach.
+
+There are a few questions I had with respect to the current code,
+
+Why is the increment of s_active dependent on the return value of
+simple_set_mnt? All the other functions which I have seen (fs ones),
+grab_super (which increments s_active) is called followed by a
+simple_set_mnt.
+
+What should be the correct approach to get the locking balance? As far
+as I can see, the correct method would be to call sget which would then
+correctly handle everything. But that would require a test function. I
+saw functionality similar to a test function in the beginning of
+container_get_sb(). Should that be seperated and put in a seperate test
+function so that sget can be called?
+
+Another possible approach would be to call grab_super directly (since we
+know the test function is going to return true), but this cannot be done
+since grab_super is static right now. Or maybe we could duplicate
+grab_super's functionality.
+
+In the meantime a temporary fix.
+
+Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/HOWTO |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ kernel/container.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/HOWTO~documentation-howto-update-urls-of-git-trees Documentation/HOWTO
---- a/Documentation/HOWTO~documentation-howto-update-urls-of-git-trees
-+++ a/Documentation/HOWTO
-@@ -322,39 +322,34 @@ kernel releases as described above.
- Here is a list of some of the different kernel trees available:
-   git trees:
-     - Kbuild development tree, Sam Ravnborg <sam@ravnborg.org>
--	kernel.org:/pub/scm/linux/kernel/git/sam/kbuild.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/sam/kbuild.git
- 
-     - ACPI development tree, Len Brown <len.brown@intel.com>
--	kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
- 
-     - Block development tree, Jens Axboe <axboe@suse.de>
--	kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
- 
-     - DRM development tree, Dave Airlie <airlied@linux.ie>
--	kernel.org:/pub/scm/linux/kernel/git/airlied/drm-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/airlied/drm-2.6.git
- 
-     - ia64 development tree, Tony Luck <tony.luck@intel.com>
--	kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
--
--    - ieee1394 development tree, Jody McIntyre <scjody@modernduck.com>
--	kernel.org:/pub/scm/linux/kernel/git/scjody/ieee1394.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
- 
-     - infiniband, Roland Dreier <rolandd@cisco.com>
--	kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
- 
-     - libata, Jeff Garzik <jgarzik@pobox.com>
--	kernel.org:/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
- 
-     - network drivers, Jeff Garzik <jgarzik@pobox.com>
--	kernel.org:/pub/scm/linux/kernel/git/jgarzik/netdev-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/jgarzik/netdev-2.6.git
- 
-     - pcmcia, Dominik Brodowski <linux@dominikbrodowski.net>
--	kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
- 
-     - SCSI, James Bottomley <James.Bottomley@SteelEye.com>
--	kernel.org:/pub/scm/linux/kernel/git/jejb/scsi-misc-2.6.git
--
--  Other git kernel trees can be found listed at http://kernel.org/git
-+	git.kernel.org:/pub/scm/linux/kernel/git/jejb/scsi-misc-2.6.git
- 
-   quilt trees:
-     - USB, PCI, Driver Core, and I2C, Greg Kroah-Hartman <gregkh@suse.de>
-@@ -362,6 +357,9 @@ Here is a list of some of the different 
-     - x86-64, partly i386, Andi Kleen <ak@suse.de>
-         ftp.firstfloor.org:/pub/ak/x86_64/quilt/
- 
-+  Other kernel trees can be found listed at http://git.kernel.org/ and in
-+  the MAINTAINERS file.
-+
- Bug Reporting
- -------------
- 
+diff -puN kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers kernel/container.c
+--- a/kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers
++++ a/kernel/container.c
+@@ -602,6 +602,7 @@ static int container_get_sb(struct file_
+ 		BUG_ON(ret);
+ 	} else {
+ 		/* Reuse the existing superblock */
++		down_write(&(root->sb->umount));
+ 		ret = simple_set_mnt(mnt, root->sb);
+ 		if (!ret)
+ 			atomic_inc(&root->sb->s_active);
 _
 
-Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
+Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
 
-documentation-howto-update-urls-of-git-trees.patch
-git-ieee1394.patch
-git-scsi-misc.patch
-fs-clarify-dummy-member-in-struct.patch
+containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
