@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-namespacec-should-include-internalh.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:35:15 -0700
-Message-ID: <200706261935.l5QJZF9C000666@imap1.linux-foundation.org>
+Subject: + proper-prototype-for-proc_nr_files.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:37:14 -0700
+Message-ID: <200706261937.l5QJbEcJ000714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35211 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758029AbXFZTfa (ORCPT
+	by vger.kernel.org with ESMTP id S1758202AbXFZThZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:35:30 -0400
+	Tue, 26 Jun 2007 15:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     fs/namespace.c should #include "internal.h"
+     proper prototype for proc_nr_files()
 has been added to the -mm tree.  Its filename is
-     fs-namespacec-should-include-internalh.patch
+     proper-prototype-for-proc_nr_files.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/namespace.c should #include "internal.h"
+Subject: proper prototype for proc_nr_files()
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should include the headers containing the prototypes for
-its global functions.
+Add a proper prototype for proc_nr_files() in include/linux/fs.h
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/fs.h |    5 +++++
+ kernel/sysctl.c    |    4 +---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/namespace.c~fs-namespacec-should-include-internalh fs/namespace.c
---- a/fs/namespace.c~fs-namespacec-should-include-internalh
-+++ a/fs/namespace.c
-@@ -28,6 +28,7 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- #include "pnode.h"
-+#include "internal.h"
+diff -puN include/linux/fs.h~proper-prototype-for-proc_nr_files include/linux/fs.h
+--- a/include/linux/fs.h~proper-prototype-for-proc_nr_files
++++ a/include/linux/fs.h
+@@ -285,6 +285,7 @@ extern int dir_notify_enable;
+ #include <linux/init.h>
+ #include <linux/pid.h>
+ #include <linux/mutex.h>
++#include <linux/sysctl.h>
  
- /* spinlock for vfsmount related operations, inplace of dcache_lock */
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
+ #include <asm/atomic.h>
+ #include <asm/semaphore.h>
+@@ -2119,5 +2120,9 @@ static inline void free_secdata(void *se
+ { }
+ #endif	/* CONFIG_SECURITY */
+ 
++int proc_nr_files(ctl_table *table, int write, struct file *filp,
++		  void __user *buffer, size_t *lenp, loff_t *ppos);
++
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_FS_H */
+diff -puN kernel/sysctl.c~proper-prototype-for-proc_nr_files kernel/sysctl.c
+--- a/kernel/sysctl.c~proper-prototype-for-proc_nr_files
++++ a/kernel/sysctl.c
+@@ -46,13 +46,11 @@
+ #include <linux/nfs_fs.h>
+ #include <linux/acpi.h>
+ #include <linux/reboot.h>
++#include <linux/fs.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+ 
+-extern int proc_nr_files(ctl_table *table, int write, struct file *filp,
+-                     void __user *buffer, size_t *lenp, loff_t *ppos);
+-
+ #ifdef CONFIG_X86
+ #include <asm/nmi.h>
+ #include <asm/stacktrace.h>
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -94,6 +122,7 @@ kernel-utf-8-handling-fix.patch
 remove-sonypi_camera_command.patch
 kernel-sys_nic-should-include-linux-syscallsh.patch
 fs-namespacec-should-include-internalh.patch
+proper-prototype-for-proc_nr_files.patch
 ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
