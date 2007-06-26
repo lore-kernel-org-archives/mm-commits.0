@@ -1,71 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: + diskquota-32bit-quota-tools-on-64bit-architectures-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 21:28:23 -0700
-Message-ID: <200706260428.l5Q4SNWR018310@imap1.linux-foundation.org>
+Subject: - uml-add-stack-usage-monitoring.patch removed from -mm tree
+Date: Mon, 25 Jun 2007 21:33:36 -0700
+Message-ID: <200706260433.l5Q4XaXS018382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52570 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59242 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750966AbXFZE2i (ORCPT
+	by vger.kernel.org with ESMTP id S1752578AbXFZEdp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 00:28:38 -0400
+	Tue, 26 Jun 2007 00:33:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: michal.k.k.piotrowski@gmail.com, ak@suse.de, jack@ucw.cz, tony.luck@intel.com, vtaras@openvz.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/quota.c build fix
-has been added to the -mm tree.  Its filename is
-     diskquota-32bit-quota-tools-on-64bit-architectures-fix.patch
+     uml: add stack usage monitoring
+has been removed from the -mm tree.  Its filename was
+     uml-add-stack-usage-monitoring.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fs/quota.c build fix
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: uml: add stack usage monitoring
+From: Jeff Dike <jdike@addtoit.com>
 
-  CC      fs/quota.o
-fs/quota.c:13:24: error: asm/compat.h: No such file or directory
-make[1]: *** [fs/quota.o] Error 1
-make: *** [fs] Error 2
+Add a mechanism to see how much of a kernel stack is used.  This allocates
+zeroed stacks and sees where the lowest non-zero byte is on process exit.  It
+keeps track of the lowest value and logs values as they get lower.
 
-diskquota-32bit-quota-tools-on-64bit-architectures.patch
-
-Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Vasily Tarasov <vtaras@openvz.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Jan Kara <jack@ucw.cz>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/Kconfig.debug        |    9 +++++++++
+ arch/um/defconfig            |    1 +
+ arch/um/kernel/process.c     |   29 +++++++++++++++++++++++++++++
+ include/asm-um/thread_info.h |   16 ++++++++++++++++
+ 4 files changed, 55 insertions(+)
 
-diff -puN fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix fs/quota.c
---- a/fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix
-+++ a/fs/quota.c
-@@ -10,7 +10,7 @@
- #include <linux/slab.h>
- #include <asm/current.h>
- #include <asm/uaccess.h>
--#include <asm/compat.h>
-+#include <linux/compat.h>
- #include <linux/kernel.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
+diff -puN arch/um/Kconfig.debug~uml-add-stack-usage-monitoring arch/um/Kconfig.debug
+--- a/arch/um/Kconfig.debug~uml-add-stack-usage-monitoring
++++ a/arch/um/Kconfig.debug
+@@ -47,4 +47,13 @@ config GCOV
+         If you're involved in UML kernel development and want to use gcov,
+         say Y.  If you're unsure, say N.
+ 
++config DEBUG_STACK_USAGE
++	bool "Stack utilization instrumentation"
++	default N
++	help
++	Track the maximum kernel stack usage - this will look at each
++	kernel stack at process exit and log it if it's the deepest
++	stack seen so far.
++
++	This option will slow down process creation and destruction somewhat.
+ endmenu
+diff -puN arch/um/defconfig~uml-add-stack-usage-monitoring arch/um/defconfig
+--- a/arch/um/defconfig~uml-add-stack-usage-monitoring
++++ a/arch/um/defconfig
+@@ -527,3 +527,4 @@ CONFIG_FORCED_INLINING=y
+ # CONFIG_RCU_TORTURE_TEST is not set
+ # CONFIG_GPROF is not set
+ # CONFIG_GCOV is not set
++# CONFIG_DEBUG_STACK_USAGE is not set
+diff -puN arch/um/kernel/process.c~uml-add-stack-usage-monitoring arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-add-stack-usage-monitoring
++++ a/arch/um/kernel/process.c
+@@ -427,3 +427,32 @@ unsigned long arch_align_stack(unsigned 
+ 	return sp & ~0xf;
+ }
+ #endif
++
++#ifdef CONFIG_DEBUG_STACK_USAGE
++
++static DEFINE_SPINLOCK(low_water_lock);
++static int lowest_to_date = THREAD_SIZE;
++
++void check_stack_usage(struct thread_info *s)
++{
++	unsigned int *stack, *p, *end;
++	int left;
++
++	stack = (unsigned int *) (s + 1);
++	end = (unsigned int *) ((unsigned long) s + THREAD_SIZE);
++	for (p = stack; p < end; p++) {
++		if(*p != 0)
++			break;
++	}
++
++	left = (p - stack) * sizeof(*p);
++
++	spin_lock(&low_water_lock);
++	if (left < lowest_to_date) {
++		printk("Greatest stack depth - %d bytes left\n", left);
++		lowest_to_date = left;
++	}
++	spin_unlock(&low_water_lock);
++}
++
++#endif
+diff -puN include/asm-um/thread_info.h~uml-add-stack-usage-monitoring include/asm-um/thread_info.h
+--- a/include/asm-um/thread_info.h~uml-add-stack-usage-monitoring
++++ a/include/asm-um/thread_info.h
+@@ -52,6 +52,20 @@ static inline struct thread_info *curren
+ 	return ti;
+ }
+ 
++#ifdef CONFIG_DEBUG_STACK_USAGE
++
++extern void check_stack_usage(struct thread_info *stack);
++
++#define alloc_thread_info(tsk) \
++	((struct thread_info *) __get_free_pages(GFP_KERNEL | __GFP_ZERO, \
++						 CONFIG_KERNEL_STACK_ORDER))
++
++#define free_thread_info(ti) ({ check_stack_usage(ti) ; \
++			        free_pages((unsigned long)(ti), \
++					   CONFIG_KERNEL_STACK_ORDER); })
++
++#else
++
+ /* thread information allocation */
+ #define alloc_thread_info(tsk) \
+ 	((struct thread_info *) kmalloc(THREAD_SIZE, GFP_KERNEL))
+@@ -59,6 +73,8 @@ static inline struct thread_info *curren
+ 
+ #endif
+ 
++#endif
++
+ #define PREEMPT_ACTIVE		0x10000000
+ 
+ #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
 _
 
-Patches currently in -mm which might be from michal.k.k.piotrowski@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-pnp-smcf010-quirk-auto-config-device-if-bios-left-it-broken.patch
-git-kvm.patch
-diskquota-32bit-quota-tools-on-64bit-architectures-fix.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-reiser4.patch
+hostfs-convert-to-new-aops.patch
+uml-fix-request-sector-update.patch
+uml-use-get_free_pages-to-allocate-kernel-stacks.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
+uml-add-stack-usage-monitoring.patch
