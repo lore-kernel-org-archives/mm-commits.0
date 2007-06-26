@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + minix-convert-to-new-aops-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:41:19 -0700
-Message-ID: <200706262141.l5QLfJVH002671@imap1.linux-foundation.org>
+Subject: + sysv-convert-to-new-aops-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:41:46 -0700
+Message-ID: <200706262141.l5QLfkFK002674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59377 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57349 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752260AbXFZVl2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752670AbXFZVlz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:41:28 -0400
+	Tue, 26 Jun 2007 17:41:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     minix: convert to new aops fix
+     sysv: convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     minix-convert-to-new-aops-fix.patch
+     sysv-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: minix: convert to new aops fix
+Subject: sysv: convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
-
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/minix.h |    3 +++
+ fs/sysv/sysv.h |    3 +++
  1 files changed, 3 insertions(+)
 
-diff -puN fs/minix/minix.h~minix-convert-to-new-aops-fix fs/minix/minix.h
---- a/fs/minix/minix.h~minix-convert-to-new-aops-fix
-+++ a/fs/minix/minix.h
-@@ -54,6 +54,9 @@ extern int minix_new_block(struct inode 
- extern void minix_free_block(struct inode *inode, unsigned long block);
- extern unsigned long minix_count_free_blocks(struct minix_sb_info *sbi);
- extern int minix_getattr(struct vfsmount *, struct dentry *, struct kstat *);
-+extern int __minix_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/sysv/sysv.h~sysv-convert-to-new-aops-fix fs/sysv/sysv.h
+--- a/fs/sysv/sysv.h~sysv-convert-to-new-aops-fix
++++ a/fs/sysv/sysv.h
+@@ -136,6 +136,9 @@ extern unsigned long sysv_count_free_blo
+ 
+ /* itree.c */
+ extern void sysv_truncate(struct inode *);
++extern int __sysv_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata);
  
- extern void V1_minix_truncate(struct inode *);
- extern void V2_minix_truncate(struct inode *);
+ /* inode.c */
+ extern int sysv_write_inode(struct inode *, int);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -109,6 +108,7 @@ jffs2-convert-to-new-aops.patch
 ufs-convert-to-new-aops.patch
 udf-convert-to-new-aops.patch
 sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
 minix-convert-to-new-aops.patch
 minix-convert-to-new-aops-fix.patch
 jfs-convert-to-new-aops.patch
