@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + clockevents-remove-prototypes-of-removed-functions.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:30 -0700
-Message-ID: <200706260007.l5Q07U4N014412@imap1.linux-foundation.org>
+Subject: + clockevents-fix-device-replacement.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:34 -0700
+Message-ID: <200706260007.l5Q07YCZ014418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58765 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40768 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753832AbXFZAIR (ORCPT
+	by vger.kernel.org with ESMTP id S1755380AbXFZAIX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:08:17 -0400
+	Mon, 25 Jun 2007 20:08:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, johnstul@us.ibm.com
 
 
 The patch titled
-     clockevents: remove prototypes of removed functions
+     clockevents: fix device replacement
 has been added to the -mm tree.  Its filename is
-     clockevents-remove-prototypes-of-removed-functions.patch
+     clockevents-fix-device-replacement.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clockevents: remove prototypes of removed functions
+Subject: clockevents: fix device replacement
 From: Thomas Gleixner <tglx@linutronix.de>
+
+When a device is replaced by a better rated device, then the broadcast
+mode needs to be evaluated again. When the new device has no requirement
+for broadcasting, then the broadcast bits for the CPU must be cleared.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |    4 ----
- 1 files changed, 4 deletions(-)
+ kernel/time/tick-broadcast.c |   29 ++++++++++++++++++++++++++++-
+ 1 files changed, 28 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/clockchips.h~clockevents-remove-prototypes-of-removed-functions include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockevents-remove-prototypes-of-removed-functions
-+++ a/include/linux/clockchips.h
-@@ -119,10 +119,6 @@ extern void clockevents_register_device(
+diff -puN kernel/time/tick-broadcast.c~clockevents-fix-device-replacement kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~clockevents-fix-device-replacement
++++ a/kernel/time/tick-broadcast.c
+@@ -31,6 +31,12 @@ struct tick_device tick_broadcast_device
+ static cpumask_t tick_broadcast_mask;
+ static DEFINE_SPINLOCK(tick_broadcast_lock);
  
- extern void clockevents_exchange_device(struct clock_event_device *old,
- 					struct clock_event_device *new);
--extern
--struct clock_event_device *clockevents_request_device(unsigned int features,
--						      cpumask_t cpumask);
--extern void clockevents_release_device(struct clock_event_device *dev);
- extern void clockevents_set_mode(struct clock_event_device *dev,
- 				 enum clock_event_mode mode);
- extern int clockevents_register_notifier(struct notifier_block *nb);
++#ifdef CONFIG_TICK_ONESHOT
++static void tick_broadcast_clear_oneshot(int cpu);
++#else
++static inline void tick_broadcast_clear_oneshot(int cpu) { }
++#endif
++
+ /*
+  * Debugging: see timer_list.c
+  */
+@@ -99,8 +105,19 @@ int tick_device_uses_broadcast(struct cl
+ 		cpu_set(cpu, tick_broadcast_mask);
+ 		tick_broadcast_start_periodic(tick_broadcast_device.evtdev);
+ 		ret = 1;
+-	}
++	} else {
++		/*
++		 * When the new device is not affected by the stop
++		 * feature and the cpu is marked in the broadcast mask
++		 * then clear the broadcast bit.
++		 */
++		if (!(dev->features & CLOCK_EVT_FEAT_C3STOP)) {
++			int cpu = smp_processor_id();
+ 
++			cpu_clear(cpu, tick_broadcast_mask);
++			tick_broadcast_clear_oneshot(cpu);
++		}
++	}
+ 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+ 	return ret;
+ }
+@@ -487,6 +504,16 @@ out:
+ 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+ }
+ 
++/*
++ * Reset the one shot broadcast for a cpu
++ *
++ * Called with tick_broadcast_lock held
++ */
++static void tick_broadcast_clear_oneshot(int cpu)
++{
++	cpu_clear(cpu, tick_broadcast_oneshot_mask);
++}
++
+ /**
+  * tick_broadcast_setup_highres - setup the broadcast device for highres
+  */
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
