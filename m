@@ -1,48 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-split-ondemand-readahead-interface-into-two-functions.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 01:24:47 -0700
-Message-ID: <200706260824.l5Q8Ol7F021745@imap1.linux-foundation.org>
+Subject: + readahead-split-ondemand-readahead-interface-into-two-functions.patch added to -mm tree
+Date: Tue, 26 Jun 2007 01:26:07 -0700
+Message-ID: <200706260826.l5Q8Q7mV021759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39141 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36377 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752778AbXFZIZM (ORCPT
+	by vger.kernel.org with ESMTP id S1751096AbXFZI0g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 04:25:12 -0400
+	Tue, 26 Jun 2007 04:26:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au
 
 
 The patch titled
      readahead: split ondemand readahead interface into two functions
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      readahead-split-ondemand-readahead-interface-into-two-functions.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: readahead: split ondemand readahead interface into two functions
-From: Rusty Russell <rusty@rustcorp.com.au>
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Split ondemand readahead interface into two functions.  I think this
-makes it a little clearer for non-readahead experts (like Rusty).
+Split ondemand readahead interface into two functions.  I think this makes it
+a little clearer for non-readahead experts (like Rusty).
 
-Internally they both call ondemand_readahead(), but the page argument
-is changed to an obvious boolean flag.
+Internally they both call ondemand_readahead(), but the page argument is
+changed to an obvious boolean flag.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/ext3/dir.c      |    4 -
  fs/ext4/dir.c      |    4 -
- fs/splice.c        |    8 +--
+ fs/splice.c        |    6 +-
  include/linux/mm.h |   20 ++++++---
  mm/filemap.c       |   10 ++--
  mm/readahead.c     |   95 ++++++++++++++++++++++++++-----------------
- 6 files changed, 85 insertions(+), 56 deletions(-)
+ 6 files changed, 84 insertions(+), 55 deletions(-)
 
 diff -puN fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions fs/ext3/dir.c
 --- a/fs/ext3/dir.c~readahead-split-ondemand-readahead-interface-into-two-functions
@@ -90,17 +94,15 @@ diff -puN fs/splice.c~readahead-split-ondemand-readahead-interface-into-two-func
  
  	while (spd.nr_pages < nr_pages) {
  		/*
-@@ -360,8 +360,8 @@ __generic_file_splice_read(struct file *
+@@ -360,7 +360,7 @@ __generic_file_splice_read(struct file *
  		page = pages[page_nr];
  
  		if (PageReadahead(page))
 -			page_cache_readahead_ondemand(mapping, &in->f_ra, in,
--					page, index, req_pages - page_nr);
 +			page_cache_async_readahead(mapping, &in->f_ra, in,
-+  					page, index, req_pages - page_nr);
+ 					page, index, req_pages - page_nr);
  
  		/*
- 		 * If the page isn't uptodate, we may need to start io on it
 diff -puN include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions include/linux/mm.h
 --- a/include/linux/mm.h~readahead-split-ondemand-readahead-interface-into-two-functions
 +++ a/include/linux/mm.h
@@ -308,24 +310,8 @@ diff -puN mm/readahead.c~readahead-split-ondemand-readahead-interface-into-two-f
 +EXPORT_SYMBOL_GPL(page_cache_async_readahead);
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-git-kbuild.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-use-menuconfig-objects-ii-module-menu.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
-lguest-the-host-code.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
 readahead-introduce-pg_readahead.patch
 readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
 readahead-min_ra_pages-max_ra_pages-macros.patch
@@ -339,4 +325,4 @@ readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
 readahead-pass-real-splice-size.patch
 mm-share-pg_readahead-and-pg_reclaim.patch
 readahead-split-ondemand-readahead-interface-into-two-functions.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+readahead-sanify-file_ra_state-names.patch
