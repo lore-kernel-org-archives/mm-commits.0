@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-i_sync-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 13:26:37 -0700
-Message-ID: <200706262026.l5QKQbIF001489@imap1.linux-foundation.org>
+Subject: + uml-handle-errors-on-opening-host-side-of-consoles.patch added to -mm tree
+Date: Tue, 26 Jun 2007 13:37:19 -0700
+Message-ID: <200706262037.l5QKbJ06001627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757521AbXFZU0w (ORCPT
+	by vger.kernel.org with ESMTP id S1757541AbXFZUh6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 16:26:52 -0400
+	Tue, 26 Jun 2007 16:37:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, joern@wohnheim.fh-wedel.de
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     make fs/inode.c:wake_up_inode() static
+     uml: handle errors on opening host side of consoles
 has been added to the -mm tree.  Its filename is
-     introduce-i_sync-fix.patch
+     uml-handle-errors-on-opening-host-side-of-consoles.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,126 +26,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make fs/inode.c:wake_up_inode() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: uml: handle errors on opening host side of consoles
+From: Jeff Dike <jdike@addtoit.com>
 
-wake_up_inode() can become static.
+If the host side of a console can't be opened, this will now produce visible
+error messages.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Joern Engel <joern@wohnheim.fh-wedel.de>
+enable_chan now returns a status and this is passed up to con_open and
+ssl_open, which will complain if anything went wrong.
+
+The default host device for the serial line driver is now a pts device rather
+than a pty device since lots of hosts have LEGACY_PTYS disabled.  This had
+always been failing on such hosts, but silently.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c                |   18 +++++++++---------
- include/linux/writeback.h |    1 -
- 2 files changed, 9 insertions(+), 10 deletions(-)
+ arch/um/defconfig               |    2 +-
+ arch/um/drivers/chan_kern.c     |   23 +++++++++++++++++++----
+ arch/um/drivers/line.c          |    5 ++++-
+ arch/um/drivers/ssl.c           |    8 +++++++-
+ arch/um/drivers/stdio_console.c |    7 ++++++-
+ arch/um/include/chan_kern.h     |    2 +-
+ 6 files changed, 38 insertions(+), 9 deletions(-)
 
-diff -puN fs/inode.c~introduce-i_sync-fix fs/inode.c
---- a/fs/inode.c~introduce-i_sync-fix
-+++ a/fs/inode.c
-@@ -99,6 +99,15 @@ struct inodes_stat_t inodes_stat;
- 
- static struct kmem_cache * inode_cachep __read_mostly;
- 
-+static void wake_up_inode(struct inode *inode)
-+{
-+	/*
-+	 * Prevent speculative execution through spin_unlock(&inode_lock);
-+	 */
-+	smp_mb();
-+	wake_up_bit(&inode->i_state, __I_LOCK);
-+}
-+
- static struct inode *alloc_inode(struct super_block *sb)
- {
- 	static const struct address_space_operations empty_aops;
-@@ -1296,15 +1305,6 @@ static void __wait_on_freeing_inode(stru
- 	spin_lock(&inode_lock);
+diff -puN arch/um/defconfig~uml-handle-errors-on-opening-host-side-of-consoles arch/um/defconfig
+--- a/arch/um/defconfig~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/defconfig
+@@ -189,7 +189,7 @@ CONFIG_XTERM_CHAN=y
+ # CONFIG_NOCONFIG_CHAN is not set
+ CONFIG_CON_ZERO_CHAN="fd:0,fd:1"
+ CONFIG_CON_CHAN="xterm"
+-CONFIG_SSL_CHAN="pty"
++CONFIG_SSL_CHAN="pts"
+ CONFIG_UNIX98_PTYS=y
+ CONFIG_LEGACY_PTYS=y
+ CONFIG_LEGACY_PTY_COUNT=256
+diff -puN arch/um/drivers/chan_kern.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/chan_kern.c
+@@ -203,22 +203,37 @@ void chan_enable_winch(struct list_head 
+ 	}
  }
  
--void wake_up_inode(struct inode *inode)
--{
--	/*
--	 * Prevent speculative execution through spin_unlock(&inode_lock);
--	 */
--	smp_mb();
--	wake_up_bit(&inode->i_state, __I_LOCK);
--}
--
- /*
-  * We rarely want to lock two inodes that do not have a parent/child
-  * relationship (such as directory, child inode) simultaneously. The
-diff -puN include/linux/writeback.h~introduce-i_sync-fix include/linux/writeback.h
---- a/include/linux/writeback.h~introduce-i_sync-fix
-+++ a/include/linux/writeback.h
-@@ -69,7 +69,6 @@ struct writeback_control {
-  * fs/fs-writeback.c
-  */	
- void writeback_inodes(struct writeback_control *wbc);
--void wake_up_inode(struct inode *inode);
- int inode_wait(void *);
- void sync_inodes_sb(struct super_block *, int wait);
- void sync_inodes(int wait);
+-void enable_chan(struct line *line)
++int enable_chan(struct line *line)
+ {
+ 	struct list_head *ele;
+ 	struct chan *chan;
++	int err;
+ 
+ 	list_for_each(ele, &line->chan_list){
+ 		chan = list_entry(ele, struct chan, list);
+-		if(open_one_chan(chan))
++		err = open_one_chan(chan);
++		if (err) {
++			if (chan->primary)
++				goto out_close;
++
+ 			continue;
++		}
+ 
+ 		if(chan->enabled)
+ 			continue;
+-		line_setup_irq(chan->fd, chan->input, chan->output, line,
+-			       chan);
++		err = line_setup_irq(chan->fd, chan->input, chan->output, line,
++				     chan);
++		if (err)
++			goto out_close;
++
+ 		chan->enabled = 1;
+ 	}
++
++	return 0;
++
++ out_close:
++	close_chan(&line->chan_list, 0);
++	return err;
+ }
+ 
+ /* Items are added in IRQ context, when free_irq can't be called, and
+diff -puN arch/um/drivers/line.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/line.c
+@@ -454,7 +454,10 @@ int line_open(struct line *lines, struct
+ 	tty->driver_data = line;
+ 	line->tty = tty;
+ 
+-	enable_chan(line);
++	err = enable_chan(line);
++	if (err)
++		return err;
++
+ 	INIT_DELAYED_WORK(&line->task, line_timer_cb);
+ 
+ 	if(!line->sigio){
+diff -puN arch/um/drivers/ssl.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/ssl.c
+--- a/arch/um/drivers/ssl.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/ssl.c
+@@ -99,7 +99,13 @@ static int ssl_remove(int n, char **erro
+ 
+ static int ssl_open(struct tty_struct *tty, struct file *filp)
+ {
+-	return line_open(serial_lines, tty);
++	int err = line_open(serial_lines, tty);
++
++	if (err)
++		printk(KERN_ERR "Failed to open serial line %d, err = %d\n",
++		       tty->index, err);
++
++	return err;
+ }
+ 
+ #if 0
+diff -puN arch/um/drivers/stdio_console.c~uml-handle-errors-on-opening-host-side-of-consoles arch/um/drivers/stdio_console.c
+--- a/arch/um/drivers/stdio_console.c~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/drivers/stdio_console.c
+@@ -101,7 +101,12 @@ static int con_remove(int n, char **erro
+ 
+ static int con_open(struct tty_struct *tty, struct file *filp)
+ {
+-	return line_open(vts, tty);
++	int err = line_open(vts, tty);
++	if (err)
++		printk(KERN_ERR "Failed to open console %d, err = %d\n",
++		       tty->index, err);
++
++	return err;
+ }
+ 
+ /* Set in an initcall, checked in an exitcall */
+diff -puN arch/um/include/chan_kern.h~uml-handle-errors-on-opening-host-side-of-consoles arch/um/include/chan_kern.h
+--- a/arch/um/include/chan_kern.h~uml-handle-errors-on-opening-host-side-of-consoles
++++ a/arch/um/include/chan_kern.h
+@@ -40,7 +40,7 @@ extern int console_open_chan(struct line
+ extern void deactivate_chan(struct list_head *chans, int irq);
+ extern void reactivate_chan(struct list_head *chans, int irq);
+ extern void chan_enable_winch(struct list_head *chans, struct tty_struct *tty);
+-extern void enable_chan(struct line *line);
++extern int enable_chan(struct line *line);
+ extern void close_chan(struct list_head *chans, int delay_free_irq);
+ extern int chan_window_size(struct list_head *chans, 
+ 			     unsigned short *rows_out, 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-mark-calibrate_xor_blocks-__init.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-kernel-sys_nic-should-include-linux-syscallsh.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+tun-tap-allow-group-ownership-of-tun-tap-devices.patch
+hostfs-convert-to-new-aops.patch
+uml-fix-request-sector-update.patch
+uml-use-get_free_pages-to-allocate-kernel-stacks.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
+uml-pty-channel-tidying.patch
+uml-handle-errors-on-opening-host-side-of-consoles.patch
+uml-sigio-support-cleanup.patch
+uml-eliminate-kernel-allocator-wrappers.patch
