@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiserfs-cleanups.patch added to -mm tree
-Date: Tue, 26 Jun 2007 13:24:06 -0700
-Message-ID: <200706262024.l5QKO6SY001453@imap1.linux-foundation.org>
+Subject: + introduce-i_sync-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 13:26:37 -0700
+Message-ID: <200706262026.l5QKQbIF001489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758150AbXFZUYf (ORCPT
+	by vger.kernel.org with ESMTP id S1757521AbXFZU0w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 16:24:35 -0400
+	Tue, 26 Jun 2007 16:26:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, npiggin@suse.de, vs@namesys.com
+Cc: bunk@stusta.de, joern@wohnheim.fh-wedel.de
 
 
 The patch titled
-     fs/reiserfs/: cleanups
+     make fs/inode.c:wake_up_inode() static
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-cleanups.patch
+     introduce-i_sync-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,155 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/reiserfs/: cleanups
+Subject: make fs/inode.c:wake_up_inode() static
 From: Adrian Bunk <bunk@stusta.de>
 
-- remove the following no longer used functions:
-  - bitmap.c: reiserfs_claim_blocks_to_be_allocated()
-  - bitmap.c: reiserfs_release_claimed_blocks()
-  - bitmap.c: reiserfs_can_fit_pages()
-
-- make the following functions static:
-  - inode.c: restart_transaction()
-  - journal.c: reiserfs_async_progress_wait()
+wake_up_inode() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Vladimir V. Saveliev <vs@namesys.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: Joern Engel <joern@wohnheim.fh-wedel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c        |   57 ----------------------------------
- fs/reiserfs/inode.c         |    4 +-
- fs/reiserfs/journal.c       |    3 +
- include/linux/reiserfs_fs.h |    7 ----
- 4 files changed, 4 insertions(+), 67 deletions(-)
+ fs/inode.c                |   18 +++++++++---------
+ include/linux/writeback.h |    1 -
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~fs-reiserfs-cleanups fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~fs-reiserfs-cleanups
-+++ a/fs/reiserfs/bitmap.c
-@@ -1201,63 +1201,6 @@ int reiserfs_allocate_blocknrs(reiserfs_
- 	return ret;
- }
+diff -puN fs/inode.c~introduce-i_sync-fix fs/inode.c
+--- a/fs/inode.c~introduce-i_sync-fix
++++ a/fs/inode.c
+@@ -99,6 +99,15 @@ struct inodes_stat_t inodes_stat;
  
--/* These 2 functions are here to provide blocks reservation to the rest of kernel */
--/* Reserve @blocks amount of blocks in fs pointed by @sb. Caller must make sure
--   there are actually this much blocks on the FS available */
--void reiserfs_claim_blocks_to_be_allocated(struct super_block *sb,	/* super block of
--									   filesystem where
--									   blocks should be
--									   reserved */
--					   int blocks	/* How much to reserve */
--    )
--{
--
--	/* Fast case, if reservation is zero - exit immediately. */
--	if (!blocks)
--		return;
--
--	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
--	REISERFS_SB(sb)->reserved_blocks += blocks;
--	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
--}
--
--/* Unreserve @blocks amount of blocks in fs pointed by @sb */
--void reiserfs_release_claimed_blocks(struct super_block *sb,	/* super block of
--								   filesystem where
--								   blocks should be
--								   reserved */
--				     int blocks	/* How much to unreserve */
--    )
--{
--
--	/* Fast case, if unreservation is zero - exit immediately. */
--	if (!blocks)
--		return;
--
--	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
--	REISERFS_SB(sb)->reserved_blocks -= blocks;
--	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
--	RFALSE(REISERFS_SB(sb)->reserved_blocks < 0,
--	       "amount of blocks reserved became zero?");
--}
--
--/* This function estimates how much pages we will be able to write to FS
--   used for reiserfs_file_write() purposes for now. */
--int reiserfs_can_fit_pages(struct super_block *sb	/* superblock of filesystem
--							   to estimate space */ )
--{
--	int space;
--
--	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
--	space =
--	    (SB_FREE_BLOCKS(sb) -
--	     REISERFS_SB(sb)->reserved_blocks) >> (PAGE_CACHE_SHIFT -
--						   sb->s_blocksize_bits);
--	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
--
--	return space > 0 ? space : 0;
--}
--
- void reiserfs_cache_bitmap_metadata(struct super_block *sb,
-                                     struct buffer_head *bh,
-                                     struct reiserfs_bitmap_info *info)
-diff -puN fs/reiserfs/inode.c~fs-reiserfs-cleanups fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~fs-reiserfs-cleanups
-+++ a/fs/reiserfs/inode.c
-@@ -207,8 +207,8 @@ static int file_capable(struct inode *in
- 	return 0;
- }
+ static struct kmem_cache * inode_cachep __read_mostly;
  
--/*static*/ int restart_transaction(struct reiserfs_transaction_handle *th,
--				   struct inode *inode, struct treepath *path)
-+static int restart_transaction(struct reiserfs_transaction_handle *th,
-+			       struct inode *inode, struct treepath *path)
- {
- 	struct super_block *s = th->t_super;
- 	int len = th->t_blocks_allocated;
-diff -puN fs/reiserfs/journal.c~fs-reiserfs-cleanups fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~fs-reiserfs-cleanups
-+++ a/fs/reiserfs/journal.c
-@@ -966,7 +966,8 @@ static int flush_older_commits(struct su
- 	}
- 	return 0;
- }
--int reiserfs_async_progress_wait(struct super_block *s)
++static void wake_up_inode(struct inode *inode)
++{
++	/*
++	 * Prevent speculative execution through spin_unlock(&inode_lock);
++	 */
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_LOCK);
++}
 +
-+static int reiserfs_async_progress_wait(struct super_block *s)
+ static struct inode *alloc_inode(struct super_block *sb)
  {
- 	DEFINE_WAIT(wait);
- 	struct reiserfs_journal *j = SB_JOURNAL(s);
-diff -puN include/linux/reiserfs_fs.h~fs-reiserfs-cleanups include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~fs-reiserfs-cleanups
-+++ a/include/linux/reiserfs_fs.h
-@@ -1701,8 +1701,6 @@ static inline int reiserfs_transaction_f
- 	return th->t_blocks_allocated - th->t_blocks_logged;
+ 	static const struct address_space_operations empty_aops;
+@@ -1296,15 +1305,6 @@ static void __wait_on_freeing_inode(stru
+ 	spin_lock(&inode_lock);
  }
  
--int reiserfs_async_progress_wait(struct super_block *s);
+-void wake_up_inode(struct inode *inode)
+-{
+-	/*
+-	 * Prevent speculative execution through spin_unlock(&inode_lock);
+-	 */
+-	smp_mb();
+-	wake_up_bit(&inode->i_state, __I_LOCK);
+-}
 -
- struct reiserfs_transaction_handle *reiserfs_persistent_transaction(struct
- 								    super_block
- 								    *,
-@@ -1857,8 +1855,6 @@ void padd_item(char *item, int total_len
- #define GET_BLOCK_NO_IMUX     8	/* i_mutex is not held, don't preallocate */
- #define GET_BLOCK_NO_DANGLE   16	/* don't leave any transactions running */
- 
--int restart_transaction(struct reiserfs_transaction_handle *th,
--			struct inode *inode, struct treepath *path);
- void reiserfs_read_locked_inode(struct inode *inode,
- 				struct reiserfs_iget_args *args);
- int reiserfs_find_actor(struct inode *inode, void *p);
-@@ -2135,9 +2131,6 @@ void reiserfs_discard_prealloc(struct re
- 			       struct inode *inode);
- void reiserfs_discard_all_prealloc(struct reiserfs_transaction_handle *th);
- #endif
--void reiserfs_claim_blocks_to_be_allocated(struct super_block *sb, int blocks);
--void reiserfs_release_claimed_blocks(struct super_block *sb, int blocks);
--int reiserfs_can_fit_pages(struct super_block *sb);
- 
- /* hashes.c */
- __u32 keyed_hash(const signed char *msg, int len);
+ /*
+  * We rarely want to lock two inodes that do not have a parent/child
+  * relationship (such as directory, child inode) simultaneously. The
+diff -puN include/linux/writeback.h~introduce-i_sync-fix include/linux/writeback.h
+--- a/include/linux/writeback.h~introduce-i_sync-fix
++++ a/include/linux/writeback.h
+@@ -69,7 +69,6 @@ struct writeback_control {
+  * fs/fs-writeback.c
+  */	
+ void writeback_inodes(struct writeback_control *wbc);
+-void wake_up_inode(struct inode *inode);
+ int inode_wait(void *);
+ void sync_inodes_sb(struct super_block *, int wait);
+ void sync_inodes(int wait);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -223,6 +134,7 @@ kernel-sys_nic-should-include-linux-syscallsh.patch
 fs-namespacec-should-include-internalh.patch
 proper-prototype-for-proc_nr_files.patch
 fs-reiserfs-cleanups.patch
+introduce-i_sync-fix.patch
 ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
