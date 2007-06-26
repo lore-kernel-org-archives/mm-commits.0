@@ -1,247 +1,410 @@
 From: akpm@linux-foundation.org
-Subject: + highres-improve-debug-output-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 09:58:26 -0700
-Message-ID: <200706261658.l5QGwQKP030245@imap1.linux-foundation.org>
+Subject: - hw_random-add-quality-categories.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 11:44:56 -0700
+Message-ID: <200706261844.l5QIivqd032044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752920AbXFZQ7P (ORCPT
+	by vger.kernel.org with ESMTP id S1757362AbXFZSpq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 12:59:15 -0400
+	Tue, 26 Jun 2007 14:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+To: mb@bu3sch.de, jeff@garzik.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     highres-improve-debug-output-fix
-has been added to the -mm tree.  Its filename is
-     highres-improve-debug-output-fix.patch
+     hw_random: add quality categories
+has been removed from the -mm tree.  Its filename was
+     hw_random-add-quality-categories.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: highres-improve-debug-output-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hw_random: add quality categories
+From: Michael Buesch <mb@bu3sch.de>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+This adds quality categories for hardware random number generators.
+
+The qualities of the HWRNGs are different from each other.  So the current
+default policy of the hwrng core to default to the first found RNG is
+broken.  This changes the default policy to select the RNG with the best
+quality category.  So for a machine with a bcm43xx and a RNG in the CPU it
+would always default to the RNG in the CPU, as that's the better one.
+
+Of course, the selection can still be changed from userspace.
+
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-oneshot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/hw_random/amd-rng.c            |    1 
+ drivers/char/hw_random/core.c               |  141 ++++++++++++++----
+ drivers/char/hw_random/geode-rng.c          |    1 
+ drivers/char/hw_random/intel-rng.c          |    1 
+ drivers/char/hw_random/ixp4xx-rng.c         |    1 
+ drivers/char/hw_random/pasemi-rng.c         |    1 
+ drivers/char/hw_random/via-rng.c            |    1 
+ drivers/net/wireless/bcm43xx/bcm43xx_main.c |    1 
+ include/linux/hw_random.h                   |   25 +++
+ 9 files changed, 148 insertions(+), 25 deletions(-)
 
-diff -puN kernel/time/tick-oneshot.c~highres-improve-debug-output-fix kernel/time/tick-oneshot.c
---- a/kernel/time/tick-oneshot.c~highres-improve-debug-output-fix
-+++ a/kernel/time/tick-oneshot.c
-@@ -82,7 +82,7 @@ int tick_switch_to_oneshot(void (*handle
- 		} else {
- 			if (!tick_device_is_functional(dev))
- 				printk(" %s is not functional.\n", dev->name);
--			else if (!(dev->features & CLOCK_EVT_FEAT_ONESHOT))
-+			else
- 				printk(" %s does not support one-shot mode.\n",
- 				       dev->name);
+diff -puN drivers/char/hw_random/amd-rng.c~hw_random-add-quality-categories drivers/char/hw_random/amd-rng.c
+--- a/drivers/char/hw_random/amd-rng.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/amd-rng.c
+@@ -99,6 +99,7 @@ static struct hwrng amd_rng = {
+ 	.cleanup	= amd_rng_cleanup,
+ 	.data_present	= amd_rng_data_present,
+ 	.data_read	= amd_rng_data_read,
++	.qual		= HWRNG_QUAL_NORMAL,
+ };
+ 
+ 
+diff -puN drivers/char/hw_random/core.c~hw_random-add-quality-categories drivers/char/hw_random/core.c
+--- a/drivers/char/hw_random/core.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/core.c
+@@ -78,6 +78,20 @@ static inline int hwrng_data_read(struct
+ 	return rng->data_read(rng, data);
+ }
+ 
++static const char * hwrng_quality_string(enum hwrng_quality qual)
++{
++	switch (qual) {
++	case HWRNG_QUAL_HIGH:
++		return "high";
++	case HWRNG_QUAL_NORMAL:
++		return "normal";
++	case HWRNG_QUAL_LOW:
++		return "low";
++	case HWRNG_QUAL_PSEUDO:
++		return "pseudo";
++	}
++	return "unknown";
++}
+ 
+ static int rng_dev_open(struct inode *inode, struct file *filp)
+ {
+@@ -210,7 +224,7 @@ static ssize_t hwrng_attr_current_show(s
+ 	ret = snprintf(buf, PAGE_SIZE, "%s\n", name);
+ 	mutex_unlock(&rng_mutex);
+ 
+-	return ret;
++	return min(ret, (ssize_t)PAGE_SIZE);
+ }
+ 
+ static ssize_t hwrng_attr_available_show(struct device *dev,
+@@ -235,7 +249,36 @@ static ssize_t hwrng_attr_available_show
+ 	ret++;
+ 	mutex_unlock(&rng_mutex);
+ 
+-	return ret;
++	return min(ret, (ssize_t)PAGE_SIZE);
++}
++
++static ssize_t hwrng_attr_qualities_show(struct device *dev,
++					 struct device_attribute *attr,
++					 char *buf)
++{
++	int err;
++	ssize_t ret = 0;
++	struct hwrng *rng;
++	const char *qual;
++
++	err = mutex_lock_interruptible(&rng_mutex);
++	if (err)
++		return -ERESTARTSYS;
++	buf[0] = '\0';
++	list_for_each_entry(rng, &rng_list, list) {
++		strncat(buf, rng->name, PAGE_SIZE - ret - 1);
++		ret += strlen(rng->name);
++		strncat(buf, " quality: ", PAGE_SIZE - ret - 1);
++		ret += 10;
++		qual = hwrng_quality_string(rng->qual);
++		strncat(buf, qual, PAGE_SIZE - ret - 1);
++		ret += strlen(qual);
++		strncat(buf, "\n", PAGE_SIZE - ret - 1);
++		ret += 1;
++	}
++	mutex_unlock(&rng_mutex);
++
++	return min(ret, (ssize_t)PAGE_SIZE);
+ }
+ 
+ static DEVICE_ATTR(rng_current, S_IRUGO | S_IWUSR,
+@@ -244,10 +287,58 @@ static DEVICE_ATTR(rng_current, S_IRUGO 
+ static DEVICE_ATTR(rng_available, S_IRUGO,
+ 		   hwrng_attr_available_show,
+ 		   NULL);
++static DEVICE_ATTR(rng_qualities, S_IRUGO,
++		   hwrng_attr_qualities_show,
++		   NULL);
++
++
++/* Returns the RNG with the highest quality value.
++ * Expects rng_mutex locked. */
++static struct hwrng * select_best_hwrng(void)
++{
++	struct hwrng *rng, *ret = NULL;
++
++	list_for_each_entry(rng, &rng_list, list) {
++		if (!ret || (rng->qual > ret->qual))
++			ret = rng;
++	}
++
++	return ret;
++}
+ 
++/* Initializes the RNG with the highest quality value.
++ * Expects rng_mutex locked. */
++static int init_best_hwrng(void)
++{
++	struct hwrng *rng, *prev_rng = NULL;
++	int err;
++
++	rng = select_best_hwrng();
++	if (!rng)
++		return -ENODEV;
++	if (rng == current_rng)
++		return 0;
++	if (current_rng) {
++		/* Shutdown current RNG */
++		prev_rng = current_rng;
++		hwrng_cleanup(current_rng);
++		current_rng = NULL;
++	}
++	err = hwrng_init(rng);
++	if (err) {
++		/* Try to enable the old one again. */
++		if (prev_rng && (hwrng_init(prev_rng) == 0))
++			current_rng = prev_rng;
++		return err;
++	}
++	current_rng = rng;
++
++	return 0;
++}
+ 
+ static void unregister_miscdev(void)
+ {
++	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_qualities);
+ 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_available);
+ 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_current);
+ 	misc_deregister(&rng_miscdev);
+@@ -268,9 +359,16 @@ static int register_miscdev(void)
+ 				 &dev_attr_rng_available);
+ 	if (err)
+ 		goto err_remove_current;
++	err = device_create_file(rng_miscdev.this_device,
++				 &dev_attr_rng_qualities);
++	if (err)
++		goto err_remove_available;
++
+ out:
+ 	return err;
+ 
++err_remove_available:
++	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_available);
+ err_remove_current:
+ 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_current);
+ err_misc_dereg:
+@@ -282,7 +380,7 @@ int hwrng_register(struct hwrng *rng)
+ {
+ 	int must_register_misc;
+ 	int err = -EINVAL;
+-	struct hwrng *old_rng, *tmp;
++	struct hwrng *tmp;
+ 
+ 	if (rng->name == NULL ||
+ 	    rng->data_read == NULL)
+@@ -297,27 +395,26 @@ int hwrng_register(struct hwrng *rng)
+ 			goto out_unlock;
+ 	}
+ 
+-	must_register_misc = (current_rng == NULL);
+-	old_rng = current_rng;
+-	if (!old_rng) {
+-		err = hwrng_init(rng);
+-		if (err)
+-			goto out_unlock;
+-		current_rng = rng;
+-	}
++	must_register_misc = list_empty(&rng_list);
++	INIT_LIST_HEAD(&rng->list);
++	list_add(&rng->list, &rng_list);
++
++	init_best_hwrng();
++	/* We ignore the error code of init_best_hwrng(), as
++	 * it doesn't matter for hwrng_register(). */
+ 	err = 0;
+ 	if (must_register_misc) {
+ 		err = register_miscdev();
+ 		if (err) {
+-			if (!old_rng) {
+-				hwrng_cleanup(rng);
++			if (current_rng) {
++				hwrng_cleanup(current_rng);
+ 				current_rng = NULL;
+ 			}
++			list_del(&rng->list);
+ 			goto out_unlock;
  		}
+ 	}
+-	INIT_LIST_HEAD(&rng->list);
+-	list_add_tail(&rng->list, &rng_list);
++
+ out_unlock:
+ 	mutex_unlock(&rng_mutex);
+ out:
+@@ -327,21 +424,15 @@ EXPORT_SYMBOL_GPL(hwrng_register);
+ 
+ void hwrng_unregister(struct hwrng *rng)
+ {
+-	int err;
+-
+ 	mutex_lock(&rng_mutex);
+ 
+ 	list_del(&rng->list);
+ 	if (current_rng == rng) {
+ 		hwrng_cleanup(rng);
+-		if (list_empty(&rng_list)) {
+-			current_rng = NULL;
+-		} else {
+-			current_rng = list_entry(rng_list.prev, struct hwrng, list);
+-			err = hwrng_init(current_rng);
+-			if (err)
+-				current_rng = NULL;
+-		}
++		current_rng = NULL;
++		/* Now try to init another hwrng, if any.
++		 * We're not interested if this fails or not. */
++		init_best_hwrng();
+ 	}
+ 	if (list_empty(&rng_list))
+ 		unregister_miscdev();
+diff -puN drivers/char/hw_random/geode-rng.c~hw_random-add-quality-categories drivers/char/hw_random/geode-rng.c
+--- a/drivers/char/hw_random/geode-rng.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/geode-rng.c
+@@ -73,6 +73,7 @@ static struct hwrng geode_rng = {
+ 	.name		= "geode",
+ 	.data_present	= geode_rng_data_present,
+ 	.data_read	= geode_rng_data_read,
++	.qual		= HWRNG_QUAL_NORMAL,
+ };
+ 
+ 
+diff -puN drivers/char/hw_random/intel-rng.c~hw_random-add-quality-categories drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -216,6 +216,7 @@ static struct hwrng intel_rng = {
+ 	.cleanup	= intel_rng_cleanup,
+ 	.data_present	= intel_rng_data_present,
+ 	.data_read	= intel_rng_data_read,
++	.qual		= HWRNG_QUAL_NORMAL,
+ };
+ 
+ struct intel_rng_hw {
+diff -puN drivers/char/hw_random/ixp4xx-rng.c~hw_random-add-quality-categories drivers/char/hw_random/ixp4xx-rng.c
+--- a/drivers/char/hw_random/ixp4xx-rng.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/ixp4xx-rng.c
+@@ -38,6 +38,7 @@ static int ixp4xx_rng_data_read(struct h
+ static struct hwrng ixp4xx_rng_ops = {
+ 	.name		= "ixp4xx",
+ 	.data_read	= ixp4xx_rng_data_read,
++	.qual		= HWRNG_QUAL_NORMAL,
+ };
+ 
+ static int __init ixp4xx_rng_init(void)
+diff -puN drivers/char/hw_random/pasemi-rng.c~hw_random-add-quality-categories drivers/char/hw_random/pasemi-rng.c
+--- a/drivers/char/hw_random/pasemi-rng.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/pasemi-rng.c
+@@ -137,6 +137,7 @@ static struct of_platform_driver rng_dri
+ 	.match_table	= rng_match,
+ 	.probe		= rng_probe,
+ 	.remove		= rng_remove,
++	.qual		= HWRNG_QUAL_NORMAL,
+ };
+ 
+ static int __init rng_init(void)
+diff -puN drivers/char/hw_random/via-rng.c~hw_random-add-quality-categories drivers/char/hw_random/via-rng.c
+--- a/drivers/char/hw_random/via-rng.c~hw_random-add-quality-categories
++++ a/drivers/char/hw_random/via-rng.c
+@@ -150,6 +150,7 @@ static struct hwrng via_rng = {
+ 	.init		= via_rng_init,
+ 	.data_present	= via_rng_data_present,
+ 	.data_read	= via_rng_data_read,
++	.qual		= HWRNG_QUAL_NORMAL,
+ };
+ 
+ 
+diff -puN drivers/net/wireless/bcm43xx/bcm43xx_main.c~hw_random-add-quality-categories drivers/net/wireless/bcm43xx/bcm43xx_main.c
+--- a/drivers/net/wireless/bcm43xx/bcm43xx_main.c~hw_random-add-quality-categories
++++ a/drivers/net/wireless/bcm43xx/bcm43xx_main.c
+@@ -3278,6 +3278,7 @@ static int bcm43xx_rng_init(struct bcm43
+ 	bcm->rng.name = bcm->rng_name;
+ 	bcm->rng.data_read = bcm43xx_rng_read;
+ 	bcm->rng.priv = (unsigned long)bcm;
++	bcm->rng.qual = HWRNG_QUAL_LOW;
+ 	err = hwrng_register(&bcm->rng);
+ 	if (err)
+ 		printk(KERN_ERR PFX "RNG init failed (%d)\n", err);
+diff -puN include/linux/hw_random.h~hw_random-add-quality-categories include/linux/hw_random.h
+--- a/include/linux/hw_random.h~hw_random-add-quality-categories
++++ a/include/linux/hw_random.h
+@@ -16,6 +16,29 @@
+ #include <linux/types.h>
+ #include <linux/list.h>
+ 
++
++/**
++ * enum hwrng_quality - Quality identifier for RNG hardware
++ * @HWRNG_QUAL_HIGH:	High quality RNG. Higher quality than
++ * 			what is found on the usual PC mainboards.
++ * 			Use that for special dedicated RNG
++ * 			extension boards.
++ * @HWRNG_QUAL_NORMAL:	PC-onboard-RNG devices.
++ * @HWRNG_QUAL_LOW:	Low quality RNG devices. Use this for
++ * 			devices which gather the entropy from possibly
++ * 			bad sources, like the network.
++ * @HWRNG_QUAL_PSEUDO:	Pseudo RNG device. Use this for devices
++ * 			which are not RNG devices by definition, but
++ * 			could be used as such. For example various
++ * 			hardware sensors, like a motion sensor.
++ */
++enum hwrng_quality {
++	HWRNG_QUAL_HIGH		= 3,
++	HWRNG_QUAL_NORMAL	= 2,
++	HWRNG_QUAL_LOW		= 1,
++	HWRNG_QUAL_PSEUDO	= 0,
++};
++
+ /**
+  * struct hwrng - Hardware Random Number Generator driver
+  * @name:		Unique RNG name.
+@@ -28,6 +51,7 @@
+  *			Returns the number of lower random bytes in "data".
+  *			Must not be NULL.
+  * @priv:		Private data, for use by the RNG driver.
++ * @qual:		The quality category of the RNG device.
+  */
+ struct hwrng {
+ 	const char *name;
+@@ -36,6 +60,7 @@ struct hwrng {
+ 	int (*data_present)(struct hwrng *rng);
+ 	int (*data_read)(struct hwrng *rng, u32 *data);
+ 	unsigned long priv;
++	enum hwrng_quality qual;
+ 
+ 	/* internal. */
+ 	struct list_head list;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights.patch
 o_cloexec-for-scm_rights-fix.patch
 o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-sprint_symbol-cleanup.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+hw_random-add-quality-categories.patch
