@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + add-documentation-sysctl-ctl_unnumberedtxt.patch added to -mm tree
-Date: Mon, 25 Jun 2007 21:00:27 -0700
-Message-ID: <200706260400.l5Q40R8U017867@imap1.linux-foundation.org>
+Subject: + sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch added to -mm tree
+Date: Mon, 25 Jun 2007 21:00:32 -0700
+Message-ID: <200706260400.l5Q40WAT017870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750797AbXFZEBE (ORCPT
+	by vger.kernel.org with ESMTP id S1750827AbXFZEBI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 00:01:04 -0400
+	Tue, 26 Jun 2007 00:01:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ebiederm@xmission.com
 
 
 The patch titled
-     Add Documentation/sysctl/ctl_unnumbered.txt
+     sysctl.c: add text telling people to use CTL_UNNUMBERED
 has been added to the -mm tree.  Its filename is
-     add-documentation-sysctl-ctl_unnumberedtxt.patch
+     sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add Documentation/sysctl/ctl_unnumbered.txt
+Subject: sysctl.c: add text telling people to use CTL_UNNUMBERED
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Poeple keep on adding new numbered sysctls, when they're supposed not to.
-
-Add a documentation file which explain why new sysctls should use
-CTL_UNNUMBERED.  The next patch will sprinkle pointers to this throughout
-sysctl.c.
-
-Eric provided the text (thanks)
+Hopefully this will help people to understand the new regime.
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/ctl_unnumbered.txt |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ kernel/sysctl.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/sysctl/ctl_unnumbered.txt
---- /dev/null
-+++ a/Documentation/sysctl/ctl_unnumbered.txt
-@@ -0,0 +1,22 @@
-+
-+Except for a few extremely rare exceptions user space applications do not use
-+the binary sysctl interface.  Instead everyone uses /proc/sys/...  with
-+readable ascii names.
-+
-+Recently the kernel has started supporting setting the binary sysctl value to
-+CTL_UNNUMBERED so we no longer need to assign a binary sysctl path to allow
-+sysctls to show up in /proc/sys.
-+
-+Assigning binary sysctl numbers is an endless source of conflicts in sysctl.h,
-+breaking of the user space ABI (because of those conflicts), and maintenance
-+problems.  A complete pass through all of the sysctl users revealed multiple
-+instances where the sysctl binary interface was broken and had gone undetected
-+for years.
-+
-+So please do not add new binary sysctl numbers.  They are unneeded and
-+problematic.
-+
-+If you really need a new binary sysctl number please first merge your sysctl
-+into the kernel and then as a separate patch allocate a binary sysctl number.
-+
-+(ebiederm@xmission.com, June 2007)
+diff -puN kernel/sysctl.c~sysctlc-add-text-telling-people-to-use-ctl_unnumbered kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctlc-add-text-telling-people-to-use-ctl_unnumbered
++++ a/kernel/sysctl.c
+@@ -204,7 +204,10 @@ static ctl_table root_table[] = {
+ 		.mode		= 0555,
+ 		.child		= dev_table,
+ 	},
+-
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
+@@ -644,6 +647,10 @@ static ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_doulongvec_minmax,
+ 	},
+ #endif
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
+@@ -929,6 +936,10 @@ static ctl_table vm_table[] = {
+ 		.extra1		= &zero,
+ 	},
+ #endif
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
+@@ -1069,6 +1080,10 @@ static ctl_table fs_table[] = {
+ 		.child		= binfmt_misc_table,
+ 	},
+ #endif
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
+@@ -1083,6 +1098,10 @@ static ctl_table debug_table[] = {
+ 		.proc_handler	= proc_dointvec
+ 	},
+ #endif
++/*
++ * NOTE: do not add new entries to this table unless you have read
++ * Documentation/sysctl/ctl_unnumbered.txt
++ */
+ 	{ .ctl_name = 0 }
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
