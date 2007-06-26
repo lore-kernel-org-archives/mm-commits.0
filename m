@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:38:07 -0700
-Message-ID: <200706262138.l5QLc7ow002612@imap1.linux-foundation.org>
+Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:38:47 -0700
+Message-ID: <200706262138.l5QLcl1d002617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53990 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53362 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751817AbXFZVjB (ORCPT
+	by vger.kernel.org with ESMTP id S1752020AbXFZVji (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:39:01 -0400
+	Tue, 26 Jun 2007 17:39:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com
 
 
 The patch titled
-     fs-introduce-write_begin-write_end-and-perform_write-aops fix 3
+     fs-introduce-write_begin-write_end-and-perform_write-aops fix 4
 has been added to the -mm tree.  Its filename is
-     fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
+     fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs-introduce-write_begin-write_end-and-perform_write-aops fix 3
+Subject: fs-introduce-write_begin-write_end-and-perform_write-aops fix 4
 From: Nick Piggin <npiggin@suse.de>
 
-Dmitriy noticed some weird code I had in __page_symlink that is wrong.
+Dmitriy noticed that iov_iter_fault_in_readable could go past the end
+of the first iov in a multi-iov situation, and that could be considered
+an EFAULT by the caller. Fix and comment.
 
 Fixes: fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 
@@ -40,37 +42,32 @@ Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ mm/filemap.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
-diff -puN fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3 fs/namei.c
---- a/fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3
-+++ a/fs/namei.c
-@@ -2702,21 +2702,20 @@ int __page_symlink(struct inode *inode, 
- 	char *kaddr;
+diff -puN mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4 mm/filemap.c
+--- a/mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4
++++ a/mm/filemap.c
+@@ -1794,9 +1794,19 @@ void iov_iter_advance(struct iov_iter *i
+ 	i->count -= bytes;
+ }
  
- retry:
--	err = pagecache_write_begin(NULL, mapping, 0, PAGE_CACHE_SIZE,
-+	err = pagecache_write_begin(NULL, mapping, 0, len-1,
- 				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
- 	if (err)
- 		goto fail;
++/*
++ * Fault in the first iovec of the given iov_iter, to a maximum length
++ * of bytes. Returns 0 on success, or non-zero if the memory could not be
++ * accessed (ie. because it is an invalid address).
++ *
++ * writev-intensive code may want this to prefault several iovecs -- that
++ * would be possible (callers must not rely on the fact that _only_ the
++ * first iovec will be faulted with the current implementation).
++ */
+ int iov_iter_fault_in_readable(struct iov_iter *i, size_t bytes)
+ {
+ 	char __user *buf = i->iov->iov_base + i->iov_offset;
++	bytes = min(bytes, i->iov->iov_len - i->iov_offset);
+ 	return fault_in_pages_readable(buf, bytes);
+ }
  
- 	kaddr = kmap_atomic(page, KM_USER0);
- 	memcpy(kaddr, symname, len-1);
--	memset(kaddr+len-1, 0, PAGE_CACHE_SIZE-(len-1));
- 	kunmap_atomic(kaddr, KM_USER0);
- 
--	err = pagecache_write_end(NULL, mapping, 0, PAGE_CACHE_SIZE, PAGE_CACHE_SIZE,
-+	err = pagecache_write_end(NULL, mapping, 0, len-1, len-1,
- 							page, fsdata);
- 	if (err < 0)
- 		goto fail;
--	if (err < PAGE_CACHE_SIZE)
-+	if (err < len-1)
- 		goto retry;
- 
- 	mark_inode_dirty(inode);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -101,6 +98,7 @@ fs-fix-data-loss-on-error.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch
 mm-restore-kernel_ds-optimisations.patch
 implement-simple-fs-aops.patch
 block_dev-convert-to-new-aops.patch
