@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-driver-for-ds1216-chips-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:35:20 -0700
-Message-ID: <200706262135.l5QLZK0Q002549@imap1.linux-foundation.org>
+Subject: + rtc-driver-for-ds1216-chips.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:35:17 -0700
+Message-ID: <200706262135.l5QLZHot002546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52558 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52986 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752187AbXFZVfd (ORCPT
+	by vger.kernel.org with ESMTP id S1751433AbXFZVfa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:35:33 -0400
+	Tue, 26 Jun 2007 17:35:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, tsbogend@alpha.franken.de
+Cc: tsbogend@alpha.franken.de, a.zummo@towertech.it
 
 
 The patch titled
-     rtc-driver-for-ds1216-chips-fix
+     RTC driver for DS1216 chips
 has been added to the -mm tree.  Its filename is
-     rtc-driver-for-ds1216-chips-fix.patch
+     rtc-driver-for-ds1216-chips.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,270 +26,283 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-driver-for-ds1216-chips-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: RTC driver for DS1216 chips
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-- some constification
+RTC driver for Dallas/Maxim DS126 chips used in SNI RM200/RM400
 
-- whitespace fixes
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1216.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/rtc/Kconfig      |    6 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-ds1216.c |  226 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 233 insertions(+)
 
-diff -puN drivers/rtc/rtc-ds1216.c~rtc-driver-for-ds1216-chips-fix drivers/rtc/rtc-ds1216.c
---- a/drivers/rtc/rtc-ds1216.c~rtc-driver-for-ds1216-chips-fix
+diff -puN drivers/rtc/Kconfig~rtc-driver-for-ds1216-chips drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-driver-for-ds1216-chips
++++ a/drivers/rtc/Kconfig
+@@ -261,6 +261,12 @@ config RTC_DRV_CMOS
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-cmos.
+ 
++config RTC_DRV_DS1216
++	tristate "Dallas DS1216"
++	depends on RTC_CLASS && SNI_RM
++	help
++	  If you say yes here you get support for the Dallas DS1216 RTC chips.
++
+ config RTC_DRV_DS1553
+ 	tristate "Dallas DS1553"
+ 	depends on RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-driver-for-ds1216-chips drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-driver-for-ds1216-chips
++++ a/drivers/rtc/Makefile
+@@ -44,3 +44,4 @@ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-a
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+ obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
+ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
++obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
+diff -puN /dev/null drivers/rtc/rtc-ds1216.c
+--- /dev/null
 +++ a/drivers/rtc/rtc-ds1216.c
-@@ -23,8 +23,8 @@ struct ds1216_regs {
- 	u8 year;
- };
- 
--#define DS1216_HOUR_1224       (1 << 7)
--#define DS1216_HOUR_AMPM       (1 << 5)
-+#define DS1216_HOUR_1224	(1 << 7)
-+#define DS1216_HOUR_AMPM	(1 << 5)
- 
- struct ds1216_priv {
- 	struct rtc_device *rtc;
-@@ -33,7 +33,7 @@ struct ds1216_priv {
- 	unsigned long baseaddr;
- };
- 
--static u8 magic[] = {
-+static const u8 magic[] = {
- 	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
- };
- 
-@@ -55,7 +55,7 @@ static void ds1216_read(u8 __iomem *ioad
- 	}
- }
- 
--static void ds1216_write(u8 __iomem *ioaddr, u8 *buf)
-+static void ds1216_write(u8 __iomem *ioaddr, const u8 *buf)
- {
- 	unsigned char c;
- 	int i, j;
-@@ -63,7 +63,7 @@ static void ds1216_write(u8 __iomem *ioa
- 	for (i = 0; i < 8; i++) {
- 		c = buf[i];
- 		for (j = 0; j < 8; j++) {
--			writeb (c, ioaddr);
-+			writeb(c, ioaddr);
- 			c = c >> 1;
- 		}
- 	}
-@@ -173,7 +173,7 @@ static int __devinit ds1216_rtc_probe(st
- 	platform_set_drvdata(pdev, priv);
- 
- 	/* dummy read to get clock into a known state */
--	ds1216_read (priv->ioaddr, dummy);
-+	ds1216_read(priv->ioaddr, dummy);
- 	return 0;
- 
- out:
+@@ -0,0 +1,226 @@
++/*
++ * Dallas DS1216 RTC driver
++ *
++ * Copyright (c) 2007 Thomas Bogendoerfer
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <linux/bcd.h>
++
++#define DRV_VERSION "0.1"
++
++struct ds1216_regs {
++	u8 tsec;
++	u8 sec;
++	u8 min;
++	u8 hour;
++	u8 wday;
++	u8 mday;
++	u8 month;
++	u8 year;
++};
++
++#define DS1216_HOUR_1224       (1 << 7)
++#define DS1216_HOUR_AMPM       (1 << 5)
++
++struct ds1216_priv {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++	size_t size;
++	unsigned long baseaddr;
++};
++
++static u8 magic[] = {
++	0xc5, 0x3a, 0xa3, 0x5c, 0xc5, 0x3a, 0xa3, 0x5c
++};
++
++/*
++ * Read the 64 bit we'd like to have - It a series
++ * of 64 bits showing up in the LSB of the base register.
++ *
++ */
++static void ds1216_read(u8 __iomem *ioaddr, u8 *buf)
++{
++	unsigned char c;
++	int i, j;
++
++	for (i = 0; i < 8; i++) {
++		c = 0;
++		for (j = 0; j < 8; j++)
++			c |= (readb(ioaddr) & 0x1) << j;
++		buf[i] = c;
++	}
++}
++
++static void ds1216_write(u8 __iomem *ioaddr, u8 *buf)
++{
++	unsigned char c;
++	int i, j;
++
++	for (i = 0; i < 8; i++) {
++		c = buf[i];
++		for (j = 0; j < 8; j++) {
++			writeb (c, ioaddr);
++			c = c >> 1;
++		}
++	}
++}
++
++static void ds1216_switch_ds_to_clock(u8 __iomem *ioaddr)
++{
++	/* Reset magic pointer */
++	readb(ioaddr);
++	/* Write 64 bit magic to DS1216 */
++	ds1216_write(ioaddr, magic);
++}
++
++static int ds1216_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct ds1216_priv *priv = platform_get_drvdata(pdev);
++	struct ds1216_regs regs;
++
++	ds1216_switch_ds_to_clock(priv->ioaddr);
++	ds1216_read(priv->ioaddr, (u8 *)&regs);
++
++	tm->tm_sec = BCD2BIN(regs.sec);
++	tm->tm_min = BCD2BIN(regs.min);
++	if (regs.hour & DS1216_HOUR_1224) {
++		/* AM/PM mode */
++		tm->tm_hour = BCD2BIN(regs.hour & 0x1f);
++		if (regs.hour & DS1216_HOUR_AMPM)
++			tm->tm_hour += 12;
++	} else
++		tm->tm_hour = BCD2BIN(regs.hour & 0x3f);
++	tm->tm_wday = (regs.wday & 7) - 1;
++	tm->tm_mday = BCD2BIN(regs.mday & 0x3f);
++	tm->tm_mon = BCD2BIN(regs.month & 0x1f);
++	tm->tm_year = BCD2BIN(regs.year);
++	if (tm->tm_year < 70)
++		tm->tm_year += 100;
++	return 0;
++}
++
++static int ds1216_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct ds1216_priv *priv = platform_get_drvdata(pdev);
++	struct ds1216_regs regs;
++
++	ds1216_switch_ds_to_clock(priv->ioaddr);
++	ds1216_read(priv->ioaddr, (u8 *)&regs);
++
++	regs.tsec = 0; /* clear 0.1 and 0.01 seconds */
++	regs.sec = BIN2BCD(tm->tm_sec);
++	regs.min = BIN2BCD(tm->tm_min);
++	regs.hour &= DS1216_HOUR_1224;
++	if (regs.hour && tm->tm_hour > 12) {
++		regs.hour |= DS1216_HOUR_AMPM;
++		tm->tm_hour -= 12;
++	}
++	regs.hour |= BIN2BCD(tm->tm_hour);
++	regs.wday &= ~7;
++	regs.wday |= tm->tm_wday;
++	regs.mday = BIN2BCD(tm->tm_mday);
++	regs.month = BIN2BCD(tm->tm_mon);
++	regs.year = BIN2BCD(tm->tm_year % 100);
++
++	ds1216_switch_ds_to_clock(priv->ioaddr);
++	ds1216_write(priv->ioaddr, (u8 *)&regs);
++	return 0;
++}
++
++static const struct rtc_class_ops ds1216_rtc_ops = {
++	.read_time	= ds1216_rtc_read_time,
++	.set_time	= ds1216_rtc_set_time,
++};
++
++static int __devinit ds1216_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct resource *res;
++	struct ds1216_priv *priv;
++	int ret = 0;
++	u8 dummy[8];
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENODEV;
++	priv = kzalloc(sizeof *priv, GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++	priv->size = res->end - res->start + 1;
++	if (!request_mem_region(res->start, priv->size, pdev->name)) {
++		ret = -EBUSY;
++		goto out;
++	}
++	priv->baseaddr = res->start;
++	priv->ioaddr = ioremap(priv->baseaddr, priv->size);
++	if (!priv->ioaddr) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	rtc = rtc_device_register("ds1216", &pdev->dev,
++				  &ds1216_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		ret = PTR_ERR(rtc);
++		goto out;
++	}
++	priv->rtc = rtc;
++	platform_set_drvdata(pdev, priv);
++
++	/* dummy read to get clock into a known state */
++	ds1216_read (priv->ioaddr, dummy);
++	return 0;
++
++out:
++	if (priv->rtc)
++		rtc_device_unregister(priv->rtc);
++	if (priv->ioaddr)
++		iounmap(priv->ioaddr);
++	if (priv->baseaddr)
++		release_mem_region(priv->baseaddr, priv->size);
++	kfree(priv);
++	return ret;
++}
++
++static int __devexit ds1216_rtc_remove(struct platform_device *pdev)
++{
++	struct ds1216_priv *priv = platform_get_drvdata(pdev);
++
++	rtc_device_unregister(priv->rtc);
++	iounmap(priv->ioaddr);
++	release_mem_region(priv->baseaddr, priv->size);
++	kfree(priv);
++	return 0;
++}
++
++static struct platform_driver ds1216_rtc_platform_driver = {
++	.driver		= {
++		.name	= "rtc-ds1216",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= ds1216_rtc_probe,
++	.remove		= __devexit_p(ds1216_rtc_remove),
++};
++
++static int __init ds1216_rtc_init(void)
++{
++	return platform_driver_register(&ds1216_rtc_platform_driver);
++}
++
++static void __exit ds1216_rtc_exit(void)
++{
++	platform_driver_unregister(&ds1216_rtc_platform_driver);
++}
++
++MODULE_AUTHOR("Thomas Bogendoerfer <tsbogend@alpha.franken.de>");
++MODULE_DESCRIPTION("DS1216 RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
++
++module_init(ds1216_rtc_init);
++module_exit(ds1216_rtc_exit);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
+extract-chip-specific-code-out-of-lasi_82596c.patch
+extract-chip-specific-code-out-of-lasi_82596c-update.patch
+ethernet-driver-for-eisa-only-sni-rm200-rm400-machines.patch
+ethernet-driver-for-eisa-only-sni-rm200-rm400-machines-update.patch
 git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix-2.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-driver-for-ds1216-chips.patch
 rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
