@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:12:39 -0700
-Message-ID: <200706261912.l5QJCdAR032634@imap1.linux-foundation.org>
+Subject: + ich-force-hpet-restructure-hpet-generic-clock-code.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:20:35 -0700
+Message-ID: <200706261920.l5QJKZnv000371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41727 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44226 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759534AbXFZTOL (ORCPT
+	by vger.kernel.org with ESMTP id S1758203AbXFZTVZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:14:11 -0400
+	Tue, 26 Jun 2007 15:21:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, oleg@tv-sign.ru, pavel@ucw.cz, u.luckas@road.de
+Cc: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     PM: prevent frozen user mode helpers from failing the freezing of tasks
+     ICH Force HPET: restructure hpet generic clock code
 has been added to the -mm tree.  Its filename is
-     pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+     ich-force-hpet-restructure-hpet-generic-clock-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,199 +26,266 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PM: prevent frozen user mode helpers from failing the freezing of tasks
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ICH Force HPET: restructure hpet generic clock code
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-At present, if a user mode helper is running while
-usermodehelper_pm_callback() is executed, the helper may be frozen and the
-completion in call_usermodehelper_exec() won't be completed until user
-space processes are thawed.  As a result, the freezing of kernel threads
-may fail, which is not desirable.
+Restructure and rename legacy replacement mode HPET timer support.  Just the
+code structural changes and should be zero functionality change.
 
-Prevent this from happening by introducing a counter of running user mode
-helpers and allowing usermodehelper_pm_callback() to succeed for action =
-PM_HIBERNATION_PREPARE or action = PM_SUSPEND_PREPARE only if there are no
-helpers running.  [Namely, usermodehelper_pm_callback() waits for at most
-RUNNING_HELPERS_TIMEOUT for the number of running helpers to become zero
-and fails if that doesn't happen.]
-
-Special thanks to Uli Luckas <u.luckas@road.de>, Pavel Machek
-<pavel@ucw.cz> and Oleg Nesterov <oleg@tv-sign.ru> for reviewing the
-previous versions of this patch and for very useful comments.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Uli Luckas <u.luckas@road.de>
-Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   78 +++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 68 insertions(+), 10 deletions(-)
+ arch/i386/kernel/hpet.c |  148 +++++++++++++++++++++-----------------
+ 1 files changed, 83 insertions(+), 65 deletions(-)
 
-diff -puN kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2 kernel/kmod.c
---- a/kernel/kmod.c~pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2
-+++ a/kernel/kmod.c
-@@ -41,14 +41,6 @@ extern int max_threads;
+diff -puN arch/i386/kernel/hpet.c~ich-force-hpet-restructure-hpet-generic-clock-code arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~ich-force-hpet-restructure-hpet-generic-clock-code
++++ a/arch/i386/kernel/hpet.c
+@@ -158,9 +158,9 @@ static void hpet_reserve_platform_timers
+  */
+ static unsigned long hpet_period;
  
- static struct workqueue_struct *khelper_wq;
- 
--/*
-- * If set, both call_usermodehelper_keys() and call_usermodehelper_pipe() exit
-- * immediately returning -EBUSY.  Used for preventing user land processes from
-- * being created after the user land has been frozen during a system-wide
-- * hibernation or suspend operation.
-- */
--static int usermodehelper_disabled;
--
- #ifdef CONFIG_KMOD
+-static void hpet_set_mode(enum clock_event_mode mode,
++static void hpet_legacy_set_mode(enum clock_event_mode mode,
+ 			  struct clock_event_device *evt);
+-static int hpet_next_event(unsigned long delta,
++static int hpet_legacy_next_event(unsigned long delta,
+ 			   struct clock_event_device *evt);
  
  /*
-@@ -275,15 +267,55 @@ static void __call_usermodehelper(struct
+@@ -169,8 +169,8 @@ static int hpet_next_event(unsigned long
+ static struct clock_event_device hpet_clockevent = {
+ 	.name		= "hpet",
+ 	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+-	.set_mode	= hpet_set_mode,
+-	.set_next_event = hpet_next_event,
++	.set_mode	= hpet_legacy_set_mode,
++	.set_next_event = hpet_legacy_next_event,
+ 	.shift		= 32,
+ 	.irq		= 0,
+ };
+@@ -187,7 +187,7 @@ static void hpet_start_counter(void)
+ 	hpet_writel(cfg, HPET_CFG);
+ }
+ 
+-static void hpet_enable_int(void)
++static void hpet_enable_legacy_int(void)
+ {
+ 	unsigned long cfg = hpet_readl(HPET_CFG);
+ 
+@@ -196,7 +196,39 @@ static void hpet_enable_int(void)
+ 	hpet_legacy_int_enabled = 1;
+ }
+ 
+-static void hpet_set_mode(enum clock_event_mode mode,
++static void hpet_legacy_clockevent_register(void)
++{
++	uint64_t hpet_freq;
++
++	/* Start HPET legacy interrupts */
++	hpet_enable_legacy_int();
++
++	/*
++	 * The period is a femto seconds value. We need to calculate the
++	 * scaled math multiplication factor for nanosecond to hpet tick
++	 * conversion.
++	 */
++	hpet_freq = 1000000000000000ULL;
++	do_div(hpet_freq, hpet_period);
++	hpet_clockevent.mult = div_sc((unsigned long) hpet_freq,
++				      NSEC_PER_SEC, 32);
++	/* Calculate the min / max delta */
++	hpet_clockevent.max_delta_ns = clockevent_delta2ns(0x7FFFFFFF,
++							   &hpet_clockevent);
++	hpet_clockevent.min_delta_ns = clockevent_delta2ns(0x30,
++							   &hpet_clockevent);
++
++	/*
++	 * Start hpet with the boot cpu mask and make it
++	 * global after the IO_APIC has been initialized.
++	 */
++	hpet_clockevent.cpumask = cpumask_of_cpu(smp_processor_id());
++	clockevents_register_device(&hpet_clockevent);
++	global_clock_event = &hpet_clockevent;
++	printk(KERN_DEBUG "hpet clockevent registered\n");
++}
++
++static void hpet_legacy_set_mode(enum clock_event_mode mode,
+ 			  struct clock_event_device *evt)
+ {
+ 	unsigned long cfg, cmp, now;
+@@ -237,12 +269,12 @@ static void hpet_set_mode(enum clock_eve
+ 		break;
+ 
+ 	case CLOCK_EVT_MODE_RESUME:
+-		hpet_enable_int();
++		hpet_enable_legacy_int();
+ 		break;
  	}
  }
  
-+#ifdef CONFIG_PM
-+/*
-+ * If set, call_usermodehelper_exec() will exit immediately returning -EBUSY
-+ * (used for preventing user land processes from being created after the user
-+ * land has been frozen during a system-wide hibernation or suspend operation).
-+ */
-+static int usermodehelper_disabled;
-+
-+/* Number of helpers running */
-+static atomic_t running_helpers = ATOMIC_INIT(0);
-+
-+/*
-+ * Wait queue head used by usermodehelper_pm_callback() to wait for all running
-+ * helpers to finish.
-+ */
-+static DECLARE_WAIT_QUEUE_HEAD(running_helpers_waitq);
-+
-+/*
-+ * Time to wait for running_helpers to become zero before the setting of
-+ * usermodehelper_disabled in usermodehelper_pm_callback() fails
-+ */
-+#define RUNNING_HELPERS_TIMEOUT	(5 * HZ)
-+
- static int usermodehelper_pm_callback(struct notifier_block *nfb,
- 					unsigned long action,
- 					void *ignored)
+-static int hpet_next_event(unsigned long delta,
++static int hpet_legacy_next_event(unsigned long delta,
+ 			   struct clock_event_device *evt)
  {
-+	long retval;
-+
- 	switch (action) {
- 	case PM_HIBERNATION_PREPARE:
- 	case PM_SUSPEND_PREPARE:
- 		usermodehelper_disabled = 1;
--		return NOTIFY_OK;
-+		smp_mb();
-+		/*
-+		 * From now on call_usermodehelper_exec() won't start any new
-+		 * helpers, so it is sufficient if running_helpers turns out to
-+		 * be zero at one point (it may be increased later, but that
-+		 * doesn't matter).
-+		 */
-+		retval = wait_event_timeout(running_helpers_waitq,
-+					atomic_read(&running_helpers) == 0,
-+					RUNNING_HELPERS_TIMEOUT);
-+		if (retval) {
-+			return NOTIFY_OK;
-+		} else {
-+			usermodehelper_disabled = 0;
-+			return NOTIFY_BAD;
-+		}
- 	case PM_POST_HIBERNATION:
- 	case PM_POST_SUSPEND:
- 		usermodehelper_disabled = 0;
-@@ -293,6 +325,30 @@ static int usermodehelper_pm_callback(st
- 	return NOTIFY_DONE;
- }
+ 	unsigned long cnt;
+@@ -282,58 +314,11 @@ static struct clocksource clocksource_hp
+ #endif
+ };
  
-+static void helper_lock(void)
-+{
-+	atomic_inc(&running_helpers);
-+	smp_mb__after_atomic_inc();
-+}
-+
-+static void helper_unlock(void)
-+{
-+	if (atomic_dec_and_test(&running_helpers))
-+		wake_up(&running_helpers_waitq);
-+}
-+
-+static void register_pm_notifier_callback(void)
-+{
-+	pm_notifier(usermodehelper_pm_callback, 0);
-+}
-+#else /* CONFIG_PM */
-+#define usermodehelper_disabled	0
-+
-+static inline void helper_lock(void) {}
-+static inline void helper_unlock(void) {}
-+static inline void register_pm_notifier_callback(void) {}
-+#endif /* CONFIG_PM */
-+
- /**
-  * call_usermodehelper_setup - prepare to call a usermode helper
-  * @path - path to usermode executable
-@@ -397,6 +453,7 @@ int call_usermodehelper_exec(struct subp
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	int retval;
- 
-+	helper_lock();
- 	if (sub_info->path[0] == '\0') {
- 		retval = 0;
- 		goto out;
-@@ -418,6 +475,7 @@ int call_usermodehelper_exec(struct subp
- 
-   out:
- 	call_usermodehelper_freeinfo(sub_info);
-+	helper_unlock();
- 	return retval;
- }
- EXPORT_SYMBOL(call_usermodehelper_exec);
-@@ -459,5 +517,5 @@ void __init usermodehelper_init(void)
+-/*
+- * Try to setup the HPET timer
+- */
+-int __init hpet_enable(void)
++static int hpet_clocksource_register(void)
  {
- 	khelper_wq = create_singlethread_workqueue("khelper");
- 	BUG_ON(!khelper_wq);
--	pm_notifier(usermodehelper_pm_callback, 0);
-+	register_pm_notifier_callback();
- }
+-	unsigned long id;
+-	uint64_t hpet_freq;
+ 	u64 tmp, start, now;
+ 	cycle_t t1;
+ 
+-	if (!is_hpet_capable())
+-		return 0;
+-
+-	hpet_set_mapping();
+-
+-	/*
+-	 * Read the period and check for a sane value:
+-	 */
+-	hpet_period = hpet_readl(HPET_PERIOD);
+-	if (hpet_period < HPET_MIN_PERIOD || hpet_period > HPET_MAX_PERIOD)
+-		goto out_nohpet;
+-
+-	/*
+-	 * The period is a femto seconds value. We need to calculate the
+-	 * scaled math multiplication factor for nanosecond to hpet tick
+-	 * conversion.
+-	 */
+-	hpet_freq = 1000000000000000ULL;
+-	do_div(hpet_freq, hpet_period);
+-	hpet_clockevent.mult = div_sc((unsigned long) hpet_freq,
+-				      NSEC_PER_SEC, 32);
+-	/* Calculate the min / max delta */
+-	hpet_clockevent.max_delta_ns = clockevent_delta2ns(0x7FFFFFFF,
+-							   &hpet_clockevent);
+-	hpet_clockevent.min_delta_ns = clockevent_delta2ns(0x30,
+-							   &hpet_clockevent);
+-
+-	/*
+-	 * Read the HPET ID register to retrieve the IRQ routing
+-	 * information and the number of channels
+-	 */
+-	id = hpet_readl(HPET_ID);
+-
+-#ifdef CONFIG_HPET_EMULATE_RTC
+-	/*
+-	 * The legacy routing mode needs at least two channels, tick timer
+-	 * and the rtc emulation channel.
+-	 */
+-	if (!(id & HPET_ID_NUMBER))
+-		goto out_nohpet;
+-#endif
+-
+ 	/* Start the counter */
+ 	hpet_start_counter();
+ 
+@@ -355,7 +340,7 @@ int __init hpet_enable(void)
+ 	if (t1 == read_hpet()) {
+ 		printk(KERN_WARNING
+ 		       "HPET counter not counting. HPET disabled\n");
+-		goto out_nohpet;
++		return -ENODEV;
+ 	}
+ 
+ 	/* Initialize and register HPET clocksource
+@@ -376,16 +361,49 @@ int __init hpet_enable(void)
+ 
+ 	clocksource_register(&clocksource_hpet);
+ 
++	return 0;
++}
++
++/*
++ * Try to setup the HPET timer
++ */
++int __init hpet_enable(void)
++{
++	unsigned long id;
++
++	if (!is_hpet_capable())
++		return 0;
++
++	hpet_set_mapping();
++
++	/*
++	 * Read the period and check for a sane value:
++	 */
++	hpet_period = hpet_readl(HPET_PERIOD);
++	if (hpet_period < HPET_MIN_PERIOD || hpet_period > HPET_MAX_PERIOD)
++		goto out_nohpet;
++
++	/*
++	 * Read the HPET ID register to retrieve the IRQ routing
++	 * information and the number of channels
++	 */
++	id = hpet_readl(HPET_ID);
++
++#ifdef CONFIG_HPET_EMULATE_RTC
++	/*
++	 * The legacy routing mode needs at least two channels, tick timer
++	 * and the rtc emulation channel.
++	 */
++	if (!(id & HPET_ID_NUMBER))
++		goto out_nohpet;
++#endif
++
++	if (hpet_clocksource_register())
++		goto out_nohpet;
++
+ 	if (id & HPET_ID_LEGSUP) {
+-		hpet_enable_int();
++		hpet_legacy_clockevent_register();
+ 		hpet_reserve_platform_timers(id);
+-		/*
+-		 * Start hpet with the boot cpu mask and make it
+-		 * global after the IO_APIC has been initialized.
+-		 */
+-		hpet_clockevent.cpumask = cpumask_of_cpu(smp_processor_id());
+-		clockevents_register_device(&hpet_clockevent);
+-		global_clock_event = &hpet_clockevent;
+ 		return 1;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-x86_64-set-the-irq_chip-name-for-lapic.patch
-x86_64-pm_trace-support.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-pm-reduce-code-duplication-between-mainc-and-userc.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-shrink_slab-handle-bad-shrinkers.patch
-beeping-patch-for-debugging-acpi-sleep.patch
+git-acpi.patch
+cpuidle-menu-governor-and-hrtimer-compile-fix.patch
+cpuidle-reenable-proc-acpi-power-interface-for-the-time-being.patch
+cpuidle-fix-the-uninitialized-variable-in-sysfs-routine.patch
+cpuidle-menu-governor-change-the-early-break-condition.patch
+cpuidle-make-cpuidle-sysfs-driver-governor-switch-off-by-default.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default.patch
+cpuidle-first-round-of-documentation-updates.patch
+git-acpi-add-exports.patch
+git-cpufreq.patch
+make-usb-autosuspend-timer-1-sec-jiffy-aligned.patch
+round_jiffies-for-i386-and-x86-64-non-critical-corrected-mce-polling.patch
+x86_64-convert-to-cleckevents.patch
+x86_64-block-irq-balancing-for-timer.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+git-newsetup.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
