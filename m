@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + relay-file-read-start-pos-fixpatch.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:28:57 -0700
-Message-ID: <200706261928.l5QJSvPS000522@imap1.linux-foundation.org>
+Subject: + libata-add-irq_flags-to-struct-pata_platform_info.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:33:28 -0700
+Message-ID: <200706261933.l5QJXSTM000643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54983 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758066AbXFZT3S (ORCPT
+	by vger.kernel.org with ESMTP id S1752877AbXFZTdn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:29:18 -0400
+	Tue, 26 Jun 2007 15:33:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwilder@us.ibm.com, masami.hiramatsu.pt@hitachi.com, zanussi@us.ibm.com
+Cc: sonic.adi@gmail.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     relay file read: start-pos fix
+     libata: add irq_flags to struct pata_platform_info
 has been added to the -mm tree.  Its filename is
-     relay-file-read-start-pos-fixpatch.patch
+     libata-add-irq_flags-to-struct-pata_platform_info.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: relay file read: start-pos fix
-From: David Wilder <dwilder@us.ibm.com>
+Subject: libata: add irq_flags to struct pata_platform_info
+From: "Sonic Zhang" <sonic.adi@gmail.com>
 
-Fix a bug in the relay read interface causing the number of consumed bytes
-to be set incorrectly.
+On some embedded platforms, such as blackfin, the gpio interrupt for IDE
+interface is designed to be triggered with high voltage.  The gpio port
+should be configured properly by set_irq_type() when register the irq. 
+This patch enable the generic pata platform driver to accept platform irq
+flags data.
 
-Signed-off-by: Tom Zanussi <zanussi@us.ibm.com>
-Signed-off-by: David Wilder <dwilder@us.ibm.com>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Signed-off-by: Sonic Zhang <sonic.adi@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/ata/pata_platform.c   |    6 ++++--
+ include/linux/pata_platform.h |    5 +++++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/relay.c~relay-file-read-start-pos-fixpatch kernel/relay.c
---- a/kernel/relay.c~relay-file-read-start-pos-fixpatch
-+++ a/kernel/relay.c
-@@ -899,7 +899,10 @@ static size_t relay_file_read_start_pos(
- 	size_t read_subbuf, padding, padding_start, padding_end;
- 	size_t subbuf_size = buf->chan->subbuf_size;
- 	size_t n_subbufs = buf->chan->n_subbufs;
-+	size_t consumed = buf->subbufs_consumed % n_subbufs;
+diff -puN drivers/ata/pata_platform.c~libata-add-irq_flags-to-struct-pata_platform_info drivers/ata/pata_platform.c
+--- a/drivers/ata/pata_platform.c~libata-add-irq_flags-to-struct-pata_platform_info
++++ a/drivers/ata/pata_platform.c
+@@ -139,6 +139,7 @@ static int __devinit pata_platform_probe
+ 	struct resource *io_res, *ctl_res;
+ 	struct ata_host *host;
+ 	struct ata_port *ap;
++	struct pata_platform_info *pp_info;
+ 	unsigned int mmio;
  
-+	if (!read_pos)
-+		read_pos = consumed * subbuf_size + buf->bytes_consumed;
- 	read_subbuf = read_pos / subbuf_size;
- 	padding = buf->padding[read_subbuf];
- 	padding_start = (read_subbuf + 1) * subbuf_size - padding;
+ 	/*
+@@ -208,11 +209,12 @@ static int __devinit pata_platform_probe
+ 
+ 	ap->ioaddr.altstatus_addr = ap->ioaddr.ctl_addr;
+ 
+-	pata_platform_setup_port(&ap->ioaddr, pdev->dev.platform_data);
++	pp_info = (struct pata_platform_info *)(pdev->dev.platform_data);
++	pata_platform_setup_port(&ap->ioaddr, pp_info);
+ 
+ 	/* activate */
+ 	return ata_host_activate(host, platform_get_irq(pdev, 0), ata_interrupt,
+-				 0, &pata_platform_sht);
++				 pp_info->irq_flags, &pata_platform_sht);
+ }
+ 
+ /**
+diff -puN include/linux/pata_platform.h~libata-add-irq_flags-to-struct-pata_platform_info include/linux/pata_platform.h
+--- a/include/linux/pata_platform.h~libata-add-irq_flags-to-struct-pata_platform_info
++++ a/include/linux/pata_platform.h
+@@ -8,6 +8,11 @@ struct pata_platform_info {
+ 	 * spacing used by ata_std_ports().
+ 	 */
+ 	unsigned int ioport_shift;
++	/*
++	 * Indicate platform specific irq types and initial
++	 * IRQ flags when call request_irq()
++	 */
++	unsigned int irq_flags;
+ };
+ 
+ #endif /* __LINUX_PATA_PLATFORM_H */
 _
 
-Patches currently in -mm which might be from dwilder@us.ibm.com are
+Patches currently in -mm which might be from sonic.adi@gmail.com are
 
-relay-file-read-start-pos-fixpatch.patch
-relayfs-fix-overwrites.patch
+libata-add-irq_flags-to-struct-pata_platform_info.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
