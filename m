@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clockevents-fix-typo-in-acpi_pmc.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:24 -0700
-Message-ID: <200706260007.l5Q07Osg014403@imap1.linux-foundation.org>
+Subject: + timerc-cleanup-recently-introduced-whitespace-damage.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:28 -0700
+Message-ID: <200706260007.l5Q07SE0014409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56549 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752357AbXFZAHh (ORCPT
+	by vger.kernel.org with ESMTP id S1752533AbXFZAIF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:07:37 -0400
+	Mon, 25 Jun 2007 20:08:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: abogani@texware.it, johnstul@us.ibm.com
+Cc: tglx@linutronix.de
 
 
 The patch titled
-     clockevents: fix typo in acpi_pm.c
+     timer.c: cleanup recently introduced whitespace damage
 has been added to the -mm tree.  Its filename is
-     clockevents-fix-typo-in-acpi_pmc.patch
+     timerc-cleanup-recently-introduced-whitespace-damage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,144 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clockevents: fix typo in acpi_pm.c
-From: Alessio Igor Bogani <abogani@texware.it>
+Subject: timer.c: cleanup recently introduced whitespace damage
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Alessio Igor Bogani <abogani@texware.it>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/acpi_pm.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/timer.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~clockevents-fix-typo-in-acpi_pmc drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clockevents-fix-typo-in-acpi_pmc
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -71,7 +71,7 @@ static struct clocksource clocksource_ac
- 	.rating		= 200,
- 	.read		= acpi_pm_read,
- 	.mask		= (cycle_t)ACPI_PM_MASK,
--	.mult		= 0, /*to be caluclated*/
-+	.mult		= 0, /*to be calculated*/
- 	.shift		= 22,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN kernel/timer.c~timerc-cleanup-recently-introduced-whitespace-damage kernel/timer.c
+--- a/kernel/timer.c~timerc-cleanup-recently-introduced-whitespace-damage
++++ a/kernel/timer.c
+@@ -103,14 +103,14 @@ static inline tvec_base_t *tbase_get_bas
+ static inline void timer_set_deferrable(struct timer_list *timer)
+ {
+ 	timer->base = ((tvec_base_t *)((unsigned long)(timer->base) |
+-	                               TBASE_DEFERRABLE_FLAG));
++				       TBASE_DEFERRABLE_FLAG));
+ }
  
+ static inline void
+ timer_set_base(struct timer_list *timer, tvec_base_t *new_base)
+ {
+ 	timer->base = (tvec_base_t *)((unsigned long)(new_base) |
+-	                              tbase_get_deferrable(timer->base));
++				      tbase_get_deferrable(timer->base));
+ }
+ 
+ /**
+@@ -431,10 +431,10 @@ EXPORT_SYMBOL(__mod_timer);
+ void add_timer_on(struct timer_list *timer, int cpu)
+ {
+ 	tvec_base_t *base = per_cpu(tvec_bases, cpu);
+-  	unsigned long flags;
++	unsigned long flags;
+ 
+ 	timer_stats_timer_set_start_info(timer);
+-  	BUG_ON(timer_pending(timer) || !timer->function);
++	BUG_ON(timer_pending(timer) || !timer->function);
+ 	spin_lock_irqsave(&base->lock, flags);
+ 	timer_set_base(timer, base);
+ 	internal_add_timer(base, timer);
+@@ -613,7 +613,7 @@ static inline void __run_timers(tvec_bas
+ 	while (time_after_eq(jiffies, base->timer_jiffies)) {
+ 		struct list_head work_list;
+ 		struct list_head *head = &work_list;
+- 		int index = base->timer_jiffies & TVR_MASK;
++		int index = base->timer_jiffies & TVR_MASK;
+ 
+ 		/*
+ 		 * Cascade timers:
+@@ -630,8 +630,8 @@ static inline void __run_timers(tvec_bas
+ 			unsigned long data;
+ 
+ 			timer = list_first_entry(head, struct timer_list,entry);
+- 			fn = timer->function;
+- 			data = timer->data;
++			fn = timer->function;
++			data = timer->data;
+ 
+ 			timer_stats_account_timer(timer);
+ 
+@@ -675,8 +675,8 @@ static unsigned long __next_timer_interr
+ 	index = slot = timer_jiffies & TVR_MASK;
+ 	do {
+ 		list_for_each_entry(nte, base->tv1.vec + slot, entry) {
+- 			if (tbase_get_deferrable(nte->base))
+- 				continue;
++			if (tbase_get_deferrable(nte->base))
++				continue;
+ 
+ 			found = 1;
+ 			expires = nte->expires;
+@@ -820,7 +820,7 @@ void update_process_times(int user_tick)
+ 	if (rcu_pending(cpu))
+ 		rcu_check_callbacks(cpu, user_tick);
+ 	scheduler_tick();
+- 	run_posix_cpu_timers(p);
++	run_posix_cpu_timers(p);
+ }
+ 
+ /*
+@@ -895,7 +895,7 @@ static inline void update_times(unsigned
+ 	update_wall_time();
+ 	calc_load(ticks);
+ }
+-  
++
+ /*
+  * The 64-bit jiffies value is not atomic - you MUST NOT read it
+  * without sampling the sequence number in xtime_lock.
+@@ -1091,7 +1091,7 @@ asmlinkage long sys_gettid(void)
+ /**
+  * do_sysinfo - fill in sysinfo struct
+  * @info: pointer to buffer to fill
+- */ 
++ */
+ int do_sysinfo(struct sysinfo *info)
+ {
+ 	unsigned long mem_total, sav_total;
 _
 
-Patches currently in -mm which might be from abogani@texware.it are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-clockevents-fix-typo-in-acpi_pmc.patch
+git-acpi-add-exports.patch
+git-arm.patch
+i386-hpet-check-if-the-counter-works.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+timekeeping-fixup-shadow-variable-argument.patch
+timerc-cleanup-recently-introduced-whitespace-damage.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+pcspkr-use-the-global-pit-lock.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+i386-remove-volatile-in-apicc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+sys_time-speedup.patch
+lguest-the-host-code.patch
