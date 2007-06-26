@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch added to -mm tree
-Date: Tue, 26 Jun 2007 14:38:47 -0700
-Message-ID: <200706262138.l5QLcl1d002617@imap1.linux-foundation.org>
+Subject: + ext3-convert-to-new-aops-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 14:39:30 -0700
+Message-ID: <200706262139.l5QLdUjW002631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53362 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57928 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752020AbXFZVji (ORCPT
+	by vger.kernel.org with ESMTP id S1751482AbXFZVkT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 17:39:38 -0400
+	Tue, 26 Jun 2007 17:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com
 
 
 The patch titled
-     fs-introduce-write_begin-write_end-and-perform_write-aops fix 4
+     ext3-convert-to-new-aops fix
 has been added to the -mm tree.  Its filename is
-     fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch
+     ext3-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs-introduce-write_begin-write_end-and-perform_write-aops fix 4
+Subject: ext3-convert-to-new-aops fix
 From: Nick Piggin <npiggin@suse.de>
 
-Dmitriy noticed that iov_iter_fault_in_readable could go past the end
-of the first iov in a multi-iov situation, and that could be considered
-an EFAULT by the caller. Fix and comment.
+Don't move journal_stop from under page lock.
 
-Fixes: fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+Fixes: ext3-convert-to-new-aops.patch
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Badari Pulavarty <pbadari@gmail.com>
@@ -42,30 +40,110 @@ Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ fs/ext3/inode.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 37 insertions(+), 7 deletions(-)
 
-diff -puN mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4 mm/filemap.c
---- a/mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4
-+++ a/mm/filemap.c
-@@ -1794,9 +1794,19 @@ void iov_iter_advance(struct iov_iter *i
- 	i->count -= bytes;
+diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-convert-to-new-aops-fix
++++ a/fs/ext3/inode.c
+@@ -36,6 +36,7 @@
+ #include <linux/mpage.h>
+ #include <linux/uio.h>
+ #include <linux/bio.h>
++#include <linux/swap.h> /* mark_page_accessed */
+ #include "xattr.h"
+ #include "acl.h"
+ 
+@@ -1217,6 +1218,31 @@ static int write_end_fn(handle_t *handle
  }
  
-+/*
-+ * Fault in the first iovec of the given iov_iter, to a maximum length
-+ * of bytes. Returns 0 on success, or non-zero if the memory could not be
-+ * accessed (ie. because it is an invalid address).
-+ *
-+ * writev-intensive code may want this to prefault several iovecs -- that
-+ * would be possible (callers must not rely on the fact that _only_ the
-+ * first iovec will be faulted with the current implementation).
+ /*
++ * Generic write_end handler for ordered and writeback ext3 journal modes.
++ * We can't use generic_write_end, because that unlocks the page and we need to
++ * unlock the page after ext3_journal_stop, but ext3_journal_stop must run
++ * after block_write_end.
 + */
- int iov_iter_fault_in_readable(struct iov_iter *i, size_t bytes)
- {
- 	char __user *buf = i->iov->iov_base + i->iov_offset;
-+	bytes = min(bytes, i->iov->iov_len - i->iov_offset);
- 	return fault_in_pages_readable(buf, bytes);
++static int ext3_generic_write_end(struct file *file,
++				struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
++{
++	struct inode *inode = file->f_mapping->host;
++
++	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
++
++	mark_page_accessed(page);
++
++	if (pos+copied > inode->i_size) {
++		i_size_write(inode, pos+copied);
++		mark_inode_dirty(inode);
++	}
++
++	return copied;
++}
++
++/*
+  * We need to pick up the new inode size which generic_commit_write gave us
+  * `file' can be NULL - eg, when called from page_symlink().
+  *
+@@ -1250,17 +1276,17 @@ static int ext3_ordered_write_end(struct
+ 		new_i_size = pos + copied;
+ 		if (new_i_size > EXT3_I(inode)->i_disksize)
+ 			EXT3_I(inode)->i_disksize = new_i_size;
+-		copied = generic_write_end(file, mapping, pos, len, copied,
++		copied = ext3_generic_write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 		if (copied < 0)
+ 			ret = copied;
+-	} else {
+-		unlock_page(page);
+-		page_cache_release(page);
+ 	}
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
++	unlock_page(page);
++	page_cache_release(page);
++
+ 	return ret ? ret : copied;
+ }
+ 
+@@ -1278,7 +1304,7 @@ static int ext3_writeback_write_end(stru
+ 	if (new_i_size > EXT3_I(inode)->i_disksize)
+ 		EXT3_I(inode)->i_disksize = new_i_size;
+ 
+-	copied = generic_write_end(file, mapping, pos, len, copied,
++	copied = ext3_generic_write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 	if (copied < 0)
+ 		ret = copied;
+@@ -1286,6 +1312,9 @@ static int ext3_writeback_write_end(stru
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
++	unlock_page(page);
++	page_cache_release(page);
++
+ 	return ret ? ret : copied;
+ }
+ 
+@@ -1313,8 +1342,6 @@ static int ext3_journalled_write_end(str
+ 				to, &partial, write_end_fn);
+ 	if (!partial)
+ 		SetPageUptodate(page);
+-	unlock_page(page);
+-	page_cache_release(page);
+ 	if (pos+copied > inode->i_size)
+ 		i_size_write(inode, pos+copied);
+ 	EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
+@@ -1328,6 +1355,9 @@ static int ext3_journalled_write_end(str
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
++	unlock_page(page);
++	page_cache_release(page);
++
+ 	return ret ? ret : copied;
  }
  
 _
@@ -104,6 +182,7 @@ implement-simple-fs-aops.patch
 block_dev-convert-to-new-aops.patch
 ext2-convert-to-new-aops.patch
 ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
 ext4-convert-to-new-aops.patch
 xfs-convert-to-new-aops.patch
 fs-new-cont-helpers.patch
