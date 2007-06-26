@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sata_promise-cleanups.patch added to -mm tree
-Date: Tue, 26 Jun 2007 00:04:49 -0700
-Message-ID: <200706260704.l5Q74n4c020569@imap1.linux-foundation.org>
+Subject: + mmc-at91_mci-typo.patch added to -mm tree
+Date: Tue, 26 Jun 2007 00:06:21 -0700
+Message-ID: <200706260706.l5Q76LTi020595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49409 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38645 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750797AbXFZHFF (ORCPT
+	by vger.kernel.org with ESMTP id S1751100AbXFZHGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 03:05:05 -0400
+	Tue, 26 Jun 2007 03:06:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se, htejun@gmail.com, jeff@garzik.org
+Cc: nicolas.ferre@rfo.atmel.com, drzeus@drzeus.cx
 
 
 The patch titled
-     sata_promise: cleanups
+     mmc: at91_mci typo
 has been added to the -mm tree.  Its filename is
-     sata_promise-cleanups.patch
+     mmc-at91_mci-typo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,203 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sata_promise: cleanups
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: mmc: at91_mci typo
+From: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
 
-This patch applies some trivial cleanups to sata_promise:
-- repair whitespace damage
-- correct comment at board_2057x_pata definition
-- pull SATAII TX4 support code out to separate functions
-- rename ata_nr to ata_no for consistency with libata's port_no
-- remove some init-time debug printks (requested by Jeff)
+Typo fix in at91_mci driver : standardized the typo (at91_mci everywhere)
 
-This patch should cause no behavioural changes, except for the removed
-printks.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_promise.c |   56 ++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 33 deletions(-)
+ drivers/mmc/host/at91_mci.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-cleanups drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-cleanups
-+++ a/drivers/ata/sata_promise.c
-@@ -45,8 +45,7 @@
- #include "sata_promise.h"
- 
- #define DRV_NAME	"sata_promise"
--#define DRV_VERSION	"2.07"
--
-+#define DRV_VERSION	"2.08"
- 
- enum {
- 	PDC_MAX_PORTS		= 4,
-@@ -94,7 +93,7 @@ enum {
- 	board_20319		= 2,	/* FastTrak S150 TX4 */
- 	board_20619		= 3,	/* FastTrak TX4000 */
- 	board_2057x		= 4,	/* SATAII150 Tx2plus */
--	board_2057x_pata	= 5,	/* SATAII150 Tx2plus */
-+	board_2057x_pata	= 5,	/* SATAII150 Tx2plus PATA port */
- 	board_40518		= 6,	/* SATAII150 Tx4 */
- 
- 	PDC_HAS_PATA		= (1 << 1), /* PDC20375/20575 has PATA */
-@@ -124,7 +123,6 @@ enum {
- 	PDC_FLAG_4_PORTS	= (1 << 26), /* 4 ports */
- };
- 
--
- struct pdc_port_priv {
- 	u8			*pkt;
- 	dma_addr_t		pkt_dma;
-@@ -340,7 +338,6 @@ static const struct pci_device_id pdc_at
- 	{ }	/* terminate list */
- };
- 
--
- static struct pci_driver pdc_ata_pci_driver = {
- 	.name			= DRV_NAME,
- 	.id_table		= pdc_ata_pci_tbl,
-@@ -348,7 +345,6 @@ static struct pci_driver pdc_ata_pci_dri
- 	.remove			= ata_pci_remove_one,
- };
- 
--
- static int pdc_common_port_start(struct ata_port *ap)
+diff -puN drivers/mmc/host/at91_mci.c~mmc-at91_mci-typo drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~mmc-at91_mci-typo
++++ a/drivers/mmc/host/at91_mci.c
+@@ -131,7 +131,7 @@ struct at91mci_host
+ /*
+  * Copy from sg to a dma block - used for transfers
+  */
+-static inline void at91mci_sg_to_dma(struct at91mci_host *host, struct mmc_data *data)
++static inline void at91_mci_sg_to_dma(struct at91mci_host *host, struct mmc_data *data)
  {
- 	struct device *dev = ap->host->dev;
-@@ -438,7 +434,6 @@ static u32 pdc_sata_scr_read (struct ata
- 	return readl(ap->ioaddr.scr_addr + (sc_reg * 4));
- }
- 
--
- static void pdc_sata_scr_write (struct ata_port *ap, unsigned int sc_reg,
- 			       u32 val)
+ 	unsigned int len, i, size;
+ 	unsigned *dmabuf = host->buffer;
+@@ -180,7 +180,7 @@ static inline void at91mci_sg_to_dma(str
+ /*
+  * Prepare a dma read
+  */
+-static void at91mci_pre_dma_read(struct at91mci_host *host)
++static void at91_mci_pre_dma_read(struct at91mci_host *host)
  {
-@@ -657,8 +652,8 @@ static void pdc_error_intr(struct ata_po
- 	ata_port_abort(ap);
- }
- 
--static inline unsigned int pdc_host_intr( struct ata_port *ap,
--                                          struct ata_queued_cmd *qc)
-+static inline unsigned int pdc_host_intr(struct ata_port *ap,
-+					 struct ata_queued_cmd *qc)
+ 	int i;
+ 	struct scatterlist *sg;
+@@ -248,7 +248,7 @@ static void at91mci_pre_dma_read(struct 
+ /*
+  * Handle after a dma read
+  */
+-static void at91mci_post_dma_read(struct at91mci_host *host)
++static void at91_mci_post_dma_read(struct at91mci_host *host)
  {
- 	unsigned int handled = 0;
- 	void __iomem *port_mmio = ap->ioaddr.cmd_addr;
-@@ -685,10 +680,10 @@ static inline unsigned int pdc_host_intr
- 		handled = 1;
- 		break;
+ 	struct mmc_command *cmd;
+ 	struct mmc_data *data;
+@@ -299,7 +299,7 @@ static void at91mci_post_dma_read(struct
  
--        default:
-+	default:
- 		ap->stats.idle_irq++;
- 		break;
--        }
-+	}
+ 	/* Is there another transfer to trigger? */
+ 	if (host->transfer_index < data->sg_len)
+-		at91mci_pre_dma_read(host);
++		at91_mci_pre_dma_read(host);
+ 	else {
+ 		at91_mci_write(host, AT91_MCI_IER, AT91_MCI_RXBUFF);
+ 		at91_mci_write(host, ATMEL_PDC_PTCR, ATMEL_PDC_RXTDIS | ATMEL_PDC_TXTDIS);
+@@ -464,7 +464,7 @@ static unsigned int at91_mci_send_comman
+ 			host->buffer = NULL;
+ 			host->total_length = 0;
  
- 	return handled;
- }
-@@ -701,6 +696,18 @@ static void pdc_irq_clear(struct ata_por
- 	readl(mmio + PDC_INT_SEQMASK);
- }
+-			at91mci_pre_dma_read(host);
++			at91_mci_pre_dma_read(host);
+ 			ier = AT91_MCI_ENDRX /* | AT91_MCI_RXBUFF */;
+ 		}
+ 		else {
+@@ -476,7 +476,7 @@ static unsigned int at91_mci_send_comman
+ 						  host->total_length,
+ 						  &host->physical_address, GFP_KERNEL);
  
-+static inline int pdc_is_sataii_tx4(unsigned long flags)
-+{
-+	const unsigned long mask = PDC_FLAG_GEN_II | PDC_FLAG_4_PORTS;
-+	return (flags & mask) == mask;
-+}
-+
-+static inline unsigned int pdc_port_no_to_ata_no(unsigned int port_no, int is_sataii_tx4)
-+{
-+	static const unsigned char sataii_tx4_port_remap[4] = { 3, 1, 0, 2};
-+	return is_sataii_tx4 ? sataii_tx4_port_remap[port_no] : port_no;
-+}
-+
- static irqreturn_t pdc_interrupt (int irq, void *dev_instance)
+-			at91mci_sg_to_dma(host, data);
++			at91_mci_sg_to_dma(host, data);
+ 
+ 			pr_debug("Transmitting %d bytes\n", host->total_length);
+ 
+@@ -506,7 +506,7 @@ static unsigned int at91_mci_send_comman
+ /*
+  * Wait for a command to complete
+  */
+-static void at91mci_process_command(struct at91mci_host *host, struct mmc_command *cmd)
++static void at91_mci_process_command(struct at91mci_host *host, struct mmc_command *cmd)
  {
- 	struct ata_host *host = dev_instance;
-@@ -807,7 +814,6 @@ static void pdc_tf_load_mmio(struct ata_
- 	ata_tf_load(ap, tf);
- }
+ 	unsigned int ier;
  
--
- static void pdc_exec_command_mmio(struct ata_port *ap, const struct ata_taskfile *tf)
+@@ -521,15 +521,15 @@ static void at91mci_process_command(stru
+ /*
+  * Process the next step in the request
+  */
+-static void at91mci_process_next(struct at91mci_host *host)
++static void at91_mci_process_next(struct at91mci_host *host)
  {
- 	WARN_ON (tf->protocol == ATA_PROT_DMA ||
-@@ -867,7 +873,6 @@ static void pdc_ata_setup_port(struct at
- 	ap->ioaddr.scr_addr		= scr_addr;
- }
- 
--
- static void pdc_host_init(struct ata_host *host)
- {
- 	void __iomem *mmio = host->iomap[PDC_MMIO_BAR];
-@@ -955,10 +960,8 @@ static int pdc_ata_init_one (struct pci_
- 
- 	if (pi->flags & PDC_FLAG_SATA_PATA) {
- 		u8 tmp = readb(base + PDC_FLASH_CTL+1);
--		if (!(tmp & 0x80)) {
-+		if (!(tmp & 0x80))
- 			ppi[n_ports++] = pi + 1;
--			dev_printk(KERN_INFO, &pdev->dev, "PATA port found\n");
--		}
+ 	if (!(host->flags & FL_SENT_COMMAND)) {
+ 		host->flags |= FL_SENT_COMMAND;
+-		at91mci_process_command(host, host->request->cmd);
++		at91_mci_process_command(host, host->request->cmd);
  	}
- 
- 	host = ata_host_alloc_pinfo(&pdev->dev, ppi, n_ports);
-@@ -968,22 +971,12 @@ static int pdc_ata_init_one (struct pci_
+ 	else if ((!(host->flags & FL_SENT_STOP)) && host->request->stop) {
+ 		host->flags |= FL_SENT_STOP;
+-		at91mci_process_command(host, host->request->stop);
++		at91_mci_process_command(host, host->request->stop);
  	}
- 	host->iomap = pcim_iomap_table(pdev);
- 
--	is_sataii_tx4 = 0;
--	if ((pi->flags & (PDC_FLAG_GEN_II|PDC_FLAG_4_PORTS)) == (PDC_FLAG_GEN_II|PDC_FLAG_4_PORTS)) {
--		is_sataii_tx4 = 1;
--		dev_printk(KERN_INFO, &pdev->dev, "applying SATAII TX4 port numbering workaround\n");
--	}
-+	is_sataii_tx4 = pdc_is_sataii_tx4(pi->flags);
- 	for (i = 0; i < host->n_ports; i++) {
--		static const unsigned char sataii_tx4_port_remap[4] = { 3, 1, 0, 2};
--		int ata_nr;
--
--		ata_nr = i;
--		if (is_sataii_tx4)
--			ata_nr = sataii_tx4_port_remap[i];
--
-+		unsigned int ata_no = pdc_port_no_to_ata_no(i, is_sataii_tx4);
- 		pdc_ata_setup_port(host->ports[i],
--				   base + 0x200 + ata_nr * 0x80,
--				   base + 0x400 + ata_nr * 0x100);
-+				   base + 0x200 + ata_no * 0x80,
-+				   base + 0x400 + ata_no * 0x100);
- 	}
- 
- 	/* initialize adapter */
-@@ -1002,19 +995,16 @@ static int pdc_ata_init_one (struct pci_
- 				 &pdc_ata_sht);
- }
- 
--
- static int __init pdc_ata_init(void)
+ 	else
+ 		mmc_request_done(host->mmc, host->request);
+@@ -538,7 +538,7 @@ static void at91mci_process_next(struct 
+ /*
+  * Handle a command that has been completed
+  */
+-static void at91mci_completed_command(struct at91mci_host *host)
++static void at91_mci_completed_command(struct at91mci_host *host)
  {
- 	return pci_register_driver(&pdc_ata_pci_driver);
+ 	struct mmc_command *cmd = host->cmd;
+ 	unsigned int status;
+@@ -583,7 +583,7 @@ static void at91mci_completed_command(st
+ 	else
+ 		cmd->error = MMC_ERR_NONE;
+ 
+-	at91mci_process_next(host);
++	at91_mci_process_next(host);
  }
  
--
- static void __exit pdc_ata_exit(void)
- {
- 	pci_unregister_driver(&pdc_ata_pci_driver);
+ /*
+@@ -595,7 +595,7 @@ static void at91_mci_request(struct mmc_
+ 	host->request = mrq;
+ 	host->flags = 0;
+ 
+-	at91mci_process_next(host);
++	at91_mci_process_next(host);
  }
  
--
- MODULE_AUTHOR("Jeff Garzik");
- MODULE_DESCRIPTION("Promise ATA TX2/TX4/TX4000 low-level driver");
- MODULE_LICENSE("GPL");
+ /*
+@@ -708,7 +708,7 @@ static irqreturn_t at91_mci_irq(int irq,
+ 
+ 		if (int_status & AT91_MCI_ENDRX) {
+ 			pr_debug("Receive has ended\n");
+-			at91mci_post_dma_read(host);
++			at91_mci_post_dma_read(host);
+ 		}
+ 
+ 		if (int_status & AT91_MCI_NOTBUSY) {
+@@ -737,7 +737,7 @@ static irqreturn_t at91_mci_irq(int irq,
+ 	if (completed) {
+ 		pr_debug("Completed command\n");
+ 		at91_mci_write(host, AT91_MCI_IDR, 0xffffffff);
+-		at91mci_completed_command(host);
++		at91_mci_completed_command(host);
+ 	} else
+ 		at91_mci_write(host, AT91_MCI_IDR, int_status);
+ 
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from nicolas.ferre@rfo.atmel.com are
 
-sata_promise-cleanups.patch
-sata_promise-sata-hotplug-support.patch
+git-arm.patch
+mmc-at91_mci-typo.patch
+atmel_serial-fix-break-handling.patch
