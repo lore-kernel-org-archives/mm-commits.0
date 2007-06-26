@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kcdrwd-remove-unneeded-flush_signals-call.patch added to -mm tree
-Date: Tue, 26 Jun 2007 13:42:45 -0700
-Message-ID: <200706262042.l5QKgj6s001743@imap1.linux-foundation.org>
+Subject: + nbdcsock_xmit-cleanup-signal-related-code.patch added to -mm tree
+Date: Tue, 26 Jun 2007 13:48:30 -0700
+Message-ID: <200706262048.l5QKmUqg001812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55835 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40020 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757372AbXFZUnV (ORCPT
+	by vger.kernel.org with ESMTP id S1758123AbXFZUtW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 16:43:21 -0400
+	Tue, 26 Jun 2007 16:49:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, petero2@telia.com
+Cc: oleg@tv-sign.ru, paul.clements@steeleye.com
 
 
 The patch titled
-     kcdrwd: remove unneeded flush_signals() call
+     nbd.c: sock_xmit: cleanup signal related code
 has been added to the -mm tree.  Its filename is
-     kcdrwd-remove-unneeded-flush_signals-call.patch
+     nbdcsock_xmit-cleanup-signal-related-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kcdrwd: remove unneeded flush_signals() call
+Subject: nbd.c: sock_xmit: cleanup signal related code
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-kcdrwd() is a kernel thread, all signals are ignored.
+sock_xmit() re-implements sigprocmask() and dequeue_signal_lock().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Peter Osterlund <petero2@telia.com>
+Acked-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    3 ---
- 1 files changed, 3 deletions(-)
+ drivers/block/nbd.c |   22 ++++++----------------
+ 1 files changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call
-+++ a/drivers/block/pktcdvd.c
-@@ -1652,9 +1652,6 @@ static int kcdrwd(void *foobar)
- 				}
- 			}
+diff -puN drivers/block/nbd.c~nbdcsock_xmit-cleanup-signal-related-code drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbdcsock_xmit-cleanup-signal-related-code
++++ a/drivers/block/nbd.c
+@@ -122,17 +122,12 @@ static int sock_xmit(struct socket *sock
+ 	int result;
+ 	struct msghdr msg;
+ 	struct kvec iov;
+-	unsigned long flags;
+-	sigset_t oldset;
++	sigset_t blocked, oldset;
  
--			if (signal_pending(current)) {
--				flush_signals(current);
--			}
- 			if (kthread_should_stop())
- 				break;
+ 	/* Allow interception of SIGKILL only
+ 	 * Don't allow other signals to interrupt the transmission */
+-	spin_lock_irqsave(&current->sighand->siglock, flags);
+-	oldset = current->blocked;
+-	sigfillset(&current->blocked);
+-	sigdelsetmask(&current->blocked, sigmask(SIGKILL));
+-	recalc_sigpending();
+-	spin_unlock_irqrestore(&current->sighand->siglock, flags);
++	siginitsetinv(&blocked, sigmask(SIGKILL));
++	sigprocmask(SIG_SETMASK, &blocked, &oldset);
+ 
+ 	do {
+ 		sock->sk->sk_allocation = GFP_NOIO;
+@@ -151,11 +146,9 @@ static int sock_xmit(struct socket *sock
+ 
+ 		if (signal_pending(current)) {
+ 			siginfo_t info;
+-			spin_lock_irqsave(&current->sighand->siglock, flags);
+ 			printk(KERN_WARNING "nbd (pid %d: %s) got signal %d\n",
+-				current->pid, current->comm, 
+-				dequeue_signal(current, &current->blocked, &info));
+-			spin_unlock_irqrestore(&current->sighand->siglock, flags);
++				current->pid, current->comm,
++				dequeue_signal_lock(current, &current->blocked, &info));
+ 			result = -EINTR;
+ 			break;
  		}
+@@ -169,10 +162,7 @@ static int sock_xmit(struct socket *sock
+ 		buf += result;
+ 	} while (size > 0);
+ 
+-	spin_lock_irqsave(&current->sighand->siglock, flags);
+-	current->blocked = oldset;
+-	recalc_sigpending();
+-	spin_unlock_irqrestore(&current->sighand->siglock, flags);
++	sigprocmask(SIG_SETMASK, &oldset, NULL);
+ 
+ 	return result;
+ }
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -82,3 +119,4 @@ percpu_counters-use-for_each_online_cpu.patch
 mm-fix-create_new_namespaces-return-value.patch
 adb_probe_task-remove-unneeded-flush_signals-call.patch
 kcdrwd-remove-unneeded-flush_signals-call.patch
+nbdcsock_xmit-cleanup-signal-related-code.patch
