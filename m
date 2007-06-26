@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-the-st-m48t59-rtc-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 18:48:53 -0700
-Message-ID: <200706260148.l5Q1mrWh015881@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-the-st-m48t59-rtc.patch added to -mm tree
+Date: Mon, 25 Jun 2007 18:48:51 -0700
+Message-ID: <200706260148.l5Q1mp1P015878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754966AbXFZBtE (ORCPT
+	by vger.kernel.org with ESMTP id S1754938AbXFZBtE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 25 Jun 2007 21:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, rongkai.zhan@windriver.com
+Cc: rongkai.zhan@windriver.com, a.zummo@towertech.it
 
 
 The patch titled
-     rtc-add-support-for-the-st-m48t59-rtc-fix
+     rtc: add support for the ST M48T59 RTC
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-the-st-m48t59-rtc-fix.patch
+     rtc-add-support-for-the-st-m48t59-rtc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,207 +26,599 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-add-support-for-the-st-m48t59-rtc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: add support for the ST M48T59 RTC
+From: Mark Zhan <rongkai.zhan@windriver.com>
 
+Signed-off-by: Mark Zhan <rongkai.zhan@windriver.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/Kconfig        |   10 
+ drivers/rtc/Makefile       |    1 
+ drivers/rtc/rtc-m48t59.c   |  483 +++++++++++++++++++++++++++++++++++
+ include/linux/rtc/m48t59.h |   57 ++++
+ 4 files changed, 551 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-the-st-m48t59-rtc-fix drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-the-st-m48t59-rtc-fix
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-the-st-m48t59-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-the-st-m48t59-rtc
 +++ a/drivers/rtc/Kconfig
-@@ -313,6 +313,7 @@ config RTC_DRV_M48T86
- config RTC_DRV_M48T59
- 	tristate "ST M48T59"
+@@ -310,6 +310,16 @@ config RTC_DRV_M48T86
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-m48t86.
+ 
++config RTC_DRV_M48T59
++	tristate "ST M48T59"
++	depends on RTC_CLASS
++	help
++	  If you say Y here you will get support for the
++	  ST M48T59 RTC chip.
++
++	  This driver can also be built as a module, if so, the module
++	  will be called "rtc-m48t59".
++
+ config RTC_DRV_V3020
+ 	tristate "EM Microelectronic V3020"
  	depends on RTC_CLASS
-+	depends on PPC
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M48T59 RTC chip.
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-the-st-m48t59-rtc drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-the-st-m48t59-rtc
++++ a/drivers/rtc/Makefile
+@@ -43,3 +43,4 @@ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020
+ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+ obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
++obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t59.o
+diff -puN /dev/null drivers/rtc/rtc-m48t59.c
+--- /dev/null
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -0,0 +1,483 @@
++/*
++ * ST M48T59 RTC driver
++ *
++ * Copyright (c) 2007 Wind River Systems, Inc.
++ *
++ * Author: Mark Zhan <rongkai.zhan@windriver.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/rtc/m48t59.h>
++#include <linux/bcd.h>
++
++#define M48T59_READ(reg)	pdata->readb(dev, reg)
++#define M48T59_WRITE(val, reg)	pdata->writeb(dev, reg, val)
++
++#define M48T59_SET_BITS(mask, reg)	\
++	M48T59_WRITE((M48T59_READ(reg) | (mask)), (reg))
++#define M48T59_CLEAR_BITS(mask, reg)	\
++	M48T59_WRITE((M48T59_READ(reg) & ~(mask)), (reg))
++
++struct m48t59_private {
++	void __iomem *ioaddr;
++	unsigned int size; /* iomem size */
++	unsigned int irq;
++	struct rtc_device *rtc;
++	spinlock_t lock; /* serialize the NVRAM and RTC access */
++};
++
++/*
++ * This is the generic access method when the chip is memory-mapped
++ */
++static void
++m48t59_mem_writeb(struct device *dev, u32 ofs, u8 val)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++
++	writeb(val, m48t59->ioaddr+ofs);
++}
++
++static u8
++m48t59_mem_readb(struct device *dev, u32 ofs)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++
++	return readb(m48t59->ioaddr+ofs);
++}
++
++/**
++ * NOTE: M48T59 only uses BCD mode
++ */
++static int m48t59_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	unsigned long flags;
++	u8 val;
++
++	spin_lock_irqsave(&m48t59->lock, flags);
++	/* Issue the READ command */
++	M48T59_SET_BITS(M48T59_CNTL_READ, M48T59_CNTL);
++
++	tm->tm_year	= BCD2BIN(M48T59_READ(M48T59_YEAR));
++	/* tm_mon is 0-11 */
++	tm->tm_mon	= BCD2BIN(M48T59_READ(M48T59_MONTH)) - 1;
++	tm->tm_mday	= BCD2BIN(M48T59_READ(M48T59_MDAY));
++
++	val = M48T59_READ(M48T59_WDAY);
++	if ((val & M48T59_WDAY_CEB) && (val & M48T59_WDAY_CB)) {
++		dev_dbg(dev, "Century bit is enabled\n");
++		tm->tm_year += 100;	/* one century */
++	}
++
++	tm->tm_wday	= BCD2BIN(val & 0x07);
++	tm->tm_hour	= BCD2BIN(M48T59_READ(M48T59_HOUR) & 0x3F);
++	tm->tm_min	= BCD2BIN(M48T59_READ(M48T59_MIN) & 0x7F);
++	tm->tm_sec	= BCD2BIN(M48T59_READ(M48T59_SEC) & 0x7F);
++
++	/* Clear the READ bit */
++	M48T59_CLEAR_BITS(M48T59_CNTL_READ, M48T59_CNTL);
++	spin_unlock_irqrestore(&m48t59->lock, flags);
++
++	dev_dbg(dev, "RTC read time %04d-%02d-%02d %02d/%02d/%02d\n",
++		tm->tm_year + 1900, tm->tm_mon, tm->tm_mday,
++		tm->tm_hour, tm->tm_min, tm->tm_sec);
++	return 0;
++}
++
++static int m48t59_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	unsigned long flags;
++	u8 val = 0;
++
++	dev_dbg(dev, "RTC set time %04d-%02d-%02d %02d/%02d/%02d\n",
++		tm->tm_year + 1900, tm->tm_mon, tm->tm_mday,
++		tm->tm_hour, tm->tm_min, tm->tm_sec);
++
++	spin_lock_irqsave(&m48t59->lock, flags);
++	/* Issue the WRITE command */
++	M48T59_SET_BITS(M48T59_CNTL_WRITE, M48T59_CNTL);
++
++	M48T59_WRITE((BIN2BCD(tm->tm_sec) & 0x7F), M48T59_SEC);
++	M48T59_WRITE((BIN2BCD(tm->tm_min) & 0x7F), M48T59_MIN);
++	M48T59_WRITE((BIN2BCD(tm->tm_hour) & 0x3F), M48T59_HOUR);
++	M48T59_WRITE((BIN2BCD(tm->tm_mday) & 0x3F), M48T59_MDAY);
++	/* tm_mon is 0-11 */
++	M48T59_WRITE((BIN2BCD(tm->tm_mon + 1) & 0x1F), M48T59_MONTH);
++	M48T59_WRITE(BIN2BCD(tm->tm_year % 100), M48T59_YEAR);
++
++	if (tm->tm_year/100)
++		val = (M48T59_WDAY_CEB | M48T59_WDAY_CB);
++	val |= (BIN2BCD(tm->tm_wday) & 0x07);
++	M48T59_WRITE(val, M48T59_WDAY);
++
++	/* Clear the WRITE bit */
++	M48T59_CLEAR_BITS(M48T59_CNTL_WRITE, M48T59_CNTL);
++	spin_unlock_irqrestore(&m48t59->lock, flags);
++	return 0;
++}
++
++/*
++ * Read alarm time and date in RTC
++ */
++static int m48t59_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	struct rtc_time *tm = &alrm->time;
++	unsigned long flags;
++	u8 val;
++
++	/* If no irq, we don't support ALARM */
++	if (m48t59->irq == NO_IRQ)
++		return -EIO;
++
++	spin_lock_irqsave(&m48t59->lock, flags);
++	/* Issue the READ command */
++	M48T59_SET_BITS(M48T59_CNTL_READ, M48T59_CNTL);
++
++	tm->tm_year = BCD2BIN(M48T59_READ(M48T59_YEAR));
++	/* tm_mon is 0-11 */
++	tm->tm_mon = BCD2BIN(M48T59_READ(M48T59_MONTH)) - 1;
++
++	val = M48T59_READ(M48T59_WDAY);
++	if ((val & M48T59_WDAY_CEB) && (val & M48T59_WDAY_CB))
++		tm->tm_year += 100;	/* one century */
++
++	tm->tm_mday = BCD2BIN(M48T59_READ(M48T59_ALARM_DATE));
++	tm->tm_hour = BCD2BIN(M48T59_READ(M48T59_ALARM_HOUR));
++	tm->tm_min = BCD2BIN(M48T59_READ(M48T59_ALARM_MIN));
++	tm->tm_sec = BCD2BIN(M48T59_READ(M48T59_ALARM_SEC));
++
++	/* Clear the READ bit */
++	M48T59_CLEAR_BITS(M48T59_CNTL_READ, M48T59_CNTL);
++	spin_unlock_irqrestore(&m48t59->lock, flags);
++
++	dev_dbg(dev, "RTC read alarm time %04d-%02d-%02d %02d/%02d/%02d\n",
++		tm->tm_year + 1900, tm->tm_mon, tm->tm_mday,
++		tm->tm_hour, tm->tm_min, tm->tm_sec);
++	return 0;
++}
++
++/*
++ * Set alarm time and date in RTC
++ */
++static int m48t59_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	struct rtc_time *tm = &alrm->time;
++	u8 mday, hour, min, sec;
++	unsigned long flags;
++
++	/* If no irq, we don't support ALARM */
++	if (m48t59->irq == NO_IRQ)
++		return -EIO;
++
++	/*
++	 * 0xff means "always match"
++	 */
++	mday = tm->tm_mday;
++	mday = (mday >= 1 && mday <= 31) ? BIN2BCD(mday) : 0xff;
++	if (mday == 0xff)
++		mday = M48T59_READ(M48T59_MDAY);
++
++	hour = tm->tm_hour;
++	hour = (hour < 24) ? BIN2BCD(hour) : 0x00;
++
++	min = tm->tm_min;
++	min = (min < 60) ? BIN2BCD(min) : 0x00;
++
++	sec = tm->tm_sec;
++	sec = (sec < 60) ? BIN2BCD(sec) : 0x00;
++
++	spin_lock_irqsave(&m48t59->lock, flags);
++	/* Issue the WRITE command */
++	M48T59_SET_BITS(M48T59_CNTL_WRITE, M48T59_CNTL);
++
++	M48T59_WRITE(mday, M48T59_ALARM_DATE);
++	M48T59_WRITE(hour, M48T59_ALARM_HOUR);
++	M48T59_WRITE(min, M48T59_ALARM_MIN);
++	M48T59_WRITE(sec, M48T59_ALARM_SEC);
++
++	/* Clear the WRITE bit */
++	M48T59_CLEAR_BITS(M48T59_CNTL_WRITE, M48T59_CNTL);
++	spin_unlock_irqrestore(&m48t59->lock, flags);
++
++	dev_dbg(dev, "RTC set alarm time %04d-%02d-%02d %02d/%02d/%02d\n",
++		tm->tm_year + 1900, tm->tm_mon, tm->tm_mday,
++		tm->tm_hour, tm->tm_min, tm->tm_sec);
++	return 0;
++}
++
++/*
++ * Handle commands from user-space
++ */
++static int m48t59_rtc_ioctl(struct device *dev, unsigned int cmd,
++			unsigned long arg)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&m48t59->lock, flags);
++	switch (cmd) {
++	case RTC_AIE_OFF:	/* alarm interrupt off */
++		M48T59_WRITE(0x00, M48T59_INTR);
++		break;
++	case RTC_AIE_ON:	/* alarm interrupt on */
++		M48T59_WRITE(M48T59_INTR_AFE, M48T59_INTR);
++		break;
++	default:
++		ret = -ENOIOCTLCMD;
++		break;
++	}
++	spin_unlock_irqrestore(&m48t59->lock, flags);
++
++	return ret;
++}
++
++static int m48t59_rtc_proc(struct device *dev, struct seq_file *seq)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	unsigned long flags;
++	u8 val;
++
++	spin_lock_irqsave(&m48t59->lock, flags);
++	val = M48T59_READ(M48T59_FLAGS);
++	spin_unlock_irqrestore(&m48t59->lock, flags);
++
++	seq_printf(seq, "battery\t\t: %s\n",
++		 (val & M48T59_FLAGS_BF) ? "low" : "normal");
++	return 0;
++}
++
++/*
++ * IRQ handler for the RTC
++ */
++static irqreturn_t m48t59_rtc_interrupt(int irq, void *dev_id)
++{
++	struct device *dev = (struct device *)dev_id;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	u8 event;
++
++	spin_lock(&m48t59->lock);
++	event = M48T59_READ(M48T59_FLAGS);
++	spin_unlock(&m48t59->lock);
++
++	if (event & M48T59_FLAGS_AF) {
++		rtc_update_irq(m48t59->rtc, 1, (RTC_AF | RTC_IRQF));
++		return IRQ_HANDLED;
++	}
++
++	return IRQ_NONE;
++}
++
++static const struct rtc_class_ops m48t59_rtc_ops = {
++	.ioctl		= m48t59_rtc_ioctl,
++	.read_time	= m48t59_rtc_read_time,
++	.set_time	= m48t59_rtc_set_time,
++	.read_alarm	= m48t59_rtc_readalarm,
++	.set_alarm	= m48t59_rtc_setalarm,
++	.proc		= m48t59_rtc_proc,
++};
++
++static ssize_t m48t59_nvram_read(struct kobject *kobj, char *buf,
++				 loff_t pos, size_t size)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	ssize_t cnt = 0;
++	unsigned long flags;
++
++	for (; size > 0 && pos < M48T59_NVRAM_SIZE; cnt++, size--) {
++		spin_lock_irqsave(&m48t59->lock, flags);
++		*buf++ = M48T59_READ(cnt);
++		spin_unlock_irqrestore(&m48t59->lock, flags);
++	}
++
++	return cnt;
++}
++
++static ssize_t m48t59_nvram_write(struct kobject *kobj, char *buf,
++				  loff_t pos, size_t size)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++	ssize_t cnt = 0;
++	unsigned long flags;
++
++	for (; size > 0 && pos < M48T59_NVRAM_SIZE; cnt++, size--) {
++		spin_lock_irqsave(&m48t59->lock, flags);
++		M48T59_WRITE(*buf++, cnt);
++		spin_unlock_irqrestore(&m48t59->lock, flags);
++	}
++
++	return cnt;
++}
++
++static struct bin_attribute m48t59_nvram_attr = {
++	.attr = {
++		.name = "nvram",
++		.mode = S_IRUGO | S_IWUGO,
++		.owner = THIS_MODULE,
++	},
++	.read = m48t59_nvram_read,
++	.write = m48t59_nvram_write,
++};
++
++static int __devinit m48t59_rtc_probe(struct platform_device *pdev)
++{
++	struct m48t59_plat_data *pdata = pdev->dev.platform_data;
++	struct m48t59_private *m48t59;
++	struct resource *res;
++	int ret = 0;
++
++	/* This chip could be memory-mapped or I/O-mapped */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res == NULL) {
++		res = platform_get_resource(pdev, IORESOURCE_IO, 0);
++		if (!res)
++			return -EINVAL;
++	}
++
++	if (res->flags & IORESOURCE_IO) {
++		/* If we are I/O-mapped, the platform should provide
++		 * the operations accessing chip registers.
++		 */
++		if (!pdata || !pdata->writeb || !pdata->readb)
++			return -EINVAL;
++	} else if (res->flags & IORESOURCE_MEM) {
++		/* we are memory-mapped */
++		if (!pdata) {
++			pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++			if (!pdata)
++				return -ENOMEM;
++			/* Ensure we only kmalloc platform data once */
++			pdev->dev.platform_data = pdata;
++		}
++
++		/* Try to use the generic memory read/write ops */
++		if (!pdata->writeb)
++			pdata->writeb = m48t59_mem_writeb;
++		if (!pdata->readb)
++			pdata->readb = m48t59_mem_readb;
++	}
++
++	m48t59 = kzalloc(sizeof(*m48t59), GFP_KERNEL);
++	if (!m48t59)
++		return -ENOMEM;
++
++	m48t59->size = res->end - res->start + 1;
++	m48t59->ioaddr = ioremap(res->start, m48t59->size);
++	if (!m48t59->ioaddr)
++		return -ENOMEM;
++
++	/* Try to get irq number. We also can work in
++	 * the mode without IRQ.
++	 */
++	m48t59->irq = platform_get_irq(pdev, 0);
++	if (m48t59->irq < 0)
++		m48t59->irq = NO_IRQ;
++
++	if (m48t59->irq != NO_IRQ) {
++		ret = request_irq(m48t59->irq, m48t59_rtc_interrupt,
++			IRQF_SHARED, "rtc-m48t59", &pdev->dev);
++		if (ret)
++			goto out;
++	}
++
++	m48t59->rtc = rtc_device_register("m48t59", &pdev->dev,
++				&m48t59_rtc_ops, THIS_MODULE);
++	if (IS_ERR(m48t59->rtc)) {
++		ret = PTR_ERR(m48t59->rtc);
++		goto out;
++	}
++
++	ret = sysfs_create_bin_file(&pdev->dev.kobj, &m48t59_nvram_attr);
++	if (ret)
++		goto out;
++
++	spin_lock_init(&m48t59->lock);
++	platform_set_drvdata(pdev, m48t59);
++	return 0;
++
++out:
++	if (!IS_ERR(m48t59->rtc))
++		rtc_device_unregister(m48t59->rtc);
++	if (m48t59->irq != NO_IRQ)
++		free_irq(m48t59->irq, &pdev->dev);
++	if (m48t59->ioaddr)
++		iounmap(m48t59->ioaddr);
++	return ret;
++}
++
++static int __devexit m48t59_rtc_remove(struct platform_device *pdev)
++{
++	struct m48t59_private *m48t59 = platform_get_drvdata(pdev);
++
++	sysfs_remove_bin_file(&pdev->dev.kobj, &m48t59_nvram_attr);
++	if (!IS_ERR(m48t59->rtc))
++		rtc_device_unregister(m48t59->rtc);
++	if (m48t59->ioaddr)
++		iounmap(m48t59->ioaddr);
++	if (m48t59->irq != NO_IRQ)
++		free_irq(m48t59->irq, &pdev->dev);
++	platform_set_drvdata(pdev, NULL);
++	kfree(m48t59);
++	return 0;
++}
++
++static struct platform_driver m48t59_rtc_platdrv = {
++	.driver		= {
++		.name	= "rtc-m48t59",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= m48t59_rtc_probe,
++	.remove		= __devexit_p(m48t59_rtc_remove),
++};
++
++static int __init m48t59_rtc_init(void)
++{
++	return platform_driver_register(&m48t59_rtc_platdrv);
++}
++
++static void __exit m48t59_rtc_exit(void)
++{
++	platform_driver_unregister(&m48t59_rtc_platdrv);
++}
++
++module_init(m48t59_rtc_init);
++module_exit(m48t59_rtc_exit);
++
++MODULE_AUTHOR("Mark Zhan <rongkai.zhan@windriver.com>");
++MODULE_DESCRIPTION("M48T59 RTC driver");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/rtc/m48t59.h
+--- /dev/null
++++ a/include/linux/rtc/m48t59.h
+@@ -0,0 +1,57 @@
++/*
++ * include/linux/rtc/m48t59.h
++ *
++ * Definitions for the platform data of m48t59 RTC chip driver.
++ *
++ * Copyright (c) 2007 Wind River Systems, Inc.
++ *
++ * Mark Zhan <rongkai.zhan@windriver.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _LINUX_RTC_M48T59_H_
++#define _LINUX_RTC_M48T59_H_
++
++/*
++ * M48T59 Register Offset
++ */
++#define M48T59_YEAR		0x1fff
++#define M48T59_MONTH		0x1ffe
++#define M48T59_MDAY		0x1ffd	/* Day of Month */
++#define M48T59_WDAY		0x1ffc	/* Day of Week */
++#define M48T59_WDAY_CB			0x20	/* Century Bit */
++#define M48T59_WDAY_CEB			0x10	/* Century Enable Bit */
++#define M48T59_HOUR		0x1ffb
++#define M48T59_MIN		0x1ffa
++#define M48T59_SEC		0x1ff9
++#define M48T59_CNTL		0x1ff8
++#define M48T59_CNTL_READ		0x40
++#define M48T59_CNTL_WRITE		0x80
++#define M48T59_WATCHDOG		0x1ff7
++#define M48T59_INTR		0x1ff6
++#define M48T59_INTR_AFE			0x80	/* Alarm Interrupt Enable */
++#define M48T59_INTR_ABE			0x20
++#define M48T59_ALARM_DATE	0x1ff5
++#define M48T59_ALARM_HOUR	0x1ff4
++#define M48T59_ALARM_MIN	0x1ff3
++#define M48T59_ALARM_SEC	0x1ff2
++#define M48T59_UNUSED		0x1ff1
++#define M48T59_FLAGS		0x1ff0
++#define M48T59_FLAGS_WDT		0x80	/* watchdog timer expired */
++#define M48T59_FLAGS_AF			0x40	/* alarm */
++#define M48T59_FLAGS_BF			0x10	/* low battery */
++
++#define M48T59_NVRAM_SIZE	0x1ff0
++
++struct m48t59_plat_data {
++	/* The method to access M48T59 registers,
++	 * NOTE: The 'ofs' should be 0x00~0x1fff
++	 */
++	void (*writeb)(struct device *dev, u32 ofs, u8 val);
++	unsigned char (*readb)(struct device *dev, u32 ofs);
++};
++
++#endif /* _LINUX_RTC_M48T59_H_ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rongkai.zhan@windriver.com are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-x86_64-set-the-irq_chip-name-for-lapic.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-drivers-ata-add-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-nick-broke-more-stuff.patch
-nick-broke-even-more-stuff.patch
-nick-really-did-it-this-time.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc.patch
 rtc-add-support-for-the-st-m48t59-rtc-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-nick-broke-reiser4-too.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
