@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sys_nic-should-include-linux-syscallsh.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:34:28 -0700
-Message-ID: <200706261934.l5QJYSso000655@imap1.linux-foundation.org>
+Subject: + fs-namespacec-should-include-internalh.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:35:15 -0700
+Message-ID: <200706261935.l5QJZF9C000666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757975AbXFZTeo (ORCPT
+	by vger.kernel.org with ESMTP id S1758029AbXFZTfa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:34:44 -0400
+	Tue, 26 Jun 2007 15:35:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     kernel/sys_ni.c should #include <linux/syscalls.h>
+     fs/namespace.c should #include "internal.h"
 has been added to the -mm tree.  Its filename is
-     kernel-sys_nic-should-include-linux-syscallsh.patch
+     fs-namespacec-should-include-internalh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/sys_ni.c should #include <linux/syscalls.h>
+Subject: fs/namespace.c should #include "internal.h"
 From: Adrian Bunk <bunk@stusta.de>
 
 Every file should include the headers containing the prototypes for
@@ -36,20 +36,20 @@ Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
+ fs/namespace.c |    1 +
  1 files changed, 1 insertion(+)
 
-diff -puN kernel/sys_ni.c~kernel-sys_nic-should-include-linux-syscallsh kernel/sys_ni.c
---- a/kernel/sys_ni.c~kernel-sys_nic-should-include-linux-syscallsh
-+++ a/kernel/sys_ni.c
-@@ -1,6 +1,7 @@
- 
- #include <linux/linkage.h>
- #include <linux/errno.h>
-+#include <linux/syscalls.h>
- 
+diff -puN fs/namespace.c~fs-namespacec-should-include-internalh fs/namespace.c
+--- a/fs/namespace.c~fs-namespacec-should-include-internalh
++++ a/fs/namespace.c
+@@ -28,6 +28,7 @@
+ #include <asm/uaccess.h>
  #include <asm/unistd.h>
+ #include "pnode.h"
++#include "internal.h"
  
+ /* spinlock for vfsmount related operations, inplace of dcache_lock */
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -93,6 +93,7 @@ more-scheduled-oss-driver-removal.patch
 kernel-utf-8-handling-fix.patch
 remove-sonypi_camera_command.patch
 kernel-sys_nic-should-include-linux-syscallsh.patch
+fs-namespacec-should-include-internalh.patch
 ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
