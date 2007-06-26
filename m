@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-section-mismatch-in-chipsfb.patch added to -mm tree
-Date: Mon, 25 Jun 2007 22:07:56 -0700
-Message-ID: <200706260507.l5Q57uAo018907@imap1.linux-foundation.org>
+Subject: + documentation-howto-update-urls-of-git-trees.patch added to -mm tree
+Date: Mon, 25 Jun 2007 22:11:18 -0700
+Message-ID: <200706260511.l5Q5BIsN018945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751752AbXFZFIG (ORCPT
+	by vger.kernel.org with ESMTP id S1756763AbXFZFLd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 01:08:06 -0400
+	Tue, 26 Jun 2007 01:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf@aepfle.de, adaplas@pol.net
+Cc: stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     fix section mismatch in chipsfb
+     Documentation/HOWTO: update URLs of git trees
 has been added to the -mm tree.  Its filename is
-     fix-section-mismatch-in-chipsfb.patch
+     documentation-howto-update-urls-of-git-trees.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix section mismatch in chipsfb
-From: Olaf Hering <olaf@aepfle.de>
+Subject: Documentation/HOWTO: update URLs of git trees
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-WARNING: drivers/built-in.o(.text+0x8742a): Section mismatch: reference to .init.data:chipsfb_fix (between 'chipsfb_pci_init' and 'chipsfb_set_par')
-WARNING: drivers/built-in.o(.text+0x87432): Section mismatch: reference to .init.data:chipsfb_fix (between 'chipsfb_pci_init' and 'chipsfb_set_par')
-WARNING: drivers/built-in.o(.text+0x87442): Section mismatch: reference to .init.data:chipsfb_var (between 'chipsfb_pci_init' and 'chipsfb_set_par')
-WARNING: drivers/built-in.o(.text+0x8744a): Section mismatch: reference to .init.data:chipsfb_var (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+Also, remove outdated 1394 tree and mention MAINTAINERS as pointer to
+development trees.
 
-init_chips is only called from chipsfb_pci_init
-chipsfb_fix and chipsfb_var are only referenced from init_chips
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/chipsfb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/HOWTO |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/chipsfb.c~fix-section-mismatch-in-chipsfb drivers/video/chipsfb.c
---- a/drivers/video/chipsfb.c~fix-section-mismatch-in-chipsfb
-+++ a/drivers/video/chipsfb.c
-@@ -292,7 +292,7 @@ static void __init chips_hw_init(void)
- 		write_fr(chips_init_fr[i].addr, chips_init_fr[i].data);
- }
+diff -puN Documentation/HOWTO~documentation-howto-update-urls-of-git-trees Documentation/HOWTO
+--- a/Documentation/HOWTO~documentation-howto-update-urls-of-git-trees
++++ a/Documentation/HOWTO
+@@ -322,39 +322,34 @@ kernel releases as described above.
+ Here is a list of some of the different kernel trees available:
+   git trees:
+     - Kbuild development tree, Sam Ravnborg <sam@ravnborg.org>
+-	kernel.org:/pub/scm/linux/kernel/git/sam/kbuild.git
++	git.kernel.org:/pub/scm/linux/kernel/git/sam/kbuild.git
  
--static struct fb_fix_screeninfo chipsfb_fix __initdata = {
-+static struct fb_fix_screeninfo chipsfb_fix __devinitdata = {
- 	.id =		"C&T 65550",
- 	.type =		FB_TYPE_PACKED_PIXELS,
- 	.visual =	FB_VISUAL_PSEUDOCOLOR,
-@@ -309,7 +309,7 @@ static struct fb_fix_screeninfo chipsfb_
- 	.smem_len =	0x100000,	/* 1MB */
- };
+     - ACPI development tree, Len Brown <len.brown@intel.com>
+-	kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
++	git.kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
  
--static struct fb_var_screeninfo chipsfb_var __initdata = {
-+static struct fb_var_screeninfo chipsfb_var __devinitdata = {
- 	.xres = 800,
- 	.yres = 600,
- 	.xres_virtual = 800,
-@@ -330,7 +330,7 @@ static struct fb_var_screeninfo chipsfb_
- 	.vsync_len = 8,
- };
+     - Block development tree, Jens Axboe <axboe@suse.de>
+-	kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
++	git.kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
  
--static void __init init_chips(struct fb_info *p, unsigned long addr)
-+static void __devinit init_chips(struct fb_info *p, unsigned long addr)
- {
- 	memset(p->screen_base, 0, 0x100000);
+     - DRM development tree, Dave Airlie <airlied@linux.ie>
+-	kernel.org:/pub/scm/linux/kernel/git/airlied/drm-2.6.git
++	git.kernel.org:/pub/scm/linux/kernel/git/airlied/drm-2.6.git
+ 
+     - ia64 development tree, Tony Luck <tony.luck@intel.com>
+-	kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
+-
+-    - ieee1394 development tree, Jody McIntyre <scjody@modernduck.com>
+-	kernel.org:/pub/scm/linux/kernel/git/scjody/ieee1394.git
++	git.kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
+ 
+     - infiniband, Roland Dreier <rolandd@cisco.com>
+-	kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
++	git.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
+ 
+     - libata, Jeff Garzik <jgarzik@pobox.com>
+-	kernel.org:/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
++	git.kernel.org:/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
+ 
+     - network drivers, Jeff Garzik <jgarzik@pobox.com>
+-	kernel.org:/pub/scm/linux/kernel/git/jgarzik/netdev-2.6.git
++	git.kernel.org:/pub/scm/linux/kernel/git/jgarzik/netdev-2.6.git
+ 
+     - pcmcia, Dominik Brodowski <linux@dominikbrodowski.net>
+-	kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
++	git.kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
+ 
+     - SCSI, James Bottomley <James.Bottomley@SteelEye.com>
+-	kernel.org:/pub/scm/linux/kernel/git/jejb/scsi-misc-2.6.git
+-
+-  Other git kernel trees can be found listed at http://kernel.org/git
++	git.kernel.org:/pub/scm/linux/kernel/git/jejb/scsi-misc-2.6.git
+ 
+   quilt trees:
+     - USB, PCI, Driver Core, and I2C, Greg Kroah-Hartman <gregkh@suse.de>
+@@ -362,6 +357,9 @@ Here is a list of some of the different 
+     - x86-64, partly i386, Andi Kleen <ak@suse.de>
+         ftp.firstfloor.org:/pub/ak/x86_64/quilt/
+ 
++  Other kernel trees can be found listed at http://git.kernel.org/ and in
++  the MAINTAINERS file.
++
+ Bug Reporting
+ -------------
  
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
 
-atyfb-fix-xclk-frequency-on-apple-ibook1.patch
-fix-section-mismatch-in-chipsfb.patch
-keep-track-of-network-interface-renaming.patch
+documentation-howto-update-urls-of-git-trees.patch
+git-ieee1394.patch
+git-scsi-misc.patch
+fs-clarify-dummy-member-in-struct.patch
