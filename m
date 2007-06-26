@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-intel-iommu-driver-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 23:42:59 -0700
-Message-ID: <200706260642.l5Q6gxdA020229@imap1.linux-foundation.org>
+Subject: + intel-iommu-iommu-floppy-workaround-fix.patch added to -mm tree
+Date: Mon, 25 Jun 2007 23:43:11 -0700
+Message-ID: <200706260643.l5Q6hBBG020254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45104 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751842AbXFZGnY (ORCPT
+	by vger.kernel.org with ESMTP id S1751906AbXFZGnd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 02:43:24 -0400
+	Tue, 26 Jun 2007 02:43:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ak@suse.de, anil.s.keshav
 
 
 The patch titled
-     intel-iommu-intel-iommu-driver-fix
+     intel-iommu-iommu-floppy-workaround-fix
 has been added to the -mm tree.  Its filename is
-     intel-iommu-intel-iommu-driver-fix.patch
+     intel-iommu-iommu-floppy-workaround-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: intel-iommu-intel-iommu-driver-fix
+Subject: intel-iommu-iommu-floppy-workaround-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -43,21 +43,79 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/Kconfig       |    2 +-
+ drivers/pci/intel-iommu.c |   19 ++++++++++++-------
+ drivers/pci/intel-iommu.h |    7 -------
+ 3 files changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix
-+++ a/drivers/pci/intel-iommu.c
-@@ -1168,7 +1168,7 @@ find_domain(struct pci_dev *pdev)
- 	struct device_domain_info *info;
+diff -puN arch/x86_64/Kconfig~intel-iommu-iommu-floppy-workaround-fix arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~intel-iommu-iommu-floppy-workaround-fix
++++ a/arch/x86_64/Kconfig
+@@ -770,7 +770,7 @@ config DMAR_GFX_WA
+ 	 all the OS visible memory. Hence the driver can continue
+ 	 to use physical addresses for DMA.
  
- 	/* No lock here, assumes no domain exit in normal case */
--	info = (struct device_domain_info *)pdev->sysdata;
-+	info = pdev->sysdata;
- 	if (info)
- 		return info->domain;
- 	return NULL;
+-config DMAR_FLPY_WA
++config DMAR_FLOPPY_WA
+ 	bool "Support for Floppy disk workaround"
+ 	depends on DMAR
+ 	default y
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-iommu-floppy-workaround-fix drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-iommu-floppy-workaround-fix
++++ a/drivers/pci/intel-iommu.c
+@@ -1631,25 +1631,30 @@ error:
+ }
+ #endif
+ 
+-#ifdef CONFIG_DMAR_FLPY_WA
++#ifdef CONFIG_DMAR_FLOPPY_WA
+ static inline void iommu_prepare_isa(void)
+ {
+-	struct pci_dev *pdev = NULL;
++	struct pci_dev *pdev;
+ 	int ret;
+ 
+-	pdev = pci_get_class (PCI_CLASS_BRIDGE_ISA << 8, NULL);
++	pdev = pci_get_class(PCI_CLASS_BRIDGE_ISA << 8, NULL);
+ 	if (!pdev)
+ 		return;
+ 
+-	printk (KERN_INFO "IOMMU: Prepare 0-16M unity mapping for LPC\n");
++	printk(KERN_INFO "IOMMU: Prepare 0-16M unity mapping for LPC\n");
+ 	ret = iommu_prepare_identity_map(pdev, 0, 16*1024*1024);
+ 
+ 	if (ret)
+-		printk ("IOMMU: Failed to create 0-64M identity map, \
+-			Floppy might not work\n");
++		printk("IOMMU: Failed to create 0-64M identity map, "
++			"floppy might not work\n");
+ 
+ }
+-#endif
++#else
++static inline void iommu_prepare_isa(void)
++{
++	return;
++}
++#endif /* !CONFIG_DMAR_FLPY_WA */
+ 
+ int __init init_dmars(void)
+ {
+diff -puN drivers/pci/intel-iommu.h~intel-iommu-iommu-floppy-workaround-fix drivers/pci/intel-iommu.h
+--- a/drivers/pci/intel-iommu.h~intel-iommu-iommu-floppy-workaround-fix
++++ a/drivers/pci/intel-iommu.h
+@@ -322,11 +322,4 @@ static inline void iommu_prepare_gfx_map
+ }
+ #endif /* !CONFIG_DMAR_GFX_WA */
+ 
+-#ifndef CONFIG_DMAR_FLPY_WA
+-static inline void iommu_prepare_isa(void)
+-{
+-	return;
+-}
+-#endif /* !CONFIG_DMAR_FLPY_WA */
+-
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
