@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + relayfs-fix-overwrites.patch added to -mm tree
-Date: Tue, 26 Jun 2007 12:29:00 -0700
-Message-ID: <200706261929.l5QJT0jF000525@imap1.linux-foundation.org>
+Subject: + relay-file-read-start-pos-fixpatch.patch added to -mm tree
+Date: Tue, 26 Jun 2007 12:28:57 -0700
+Message-ID: <200706261928.l5QJSvPS000522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44005 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54983 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757524AbXFZT3L (ORCPT
+	by vger.kernel.org with ESMTP id S1758066AbXFZT3S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 15:29:11 -0400
+	Tue, 26 Jun 2007 15:29:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: masami.hiramatsu.pt@hitachi.com, dwilder@us.ibm.com, zanussi@us.ibm.com
+Cc: dwilder@us.ibm.com, masami.hiramatsu.pt@hitachi.com, zanussi@us.ibm.com
 
 
 The patch titled
-     relayfs: fix overwrites
+     relay file read: start-pos fix
 has been added to the -mm tree.  Its filename is
-     relayfs-fix-overwrites.patch
+     relay-file-read-start-pos-fixpatch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: relayfs: fix overwrites
-From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: relay file read: start-pos fix
+From: David Wilder <dwilder@us.ibm.com>
 
-When I use relayfs with "overwrite" mode, read() still sets incorrect
-number of consumed bytes.
+Fix a bug in the relay read interface causing the number of consumed bytes
+to be set incorrectly.
 
-Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Acked-by: Tom Zanussi <zanussi@us.ibm.com>
-Acked-by: David Wilder <dwilder@us.ibm.com>
+Signed-off-by: Tom Zanussi <zanussi@us.ibm.com>
+Signed-off-by: David Wilder <dwilder@us.ibm.com>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/relay.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN kernel/relay.c~relayfs-fix-overwrites kernel/relay.c
---- a/kernel/relay.c~relayfs-fix-overwrites
+diff -puN kernel/relay.c~relay-file-read-start-pos-fixpatch kernel/relay.c
+--- a/kernel/relay.c~relay-file-read-start-pos-fixpatch
 +++ a/kernel/relay.c
-@@ -812,7 +812,10 @@ static void relay_file_read_consume(stru
- 	}
+@@ -899,7 +899,10 @@ static size_t relay_file_read_start_pos(
+ 	size_t read_subbuf, padding, padding_start, padding_end;
+ 	size_t subbuf_size = buf->chan->subbuf_size;
+ 	size_t n_subbufs = buf->chan->n_subbufs;
++	size_t consumed = buf->subbufs_consumed % n_subbufs;
  
- 	buf->bytes_consumed += bytes_consumed;
--	read_subbuf = read_pos / buf->chan->subbuf_size;
 +	if (!read_pos)
-+		read_subbuf = buf->subbufs_consumed;
-+	else
-+		read_subbuf = read_pos / buf->chan->subbuf_size;
- 	if (buf->bytes_consumed + buf->padding[read_subbuf] == subbuf_size) {
- 		if ((read_subbuf == buf->subbufs_produced % n_subbufs) &&
- 		    (buf->offset == subbuf_size))
-@@ -841,8 +844,9 @@ static int relay_file_read_avail(struct 
- 	}
- 
- 	if (unlikely(produced - consumed >= n_subbufs)) {
--		consumed = (produced / n_subbufs) * n_subbufs;
-+		consumed = produced - n_subbufs + 1;
- 		buf->subbufs_consumed = consumed;
-+		buf->bytes_consumed = 0;
- 	}
- 	
- 	produced = (produced % n_subbufs) * subbuf_size + buf->offset;
++		read_pos = consumed * subbuf_size + buf->bytes_consumed;
+ 	read_subbuf = read_pos / subbuf_size;
+ 	padding = buf->padding[read_subbuf];
+ 	padding_start = (read_subbuf + 1) * subbuf_size - padding;
 _
 
-Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
+Patches currently in -mm which might be from dwilder@us.ibm.com are
 
 relay-file-read-start-pos-fixpatch.patch
 relayfs-fix-overwrites.patch
