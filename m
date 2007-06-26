@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jprobes-make-jprobes-a-little-safer-for-users-fix.patch added to -mm tree
-Date: Mon, 25 Jun 2007 20:04:44 -0700
-Message-ID: <200706260304.l5Q34i1J017001@imap1.linux-foundation.org>
+Subject: + saa7134-fix-thread-shutdown-handling.patch added to -mm tree
+Date: Mon, 25 Jun 2007 20:39:10 -0700
+Message-ID: <200706260339.l5Q3dAnf017518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46980 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33523 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752042AbXFZDFE (ORCPT
+	by vger.kernel.org with ESMTP id S1752223AbXFZDjt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 23:05:04 -0400
+	Mon, 25 Jun 2007 23:39:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael@ellerman.id.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, prasanna@in.ibm.com
+Cc: jeffm@suse.com, mchehab@infradead.org, stable@kernel.org
 
 
 The patch titled
-     Add a prototype for arch_deref_entry_point()
+     saa7134: fix thread shutdown handling
 has been added to the -mm tree.  Its filename is
-     jprobes-make-jprobes-a-little-safer-for-users-fix.patch
+     saa7134-fix-thread-shutdown-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add a prototype for arch_deref_entry_point()
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: saa7134: fix thread shutdown handling
+From: Jeff Mahoney <jeffm@suse.com>
 
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
+This patch changes the test for the thread pid from >= 0 to > 0.
+
+When the saa8134 driver initialization fails after a certain point, it goes
+through the complete shutdown process for the driver.  Part of shutting it
+down includes tearing down the thread for tv audio.
+
+The test for tearing down the thread tests for >= 0.  Since the dev
+structure is kzalloc'd, the test will always be true if we haven't tried to
+start the thread yet.  We end up waiting on pid 0 to complete, which will
+never happen, so we lock up.
+
+This bug was observed in Novell Bugzilla 284718, when request_irq() failed.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/saa7134/saa7134-tvaudio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kprobes.h~jprobes-make-jprobes-a-little-safer-for-users-fix include/linux/kprobes.h
---- a/include/linux/kprobes.h~jprobes-make-jprobes-a-little-safer-for-users-fix
-+++ a/include/linux/kprobes.h
-@@ -214,6 +214,7 @@ int longjmp_break_handler(struct kprobe 
- int register_jprobe(struct jprobe *p);
- void unregister_jprobe(struct jprobe *p);
- void jprobe_return(void);
-+unsigned long arch_deref_entry_point(void *);
- 
- int register_kretprobe(struct kretprobe *rp);
- void unregister_kretprobe(struct kretprobe *rp);
+diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-fix-thread-shutdown-handling drivers/media/video/saa7134/saa7134-tvaudio.c
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-fix-thread-shutdown-handling
++++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -1005,7 +1005,7 @@ int saa7134_tvaudio_init2(struct saa7134
+ int saa7134_tvaudio_fini(struct saa7134_dev *dev)
+ {
+ 	/* shutdown tvaudio thread */
+-	if (dev->thread.pid >= 0) {
++	if (dev->thread.pid > 0) {
+ 		dev->thread.shutdown = 1;
+ 		wake_up_interruptible(&dev->thread.wq);
+ 		wait_for_completion(&dev->thread.exit);
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-jprobes-make-struct-jprobeentry-a-void.patch
-jprobes-remove-jprobe_entry.patch
-jprobes-make-jprobes-a-little-safer-for-users.patch
-jprobes-make-jprobes-a-little-safer-for-users-fix.patch
+saa7134-fix-thread-shutdown-handling.patch
