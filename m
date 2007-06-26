@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-speedup-hrtimer_enqueue.patch added to -mm tree
-Date: Mon, 25 Jun 2007 17:07:40 -0700
-Message-ID: <200706260007.l5Q07eOq014427@imap1.linux-foundation.org>
+Subject: + x86_64-use-generic-cmos-update.patch added to -mm tree
+Date: Mon, 25 Jun 2007 17:07:56 -0700
+Message-ID: <200706260007.l5Q07uuo014456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58470 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752940AbXFZAIg (ORCPT
+	by vger.kernel.org with ESMTP id S1753195AbXFZAIr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jun 2007 20:08:36 -0400
+	Mon, 25 Jun 2007 20:08:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     hrtimer: speedup hrtimer_enqueue
+     x86_64: use generic cmos update
 has been added to the -mm tree.  Its filename is
-     hrtimer-speedup-hrtimer_enqueue.patch
+     x86_64-use-generic-cmos-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hrtimer: speedup hrtimer_enqueue
-From: Ingo Molnar <mingo@elte.hu>
+Subject: x86_64: use generic cmos update
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Speedup hrtimer_enqueue by evaluating the rbtree insertion result.
+Use the generic cmos update function in kernel/time/ntp.c
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ arch/x86_64/Kconfig       |    4 ++++
+ arch/x86_64/kernel/time.c |   25 +++++++++----------------
+ 2 files changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN kernel/hrtimer.c~hrtimer-speedup-hrtimer_enqueue kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-speedup-hrtimer_enqueue
-+++ a/kernel/hrtimer.c
-@@ -686,6 +686,7 @@ static void enqueue_hrtimer(struct hrtim
- 	struct rb_node **link = &base->active.rb_node;
- 	struct rb_node *parent = NULL;
- 	struct hrtimer *entry;
-+	int leftmost = 1;
+diff -puN arch/x86_64/Kconfig~x86_64-use-generic-cmos-update arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~x86_64-use-generic-cmos-update
++++ a/arch/x86_64/Kconfig
+@@ -32,6 +32,10 @@ config GENERIC_TIME_VSYSCALL
+ 	bool
+ 	default y
  
- 	/*
- 	 * Find the right place in the rbtree:
-@@ -697,18 +698,19 @@ static void enqueue_hrtimer(struct hrtim
- 		 * We dont care about collisions. Nodes with
- 		 * the same expiry time stay together.
- 		 */
--		if (timer->expires.tv64 < entry->expires.tv64)
-+		if (timer->expires.tv64 < entry->expires.tv64) {
- 			link = &(*link)->rb_left;
--		else
-+		} else {
- 			link = &(*link)->rb_right;
-+			leftmost = 0;
-+		}
- 	}
++config GENERIC_CMOS_UPDATE
++	bool
++	default y
++
+ config ZONE_DMA32
+ 	bool
+ 	default y
+diff -puN arch/x86_64/kernel/time.c~x86_64-use-generic-cmos-update arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~x86_64-use-generic-cmos-update
++++ a/arch/x86_64/kernel/time.c
+@@ -82,8 +82,9 @@ EXPORT_SYMBOL(profile_pc);
+  * sheet for details.
+  */
  
- 	/*
- 	 * Insert the timer to the rbtree and check whether it
- 	 * replaces the first pending timer
- 	 */
--	if (!base->first || timer->expires.tv64 <
--	    rb_entry(base->first, struct hrtimer, node)->expires.tv64) {
-+	if (leftmost) {
- 		/*
- 		 * Reprogram the clock event device. When the timer is already
- 		 * expired hrtimer_enqueue_reprogram has either called the
+-static void set_rtc_mmss(unsigned long nowtime)
++static int set_rtc_mmss(unsigned long nowtime)
+ {
++	int retval = 0;
+ 	int real_seconds, real_minutes, cmos_minutes;
+ 	unsigned char control, freq_select;
+ 
+@@ -123,6 +124,7 @@ static void set_rtc_mmss(unsigned long n
+ 	if (abs(real_minutes - cmos_minutes) >= 30) {
+ 		printk(KERN_WARNING "time.c: can't update CMOS clock "
+ 		       "from %d to %d\n", cmos_minutes, real_minutes);
++		retval = -1;
+ 	} else {
+ 		BIN_TO_BCD(real_seconds);
+ 		BIN_TO_BCD(real_minutes);
+@@ -142,12 +144,17 @@ static void set_rtc_mmss(unsigned long n
+ 	CMOS_WRITE(freq_select, RTC_FREQ_SELECT);
+ 
+ 	spin_unlock(&rtc_lock);
++
++	return retval;
+ }
+ 
++int update_persistent_clock(struct timespec now)
++{
++	return set_rtc_mmss(now.tv_sec);
++}
+ 
+ void main_timer_handler(void)
+ {
+-	static unsigned long rtc_update = 0;
+ /*
+  * Here we are in the timer irq handler. We have irqs locally disabled (so we
+  * don't need spin_lock_irqsave()) but we don't know if the timer_bh is running
+@@ -175,20 +182,6 @@ void main_timer_handler(void)
+ 	if (!using_apic_timer)
+ 		smp_local_timer_interrupt();
+ 
+-/*
+- * If we have an externally synchronized Linux clock, then update CMOS clock
+- * accordingly every ~11 minutes. set_rtc_mmss() will be called in the jiffy
+- * closest to exactly 500 ms before the next second. If the update fails, we
+- * don't care, as it'll be updated on the next turn, and the problem (time way
+- * off) isn't likely to go away much sooner anyway.
+- */
+-
+-	if (ntp_synced() && xtime.tv_sec > rtc_update &&
+-		abs(xtime.tv_nsec - 500000000) <= tick_nsec / 2) {
+-		set_rtc_mmss(xtime.tv_sec);
+-		rtc_update = xtime.tv_sec + 660;
+-	}
+- 
+ 	write_sequnlock(&xtime_lock);
+ }
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 git-acpi-add-exports.patch
-git-kvm.patch
-git-selinux.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+git-arm.patch
+i386-hpet-check-if-the-counter-works.patch
 nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+timekeeping-fixup-shadow-variable-argument.patch
+timerc-cleanup-recently-introduced-whitespace-damage.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
 tick-management-spread-timer-interrupt.patch
 highres-improve-debug-output.patch
 hrtimer-speedup-hrtimer_enqueue.patch
@@ -104,55 +153,9 @@ x86_64-restore-restore-nohpet-cmdline.patch
 x86_64-block-irq-balancing-for-timer.patch
 x86_64-prep-idle-loop-for-dynticks.patch
 x86_64-enable-high-resolution-timers-and-dynticks.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-introduce-write_trylock_irqsave.patch
-use-write_trylock_irqsave-in-ptrace_attach.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-pie-randomization.patch
-vdso-print-fatal-signals.patch
 remove-clockevents_releaserequest_device.patch
 add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
-introduce-o_cloexec-take-2.patch
-introduce-o_cloexec-parisc-fix.patch
-o_cloexec-for-scm_rights.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
 improve-behaviour-of-spurious-irq-detect.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
-allow-softlockup-to-be-runtime-disabled.patch
 sys_time-speedup.patch
-cfs-scheduler.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-v14-rc2-mm1.patch
-cfs-scheduler-warning-fixes.patch
-cfs-scheduler-v15-rc3-mm1.patch
-fs-proc-basec-make-a-struct-static.patch
-cfs-warning-fixes.patch
-schedstats-fix-printk-format.patch
-cfs-scheduler-v16.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-fix-raw_spinlock_t-vs-lockdep.patch
-lockdep-sanitise-config_prove_locking.patch
-lockdep-reduce-the-ifdeffery.patch
-lockstat-core-infrastructure.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockstat-human-readability-tweaks.patch
-lockstat-hook-into-spinlock_t-rwlock_t-rwsem-and-mutex.patch
-lockdep-various-fixes.patch
-lockdep-various-fixes-checkpatch.patch
-lockdep-fixup-sk_callback_lock-annotation.patch
-lockstat-measure-lock-bouncing.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-lockstat-better-class-name-representation.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
+lguest-the-host-code.patch
