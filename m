@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + adb_probe_task-remove-unneeded-flush_signals-call.patch added to -mm tree
-Date: Tue, 26 Jun 2007 13:42:13 -0700
-Message-ID: <200706262042.l5QKgDO9001739@imap1.linux-foundation.org>
+Subject: + kcdrwd-remove-unneeded-flush_signals-call.patch added to -mm tree
+Date: Tue, 26 Jun 2007 13:42:45 -0700
+Message-ID: <200706262042.l5QKgj6s001743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55835 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757664AbXFZUm5 (ORCPT
+	by vger.kernel.org with ESMTP id S1757372AbXFZUnV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 16:42:57 -0400
+	Tue, 26 Jun 2007 16:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, benh@kernel.crashing.org, paulus@samba.org
+Cc: oleg@tv-sign.ru, petero2@telia.com
 
 
 The patch titled
-     adb_probe_task: remove unneeded flush_signals() call
+     kcdrwd: remove unneeded flush_signals() call
 has been added to the -mm tree.  Its filename is
-     adb_probe_task-remove-unneeded-flush_signals-call.patch
+     kcdrwd-remove-unneeded-flush_signals-call.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: adb_probe_task: remove unneeded flush_signals() call
+Subject: kcdrwd: remove unneeded flush_signals() call
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-adb_probe_task() is forked by "events" thread, all signals are ignored, no
-need to play with signal blocking/flushing.
+kcdrwd() is a kernel thread, all signals are ignored.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Osterlund <petero2@telia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/adb.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/block/pktcdvd.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/macintosh/adb.c~adb_probe_task-remove-unneeded-flush_signals-call drivers/macintosh/adb.c
---- a/drivers/macintosh/adb.c~adb_probe_task-remove-unneeded-flush_signals-call
-+++ a/drivers/macintosh/adb.c
-@@ -248,21 +248,15 @@ static int adb_scan_bus(void)
- static int
- adb_probe_task(void *x)
- {
--	sigset_t blocked;
--
- 	strcpy(current->comm, "kadbprobe");
+diff -puN drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~kcdrwd-remove-unneeded-flush_signals-call
++++ a/drivers/block/pktcdvd.c
+@@ -1652,9 +1652,6 @@ static int kcdrwd(void *foobar)
+ 				}
+ 			}
  
--	sigfillset(&blocked);
--	sigprocmask(SIG_BLOCK, &blocked, NULL);
--	flush_signals(current);
--
- 	printk(KERN_INFO "adb: starting probe task...\n");
- 	do_adb_reset_bus();
- 	printk(KERN_INFO "adb: finished probe task...\n");
--	
-+
- 	adb_probe_task_pid = 0;
- 	up(&adb_probe_mutex);
--	
-+
- 	return 0;
- }
- 
+-			if (signal_pending(current)) {
+-				flush_signals(current);
+-			}
+ 			if (kthread_should_stop())
+ 				break;
+ 		}
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -97,3 +81,4 @@ percpu_counters-use-cpu-notifiers.patch
 percpu_counters-use-for_each_online_cpu.patch
 mm-fix-create_new_namespaces-return-value.patch
 adb_probe_task-remove-unneeded-flush_signals-call.patch
+kcdrwd-remove-unneeded-flush_signals-call.patch
