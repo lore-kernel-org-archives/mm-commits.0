@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + omap-lcd-panel-support-for-palm-tungstent.patch added to -mm tree
-Date: Tue, 26 Jun 2007 17:29:45 -0700
-Message-ID: <200706270029.l5R0TjfP006369@imap1.linux-foundation.org>
+Subject: + omap-lcd-panel-support-for-the-palm-zire71.patch added to -mm tree
+Date: Tue, 26 Jun 2007 17:29:47 -0700
+Message-ID: <200706270029.l5R0TlAD006372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44852 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40286 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753685AbXF0A3z (ORCPT
+	by vger.kernel.org with ESMTP id S1753921AbXF0A34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 20:29:55 -0400
+	Tue, 26 Jun 2007 20:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: marek.vasut@gmail.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.
 
 
 The patch titled
-     OMAP: LCD panel support for Palm Tungsten|T
+     OMAP: LCD panel support for the Palm Zire71
 has been added to the -mm tree.  Its filename is
-     omap-lcd-panel-support-for-palm-tungstent.patch
+     omap-lcd-panel-support-for-the-palm-zire71.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: OMAP: LCD panel support for Palm Tungsten|T
+Subject: OMAP: LCD panel support for the Palm Zire71
 From: Marek Vasut <marek.vasut@gmail.com>
 
-- Add TFT LCD panel support for Palm Tungsten|T
+- Adds support for TFT LCD panel on Palm Zire71
 
 Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -37,30 +37,31 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/Makefile     |    1 
- drivers/video/omap/lcd_palmtt.c |  127 ++++++++++++++++++++++++++++++
- 2 files changed, 128 insertions(+)
+ drivers/video/omap/Makefile      |    1 
+ drivers/video/omap/lcd_palmz71.c |  123 +++++++++++++++++++++++++++++
+ 2 files changed, 124 insertions(+)
 
-diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-palm-tungstent drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-palm-tungstent
+diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-palm-zire71 drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-palm-zire71
 +++ a/drivers/video/omap/Makefile
-@@ -18,6 +18,7 @@ objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) +=
- objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
+@@ -19,6 +19,7 @@ objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
  objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
  objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
-+objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
+ objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
++objs-y$(CONFIG_MACH_OMAP_PALMZ71) += lcd_palmz71.o
  
  omapfb-objs := $(objs-yy)
  
-diff -puN /dev/null drivers/video/omap/lcd_palmtt.c
+diff -puN /dev/null drivers/video/omap/lcd_palmz71.c
 --- /dev/null
-+++ a/drivers/video/omap/lcd_palmtt.c
-@@ -0,0 +1,127 @@
++++ a/drivers/video/omap/lcd_palmz71.c
+@@ -0,0 +1,123 @@
 +/*
-+ * LCD panel support for Palm Tungsten|T
-+ * Current version : Marek Vasut <marek.vasut@gmail.com>
++ * LCD panel support for the Palm Zire71
 + *
-+ * Modified from lcd_inn1510.c
++ * Original version : Romain Goyet
++ * Current version : Laurent Gonzalez
++ * Modified for zire71 : Marek Vasut
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License as published by the
@@ -77,53 +78,47 @@ diff -puN /dev/null drivers/video/omap/lcd_palmtt.c
 + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+/*
-+GPIO11 - backlight
-+GPIO12 - screen blanking
-+GPIO13 - screen blanking
-+*/
-+
-+#include <linux/platform_device.h>
 +#include <linux/module.h>
++#include <linux/platform_device.h>
 +#include <linux/io.h>
 +
-+#include <asm/arch/gpio.h>
 +#include <asm/arch/omapfb.h>
 +
-+static int palmtt_panel_init(struct lcd_panel *panel,
-+	struct omapfb_device *fbdev)
++static int palmz71_panel_init(struct lcd_panel *panel,
++			      struct omapfb_device *fbdev)
 +{
 +	return 0;
 +}
 +
-+static void palmtt_panel_cleanup(struct lcd_panel *panel)
++static void palmz71_panel_cleanup(struct lcd_panel *panel)
 +{
++
 +}
 +
-+static int palmtt_panel_enable(struct lcd_panel *panel)
++static int palmz71_panel_enable(struct lcd_panel *panel)
 +{
 +	return 0;
 +}
 +
-+static void palmtt_panel_disable(struct lcd_panel *panel)
++static void palmz71_panel_disable(struct lcd_panel *panel)
 +{
 +}
 +
-+static unsigned long palmtt_panel_get_caps(struct lcd_panel *panel)
++static unsigned long palmz71_panel_get_caps(struct lcd_panel *panel)
 +{
 +	return OMAPFB_CAPS_SET_BACKLIGHT;
 +}
 +
-+struct lcd_panel palmtt_panel = {
-+	.name		= "palmtt",
++struct lcd_panel palmz71_panel = {
++	.name		= "palmz71",
 +	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-+			OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
-+			OMAP_LCDC_HSVS_OPPOSITE,
-+	.bpp		= 16,
++			  OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
++			  OMAP_LCDC_HSVS_OPPOSITE,
 +	.data_lines	= 16,
++	.bpp		= 16,
++	.pixel_clock	= 24000,
 +	.x_res		= 320,
 +	.y_res		= 320,
-+	.pixel_clock	= 10000,
 +	.hsw		= 4,
 +	.hfp		= 8,
 +	.hbp		= 28,
@@ -132,57 +127,58 @@ diff -puN /dev/null drivers/video/omap/lcd_palmtt.c
 +	.vbp		= 7,
 +	.pcd		= 0,
 +
-+	.init		= palmtt_panel_init,
-+	.cleanup	= palmtt_panel_cleanup,
-+	.enable		= palmtt_panel_enable,
-+	.disable	= palmtt_panel_disable,
-+	.get_caps	= palmtt_panel_get_caps,
++	.init		= palmz71_panel_init,
++	.cleanup	= palmz71_panel_cleanup,
++	.enable		= palmz71_panel_enable,
++	.disable	= palmz71_panel_disable,
++	.get_caps	= palmz71_panel_get_caps,
 +};
 +
-+static int palmtt_panel_probe(struct platform_device *pdev)
++static int palmz71_panel_probe(struct platform_device *pdev)
 +{
-+	omapfb_register_panel(&palmtt_panel);
++	omapfb_register_panel(&palmz71_panel);
 +	return 0;
 +}
 +
-+static int palmtt_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int palmtt_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
++static int palmz71_panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static int palmtt_panel_resume(struct platform_device *pdev)
++static int palmz71_panel_suspend(struct platform_device *pdev,
++				 pm_message_t mesg)
 +{
 +	return 0;
 +}
 +
-+struct platform_driver palmtt_panel_driver = {
-+	.probe		= palmtt_panel_probe,
-+	.remove		= palmtt_panel_remove,
-+	.suspend	= palmtt_panel_suspend,
-+	.resume		= palmtt_panel_resume,
++static int palmz71_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver palmz71_panel_driver = {
++	.probe		= palmz71_panel_probe,
++	.remove		= palmz71_panel_remove,
++	.suspend	= palmz71_panel_suspend,
++	.resume		= palmz71_panel_resume,
 +	.driver		= {
-+		.name	= "lcd_palmtt",
++		.name	= "lcd_palmz71",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int palmtt_panel_drv_init(void)
++static int palmz71_panel_drv_init(void)
 +{
-+	return platform_driver_register(&palmtt_panel_driver);
++	return platform_driver_register(&palmz71_panel_driver);
 +}
 +
-+static void palmtt_panel_drv_cleanup(void)
++static void palmz71_panel_drv_cleanup(void)
 +{
-+	platform_driver_unregister(&palmtt_panel_driver);
++	platform_driver_unregister(&palmz71_panel_driver);
 +}
 +
-+module_init(palmtt_panel_drv_init);
-+module_exit(palmtt_panel_drv_cleanup);
++module_init(palmz71_panel_drv_init);
++module_exit(palmz71_panel_drv_cleanup);
 _
 
 Patches currently in -mm which might be from marek.vasut@gmail.com are
