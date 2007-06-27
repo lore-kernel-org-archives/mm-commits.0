@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-adfs-convert-to-new-aops.patch added to -mm tree
-Date: Tue, 26 Jun 2007 22:05:34 -0700
-Message-ID: <200706270505.l5R55YaL010314@imap1.linux-foundation.org>
+Subject: + ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2007 22:27:10 -0700
+Message-ID: <200706270527.l5R5RA7p010608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39043 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754025AbXF0FGL (ORCPT
+	by vger.kernel.org with ESMTP id S1760213AbXF0F1U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 01:06:11 -0400
+	Wed, 27 Jun 2007 01:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, rmk+kernel@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, kluo@nvidia.com, pchen@nvidia.com
 
 
 The patch titled
-     fs: adfs convert to new aops
+     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
 has been added to the -mm tree.  Its filename is
-     fs-adfs-convert-to-new-aops.patch
+     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,362 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs: adfs convert to new aops
-From: Nick Piggin <npiggin@suse.de>
+Subject: ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+- remove new typedef
+
+- use bss: it's already initialised to zero
+
+- cleanups
+
+Cc: Kuan Luo <kluo@nvidia.com>
+Cc: Peer Chen <pchen@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/inode.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/ata/sata_nv.c |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN fs/adfs/inode.c~fs-adfs-convert-to-new-aops fs/adfs/inode.c
---- a/fs/adfs/inode.c~fs-adfs-convert-to-new-aops
-+++ a/fs/adfs/inode.c
-@@ -61,10 +61,14 @@ static int adfs_readpage(struct file *fi
- 	return block_read_full_page(page, adfs_get_block);
- }
- 
--static int adfs_prepare_write(struct file *file, struct page *page, unsigned int from, unsigned int to)
-+static int adfs_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata)
- {
--	return cont_prepare_write(page, from, to, adfs_get_block,
--		&ADFS_I(page->mapping->host)->mmu_private);
-+	*pagep = NULL;
-+	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				adfs_get_block,
-+				&ADFS_I(mapping->host)->mmu_private);
- }
- 
- static sector_t _adfs_bmap(struct address_space *mapping, sector_t block)
-@@ -76,8 +80,8 @@ static const struct address_space_operat
- 	.readpage	= adfs_readpage,
- 	.writepage	= adfs_writepage,
- 	.sync_page	= block_sync_page,
--	.prepare_write	= adfs_prepare_write,
--	.commit_write	= generic_commit_write,
-+	.write_begin	= adfs_write_begin,
-+	.write_end	= generic_write_end,
- 	.bmap		= _adfs_bmap
+diff -puN drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
++++ a/drivers/ata/sata_nv.c
+@@ -255,12 +255,12 @@ struct nv_host_priv {
+ 	unsigned long		type;
  };
  
+-typedef struct {
++struct defer_queue {
+  	u32		defer_bits;
+  	u8		front;
+ 	u8		rear;
+ 	unsigned int	tag[ATA_MAX_QUEUE + 1];
+-}defer_queue_t;
++};
+ 
+ struct nv_swncq_port_priv {
+ 	struct ata_prd	*prd;	 /* our SG list */
+@@ -270,7 +270,7 @@ struct nv_swncq_port_priv {
+ 	unsigned int	last_issue_tag;
+  	spinlock_t	lock;
+  	/* fifo loop queue  to store deferral command */
+-	defer_queue_t	defer_queue;
++	struct defer_queue defer_queue;
+ 
+  	/* for NCQ interrupt analysis */
+ 	u32		dhfis_bits;
+@@ -637,7 +637,7 @@ MODULE_DEVICE_TABLE(pci, nv_pci_tbl);
+ MODULE_VERSION(DRV_VERSION);
+ 
+ static int adma_enabled = 1;
+-static int swncq_enabled = 0;
++static int swncq_enabled;
+ 
+ static void nv_adma_register_mode(struct ata_port *ap)
+ {
+@@ -1705,7 +1705,7 @@ static void nv_adma_error_handler(struct
+ static void nv_swncq_qc_to_dq(struct ata_port *ap, struct ata_queued_cmd *qc)
+ {
+ 	struct nv_swncq_port_priv *pp = ap->private_data;
+-	defer_queue_t	*dq = &pp->defer_queue;
++	struct defer_queue *dq = &pp->defer_queue;
+ 
+ 	/* queue is full */
+ 	WARN_ON((dq->rear + 1) % (ATA_MAX_QUEUE + 1) == dq->front);
+@@ -1720,7 +1720,7 @@ static void nv_swncq_qc_to_dq(struct ata
+ static struct ata_queued_cmd *nv_swncq_qc_from_dq(struct ata_port *ap)
+ {
+ 	struct nv_swncq_port_priv *pp = ap->private_data;
+-	defer_queue_t	*dq = &pp->defer_queue;
++	struct defer_queue *dq = &pp->defer_queue;
+ 	unsigned int tag;
+ 
+ 	if (dq->front == dq->rear) /* null queue */
+@@ -1760,7 +1760,7 @@ static void nv_swncq_fis_reinit(struct a
+ static void nv_swncq_pp_reinit(struct ata_port *ap)
+ {
+ 	struct nv_swncq_port_priv *pp = ap->private_data;
+-	defer_queue_t		*dq = &pp->defer_queue;
++	struct defer_queue *dq = &pp->defer_queue;
+ 
+ 	dq->front = dq->rear = 0;
+ 	dq->defer_bits = 0;
+@@ -1801,7 +1801,7 @@ static void nv_swncq_ncq_stop(struct ata
+ 	done_mask = pp->qc_active ^ sactive;
+ 
+ 	ata_port_printk(ap, KERN_ERR, "tag : dhfis dmafis sdbfis sacitve\n");
+-	for (i=0; i < ATA_MAX_QUEUE; i++) {
++	for (i = 0; i < ATA_MAX_QUEUE; i++) {
+ 		u8 err = 0;
+ 		if (pp->qc_active & (1 << i))
+ 			err = 0;
+@@ -1912,7 +1912,7 @@ static void nv_swncq_host_init(struct at
+ 	writel(~0x0, mmio + NV_INT_STATUS_MCP55);
+ }
+ 
+-static int  nv_swncq_port_start(struct ata_port *ap)
++static int nv_swncq_port_start(struct ata_port *ap)
+ {
+ 	struct device *dev = ap->host->dev;
+ 	void __iomem *mmio = ap->host->iomap[NV_MMIO_BAR];
+@@ -1957,9 +1957,7 @@ static void nv_swncq_fill_sg(struct ata_
+ 	struct ata_port *ap = qc->ap;
+ 	struct scatterlist *sg;
+ 	unsigned int idx;
+-
+ 	struct nv_swncq_port_priv *pp = ap->private_data;
+-
+ 	struct ata_prd *prd;
+ 
+ 	WARN_ON(qc->__sg == NULL);
+@@ -1972,7 +1970,7 @@ static void nv_swncq_fill_sg(struct ata_
+ 		u32 addr, offset;
+ 		u32 sg_len, len;
+ 
+-		addr = (u32) sg_dma_address(sg);
++		addr = (u32)sg_dma_address(sg);
+ 		sg_len = sg_dma_len(sg);
+ 
+ 		while (sg_len) {
+@@ -2051,7 +2049,6 @@ static void nv_swncq_hotplug(struct ata_
+ 	/* analyze @irq_stat */
+ 	if (fis & NV_SWNCQ_IRQ_ADDED)
+ 		ata_ehi_push_desc(ehi, "hot plug");
+-
+ 	else if (fis & NV_SWNCQ_IRQ_REMOVED)
+ 		ata_ehi_push_desc(ehi, "hot unplug");
+ 
+@@ -2122,7 +2119,7 @@ static int nv_swncq_sdbfis(struct ata_po
+ 	}
+ 
+ 	if (pp->qc_active & pp->dhfis_bits)
+-			return nr_done;
++		return nr_done;
+ 
+ 	if (pp->ncq_saw_backout || (pp->qc_active ^pp->dhfis_bits))
+ 		 /* if the controller cann't get a device to host register FIS,
+@@ -2181,7 +2178,7 @@ static int nv_swncq_dmafis(struct ata_po
+ 	if (unlikely(!qc))
+ 		return 0;
+ 
+-	rw  =  ((qc->tf.flags) & ATA_TFLAG_WRITE);
++	rw = qc->tf.flags & ATA_TFLAG_WRITE;
+ 
+ 	/* load PRD table addr. */
+ 	iowrite32(pp->prd_dma + ATA_PRD_TBL_SZ * qc->tag,
+@@ -2189,7 +2186,7 @@ static int nv_swncq_dmafis(struct ata_po
+ 
+ 	/* specify data direction, triple-check start bit is clear */
+ 	dmactl = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
+-	dmactl &= ~(ATA_DMA_WR);
++	dmactl &= ~ATA_DMA_WR;
+ 	if (!rw)
+ 		dmactl |= ATA_DMA_WR;
+ 
+@@ -2305,6 +2302,7 @@ static irqreturn_t nv_swncq_interrupt(in
+ 	unsigned int handled = 0;
+ 	unsigned long flags;
+ 	u32 irq_stat;
++
+ 	spin_lock_irqsave(&host->lock, flags);
+ 
+ 	irq_stat = readl(host->iomap[NV_MMIO_BAR] + NV_INT_STATUS_MCP55);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-kill-validate_anon_vma-to-avoid-mapcount-bug.patch
-slob-rework-freelist-handling.patch
-slob-remove-bigblock-tracking.patch
-slob-improved-alignment-handling.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
+smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
+ioatdma-fix-section-mismatches.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+git-selinux.patch
+git-selinux-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+git-scsi-misc.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-show-unhandled-signals-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+highres-improve-debug-output-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
 mm-merge-nopfn-into-fault.patch
-mm-merge-nopfn-into-fault-spufs-fix.patch
-mm-remove-legacy-cruft.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-xfs-convert-to-new-aops.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-ufs-convert-to-new-aops-fix.patch
-udf-convert-to-new-aops.patch
-sysv-convert-to-new-aops.patch
-sysv-convert-to-new-aops-fix.patch
-minix-convert-to-new-aops.patch
-minix-convert-to-new-aops-fix.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-fix-read-truncate-race.patch
-mm-document-fault_data-and-flags.patch
-fs-introduce-some-page-buffer-invariants.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-reiser4-fix-for-new-aops-patches.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slab-allocators-cleanup-zeroing-allocations-fix.patch
+slab-allocators-cleanup-zeroing-allocations-fix-2.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+blink-only-blink-when-parameter-is-set-fix.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
