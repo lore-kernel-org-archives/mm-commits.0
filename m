@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Wed, 27 Jun 2007 14:55:58 -0700
-Message-ID: <200706272159.l5RLxw5G007959@imap1.linux-foundation.org>
+Subject: + dvb-saa7134-dependency-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 14:56:13 -0700
+Message-ID: <200706272200.l5RM0DRS007981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55036 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35278 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758395AbXF0WAK (ORCPT
+	by vger.kernel.org with ESMTP id S1760306AbXF0WAY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 18:00:10 -0400
+	Wed, 27 Jun 2007 18:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: akpm@linux-foundation.org, mchehab@infradead.org
 The patch titled
      dvb: saa7134 dependency fix
 has been added to the -mm tree.  Its filename is
-     a.patch
+     dvb-saa7134-dependency-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -39,8 +39,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/media/video/saa7134/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/saa7134/Kconfig~a drivers/media/video/saa7134/Kconfig
---- a/drivers/media/video/saa7134/Kconfig~a
+diff -puN drivers/media/video/saa7134/Kconfig~dvb-saa7134-dependency-fix drivers/media/video/saa7134/Kconfig
+--- a/drivers/media/video/saa7134/Kconfig~dvb-saa7134-dependency-fix
 +++ a/drivers/media/video/saa7134/Kconfig
 @@ -5,6 +5,7 @@ config VIDEO_SAA7134
  	select VIDEO_IR
@@ -275,4 +275,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-a.patch
+dvb-saa7134-dependency-fix.patch
