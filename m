@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch added to -mm tree
-Date: Tue, 26 Jun 2007 23:47:10 -0700
-Message-ID: <200706270651.l5R6p8u9011781@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-vs-greg-sysfs-stuff.patch added to -mm tree
+Date: Tue, 26 Jun 2007 23:52:40 -0700
+Message-ID: <200706270656.l5R6udem011853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37500 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55243 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756881AbXF0Gvd (ORCPT
+	by vger.kernel.org with ESMTP id S1750838AbXF0G4t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 02:51:33 -0400
+	Wed, 27 Jun 2007 02:56:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com, rusty@rustcorp.com.au, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, James.Smart@emulex.com, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
+     git-scsi-misc vs greg-sysfs-stuff
 has been added to the -mm tree.  Its filename is
-     mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+     git-scsi-misc-vs-greg-sysfs-stuff.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
+Subject: git-scsi-misc vs greg-sysfs-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+drivers/scsi/lpfc/lpfc_init.c: In function 'lpfc_create_port':
+drivers/scsi/lpfc/lpfc_init.c:1573: error: 'struct kobject' has no member named 'dentry'
+
+I'm not really sure what this code is trying to test.  Was it correct?
+
+Cc: James Smart <James.Smart@emulex.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/scsi/lpfc/lpfc_init.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN net/sunrpc/auth.c~mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs net/sunrpc/auth.c
---- a/net/sunrpc/auth.c~mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs
-+++ a/net/sunrpc/auth.c
-@@ -533,17 +533,18 @@ rpcauth_uptodatecred(struct rpc_task *ta
- 		test_bit(RPCAUTH_CRED_UPTODATE, &cred->cr_flags) != 0;
- }
+diff -puN drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-greg-sysfs-stuff drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-greg-sysfs-stuff
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1570,9 +1570,6 @@ lpfc_create_port(struct lpfc_hba *phba, 
+ 	if (error)
+ 		goto out_put_shost;
  
+-	if (!shost->shost_classdev.kobj.dentry)
+-		goto out_put_shost;
 -
--static struct shrinker *rpc_cred_shrinker;
-+static struct shrinker rpc_cred_shrinker = {
-+	.shrink = rpcauth_cache_shrinker,
-+	.seeks = DEFAULT_SEEKS,
-+};
+ 	list_add_tail(&vport->listentry, &phba->port_list);
+ 	return vport;
  
- void __init rpcauth_init_module(void)
- {
- 	rpc_init_authunix();
--	rpc_cred_shrinker = set_shrinker(DEFAULT_SEEKS, rpcauth_cache_shrinker);
-+	register_shrinker(&rpc_cred_shrinker);
- }
- 
- void __exit rpcauth_remove_module(void)
- {
--	if (rpc_cred_shrinker != NULL)
--		remove_shrinker(rpc_cred_shrinker);
-+	unregister_shrinker(&rpc_cred_shrinker);
- }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +108,7 @@ pci-x-pci-express-read-control-interfaces-fix.patch
 revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
 restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
