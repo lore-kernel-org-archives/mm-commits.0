@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap-lcd-panel-support-for-the-ti-omap-h3-board.patch added to -mm tree
-Date: Tue, 26 Jun 2007 17:29:40 -0700
-Message-ID: <200706270029.l5R0TeuX006363@imap1.linux-foundation.org>
+Subject: + omap-lcd-panel-support-for-palm-tungstent.patch added to -mm tree
+Date: Tue, 26 Jun 2007 17:29:45 -0700
+Message-ID: <200706270029.l5R0TjfP006369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35298 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44852 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753420AbXF0A3v (ORCPT
+	by vger.kernel.org with ESMTP id S1753685AbXF0A3z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 20:29:51 -0400
+	Tue, 26 Jun 2007 20:29:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com
+Cc: marek.vasut@gmail.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomide.com
 
 
 The patch titled
-     OMAP: LCD panel support for the TI OMAP H3 board
+     OMAP: LCD panel support for Palm Tungsten|T
 has been added to the -mm tree.  Its filename is
-     omap-lcd-panel-support-for-the-ti-omap-h3-board.patch
+     omap-lcd-panel-support-for-palm-tungstent.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: OMAP: LCD panel support for the TI OMAP H3 board
-From: Imre Deak <imre.deak@solidboot.com>
+Subject: OMAP: LCD panel support for Palm Tungsten|T
+From: Marek Vasut <marek.vasut@gmail.com>
 
-- Adds support for TFT LCD panel on TI OMAP H3 EVM board.
+- Add TFT LCD panel support for Palm Tungsten|T
 
 Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -37,30 +37,30 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/Makefile |    1 
- drivers/video/omap/lcd_h3.c |  141 ++++++++++++++++++++++++++++++++++
- 2 files changed, 142 insertions(+)
+ drivers/video/omap/Makefile     |    1 
+ drivers/video/omap/lcd_palmtt.c |  127 ++++++++++++++++++++++++++++++
+ 2 files changed, 128 insertions(+)
 
-diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap-h3-board drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap-h3-board
+diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-palm-tungstent drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-palm-tungstent
 +++ a/drivers/video/omap/Makefile
-@@ -16,6 +16,7 @@ objs-y$(CONFIG_FB_OMAP_LCDC_HWA742) += h
- objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) += blizzard.o
- 
+@@ -18,6 +18,7 @@ objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) +=
  objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
-+objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
+ objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
+ objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
++objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
  
  omapfb-objs := $(objs-yy)
  
-diff -puN /dev/null drivers/video/omap/lcd_h3.c
+diff -puN /dev/null drivers/video/omap/lcd_palmtt.c
 --- /dev/null
-+++ a/drivers/video/omap/lcd_h3.c
-@@ -0,0 +1,141 @@
++++ a/drivers/video/omap/lcd_palmtt.c
+@@ -0,0 +1,127 @@
 +/*
-+ * LCD panel support for the TI OMAP H3 board
++ * LCD panel support for Palm Tungsten|T
++ * Current version : Marek Vasut <marek.vasut@gmail.com>
 + *
-+ * Copyright (C) 2004 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
++ * Modified from lcd_inn1510.c
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License as published by the
@@ -77,139 +77,115 @@ diff -puN /dev/null drivers/video/omap/lcd_h3.c
 + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+#include <linux/module.h>
++/*
++GPIO11 - backlight
++GPIO12 - screen blanking
++GPIO13 - screen blanking
++*/
++
 +#include <linux/platform_device.h>
++#include <linux/module.h>
++#include <linux/io.h>
 +
 +#include <asm/arch/gpio.h>
-+#include <asm/arch/tps65010.h>
 +#include <asm/arch/omapfb.h>
 +
-+#define MODULE_NAME	"omapfb-lcd_h3"
-+
-+#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
-+
-+static int h3_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
++static int palmtt_panel_init(struct lcd_panel *panel,
++	struct omapfb_device *fbdev)
 +{
 +	return 0;
 +}
 +
-+static void h3_panel_cleanup(struct lcd_panel *panel)
++static void palmtt_panel_cleanup(struct lcd_panel *panel)
 +{
 +}
 +
-+static int h3_panel_enable(struct lcd_panel *panel)
-+{
-+	int r = 0;
-+
-+	/* GPIO1 and GPIO2 of TPS65010 send LCD_ENBKL and LCD_ENVDD signals */
-+	r = tps65010_set_gpio_out_value(GPIO1, HIGH);
-+	if (!r)
-+		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
-+	if (r)
-+		pr_err("Unable to turn on LCD panel\n");
-+
-+	return r;
-+}
-+
-+static void h3_panel_disable(struct lcd_panel *panel)
-+{
-+	int r = 0;
-+
-+	/* GPIO1 and GPIO2 of TPS65010 send LCD_ENBKL and LCD_ENVDD signals */
-+	r = tps65010_set_gpio_out_value(GPIO1, LOW);
-+	if (!r)
-+		tps65010_set_gpio_out_value(GPIO2, LOW);
-+	if (r)
-+		pr_err("Unable to turn off LCD panel\n");
-+}
-+
-+static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
++static int palmtt_panel_enable(struct lcd_panel *panel)
 +{
 +	return 0;
 +}
 +
-+struct lcd_panel h3_panel = {
-+	.name		= "h3",
-+	.config		= OMAP_LCDC_PANEL_TFT,
++static void palmtt_panel_disable(struct lcd_panel *panel)
++{
++}
 +
-+	.data_lines	= 16,
++static unsigned long palmtt_panel_get_caps(struct lcd_panel *panel)
++{
++	return OMAPFB_CAPS_SET_BACKLIGHT;
++}
++
++struct lcd_panel palmtt_panel = {
++	.name		= "palmtt",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			OMAP_LCDC_INV_HSYNC | OMAP_LCDC_HSVS_RISING_EDGE |
++			OMAP_LCDC_HSVS_OPPOSITE,
 +	.bpp		= 16,
-+	.x_res		= 240,
++	.data_lines	= 16,
++	.x_res		= 320,
 +	.y_res		= 320,
-+	.pixel_clock	= 12000,
-+	.hsw		= 12,
-+	.hfp		= 14,
-+	.hbp		= 72 - 12,
++	.pixel_clock	= 10000,
++	.hsw		= 4,
++	.hfp		= 8,
++	.hbp		= 28,
 +	.vsw		= 1,
-+	.vfp		= 1,
-+	.vbp		= 0,
++	.vfp		= 8,
++	.vbp		= 7,
 +	.pcd		= 0,
 +
-+	.init		= h3_panel_init,
-+	.cleanup	= h3_panel_cleanup,
-+	.enable		= h3_panel_enable,
-+	.disable	= h3_panel_disable,
-+	.get_caps	= h3_panel_get_caps,
++	.init		= palmtt_panel_init,
++	.cleanup	= palmtt_panel_cleanup,
++	.enable		= palmtt_panel_enable,
++	.disable	= palmtt_panel_disable,
++	.get_caps	= palmtt_panel_get_caps,
 +};
 +
-+static int h3_panel_probe(struct platform_device *pdev)
++static int palmtt_panel_probe(struct platform_device *pdev)
 +{
-+	omapfb_register_panel(&h3_panel);
++	omapfb_register_panel(&palmtt_panel);
 +	return 0;
 +}
 +
-+static int h3_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int h3_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
++static int palmtt_panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static int h3_panel_resume(struct platform_device *pdev)
++static int palmtt_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
 +{
 +	return 0;
 +}
 +
-+struct platform_driver h3_panel_driver = {
-+	.probe		= h3_panel_probe,
-+	.remove		= h3_panel_remove,
-+	.suspend	= h3_panel_suspend,
-+	.resume		= h3_panel_resume,
++static int palmtt_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver palmtt_panel_driver = {
++	.probe		= palmtt_panel_probe,
++	.remove		= palmtt_panel_remove,
++	.suspend	= palmtt_panel_suspend,
++	.resume		= palmtt_panel_resume,
 +	.driver		= {
-+		.name	= "lcd_h3",
++		.name	= "lcd_palmtt",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int h3_panel_drv_init(void)
++static int palmtt_panel_drv_init(void)
 +{
-+	return platform_driver_register(&h3_panel_driver);
++	return platform_driver_register(&palmtt_panel_driver);
 +}
 +
-+static void h3_panel_drv_cleanup(void)
++static void palmtt_panel_drv_cleanup(void)
 +{
-+	platform_driver_unregister(&h3_panel_driver);
++	platform_driver_unregister(&palmtt_panel_driver);
 +}
 +
-+module_init(h3_panel_drv_init);
-+module_exit(h3_panel_drv_cleanup);
-+
++module_init(palmtt_panel_drv_init);
++module_exit(palmtt_panel_drv_cleanup);
 _
 
-Patches currently in -mm which might be from imre.deak@solidboot.com are
+Patches currently in -mm which might be from marek.vasut@gmail.com are
 
-omap-add-ti-omap-framebuffer-driver.patch
-omap-add-ti-omap1610-accelerator-entry.patch
-omap-add-ti-omap1-internal-lcd-controller.patch
-omap-add-ti-omap2-internal-display-controller-support.patch
-omap-add-ti-omap1-external-lcd-controller-support-sossi.patch
-omap-add-ti-omap2-external-lcd-controller-support-rfbi.patch
-omap-add-external-epson-hwa742-lcd-controller-support.patch
-omap-add-external-epson-blizzard-lcd-controller-support.patch
-omap-lcd-panel-support-for-the-ti-omap-h4-board.patch
-omap-lcd-panel-support-for-the-ti-omap-h3-board.patch
-omap-lcd-panel-support-for-the-ti-omap1610-innovator-board.patch
-omap-lcd-panel-support-for-the-ti-omap1510-innovator-board.patch
+omap-lcd-panel-support-for-palm-tungstent.patch
+omap-lcd-panel-support-for-the-palm-zire71.patch
