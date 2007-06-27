@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-kconfig-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 00:21:00 -0700
-Message-ID: <200706270724.l5R7OwqU012235@imap1.linux-foundation.org>
+Subject: + kgdb-use-new-style-interrupt-flags.patch added to -mm tree
+Date: Wed, 27 Jun 2007 00:22:19 -0700
+Message-ID: <200706270726.l5R7QHvH012246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38060 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752937AbXF0HZI (ORCPT
+	by vger.kernel.org with ESMTP id S1751029AbXF0H0Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 03:25:08 -0400
+	Wed, 27 Jun 2007 03:26:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     kgdb-kconfig-fix
+     kgdb-use-new-style-interrupt-flags
 has been added to the -mm tree.  Its filename is
-     kgdb-kconfig-fix.patch
+     kgdb-use-new-style-interrupt-flags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kgdb-kconfig-fix
+Subject: kgdb-use-new-style-interrupt-flags
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allmodconfig:
-
-drivers/built-in.o: In function `kgdb8250_late_init':
-drivers/serial/8250_kgdb.c:290: undefined reference to `serial8250_unregister_by_port'
-
-this fix is pretty hacky and nasty.
+drivers/serial/8250_kgdb.c: In function 'kgdb8250_late_init':
+drivers/serial/8250_kgdb.c:299: warning: 'deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:66)
 
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kgdb |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/serial/8250_kgdb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/Kconfig~kgdb-kconfig-fix drivers/serial/Kconfig
-diff -puN lib/Kconfig.kgdb~kgdb-kconfig-fix lib/Kconfig.kgdb
---- a/lib/Kconfig.kgdb~kgdb-kconfig-fix
-+++ a/lib/Kconfig.kgdb
-@@ -68,6 +68,7 @@ config KGDB_ONLY_MODULES
- config KGDB_8250_NOMODULE
- 	bool "KGDB: On generic serial port (8250)"
- 	select KGDB_8250
-+	select SERIAL_8250
- 	help
- 	  Uses generic serial port (8250) to communicate with the host
- 	  GDB.  This is independent of the normal (SERIAL_8250) driver
+diff -puN drivers/serial/8250_kgdb.c~kgdb-use-new-style-interrupt-flags drivers/serial/8250_kgdb.c
+--- a/drivers/serial/8250_kgdb.c~kgdb-use-new-style-interrupt-flags
++++ a/drivers/serial/8250_kgdb.c
+@@ -296,7 +296,7 @@ static void __init kgdb8250_late_init(vo
+ 	if (kgdb8250_needs_request_mem_region)
+ 		request_mem_region(current_port->mapbase,
+ 				   8 << current_port->regshift, "kgdb");
+-	if (request_irq(current_port->irq, kgdb8250_interrupt, SA_SHIRQ,
++	if (request_irq(current_port->irq, kgdb8250_interrupt, IRQF_SHARED,
+ 			"GDB-stub", current_port) < 0)
+ 		printk(KERN_ERR "KGDB failed to request the serial IRQ (%d)\n",
+ 		       current_port->irq);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,6 +136,7 @@ git-cryptodev.patch
 git-cryptodev-fixup.patch
 git-kgdb-fixup.patch
 kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
@@ -260,4 +257,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
