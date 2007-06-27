@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-intel-iommu-driver-fix-2.patch added to -mm tree
-Date: Wed, 27 Jun 2007 02:24:10 -0700
-Message-ID: <200706270928.l5R9S9mD014192@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch added to -mm tree
+Date: Wed, 27 Jun 2007 02:30:03 -0700
+Message-ID: <200706270934.l5R9Y2LA014289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43064 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57465 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752949AbXF0J2i (ORCPT
+	by vger.kernel.org with ESMTP id S1751206AbXF0Jen (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 05:28:38 -0400
+	Wed, 27 Jun 2007 05:34:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ak@suse.de, anil.s.keshavamurthy@intel.com, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.com, suresh.b.siddha@intel.com
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, rongkai.zhan@windriver.com
 
 
 The patch titled
-     intel-iommu-intel-iommu-driver-fix-2
+     rtc-add-support-for-the-st-m48t59-rtc-fix-3
 has been added to the -mm tree.  Its filename is
-     intel-iommu-intel-iommu-driver-fix-2.patch
+     rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: intel-iommu-intel-iommu-driver-fix-2
+Subject: rtc-add-support-for-the-st-m48t59-rtc-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/intel-iommu.c: In function 'detect_intel_iommu':
-drivers/pci/intel-iommu.c:1879: error: 'no_iommu' undeclared (first use in this function)
-drivers/pci/intel-iommu.c:1879: error: (Each undeclared identifier is reported only once
-drivers/pci/intel-iommu.c:1879: error: for each function it appears in.)
-drivers/pci/intel-iommu.c:1879: error: 'iommu_detected' undeclared (first use in this function)
-drivers/pci/intel-iommu.c: In function 'intel_iommu_init':
-drivers/pci/intel-iommu.c:1932: error: 'no_iommu' undeclared (first use in this function)
-drivers/pci/intel-iommu.c:1953: error: 'force_iommu' undeclared (first use in this function)
+x86_64:
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+drivers/rtc/rtc-m48t59.c:77:47: error: macro "readb" passed 2 arguments, but takes just 1
+drivers/rtc/rtc-m48t59.c:77:47: error: macro "writeb" passed 3 arguments, but takes just 2
+drivers/rtc/rtc-m48t59.c: In function 'm48t59_rtc_read_time':
+drivers/rtc/rtc-m48t59.c:77: warning: statement with no effect
+drivers/rtc/rtc-m48t59.c:79:48: error: macro "readb" passed 2 arguments, but takes just 1
+drivers/rtc/rtc-m48t59.c:79: error: invalid operands to binary &
+drivers/rtc/rtc-m48t59.c:79: error: invalid operands to binary >>
+drivers/rtc/rtc-m48t59.c:81:48: error: macro "readb" passed 2 arguments, but takes just 1
+drivers/rtc/rtc-m48t59.c:81: error: invalid operands to binary &
+drivers/rtc/rtc-m48t59.c:81: error: invalid operands to binary >>
+drivers/rtc/rtc-m48t59.c:82:48: error: macro "readb" passed 2 arguments, but takes just 1
+
+etc..
+
+btw, macros which assume the presence of a particularly-named local variable
+are evil.  Please just don't do it.
+
+Instead of
+
+#define M48T59_READ(reg)	pdata->read_byte(dev, reg)
+
+please do
+
+static inline u8 m48t59_read(m48t59_plat_data *pdata, struct device *dev,
+				int reg)
+{
+	return pdata->read_byte(dev, reg);
+}
+
+ie: write your code in C, not in cpp..
+
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Mark Zhan <rongkai.zhan@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-m48t59.c   |   14 +++++++-------
+ include/linux/rtc/m48t59.h |    4 ++--
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix-2 drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix-2
-+++ a/drivers/pci/intel-iommu.c
-@@ -34,6 +34,7 @@
- #include "intel-iommu.h"
- #include <asm/proto.h> /* force_iommu in this header in x86-64*/
- #include <asm/cacheflush.h>
-+#include <asm/iommu.h>
- #include "pci.h"
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-fix-3 drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-fix-3
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -24,8 +24,8 @@
+ #define NO_IRQ	(-1)
+ #endif
  
- #define IS_GFX_DEVICE(pdev) ((pdev->class >> 16) == PCI_BASE_CLASS_DISPLAY)
+-#define M48T59_READ(reg)	pdata->readb(dev, reg)
+-#define M48T59_WRITE(val, reg)	pdata->writeb(dev, reg, val)
++#define M48T59_READ(reg)	pdata->read_byte(dev, reg)
++#define M48T59_WRITE(val, reg)	pdata->write_byte(dev, reg, val)
+ 
+ #define M48T59_SET_BITS(mask, reg)	\
+ 	M48T59_WRITE((M48T59_READ(reg) | (mask)), (reg))
+@@ -379,7 +379,7 @@ static int __devinit m48t59_rtc_probe(st
+ 		/* If we are I/O-mapped, the platform should provide
+ 		 * the operations accessing chip registers.
+ 		 */
+-		if (!pdata || !pdata->writeb || !pdata->readb)
++		if (!pdata || !pdata->write_byte || !pdata->read_byte)
+ 			return -EINVAL;
+ 	} else if (res->flags & IORESOURCE_MEM) {
+ 		/* we are memory-mapped */
+@@ -392,10 +392,10 @@ static int __devinit m48t59_rtc_probe(st
+ 		}
+ 
+ 		/* Try to use the generic memory read/write ops */
+-		if (!pdata->writeb)
+-			pdata->writeb = m48t59_mem_writeb;
+-		if (!pdata->readb)
+-			pdata->readb = m48t59_mem_readb;
++		if (!pdata->write_byte)
++			pdata->write_byte = m48t59_mem_writeb;
++		if (!pdata->read_byte)
++			pdata->read_byte = m48t59_mem_readb;
+ 	}
+ 
+ 	m48t59 = kzalloc(sizeof(*m48t59), GFP_KERNEL);
+diff -puN include/linux/rtc/m48t59.h~rtc-add-support-for-the-st-m48t59-rtc-fix-3 include/linux/rtc/m48t59.h
+--- a/include/linux/rtc/m48t59.h~rtc-add-support-for-the-st-m48t59-rtc-fix-3
++++ a/include/linux/rtc/m48t59.h
+@@ -50,8 +50,8 @@ struct m48t59_plat_data {
+ 	/* The method to access M48T59 registers,
+ 	 * NOTE: The 'ofs' should be 0x00~0x1fff
+ 	 */
+-	void (*writeb)(struct device *dev, u32 ofs, u8 val);
+-	unsigned char (*readb)(struct device *dev, u32 ofs);
++	void (*write_byte)(struct device *dev, u32 ofs, u8 val);
++	unsigned char (*read_byte)(struct device *dev, u32 ofs);
+ };
+ 
+ #endif /* _LINUX_RTC_M48T59_H_ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -243,6 +301,7 @@ knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
 driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
 rtc-add-rtc-m41t80-driver-take-2-fix.patch
 rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
 rtc-driver-for-ds1216-chips-fix.patch
 revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
