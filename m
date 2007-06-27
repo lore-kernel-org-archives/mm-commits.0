@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-vs-greg-sysfs-stuff.patch added to -mm tree
-Date: Tue, 26 Jun 2007 23:52:40 -0700
-Message-ID: <200706270656.l5R6udem011853@imap1.linux-foundation.org>
+Subject: + rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch added to -mm tree
+Date: Tue, 26 Jun 2007 23:57:17 -0700
+Message-ID: <200706270701.l5R71GnQ011924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55243 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750838AbXF0G4t (ORCPT
+	by vger.kernel.org with ESMTP id S1750838AbXF0HBf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 02:56:49 -0400
+	Wed, 27 Jun 2007 03:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, James.Smart@emulex.com, greg@kroah.com, htejun@gmail.com
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, lenb@kernel.org, rongkai.zhan@windriver.com
 
 
 The patch titled
-     git-scsi-misc vs greg-sysfs-stuff
+     rtc-add-support-for-the-st-m48t59-rtc vs git-acpi
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-vs-greg-sysfs-stuff.patch
+     rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc vs greg-sysfs-stuff
+Subject: rtc-add-support-for-the-st-m48t59-rtc vs git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/lpfc/lpfc_init.c: In function 'lpfc_create_port':
-drivers/scsi/lpfc/lpfc_init.c:1573: error: 'struct kobject' has no member named 'dentry'
+drivers/rtc/rtc-m48t59.c:357: warning: initialization from incompatible pointer type
+drivers/rtc/rtc-m48t59.c:358: warning: initialization from incompatible pointer type
 
-I'm not really sure what this code is trying to test.  Was it correct?
+The acpi guys changed the bin_attribute code.
 
-Cc: James Smart <James.Smart@emulex.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Mark Zhan <rongkai.zhan@windriver.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_init.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/rtc/rtc-m48t59.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-greg-sysfs-stuff drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~git-scsi-misc-vs-greg-sysfs-stuff
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -1570,9 +1570,6 @@ lpfc_create_port(struct lpfc_hba *phba, 
- 	if (error)
- 		goto out_put_shost;
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -310,8 +310,9 @@ static const struct rtc_class_ops m48t59
+ 	.proc		= m48t59_rtc_proc,
+ };
  
--	if (!shost->shost_classdev.kobj.dentry)
--		goto out_put_shost;
--
- 	list_add_tail(&vport->listentry, &phba->port_list);
- 	return vport;
+-static ssize_t m48t59_nvram_read(struct kobject *kobj, char *buf,
+-				 loff_t pos, size_t size)
++static ssize_t m48t59_nvram_read(struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t pos, size_t size)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -329,8 +330,9 @@ static ssize_t m48t59_nvram_read(struct 
+ 	return cnt;
+ }
  
+-static ssize_t m48t59_nvram_write(struct kobject *kobj, char *buf,
+-				  loff_t pos, size_t size)
++static ssize_t m48t59_nvram_write(struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t pos, size_t size)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+ 	struct platform_device *pdev = to_platform_device(dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -224,6 +237,7 @@ nfsd-warning-fix.patch
 knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
 driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
 rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
 rtc-driver-for-ds1216-chips-fix.patch
 revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
