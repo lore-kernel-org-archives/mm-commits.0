@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-hpet-issue-with-amd-southbridges.patch added to -mm tree
-Date: Wed, 27 Jun 2007 12:23:57 -0700
-Message-ID: <200706271923.l5RJNwWH003966@imap1.linux-foundation.org>
+Subject: + x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch added to -mm tree
+Date: Wed, 27 Jun 2007 12:25:28 -0700
+Message-ID: <200706271925.l5RJPSgZ003988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57539 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39035 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751444AbXF0TYd (ORCPT
+	by vger.kernel.org with ESMTP id S1751426AbXF0T0E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 15:24:33 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5RJO3cP003007
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 27 Jun 2007 12:24:04 -0700
+	Wed, 27 Jun 2007 15:26:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: torvalds@linux-foundation.org
+Cc: Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM
 
 
 The patch titled
-     Linux HPET issue with AMD southbridges
+     x86_64: change _map_single to static in pci_gart.c etc
 has been added to the -mm tree.  Its filename is
-     linux-hpet-issue-with-amd-southbridges.patch
+     x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,87 +26,131 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Linux HPET issue with AMD southbridges
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: x86_64: change _map_single to static in pci_gart.c etc
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-On Wed, 27 Jun 2007, Matthias Lenk wrote:
->
-> I attached the output of cat /proc/iomem when booting with hpet=disable. As
-> you can see the HPET address is still 0xfed00000 where it is supposed to be
-> while the new hardware base address for the HPET is 0x30000000 which is
-> allocated for device 0:14.0 (SMBus controller). For all ATI southbridges the
-> HPET base is at BAR1 of device 0:14.0.
+This function is called via dma_ops->.., so change it to static
 
-Ok. The problem is, as I suspected, too early firmware resource
-allocation. In this case, it's "acpi_parse_hpet()" that reserves the
-resource too early.
-
-The bug was apparently introduced by commit f0f4c3432e5e: "i386: add
-HPET(s) into resource map" by Aaron Durbin.
-
-So the rule for these kinds of things really *must* be:
-
- - read the firmware info early if you want to.
-
- - but firmware *must*not* mark IO regions as being reserved until after
-   the PCI resource parsing has been done. In particular, they must not be
-   marked busy.
-
-I _think_ that the fix in this case may actually be as trivial as just
-removing the BUSY on the resource. In that case, the PCI layer will be
-able to insert the resource it knows about, and everything is fine. It
-just won't be allocating *new* resources over it (which is obviously what
-we want).
-
-So I *think* that this patch may "Just Work(tm)". But it's obviously
-totally untested, since I don't have the hardware that can trigger this.
-I'd really appreciate testing. And I won't guarantee it does, but I'd love
-to see the whole "dmesg" output regardless..
-
-I don't think it's the *best* patch. I think a better patch would
-literally be to do the whole firmware resource adding at a later stage,
-after we've done the PCI probing (but before we do any new allocation, of
-course!).
-
-As an example of what I think is marking resources *properly* you can see,
-acpi_reserve_resources() is a "device_initcall()", so it runs long after
-the PCI probing has happened, but I think it's set up so that ACPI gets
-linked before any normal drivers, so it should trigger before we actually
-enable the devices (and allocate missing resources for them).
-
-
-
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/pci-calgary.c |    8 ++++----
+ arch/x86_64/kernel/pci-gart.c    |    6 +++---
+ arch/x86_64/kernel/pci-nommu.c   |    6 +++---
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~linux-hpet-issue-with-amd-southbridges arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~linux-hpet-issue-with-amd-southbridges
-+++ a/arch/i386/kernel/acpi/boot.c
-@@ -642,7 +642,7 @@ static int __init acpi_parse_hpet(struct
- 	if (hpet_res) {
- 		memset(hpet_res, 0, sizeof(*hpet_res));
- 		hpet_res->name = (void *)&hpet_res[1];
--		hpet_res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+		hpet_res->flags = IORESOURCE_MEM;
- 		snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE,
- 			 "HPET %u", hpet_tbl->sequence);
- 		hpet_res->end = (1 * 1024) - 1;
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86_64-change-_map_single-to-static-in-pci_gartc-etc arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86_64-change-_map_single-to-static-in-pci_gartc-etc
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -427,7 +427,7 @@ static int calgary_nontranslate_map_sg(s
+ 	return nelems;
+ }
+ 
+-int calgary_map_sg(struct device *dev, struct scatterlist *sg,
++static int calgary_map_sg(struct device *dev, struct scatterlist *sg,
+ 	int nelems, int direction)
+ {
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+@@ -478,7 +478,7 @@ error:
+ 	return 0;
+ }
+ 
+-dma_addr_t calgary_map_single(struct device *dev, void *vaddr,
++static dma_addr_t calgary_map_single(struct device *dev, void *vaddr,
+ 	size_t size, int direction)
+ {
+ 	dma_addr_t dma_handle = bad_dma_address;
+@@ -497,7 +497,7 @@ dma_addr_t calgary_map_single(struct dev
+ 	return dma_handle;
+ }
+ 
+-void calgary_unmap_single(struct device *dev, dma_addr_t dma_handle,
++static void calgary_unmap_single(struct device *dev, dma_addr_t dma_handle,
+ 	size_t size, int direction)
+ {
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+@@ -510,7 +510,7 @@ void calgary_unmap_single(struct device 
+ 	iommu_free(tbl, dma_handle, npages);
+ }
+ 
+-void* calgary_alloc_coherent(struct device *dev, size_t size,
++static void* calgary_alloc_coherent(struct device *dev, size_t size,
+ 	dma_addr_t *dma_handle, gfp_t flag)
+ {
+ 	void *ret = NULL;
+diff -puN arch/x86_64/kernel/pci-gart.c~x86_64-change-_map_single-to-static-in-pci_gartc-etc arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86_64-change-_map_single-to-static-in-pci_gartc-etc
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -236,7 +236,7 @@ static dma_addr_t gart_map_simple(struct
+ }
+ 
+ /* Map a single area into the IOMMU */
+-dma_addr_t gart_map_single(struct device *dev, void *addr, size_t size, int dir)
++static dma_addr_t gart_map_single(struct device *dev, void *addr, size_t size, int dir)
+ {
+ 	unsigned long phys_mem, bus;
+ 
+@@ -254,7 +254,7 @@ dma_addr_t gart_map_single(struct device
+ /*
+  * Free a DMA mapping.
+  */
+-void gart_unmap_single(struct device *dev, dma_addr_t dma_addr,
++static void gart_unmap_single(struct device *dev, dma_addr_t dma_addr,
+ 		      size_t size, int direction)
+ {
+ 	unsigned long iommu_page;
+@@ -276,7 +276,7 @@ void gart_unmap_single(struct device *de
+ /*
+  * Wrapper for pci_unmap_single working with scatterlists.
+  */
+-void gart_unmap_sg(struct device *dev, struct scatterlist *sg, int nents, int dir)
++static void gart_unmap_sg(struct device *dev, struct scatterlist *sg, int nents, int dir)
+ {
+ 	int i;
+ 
+diff -puN arch/x86_64/kernel/pci-nommu.c~x86_64-change-_map_single-to-static-in-pci_gartc-etc arch/x86_64/kernel/pci-nommu.c
+--- a/arch/x86_64/kernel/pci-nommu.c~x86_64-change-_map_single-to-static-in-pci_gartc-etc
++++ a/arch/x86_64/kernel/pci-nommu.c
+@@ -34,7 +34,7 @@ nommu_map_single(struct device *hwdev, v
+ 	return bus;
+ }
+ 
+-void nommu_unmap_single(struct device *dev, dma_addr_t addr,size_t size,
++static void nommu_unmap_single(struct device *dev, dma_addr_t addr,size_t size,
+ 			int direction)
+ {
+ }
+@@ -54,7 +54,7 @@ void nommu_unmap_single(struct device *d
+  * Device ownership issues as mentioned above for pci_map_single are
+  * the same here.
+  */
+-int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
++static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
+ 	       int nents, int direction)
+ {
+ 	int i;
+@@ -74,7 +74,7 @@ int nommu_map_sg(struct device *hwdev, s
+  * Again, cpu read rules concerning calls here are the same as for
+  * pci_unmap_single() above.
+  */
+-void nommu_unmap_sg(struct device *dev, struct scatterlist *sg,
++static void nommu_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 		  int nents, int dir)
+ {
+ }
 _
 
-Patches currently in -mm which might be from torvalds@linux-foundation.org are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-origin.patch
-linux-hpet-issue-with-amd-southbridges.patch
-x86_64-pm_trace-support.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch
-workaround-for-a-pci-restoring-bug.patch
+serial-assert-dtr-for-serial-console-devices.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
