@@ -1,138 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 21:54:08 -0700
-Message-ID: <200706270454.l5R4s8H0010152@imap1.linux-foundation.org>
+Subject: + remove-leftover-documentation-of-acpi_generic_hotkey.patch added to -mm tree
+Date: Tue, 26 Jun 2007 22:04:08 -0700
+Message-ID: <200706270504.l5R548FM010301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40019 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752789AbXF0EyW (ORCPT
+	by vger.kernel.org with ESMTP id S1756255AbXF0FEQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 00:54:22 -0400
+	Wed, 27 Jun 2007 01:04:16 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5R54EVt009525
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2007 22:04:15 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, ak@suse.de, djwong@us.ibm.com, ebiederm@xmission.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: shemminger@linux-foundation.org
 
 
 The patch titled
-     x86_64, irq: use mask/unmask and proper locking in fixup_irqs()
-has been removed from the -mm tree.  Its filename was
-     x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch
+     acpi: remove leftover documentation of acpi_generic_hotkey
+has been added to the -mm tree.  Its filename is
+     remove-leftover-documentation-of-acpi_generic_hotkey.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64, irq: use mask/unmask and proper locking in fixup_irqs()
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: acpi: remove leftover documentation of acpi_generic_hotkey
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Force irq migration path during cpu offline, is not using proper locks and
-irq_chip mask/unmask routines.  This will result in some races(especially
-the device generating the interrupt can see some inconsistent state,
-resulting in issues like stuck irq,..).
+This looks like left over text in the kernel parameters documentation.
 
-Appended patch fixes the issue by taking proper lock and encapsulating
-irq_chip set_affinity() with a mask() before and an unmask() after.
-
-This fixes a MSI irq stuck issue reported by Darrick Wong.
-
-There are several more general bugs in this area(irq migration in the
-process context). For example,
-
-1. Possibility of missing edge triggered irq.
-2. Reliable method of migrating level triggered irq in the process context.
-
-We plan to look and close these in the near future.
-
-Eric says:
-	In addition even with the fix from Suresh there is still at least one
-	nasty hardware race in fixup_irqs().   However we exercise that code
-	path rarely enough that we are unlikely to hit it in the real world,
-	and that race seems to have existed since the code was merged.  And a
-	fix for that is not coming soon as it is an open investigation area
-	if we can fix irq migration to work outside of irq context or if
-	we have to rework the requirements imposed by the generic cpu hotplug
-	and layer on fixup_irqs().  So this may come up again.
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Reported-by: Darrick Wong <djwong@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/irq.c |   32 +++++++++++++++++++++++++++++---
- 1 files changed, 29 insertions(+), 3 deletions(-)
+ Documentation/kernel-parameters.txt |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/x86_64/kernel/irq.c~x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2 arch/x86_64/kernel/irq.c
---- a/arch/x86_64/kernel/irq.c~x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2
-+++ a/arch/x86_64/kernel/irq.c
-@@ -144,17 +144,43 @@ void fixup_irqs(cpumask_t map)
+diff -puN Documentation/kernel-parameters.txt~remove-leftover-documentation-of-acpi_generic_hotkey Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~remove-leftover-documentation-of-acpi_generic_hotkey
++++ a/Documentation/kernel-parameters.txt
+@@ -223,11 +223,6 @@ and is between 256 and 4096 characters. 
  
- 	for (irq = 0; irq < NR_IRQS; irq++) {
- 		cpumask_t mask;
-+		int break_affinity = 0;
-+		int set_affinity = 1;
-+
- 		if (irq == 2)
- 			continue;
+ 	acpi_fake_ecdt	[HW,ACPI] Workaround failure due to BIOS lacking ECDT
  
-+		/* interrupt's are disabled at this point */
-+		spin_lock(&irq_desc[irq].lock);
-+
-+		if (!irq_has_action(irq) ||
-+		    cpus_equal(irq_desc[irq].affinity, map)) {
-+			spin_unlock(&irq_desc[irq].lock);
-+			continue;
-+		}
-+
- 		cpus_and(mask, irq_desc[irq].affinity, map);
--		if (any_online_cpu(mask) == NR_CPUS) {
--			printk("Breaking affinity for irq %i\n", irq);
-+		if (cpus_empty(mask)) {
-+			break_affinity = 1;
- 			mask = map;
- 		}
-+
-+		if (irq_desc[irq].chip->mask)
-+			irq_desc[irq].chip->mask(irq);
-+
- 		if (irq_desc[irq].chip->set_affinity)
- 			irq_desc[irq].chip->set_affinity(irq, mask);
--		else if (irq_desc[irq].action && !(warned++))
-+		else if (!(warned++))
-+			set_affinity = 0;
-+
-+		if (irq_desc[irq].chip->unmask)
-+			irq_desc[irq].chip->unmask(irq);
-+
-+		spin_unlock(&irq_desc[irq].lock);
-+
-+		if (break_affinity && set_affinity)
-+			printk("Broke affinity for irq %i\n", irq);
-+		else if (!set_affinity)
- 			printk("Cannot set affinity for irq %i\n", irq);
- 	}
- 
+-	acpi_generic_hotkey [HW,ACPI]
+-			Allow consolidated generic hotkey driver to
+-			override platform specific driver.
+-			See also Documentation/acpi-hotkey.txt.
+-
+ 	acpi_pm_good	[IA-32,X86-64]
+ 			Override the pmtimer bug detection: force the kernel
+ 			to assume that this machine's pmtimer latches its value
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-origin.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
+remove-leftover-documentation-of-acpi_generic_hotkey.patch
+touchscreen-fujitsu-touchscreen-driver.patch
+git-netdev-all.patch
+netpoll-tx-lock-deadlock-fix.patch
+git-r8169.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx.patch
+pci-x-pci-express-read-control-interfaces-qla2xxx-fix.patch
+s2io-fix-__ucmpdi2-undefined.patch
