@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-add-ioapic-nmi-support-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 11:15:20 -0700
-Message-ID: <200706271815.l5RIFKQ7028770@imap1.linux-foundation.org>
+Subject: + x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 11:31:15 -0700
+Message-ID: <200706271831.l5RIVFGf031211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56482 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53451 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755897AbXF0SPb (ORCPT
+	by vger.kernel.org with ESMTP id S1754884AbXF0ScA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 14:15:31 -0400
+	Wed, 27 Jun 2007 14:32:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, jpk@sgi.com
+Cc: akpm@linux-foundation.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@sun.com
 
 
 The patch titled
-     x86_64-add-ioapic-nmi-support-fix
+     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
 has been added to the -mm tree.  Its filename is
-     x86_64-add-ioapic-nmi-support-fix.patch
+     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-add-ioapic-nmi-support-fix
+Subject: x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: John Keller <jpk@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
+arch/x86_64/kernel/pci-calgary.c: In function 'detect_calgary':
+arch/x86_64/kernel/pci-calgary.c:1356: error: 'no_iommu' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c:1356: error: (Each undeclared identifier is reported only once
+arch/x86_64/kernel/pci-calgary.c:1356: error: for each function it appears in.)
+arch/x86_64/kernel/pci-calgary.c:1356: error: 'iommu_detected' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c: In function 'calgary_iommu_init':
+arch/x86_64/kernel/pci-calgary.c:1450: error: 'no_iommu' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c:1469: error: 'force_iommu' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c: In function 'calgary_fixup_tce_spaces':
+arch/x86_64/kernel/pci-calgary.c:1564: error: 'no_iommu' undeclared (first use in this function)
+
+
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    6 ++----
- arch/x86_64/kernel/mpparse.c |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support-fix arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-add-ioapic-nmi-support-fix
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -379,8 +379,7 @@ static void clear_IO_APIC_pin(unsigned i
- 	 * or NMI pin.
- 	 */
- 	entry = ioapic_read_entry(apic, pin);
--	if ((entry.delivery_mode == dest_SMI) ||
--	    (entry.delivery_mode == dest_NMI))
-+	if (entry.delivery_mode == dest_SMI || entry.delivery_mode == dest_NMI)
- 		return;
- 	/*
- 	 * Disable it in the IO-APIC irq-routing table:
-@@ -1211,9 +1210,8 @@ static void __init enable_IO_APIC(void)
- 				continue;
- 			}
- 
--			if (entry.delivery_mode == dest_NMI) {
-+			if (entry.delivery_mode == dest_NMI)
- 				setup_ioapic_nmi_irq(apic, pin, &entry);
--			}
- 		}
- 	}
- 
-diff -puN arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix arch/x86_64/kernel/mpparse.c
---- a/arch/x86_64/kernel/mpparse.c~x86_64-add-ioapic-nmi-support-fix
-+++ a/arch/x86_64/kernel/mpparse.c
-@@ -671,7 +671,7 @@ int mp_apic_pin_to_gsi(int apic, int pin
-                 return -1;
-         }
- 
--        return (mp_ioapic_routing[apic].gsi_start + pin);
-+        return mp_ioapic_routing[apic].gsi_start + pin;
- }
- 
- void __init mp_register_ioapic(u8 id, u32 address, u32 gsi_base)
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -35,7 +35,7 @@
+ #include <linux/pci_ids.h>
+ #include <linux/pci.h>
+ #include <linux/delay.h>
+-#include <asm/proto.h>
++#include <asm/iommu.h>
+ #include <asm/calgary.h>
+ #include <asm/tce.h>
+ #include <asm/pci-direct.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
