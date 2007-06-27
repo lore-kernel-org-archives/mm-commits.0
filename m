@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + omap-lcd-panel-support-for-the-ti-omap1610-innovator-board.patch added to -mm tree
-Date: Tue, 26 Jun 2007 17:29:49 -0700
-Message-ID: <200706270029.l5R0Tn69006375@imap1.linux-foundation.org>
+Subject: + omap-lcd-panel-support-for-the-ti-omap1510-innovator-board.patch added to -mm tree
+Date: Tue, 26 Jun 2007 17:29:51 -0700
+Message-ID: <200706270029.l5R0Tp4K006378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36304 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753574AbXF0AaA (ORCPT
+	by vger.kernel.org with ESMTP id S1753920AbXF0AaE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 20:30:00 -0400
+	Tue, 26 Jun 2007 20:30:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomid
 
 
 The patch titled
-     OMAP: LCD panel support for the TI OMAP1610 Innovator board
+     OMAP: LCD panel support for the TI OMAP1510 Innovator board
 has been added to the -mm tree.  Its filename is
-     omap-lcd-panel-support-for-the-ti-omap1610-innovator-board.patch
+     omap-lcd-panel-support-for-the-ti-omap1510-innovator-board.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: OMAP: LCD panel support for the TI OMAP1610 Innovator board
+Subject: OMAP: LCD panel support for the TI OMAP1510 Innovator board
 From: Imre Deak <imre.deak@solidboot.com>
 
-- Add TFT LCD panel spport for TI OMAP1610 Innovator EVM.
+- Add TFT LCD panel spport for TI OMAP1510 Innovator EVM.
 
 Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -38,26 +38,26 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/video/omap/Makefile      |    1 
- drivers/video/omap/lcd_inn1610.c |  150 +++++++++++++++++++++++++++++
- 2 files changed, 151 insertions(+)
+ drivers/video/omap/lcd_inn1510.c |  124 +++++++++++++++++++++++++++++
+ 2 files changed, 125 insertions(+)
 
-diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap1610-innovator-board drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap1610-innovator-board
+diff -puN drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap1510-innovator-board drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-lcd-panel-support-for-the-ti-omap1510-innovator-board
 +++ a/drivers/video/omap/Makefile
-@@ -20,6 +20,7 @@ objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
- objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
+@@ -21,6 +21,7 @@ objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_
  objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
  objs-y$(CONFIG_MACH_OMAP_PALMZ71) += lcd_palmz71.o
-+objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1610.o
+ objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1610.o
++objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
  
  omapfb-objs := $(objs-yy)
  
-diff -puN /dev/null drivers/video/omap/lcd_inn1610.c
+diff -puN /dev/null drivers/video/omap/lcd_inn1510.c
 --- /dev/null
-+++ a/drivers/video/omap/lcd_inn1610.c
-@@ -0,0 +1,150 @@
++++ a/drivers/video/omap/lcd_inn1510.c
+@@ -0,0 +1,124 @@
 +/*
-+ * LCD panel support for the TI OMAP1610 Innovator board
++ * LCD panel support for the TI OMAP1510 Innovator board
 + *
 + * Copyright (C) 2004 Nokia Corporation
 + * Author: Imre Deak <imre.deak@nokia.com>
@@ -79,71 +79,45 @@ diff -puN /dev/null drivers/video/omap/lcd_inn1610.c
 +
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
++#include <linux/io.h>
 +
-+#include <asm/arch/gpio.h>
++#include <asm/arch/fpga.h>
 +#include <asm/arch/omapfb.h>
 +
-+#define MODULE_NAME	"omapfb-lcd_h3"
-+
-+#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
-+
-+static int innovator1610_panel_init(struct lcd_panel *panel,
++static int innovator1510_panel_init(struct lcd_panel *panel,
 +				    struct omapfb_device *fbdev)
 +{
-+	int r = 0;
-+
-+	if (omap_request_gpio(14)) {
-+		pr_err("can't request GPIO 14\n");
-+		r = -1;
-+		goto exit;
-+	}
-+	if (omap_request_gpio(15)) {
-+		pr_err("can't request GPIO 15\n");
-+		omap_free_gpio(14);
-+		r = -1;
-+		goto exit;
-+	}
-+	/* configure GPIO(14, 15) as outputs */
-+	omap_set_gpio_direction(14, 0);
-+	omap_set_gpio_direction(15, 0);
-+exit:
-+	return r;
-+}
-+
-+static void innovator1610_panel_cleanup(struct lcd_panel *panel)
-+{
-+	omap_free_gpio(15);
-+	omap_free_gpio(14);
-+}
-+
-+static int innovator1610_panel_enable(struct lcd_panel *panel)
-+{
-+	/* set GPIO14 and GPIO15 high */
-+	omap_set_gpio_dataout(14, 1);
-+	omap_set_gpio_dataout(15, 1);
 +	return 0;
 +}
 +
-+static void innovator1610_panel_disable(struct lcd_panel *panel)
++static void innovator1510_panel_cleanup(struct lcd_panel *panel)
 +{
-+	/* set GPIO13, GPIO14 and GPIO15 low */
-+	omap_set_gpio_dataout(14, 0);
-+	omap_set_gpio_dataout(15, 0);
 +}
 +
-+static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
++static int innovator1510_panel_enable(struct lcd_panel *panel)
++{
++	fpga_write(0x7, OMAP1510_FPGA_LCD_PANEL_CONTROL);
++	return 0;
++}
++
++static void innovator1510_panel_disable(struct lcd_panel *panel)
++{
++	fpga_write(0x0, OMAP1510_FPGA_LCD_PANEL_CONTROL);
++}
++
++static unsigned long innovator1510_panel_get_caps(struct lcd_panel *panel)
 +{
 +	return 0;
 +}
 +
-+struct lcd_panel innovator1610_panel = {
-+	.name		= "inn1610",
++struct lcd_panel innovator1510_panel = {
++	.name		= "inn1510",
 +	.config		= OMAP_LCDC_PANEL_TFT,
 +
 +	.bpp		= 16,
 +	.data_lines	= 16,
-+	.x_res		= 320,
-+	.y_res		= 240,
++	.x_res		= 240,
++	.y_res		= 320,
 +	.pixel_clock	= 12500,
 +	.hsw		= 40,
 +	.hfp		= 40,
@@ -153,58 +127,58 @@ diff -puN /dev/null drivers/video/omap/lcd_inn1610.c
 +	.vbp		= 0,
 +	.pcd		= 12,
 +
-+	.init		= innovator1610_panel_init,
-+	.cleanup	= innovator1610_panel_cleanup,
-+	.enable		= innovator1610_panel_enable,
-+	.disable	= innovator1610_panel_disable,
-+	.get_caps	= innovator1610_panel_get_caps,
++	.init		= innovator1510_panel_init,
++	.cleanup	= innovator1510_panel_cleanup,
++	.enable		= innovator1510_panel_enable,
++	.disable	= innovator1510_panel_disable,
++	.get_caps	= innovator1510_panel_get_caps,
 +};
 +
-+static int innovator1610_panel_probe(struct platform_device *pdev)
++static int innovator1510_panel_probe(struct platform_device *pdev)
 +{
-+	omapfb_register_panel(&innovator1610_panel);
++	omapfb_register_panel(&innovator1510_panel);
 +	return 0;
 +}
 +
-+static int innovator1610_panel_remove(struct platform_device *pdev)
++static int innovator1510_panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static int innovator1610_panel_suspend(struct platform_device *pdev,
++static int innovator1510_panel_suspend(struct platform_device *pdev,
 +				       pm_message_t mesg)
 +{
 +	return 0;
 +}
 +
-+static int innovator1610_panel_resume(struct platform_device *pdev)
++static int innovator1510_panel_resume(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+struct platform_driver innovator1610_panel_driver = {
-+	.probe		= innovator1610_panel_probe,
-+	.remove		= innovator1610_panel_remove,
-+	.suspend	= innovator1610_panel_suspend,
-+	.resume		= innovator1610_panel_resume,
++struct platform_driver innovator1510_panel_driver = {
++	.probe		= innovator1510_panel_probe,
++	.remove		= innovator1510_panel_remove,
++	.suspend	= innovator1510_panel_suspend,
++	.resume		= innovator1510_panel_resume,
 +	.driver		= {
-+		.name	= "lcd_inn1610",
++		.name	= "lcd_inn1510",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int innovator1610_panel_drv_init(void)
++static int innovator1510_panel_drv_init(void)
 +{
-+	return platform_driver_register(&innovator1610_panel_driver);
++	return platform_driver_register(&innovator1510_panel_driver);
 +}
 +
-+static void innovator1610_panel_drv_cleanup(void)
++static void innovator1510_panel_drv_cleanup(void)
 +{
-+	platform_driver_unregister(&innovator1610_panel_driver);
++	platform_driver_unregister(&innovator1510_panel_driver);
 +}
 +
-+module_init(innovator1610_panel_drv_init);
-+module_exit(innovator1610_panel_drv_cleanup);
++module_init(innovator1510_panel_drv_init);
++module_exit(innovator1510_panel_drv_cleanup);
 +
 _
 
