@@ -1,111 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - mark-calibrate_xor_blocks-__init.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 21:54:05 -0700
-Message-ID: <200706270454.l5R4s5nq010149@imap1.linux-foundation.org>
+Subject: - x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 21:54:08 -0700
+Message-ID: <200706270454.l5R4s8H0010152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53750 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752711AbXF0EyV (ORCPT
+	by vger.kernel.org with ESMTP id S1752789AbXF0EyW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 00:54:21 -0400
+	Wed, 27 Jun 2007 00:54:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: suresh.b.siddha@intel.com, ak@suse.de, djwong@us.ibm.com, ebiederm@xmission.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mark calibrate_xor_blocks() __init
+     x86_64, irq: use mask/unmask and proper locking in fixup_irqs()
 has been removed from the -mm tree.  Its filename was
-     mark-calibrate_xor_blocks-__init.patch
+     x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mark calibrate_xor_blocks() __init
-From: Adrian Bunk <bunk@stusta.de>
+Subject: x86_64, irq: use mask/unmask and proper locking in fixup_irqs()
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-calibrate_xor_blocks() can be marked __init.
+Force irq migration path during cpu offline, is not using proper locks and
+irq_chip mask/unmask routines.  This will result in some races(especially
+the device generating the interrupt can see some inconsistent state,
+resulting in issues like stuck irq,..).
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Appended patch fixes the issue by taking proper lock and encapsulating
+irq_chip set_affinity() with a mask() before and an unmask() after.
+
+This fixes a MSI irq stuck issue reported by Darrick Wong.
+
+There are several more general bugs in this area(irq migration in the
+process context). For example,
+
+1. Possibility of missing edge triggered irq.
+2. Reliable method of migrating level triggered irq in the process context.
+
+We plan to look and close these in the near future.
+
+Eric says:
+	In addition even with the fix from Suresh there is still at least one
+	nasty hardware race in fixup_irqs().   However we exercise that code
+	path rarely enough that we are unlikely to hit it in the real world,
+	and that race seems to have existed since the code was merged.  And a
+	fix for that is not coming soon as it is an open investigation area
+	if we can fix irq migration to work outside of irq context or if
+	we have to rework the requirements imposed by the generic cpu hotplug
+	and layer on fixup_irqs().  So this may come up again.
+
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Reported-by: Darrick Wong <djwong@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/xor.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/irq.c |   32 +++++++++++++++++++++++++++++---
+ 1 files changed, 29 insertions(+), 3 deletions(-)
 
-diff -puN crypto/xor.c~mark-calibrate_xor_blocks-__init crypto/xor.c
---- a/crypto/xor.c~mark-calibrate_xor_blocks-__init
-+++ a/crypto/xor.c
-@@ -95,7 +95,7 @@ do_xor_speed(struct xor_block_template *
- 	       speed / 1000, speed % 1000);
- }
+diff -puN arch/x86_64/kernel/irq.c~x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2 arch/x86_64/kernel/irq.c
+--- a/arch/x86_64/kernel/irq.c~x86_64-irq-use-mask-unmask-and-proper-locking-in-fixup_irqs-v2
++++ a/arch/x86_64/kernel/irq.c
+@@ -144,17 +144,43 @@ void fixup_irqs(cpumask_t map)
  
--static int
-+static int __init
- calibrate_xor_blocks(void)
- {
- 	void *b1, *b2;
+ 	for (irq = 0; irq < NR_IRQS; irq++) {
+ 		cpumask_t mask;
++		int break_affinity = 0;
++		int set_affinity = 1;
++
+ 		if (irq == 2)
+ 			continue;
+ 
++		/* interrupt's are disabled at this point */
++		spin_lock(&irq_desc[irq].lock);
++
++		if (!irq_has_action(irq) ||
++		    cpus_equal(irq_desc[irq].affinity, map)) {
++			spin_unlock(&irq_desc[irq].lock);
++			continue;
++		}
++
+ 		cpus_and(mask, irq_desc[irq].affinity, map);
+-		if (any_online_cpu(mask) == NR_CPUS) {
+-			printk("Breaking affinity for irq %i\n", irq);
++		if (cpus_empty(mask)) {
++			break_affinity = 1;
+ 			mask = map;
+ 		}
++
++		if (irq_desc[irq].chip->mask)
++			irq_desc[irq].chip->mask(irq);
++
+ 		if (irq_desc[irq].chip->set_affinity)
+ 			irq_desc[irq].chip->set_affinity(irq, mask);
+-		else if (irq_desc[irq].action && !(warned++))
++		else if (!(warned++))
++			set_affinity = 0;
++
++		if (irq_desc[irq].chip->unmask)
++			irq_desc[irq].chip->unmask(irq);
++
++		spin_unlock(&irq_desc[irq].lock);
++
++		if (break_affinity && set_affinity)
++			printk("Broke affinity for irq %i\n", irq);
++		else if (!set_affinity)
+ 			printk("Cannot set affinity for irq %i\n", irq);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-kernel-sys_nic-should-include-linux-syscallsh.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+origin.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
