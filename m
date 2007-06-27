@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch added to -mm tree
-Date: Wed, 27 Jun 2007 15:30:14 -0700
-Message-ID: <200706272230.l5RMUERR008431@imap1.linux-foundation.org>
+Subject: + fix-alpha-isa-support.patch added to -mm tree
+Date: Wed, 27 Jun 2007 15:34:57 -0700
+Message-ID: <200706272234.l5RMYwUa008510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42826 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44732 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756292AbXF0Wak (ORCPT
+	by vger.kernel.org with ESMTP id S1751752AbXF0WfU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 18:30:40 -0400
+	Wed, 27 Jun 2007 18:35:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhaval@linux.vnet.ibm.com, menage@google.com
+Cc: ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     Fix for bad lock balance in Containers
+     fix alpha ISA support
 has been added to the -mm tree.  Its filename is
-     containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
+     fix-alpha-isa-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,94 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix for bad lock balance in Containers
-From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Subject: fix alpha ISA support
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-I have been going through the containers code and trying it out. I tried
-mounting the same hierarchy at two different points and I got a bad
-locking balance warning.
+isa_bus_to_virt() is still needed in a few places (lance.c, at least).  When
+we switch the kernel to using -Werror-implicit-function-declaration, the lack
+of isa_bus_to_virt() breaks alpha allmodconfig builds.
 
-=====================================
-[ BUG: bad unlock balance detected! ]
--------------------------------------
-mount/4467 is trying to release lock (&type->s_umount_key) at:
-[<c017de3b>] vfs_kern_mount+0x5b/0x70
-but there are no more locks to release!
+Add isa_bus_to_virt() and deprecate the ezisting ISA APIs, though it might be
+better to define these functions as BUG(), since virt_to_bus/bus_to_virt just
+do wrong things on a number of machines.
 
-other info that might help us debug this:
-no locks held by mount/4467.
-
-stack backtrace:
- [<c0105b9f>] show_trace_log_lvl+0x19/0x2e
- [<c0105bc6>] show_trace+0x12/0x14
- [<c0105cb1>] dump_stack+0x14/0x16
- [<c0142c1a>] print_unlock_inbalance_bug+0xcc/0xd6
- [<c0142c93>] check_unlock+0x6f/0x75
- [<c0142ee0>] __lock_release+0x1e/0x51
- [<c014312c>] lock_release+0x4c/0x64
- [<c013bd9d>] up_write+0x16/0x2b
- [<c017de3b>] vfs_kern_mount+0x5b/0x70
- [<c018fae7>] do_new_mount+0x85/0xe6
- [<c019013f>] do_mount+0x185/0x199
- [<c01903ab>] sys_mount+0x71/0xa6
- [<c0104d6a>] sysenter_past_esp+0x5f/0x99
- =======================
-
-Going through the code, I realised this is because when the container is
-already mounted at one point, when being remounted, it just does a
-simple_set_mnt which does not update s_umount which causes the warning
-to come. This also cause umount to hang the second time.
-
-The correct method would be allocate the superblock using sget (or a
-variant) which would call grab_super correctly and set these locks.
-Seeing the code which is there, some part of grab_super is already done
-in container_get_sb where the root->sb->s_active is updated. So I have
-called down_write there as well to get the locking balance. However I
-believe that this is not the correct approach.
-
-There are a few questions I had with respect to the current code,
-
-Why is the increment of s_active dependent on the return value of
-simple_set_mnt? All the other functions which I have seen (fs ones),
-grab_super (which increments s_active) is called followed by a
-simple_set_mnt.
-
-What should be the correct approach to get the locking balance? As far
-as I can see, the correct method would be to call sget which would then
-correctly handle everything. But that would require a test function. I
-saw functionality similar to a test function in the beginning of
-container_get_sb(). Should that be seperated and put in a seperate test
-function so that sget can be called?
-
-Another possible approach would be to call grab_super directly (since we
-know the test function is going to return true), but this cannot be done
-since grab_super is static right now. Or maybe we could duplicate
-grab_super's functionality.
-
-In the meantime a temporary fix.
-
-Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/asm-alpha/io.h |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers kernel/container.c
---- a/kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers
-+++ a/kernel/container.c
-@@ -997,6 +997,7 @@ static int container_get_sb(struct file_
- 		BUG_ON(ret);
- 	} else {
- 		/* Reuse the existing superblock */
-+		down_write(&(root->sb->s_umount));
- 		ret = simple_set_mnt(mnt, root->sb);
- 		if (!ret)
- 			atomic_inc(&root->sb->s_active);
+diff -puN include/asm-alpha/io.h~fix-alpha-isa-support include/asm-alpha/io.h
+--- a/include/asm-alpha/io.h~fix-alpha-isa-support
++++ a/include/asm-alpha/io.h
+@@ -102,12 +102,12 @@ static inline void * phys_to_virt(unsign
+  *
+  * Note that this only works for a limited range of kernel addresses,
+  * and very well may not span all memory.  Consider this interface 
+- * deprecated in favour of the mapping functions in <asm/pci.h>.
++ * deprecated in favour of the DMA-mapping API.
+  */
+ extern unsigned long __direct_map_base;
+ extern unsigned long __direct_map_size;
+ 
+-static inline unsigned long virt_to_bus(void *address)
++static inline unsigned long __deprecated virt_to_bus(void *address)
+ {
+ 	unsigned long phys = virt_to_phys(address);
+ 	unsigned long bus = phys + __direct_map_base;
+@@ -115,7 +115,7 @@ static inline unsigned long virt_to_bus(
+ }
+ #define isa_virt_to_bus virt_to_bus
+ 
+-static inline void *bus_to_virt(unsigned long address)
++static inline void * __deprecated bus_to_virt(unsigned long address)
+ {
+ 	void *virt;
+ 
+@@ -126,6 +126,7 @@ static inline void *bus_to_virt(unsigned
+ 	virt = phys_to_virt(address);
+ 	return (long)address <= 0 ? NULL : virt;
+ }
++#define isa_bus_to_virt bus_to_virt
+ 
+ /*
+  * There are different chipsets to interface the Alpha CPUs to the world.
 _
 
-Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-containersv10-basic-container-framework-fix-3.patch
-containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
+alpha-fix-trivial-section-mismatch-warnings.patch
+fix-alpha-isa-support.patch
+make-sure-nobodys-leaking-resources.patch
