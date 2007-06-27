@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 02:21:06 -0700
-Message-ID: <200706270925.l5R9P6Mw014144@imap1.linux-foundation.org>
+Subject: + intel-iommu-intel-iommu-driver-fix-2.patch added to -mm tree
+Date: Wed, 27 Jun 2007 02:24:10 -0700
+Message-ID: <200706270928.l5R9S9mD014192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56493 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752046AbXF0JZ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752949AbXF0J2i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 05:25:57 -0400
+	Wed, 27 Jun 2007 05:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@sun.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ak@suse.de, anil.s.keshavamurthy@intel.com, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
+     intel-iommu-intel-iommu-driver-fix-2
 has been added to the -mm tree.  Its filename is
-     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+     intel-iommu-intel-iommu-driver-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
+Subject: intel-iommu-intel-iommu-driver-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/pci-calgary.c: In function 'detect_calgary':
-arch/x86_64/kernel/pci-calgary.c:1356: error: 'no_iommu' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c:1356: error: (Each undeclared identifier is reported only once
-arch/x86_64/kernel/pci-calgary.c:1356: error: for each function it appears in.)
-arch/x86_64/kernel/pci-calgary.c:1356: error: 'iommu_detected' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c: In function 'calgary_iommu_init':
-arch/x86_64/kernel/pci-calgary.c:1450: error: 'no_iommu' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c:1469: error: 'force_iommu' undeclared (first use in this function)
-arch/x86_64/kernel/pci-calgary.c: In function 'calgary_fixup_tce_spaces':
-arch/x86_64/kernel/pci-calgary.c:1564: error: 'no_iommu' undeclared (first use in this function)
+drivers/pci/intel-iommu.c: In function 'detect_intel_iommu':
+drivers/pci/intel-iommu.c:1879: error: 'no_iommu' undeclared (first use in this function)
+drivers/pci/intel-iommu.c:1879: error: (Each undeclared identifier is reported only once
+drivers/pci/intel-iommu.c:1879: error: for each function it appears in.)
+drivers/pci/intel-iommu.c:1879: error: 'iommu_detected' undeclared (first use in this function)
+drivers/pci/intel-iommu.c: In function 'intel_iommu_init':
+drivers/pci/intel-iommu.c:1932: error: 'no_iommu' undeclared (first use in this function)
+drivers/pci/intel-iommu.c:1953: error: 'force_iommu' undeclared (first use in this function)
 
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Greg KH <greg@kroah.com>
 Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |    1 +
+ drivers/pci/intel-iommu.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -38,6 +38,7 @@
- #include <asm/proto.h>
- #include <asm/calgary.h>
- #include <asm/tce.h>
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix-2 drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-driver-fix-2
++++ a/drivers/pci/intel-iommu.c
+@@ -34,6 +34,7 @@
+ #include "intel-iommu.h"
+ #include <asm/proto.h> /* force_iommu in this header in x86-64*/
+ #include <asm/cacheflush.h>
 +#include <asm/iommu.h>
- #include <asm/pci-direct.h>
- #include <asm/system.h>
- #include <asm/dma.h>
+ #include "pci.h"
+ 
+ #define IS_GFX_DEVICE(pdev) ((pdev->class >> 16) == PCI_BASE_CLASS_DISPLAY)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -251,6 +252,7 @@ fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
 intel-iommu-pci-generic-helper-function-fix.patch
 intel-iommu-iova-allocation-and-management-routines-fix.patch
 intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
 intel-iommu-iommu-floppy-workaround-fix.patch
 cfs-scheduler-vs-detach-schedh-from-mmh.patch
 cfs-scheduler-warning-fixes.patch
