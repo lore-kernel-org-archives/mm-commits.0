@@ -1,77 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-set-the-irq_chip-name-for-lapic.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 21:53:52 -0700
-Message-ID: <200706270453.l5R4rqT1010132@imap1.linux-foundation.org>
+Subject: - acpi-fix-oops-in-acpi_processor_throttling_seq_show.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 21:53:56 -0700
+Message-ID: <200706270453.l5R4ruY7010140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38216 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751254AbXF0EyH (ORCPT
+	by vger.kernel.org with ESMTP id S1752602AbXF0EyK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 00:54:07 -0400
+	Wed, 27 Jun 2007 00:54:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, ak@suse.de, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: luming.yu@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: set the irq_chip name for lapic
+     acpi: fix oops in acpi_processor_throttling_seq_show()
 has been removed from the -mm tree.  Its filename was
-     x86_64-set-the-irq_chip-name-for-lapic.patch
+     acpi-fix-oops-in-acpi_processor_throttling_seq_show.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: set the irq_chip name for lapic
-From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: acpi: fix oops in acpi_processor_throttling_seq_show()
+From: "Luming Yu" <luming.yu@gmail.com>
 
-/proc/interrupts:
-
-            CPU0       CPU1
-   0:    6343294          0    <NULL>-edge      timer
-
-Set the irq_chip name for lapic.
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/io_apic.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/acpi/processor_throttling.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-set-the-irq_chip-name-for-lapic arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-set-the-irq_chip-name-for-lapic
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -1546,6 +1546,7 @@ static void ack_lapic_irq (unsigned int 
- static void end_lapic_irq (unsigned int i) { /* nothing */ }
+diff -puN drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-fix-oops-in-acpi_processor_throttling_seq_show
++++ a/drivers/acpi/processor_throttling.c
+@@ -656,18 +656,20 @@ static int acpi_processor_throttling_seq
+ 		   pr->throttling.state_count - 1);
  
- static struct hw_interrupt_type lapic_irq_type __read_mostly = {
-+	.name = "local-APIC",
- 	.typename = "local-APIC-edge",
- 	.startup = NULL, /* startup_irq() not used for IRQ0 */
- 	.shutdown = NULL, /* shutdown_irq() not used for IRQ0 */
+ 	seq_puts(seq, "states:\n");
+-	if (acpi_processor_get_throttling == acpi_processor_get_throttling_fadt)
++	if (pr->throttling.acpi_processor_get_throttling ==
++			acpi_processor_get_throttling_fadt) {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (pr->throttling.states[i].performance ? pr->
+ 				    throttling.states[i].performance / 10 : 0));
+-	else
++	} else {
+ 		for (i = 0; i < pr->throttling.state_count; i++)
+ 			seq_printf(seq, "   %cT%d:                  %02d%%\n",
+ 				   (i == pr->throttling.state ? '*' : ' '), i,
+ 				   (int)pr->throttling.states_tss[i].
+ 				   freqpercentage);
++	}
+ 
+       end:
+ 	return 0;
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from luming.yu@gmail.com are
 
-origin.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
+git-acpi.patch
