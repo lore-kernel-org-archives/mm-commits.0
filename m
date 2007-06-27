@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-battery-vs-git-acpi.patch added to -mm tree
-Date: Wed, 27 Jun 2007 01:02:52 -0700
-Message-ID: <200706270806.l5R86ogD012900@imap1.linux-foundation.org>
+Subject: + ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 01:15:33 -0700
+Message-ID: <200706270819.l5R8JVFc013071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754215AbXF0IHR (ORCPT
+	by vger.kernel.org with ESMTP id S1751710AbXF0IUy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 04:07:17 -0400
+	Wed, 27 Jun 2007 04:20:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbou@mail.ru, lenb@kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     git-battery vs git-acpi
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
 has been added to the -mm tree.  Its filename is
-     git-battery-vs-git-acpi.patch
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-battery vs git-acpi
+Subject: ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/w1/slaves/w1_ds2760.c:85: warning: initialization from incompatible pointer type
+arch/i386/kernel/quirks.c: In function 'ich_force_enable_hpet':
+arch/i386/kernel/quirks.c:94: warning: 'rcba' is used uninitialized in this function
 
-The ACPI guys changed the bin_attr APIs
-
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2760.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/i386/kernel/quirks.c |    3 ++-
+ asm-i386/hpet.h           |    0 
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/slaves/w1_ds2760.c~git-battery-vs-git-acpi drivers/w1/slaves/w1_ds2760.c
---- a/drivers/w1/slaves/w1_ds2760.c~git-battery-vs-git-acpi
-+++ a/drivers/w1/slaves/w1_ds2760.c
-@@ -68,8 +68,9 @@ int w1_ds2760_write(struct device *dev, 
- 	return w1_ds2760_io(dev, buf, addr, count, 1);
- }
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
++++ a/arch/i386/kernel/quirks.c
+@@ -84,7 +84,8 @@ void ich_force_hpet_resume(void)
  
--static ssize_t w1_ds2760_read_bin(struct kobject *kobj, char *buf, loff_t off,
--                                  size_t count)
-+static ssize_t w1_ds2760_read_bin(struct kobject *kobj,
-+				struct bin_attribute *bin_attr,
-+				char *buf, loff_t off, size_t count)
+ static void ich_force_enable_hpet(struct pci_dev *dev)
  {
- 	struct device *dev = container_of(kobj, struct device, kobj);
- 	return w1_ds2760_read(dev, buf, off, count);
+-	u32 val, rcba;
++	u32 val;
++	u32 uninitialized_var(rcba);
+ 	int err = 0;
+ 
+ 	if (hpet_address || force_hpet_address)
+diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix include/asm-i386/hpet.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,6 +141,7 @@ paravirt-helper-to-disable-all-io-space-fix.patch
 i386-show-unhandled-signals-fix.patch
 i386-add-cpu_relax-to-cmos_lock-fix.patch
 highres-improve-debug-output-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 git-newsetup-fixup.patch
 git-xfs.patch
 git-cryptodev.patch
