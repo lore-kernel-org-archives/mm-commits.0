@@ -1,14 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + omap-add-ti-omap2-internal-display-controller-support.patch added to -mm tree
-Date: Tue, 26 Jun 2007 17:29:24 -0700
-Message-ID: <200706270029.l5R0TOlN006343@imap1.linux-foundation.org>
+Subject: + omap-add-ti-omap1-external-lcd-controller-support-sossi.patch added to -mm tree
+Date: Tue, 26 Jun 2007 17:29:27 -0700
+Message-ID: <200706270029.l5R0TR13006346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44597 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46301 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752786AbXF0A3i (ORCPT
+	by vger.kernel.org with ESMTP id S1752495AbXF0A3j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 20:29:38 -0400
+	Tue, 26 Jun 2007 20:29:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,21 +19,24 @@ Cc: imre.deak@solidboot.com, adaplas@pol.net, soni.trilok@gmail.com, tony@atomid
 
 
 The patch titled
-     OMAP: add TI OMAP2 internal display controller support.
+     OMAP: add TI OMAP1 external LCD controller support - SoSSI
 has been added to the -mm tree.  Its filename is
-     omap-add-ti-omap2-internal-display-controller-support.patch
+     omap-add-ti-omap1-external-lcd-controller-support-sossi.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: OMAP: add TI OMAP2 internal display controller support.
-From: Imre Deak <imre.deak@solidboot.com>
+Subject: OMAP: add TI OMAP1 external LCD controller support - SoSSI
+=46rom: Imre Deak <imre.deak@solidboot.com>
 
-- Adds Texas Instruments OMAP2 processor series (OMAP2420/2430) internal
-  display controller interface support.
+- Adds support for Texas Instruments OMAP1 processors boards connected =
+with
+  external LCD controller through "Special OptimiSed Screen Interface"
 
 Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -38,35 +44,56 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/omap/Makefile |    1 
- drivers/video/omap/dispc.c  | 1502 ++++++++++++++++++++++++++++++++++
- drivers/video/omap/dispc.h  |   43 
- 3 files changed, 1546 insertions(+)
+ drivers/video/omap/Kconfig  |    7=20
+ drivers/video/omap/Makefile |    2=20
+ drivers/video/omap/sossi.c  |  686 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 695 insertions(+)
 
-diff -puN drivers/video/omap/Makefile~omap-add-ti-omap2-internal-display-controller-support drivers/video/omap/Makefile
---- a/drivers/video/omap/Makefile~omap-add-ti-omap2-internal-display-controller-support
+diff -puN drivers/video/omap/Kconfig~omap-add-ti-omap1-external-lcd-con=
+troller-support-sossi drivers/video/omap/Kconfig
+--- a/drivers/video/omap/Kconfig~omap-add-ti-omap1-external-lcd-control=
+ler-support-sossi
++++ a/drivers/video/omap/Kconfig
+@@ -36,3 +36,10 @@ config FB_OMAP_DMA_TUNE
+           answer yes. Answer no if you have a dedicated video
+           memory, or don't use any of the accelerated features.
+=20
++config FB_OMAP_LCDC_EXTERNAL
++	bool "External LCD controller support"
++	depends on FB_OMAP
++	help
++	  Say Y here, if you want to have support for boards with an
++	  external LCD controller connected to the SoSSI/RFBI interface.
++
+diff -puN drivers/video/omap/Makefile~omap-add-ti-omap1-external-lcd-co=
+ntroller-support-sossi drivers/video/omap/Makefile
+--- a/drivers/video/omap/Makefile~omap-add-ti-omap1-external-lcd-contro=
+ller-support-sossi
 +++ a/drivers/video/omap/Makefile
-@@ -7,6 +7,7 @@ obj-$(CONFIG_FB_OMAP) += omapfb.o
- objs-yy := omapfb_main.o
- 
- objs-y$(CONFIG_ARCH_OMAP1) += lcdc.o
-+objs-y$(CONFIG_ARCH_OMAP2) += dispc.o
- 
- omapfb-objs := $(objs-yy)
- 
-diff -puN /dev/null drivers/video/omap/dispc.c
+@@ -9,5 +9,7 @@ objs-yy :=3D omapfb_main.o
+ objs-y$(CONFIG_ARCH_OMAP1) +=3D lcdc.o
+ objs-y$(CONFIG_ARCH_OMAP2) +=3D dispc.o
+=20
++objs-$(CONFIG_ARCH_OMAP1)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) +=3D sossi.o
++
+ omapfb-objs :=3D $(objs-yy)
+=20
+diff -puN /dev/null drivers/video/omap/sossi.c
 --- /dev/null
-+++ a/drivers/video/omap/dispc.c
-@@ -0,0 +1,1502 @@
++++ a/drivers/video/omap/sossi.c
+@@ -0,0 +1,686 @@
 +/*
-+ * OMAP2 display controller support
++ * OMAP1 Special OptimiSed Screen Interface support
 + *
-+ * Copyright (C) 2005 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
++ * Copyright (C) 2004-2005 Nokia Corporation
++ * Author: Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
++ * This program is free software; you can redistribute it and/or modif=
+y it
++ * under the terms of the GNU General Public License as published by t=
+he
++ * Free Software Foundation; either version 2 of the License, or (at y=
+our
 + * option) any later version.
 + *
 + * This program is distributed in the hope that it will be useful, but
@@ -74,1542 +101,685 @@ diff -puN /dev/null drivers/video/omap/dispc.c
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * You should have received a copy of the GNU General Public License a=
+long
++ * with this program; if not, write to the Free Software Foundation, I=
+nc.,
 + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
-+#include <linux/kernel.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/vmalloc.h>
++#include <linux/module.h>
++#include <linux/mm.h>
 +#include <linux/clk.h>
++#include <linux/irq.h>
 +#include <linux/io.h>
 +
-+#include <asm/arch/sram.h>
++#include <asm/arch/dma.h>
 +#include <asm/arch/omapfb.h>
-+#include <asm/arch/board.h>
 +
-+#include "dispc.h"
++#include "lcdc.h"
 +
-+#define MODULE_NAME			"dispc"
++#define MODULE_NAME		"omapfb-sossi"
 +
-+#define DSS_BASE			0x48050000
-+#define DSS_SYSCONFIG			0x0010
++#define OMAP_SOSSI_BASE         0xfffbac00
++#define SOSSI_ID_REG		0x00
++#define SOSSI_INIT1_REG		0x04
++#define SOSSI_INIT2_REG		0x08
++#define SOSSI_INIT3_REG		0x0c
++#define SOSSI_FIFO_REG		0x10
++#define SOSSI_REOTABLE_REG	0x14
++#define SOSSI_TEARING_REG	0x18
++#define SOSSI_INIT1B_REG	0x1c
++#define SOSSI_FIFOB_REG		0x20
 +
-+#define DISPC_BASE			0x48050400
++#define DMA_GSCR          0xfffedc04
++#define DMA_LCD_CCR       0xfffee3c2
++#define DMA_LCD_CTRL      0xfffee3c4
++#define DMA_LCD_LCH_CTRL  0xfffee3ea
 +
-+/* DISPC common */
-+#define DISPC_REVISION			0x0000
-+#define DISPC_SYSCONFIG			0x0010
-+#define DISPC_SYSSTATUS			0x0014
-+#define DISPC_IRQSTATUS			0x0018
-+#define DISPC_IRQENABLE			0x001C
-+#define DISPC_CONTROL			0x0040
-+#define DISPC_CONFIG			0x0044
-+#define DISPC_CAPABLE			0x0048
-+#define DISPC_DEFAULT_COLOR0		0x004C
-+#define DISPC_DEFAULT_COLOR1		0x0050
-+#define DISPC_TRANS_COLOR0		0x0054
-+#define DISPC_TRANS_COLOR1		0x0058
-+#define DISPC_LINE_STATUS		0x005C
-+#define DISPC_LINE_NUMBER		0x0060
-+#define DISPC_TIMING_H			0x0064
-+#define DISPC_TIMING_V			0x0068
-+#define DISPC_POL_FREQ			0x006C
-+#define DISPC_DIVISOR			0x0070
-+#define DISPC_SIZE_DIG			0x0078
-+#define DISPC_SIZE_LCD			0x007C
++#define CONF_SOSSI_RESET_R      (1 << 23)
 +
-+#define DISPC_DATA_CYCLE1		0x01D4
-+#define DISPC_DATA_CYCLE2		0x01D8
-+#define DISPC_DATA_CYCLE3		0x01DC
++#define RD_ACCESS		0
++#define WR_ACCESS		1
 +
-+/* DISPC GFX plane */
-+#define DISPC_GFX_BA0			0x0080
-+#define DISPC_GFX_BA1			0x0084
-+#define DISPC_GFX_POSITION		0x0088
-+#define DISPC_GFX_SIZE			0x008C
-+#define DISPC_GFX_ATTRIBUTES		0x00A0
-+#define DISPC_GFX_FIFO_THRESHOLD	0x00A4
-+#define DISPC_GFX_FIFO_SIZE_STATUS	0x00A8
-+#define DISPC_GFX_ROW_INC		0x00AC
-+#define DISPC_GFX_PIXEL_INC		0x00B0
-+#define DISPC_GFX_WINDOW_SKIP		0x00B4
-+#define DISPC_GFX_TABLE_BA		0x00B8
-+
-+/* DISPC Video plane 1/2 */
-+#define DISPC_VID1_BASE			0x00BC
-+#define DISPC_VID2_BASE			0x014C
-+
-+/* Offsets into DISPC_VID1/2_BASE */
-+#define DISPC_VID_BA0			0x0000
-+#define DISPC_VID_BA1			0x0004
-+#define DISPC_VID_POSITION		0x0008
-+#define DISPC_VID_SIZE			0x000C
-+#define DISPC_VID_ATTRIBUTES		0x0010
-+#define DISPC_VID_FIFO_THRESHOLD	0x0014
-+#define DISPC_VID_FIFO_SIZE_STATUS	0x0018
-+#define DISPC_VID_ROW_INC		0x001C
-+#define DISPC_VID_PIXEL_INC		0x0020
-+#define DISPC_VID_FIR			0x0024
-+#define DISPC_VID_PICTURE_SIZE		0x0028
-+#define DISPC_VID_ACCU0			0x002C
-+#define DISPC_VID_ACCU1			0x0030
-+
-+/* 8 elements in 8 byte increments */
-+#define DISPC_VID_FIR_COEF_H0		0x0034
-+/* 8 elements in 8 byte increments */
-+#define DISPC_VID_FIR_COEF_HV0		0x0038
-+/* 5 elements in 4 byte increments */
-+#define DISPC_VID_CONV_COEF0		0x0074
-+
-+#define DISPC_IRQ_FRAMEMASK		0x0001
-+#define DISPC_IRQ_VSYNC			0x0002
-+#define DISPC_IRQ_EVSYNC_EVEN		0x0004
-+#define DISPC_IRQ_EVSYNC_ODD		0x0008
-+#define DISPC_IRQ_ACBIAS_COUNT_STAT	0x0010
-+#define DISPC_IRQ_PROG_LINE_NUM		0x0020
-+#define DISPC_IRQ_GFX_FIFO_UNDERFLOW	0x0040
-+#define DISPC_IRQ_GFX_END_WIN		0x0080
-+#define DISPC_IRQ_PAL_GAMMA_MASK	0x0100
-+#define DISPC_IRQ_OCP_ERR		0x0200
-+#define DISPC_IRQ_VID1_FIFO_UNDERFLOW	0x0400
-+#define DISPC_IRQ_VID1_END_WIN		0x0800
-+#define DISPC_IRQ_VID2_FIFO_UNDERFLOW	0x1000
-+#define DISPC_IRQ_VID2_END_WIN		0x2000
-+#define DISPC_IRQ_SYNC_LOST		0x4000
-+
-+#define DISPC_IRQ_MASK_ALL		0x7fff
-+
-+#define DISPC_IRQ_MASK_ERROR		(DISPC_IRQ_GFX_FIFO_UNDERFLOW |	\
-+					     DISPC_IRQ_VID1_FIFO_UNDERFLOW | \
-+					     DISPC_IRQ_VID2_FIFO_UNDERFLOW | \
-+					     DISPC_IRQ_SYNC_LOST)
-+
-+#define RFBI_CONTROL			0x48050040
-+
-+#define MAX_PALETTE_SIZE		(256 * 16)
-+
-+#define FLD_MASK(pos, len)	(((1 << len) - 1) << pos)
-+
-+#define MOD_REG_FLD(reg, mask, val) \
-+	dispc_write_reg((reg), (dispc_read_reg(reg) & ~(mask)) | (val));
-+
-+#define OMAP2_SRAM_START		0x40200000
-+/* Maximum size, in reality this is smaller if SRAM is partially locked. */
-+#define OMAP2_SRAM_SIZE			0xa0000		/* 640k */
-+
-+/* We support the SDRAM / SRAM types. See OMAPFB_PLANE_MEMTYPE_* in omapfb.h */
-+#define DISPC_MEMTYPE_NUM		2
-+
-+#define RESMAP_SIZE(_page_cnt)						\
-+	((_page_cnt + (sizeof(unsigned long) * 8) - 1) / 8)
-+#define RESMAP_PTR(_res_map, _page_nr)					\
-+	(((_res_map)->map) + (_page_nr) / (sizeof(unsigned long) * 8))
-+#define RESMAP_MASK(_page_nr)						\
-+	(1 << ((_page_nr) & (sizeof(unsigned long) * 8 - 1)))
-+
-+struct resmap {
-+	unsigned long	start;
-+	unsigned	page_cnt;
-+	unsigned long	*map;
-+};
++#define SOSSI_MAX_XMIT_BYTES	(512 * 1024)
 +
 +static struct {
-+	u32		base;
++	void __iomem	*base;
++	struct clk	*fck;
++	unsigned long	fck_hz;
++	spinlock_t	lock;
++	int		bus_pick_count;
++	int		bus_pick_width;
++	int		tearsync_mode;
++	int		tearsync_line;
++	void		(*lcdc_callback)(void *data);
++	void		*lcdc_callback_data;
++	int		vsync_dma_pending;
++	/* timing for read and write access */
++	int		clk_div;
++	u8		clk_tw0[2];
++	u8		clk_tw1[2];
++	/*
++	 * if last_access is the same as current we don't have to change
++	 * the timings
++	 */
++	int		last_access;
 +
-+	struct omapfb_mem_desc	mem_desc;
-+	struct resmap		*res_map[DISPC_MEMTYPE_NUM];
-+	atomic_t		map_count[OMAPFB_PLANE_NUM];
-+
-+	dma_addr_t	palette_paddr;
-+	void		*palette_vaddr;
-+
-+	int		ext_mode;
-+
-+	unsigned long	enabled_irqs;
-+	void		(*irq_callback)(void *);
-+	void		*irq_callback_data;
-+	struct completion	frame_done;
-+
-+	int		fir_hinc[OMAPFB_PLANE_NUM];
-+	int		fir_vinc[OMAPFB_PLANE_NUM];
-+
-+	struct clk	*dss_ick, *dss1_fck;
-+	struct clk	*dss_54m_fck;
-+
-+	enum omapfb_update_mode	update_mode;
 +	struct omapfb_device	*fbdev;
++} sossi;
 +
-+	struct omapfb_color_key	color_key;
-+} dispc;
-+
-+static void enable_lcd_clocks(int enable);
-+
-+static void inline dispc_write_reg(int idx, u32 val)
++static inline u32 sossi_read_reg(int reg)
 +{
-+	__raw_writel(val, dispc.base + idx);
++	return readl(sossi.base + reg);
 +}
 +
-+static u32 inline dispc_read_reg(int idx)
++static inline u16 sossi_read_reg16(int reg)
 +{
-+	u32 l = __raw_readl(dispc.base + idx);
-+	return l;
++	return readw(sossi.base + reg);
 +}
 +
-+/* Select RFBI or bypass mode */
-+static void enable_rfbi_mode(int enable)
++static inline u8 sossi_read_reg8(int reg)
 +{
-+	u32 l;
-+
-+	l = dispc_read_reg(DISPC_CONTROL);
-+	/* Enable RFBI, GPIO0/1 */
-+	l &= ~((1 << 11) | (1 << 15) | (1 << 16));
-+	l |= enable ? (1 << 11) : 0;
-+	/* RFBI En: GPIO0/1=10  RFBI Dis: GPIO0/1=11 */
-+	l |= 1 << 15;
-+	l |= enable ? 0 : (1 << 16);
-+	dispc_write_reg(DISPC_CONTROL, l);
-+
-+	/* Set bypass mode in RFBI module */
-+	l = __raw_readl(io_p2v(RFBI_CONTROL));
-+	l |= enable ? 0 : (1 << 1);
-+	__raw_writel(l, io_p2v(RFBI_CONTROL));
++	return readb(sossi.base + reg);
 +}
 +
-+static void set_lcd_data_lines(int data_lines)
++static inline void sossi_write_reg(int reg, u32 value)
 +{
-+	u32 l;
-+	int code = 0;
-+
-+	switch (data_lines) {
-+	case 12:
-+		code = 0;
-+		break;
-+	case 16:
-+		code = 1;
-+		break;
-+	case 18:
-+		code = 2;
-+		break;
-+	case 24:
-+		code = 3;
-+		break;
-+	default:
-+		BUG();
-+	}
-+
-+	l = dispc_read_reg(DISPC_CONTROL);
-+	l &= ~(0x03 << 8);
-+	l |= code << 8;
-+	dispc_write_reg(DISPC_CONTROL, l);
++	writel(value, sossi.base + reg);
 +}
 +
-+static void set_load_mode(int mode)
++static inline void sossi_write_reg16(int reg, u16 value)
 +{
-+	BUG_ON(mode & ~(DISPC_LOAD_CLUT_ONLY | DISPC_LOAD_FRAME_ONLY |
-+			DISPC_LOAD_CLUT_ONCE_FRAME));
-+	MOD_REG_FLD(DISPC_CONFIG, 0x03 << 1, mode << 1);
++	writew(value, sossi.base + reg);
 +}
 +
-+void omap_dispc_set_lcd_size(int x, int y)
++static inline void sossi_write_reg8(int reg, u8 value)
 +{
-+	BUG_ON((x > (1 << 11)) || (y > (1 << 11)));
-+	enable_lcd_clocks(1);
-+	MOD_REG_FLD(DISPC_SIZE_LCD, FLD_MASK(16, 11) | FLD_MASK(0, 11),
-+			((y - 1) << 16) | (x - 1));
-+	enable_lcd_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_dispc_set_lcd_size);
-+
-+void omap_dispc_set_digit_size(int x, int y)
-+{
-+	BUG_ON((x > (1 << 11)) || (y > (1 << 11)));
-+	enable_lcd_clocks(1);
-+	MOD_REG_FLD(DISPC_SIZE_DIG, FLD_MASK(16, 11) | FLD_MASK(0, 11),
-+			((y - 1) << 16) | (x - 1));
-+	enable_lcd_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_dispc_set_digit_size);
-+
-+static void setup_plane_fifo(int plane, int ext_mode)
-+{
-+	const u32 ftrs_reg[] = { DISPC_GFX_FIFO_THRESHOLD,
-+				DISPC_VID1_BASE + DISPC_VID_FIFO_THRESHOLD,
-+			        DISPC_VID2_BASE + DISPC_VID_FIFO_THRESHOLD };
-+	const u32 fsz_reg[] = { DISPC_GFX_FIFO_SIZE_STATUS,
-+				DISPC_VID1_BASE + DISPC_VID_FIFO_SIZE_STATUS,
-+				DISPC_VID2_BASE + DISPC_VID_FIFO_SIZE_STATUS };
-+	int low, high;
-+	u32 l;
-+
-+	BUG_ON(plane > 2);
-+
-+	l = dispc_read_reg(fsz_reg[plane]);
-+	l &= FLD_MASK(0, 9);
-+	if (ext_mode) {
-+		low = l * 3 / 4;
-+		high = l;
-+	} else {
-+		low = l / 4;
-+		high = l * 3 / 4;
-+	}
-+	MOD_REG_FLD(ftrs_reg[plane], FLD_MASK(16, 9) | FLD_MASK(0, 9),
-+			(high << 16) | low);
++	writeb(value, sossi.base + reg);
 +}
 +
-+void omap_dispc_enable_lcd_out(int enable)
++static void sossi_set_bits(int reg, u32 bits)
 +{
-+	enable_lcd_clocks(1);
-+	MOD_REG_FLD(DISPC_CONTROL, 1, enable ? 1 : 0);
-+	enable_lcd_clocks(0);
++	sossi_write_reg(reg, sossi_read_reg(reg) | bits);
 +}
-+EXPORT_SYMBOL(omap_dispc_enable_lcd_out);
 +
-+void omap_dispc_enable_digit_out(int enable)
++static void sossi_clear_bits(int reg, u32 bits)
 +{
-+	enable_lcd_clocks(1);
-+	MOD_REG_FLD(DISPC_CONTROL, 1 << 1, enable ? 1 << 1 : 0);
-+	enable_lcd_clocks(0);
++	sossi_write_reg(reg, sossi_read_reg(reg) & ~bits);
 +}
-+EXPORT_SYMBOL(omap_dispc_enable_digit_out);
 +
-+static inline int _setup_plane(int plane, int channel_out,
-+				  u32 paddr, int screen_width,
-+				  int pos_x, int pos_y, int width, int height,
-+				  int color_mode)
++#define HZ_TO_PS(x)	(1000000000 / (x / 1000))
++
++static u32 ps_to_sossi_ticks(u32 ps, int div)
 +{
-+	const u32 at_reg[] = { DISPC_GFX_ATTRIBUTES,
-+				DISPC_VID1_BASE + DISPC_VID_ATTRIBUTES,
-+			        DISPC_VID2_BASE + DISPC_VID_ATTRIBUTES };
-+	const u32 ba_reg[] = { DISPC_GFX_BA0, DISPC_VID1_BASE + DISPC_VID_BA0,
-+				DISPC_VID2_BASE + DISPC_VID_BA0 };
-+	const u32 ps_reg[] = { DISPC_GFX_POSITION,
-+				DISPC_VID1_BASE + DISPC_VID_POSITION,
-+				DISPC_VID2_BASE + DISPC_VID_POSITION };
-+	const u32 sz_reg[] = { DISPC_GFX_SIZE,
-+				DISPC_VID1_BASE + DISPC_VID_PICTURE_SIZE,
-+				DISPC_VID2_BASE + DISPC_VID_PICTURE_SIZE };
-+	const u32 ri_reg[] = { DISPC_GFX_ROW_INC,
-+				DISPC_VID1_BASE + DISPC_VID_ROW_INC,
-+			        DISPC_VID2_BASE + DISPC_VID_ROW_INC };
-+	const u32 vs_reg[] = { 0, DISPC_VID1_BASE + DISPC_VID_SIZE,
-+				DISPC_VID2_BASE + DISPC_VID_SIZE };
++	u32 clk_period =3D HZ_TO_PS(sossi.fck_hz) * div;
++	return (clk_period + ps - 1) / clk_period;
++}
 +
-+	int chout_shift, burst_shift;
-+	int chout_val;
-+	int color_code;
-+	int bpp;
-+	int cconv_en;
-+	int set_vsize;
++static int calc_rd_timings(struct extif_timings *t)
++{
++	u32 tw0, tw1;
++	int reon, reoff, recyc, actim;
++	int div =3D t->clk_div;
++
++	/*
++	 * Make sure that after conversion it still holds that:
++	 * reoff > reon, recyc >=3D reoff, actim > reon
++	 */
++	reon =3D ps_to_sossi_ticks(t->re_on_time, div);
++	/* reon will be exactly one sossi tick */
++	if (reon > 1)
++		return -1;
++
++	reoff =3D ps_to_sossi_ticks(t->re_off_time, div);
++
++	if (reoff <=3D reon)
++		reoff =3D reon + 1;
++
++	tw0 =3D reoff - reon;
++	if (tw0 > 0x10)
++		return -1;
++
++	recyc =3D ps_to_sossi_ticks(t->re_cycle_time, div);
++	if (recyc <=3D reoff)
++		recyc =3D reoff + 1;
++
++	tw1 =3D recyc - tw0;
++	/* values less then 3 result in the SOSSI block resetting itself */
++	if (tw1 < 3)
++		tw1 =3D 3;
++	if (tw1 > 0x40)
++		return -1;
++
++	actim =3D ps_to_sossi_ticks(t->access_time, div);
++	if (actim < reoff)
++		actim++;
++	/*
++	 * access time (data hold time) will be exactly one sossi
++	 * tick
++	 */
++	if (actim - reoff > 1)
++		return -1;
++
++	t->tim[0] =3D tw0 - 1;
++	t->tim[1] =3D tw1 - 1;
++
++	return 0;
++}
++
++static int calc_wr_timings(struct extif_timings *t)
++{
++	u32 tw0, tw1;
++	int weon, weoff, wecyc;
++	int div =3D t->clk_div;
++
++	/*
++	 * Make sure that after conversion it still holds that:
++	 * weoff > weon, wecyc >=3D weoff
++	 */
++	weon =3D ps_to_sossi_ticks(t->we_on_time, div);
++	/* weon will be exactly one sossi tick */
++	if (weon > 1)
++		return -1;
++
++	weoff =3D ps_to_sossi_ticks(t->we_off_time, div);
++	if (weoff <=3D weon)
++		weoff =3D weon + 1;
++	tw0 =3D weoff - weon;
++	if (tw0 > 0x10)
++		return -1;
++
++	wecyc =3D ps_to_sossi_ticks(t->we_cycle_time, div);
++	if (wecyc <=3D weoff)
++		wecyc =3D weoff + 1;
++
++	tw1 =3D wecyc - tw0;
++	/* values less then 3 result in the SOSSI block resetting itself */
++	if (tw1 < 3)
++		tw1 =3D 3;
++	if (tw1 > 0x40)
++		return -1;
++
++	t->tim[2] =3D tw0 - 1;
++	t->tim[3] =3D tw1 - 1;
++
++	return 0;
++}
++
++static void _set_timing(int div, int tw0, int tw1)
++{
 +	u32 l;
 +
 +#ifdef VERBOSE
-+	dev_dbg(dispc.fbdev->dev, "plane %d channel %d paddr %#08x scr_width %d"
-+		    " pos_x %d pos_y %d width %d height %d color_mode %d\n",
-+		    plane, channel_out, paddr, screen_width, pos_x, pos_y,
-+		    width, height, color_mode);
++	dev_dbg(sossi.fbdev->dev, "Using TW0 =3D %d, TW1 =3D %d, div =3D %d\n=
+",
++		 tw0 + 1, tw1 + 1, div);
 +#endif
 +
-+	set_vsize = 0;
-+	switch (plane) {
-+	case OMAPFB_PLANE_GFX:
-+		burst_shift = 6;
-+		chout_shift = 8;
-+		break;
-+	case OMAPFB_PLANE_VID1:
-+	case OMAPFB_PLANE_VID2:
-+		burst_shift = 14;
-+		chout_shift = 16;
-+		set_vsize = 1;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (channel_out) {
-+	case OMAPFB_CHANNEL_OUT_LCD:
-+		chout_val = 0;
-+		break;
-+	case OMAPFB_CHANNEL_OUT_DIGIT:
-+		chout_val = 1;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	cconv_en = 0;
-+	switch (color_mode) {
-+	case OMAPFB_COLOR_RGB565:
-+		color_code = DISPC_RGB_16_BPP;
-+		bpp = 16;
-+		break;
-+	case OMAPFB_COLOR_YUV422:
-+		if (plane == 0)
-+			return -EINVAL;
-+		color_code = DISPC_UYVY_422;
-+		cconv_en = 1;
-+		bpp = 16;
-+		break;
-+	case OMAPFB_COLOR_YUY422:
-+		if (plane == 0)
-+			return -EINVAL;
-+		color_code = DISPC_YUV2_422;
-+		cconv_en = 1;
-+		bpp = 16;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	l = dispc_read_reg(at_reg[plane]);
-+
-+	l &= ~(0x0f << 1);
-+	l |= color_code << 1;
-+	l &= ~(1 << 9);
-+	l |= cconv_en << 9;
-+
-+	l &= ~(0x03 << burst_shift);
-+	l |= DISPC_BURST_8x32 << burst_shift;
-+
-+	l &= ~(1 << chout_shift);
-+	l |= chout_val << chout_shift;
-+
-+	dispc_write_reg(at_reg[plane], l);
-+
-+	dispc_write_reg(ba_reg[plane], paddr);
-+	MOD_REG_FLD(ps_reg[plane],
-+		    FLD_MASK(16, 11) | FLD_MASK(0, 11), (pos_y << 16) | pos_x);
-+
-+	MOD_REG_FLD(sz_reg[plane], FLD_MASK(16, 11) | FLD_MASK(0, 11),
-+			((height - 1) << 16) | (width - 1));
-+
-+	if (set_vsize) {
-+		/* Set video size if set_scale hasn't set it */
-+		if (!dispc.fir_vinc[plane])
-+			MOD_REG_FLD(vs_reg[plane],
-+				FLD_MASK(16, 11), (height - 1) << 16);
-+		if (!dispc.fir_hinc[plane])
-+			MOD_REG_FLD(vs_reg[plane],
-+				FLD_MASK(0, 11), width - 1);
-+	}
-+
-+	dispc_write_reg(ri_reg[plane], (screen_width - width) * bpp / 8 + 1);
-+
-+	return height * screen_width * bpp / 8;
++	clk_set_rate(sossi.fck, sossi.fck_hz / div);
++	clk_enable(sossi.fck);
++	l =3D sossi_read_reg(SOSSI_INIT1_REG);
++	l &=3D ~((0x0f << 20) | (0x3f << 24));
++	l |=3D (tw0 << 20) | (tw1 << 24);
++	sossi_write_reg(SOSSI_INIT1_REG, l);
++	clk_disable(sossi.fck);
 +}
 +
-+static int omap_dispc_setup_plane(int plane, int channel_out,
-+				  unsigned long offset,
-+				  int screen_width,
-+				  int pos_x, int pos_y, int width, int height,
-+				  int color_mode)
++static void _set_bits_per_cycle(int bus_pick_count, int bus_pick_width=
+)
 +{
-+	u32 paddr;
-+	int r;
-+
-+	if ((unsigned)plane > dispc.mem_desc.region_cnt)
-+		return -EINVAL;
-+	paddr = dispc.mem_desc.region[plane].paddr + offset;
-+	enable_lcd_clocks(1);
-+	r = _setup_plane(plane, channel_out, paddr,
-+			screen_width,
-+			pos_x, pos_y, width, height, color_mode);
-+	enable_lcd_clocks(0);
-+	return r;
-+}
-+
-+static void write_firh_reg(int plane, int reg, u32 value)
-+{
-+	u32 base;
-+
-+	if (plane == 1)
-+		base = DISPC_VID1_BASE + DISPC_VID_FIR_COEF_H0;
-+	else
-+		base = DISPC_VID2_BASE + DISPC_VID_FIR_COEF_H0;
-+	dispc_write_reg(base + reg * 8,	value);
-+}
-+
-+static void write_firhv_reg(int plane, int reg, u32 value)
-+{
-+	u32 base;
-+
-+	if (plane == 1)
-+		base = DISPC_VID1_BASE + DISPC_VID_FIR_COEF_HV0;
-+	else
-+		base = DISPC_VID2_BASE + DISPC_VID_FIR_COEF_HV0;
-+	dispc_write_reg(base + reg * 8,	value);
-+}
-+
-+static void set_upsampling_coef_table(int plane)
-+{
-+	const u32 coef[][2] = {
-+		{ 0x00800000, 0x00800000 },
-+		{ 0x0D7CF800, 0x037B02FF },
-+		{ 0x1E70F5FF, 0x0C6F05FE },
-+		{ 0x335FF5FE, 0x205907FB },
-+		{ 0xF74949F7, 0x00404000 },
-+		{ 0xF55F33FB, 0x075920FE },
-+		{ 0xF5701EFE, 0x056F0CFF },
-+		{ 0xF87C0DFF, 0x027B0300 },
-+	};
-+	int i;
-+
-+	for (i = 0; i < 8; i++) {
-+		write_firh_reg(plane, i, coef[i][0]);
-+		write_firhv_reg(plane, i, coef[i][1]);
-+	}
-+}
-+
-+static int omap_dispc_set_scale(int plane,
-+				int orig_width, int orig_height,
-+				int out_width, int out_height)
-+{
-+	const u32 at_reg[]  = { 0, DISPC_VID1_BASE + DISPC_VID_ATTRIBUTES,
-+				DISPC_VID2_BASE + DISPC_VID_ATTRIBUTES };
-+	const u32 vs_reg[]  = { 0, DISPC_VID1_BASE + DISPC_VID_SIZE,
-+				DISPC_VID2_BASE + DISPC_VID_SIZE };
-+	const u32 fir_reg[] = { 0, DISPC_VID1_BASE + DISPC_VID_FIR,
-+				DISPC_VID2_BASE + DISPC_VID_FIR };
-+
 +	u32 l;
-+	int fir_hinc;
-+	int fir_vinc;
 +
-+	if ((unsigned)plane > OMAPFB_PLANE_NUM)
-+		return -ENODEV;
++	l =3D sossi_read_reg(SOSSI_INIT3_REG);
++	l &=3D ~0x3ff;
++	l |=3D ((bus_pick_count - 1) << 5) | ((bus_pick_width - 1) & 0x1f);
++	sossi_write_reg(SOSSI_INIT3_REG, l);
++}
 +
-+	if (plane == OMAPFB_PLANE_GFX &&
-+	    (out_width != orig_width || out_height != orig_height))
++static void _set_tearsync_mode(int mode, unsigned line)
++{
++	u32 l;
++
++	l =3D sossi_read_reg(SOSSI_TEARING_REG);
++	l &=3D ~(((1 << 11) - 1) << 15);
++	l |=3D line << 15;
++	l &=3D ~(0x3 << 26);
++	l |=3D mode << 26;
++	sossi_write_reg(SOSSI_TEARING_REG, l);
++	if (mode)
++		sossi_set_bits(SOSSI_INIT2_REG, 1 << 6);	/* TE logic */
++	else
++		sossi_clear_bits(SOSSI_INIT2_REG, 1 << 6);
++}
++
++static inline void set_timing(int access)
++{
++	if (access !=3D sossi.last_access) {
++		sossi.last_access =3D access;
++		_set_timing(sossi.clk_div,
++			    sossi.clk_tw0[access], sossi.clk_tw1[access]);
++	}
++}
++
++static void sossi_start_transfer(void)
++{
++	/* WE */
++	sossi_clear_bits(SOSSI_INIT2_REG, 1 << 4);
++	/* CS active low */
++	sossi_clear_bits(SOSSI_INIT1_REG, 1 << 30);
++}
++
++static void sossi_stop_transfer(void)
++{
++	/* WE */
++	sossi_set_bits(SOSSI_INIT2_REG, 1 << 4);
++	/* CS active low */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 30);
++}
++
++static void wait_end_of_write(void)
++{
++	/* Before reading we must check if some writings are going on */
++	while (!(sossi_read_reg(SOSSI_INIT2_REG) & (1 << 3)));
++}
++
++static void send_data(const void *data, unsigned int len)
++{
++	while (len >=3D 4) {
++		sossi_write_reg(SOSSI_FIFO_REG, *(const u32 *) data);
++		len -=3D 4;
++		data +=3D 4;
++	}
++	while (len >=3D 2) {
++		sossi_write_reg16(SOSSI_FIFO_REG, *(const u16 *) data);
++		len -=3D 2;
++		data +=3D 2;
++	}
++	while (len) {
++		sossi_write_reg8(SOSSI_FIFO_REG, *(const u8 *) data);
++		len--;
++		data++;
++	}
++}
++
++static void set_cycles(unsigned int len)
++{
++	unsigned long nr_cycles =3D len / (sossi.bus_pick_width / 8);
++
++	BUG_ON((nr_cycles - 1) & ~0x3ffff);
++
++	sossi_clear_bits(SOSSI_INIT1_REG, 0x3ffff);
++	sossi_set_bits(SOSSI_INIT1_REG, (nr_cycles - 1) & 0x3ffff);
++}
++
++static int sossi_convert_timings(struct extif_timings *t)
++{
++	int r =3D 0;
++	int div =3D t->clk_div;
++
++	t->converted =3D 0;
++
++	if (div <=3D 0 || div > 8)
++		return -1;
++
++	/* no CS on SOSSI, so ignore cson, csoff, cs_pulsewidth */
++	if ((r =3D calc_rd_timings(t)) < 0)
++		return r;
++
++	if ((r =3D calc_wr_timings(t)) < 0)
++		return r;
++
++	t->tim[4] =3D div;
++
++	t->converted =3D 1;
++
++	return 0;
++}
++
++static void sossi_set_timings(const struct extif_timings *t)
++{
++	BUG_ON(!t->converted);
++
++	sossi.clk_tw0[RD_ACCESS] =3D t->tim[0];
++	sossi.clk_tw1[RD_ACCESS] =3D t->tim[1];
++
++	sossi.clk_tw0[WR_ACCESS] =3D t->tim[2];
++	sossi.clk_tw1[WR_ACCESS] =3D t->tim[3];
++
++	sossi.clk_div =3D t->tim[4];
++}
++
++static void sossi_get_clk_info(u32 *clk_period, u32 *max_clk_div)
++{
++	*clk_period =3D HZ_TO_PS(sossi.fck_hz);
++	*max_clk_div =3D 8;
++}
++
++static void sossi_set_bits_per_cycle(int bpc)
++{
++	int bus_pick_count, bus_pick_width;
++
++	/*
++	 * We set explicitly the the bus_pick_count as well, although
++	 * with remapping/reordering disabled it will be calculated by HW
++	 * as (32 / bus_pick_width).
++	 */
++	switch (bpc) {
++	case 8:
++		bus_pick_count =3D 4;
++		bus_pick_width =3D 8;
++		break;
++	case 16:
++		bus_pick_count =3D 2;
++		bus_pick_width =3D 16;
++		break;
++	default:
++		BUG();
++		return;
++	}
++	sossi.bus_pick_width =3D bus_pick_width;
++	sossi.bus_pick_count =3D bus_pick_count;
++}
++
++static int sossi_setup_tearsync(unsigned pin_cnt,
++				unsigned hs_pulse_time, unsigned vs_pulse_time,
++				int hs_pol_inv, int vs_pol_inv, int div)
++{
++	int hs, vs;
++	u32 l;
++
++	if (pin_cnt !=3D 1 || div < 1 || div > 8)
 +		return -EINVAL;
 +
-+	enable_lcd_clocks(1);
-+	if (orig_width < out_width) {
++	hs =3D ps_to_sossi_ticks(hs_pulse_time, div);
++	vs =3D ps_to_sossi_ticks(vs_pulse_time, div);
++	if (vs < 8 || vs <=3D hs || vs >=3D (1 << 12))
++		return -EDOM;
++	vs /=3D 8;
++	vs--;
++	if (hs > 8)
++		hs =3D 8;
++	if (hs)
++		hs--;
++
++	dev_dbg(sossi.fbdev->dev,
++		"setup_tearsync: hs %d vs %d hs_inv %d vs_inv %d\n",
++		hs, vs, hs_pol_inv, vs_pol_inv);
++
++	clk_enable(sossi.fck);
++	l =3D sossi_read_reg(SOSSI_TEARING_REG);
++	l &=3D ~((1 << 15) - 1);
++	l |=3D vs << 3;
++	l |=3D hs;
++	if (hs_pol_inv)
++		l |=3D 1 << 29;
++	else
++		l &=3D ~(1 << 29);
++	if (vs_pol_inv)
++		l |=3D 1 << 28;
++	else
++		l &=3D ~(1 << 28);
++	sossi_write_reg(SOSSI_TEARING_REG, l);
++	clk_disable(sossi.fck);
++
++	return 0;
++}
++
++static int sossi_enable_tearsync(int enable, unsigned line)
++{
++	int mode;
++
++	dev_dbg(sossi.fbdev->dev, "tearsync %d line %d\n", enable, line);
++	if (line >=3D 1 << 11)
++		return -EINVAL;
++	if (enable) {
++		if (line)
++			mode =3D 2;		/* HS or VS */
++		else
++			mode =3D 3;		/* VS only */
++	} else
++		mode =3D 0;
++	sossi.tearsync_line =3D line;
++	sossi.tearsync_mode =3D mode;
++
++	return 0;
++}
++
++static void sossi_write_command(const void *data, unsigned int len)
++{
++	clk_enable(sossi.fck);
++	set_timing(WR_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	/* CMD#/DATA */
++	sossi_clear_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(len);
++	sossi_start_transfer();
++	send_data(data, len);
++	sossi_stop_transfer();
++	wait_end_of_write();
++	clk_disable(sossi.fck);
++}
++
++static void sossi_write_data(const void *data, unsigned int len)
++{
++	clk_enable(sossi.fck);
++	set_timing(WR_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	/* CMD#/DATA */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(len);
++	sossi_start_transfer();
++	send_data(data, len);
++	sossi_stop_transfer();
++	wait_end_of_write();
++	clk_disable(sossi.fck);
++}
++
++static void sossi_transfer_area(int width, int height,
++				void (callback)(void *data), void *data)
++{
++	BUG_ON(callback =3D=3D NULL);
++
++	sossi.lcdc_callback =3D callback;
++	sossi.lcdc_callback_data =3D data;
++
++	clk_enable(sossi.fck);
++	set_timing(WR_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	_set_tearsync_mode(sossi.tearsync_mode, sossi.tearsync_line);
++	/* CMD#/DATA */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(width * height * sossi.bus_pick_width / 8);
++
++	sossi_start_transfer();
++	if (sossi.tearsync_mode) {
 +		/*
-+		 * Upsampling.
-+		 * Currently you can only scale both dimensions in one way.
++		 * Wait for the sync signal and start the transfer only
++		 * then. We can't seem to be able to use HW sync DMA for
++		 * this since LCD DMA shows huge latencies, as if it
++		 * would ignore some of the DMA requests from SoSSI.
 +		 */
-+		if (orig_height > out_height ||
-+		    orig_width * 8 < out_width ||
-+		    orig_height * 8 < out_height) {
-+			enable_lcd_clocks(0);
-+			return -EINVAL;
-+		}
-+		set_upsampling_coef_table(plane);
-+	} else if (orig_width > out_width) {
-+		/* Downsampling not yet supported
-+		*/
++		unsigned long flags;
 +
-+		enable_lcd_clocks(0);
-+		return -EINVAL;
++		spin_lock_irqsave(&sossi.lock, flags);
++		sossi.vsync_dma_pending++;
++		spin_unlock_irqrestore(&sossi.lock, flags);
++	} else
++		/* Just start the transfer right away. */
++		omap_enable_lcd_dma();
++}
++
++static void sossi_dma_callback(void *data)
++{
++	omap_stop_lcd_dma();
++	sossi_stop_transfer();
++	clk_disable(sossi.fck);
++	sossi.lcdc_callback(sossi.lcdc_callback_data);
++}
++
++static void sossi_read_data(void *data, unsigned int len)
++{
++	clk_enable(sossi.fck);
++	set_timing(RD_ACCESS);
++	_set_bits_per_cycle(sossi.bus_pick_count, sossi.bus_pick_width);
++	/* CMD#/DATA */
++	sossi_set_bits(SOSSI_INIT1_REG, 1 << 18);
++	set_cycles(len);
++	sossi_start_transfer();
++	while (len >=3D 4) {
++		*(u32 *) data =3D sossi_read_reg(SOSSI_FIFO_REG);
++		len -=3D 4;
++		data +=3D 4;
 +	}
-+	if (!orig_width || orig_width == out_width)
-+		fir_hinc = 0;
-+	else
-+		fir_hinc = 1024 * orig_width / out_width;
-+	if (!orig_height || orig_height == out_height)
-+		fir_vinc = 0;
-+	else
-+		fir_vinc = 1024 * orig_height / out_height;
-+	dispc.fir_hinc[plane] = fir_hinc;
-+	dispc.fir_vinc[plane] = fir_vinc;
-+
-+	MOD_REG_FLD(fir_reg[plane],
-+		    FLD_MASK(16, 12) | FLD_MASK(0, 12),
-+		    ((fir_vinc & 4095) << 16) |
-+		    (fir_hinc & 4095));
-+
-+	dev_dbg(dispc.fbdev->dev, "out_width %d out_height %d orig_width %d "
-+		"orig_height %d fir_hinc  %d fir_vinc %d\n",
-+		out_width, out_height, orig_width, orig_height,
-+		fir_hinc, fir_vinc);
-+
-+	MOD_REG_FLD(vs_reg[plane],
-+		    FLD_MASK(16, 11) | FLD_MASK(0, 11),
-+		    ((out_height - 1) << 16) | (out_width - 1));
-+
-+	l = dispc_read_reg(at_reg[plane]);
-+	l &= ~(0x03 << 5);
-+	l |= fir_hinc ? (1 << 5) : 0;
-+	l |= fir_vinc ? (1 << 6) : 0;
-+	dispc_write_reg(at_reg[plane], l);
-+
-+	enable_lcd_clocks(0);
-+	return 0;
-+}
-+
-+static int omap_dispc_enable_plane(int plane, int enable)
-+{
-+	const u32 at_reg[] = { DISPC_GFX_ATTRIBUTES,
-+				DISPC_VID1_BASE + DISPC_VID_ATTRIBUTES,
-+				DISPC_VID2_BASE + DISPC_VID_ATTRIBUTES };
-+	if ((unsigned int)plane > dispc.mem_desc.region_cnt)
-+		return -EINVAL;
-+
-+	enable_lcd_clocks(1);
-+	MOD_REG_FLD(at_reg[plane], 1, enable ? 1 : 0);
-+	enable_lcd_clocks(0);
-+
-+	return 0;
-+}
-+
-+static int omap_dispc_set_color_key(struct omapfb_color_key *ck)
-+{
-+	u32 df_reg, tr_reg;
-+	int shift, val;
-+
-+	switch (ck->channel_out) {
-+	case OMAPFB_CHANNEL_OUT_LCD:
-+		df_reg = DISPC_DEFAULT_COLOR0;
-+		tr_reg = DISPC_TRANS_COLOR0;
-+		shift = 10;
-+		break;
-+	case OMAPFB_CHANNEL_OUT_DIGIT:
-+		df_reg = DISPC_DEFAULT_COLOR1;
-+		tr_reg = DISPC_TRANS_COLOR1;
-+		shift = 12;
-+		break;
-+	default:
-+		return -EINVAL;
++	while (len >=3D 2) {
++		*(u16 *) data =3D sossi_read_reg16(SOSSI_FIFO_REG);
++		len -=3D 2;
++		data +=3D 2;
 +	}
-+	switch (ck->key_type) {
-+	case OMAPFB_COLOR_KEY_DISABLED:
-+		val = 0;
-+		break;
-+	case OMAPFB_COLOR_KEY_GFX_DST:
-+		val = 1;
-+		break;
-+	case OMAPFB_COLOR_KEY_VID_SRC:
-+		val = 3;
-+		break;
-+	default:
-+		return -EINVAL;
++	while (len) {
++		*(u8 *) data =3D sossi_read_reg8(SOSSI_FIFO_REG);
++		len--;
++		data++;
 +	}
-+	enable_lcd_clocks(1);
-+	MOD_REG_FLD(DISPC_CONFIG, FLD_MASK(shift, 2), val << shift);
-+
-+	if (val != 0)
-+		dispc_write_reg(tr_reg, ck->trans_key);
-+	dispc_write_reg(df_reg, ck->background);
-+	enable_lcd_clocks(0);
-+
-+	dispc.color_key = *ck;
-+
-+	return 0;
++	sossi_stop_transfer();
++	clk_disable(sossi.fck);
 +}
 +
-+static int omap_dispc_get_color_key(struct omapfb_color_key *ck)
++static irqreturn_t sossi_match_irq(int irq, void *data)
 +{
-+	*ck = dispc.color_key;
-+	return 0;
-+}
++	unsigned long flags;
 +
-+static void load_palette(void)
-+{
-+}
-+
-+static int omap_dispc_set_update_mode(enum omapfb_update_mode mode)
-+{
-+	int r = 0;
-+
-+	if (mode != dispc.update_mode) {
-+		switch (mode) {
-+		case OMAPFB_AUTO_UPDATE:
-+		case OMAPFB_MANUAL_UPDATE:
-+			enable_lcd_clocks(1);
-+			omap_dispc_enable_lcd_out(1);
-+			dispc.update_mode = mode;
-+			break;
-+		case OMAPFB_UPDATE_DISABLED:
-+			init_completion(&dispc.frame_done);
-+			omap_dispc_enable_lcd_out(0);
-+			if (!wait_for_completion_timeout(&dispc.frame_done,
-+					msecs_to_jiffies(500))) {
-+				dev_err(dispc.fbdev->dev,
-+					 "timeout waiting for FRAME DONE\n");
-+			}
-+			dispc.update_mode = mode;
-+			enable_lcd_clocks(0);
-+			break;
-+		default:
-+			r = -EINVAL;
-+		}
++	spin_lock_irqsave(&sossi.lock, flags);
++	if (sossi.vsync_dma_pending) {
++		sossi.vsync_dma_pending--;
++		omap_enable_lcd_dma();
 +	}
-+
-+	return r;
-+}
-+
-+static void omap_dispc_get_caps(int plane, struct omapfb_caps *caps)
-+{
-+	caps->ctrl |= OMAPFB_CAPS_PLANE_RELOCATE_MEM;
-+	if (plane > 0)
-+		caps->ctrl |= OMAPFB_CAPS_PLANE_SCALE;
-+	caps->plane_color |= (1 << OMAPFB_COLOR_RGB565) |
-+			     (1 << OMAPFB_COLOR_YUV422) |
-+			     (1 << OMAPFB_COLOR_YUY422);
-+	if (plane == 0)
-+		caps->plane_color |= (1 << OMAPFB_COLOR_CLUT_8BPP) |
-+				     (1 << OMAPFB_COLOR_CLUT_4BPP) |
-+				     (1 << OMAPFB_COLOR_CLUT_2BPP) |
-+				     (1 << OMAPFB_COLOR_CLUT_1BPP) |
-+				     (1 << OMAPFB_COLOR_RGB444);
-+}
-+
-+static enum omapfb_update_mode omap_dispc_get_update_mode(void)
-+{
-+	return dispc.update_mode;
-+}
-+
-+static void setup_color_conv_coef(void)
-+{
-+	u32 mask = FLD_MASK(16, 11) | FLD_MASK(0, 11);
-+	int cf1_reg = DISPC_VID1_BASE + DISPC_VID_CONV_COEF0;
-+	int cf2_reg = DISPC_VID2_BASE + DISPC_VID_CONV_COEF0;
-+	int at1_reg = DISPC_VID1_BASE + DISPC_VID_ATTRIBUTES;
-+	int at2_reg = DISPC_VID2_BASE + DISPC_VID_ATTRIBUTES;
-+	const struct color_conv_coef {
-+		int  ry,  rcr,  rcb,   gy,  gcr,  gcb,   by,  bcr,  bcb;
-+		int  full_range;
-+	}  ctbl_bt601_5 = {
-+		    298,  409,    0,  298, -208, -100,  298,    0,  517, 0,
-+	};
-+	const struct color_conv_coef *ct;
-+#define CVAL(x, y)	(((x & 2047) << 16) | (y & 2047))
-+
-+	ct = &ctbl_bt601_5;
-+
-+	MOD_REG_FLD(cf1_reg,		mask,	CVAL(ct->rcr, ct->ry));
-+	MOD_REG_FLD(cf1_reg + 4,	mask,	CVAL(ct->gy,  ct->rcb));
-+	MOD_REG_FLD(cf1_reg + 8,	mask,	CVAL(ct->gcb, ct->gcr));
-+	MOD_REG_FLD(cf1_reg + 12,	mask,	CVAL(ct->bcr, ct->by));
-+	MOD_REG_FLD(cf1_reg + 16,	mask,	CVAL(0,	      ct->bcb));
-+
-+	MOD_REG_FLD(cf2_reg,		mask,	CVAL(ct->rcr, ct->ry));
-+	MOD_REG_FLD(cf2_reg + 4,	mask,	CVAL(ct->gy,  ct->rcb));
-+	MOD_REG_FLD(cf2_reg + 8,	mask,	CVAL(ct->gcb, ct->gcr));
-+	MOD_REG_FLD(cf2_reg + 12,	mask,	CVAL(ct->bcr, ct->by));
-+	MOD_REG_FLD(cf2_reg + 16,	mask,	CVAL(0,	      ct->bcb));
-+#undef CVAL
-+
-+	MOD_REG_FLD(at1_reg, (1 << 11), ct->full_range);
-+	MOD_REG_FLD(at2_reg, (1 << 11), ct->full_range);
-+}
-+
-+static void calc_ck_div(int is_tft, int pck, int *lck_div, int *pck_div)
-+{
-+	unsigned long fck, lck;
-+
-+	*lck_div = 1;
-+	pck = max(1, pck);
-+	fck = clk_get_rate(dispc.dss1_fck);
-+	lck = fck;
-+	*pck_div = (lck + pck - 1) / pck;
-+	if (is_tft)
-+		*pck_div = max(2, *pck_div);
-+	else
-+		*pck_div = max(3, *pck_div);
-+	if (*pck_div > 255) {
-+		*pck_div = 255;
-+		lck = pck * *pck_div;
-+		*lck_div = fck / lck;
-+		BUG_ON(*lck_div < 1);
-+		if (*lck_div > 255) {
-+			*lck_div = 255;
-+			dev_warn(dispc.fbdev->dev, "pixclock %d kHz too low.\n",
-+				 pck / 1000);
-+		}
-+	}
-+}
-+
-+static void set_lcd_tft_mode(int enable)
-+{
-+	u32 mask;
-+
-+	mask = 1 << 3;
-+	MOD_REG_FLD(DISPC_CONTROL, mask, enable ? mask : 0);
-+}
-+
-+static void set_lcd_timings(void)
-+{
-+	u32 l;
-+	int lck_div, pck_div;
-+	struct lcd_panel *panel = dispc.fbdev->panel;
-+	int is_tft = panel->config & OMAP_LCDC_PANEL_TFT;
-+	unsigned long fck;
-+
-+	l = dispc_read_reg(DISPC_TIMING_H);
-+	l &= ~(FLD_MASK(0, 6) | FLD_MASK(8, 8) | FLD_MASK(20, 8));
-+	l |= ( max(1, (min(64,  panel->hsw))) - 1 ) << 0;
-+	l |= ( max(1, (min(256, panel->hfp))) - 1 ) << 8;
-+	l |= ( max(1, (min(256, panel->hbp))) - 1 ) << 20;
-+	dispc_write_reg(DISPC_TIMING_H, l);
-+
-+	l = dispc_read_reg(DISPC_TIMING_V);
-+	l &= ~(FLD_MASK(0, 6) | FLD_MASK(8, 8) | FLD_MASK(20, 8));
-+	l |= ( max(1, (min(64,  panel->vsw))) - 1 ) << 0;
-+	l |= ( max(0, (min(255, panel->vfp))) - 0 ) << 8;
-+	l |= ( max(0, (min(255, panel->vbp))) - 0 ) << 20;
-+	dispc_write_reg(DISPC_TIMING_V, l);
-+
-+	l = dispc_read_reg(DISPC_POL_FREQ);
-+	l &= ~FLD_MASK(12, 6);
-+	l |= (panel->config & OMAP_LCDC_SIGNAL_MASK) << 12;
-+	l |= panel->acb & 0xff;
-+	dispc_write_reg(DISPC_POL_FREQ, l);
-+
-+	calc_ck_div(is_tft, panel->pixel_clock * 1000, &lck_div, &pck_div);
-+
-+	l = dispc_read_reg(DISPC_DIVISOR);
-+	l &= ~(FLD_MASK(16, 8) | FLD_MASK(0, 8));
-+	l |= (lck_div << 16) | (pck_div << 0);
-+	dispc_write_reg(DISPC_DIVISOR, l);
-+
-+	/* update panel info with the exact clock */
-+	fck = clk_get_rate(dispc.dss1_fck);
-+	panel->pixel_clock = fck / lck_div / pck_div / 1000;
-+}
-+
-+int omap_dispc_request_irq(void (*callback)(void *data), void *data)
-+{
-+	int r = 0;
-+
-+	BUG_ON(callback == NULL);
-+
-+	if (dispc.irq_callback)
-+		r = -EBUSY;
-+	else {
-+		dispc.irq_callback = callback;
-+		dispc.irq_callback_data = data;
-+	}
-+
-+	return r;
-+}
-+EXPORT_SYMBOL(omap_dispc_request_irq);
-+
-+void omap_dispc_enable_irqs(int irq_mask)
-+{
-+	enable_lcd_clocks(1);
-+	dispc.enabled_irqs = irq_mask;
-+	irq_mask |= DISPC_IRQ_MASK_ERROR;
-+	MOD_REG_FLD(DISPC_IRQENABLE, 0x7fff, irq_mask);
-+	enable_lcd_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_dispc_enable_irqs);
-+
-+void omap_dispc_disable_irqs(int irq_mask)
-+{
-+	enable_lcd_clocks(1);
-+	dispc.enabled_irqs &= ~irq_mask;
-+	irq_mask &= ~DISPC_IRQ_MASK_ERROR;
-+	MOD_REG_FLD(DISPC_IRQENABLE, 0x7fff, irq_mask);
-+	enable_lcd_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_dispc_disable_irqs);
-+
-+void omap_dispc_free_irq(void)
-+{
-+	enable_lcd_clocks(1);
-+	omap_dispc_disable_irqs(DISPC_IRQ_MASK_ALL);
-+	dispc.irq_callback = NULL;
-+	dispc.irq_callback_data = NULL;
-+	enable_lcd_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_dispc_free_irq);
-+
-+static irqreturn_t omap_dispc_irq_handler(int irq, void *dev)
-+{
-+	u32 stat = dispc_read_reg(DISPC_IRQSTATUS);
-+
-+	if (stat & DISPC_IRQ_FRAMEMASK)
-+		complete(&dispc.frame_done);
-+
-+	if (stat & DISPC_IRQ_MASK_ERROR) {
-+		if (printk_ratelimit()) {
-+			dev_err(dispc.fbdev->dev, "irq error status %04x\n",
-+				stat & 0x7fff);
-+		}
-+	}
-+
-+	if ((stat & dispc.enabled_irqs) && dispc.irq_callback)
-+		dispc.irq_callback(dispc.irq_callback_data);
-+
-+	dispc_write_reg(DISPC_IRQSTATUS, stat);
-+
++	spin_unlock_irqrestore(&sossi.lock, flags);
 +	return IRQ_HANDLED;
 +}
 +
-+static int get_dss_clocks(void)
++static int sossi_init(struct omapfb_device *fbdev)
 +{
-+	if (IS_ERR((dispc.dss_ick = clk_get(dispc.fbdev->dev, "dss_ick")))) {
-+		dev_err(dispc.fbdev->dev, "can't get dss_ick");
-+		return PTR_ERR(dispc.dss_ick);
-+	}
-+
-+	if (IS_ERR((dispc.dss1_fck = clk_get(dispc.fbdev->dev, "dss1_fck")))) {
-+		dev_err(dispc.fbdev->dev, "can't get dss1_fck");
-+		clk_put(dispc.dss_ick);
-+		return PTR_ERR(dispc.dss1_fck);
-+	}
-+
-+	if (IS_ERR((dispc.dss_54m_fck =
-+				clk_get(dispc.fbdev->dev, "dss_54m_fck")))) {
-+		dev_err(dispc.fbdev->dev, "can't get dss_54m_fck");
-+		clk_put(dispc.dss_ick);
-+		clk_put(dispc.dss1_fck);
-+		return PTR_ERR(dispc.dss_54m_fck);
-+	}
-+
-+	return 0;
-+}
-+
-+static void put_dss_clocks(void)
-+{
-+	clk_put(dispc.dss_54m_fck);
-+	clk_put(dispc.dss1_fck);
-+	clk_put(dispc.dss_ick);
-+}
-+
-+static void enable_lcd_clocks(int enable)
-+{
-+	if (enable)
-+		clk_enable(dispc.dss1_fck);
-+	else
-+		clk_disable(dispc.dss1_fck);
-+}
-+
-+static void enable_interface_clocks(int enable)
-+{
-+	if (enable)
-+		clk_enable(dispc.dss_ick);
-+	else
-+		clk_disable(dispc.dss_ick);
-+}
-+
-+static void enable_digit_clocks(int enable)
-+{
-+	if (enable)
-+		clk_enable(dispc.dss_54m_fck);
-+	else
-+		clk_disable(dispc.dss_54m_fck);
-+}
-+
-+static void omap_dispc_suspend(void)
-+{
-+	if (dispc.update_mode == OMAPFB_AUTO_UPDATE) {
-+		init_completion(&dispc.frame_done);
-+		omap_dispc_enable_lcd_out(0);
-+		if (!wait_for_completion_timeout(&dispc.frame_done,
-+				msecs_to_jiffies(500))) {
-+			dev_err(dispc.fbdev->dev,
-+				"timeout waiting for FRAME DONE\n");
-+		}
-+		enable_lcd_clocks(0);
-+	}
-+}
-+
-+static void omap_dispc_resume(void)
-+{
-+	if (dispc.update_mode == OMAPFB_AUTO_UPDATE) {
-+		enable_lcd_clocks(1);
-+		if (!dispc.ext_mode) {
-+			set_lcd_timings();
-+			load_palette();
-+		}
-+		omap_dispc_enable_lcd_out(1);
-+	}
-+}
-+
-+
-+static int omap_dispc_update_window(struct fb_info *fbi,
-+				 struct omapfb_update_window *win,
-+				 void (*complete_callback)(void *arg),
-+				 void *complete_callback_data)
-+{
-+	return dispc.update_mode == OMAPFB_UPDATE_DISABLED ? -ENODEV : 0;
-+}
-+
-+static int mmap_kern(struct omapfb_mem_region *region)
-+{
-+	struct vm_struct	*kvma;
-+	struct vm_area_struct	vma;
-+	pgprot_t		pgprot;
-+	unsigned long		vaddr;
-+
-+	kvma = get_vm_area(region->size, VM_IOREMAP);
-+	if (kvma == NULL) {
-+		dev_err(dispc.fbdev->dev, "can't get kernel vm area\n");
-+		return -ENOMEM;
-+	}
-+	vma.vm_mm = &init_mm;
-+
-+	vaddr = (unsigned long)kvma->addr;
-+
-+	pgprot = pgprot_writecombine(pgprot_kernel);
-+	vma.vm_start = vaddr;
-+	vma.vm_end = vaddr + region->size;
-+	if (io_remap_pfn_range(&vma, vaddr, region->paddr >> PAGE_SHIFT,
-+			   region->size, pgprot) < 0) {
-+		dev_err(dispc.fbdev->dev, "kernel mmap for FBMEM failed\n");
-+		return -EAGAIN;
-+	}
-+	region->vaddr = (void *)vaddr;
-+
-+	return 0;
-+}
-+
-+static void mmap_user_open(struct vm_area_struct *vma)
-+{
-+	int plane = (int)vma->vm_private_data;
-+
-+	atomic_inc(&dispc.map_count[plane]);
-+}
-+
-+static void mmap_user_close(struct vm_area_struct *vma)
-+{
-+	int plane = (int)vma->vm_private_data;
-+
-+	atomic_dec(&dispc.map_count[plane]);
-+}
-+
-+static struct vm_operations_struct mmap_user_ops = {
-+	.open = mmap_user_open,
-+	.close = mmap_user_close,
-+};
-+
-+static int omap_dispc_mmap_user(struct fb_info *info,
-+				struct vm_area_struct *vma)
-+{
-+	struct omapfb_plane_struct *plane = info->par;
-+	unsigned long off;
-+	unsigned long start;
-+	u32 len;
-+
-+	if (vma->vm_end - vma->vm_start == 0)
-+		return 0;
-+	if (vma->vm_pgoff > (~0UL >> PAGE_SHIFT))
-+		return -EINVAL;
-+	off = vma->vm_pgoff << PAGE_SHIFT;
-+
-+	start = info->fix.smem_start;
-+	len = info->fix.smem_len;
-+	if (off >= len)
-+		return -EINVAL;
-+	if ((vma->vm_end - vma->vm_start + off) > len)
-+		return -EINVAL;
-+	off += start;
-+	vma->vm_pgoff = off >> PAGE_SHIFT;
-+	vma->vm_flags |= VM_IO | VM_RESERVED;
-+	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-+	vma->vm_ops = &mmap_user_ops;
-+	vma->vm_private_data = (void *)plane->idx;
-+	if (io_remap_pfn_range(vma, vma->vm_start, off >> PAGE_SHIFT,
-+			     vma->vm_end - vma->vm_start, vma->vm_page_prot))
-+		return -EAGAIN;
-+	/* vm_ops.open won't be called for mmap itself. */
-+	atomic_inc(&dispc.map_count[plane->idx]);
-+	return 0;
-+}
-+
-+static void unmap_kern(struct omapfb_mem_region *region)
-+{
-+	vunmap(region->vaddr);
-+}
-+
-+static int alloc_palette_ram(void)
-+{
-+	dispc.palette_vaddr = dma_alloc_writecombine(dispc.fbdev->dev,
-+		MAX_PALETTE_SIZE, &dispc.palette_paddr, GFP_KERNEL);
-+	if (dispc.palette_vaddr == NULL) {
-+		dev_err(dispc.fbdev->dev, "failed to alloc palette memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static void free_palette_ram(void)
-+{
-+	dma_free_writecombine(dispc.fbdev->dev, MAX_PALETTE_SIZE,
-+			dispc.palette_vaddr, dispc.palette_paddr);
-+}
-+
-+static int alloc_fbmem(struct omapfb_mem_region *region)
-+{
-+	region->vaddr = dma_alloc_writecombine(dispc.fbdev->dev,
-+			region->size, &region->paddr, GFP_KERNEL);
-+
-+	if (region->vaddr == NULL) {
-+		dev_err(dispc.fbdev->dev, "unable to allocate FB DMA memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static void free_fbmem(struct omapfb_mem_region *region)
-+{
-+	dma_free_writecombine(dispc.fbdev->dev, region->size,
-+			      region->vaddr, region->paddr);
-+}
-+
-+static struct resmap *init_resmap(unsigned long start, size_t size)
-+{
-+	unsigned page_cnt;
-+	struct resmap *res_map;
-+
-+	page_cnt = PAGE_ALIGN(size) / PAGE_SIZE;
-+	res_map =
-+	    kzalloc(sizeof(struct resmap) + RESMAP_SIZE(page_cnt), GFP_KERNEL);
-+	if (res_map == NULL)
-+		return NULL;
-+	res_map->start = start;
-+	res_map->page_cnt = page_cnt;
-+	res_map->map = (unsigned long *)(res_map + 1);
-+	return res_map;
-+}
-+
-+static void cleanup_resmap(struct resmap *res_map)
-+{
-+	kfree(res_map);
-+}
-+
-+static inline int resmap_mem_type(unsigned long start)
-+{
-+	if (start >= OMAP2_SRAM_START &&
-+	    start < OMAP2_SRAM_START + OMAP2_SRAM_SIZE)
-+		return OMAPFB_MEMTYPE_SRAM;
-+	else
-+		return OMAPFB_MEMTYPE_SDRAM;
-+}
-+
-+static inline int resmap_page_reserved(struct resmap *res_map, unsigned page_nr)
-+{
-+	return *RESMAP_PTR(res_map, page_nr) & RESMAP_MASK(page_nr) ? 1 : 0;
-+}
-+
-+static inline void resmap_reserve_page(struct resmap *res_map, unsigned page_nr)
-+{
-+	BUG_ON(resmap_page_reserved(res_map, page_nr));
-+	*RESMAP_PTR(res_map, page_nr) |= RESMAP_MASK(page_nr);
-+}
-+
-+static inline void resmap_free_page(struct resmap *res_map, unsigned page_nr)
-+{
-+	BUG_ON(!resmap_page_reserved(res_map, page_nr));
-+	*RESMAP_PTR(res_map, page_nr) &= ~RESMAP_MASK(page_nr);
-+}
-+
-+static void resmap_reserve_region(unsigned long start, size_t size)
-+{
-+
-+	struct resmap	*res_map;
-+	unsigned	start_page;
-+	unsigned	end_page;
-+	int		mtype;
-+	unsigned	i;
-+
-+	mtype = resmap_mem_type(start);
-+	res_map = dispc.res_map[mtype];
-+	dev_dbg(dispc.fbdev->dev, "reserve mem type %d start %08lx size %d\n",
-+		mtype, start, size);
-+	start_page = (start - res_map->start) / PAGE_SIZE;
-+	end_page = start_page + PAGE_ALIGN(size) / PAGE_SIZE;
-+	for (i = start_page; i < end_page; i++)
-+		resmap_reserve_page(res_map, i);
-+}
-+
-+static void resmap_free_region(unsigned long start, size_t size)
-+{
-+	struct resmap	*res_map;
-+	unsigned	start_page;
-+	unsigned	end_page;
-+	unsigned	i;
-+	int		mtype;
-+
-+	mtype = resmap_mem_type(start);
-+	res_map = dispc.res_map[mtype];
-+	dev_dbg(dispc.fbdev->dev, "free mem type %d start %08lx size %d\n",
-+		mtype, start, size);
-+	start_page = (start - res_map->start) / PAGE_SIZE;
-+	end_page = start_page + PAGE_ALIGN(size) / PAGE_SIZE;
-+	for (i = start_page; i < end_page; i++)
-+		resmap_free_page(res_map, i);
-+}
-+
-+static unsigned long resmap_alloc_region(int mtype, size_t size)
-+{
-+	unsigned i;
-+	unsigned total;
-+	unsigned start_page;
-+	unsigned long start;
-+	struct resmap *res_map = dispc.res_map[mtype];
-+
-+	BUG_ON(mtype >= DISPC_MEMTYPE_NUM || res_map == NULL || !size);
-+
-+	size = PAGE_ALIGN(size) / PAGE_SIZE;
-+	start_page = 0;
-+	total = 0;
-+	for (i = 0; i < res_map->page_cnt; i++) {
-+		if (resmap_page_reserved(res_map, i)) {
-+			start_page = i + 1;
-+			total = 0;
-+		} else if (++total == size)
-+			break;
-+	}
-+	if (total < size)
-+		return 0;
-+
-+	start = res_map->start + start_page * PAGE_SIZE;
-+	resmap_reserve_region(start, size * PAGE_SIZE);
-+
-+	return start;
-+}
-+
-+/* Note that this will only work for user mappings, we don't deal with
-+ * kernel mappings here, so fbcon will keep using the old region.
-+ */
-+static int omap_dispc_setup_mem(int plane, size_t size, int mem_type,
-+				unsigned long *paddr)
-+{
-+	struct omapfb_mem_region *rg;
-+	unsigned long new_addr = 0;
-+
-+	if ((unsigned)plane > dispc.mem_desc.region_cnt)
-+		return -EINVAL;
-+	if (mem_type >= DISPC_MEMTYPE_NUM)
-+		return -EINVAL;
-+	if (dispc.res_map[mem_type] == NULL)
-+		return -ENOMEM;
-+	rg = &dispc.mem_desc.region[plane];
-+	if (size == rg->size && mem_type == rg->type)
-+		return 0;
-+	if (atomic_read(&dispc.map_count[plane]))
-+		return -EBUSY;
-+	if (rg->size != 0)
-+		resmap_free_region(rg->paddr, rg->size);
-+	if (size != 0) {
-+		new_addr = resmap_alloc_region(mem_type, size);
-+		if (!new_addr) {
-+			/* Reallocate old region. */
-+			resmap_reserve_region(rg->paddr, rg->size);
-+			return -ENOMEM;
-+		}
-+	}
-+	rg->paddr = new_addr;
-+	rg->size = size;
-+	rg->type = mem_type;
-+
-+	*paddr = new_addr;
-+
-+	return 0;
-+}
-+
-+static int setup_fbmem(struct omapfb_mem_desc *req_md)
-+{
-+	struct omapfb_mem_region	*rg;
-+	int i;
++	u32 l, k;
++	struct clk *fck;
++	struct clk *dpll1out_ck;
 +	int r;
-+	unsigned long			mem_start[DISPC_MEMTYPE_NUM];
-+	unsigned long			mem_end[DISPC_MEMTYPE_NUM];
 +
-+	if (!req_md->region_cnt) {
-+		dev_err(dispc.fbdev->dev, "no memory regions defined\n");
-+		return -ENOENT;
++	sossi.base =3D (void __iomem *)IO_ADDRESS(OMAP_SOSSI_BASE);
++	sossi.fbdev =3D fbdev;
++	spin_lock_init(&sossi.lock);
++
++	dpll1out_ck =3D clk_get(fbdev->dev, "ck_dpll1out");
++	if (IS_ERR(dpll1out_ck)) {
++		dev_err(fbdev->dev, "can't get DPLL1OUT clock\n");
++		return PTR_ERR(dpll1out_ck);
++	}
++	/*
++	 * We need the parent clock rate, which we might divide further
++	 * depending on the timing requirements of the controller. See
++	 * _set_timings.
++	 */
++	sossi.fck_hz =3D clk_get_rate(dpll1out_ck);
++	clk_put(dpll1out_ck);
++
++	fck =3D clk_get(fbdev->dev, "ck_sossi");
++	if (IS_ERR(fck)) {
++		dev_err(fbdev->dev, "can't get SoSSI functional clock\n");
++		return PTR_ERR(fck);
++	}
++	sossi.fck =3D fck;
++
++	/* Reset and enable the SoSSI module */
++	l =3D omap_readl(MOD_CONF_CTRL_1);
++	l |=3D CONF_SOSSI_RESET_R;
++	omap_writel(l, MOD_CONF_CTRL_1);
++	l &=3D ~CONF_SOSSI_RESET_R;
++	omap_writel(l, MOD_CONF_CTRL_1);
++
++	clk_enable(sossi.fck);
++	l =3D omap_readl(ARM_IDLECT2);
++	l &=3D ~(1 << 8);			/* DMACK_REQ */
++	omap_writel(l, ARM_IDLECT2);
++
++	l =3D sossi_read_reg(SOSSI_INIT2_REG);
++	/* Enable and reset the SoSSI block */
++	l |=3D (1 << 0) | (1 << 1);
++	sossi_write_reg(SOSSI_INIT2_REG, l);
++	/* Take SoSSI out of reset */
++	l &=3D ~(1 << 1);
++	sossi_write_reg(SOSSI_INIT2_REG, l);
++
++	sossi_write_reg(SOSSI_ID_REG, 0);
++	l =3D sossi_read_reg(SOSSI_ID_REG);
++	k =3D sossi_read_reg(SOSSI_ID_REG);
++
++	if (l !=3D 0x55555555 || k !=3D 0xaaaaaaaa) {
++		dev_err(fbdev->dev,
++			"invalid SoSSI sync pattern: %08x, %08x\n", l, k);
++		r =3D -ENODEV;
++		goto err;
 +	}
 +
-+	rg = &req_md->region[0];
-+	memset(mem_start, 0xff, sizeof(mem_start));
-+	memset(mem_end, 0, sizeof(mem_end));
-+
-+	for (i = 0; i < req_md->region_cnt; i++, rg++) {
-+		int mtype;
-+		if (rg->paddr) {
-+			rg->alloc = 0;
-+			if (rg->vaddr == NULL) {
-+				rg->map = 1;
-+				if ((r = mmap_kern(rg)) < 0)
-+					return r;
-+			}
-+		} else {
-+			if (rg->type != OMAPFB_MEMTYPE_SDRAM) {
-+				dev_err(dispc.fbdev->dev,
-+					"unsupported memory type\n");
-+				return -EINVAL;
-+			}
-+			rg->alloc = rg->map = 1;
-+			if ((r = alloc_fbmem(rg)) < 0)
-+				return r;
-+		}
-+		mtype = rg->type;
-+
-+		if (rg->paddr < mem_start[mtype])
-+			mem_start[mtype] = rg->paddr;
-+		if (rg->paddr + rg->size > mem_end[mtype])
-+			mem_end[mtype] = rg->paddr + rg->size;
++	if ((r =3D omap_lcdc_set_dma_callback(sossi_dma_callback, NULL)) < 0)=
+ {
++		dev_err(fbdev->dev, "can't get LCDC IRQ\n");
++		r =3D -ENODEV;
++		goto err;
 +	}
 +
-+	for (i = 0; i < DISPC_MEMTYPE_NUM; i++) {
-+		unsigned long start;
-+		size_t size;
-+		if (mem_end[i] == 0)
-+			continue;
-+		start = mem_start[i];
-+		size = mem_end[i] - start;
-+		dispc.res_map[i] = init_resmap(start, size);
-+		r = -ENOMEM;
-+		if (dispc.res_map[i] == NULL)
-+			goto fail;
-+		/* Initial state is that everything is reserved. This
-+		 * includes possible holes as well, which will never be
-+		 * freed.
-+		 */
-+		resmap_reserve_region(start, size);
++	l =3D sossi_read_reg(SOSSI_ID_REG); /* Component code */
++	l =3D sossi_read_reg(SOSSI_ID_REG);
++	dev_info(fbdev->dev, "SoSSI version %d.%d initialized\n",
++		l >> 16, l & 0xffff);
++
++	l =3D sossi_read_reg(SOSSI_INIT1_REG);
++	l |=3D (1 << 19); /* DMA_MODE */
++	l &=3D ~(1 << 31); /* REORDERING */
++	sossi_write_reg(SOSSI_INIT1_REG, l);
++
++	if ((r =3D request_irq(INT_1610_SoSSI_MATCH, sossi_match_irq,
++			     IRQT_FALLING,
++	     "sossi_match", sossi.fbdev->dev)) < 0) {
++		dev_err(sossi.fbdev->dev, "can't get SoSSI match IRQ\n");
++		goto err;
 +	}
 +
-+	dispc.mem_desc = *req_md;
-+
++	clk_disable(sossi.fck);
 +	return 0;
-+fail:
-+	for (i = 0; i < DISPC_MEMTYPE_NUM; i++) {
-+		if (dispc.res_map[i] != NULL)
-+			cleanup_resmap(dispc.res_map[i]);
-+	}
++
++err:
++	clk_disable(sossi.fck);
++	clk_put(sossi.fck);
 +	return r;
 +}
 +
-+static void cleanup_fbmem(void)
++static void sossi_cleanup(void)
 +{
-+	struct omapfb_mem_region *rg;
-+	int i;
-+
-+	for (i = 0; i < DISPC_MEMTYPE_NUM; i++) {
-+		if (dispc.res_map[i] != NULL)
-+			cleanup_resmap(dispc.res_map[i]);
-+	}
-+	rg = &dispc.mem_desc.region[0];
-+	for (i = 0; i < dispc.mem_desc.region_cnt; i++, rg++) {
-+		if (rg->alloc)
-+			free_fbmem(rg);
-+		else {
-+			if (rg->map)
-+				unmap_kern(rg);
-+		}
-+	}
++	omap_lcdc_free_dma_callback();
++	clk_put(sossi.fck);
 +}
 +
-+static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
-+			   struct omapfb_mem_desc *req_vram)
-+{
-+	int r;
-+	u32 l;
-+	struct lcd_panel *panel = fbdev->panel;
-+	int tmo = 10000;
-+	int skip_init = 0;
-+	int i;
++struct lcd_ctrl_extif omap1_ext_if =3D {
++	.init			=3D sossi_init,
++	.cleanup		=3D sossi_cleanup,
++	.get_clk_info		=3D sossi_get_clk_info,
++	.convert_timings	=3D sossi_convert_timings,
++	.set_timings		=3D sossi_set_timings,
++	.set_bits_per_cycle	=3D sossi_set_bits_per_cycle,
++	.setup_tearsync		=3D sossi_setup_tearsync,
++	.enable_tearsync	=3D sossi_enable_tearsync,
++	.write_command		=3D sossi_write_command,
++	.read_data		=3D sossi_read_data,
++	.write_data		=3D sossi_write_data,
++	.transfer_area		=3D sossi_transfer_area,
 +
-+	memset(&dispc, 0, sizeof(dispc));
-+
-+	dispc.base = io_p2v(DISPC_BASE);
-+	dispc.fbdev = fbdev;
-+	dispc.ext_mode = ext_mode;
-+
-+	init_completion(&dispc.frame_done);
-+
-+	if ((r = get_dss_clocks()) < 0)
-+		return r;
-+
-+	enable_interface_clocks(1);
-+	enable_lcd_clocks(1);
-+
-+#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
-+	l = dispc_read_reg(DISPC_CONTROL);
-+	/* LCD enabled ? */
-+	if (l & 1) {
-+		pr_info("omapfb: skipping hardware initialization\n");
-+		skip_init = 1;
-+	}
-+#endif
-+
-+	if (!skip_init) {
-+		/* Reset monitoring works only w/ the 54M clk */
-+		enable_digit_clocks(1);
-+
-+		/* Soft reset */
-+		MOD_REG_FLD(DISPC_SYSCONFIG, 1 << 1, 1 << 1);
-+
-+		while (!(dispc_read_reg(DISPC_SYSSTATUS) & 1)) {
-+			if (!--tmo) {
-+				dev_err(dispc.fbdev->dev, "soft reset failed\n");
-+				r = -ENODEV;
-+				enable_digit_clocks(0);
-+				goto fail1;
-+			}
-+		}
-+
-+		enable_digit_clocks(0);
-+	}
-+
-+	/* Enable smart idle and autoidle */
-+	l = dispc_read_reg(DISPC_CONTROL);
-+	l &= ~((3 << 12) | (3 << 3));
-+	l |= (2 << 12) | (2 << 3) | (1 << 0);
-+	dispc_write_reg(DISPC_SYSCONFIG, l);
-+	omap_writel(1 << 0, DSS_BASE + DSS_SYSCONFIG);
-+
-+	/* Set functional clock autogating */
-+	l = dispc_read_reg(DISPC_CONFIG);
-+	l |= 1 << 9;
-+	dispc_write_reg(DISPC_CONFIG, l);
-+
-+	l = dispc_read_reg(DISPC_IRQSTATUS);
-+	dispc_write_reg(l, DISPC_IRQSTATUS);
-+
-+	/* Enable those that we handle always */
-+	omap_dispc_enable_irqs(DISPC_IRQ_FRAMEMASK);
-+
-+	if ((r = request_irq(INT_24XX_DSS_IRQ, omap_dispc_irq_handler,
-+			   0, MODULE_NAME, fbdev)) < 0) {
-+		dev_err(dispc.fbdev->dev, "can't get DSS IRQ\n");
-+		goto fail1;
-+	}
-+
-+	/* L3 firewall setting: enable access to OCM RAM */
-+	__raw_writel(0x402000b0, io_p2v(0x680050a0));
-+
-+	if ((r = alloc_palette_ram()) < 0)
-+		goto fail2;
-+
-+	if ((r = setup_fbmem(req_vram)) < 0)
-+		goto fail3;
-+
-+	if (!skip_init) {
-+		for (i = 0; i < dispc.mem_desc.region_cnt; i++) {
-+			memset(dispc.mem_desc.region[i].vaddr, 0,
-+				dispc.mem_desc.region[i].size);
-+		}
-+
-+		/* Set logic clock to fck, pixel clock to fck/2 for now */
-+		MOD_REG_FLD(DISPC_DIVISOR, FLD_MASK(16, 8), 1 << 16);
-+		MOD_REG_FLD(DISPC_DIVISOR, FLD_MASK(0, 8), 2 << 0);
-+
-+		setup_plane_fifo(0, ext_mode);
-+		setup_plane_fifo(1, ext_mode);
-+		setup_plane_fifo(2, ext_mode);
-+
-+		setup_color_conv_coef();
-+
-+		set_lcd_tft_mode(panel->config & OMAP_LCDC_PANEL_TFT);
-+		set_load_mode(DISPC_LOAD_FRAME_ONLY);
-+
-+		if (!ext_mode) {
-+			set_lcd_data_lines(panel->data_lines);
-+			omap_dispc_set_lcd_size(panel->x_res, panel->y_res);
-+			set_lcd_timings();
-+		} else
-+			set_lcd_data_lines(panel->bpp);
-+		enable_rfbi_mode(ext_mode);
-+	}
-+
-+	l = dispc_read_reg(DISPC_REVISION);
-+	pr_info("omapfb: DISPC version %d.%d initialized\n",
-+		 l >> 4 & 0x0f, l & 0x0f);
-+	enable_lcd_clocks(0);
-+
-+	return 0;
-+fail3:
-+	free_palette_ram();
-+fail2:
-+	free_irq(INT_24XX_DSS_IRQ, fbdev);
-+fail1:
-+	enable_lcd_clocks(0);
-+	enable_interface_clocks(0);
-+	put_dss_clocks();
-+
-+	return r;
-+}
-+
-+static void omap_dispc_cleanup(void)
-+{
-+	int i;
-+
-+	omap_dispc_set_update_mode(OMAPFB_UPDATE_DISABLED);
-+	/* This will also disable clocks that are on */
-+	for (i = 0; i < dispc.mem_desc.region_cnt; i++)
-+		omap_dispc_enable_plane(i, 0);
-+	cleanup_fbmem();
-+	free_palette_ram();
-+	free_irq(INT_24XX_DSS_IRQ, dispc.fbdev);
-+	enable_interface_clocks(0);
-+	put_dss_clocks();
-+}
-+
-+const struct lcd_ctrl omap2_int_ctrl = {
-+	.name			= "internal",
-+	.init			= omap_dispc_init,
-+	.cleanup		= omap_dispc_cleanup,
-+	.get_caps		= omap_dispc_get_caps,
-+	.set_update_mode	= omap_dispc_set_update_mode,
-+	.get_update_mode	= omap_dispc_get_update_mode,
-+	.update_window		= omap_dispc_update_window,
-+	.suspend		= omap_dispc_suspend,
-+	.resume			= omap_dispc_resume,
-+	.setup_plane		= omap_dispc_setup_plane,
-+	.setup_mem		= omap_dispc_setup_mem,
-+	.set_scale		= omap_dispc_set_scale,
-+	.enable_plane		= omap_dispc_enable_plane,
-+	.set_color_key		= omap_dispc_set_color_key,
-+	.get_color_key		= omap_dispc_get_color_key,
-+	.mmap			= omap_dispc_mmap_user,
++	.max_transmit_size	=3D SOSSI_MAX_XMIT_BYTES,
 +};
-diff -puN /dev/null drivers/video/omap/dispc.h
---- /dev/null
-+++ a/drivers/video/omap/dispc.h
-@@ -0,0 +1,43 @@
-+#ifndef _DISPC_H
-+#define _DISPC_H
 +
-+#include <linux/interrupt.h>
-+
-+#define DISPC_PLANE_GFX			0
-+#define DISPC_PLANE_VID1		1
-+#define DISPC_PLANE_VID2		2
-+
-+#define DISPC_RGB_1_BPP			0x00
-+#define DISPC_RGB_2_BPP			0x01
-+#define DISPC_RGB_4_BPP			0x02
-+#define DISPC_RGB_8_BPP			0x03
-+#define DISPC_RGB_12_BPP		0x04
-+#define DISPC_RGB_16_BPP		0x06
-+#define DISPC_RGB_24_BPP		0x08
-+#define DISPC_RGB_24_BPP_UNPACK_32	0x09
-+#define DISPC_YUV2_422			0x0a
-+#define DISPC_UYVY_422			0x0b
-+
-+#define DISPC_BURST_4x32		0
-+#define DISPC_BURST_8x32		1
-+#define DISPC_BURST_16x32		2
-+
-+#define DISPC_LOAD_CLUT_AND_FRAME	0x00
-+#define DISPC_LOAD_CLUT_ONLY		0x01
-+#define DISPC_LOAD_FRAME_ONLY		0x02
-+#define DISPC_LOAD_CLUT_ONCE_FRAME	0x03
-+
-+#define DISPC_TFT_DATA_LINES_12		0
-+#define DISPC_TFT_DATA_LINES_16		1
-+#define DISPC_TFT_DATA_LINES_18		2
-+#define DISPC_TFT_DATA_LINES_24		3
-+
-+extern void omap_dispc_set_lcd_size(int width, int height);
-+
-+extern void omap_dispc_enable_lcd_out(int enable);
-+extern void omap_dispc_enable_digit_out(int enable);
-+
-+extern int  omap_dispc_request_irq(void (*callback)(void *data), void *data);
-+extern void omap_dispc_free_irq(void);
-+
-+#endif
 _
 
-Patches currently in -mm which might be from imre.deak@solidboot.com are
+Patches currently in -mm which might be from imre.deak@solidboot.com ar=
+e
 
 omap-add-ti-omap-framebuffer-driver.patch
 omap-add-ti-omap1610-accelerator-entry.patch
