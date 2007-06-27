@@ -1,256 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: - nick-broke-stuff.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 22:05:39 -0700
-Message-ID: <200706270505.l5R55dP3010320@imap1.linux-foundation.org>
+Subject: + fs-affs-convert-to-new-aops.patch added to -mm tree
+Date: Tue, 26 Jun 2007 22:05:37 -0700
+Message-ID: <200706270505.l5R55bdk010317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41101 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60558 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753018AbXF0FFr (ORCPT
+	by vger.kernel.org with ESMTP id S1753588AbXF0FF5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 01:05:47 -0400
+	Wed, 27 Jun 2007 01:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: npiggin@suse.de, zippel@linux-m68k.org
 
 
 The patch titled
-     nick-broke-stuff
-has been removed from the -mm tree.  Its filename was
-     nick-broke-stuff.patch
+     fs: affs convert to new aops
+has been added to the -mm tree.  Its filename is
+     fs-affs-convert-to-new-aops.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: nick-broke-stuff
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs: affs convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-These both use cont_prepare_write().  How do these things happen?
-
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/affs/file.c |  102 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 58 insertions(+), 44 deletions(-)
 
-diff -puN fs/Kconfig~nick-broke-stuff fs/Kconfig
---- a/fs/Kconfig~nick-broke-stuff
-+++ a/fs/Kconfig
-@@ -1094,7 +1094,7 @@ menu "Miscellaneous filesystems"
+diff -puN fs/affs/file.c~fs-affs-convert-to-new-aops fs/affs/file.c
+--- a/fs/affs/file.c~fs-affs-convert-to-new-aops
++++ a/fs/affs/file.c
+@@ -395,25 +395,33 @@ static int affs_writepage(struct page *p
+ {
+ 	return block_write_full_page(page, affs_get_block, wbc);
+ }
++
+ static int affs_readpage(struct file *file, struct page *page)
+ {
+ 	return block_read_full_page(page, affs_get_block);
+ }
+-static int affs_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
+-{
+-	return cont_prepare_write(page, from, to, affs_get_block,
+-		&AFFS_I(page->mapping->host)->mmu_private);
++
++static int affs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	*pagep = NULL;
++	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				affs_get_block,
++				&AFFS_I(mapping->host)->mmu_private);
+ }
++
+ static sector_t _affs_bmap(struct address_space *mapping, sector_t block)
+ {
+ 	return generic_block_bmap(mapping,block,affs_get_block);
+ }
++
+ const struct address_space_operations affs_aops = {
+ 	.readpage = affs_readpage,
+ 	.writepage = affs_writepage,
+ 	.sync_page = block_sync_page,
+-	.prepare_write = affs_prepare_write,
+-	.commit_write = generic_commit_write,
++	.write_begin = affs_write_begin,
++	.write_end = generic_write_end,
+ 	.bmap = _affs_bmap
+ };
  
- config ADFS_FS
- 	tristate "ADFS file system support (EXPERIMENTAL)"
--	depends on BLOCK && EXPERIMENTAL
-+	depends on BLOCK && EXPERIMENTAL && BROKEN
- 	help
- 	  The Acorn Disc Filing System is the standard file system of the
- 	  RiscOS operating system which runs on Acorn's ARM-based Risc PC
-@@ -1122,7 +1122,7 @@ config ADFS_FS_RW
+@@ -603,54 +611,65 @@ affs_readpage_ofs(struct file *file, str
+ 	return err;
+ }
  
- config AFFS_FS
- 	tristate "Amiga FFS file system support (EXPERIMENTAL)"
--	depends on BLOCK && EXPERIMENTAL
-+	depends on BLOCK && EXPERIMENTAL && BROKEN
- 	help
- 	  The Fast File System (FFS) is the common file system used on hard
- 	  disks by Amiga(tm) systems since AmigaOS Version 1.3 (34.20).  Say Y
+-static int affs_prepare_write_ofs(struct file *file, struct page *page, unsigned from, unsigned to)
+-{
+-	struct inode *inode = page->mapping->host;
+-	u32 size, offset;
+-	u32 tmp;
++static int affs_write_begin_ofs(struct file *file, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned flags,
++				struct page **pagep, void **fsdata)
++{
++	struct inode *inode = mapping->host;
++	struct page *page;
++	pgoff_t index;
+ 	int err = 0;
+ 
+-	pr_debug("AFFS: prepare_write(%u, %ld, %d, %d)\n", (u32)inode->i_ino, page->index, from, to);
+-	offset = page->index << PAGE_CACHE_SHIFT;
+-	if (offset + from > AFFS_I(inode)->mmu_private) {
+-		err = affs_extent_file_ofs(inode, offset + from);
++	pr_debug("AFFS: write_begin(%u, %llu, %llu)\n", (u32)inode->i_ino, (unsigned long long)pos, (unsigned long long)pos + len);
++	if (pos > AFFS_I(inode)->mmu_private) {
++		/* XXX: this probably leaves a too-big i_size in case of
++		 * failure. Should really be updating i_size at write_end time
++		 */
++		err = affs_extent_file_ofs(inode, pos);
+ 		if (err)
+ 			return err;
+ 	}
+-	size = inode->i_size;
++
++	index = pos >> PAGE_CACHE_SHIFT;
++	page = __grab_cache_page(mapping, index);
++	if (!page)
++		return -ENOMEM;
++	*pagep = page;
+ 
+ 	if (PageUptodate(page))
+ 		return 0;
+ 
+-	if (from) {
+-		err = affs_do_readpage_ofs(file, page, 0, from);
+-		if (err)
+-			return err;
+-	}
+-	if (to < PAGE_CACHE_SIZE) {
+-		zero_user_page(page, to, PAGE_CACHE_SIZE - to, KM_USER0);
+-		if (size > offset + to) {
+-			if (size < offset + PAGE_CACHE_SIZE)
+-				tmp = size & ~PAGE_CACHE_MASK;
+-			else
+-				tmp = PAGE_CACHE_SIZE;
+-			err = affs_do_readpage_ofs(file, page, to, tmp);
+-		}
++	/* XXX: inefficient but safe in the face of short writes */
++	err = affs_do_readpage_ofs(file, page, 0, PAGE_CACHE_SIZE);
++	if (err) {
++		unlock_page(page);
++		page_cache_release(page);
+ 	}
+ 	return err;
+ }
+ 
+-static int affs_commit_write_ofs(struct file *file, struct page *page, unsigned from, unsigned to)
++static int affs_write_end_ofs(struct file *file, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
+ {
+-	struct inode *inode = page->mapping->host;
++	struct inode *inode = mapping->host;
+ 	struct super_block *sb = inode->i_sb;
+ 	struct buffer_head *bh, *prev_bh;
+ 	char *data;
+ 	u32 bidx, boff, bsize;
++	unsigned from, to;
+ 	u32 tmp;
+ 	int written;
+ 
+-	pr_debug("AFFS: commit_write(%u, %ld, %d, %d)\n", (u32)inode->i_ino, page->index, from, to);
++	from = pos & (PAGE_CACHE_SIZE - 1);
++	to = pos + len;
++	/*
++	 * XXX: not sure if this can handle short copies (len < copied), but
++	 * we don't have to, because the page should always be uptodate here,
++	 * due to write_begin.
++	 */
++
++	pr_debug("AFFS: write_begin(%u, %llu, %llu)\n", (u32)inode->i_ino, (unsigned long long)pos, (unsigned long long)pos + len);
+ 	bsize = AFFS_SB(sb)->s_data_blksize;
+ 	data = page_address(page);
+ 
+@@ -761,8 +780,8 @@ const struct address_space_operations af
+ 	.readpage = affs_readpage_ofs,
+ 	//.writepage = affs_writepage_ofs,
+ 	//.sync_page = affs_sync_page_ofs,
+-	.prepare_write = affs_prepare_write_ofs,
+-	.commit_write = affs_commit_write_ofs
++	.write_begin = affs_write_begin_ofs,
++	.write_end = affs_write_end_ofs
+ };
+ 
+ /* Free any preallocated blocks. */
+@@ -805,18 +824,13 @@ affs_truncate(struct inode *inode)
+ 	if (inode->i_size > AFFS_I(inode)->mmu_private) {
+ 		struct address_space *mapping = inode->i_mapping;
+ 		struct page *page;
+-		u32 size = inode->i_size - 1;
++		void *fsdata;
++		u32 size = inode->i_size;
+ 		int res;
+ 
+-		page = grab_cache_page(mapping, size >> PAGE_CACHE_SHIFT);
+-		if (!page)
+-			return;
+-		size = (size & (PAGE_CACHE_SIZE - 1)) + 1;
+-		res = mapping->a_ops->prepare_write(NULL, page, size, size);
++		res = mapping->a_ops->write_begin(NULL, mapping, size, 0, 0, &page, &fsdata);
+ 		if (!res)
+-			res = mapping->a_ops->commit_write(NULL, page, size, size);
+-		unlock_page(page);
+-		page_cache_release(page);
++			res = mapping->a_ops->write_end(NULL, mapping, size, 0, 0, page, fsdata);
+ 		mark_inode_dirty(inode);
+ 		return;
+ 	} else if (inode->i_size == AFFS_I(inode)->mmu_private)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
+mm-kill-validate_anon_vma-to-avoid-mapcount-bug.patch
+slob-rework-freelist-handling.patch
+slob-remove-bigblock-tracking.patch
+slob-improved-alignment-handling.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
 mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
+mm-merge-nopfn-into-fault-spufs-fix.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-nick-broke-stuff.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix-2.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix-3.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix-4.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+udf-convert-to-new-aops.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+fix-read-truncate-race.patch
+mm-document-fault_data-and-flags.patch
+fs-introduce-some-page-buffer-invariants.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+reiser4-fix-for-new-aops-patches.patch
