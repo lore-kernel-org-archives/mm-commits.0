@@ -1,284 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + restore-acpi-change-for-scsi.patch added to -mm tree
-Date: Tue, 26 Jun 2007 23:22:07 -0700
-Message-ID: <200706270622.l5R6M77L011338@imap1.linux-foundation.org>
+Subject: - containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 23:42:52 -0700
+Message-ID: <200706270646.l5R6ko4C011696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47128 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49379 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757526AbXF0GWU (ORCPT
+	by vger.kernel.org with ESMTP id S1758575AbXF0GrB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 02:22:20 -0400
+	Wed, 27 Jun 2007 02:47:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org
+To: dhaval@linux.vnet.ibm.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     restore-acpi-change-for-scsi
-has been added to the -mm tree.  Its filename is
-     restore-acpi-change-for-scsi.patch
+     Fix for bad lock balance in Containers
+has been removed from the -mm tree.  Its filename was
+     containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it doesn't compile and doesn't look right, either
 
 ------------------------------------------------------
-Subject: restore-acpi-change-for-scsi
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix for bad lock balance in Containers
+From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 
-resigh
+I have been going through the containers code and trying it out. I tried
+mounting the same hierarchy at two different points and I got a bad
+locking balance warning.
 
-Cc: Len Brown <lenb@kernel.org>
+=====================================
+[ BUG: bad unlock balance detected! ]
+-------------------------------------
+mount/4467 is trying to release lock (&type->s_umount_key) at:
+[<c017de3b>] vfs_kern_mount+0x5b/0x70
+but there are no more locks to release!
+
+other info that might help us debug this:
+no locks held by mount/4467.
+
+stack backtrace:
+ [<c0105b9f>] show_trace_log_lvl+0x19/0x2e
+ [<c0105bc6>] show_trace+0x12/0x14
+ [<c0105cb1>] dump_stack+0x14/0x16
+ [<c0142c1a>] print_unlock_inbalance_bug+0xcc/0xd6
+ [<c0142c93>] check_unlock+0x6f/0x75
+ [<c0142ee0>] __lock_release+0x1e/0x51
+ [<c014312c>] lock_release+0x4c/0x64
+ [<c013bd9d>] up_write+0x16/0x2b
+ [<c017de3b>] vfs_kern_mount+0x5b/0x70
+ [<c018fae7>] do_new_mount+0x85/0xe6
+ [<c019013f>] do_mount+0x185/0x199
+ [<c01903ab>] sys_mount+0x71/0xa6
+ [<c0104d6a>] sysenter_past_esp+0x5f/0x99
+ =======================
+
+Going through the code, I realised this is because when the container is
+already mounted at one point, when being remounted, it just does a
+simple_set_mnt which does not update s_umount which causes the warning
+to come. This also cause umount to hang the second time.
+
+The correct method would be allocate the superblock using sget (or a
+variant) which would call grab_super correctly and set these locks.
+Seeing the code which is there, some part of grab_super is already done
+in container_get_sb where the root->sb->s_active is updated. So I have
+called down_write there as well to get the locking balance. However I
+believe that this is not the correct approach.
+
+There are a few questions I had with respect to the current code,
+
+Why is the increment of s_active dependent on the return value of
+simple_set_mnt? All the other functions which I have seen (fs ones),
+grab_super (which increments s_active) is called followed by a
+simple_set_mnt.
+
+What should be the correct approach to get the locking balance? As far
+as I can see, the correct method would be to call sget which would then
+correctly handle everything. But that would require a test function. I
+saw functionality similar to a test function in the beginning of
+container_get_sb(). Should that be seperated and put in a seperate test
+function so that sget can be called?
+
+Another possible approach would be to call grab_super directly (since we
+know the test function is going to return true), but this cannot be done
+since grab_super is static right now. Or maybe we could duplicate
+grab_super's functionality.
+
+In the meantime a temporary fix.
+
+Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_attr.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ kernel/container.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi drivers/scsi/lpfc/lpfc_attr.c
---- a/drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi
-+++ a/drivers/scsi/lpfc/lpfc_attr.c
-@@ -1405,7 +1405,8 @@ struct class_device_attribute *lpfc_hba_
- };
- 
- static ssize_t
--sysfs_ctlreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_ctlreg_write(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		   char *buf, loff_t off, size_t count)
- {
- 	size_t buf_off;
- 	struct class_device *cdev = container_of(kobj, struct class_device,
-@@ -1437,7 +1438,8 @@ sysfs_ctlreg_write(struct kobject *kobj,
- }
- 
- static ssize_t
--sysfs_ctlreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_ctlreg_read(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		  char *buf, loff_t off, size_t count)
- {
- 	size_t buf_off;
- 	uint32_t * tmp_ptr;
-@@ -1495,7 +1497,8 @@ sysfs_mbox_idle(struct lpfc_hba *phba)
- }
- 
- static ssize_t
--sysfs_mbox_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_mbox_write(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		 char *buf, loff_t off, size_t count)
- {
- 	struct class_device *cdev = container_of(kobj, struct class_device,
- 						 kobj);
-@@ -1549,7 +1552,8 @@ sysfs_mbox_write(struct kobject *kobj, c
- }
- 
- static ssize_t
--sysfs_mbox_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
-+sysfs_mbox_read(struct kobject *kobj, struct bin_attribute *bin_attr,
-+		char *buf, loff_t off, size_t count)
- {
- 	struct class_device *cdev = container_of(kobj, struct class_device,
- 						 kobj);
+diff -puN kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers kernel/container.c
+--- a/kernel/container.c~containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers
++++ a/kernel/container.c
+@@ -602,6 +602,7 @@ static int container_get_sb(struct file_
+ 		BUG_ON(ret);
+ 	} else {
+ 		/* Reuse the existing superblock */
++		down_write(&(root->sb->umount));
+ 		ret = simple_set_mnt(mnt, root->sb);
+ 		if (!ret)
+ 			atomic_inc(&root->sb->s_active);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-restore-acpi-change-for-scsi.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix-2.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+containersv10-basic-container-framework-fix-3.patch
+containersv10-basic-container-framework-fix-for-bad-lock-balance-in-containers.patch
