@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch added to -mm tree
-Date: Wed, 27 Jun 2007 11:08:00 -0700
-Message-ID: <200706271808.l5RI80Fv027690@imap1.linux-foundation.org>
+Subject: + slub-simplify-dma-index-size-calculation.patch added to -mm tree
+Date: Wed, 27 Jun 2007 11:08:26 -0700
+Message-ID: <200706271808.l5RI8QU1027751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38387 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40912 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752158AbXF0SII (ORCPT
+	by vger.kernel.org with ESMTP id S1755372AbXF0SId (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 14:08:08 -0400
+	Wed, 27 Jun 2007 14:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slub-faster-more-efficient-slab-determination-for-__kmalloc fix 2
+     SLUB: Simplify dma index -> size calculation
 has been added to the -mm tree.  Its filename is
-     slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
+     slub-simplify-dma-index-size-calculation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-faster-more-efficient-slab-determination-for-__kmalloc fix 2
+Subject: SLUB: Simplify dma index -> size calculation
 From: Christoph Lameter <clameter@sgi.com>
 
-SLUB: Fix index calculation in get_slab
-
-fls already returns the value + 1. No need to increment it.
+There is no need to caculate the dma slab size ourselves. We can simply
+lookup the size of the corresponding non dma slab.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2 mm/slub.c
---- a/mm/slub.c~slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2
+diff -puN mm/slub.c~slub-simplify-dma-index-size-calculation mm/slub.c
+--- a/mm/slub.c~slub-simplify-dma-index-size-calculation
 +++ a/mm/slub.c
-@@ -2369,7 +2369,7 @@ static struct kmem_cache *get_slab(size_
- 		if (size > KMALLOC_MAX_SIZE)
- 			return NULL;
+@@ -2299,15 +2299,7 @@ static noinline struct kmem_cache *dma_k
+ 	if (!x)
+ 		panic("Unable to allocate memory for dma cache\n");
  
--		index = fls(size - 1) + 1;
-+		index = fls(size - 1);
- 	}
- 
- #ifdef CONFIG_ZONE_DMA
+-	if (index <= KMALLOC_SHIFT_HIGH)
+-		realsize = 1 << index;
+-	else {
+-		if (index == 1)
+-			realsize = 96;
+-		else
+-			realsize = 192;
+-	}
+-
++	realsize = kmalloc_caches[index].objsize;
+ 	text = kasprintf(flags & ~SLUB_DMA, "kmalloc_dma-%d",
+ 			(unsigned int)realsize);
+ 	s = create_kmalloc_cache(x, text, realsize, flags);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -106,6 +113,7 @@ slub-do-proper-locking-during-dma-slab-creation.patch
 slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
 slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
 slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
+slub-simplify-dma-index-size-calculation.patch
 add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
 define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
 revoke-core-code.patch
