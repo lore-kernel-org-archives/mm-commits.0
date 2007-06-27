@@ -1,124 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - force-rcutorture-tasks-to-spread-over-cpus.patch removed from -mm tree
-Date: Wed, 27 Jun 2007 11:30:12 -0700
-Message-ID: <200706271830.l5RIUCgJ031057@imap1.linux-foundation.org>
+Subject: + gen_estimator-fix-locking-and-timer-related-bugs.patch added to -mm tree
+Date: Wed, 27 Jun 2007 12:21:41 -0700
+Message-ID: <200706271921.l5RJLgCC003910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44599 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbXF0Sfp (ORCPT
+	by vger.kernel.org with ESMTP id S1751433AbXF0TWH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 14:35:45 -0400
+	Wed, 27 Jun 2007 15:22:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, josh@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kaber@trash.net, jarkao2@o2.pl, ranko@spidernet.net
 
 
 The patch titled
-     Force rcutorture tasks to spread over CPUs
-has been removed from the -mm tree.  Its filename was
-     force-rcutorture-tasks-to-spread-over-cpus.patch
+     gen_estimator: fix locking and timer related bugs
+has been added to the -mm tree.  Its filename is
+     gen_estimator-fix-locking-and-timer-related-bugs.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Force rcutorture tasks to spread over CPUs
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: gen_estimator: fix locking and timer related bugs
+From: Patrick McHardy <kaber@trash.net>
 
-Of late, the scheduler seems to have decided to make things too easy for
-RCU -- on some configurations, all of the rcutorture tasks end up on the
-same CPU, which doesn't do a very good job of torturing RCU.  This patch
-helps the scheduler spread these tasks out by forcing a 20-millisecond
-burst of CPU-bound execution on each of rcutorture's tasks, which seems to
-work reasonably well in practice.
+As noticed by Jarek Poplawski <jarkao2@o2.pl>, the timer removal in
+gen_kill_estimator races with the timer function rearming the timer.
 
-My challenge for those working on the scheduler is to make this patch
-unnecessary.  ;-)
+Additionally there are a few more related problems that seem to be
+relicts from the timer when the estimator was qdisc specific and
+could rely on the rtnl or dev->qdisc_lock:
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Josh Triplett <josh@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+- the check whether the list is empty and a timer needs to be started
+  when adding a new estimator doesn't take the lock, so it races
+  against concurrent additions, which can result in the timer beeing
+  added twice or getting reinitialized after being added.
+
+- the new estimator's next pointer is also set without holding the
+  lock, again racing against concurrent additions with possible
+  list corruption as a result.
+
+- the timer deletion when killing an estimator is also not under
+  the lock and races against timer arming when adding a new estimator.
+
+Fix by holding the lock around the entire list addition and initial
+timer arming. Removal is not done explicitly anymore, instead the
+timer function only rearms the timer when there are still estimators
+present.
+
+Addreses http://bugzilla.kernel.org/show_bug.cgi?id=8668
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Cc: Ranko Zivojnovic <ranko@spidernet.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutorture.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+)
+ net/core/gen_estimator.c |   27 +++++++++++----------------
+ 1 files changed, 11 insertions(+), 16 deletions(-)
 
-diff -puN kernel/rcutorture.c~force-rcutorture-tasks-to-spread-over-cpus kernel/rcutorture.c
---- a/kernel/rcutorture.c~force-rcutorture-tasks-to-spread-over-cpus
-+++ a/kernel/rcutorture.c
-@@ -103,6 +103,8 @@ struct rcu_torture {
- };
- 
- static int fullstop = 0;	/* stop generating callbacks at test end. */
-+static int startwriters;	/* force load-balancing of writers. */
-+static int startreaders;	/* force load-balancing of readers. */
- static LIST_HEAD(rcu_torture_freelist);
- static struct rcu_torture *rcu_torture_current = NULL;
- static long rcu_torture_current_version = 0;
-@@ -518,6 +520,8 @@ rcu_torture_writer(void *arg)
- 	static DEFINE_RCU_RANDOM(rand);
- 
- 	VERBOSE_PRINTK_STRING("rcu_torture_writer task started");
-+	while (!startwriters)
-+		barrier();	/* Force scheduler to spread over CPUs. */
- 	set_user_nice(current, 19);
- 
- 	do {
-@@ -557,6 +561,8 @@ rcu_torture_fakewriter(void *arg)
- 	DEFINE_RCU_RANDOM(rand);
- 
- 	VERBOSE_PRINTK_STRING("rcu_torture_fakewriter task started");
-+	while (!startwriters)
-+		barrier();	/* Force scheduler to spread over CPUs. */
- 	set_user_nice(current, 19);
- 
- 	do {
-@@ -587,6 +593,8 @@ rcu_torture_reader(void *arg)
- 	int pipe_count;
- 
- 	VERBOSE_PRINTK_STRING("rcu_torture_reader task started");
-+	while (!startreaders)
-+		barrier();	/* Force scheduler to spread over CPUs. */
- 	set_user_nice(current, 19);
- 
- 	do {
-@@ -920,6 +928,8 @@ rcu_torture_init(void)
- 
- 	/* Start up the kthreads. */
- 
-+	startwriters = 0;
-+	barrier();
- 	VERBOSE_PRINTK_STRING("Creating rcu_torture_writer task");
- 	writer_task = kthread_run(rcu_torture_writer, NULL,
- 				  "rcu_torture_writer");
-@@ -947,6 +957,12 @@ rcu_torture_init(void)
- 			goto unwind;
- 		}
+diff -puN net/core/gen_estimator.c~gen_estimator-fix-locking-and-timer-related-bugs net/core/gen_estimator.c
+--- a/net/core/gen_estimator.c~gen_estimator-fix-locking-and-timer-related-bugs
++++ a/net/core/gen_estimator.c
+@@ -127,8 +127,8 @@ static void est_timer(unsigned long arg)
+ 		e->rate_est->pps = (e->avpps+0x1FF)>>10;
+ 		spin_unlock(e->stats_lock);
  	}
-+	barrier();
-+	startwriters = 1;
-+	schedule_timeout_interruptible(round_jiffies_relative(HZ/50));
+-
+-	mod_timer(&elist[idx].timer, jiffies + ((HZ<<idx)/4));
++	if (elist[idx].list != NULL)
++		mod_timer(&elist[idx].timer, jiffies + ((HZ<<idx)/4));
+ 	read_unlock(&est_lock);
+ }
+ 
+@@ -152,6 +152,7 @@ int gen_new_estimator(struct gnet_stats_
+ {
+ 	struct gen_estimator *est;
+ 	struct gnet_estimator *parm = RTA_DATA(opt);
++	int idx;
+ 
+ 	if (RTA_PAYLOAD(opt) < sizeof(*parm))
+ 		return -EINVAL;
+@@ -163,7 +164,7 @@ int gen_new_estimator(struct gnet_stats_
+ 	if (est == NULL)
+ 		return -ENOBUFS;
+ 
+-	est->interval = parm->interval + 2;
++	est->interval = idx = parm->interval + 2;
+ 	est->bstats = bstats;
+ 	est->rate_est = rate_est;
+ 	est->stats_lock = stats_lock;
+@@ -173,16 +174,14 @@ int gen_new_estimator(struct gnet_stats_
+ 	est->last_packets = bstats->packets;
+ 	est->avpps = rate_est->pps<<10;
+ 
+-	est->next = elist[est->interval].list;
+-	if (est->next == NULL) {
+-		init_timer(&elist[est->interval].timer);
+-		elist[est->interval].timer.data = est->interval;
+-		elist[est->interval].timer.expires = jiffies + ((HZ<<est->interval)/4);
+-		elist[est->interval].timer.function = est_timer;
+-		add_timer(&elist[est->interval].timer);
+-	}
+ 	write_lock_bh(&est_lock);
+-	elist[est->interval].list = est;
++	if (!elist[idx].timer.function)
++		setup_timer(&elist[idx].timer, est_timer, est->interval);
++	if (elist[est->interval].list == NULL)
++		mod_timer(&elist[idx].timer, jiffies + ((HZ<<idx)/4));
 +
-+	startreaders = 0;
-+	barrier();
- 	reader_tasks = kzalloc(nrealreaders * sizeof(reader_tasks[0]),
- 			       GFP_KERNEL);
- 	if (reader_tasks == NULL) {
-@@ -965,6 +981,10 @@ rcu_torture_init(void)
- 			goto unwind;
++	est->next = elist[idx].list;
++	elist[idx].list = est;
+ 	write_unlock_bh(&est_lock);
+ 	return 0;
+ }
+@@ -202,7 +201,6 @@ void gen_kill_estimator(struct gnet_stat
+ 	struct gen_estimator *est, **pest;
+ 
+ 	for (idx=0; idx <= EST_MAX_INTERVAL; idx++) {
+-		int killed = 0;
+ 		pest = &elist[idx].list;
+ 		while ((est=*pest) != NULL) {
+ 			if (est->rate_est != rate_est || est->bstats != bstats) {
+@@ -215,10 +213,7 @@ void gen_kill_estimator(struct gnet_stat
+ 			write_unlock_bh(&est_lock);
+ 
+ 			kfree(est);
+-			killed++;
  		}
+-		if (killed && elist[idx].list == NULL)
+-			del_timer(&elist[idx].timer);
  	}
-+	schedule_timeout_interruptible(round_jiffies_relative(HZ/50));
-+	barrier();
-+	startreaders = 1;
-+
- 	if (stat_interval > 0) {
- 		VERBOSE_PRINTK_STRING("Creating rcu_torture_stats task");
- 		stats_task = kthread_run(rcu_torture_stats, NULL,
+ }
+ 
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kaber@trash.net are
 
-document-the-fact-that-rcu-callbacks-can-run-in-parallel.patch
-force-rcutorture-tasks-to-spread-over-cpus.patch
+git-net.patch
+make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
+gen_estimator-fix-locking-and-timer-related-bugs.patch
