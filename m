@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + gen_estimator-fix-locking-and-timer-related-bugs.patch added to -mm tree
-Date: Wed, 27 Jun 2007 12:21:41 -0700
-Message-ID: <200706271921.l5RJLgCC003910@imap1.linux-foundation.org>
+Subject: + linux-hpet-issue-with-amd-southbridges.patch added to -mm tree
+Date: Wed, 27 Jun 2007 12:23:57 -0700
+Message-ID: <200706271923.l5RJNwWH003966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57539 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbXF0TWH (ORCPT
+	by vger.kernel.org with ESMTP id S1751444AbXF0TYd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 15:22:07 -0400
+	Wed, 27 Jun 2007 15:24:33 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5RJO3cP003007
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 27 Jun 2007 12:24:04 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kaber@trash.net, jarkao2@o2.pl, ranko@spidernet.net
+Cc: torvalds@linux-foundation.org
 
 
 The patch titled
-     gen_estimator: fix locking and timer related bugs
+     Linux HPET issue with AMD southbridges
 has been added to the -mm tree.  Its filename is
-     gen_estimator-fix-locking-and-timer-related-bugs.patch
+     linux-hpet-issue-with-amd-southbridges.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,121 +30,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gen_estimator: fix locking and timer related bugs
-From: Patrick McHardy <kaber@trash.net>
+Subject: Linux HPET issue with AMD southbridges
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-As noticed by Jarek Poplawski <jarkao2@o2.pl>, the timer removal in
-gen_kill_estimator races with the timer function rearming the timer.
+On Wed, 27 Jun 2007, Matthias Lenk wrote:
+>
+> I attached the output of cat /proc/iomem when booting with hpet=disable. As
+> you can see the HPET address is still 0xfed00000 where it is supposed to be
+> while the new hardware base address for the HPET is 0x30000000 which is
+> allocated for device 0:14.0 (SMBus controller). For all ATI southbridges the
+> HPET base is at BAR1 of device 0:14.0.
 
-Additionally there are a few more related problems that seem to be
-relicts from the timer when the estimator was qdisc specific and
-could rely on the rtnl or dev->qdisc_lock:
+Ok. The problem is, as I suspected, too early firmware resource
+allocation. In this case, it's "acpi_parse_hpet()" that reserves the
+resource too early.
 
-- the check whether the list is empty and a timer needs to be started
-  when adding a new estimator doesn't take the lock, so it races
-  against concurrent additions, which can result in the timer beeing
-  added twice or getting reinitialized after being added.
+The bug was apparently introduced by commit f0f4c3432e5e: "i386: add
+HPET(s) into resource map" by Aaron Durbin.
 
-- the new estimator's next pointer is also set without holding the
-  lock, again racing against concurrent additions with possible
-  list corruption as a result.
+So the rule for these kinds of things really *must* be:
 
-- the timer deletion when killing an estimator is also not under
-  the lock and races against timer arming when adding a new estimator.
+ - read the firmware info early if you want to.
 
-Fix by holding the lock around the entire list addition and initial
-timer arming. Removal is not done explicitly anymore, instead the
-timer function only rearms the timer when there are still estimators
-present.
+ - but firmware *must*not* mark IO regions as being reserved until after
+   the PCI resource parsing has been done. In particular, they must not be
+   marked busy.
 
-Addreses http://bugzilla.kernel.org/show_bug.cgi?id=8668
+I _think_ that the fix in this case may actually be as trivial as just
+removing the BUSY on the resource. In that case, the PCI layer will be
+able to insert the resource it knows about, and everything is fine. It
+just won't be allocating *new* resources over it (which is obviously what
+we want).
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Cc: Ranko Zivojnovic <ranko@spidernet.net>
+So I *think* that this patch may "Just Work(tm)". But it's obviously
+totally untested, since I don't have the hardware that can trigger this.
+I'd really appreciate testing. And I won't guarantee it does, but I'd love
+to see the whole "dmesg" output regardless..
+
+I don't think it's the *best* patch. I think a better patch would
+literally be to do the whole firmware resource adding at a later stage,
+after we've done the PCI probing (but before we do any new allocation, of
+course!).
+
+As an example of what I think is marking resources *properly* you can see,
+acpi_reserve_resources() is a "device_initcall()", so it runs long after
+the PCI probing has happened, but I think it's set up so that ACPI gets
+linked before any normal drivers, so it should trigger before we actually
+enable the devices (and allocate missing resources for them).
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/gen_estimator.c |   27 +++++++++++----------------
- 1 files changed, 11 insertions(+), 16 deletions(-)
+ arch/i386/kernel/acpi/boot.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/core/gen_estimator.c~gen_estimator-fix-locking-and-timer-related-bugs net/core/gen_estimator.c
---- a/net/core/gen_estimator.c~gen_estimator-fix-locking-and-timer-related-bugs
-+++ a/net/core/gen_estimator.c
-@@ -127,8 +127,8 @@ static void est_timer(unsigned long arg)
- 		e->rate_est->pps = (e->avpps+0x1FF)>>10;
- 		spin_unlock(e->stats_lock);
- 	}
--
--	mod_timer(&elist[idx].timer, jiffies + ((HZ<<idx)/4));
-+	if (elist[idx].list != NULL)
-+		mod_timer(&elist[idx].timer, jiffies + ((HZ<<idx)/4));
- 	read_unlock(&est_lock);
- }
- 
-@@ -152,6 +152,7 @@ int gen_new_estimator(struct gnet_stats_
- {
- 	struct gen_estimator *est;
- 	struct gnet_estimator *parm = RTA_DATA(opt);
-+	int idx;
- 
- 	if (RTA_PAYLOAD(opt) < sizeof(*parm))
- 		return -EINVAL;
-@@ -163,7 +164,7 @@ int gen_new_estimator(struct gnet_stats_
- 	if (est == NULL)
- 		return -ENOBUFS;
- 
--	est->interval = parm->interval + 2;
-+	est->interval = idx = parm->interval + 2;
- 	est->bstats = bstats;
- 	est->rate_est = rate_est;
- 	est->stats_lock = stats_lock;
-@@ -173,16 +174,14 @@ int gen_new_estimator(struct gnet_stats_
- 	est->last_packets = bstats->packets;
- 	est->avpps = rate_est->pps<<10;
- 
--	est->next = elist[est->interval].list;
--	if (est->next == NULL) {
--		init_timer(&elist[est->interval].timer);
--		elist[est->interval].timer.data = est->interval;
--		elist[est->interval].timer.expires = jiffies + ((HZ<<est->interval)/4);
--		elist[est->interval].timer.function = est_timer;
--		add_timer(&elist[est->interval].timer);
--	}
- 	write_lock_bh(&est_lock);
--	elist[est->interval].list = est;
-+	if (!elist[idx].timer.function)
-+		setup_timer(&elist[idx].timer, est_timer, est->interval);
-+	if (elist[est->interval].list == NULL)
-+		mod_timer(&elist[idx].timer, jiffies + ((HZ<<idx)/4));
-+
-+	est->next = elist[idx].list;
-+	elist[idx].list = est;
- 	write_unlock_bh(&est_lock);
- 	return 0;
- }
-@@ -202,7 +201,6 @@ void gen_kill_estimator(struct gnet_stat
- 	struct gen_estimator *est, **pest;
- 
- 	for (idx=0; idx <= EST_MAX_INTERVAL; idx++) {
--		int killed = 0;
- 		pest = &elist[idx].list;
- 		while ((est=*pest) != NULL) {
- 			if (est->rate_est != rate_est || est->bstats != bstats) {
-@@ -215,10 +213,7 @@ void gen_kill_estimator(struct gnet_stat
- 			write_unlock_bh(&est_lock);
- 
- 			kfree(est);
--			killed++;
- 		}
--		if (killed && elist[idx].list == NULL)
--			del_timer(&elist[idx].timer);
- 	}
- }
- 
+diff -puN arch/i386/kernel/acpi/boot.c~linux-hpet-issue-with-amd-southbridges arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~linux-hpet-issue-with-amd-southbridges
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -642,7 +642,7 @@ static int __init acpi_parse_hpet(struct
+ 	if (hpet_res) {
+ 		memset(hpet_res, 0, sizeof(*hpet_res));
+ 		hpet_res->name = (void *)&hpet_res[1];
+-		hpet_res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
++		hpet_res->flags = IORESOURCE_MEM;
+ 		snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE,
+ 			 "HPET %u", hpet_tbl->sequence);
+ 		hpet_res->end = (1 * 1024) - 1;
 _
 
-Patches currently in -mm which might be from kaber@trash.net are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
-git-net.patch
-make-some-netfilter-related-proc-files-use-seq_list_xxx.patch
-gen_estimator-fix-locking-and-timer-related-bugs.patch
+origin.patch
+linux-hpet-issue-with-amd-southbridges.patch
+x86_64-pm_trace-support.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch
+workaround-for-a-pci-restoring-bug.patch
