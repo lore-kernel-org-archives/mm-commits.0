@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-move-the-cmos-update-code-into-ntpc-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 02:43:05 -0700
-Message-ID: <200706270947.l5R9l4Md014514@imap1.linux-foundation.org>
+Subject: + audit-add-tty-input-auditing-fix-2.patch added to -mm tree
+Date: Wed, 27 Jun 2007 02:55:30 -0700
+Message-ID: <200706270959.l5R9xTq7014699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752130AbXF0JsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752470AbXF0J7x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 05:48:16 -0400
+	Wed, 27 Jun 2007 05:59:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mitr@redhat.com, paulkf@microgate.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ntp-move-the-cmos-update-code-into-ntpc-fix
+     audit-add-tty-input-auditing-fix-2
 has been added to the -mm tree.  Its filename is
-     ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+     audit-add-tty-input-auditing-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ntp-move-the-cmos-update-code-into-ntpc-fix
+Subject: audit-add-tty-input-auditing-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+CONFIG_AUDIT=y, CONFIG_AUDITSYSCALL=n:
 
-include/linux/time.h:97: error: expected '=', ',', ';', 'asm' or '__attribute__' before '__read_mostly'
+kernel/audit.c:72: error: expected identifier or '(' before numeric constant
+kernel/audit.c: In function 'audit_set_enabled':
+kernel/audit.c:344: error: invalid lvalue in assignment
+kernel/audit.c: In function 'audit_init':
+kernel/audit.c:888: error: invalid lvalue in assignment
+kernel/audit.c: In function 'audit_enable':
+kernel/audit.c:917: error: invalid lvalue in assignment
+make[1]: *** [kernel/audit.o] Error 1
+make: *** [kernel/audit.o] Error 2
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Miloslav Trmac <mitr@redhat.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/audit.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix include/linux/time.h
---- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix
-+++ a/include/linux/time.h
-@@ -2,6 +2,7 @@
- #define _LINUX_TIME_H
- 
- #include <linux/types.h>
-+#include <linux/cache.h>
- 
- #ifdef __KERNEL__
- # include <linux/seqlock.h>
+diff -puN include/linux/audit.h~audit-add-tty-input-auditing-fix-2 include/linux/audit.h
+--- a/include/linux/audit.h~audit-add-tty-input-auditing-fix-2
++++ a/include/linux/audit.h
+@@ -463,7 +463,6 @@ static inline int audit_mq_getsetattr(mq
+ 		return __audit_mq_getsetattr(mqdes, mqstat);
+ 	return 0;
+ }
+-extern int audit_enabled;
+ extern int audit_n_rules;
+ extern int audit_signals;
+ #else
+@@ -496,7 +495,6 @@ extern int audit_signals;
+ #define audit_mq_notify(d,n) ({ 0; })
+ #define audit_mq_getsetattr(d,s) ({ 0; })
+ #define audit_ptrace(t) ((void)0)
+-#define audit_enabled 0
+ #define audit_n_rules 0
+ #define audit_signals 0
+ #endif
+@@ -531,6 +529,7 @@ extern int audit_filter_user(struct netl
+ extern int audit_filter_type(int type);
+ extern int  audit_receive_filter(int type, int pid, int uid, int seq,
+ 			 void *data, size_t datasz, uid_t loginuid, u32 sid);
++extern int audit_enabled;
+ #else
+ #define audit_log(c,g,t,f,...) do { ; } while (0)
+ #define audit_log_start(c,g,t) ({ NULL; })
+@@ -541,6 +540,7 @@ extern int  audit_receive_filter(int typ
+ #define audit_log_untrustedstring(a,s) do { ; } while (0)
+ #define audit_log_n_untrustedstring(a,n,s) do { ; } while (0)
+ #define audit_log_d_path(b,p,d,v) do { ; } while (0)
++#define audit_enabled 0
+ #endif
+ #endif
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +168,7 @@ i386-show-unhandled-signals-fix.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
 i386-add-cpu_relax-to-cmos_lock-fix.patch
 highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
@@ -205,6 +236,7 @@ lib-add-idr_for_each-fix.patch
 ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
 taskstats-add-context-switch-counters-fix.patch
 improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
 revert-vanishing-ioctl-handler-debugging.patch
 binfmt_elf-warning-fix.patch
 dirty_writeback_centisecs_handler-cleanup.patch
@@ -273,4 +305,3 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix.patch
