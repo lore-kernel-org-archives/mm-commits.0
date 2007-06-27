@@ -1,33 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-fix-section-mismatch.patch removed from -mm tree
-Date: Tue, 26 Jun 2007 21:53:59 -0700
-Message-ID: <200706270453.l5R4rxYD010143@imap1.linux-foundation.org>
+Subject: - alsa-more-section-mismatches.patch removed from -mm tree
+Date: Tue, 26 Jun 2007 21:54:02 -0700
+Message-ID: <200706270454.l5R4s2Yp010146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50201 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48347 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752335AbXF0EyO (ORCPT
+	by vger.kernel.org with ESMTP id S1752718AbXF0EyQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 00:54:14 -0400
+	Wed, 27 Jun 2007 00:54:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALSA: fix section mismatch
+     ALSA: more section mismatches
 has been removed from the -mm tree.  Its filename was
-     alsa-fix-section-mismatch.patch
+     alsa-more-section-mismatches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ALSA: fix section mismatch
+Subject: ALSA: more section mismatches
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix shared init/exit function attributes:
-WARNING: sound/built-in.o(.exit.text+0x4a1): Section mismatch: reference to .init.text: (between 'alsa_card_virmidi_exit' and 'alsa_card_serial_exit')
-WARNING: sound/built-in.o(.exit.text+0x4c1): Section mismatch: reference to .init.text: (between 'alsa_card_serial_exit' and 'ac97_bus_exit')
+Something about __init_or_module isn't working as expected (?).
+CONFIG_HOTPLUG=y
+CONFIG_MODULES=n
+
+Fix shared init/exit code helper:
+WARNING: sound/built-in.o(.exit.text+0x243): Section mismatch: reference to .init.text: (between 'alsa_card_mpu401_exit' and 'ac97_bus_exit')
+WARNING: sound/built-in.o(.exit.text+0x21b): Section mismatch: reference to .init.text: (between 'alsa_card_dummy_exit' and 'alsa_card_serial_exit')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Jaroslav Kysela <perex@suse.cz>
@@ -35,31 +39,31 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/drivers/serial-u16550.c |    2 +-
- sound/drivers/virmidi.c       |    2 +-
+ sound/drivers/dummy.c         |    2 +-
+ sound/drivers/mpu401/mpu401.c |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/drivers/serial-u16550.c~alsa-fix-section-mismatch sound/drivers/serial-u16550.c
---- a/sound/drivers/serial-u16550.c~alsa-fix-section-mismatch
-+++ a/sound/drivers/serial-u16550.c
-@@ -998,7 +998,7 @@ static struct platform_driver snd_serial
+diff -puN sound/drivers/dummy.c~alsa-more-section-mismatches sound/drivers/dummy.c
+--- a/sound/drivers/dummy.c~alsa-more-section-mismatches
++++ a/sound/drivers/dummy.c
+@@ -659,7 +659,7 @@ static struct platform_driver snd_dummy_
  	},
  };
  
--static void __init_or_module snd_serial_unregister_all(void)
-+static void snd_serial_unregister_all(void)
+-static void __init_or_module snd_dummy_unregister_all(void)
++static void snd_dummy_unregister_all(void)
  {
  	int i;
  
-diff -puN sound/drivers/virmidi.c~alsa-fix-section-mismatch sound/drivers/virmidi.c
---- a/sound/drivers/virmidi.c~alsa-fix-section-mismatch
-+++ a/sound/drivers/virmidi.c
-@@ -145,7 +145,7 @@ static struct platform_driver snd_virmid
- 	},
- };
+diff -puN sound/drivers/mpu401/mpu401.c~alsa-more-section-mismatches sound/drivers/mpu401/mpu401.c
+--- a/sound/drivers/mpu401/mpu401.c~alsa-more-section-mismatches
++++ a/sound/drivers/mpu401/mpu401.c
+@@ -228,7 +228,7 @@ static struct pnp_driver snd_mpu401_pnp_
+ static struct pnp_driver snd_mpu401_pnp_driver;
+ #endif
  
--static void __init_or_module snd_virmidi_unregister_all(void)
-+static void snd_virmidi_unregister_all(void)
+-static void __init_or_module snd_mpu401_unregister_all(void)
++static void snd_mpu401_unregister_all(void)
  {
  	int i;
  
