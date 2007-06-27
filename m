@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 01:17:03 -0700
-Message-ID: <200706270821.l5R8L29k013102@imap1.linux-foundation.org>
+Subject: + x86_64-flush_tlb_kernel_range-warning-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 01:22:19 -0700
+Message-ID: <200706270826.l5R8QH5N013165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59540 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157AbXF0IWR (ORCPT
+	by vger.kernel.org with ESMTP id S1752634AbXF0I0y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 04:22:17 -0400
+	Wed, 27 Jun 2007 04:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
+     x86_64: flush_tlb_kernel_range() warning fix
 has been added to the -mm tree.  Its filename is
-     ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+     x86_64-flush_tlb_kernel_range-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
+Subject: x86_64: flush_tlb_kernel_range() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/quirks.c: In function 'old_ich_force_enable_hpet':
-arch/i386/kernel/quirks.c:196: warning: 'gen_cntl' is used uninitialized in this function
-arch/i386/kernel/quirks.c: In function 'force_hpet_resume':
-arch/i386/kernel/quirks.c:171: warning: 'gen_cntl' is used uninitialized in this function
+mm/vmalloc.c: In function 'unmap_kernel_range':
+mm/vmalloc.c:75: warning: unused variable 'start'
 
+make it a C function so that the compiler thinks it used its arguments.
 
 Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/asm-x86_64/tlbflush.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
-+++ a/arch/i386/kernel/quirks.c
-@@ -162,7 +162,8 @@ static struct pci_dev *cached_dev;
+diff -puN include/asm-x86_64/tlbflush.h~x86_64-flush_tlb_kernel_range-warning-fix include/asm-x86_64/tlbflush.h
+--- a/include/asm-x86_64/tlbflush.h~x86_64-flush_tlb_kernel_range-warning-fix
++++ a/include/asm-x86_64/tlbflush.h
+@@ -92,7 +92,11 @@ static inline void flush_tlb_range(struc
  
- static void old_ich_force_hpet_resume(void)
- {
--	u32 val, gen_cntl;
-+	u32 val;
-+	u32 uninitialized_var(gen_cntl);
+ #endif
  
- 	if (!force_hpet_address || !cached_dev)
- 		return;
-@@ -183,7 +184,8 @@ static void old_ich_force_hpet_resume(vo
+-#define flush_tlb_kernel_range(start, end) flush_tlb_all()
++static inline void flush_tlb_kernel_range(unsigned long start,
++					unsigned long end)
++{
++	flush_tlb_all();
++}
  
- static void old_ich_force_enable_hpet(struct pci_dev *dev)
- {
--	u32 val, gen_cntl;
-+	u32 val;
-+	u32 uninitialized_var(gen_cntl);
- 
- 	if (hpet_address || force_hpet_address)
- 		return;
+ static inline void flush_tlb_pgtables(struct mm_struct *mm,
+ 				      unsigned long start, unsigned long end)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -282,3 +268,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
