@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-saa7134-dependency-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 14:56:13 -0700
-Message-ID: <200706272200.l5RM0DRS007981@imap1.linux-foundation.org>
+Subject: + xfs-warning-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 15:11:29 -0700
+Message-ID: <200706272215.l5RMFTD2008206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760306AbXF0WAY (ORCPT
+	by vger.kernel.org with ESMTP id S1756373AbXF0WPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 18:00:24 -0400
+	Wed, 27 Jun 2007 18:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com
 
 
 The patch titled
-     dvb: saa7134 dependency fix
+     xfs warning fix
 has been added to the -mm tree.  Its filename is
-     dvb-saa7134-dependency-fix.patch
+     xfs-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb: saa7134 dependency fix
+Subject: xfs warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "get_key_pinnacle_grey" [drivers/media/video/saa7134/saa7134.ko] undefined!
-ERROR: "get_key_pinnacle_color" [drivers/media/video/saa7134/saa7134.ko] undefined!
+fs/xfs/xfs_bmap.c: In function 'xfs_bmap_rtalloc':
+fs/xfs/xfs_bmap.c:2649: warning: 'rtx' is used uninitialized in this function
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+no it isn't.
+
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/xfs/xfs_bmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/saa7134/Kconfig~dvb-saa7134-dependency-fix drivers/media/video/saa7134/Kconfig
---- a/drivers/media/video/saa7134/Kconfig~dvb-saa7134-dependency-fix
-+++ a/drivers/media/video/saa7134/Kconfig
-@@ -5,6 +5,7 @@ config VIDEO_SAA7134
- 	select VIDEO_IR
- 	select VIDEO_TUNER
- 	select CRC32
-+	select VIDEO_IR_I2C
- 	---help---
- 	  This is a video4linux driver for Philips SAA713x based
- 	  TV cards.
+diff -puN fs/xfs/xfs_bmap.c~xfs-warning-fix fs/xfs/xfs_bmap.c
+--- a/fs/xfs/xfs_bmap.c~xfs-warning-fix
++++ a/fs/xfs/xfs_bmap.c
+@@ -2605,7 +2605,6 @@ xfs_bmap_rtalloc(
+ 	xfs_extlen_t	prod = 0;	/* product factor for allocators */
+ 	xfs_extlen_t	ralen = 0;	/* realtime allocation length */
+ 	xfs_extlen_t	align;		/* minimum allocation alignment */
+-	xfs_rtblock_t	rtx;		/* realtime extent number */
+ 	xfs_rtblock_t	rtb;
+ 
+ 	mp = ap->ip->i_mount;
+@@ -2643,6 +2642,8 @@ xfs_bmap_rtalloc(
+ 	 * pick an extent that will space things out in the rt area.
+ 	 */
+ 	if (ap->eof && ap->off == 0) {
++		xfs_rtblock_t uninitialized_var(rtx); /* realtime extent no */
++
+ 		error = xfs_rtpick_extent(mp, ap->tp, ralen, &rtx);
+ 		if (error)
+ 			return error;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +83,7 @@ revert-gregkh-driver-block-device.patch
 driver-core-check-return-code-of-sysfs_create_link.patch
 revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
+dvb-saa7134-dependency-fix.patch
 git-gfs2-nmw.patch
 git-gfs2-nmw-build-fix.patch
 git-infiniband.patch
@@ -275,4 +288,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-dvb-saa7134-dependency-fix.patch
+xfs-warning-fix.patch
