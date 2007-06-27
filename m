@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch added to -mm tree
-Date: Wed, 27 Jun 2007 02:30:03 -0700
-Message-ID: <200706270934.l5R9Y2LA014289@imap1.linux-foundation.org>
+Subject: + kgdb-section-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 02:39:49 -0700
+Message-ID: <200706270943.l5R9hmxY014424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57465 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52882 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206AbXF0Jen (ORCPT
+	by vger.kernel.org with ESMTP id S1752020AbXF0Jn5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 05:34:43 -0400
+	Wed, 27 Jun 2007 05:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, rongkai.zhan@windriver.com
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     rtc-add-support-for-the-st-m48t59-rtc-fix-3
+     kgdb-section-fix
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+     kgdb-section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-add-support-for-the-st-m48t59-rtc-fix-3
+Subject: kgdb-section-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64:
+WARNING: drivers/built-in.o(.text+0x57467): Section mismatch: reference to .init.text:kgdb8250_add_port (between 'uart_add_one_port' and 'uart_startup')
 
-drivers/rtc/rtc-m48t59.c:77:47: error: macro "readb" passed 2 arguments, but takes just 1
-drivers/rtc/rtc-m48t59.c:77:47: error: macro "writeb" passed 3 arguments, but takes just 2
-drivers/rtc/rtc-m48t59.c: In function 'm48t59_rtc_read_time':
-drivers/rtc/rtc-m48t59.c:77: warning: statement with no effect
-drivers/rtc/rtc-m48t59.c:79:48: error: macro "readb" passed 2 arguments, but takes just 1
-drivers/rtc/rtc-m48t59.c:79: error: invalid operands to binary &
-drivers/rtc/rtc-m48t59.c:79: error: invalid operands to binary >>
-drivers/rtc/rtc-m48t59.c:81:48: error: macro "readb" passed 2 arguments, but takes just 1
-drivers/rtc/rtc-m48t59.c:81: error: invalid operands to binary &
-drivers/rtc/rtc-m48t59.c:81: error: invalid operands to binary >>
-drivers/rtc/rtc-m48t59.c:82:48: error: macro "readb" passed 2 arguments, but takes just 1
-
-etc..
-
-btw, macros which assume the presence of a particularly-named local variable
-are evil.  Please just don't do it.
-
-Instead of
-
-#define M48T59_READ(reg)	pdata->read_byte(dev, reg)
-
-please do
-
-static inline u8 m48t59_read(m48t59_plat_data *pdata, struct device *dev,
-				int reg)
-{
-	return pdata->read_byte(dev, reg);
-}
-
-ie: write your code in C, not in cpp..
-
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t59.c   |   14 +++++++-------
- include/linux/rtc/m48t59.h |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/serial/8250_kgdb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-fix-3 drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtc-add-support-for-the-st-m48t59-rtc-fix-3
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -24,8 +24,8 @@
- #define NO_IRQ	(-1)
- #endif
- 
--#define M48T59_READ(reg)	pdata->readb(dev, reg)
--#define M48T59_WRITE(val, reg)	pdata->writeb(dev, reg, val)
-+#define M48T59_READ(reg)	pdata->read_byte(dev, reg)
-+#define M48T59_WRITE(val, reg)	pdata->write_byte(dev, reg, val)
- 
- #define M48T59_SET_BITS(mask, reg)	\
- 	M48T59_WRITE((M48T59_READ(reg) | (mask)), (reg))
-@@ -379,7 +379,7 @@ static int __devinit m48t59_rtc_probe(st
- 		/* If we are I/O-mapped, the platform should provide
- 		 * the operations accessing chip registers.
- 		 */
--		if (!pdata || !pdata->writeb || !pdata->readb)
-+		if (!pdata || !pdata->write_byte || !pdata->read_byte)
- 			return -EINVAL;
- 	} else if (res->flags & IORESOURCE_MEM) {
- 		/* we are memory-mapped */
-@@ -392,10 +392,10 @@ static int __devinit m48t59_rtc_probe(st
- 		}
- 
- 		/* Try to use the generic memory read/write ops */
--		if (!pdata->writeb)
--			pdata->writeb = m48t59_mem_writeb;
--		if (!pdata->readb)
--			pdata->readb = m48t59_mem_readb;
-+		if (!pdata->write_byte)
-+			pdata->write_byte = m48t59_mem_writeb;
-+		if (!pdata->read_byte)
-+			pdata->read_byte = m48t59_mem_readb;
- 	}
- 
- 	m48t59 = kzalloc(sizeof(*m48t59), GFP_KERNEL);
-diff -puN include/linux/rtc/m48t59.h~rtc-add-support-for-the-st-m48t59-rtc-fix-3 include/linux/rtc/m48t59.h
---- a/include/linux/rtc/m48t59.h~rtc-add-support-for-the-st-m48t59-rtc-fix-3
-+++ a/include/linux/rtc/m48t59.h
-@@ -50,8 +50,8 @@ struct m48t59_plat_data {
- 	/* The method to access M48T59 registers,
- 	 * NOTE: The 'ofs' should be 0x00~0x1fff
- 	 */
--	void (*writeb)(struct device *dev, u32 ofs, u8 val);
--	unsigned char (*readb)(struct device *dev, u32 ofs);
-+	void (*write_byte)(struct device *dev, u32 ofs, u8 val);
-+	unsigned char (*read_byte)(struct device *dev, u32 ofs);
- };
- 
- #endif /* _LINUX_RTC_M48T59_H_ */
+diff -puN drivers/serial/8250_kgdb.c~kgdb-section-fix drivers/serial/8250_kgdb.c
+--- a/drivers/serial/8250_kgdb.c~kgdb-section-fix
++++ a/drivers/serial/8250_kgdb.c
+@@ -391,7 +391,7 @@ struct kgdb_io kgdb_io_ops = {
+  * 	dynamically, this is the best option if a platform also normally
+  * 	calls early_serial_setup().
+  */
+-void __init kgdb8250_add_port(int i, struct uart_port *serial_req)
++void kgdb8250_add_port(int i, struct uart_port *serial_req)
+ {
+ 	/* Make sure we've got the built-in data before we override. */
+ 	kgdb8250_copy_rs_table();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -340,3 +266,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+kgdb-section-fix.patch
