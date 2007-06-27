@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 10:52:49 -0700
-Message-ID: <200706271752.l5RHqndH025337@imap1.linux-foundation.org>
+Subject: + ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 11:06:46 -0700
+Message-ID: <200706271806.l5RI6kDp027470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38848 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751600AbXF0RxG (ORCPT
+	by vger.kernel.org with ESMTP id S1752158AbXF0SHt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 13:53:06 -0400
+	Wed, 27 Jun 2007 14:07:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, ebiederm@xmission.com, jesse.barnes@intel.com, yhlu.kernel@gmail.com
+Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, michal.k.k.piotrowski@gmail.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     i386-trim-memory-not-covered-by-wb-mtrrs-fix
+     ntp-move-the-cmos-update-code-into-ntpc-fix-fix
 has been added to the -mm tree.  Its filename is
-     i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+     ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-trim-memory-not-covered-by-wb-mtrrs-fix
+Subject: ntp-move-the-cmos-update-code-into-ntpc-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Jesse Barnes <jesse.barnes@intel.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+grr, headers_check.
+
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |    2 +-
+ include/linux/time.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-trim-memory-not-covered-by-wb-mtrrs-fix arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-trim-memory-not-covered-by-wb-mtrrs-fix
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -668,7 +668,7 @@ void __init mtrr_trim_uncached_memory(vo
- 			highest_addr = base + size;
- 	}
+diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix-fix include/linux/time.h
+--- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix-fix
++++ a/include/linux/time.h
+@@ -2,9 +2,9 @@
+ #define _LINUX_TIME_H
  
--	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
-+	if ((highest_addr >> PAGE_SHIFT) < end_pfn) {
- 		printk(KERN_WARNING "***************\n");
- 		printk(KERN_WARNING "**** WARNING: likely BIOS bug\n");
- 		printk(KERN_WARNING "**** MTRRs don't cover all of "
+ #include <linux/types.h>
+-#include <linux/cache.h>
+ 
+ #ifdef __KERNEL__
++# include <linux/cache.h>
+ # include <linux/seqlock.h>
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -271,3 +278,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
