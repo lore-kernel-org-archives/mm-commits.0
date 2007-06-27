@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-acpi-change-for-scsi.patch added to -mm tree
-Date: Tue, 26 Jun 2007 23:21:51 -0700
-Message-ID: <200706270621.l5R6LpBt011312@imap1.linux-foundation.org>
+Subject: + restore-acpi-change-for-scsi.patch added to -mm tree
+Date: Tue, 26 Jun 2007 23:22:07 -0700
+Message-ID: <200706270622.l5R6M77L011338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52764 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47128 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757067AbXF0GWE (ORCPT
+	by vger.kernel.org with ESMTP id S1757526AbXF0GWU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 02:22:04 -0400
+	Wed, 27 Jun 2007 02:22:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, lenb@kernel.org
 
 
 The patch titled
-     revert-acpi-change-for-scsi
+     restore-acpi-change-for-scsi
 has been added to the -mm tree.  Its filename is
-     revert-acpi-change-for-scsi.patch
+     restore-acpi-change-for-scsi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert-acpi-change-for-scsi
+Subject: restore-acpi-change-for-scsi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sigh
+resigh
 
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_attr.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/scsi/lpfc/lpfc_attr.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_attr.c~revert-acpi-change-for-scsi drivers/scsi/lpfc/lpfc_attr.c
---- a/drivers/scsi/lpfc/lpfc_attr.c~revert-acpi-change-for-scsi
+diff -puN drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi drivers/scsi/lpfc/lpfc_attr.c
+--- a/drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi
 +++ a/drivers/scsi/lpfc/lpfc_attr.c
-@@ -1133,8 +1133,7 @@ struct class_device_attribute *lpfc_host
+@@ -1405,7 +1405,8 @@ struct class_device_attribute *lpfc_hba_
  };
  
  static ssize_t
--sysfs_ctlreg_write(struct kobject *kobj, struct bin_attribute *bin_attr,
--		   char *buf, loff_t off, size_t count)
-+sysfs_ctlreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
+-sysfs_ctlreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_ctlreg_write(struct kobject *kobj, struct bin_attribute *bin_attr,
++		   char *buf, loff_t off, size_t count)
  {
  	size_t buf_off;
- 	struct Scsi_Host *host = class_to_shost(container_of(kobj,
-@@ -1166,8 +1165,7 @@ sysfs_ctlreg_write(struct kobject *kobj,
+ 	struct class_device *cdev = container_of(kobj, struct class_device,
+@@ -1437,7 +1438,8 @@ sysfs_ctlreg_write(struct kobject *kobj,
  }
  
  static ssize_t
--sysfs_ctlreg_read(struct kobject *kobj, struct bin_attribute *bin_attr,
--		  char *buf, loff_t off, size_t count)
-+sysfs_ctlreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+-sysfs_ctlreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_ctlreg_read(struct kobject *kobj, struct bin_attribute *bin_attr,
++		  char *buf, loff_t off, size_t count)
  {
  	size_t buf_off;
  	uint32_t * tmp_ptr;
-@@ -1223,8 +1221,7 @@ sysfs_mbox_idle (struct lpfc_hba * phba)
+@@ -1495,7 +1497,8 @@ sysfs_mbox_idle(struct lpfc_hba *phba)
  }
  
  static ssize_t
--sysfs_mbox_write(struct kobject *kobj, struct bin_attribute *bin_attr,
--		 char *buf, loff_t off, size_t count)
-+sysfs_mbox_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
+-sysfs_mbox_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_mbox_write(struct kobject *kobj, struct bin_attribute *bin_attr,
++		 char *buf, loff_t off, size_t count)
  {
- 	struct Scsi_Host * host =
- 		class_to_shost(container_of(kobj, struct class_device, kobj));
-@@ -1276,8 +1273,7 @@ sysfs_mbox_write(struct kobject *kobj, s
+ 	struct class_device *cdev = container_of(kobj, struct class_device,
+ 						 kobj);
+@@ -1549,7 +1552,8 @@ sysfs_mbox_write(struct kobject *kobj, c
  }
  
  static ssize_t
--sysfs_mbox_read(struct kobject *kobj, struct bin_attribute *bin_attr,
--		char *buf, loff_t off, size_t count)
-+sysfs_mbox_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+-sysfs_mbox_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_mbox_read(struct kobject *kobj, struct bin_attribute *bin_attr,
++		char *buf, loff_t off, size_t count)
  {
- 	struct Scsi_Host *host =
- 		class_to_shost(container_of(kobj, struct class_device,
+ 	struct class_device *cdev = container_of(kobj, struct class_device,
+ 						 kobj);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +131,7 @@ revert-gregkh-pci-pci_bridge-device.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
+restore-acpi-change-for-scsi.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
@@ -281,4 +282,3 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-restore-acpi-change-for-scsi.patch
