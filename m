@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2007 22:27:10 -0700
-Message-ID: <200706270527.l5R5RA7p010608@imap1.linux-foundation.org>
+Subject: + ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch added to -mm tree
+Date: Tue, 26 Jun 2007 22:27:08 -0700
+Message-ID: <200706270527.l5R5R83d010605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39573 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760213AbXF0F1U (ORCPT
+	by vger.kernel.org with ESMTP id S1760158AbXF0F1U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 27 Jun 2007 01:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kluo@nvidia.com, pchen@nvidia.com
+Cc: kuanluo@gmail.com, kluo@nvidia.com, pchen@nvidia.com
 
 
 The patch titled
-     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+     ata: add the SW NCQ support to sata_nv for MCP51/MCP55/MCP61
 has been added to the -mm tree.  Its filename is
-     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+     ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,362 +26,948 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ata: add the SW NCQ support to sata_nv for MCP51/MCP55/MCP61
+From: "kuan luo" <kuanluo@gmail.com>
 
-- remove new typedef
+Add the Software NCQ support to sata_nv.c for MCP51/MCP55/MCP61 SATA
+controller.  NCQ function is disable by default, you can enable it with
+'swncq=1'
 
-- use bss: it's already initialised to zero
-
-- cleanups
-
-Cc: Kuan Luo <kluo@nvidia.com>
-Cc: Peer Chen <pchen@nvidia.com>
+Signed-off-by: Kuan Luo <kluo@nvidia.com>
+Signed-off-by: Peer Chen <pchen@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ drivers/ata/sata_nv.c |  828 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 819 insertions(+), 9 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix
+diff -puN drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61 drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61
 +++ a/drivers/ata/sata_nv.c
-@@ -255,12 +255,12 @@ struct nv_host_priv {
+@@ -169,6 +169,35 @@ enum {
+ 	NV_ADMA_PORT_REGISTER_MODE	= (1 << 0),
+ 	NV_ADMA_ATAPI_SETUP_COMPLETE	= (1 << 1),
+ 
++	/* MCP55 reg offset */
++	NV_CTL_MCP55			= 0x400,
++	NV_INT_STATUS_MCP55		= 0x440,
++	NV_INT_ENABLE_MCP55		= 0x444,
++	NV_NCQ_REG_MCP55		= 0x448,
++
++	/* MCP55 */
++	NV_INT_ALL_MCP55		= 0xffff,
++	NV_INT_PORT_SHIFT_MCP55		= 16,	/* each port occupies 16 bits */
++	NV_INT_MASK_MCP55		= NV_INT_ALL_MCP55 & 0xfffd,
++
++	/* SWNCQ ENABLE BITS*/
++	NV_CTL_PRI_SWNCQ		= 0x02,
++	NV_CTL_SEC_SWNCQ		= 0x04,
++
++	/* SW NCQ status bits*/
++	NV_SWNCQ_IRQ_DEV		= (1 << 0),
++	NV_SWNCQ_IRQ_PM			= (1 << 1),
++	NV_SWNCQ_IRQ_ADDED		= (1 << 2),
++	NV_SWNCQ_IRQ_REMOVED		= (1 << 3),
++
++ 	NV_SWNCQ_IRQ_BACKOUT		= (1 << 4),
++ 	NV_SWNCQ_IRQ_SDBFIS		= (1 << 5),
++ 	NV_SWNCQ_IRQ_DHREGFIS		= (1 << 6),
++	NV_SWNCQ_IRQ_DMASETUP		= (1 << 7),
++
++	NV_SWNCQ_IRQ_HOTPLUG		= NV_SWNCQ_IRQ_ADDED |
++					  NV_SWNCQ_IRQ_REMOVED,
++
+ };
+ 
+ /* ADMA Physical Region Descriptor - one SG segment */
+@@ -226,6 +255,35 @@ struct nv_host_priv {
  	unsigned long		type;
  };
  
--typedef struct {
-+struct defer_queue {
-  	u32		defer_bits;
-  	u8		front;
- 	u8		rear;
- 	unsigned int	tag[ATA_MAX_QUEUE + 1];
--}defer_queue_t;
++typedef struct {
++ 	u32		defer_bits;
++ 	u8		front;
++	u8		rear;
++	unsigned int	tag[ATA_MAX_QUEUE + 1];
++}defer_queue_t;
++
++struct nv_swncq_port_priv {
++	struct ata_prd	*prd;	 /* our SG list */
++	dma_addr_t	prd_dma; /* and its DMA mapping */
++	void __iomem	*sactive_block;
++	u32		qc_active;
++	unsigned int	last_issue_tag;
++ 	spinlock_t	lock;
++ 	/* fifo loop queue  to store deferral command */
++	defer_queue_t	defer_queue;
++
++ 	/* for NCQ interrupt analysis */
++	u32		dhfis_bits;
++ 	u32		dmafis_bits;
++ 	u32		sdbfis_bits;
++
++	unsigned int	ncq_saw_d2h:1;
++	unsigned int	ncq_saw_dmas:1;
++	unsigned int	ncq_saw_sdb:1;
++	unsigned int 	ncq_saw_backout:1;
 +};
++
++
+ #define NV_ADMA_CHECK_INTR(GCTL, PORT) ((GCTL) & ( 1 << (19 + (12 * (PORT)))))
  
- struct nv_swncq_port_priv {
- 	struct ata_prd	*prd;	 /* our SG list */
-@@ -270,7 +270,7 @@ struct nv_swncq_port_priv {
- 	unsigned int	last_issue_tag;
-  	spinlock_t	lock;
-  	/* fifo loop queue  to store deferral command */
--	defer_queue_t	defer_queue;
-+	struct defer_queue defer_queue;
+ static int nv_init_one (struct pci_dev *pdev, const struct pci_device_id *ent);
+@@ -263,13 +321,28 @@ static void nv_adma_host_stop(struct ata
+ static void nv_adma_post_internal_cmd(struct ata_queued_cmd *qc);
+ static void nv_adma_tf_read(struct ata_port *ap, struct ata_taskfile *tf);
  
-  	/* for NCQ interrupt analysis */
- 	u32		dhfis_bits;
-@@ -637,7 +637,7 @@ MODULE_DEVICE_TABLE(pci, nv_pci_tbl);
++static void nv_mcp55_thaw(struct ata_port *ap);
++static void nv_mcp55_freeze(struct ata_port *ap);
++static void nv_swncq_error_handler(struct ata_port *ap);
++static int  nv_swncq_port_start(struct ata_port *ap);
++static void nv_swncq_qc_prep(struct ata_queued_cmd *qc);
++static void nv_swncq_fill_sg(struct ata_queued_cmd *qc);
++static unsigned int nv_swncq_qc_issue(struct ata_queued_cmd *qc);
++static void nv_swncq_irq_clear(struct ata_port *ap, u32 val);
++static irqreturn_t nv_swncq_interrupt(int irq, void *dev_instance);
++#ifdef CONFIG_PM
++static int nv_swncq_port_suspend(struct ata_port *ap, pm_message_t mesg);
++static int nv_swncq_port_resume(struct ata_port *ap);
++#endif
++
+ enum nv_host_type
+ {
+ 	GENERIC,
+ 	NFORCE2,
+ 	NFORCE3 = NFORCE2,	/* NF2 == NF3 as far as sata_nv is concerned */
+ 	CK804,
+-	ADMA
++	ADMA,
++	SWNCQ
+ };
+ 
+ static const struct pci_device_id nv_pci_tbl[] = {
+@@ -280,13 +353,13 @@ static const struct pci_device_id nv_pci
+ 	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_CK804_SATA2), CK804 },
+ 	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SATA), CK804 },
+ 	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP04_SATA2), CK804 },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA), GENERIC },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA2), GENERIC },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA), GENERIC },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA2), GENERIC },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA), GENERIC },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA2), GENERIC },
+-	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA3), GENERIC },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA), SWNCQ },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA2), SWNCQ },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA), SWNCQ },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA2), SWNCQ },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA), SWNCQ },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA2), SWNCQ },
++	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA3), SWNCQ },
+ 
+ 	{ } /* terminate list */
+ };
+@@ -338,6 +411,24 @@ static struct scsi_host_template nv_adma
+ 	.bios_param		= ata_std_bios_param,
+ };
+ 
++static struct scsi_host_template nv_swncq_sht = {
++	.module			= THIS_MODULE,
++	.name			= DRV_NAME,
++	.ioctl			= ata_scsi_ioctl,
++	.queuecommand		= ata_scsi_queuecmd,
++	.can_queue		= ATA_MAX_QUEUE,
++	.this_id		= ATA_SHT_THIS_ID,
++	.sg_tablesize		= LIBATA_MAX_PRD,
++	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,
++	.emulated		= ATA_SHT_EMULATED,
++	.use_clustering		= ATA_SHT_USE_CLUSTERING,
++	.proc_name		= DRV_NAME,
++	.dma_boundary		= ATA_DMA_BOUNDARY,
++	.slave_configure	= ata_scsi_slave_config,
++	.slave_destroy		= ata_scsi_slave_destroy,
++	.bios_param		= ata_std_bios_param,
++};
++
+ static const struct ata_port_operations nv_generic_ops = {
+ 	.port_disable		= ata_port_disable,
+ 	.tf_load		= ata_tf_load,
+@@ -450,6 +541,36 @@ static const struct ata_port_operations 
+ 	.host_stop		= nv_adma_host_stop,
+ };
+ 
++static const struct ata_port_operations nv_swncq_ops = {
++	.port_disable		= ata_port_disable,
++	.tf_load		= ata_tf_load,
++	.tf_read		= ata_tf_read,
++	.exec_command		= ata_exec_command,
++	.check_status		= ata_check_status,
++	.dev_select		= ata_std_dev_select,
++	.bmdma_setup		= ata_bmdma_setup,
++	.bmdma_start		= ata_bmdma_start,
++	.bmdma_stop		= ata_bmdma_stop,
++	.bmdma_status		= ata_bmdma_status,
++	.qc_prep		= nv_swncq_qc_prep,
++	.qc_issue		= nv_swncq_qc_issue,
++	.freeze			= nv_mcp55_freeze,
++	.thaw			= nv_mcp55_thaw,
++	.error_handler		= nv_swncq_error_handler,
++	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
++	.data_xfer		= ata_data_xfer,
++	.irq_clear		= ata_bmdma_irq_clear,
++	.irq_on			= ata_irq_on,
++	.irq_ack		= ata_irq_ack,
++	.scr_read		= nv_scr_read,
++	.scr_write		= nv_scr_write,
++#ifdef CONFIG_PM
++	.port_suspend		= nv_swncq_port_suspend,
++	.port_resume		= nv_swncq_port_resume,
++#endif
++	.port_start		= nv_swncq_port_start,
++};
++
+ static const struct ata_port_info nv_port_info[] = {
+ 	/* generic */
+ 	{
+@@ -496,6 +617,17 @@ static const struct ata_port_info nv_por
+ 		.port_ops	= &nv_adma_ops,
+ 		.irq_handler	= nv_adma_interrupt,
+ 	},
++	/* SWNCQ*/
++	{
++		.sht		= &nv_swncq_sht,
++		.flags	        = ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY |
++				  ATA_FLAG_HRST_TO_RESUME,
++		.pio_mask	= NV_PIO_MASK,
++		.mwdma_mask	= NV_MWDMA_MASK,
++		.udma_mask	= NV_UDMA_MASK,
++		.port_ops	= &nv_swncq_ops,
++		.irq_handler	= nv_swncq_interrupt,
++	},
+ };
+ 
+ MODULE_AUTHOR("NVIDIA");
+@@ -505,6 +637,7 @@ MODULE_DEVICE_TABLE(pci, nv_pci_tbl);
  MODULE_VERSION(DRV_VERSION);
  
  static int adma_enabled = 1;
--static int swncq_enabled = 0;
-+static int swncq_enabled;
++static int swncq_enabled = 0;
  
  static void nv_adma_register_mode(struct ata_port *ap)
  {
-@@ -1705,7 +1705,7 @@ static void nv_adma_error_handler(struct
- static void nv_swncq_qc_to_dq(struct ata_port *ap, struct ata_queued_cmd *qc)
- {
- 	struct nv_swncq_port_priv *pp = ap->private_data;
--	defer_queue_t	*dq = &pp->defer_queue;
-+	struct defer_queue *dq = &pp->defer_queue;
- 
- 	/* queue is full */
- 	WARN_ON((dq->rear + 1) % (ATA_MAX_QUEUE + 1) == dq->front);
-@@ -1720,7 +1720,7 @@ static void nv_swncq_qc_to_dq(struct ata
- static struct ata_queued_cmd *nv_swncq_qc_from_dq(struct ata_port *ap)
- {
- 	struct nv_swncq_port_priv *pp = ap->private_data;
--	defer_queue_t	*dq = &pp->defer_queue;
-+	struct defer_queue *dq = &pp->defer_queue;
- 	unsigned int tag;
- 
- 	if (dq->front == dq->rear) /* null queue */
-@@ -1760,7 +1760,7 @@ static void nv_swncq_fis_reinit(struct a
- static void nv_swncq_pp_reinit(struct ata_port *ap)
- {
- 	struct nv_swncq_port_priv *pp = ap->private_data;
--	defer_queue_t		*dq = &pp->defer_queue;
-+	struct defer_queue *dq = &pp->defer_queue;
- 
- 	dq->front = dq->rear = 0;
- 	dq->defer_bits = 0;
-@@ -1801,7 +1801,7 @@ static void nv_swncq_ncq_stop(struct ata
- 	done_mask = pp->qc_active ^ sactive;
- 
- 	ata_port_printk(ap, KERN_ERR, "tag : dhfis dmafis sdbfis sacitve\n");
--	for (i=0; i < ATA_MAX_QUEUE; i++) {
-+	for (i = 0; i < ATA_MAX_QUEUE; i++) {
- 		u8 err = 0;
- 		if (pp->qc_active & (1 << i))
- 			err = 0;
-@@ -1912,7 +1912,7 @@ static void nv_swncq_host_init(struct at
- 	writel(~0x0, mmio + NV_INT_STATUS_MCP55);
+@@ -1454,6 +1587,48 @@ static void nv_ck804_thaw(struct ata_por
+ 	writeb(mask, mmio_base + NV_INT_ENABLE_CK804);
  }
  
--static int  nv_swncq_port_start(struct ata_port *ap)
-+static int nv_swncq_port_start(struct ata_port *ap)
++static void nv_mcp55_freeze(struct ata_port *ap)
++{
++	void __iomem *mmio_base = ap->host->iomap[NV_MMIO_BAR];
++	int shift = ap->port_no * NV_INT_PORT_SHIFT_MCP55;
++	u32 mask;
++	u32 val;
++
++	if (ap->flags & ATA_FLAG_NCQ) {
++		val = readl(mmio_base + NV_CTL_MCP55);
++		val &= ~(NV_CTL_PRI_SWNCQ << ap->port_no);
++		writel(val, mmio_base + NV_CTL_MCP55);/* disable ncq */
++	}
++
++	writel(NV_INT_ALL_MCP55 << shift, mmio_base + NV_INT_STATUS_MCP55);
++
++	mask = readl(mmio_base + NV_INT_ENABLE_MCP55);
++	mask &= ~(NV_INT_ALL_MCP55 << shift);
++	writel(mask, mmio_base + NV_INT_ENABLE_MCP55);
++	ata_bmdma_freeze(ap);
++}
++
++static void nv_mcp55_thaw(struct ata_port *ap)
++{
++	void __iomem *mmio_base = ap->host->iomap[NV_MMIO_BAR];
++	int shift = ap->port_no * NV_INT_PORT_SHIFT_MCP55;
++	u32 mask;
++	u32 val;
++
++	if (ap->flags & ATA_FLAG_NCQ) {
++		val = readl(mmio_base + NV_CTL_MCP55);
++		val |= (NV_CTL_PRI_SWNCQ << ap->port_no);
++		writel(val, mmio_base + NV_CTL_MCP55);/* enable ncq */
++	}
++
++	writel(NV_INT_ALL_MCP55 << shift, mmio_base + NV_INT_STATUS_MCP55);
++
++	mask = readl(mmio_base + NV_INT_ENABLE_MCP55);
++	mask |= (NV_INT_MASK_MCP55 << shift);
++	writel(mask, mmio_base + NV_INT_ENABLE_MCP55);
++	ata_bmdma_thaw(ap);
++}
++
+ static int nv_hardreset(struct ata_port *ap, unsigned int *class,
+ 			unsigned long deadline)
  {
- 	struct device *dev = ap->host->dev;
- 	void __iomem *mmio = ap->host->iomap[NV_MMIO_BAR];
-@@ -1957,9 +1957,7 @@ static void nv_swncq_fill_sg(struct ata_
- 	struct ata_port *ap = qc->ap;
- 	struct scatterlist *sg;
- 	unsigned int idx;
--
- 	struct nv_swncq_port_priv *pp = ap->private_data;
--
- 	struct ata_prd *prd;
+@@ -1527,6 +1702,635 @@ static void nv_adma_error_handler(struct
+ 			   nv_hardreset, ata_std_postreset);
+ }
  
- 	WARN_ON(qc->__sg == NULL);
-@@ -1972,7 +1970,7 @@ static void nv_swncq_fill_sg(struct ata_
- 		u32 addr, offset;
- 		u32 sg_len, len;
++static void nv_swncq_qc_to_dq(struct ata_port *ap, struct ata_queued_cmd *qc)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	defer_queue_t	*dq = &pp->defer_queue;
++
++	/* queue is full */
++	WARN_ON((dq->rear + 1) % (ATA_MAX_QUEUE + 1) == dq->front);
++
++	dq->defer_bits |= (1 << qc->tag);
++
++	dq->tag[dq->rear] = qc->tag;
++	dq->rear = (dq->rear + 1) % (ATA_MAX_QUEUE + 1);
++
++}
++
++static struct ata_queued_cmd *nv_swncq_qc_from_dq(struct ata_port *ap)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	defer_queue_t	*dq = &pp->defer_queue;
++	unsigned int tag;
++
++	if (dq->front == dq->rear) /* null queue */
++		return NULL;
++
++	tag = dq->tag[dq->front];
++	dq->tag[dq->front] = ATA_TAG_POISON;
++	dq->front = (dq->front + 1) % (ATA_MAX_QUEUE + 1);
++
++	WARN_ON(!(dq->defer_bits & (1 << tag)));
++	dq->defer_bits &= ~(1 << tag);
++
++	return ata_qc_from_tag(ap, tag);
++}
++
++static void nv_swncq_bmdma_stop(struct ata_port *ap)
++{
++	/* clear start/stop bit */
++	iowrite8(ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD) & ~ATA_DMA_START,
++			ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
++	ata_altstatus(ap);
++}
++
++static void nv_swncq_fis_reinit(struct ata_port *ap)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++
++	pp->dhfis_bits = 0;
++	pp->dmafis_bits = 0;
++	pp->sdbfis_bits = 0;
++	pp->ncq_saw_d2h = 0;
++	pp->ncq_saw_dmas = 0;
++	pp->ncq_saw_sdb = 0;
++	pp->ncq_saw_backout = 0;
++}
++
++static void nv_swncq_pp_reinit(struct ata_port *ap)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	defer_queue_t		*dq = &pp->defer_queue;
++
++	dq->front = dq->rear = 0;
++	dq->defer_bits = 0;
++	pp->qc_active = 0;
++	pp->last_issue_tag = ATA_TAG_POISON;
++	nv_swncq_fis_reinit(ap);
++}
++
++static void nv_swncq_irq_clear(struct ata_port *ap, u32 val)
++{
++	void __iomem *mmio = ap->host->iomap[NV_MMIO_BAR];
++	u32  flags = (val << (ap->port_no * NV_INT_PORT_SHIFT_MCP55));
++
++	writel(flags, mmio + NV_INT_STATUS_MCP55);
++}
++
++static void nv_swncq_ncq_stop(struct ata_port *ap)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	unsigned int i;
++	u32 sactive;
++	u32 done_mask;
++
++	ata_port_printk(ap, KERN_ERR,
++		"EH in SWNCQ mode,QC:qc_active 0x%X sactive 0x%X\n",
++		ap->qc_active, ap->sactive);
++	ata_port_printk(ap, KERN_ERR,
++		"SWNCQ:qc_active 0x%X defer_bits 0x%X last_issue_tag 0x%x\n  "
++		 "dhfis 0x%X dmafis 0x%X sdbfis 0x%X\n",
++		pp->qc_active, pp->defer_queue.defer_bits, pp->last_issue_tag,
++		pp->dhfis_bits, pp->dmafis_bits,
++		pp->sdbfis_bits);
++
++	ata_port_printk(ap, KERN_ERR, "ATA_REG 0x%X ERR_REG 0x%X\n",
++		ap->ops->check_status(ap), ioread8(ap->ioaddr.error_addr));
++
++	sactive = readl(pp->sactive_block);
++	done_mask = pp->qc_active ^ sactive;
++
++	ata_port_printk(ap, KERN_ERR, "tag : dhfis dmafis sdbfis sacitve\n");
++	for (i=0; i < ATA_MAX_QUEUE; i++) {
++		u8 err = 0;
++		if (pp->qc_active & (1 << i))
++			err = 0;
++		else if (done_mask & (1 << i))
++			err = 1;
++		else
++			continue;
++
++		ata_port_printk(ap, KERN_ERR,
++		"tag 0x%x: %01x %01x %01x %01x %s\n", i,
++		(pp->dhfis_bits >> i) & 0x1,
++		(pp->dmafis_bits >> i) & 0x1 , (pp->sdbfis_bits >> i) & 0x1,
++		(sactive >> i) & 0x1,
++		(err ? "error!tag doesn't exit, but sactive bit is set" : " "));
++	}
++
++	nv_swncq_pp_reinit(ap);
++	ap->ops->irq_clear(ap);
++	nv_swncq_bmdma_stop(ap);
++	nv_swncq_irq_clear(ap, 0xffff);
++}
++
++static void nv_swncq_error_handler(struct ata_port *ap)
++{
++	struct ata_eh_context *ehc = &ap->eh_context;
++
++	if (ap->sactive) {
++		nv_swncq_ncq_stop(ap);
++		ehc->i.action |= ATA_EH_HARDRESET;
++	}
++
++	ata_bmdma_drive_eh(ap, ata_std_prereset, ata_std_softreset,
++				nv_hardreset, ata_std_postreset);
++}
++
++#ifdef CONFIG_PM
++static int nv_swncq_port_suspend(struct ata_port *ap, pm_message_t mesg)
++{
++	void __iomem *mmio =  ap->host->iomap[NV_MMIO_BAR];
++	u32 tmp;
++
++	/* clear irq */
++	writel(~0, mmio + NV_INT_STATUS_MCP55);
++
++	if (!(ap->flags & ATA_FLAG_NCQ))
++		return 0;
++
++	/* disable irq */
++	writel(0, mmio + NV_INT_ENABLE_MCP55);
++
++	/* disable swncq */
++	tmp = readl(mmio + NV_CTL_MCP55);
++	tmp &= ~(NV_CTL_PRI_SWNCQ | NV_CTL_SEC_SWNCQ);
++	writel(tmp, mmio + NV_CTL_MCP55);
++
++	return 0;
++}
++
++static int nv_swncq_port_resume(struct ata_port *ap)
++{
++	void __iomem *mmio =  ap->host->iomap[NV_MMIO_BAR];
++	u32 tmp;
++
++	/* clear irq */
++	writel(~0, mmio + NV_INT_STATUS_MCP55);
++
++	if (!(ap->flags & ATA_FLAG_NCQ))
++		return 0;
++
++	/* enable irq */
++	writel(0x00fd00fd,  mmio + NV_INT_ENABLE_MCP55);
++
++	/* enable swncq */
++	tmp = readl(mmio + NV_CTL_MCP55);
++	writel(tmp | NV_CTL_PRI_SWNCQ | NV_CTL_SEC_SWNCQ, mmio + NV_CTL_MCP55);
++
++	return 0;
++}
++#endif
++
++static void nv_swncq_host_init(struct ata_host *host)
++{
++	u32 tmp;
++	void __iomem	*mmio = host->iomap[NV_MMIO_BAR];
++	struct pci_dev *pdev = to_pci_dev(host->dev);
++	u8 regval;
++	unsigned int i;
++
++	/* disable  ECO 398 */
++	pci_read_config_byte(pdev, 0x7f, &regval);
++	regval &= ~(1 << 7);
++	pci_write_config_byte(pdev, 0x7f, regval);
++
++	/* enable swncq */
++	tmp = readl(mmio + NV_CTL_MCP55);
++	VPRINTK("HOST_CTL:0x%X\n", tmp);
++	writel(tmp | NV_CTL_PRI_SWNCQ | NV_CTL_SEC_SWNCQ, mmio + NV_CTL_MCP55);
++
++	for (i = 0; i < host->n_ports; i++)
++	    host->ports[i]->flags |= ATA_FLAG_NCQ;
++
++	/* enable irq intr */
++	tmp = readl(mmio + NV_INT_ENABLE_MCP55);
++	VPRINTK("HOST_ENABLE:0x%X\n", tmp);
++	writel(tmp | 0x00fd00fd, mmio + NV_INT_ENABLE_MCP55);
++
++	/*  clear port irq */
++	writel(~0x0, mmio + NV_INT_STATUS_MCP55);
++}
++
++static int  nv_swncq_port_start(struct ata_port *ap)
++{
++	struct device *dev = ap->host->dev;
++	void __iomem *mmio = ap->host->iomap[NV_MMIO_BAR];
++	struct nv_swncq_port_priv *pp;
++	int rc;
++
++	rc = ata_port_start(ap);
++	if (rc)
++		return rc;
++
++	pp = devm_kzalloc(dev, sizeof(*pp), GFP_KERNEL);
++	if (!pp)
++		return -ENOMEM;
++
++	pp->prd = dmam_alloc_coherent(dev, ATA_PRD_TBL_SZ * ATA_MAX_QUEUE,
++				&pp->prd_dma, GFP_KERNEL);
++	if (!pp->prd)
++		return -ENOMEM;
++	memset(pp->prd, 0, ATA_PRD_TBL_SZ * ATA_MAX_QUEUE);
++
++	ap->private_data = pp;
++	pp->sactive_block = mmio + 4 * SCR_ACTIVE +
++			    ap->port_no * NV_PORT1_SCR_REG_OFFSET;
++	spin_lock_init(&pp->lock);
++
++	return 0;
++}
++
++static void nv_swncq_qc_prep(struct ata_queued_cmd *qc)
++{
++	if (qc->tf.protocol != ATA_PROT_NCQ)
++		return ata_qc_prep(qc);
++
++	if (!(qc->flags & ATA_QCFLAG_DMAMAP))
++		return;
++
++	nv_swncq_fill_sg(qc);
++}
++
++static void nv_swncq_fill_sg(struct ata_queued_cmd *qc)
++{
++	struct ata_port *ap = qc->ap;
++	struct scatterlist *sg;
++	unsigned int idx;
++
++	struct nv_swncq_port_priv *pp = ap->private_data;
++
++	struct ata_prd *prd;
++
++	WARN_ON(qc->__sg == NULL);
++	WARN_ON(qc->n_elem == 0 && qc->pad_len == 0);
++
++	prd = (void*)pp->prd + (ATA_PRD_TBL_SZ * qc->tag);
++
++	idx = 0;
++	ata_for_each_sg(sg, qc) {
++		u32 addr, offset;
++		u32 sg_len, len;
++
++		addr = (u32) sg_dma_address(sg);
++		sg_len = sg_dma_len(sg);
++
++		while (sg_len) {
++			offset = addr & 0xffff;
++			len = sg_len;
++			if ((offset + sg_len) > 0x10000)
++				len = 0x10000 - offset;
++
++			prd[idx].addr = cpu_to_le32(addr);
++			prd[idx].flags_len = cpu_to_le32(len & 0xffff);
++
++			idx++;
++			sg_len -= len;
++			addr += len;
++		}
++	}
++
++	if (idx)
++		prd[idx - 1].flags_len |= cpu_to_le32(ATA_PRD_EOT);
++}
++
++static unsigned int nv_swncq_issue_atacmd(struct ata_port *ap,
++					  struct ata_queued_cmd *qc)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++
++	if (qc == NULL)
++		return 0;
++
++	DPRINTK("Enter\n");
++
++	writel((1 << qc->tag),  pp->sactive_block);
++	pp->last_issue_tag = qc->tag;
++	pp->dhfis_bits &= ~(1 << qc->tag);
++	pp->dmafis_bits &= ~(1 << qc->tag);
++	pp->qc_active |= (0x1 << qc->tag);
++
++	ap->ops->tf_load(ap, &qc->tf);	 /* load tf registers */
++	ap->ops->exec_command(ap, &qc->tf);
++
++	DPRINTK("Issued tag %u\n", qc->tag);
++
++	return 0;
++}
++
++static unsigned int nv_swncq_qc_issue(struct ata_queued_cmd *qc)
++{
++	struct ata_port *ap = qc->ap;
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	unsigned long flags;
++
++	if (qc->tf.protocol != ATA_PROT_NCQ)
++		return ata_qc_issue_prot(qc);
++
++	DPRINTK("Enter\n");
++	spin_lock_irqsave(&pp->lock, flags);
++	if (!pp->qc_active)
++		nv_swncq_issue_atacmd(ap, qc);
++	else
++		nv_swncq_qc_to_dq(ap, qc); /*add defer queue*/
++	spin_unlock_irqrestore(&pp->lock, flags);
++	return 0;
++}
++
++static void nv_swncq_hotplug(struct ata_port *ap, u32 fis)
++{
++	u32 serror;
++	struct ata_eh_info *ehi = &ap->eh_info;
++
++	ata_ehi_clear_desc(ehi);
++
++	/* AHCI needs SError cleared; otherwise, it might lock up */
++	sata_scr_read(ap, SCR_ERROR, &serror);
++	sata_scr_write(ap, SCR_ERROR, serror);
++
++	/* analyze @irq_stat */
++	if (fis & NV_SWNCQ_IRQ_ADDED)
++		ata_ehi_push_desc(ehi, "hot plug");
++
++	else if (fis & NV_SWNCQ_IRQ_REMOVED)
++		ata_ehi_push_desc(ehi, "hot unplug");
++
++	ata_ehi_hotplugged(ehi);
++
++	/* okay, let's hand over to EH */
++	ehi->serror |= serror;
++
++	ata_port_freeze(ap);
++}
++
++static int nv_swncq_sdbfis(struct ata_port *ap)
++{
++	struct ata_queued_cmd *qc;
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	struct ata_eh_info *ehi = &ap->eh_info;
++	u32 sactive;
++	int nr_done = 0;
++	u32 done_mask;
++	int i;
++	u8 host_stat;
++	u8 lack_dhfis = 0;
++
++	host_stat = ap->ops->bmdma_status(ap);
++	if (unlikely(host_stat & ATA_DMA_ERR)) {
++	/* error when transfering data to/from memory */
++		ata_ehi_clear_desc(ehi);
++		ata_ehi_push_desc(ehi, "BMDMA stat 0x%x", host_stat);
++		ehi->err_mask |= AC_ERR_HOST_BUS;
++		ehi->action |= ATA_EH_SOFTRESET;
++		return -EINVAL;
++	}
++
++	ap->ops->irq_clear(ap);
++	nv_swncq_bmdma_stop(ap);
++
++	sactive = readl(pp->sactive_block);
++	done_mask = pp->qc_active ^ sactive;
++
++	if (unlikely(done_mask & sactive)) {
++		ata_ehi_clear_desc(ehi);
++		ata_ehi_push_desc(ehi, "illegal SWNCQ:qc_active transition"
++			"(%08x->%08x)", pp->qc_active, sactive);
++		ehi->err_mask |= AC_ERR_HSM;
++		ehi->action |= ATA_EH_HARDRESET;
++		return -EINVAL;
++	}
++	for (i = 0; i < ATA_MAX_QUEUE; i++) {
++		struct ata_queued_cmd *qc;
++
++		if (!(done_mask & (1 << i)))
++			continue;
++
++		if ((qc = ata_qc_from_tag(ap, i))) {
++			ata_qc_complete(qc);
++			pp->qc_active &= ~(1 << i);
++			pp->dhfis_bits &= ~(1 << i);
++			pp->dmafis_bits &= ~(1 << i);
++			pp->sdbfis_bits |= (1 << i);
++			nr_done++;
++		}
++	}
++
++	if (!ap->qc_active) {
++		DPRINTK("over\n");
++		nv_swncq_pp_reinit(ap);
++		return nr_done;
++	}
++
++	if (pp->qc_active & pp->dhfis_bits)
++			return nr_done;
++
++	if (pp->ncq_saw_backout || (pp->qc_active ^pp->dhfis_bits))
++		 /* if the controller cann't get a device to host register FIS,
++		     The driver needs to reissue the new command. */
++		lack_dhfis = 1;
++
++	DPRINTK("id 0x%x QC: qc_active 0x%x,"
++		"SWNCQ:qc_active 0x%X defer_bits %X "
++		"dhfis 0x%X dmafis 0x%X last_issue_tag %x\n",
++		ap->print_id, ap->qc_active, pp->qc_active,
++		pp->defer_queue.defer_bits, pp->dhfis_bits,
++		pp->dmafis_bits, pp->last_issue_tag);
++
++	nv_swncq_fis_reinit(ap);
++
++	if (lack_dhfis) {
++		qc = ata_qc_from_tag(ap, pp->last_issue_tag);
++		nv_swncq_issue_atacmd(ap, qc);
++		return nr_done;
++	}
++
++	if (pp->defer_queue.defer_bits) {/* send deferral queue command */
++		qc = nv_swncq_qc_from_dq(ap);
++		WARN_ON(qc == NULL);
++		nv_swncq_issue_atacmd(ap, qc);
++	}
++
++	return nr_done;
++}
++
++static inline u32 nv_swncq_tag(struct ata_port *ap)
++{
++	void __iomem *mmio =  ap->host->iomap[NV_MMIO_BAR];
++	u32 tag;
++
++	tag = readl(mmio + NV_NCQ_REG_MCP55);
++	tag >>= (2 + (16 * ap->port_no));
++	tag &= 0x1f;
++	return  tag;
++}
++
++static int nv_swncq_dmafis(struct ata_port *ap)
++{
++	struct ata_queued_cmd *qc;
++	unsigned int rw ;
++	u8 dmactl;
++	u32 tag;
++	struct nv_swncq_port_priv *pp = ap->private_data;
++
++	nv_swncq_bmdma_stop(ap);
++	tag = nv_swncq_tag(ap);
++
++	DPRINTK("dma setup tag 0x%x\n", tag);
++	qc = ata_qc_from_tag(ap, tag);
++
++	if (unlikely(!qc))
++		return 0;
++
++	rw  =  ((qc->tf.flags) & ATA_TFLAG_WRITE);
++
++	/* load PRD table addr. */
++	iowrite32(pp->prd_dma + ATA_PRD_TBL_SZ * qc->tag,
++		  ap->ioaddr.bmdma_addr + ATA_DMA_TABLE_OFS);
++
++	/* specify data direction, triple-check start bit is clear */
++	dmactl = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
++	dmactl &= ~(ATA_DMA_WR);
++	if (!rw)
++		dmactl |= ATA_DMA_WR;
++
++	iowrite8(dmactl | ATA_DMA_START, ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
++
++	return 1;
++}
++
++static void nv_swncq_host_interrupt(struct ata_port *ap,  u32  fis)
++{
++	struct nv_swncq_port_priv *pp = ap->private_data;
++	struct ata_queued_cmd *qc;
++	struct ata_eh_info *ehi = &ap->eh_info;
++	u32 serror;
++	u8 ata_stat;
++	int rc = 0;
++
++	ata_stat = ap->ops->check_status(ap);
++	nv_swncq_irq_clear(ap, fis);
++	if (!fis)
++		return;
++
++	if (ap->pflags & ATA_PFLAG_FROZEN)
++		return;
++
++	if (fis & NV_SWNCQ_IRQ_HOTPLUG) {
++		nv_swncq_hotplug(ap, fis);
++		return;
++	}
++
++	if (!pp->qc_active)
++		return;
++
++	serror = ap->ops->scr_read(ap, SCR_ERROR);
++	ap->ops->scr_write(ap, SCR_ERROR, serror);
++
++	if (ata_stat & ATA_ERR) {
++		ata_ehi_clear_desc(ehi);
++		ata_ehi_push_desc(ehi, "Ata error. fis:0x%X", fis);
++		ehi->err_mask |= AC_ERR_DEV;
++		ehi->serror |= serror;
++		ehi->action |= ATA_EH_SOFTRESET;
++		ata_port_freeze(ap);
++		return;
++	}
++
++	spin_lock(&pp->lock);
++	if (fis & NV_SWNCQ_IRQ_BACKOUT) {
++		/* If the IRQ is backout, driver must issue the new command
++		   again some time later. */
++		pp->ncq_saw_backout = 1;
++	}
++
++	if (fis & NV_SWNCQ_IRQ_SDBFIS) {
++		pp->ncq_saw_sdb = 1;
++		DPRINTK("id 0x%x SWNCQ: qc_active 0x%X "
++			"dhfis 0x%X dmafis 0x%X sactive 0x%X\n",
++			ap->print_id, pp->qc_active, pp->dhfis_bits,
++			pp->dmafis_bits, readl(pp->sactive_block));
++		rc = nv_swncq_sdbfis(ap);
++		if (rc < 0)
++			goto irq_error;
++	}
++
++	if (fis & NV_SWNCQ_IRQ_DHREGFIS) {
++		/* The interrupt indicates the new command was transmitted
++		correctly to the drive. */
++		pp->dhfis_bits |= (0x1 << pp->last_issue_tag);
++		pp->ncq_saw_d2h = 1;
++		if (pp->ncq_saw_sdb || pp->ncq_saw_backout) {
++			ata_ehi_push_desc(ehi, "illegal fis transaction");
++			ehi->err_mask |= AC_ERR_HSM;
++			ehi->action |= ATA_EH_HARDRESET;
++			goto irq_error;
++		}
++
++		if ( !(fis & NV_SWNCQ_IRQ_DMASETUP) && !pp->ncq_saw_dmas) {
++			ata_stat = ap->ops->check_status(ap);
++			if (ata_stat & ATA_BUSY)
++				goto irq_exit;
++
++			if (pp->defer_queue.defer_bits) {
++				DPRINTK("send next command\n");
++				qc = nv_swncq_qc_from_dq(ap);
++				nv_swncq_issue_atacmd(ap, qc);
++			}
++		}
++	}
++
++	if (fis & NV_SWNCQ_IRQ_DMASETUP) {
++		/* program the dma controller with appropriate PRD buffers
++		   and start the DMA transfer for requested command.  */
++		pp->dmafis_bits |= (0x1 << nv_swncq_tag(ap));
++		pp->ncq_saw_dmas = 1;
++		rc = nv_swncq_dmafis(ap);
++	}
++
++irq_exit:
++	spin_unlock(&pp->lock);
++	return;
++
++irq_error:
++	ata_ehi_push_desc(ehi, "fis:0x%x", fis);
++	ata_port_freeze(ap);
++	spin_unlock(&pp->lock);
++	return;
++}
++
++static irqreturn_t nv_swncq_interrupt(int irq, void *dev_instance)
++{
++	struct ata_host *host = dev_instance;
++	unsigned int i;
++	unsigned int handled = 0;
++	unsigned long flags;
++	u32 irq_stat;
++	spin_lock_irqsave(&host->lock, flags);
++
++	irq_stat = readl(host->iomap[NV_MMIO_BAR] + NV_INT_STATUS_MCP55);
++
++	for (i = 0; i < host->n_ports; i++) {
++		struct ata_port *ap = host->ports[i];
++
++		if (ap && !(ap->flags & ATA_FLAG_DISABLED) ) {
++			if (ap->sactive) {
++				nv_swncq_host_interrupt(ap, irq_stat & 0xffff);
++				handled = 1;
++			} else {
++				if (irq_stat) /* reserve Hotplug and INT intr */
++					nv_swncq_irq_clear(ap, 0xfff0);
++
++				handled += nv_host_intr(ap, (u8)irq_stat);
++			}
++		}
++		irq_stat >>= NV_INT_PORT_SHIFT_MCP55;
++	}
++
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	return IRQ_RETVAL(handled);
++}
++
+ static int nv_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+ 	static int printed_version = 0;
+@@ -1553,7 +2357,7 @@ static int nv_init_one (struct pci_dev *
+ 		return rc;
  
--		addr = (u32) sg_dma_address(sg);
-+		addr = (u32)sg_dma_address(sg);
- 		sg_len = sg_dma_len(sg);
- 
- 		while (sg_len) {
-@@ -2051,7 +2049,6 @@ static void nv_swncq_hotplug(struct ata_
- 	/* analyze @irq_stat */
- 	if (fis & NV_SWNCQ_IRQ_ADDED)
- 		ata_ehi_push_desc(ehi, "hot plug");
--
- 	else if (fis & NV_SWNCQ_IRQ_REMOVED)
- 		ata_ehi_push_desc(ehi, "hot unplug");
- 
-@@ -2122,7 +2119,7 @@ static int nv_swncq_sdbfis(struct ata_po
+ 	/* determine type and allocate host */
+-	if (type >= CK804 && adma_enabled) {
++	if (type == CK804 && adma_enabled) {
+ 		dev_printk(KERN_NOTICE, &pdev->dev, "Using ADMA mode\n");
+ 		type = ADMA;
+ 	}
+@@ -1599,6 +2403,9 @@ static int nv_init_one (struct pci_dev *
+ 		rc = nv_adma_host_init(host);
+ 		if (rc)
+ 			return rc;
++	} else if (type == SWNCQ && swncq_enabled) {
++		dev_printk(KERN_NOTICE, &pdev->dev, "Using SWNCQ mode\n");
++		nv_swncq_host_init(host);
  	}
  
- 	if (pp->qc_active & pp->dhfis_bits)
--			return nr_done;
-+		return nr_done;
- 
- 	if (pp->ncq_saw_backout || (pp->qc_active ^pp->dhfis_bits))
- 		 /* if the controller cann't get a device to host register FIS,
-@@ -2181,7 +2178,7 @@ static int nv_swncq_dmafis(struct ata_po
- 	if (unlikely(!qc))
- 		return 0;
- 
--	rw  =  ((qc->tf.flags) & ATA_TFLAG_WRITE);
-+	rw = qc->tf.flags & ATA_TFLAG_WRITE;
- 
- 	/* load PRD table addr. */
- 	iowrite32(pp->prd_dma + ATA_PRD_TBL_SZ * qc->tag,
-@@ -2189,7 +2186,7 @@ static int nv_swncq_dmafis(struct ata_po
- 
- 	/* specify data direction, triple-check start bit is clear */
- 	dmactl = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
--	dmactl &= ~(ATA_DMA_WR);
-+	dmactl &= ~ATA_DMA_WR;
- 	if (!rw)
- 		dmactl |= ATA_DMA_WR;
- 
-@@ -2305,6 +2302,7 @@ static irqreturn_t nv_swncq_interrupt(in
- 	unsigned int handled = 0;
- 	unsigned long flags;
- 	u32 irq_stat;
+ 	pci_set_master(pdev);
+@@ -1698,3 +2505,6 @@ module_init(nv_init);
+ module_exit(nv_exit);
+ module_param_named(adma, adma_enabled, bool, 0444);
+ MODULE_PARM_DESC(adma, "Enable use of ADMA (Default: true)");
++module_param_named(swncq, swncq_enabled, bool, 0444);
++MODULE_PARM_DESC(swncq, "Enable use of SWNCQ (Default: false)");
 +
- 	spin_lock_irqsave(&host->lock, flags);
- 
- 	irq_stat = readl(host->iomap[NV_MMIO_BAR] + NV_INT_STATUS_MCP55);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kuanluo@gmail.com are
 
-smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
-ioatdma-fix-section-mismatches.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
-git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-git-selinux.patch
-git-selinux-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-git-scsi-misc.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-show-unhandled-signals-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-highres-improve-debug-output-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
-slab-allocators-cleanup-zeroing-allocations-fix-2.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
