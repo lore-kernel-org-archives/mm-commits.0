@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-section-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 02:39:49 -0700
-Message-ID: <200706270943.l5R9hmxY014424@imap1.linux-foundation.org>
+Subject: + ntp-move-the-cmos-update-code-into-ntpc-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 02:43:05 -0700
+Message-ID: <200706270947.l5R9l4Md014514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52882 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37024 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752020AbXF0Jn5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752130AbXF0JsQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 05:43:57 -0400
+	Wed, 27 Jun 2007 05:48:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, davem@davemloft.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     kgdb-section-fix
+     ntp-move-the-cmos-update-code-into-ntpc-fix
 has been added to the -mm tree.  Its filename is
-     kgdb-section-fix.patch
+     ntp-move-the-cmos-update-code-into-ntpc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kgdb-section-fix
+Subject: ntp-move-the-cmos-update-code-into-ntpc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: drivers/built-in.o(.text+0x57467): Section mismatch: reference to .init.text:kgdb8250_add_port (between 'uart_add_one_port' and 'uart_startup')
+alpha:
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+include/linux/time.h:97: error: expected '=', ',', ';', 'asm' or '__attribute__' before '__read_mostly'
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_kgdb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/time.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/8250_kgdb.c~kgdb-section-fix drivers/serial/8250_kgdb.c
---- a/drivers/serial/8250_kgdb.c~kgdb-section-fix
-+++ a/drivers/serial/8250_kgdb.c
-@@ -391,7 +391,7 @@ struct kgdb_io kgdb_io_ops = {
-  * 	dynamically, this is the best option if a platform also normally
-  * 	calls early_serial_setup().
-  */
--void __init kgdb8250_add_port(int i, struct uart_port *serial_req)
-+void kgdb8250_add_port(int i, struct uart_port *serial_req)
- {
- 	/* Make sure we've got the built-in data before we override. */
- 	kgdb8250_copy_rs_table();
+diff -puN include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix include/linux/time.h
+--- a/include/linux/time.h~ntp-move-the-cmos-update-code-into-ntpc-fix
++++ a/include/linux/time.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_TIME_H
+ 
+ #include <linux/types.h>
++#include <linux/cache.h>
+ 
+ #ifdef __KERNEL__
+ # include <linux/seqlock.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +149,7 @@ git-kgdb-fixup.patch
 kgdb-warning-fix.patch
 kgdb-kconfig-fix.patch
 kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
@@ -266,4 +273,4 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-kgdb-section-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
