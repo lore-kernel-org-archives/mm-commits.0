@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-flush_tlb_kernel_range-warning-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 01:22:19 -0700
-Message-ID: <200706270826.l5R8QH5N013165@imap1.linux-foundation.org>
+Subject: + bd_claim_by_disk-fix-warning.patch added to -mm tree
+Date: Wed, 27 Jun 2007 01:32:16 -0700
+Message-ID: <200706270836.l5R8aE4M013435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752634AbXF0I0y (ORCPT
+	by vger.kernel.org with ESMTP id S1750958AbXF0Il1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 04:26:54 -0400
+	Wed, 27 Jun 2007 04:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, B.Steinbrink@gmx.de, hannes-kernel@saeurebad.de
 
 
 The patch titled
-     x86_64: flush_tlb_kernel_range() warning fix
+     bd_claim_by_disk: fix warning
 has been added to the -mm tree.  Its filename is
-     x86_64-flush_tlb_kernel_range-warning-fix.patch
+     bd_claim_by_disk-fix-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: flush_tlb_kernel_range() warning fix
+Subject: bd_claim_by_disk: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/vmalloc.c: In function 'unmap_kernel_range':
-mm/vmalloc.c:75: warning: unused variable 'start'
+Fix this:
 
-make it a C function so that the compiler thinks it used its arguments.
+fs/block_dev.c: In function 'bd_claim_by_disk':
+fs/block_dev.c:970: warning: 'found' may be used uninitialized in this function
 
-Cc: Andi Kleen <ak@suse.de>
+and given that free_bd_holder() now needs free(NULL)-is-legal behaviour, we
+can simplify bd_release_from_kobject().
+
+Cc: Bjorn Steinbrink <B.Steinbrink@gmx.de>
+Cc: Johannes Weiner <hannes-kernel@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/tlbflush.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/block_dev.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN include/asm-x86_64/tlbflush.h~x86_64-flush_tlb_kernel_range-warning-fix include/asm-x86_64/tlbflush.h
---- a/include/asm-x86_64/tlbflush.h~x86_64-flush_tlb_kernel_range-warning-fix
-+++ a/include/asm-x86_64/tlbflush.h
-@@ -92,7 +92,11 @@ static inline void flush_tlb_range(struc
+diff -puN fs/block_dev.c~bd_claim_by_disk-fix-warning fs/block_dev.c
+--- a/fs/block_dev.c~bd_claim_by_disk-fix-warning
++++ a/fs/block_dev.c
+@@ -975,20 +975,20 @@ static int bd_claim_by_kobject(struct bl
  
- #endif
+ 	err = bd_claim(bdev, holder);
+ 	if (err)
+-		goto out;
++		goto fail;
  
--#define flush_tlb_kernel_range(start, end) flush_tlb_all()
-+static inline void flush_tlb_kernel_range(unsigned long start,
-+					unsigned long end)
-+{
-+	flush_tlb_all();
-+}
+ 	found = find_bd_holder(bdev, bo);
+ 	if (found)
+-		goto out;
++		goto fail;
  
- static inline void flush_tlb_pgtables(struct mm_struct *mm,
- 				      unsigned long start, unsigned long end)
+ 	err = add_bd_holder(bdev, bo);
+ 	if (err)
+ 		bd_release(bdev);
+-
+-out:
+-	if (err || found)
+-		free_bd_holder(bo);
++	else
++		bo = NULL;
++fail:
+ 	mutex_unlock(&bdev->bd_mutex);
++	free_bd_holder(bo);
+ 	return err;
+ }
+ 
+@@ -1003,15 +1003,12 @@ out:
+ static void bd_release_from_kobject(struct block_device *bdev,
+ 					struct kobject *kobj)
+ {
+-	struct bd_holder *bo;
+-
+ 	if (!kobj)
+ 		return;
+ 
+ 	mutex_lock(&bdev->bd_mutex);
+ 	bd_release(bdev);
+-	if ((bo = del_bd_holder(bdev, kobj)))
+-		free_bd_holder(bo);
++	free_bd_holder(del_bd_holder(bdev, kobj));
+ 	mutex_unlock(&bdev->bd_mutex);
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +173,7 @@ paravirt-helper-to-disable-all-io-space-fix.patch
 i386-show-unhandled-signals-fix.patch
 i386-add-cpu_relax-to-cmos_lock-fix.patch
 highres-improve-debug-output-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 git-newsetup-fixup.patch
@@ -212,6 +248,7 @@ sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
 hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
 sprint_symbol-cleanup.patch
 replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -268,4 +305,3 @@ reiser4-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
