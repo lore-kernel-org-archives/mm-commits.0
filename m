@@ -1,111 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-sys_nic-should-include-linux-syscallsh.patch removed from -mm tree
-Date: Wed, 27 Jun 2007 16:04:21 -0700
-Message-ID: <200706272308.l5RN8Lmh009023@imap1.linux-foundation.org>
+Subject: + powerpc-tlb_32c-build-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 16:10:56 -0700
+Message-ID: <200706272310.l5RNAunv009064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45696 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763808AbXF0XIg (ORCPT
+	by vger.kernel.org with ESMTP id S1759629AbXF0XLH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 19:08:36 -0400
+	Wed, 27 Jun 2007 19:11:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: m.kozlowski@tuxland.pl, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     kernel/sys_ni.c should #include <linux/syscalls.h>
-has been removed from the -mm tree.  Its filename was
-     kernel-sys_nic-should-include-linux-syscallsh.patch
+     powerpc: tlb_32.c build fix
+has been added to the -mm tree.  Its filename is
+     powerpc-tlb_32c-build-fix.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/sys_ni.c should #include <linux/syscalls.h>
-From: Adrian Bunk <bunk@stusta.de>
+Subject: powerpc: tlb_32.c build fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Every file should include the headers containing the prototypes for
-its global functions.
+allnoconfig results in this:
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+ CC      arch/powerpc/mm/tlb_32.o
+In file included from include/asm/tlb.h:60,
+                 from arch/powerpc/mm/tlb_32.c:30:
+include/asm-generic/tlb.h: In function 'tlb_flush_mmu':
+include/asm-generic/tlb.h:76: error: implicit declaration of function 'release_pages'
+include/asm-generic/tlb.h: In function 'tlb_remove_page':
+include/asm-generic/tlb.h:105: error: implicit declaration of function 'page_cache_release'
+
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/powerpc/mm/tlb_32.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/sys_ni.c~kernel-sys_nic-should-include-linux-syscallsh kernel/sys_ni.c
---- a/kernel/sys_ni.c~kernel-sys_nic-should-include-linux-syscallsh
-+++ a/kernel/sys_ni.c
-@@ -1,6 +1,7 @@
- 
- #include <linux/linkage.h>
- #include <linux/errno.h>
-+#include <linux/syscalls.h>
- 
- #include <asm/unistd.h>
+diff -puN arch/powerpc/mm/tlb_32.c~powerpc-tlb_32c-build-fix arch/powerpc/mm/tlb_32.c
+--- a/arch/powerpc/mm/tlb_32.c~powerpc-tlb_32c-build-fix
++++ a/arch/powerpc/mm/tlb_32.c
+@@ -26,6 +26,8 @@
+ #include <linux/mm.h>
+ #include <linux/init.h>
+ #include <linux/highmem.h>
++#include <linux/pagemap.h>
++
+ #include <asm/tlbflush.h>
+ #include <asm/tlb.h>
  
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-cafe_nandc-the-olpc-laptop-is-not-available-for-100.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-kernel-sys_nic-should-include-linux-syscallsh.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+powerpc-tlb_32c-build-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+arm26-remove-broken-and-unused-macro.patch
+drivers-edac-new-intel-5000-mc-driver-fix.patch
+driver-edac-i5000-define-typo.patch
