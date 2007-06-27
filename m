@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bd_claim_by_disk-fix-warning.patch added to -mm tree
-Date: Wed, 27 Jun 2007 01:32:16 -0700
-Message-ID: <200706270836.l5R8aE4M013435@imap1.linux-foundation.org>
+Subject: + x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 02:21:06 -0700
+Message-ID: <200706270925.l5R9P6Mw014144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750958AbXF0Il1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752046AbXF0JZ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 04:41:27 -0400
+	Wed, 27 Jun 2007 05:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, B.Steinbrink@gmx.de, hannes-kernel@saeurebad.de
+Cc: akpm@linux-foundation.org, ak@suse.de, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, ebiederm@xmission.com, muli@il.ibm.com, vgoyal@in.ibm.com, yinghai.lu@sun.com
 
 
 The patch titled
-     bd_claim_by_disk: fix warning
+     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
 has been added to the -mm tree.  Its filename is
-     bd_claim_by_disk-fix-warning.patch
+     x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bd_claim_by_disk: fix warning
+Subject: x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+arch/x86_64/kernel/pci-calgary.c: In function 'detect_calgary':
+arch/x86_64/kernel/pci-calgary.c:1356: error: 'no_iommu' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c:1356: error: (Each undeclared identifier is reported only once
+arch/x86_64/kernel/pci-calgary.c:1356: error: for each function it appears in.)
+arch/x86_64/kernel/pci-calgary.c:1356: error: 'iommu_detected' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c: In function 'calgary_iommu_init':
+arch/x86_64/kernel/pci-calgary.c:1450: error: 'no_iommu' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c:1469: error: 'force_iommu' undeclared (first use in this function)
+arch/x86_64/kernel/pci-calgary.c: In function 'calgary_fixup_tce_spaces':
+arch/x86_64/kernel/pci-calgary.c:1564: error: 'no_iommu' undeclared (first use in this function)
 
-fs/block_dev.c: In function 'bd_claim_by_disk':
-fs/block_dev.c:970: warning: 'found' may be used uninitialized in this function
 
-and given that free_bd_holder() now needs free(NULL)-is-legal behaviour, we
-can simplify bd_release_from_kobject().
-
-Cc: Bjorn Steinbrink <B.Steinbrink@gmx.de>
-Cc: Johannes Weiner <hannes-kernel@saeurebad.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/block_dev.c~bd_claim_by_disk-fix-warning fs/block_dev.c
---- a/fs/block_dev.c~bd_claim_by_disk-fix-warning
-+++ a/fs/block_dev.c
-@@ -975,20 +975,20 @@ static int bd_claim_by_kobject(struct bl
- 
- 	err = bd_claim(bdev, holder);
- 	if (err)
--		goto out;
-+		goto fail;
- 
- 	found = find_bd_holder(bdev, bo);
- 	if (found)
--		goto out;
-+		goto fail;
- 
- 	err = add_bd_holder(bdev, bo);
- 	if (err)
- 		bd_release(bdev);
--
--out:
--	if (err || found)
--		free_bd_holder(bo);
-+	else
-+		bo = NULL;
-+fail:
- 	mutex_unlock(&bdev->bd_mutex);
-+	free_bd_holder(bo);
- 	return err;
- }
- 
-@@ -1003,15 +1003,12 @@ out:
- static void bd_release_from_kobject(struct block_device *bdev,
- 					struct kobject *kobj)
- {
--	struct bd_holder *bo;
--
- 	if (!kobj)
- 		return;
- 
- 	mutex_lock(&bdev->bd_mutex);
- 	bd_release(bdev);
--	if ((bo = del_bd_holder(bdev, kobj)))
--		free_bd_holder(bo);
-+	free_bd_holder(del_bd_holder(bdev, kobj));
- 	mutex_unlock(&bdev->bd_mutex);
- }
- 
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86_84-move-iommu-declaration-from-proto-to-iommuh-fix
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -38,6 +38,7 @@
+ #include <asm/proto.h>
+ #include <asm/calgary.h>
+ #include <asm/tce.h>
++#include <asm/iommu.h>
+ #include <asm/pci-direct.h>
+ #include <asm/system.h>
+ #include <asm/dma.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -171,6 +144,7 @@ x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
 i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
 paravirt-helper-to-disable-all-io-space-fix.patch
 i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
 i386-add-cpu_relax-to-cmos_lock-fix.patch
 highres-improve-debug-output-fix.patch
 x86_64-flush_tlb_kernel_range-warning-fix.patch
