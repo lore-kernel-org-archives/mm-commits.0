@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-some-pci-ids-for-xgi-chips.patch added to -mm tree
-Date: Tue, 26 Jun 2007 17:53:00 -0700
-Message-ID: <200706270053.l5R0r0LE006746@imap1.linux-foundation.org>
+Subject: + netconsole-fix-soft-lockup-when-removing-module.patch added to -mm tree
+Date: Tue, 26 Jun 2007 17:59:46 -0700
+Message-ID: <200706270059.l5R0xkw0006840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51954 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753686AbXF0AxU (ORCPT
+	by vger.kernel.org with ESMTP id S1751114AbXF0BA0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jun 2007 20:53:20 -0400
+	Tue, 26 Jun 2007 21:00:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: idr@us.ibm.com, airlied@linux.ie
+Cc: jarkao2@o2.pl
 
 
 The patch titled
-     drm: add some pci ids for XGI chips
+     netconsole: fix soft lockup when removing module
 has been added to the -mm tree.  Its filename is
-     add-some-pci-ids-for-xgi-chips.patch
+     netconsole-fix-soft-lockup-when-removing-module.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drm: add some pci ids for XGI chips
-From: Ian Romanick <idr@us.ibm.com>
+Subject: netconsole: fix soft lockup when removing module
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-This adds support for some of the XGI Volari family that are based on the SiS.
-
-Signed-off-by: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_pciids.h |    2 ++
- drivers/char/drm/sis_drv.h    |    8 ++++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ net/core/netpoll.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/drm_pciids.h~add-some-pci-ids-for-xgi-chips drivers/char/drm/drm_pciids.h
---- a/drivers/char/drm/drm_pciids.h~add-some-pci-ids-for-xgi-chips
-+++ a/drivers/char/drm/drm_pciids.h
-@@ -219,6 +219,8 @@
- 	{0x1039, 0x6300, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
- 	{0x1039, 0x6330, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SIS_CHIP_315}, \
- 	{0x1039, 0x7300, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
-+	{0x18CA, 0x0040, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SIS_CHIP_315}, \
-+	{0x18CA, 0x0042, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SIS_CHIP_315}, \
- 	{0, 0, 0}
+diff -puN net/core/netpoll.c~netconsole-fix-soft-lockup-when-removing-module net/core/netpoll.c
+--- a/net/core/netpoll.c~netconsole-fix-soft-lockup-when-removing-module
++++ a/net/core/netpoll.c
+@@ -72,7 +72,8 @@ static void queue_process(struct work_st
+ 			netif_tx_unlock(dev);
+ 			local_irq_restore(flags);
  
- #define tdfx_PCI_IDS \
-diff -puN drivers/char/drm/sis_drv.h~add-some-pci-ids-for-xgi-chips drivers/char/drm/sis_drv.h
---- a/drivers/char/drm/sis_drv.h~add-some-pci-ids-for-xgi-chips
-+++ a/drivers/char/drm/sis_drv.h
-@@ -33,11 +33,11 @@
+-			schedule_delayed_work(&npinfo->tx_work, HZ/10);
++			if (atomic_read(&npinfo->refcnt))
++				schedule_delayed_work(&npinfo->tx_work, HZ/10);
+ 			return;
+ 		}
+ 		netif_tx_unlock(dev);
+@@ -785,9 +786,15 @@ void netpoll_cleanup(struct netpoll *np)
+ 			if (atomic_dec_and_test(&npinfo->refcnt)) {
+ 				skb_queue_purge(&npinfo->arp_tx);
+ 				skb_queue_purge(&npinfo->txq);
+-				cancel_rearming_delayed_work(&npinfo->tx_work);
++				cancel_delayed_work(&npinfo->tx_work);
+ 				flush_scheduled_work();
  
- #define DRIVER_AUTHOR		"SIS, Tungsten Graphics"
- #define DRIVER_NAME		"sis"
--#define DRIVER_DESC		"SIS 300/630/540"
--#define DRIVER_DATE		"20060704"
-+#define DRIVER_DESC		"SIS 300/630/540 and XGI V3XE/V5/V8"
-+#define DRIVER_DATE		"20070626"
- #define DRIVER_MAJOR		1
--#define DRIVER_MINOR		2
--#define DRIVER_PATCHLEVEL	1
-+#define DRIVER_MINOR		3
-+#define DRIVER_PATCHLEVEL	0
- 
- enum sis_family {
- 	SIS_OTHER = 0,
++				/* clean after last, unfinished work */
++				if (!skb_queue_empty(&npinfo->txq)) {
++					struct sk_buff *skb;
++					skb = __skb_dequeue(&npinfo->txq);
++					kfree_skb(skb);
++				}
+ 				kfree(npinfo);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from idr@us.ibm.com are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
-add-some-pci-ids-for-xgi-chips.patch
+netconsole-fix-soft-lockup-when-removing-module.patch
