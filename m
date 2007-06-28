@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + file-capabilities-get_file_caps-cleanups.patch added to -mm tree
-Date: Thu, 28 Jun 2007 13:45:35 -0700
-Message-ID: <200706282045.l5SKjZRI001215@imap1.linux-foundation.org>
+Subject: + restore-previously-used-governor-on-a-hot-replugged-cpu.patch added to -mm tree
+Date: Thu, 28 Jun 2007 13:50:07 -0700
+Message-ID: <200706282050.l5SKo7bH001289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757524AbXF1UqE (ORCPT
+	by vger.kernel.org with ESMTP id S1752646AbXF1Uu2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 16:46:04 -0400
+	Thu, 28 Jun 2007 16:50:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, agm@google.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, sds@tycho.nsa.gov
+Cc: trenn@suse.de, davej@codemonkey.org.uk, malattia@linux.it
 
 
 The patch titled
-     file capabilities: get_file_caps cleanups
+     Restore previously used governor on a hot-replugged CPU
 has been added to the -mm tree.  Its filename is
-     file-capabilities-get_file_caps-cleanups.patch
+     restore-previously-used-governor-on-a-hot-replugged-cpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,128 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: file capabilities: get_file_caps cleanups
-From: Serge E. Hallyn <serue@us.ibm.com>
+Subject: Restore previously used governor on a hot-replugged CPU
+From: Thomas Renninger <trenn@suse.de>
 
-Two cleanups relating to set_file caps.
+Negative side effect: needs NR_CPUs pointer array of memory in
+CONFIG_HOTPLUG_CPU case.
 
-Rename set_file_caps to get_file_caps, since we are getting
-the file capabilities, and setting the bprm caps to them.
+Still needs userspace track keeping and rewriting of governors if governors
+change while a CPU is not active (always the governor at CPU remove time is
+restored).
 
-Move the clearing of bprm caps into get_file_caps, and do it
-only when we don't copy them from the capability xattr.
+Move of policy->user_policy.governor assignment is just a minor cleanup. 
+http://bugzilla.kernel.org/show_bug.cgi?id=8671
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andrew Morgan <agm@google.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |   26 ++++++++++++++------------
- 1 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/cpufreq/cpufreq.c |   23 ++++++++++++++++++++++-
+ 1 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN security/commoncap.c~file-capabilities-get_file_caps-cleanups security/commoncap.c
---- a/security/commoncap.c~file-capabilities-get_file_caps-cleanups
-+++ a/security/commoncap.c
-@@ -135,21 +135,20 @@ static inline int cap_from_disk(struct v
- }
+diff -puN drivers/cpufreq/cpufreq.c~restore-previously-used-governor-on-a-hot-replugged-cpu drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~restore-previously-used-governor-on-a-hot-replugged-cpu
++++ a/drivers/cpufreq/cpufreq.c
+@@ -39,6 +39,10 @@
+  */
+ static struct cpufreq_driver *cpufreq_driver;
+ static struct cpufreq_policy *cpufreq_cpu_data[NR_CPUS];
++#ifdef CONFIG_HOTPLUG_CPU
++/* This one keeps track of the previously set governor of a removed CPU */
++static struct cpufreq_governor *cpufreq_cpu_governor[NR_CPUS];
++#endif
+ static DEFINE_SPINLOCK(cpufreq_driver_lock);
  
- /* Locate any VFS capabilities: */
--static int set_file_caps(struct linux_binprm *bprm)
-+static int get_file_caps(struct linux_binprm *bprm)
- {
- 	struct dentry *dentry;
--	int rc;
-+	int rc = 0;
- 	struct vfs_cap_data_disk_v1 v1caps;
- 	struct vfs_cap_data_disk *dcaps;
- 	struct inode *inode;
+ /*
+@@ -770,9 +774,17 @@ static int cpufreq_add_dev (struct sys_d
+ 	}
+ 	policy->user_policy.min = policy->cpuinfo.min_freq;
+ 	policy->user_policy.max = policy->cpuinfo.max_freq;
+-	policy->user_policy.governor = policy->governor;
  
- 	dcaps = (struct vfs_cap_data_disk *)&v1caps;
- 	if (bprm->file->f_vfsmnt->mnt_flags & MNT_NOSUID)
--		return 0;
-+		goto clear_caps;
- 
- 	dentry = dget(bprm->file->f_dentry);
- 	inode = dentry->d_inode;
--	rc = 0;
- 	if (!inode->i_op || !inode->i_op->getxattr)
- 		goto out;
- 
-@@ -187,12 +186,21 @@ out:
- 	dput(dentry);
- 	if ((void *)dcaps != (void *)&v1caps)
- 		kfree(dcaps);
-+clear_caps:
-+	if (rc) {
-+		cap_clear (bprm->cap_inheritable);
-+		cap_clear (bprm->cap_permitted);
-+		cap_clear (bprm->cap_effective);
+ #ifdef CONFIG_SMP
++
++#ifdef CONFIG_HOTPLUG_CPU
++	if (cpufreq_cpu_governor[cpu]){
++		policy->governor = cpufreq_cpu_governor[cpu];
++		dprintk("Restoring governor %s for cpu %d\n",
++		       policy->governor->name, cpu);
 +	}
- 	return rc;
- }
++#endif
++
+ 	for_each_cpu_mask(j, policy->cpus) {
+ 		if (cpu == j)
+ 			continue;
+@@ -873,6 +885,7 @@ static int cpufreq_add_dev (struct sys_d
+ 	/* set default policy */
+ 	ret = __cpufreq_set_policy(policy, &new_policy);
+ 	policy->user_policy.policy = policy->policy;
++	policy->user_policy.governor = policy->governor;
  
- #else
--static inline int set_file_caps(struct linux_binprm *bprm)
-+static inline int get_file_caps(struct linux_binprm *bprm)
- {
-+	cap_clear (bprm->cap_inheritable);
-+	cap_clear (bprm->cap_permitted);
-+	cap_clear (bprm->cap_effective);
- 	return 0;
- }
- #endif
-@@ -201,13 +209,7 @@ int cap_bprm_set_security (struct linux_
- {
- 	int ret;
+ 	unlock_policy_rwsem_write(cpu);
  
--	/* Copied from fs/exec.c:prepare_binprm. */
--
--	cap_clear (bprm->cap_inheritable);
--	cap_clear (bprm->cap_permitted);
--	cap_clear (bprm->cap_effective);
--
--	ret = set_file_caps(bprm);
-+	ret = get_file_caps(bprm);
+@@ -969,6 +982,11 @@ static int __cpufreq_remove_dev (struct 
+ 	}
  
- 	/*  To support inheritance of root-permissions and suid-root
- 	 *  executables under compatibility mode, we raise all three
+ #ifdef CONFIG_SMP
++
++#ifdef CONFIG_HOTPLUG_CPU
++	cpufreq_cpu_governor[cpu] = data->governor;
++#endif
++
+ 	/* if we have other CPUs still registered, we need to unlink them,
+ 	 * or else wait_for_completion below will lock up. Clean the
+ 	 * cpufreq_cpu_data[] while holding the lock, and remove the sysfs
+@@ -989,6 +1007,9 @@ static int __cpufreq_remove_dev (struct 
+ 			if (j == cpu)
+ 				continue;
+ 			dprintk("removing link for cpu %u\n", j);
++#ifdef CONFIG_HOTPLUG_CPU
++			cpufreq_cpu_governor[j] = data->governor;
++#endif
+ 			cpu_sys_dev = get_cpu_sysdev(j);
+ 			sysfs_remove_link(&cpu_sys_dev->kobj, "cpufreq");
+ 			cpufreq_cpu_put(data);
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from trenn@suse.de are
 
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
+git-cpufreq.patch
+restore-previously-used-governor-on-a-hot-replugged-cpu.patch
