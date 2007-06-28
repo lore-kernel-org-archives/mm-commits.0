@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sys_time-speedup-build-fixes.patch added to -mm tree
-Date: Wed, 27 Jun 2007 17:30:08 -0700
-Message-ID: <200706280034.l5S0Y86F010218@imap1.linux-foundation.org>
+Subject: + kgdb-ia64-fixes.patch added to -mm tree
+Date: Wed, 27 Jun 2007 17:43:56 -0700
+Message-ID: <200706280047.l5S0luH5010416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52111 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44009 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751707AbXF1AfP (ORCPT
+	by vger.kernel.org with ESMTP id S1759699AbXF1AsE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 20:35:15 -0400
+	Wed, 27 Jun 2007 20:48:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     sys_time-speedup-build-fixes
+     kgdb ia64 fixes
 has been added to the -mm tree.  Its filename is
-     sys_time-speedup-build-fixes.patch
+     kgdb-ia64-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sys_time-speedup-build-fixes
+Subject: kgdb ia64 fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+arch/ia64/kernel/kgdb.c: In function `kgdb_notify':
+arch/ia64/kernel/kgdb.c:681: error: dereferencing pointer to incomplete type
+arch/ia64/kernel/kgdb.c:682: error: dereferencing pointer to incomplete type
+arch/ia64/kernel/kgdb.c:710: error: dereferencing pointer to incomplete type
+arch/ia64/kernel/kgdb.c:710: error: dereferencing pointer to incomplete type
+arch/ia64/kernel/kgdb.c:710: error: dereferencing pointer to incomplete type
+arch/ia64/kernel/kgdb.c: In function `kgdb_arch_init':
+arch/ia64/kernel/kgdb.c:720: error: `ia64die_chain' undeclared (first use in this function)
+arch/ia64/kernel/kgdb.c:720: error: (Each undeclared identifier is reported only once
+arch/ia64/kernel/kgdb.c:720: error: for each function it appears in.)
+arch/ia64/kernel/kgdb.c: In function `do_kgdb_handle_exception':
+arch/ia64/kernel/kgdb.c:923: error: implicit declaration of function `kgdb_correct_hw_break'
+arch/ia64/kernel/kgdb.c: At top level:
+arch/ia64/kernel/kgdb.c:467: warning: 'hwbreaks' defined but not used
+
+The patch fixes a few things, but ia64 remains busted.
+
+<stdin>:1385:2: warning: #warning syscall revokeat not implemented
+<stdin>:1389:2: warning: #warning syscall frevoke not implemented
+arch/ia64/kernel/kgdb.c: In function `kgdb_arch_init':
+arch/ia64/kernel/kgdb.c:721: error: `ia64die_chain' undeclared (first use in this function)
+arch/ia64/kernel/kgdb.c:721: error: (Each undeclared identifier is reported only once
+arch/ia64/kernel/kgdb.c:721: error: for each function it appears in.)
+arch/ia64/kernel/kgdb.c: In function `do_kgdb_handle_exception':
+arch/ia64/kernel/kgdb.c:924: error: implicit declaration of function `kgdb_correct_hw_break'
+arch/ia64/kernel/kgdb.c: At top level:
+arch/ia64/kernel/kgdb.c:468: warning: 'hwbreaks' defined but not used
+make[1]: *** [arch/ia64/kernel/kgdb.o] Error 1
+make: *** [arch/ia64/kernel/kgdb.o] Error 2
+
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/ia64/kernel/kgdb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/time.c~sys_time-speedup-build-fixes kernel/time.c
---- a/kernel/time.c~sys_time-speedup-build-fixes
-+++ a/kernel/time.c
-@@ -386,16 +386,15 @@ void do_gettimeofday (struct timeval *tv
- 	if (unlikely(xtime.tv_sec != tv->tv_sec)) {
- 		unsigned long flags;
- 
--		write_seqlock_irqsave(&xtime_lock);
-+		write_seqlock_irqsave(&xtime_lock, flags);
- 		update_wall_time();
--		write_seqlock_irqrestore(&xtime_lock);
-+		write_sequnlock_irqrestore(&xtime_lock, flags);
- 	}
- }
--
- EXPORT_SYMBOL(do_gettimeofday);
- 
-+#else	/* CONFIG_TIME_INTERPOLATION */
- 
--#else
- #ifndef CONFIG_GENERIC_TIME
- /*
-  * Simulate gettimeofday using do_gettimeofday which only allows a timeval
-@@ -411,7 +410,7 @@ void getnstimeofday(struct timespec *tv)
- }
- EXPORT_SYMBOL_GPL(getnstimeofday);
- #endif
--#endif
-+#endif	/* CONFIG_TIME_INTERPOLATION */
- 
- /* Converts Gregorian date to seconds since 1970-01-01 00:00:00.
-  * Assumes input in normal date format, i.e. 1980-12-31 23:59:59
+diff -puN arch/ia64/kernel/kgdb.c~kgdb-ia64-fixes arch/ia64/kernel/kgdb.c
+--- a/arch/ia64/kernel/kgdb.c~kgdb-ia64-fixes
++++ a/arch/ia64/kernel/kgdb.c
+@@ -30,6 +30,7 @@
+ #include <linux/sched.h>
+ #include <linux/smp.h>
+ #include <linux/spinlock.h>
++#include <linux/kdebug.h>
+ #include <linux/delay.h>
+ #include <asm/system.h>
+ #include <asm/ptrace.h>		/* for linux pt_regs struct */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,6 +181,7 @@ kgdb-kconfig-fix.patch
 kgdb-use-new-style-interrupt-flags.patch
 kgdb-section-fix.patch
 kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
