@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-convert-to-new-aops.patch added to -mm tree
-Date: Thu, 28 Jun 2007 15:29:24 -0700
-Message-ID: <200706282229.l5SMTOuJ002979@imap1.linux-foundation.org>
+Subject: + fs-remove-some-aop_truncated_page.patch added to -mm tree
+Date: Thu, 28 Jun 2007 15:30:27 -0700
+Message-ID: <200706282230.l5SMURXJ002992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766009AbXF1W3i (ORCPT
+	by vger.kernel.org with ESMTP id S1759668AbXF1Wau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 18:29:38 -0400
+	Thu, 28 Jun 2007 18:30:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, mark.fasheh@oracle.com
+Cc: npiggin@suse.de, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, swhiteho@redhat.com
 
 
 The patch titled
-     ocfs2: convert to new aops
+     fs: remove some AOP_TRUNCATED_PAGE
 has been added to the -mm tree.  Its filename is
-     ocfs2-convert-to-new-aops.patch
+     fs-remove-some-aop_truncated_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,403 +26,205 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ocfs2: convert to new aops
+Subject: fs: remove some AOP_TRUNCATED_PAGE
 From: Nick Piggin <npiggin@suse.de>
 
-Plug ocfs2 into the ->write_begin and ->write_end aops.
+prepare/commit_write no longer returns AOP_TRUNCATED_PAGE since OCFS2 and
+GFS2 were converted to the new aops, so we can make some simplifications
+for that.
 
-A bunch of custom code is now gone - the iovec iteration stuff during write
-and the ocfs2 splice write actor.
-
-Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   14 +-
- fs/ocfs2/aops.h |    8 -
- fs/ocfs2/file.c |  260 ++--------------------------------------------
- 3 files changed, 22 insertions(+), 260 deletions(-)
+ Documentation/filesystems/vfs.txt |    6 ----
+ fs/ecryptfs/mmap.c                |   39 +++++++---------------------
+ include/linux/fs.h                |    2 -
+ mm/filemap.c                      |   16 ++---------
+ 4 files changed, 16 insertions(+), 47 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-convert-to-new-aops fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-convert-to-new-aops
-+++ a/fs/ocfs2/aops.c
-@@ -1471,9 +1471,9 @@ out:
- 	return ret;
+diff -puN Documentation/filesystems/vfs.txt~fs-remove-some-aop_truncated_page Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~fs-remove-some-aop_truncated_page
++++ a/Documentation/filesystems/vfs.txt
+@@ -617,11 +617,7 @@ struct address_space_operations {
+   	any basic-blocks on storage, then those blocks should be
+   	pre-read (if they haven't been read already) so that the
+   	updated blocks can be written out properly.
+-	The page will be locked.  If prepare_write wants to unlock the
+-  	page it, like readpage, may do so and return
+-  	AOP_TRUNCATED_PAGE.
+-	In this case the prepare_write will be retried one the lock is
+-  	regained.
++	The page will be locked.
+ 
+ 	Note: the page _must not_ be marked uptodate in this function
+ 	(or anywhere else) unless it actually is uptodate right now. As
+diff -puN fs/ecryptfs/mmap.c~fs-remove-some-aop_truncated_page fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~fs-remove-some-aop_truncated_page
++++ a/fs/ecryptfs/mmap.c
+@@ -447,11 +447,9 @@ out:
+ 	return rc;
  }
  
--int ocfs2_write_begin(struct file *file, struct address_space *mapping,
--		      loff_t pos, unsigned len, unsigned flags,
--		      struct page **pagep, void **fsdata)
-+static int ocfs2_write_begin(struct file *file, struct address_space *mapping,
-+			     loff_t pos, unsigned len, unsigned flags,
-+			     struct page **pagep, void **fsdata)
+-static
+-void ecryptfs_release_lower_page(struct page *lower_page, int page_locked)
++static void ecryptfs_release_lower_page(struct page *lower_page)
  {
- 	int ret;
- 	struct buffer_head *di_bh = NULL;
-@@ -1594,9 +1594,9 @@ int ocfs2_write_end_nolock(struct addres
- 	return copied;
+-	if (page_locked)
+-		unlock_page(lower_page);
++	unlock_page(lower_page);
+ 	page_cache_release(lower_page);
  }
  
--int ocfs2_write_end(struct file *file, struct address_space *mapping,
--		    loff_t pos, unsigned len, unsigned copied,
--		    struct page *page, void *fsdata)
-+static int ocfs2_write_end(struct file *file, struct address_space *mapping,
-+			   loff_t pos, unsigned len, unsigned copied,
-+			   struct page *page, void *fsdata)
- {
- 	int ret;
- 	struct inode *inode = mapping->host;
-@@ -1613,6 +1613,8 @@ int ocfs2_write_end(struct file *file, s
- const struct address_space_operations ocfs2_aops = {
- 	.readpage	= ocfs2_readpage,
- 	.writepage	= ocfs2_writepage,
-+	.write_begin	= ocfs2_write_begin,
-+	.write_end	= ocfs2_write_end,
- 	.bmap		= ocfs2_bmap,
- 	.sync_page	= block_sync_page,
- 	.direct_IO	= ocfs2_direct_IO,
-diff -puN fs/ocfs2/aops.h~ocfs2-convert-to-new-aops fs/ocfs2/aops.h
---- a/fs/ocfs2/aops.h~ocfs2-convert-to-new-aops
-+++ a/fs/ocfs2/aops.h
-@@ -42,14 +42,6 @@ int walk_page_buffers(	handle_t *handle,
- 			int (*fn)(	handle_t *handle,
- 					struct buffer_head *bh));
+@@ -472,7 +470,6 @@ static int ecryptfs_write_inode_size_to_
+ 	const struct address_space_operations *lower_a_ops;
+ 	u64 file_size;
  
--int ocfs2_write_begin(struct file *file, struct address_space *mapping,
--		      loff_t pos, unsigned len, unsigned flags,
--		      struct page **pagep, void **fsdata);
--
--int ocfs2_write_end(struct file *file, struct address_space *mapping,
--		    loff_t pos, unsigned len, unsigned copied,
--		    struct page *page, void *fsdata);
--
- int ocfs2_write_end_nolock(struct address_space *mapping,
- 			   loff_t pos, unsigned len, unsigned copied,
- 			   struct page *page, void *fsdata);
-diff -puN fs/ocfs2/file.c~ocfs2-convert-to-new-aops fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-convert-to-new-aops
-+++ a/fs/ocfs2/file.c
-@@ -1538,142 +1538,13 @@ out:
- 	return ret;
- }
- 
--static inline void
--ocfs2_set_next_iovec(const struct iovec **iovp, size_t *basep, size_t bytes)
--{
--	const struct iovec *iov = *iovp;
--	size_t base = *basep;
--
--	do {
--		int copy = min(bytes, iov->iov_len - base);
--
--		bytes -= copy;
--		base += copy;
--		if (iov->iov_len == base) {
--			iov++;
--			base = 0;
--		}
--	} while (bytes);
--	*iovp = iov;
--	*basep = base;
--}
--
--static struct page * ocfs2_get_write_source(char **ret_src_buf,
--					    const struct iovec *cur_iov,
--					    size_t iov_offset)
--{
--	int ret;
--	char *buf = cur_iov->iov_base + iov_offset;
--	struct page *src_page = NULL;
--	unsigned long off;
--
--	off = (unsigned long)(buf) & ~PAGE_CACHE_MASK;
--
--	if (!segment_eq(get_fs(), KERNEL_DS)) {
--		/*
--		 * Pull in the user page. We want to do this outside
--		 * of the meta data locks in order to preserve locking
--		 * order in case of page fault.
--		 */
--		ret = get_user_pages(current, current->mm,
--				     (unsigned long)buf & PAGE_CACHE_MASK, 1,
--				     0, 0, &src_page, NULL);
--		if (ret == 1)
--			*ret_src_buf = kmap(src_page) + off;
--		else
--			src_page = ERR_PTR(-EFAULT);
--	} else {
--		*ret_src_buf = buf;
--	}
--
--	return src_page;
--}
--
--static void ocfs2_put_write_source(struct page *page)
--{
--	if (page) {
--		kunmap(page);
--		page_cache_release(page);
--	}
--}
--
--static ssize_t ocfs2_file_buffered_write(struct file *file, loff_t *ppos,
--					 const struct iovec *iov,
--					 unsigned long nr_segs,
--					 size_t count,
--					 ssize_t o_direct_written)
--{
--	int ret = 0;
--	ssize_t copied, total = 0;
--	size_t iov_offset = 0, bytes;
--	loff_t pos;
--	const struct iovec *cur_iov = iov;
--	struct page *user_page, *page;
--	char *buf, *dst;
--	void *fsdata;
--
--	/*
--	 * handle partial DIO write.  Adjust cur_iov if needed.
--	 */
--	ocfs2_set_next_iovec(&cur_iov, &iov_offset, o_direct_written);
--
--	do {
--		pos = *ppos;
--
--		user_page = ocfs2_get_write_source(&buf, cur_iov, iov_offset);
--		if (IS_ERR(user_page)) {
--			ret = PTR_ERR(user_page);
--			goto out;
--		}
--
--		/* Stay within our page boundaries */
--		bytes = min((PAGE_CACHE_SIZE - ((unsigned long)pos & ~PAGE_CACHE_MASK)),
--			    (PAGE_CACHE_SIZE - ((unsigned long)buf & ~PAGE_CACHE_MASK)));
--		/* Stay within the vector boundary */
--		bytes = min_t(size_t, bytes, cur_iov->iov_len - iov_offset);
--		/* Stay within count */
--		bytes = min(bytes, count);
--
--		page = NULL;
--		ret = ocfs2_write_begin(file, file->f_mapping, pos, bytes, 0,
--					&page, &fsdata);
--		if (ret) {
--			mlog_errno(ret);
--			goto out;
--		}
--
--		dst = kmap_atomic(page, KM_USER0);
--		memcpy(dst + (pos & (PAGE_CACHE_SIZE - 1)), buf, bytes);
--		kunmap_atomic(dst, KM_USER0);
--		flush_dcache_page(page);
--		ocfs2_put_write_source(user_page);
--
--		copied = ocfs2_write_end(file, file->f_mapping, pos, bytes,
--					 bytes, page, fsdata);
--		if (copied < 0) {
--			mlog_errno(copied);
--			ret = copied;
--			goto out;
--		}
--
--		total += copied;
--		*ppos = pos + copied;
--		count -= copied;
--
--		ocfs2_set_next_iovec(&cur_iov, &iov_offset, copied);
--	} while(count);
--
--out:
--	return total ? total : ret;
--}
--
- static ssize_t ocfs2_file_aio_write(struct kiocb *iocb,
- 				    const struct iovec *iov,
- 				    unsigned long nr_segs,
- 				    loff_t pos)
- {
- 	int ret, direct_io, appending, rw_level, have_alloc_sem  = 0;
--	int can_do_direct, sync = 0;
-+	int can_do_direct;
- 	ssize_t written = 0;
- 	size_t ocount;		/* original count */
- 	size_t count;		/* after file limit checks */
-@@ -1689,12 +1560,6 @@ static ssize_t ocfs2_file_aio_write(stru
- 	if (iocb->ki_left == 0)
- 		return 0;
- 
--	ret = generic_segment_checks(iov, &nr_segs, &ocount, VERIFY_READ);
--	if (ret)
--		return ret;
--
--	count = ocount;
--
- 	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
- 
- 	appending = file->f_flags & O_APPEND ? 1 : 0;
-@@ -1738,33 +1603,23 @@ relock:
- 		rw_level = -1;
- 
- 		direct_io = 0;
--		sync = 1;
- 		goto relock;
+-retry:
+ 	header_page = grab_cache_page(lower_inode->i_mapping, 0);
+ 	if (!header_page) {
+ 		ecryptfs_printk(KERN_ERR, "grab_cache_page for "
+@@ -483,11 +480,7 @@ retry:
+ 	lower_a_ops = lower_inode->i_mapping->a_ops;
+ 	rc = lower_a_ops->prepare_write(lower_file, header_page, 0, 8);
+ 	if (rc) {
+-		if (rc == AOP_TRUNCATED_PAGE) {
+-			ecryptfs_release_lower_page(header_page, 0);
+-			goto retry;
+-		} else
+-			ecryptfs_release_lower_page(header_page, 1);
++		ecryptfs_release_lower_page(header_page);
+ 		goto out;
  	}
+ 	file_size = (u64)i_size_read(inode);
+@@ -501,11 +494,7 @@ retry:
+ 	if (rc < 0)
+ 		ecryptfs_printk(KERN_ERR, "Error commiting header page "
+ 				"write\n");
+-	if (rc == AOP_TRUNCATED_PAGE) {
+-		ecryptfs_release_lower_page(header_page, 0);
+-		goto retry;
+-	} else
+-		ecryptfs_release_lower_page(header_page, 1);
++	ecryptfs_release_lower_page(header_page);
+ 	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
+ 	mark_inode_dirty_sync(inode);
+ out:
+@@ -608,16 +597,11 @@ retry:
+ 							  byte_offset,
+ 							  region_bytes);
+ 	if (rc) {
+-		if (rc == AOP_TRUNCATED_PAGE) {
+-			ecryptfs_release_lower_page(*lower_page, 0);
+-			goto retry;
+-		} else {
+-			ecryptfs_printk(KERN_ERR, "prepare_write for "
+-				"lower_page_index = [0x%.16x] failed; rc = "
+-				"[%d]\n", lower_page_index, rc);
+-			ecryptfs_release_lower_page(*lower_page, 1);
+-			(*lower_page) = NULL;
+-		}
++		ecryptfs_printk(KERN_ERR, "prepare_write for "
++			"lower_page_index = [0x%.16x] failed; rc = "
++			"[%d]\n", lower_page_index, rc);
++		ecryptfs_release_lower_page(*lower_page);
++		(*lower_page) = NULL;
+ 	}
+ out:
+ 	return rc;
+@@ -633,19 +617,16 @@ ecryptfs_commit_lower_page(struct page *
+ 			   struct file *lower_file, int byte_offset,
+ 			   int region_size)
+ {
+-	int page_locked = 1;
+ 	int rc = 0;
  
--	if (!sync && ((file->f_flags & O_SYNC) || IS_SYNC(inode)))
--		sync = 1;
--
--	/*
--	 * XXX: Is it ok to execute these checks a second time?
--	 */
--	ret = generic_write_checks(file, ppos, &count, S_ISBLK(inode->i_mode));
--	if (ret)
--		goto out;
--
--	/*
--	 * Set pos so that sync_page_range_nolock() below understands
--	 * where to start from. We might've moved it around via the
--	 * calls above. The range we want to actually sync starts from
--	 * *ppos here.
--	 *
--	 */
--	pos = *ppos;
--
- 	/* communicate with ocfs2_dio_end_io */
- 	ocfs2_iocb_set_rw_locked(iocb, rw_level);
+ 	rc = lower_inode->i_mapping->a_ops->commit_write(
+ 		lower_file, lower_page, byte_offset, region_size);
+-	if (rc == AOP_TRUNCATED_PAGE)
+-		page_locked = 0;
+ 	if (rc < 0) {
+ 		ecryptfs_printk(KERN_ERR,
+ 				"Error committing write; rc = [%d]\n", rc);
+ 	} else
+ 		rc = 0;
+-	ecryptfs_release_lower_page(lower_page, page_locked);
++	ecryptfs_release_lower_page(lower_page);
+ 	return rc;
+ }
  
- 	if (direct_io) {
-+		ret = generic_segment_checks(iov, &nr_segs, &ocount,
-+					     VERIFY_READ);
-+		if (ret)
-+			goto out_dio;
-+
-+		ret = generic_write_checks(file, ppos, &count,
-+					   S_ISBLK(inode->i_mode));
-+		if (ret)
-+			goto out_dio;
-+
- 		written = generic_file_direct_write(iocb, iov, &nr_segs, *ppos,
- 						    ppos, count, ocount);
- 		if (written < 0) {
-@@ -1772,14 +1627,8 @@ relock:
- 			goto out_dio;
+diff -puN include/linux/fs.h~fs-remove-some-aop_truncated_page include/linux/fs.h
+--- a/include/linux/fs.h~fs-remove-some-aop_truncated_page
++++ a/include/linux/fs.h
+@@ -378,7 +378,7 @@ struct iattr {
+  *  			trying again.  The aop will be taking reasonable
+  *  			precautions not to livelock.  If the caller held a page
+  *  			reference, it should drop it before retrying.  Returned
+- *  			by readpage(), prepare_write(), and commit_write().
++ *  			by readpage().
+  *
+  * address_space_operation functions return these large constants to indicate
+  * special semantics to the caller.  These are much larger than the bytes in a
+diff -puN mm/filemap.c~fs-remove-some-aop_truncated_page mm/filemap.c
+--- a/mm/filemap.c~fs-remove-some-aop_truncated_page
++++ a/mm/filemap.c
+@@ -1938,13 +1938,10 @@ again:
+ 
+ 		ret = aops->prepare_write(file, page, offset, offset+len);
+ 		if (ret) {
+-			if (ret != AOP_TRUNCATED_PAGE)
+-				unlock_page(page);
++			unlock_page(page);
+ 			page_cache_release(page);
+ 			if (pos + len > inode->i_size)
+ 				vmtruncate(inode, inode->i_size);
+-			if (ret == AOP_TRUNCATED_PAGE)
+-				goto again;
  		}
- 	} else {
--		written = ocfs2_file_buffered_write(file, ppos, iov, nr_segs,
--						    count, written);
--		if (written < 0) {
--			ret = written;
--			if (ret != -EFAULT || ret != -ENOSPC)
--				mlog_errno(ret);
--			goto out;
--		}
-+		written = generic_file_aio_write_nolock(iocb, iov, nr_segs,
-+							*ppos);
+ 		return ret;
  	}
+@@ -1969,7 +1966,6 @@ int pagecache_write_end(struct file *fil
+ 		ret = aops->commit_write(file, page, offset, offset+len);
+ 		unlock_page(page);
+ 		page_cache_release(page);
+-		BUG_ON(ret == AOP_TRUNCATED_PAGE); /* can't deal with */
  
- out_dio:
-@@ -1809,92 +1658,12 @@ out_sems:
- 	if (have_alloc_sem)
- 		up_read(&inode->i_alloc_sem);
+ 		if (ret < 0) {
+ 			if (pos + len > inode->i_size)
+@@ -2180,7 +2176,7 @@ static ssize_t generic_perform_write_2co
+ 		flush_dcache_page(page);
  
--	if (written > 0 && sync) {
--		ssize_t err;
--
--		err = sync_page_range_nolock(inode, file->f_mapping, pos, count);
--		if (err < 0)
--			written = err;
--	}
--
- 	mutex_unlock(&inode->i_mutex);
+ 		status = a_ops->commit_write(file, page, offset, offset+bytes);
+-		if (unlikely(status < 0 || status == AOP_TRUNCATED_PAGE))
++		if (unlikely(status < 0))
+ 			goto fs_write_aop_error;
+ 		if (unlikely(status > 0)) /* filesystem did partial write */
+ 			copied = min_t(size_t, copied, status);
+@@ -2200,8 +2196,7 @@ static ssize_t generic_perform_write_2co
+ 		continue;
  
- 	mlog_exit(ret);
- 	return written ? written : ret;
- }
+ fs_write_aop_error:
+-		if (status != AOP_TRUNCATED_PAGE)
+-			unlock_page(page);
++		unlock_page(page);
+ 		page_cache_release(page);
+ 		if (src_page)
+ 			page_cache_release(src_page);
+@@ -2213,10 +2208,7 @@ fs_write_aop_error:
+ 		 */
+ 		if (pos + bytes > inode->i_size)
+ 			vmtruncate(inode, inode->i_size);
+-		if (status == AOP_TRUNCATED_PAGE)
+-			continue;
+-		else
+-			break;
++		break;
+ 	} while (iov_iter_count(i));
  
--static int ocfs2_splice_write_actor(struct pipe_inode_info *pipe,
--				    struct pipe_buffer *buf,
--				    struct splice_desc *sd)
--{
--	int ret, count;
--	ssize_t copied = 0;
--	struct file *file = sd->file;
--	unsigned int offset;
--	struct page *page = NULL;
--	void *fsdata;
--	char *src, *dst;
--
--	ret = buf->ops->pin(pipe, buf);
--	if (ret)
--		goto out;
--
--	offset = sd->pos & ~PAGE_CACHE_MASK;
--	count = sd->len;
--	if (count + offset > PAGE_CACHE_SIZE)
--		count = PAGE_CACHE_SIZE - offset;
--
--	ret = ocfs2_write_begin(file, file->f_mapping, sd->pos, count, 0,
--				&page, &fsdata);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
--
--	src = buf->ops->map(pipe, buf, 1);
--	dst = kmap_atomic(page, KM_USER1);
--	memcpy(dst + offset, src + buf->offset, count);
--	kunmap_atomic(page, KM_USER1);
--	buf->ops->unmap(pipe, buf, src);
--
--	copied = ocfs2_write_end(file, file->f_mapping, sd->pos, count, count,
--				 page, fsdata);
--	if (copied < 0) {
--		mlog_errno(copied);
--		ret = copied;
--		goto out;
--	}
--out:
--
--	return copied ? copied : ret;
--}
--
--static ssize_t __ocfs2_file_splice_write(struct pipe_inode_info *pipe,
--					 struct file *out,
--					 loff_t *ppos,
--					 size_t len,
--					 unsigned int flags)
--{
--	int ret, err;
--	struct address_space *mapping = out->f_mapping;
--	struct inode *inode = mapping->host;
--
--	ret = __splice_from_pipe(pipe, out, ppos, len, flags,
--				 ocfs2_splice_write_actor);
--	if (ret > 0) {
--		*ppos += ret;
--
--		if (unlikely((out->f_flags & O_SYNC) || IS_SYNC(inode))) {
--			err = generic_osync_inode(inode, mapping,
--						  OSYNC_METADATA|OSYNC_DATA);
--			if (err)
--				ret = err;
--		}
--	}
--
--	return ret;
--}
--
- static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
- 				       struct file *out,
- 				       loff_t *ppos,
-@@ -1924,8 +1693,7 @@ static ssize_t ocfs2_file_splice_write(s
- 		goto out_unlock;
- 	}
- 
--	/* ok, we're done with i_size and alloc work */
--	ret = __ocfs2_file_splice_write(pipe, out, ppos, len, flags);
-+	ret = generic_file_splice_write_nolock(pipe, out, ppos, len, flags);
- 
- out_unlock:
- 	ocfs2_rw_unlock(inode, 1);
+ 	return written ? written : status;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -492,6 +294,7 @@ fs-adfs-convert-to-new-aops.patch
 fs-affs-convert-to-new-aops.patch
 ocfs2-convert-to-new-aops.patch
 fix-read-truncate-race.patch
+fs-remove-some-aop_truncated_page.patch
 mm-document-fault_data-and-flags.patch
 fs-introduce-some-page-buffer-invariants.patch
 fs-reiserfs-cleanups.patch
