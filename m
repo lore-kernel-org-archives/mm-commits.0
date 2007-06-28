@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-selinux-disable-mmap_min_addr-by-default.patch added to -mm tree
-Date: Thu, 28 Jun 2007 01:28:18 -0700
-Message-ID: <200706280828.l5S8SIco021499@imap1.linux-foundation.org>
+Subject: + diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch added to -mm tree
+Date: Thu, 28 Jun 2007 01:54:29 -0700
+Message-ID: <200706280854.l5S8sT1U021853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48356 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762645AbXF1I2g (ORCPT
+	by vger.kernel.org with ESMTP id S1762645AbXF1Iz0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 04:28:36 -0400
+	Thu, 28 Jun 2007 04:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov
+Cc: akpm@linux-foundation.org, ak@suse.de, jack@ucw.cz, michal.k.k.piotrowski@gmail.com, tony.luck@intel.com, vtaras@openvz.org
 
 
 The patch titled
-     git-selinux: disable mmap_min_addr by default
+     diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix
 has been added to the -mm tree.  Its filename is
-     git-selinux-disable-mmap_min_addr-by-default.patch
+     diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-selinux: disable mmap_min_addr by default
+Subject: diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-breaks the X server
+Make it link with CONFIG_QUOTA=n (covered in SubmitChecklist, guys..)
 
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Vasily Tarasov <vtaras@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/selinux/hooks.c~git-selinux-disable-mmap_min_addr-by-default security/selinux/hooks.c
---- a/security/selinux/hooks.c~git-selinux-disable-mmap_min_addr-by-default
-+++ a/security/selinux/hooks.c
-@@ -4917,15 +4917,6 @@ static __init int selinux_init(void)
- 					    sizeof(struct inode_security_struct),
- 					    0, SLAB_PANIC, NULL, NULL);
+diff -puN fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix fs/quota.c
+diff -puN kernel/sys_ni.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix kernel/sys_ni.c
+--- a/kernel/sys_ni.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix
++++ a/kernel/sys_ni.c
+@@ -14,6 +14,7 @@ asmlinkage long sys_ni_syscall(void)
  
--	/*
--	 * Tasks cannot mmap below this without the mmap_zero permission.
--	 * If not enabled already, do so by setting it to 64KB.
--	 */
--	if (mmap_min_addr == 0) {
--		enabled_mmap_min_addr = 1;
--		mmap_min_addr = 65536;
--	}
--
- 	avc_init();
- 
- 	original_ops = secondary_ops = security_ops;
+ cond_syscall(sys_nfsservctl);
+ cond_syscall(sys_quotactl);
++cond_syscall(sys32_quotactl);
+ cond_syscall(sys_acct);
+ cond_syscall(sys_lookup_dcookie);
+ cond_syscall(sys_swapon);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -226,6 +221,7 @@ audit-add-tty-input-auditing-fix-2.patch
 revert-vanishing-ioctl-handler-debugging.patch
 binfmt_elf-warning-fix.patch
 dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
 blink-only-blink-when-parameter-is-set-fix.patch
 sys_time-speedup-build-fixes.patch
 add-documentation-sysctl-ctl_unnumberedtxt.patch
