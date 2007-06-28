@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb_skipexception-warning-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 17:00:40 -0700
-Message-ID: <200706280004.l5S04epB009825@imap1.linux-foundation.org>
+Subject: + sys_time-speedup-build-fixes.patch added to -mm tree
+Date: Wed, 27 Jun 2007 17:30:08 -0700
+Message-ID: <200706280034.l5S0Y86F010218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52111 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757440AbXF1AEr (ORCPT
+	by vger.kernel.org with ESMTP id S1751707AbXF1AfP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 20:04:47 -0400
+	Wed, 27 Jun 2007 20:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
 
 
 The patch titled
-     kgdb_skipexception() warning fix
+     sys_time-speedup-build-fixes
 has been added to the -mm tree.  Its filename is
-     kgdb_skipexception-warning-fix.patch
+     sys_time-speedup-build-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kgdb_skipexception() warning fix
+Subject: sys_time-speedup-build-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arm:
-
-kernel/kgdb.c: In function `kgdb_handle_exception':
-kernel/kgdb.c:900: warning: statement with no effect
-kernel/kgdb.c:907: warning: statement with no effect
-
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/kgdb.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/time.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix include/asm-generic/kgdb.h
---- a/include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix
-+++ a/include/asm-generic/kgdb.h
-@@ -29,7 +29,10 @@
-  */
- int kgdb_skipexception(int exception, struct pt_regs *regs);
- #else
--#define kgdb_skipexception(exception, regs)	0
-+static inline int kgdb_skipexception(int exception, struct pt_regs *regs)
-+{
-+	return 0;
-+}
- #endif
+diff -puN kernel/time.c~sys_time-speedup-build-fixes kernel/time.c
+--- a/kernel/time.c~sys_time-speedup-build-fixes
++++ a/kernel/time.c
+@@ -386,16 +386,15 @@ void do_gettimeofday (struct timeval *tv
+ 	if (unlikely(xtime.tv_sec != tv->tv_sec)) {
+ 		unsigned long flags;
  
- #if defined(CONFIG_X86)
+-		write_seqlock_irqsave(&xtime_lock);
++		write_seqlock_irqsave(&xtime_lock, flags);
+ 		update_wall_time();
+-		write_seqlock_irqrestore(&xtime_lock);
++		write_sequnlock_irqrestore(&xtime_lock, flags);
+ 	}
+ }
+-
+ EXPORT_SYMBOL(do_gettimeofday);
+ 
++#else	/* CONFIG_TIME_INTERPOLATION */
+ 
+-#else
+ #ifndef CONFIG_GENERIC_TIME
+ /*
+  * Simulate gettimeofday using do_gettimeofday which only allows a timeval
+@@ -411,7 +410,7 @@ void getnstimeofday(struct timespec *tv)
+ }
+ EXPORT_SYMBOL_GPL(getnstimeofday);
+ #endif
+-#endif
++#endif	/* CONFIG_TIME_INTERPOLATION */
+ 
+ /* Converts Gregorian date to seconds since 1970-01-01 00:00:00.
+  * Assumes input in normal date format, i.e. 1980-12-31 23:59:59
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,6 +174,7 @@ kgdb-warning-fix.patch
 kgdb-kconfig-fix.patch
 kgdb-use-new-style-interrupt-flags.patch
 kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
@@ -221,6 +236,7 @@ revert-vanishing-ioctl-handler-debugging.patch
 binfmt_elf-warning-fix.patch
 dirty_writeback_centisecs_handler-cleanup.patch
 blink-only-blink-when-parameter-is-set-fix.patch
+sys_time-speedup-build-fixes.patch
 add-documentation-sysctl-ctl_unnumberedtxt.patch
 sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
 hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
@@ -286,4 +302,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-kgdb_skipexception-warning-fix.patch
