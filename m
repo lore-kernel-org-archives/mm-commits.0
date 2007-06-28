@@ -1,57 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch removed from -mm tree
-Date: Wed, 27 Jun 2007 23:34:12 -0700
-Message-ID: <200706280634.l5S6YCBU019996@imap1.linux-foundation.org>
+Subject: + git-selinux-disable-mmap_min_addr-by-default.patch added to -mm tree
+Date: Thu, 28 Jun 2007 01:28:18 -0700
+Message-ID: <200706280828.l5S8SIco021499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59526 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758844AbXF1Gef (ORCPT
+	by vger.kernel.org with ESMTP id S1762645AbXF1I2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 02:34:35 -0400
+	Thu, 28 Jun 2007 04:28:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, eparis@redhat.com, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
-has been removed from the -mm tree.  Its filename was
-     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch
+     git-selinux: disable mmap_min_addr by default
+has been added to the -mm tree.  Its filename is
+     git-selinux-disable-mmap_min_addr-by-default.patch
 
-This patch was dropped because it was folded into add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
+Subject: git-selinux: disable mmap_min_addr by default
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Show the name of the piggy task.
+breaks the X server
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Jeff Dike <jdike@linux.intel.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ security/selinux/hooks.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix kernel/exit.c
---- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
-+++ a/kernel/exit.c
-@@ -885,8 +885,9 @@ static void check_stack_usage(void)
+diff -puN security/selinux/hooks.c~git-selinux-disable-mmap_min_addr-by-default security/selinux/hooks.c
+--- a/security/selinux/hooks.c~git-selinux-disable-mmap_min_addr-by-default
++++ a/security/selinux/hooks.c
+@@ -4917,15 +4917,6 @@ static __init int selinux_init(void)
+ 					    sizeof(struct inode_security_struct),
+ 					    0, SLAB_PANIC, NULL, NULL);
  
- 	spin_lock(&low_water_lock);
- 	if (free < lowest_to_date) {
--		printk(KERN_WARNING "Greatest stack depth - %lu bytes left\n",
--		       free);
-+		printk(KERN_WARNING "%s used greatest stack depth: %lu bytes "
-+				"left\n",
-+				current->comm, free);
- 		lowest_to_date = free;
- 	}
- 	spin_unlock(&low_water_lock);
+-	/*
+-	 * Tasks cannot mmap below this without the mmap_zero permission.
+-	 * If not enabled already, do so by setting it to 64KB.
+-	 */
+-	if (mmap_min_addr == 0) {
+-		enabled_mmap_min_addr = 1;
+-		mmap_min_addr = 65536;
+-	}
+-
+ 	avc_init();
+ 
+ 	original_ops = secondary_ops = security_ops;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +110,7 @@ git-nfs-server-cluster-locking-api-fixup.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
 git-selinux.patch
 git-selinux-fixup.patch
+git-selinux-disable-mmap_min_addr-by-default.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
@@ -190,7 +198,6 @@ pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
 fix-rmmod-read-write-races-in-proc-entries-fix.patch
 use-write_trylock_irqsave-in-ptrace_attach-fix.patch
