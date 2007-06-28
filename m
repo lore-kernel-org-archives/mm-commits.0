@@ -1,86 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 19:36:20 -0700
-Message-ID: <200706280236.l5S2aKY2011738@imap1.linux-foundation.org>
+Subject: - slab-allocators-cleanup-zeroing-allocations-fix.patch removed from -mm tree
+Date: Wed, 27 Jun 2007 22:33:39 -0700
+Message-ID: <200706280533.l5S5Xg3r017423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56843 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51715 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761639AbXF1Cgb (ORCPT
+	by vger.kernel.org with ESMTP id S1751432AbXF1FeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 22:36:31 -0400
+	Thu, 28 Jun 2007 01:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@citi.umich.edu, neilb@suse.de
+To: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
-has been added to the -mm tree.  Its filename is
-     knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+     slab-allocators-cleanup-zeroing-allocations-fix
+has been removed from the -mm tree.  Its filename was
+     slab-allocators-cleanup-zeroing-allocations-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into slab-allocators-cleanup-zeroing-allocations.patch
 
 ------------------------------------------------------
-Subject: knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
+Subject: slab-allocators-cleanup-zeroing-allocations-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it right for highmem machines.
+In file included from include/linux/slab.h:181,
+                 from include/linux/percpu.h:5,
+                 from include/asm/desc.h:11,
+                 from include/asm/elf.h:50,
+                 from include/linux/elf.h:7,
+                 from include/linux/module.h:15,
+                 from include/linux/crypto.h:21,
+                 from arch/i386/kernel/asm-offsets.c:7:
+include/linux/slob_def.h:32: error: static declaration of '__kmalloc' follows non-static declaration
+include/linux/slab.h:96: error: previous declaration of '__kmalloc' was here
+include/linux/slob_def.h: In function 'kzalloc':
+include/linux/slob_def.h:43: warning: implicit declaration of function '__kzalloc'
+include/linux/slob_def.h:43: warning: return makes pointer from integer without a cast
+In file included from include/linux/percpu.h:5,
+                 from include/asm/desc.h:11,
+                 from include/asm/elf.h:50,
+                 from include/linux/elf.h:7,
+                 from include/linux/module.h:15,
+                 from include/linux/crypto.h:21,
+                 from arch/i386/kernel/asm-offsets.c:7:
+include/linux/slab.h: At top level:
+include/linux/slab.h:268: error: conflicting types for '__kzalloc'
+include/linux/slob_def.h:43: error: previous implicit declaration of '__kzalloc' was here
+include/linux/slab.h:278: error: redefinition of 'kzalloc'
+include/linux/slob_def.h:42: error: previous definition of 'kzalloc' was here
+make[1]: *** [arch/i386/kernel/asm-offsets.s] Error 1
+make: *** [prepare0] Error 2
 
-Cc: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Neil Brown <neilb@suse.de>
+This might be due to damage from Paul Mundt's slob/numa changes.
+
+Is that "allocator specific definitions" comment in slab.h still accurate?
+
+
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c |    7 ++-----
- mm/page_alloc.c     |    1 +
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ include/linux/slob_def.h |   15 ---------------
+ 1 files changed, 15 deletions(-)
 
-diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
-+++ a/fs/nfsd/nfs4state.c
-@@ -49,6 +49,7 @@
- #include <linux/nfsd/state.h>
- #include <linux/nfsd/xdr4.h>
- #include <linux/namei.h>
-+#include <linux/swap.h>
- #include <linux/mutex.h>
- #include <linux/lockd/bind.h>
- #include <linux/module.h>
-@@ -3210,17 +3211,13 @@ get_nfs4_grace_period(void)
- static void
- set_max_delegations(void)
- {
--	struct sysinfo sys;
+diff -puN include/linux/slob_def.h~slab-allocators-cleanup-zeroing-allocations-fix include/linux/slob_def.h
+--- a/include/linux/slob_def.h~slab-allocators-cleanup-zeroing-allocations-fix
++++ a/include/linux/slob_def.h
+@@ -28,19 +28,4 @@ static inline void *kmalloc(size_t size,
+ 	return __kmalloc_node(size, flags, -1);
+ }
+ 
+-static inline void *__kmalloc(size_t size, gfp_t flags)
+-{
+-	return kmalloc(size, flags);
+-}
 -
--	si_meminfo(&sys);
- 	/*
- 	 * Allow at most 4 delegations per megabyte of RAM.  Quick
- 	 * estimates suggest that in the worst case (where every delegation
- 	 * is for a different inode), a delegation could take about 1.5K,
- 	 * giving a worst case usage of about 6% of memory.
- 	 */
--	sys.totalram >>= (18 - PAGE_SHIFT);
--	max_delegations = (unsigned int) sys.totalram;
-+	max_delegations = nr_free_buffer_pages() >> (20 - 2 - PAGE_SHIFT);
- }
- 
- /* initialization to perform when the nfsd service is started: */
-diff -puN mm/page_alloc.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix
-+++ a/mm/page_alloc.c
-@@ -1729,6 +1729,7 @@ unsigned int nr_free_buffer_pages(void)
- {
- 	return nr_free_zone_pages(gfp_zone(GFP_USER));
- }
-+EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
- 
- /*
-  * Amount of free RAM allocatable within all zones
+-/**
+- * kzalloc - allocate memory. The memory is set to zero.
+- * @size: how many bytes of memory are required.
+- * @flags: the type of memory to allocate (see kcalloc).
+- */
+-static inline void *kzalloc(size_t size, gfp_t flags)
+-{
+-	return __kzalloc(size, flags);
+-}
+-
+ #endif /* __LINUX_SLOB_DEF_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -209,6 +217,7 @@ maps2-move-the-page-walker-code-to-lib-fix.patch
 maps2-add-proc-pid-pagemap-interface.patch
 mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+slab-allocators-cleanup-zeroing-allocations.patch
 slab-allocators-cleanup-zeroing-allocations-fix.patch
 slab-allocators-cleanup-zeroing-allocations-fix-2.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
