@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-page_owner-to-be-set-on-any-architecture-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 16:51:18 -0700
-Message-ID: <200706272355.l5RNtIJb009690@imap1.linux-foundation.org>
+Subject: + kgdb_skipexception-warning-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 17:00:40 -0700
+Message-ID: <200706280004.l5S04epB009825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41117 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761935AbXF0X4E (ORCPT
+	by vger.kernel.org with ESMTP id S1757440AbXF1AEr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 19:56:04 -0400
+	Wed, 27 Jun 2007 20:04:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, apw@shadowen.org, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     allow-page_owner-to-be-set-on-any-architecture-fix
+     kgdb_skipexception() warning fix
 has been added to the -mm tree.  Its filename is
-     allow-page_owner-to-be-set-on-any-architecture-fix.patch
+     kgdb_skipexception-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow-page_owner-to-be-set-on-any-architecture-fix
+Subject: kgdb_skipexception() warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+arm:
+
+kernel/kgdb.c: In function `kgdb_handle_exception':
+kernel/kgdb.c:900: warning: statement with no effect
+kernel/kgdb.c:907: warning: statement with no effect
+
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-generic/kgdb.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~allow-page_owner-to-be-set-on-any-architecture-fix fs/proc/proc_misc.c
-diff -puN lib/Kconfig.debug~allow-page_owner-to-be-set-on-any-architecture-fix lib/Kconfig.debug
-diff -puN mm/page_alloc.c~allow-page_owner-to-be-set-on-any-architecture-fix mm/page_alloc.c
---- a/mm/page_alloc.c~allow-page_owner-to-be-set-on-any-architecture-fix
-+++ a/mm/page_alloc.c
-@@ -1498,13 +1498,15 @@ static inline void __stack_trace(struct 
+diff -puN include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix include/asm-generic/kgdb.h
+--- a/include/asm-generic/kgdb.h~kgdb_skipexception-warning-fix
++++ a/include/asm-generic/kgdb.h
+@@ -29,7 +29,10 @@
+  */
+ int kgdb_skipexception(int exception, struct pt_regs *regs);
+ #else
+-#define kgdb_skipexception(exception, regs)	0
++static inline int kgdb_skipexception(int exception, struct pt_regs *regs)
++{
++	return 0;
++}
  #endif
- }
  
--static inline void set_page_owner(struct page *page,
--			unsigned int order, unsigned int gfp_mask)
-+static void set_page_owner(struct page *page, unsigned int order,
-+			unsigned int gfp_mask)
- {
--	unsigned long address, bp;
-+	unsigned long address;
-+	unsigned long bp = 0;
- #ifdef CONFIG_X86_64
- 	asm ("movq %%rbp, %0" : "=r" (bp) : );
--#else
-+#endif
-+#ifdef CONFIG_X86_32
- 	asm ("movl %%ebp, %0" : "=r" (bp) : );
- #endif
- 	page->order = (int) order;
+ #if defined(CONFIG_X86)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -291,3 +286,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+kgdb_skipexception-warning-fix.patch
