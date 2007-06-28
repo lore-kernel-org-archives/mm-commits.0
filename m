@@ -1,392 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch removed from -mm tree
-Date: Wed, 27 Jun 2007 23:14:49 -0700
-Message-ID: <200706280614.l5S6EnSX019013@imap1.linux-foundation.org>
+Subject: + add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 23:24:02 -0700
+Message-ID: <200706280624.l5S6O2wb019866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59017 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57275 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755391AbXF1GPA (ORCPT
+	by vger.kernel.org with ESMTP id S1755717AbXF1GY0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 02:15:00 -0400
+	Thu, 28 Jun 2007 02:24:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru
 
 
 The patch titled
-     Slab allocators: replace explicit zeroing with __GFP_ZERO
-has been removed from the -mm tree.  Its filename was
-     slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
+     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
+has been added to the -mm tree.  Its filename is
+     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch
 
-This patch was dropped because it broke or was bad
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Slab allocators: replace explicit zeroing with __GFP_ZERO
-From: Christoph Lameter <clameter@sgi.com>
+Subject: add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-kmalloc_node() and kmem_cache_alloc_node() were not available in a zeroing
-variant in the past.  But with __GFP_ZERO it is possible now to do zeroing
-while allocating.
+Show the name of the piggy task.
 
-Use __GFP_ZERO to remove the explicit clearing of memory via memset whereever
-we can.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Jeff Dike <jdike@linux.intel.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/as-iosched.c       |    3 +--
- block/cfq-iosched.c      |   18 +++++++++---------
- block/deadline-iosched.c |    3 +--
- block/elevator.c         |    3 +--
- block/genhd.c            |    8 ++++----
- block/ll_rw_blk.c        |    4 ++--
- drivers/ide/ide-probe.c  |    4 ++--
- kernel/timer.c           |    4 ++--
- lib/genalloc.c           |    3 +--
- mm/allocpercpu.c         |    9 +++------
- mm/mempool.c             |    3 +--
- mm/vmalloc.c             |    6 +++---
- 12 files changed, 30 insertions(+), 38 deletions(-)
+ kernel/exit.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN block/as-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/as-iosched.c
---- a/block/as-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/as-iosched.c
-@@ -1322,10 +1322,9 @@ static void *as_init_queue(request_queue
- {
- 	struct as_data *ad;
+diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix kernel/exit.c
+--- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
++++ a/kernel/exit.c
+@@ -885,8 +885,9 @@ static void check_stack_usage(void)
  
--	ad = kmalloc_node(sizeof(*ad), GFP_KERNEL, q->node);
-+	ad = kmalloc_node(sizeof(*ad), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (!ad)
- 		return NULL;
--	memset(ad, 0, sizeof(*ad));
- 
- 	ad->q = q; /* Identify what queue the data belongs to */
- 
-diff -puN block/cfq-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/cfq-iosched.c
---- a/block/cfq-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/cfq-iosched.c
-@@ -1249,9 +1249,9 @@ cfq_alloc_io_context(struct cfq_data *cf
- {
- 	struct cfq_io_context *cic;
- 
--	cic = kmem_cache_alloc_node(cfq_ioc_pool, gfp_mask, cfqd->queue->node);
-+	cic = kmem_cache_alloc_node(cfq_ioc_pool, gfp_mask | __GFP_ZERO,
-+							cfqd->queue->node);
- 	if (cic) {
--		memset(cic, 0, sizeof(*cic));
- 		cic->last_end_request = jiffies;
- 		INIT_LIST_HEAD(&cic->queue_list);
- 		cic->dtor = cfq_free_io_context;
-@@ -1374,17 +1374,19 @@ retry:
- 			 * free memory.
- 			 */
- 			spin_unlock_irq(cfqd->queue->queue_lock);
--			new_cfqq = kmem_cache_alloc_node(cfq_pool, gfp_mask|__GFP_NOFAIL, cfqd->queue->node);
-+			new_cfqq = kmem_cache_alloc_node(cfq_pool,
-+					gfp_mask | __GFP_NOFAIL | __GFP_ZERO,
-+					cfqd->queue->node);
- 			spin_lock_irq(cfqd->queue->queue_lock);
- 			goto retry;
- 		} else {
--			cfqq = kmem_cache_alloc_node(cfq_pool, gfp_mask, cfqd->queue->node);
-+			cfqq = kmem_cache_alloc_node(cfq_pool,
-+					gfp_mask | __GFP_ZERO,
-+					cfqd->queue->node);
- 			if (!cfqq)
- 				goto out;
- 		}
- 
--		memset(cfqq, 0, sizeof(*cfqq));
--
- 		RB_CLEAR_NODE(&cfqq->rb_node);
- 		INIT_LIST_HEAD(&cfqq->fifo);
- 
-@@ -2046,12 +2048,10 @@ static void *cfq_init_queue(request_queu
- {
- 	struct cfq_data *cfqd;
- 
--	cfqd = kmalloc_node(sizeof(*cfqd), GFP_KERNEL, q->node);
-+	cfqd = kmalloc_node(sizeof(*cfqd), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (!cfqd)
- 		return NULL;
- 
--	memset(cfqd, 0, sizeof(*cfqd));
--
- 	cfqd->service_tree = CFQ_RB_ROOT;
- 	INIT_LIST_HEAD(&cfqd->cic_list);
- 
-diff -puN block/deadline-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/deadline-iosched.c
---- a/block/deadline-iosched.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/deadline-iosched.c
-@@ -360,10 +360,9 @@ static void *deadline_init_queue(request
- {
- 	struct deadline_data *dd;
- 
--	dd = kmalloc_node(sizeof(*dd), GFP_KERNEL, q->node);
-+	dd = kmalloc_node(sizeof(*dd), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (!dd)
- 		return NULL;
--	memset(dd, 0, sizeof(*dd));
- 
- 	INIT_LIST_HEAD(&dd->fifo_list[READ]);
- 	INIT_LIST_HEAD(&dd->fifo_list[WRITE]);
-diff -puN block/elevator.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/elevator.c
---- a/block/elevator.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/elevator.c
-@@ -177,11 +177,10 @@ static elevator_t *elevator_alloc(reques
- 	elevator_t *eq;
- 	int i;
- 
--	eq = kmalloc_node(sizeof(elevator_t), GFP_KERNEL, q->node);
-+	eq = kmalloc_node(sizeof(elevator_t), GFP_KERNEL | __GFP_ZERO, q->node);
- 	if (unlikely(!eq))
- 		goto err;
- 
--	memset(eq, 0, sizeof(*eq));
- 	eq->ops = &e->ops;
- 	eq->elevator_type = e;
- 	kobject_init(&eq->kobj);
-diff -puN block/genhd.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/genhd.c
---- a/block/genhd.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/genhd.c
-@@ -726,21 +726,21 @@ struct gendisk *alloc_disk_node(int mino
- {
- 	struct gendisk *disk;
- 
--	disk = kmalloc_node(sizeof(struct gendisk), GFP_KERNEL, node_id);
-+	disk = kmalloc_node(sizeof(struct gendisk),
-+				GFP_KERNEL | __GFP_ZERO, node_id);
- 	if (disk) {
--		memset(disk, 0, sizeof(struct gendisk));
- 		if (!init_disk_stats(disk)) {
- 			kfree(disk);
- 			return NULL;
- 		}
- 		if (minors > 1) {
- 			int size = (minors - 1) * sizeof(struct hd_struct *);
--			disk->part = kmalloc_node(size, GFP_KERNEL, node_id);
-+			disk->part = kmalloc_node(size,
-+				GFP_KERNEL | __GFP_ZERO, node_id);
- 			if (!disk->part) {
- 				kfree(disk);
- 				return NULL;
- 			}
--			memset(disk->part, 0, size);
- 		}
- 		disk->minors = minors;
- 		kobj_set_kset_s(disk,block_subsys);
-diff -puN block/ll_rw_blk.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/block/ll_rw_blk.c
-@@ -1828,11 +1828,11 @@ request_queue_t *blk_alloc_queue_node(gf
- {
- 	request_queue_t *q;
- 
--	q = kmem_cache_alloc_node(requestq_cachep, gfp_mask, node_id);
-+	q = kmem_cache_alloc_node(requestq_cachep,
-+				gfp_mask | __GFP_ZERO, node_id);
- 	if (!q)
- 		return NULL;
- 
--	memset(q, 0, sizeof(*q));
- 	init_timer(&q->unplug_timer);
- 
- 	snprintf(q->kobj.name, KOBJ_NAME_LEN, "%s", "queue");
-diff -puN drivers/ide/ide-probe.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero drivers/ide/ide-probe.c
---- a/drivers/ide/ide-probe.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/drivers/ide/ide-probe.c
-@@ -1073,14 +1073,14 @@ static int init_irq (ide_hwif_t *hwif)
- 		hwgroup->hwif->next = hwif;
- 		spin_unlock_irq(&ide_lock);
- 	} else {
--		hwgroup = kmalloc_node(sizeof(ide_hwgroup_t), GFP_KERNEL,
-+		hwgroup = kmalloc_node(sizeof(ide_hwgroup_t),
-+					GFP_KERNEL | __GFP_ZERO,
- 					hwif_to_node(hwif->drives[0].hwif));
- 		if (!hwgroup)
- 	       		goto out_up;
- 
- 		hwif->hwgroup = hwgroup;
- 
--		memset(hwgroup, 0, sizeof(ide_hwgroup_t));
- 		hwgroup->hwif     = hwif->next = hwif;
- 		hwgroup->rq       = NULL;
- 		hwgroup->handler  = NULL;
-diff -puN kernel/timer.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero kernel/timer.c
---- a/kernel/timer.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/kernel/timer.c
-@@ -1211,7 +1211,8 @@ static int __devinit init_timers_cpu(int
- 			/*
- 			 * The APs use this path later in boot
- 			 */
--			base = kmalloc_node(sizeof(*base), GFP_KERNEL,
-+			base = kmalloc_node(sizeof(*base),
-+						GFP_KERNEL | __GFP_ZERO,
- 						cpu_to_node(cpu));
- 			if (!base)
- 				return -ENOMEM;
-@@ -1222,7 +1223,6 @@ static int __devinit init_timers_cpu(int
- 				kfree(base);
- 				return -ENOMEM;
- 			}
--			memset(base, 0, sizeof(*base));
- 			per_cpu(tvec_bases, cpu) = base;
- 		} else {
- 			/*
-diff -puN lib/genalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero lib/genalloc.c
---- a/lib/genalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/lib/genalloc.c
-@@ -54,11 +54,10 @@ int gen_pool_add(struct gen_pool *pool, 
- 	int nbytes = sizeof(struct gen_pool_chunk) +
- 				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
- 
--	chunk = kmalloc_node(nbytes, GFP_KERNEL, nid);
-+	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
- 	if (unlikely(chunk == NULL))
- 		return -1;
- 
--	memset(chunk, 0, nbytes);
- 	spin_lock_init(&chunk->lock);
- 	chunk->start_addr = addr;
- 	chunk->end_addr = addr + size;
-diff -puN mm/allocpercpu.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero mm/allocpercpu.c
---- a/mm/allocpercpu.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/mm/allocpercpu.c
-@@ -53,12 +53,9 @@ void *percpu_populate(void *__pdata, siz
- 	int node = cpu_to_node(cpu);
- 
- 	BUG_ON(pdata->ptrs[cpu]);
--	if (node_online(node)) {
--		/* FIXME: kzalloc_node(size, gfp, node) */
--		pdata->ptrs[cpu] = kmalloc_node(size, gfp, node);
--		if (pdata->ptrs[cpu])
--			memset(pdata->ptrs[cpu], 0, size);
--	} else
-+	if (node_online(node))
-+		pdata->ptrs[cpu] = kmalloc_node(size, gfp|__GFP_ZERO, node);
-+	else
- 		pdata->ptrs[cpu] = kzalloc(size, gfp);
- 	return pdata->ptrs[cpu];
- }
-diff -puN mm/mempool.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero mm/mempool.c
---- a/mm/mempool.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/mm/mempool.c
-@@ -62,10 +62,9 @@ mempool_t *mempool_create_node(int min_n
- 			mempool_free_t *free_fn, void *pool_data, int node_id)
- {
- 	mempool_t *pool;
--	pool = kmalloc_node(sizeof(*pool), GFP_KERNEL, node_id);
-+	pool = kmalloc_node(sizeof(*pool), GFP_KERNEL | __GFP_ZERO, node_id);
- 	if (!pool)
- 		return NULL;
--	memset(pool, 0, sizeof(*pool));
- 	pool->elements = kmalloc_node(min_nr * sizeof(void *),
- 					GFP_KERNEL, node_id);
- 	if (!pool->elements) {
-diff -puN mm/vmalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero mm/vmalloc.c
---- a/mm/vmalloc.c~slab-allocators-replace-explicit-zeroing-with-__gfp_zero
-+++ a/mm/vmalloc.c
-@@ -432,11 +432,12 @@ void *__vmalloc_area_node(struct vm_stru
- 	area->nr_pages = nr_pages;
- 	/* Please note that the recursion is strictly bounded. */
- 	if (array_size > PAGE_SIZE) {
--		pages = __vmalloc_node(array_size, gfp_mask, PAGE_KERNEL, node);
-+		pages = __vmalloc_node(array_size, gfp_mask | __GFP_ZERO,
-+					PAGE_KERNEL, node);
- 		area->flags |= VM_VPAGES;
- 	} else {
- 		pages = kmalloc_node(array_size,
--				(gfp_mask & GFP_LEVEL_MASK),
-+				(gfp_mask & GFP_LEVEL_MASK) | __GFP_ZERO,
- 				node);
+ 	spin_lock(&low_water_lock);
+ 	if (free < lowest_to_date) {
+-		printk(KERN_WARNING "Greatest stack depth - %lu bytes left\n",
+-		       free);
++		printk(KERN_WARNING "%s used greatest stack depth: %lu bytes "
++				"left\n",
++				current->comm, free);
+ 		lowest_to_date = free;
  	}
- 	area->pages = pages;
-@@ -445,7 +446,6 @@ void *__vmalloc_area_node(struct vm_stru
- 		kfree(area);
- 		return NULL;
- 	}
--	memset(area->pages, 0, array_size);
- 
- 	for (i = 0; i < area->nr_pages; i++) {
- 		if (node < 0)
+ 	spin_unlock(&low_water_lock);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-remove-warn_on_once-for-zero-sized-objects-for-2622-release.patch
+smsc-ircc2-skip-preconfiguration-for-pnp-devices.patch
+ioatdma-fix-section-mismatches.patch
+ext2-fix-return-of-uninitialised-variable.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-acpi-ia64-build-fix.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+dvb-saa7134-dependency-fix.patch
+git-gfs2-nmw.patch
+git-gfs2-nmw-build-fix.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+git-nfs-server-cluster-locking-api-fixup.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-quicklist-support-for-x86_64.patch
-change-zonelist-order-zonelist-order-selection-logic.patch
-change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
+git-selinux.patch
+git-selinux-fixup.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support-fix.patch
+x86_64-add-ioapic-nmi-support-fix-2.patch
+highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+xfs-warning-fix.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
-change-zonelist-order-auto-configuration.patch
-change-zonelist-order-documentaion.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-slub-support-slub_debug-on-by-default.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
 slub-support-slub_debug-on-by-default-tidy.patch
-numa-mempolicy-dynamic-interleave-map-for-system-init.patch
-numa-mempolicy-trivial-debug-fixes.patch
-slob-initial-numa-support.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
-slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-slub-remove-useless-export_symbol.patch
-slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of.patch
-slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
-slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
-slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
-slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
-slab-allocators-support-__gfp_zero-in-all-allocators.patch
-slab-allocators-replace-explicit-zeroing-with-__gfp_zero.patch
-slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
-slub-extract-dma_kmalloc_cache-from-get_cache.patch
-slub-do-proper-locking-during-dma-slab-creation.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
-slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
-slub-simplify-dma-index-size-calculation.patch
-add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
-define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
-revoke-core-code.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+fix-alpha-isa-support-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+blink-only-blink-when-parameter-is-set-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
 intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver.patch
 intel-iommu-intel-iommu-driver-fix.patch
 intel-iommu-intel-iommu-driver-fix-2.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
 intel-iommu-iommu-floppy-workaround-fix.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-mm-implement-swap-prefetching.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
