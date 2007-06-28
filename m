@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-dynticks-disable-hpet_id_legsup-hpets.patch added to -mm tree
-Date: Thu, 28 Jun 2007 02:43:46 -0700
-Message-ID: <200706280943.l5S9hk1V022494@imap1.linux-foundation.org>
+Subject: + uninline-check_signature-fix.patch added to -mm tree
+Date: Thu, 28 Jun 2007 10:53:37 -0700
+Message-ID: <200706281753.l5SHrbm5030598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754808AbXF1Jog (ORCPT
+	by vger.kernel.org with ESMTP id S1754525AbXF1Rxp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 05:44:36 -0400
+	Thu, 28 Jun 2007 13:53:45 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5SHrgD3025549
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2007 10:53:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86_64 dynticks: disable HPET_ID_LEGSUP hpets
+     uninline-check_signature-fix
 has been added to the -mm tree.  Its filename is
-     x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+     uninline-check_signature-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +30,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 dynticks: disable HPET_ID_LEGSUP hpets
+Subject: uninline-check_signature-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Makefile |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~x86_64-dynticks-disable-hpet_id_legsup-hpets arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~x86_64-dynticks-disable-hpet_id_legsup-hpets
-+++ a/arch/i386/kernel/hpet.c
-@@ -376,7 +376,7 @@ int __init hpet_enable(void)
+diff -puN lib/Makefile~uninline-check_signature-fix lib/Makefile
+--- a/lib/Makefile~uninline-check_signature-fix
++++ a/lib/Makefile
+@@ -5,8 +5,7 @@
+ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+-	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+-	 check_signature.o
++	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
  
- 	clocksource_register(&clocksource_hpet);
+ lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
+ lib-$(CONFIG_SMP) += cpumask.o
+@@ -14,7 +13,7 @@ lib-$(CONFIG_SMP) += cpumask.o
+ lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
  
--	if (id & HPET_ID_LEGSUP) {
-+	if (0 && (id & HPET_ID_LEGSUP)) {
- 		hpet_enable_int();
- 		hpet_reserve_platform_timers(id);
- 		/*
+ obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+-	 bust_spinlocks.o hexdump.o
++	 bust_spinlocks.o hexdump.o check_signature.o
+ 
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -228,6 +240,7 @@ sprint_symbol-cleanup.patch
 replace-obscure-constructs-in-fs-block_devc-fix.patch
 bd_claim_by_disk-fix-warning.patch
 uninline-check_signature.patch
+uninline-check_signature-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
