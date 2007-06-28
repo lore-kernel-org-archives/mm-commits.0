@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch added to -mm tree
-Date: Wed, 27 Jun 2007 18:05:31 -0700
-Message-ID: <200706280109.l5S19VkP010677@imap1.linux-foundation.org>
+Subject: + uninline-check_signature.patch added to -mm tree
+Date: Wed, 27 Jun 2007 18:25:55 -0700
+Message-ID: <200706280129.l5S1TtFZ010919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751707AbXF1BJn (ORCPT
+	by vger.kernel.org with ESMTP id S1759084AbXF1BaD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 21:09:43 -0400
+	Wed, 27 Jun 2007 21:30:03 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5S1U0RX014131
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 27 Jun 2007 18:30:01 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fix gregkh-pci-pci-syscallc-switch-to-refcounting-api
+     uninline check_signature()
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+     uninline-check_signature.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +30,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-pci-pci-syscallc-switch-to-refcounting-api
+Subject: uninline check_signature()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-gcc speaks truth:
+This is a rather bizarre thing to have inlined in io.h.  Stick it in lib/
+instead.
 
-drivers/pci/syscall.c: In function `sys_pciconfig_read':
-drivers/pci/syscall.c:22: warning: 'dev' might be used uninitialized in this function
 
-How does this stuff get out the door??
 
-The patch also removes some pointless semicolons.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/syscall.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/io.h    |   29 ++---------------------------
+ lib/Makefile          |    2 +-
+ lib/check_signature.c |   30 ++++++++++++++++++++++++++++++
+ 3 files changed, 33 insertions(+), 28 deletions(-)
 
-diff -puN drivers/pci/syscall.c~fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api drivers/pci/syscall.c
---- a/drivers/pci/syscall.c~fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api
-+++ a/drivers/pci/syscall.c
-@@ -23,11 +23,11 @@ sys_pciconfig_read(unsigned long bus, un
- 	u8 byte;
- 	u16 word;
- 	u32 dword;
--	long err, cfg_ret;
-+	long err;
-+	long cfg_ret;
+diff -puN /dev/null lib/check_signature.c
+--- /dev/null
++++ a/lib/check_signature.c
+@@ -0,0 +1,30 @@
++#include <linux/io.h>
++#include <linux/module.h>
++
++/**
++ *	check_signature		-	find BIOS signatures
++ *	@io_addr: mmio address to check
++ *	@signature:  signature block
++ *	@length: length of signature
++ *
++ *	Perform a signature comparison with the mmio address io_addr. This
++ *	address should have been obtained by ioremap.
++ *	Returns 1 on a match.
++ */
++
++int check_signature(const volatile void __iomem *io_addr,
++			const unsigned char *signature, int length)
++{
++	int retval = 0;
++	do {
++		if (readb(io_addr) != *signature)
++			goto out;
++		io_addr++;
++		signature++;
++		length--;
++	} while (length);
++	retval = 1;
++out:
++	return retval;
++}
++EXPORT_SYMBOL(check_signature);
+diff -puN include/linux/io.h~uninline-check_signature include/linux/io.h
+--- a/include/linux/io.h~uninline-check_signature
++++ a/include/linux/io.h
+@@ -63,32 +63,7 @@ void __iomem * devm_ioremap(struct devic
+ void __iomem * devm_ioremap_nocache(struct device *dev, unsigned long offset,
+ 				    unsigned long size);
+ void devm_iounmap(struct device *dev, void __iomem *addr);
+-
+-/**
+- *	check_signature		-	find BIOS signatures
+- *	@io_addr: mmio address to check
+- *	@signature:  signature block
+- *	@length: length of signature
+- *
+- *	Perform a signature comparison with the mmio address io_addr. This
+- *	address should have been obtained by ioremap.
+- *	Returns 1 on a match.
+- */
+-
+-static inline int check_signature(const volatile void __iomem *io_addr,
+-	const unsigned char *signature, int length)
+-{
+-	int retval = 0;
+-	do {
+-		if (readb(io_addr) != *signature)
+-			goto out;
+-		io_addr++;
+-		signature++;
+-		length--;
+-	} while (length);
+-	retval = 1;
+-out:
+-	return retval;
+-}
++int check_signature(const volatile void __iomem *io_addr,
++			const unsigned char *signature, int length);
  
--	err = -EPERM;
- 	if (!capable(CAP_SYS_ADMIN))
--		goto error;
-+		return -EPERM;
+ #endif /* _LINUX_IO_H */
+diff -puN lib/Makefile~uninline-check_signature lib/Makefile
+--- a/lib/Makefile~uninline-check_signature
++++ a/lib/Makefile
+@@ -5,7 +5,7 @@
+ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+-	 sha1.o irq_regs.o reciprocal_div.o
++	 sha1.o irq_regs.o reciprocal_div.o check_signature.o
  
- 	err = -ENODEV;
- 	dev = pci_get_bus_and_slot(bus, dfn);
-@@ -66,7 +66,7 @@ sys_pciconfig_read(unsigned long bus, un
- 	case 4:
- 		err = put_user(dword, (unsigned int __user *)buf);
- 		break;
--	};
-+	}
- 	pci_dev_put(dev);
- 	return err;
- 
-@@ -84,7 +84,7 @@ error:
- 	case 4:
- 		put_user(-1, (unsigned int __user *)buf);
- 		break;
--	};
-+	}
- 	pci_dev_put(dev);
- 	return err;
- }
-@@ -139,7 +139,7 @@ sys_pciconfig_write(unsigned long bus, u
- 	default:
- 		err = -EINVAL;
- 		break;
--	};
-+	}
- 	unlock_kernel();
- 	pci_dev_put(dev);
- 	return err;
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,6 +183,7 @@ git-selinux.patch
 git-selinux-fixup.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
@@ -266,6 +306,7 @@ hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
 sprint_symbol-cleanup.patch
 replace-obscure-constructs-in-fs-block_devc-fix.patch
 bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -325,4 +366,3 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
