@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch added to -mm tree
-Date: Thu, 28 Jun 2007 01:54:29 -0700
-Message-ID: <200706280854.l5S8sT1U021853@imap1.linux-foundation.org>
+Subject: + x86_64-dynticks-disable-hpet_id_legsup-hpets.patch added to -mm tree
+Date: Thu, 28 Jun 2007 02:43:46 -0700
+Message-ID: <200706280943.l5S9hk1V022494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48356 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57795 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762645AbXF1Iz0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754808AbXF1Jog (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 04:55:26 -0400
+	Thu, 28 Jun 2007 05:44:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, jack@ucw.cz, michal.k.k.piotrowski@gmail.com, tony.luck@intel.com, vtaras@openvz.org
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix
+     x86_64 dynticks: disable HPET_ID_LEGSUP hpets
 has been added to the -mm tree.  Its filename is
-     diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+     x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix
+Subject: x86_64 dynticks: disable HPET_ID_LEGSUP hpets
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it link with CONFIG_QUOTA=n (covered in SubmitChecklist, guys..)
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Vasily Tarasov <vtaras@openvz.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/hpet.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/quota.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix fs/quota.c
-diff -puN kernel/sys_ni.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix
-+++ a/kernel/sys_ni.c
-@@ -14,6 +14,7 @@ asmlinkage long sys_ni_syscall(void)
+diff -puN arch/i386/kernel/hpet.c~x86_64-dynticks-disable-hpet_id_legsup-hpets arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~x86_64-dynticks-disable-hpet_id_legsup-hpets
++++ a/arch/i386/kernel/hpet.c
+@@ -376,7 +376,7 @@ int __init hpet_enable(void)
  
- cond_syscall(sys_nfsservctl);
- cond_syscall(sys_quotactl);
-+cond_syscall(sys32_quotactl);
- cond_syscall(sys_acct);
- cond_syscall(sys_lookup_dcookie);
- cond_syscall(sys_swapon);
+ 	clocksource_register(&clocksource_hpet);
+ 
+-	if (id & HPET_ID_LEGSUP) {
++	if (0 && (id & HPET_ID_LEGSUP)) {
+ 		hpet_enable_int();
+ 		hpet_reserve_platform_timers(id);
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +144,7 @@ x86_64-add-ioapic-nmi-support-fix-2.patch
 highres-improve-debug-output-fix.patch
 ntp-move-the-cmos-update-code-into-ntpc-fix.patch
 ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 git-newsetup-fixup.patch
