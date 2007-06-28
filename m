@@ -1,94 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-cleanup-zeroing-allocations-fix.patch removed from -mm tree
-Date: Wed, 27 Jun 2007 22:33:39 -0700
-Message-ID: <200706280533.l5S5Xg3r017423@imap1.linux-foundation.org>
+Subject: - slab-allocators-cleanup-zeroing-allocations-fix-2.patch removed from -mm tree
+Date: Wed, 27 Jun 2007 22:33:52 -0700
+Message-ID: <200706280533.l5S5XqnL017426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51715 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34478 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751432AbXF1FeA (ORCPT
+	by vger.kernel.org with ESMTP id S1756255AbXF1FeD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 01:34:00 -0400
+	Thu, 28 Jun 2007 01:34:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab-allocators-cleanup-zeroing-allocations-fix
+     slab-allocators-cleanup-zeroing-allocations-fix-2
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-cleanup-zeroing-allocations-fix.patch
+     slab-allocators-cleanup-zeroing-allocations-fix-2.patch
 
 This patch was dropped because it was folded into slab-allocators-cleanup-zeroing-allocations.patch
 
 ------------------------------------------------------
-Subject: slab-allocators-cleanup-zeroing-allocations-fix
+Subject: slab-allocators-cleanup-zeroing-allocations-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/slab.h:181,
-                 from include/linux/percpu.h:5,
-                 from include/asm/desc.h:11,
-                 from include/asm/elf.h:50,
-                 from include/linux/elf.h:7,
-                 from include/linux/module.h:15,
-                 from include/linux/crypto.h:21,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/slob_def.h:32: error: static declaration of '__kmalloc' follows non-static declaration
-include/linux/slab.h:96: error: previous declaration of '__kmalloc' was here
-include/linux/slob_def.h: In function 'kzalloc':
-include/linux/slob_def.h:43: warning: implicit declaration of function '__kzalloc'
-include/linux/slob_def.h:43: warning: return makes pointer from integer without a cast
-In file included from include/linux/percpu.h:5,
-                 from include/asm/desc.h:11,
-                 from include/asm/elf.h:50,
-                 from include/linux/elf.h:7,
-                 from include/linux/module.h:15,
-                 from include/linux/crypto.h:21,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/slab.h: At top level:
-include/linux/slab.h:268: error: conflicting types for '__kzalloc'
-include/linux/slob_def.h:43: error: previous implicit declaration of '__kzalloc' was here
-include/linux/slab.h:278: error: redefinition of 'kzalloc'
-include/linux/slob_def.h:42: error: previous definition of 'kzalloc' was here
-make[1]: *** [arch/i386/kernel/asm-offsets.s] Error 1
-make: *** [prepare0] Error 2
-
-This might be due to damage from Paul Mundt's slob/numa changes.
-
-Is that "allocator specific definitions" comment in slab.h still accurate?
-
+More leftovers
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slob_def.h |   15 ---------------
- 1 files changed, 15 deletions(-)
+ include/linux/slab.h |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN include/linux/slob_def.h~slab-allocators-cleanup-zeroing-allocations-fix include/linux/slob_def.h
---- a/include/linux/slob_def.h~slab-allocators-cleanup-zeroing-allocations-fix
-+++ a/include/linux/slob_def.h
-@@ -28,19 +28,4 @@ static inline void *kmalloc(size_t size,
- 	return __kmalloc_node(size, flags, -1);
+diff -puN include/linux/slab.h~slab-allocators-cleanup-zeroing-allocations-fix-2 include/linux/slab.h
+--- a/include/linux/slab.h~slab-allocators-cleanup-zeroing-allocations-fix-2
++++ a/include/linux/slab.h
+@@ -264,11 +264,6 @@ static inline void *kmem_cache_zalloc(st
+ 	return kmem_cache_alloc(k, flags | __GFP_ZERO);
  }
  
--static inline void *__kmalloc(size_t size, gfp_t flags)
+-static inline void *__kzalloc(int size, gfp_t flags)
 -{
--	return kmalloc(size, flags);
+-	return kmalloc(size, flags | __GFP_ZERO);
 -}
 -
--/**
-- * kzalloc - allocate memory. The memory is set to zero.
-- * @size: how many bytes of memory are required.
-- * @flags: the type of memory to allocate (see kcalloc).
-- */
--static inline void *kzalloc(size_t size, gfp_t flags)
--{
--	return __kzalloc(size, flags);
--}
--
- #endif /* __LINUX_SLOB_DEF_H */
+ /**
+  * kzalloc - allocate memory. The memory is set to zero.
+  * @size: how many bytes of memory are required.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,7 +179,6 @@ maps2-add-proc-pid-pagemap-interface.patch
 mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
 slab-allocators-cleanup-zeroing-allocations.patch
-slab-allocators-cleanup-zeroing-allocations-fix.patch
 slab-allocators-cleanup-zeroing-allocations-fix-2.patch
 fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
 freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
