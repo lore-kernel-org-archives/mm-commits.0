@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-bust-on-ia64.patch added to -mm tree
-Date: Wed, 27 Jun 2007 17:44:55 -0700
-Message-ID: <200706280048.l5S0mtTJ010428@imap1.linux-foundation.org>
+Subject: + git-acpi-ia64-build-fix.patch added to -mm tree
+Date: Wed, 27 Jun 2007 17:54:56 -0700
+Message-ID: <200706280058.l5S0wu4b010544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759242AbXF1AtC (ORCPT
+	by vger.kernel.org with ESMTP id S1751707AbXF1A7T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 20:49:02 -0400
+	Wed, 27 Jun 2007 20:59:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org, lenb@kernel.org
 
 
 The patch titled
-     kgdb-bust-on-ia64
+     git-acpi: ia64 build fix
 has been added to the -mm tree.  Its filename is
-     kgdb-bust-on-ia64.patch
+     git-acpi-ia64-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kgdb-bust-on-ia64
+Subject: git-acpi: ia64 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
+drivers/pci/pci-sysfs.c:359: error: conflicting types for 'pci_read_legacy_io'
+include/asm/pci.h:100: error: previous declaration of 'pci_read_legacy_io' was here
+drivers/pci/pci-sysfs.c:359: error: conflicting types for 'pci_read_legacy_io'
+include/asm/pci.h:100: error: previous declaration of 'pci_read_legacy_io' was here
+drivers/pci/pci-sysfs.c:384: error: conflicting types for 'pci_write_legacy_io'
+include/asm/pci.h:102: error: previous declaration of 'pci_write_legacy_io' was here
+drivers/pci/pci-sysfs.c:384: error: conflicting types for 'pci_write_legacy_io'
+include/asm/pci.h:102: error: previous declaration of 'pci_write_legacy_io' was here
+
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kgdb |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-ia64/pci.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN lib/Kconfig.kgdb~kgdb-bust-on-ia64 lib/Kconfig.kgdb
---- a/lib/Kconfig.kgdb~kgdb-bust-on-ia64
-+++ a/lib/Kconfig.kgdb
-@@ -14,7 +14,7 @@ config KGDB
- 	bool "KGDB: kernel debugging with remote gdb"
- 	select WANT_EXTRA_DEBUG_INFORMATION
- 	select KGDB_ARCH_HAS_SHADOW_INFO if X86_64
--	depends on DEBUG_KERNEL && (ARM || X86 || MIPS || (SUPERH && !SUPERH64) || IA64 || PPC)
-+	depends on DEBUG_KERNEL && (ARM || X86 || MIPS || (SUPERH && !SUPERH64) || PPC)
- 	help
- 	  If you say Y here, it will be possible to remotely debug the
- 	  kernel using gdb.  Documentation of kernel debugger is available
+diff -puN include/asm-ia64/pci.h~git-acpi-ia64-build-fix include/asm-ia64/pci.h
+--- a/include/asm-ia64/pci.h~git-acpi-ia64-build-fix
++++ a/include/asm-ia64/pci.h
+@@ -11,6 +11,8 @@
+ #include <asm/scatterlist.h>
+ #include <asm/hw_irq.h>
+ 
++struct bin_attribute;
++
+ /*
+  * Can be used to override the logic in pci_scan_bus for skipping already-configured bus
+  * numbers - to be used for buggy BIOSes or architectures with incomplete PCI setup by the
+@@ -96,10 +98,12 @@ extern int pci_mmap_page_range (struct p
+ #define HAVE_PCI_LEGACY
+ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+ 				      struct vm_area_struct *vma);
+-extern ssize_t pci_read_legacy_io(struct kobject *kobj, char *buf, loff_t off,
+-				  size_t count);
+-extern ssize_t pci_write_legacy_io(struct kobject *kobj, char *buf, loff_t off,
+-				   size_t count);
++extern ssize_t pci_read_legacy_io(struct kobject *kobj,
++			struct bin_attribute *bin_attr, char *buf,
++			loff_t off, size_t count);
++extern ssize_t pci_write_legacy_io(struct kobject *kobj,
++			struct bin_attribute *bin_attr, char *buf,
++			loff_t off, size_t count);
+ extern int pci_mmap_legacy_mem(struct kobject *kobj,
+ 			       struct bin_attribute *attr,
+ 			       struct vm_area_struct *vma);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,6 +179,7 @@ kgdb-use-new-style-interrupt-flags.patch
 kgdb-section-fix.patch
 kgdb_skipexception-warning-fix.patch
 kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 change-zonelist-order-v6-zonelist-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
@@ -280,4 +307,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-kgdb-bust-on-ia64.patch
+git-acpi-ia64-build-fix.patch
