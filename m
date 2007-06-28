@@ -1,35 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 23:24:02 -0700
-Message-ID: <200706280624.l5S6O2wb019866@imap1.linux-foundation.org>
+Subject: - add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch removed from -mm tree
+Date: Wed, 27 Jun 2007 23:34:08 -0700
+Message-ID: <200706280634.l5S6Y8c6019993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57275 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34259 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755717AbXF1GY0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758760AbXF1Gef (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 02:24:26 -0400
+	Thu, 28 Jun 2007 02:34:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru
+To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
-has been added to the -mm tree.  Its filename is
-     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch
+     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix
+has been removed from the -mm tree.  Its filename was
+     add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
 
 ------------------------------------------------------
-Subject: add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
+Subject: add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Show the name of the piggy task.
+- avoid an ifdef
+
+- speed it up!  (OK, CONFIG_DEBUG_STACK_USAGE is already slow, but the
+  global lock might hurt a bit more on many-CPU).
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jeff Dike <jdike@addtoit.com>
@@ -38,24 +37,51 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/exit.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix kernel/exit.c
---- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix
+diff -puN kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix kernel/exit.c
+--- a/kernel/exit.c~add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix
 +++ a/kernel/exit.c
-@@ -885,8 +885,9 @@ static void check_stack_usage(void)
+@@ -873,20 +873,26 @@ static void check_stack_usage(void)
+ {
+ 	static DEFINE_SPINLOCK(low_water_lock);
+ 	static int lowest_to_date = THREAD_SIZE;
+-	unsigned long *n = end_of_stack(current), free;
++	unsigned long *n = end_of_stack(current);
++	unsigned long free;
  
+ 	while (*n == 0)
+ 		n++;
+ 	free = (unsigned long)n - (unsigned long)end_of_stack(current);
+ 
++	if (free >= lowest_to_date)
++		return;
++
  	spin_lock(&low_water_lock);
  	if (free < lowest_to_date) {
--		printk(KERN_WARNING "Greatest stack depth - %lu bytes left\n",
--		       free);
-+		printk(KERN_WARNING "%s used greatest stack depth: %lu bytes "
-+				"left\n",
-+				current->comm, free);
+-		printk(KERN_WARNING "Greatest stack depth - %ld bytes left\n",
++		printk(KERN_WARNING "Greatest stack depth - %lu bytes left\n",
+ 		       free);
  		lowest_to_date = free;
  	}
  	spin_unlock(&low_water_lock);
+ }
++#else
++static inline void check_stack_usage(void) {}
+ #endif
+ 
+ fastcall NORET_TYPE void do_exit(long code)
+@@ -980,9 +986,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 	exit_sem(tsk);
+ 	__exit_files(tsk);
+ 	__exit_fs(tsk);
+-#ifdef CONFIG_DEBUG_STACK_USAGE
+ 	check_stack_usage();
+-#endif
+ 	exit_thread();
+ 	cpuset_exit(tsk);
+ 	exit_keys(tsk);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +219,7 @@ pm-introduce-hibernation-and-suspend-notifiers-fix.patch
 pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
 pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
 pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix.patch
 add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage-fix-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
