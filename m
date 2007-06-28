@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dm-compile-error-when-config_dm_netlink-is-not-defined.patch added to -mm tree
-Date: Thu, 28 Jun 2007 15:14:51 -0700
-Message-ID: <200706282214.l5SMEp8Y002696@imap1.linux-foundation.org>
+Subject: + pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch added to -mm tree
+Date: Thu, 28 Jun 2007 15:16:42 -0700
+Message-ID: <200706282216.l5SMGgPT002726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51643 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50496 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763129AbXF1WO7 (ORCPT
+	by vger.kernel.org with ESMTP id S1763129AbXF1WRE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 18:14:59 -0400
+	Thu, 28 Jun 2007 18:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaggy@linux.vnet.ibm.com
+Cc: rjw@sisk.pl, david-b@pacbell.net, greg@kroah.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     dm: compile error when CONFIG_DM_NETLINK is not defined
+     pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm update
 has been added to the -mm tree.  Its filename is
-     dm-compile-error-when-config_dm_netlink-is-not-defined.patch
+     pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,180 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm: compile error when CONFIG_DM_NETLINK is not defined
-From: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Subject: pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm update
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Thu, 2007-06-28 at 03:43 -0700, Andrew Morton wrote:
-> -agk-dm-dm-use-singlethread-workqueues.patch
-> +agk-dm-dm-use-singlethread-workqueues.patch
-> +agk-dm-dm-snapshot-fix-invalidation-deadlock.patch
-> +agk-dm-dm-snapshot-permit-invalid-activation.patch
-> +agk-dm-dm-raid1-clear-region-outside-spinlock.patch
-> +agk-dm-dm-netlink.patch
-> +agk-dm-dm-netlink-add-to-core.patch
-> +agk-dm-dm-netlink-mpath.patch
-> +agk-dm-dm-mpath-rdac.patch
->
->  device mapper tree updates
+Russell says that the affected drivers were coded to support multiple instances
+of the same device which the $subject patch doesn't take into account (still,
+as far as the neponset is concerned, I think that there can be only one
+instance of NCR_0 in the system).
 
-I got this compile error:
-
-  LD      drivers/md/built-in.o
-drivers/md/dm-multipath.o: In function `dm_path_event':
-drivers/md/dm-netlink.h:56: multiple definition of `dm_path_event'
-drivers/md/dm-mod.o:drivers/md/dm-netlink.h:56: first defined here
-drivers/md/dm-multipath.o: In function `dm_netlink_send_events':
-drivers/md/dm-netlink.h:51: multiple definition of `dm_netlink_send_events'
-drivers/md/dm-mod.o:drivers/md/dm-netlink.h:51: first defined here
-make[2]: *** [drivers/md/built-in.o] Error 1
-
-I was able to fix it by making the dummy inline functions static.
-
-Signed-off-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-netlink.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/common/locomo.c |   22 +++++++++++++++++++---
+ arch/arm/common/sa1111.c |   15 ++++++++-------
+ 2 files changed, 27 insertions(+), 10 deletions(-)
 
-diff -puN drivers/md/dm-netlink.h~dm-compile-error-when-config_dm_netlink-is-not-defined drivers/md/dm-netlink.h
---- a/drivers/md/dm-netlink.h~dm-compile-error-when-config_dm_netlink-is-not-defined
-+++ a/drivers/md/dm-netlink.h
-@@ -47,10 +47,10 @@ static inline int __init dm_netlink_init
- static inline void dm_netlink_exit(void)
+diff -puN arch/arm/common/locomo.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update arch/arm/common/locomo.c
+--- a/arch/arm/common/locomo.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update
++++ a/arch/arm/common/locomo.c
+@@ -60,6 +60,9 @@ struct locomo {
+ 	unsigned int irq;
+ 	spinlock_t lock;
+ 	void __iomem *base;
++#ifdef CONFIG_PM
++	void *saved_state;
++#endif
+ };
+ 
+ struct locomo_dev_info {
+@@ -553,14 +556,20 @@ struct locomo_save_data {
+ 	u16	LCM_GPE;
+ 	u16	LCM_ASD;
+ 	u16	LCM_SPIMD;
+-} locomo_saved_state;
++};
+ 
+ static int locomo_suspend(struct platform_device *dev, pm_message_t state)
  {
+ 	struct locomo *lchip = platform_get_drvdata(dev);
+-	struct locomo_save_data *save = &locomo_saved_state;
++	struct locomo_save_data *save;
+ 	unsigned long flags;
+ 
++	save = kmalloc(sizeof(struct locomo_save_data), GFP_KERNEL);
++	if (!save)
++		return -ENOMEM;
++
++	lchip->saved_state = save;
++
+ 	spin_lock_irqsave(&lchip->lock, flags);
+ 
+ 	save->LCM_GPO     = locomo_readl(lchip->base + LOCOMO_GPO);	/* GPIO */
+@@ -596,10 +605,14 @@ static int locomo_suspend(struct platfor
+ static int locomo_resume(struct platform_device *dev)
+ {
+ 	struct locomo *lchip = platform_get_drvdata(dev);
+-	struct locomo_save_data *save = &locomo_saved_state;
++	struct locomo_save_data *save;
+ 	unsigned long r;
+ 	unsigned long flags;
+ 
++	save = lchip->saved_state;
++	if (!save)
++		return 0;
++
+ 	spin_lock_irqsave(&lchip->lock, flags);
+ 
+ 	locomo_writel(save->LCM_GPO, lchip->base + LOCOMO_GPO);
+@@ -619,6 +632,9 @@ static int locomo_resume(struct platform
+ 
+ 	spin_unlock_irqrestore(&lchip->lock, flags);
+ 
++	lchip->saved_state = NULL;
++	kfree(save);
++
+ 	return 0;
  }
--void inline dm_netlink_send_events(struct list_head *events)
-+static void inline dm_netlink_send_events(struct list_head *events)
+ #endif
+diff -puN arch/arm/common/sa1111.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update arch/arm/common/sa1111.c
+--- a/arch/arm/common/sa1111.c~pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update
++++ a/arch/arm/common/sa1111.c
+@@ -51,6 +51,9 @@ struct sa1111 {
+ 	int		irq;
+ 	spinlock_t	lock;
+ 	void __iomem	*base;
++#ifdef CONFIG_PM
++	void		*saved_state;
++#endif
+ };
+ 
+ /*
+@@ -811,8 +814,6 @@ struct sa1111_save_data {
+ 
+ #ifdef CONFIG_PM
+ 
+-static struct sa1111_save_data *sa1111_saved_state;
+-
+ static int sa1111_suspend(struct platform_device *dev, pm_message_t state)
  {
- }
--void inline dm_path_event(enum dm_netlink_event_type evt_type,
-+static void inline dm_path_event(enum dm_netlink_event_type evt_type,
- 			  struct dm_table *t, const char *path,
- 			  int nr_valid_paths)
- {
+ 	struct sa1111 *sachip = platform_get_drvdata(dev);
+@@ -824,7 +825,7 @@ static int sa1111_suspend(struct platfor
+ 	save = kmalloc(sizeof(struct sa1111_save_data), GFP_KERNEL);
+ 	if (!save)
+ 		return -ENOMEM;
+-	sa1111_saved_state = save;
++	sachip->saved_state = save;
+ 
+ 	spin_lock_irqsave(&sachip->lock, flags);
+ 
+@@ -880,7 +881,7 @@ static int sa1111_resume(struct platform
+ 	unsigned long flags, id;
+ 	void __iomem *base;
+ 
+-	save = sa1111_saved_state;
++	save = sachip->saved_state;
+ 	if (!save)
+ 		return 0;
+ 
+@@ -925,7 +926,7 @@ static int sa1111_resume(struct platform
+ 
+ 	spin_unlock_irqrestore(&sachip->lock, flags);
+ 
+-	sa1111_saved_state = NULL;
++	sachip->saved_state = NULL;
+ 	kfree(save);
+ 
+ 	return 0;
+@@ -960,8 +961,8 @@ static int sa1111_remove(struct platform
+ 		platform_set_drvdata(pdev, NULL);
+ 
+ #ifdef CONFIG_PM
+-		kfree(sa1111_saved_state);
+-		sa1111_saved_state = NULL;
++		kfree(sachip->saved_state);
++		sachip->saved_state = NULL;
+ #endif
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from shaggy@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-dm-compile-error-when-config_dm_netlink-is-not-defined.patch
-git-jfs.patch
-introduce-i_sync.patch
-knfsd-exportfs-remove-iget-abuse.patch
+origin.patch
+pm-introduce-set_target-method-in-pm_ops.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+shrink_slab-handle-bad-shrinkers.patch
+beeping-patch-for-debugging-acpi-sleep.patch
