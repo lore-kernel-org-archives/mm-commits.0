@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-ia64-build-fix.patch added to -mm tree
-Date: Wed, 27 Jun 2007 17:54:56 -0700
-Message-ID: <200706280058.l5S0wu4b010544@imap1.linux-foundation.org>
+Subject: + fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch added to -mm tree
+Date: Wed, 27 Jun 2007 18:05:31 -0700
+Message-ID: <200706280109.l5S19VkP010677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49611 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751707AbXF1A7T (ORCPT
+	by vger.kernel.org with ESMTP id S1751707AbXF1BJn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 20:59:19 -0400
+	Wed, 27 Jun 2007 21:09:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     git-acpi: ia64 build fix
+     fix gregkh-pci-pci-syscallc-switch-to-refcounting-api
 has been added to the -mm tree.  Its filename is
-     git-acpi-ia64-build-fix.patch
+     fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi: ia64 build fix
+Subject: fix gregkh-pci-pci-syscallc-switch-to-refcounting-api
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/pci-sysfs.c:359: error: conflicting types for 'pci_read_legacy_io'
-include/asm/pci.h:100: error: previous declaration of 'pci_read_legacy_io' was here
-drivers/pci/pci-sysfs.c:359: error: conflicting types for 'pci_read_legacy_io'
-include/asm/pci.h:100: error: previous declaration of 'pci_read_legacy_io' was here
-drivers/pci/pci-sysfs.c:384: error: conflicting types for 'pci_write_legacy_io'
-include/asm/pci.h:102: error: previous declaration of 'pci_write_legacy_io' was here
-drivers/pci/pci-sysfs.c:384: error: conflicting types for 'pci_write_legacy_io'
-include/asm/pci.h:102: error: previous declaration of 'pci_write_legacy_io' was here
+gcc speaks truth:
 
-Cc: Len Brown <lenb@kernel.org>
+drivers/pci/syscall.c: In function `sys_pciconfig_read':
+drivers/pci/syscall.c:22: warning: 'dev' might be used uninitialized in this function
+
+How does this stuff get out the door??
+
+The patch also removes some pointless semicolons.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pci.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/pci/syscall.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-ia64/pci.h~git-acpi-ia64-build-fix include/asm-ia64/pci.h
---- a/include/asm-ia64/pci.h~git-acpi-ia64-build-fix
-+++ a/include/asm-ia64/pci.h
-@@ -11,6 +11,8 @@
- #include <asm/scatterlist.h>
- #include <asm/hw_irq.h>
+diff -puN drivers/pci/syscall.c~fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api drivers/pci/syscall.c
+--- a/drivers/pci/syscall.c~fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api
++++ a/drivers/pci/syscall.c
+@@ -23,11 +23,11 @@ sys_pciconfig_read(unsigned long bus, un
+ 	u8 byte;
+ 	u16 word;
+ 	u32 dword;
+-	long err, cfg_ret;
++	long err;
++	long cfg_ret;
  
-+struct bin_attribute;
-+
- /*
-  * Can be used to override the logic in pci_scan_bus for skipping already-configured bus
-  * numbers - to be used for buggy BIOSes or architectures with incomplete PCI setup by the
-@@ -96,10 +98,12 @@ extern int pci_mmap_page_range (struct p
- #define HAVE_PCI_LEGACY
- extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
- 				      struct vm_area_struct *vma);
--extern ssize_t pci_read_legacy_io(struct kobject *kobj, char *buf, loff_t off,
--				  size_t count);
--extern ssize_t pci_write_legacy_io(struct kobject *kobj, char *buf, loff_t off,
--				   size_t count);
-+extern ssize_t pci_read_legacy_io(struct kobject *kobj,
-+			struct bin_attribute *bin_attr, char *buf,
-+			loff_t off, size_t count);
-+extern ssize_t pci_write_legacy_io(struct kobject *kobj,
-+			struct bin_attribute *bin_attr, char *buf,
-+			loff_t off, size_t count);
- extern int pci_mmap_legacy_mem(struct kobject *kobj,
- 			       struct bin_attribute *attr,
- 			       struct vm_area_struct *vma);
+-	err = -EPERM;
+ 	if (!capable(CAP_SYS_ADMIN))
+-		goto error;
++		return -EPERM;
+ 
+ 	err = -ENODEV;
+ 	dev = pci_get_bus_and_slot(bus, dfn);
+@@ -66,7 +66,7 @@ sys_pciconfig_read(unsigned long bus, un
+ 	case 4:
+ 		err = put_user(dword, (unsigned int __user *)buf);
+ 		break;
+-	};
++	}
+ 	pci_dev_put(dev);
+ 	return err;
+ 
+@@ -84,7 +84,7 @@ error:
+ 	case 4:
+ 		put_user(-1, (unsigned int __user *)buf);
+ 		break;
+-	};
++	}
+ 	pci_dev_put(dev);
+ 	return err;
+ }
+@@ -139,7 +139,7 @@ sys_pciconfig_write(unsigned long bus, u
+ 	default:
+ 		err = -EINVAL;
+ 		break;
+-	};
++	}
+ 	unlock_kernel();
+ 	pci_dev_put(dev);
+ 	return err;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +100,7 @@ ioatdma-fix-section-mismatches.patch
 ext2-fix-return-of-uninitialised-variable.patch
 git-acpi.patch
 git-acpi-fixup.patch
+git-acpi-ia64-build-fix.patch
 git-acpi-tickh-needs-hrtimerh.patch
 git-acpi-add-exports.patch
 git-alsa.patch
@@ -307,4 +325,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
-git-acpi-ia64-build-fix.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
