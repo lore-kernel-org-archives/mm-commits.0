@@ -1,67 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + uninline-check_signature-fix.patch added to -mm tree
-Date: Thu, 28 Jun 2007 10:53:37 -0700
-Message-ID: <200706281753.l5SHrbm5030598@imap1.linux-foundation.org>
+Subject: - dvb-saa7134-dependency-fix.patch removed from -mm tree
+Date: Thu, 28 Jun 2007 11:21:44 -0700
+Message-ID: <200706281821.l5SILiZa031140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754525AbXF1Rxp (ORCPT
+	by vger.kernel.org with ESMTP id S1755430AbXF1SV7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 13:53:45 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5SHrgD3025549
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2007 10:53:43 -0700
+	Thu, 28 Jun 2007 14:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uninline-check_signature-fix
-has been added to the -mm tree.  Its filename is
-     uninline-check_signature-fix.patch
+     dvb: saa7134 dependency fix
+has been removed from the -mm tree.  Its filename was
+     dvb-saa7134-dependency-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: uninline-check_signature-fix
+Subject: dvb: saa7134 dependency fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: "get_key_pinnacle_grey" [drivers/media/video/saa7134/saa7134.ko] undefined!
+ERROR: "get_key_pinnacle_color" [drivers/media/video/saa7134/saa7134.ko] undefined!
 
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/video/saa7134/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/Makefile~uninline-check_signature-fix lib/Makefile
---- a/lib/Makefile~uninline-check_signature-fix
-+++ a/lib/Makefile
-@@ -5,8 +5,7 @@
- lib-y := ctype.o string.o vsprintf.o cmdline.o \
- 	 rbtree.o radix-tree.o dump_stack.o \
- 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
--	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
--	 check_signature.o
-+	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
- 
- lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -14,7 +13,7 @@ lib-$(CONFIG_SMP) += cpumask.o
- lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
- 
- obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
--	 bust_spinlocks.o hexdump.o
-+	 bust_spinlocks.o hexdump.o check_signature.o
- 
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
+diff -puN drivers/media/video/saa7134/Kconfig~dvb-saa7134-dependency-fix drivers/media/video/saa7134/Kconfig
+--- a/drivers/media/video/saa7134/Kconfig~dvb-saa7134-dependency-fix
++++ a/drivers/media/video/saa7134/Kconfig
+@@ -5,6 +5,7 @@ config VIDEO_SAA7134
+ 	select VIDEO_IR
+ 	select VIDEO_TUNER
+ 	select CRC32
++	select VIDEO_IR_I2C
+ 	---help---
+ 	  This is a video4linux driver for Philips SAA713x based
+ 	  TV cards.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
