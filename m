@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-ia64-fixes.patch added to -mm tree
-Date: Wed, 27 Jun 2007 17:43:56 -0700
-Message-ID: <200706280047.l5S0luH5010416@imap1.linux-foundation.org>
+Subject: + kgdb-bust-on-ia64.patch added to -mm tree
+Date: Wed, 27 Jun 2007 17:44:55 -0700
+Message-ID: <200706280048.l5S0mtTJ010428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44009 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36552 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759699AbXF1AsE (ORCPT
+	by vger.kernel.org with ESMTP id S1759242AbXF1AtC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jun 2007 20:48:04 -0400
+	Wed, 27 Jun 2007 20:49:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     kgdb ia64 fixes
+     kgdb-bust-on-ia64
 has been added to the -mm tree.  Its filename is
-     kgdb-ia64-fixes.patch
+     kgdb-bust-on-ia64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kgdb ia64 fixes
+Subject: kgdb-bust-on-ia64
 From: Andrew Morton <akpm@linux-foundation.org>
-
-arch/ia64/kernel/kgdb.c: In function `kgdb_notify':
-arch/ia64/kernel/kgdb.c:681: error: dereferencing pointer to incomplete type
-arch/ia64/kernel/kgdb.c:682: error: dereferencing pointer to incomplete type
-arch/ia64/kernel/kgdb.c:710: error: dereferencing pointer to incomplete type
-arch/ia64/kernel/kgdb.c:710: error: dereferencing pointer to incomplete type
-arch/ia64/kernel/kgdb.c:710: error: dereferencing pointer to incomplete type
-arch/ia64/kernel/kgdb.c: In function `kgdb_arch_init':
-arch/ia64/kernel/kgdb.c:720: error: `ia64die_chain' undeclared (first use in this function)
-arch/ia64/kernel/kgdb.c:720: error: (Each undeclared identifier is reported only once
-arch/ia64/kernel/kgdb.c:720: error: for each function it appears in.)
-arch/ia64/kernel/kgdb.c: In function `do_kgdb_handle_exception':
-arch/ia64/kernel/kgdb.c:923: error: implicit declaration of function `kgdb_correct_hw_break'
-arch/ia64/kernel/kgdb.c: At top level:
-arch/ia64/kernel/kgdb.c:467: warning: 'hwbreaks' defined but not used
-
-The patch fixes a few things, but ia64 remains busted.
-
-<stdin>:1385:2: warning: #warning syscall revokeat not implemented
-<stdin>:1389:2: warning: #warning syscall frevoke not implemented
-arch/ia64/kernel/kgdb.c: In function `kgdb_arch_init':
-arch/ia64/kernel/kgdb.c:721: error: `ia64die_chain' undeclared (first use in this function)
-arch/ia64/kernel/kgdb.c:721: error: (Each undeclared identifier is reported only once
-arch/ia64/kernel/kgdb.c:721: error: for each function it appears in.)
-arch/ia64/kernel/kgdb.c: In function `do_kgdb_handle_exception':
-arch/ia64/kernel/kgdb.c:924: error: implicit declaration of function `kgdb_correct_hw_break'
-arch/ia64/kernel/kgdb.c: At top level:
-arch/ia64/kernel/kgdb.c:468: warning: 'hwbreaks' defined but not used
-make[1]: *** [arch/ia64/kernel/kgdb.o] Error 1
-make: *** [arch/ia64/kernel/kgdb.o] Error 2
 
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kgdb.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/Kconfig.kgdb |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/kgdb.c~kgdb-ia64-fixes arch/ia64/kernel/kgdb.c
---- a/arch/ia64/kernel/kgdb.c~kgdb-ia64-fixes
-+++ a/arch/ia64/kernel/kgdb.c
-@@ -30,6 +30,7 @@
- #include <linux/sched.h>
- #include <linux/smp.h>
- #include <linux/spinlock.h>
-+#include <linux/kdebug.h>
- #include <linux/delay.h>
- #include <asm/system.h>
- #include <asm/ptrace.h>		/* for linux pt_regs struct */
+diff -puN lib/Kconfig.kgdb~kgdb-bust-on-ia64 lib/Kconfig.kgdb
+--- a/lib/Kconfig.kgdb~kgdb-bust-on-ia64
++++ a/lib/Kconfig.kgdb
+@@ -14,7 +14,7 @@ config KGDB
+ 	bool "KGDB: kernel debugging with remote gdb"
+ 	select WANT_EXTRA_DEBUG_INFORMATION
+ 	select KGDB_ARCH_HAS_SHADOW_INFO if X86_64
+-	depends on DEBUG_KERNEL && (ARM || X86 || MIPS || (SUPERH && !SUPERH64) || IA64 || PPC)
++	depends on DEBUG_KERNEL && (ARM || X86 || MIPS || (SUPERH && !SUPERH64) || PPC)
+ 	help
+ 	  If you say Y here, it will be possible to remotely debug the
+ 	  kernel using gdb.  Documentation of kernel debugger is available
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -309,3 +280,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+kgdb-bust-on-ia64.patch
