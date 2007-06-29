@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-reduce-code-duplication-between-mainc-and-userc-updated.patch added to -mm tree
-Date: Thu, 28 Jun 2007 15:44:17 -0700
-Message-ID: <200706282244.l5SMiHMX003198@imap1.linux-foundation.org>
+Subject: + pcih-stubs-for-edd-build-error.patch added to -mm tree
+Date: Thu, 28 Jun 2007 17:07:12 -0700
+Message-ID: <200706290007.l5T07CjJ004498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47783 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761058AbXF1WpA (ORCPT
+	by vger.kernel.org with ESMTP id S1757145AbXF2AHx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 18:45:00 -0400
+	Thu, 28 Jun 2007 20:07:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz
+Cc: randy.dunlap@oracle.com, Matt_Domsch@dell.com, greg@kroah.com
 
 
 The patch titled
-     PM: Reduce code duplication between main.c and user.c
+     pci.h stubs (for EDD build error)
 has been added to the -mm tree.  Its filename is
-     pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+     pcih-stubs-for-edd-build-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,302 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Reduce code duplication between main.c and user.c
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pci.h stubs (for EDD build error)
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The SNAPSHOT_S2RAM ioctl code is outdated and it should not duplicate the
-suspend code in kernel/power/main.c.  Fix that.
+Provide stubs for more PCI bus/slot functions when CONFIG_PCI=n.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c  |   99 ++++++++++++++++++++++-------------------
- kernel/power/power.h |    3 -
- kernel/power/user.c  |   38 ++-------------
- 3 files changed, 62 insertions(+), 78 deletions(-)
+ include/linux/pci.h |   11 +++++++++++
+ 1 files changed, 11 insertions(+)
 
-diff -puN kernel/power/main.c~pm-reduce-code-duplication-between-mainc-and-userc-updated kernel/power/main.c
---- a/kernel/power/main.c~pm-reduce-code-duplication-between-mainc-and-userc-updated
-+++ a/kernel/power/main.c
-@@ -65,14 +65,11 @@ static inline void pm_finish(suspend_sta
+diff -puN include/linux/pci.h~pcih-stubs-for-edd-build-error include/linux/pci.h
+--- a/include/linux/pci.h~pcih-stubs-for-edd-build-error
++++ a/include/linux/pci.h
+@@ -754,6 +754,17 @@ static inline void pci_release_regions(s
+ static inline void pci_block_user_cfg_access(struct pci_dev *dev) { }
+ static inline void pci_unblock_user_cfg_access(struct pci_dev *dev) { }
  
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
-- *	@state:		State we're entering.
-  *
-- *	This is common code that is called for each state that we're 
-- *	entering. Allocate a console, stop all processes, then make sure
-- *	the platform can enter the requested state.
-+ *	This is common code that is called for each state that we're entering.
-+ *	Run suspend notifiers, allocate a console and stop all processes.
-  */
--
--static int suspend_prepare(suspend_state_t state)
-+static int suspend_prepare(void)
- {
- 	int error;
- 	unsigned int free_pages;
-@@ -91,43 +88,18 @@ static int suspend_prepare(suspend_state
- 		goto Thaw;
- 	}
- 
--	if ((free_pages = global_page_state(NR_FREE_PAGES))
--			< FREE_PAGE_NUMBER) {
-+	free_pages = global_page_state(NR_FREE_PAGES);
-+	if (free_pages < FREE_PAGE_NUMBER) {
- 		pr_debug("PM: free some memory\n");
- 		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
- 		if (nr_free_pages() < FREE_PAGE_NUMBER) {
- 			error = -ENOMEM;
- 			printk(KERN_ERR "PM: No enough memory\n");
--			goto Thaw;
- 		}
- 	}
--
--	if (pm_ops->set_target) {
--		error = pm_ops->set_target(state);
--		if (error)
--			goto Thaw;
--	}
--	suspend_console();
--	error = device_suspend(PMSG_SUSPEND);
--	if (error) {
--		printk(KERN_ERR "Some devices failed to suspend\n");
--		goto Resume_console;
--	}
--	if (pm_ops->prepare) {
--		if ((error = pm_ops->prepare(state)))
--			goto Resume_devices;
--	}
--
--	error = disable_nonboot_cpus();
- 	if (!error)
- 		return 0;
- 
--	enable_nonboot_cpus();
--	pm_finish(state);
-- Resume_devices:
--	device_resume();
-- Resume_console:
--	resume_console();
-  Thaw:
- 	thaw_processes();
- 	pm_restore_console();
-@@ -148,6 +120,12 @@ void __attribute__ ((weak)) arch_suspend
- 	local_irq_enable();
- }
- 
-+/**
-+ *	suspend_enter - enter the desired system sleep state.
-+ *	@state:		state to enter
-+ *
-+ *	This function should be called after devices have been suspended.
-+ */
- int suspend_enter(suspend_state_t state)
- {
- 	int error = 0;
-@@ -167,21 +145,55 @@ int suspend_enter(suspend_state_t state)
- 	return error;
- }
- 
-+/**
-+ *	suspend_devices_and_enter - suspend devices and enter the desired system sleep
-+ *			  state.
-+ *	@state:		  state to enter
-+ */
-+int suspend_devices_and_enter(suspend_state_t state)
-+{
-+	int error;
++static inline struct pci_bus *pci_find_next_bus(const struct pci_bus *from)
++{ return NULL; }
 +
-+	if (!pm_ops)
-+		return -ENOSYS;
++static inline struct pci_dev *pci_get_slot(struct pci_bus *bus,
++						unsigned int devfn)
++{ return NULL; }
 +
-+	if (pm_ops->set_target) {
-+		error = pm_ops->set_target(state);
-+		if (error)
-+			return error;
-+	}
-+	suspend_console();
-+	error = device_suspend(PMSG_SUSPEND);
-+	if (error) {
-+		printk(KERN_ERR "Some devices failed to suspend\n");
-+		goto Resume_console;
-+	}
-+	if (pm_ops->prepare) {
-+		error = pm_ops->prepare(state);
-+		if (error)
-+			goto Resume_devices;
-+	}
-+	error = disable_nonboot_cpus();
-+	if (!error)
-+		suspend_enter(state);
++static inline struct pci_dev *pci_get_bus_and_slot(unsigned int bus,
++						unsigned int devfn)
++{ return NULL; }
 +
-+	enable_nonboot_cpus();
-+	pm_finish(state);
-+ Resume_devices:
-+	device_resume();
-+ Resume_console:
-+	resume_console();
-+	return error;
-+}
+ #endif /* CONFIG_PCI */
  
- /**
-  *	suspend_finish - Do final work before exiting suspend sequence.
-- *	@state:		State we're coming out of.
-  *
-  *	Call platform code to clean up, restart processes, and free the 
-  *	console that we've allocated. This is not called for suspend-to-disk.
-  */
--
--static void suspend_finish(suspend_state_t state)
-+static void suspend_finish(void)
- {
--	enable_nonboot_cpus();
--	pm_finish(state);
--	device_resume();
--	resume_console();
- 	thaw_processes();
- 	pm_restore_console();
- 	pm_notifier_call_chain(PM_POST_SUSPEND);
-@@ -216,7 +228,6 @@ static inline int valid_state(suspend_st
-  *	Then, do the setup for suspend, enter the state, and cleaup (after
-  *	we've woken up).
-  */
--
- static int enter_state(suspend_state_t state)
- {
- 	int error;
-@@ -227,14 +238,14 @@ static int enter_state(suspend_state_t s
- 		return -EBUSY;
- 
- 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
--	if ((error = suspend_prepare(state)))
-+	if ((error = suspend_prepare()))
- 		goto Unlock;
- 
- 	pr_debug("PM: Entering %s sleep\n", pm_states[state]);
--	error = suspend_enter(state);
-+	error = suspend_devices_and_enter(state);
- 
- 	pr_debug("PM: Finishing wakeup.\n");
--	suspend_finish(state);
-+	suspend_finish();
-  Unlock:
- 	mutex_unlock(&pm_mutex);
- 	return error;
-diff -puN kernel/power/power.h~pm-reduce-code-duplication-between-mainc-and-userc-updated kernel/power/power.h
---- a/kernel/power/power.h~pm-reduce-code-duplication-between-mainc-and-userc-updated
-+++ a/kernel/power/power.h
-@@ -170,7 +170,6 @@ extern int swsusp_resume(void);
- extern int swsusp_read(unsigned int *flags_p);
- extern int swsusp_write(unsigned int flags);
- extern void swsusp_close(void);
--extern int suspend_enter(suspend_state_t state);
- 
- struct timeval;
- /* kernel/power/swsusp.c */
-@@ -178,6 +177,8 @@ extern void swsusp_show_speed(struct tim
- 				unsigned int, char *);
- 
- /* kernel/power/main.c */
-+extern int suspend_enter(suspend_state_t state);
-+extern int suspend_devices_and_enter(suspend_state_t state);
- extern struct blocking_notifier_head pm_chain_head;
- 
- static inline int pm_notifier_call_chain(unsigned long val)
-diff -puN kernel/power/user.c~pm-reduce-code-duplication-between-mainc-and-userc-updated kernel/power/user.c
---- a/kernel/power/user.c~pm-reduce-code-duplication-between-mainc-and-userc-updated
-+++ a/kernel/power/user.c
-@@ -255,47 +255,19 @@ static int snapshot_ioctl(struct inode *
- 		break;
- 
- 	case SNAPSHOT_S2RAM:
--		if (!pm_ops) {
--			error = -ENOSYS;
--			break;
--		}
--
- 		if (!data->frozen) {
- 			error = -EPERM;
- 			break;
- 		}
--
- 		if (!mutex_trylock(&pm_mutex)) {
- 			error = -EBUSY;
- 			break;
- 		}
--
--		if (pm_ops->prepare) {
--			error = pm_ops->prepare(PM_SUSPEND_MEM);
--			if (error)
--				goto OutS3;
--		}
--
--		/* Put devices to sleep */
--		suspend_console();
--		error = device_suspend(PMSG_SUSPEND);
--		if (error) {
--			printk(KERN_ERR "Failed to suspend some devices.\n");
--		} else {
--			error = disable_nonboot_cpus();
--			if (!error) {
--				/* Enter S3, system is already frozen */
--				suspend_enter(PM_SUSPEND_MEM);
--				enable_nonboot_cpus();
--			}
--			/* Wake up devices */
--			device_resume();
--		}
--		resume_console();
--		if (pm_ops->finish)
--			pm_ops->finish(PM_SUSPEND_MEM);
--
-- OutS3:
-+		/*
-+		 * Tasks are frozen and the notifiers have been called with
-+		 * PM_HIBERNATION_PREPARE
-+		 */
-+		error = suspend_devices_and_enter(PM_SUSPEND_MEM);
- 		mutex_unlock(&pm_mutex);
- 		break;
- 
+ /* Include architecture-dependent settings and functions */
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-pm-introduce-set_target-method-in-pm_ops.patch
-pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
-pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
-x86_64-pm_trace-support.patch
-i386-do-not-restore-reserved-memory-after-hibernation.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-do-not-require-dev-spew-to-get-pm_debug.patch
-swsusp-remove-incorrect-code-from-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-swsusp-introduce-restore-platform-operations.patch
-swsusp-fix-hibernation-code-ordering.patch
-hibernation-prepare-to-enter-the-low-power-state.patch
-freezer-avoid-freezing-kernel-threads-prematurely.patch
-freezer-use-__set_current_state-in-refrigerator.patch
-freezer-return-int-from-freeze_processes.patch
-freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
-pm-introduce-hibernation-and-suspend-notifiers.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
-pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
-shrink_slab-handle-bad-shrinkers.patch
-beeping-patch-for-debugging-acpi-sleep.patch
+eventfd-clean-compile-when-config_eventfd=n.patch
+mtrr-cyrix-fix-sections.patch
+ioatdma-fix-section-mismatches.patch
+alsa-fix-ice1712-section-mismatch.patch
+alsa-use-__devexit_p.patch
+alsa-more-section-mismatches.patch
+pcih-stubs-for-edd-build-error.patch
+git-acpi.patch
+git-alsa.patch
+fix-gregkh-driver-nozomi.patch
+git-libata-all.patch
+romfs-printk-format-warnings.patch
+mtd-use-null-for-pointer.patch
+ubi-one-less-bug-usage.patch
+add-pci_try_set_mwi.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+irda-fix-printk-format.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+fs-clarify-dummy-member-in-struct.patch
+sony-laptop-use-null-for-pointer.patch
+hugetlbfs-use-lib-parser-fix-docs.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+doc-oops-tracing-add-code-decode-info.patch
+doc-oops-tracing-add-code-decode-info-fix.patch
+schedstats-fix-printk-format.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+profile-likely-unlikely-macros.patch
