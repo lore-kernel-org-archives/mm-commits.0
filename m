@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Fri, 29 Jun 2007 13:08:14 -0700
-Message-ID: <200706292008.l5TK8EuS020946@imap1.linux-foundation.org>
+Subject: + pre-git-r8169.patch added to -mm tree
+Date: Fri, 29 Jun 2007 13:12:34 -0700
+Message-ID: <200706292012.l5TKCYtj021129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969AbXF2UIV (ORCPT
+	by vger.kernel.org with ESMTP id S1751466AbXF2UMt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:08:21 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5TK8JmH008271
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2007 13:08:20 -0700
+	Fri, 29 Jun 2007 16:12:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, romieu@fr.zoreil.com
 
 
 The patch titled
-     git-dvb-fixup
+     pre-git-r8169
 has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     pre-git-r8169.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,32 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: pre-git-r8169
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Make git-r8169 apply
+
+Cc: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/saa7134-tvaudio.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/net/r8169.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-fixup drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/drivers/media/video/saa7134/saa7134-tvaudio.c~git-dvb-fixup
-+++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
-@@ -998,11 +998,8 @@ int saa7134_tvaudio_init2(struct saa7134
- int saa7134_tvaudio_fini(struct saa7134_dev *dev)
- {
- 	/* shutdown tvaudio thread */
--	if (dev->thread.pid >= 0) {
--		dev->thread.shutdown = 1;
--		wake_up_interruptible(&dev->thread.wq);
--		wait_for_completion(&dev->thread.exit);
--	}
-+	if (dev->thread.thread)
-+		kthread_stop(dev->thread.thread);
- 	saa_andorb(SAA7134_ANALOG_IO_SELECT, 0x07, 0x00); /* LINE1 */
- 	return 0;
- }
+diff -puN drivers/net/r8169.c~pre-git-r8169 drivers/net/r8169.c
+--- a/drivers/net/r8169.c~pre-git-r8169
++++ a/drivers/net/r8169.c
+@@ -2492,7 +2492,7 @@ static inline int rtl8169_try_rx_copy(st
+ 		skb = dev_alloc_skb(pkt_size + align);
+ 		if (skb) {
+ 			skb_reserve(skb, (align - 1) & (unsigned long)skb->data);
+-			skb_copy_to_linear_data(skb, sk_buff[0]->data, pkt_size);
++			eth_copy_and_sum(skb, sk_buff[0]->data, pkt_size, 0);
+ 			*sk_buff = skb;
+ 			rtl8169_mark_to_asic(desc, rx_buf_sz);
+ 			ret = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +72,6 @@ revert-saa7134-fix-thread-shutdown-handling.patch
 git-dvb.patch
 git-dvb-fixup.patch
 git-gfs2-nmw.patch
-git-gfs2-nmw-build-fix.patch
 git-infiniband.patch
 git-input.patch
 serio_raw_read-warning-fix.patch
@@ -94,17 +87,16 @@ ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 git-md-accel.patch
 git-mips-fixup.patch
 git-mtd.patch
-use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 git-ubi.patch
 git-netdev-all.patch
 sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-git-e1000.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
 git-ioat-vs-git-md-accel.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+pre-git-r8169.patch
 git-selinux-fixup.patch
 git-selinux-disable-mmap_min_addr-by-default.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
