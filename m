@@ -1,292 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fixup.patch added to -mm tree
-Date: Fri, 29 Jun 2007 13:18:24 -0700
-Message-ID: <200706292018.l5TKIOn5021348@imap1.linux-foundation.org>
+Subject: - use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:19:02 -0700
+Message-ID: <200706292019.l5TKJ2Di021420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34833 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752588AbXF2USe (ORCPT
+	by vger.kernel.org with ESMTP id S1752691AbXF2UTP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:18:34 -0400
+	Fri, 29 Jun 2007 16:19:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, mark.fasheh@oracle.com
+To: matthias.kaehlcke@gmail.com, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup
-has been added to the -mm tree.  Its filename is
-     git-block-fixup.patch
+     use mutex instead of binary semaphore in CDU-31A driver
+has been removed from the -mm tree.  Its filename was
+     use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because this driver gets deleted in Jens's tree
 
 ------------------------------------------------------
-Subject: git-block-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: use mutex instead of binary semaphore in CDU-31A driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-fix rejects.
+Use mutex instead of binary semaphore in CDU-31A driver.
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/cdrom/cdu31a.c |   51 +++++++++++++++++++--------------------
+ 1 files changed, 26 insertions(+), 25 deletions(-)
 
-diff -puN fs/ocfs2/file.c~git-block-fixup fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~git-block-fixup
-+++ a/fs/ocfs2/file.c
-@@ -1829,7 +1829,7 @@ static int ocfs2_splice_write_actor(stru
+diff -puN drivers/cdrom/cdu31a.c~use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver drivers/cdrom/cdu31a.c
+--- a/drivers/cdrom/cdu31a.c~use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver
++++ a/drivers/cdrom/cdu31a.c
+@@ -162,6 +162,7 @@
+ #include <linux/genhd.h>
+ #include <linux/ioport.h>
+ #include <linux/string.h>
++#include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+@@ -263,7 +264,7 @@ static int sony_toc_read = 0;	/* Has the
+ static struct s_sony_subcode last_sony_subcode;	/* Points to the last
+ 						   subcode address read */
+ 
+-static DECLARE_MUTEX(sony_sem);		/* Semaphore for drive hardware access */
++static DEFINE_MUTEX(sony_mtx);		/* Mutex for drive hardware access */
+ 
+ static int is_double_speed = 0;	/* does the drive support double speed ? */
+ 
+@@ -339,11 +340,11 @@ static int scd_drive_status(struct cdrom
+ 		return -EINVAL;
+ 	if (sony_spun_up)
+ 		return CDS_DISC_OK;
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	if (scd_spinup() == 0)
+ 		sony_spun_up = 1;
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return sony_spun_up ? CDS_DISC_OK : CDS_DRIVE_NOT_READY;
+ }
+ 
+@@ -452,7 +453,7 @@ static int scd_reset(struct cdrom_device
  {
- 	int ret, count;
- 	ssize_t copied = 0;
--	struct file *file = sd->file;
-+	struct file *file = sd->u.file;
- 	unsigned int offset;
- 	struct page *page = NULL;
- 	void *fsdata;
+ 	unsigned long retry_count;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	reset_drive();
+ 
+@@ -461,7 +462,7 @@ static int scd_reset(struct cdrom_device
+ 		sony_sleep();
+ 	}
+ 
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return 0;
+ }
+ 
+@@ -655,10 +656,10 @@ static int scd_select_speed(struct cdrom
+ 	else
+ 		sony_speed = speed - 1;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	set_drive_params(sony_speed);
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return 0;
+ }
+ 
+@@ -673,10 +674,10 @@ static int scd_lock_door(struct cdrom_de
+ 	} else {
+ 		is_auto_eject = 0;
+ 	}
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	set_drive_params(sony_speed);
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return 0;
+ }
+ 
+@@ -1143,7 +1144,7 @@ static void handle_abort_timeout(unsigne
+ {
+ 	pr_debug(PFX "Entering %s\n", __FUNCTION__);
+ 	/* If it is in use, ignore it. */
+-	if (down_trylock(&sony_sem) == 0) {
++	if (mutex_trylock(&sony_mtx) == 0) {
+ 		/* We can't use abort_read(), because it will sleep
+ 		   or schedule in the timer interrupt.  Just start
+ 		   the operation, finish it on the next access to
+@@ -1154,7 +1155,7 @@ static void handle_abort_timeout(unsigne
+ 
+ 		sony_blocks_left = 0;
+ 		abort_read_started = 1;
+-		up(&sony_sem);
++		mutex_unlock(&sony_mtx);
+ 	}
+ 	pr_debug(PFX "Leaving %s\n", __FUNCTION__);
+ }
+@@ -1300,7 +1301,7 @@ static void do_cdu31a_request(request_qu
+ 	pr_debug(PFX "Entering %s\n", __FUNCTION__);
+ 
+ 	spin_unlock_irq(q->queue_lock);
+-	if (down_interruptible(&sony_sem)) {
++	if (mutex_lock_interruptible(&sony_mtx)) {
+ 		spin_lock_irq(q->queue_lock);
+ 		return;
+ 	}
+@@ -1435,7 +1436,7 @@ static void do_cdu31a_request(request_qu
+ 	add_timer(&cdu31a_abort_timer);
+ #endif
+ 
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	spin_lock_irq(q->queue_lock);
+ 	pr_debug(PFX "Leaving %s at %d\n", __FUNCTION__, __LINE__);
+ }
+@@ -1906,10 +1907,10 @@ static int scd_get_last_session(struct c
+ 		return 1;
+ 
+ 	if (!sony_toc_read) {
+-		if (down_interruptible(&sony_sem))
++		if (mutex_lock_interruptible(&sony_mtx))
+ 			return -ERESTARTSYS;
+ 		sony_get_toc();
+-		up(&sony_sem);
++		mutex_unlock(&sony_mtx);
+ 	}
+ 
+ 	ms_info->addr_format = CDROM_LBA;
+@@ -1988,11 +1989,11 @@ scd_get_mcn(struct cdrom_device_info *cd
+ 	unsigned int res_size;
+ 
+ 	memset(mcn->medium_catalog_number, 0, 14);
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	do_sony_cd_cmd(SONY_REQ_UPC_EAN_CMD,
+ 		       NULL, 0, resbuffer, &res_size);
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	if ((res_size < 2) || ((resbuffer[0] & 0xf0) == 0x20));
+ 	else {
+ 		/* packed bcd to single ASCII digits */
+@@ -2207,7 +2208,7 @@ static int read_audio(struct cdrom_read_
+ 	unsigned int res_size;
+ 	unsigned int cframe;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	if (!sony_spun_up)
+ 		scd_spinup();
+@@ -2343,7 +2344,7 @@ static int read_audio(struct cdrom_read_
+ 	}
+ 
+  out_up:
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 
+ 	return retval;
+ }
+@@ -2373,7 +2374,7 @@ static int scd_tray_move(struct cdrom_de
+ {
+ 	int retval;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	if (position == 1 /* open tray */ ) {
+ 		unsigned char res_reg[12];
+@@ -2392,7 +2393,7 @@ static int scd_tray_move(struct cdrom_de
+ 			sony_spun_up = 1;
+ 		retval = 0;
+ 	}
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return retval;
+ }
+ 
+@@ -2407,7 +2408,7 @@ static int scd_audio_ioctl(struct cdrom_
+ 	unsigned char params[7];
+ 	int i, retval;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	switch (cmd) {
+ 	case CDROMSTART:	/* Spin up the drive */
+@@ -2665,7 +2666,7 @@ static int scd_audio_ioctl(struct cdrom_
+ 		retval = -EINVAL;
+ 		break;
+ 	}
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return retval;
+ }
+ 
+@@ -2675,7 +2676,7 @@ static int scd_read_audio(struct cdrom_d
+ 	void __user *argp = (void __user *)arg;
+ 	int retval;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	switch (cmd) {
+ 	case CDROMREADAUDIO:	/* Read 2352 byte audio tracks and 2340 byte
+@@ -2749,7 +2750,7 @@ static int scd_read_audio(struct cdrom_d
+ 	default:
+ 		retval = -EINVAL;
+ 	}
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return retval;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-ia64-build-fix.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
 git-mtd.patch
-git-ubi.patch
 git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-battery-vs-git-acpi.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-pre-git-r8169.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-restore-acpi-change-for-scsi.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block-fixup.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-git-wireless.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-show-unhandled-signals-fix.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support-fix.patch
-x86_64-add-ioapic-nmi-support-fix-2.patch
-highres-improve-debug-output-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-xfs-warning-fix.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-fix-alpha-isa-support-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-audit-add-tty-input-auditing-fix-2.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-sys_time-speedup-build-fixes.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-uninline-check_signature-fix.patch
-check_signature-needs-readb.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-intel-iommu-driver-fix-2.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-allow-page_owner-to-be-set-on-any-architecture-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
+drivers-block-ubc-use-list_for_each_entry.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+fs-block_devc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
