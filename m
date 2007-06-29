@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - atyfb-fix-xclk-frequency-on-apple-ibook1.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:16 -0700
-Message-ID: <200706292040.l5TKeGAh022417@imap1.linux-foundation.org>
+Subject: - eventfd-clean-compile-when-config_eventfd=n.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:20 -0700
+Message-ID: <200706292040.l5TKeKrq022420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47674 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753907AbXF2Ukc (ORCPT
+	by vger.kernel.org with ESMTP id S1753965AbXF2UlA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:40:32 -0400
+	Fri, 29 Jun 2007 16:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, adaplas@gmail.com, olaf@aepfle.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: Fix XCLK frequency on Apple iBook1
+     eventfd: clean compile when CONFIG_EVENTFD=n
 has been removed from the -mm tree.  Its filename was
-     atyfb-fix-xclk-frequency-on-apple-ibook1.patch
+     eventfd-clean-compile-when-config_eventfd=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atyfb: Fix XCLK frequency on Apple iBook1
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: eventfd: clean compile when CONFIG_EVENTFD=n
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix a regression on Apple iBook1.  Changes in the clock init code caused an
-incorrect XCLK frequency to be used leading to a corrupted display.
+Fix gcc warning and add parameter checking when CONFIG_EVENTFD=n:
 
-Signed-off-by: Ville Syrjala <syrjala@sci.fi>
-Cc: Olaf Hering <olaf@aepfle.de>
-Cc: Antonino Daplas <adaplas@gmail.com>
+fs/aio.c: In function 'aio_complete':
+fs/aio.c:955: warning: statement with no effect
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ include/linux/eventfd.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-fix-xclk-frequency-on-apple-ibook1 drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-fix-xclk-frequency-on-apple-ibook1
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2290,15 +2290,6 @@ static int __devinit aty_init(struct fb_
- 	init_waitqueue_head(&par->vblank.wait);
- 	spin_lock_init(&par->int_lock);
+diff -puN include/linux/eventfd.h~eventfd-clean-compile-when-config_eventfd=n include/linux/eventfd.h
+--- a/include/linux/eventfd.h~eventfd-clean-compile-when-config_eventfd=n
++++ a/include/linux/eventfd.h
+@@ -19,7 +19,8 @@ int eventfd_signal(struct file *file, in
+ #else /* CONFIG_EVENTFD */
  
--#ifdef CONFIG_PPC_PMAC
--	/* The Apple iBook1 uses non-standard memory frequencies. We detect it
--	 * and set the frequency manually. */
--	if (machine_is_compatible("PowerBook2,1")) {
--		par->pll_limits.mclk = 70;
--		par->pll_limits.xclk = 53;
--	}
--#endif
--
- #ifdef CONFIG_FB_ATY_GX
- 	if (!M64_HAS(INTEGRATED)) {
- 		u32 stat0;
-@@ -2383,6 +2374,14 @@ static int __devinit aty_init(struct fb_
- 			par->pll_limits.xclk = (par->pll_limits.xclk + 1) >> 1;
- 	}
- #endif
-+#ifdef CONFIG_PPC_PMAC
-+	/* The Apple iBook1 uses non-standard memory frequencies. We detect it
-+	 * and set the frequency manually. */
-+	if (machine_is_compatible("PowerBook2,1")) {
-+		par->pll_limits.mclk = 70;
-+		par->pll_limits.xclk = 53;
-+	}
-+#endif
+ #define eventfd_fget(fd) ERR_PTR(-ENOSYS)
+-#define eventfd_signal(f, n) 0
++static inline int eventfd_signal(struct file *file, int n)
++{ return 0; }
  
- 	/* Allow command line to override clocks. */
- 	if (pll)
+ #endif /* CONFIG_EVENTFD */
+ 
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+alsa-more-section-mismatches.patch
+pcih-stubs-for-edd-build-error.patch
+git-acpi.patch
+git-alsa.patch
+git-mtd.patch
+romfs-printk-format-warnings.patch
+ubi-one-less-bug-usage.patch
+add-pci_try_set_mwi.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+irda-fix-printk-format.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+kconfig-no-strange-misc-devices.patch
+afs-drop-explicit-extern.patch
+add-printktime-option-deprecate-time.patch
+fs-clarify-dummy-member-in-struct.patch
+sony-laptop-use-null-for-pointer.patch
+hugetlbfs-use-lib-parser-fix-docs.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+doc-oops-tracing-add-code-decode-info.patch
+doc-oops-tracing-add-code-decode-info-fix.patch
+schedstats-fix-printk-format.patch
+kernel-doc-add-tools-doc-in-makefile.patch
+kernel-doc-fix-unnamed-struct-union-warning.patch
+kernel-doc-strip-c99-comments.patch
+kernel-doc-fix-leading-dot-in-man-mode-output.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+profile-likely-unlikely-macros.patch
