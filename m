@@ -1,135 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:41:31 -0700
-Message-ID: <200706292041.l5TKfV9n022581@imap1.linux-foundation.org>
+Subject: - introduce-fixed-sys_sync_file_range2-syscall-implement-on.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:41:10 -0700
+Message-ID: <200706292041.l5TKfAQH022556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58451 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754961AbXF2Uut (ORCPT
+	by vger.kernel.org with ESMTP id S1755240AbXF2Uux (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:50:49 -0400
+	Fri, 29 Jun 2007 16:50:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, arnd@arndb.de, paulus@samba.org, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use mutex instead of semaphore in the MTD DataFlash driver
+     Introduce fixed sys_sync_file_range2() syscall, implement on PowerPC and ARM
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver.patch
+     introduce-fixed-sys_sync_file_range2-syscall-implement-on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use mutex instead of semaphore in the MTD DataFlash driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: Introduce fixed sys_sync_file_range2() syscall, implement on PowerPC and ARM
+From: David Woodhouse <dwmw2@infradead.org>
 
-The MTD DataFlash driver uses a semaphore as mutex.  Use the mutex API instead
-of the (binary) semaphore.
+Not all the world is an i386.  Many architectures need 64-bit arguments to be
+aligned in suitable pairs of registers, and the original
+sys_sync_file_range(int, loff_t, loff_t, int) was therefore wasting an
+argument register for padding after the first integer.  Since we don't
+normally have more than 6 arguments for system calls, that left no room for
+the final argument on some architectures.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Fix this by introducing sys_sync_file_range2(int, int, loff_t, loff_t) which
+all fits nicely.  In fact, ARM already had that, but called it
+sys_arm_sync_file_range.  Move it to fs/sync.c and rename it, then implement
+the needed compatibility routine.  And stop the missing syscall check from
+bitching about the absence of sys_sync_file_range() if we've implemented
+sys_sync_file_range2() instead.
+
+Tested on PPC32 and with 32-bit and 64-bit userspace on PPC64.
+
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/mtd_dataflash.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+ arch/arm/kernel/calls.S         |    2 +-
+ arch/arm/kernel/sys_arm.c       |   13 -------------
+ arch/powerpc/kernel/sys_ppc32.c |    9 +++++++++
+ fs/sync.c                       |    8 ++++++++
+ include/asm-arm/unistd.h        |    1 +
+ include/asm-powerpc/systbl.h    |    1 +
+ include/asm-powerpc/unistd.h    |    3 ++-
+ include/linux/syscalls.h        |    2 ++
+ scripts/checksyscalls.sh        |    5 +++++
+ 9 files changed, 29 insertions(+), 15 deletions(-)
 
-diff -puN drivers/mtd/devices/mtd_dataflash.c~use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver drivers/mtd/devices/mtd_dataflash.c
---- a/drivers/mtd/devices/mtd_dataflash.c~use-mutex-instead-of-semaphore-in-the-mtd-dataflash-driver
-+++ a/drivers/mtd/devices/mtd_dataflash.c
-@@ -14,6 +14,7 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/mutex.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/flash.h>
- 
-@@ -89,7 +90,7 @@ struct dataflash {
- 	unsigned short		page_offset;	/* offset in flash address */
- 	unsigned int		page_size;	/* of bytes per page */
- 
--	struct semaphore	lock;
-+	struct mutex		lock;
- 	struct spi_device	*spi;
- 
- 	struct mtd_info		mtd;
-@@ -167,7 +168,7 @@ static int dataflash_erase(struct mtd_in
- 	x.len = 4;
- 	spi_message_add_tail(&x, &msg);
- 
--	down(&priv->lock);
-+	mutex_lock(&priv->lock);
- 	while (instr->len > 0) {
- 		unsigned int	pageaddr;
- 		int		status;
-@@ -210,7 +211,7 @@ static int dataflash_erase(struct mtd_in
- 			instr->len -= priv->page_size;
- 		}
- 	}
--	up(&priv->lock);
-+	mutex_unlock(&priv->lock);
- 
- 	/* Inform MTD subsystem that erase is complete */
- 	instr->state = MTD_ERASE_DONE;
-@@ -266,7 +267,7 @@ static int dataflash_read(struct mtd_inf
- 	x[1].len = len;
- 	spi_message_add_tail(&x[1], &msg);
- 
--	down(&priv->lock);
-+	mutex_lock(&priv->lock);
- 
- 	/* Continuous read, max clock = f(car) which may be less than
- 	 * the peak rate available.  Some chips support commands with
-@@ -279,7 +280,7 @@ static int dataflash_read(struct mtd_inf
- 	/* plus 4 "don't care" bytes */
- 
- 	status = spi_sync(priv->spi, &msg);
--	up(&priv->lock);
-+	mutex_unlock(&priv->lock);
- 
- 	if (status >= 0) {
- 		*retlen = msg.actual_length - 8;
-@@ -336,7 +337,7 @@ static int dataflash_write(struct mtd_in
- 	else
- 		writelen = len;
- 
--	down(&priv->lock);
-+	mutex_lock(&priv->lock);
- 	while (remaining > 0) {
- 		DEBUG(MTD_DEBUG_LEVEL3, "write @ %i:%i len=%i\n",
- 			pageaddr, offset, writelen);
-@@ -441,7 +442,7 @@ static int dataflash_write(struct mtd_in
- 		else
- 			writelen = remaining;
- 	}
--	up(&priv->lock);
-+	mutex_unlock(&priv->lock);
- 
- 	return status;
+diff -puN arch/arm/kernel/calls.S~introduce-fixed-sys_sync_file_range2-syscall-implement-on arch/arm/kernel/calls.S
+--- a/arch/arm/kernel/calls.S~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/arch/arm/kernel/calls.S
+@@ -350,7 +350,7 @@
+ 		CALL(sys_set_robust_list)
+ 		CALL(sys_get_robust_list)
+ /* 340 */	CALL(sys_splice)
+-		CALL(sys_arm_sync_file_range)
++		CALL(sys_sync_file_range2)
+ 		CALL(sys_tee)
+ 		CALL(sys_vmsplice)
+ 		CALL(sys_move_pages)
+diff -puN arch/arm/kernel/sys_arm.c~introduce-fixed-sys_sync_file_range2-syscall-implement-on arch/arm/kernel/sys_arm.c
+--- a/arch/arm/kernel/sys_arm.c~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/arch/arm/kernel/sys_arm.c
+@@ -328,16 +328,3 @@ asmlinkage long sys_arm_fadvise64_64(int
+ {
+ 	return sys_fadvise64_64(fd, offset, len, advice);
  }
-@@ -463,7 +464,7 @@ add_dataflash(struct spi_device *spi, ch
- 	if (!priv)
- 		return -ENOMEM;
+-
+-/*
+- * Yet more syscall fsckage - we can't fit sys_sync_file_range's
+- * arguments into the available registers with EABI.  So, let's
+- * create an ARM specific syscall for this which has _sane_
+- * arguments.  (This incidentally also has an ABI-independent
+- * argument layout.)
+- */
+-asmlinkage long sys_arm_sync_file_range(int fd, unsigned int flags,
+-					loff_t offset, loff_t nbytes)
+-{
+-	return sys_sync_file_range(fd, offset, nbytes, flags);
+-}
+diff -puN arch/powerpc/kernel/sys_ppc32.c~introduce-fixed-sys_sync_file_range2-syscall-implement-on arch/powerpc/kernel/sys_ppc32.c
+--- a/arch/powerpc/kernel/sys_ppc32.c~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/arch/powerpc/kernel/sys_ppc32.c
+@@ -810,3 +810,12 @@ asmlinkage long compat_sys_request_key(c
+ 	return sys_request_key(_type, _description, _callout_info, destringid);
+ }
  
--	init_MUTEX(&priv->lock);
-+	mutex_init(&priv->lock);
- 	priv->spi = spi;
- 	priv->page_size = pagesize;
- 	priv->page_offset = pageoffset;
++asmlinkage long compat_sys_sync_file_range2(int fd, unsigned int flags,
++				   unsigned offset_hi, unsigned offset_lo,
++				   unsigned nbytes_hi, unsigned nbytes_lo)
++{
++	loff_t offset = ((loff_t)offset_hi << 32) | offset_lo;
++	loff_t nbytes = ((loff_t)nbytes_hi << 32) | nbytes_lo;
++
++	return sys_sync_file_range(fd, offset, nbytes, flags);
++}
+diff -puN fs/sync.c~introduce-fixed-sys_sync_file_range2-syscall-implement-on fs/sync.c
+--- a/fs/sync.c~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/fs/sync.c
+@@ -236,6 +236,14 @@ out:
+ 	return ret;
+ }
+ 
++/* It would be nice if people remember that not all the world's an i386
++   when they introduce new system calls */
++asmlinkage long sys_sync_file_range2(int fd, unsigned int flags,
++				     loff_t offset, loff_t nbytes)
++{
++	return sys_sync_file_range(fd, offset, nbytes, flags);
++}
++
+ /*
+  * `endbyte' is inclusive
+  */
+diff -puN include/asm-arm/unistd.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on include/asm-arm/unistd.h
+--- a/include/asm-arm/unistd.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/include/asm-arm/unistd.h
+@@ -367,6 +367,7 @@
+ #define __NR_get_robust_list		(__NR_SYSCALL_BASE+339)
+ #define __NR_splice			(__NR_SYSCALL_BASE+340)
+ #define __NR_arm_sync_file_range	(__NR_SYSCALL_BASE+341)
++#define __NR_sync_file_range2		__NR_arm_sync_file_range
+ #define __NR_tee			(__NR_SYSCALL_BASE+342)
+ #define __NR_vmsplice			(__NR_SYSCALL_BASE+343)
+ #define __NR_move_pages			(__NR_SYSCALL_BASE+344)
+diff -puN include/asm-powerpc/systbl.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on include/asm-powerpc/systbl.h
+--- a/include/asm-powerpc/systbl.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/include/asm-powerpc/systbl.h
+@@ -311,3 +311,4 @@ COMPAT_SYS_SPU(utimensat)
+ COMPAT_SYS_SPU(signalfd)
+ COMPAT_SYS_SPU(timerfd)
+ SYSCALL_SPU(eventfd)
++COMPAT_SYS_SPU(sync_file_range2)
+diff -puN include/asm-powerpc/unistd.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on include/asm-powerpc/unistd.h
+--- a/include/asm-powerpc/unistd.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/include/asm-powerpc/unistd.h
+@@ -330,10 +330,11 @@
+ #define __NR_signalfd		305
+ #define __NR_timerfd		306
+ #define __NR_eventfd		307
++#define __NR_sync_file_range2	308
+ 
+ #ifdef __KERNEL__
+ 
+-#define __NR_syscalls		308
++#define __NR_syscalls		309
+ 
+ #define __NR__exit __NR_exit
+ #define NR_syscalls	__NR_syscalls
+diff -puN include/linux/syscalls.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on include/linux/syscalls.h
+--- a/include/linux/syscalls.h~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/include/linux/syscalls.h
+@@ -598,6 +598,8 @@ asmlinkage long sys_tee(int fdin, int fd
+ 
+ asmlinkage long sys_sync_file_range(int fd, loff_t offset, loff_t nbytes,
+ 					unsigned int flags);
++asmlinkage long sys_sync_file_range2(int fd, unsigned int flags,
++				     loff_t offset, loff_t nbytes);
+ asmlinkage long sys_get_robust_list(int pid,
+ 				    struct robust_list_head __user * __user *head_ptr,
+ 				    size_t __user *len_ptr);
+diff -puN scripts/checksyscalls.sh~introduce-fixed-sys_sync_file_range2-syscall-implement-on scripts/checksyscalls.sh
+--- a/scripts/checksyscalls.sh~introduce-fixed-sys_sync_file_range2-syscall-implement-on
++++ a/scripts/checksyscalls.sh
+@@ -99,6 +99,11 @@ cat << EOF
+ #define __IGNORE_setfsuid32
+ #define __IGNORE_setfsgid32
+ 
++/* sync_file_range had a stupid ABI. Allow sync_file_range2 instead */
++#ifdef __NR_sync_file_range2
++#define __IGNORE_sync_file_range
++#endif
++
+ /* Unmerged syscalls for AFS, STREAMS, etc. */
+ #define __IGNORE_afs_syscall
+ #define __IGNORE_getpmsg
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
-kcopyd-use-mutex-instead-of-semaphore.patch
+origin.patch
+git-powerpc.patch
+powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
 git-mtd.patch
-git-netdev-all.patch
-block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
-drivers-block-ubc-use-list_for_each_entry.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-fs-block_devc-use-list_for_each_entry.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-ubi.patch
+git-battery.patch
+git-nfs.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+jffs2-convert-to-new-aops.patch
+char-n_r3964-use-wait_event_interruptible.patch
+introduce-compat_u64-and-compat_s64-types.patch
+mismatching-declarations-of-revision-strings-in-hisax.patch
