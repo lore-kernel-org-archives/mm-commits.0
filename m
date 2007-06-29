@@ -1,144 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-mtd-maps-nettelc-possible-cleanups.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:41:25 -0700
-Message-ID: <200706292041.l5TKfPIZ022575@imap1.linux-foundation.org>
+Subject: - fix-section-mismatch-in-chipsfb.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:47 -0700
+Message-ID: <200706292040.l5TKelBJ022453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44988 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754286AbXF2Uuq (ORCPT
+	by vger.kernel.org with ESMTP id S1755263AbXF2Uuv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:50:46 -0400
+	Fri, 29 Jun 2007 16:50:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, gerg@snapgear.com, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mtd/maps/nettel.c: possible cleanups
+     fix section mismatch in chipsfb
 has been removed from the -mm tree.  Its filename was
-     drivers-mtd-maps-nettelc-possible-cleanups.patch
+     fix-section-mismatch-in-chipsfb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/mtd/maps/nettel.c: possible cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fix section mismatch in chipsfb
+From: Olaf Hering <olaf@aepfle.de>
 
-- make 2 needlessly global functions static
-- #if 0 the unused nettel_eraseconfig()
+WARNING: drivers/built-in.o(.text+0x8742a): Section mismatch: reference to .init.data:chipsfb_fix (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+WARNING: drivers/built-in.o(.text+0x87432): Section mismatch: reference to .init.data:chipsfb_fix (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+WARNING: drivers/built-in.o(.text+0x87442): Section mismatch: reference to .init.data:chipsfb_var (between 'chipsfb_pci_init' and 'chipsfb_set_par')
+WARNING: drivers/built-in.o(.text+0x8744a): Section mismatch: reference to .init.data:chipsfb_var (between 'chipsfb_pci_init' and 'chipsfb_set_par')
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Greg Ungerer <gerg@snapgear.com>
+init_chips is only called from chipsfb_pci_init
+chipsfb_fix and chipsfb_var are only referenced from init_chips
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/nettel.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/video/chipsfb.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-possible-cleanups drivers/mtd/maps/nettel.c
---- a/drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-possible-cleanups
-+++ a/drivers/mtd/maps/nettel.c
-@@ -158,6 +158,8 @@ static struct notifier_block nettel_noti
- 	nettel_reboot_notifier, NULL, 0
+diff -puN drivers/video/chipsfb.c~fix-section-mismatch-in-chipsfb drivers/video/chipsfb.c
+--- a/drivers/video/chipsfb.c~fix-section-mismatch-in-chipsfb
++++ a/drivers/video/chipsfb.c
+@@ -292,7 +292,7 @@ static void __init chips_hw_init(void)
+ 		write_fr(chips_init_fr[i].addr, chips_init_fr[i].data);
+ }
+ 
+-static struct fb_fix_screeninfo chipsfb_fix __initdata = {
++static struct fb_fix_screeninfo chipsfb_fix __devinitdata = {
+ 	.id =		"C&T 65550",
+ 	.type =		FB_TYPE_PACKED_PIXELS,
+ 	.visual =	FB_VISUAL_PSEUDOCOLOR,
+@@ -309,7 +309,7 @@ static struct fb_fix_screeninfo chipsfb_
+ 	.smem_len =	0x100000,	/* 1MB */
  };
  
-+#if 0
-+
- /*
-  *	Erase the configuration file system.
-  *	Used to support the software reset button.
-@@ -208,18 +210,22 @@ int nettel_eraseconfig(void)
- 	return(0);
- }
+-static struct fb_var_screeninfo chipsfb_var __initdata = {
++static struct fb_var_screeninfo chipsfb_var __devinitdata = {
+ 	.xres = 800,
+ 	.yres = 600,
+ 	.xres_virtual = 800,
+@@ -330,7 +330,7 @@ static struct fb_var_screeninfo chipsfb_
+ 	.vsync_len = 8,
+ };
  
-+#endif  /*  0  */
-+
- #else
- 
-+#if 0
- int nettel_eraseconfig(void)
+-static void __init init_chips(struct fb_info *p, unsigned long addr)
++static void __devinit init_chips(struct fb_info *p, unsigned long addr)
  {
- 	return(0);
- }
-+#endif  /*  0  */
+ 	memset(p->screen_base, 0, 0x100000);
  
- #endif
- 
- /****************************************************************************/
- 
--int __init nettel_init(void)
-+static int __init nettel_init(void)
- {
- 	volatile unsigned long *amdpar;
- 	unsigned long amdaddr, maxsize;
-@@ -477,7 +483,7 @@ out_unmap2:
- 
- /****************************************************************************/
- 
--void __exit nettel_cleanup(void)
-+static void __exit nettel_cleanup(void)
- {
- #ifdef CONFIG_MTD_CFI_INTELEXT
- 	unregister_reboot_notifier(&nettel_notifier_block);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
-git-acpi.patch
-make-drivers-acpi-oslcosi_linux-static.patch
-drivers-acpi-processor_throttlingc-make-2-functions.patch
-drivers-cpuidle-governors-menuc-make-a-struct-static.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+origin.patch
+keep-track-of-network-interface-renaming.patch
