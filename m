@@ -1,58 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - mips-jazz-correct-flags-for-timer-io-resource.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:41:00 -0700
-Message-ID: <200706292041.l5TKf0Nt022544@imap1.linux-foundation.org>
+Subject: - saa7134-fix-thread-shutdown-handling.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:42 -0700
+Message-ID: <200706292040.l5TKegqq022447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36772 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755240AbXF2Uuq (ORCPT
+	by vger.kernel.org with ESMTP id S1755203AbXF2Uut (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:50:46 -0400
+	Fri, 29 Jun 2007 16:50:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jeffm@suse.com, mchehab@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips-jazz: correct flags for timer io resource
+     saa7134: fix thread shutdown handling
 has been removed from the -mm tree.  Its filename was
-     mips-jazz-correct-flags-for-timer-io-resource.patch
+     saa7134-fix-thread-shutdown-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips-jazz: correct flags for timer io resource
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: saa7134: fix thread shutdown handling
+From: Jeff Mahoney <jeffm@suse.com>
 
-arch/mips/jazz/setup.c:55:4: error: Initializer entry defined twice
+This patch changes the test for the thread pid from >= 0 to > 0.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+When the saa8134 driver initialization fails after a certain point, it goes
+through the complete shutdown process for the driver.  Part of shutting it
+down includes tearing down the thread for tv audio.
+
+The test for tearing down the thread tests for >= 0.  Since the dev
+structure is kzalloc'd, the test will always be true if we haven't tried to
+start the thread yet.  We end up waiting on pid 0 to complete, which will
+never happen, so we lock up.
+
+This bug was observed in Novell Bugzilla 284718, when request_irq() failed.
+
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/jazz/setup.c |    2 +-
+ drivers/media/video/saa7134/saa7134-tvaudio.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/jazz/setup.c~mips-jazz-correct-flags-for-timer-io-resource arch/mips/jazz/setup.c
---- a/arch/mips/jazz/setup.c~mips-jazz-correct-flags-for-timer-io-resource
-+++ a/arch/mips/jazz/setup.c
-@@ -54,7 +54,7 @@ static struct resource jazz_io_resources
- 		.start	= 0x40,
- 		.end	= 0x5f,
- 		.name	= "timer",
--		.end	= IORESOURCE_BUSY
-+		.flags	= IORESOURCE_BUSY
- 	}, {
- 		.start	= 0x80,
- 		.end	= 0x8f,
+diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-fix-thread-shutdown-handling drivers/media/video/saa7134/saa7134-tvaudio.c
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-fix-thread-shutdown-handling
++++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -1005,7 +1005,7 @@ int saa7134_tvaudio_init2(struct saa7134
+ int saa7134_tvaudio_fini(struct saa7134_dev *dev)
+ {
+ 	/* shutdown tvaudio thread */
+-	if (dev->thread.pid >= 0) {
++	if (dev->thread.pid > 0) {
+ 		dev->thread.shutdown = 1;
+ 		wake_up_interruptible(&dev->thread.wq);
+ 		wait_for_completion(&dev->thread.exit);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
-procfs-directory-entry-cleanup-fix.patch
-remove-capabilityh-from-mmh.patch
-ptrace_peekdata-consolidation.patch
-ptrace_pokedata-consolidation.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
