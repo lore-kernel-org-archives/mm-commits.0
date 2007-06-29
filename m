@@ -1,49 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-gfs2-nmw-build-fix.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:41:23 -0700
-Message-ID: <200706292041.l5TKfNda022572@imap1.linux-foundation.org>
+Subject: - xfs-warning-fix.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:41:51 -0700
+Message-ID: <200706292041.l5TKfpEJ022608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34799 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37194 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754782AbXF2Uqn (ORCPT
+	by vger.kernel.org with ESMTP id S1754484AbXF2UrJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:46:43 -0400
+	Fri, 29 Jun 2007 16:47:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-gfs2-nmw-build-fix
+     xfs warning fix
 has been removed from the -mm tree.  Its filename was
-     git-gfs2-nmw-build-fix.patch
+     xfs-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-gfs2-nmw-build-fix
+Subject: xfs warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+fs/xfs/xfs_bmap.c: In function 'xfs_bmap_rtalloc':
+fs/xfs/xfs_bmap.c:2649: warning: 'rtx' is used uninitialized in this function
+
+no it isn't.
+
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/lowcomms.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/xfs_bmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/dlm/lowcomms.c~git-gfs2-nmw-build-fix fs/dlm/lowcomms.c
---- a/fs/dlm/lowcomms.c~git-gfs2-nmw-build-fix
-+++ a/fs/dlm/lowcomms.c
-@@ -728,7 +728,7 @@ static int tcp_accept_from_sock(struct c
- 		else {
- 			printk("Extra connection from node %d attempted\n", nodeid);
- 			result = -EAGAIN;
--			up_write(&newcon->sock_sem);
-+			mutex_unlock(&newcon->sock_mutex);
- 			goto accept_err;
- 		}
- 	}
+diff -puN fs/xfs/xfs_bmap.c~xfs-warning-fix fs/xfs/xfs_bmap.c
+--- a/fs/xfs/xfs_bmap.c~xfs-warning-fix
++++ a/fs/xfs/xfs_bmap.c
+@@ -2605,7 +2605,6 @@ xfs_bmap_rtalloc(
+ 	xfs_extlen_t	prod = 0;	/* product factor for allocators */
+ 	xfs_extlen_t	ralen = 0;	/* realtime allocation length */
+ 	xfs_extlen_t	align;		/* minimum allocation alignment */
+-	xfs_rtblock_t	rtx;		/* realtime extent number */
+ 	xfs_rtblock_t	rtb;
+ 
+ 	mp = ap->ip->i_mount;
+@@ -2643,6 +2642,8 @@ xfs_bmap_rtalloc(
+ 	 * pick an extent that will space things out in the rt area.
+ 	 */
+ 	if (ap->eof && ap->off == 0) {
++		xfs_rtblock_t uninitialized_var(rtx); /* realtime extent no */
++
+ 		error = xfs_rtpick_extent(mp, ap->tp, ralen, &rtx);
+ 		if (error)
+ 			return error;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
