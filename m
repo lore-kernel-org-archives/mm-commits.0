@@ -1,56 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - eventfd-clean-compile-when-config_eventfd=n.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:20 -0700
-Message-ID: <200706292040.l5TKeKrq022420@imap1.linux-foundation.org>
+Subject: - mtrr-cyrix-fix-sections.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:22 -0700
+Message-ID: <200706292040.l5TKeM3x022423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47674 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38509 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753965AbXF2UlA (ORCPT
+	by vger.kernel.org with ESMTP id S1754166AbXF2UlO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:41:00 -0400
+	Fri, 29 Jun 2007 16:41:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eventfd: clean compile when CONFIG_EVENTFD=n
+     mtrr/cyrix: fix sections
 has been removed from the -mm tree.  Its filename was
-     eventfd-clean-compile-when-config_eventfd=n.patch
+     mtrr-cyrix-fix-sections.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eventfd: clean compile when CONFIG_EVENTFD=n
+Subject: mtrr/cyrix: fix sections
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix gcc warning and add parameter checking when CONFIG_EVENTFD=n:
+main.c::mtrr_add() or mtrr_del() [exported]
+calls main.c::mtrr_add_page() or mtrr_del_page() or mtrr_restore() [resume]
+calls main.c::set_mtrr()
+calls main.c::ipi_handler()
+calls main.c::mtrr_if->set_all() == which can be cyrix_set_all
 
-fs/aio.c: In function 'aio_complete':
-fs/aio.c:955: warning: statement with no effect
+WARNING: arch/i386/kernel/built-in.o(.text+0x8657): Section mismatch: reference to .init.data: (between 'cyrix_set_all' and 'centaur_get_free_region')
+WARNING: arch/i386/kernel/built-in.o(.text+0x866b): Section mismatch: reference to .init.data: (between 'cyrix_set_all' and 'centaur_get_free_region')
+WARNING: arch/i386/kernel/built-in.o(.text+0x867e): Section mismatch: reference to .init.data: (between 'cyrix_set_all' and 'centaur_get_free_region')
+WARNING: arch/i386/kernel/built-in.o(.text+0x8684): Section mismatch: reference to .init.data: (between 'cyrix_set_all' and 'centaur_get_free_region')
+WARNING: arch/i386/kernel/built-in.o(.text+0x868a): Section mismatch: reference to .init.data: (between 'cyrix_set_all' and 'centaur_get_free_region')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/eventfd.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/kernel/cpu/mtrr/cyrix.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/eventfd.h~eventfd-clean-compile-when-config_eventfd=n include/linux/eventfd.h
---- a/include/linux/eventfd.h~eventfd-clean-compile-when-config_eventfd=n
-+++ a/include/linux/eventfd.h
-@@ -19,7 +19,8 @@ int eventfd_signal(struct file *file, in
- #else /* CONFIG_EVENTFD */
+diff -puN arch/i386/kernel/cpu/mtrr/cyrix.c~mtrr-cyrix-fix-sections arch/i386/kernel/cpu/mtrr/cyrix.c
+--- a/arch/i386/kernel/cpu/mtrr/cyrix.c~mtrr-cyrix-fix-sections
++++ a/arch/i386/kernel/cpu/mtrr/cyrix.c
+@@ -233,12 +233,12 @@ typedef struct {
+ 	mtrr_type type;
+ } arr_state_t;
  
- #define eventfd_fget(fd) ERR_PTR(-ENOSYS)
--#define eventfd_signal(f, n) 0
-+static inline int eventfd_signal(struct file *file, int n)
-+{ return 0; }
+-static arr_state_t arr_state[8] __devinitdata = {
++static arr_state_t arr_state[8] = {
+ 	{0UL, 0UL, 0UL}, {0UL, 0UL, 0UL}, {0UL, 0UL, 0UL}, {0UL, 0UL, 0UL},
+ 	{0UL, 0UL, 0UL}, {0UL, 0UL, 0UL}, {0UL, 0UL, 0UL}, {0UL, 0UL, 0UL}
+ };
  
- #endif /* CONFIG_EVENTFD */
+-static unsigned char ccr_state[7] __devinitdata = { 0, 0, 0, 0, 0, 0, 0 };
++static unsigned char ccr_state[7] = { 0, 0, 0, 0, 0, 0, 0 };
  
+ static void cyrix_set_all(void)
+ {
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
