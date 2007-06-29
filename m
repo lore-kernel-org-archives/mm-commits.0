@@ -1,67 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - saa7134-fix-thread-shutdown-handling.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:42 -0700
-Message-ID: <200706292040.l5TKegqq022447@imap1.linux-foundation.org>
+Subject: - use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:41:29 -0700
+Message-ID: <200706292041.l5TKfTOT022578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755203AbXF2Uut (ORCPT
+	by vger.kernel.org with ESMTP id S1755017AbXF2Uut (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 29 Jun 2007 16:50:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, mchehab@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     saa7134: fix thread shutdown handling
+     Use mutex instead of semaphore in the MTD ST M25Pxx driver
 has been removed from the -mm tree.  Its filename was
-     saa7134-fix-thread-shutdown-handling.patch
+     use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: saa7134: fix thread shutdown handling
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: Use mutex instead of semaphore in the MTD ST M25Pxx driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-This patch changes the test for the thread pid from >= 0 to > 0.
+The MTD ST M25Pxx driver uses a semaphore as mutex.  Use the mutex API instead
+of the (binary) semaphore.
 
-When the saa8134 driver initialization fails after a certain point, it goes
-through the complete shutdown process for the driver.  Part of shutting it
-down includes tearing down the thread for tv audio.
-
-The test for tearing down the thread tests for >= 0.  Since the dev
-structure is kzalloc'd, the test will always be true if we haven't tried to
-start the thread yet.  We end up waiting on pid 0 to complete, which will
-never happen, so we lock up.
-
-This bug was observed in Novell Bugzilla 284718, when request_irq() failed.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: <stable@kernel.org>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/saa7134/saa7134-tvaudio.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/devices/m25p80.c |   23 +++++++++++------------
+ 1 files changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-fix-thread-shutdown-handling drivers/media/video/saa7134/saa7134-tvaudio.c
---- a/drivers/media/video/saa7134/saa7134-tvaudio.c~saa7134-fix-thread-shutdown-handling
-+++ a/drivers/media/video/saa7134/saa7134-tvaudio.c
-@@ -1005,7 +1005,7 @@ int saa7134_tvaudio_init2(struct saa7134
- int saa7134_tvaudio_fini(struct saa7134_dev *dev)
- {
- 	/* shutdown tvaudio thread */
--	if (dev->thread.pid >= 0) {
-+	if (dev->thread.pid > 0) {
- 		dev->thread.shutdown = 1;
- 		wake_up_interruptible(&dev->thread.wq);
- 		wait_for_completion(&dev->thread.exit);
+diff -puN drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~use-mutex-instead-of-semaphore-in-the-mtd-st-m25pxx-driver
++++ a/drivers/mtd/devices/m25p80.c
+@@ -24,8 +24,7 @@
+ #include <linux/mtd/partitions.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/flash.h>
+-
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
+ 
+ 
+ /* NOTE: AT 25F and SST 25LF series are very similar,
+@@ -65,7 +64,7 @@
+ 
+ struct m25p {
+ 	struct spi_device	*spi;
+-	struct semaphore	lock;
++	struct mutex		lock;
+ 	struct mtd_info		mtd;
+ 	unsigned		partitioned;
+ 	u8			command[4];
+@@ -201,13 +200,13 @@ static int m25p80_erase(struct mtd_info 
+ 	addr = instr->addr;
+ 	len = instr->len;
+ 
+-  	down(&flash->lock);
++	mutex_lock(&flash->lock);
+ 
+ 	/* now erase those sectors */
+ 	while (len) {
+ 		if (erase_sector(flash, addr)) {
+ 			instr->state = MTD_ERASE_FAILED;
+-			up(&flash->lock);
++			mutex_unlock(&flash->lock);
+ 			return -EIO;
+ 		}
+ 
+@@ -215,7 +214,7 @@ static int m25p80_erase(struct mtd_info 
+ 		len -= mtd->erasesize;
+ 	}
+ 
+-  	up(&flash->lock);
++	mutex_unlock(&flash->lock);
+ 
+ 	instr->state = MTD_ERASE_DONE;
+ 	mtd_erase_callback(instr);
+@@ -260,12 +259,12 @@ static int m25p80_read(struct mtd_info *
+ 	if (retlen)
+ 		*retlen = 0;
+ 
+-	down(&flash->lock);
++	mutex_lock(&flash->lock);
+ 
+ 	/* Wait till previous write/erase is done. */
+ 	if (wait_till_ready(flash)) {
+ 		/* REVISIT status return?? */
+-		up(&flash->lock);
++		mutex_unlock(&flash->lock);
+ 		return 1;
+ 	}
+ 
+@@ -281,7 +280,7 @@ static int m25p80_read(struct mtd_info *
+ 
+ 	*retlen = m.actual_length - sizeof(flash->command);
+ 
+-  	up(&flash->lock);
++	mutex_unlock(&flash->lock);
+ 
+ 	return 0;
+ }
+@@ -323,7 +322,7 @@ static int m25p80_write(struct mtd_info 
+ 	t[1].tx_buf = buf;
+ 	spi_message_add_tail(&t[1], &m);
+ 
+-  	down(&flash->lock);
++	mutex_lock(&flash->lock);
+ 
+ 	/* Wait until finished previous write command. */
+ 	if (wait_till_ready(flash))
+@@ -384,7 +383,7 @@ static int m25p80_write(struct mtd_info 
+ 	        }
+  	}
+ 
+-	up(&flash->lock);
++	mutex_unlock(&flash->lock);
+ 
+ 	return 0;
+ }
+@@ -456,7 +455,7 @@ static int __devinit m25p_probe(struct s
+ 		return -ENOMEM;
+ 
+ 	flash->spi = spi;
+-	init_MUTEX(&flash->lock);
++	mutex_init(&flash->lock);
+ 	dev_set_drvdata(&spi->dev, flash);
+ 
+ 	if (data->name)
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+git-mtd.patch
+git-netdev-all.patch
+block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
+drivers-block-ubc-use-list_for_each_entry.patch
+use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
+use-mutexes-instead-of-semaphores-in-i2o-driver.patch
+fs-block_devc-use-list_for_each_entry.patch
+use-mutex-instead-of-semaphore-in-capi-20-driver.patch
+drivers-edac-change-from-semaphore-to-mutex-operation.patch
