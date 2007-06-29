@@ -1,70 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - relayfs-fix-overwrites.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:55 -0700
-Message-ID: <200706292040.l5TKetX6022469@imap1.linux-foundation.org>
+Subject: - add-some-pci-ids-for-xgi-chips.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:41:03 -0700
+Message-ID: <200706292041.l5TKf3R7022547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55249 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755016AbXF2Uuj (ORCPT
+	by vger.kernel.org with ESMTP id S1755133AbXF2Uun (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:50:39 -0400
+	Fri, 29 Jun 2007 16:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: masami.hiramatsu.pt@hitachi.com, dwilder@us.ibm.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
+To: idr@us.ibm.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     relayfs: fix overwrites
+     drm: add some pci ids for XGI chips
 has been removed from the -mm tree.  Its filename was
-     relayfs-fix-overwrites.patch
+     add-some-pci-ids-for-xgi-chips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: relayfs: fix overwrites
-From: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Subject: drm: add some pci ids for XGI chips
+From: Ian Romanick <idr@us.ibm.com>
 
-When I use relayfs with "overwrite" mode, read() still sets incorrect
-number of consumed bytes.
+This adds support for some of the XGI Volari family that are based on the SiS.
 
-Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Acked-by: Tom Zanussi <zanussi@us.ibm.com>
-Acked-by: David Wilder <dwilder@us.ibm.com>
+Signed-off-by: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/char/drm/drm_pciids.h |    2 ++
+ drivers/char/drm/sis_drv.h    |    8 ++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/relay.c~relayfs-fix-overwrites kernel/relay.c
---- a/kernel/relay.c~relayfs-fix-overwrites
-+++ a/kernel/relay.c
-@@ -812,7 +812,10 @@ static void relay_file_read_consume(stru
- 	}
+diff -puN drivers/char/drm/drm_pciids.h~add-some-pci-ids-for-xgi-chips drivers/char/drm/drm_pciids.h
+--- a/drivers/char/drm/drm_pciids.h~add-some-pci-ids-for-xgi-chips
++++ a/drivers/char/drm/drm_pciids.h
+@@ -219,6 +219,8 @@
+ 	{0x1039, 0x6300, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
+ 	{0x1039, 0x6330, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SIS_CHIP_315}, \
+ 	{0x1039, 0x7300, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0}, \
++	{0x18CA, 0x0040, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SIS_CHIP_315}, \
++	{0x18CA, 0x0042, PCI_ANY_ID, PCI_ANY_ID, 0, 0, SIS_CHIP_315}, \
+ 	{0, 0, 0}
  
- 	buf->bytes_consumed += bytes_consumed;
--	read_subbuf = read_pos / buf->chan->subbuf_size;
-+	if (!read_pos)
-+		read_subbuf = buf->subbufs_consumed;
-+	else
-+		read_subbuf = read_pos / buf->chan->subbuf_size;
- 	if (buf->bytes_consumed + buf->padding[read_subbuf] == subbuf_size) {
- 		if ((read_subbuf == buf->subbufs_produced % n_subbufs) &&
- 		    (buf->offset == subbuf_size))
-@@ -841,8 +844,9 @@ static int relay_file_read_avail(struct 
- 	}
+ #define tdfx_PCI_IDS \
+diff -puN drivers/char/drm/sis_drv.h~add-some-pci-ids-for-xgi-chips drivers/char/drm/sis_drv.h
+--- a/drivers/char/drm/sis_drv.h~add-some-pci-ids-for-xgi-chips
++++ a/drivers/char/drm/sis_drv.h
+@@ -33,11 +33,11 @@
  
- 	if (unlikely(produced - consumed >= n_subbufs)) {
--		consumed = (produced / n_subbufs) * n_subbufs;
-+		consumed = produced - n_subbufs + 1;
- 		buf->subbufs_consumed = consumed;
-+		buf->bytes_consumed = 0;
- 	}
- 	
- 	produced = (produced % n_subbufs) * subbuf_size + buf->offset;
+ #define DRIVER_AUTHOR		"SIS, Tungsten Graphics"
+ #define DRIVER_NAME		"sis"
+-#define DRIVER_DESC		"SIS 300/630/540"
+-#define DRIVER_DATE		"20060704"
++#define DRIVER_DESC		"SIS 300/630/540 and XGI V3XE/V5/V8"
++#define DRIVER_DATE		"20070626"
+ #define DRIVER_MAJOR		1
+-#define DRIVER_MINOR		2
+-#define DRIVER_PATCHLEVEL	1
++#define DRIVER_MINOR		3
++#define DRIVER_PATCHLEVEL	0
+ 
+ enum sis_family {
+ 	SIS_OTHER = 0,
 _
 
-Patches currently in -mm which might be from masami.hiramatsu.pt@hitachi.com are
+Patches currently in -mm which might be from idr@us.ibm.com are
 
 origin.patch
