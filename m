@@ -1,65 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-zero-out-last-page-for-llseek-write.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:14 -0700
-Message-ID: <200706292040.l5TKeEiL022414@imap1.linux-foundation.org>
+Subject: - atyfb-fix-xclk-frequency-on-apple-ibook1.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:16 -0700
+Message-ID: <200706292040.l5TKeGAh022417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753840AbXF2UkW (ORCPT
+	by vger.kernel.org with ESMTP id S1753907AbXF2Ukc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:40:22 -0400
+	Fri, 29 Jun 2007 16:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: syrjala@sci.fi, adaplas@gmail.com, olaf@aepfle.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zero out last page for llseek/write
+     atyfb: Fix XCLK frequency on Apple iBook1
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-zero-out-last-page-for-llseek-write.patch
+     atyfb-fix-xclk-frequency-on-apple-ibook1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: zero out last page for llseek/write
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: atyfb: Fix XCLK frequency on Apple iBook1
+From: Ville Syrjala <syrjala@sci.fi>
 
-When one llseek's past the end of the file and then writes, every page past
-the previous end of the file should be cleared.  Trevor found that the code,
-as is, does not assure that the very last page is always cleared.  This patch
-takes care of that.
+Fix a regression on Apple iBook1.  Changes in the clock init code caused an
+incorrect XCLK frequency to be used leading to a corrupted display.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Ville Syrjala <syrjala@sci.fi>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/video/aty/atyfb_base.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-zero-out-last-page-for-llseek-write fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-zero-out-last-page-for-llseek-write
-+++ a/fs/ecryptfs/mmap.c
-@@ -422,6 +422,8 @@ static int ecryptfs_prepare_write(struct
- 				goto out;
- 			}
- 		}
-+		if (end_of_prev_pg_pos + 1 > i_size_read(page->mapping->host))
-+			zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
+diff -puN drivers/video/aty/atyfb_base.c~atyfb-fix-xclk-frequency-on-apple-ibook1 drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb-fix-xclk-frequency-on-apple-ibook1
++++ a/drivers/video/aty/atyfb_base.c
+@@ -2290,15 +2290,6 @@ static int __devinit aty_init(struct fb_
+ 	init_waitqueue_head(&par->vblank.wait);
+ 	spin_lock_init(&par->int_lock);
+ 
+-#ifdef CONFIG_PPC_PMAC
+-	/* The Apple iBook1 uses non-standard memory frequencies. We detect it
+-	 * and set the frequency manually. */
+-	if (machine_is_compatible("PowerBook2,1")) {
+-		par->pll_limits.mclk = 70;
+-		par->pll_limits.xclk = 53;
+-	}
+-#endif
+-
+ #ifdef CONFIG_FB_ATY_GX
+ 	if (!M64_HAS(INTEGRATED)) {
+ 		u32 stat0;
+@@ -2383,6 +2374,14 @@ static int __devinit aty_init(struct fb_
+ 			par->pll_limits.xclk = (par->pll_limits.xclk + 1) >> 1;
  	}
- out:
- 	return rc;
+ #endif
++#ifdef CONFIG_PPC_PMAC
++	/* The Apple iBook1 uses non-standard memory frequencies. We detect it
++	 * and set the frequency manually. */
++	if (machine_is_compatible("PowerBook2,1")) {
++		par->pll_limits.mclk = 70;
++		par->pll_limits.xclk = 53;
++	}
++#endif
+ 
+ 	/* Allow command line to override clocks. */
+ 	if (pll)
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from syrjala@sci.fi are
 
 origin.patch
-git-unionfs.patch
-fs-remove-some-aop_truncated_page.patch
-couple-fixes-to-fs-ecryptfs-inodec.patch
-ecryptfs-move-ecryptfs-docs-into-documentation-filesystems.patch
-fs-introduce-vfs_path_lookup.patch
-sunrpc-use-vfs_path_lookup.patch
-nfsctl-use-vfs_path_lookup.patch
-fs-mark-link_path_walk-static.patch
-fs-remove-path_walk-export.patch
