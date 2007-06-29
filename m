@@ -1,73 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - git-selinux-fixup.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:12:53 -0700
-Message-ID: <200706292012.l5TKCroG021141@imap1.linux-foundation.org>
+Subject: + splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch added to -mm tree
+Date: Fri, 29 Jun 2007 13:15:54 -0700
+Message-ID: <200706292015.l5TKFsUY021237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751466AbXF2UNB (ORCPT
+	by vger.kernel.org with ESMTP id S1752340AbXF2UQN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:13:01 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5TKCxVW008405
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2007 13:13:00 -0700
+	Fri, 29 Jun 2007 16:16:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     git-selinux-fixup
-has been removed from the -mm tree.  Its filename was
-     git-selinux-fixup.patch
+     splice.c: revert git-selinux changes so that git-block will apply
+has been added to the -mm tree.  Its filename is
+     splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-selinux-fixup
+Subject: splice.c: revert git-selinux changes so that git-block will apply
 From: Andrew Morton <akpm@linux-foundation.org>
-DESC
-git-selinux-fix
-EDESC
 
+my life sucks
 
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/splice.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN fs/splice.c~git-selinux-fixup fs/splice.c
---- a/fs/splice.c~git-selinux-fixup
+diff -puN fs/splice.c~splicec-revert-git-selinux-changes-so-that-git-block-will-apply fs/splice.c
+--- a/fs/splice.c~splicec-revert-git-selinux-changes-so-that-git-block-will-apply
 +++ a/fs/splice.c
-@@ -947,6 +947,8 @@ static long do_splice_to(struct file *in
- 			 unsigned int flags)
- {
- 	int ret;
-+	loff_t isize;
-+	loff_t left;
+@@ -28,7 +28,6 @@
+ #include <linux/module.h>
+ #include <linux/syscalls.h>
+ #include <linux/uio.h>
+-#include <linux/security.h>
  
- 	if (unlikely(!in->f_op || !in->f_op->splice_read))
- 		return -EINVAL;
-@@ -958,8 +960,6 @@ static long do_splice_to(struct file *in
+ struct partial_page {
+ 	unsigned int offset;
+@@ -932,10 +931,6 @@ static long do_splice_from(struct pipe_i
  	if (unlikely(ret < 0))
  		return ret;
  
--<<<<<<< HEAD/fs/splice.c
--=======
- 	ret = security_file_permission(in, MAY_READ);
+-	ret = security_file_permission(out, MAY_WRITE);
+-	if (unlikely(ret < 0))
+-		return ret;
+-
+ 	return out->f_op->splice_write(pipe, out, ppos, len, flags);
+ }
+ 
+@@ -958,10 +953,6 @@ static long do_splice_to(struct file *in
  	if (unlikely(ret < 0))
  		return ret;
-@@ -972,7 +972,6 @@ static long do_splice_to(struct file *in
- 	if (unlikely(left < len))
- 		len = left;
  
-->>>>>>> /fs/splice.c
+-	ret = security_file_permission(in, MAY_READ);
+-	if (unlikely(ret < 0))
+-		return ret;
+-
  	return in->f_op->splice_read(in, ppos, pipe, len, flags);
  }
  
+@@ -1280,7 +1271,6 @@ static int get_iovec_page_array(const st
+ static long do_vmsplice(struct file *file, const struct iovec __user *iov,
+ 			unsigned long nr_segs, unsigned int flags)
+ {
+-	long err;
+ 	struct pipe_inode_info *pipe;
+ 	struct page *pages[PIPE_BUFFERS];
+ 	struct partial_page partial[PIPE_BUFFERS];
+@@ -1299,10 +1289,6 @@ static long do_vmsplice(struct file *fil
+ 	else if (unlikely(!nr_segs))
+ 		return 0;
+ 
+-	err = security_file_permission(file, MAY_WRITE);
+-	if (unlikely(err < 0))
+-		return err;
+-
+ 	spd.nr_pages = get_iovec_page_array(iov, nr_segs, pages, partial,
+ 					    flags & SPLICE_F_GIFT);
+ 	if (spd.nr_pages <= 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,8 +139,6 @@ git-ioat-vs-git-md-accel.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
 pre-git-r8169.patch
-git-selinux-fixup.patch
-git-selinux-disable-mmap_min_addr-by-default.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
@@ -127,6 +149,7 @@ restore-acpi-change-for-scsi.patch
 git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
 scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
 git-watchdog.patch
