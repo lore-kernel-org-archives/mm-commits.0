@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcih-stubs-for-edd-build-error.patch added to -mm tree
-Date: Thu, 28 Jun 2007 17:07:12 -0700
-Message-ID: <200706290007.l5T07CjJ004498@imap1.linux-foundation.org>
+Subject: + sata_nv-allow-changing-queue-depth.patch added to -mm tree
+Date: Thu, 28 Jun 2007 18:13:41 -0700
+Message-ID: <200706290113.l5T1DfLW005716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54418 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757145AbXF2AHx (ORCPT
+	by vger.kernel.org with ESMTP id S1762807AbXF2BNu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jun 2007 20:07:53 -0400
+	Thu, 28 Jun 2007 21:13:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, Matt_Domsch@dell.com, greg@kroah.com
+Cc: hancockr@shaw.ca
 
 
 The patch titled
-     pci.h stubs (for EDD build error)
+     sata_nv: allow changing queue depth
 has been added to the -mm tree.  Its filename is
-     pcih-stubs-for-edd-build-error.patch
+     sata_nv-allow-changing-queue-depth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,81 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci.h stubs (for EDD build error)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: sata_nv: allow changing queue depth
+From: Robert Hancock <hancockr@shaw.ca>
 
-Provide stubs for more PCI bus/slot functions when CONFIG_PCI=n.
+The sata_nv driver was missing the change_queue_depth hook in the SCSI host
+template which the other NCQ-capable libata drivers had.  This made it
+impossible to change the queue depth by user request.  Add this in.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci.h |   11 +++++++++++
- 1 files changed, 11 insertions(+)
+ drivers/ata/sata_nv.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN include/linux/pci.h~pcih-stubs-for-edd-build-error include/linux/pci.h
---- a/include/linux/pci.h~pcih-stubs-for-edd-build-error
-+++ a/include/linux/pci.h
-@@ -754,6 +754,17 @@ static inline void pci_release_regions(s
- static inline void pci_block_user_cfg_access(struct pci_dev *dev) { }
- static inline void pci_unblock_user_cfg_access(struct pci_dev *dev) { }
- 
-+static inline struct pci_bus *pci_find_next_bus(const struct pci_bus *from)
-+{ return NULL; }
-+
-+static inline struct pci_dev *pci_get_slot(struct pci_bus *bus,
-+						unsigned int devfn)
-+{ return NULL; }
-+
-+static inline struct pci_dev *pci_get_bus_and_slot(unsigned int bus,
-+						unsigned int devfn)
-+{ return NULL; }
-+
- #endif /* CONFIG_PCI */
- 
- /* Include architecture-dependent settings and functions */
+diff -puN drivers/ata/sata_nv.c~sata_nv-allow-changing-queue-depth drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-allow-changing-queue-depth
++++ a/drivers/ata/sata_nv.c
+@@ -398,6 +398,7 @@ static struct scsi_host_template nv_adma
+ 	.name			= DRV_NAME,
+ 	.ioctl			= ata_scsi_ioctl,
+ 	.queuecommand		= ata_scsi_queuecmd,
++	.change_queue_depth	= ata_scsi_change_queue_depth,
+ 	.can_queue		= NV_ADMA_MAX_CPBS,
+ 	.this_id		= ATA_SHT_THIS_ID,
+ 	.sg_tablesize		= NV_ADMA_SGTBL_TOTAL_LEN,
+@@ -416,6 +417,7 @@ static struct scsi_host_template nv_swnc
+ 	.name			= DRV_NAME,
+ 	.ioctl			= ata_scsi_ioctl,
+ 	.queuecommand		= ata_scsi_queuecmd,
++	.change_queue_depth	= ata_scsi_change_queue_depth,
+ 	.can_queue		= ATA_MAX_QUEUE,
+ 	.this_id		= ATA_SHT_THIS_ID,
+ 	.sg_tablesize		= LIBATA_MAX_PRD,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-eventfd-clean-compile-when-config_eventfd=n.patch
-mtrr-cyrix-fix-sections.patch
-ioatdma-fix-section-mismatches.patch
-alsa-fix-ice1712-section-mismatch.patch
-alsa-use-__devexit_p.patch
-alsa-more-section-mismatches.patch
-pcih-stubs-for-edd-build-error.patch
-git-acpi.patch
-git-alsa.patch
-fix-gregkh-driver-nozomi.patch
-git-libata-all.patch
-romfs-printk-format-warnings.patch
-mtd-use-null-for-pointer.patch
-ubi-one-less-bug-usage.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-irda-fix-printk-format.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-doc-oops-tracing-add-code-decode-info.patch
-doc-oops-tracing-add-code-decode-info-fix.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+sata_nv-allow-changing-queue-depth.patch
+libata-add-human-readable-error-value-decoding.patch
+pci-disable-decode-of-io-memory-during-bar-sizing.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
