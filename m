@@ -1,266 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:19:02 -0700
-Message-ID: <200706292019.l5TKJ2Di021420@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-oldcd.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:19:17 -0700
+Message-ID: <200706292019.l5TKJHxd021428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34833 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56307 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752691AbXF2UTP (ORCPT
+	by vger.kernel.org with ESMTP id S1752249AbXF2UTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:19:15 -0400
+	Fri, 29 Jun 2007 16:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutex instead of binary semaphore in CDU-31A driver
+     Use menuconfig objects: oldcd
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+     use-menuconfig-objects-oldcd.patch
 
 This patch was dropped because this driver gets deleted in Jens's tree
 
 ------------------------------------------------------
-Subject: use mutex instead of binary semaphore in CDU-31A driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: Use menuconfig objects: oldcd
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-Use mutex instead of binary semaphore in CDU-31A driver.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdu31a.c |   51 +++++++++++++++++++--------------------
- 1 files changed, 26 insertions(+), 25 deletions(-)
+ drivers/cdrom/Kconfig |   23 ++++++++---------------
+ 1 files changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN drivers/cdrom/cdu31a.c~use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver drivers/cdrom/cdu31a.c
---- a/drivers/cdrom/cdu31a.c~use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver
-+++ a/drivers/cdrom/cdu31a.c
-@@ -162,6 +162,7 @@
- #include <linux/genhd.h>
- #include <linux/ioport.h>
- #include <linux/string.h>
-+#include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-@@ -263,7 +264,7 @@ static int sony_toc_read = 0;	/* Has the
- static struct s_sony_subcode last_sony_subcode;	/* Points to the last
- 						   subcode address read */
+diff -puN drivers/cdrom/Kconfig~use-menuconfig-objects-oldcd drivers/cdrom/Kconfig
+--- a/drivers/cdrom/Kconfig~use-menuconfig-objects-oldcd
++++ a/drivers/cdrom/Kconfig
+@@ -2,11 +2,9 @@
+ # CDROM driver configuration
+ #
  
--static DECLARE_MUTEX(sony_sem);		/* Semaphore for drive hardware access */
-+static DEFINE_MUTEX(sony_mtx);		/* Mutex for drive hardware access */
+-menu "Old CD-ROM drivers (not SCSI, not IDE)"
++menuconfig CD_NO_IDESCSI
++	bool "Old CD-ROM drivers (not SCSI, not IDE)"
+ 	depends on ISA && BLOCK
+-
+-config CD_NO_IDESCSI
+-	bool "Support non-SCSI/IDE/ATAPI CDROM drives"
+ 	---help---
+ 	  If you have a CD-ROM drive that is neither SCSI nor IDE/ATAPI, say Y
+ 	  here, otherwise N. Read the CD-ROM-HOWTO, available from
+@@ -31,9 +29,10 @@ config CD_NO_IDESCSI
+ 	  answer will get "defaulted" for you if you enable any of the Linux
+ 	  CD-ROM drivers).
  
- static int is_double_speed = 0;	/* does the drive support double speed ? */
++if CD_NO_IDESCSI
++
+ config AZTCD
+ 	tristate "Aztech/Orchid/Okano/Wearnes/TXC/CyDROM  CDROM support"
+-	depends on CD_NO_IDESCSI
+ 	---help---
+ 	  This is your driver if you have an Aztech CDA268-01A, Orchid
+ 	  CD-3110, Okano or Wearnes CDD110, Conrad TXC, or CyCD-ROM CR520 or
+@@ -51,7 +50,6 @@ config AZTCD
  
-@@ -339,11 +340,11 @@ static int scd_drive_status(struct cdrom
- 		return -EINVAL;
- 	if (sony_spun_up)
- 		return CDS_DISC_OK;
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	if (scd_spinup() == 0)
- 		sony_spun_up = 1;
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return sony_spun_up ? CDS_DISC_OK : CDS_DRIVE_NOT_READY;
- }
+ config GSCD
+ 	tristate "Goldstar R420 CDROM support"
+-	depends on CD_NO_IDESCSI
+ 	---help---
+ 	  If this is your CD-ROM drive, say Y here.  As described in the file
+ 	  <file:Documentation/cdrom/gscd>, you might have to change a setting
+@@ -67,7 +65,7 @@ config GSCD
  
-@@ -452,7 +453,7 @@ static int scd_reset(struct cdrom_device
- {
- 	unsigned long retry_count;
+ config SBPCD
+ 	tristate "Matsushita/Panasonic/Creative, Longshine, TEAC CDROM support"
+-	depends on CD_NO_IDESCSI && BROKEN_ON_SMP
++	depends on BROKEN_ON_SMP
+ 	---help---
+ 	  This driver supports most of the drives which use the Panasonic or
+ 	  Sound Blaster interface.  Please read the file
+@@ -105,7 +103,6 @@ config SBPCD
  
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	reset_drive();
+ config MCDX
+ 	tristate "Mitsumi CDROM support"
+-	depends on CD_NO_IDESCSI
+ 	---help---
+ 	  Use this driver if you want to be able to use your Mitsumi LU-005,
+ 	  FX-001 or FX-001D CD-ROM drive.
+@@ -121,7 +118,6 @@ config MCDX
  
-@@ -461,7 +462,7 @@ static int scd_reset(struct cdrom_device
- 		sony_sleep();
- 	}
+ config OPTCD
+ 	tristate "Optics Storage DOLPHIN 8000AT CDROM support"
+-	depends on CD_NO_IDESCSI
+ 	---help---
+ 	  This is the driver for the 'DOLPHIN' drive with a 34-pin Sony
+ 	  compatible interface. It also works with the Lasermate CR328A. If
+@@ -138,7 +134,7 @@ config OPTCD
  
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return 0;
- }
+ config CM206
+ 	tristate "Philips/LMS CM206 CDROM support"
+-	depends on CD_NO_IDESCSI && BROKEN_ON_SMP
++	depends on BROKEN_ON_SMP
+ 	---help---
+ 	  If you have a Philips/LMS CD-ROM drive cm206 in combination with a
+ 	  cm260 host adapter card, say Y here. Please also read the file
+@@ -153,7 +149,6 @@ config CM206
  
-@@ -655,10 +656,10 @@ static int scd_select_speed(struct cdrom
- 	else
- 		sony_speed = speed - 1;
+ config SJCD
+ 	tristate "Sanyo CDR-H94A CDROM support"
+-	depends on CD_NO_IDESCSI
+ 	help
+ 	  If this is your CD-ROM drive, say Y here and read the file
+ 	  <file:Documentation/cdrom/sjcd>. You should then also say Y or M to
+@@ -165,7 +160,6 @@ config SJCD
  
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	set_drive_params(sony_speed);
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return 0;
- }
+ config ISP16_CDI
+ 	tristate "ISP16/MAD16/Mozart soft configurable cdrom interface support"
+-	depends on CD_NO_IDESCSI
+ 	---help---
+ 	  These are sound cards with built-in cdrom interfaces using the OPTi
+ 	  82C928 or 82C929 chips. Say Y here to have them detected and
+@@ -178,7 +172,7 @@ config ISP16_CDI
  
-@@ -673,10 +674,10 @@ static int scd_lock_door(struct cdrom_de
- 	} else {
- 		is_auto_eject = 0;
- 	}
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	set_drive_params(sony_speed);
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return 0;
- }
+ config CDU31A
+ 	tristate "Sony CDU31A/CDU33A CDROM support"
+-	depends on CD_NO_IDESCSI && BROKEN_ON_SMP
++	depends on BROKEN_ON_SMP
+ 	---help---
+ 	  These CD-ROM drives have a spring-pop-out caddyless drawer, and a
+ 	  rectangular green LED centered beneath it.  NOTE: these CD-ROM
+@@ -198,7 +192,6 @@ config CDU31A
  
-@@ -1143,7 +1144,7 @@ static void handle_abort_timeout(unsigne
- {
- 	pr_debug(PFX "Entering %s\n", __FUNCTION__);
- 	/* If it is in use, ignore it. */
--	if (down_trylock(&sony_sem) == 0) {
-+	if (mutex_trylock(&sony_mtx) == 0) {
- 		/* We can't use abort_read(), because it will sleep
- 		   or schedule in the timer interrupt.  Just start
- 		   the operation, finish it on the next access to
-@@ -1154,7 +1155,7 @@ static void handle_abort_timeout(unsigne
+ config CDU535
+ 	tristate "Sony CDU535 CDROM support"
+-	depends on CD_NO_IDESCSI
+ 	---help---
+ 	  This is the driver for the older Sony CDU-535 and CDU-531 CD-ROM
+ 	  drives. Please read the file <file:Documentation/cdrom/sonycd535>.
+@@ -210,4 +203,4 @@ config CDU535
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called sonycd535.
  
- 		sony_blocks_left = 0;
- 		abort_read_started = 1;
--		up(&sony_sem);
-+		mutex_unlock(&sony_mtx);
- 	}
- 	pr_debug(PFX "Leaving %s\n", __FUNCTION__);
- }
-@@ -1300,7 +1301,7 @@ static void do_cdu31a_request(request_qu
- 	pr_debug(PFX "Entering %s\n", __FUNCTION__);
- 
- 	spin_unlock_irq(q->queue_lock);
--	if (down_interruptible(&sony_sem)) {
-+	if (mutex_lock_interruptible(&sony_mtx)) {
- 		spin_lock_irq(q->queue_lock);
- 		return;
- 	}
-@@ -1435,7 +1436,7 @@ static void do_cdu31a_request(request_qu
- 	add_timer(&cdu31a_abort_timer);
- #endif
- 
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	spin_lock_irq(q->queue_lock);
- 	pr_debug(PFX "Leaving %s at %d\n", __FUNCTION__, __LINE__);
- }
-@@ -1906,10 +1907,10 @@ static int scd_get_last_session(struct c
- 		return 1;
- 
- 	if (!sony_toc_read) {
--		if (down_interruptible(&sony_sem))
-+		if (mutex_lock_interruptible(&sony_mtx))
- 			return -ERESTARTSYS;
- 		sony_get_toc();
--		up(&sony_sem);
-+		mutex_unlock(&sony_mtx);
- 	}
- 
- 	ms_info->addr_format = CDROM_LBA;
-@@ -1988,11 +1989,11 @@ scd_get_mcn(struct cdrom_device_info *cd
- 	unsigned int res_size;
- 
- 	memset(mcn->medium_catalog_number, 0, 14);
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	do_sony_cd_cmd(SONY_REQ_UPC_EAN_CMD,
- 		       NULL, 0, resbuffer, &res_size);
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	if ((res_size < 2) || ((resbuffer[0] & 0xf0) == 0x20));
- 	else {
- 		/* packed bcd to single ASCII digits */
-@@ -2207,7 +2208,7 @@ static int read_audio(struct cdrom_read_
- 	unsigned int res_size;
- 	unsigned int cframe;
- 
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	if (!sony_spun_up)
- 		scd_spinup();
-@@ -2343,7 +2344,7 @@ static int read_audio(struct cdrom_read_
- 	}
- 
-  out_up:
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 
- 	return retval;
- }
-@@ -2373,7 +2374,7 @@ static int scd_tray_move(struct cdrom_de
- {
- 	int retval;
- 
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	if (position == 1 /* open tray */ ) {
- 		unsigned char res_reg[12];
-@@ -2392,7 +2393,7 @@ static int scd_tray_move(struct cdrom_de
- 			sony_spun_up = 1;
- 		retval = 0;
- 	}
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return retval;
- }
- 
-@@ -2407,7 +2408,7 @@ static int scd_audio_ioctl(struct cdrom_
- 	unsigned char params[7];
- 	int i, retval;
- 
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	switch (cmd) {
- 	case CDROMSTART:	/* Spin up the drive */
-@@ -2665,7 +2666,7 @@ static int scd_audio_ioctl(struct cdrom_
- 		retval = -EINVAL;
- 		break;
- 	}
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return retval;
- }
- 
-@@ -2675,7 +2676,7 @@ static int scd_read_audio(struct cdrom_d
- 	void __user *argp = (void __user *)arg;
- 	int retval;
- 
--	if (down_interruptible(&sony_sem))
-+	if (mutex_lock_interruptible(&sony_mtx))
- 		return -ERESTARTSYS;
- 	switch (cmd) {
- 	case CDROMREADAUDIO:	/* Read 2352 byte audio tracks and 2340 byte
-@@ -2749,7 +2750,7 @@ static int scd_read_audio(struct cdrom_d
- 	default:
- 		retval = -EINVAL;
- 	}
--	up(&sony_sem);
-+	mutex_unlock(&sony_mtx);
- 	return retval;
- }
- 
+-endmenu
++endif # CD_NO_IDESCSI
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-kcopyd-use-mutex-instead-of-semaphore.patch
-git-mtd.patch
+use-menuconfig-objects-acpi.patch
+git-hid.patch
+use-menuconfig-objects-ii-infiniband.patch
+git-kvm.patch
 git-netdev-all.patch
-use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
-use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
-block-device-elevator-use-list_for_each_entry-instead-of-list_for_each.patch
-drivers-block-ubc-use-list_for_each_entry.patch
-use-list_for_each_entry-for-iteration-in-prism-54-driver.patch
-use-mutexes-instead-of-semaphores-in-i2o-driver.patch
-fs-block_devc-use-list_for_each_entry.patch
-use-mutex-instead-of-semaphore-in-capi-20-driver.patch
-drivers-edac-change-from-semaphore-to-mutex-operation.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-ii-scsi.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-ib-block.patch
+use-menuconfig-objects-ii-block-devices.patch
+use-menuconfig-objects-ii-auxdisplay.patch
+use-menuconfig-objects-ii-edac.patch
+use-menuconfig-objects-ii-ipmi.patch
+use-menuconfig-objects-ii-misc-strange-dev.patch
+use-menuconfig-objects-ii-module-menu.patch
+use-menuconfig-objects-ii-oprofile.patch
+use-menuconfig-objects-ii-telephony.patch
+use-menuconfig-objects-ii-tpm.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
+kernel-utf-8-handling.patch
+use-menuconfig-objects-isdn-config_isdn.patch
+use-menuconfig-objects-isdn-config_isdn_i4l.patch
+use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
+use-menuconfig-objects-isdn-config_isdn_capi.patch
+use-menuconfig-objects-isdn-config_capi_avm.patch
+use-menuconfig-objects-isdn-config_capi_eicon.patch
+use-menuconfig-objects-ii-md.patch
