@@ -1,88 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-fix-ice1712-section-mismatch.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:40 -0700
-Message-ID: <200706292040.l5TKeeKs022442@imap1.linux-foundation.org>
+Subject: - serial-clear-proper-mpsc-interrupt-cause-bits.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:41:07 -0700
+Message-ID: <200706292041.l5TKf7hv022553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59329 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32954 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755041AbXF2Uum (ORCPT
+	by vger.kernel.org with ESMTP id S1755206AbXF2Uup (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:50:42 -0400
+	Fri, 29 Jun 2007 16:50:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: jaylubo@motorola.com, mgreer@mvista.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALSA: fix ice1712 section mismatch
+     serial: clear proper MPSC interrupt cause bits
 has been removed from the -mm tree.  Its filename was
-     alsa-fix-ice1712-section-mismatch.patch
+     serial-clear-proper-mpsc-interrupt-cause-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ALSA: fix ice1712 section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: serial: clear proper MPSC interrupt cause bits
+From: Jay Lubomirski <jaylubo@motorola.com>
 
-Cannot mix const and __initdata:
-sound/pci/ice1712/prodigy192.c:708: error: ak4114_controls causes a section type conflict
+The interrupt clearing code in mpsc_sdma_intr_ack() mistakenly clears the
+interrupt for both controllers instead of just the one its supposed to.
+This can result in the other controller appearing to hang because its
+interrupt was effectively lost.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+So, don't clear the interrupt cause bits for both MPSC controllers when
+clearing the interrupt for one of them.  Just clear the one that is
+supposed to be cleared.
+
+Signed-off-by: Jay Lubomirski <jaylubo@motorola.com>
+Acked-by: Mark A. Greer <mgreer@mvista.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ice1712/prodigy192.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/mpsc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/pci/ice1712/prodigy192.c~alsa-fix-ice1712-section-mismatch sound/pci/ice1712/prodigy192.c
---- a/sound/pci/ice1712/prodigy192.c~alsa-fix-ice1712-section-mismatch
-+++ a/sound/pci/ice1712/prodigy192.c
-@@ -705,7 +705,7 @@ static int ak4114_input_sw_put(struct sn
+diff -puN drivers/serial/mpsc.c~serial-clear-proper-mpsc-interrupt-cause-bits drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-clear-proper-mpsc-interrupt-cause-bits
++++ a/drivers/serial/mpsc.c
+@@ -503,7 +503,8 @@ mpsc_sdma_intr_ack(struct mpsc_port_info
+ 
+ 	if (pi->mirror_regs)
+ 		pi->shared_regs->SDMA_INTR_CAUSE_m = 0;
+-	writel(0, pi->shared_regs->sdma_intr_base + SDMA_INTR_CAUSE);
++	writeb(0x00, pi->shared_regs->sdma_intr_base + SDMA_INTR_CAUSE +
++	       pi->port.line);
+ 	return;
  }
  
- 
--static const struct snd_kcontrol_new ak4114_controls[] __devinitdata = {
-+static struct snd_kcontrol_new ak4114_controls[] __devinitdata = {
- 	{
- 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- 		.name = "MIODIO IEC958 Capture Input",
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jaylubo@motorola.com are
 
 origin.patch
-alsa-more-section-mismatches.patch
-pcih-stubs-for-edd-build-error.patch
-git-acpi.patch
-git-alsa.patch
-git-mtd.patch
-romfs-printk-format-warnings.patch
-ubi-one-less-bug-usage.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-irda-fix-printk-format.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-doc-oops-tracing-add-code-decode-info.patch
-doc-oops-tracing-add-code-decode-info-fix.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
