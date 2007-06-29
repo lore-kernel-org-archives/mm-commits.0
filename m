@@ -1,55 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + pre-git-r8169.patch added to -mm tree
-Date: Fri, 29 Jun 2007 13:12:34 -0700
-Message-ID: <200706292012.l5TKCYtj021129@imap1.linux-foundation.org>
+Subject: - git-selinux-fixup.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:12:53 -0700
+Message-ID: <200706292012.l5TKCroG021141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751466AbXF2UMt (ORCPT
+	by vger.kernel.org with ESMTP id S1751466AbXF2UNB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:12:49 -0400
+	Fri, 29 Jun 2007 16:13:01 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l5TKCxVW008405
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2007 13:13:00 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, romieu@fr.zoreil.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pre-git-r8169
-has been added to the -mm tree.  Its filename is
-     pre-git-r8169.patch
+     git-selinux-fixup
+has been removed from the -mm tree.  Its filename was
+     git-selinux-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: pre-git-r8169
+Subject: git-selinux-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
+DESC
+git-selinux-fix
+EDESC
 
-Make git-r8169 apply
 
-Cc: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/splice.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/r8169.c~pre-git-r8169 drivers/net/r8169.c
---- a/drivers/net/r8169.c~pre-git-r8169
-+++ a/drivers/net/r8169.c
-@@ -2492,7 +2492,7 @@ static inline int rtl8169_try_rx_copy(st
- 		skb = dev_alloc_skb(pkt_size + align);
- 		if (skb) {
- 			skb_reserve(skb, (align - 1) & (unsigned long)skb->data);
--			skb_copy_to_linear_data(skb, sk_buff[0]->data, pkt_size);
-+			eth_copy_and_sum(skb, sk_buff[0]->data, pkt_size, 0);
- 			*sk_buff = skb;
- 			rtl8169_mark_to_asic(desc, rx_buf_sz);
- 			ret = 0;
+diff -puN fs/splice.c~git-selinux-fixup fs/splice.c
+--- a/fs/splice.c~git-selinux-fixup
++++ a/fs/splice.c
+@@ -947,6 +947,8 @@ static long do_splice_to(struct file *in
+ 			 unsigned int flags)
+ {
+ 	int ret;
++	loff_t isize;
++	loff_t left;
+ 
+ 	if (unlikely(!in->f_op || !in->f_op->splice_read))
+ 		return -EINVAL;
+@@ -958,8 +960,6 @@ static long do_splice_to(struct file *in
+ 	if (unlikely(ret < 0))
+ 		return ret;
+ 
+-<<<<<<< HEAD/fs/splice.c
+-=======
+ 	ret = security_file_permission(in, MAY_READ);
+ 	if (unlikely(ret < 0))
+ 		return ret;
+@@ -972,7 +972,6 @@ static long do_splice_to(struct file *in
+ 	if (unlikely(left < len))
+ 		len = left;
+ 
+->>>>>>> /fs/splice.c
+ 	return in->f_op->splice_read(in, ppos, pipe, len, flags);
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
