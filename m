@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revoke-vs-git-block.patch added to -mm tree
-Date: Fri, 29 Jun 2007 16:14:58 -0700
-Message-ID: <200706292319.l5TNJ4F2030111@imap1.linux-foundation.org>
+Subject: + git-block-vs-git-unionfs.patch added to -mm tree
+Date: Fri, 29 Jun 2007 16:24:03 -0700
+Message-ID: <200706292328.l5TNS5R5030511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41022 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36937 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754674AbXF2XUS (ORCPT
+	by vger.kernel.org with ESMTP id S1754564AbXF2X2W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 19:20:18 -0400
+	Fri, 29 Jun 2007 19:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, penberg@cs.helsinki.fi
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, jsipek@cs.sunysb.edu
 
 
 The patch titled
-     revoke vsgit-block
+     git-block-vs-git-unionfs
 has been added to the -mm tree.  Its filename is
-     revoke-vs-git-block.patch
+     git-block-vs-git-unionfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revoke vsgit-block
+Subject: git-block-vs-git-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/revoked_inode.c:200: error: unknown field 'sendfile' specified in initializer
-fs/revoked_inode.c:200: warning: initialization from incompatible pointer type
-fs/revoked_inode.c:229: error: unknown field 'sendfile' specified in initializer
-fs/revoked_inode.c:229: warning: initialization from incompatible pointer type
-
-I guess this is what is needed.
-
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoked_inode.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/unionfs/file.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/revoked_inode.c~revoke-vs-git-block fs/revoked_inode.c
---- a/fs/revoked_inode.c~revoke-vs-git-block
-+++ a/fs/revoked_inode.c
-@@ -126,13 +126,6 @@ static int revoked_file_lock(struct file
- 	return -EBADF;
- }
- 
--static ssize_t revoked_file_sendfile(struct file *in_file, loff_t * ppos,
--				     size_t count, read_actor_t actor,
--				     void *target)
--{
--	return -EBADF;
--}
--
- static ssize_t revoked_file_sendpage(struct file *file, struct page *page,
- 				     int off, size_t len, loff_t * pos,
- 				     int more)
-@@ -197,7 +190,6 @@ static const struct file_operations revo
- 	.aio_fsync = revoked_file_aio_fsync,
- 	.fasync = revoked_file_fasync,
- 	.lock = revoked_file_lock,
--	.sendfile = revoked_file_sendfile,
- 	.sendpage = revoked_file_sendpage,
- 	.get_unmapped_area = revoked_file_get_unmapped_area,
- 	.check_flags = revoked_file_check_flags,
-@@ -226,7 +218,6 @@ static const struct file_operations revo
- 	.aio_fsync = revoked_file_aio_fsync,
- 	.fasync = revoked_file_fasync,
- 	.lock = revoked_file_lock,
--	.sendfile = revoked_file_sendfile,
- 	.sendpage = revoked_file_sendpage,
- 	.get_unmapped_area = revoked_file_get_unmapped_area,
- 	.check_flags = revoked_file_check_flags,
+diff -puN fs/unionfs/file.c~git-block-vs-git-unionfs fs/unionfs/file.c
+--- a/fs/unionfs/file.c~git-block-vs-git-unionfs
++++ a/fs/unionfs/file.c
+@@ -145,5 +145,4 @@ struct file_operations unionfs_main_fops
+ 	.flush		= unionfs_flush,
+ 	.release	= unionfs_file_release,
+ 	.fsync		= file_fsync,
+-	.sendfile	= generic_file_sendfile,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -315,3 +284,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+git-block-vs-git-unionfs.patch
