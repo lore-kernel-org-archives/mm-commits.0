@@ -1,62 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - w1_therm_read_bin-suspicious-usage-of-flush_signals.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:57 -0700
-Message-ID: <200706292040.l5TKevvT022473@imap1.linux-foundation.org>
+Subject: - fix-kconfig-dependency-problems-wrt-boolean-menuconfigs.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:33 -0700
+Message-ID: <200706292040.l5TKeX6R022435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51561 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755239AbXF2UvG (ORCPT
+	by vger.kernel.org with ESMTP id S1755203AbXF2UvP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:51:06 -0400
+	Fri, 29 Jun 2007 16:51:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnpol@2ka.mipt.ru, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: xyzzy@speakeasy.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, jeff@garzik.org, linux@dominikbrodowski.net, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1_therm_read_bin: don't call flush_signals()
+     Fix Kconfig dependency problems wrt boolean menuconfigs
 has been removed from the -mm tree.  Its filename was
-     w1_therm_read_bin-suspicious-usage-of-flush_signals.patch
+     fix-kconfig-dependency-problems-wrt-boolean-menuconfigs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: w1_therm_read_bin: don't call flush_signals()
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Fix Kconfig dependency problems wrt boolean menuconfigs
+From: Trent Piepho <xyzzy@speakeasy.org>
 
-This can disrupt userspace signal management.
+If one has a dependency chain (tristate)FOO depends on (bool)BAR depends on
+(tristate)BAZ, build problems will result.  If BAZ=m, then BAR can be set
+y, which allows FOO=y.  It's possible to have FOO=y && BAZ=m, which
+wouldn't be allowed if FOO depended directly on BAZ.  In effect, the bool
+promotes the tristate from m to y.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+This ends up causing a problem with several menuconfigs that look like:
+
+menuconfig BAR
+	bool
+	depends on BAZ [tristate]
+if BAR
+config FOO
+	tristate
+endif
+
+The solution used here is to add the dependencies of BAR to the if
+statement, so that items in the if block will gain a direct
+non-bool-promoted dependency on BAZ.  This is how it would work if a menu
+was used instead of an if block.
+
+Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
+Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: Jeff Garzik <jeff@garzik.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_therm.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/atm/Kconfig         |    2 +-
+ drivers/media/dvb/Kconfig   |    2 +-
+ drivers/media/radio/Kconfig |    2 +-
+ drivers/media/video/Kconfig |    6 +++---
+ drivers/net/pcmcia/Kconfig  |    2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_therm.c~w1_therm_read_bin-suspicious-usage-of-flush_signals drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1_therm_read_bin-suspicious-usage-of-flush_signals
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -191,11 +191,7 @@ static ssize_t w1_therm_read_bin(struct 
+diff -puN drivers/atm/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs drivers/atm/Kconfig
+--- a/drivers/atm/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs
++++ a/drivers/atm/Kconfig
+@@ -7,7 +7,7 @@ menuconfig ATM_DRIVERS
+ 	depends on NETDEVICES && ATM
+ 	default y
  
- 			w1_write_8(dev, W1_CONVERT_TEMP);
+-if ATM_DRIVERS
++if ATM_DRIVERS && NETDEVICES && ATM
  
--			while (tm) {
--				tm = msleep_interruptible(tm);
--				if (signal_pending(current))
--					flush_signals(current);
--			}
-+			msleep(tm);
+ config ATM_DUMMY
+ 	tristate "Dummy ATM driver"
+diff -puN drivers/media/dvb/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs drivers/media/dvb/Kconfig
+--- a/drivers/media/dvb/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs
++++ a/drivers/media/dvb/Kconfig
+@@ -11,7 +11,7 @@ menuconfig DVB_CAPTURE_DRIVERS
+ 	---help---
+ 	  Say Y to select Digital TV adapters
  
- 			if (!w1_reset_select_slave(sl)) {
+-if DVB_CAPTURE_DRIVERS
++if DVB_CAPTURE_DRIVERS && DVB_CORE
  
+ comment "Supported SAA7146 based PCI Adapters"
+ 	depends on DVB_CORE && PCI && I2C
+diff -puN drivers/media/radio/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs drivers/media/radio/Kconfig
+--- a/drivers/media/radio/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs
++++ a/drivers/media/radio/Kconfig
+@@ -9,7 +9,7 @@ menuconfig RADIO_ADAPTERS
+ 	---help---
+ 	  Say Y here to enable selecting AM/FM radio adapters.
+ 
+-if RADIO_ADAPTERS
++if RADIO_ADAPTERS && VIDEO_DEV
+ 
+ config RADIO_CADET
+ 	tristate "ADS Cadet AM/FM Tuner"
+diff -puN drivers/media/video/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs
++++ a/drivers/media/video/Kconfig
+@@ -11,7 +11,7 @@ menuconfig VIDEO_CAPTURE_DRIVERS
+ 	  webcams, analog TV, and hybrid analog/digital TV.
+ 	  Some of those devices also supports FM radio.
+ 
+-if VIDEO_CAPTURE_DRIVERS
++if VIDEO_CAPTURE_DRIVERS && VIDEO_DEV
+ 
+ config VIDEO_ADV_DEBUG
+ 	bool "Enable advanced debug functionality"
+@@ -347,7 +347,7 @@ endmenu # encoder / decoder chips
+ 
+ config VIDEO_VIVI
+ 	tristate "Virtual Video Driver"
+-	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64 && PCI && VIDEO_DEV
++	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64 && PCI
+ 	select VIDEO_BUF
+ 	default n
+ 	---help---
+@@ -691,7 +691,7 @@ menuconfig V4L_USB_DRIVERS
+ 	depends on USB
+ 	default y
+ 
+-if V4L_USB_DRIVERS
++if V4L_USB_DRIVERS && USB
+ 
+ source "drivers/media/video/pvrusb2/Kconfig"
+ 
+diff -puN drivers/net/pcmcia/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs drivers/net/pcmcia/Kconfig
+--- a/drivers/net/pcmcia/Kconfig~fix-kconfig-dependency-problems-wrt-boolean-menuconfigs
++++ a/drivers/net/pcmcia/Kconfig
+@@ -19,7 +19,7 @@ menuconfig NET_PCMCIA
+ 
+ 	  If unsure, say N.
+ 
+-if NET_PCMCIA
++if NET_PCMCIA && PCMCIA
+ 
+ config PCMCIA_3C589
+ 	tristate "3Com 3c589 PCMCIA support"
 _
 
-Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
+Patches currently in -mm which might be from xyzzy@speakeasy.org are
 
 origin.patch
-git-battery.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-w1.patch
+git-dvb.patch
