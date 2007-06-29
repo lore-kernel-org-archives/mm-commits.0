@@ -1,108 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-howto-update-urls-of-git-trees.patch removed from -mm tree
-Date: Fri, 29 Jun 2007 13:40:49 -0700
-Message-ID: <200706292040.l5TKen9R022456@imap1.linux-foundation.org>
+Subject: - avoid-spurious-pollin-returns-in-signalfd.patch removed from -mm tree
+Date: Fri, 29 Jun 2007 13:40:45 -0700
+Message-ID: <200706292040.l5TKeji6022450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756062AbXF2UuQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755041AbXF2Uui (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 16:50:16 -0400
+	Fri, 29 Jun 2007 16:50:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/HOWTO: update URLs of git trees
+     avoid spurious POLLIN returns in signalfd
 has been removed from the -mm tree.  Its filename was
-     documentation-howto-update-urls-of-git-trees.patch
+     avoid-spurious-pollin-returns-in-signalfd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation/HOWTO: update URLs of git trees
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: avoid spurious POLLIN returns in signalfd
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Also, remove outdated 1394 tree and mention MAINTAINERS as pointer to
-development trees.
+The new code in kernel/signal.c does not allow fetching private signals
+from another task.  This patch avoid spurious POLLIN returns from a
+signalfd poll(2) operation.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/HOWTO |   28 +++++++++++++---------------
- 1 files changed, 13 insertions(+), 15 deletions(-)
+ fs/signalfd.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/HOWTO~documentation-howto-update-urls-of-git-trees Documentation/HOWTO
---- a/Documentation/HOWTO~documentation-howto-update-urls-of-git-trees
-+++ a/Documentation/HOWTO
-@@ -322,39 +322,34 @@ kernel releases as described above.
- Here is a list of some of the different kernel trees available:
-   git trees:
-     - Kbuild development tree, Sam Ravnborg <sam@ravnborg.org>
--	kernel.org:/pub/scm/linux/kernel/git/sam/kbuild.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/sam/kbuild.git
- 
-     - ACPI development tree, Len Brown <len.brown@intel.com>
--	kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
- 
-     - Block development tree, Jens Axboe <axboe@suse.de>
--	kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
- 
-     - DRM development tree, Dave Airlie <airlied@linux.ie>
--	kernel.org:/pub/scm/linux/kernel/git/airlied/drm-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/airlied/drm-2.6.git
- 
-     - ia64 development tree, Tony Luck <tony.luck@intel.com>
--	kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
--
--    - ieee1394 development tree, Jody McIntyre <scjody@modernduck.com>
--	kernel.org:/pub/scm/linux/kernel/git/scjody/ieee1394.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/aegl/linux-2.6.git
- 
-     - infiniband, Roland Dreier <rolandd@cisco.com>
--	kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git
- 
-     - libata, Jeff Garzik <jgarzik@pobox.com>
--	kernel.org:/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
- 
-     - network drivers, Jeff Garzik <jgarzik@pobox.com>
--	kernel.org:/pub/scm/linux/kernel/git/jgarzik/netdev-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/jgarzik/netdev-2.6.git
- 
-     - pcmcia, Dominik Brodowski <linux@dominikbrodowski.net>
--	kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
-+	git.kernel.org:/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
- 
-     - SCSI, James Bottomley <James.Bottomley@SteelEye.com>
--	kernel.org:/pub/scm/linux/kernel/git/jejb/scsi-misc-2.6.git
--
--  Other git kernel trees can be found listed at http://kernel.org/git
-+	git.kernel.org:/pub/scm/linux/kernel/git/jejb/scsi-misc-2.6.git
- 
-   quilt trees:
-     - USB, PCI, Driver Core, and I2C, Greg Kroah-Hartman <gregkh@suse.de>
-@@ -362,6 +357,9 @@ Here is a list of some of the different 
-     - x86-64, partly i386, Andi Kleen <ak@suse.de>
-         ftp.firstfloor.org:/pub/ak/x86_64/quilt/
- 
-+  Other kernel trees can be found listed at http://git.kernel.org/ and in
-+  the MAINTAINERS file.
-+
- Bug Reporting
- -------------
- 
+diff -puN fs/signalfd.c~avoid-spurious-pollin-returns-in-signalfd fs/signalfd.c
+--- a/fs/signalfd.c~avoid-spurious-pollin-returns-in-signalfd
++++ a/fs/signalfd.c
+@@ -133,7 +133,8 @@ static unsigned int signalfd_poll(struct
+ 	 * the peer disconnects.
+ 	 */
+ 	if (signalfd_lock(ctx, &lk)) {
+-		if (next_signal(&lk.tsk->pending, &ctx->sigmask) > 0 ||
++		if ((lk.tsk == current &&
++		     next_signal(&lk.tsk->pending, &ctx->sigmask) > 0) ||
+ 		    next_signal(&lk.tsk->signal->shared_pending,
+ 				&ctx->sigmask) > 0)
+ 			events |= POLLIN;
 _
 
-Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-git-ieee1394.patch
-git-scsi-misc.patch
-fs-clarify-dummy-member-in-struct.patch
+git-kvm.patch
+introduce-o_cloexec-take-2.patch
