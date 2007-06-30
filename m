@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-vs-reiser4.patch added to -mm tree
-Date: Fri, 29 Jun 2007 16:29:17 -0700
-Message-ID: <200706292333.l5TNXJYn030694@imap1.linux-foundation.org>
+Subject: + i386-mtrr-crash-fix.patch added to -mm tree
+Date: Sat, 30 Jun 2007 02:20:08 -0700
+Message-ID: <200706300920.l5U9K8gO023229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57643 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752975AbXF2Xdo (ORCPT
+	by vger.kernel.org with ESMTP id S1754180AbXF3JUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Jun 2007 19:33:44 -0400
+	Sat, 30 Jun 2007 05:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward@namesys.com, jens.axboe@oracle.com, vs@namesys.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, linux@horizon.com
 
 
 The patch titled
-     git-block-vs-reiser4
+     i386: mtrr crash fix
 has been added to the -mm tree.  Its filename is
-     git-block-vs-reiser4.patch
+     i386-mtrr-crash-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,192 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-vs-reiser4
+Subject: i386: mtrr crash fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Hope this is right.
+3ebad59056 "[PATCH] x86: Save and restore the fixed-range MTRRs of the BSP
+when suspending" did mtrr operations without verifying that the CPU has MTRRs.
+Crashes transmeta CPUs.
 
-Hope you know what you're doing ;)
-
-Cc: Vladimir Saveliev <vs@namesys.com>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <linux@horizon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/cryptcompress.c   |   30 -------------
- fs/reiser4/plugin/file/file.c            |   46 ---------------------
- fs/reiser4/plugin/file/file.h            |    6 --
- fs/reiser4/plugin/file/file_conversion.c |   10 ----
- fs/reiser4/plugin/object.c               |    2 
- 5 files changed, 94 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/reiser4/plugin/file/file.c~git-block-vs-reiser4 fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~git-block-vs-reiser4
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -2732,52 +2732,6 @@ int delete_object_unix_file(struct inode
- 	return reiser4_delete_object_common(inode);
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~i386-mtrr-crash-fix arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~i386-mtrr-crash-fix
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -65,7 +65,8 @@ get_fixed_ranges(mtrr_type * frs)
+ 
+ void mtrr_save_fixed_ranges(void *info)
+ {
+-	get_fixed_ranges(mtrr_state.fixed_ranges);
++	if (cpu_has_mtrr)
++		get_fixed_ranges(mtrr_state.fixed_ranges);
  }
  
--/**
-- * sendfile_unix_file - sendfile of struct file_operations
-- * @file: file to be sent
-- * @ppos: position to start from
-- * @count: number of bytes to send
-- * @actor: function to copy data
-- * @target: where to copy read data
-- *
-- * Reads @count bytes from @file and calls @actor for every page read. This is
-- * needed for loop back devices support.
-- */
--ssize_t
--sendfile_unix_file(struct file *file, loff_t *ppos, size_t count,
--		   read_actor_t actor, void *target)
--{
--	reiser4_context *ctx;
--	ssize_t result;
--	struct inode *inode;
--	struct unix_file_info *uf_info;
--
--	inode = file->f_dentry->d_inode;
--	ctx = reiser4_init_context(inode->i_sb);
--	if (IS_ERR(ctx))
--		return PTR_ERR(ctx);
--
--	/*
--	 * generic_file_sndfile may want to call update_atime. Grab space for
--	 * stat data update
--	 */
--	result = reiser4_grab_space(estimate_update_common(inode),
--				    BA_CAN_COMMIT);
--	if (result)
--		goto error;
--	mutex_lock(&inode->i_mutex);
--	reiser4_inode_set_flag(inode, REISER4_HAS_MMAP);
--	mutex_unlock(&inode->i_mutex);
--
--	uf_info = unix_file_inode_data(inode);
--	get_nonexclusive_access(uf_info);
--	result = generic_file_sendfile(file, ppos, count, actor, target);
--	drop_nonexclusive_access(uf_info);
-- error:
--	reiser4_exit_context(ctx);
--	return result;
--}
--
- int
- prepare_write_unix_file(struct file *file, struct page *page,
- 			unsigned from, unsigned to)
-diff -puN fs/reiser4/inode.h~git-block-vs-reiser4 fs/reiser4/inode.h
-diff -puN fs/reiser4/plugin/object.c~git-block-vs-reiser4 fs/reiser4/plugin/object.c
---- a/fs/reiser4/plugin/object.c~git-block-vs-reiser4
-+++ a/fs/reiser4/plugin/object.c
-@@ -114,7 +114,6 @@ file_plugin file_plugins[LAST_FILE_PLUGI
- 			.open = open_unix_file,
- 			.release = release_unix_file,
- 			.fsync = sync_unix_file,
--			.sendfile = sendfile_unix_file
- 		},
- 		.as_ops = {
- 			.writepage = reiser4_writepage,
-@@ -321,7 +320,6 @@ file_plugin file_plugins[LAST_FILE_PLUGI
- 			.mmap = prot_mmap_cryptcompress,
- 			.release = prot_release_cryptcompress,
- 			.fsync = reiser4_sync_common,
--			.sendfile = prot_sendfile_cryptcompress
- 		},
- 		.as_ops = {
- 			.writepage = reiser4_writepage,
-diff -puN fs/reiser4/plugin/file/file.h~git-block-vs-reiser4 fs/reiser4/plugin/file/file.h
---- a/fs/reiser4/plugin/file/file.h~git-block-vs-reiser4
-+++ a/fs/reiser4/plugin/file/file.h
-@@ -24,8 +24,6 @@ int mmap_unix_file(struct file *, struct
- int open_unix_file(struct inode *, struct file *);
- int release_unix_file(struct inode *, struct file *);
- int sync_unix_file(struct file *, struct dentry *, int datasync);
--ssize_t sendfile_unix_file(struct file *, loff_t *ppos, size_t count,
--			   read_actor_t, void *target);
- 
- /* address space operations */
- int readpage_unix_file(struct file *, struct page *);
-@@ -209,10 +207,6 @@ ssize_t prot_write_cryptcompress(struct 
- 				 loff_t * off);
- int mmap_cryptcompress(struct file *, struct vm_area_struct *);
- int prot_mmap_cryptcompress(struct file *, struct vm_area_struct *);
--ssize_t sendfile_cryptcompress(struct file *file, loff_t *ppos, size_t count,
--			       read_actor_t actor, void *target);
--ssize_t prot_sendfile_cryptcompress(struct file *file, loff_t *ppos, size_t count,
--				    read_actor_t actor, void *target);
- 
- int release_cryptcompress(struct inode *, struct file *);
- int prot_release_cryptcompress(struct inode *, struct file *);
-diff -puN fs/reiser4/plugin/file/file_conversion.c~git-block-vs-reiser4 fs/reiser4/plugin/file/file_conversion.c
---- a/fs/reiser4/plugin/file/file_conversion.c~git-block-vs-reiser4
-+++ a/fs/reiser4/plugin/file/file_conversion.c
-@@ -552,7 +552,6 @@ int prot_setattr_cryptcompress(struct de
-    . read_cryptcomperess;
-    . mmap_cryptcompress;
-    . release_cryptcompress;
--   . sendfile_cryptcompress;
-    . delete_object_cryptcompress.
- */
- ssize_t prot_read_cryptcompress(struct file * file, char __user * buf,
-@@ -573,15 +572,6 @@ int prot_release_cryptcompress(struct in
- 	return PROT_PASSIVE(int, release, (inode, file));
- }
- 
--ssize_t prot_sendfile_cryptcompress(struct file *file, loff_t *ppos,
--				    size_t count, read_actor_t actor,
--				    void *target)
--{
--	struct inode * inode = file->f_dentry->d_inode;
--	return PROT_PASSIVE(ssize_t, sendfile,
--			    (file, ppos, count, actor, target));
--}
--
- /*
-   Local variables:
-   c-indentation-style: "K&R"
-diff -puN fs/reiser4/plugin/file/cryptcompress.c~git-block-vs-reiser4 fs/reiser4/plugin/file/cryptcompress.c
---- a/fs/reiser4/plugin/file/cryptcompress.c~git-block-vs-reiser4
-+++ a/fs/reiser4/plugin/file/cryptcompress.c
-@@ -3678,36 +3678,6 @@ int setattr_cryptcompress(struct dentry 
- 	return result;
- }
- 
--/* sendfile_cryptcompress - sendfile of struct file_operations */
--ssize_t
--sendfile_cryptcompress(struct file *file, loff_t *ppos, size_t count,
--		       read_actor_t actor, void *target)
--{
--	reiser4_context *ctx;
--	ssize_t result;
--	struct inode *inode;
--	struct cryptcompress_info *info;
--
--	inode = file->f_dentry->d_inode;
--	ctx = reiser4_init_context(inode->i_sb);
--	if (IS_ERR(ctx))
--		return PTR_ERR(ctx);
--	/*
--	 * generic_file_sndfile may want to call update_atime. Grab space for
--	 * stat data update
--	 */
--	result = reiser4_grab_space(estimate_update_common(inode),
--				    BA_CAN_COMMIT);
--	if (result)
--		goto exit;
--	info = cryptcompress_inode_data(inode);
--
--	result = generic_file_sendfile(file, ppos, count, actor, target);
-- exit:
--	reiser4_exit_context(ctx);
--	return result;
--}
--
- /*
-  * release_cryptcompress - release of struct file_operations
-  * @inode: inode of released file
+ static void print_fixed(unsigned base, unsigned step, const mtrr_type*types)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -452,3 +294,4 @@ allow-page_owner-to-be-set-on-any-architecture-fix.patch
 check_dirty_inode_list.patch
 alloc_pages-debug.patch
 w1-build-fix.patch
+i386-mtrr-crash-fix.patch
