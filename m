@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smsc-ircc2-bypass-pnp-detection-until-we-get-the-quirks-worked-out.patch added to -mm tree
-Date: Sun, 01 Jul 2007 11:37:20 -0700
-Message-ID: <200707011837.l61IbKbX031738@imap1.linux-foundation.org>
+Subject: + fix-elf_core_dump-when-writing-arch-specific-notes-spu-coredumps.patch added to -mm tree
+Date: Sun, 01 Jul 2007 23:17:25 -0700
+Message-ID: <200707020617.l626HPs2011819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35091 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754954AbXGASiG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 1 Jul 2007 14:38:06 -0400
+	by vger.kernel.org with ESMTP id S1751005AbXGBGSI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 02:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, arvidjaar@mail.ru, davem@davemloft.net, jeff@garzik.org, michal.k.k.piotrowski@gmail.com, samuel@sortiz.org
+Cc: michael@ellerman.id.au, arnd@arndb.de, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     smsc-ircc2: bypass PNP detection until we get the quirks worked out
+     Fix elf_core_dump() when writing arch specific notes (spu coredumps)
 has been added to the -mm tree.  Its filename is
-     smsc-ircc2-bypass-pnp-detection-until-we-get-the-quirks-worked-out.patch
+     fix-elf_core_dump-when-writing-arch-specific-notes-spu-coredumps.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smsc-ircc2: bypass PNP detection until we get the quirks worked out
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Fix elf_core_dump() when writing arch specific notes (spu coredumps)
+From: Michael Ellerman <michael@ellerman.id.au>
 
-Don't use PNP detection by default yet.  We have some PNP and BIOS issues
-to work out first.
+elf_core_dump() supports dumping arch specific ELF notes, via the #define
+ELF_CORE_WRITE_EXTRA_NOTES.  Currently the only user of this is the powerpc
+spu coredump code.
 
-Sample problem on a Toshiba Portege 4000: the SMCf010 device is handed off
-disabled.  We assign I/O ports originally assigned to the SMCf010 to a
-PCMCIA device instead.  We enable the SMCf010, configuring it to use
-disjoint ports, but _SRS doesn't work correctly, so the device doesn't
-work.
+There is a bug in the handling of foffset WRT the arch notes, which causes
+us to erroneously increment foffset by the size of the arch notes, leaving
+a block of zeroes in the file, and causing all subsequent data in the file
+to be at <supposed position> + <arch note size>.  eg:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
+  LOAD  0x050000 0x00100000 0x00000000 0x20000 0x20000 R E 0x10000
+
+Tells us we should have a chunk of data at 0x50000.  The truth is the data
+is at 0x90dbc = 0x50000 + 0x40dbc (the size of the arch notes).
+
+This bug prevents gdb from reading the core file correctly.
+
+The simplest fix is to simply remember the size of the arch notes, and add
+it to foffset after we've written the arch notes.  The only drawback is
+that if the arch code doesn't write as many bytes as it said it would, we
+end up with a broken core dump again.  For now I think that's a reasonable
+requirement.
+
+Tested on a Cell blade, gdb no longer complains about the core file being
+bogus.
+
+While I'm here I should point out that the spu coredump code does not work
+if we're dumping to a pipe - we'll have to wait for 23 to fix that.
+
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/smsc-ircc2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/irda/smsc-ircc2.c~smsc-ircc2-bypass-pnp-detection-until-we-get-the-quirks-worked-out drivers/net/irda/smsc-ircc2.c
---- a/drivers/net/irda/smsc-ircc2.c~smsc-ircc2-bypass-pnp-detection-until-we-get-the-quirks-worked-out
-+++ a/drivers/net/irda/smsc-ircc2.c
-@@ -79,7 +79,7 @@ MODULE_AUTHOR("Daniele Peri <peri@csai.u
- MODULE_DESCRIPTION("SMC IrCC SIR/FIR controller driver");
- MODULE_LICENSE("GPL");
+diff -puN fs/binfmt_elf.c~fix-elf_core_dump-when-writing-arch-specific-notes-spu-coredumps fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fix-elf_core_dump-when-writing-arch-specific-notes-spu-coredumps
++++ a/fs/binfmt_elf.c
+@@ -1499,6 +1499,9 @@ static int elf_core_dump(long signr, str
+ #endif
+ 	int thread_status_size = 0;
+ 	elf_addr_t *auxv;
++#ifdef ELF_CORE_WRITE_EXTRA_NOTES
++	int extra_notes_size;
++#endif
  
--static int smsc_nopnp;
-+static int smsc_nopnp = 1;
- module_param_named(nopnp, smsc_nopnp, bool, 0);
- MODULE_PARM_DESC(nopnp, "Do not use PNP to detect controller settings");
+ 	/*
+ 	 * We no longer stop all VM operations.
+@@ -1628,7 +1631,8 @@ static int elf_core_dump(long signr, str
+ 		sz += thread_status_size;
  
+ #ifdef ELF_CORE_WRITE_EXTRA_NOTES
+-		sz += ELF_CORE_EXTRA_NOTES_SIZE;
++		extra_notes_size = ELF_CORE_EXTRA_NOTES_SIZE;
++		sz += extra_notes_size;
+ #endif
+ 
+ 		fill_elf_note_phdr(&phdr, sz, offset);
+@@ -1674,6 +1678,7 @@ static int elf_core_dump(long signr, str
+ 
+ #ifdef ELF_CORE_WRITE_EXTRA_NOTES
+ 	ELF_CORE_WRITE_EXTRA_NOTES;
++	foffset += extra_notes_size;
+ #endif
+ 
+ 	/* write out the thread status notes section */
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
 origin.patch
-smsc-ircc2-bypass-pnp-detection-until-we-get-the-quirks-worked-out.patch
-serial-assert-dtr-for-serial-console-devices.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-x86-initial-fixmap-support.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
-move-free-pages-between-lists-on-steal.patch
-use-menuconfig-objects-pnp.patch
+fix-elf_core_dump-when-writing-arch-specific-notes-spu-coredumps.patch
+git-powerpc.patch
+jprobes-make-struct-jprobeentry-a-void.patch
+jprobes-remove-jprobe_entry.patch
+jprobes-make-jprobes-a-little-safer-for-users.patch
+jprobes-make-jprobes-a-little-safer-for-users-fix.patch
