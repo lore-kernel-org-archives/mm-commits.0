@@ -1,295 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - blink-only-blink-when-parameter-is-set-fix.patch removed from -mm tree
-Date: Mon, 02 Jul 2007 13:10:22 -0700
-Message-ID: <200707022010.l62KAMXp004452@imap1.linux-foundation.org>
+Subject: - slab-remove-warn_on_once-for-zero-sized-objects-for-2622-release.patch removed from -mm tree
+Date: Mon, 02 Jul 2007 13:16:26 -0700
+Message-ID: <200707022016.l62KGQ16004713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38899 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754004AbXGBUKc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:10:32 -0400
+	by vger.kernel.org with ESMTP id S1753925AbXGBURB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, bwalle@suse.de, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blink-only-blink-when-parameter-is-set-fix
+     SLAB: remove WARN_ON_ONCE for zero sized objects for 2.6.22 release
 has been removed from the -mm tree.  Its filename was
-     blink-only-blink-when-parameter-is-set-fix.patch
+     slab-remove-warn_on_once-for-zero-sized-objects-for-2622-release.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: blink-only-blink-when-parameter-is-set-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SLAB: remove WARN_ON_ONCE for zero sized objects for 2.6.22 release
+From: Christoph Lameter <clameter@sgi.com>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bernhard Walle <bwalle@suse.de>
+We agreed to remove the WARN_ON_ONCE before 2.6.22 is released.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/blink.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ mm/slab.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/misc/blink.c~blink-only-blink-when-parameter-is-set-fix drivers/misc/blink.c
---- a/drivers/misc/blink.c~blink-only-blink-when-parameter-is-set-fix
-+++ a/drivers/misc/blink.c
-@@ -5,7 +5,7 @@
+diff -puN mm/slab.c~slab-remove-warn_on_once-for-zero-sized-objects-for-2622-release mm/slab.c
+--- a/mm/slab.c~slab-remove-warn_on_once-for-zero-sized-objects-for-2622-release
++++ a/mm/slab.c
+@@ -774,7 +774,6 @@ static inline struct kmem_cache *__find_
+ 	 */
+ 	BUG_ON(malloc_sizes[INDEX_AC].cs_cachep == NULL);
+ #endif
+-	WARN_ON_ONCE(size == 0);
+ 	while (size > csizep->cs_size)
+ 		csizep++;
  
- static int blink;
- module_param(blink, bool, S_IRUGO);
--MODULE_PARM_DESC(blink, "Enable blinking (without that, the module does nothing)");
-+MODULE_PARM_DESC(blink, "Enable blinking (without this the module does nothing)");
- 
- static void do_blink(unsigned long data);
- 
-@@ -29,10 +29,8 @@ static int __init blink_init(void)
- 
- 	return 0;
- }
--
- module_init(blink_init);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Andi Kleen <ak@suse.de>");
- MODULE_DESCRIPTION("Blinks the keyboard LEDs");
--
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-ia64-build-fix.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-fixup.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mtd.patch
 git-ubi.patch
-git-netdev-all.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-git-net-fixup.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-battery-vs-git-acpi.patch
-git-ioat-vs-git-md-accel.patch
-git-nfs-server-cluster-locking-api-fixup.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-restore-acpi-change-for-scsi.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-show-unhandled-signals-fix.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support-fix.patch
-x86_64-add-ioapic-nmi-support-fix-2.patch
-highres-improve-debug-output-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+quicklist-support-for-x86_64.patch
+change-zonelist-order-zonelist-order-selection-logic.patch
+change-zonelist-order-zonelist-order-selection-logic-add-check_highest_zone-to-build_zonelists_in_zone_order.patch
 change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
+change-zonelist-order-auto-configuration.patch
+change-zonelist-order-documentaion.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers.patch
+make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+slub-support-slub_debug-on-by-default.patch
 slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+numa-mempolicy-dynamic-interleave-map-for-system-init.patch
+numa-mempolicy-trivial-debug-fixes.patch
+slob-initial-numa-support.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-reduce-antifrag-max-order-use-antifrag-constant-instead-of-hardcoding-page-order.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely.patch
 slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-fix-alpha-isa-support-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-audit-add-tty-input-auditing-fix-2.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
-blink-only-blink-when-parameter-is-set-fix.patch
-sys_time-speedup-build-fixes.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-uninline-check_signature-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+slub-remove-useless-export_symbol.patch
+slub-use-list_for_each_entry-for-loops-over-all-slabs.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of.patch
+slub-ensure-that-the-object-per-slabs-stays-low-for-high-orders.patch
+slub-debug-fix-initial-object-debug-state-of-numa-bootstrap-objects.patch
+slab-allocators-consolidate-code-for-krealloc-in-mm-utilc.patch
+slab-allocators-consistent-zero_size_ptr-support-and-null-result-semantics.patch
+slab-allocators-support-__gfp_zero-in-all-allocators.patch
+slub-add-some-more-inlines-and-ifdef-config_slub_debug.patch
+slub-extract-dma_kmalloc_cache-from-get_cache.patch
+slub-do-proper-locking-during-dma-slab-creation.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc-fix.patch
+slub-faster-more-efficient-slab-determination-for-__kmalloc-fix-2.patch
+slub-simplify-dma-index-size-calculation.patch
+add-vm_bug_on-in-case-someone-uses-page_mapping-on-a-slab-page.patch
+define-config_bounce-to-avoid-useless-inclusion-of-bounce-buffer.patch
+revoke-core-code.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
 intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver.patch
 intel-iommu-intel-iommu-driver-fix.patch
 intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
 intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-git-block-vs-reiser4.patch
-allow-page_owner-to-be-set-on-any-architecture-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+mm-implement-swap-prefetching.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
