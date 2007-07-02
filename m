@@ -1,83 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: - irda-fix-printk-format.patch removed from -mm tree
-Date: Mon, 02 Jul 2007 13:17:06 -0700
-Message-ID: <200707022017.l62KH6QG004840@imap1.linux-foundation.org>
+Subject: - pm-introduce-set_target-method-in-pm_ops.patch removed from -mm tree
+Date: Mon, 02 Jul 2007 13:16:42 -0700
+Message-ID: <200707022016.l62KGgpB004800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40384 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54252 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753492AbXGBUSd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:18:33 -0400
+	by vger.kernel.org with ESMTP id S1754586AbXGBUSv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:18:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, dbrownell@users.sourceforge.net, greg@kroah.com, johannes@sipsolutions.net, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IRDA: fix printk format
+     PM: introduce set_target method in pm_ops
 has been removed from the -mm tree.  Its filename was
-     irda-fix-printk-format.patch
+     pm-introduce-set_target-method-in-pm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IRDA: fix printk format
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: PM: introduce set_target method in pm_ops
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Fix printk format warning:
-drivers/net/irda/irport.c:512: warning: format '%d' expects type 'int', but argument 5 has type 'long int'
+Commit 52ade9b3b97fd3bea42842a056fe0786c28d0555 changed the suspend code
+ordering to execute pm_ops->prepare() after the device model per-device
+.suspend() calls in order to fix some ACPI-related issues.  Unfortunately, it
+broke the at91 platform which assumed that pm_ops->prepare() would be called
+before suspending devices.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+at91 used pm_ops->prepare() to get notified of the target system sleep state,
+so that it could use this information while suspending devices.  However, with
+the current suspend code ordering pm_ops->prepare() is called too late for
+this purpose.  Thus, at91 needs an additional method in 'struct pm_ops' that
+will be used for notifying the platform of the target system sleep state. 
+Moreover, in the future such a method will also be needed by ACPI.
+
+This patch adds the .set_target() method to 'struct pm_ops' and makes the
+suspend code call it, if implemented, before executing the device model
+per-device .suspend() calls.  It also modifies the at91 code to use
+pm_ops->set_target() instead of pm_ops->prepare().
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/irport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-at91/pm.c |    4 +-
+ include/linux/pm.h      |   66 ++++++++++++++++++++++++++++----------
+ kernel/power/main.c     |    6 ++-
+ 3 files changed, 56 insertions(+), 20 deletions(-)
 
-diff -puN drivers/net/irda/irport.c~irda-fix-printk-format drivers/net/irda/irport.c
---- a/drivers/net/irda/irport.c~irda-fix-printk-format
-+++ a/drivers/net/irda/irport.c
-@@ -509,7 +509,7 @@ static void irport_timeout(struct net_de
- 	IRDA_DEBUG(0, "%s(), iir=%02x, lsr=%02x, iobase=%#x\n", 
- 		   __FUNCTION__, iir, lsr, iobase);
+diff -puN arch/arm/mach-at91/pm.c~pm-introduce-set_target-method-in-pm_ops arch/arm/mach-at91/pm.c
+--- a/arch/arm/mach-at91/pm.c~pm-introduce-set_target-method-in-pm_ops
++++ a/arch/arm/mach-at91/pm.c
+@@ -53,7 +53,7 @@ static suspend_state_t target_state;
+ /*
+  * Called after processes are frozen, but before we shutdown devices.
+  */
+-static int at91_pm_prepare(suspend_state_t state)
++static int at91_pm_set_target(suspend_state_t state)
+ {
+ 	target_state = state;
+ 	return 0;
+@@ -201,7 +201,7 @@ error:
  
--	IRDA_DEBUG(0, "%s(), transmitting=%d, remain=%d, done=%d\n", 
-+	IRDA_DEBUG(0, "%s(), transmitting=%d, remain=%d, done=%td\n",
- 		   __FUNCTION__, self->transmitting, self->tx_buff.len,
- 		   self->tx_buff.data - self->tx_buff.head);
+ static struct pm_ops at91_pm_ops ={
+ 	.valid		= at91_pm_valid_state,
+-	.prepare	= at91_pm_prepare,
++	.set_target	= at91_pm_set_target,
+ 	.enter		= at91_pm_enter,
+ };
  
+diff -puN include/linux/pm.h~pm-introduce-set_target-method-in-pm_ops include/linux/pm.h
+--- a/include/linux/pm.h~pm-introduce-set_target-method-in-pm_ops
++++ a/include/linux/pm.h
+@@ -110,37 +110,67 @@ typedef int __bitwise suspend_state_t;
+ #define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
+ 
+ /**
+- * struct pm_ops - Callbacks for managing platform dependent suspend states.
+- * @valid: Callback to determine whether the given state can be entered.
+- *	Valid states are advertised in /sys/power/state but can still
+- *	be rejected by prepare or enter if the conditions aren't right.
+- *	There is a %pm_valid_only_mem function available that can be assigned
+- *	to this if you only implement mem sleep.
++ * struct pm_ops - Callbacks for managing platform dependent system sleep
++ *	states.
+  *
+- * @prepare: Prepare the platform for the given suspend state. Can return a
+- *	negative error code if necessary.
+- *
+- * @enter: Enter the given suspend state, must be assigned. Can return a
+- *	negative error code if necessary.
+- *
+- * @finish: Called when the system has left the given state and all devices
+- *	are resumed. The return value is ignored.
++ * @valid: Callback to determine if given system sleep state is supported by
++ *	the platform.
++ *	Valid (ie. supported) states are advertised in /sys/power/state.  Note
++ *	that it still may be impossible to enter given system sleep state if the
++ *	conditions aren't right.
++ *	There is the %pm_valid_only_mem function available that can be assigned
++ *	to this if the platform only supports mem sleep.
++ *
++ * @set_target: Tell the platform which system sleep state is going to be
++ *	entered.
++ *	@set_target() is executed right prior to suspending devices.  The
++ *	information conveyed to the platform code by @set_target() should be
++ *	disregarded by the platform as soon as @finish() is executed and if
++ *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
++ *	@prepare(), @enter() and @finish() will not be called by the PM core.
++ *	This callback is optional.  However, if it is implemented, the argument
++ *	passed to @prepare(), @enter() and @finish() is meaningless and should
++ *	be ignored.
++ *
++ * @prepare: Prepare the platform for entering the system sleep state indicated
++ *	by @set_target() or represented by the argument if @set_target() is not
++ *	implemented.
++ *	@prepare() is called right after devices have been suspended (ie. the
++ *	appropriate .suspend() method has been executed for each device) and
++ *	before the nonboot CPUs are disabled (it is executed with IRQs enabled).
++ *	This callback is optional.  It returns 0 on success or a negative
++ *	error code otherwise, in which case the system cannot enter the desired
++ *	sleep state (@enter() and @finish() will not be called in that case).
++ *
++ * @enter: Enter the system sleep state indicated by @set_target() or
++ *	represented by the argument if @set_target() is not implemented.
++ *	This callback is mandatory.  It returns 0 on success or a negative
++ *	error code otherwise, in which case the system cannot enter the desired
++ *	sleep state.
++ *
++ * @finish: Called when the system has just left a sleep state, right after
++ *	the nonboot CPUs have been enabled and before devices are resumed (it is
++ *	executed with IRQs enabled).  If @set_target() is not implemented, the
++ *	argument represents the sleep state being left.
++ *	This callback is optional, but should be implemented by the platforms
++ *	that implement @prepare().  If implemented, it is always called after
++ *	@enter() (even if @enter() fails).
+  */
+ struct pm_ops {
+ 	int (*valid)(suspend_state_t state);
++	int (*set_target)(suspend_state_t state);
+ 	int (*prepare)(suspend_state_t state);
+ 	int (*enter)(suspend_state_t state);
+ 	int (*finish)(suspend_state_t state);
+ };
+ 
++extern struct pm_ops *pm_ops;
++
+ /**
+  * pm_set_ops - set platform dependent power management ops
+  * @pm_ops: The new power management operations to set.
+  */
+ extern void pm_set_ops(struct pm_ops *pm_ops);
+-extern struct pm_ops *pm_ops;
+-extern int pm_suspend(suspend_state_t state);
+-
+ extern int pm_valid_only_mem(suspend_state_t state);
+ 
+ /**
+@@ -161,6 +191,8 @@ extern void arch_suspend_disable_irqs(vo
+  */
+ extern void arch_suspend_enable_irqs(void);
+ 
++extern int pm_suspend(suspend_state_t state);
++
+ /*
+  * Device power management
+  */
+diff -puN kernel/power/main.c~pm-introduce-set_target-method-in-pm_ops kernel/power/main.c
+--- a/kernel/power/main.c~pm-introduce-set_target-method-in-pm_ops
++++ a/kernel/power/main.c
+@@ -15,7 +15,6 @@
+ #include <linux/delay.h>
+ #include <linux/errno.h>
+ #include <linux/init.h>
+-#include <linux/pm.h>
+ #include <linux/console.h>
+ #include <linux/cpu.h>
+ #include <linux/resume-trace.h>
+@@ -97,6 +96,11 @@ static int suspend_prepare(suspend_state
+ 		}
+ 	}
+ 
++	if (pm_ops->set_target) {
++		error = pm_ops->set_target(state);
++		if (error)
++			goto Thaw;
++	}
+ 	suspend_console();
+ 	error = device_suspend(PMSG_SUSPEND);
+ 	if (error) {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-git-acpi.patch
-git-alsa.patch
-git-libata-all.patch
-git-mtd.patch
-romfs-printk-format-warnings.patch
-ubi-one-less-bug-usage.patch
-add-pci_try_set_mwi.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-doc-oops-tracing-add-code-decode-info.patch
-doc-oops-tracing-add-code-decode-info-fix.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+shrink_slab-handle-bad-shrinkers.patch
