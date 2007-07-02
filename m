@@ -1,50 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - pre-git-r8169.patch removed from -mm tree
-Date: Mon, 02 Jul 2007 12:45:17 -0700
-Message-ID: <200707021945.l62JjHGk003242@imap1.linux-foundation.org>
+Subject: + git-net-fixup.patch added to -mm tree
+Date: Mon, 02 Jul 2007 12:59:56 -0700
+Message-ID: <200707021959.l62JxuZD003952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753447AbXGBTqE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 15:46:04 -0400
+	by vger.kernel.org with ESMTP id S1752910AbXGBUAE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:00:04 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l62K01bY005409
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 2 Jul 2007 13:00:02 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     pre-git-r8169
-has been removed from the -mm tree.  Its filename was
-     pre-git-r8169.patch
+     git-net-fixup
+has been added to the -mm tree.  Its filename is
+     git-net-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pre-git-r8169
+Subject: git-net-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make git-r8169 apply
-
-Cc: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/core/netpoll.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/net/r8169.c~pre-git-r8169 drivers/net/r8169.c
---- a/drivers/net/r8169.c~pre-git-r8169
-+++ a/drivers/net/r8169.c
-@@ -2492,7 +2492,7 @@ static inline int rtl8169_try_rx_copy(st
- 		skb = dev_alloc_skb(pkt_size + align);
- 		if (skb) {
- 			skb_reserve(skb, (align - 1) & (unsigned long)skb->data);
--			skb_copy_to_linear_data(skb, sk_buff[0]->data, pkt_size);
-+			eth_copy_and_sum(skb, sk_buff[0]->data, pkt_size, 0);
- 			*sk_buff = skb;
- 			rtl8169_mark_to_asic(desc, rx_buf_sz);
- 			ret = 0;
+diff -puN net/core/netpoll.c~git-net-fixup net/core/netpoll.c
+--- a/net/core/netpoll.c~git-net-fixup
++++ a/net/core/netpoll.c
+@@ -252,20 +252,12 @@ static void netpoll_send_skb(struct netp
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-<<<<<<< HEAD/net/core/netpoll.c
+-		/* try until next clock tick */
+-		for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
+-		     tries > 0; --tries) {
+-			if (netif_tx_trylock(dev)) {
+-				if (!netif_queue_stopped(dev))
+-=======
+ 		if (netif_tx_trylock(dev)) {
+ 			/* try until next clock tick */
+ 			for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
+ 					tries > 0; --tries) {
+ 				if (!netif_queue_stopped(dev) &&
+ 				    !netif_subqueue_stopped(dev, skb->queue_mapping))
+->>>>>>> /net/core/netpoll.c
+ 					status = dev->hard_start_xmit(skb, dev);
+ 				netif_tx_unlock(dev);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,14 +101,13 @@ git-mtd.patch
 git-ubi.patch
 git-netdev-all.patch
 sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-git-e1000.patch
+git-net-fixup.patch
 wrong-timeout-value-in-sk_wait_data-v2-fix.patch
 git-battery.patch
 git-battery-vs-git-acpi.patch
 git-ioat-vs-git-md-accel.patch
 git-nfs-server-cluster-locking-api-fixup.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-pre-git-r8169.patch
 dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
