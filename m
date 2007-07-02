@@ -1,99 +1,281 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-more-section-mismatches.patch removed from -mm tree
-Date: Mon, 02 Jul 2007 13:16:31 -0700
-Message-ID: <200707022016.l62KGVO0004785@imap1.linux-foundation.org>
+Subject: - ethernet-driver-for-eisa-only-sni-rm200-rm400-machines.patch removed from -mm tree
+Date: Mon, 02 Jul 2007 13:16:55 -0700
+Message-ID: <200707022016.l62KGt6f004815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52924 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39240 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754018AbXGBURj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:17:39 -0400
+	by vger.kernel.org with ESMTP id S1754423AbXGBURm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2007 16:17:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALSA: more section mismatches
+     Ethernet driver for EISA only SNI RM200/RM400 machines
 has been removed from the -mm tree.  Its filename was
-     alsa-more-section-mismatches.patch
+     ethernet-driver-for-eisa-only-sni-rm200-rm400-machines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ALSA: more section mismatches
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Ethernet driver for EISA only SNI RM200/RM400 machines
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Fix section mismatch warnings:
+Ethernet driver for EISA only SNI RM200/RM400 machines
 
-WARNING: sound/built-in.o(.exit.text+0x3ad): Section mismatch: reference to .init.text: (between 'sb_exit' and 'unload_uart6850')
-WARNING: sound/built-in.o(.exit.text+0x753): Section mismatch: reference to .init.text: (between 'snd_mts64_module_exit' and 'snd_portman_module_exit')
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/drivers/mts64.c |    2 +-
- sound/oss/sb_card.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/Kconfig     |    7 +
+ drivers/net/Makefile    |    1 
+ drivers/net/sni_82596.c |  204 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 212 insertions(+)
 
-diff -puN sound/drivers/mts64.c~alsa-more-section-mismatches sound/drivers/mts64.c
---- a/sound/drivers/mts64.c~alsa-more-section-mismatches
-+++ a/sound/drivers/mts64.c
-@@ -1048,7 +1048,7 @@ static struct platform_driver snd_mts64_
- /*********************************************************************
-  * module init stuff
-  *********************************************************************/
--static void __init_or_module snd_mts64_unregister_all(void)
-+static void snd_mts64_unregister_all(void)
- {
- 	int i;
+diff -puN drivers/net/Kconfig~ethernet-driver-for-eisa-only-sni-rm200-rm400-machines drivers/net/Kconfig
+--- a/drivers/net/Kconfig~ethernet-driver-for-eisa-only-sni-rm200-rm400-machines
++++ a/drivers/net/Kconfig
+@@ -431,6 +431,13 @@ config LASI_82596
+ 	  Say Y here to support the builtin Intel 82596 ethernet controller
+ 	  found in Hewlett-Packard PA-RISC machines with 10Mbit ethernet.
  
-diff -puN sound/oss/sb_card.c~alsa-more-section-mismatches sound/oss/sb_card.c
---- a/sound/oss/sb_card.c~alsa-more-section-mismatches
-+++ a/sound/oss/sb_card.c
-@@ -290,7 +290,7 @@ static struct pnp_card_driver sb_pnp_dri
- MODULE_DEVICE_TABLE(pnp_card, sb_pnp_card_table);
- #endif /* CONFIG_PNP */
- 
--static void __init_or_module sb_unregister_all(void)
-+static void sb_unregister_all(void)
- {
- #ifdef CONFIG_PNP
- 	if (pnp_registered)
++config SNI_82596
++	tristate "SNI RM ethernet"
++	depends on NET_ETHERNET && SNI_RM
++	help
++	  Say Y here to support the on-board Intel 82596 ethernet controller
++	  built into SNI RM machines.
++
+ config MIPS_JAZZ_SONIC
+ 	tristate "MIPS JAZZ onboard SONIC Ethernet support"
+ 	depends on MACH_JAZZ
+diff -puN drivers/net/Makefile~ethernet-driver-for-eisa-only-sni-rm200-rm400-machines drivers/net/Makefile
+--- a/drivers/net/Makefile~ethernet-driver-for-eisa-only-sni-rm200-rm400-machines
++++ a/drivers/net/Makefile
+@@ -157,6 +157,7 @@ obj-$(CONFIG_ELPLUS) += 3c505.o
+ obj-$(CONFIG_AC3200) += ac3200.o 8390.o
+ obj-$(CONFIG_APRICOT) += 82596.o
+ obj-$(CONFIG_LASI_82596) += lasi_82596.o
++obj-$(CONFIG_SNI_82596) += sni_82596.o
+ obj-$(CONFIG_MVME16x_NET) += 82596.o
+ obj-$(CONFIG_BVME6000_NET) += 82596.o
+ obj-$(CONFIG_SC92031) += sc92031.o
+diff -puN /dev/null drivers/net/sni_82596.c
+--- /dev/null
++++ a/drivers/net/sni_82596.c
+@@ -0,0 +1,204 @@
++/*
++ * sni_82596.c -- driver for intel 82596 ethernet controller, as
++ *  		  used in older SNI RM machines
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/string.h>
++#include <linux/errno.h>
++#include <linux/ioport.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++#include <linux/skbuff.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/bitops.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++
++#define SNI_82596_DRIVER_VERSION "SNI RM 82596 driver - Revision: 0.01"
++
++static char sni_82596_string[] = "snirm_82596";
++
++#define DMA_ALLOC                      dma_alloc_coherent
++#define DMA_FREE                       dma_free_coherent
++#define DMA_WBACK(priv, addr, len)     do { } while (0)
++#define DMA_INV(priv, addr, len)       do { } while (0)
++#define DMA_WBACK_INV(priv, addr, len) do { } while (0)
++
++#define SYSBUS      0x00004400
++
++/* big endian CPU, 82596 little endian */
++#define SWAP32(x)   cpu_to_le32((u32)(x))
++#define SWAP16(x)   cpu_to_le16((u16)(x))
++
++#define OPT_MPU_16BIT    0x01
++
++static inline void CA(struct net_device *dev);
++static inline void MPU_PORT(struct net_device *dev, int c, dma_addr_t x);
++
++#include "lib82596.c"
++
++MODULE_AUTHOR("Thomas Bogendoerfer");
++MODULE_DESCRIPTION("i82596 driver");
++MODULE_LICENSE("GPL");
++module_param(i596_debug, int, 0);
++MODULE_PARM_DESC(i596_debug, "82596 debug mask");
++
++static inline void CA(struct net_device *dev)
++{
++	struct i596_private *lp = netdev_priv(dev);
++
++	writel(0, lp->ca);
++}
++
++
++static inline void MPU_PORT(struct net_device *dev, int c, dma_addr_t x)
++{
++	struct i596_private *lp = netdev_priv(dev);
++
++	u32 v = (u32) (c) | (u32) (x);
++
++	if (lp->options & OPT_MPU_16BIT) {
++		writew(v & 0xffff, lp->mpu_port);
++		wmb(); udelay(1); /* order writes to MPU port */
++		writew(v >> 16, lp->mpu_port);
++	} else {
++		writel(v, lp->mpu_port);
++		wmb(); udelay(1); /* order writes to MPU port */
++		writel(v, lp->mpu_port);
++	}
++}
++
++
++static int __devinit sni_82596_probe(struct platform_device *dev)
++{
++	struct	net_device *netdevice;
++	struct i596_private *lp;
++	struct  resource *res, *ca, *idprom, *options;
++	int	retval = -ENODEV;
++	static int init;
++	void __iomem *mpu_addr = NULL;
++	void __iomem *ca_addr = NULL;
++	u8 __iomem *eth_addr = NULL;
++
++	if (init == 0) {
++		printk(KERN_INFO SNI_82596_DRIVER_VERSION "\n");
++		init++;
++	}
++
++	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!res)
++		goto probe_failed;
++	mpu_addr = ioremap_nocache(res->start, 4);
++	if (!mpu_addr) {
++		retval = -ENOMEM;
++		goto probe_failed;
++	}
++	ca = platform_get_resource(dev, IORESOURCE_MEM, 1);
++	if (!ca)
++		goto probe_failed;
++	ca_addr = ioremap_nocache(ca->start, 4);
++	if (!ca_addr) {
++		retval = -ENOMEM;
++		goto probe_failed;
++	}
++	idprom = platform_get_resource(dev, IORESOURCE_MEM, 2);
++	if (!idprom)
++		goto probe_failed;
++	eth_addr = ioremap_nocache(idprom->start, 0x10);
++	if (!eth_addr) {
++		retval = -ENOMEM;
++		goto probe_failed;
++	}
++	options = platform_get_resource(dev, 0, 0);
++	if (!options)
++		goto probe_failed;
++
++	printk(KERN_INFO "Found i82596 at 0x%x\n", res->start);
++
++	netdevice = alloc_etherdev(sizeof(struct i596_private));
++	if (!netdevice) {
++		retval = -ENOMEM;
++		goto probe_failed;
++	}
++	SET_NETDEV_DEV(netdevice, &dev->dev);
++	platform_set_drvdata (dev, netdevice);
++
++	netdevice->base_addr = res->start;
++	netdevice->irq = platform_get_irq(dev, 0);
++
++	/* someone seams to like messed up stuff */
++	netdevice->dev_addr[0] = readb(eth_addr + 0x0b);
++	netdevice->dev_addr[1] = readb(eth_addr + 0x0a);
++	netdevice->dev_addr[2] = readb(eth_addr + 0x09);
++	netdevice->dev_addr[3] = readb(eth_addr + 0x08);
++	netdevice->dev_addr[4] = readb(eth_addr + 0x07);
++	netdevice->dev_addr[5] = readb(eth_addr + 0x06);
++	iounmap(eth_addr);
++
++	if (!netdevice->irq) {
++		printk(KERN_ERR "%s: IRQ not found for i82596 at 0x%lx\n",
++			__FILE__, netdevice->base_addr);
++		goto probe_failed;
++	}
++
++	lp = netdev_priv(netdevice);
++	lp->options = options->flags & IORESOURCE_BITS;
++	lp->ca = ca_addr;
++	lp->mpu_port = mpu_addr;
++
++	retval = i82596_probe(netdevice);
++	if (retval) {
++		free_netdev(netdevice);
++probe_failed:
++		if (mpu_addr)
++			iounmap(mpu_addr);
++		if (ca_addr)
++			iounmap(ca_addr);
++		if (eth_addr)
++			iounmap(ca_addr);
++	}
++	return retval;
++}
++
++static int __devexit sni_82596_driver_remove (struct platform_device *pdev)
++{
++	struct net_device *dev = platform_get_drvdata(pdev);
++	struct i596_private *lp = netdev_priv(dev);
++
++	unregister_netdev (dev);
++	DMA_FREE(dev->dev.parent, sizeof(struct i596_private),
++		 lp->dma, lp->dma_addr);
++	iounmap(lp->ca);
++	iounmap(lp->mpu_port);
++	free_netdev (dev);
++	return 0;
++}
++
++static struct platform_driver sni_82596_driver = {
++	.probe	= sni_82596_probe,
++	.remove	= __devexit_p(sni_82596_driver_remove),
++	.driver	= {
++		.name	= sni_82596_string,
++	},
++};
++
++static int __devinit sni_82596_init(void)
++{
++	return platform_driver_register(&sni_82596_driver);
++}
++
++
++static void __exit sni_82596_exit(void)
++{
++	platform_driver_unregister(&sni_82596_driver);
++}
++
++module_init(sni_82596_init);
++module_exit(sni_82596_exit);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-git-acpi.patch
-git-alsa.patch
-git-libata-all.patch
-git-mtd.patch
-romfs-printk-format-warnings.patch
-ubi-one-less-bug-usage.patch
-add-pci_try_set_mwi.patch
+git-netdev-all.patch
 git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-kconfig-no-strange-misc-devices.patch
-afs-drop-explicit-extern.patch
-add-printktime-option-deprecate-time.patch
-fs-clarify-dummy-member-in-struct.patch
-sony-laptop-use-null-for-pointer.patch
-hugetlbfs-use-lib-parser-fix-docs.patch
-report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
-doc-oops-tracing-add-code-decode-info.patch
-doc-oops-tracing-add-code-decode-info-fix.patch
-schedstats-fix-printk-format.patch
-kernel-doc-add-tools-doc-in-makefile.patch
-kernel-doc-fix-unnamed-struct-union-warning.patch
-kernel-doc-strip-c99-comments.patch
-kernel-doc-fix-leading-dot-in-man-mode-output.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-profile-likely-unlikely-macros.patch
+rtc-driver-for-ds1216-chips.patch
+rtc-driver-for-ds1216-chips-fix.patch
