@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch added to -mm tree
-Date: Tue, 03 Jul 2007 14:24:03 -0700
-Message-ID: <200707032124.l63LO3FC016461@imap1.linux-foundation.org>
+Subject: + use-mutex-instead-of-semaphore-in-philips-webcam-driver.patch added to -mm tree
+Date: Tue, 03 Jul 2007 14:24:05 -0700
+Message-ID: <200707032124.l63LO5V4016550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49137 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756821AbXGCVYP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:24:15 -0400
+	by vger.kernel.org with ESMTP id S1756946AbXGCVYQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, Sumant.Patro@lsi.com
+Cc: matthias.kaehlcke@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     use mutex instead of semaphore in Megaraid Mailbox driver
+     use mutex instead of semaphore in Philips webcam driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
+     use-mutex-instead-of-semaphore-in-philips-webcam-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in Megaraid Mailbox driver
+Subject: use mutex instead of semaphore in Philips webcam driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The Megaraid Mailbox driver uses a semaphore as mutex.  Use the mutex API
+The Philips webcam driver uses a semaphore as mutex.  Use the mutex API
 instead of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: "Patro, Sumant" <Sumant.Patro@lsi.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/mega_common.h   |    1 +
- drivers/scsi/megaraid/megaraid_mbox.c |    6 +++---
- drivers/scsi/megaraid/megaraid_mbox.h |    4 ++--
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/media/video/pwc/pwc-if.c |   12 ++++++------
+ drivers/media/video/pwc/pwc.h    |    4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/megaraid/mega_common.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/mega_common.h
---- a/drivers/scsi/megaraid/mega_common.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
-+++ a/drivers/scsi/megaraid/mega_common.h
-@@ -21,6 +21,7 @@
- #include <linux/types.h>
- #include <linux/pci.h>
- #include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/blkdev.h>
-diff -puN drivers/scsi/megaraid/megaraid_mbox.c~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/megaraid_mbox.c
---- a/drivers/scsi/megaraid/megaraid_mbox.c~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
-+++ a/drivers/scsi/megaraid/megaraid_mbox.c
-@@ -3880,7 +3880,7 @@ megaraid_sysfs_alloc_resources(adapter_t
- 		megaraid_sysfs_free_resources(adapter);
+diff -puN drivers/media/video/pwc/pwc-if.c~use-mutex-instead-of-semaphore-in-philips-webcam-driver drivers/media/video/pwc/pwc-if.c
+--- a/drivers/media/video/pwc/pwc-if.c~use-mutex-instead-of-semaphore-in-philips-webcam-driver
++++ a/drivers/media/video/pwc/pwc-if.c
+@@ -1099,7 +1099,7 @@ static int pwc_video_open(struct inode *
+ 		return -EBUSY;
  	}
  
--	sema_init(&raid_dev->sysfs_sem, 1);
-+	mutex_init(&raid_dev->sysfs_mtx);
+-	down(&pdev->modlock);
++	mutex_lock(&pdev->modlock);
+ 	if (!pdev->usb_init) {
+ 		PWC_DEBUG_OPEN("Doing first time initialization.\n");
+ 		pdev->usb_init = 1;
+@@ -1131,7 +1131,7 @@ static int pwc_video_open(struct inode *
+ 	if (i < 0) {
+ 		PWC_DEBUG_OPEN("Failed to allocate buffers memory.\n");
+ 		pwc_free_buffers(pdev);
+-		up(&pdev->modlock);
++		mutex_unlock(&pdev->modlock);
+ 		return i;
+ 	}
  
- 	init_waitqueue_head(&raid_dev->sysfs_wait_q);
+@@ -1172,7 +1172,7 @@ static int pwc_video_open(struct inode *
+ 	if (i) {
+ 		PWC_DEBUG_OPEN("Second attempt at set_video_mode failed.\n");
+ 		pwc_free_buffers(pdev);
+-		up(&pdev->modlock);
++		mutex_unlock(&pdev->modlock);
+ 		return i;
+ 	}
  
-@@ -3981,7 +3981,7 @@ megaraid_sysfs_get_ldmap(adapter_t *adap
- 	/*
- 	 * Allow only one read at a time to go through the sysfs attributes
- 	 */
--	down(&raid_dev->sysfs_sem);
-+	mutex_lock(&raid_dev->sysfs_mtx);
+@@ -1181,7 +1181,7 @@ static int pwc_video_open(struct inode *
+ 		PWC_DEBUG_OPEN("Failed to init ISOC stuff = %d.\n", i);
+ 		pwc_isoc_cleanup(pdev);
+ 		pwc_free_buffers(pdev);
+-		up(&pdev->modlock);
++		mutex_unlock(&pdev->modlock);
+ 		return i;
+ 	}
  
- 	uioc	= raid_dev->sysfs_uioc;
- 	mbox64	= raid_dev->sysfs_mbox64;
-@@ -4057,7 +4057,7 @@ megaraid_sysfs_get_ldmap(adapter_t *adap
+@@ -1191,7 +1191,7 @@ static int pwc_video_open(struct inode *
  
- 	del_timer_sync(timerp);
- 
--	up(&raid_dev->sysfs_sem);
-+	mutex_unlock(&raid_dev->sysfs_mtx);
- 
- 	return rval;
+ 	pdev->vopen++;
+ 	file->private_data = vdev;
+-	up(&pdev->modlock);
++	mutex_unlock(&pdev->modlock);
+ 	PWC_DEBUG_OPEN("<< video_open() returns 0.\n");
+ 	return 0;
  }
-diff -puN drivers/scsi/megaraid/megaraid_mbox.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/megaraid_mbox.h
---- a/drivers/scsi/megaraid/megaraid_mbox.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
-+++ a/drivers/scsi/megaraid/megaraid_mbox.h
-@@ -168,7 +168,7 @@ typedef struct {
-  * @hw_error			: set if FW not responding
-  * @fast_load			: If set, skip physical device scanning
-  * @channel_class		: channel class, RAID or SCSI
-- * @sysfs_sem			: semaphore to serialize access to sysfs res.
-+ * @sysfs_mtx			: mutex to serialize access to sysfs res.
-  * @sysfs_uioc			: management packet to issue FW calls from sysfs
-  * @sysfs_mbox64		: mailbox packet to issue FW calls from sysfs
-  * @sysfs_buffer		: data buffer for FW commands issued from sysfs
-@@ -208,7 +208,7 @@ typedef struct {
- 	int				hw_error;
- 	int				fast_load;
- 	uint8_t				channel_class;
--	struct semaphore		sysfs_sem;
-+	struct mutex			sysfs_mtx;
- 	uioc_t				*sysfs_uioc;
- 	mbox64_t			*sysfs_mbox64;
- 	caddr_t				sysfs_buffer;
+@@ -1685,7 +1685,7 @@ static int usb_pwc_probe(struct usb_inte
+ 		pdev->angle_range.tilt_max =  2500;
+ 	}
+ 
+-	init_MUTEX(&pdev->modlock);
++	mutex_init(&pdev->modlock);
+ 	spin_lock_init(&pdev->ptrlock);
+ 
+ 	pdev->udev = udev;
+diff -puN drivers/media/video/pwc/pwc.h~use-mutex-instead-of-semaphore-in-philips-webcam-driver drivers/media/video/pwc/pwc.h
+--- a/drivers/media/video/pwc/pwc.h~use-mutex-instead-of-semaphore-in-philips-webcam-driver
++++ a/drivers/media/video/pwc/pwc.h
+@@ -31,7 +31,7 @@
+ #include <linux/wait.h>
+ #include <linux/smp_lock.h>
+ #include <linux/version.h>
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
+ #include <asm/errno.h>
+ #include <linux/videodev.h>
+ #include <media/v4l2-common.h>
+@@ -244,7 +244,7 @@ struct pwc_device
+    int image_read_pos;			/* In case we read data in pieces, keep track of were we are in the imagebuffer */
+    int image_used[MAX_IMAGES];		/* For MCAPTURE and SYNC */
+ 
+-   struct semaphore modlock;		/* to prevent races in video_open(), etc */
++   struct mutex modlock;		/* to prevent races in video_open(), etc */
+    spinlock_t ptrlock;			/* for manipulating the buffer pointers */
+ 
+    /*** motorized pan/tilt feature */
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
