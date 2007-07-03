@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-get-mp_bus_to_node-as-early.patch added to -mm tree
-Date: Tue, 03 Jul 2007 11:35:50 -0700
-Message-ID: <200707031835.l63IZo9K008197@imap1.linux-foundation.org>
+Subject: + x86_64-get-mp_bus_to_node-as-early-fix.patch added to -mm tree
+Date: Tue, 03 Jul 2007 11:35:52 -0700
+Message-ID: <200707031835.l63IZrxE008200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52134 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542AbXGCSgp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 14:36:45 -0400
+	by vger.kernel.org with ESMTP id S1755651AbXGCSgq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 14:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, ak@suse.de, clameter@sgi.com, rientjes@google.com, yinghai.lu@Sun.COM
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, rientjes@google.com, yinghai.lu@sun.com
 
 
 The patch titled
-     x86_64: get mp_bus_to_node as early
+     x86_64-get-mp_bus_to_node-as-early-fix
 has been added to the -mm tree.  Its filename is
-     x86_64-get-mp_bus_to_node-as-early.patch
+     x86_64-get-mp_bus_to_node-as-early-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,391 +25,358 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: get mp_bus_to_node as early
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: x86_64-get-mp_bus_to_node-as-early-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In struct device, we already have numa_node member.  and we can use
-dev_to_node() /set_dev_node() to get and set numa_node in the device. 
-set_dev_node is called in pci_device_add() with pcibus_to_node(bus).  and
-pci_bus_to_node use bus->sysdata for nodeid.
+scripts/checkpatch.pl says:
 
-The problem is when pci_add_device is called, bus->sysdata is not assigned
-correct nodeid yet.  the result will be numa_node always is 0. 
-pcibios_scan_root and pci_scan_root could take sysdata.  So we need to get
-mp_bus_to_node mapping before these two are called.  and get_mp_bus_to_node
-could get correct node for sysdata in root bus.
+printk() should include KERN_ facility level
+#119: FILE: arch/i386/pci/acpi.c:25:
++		printk("bus %02x -> pxm %d -> node %02x\n", busnum, pxm, node);
 
-In scanning of root bus, all child bus will take parent bus sysdata.  So
-all pci_device->dev.numa_node will be assigned correctly automatically. 
-later we could use dev_to_node(&pci_dev->dev) to numa_node, and we could
-also could make other bus specific device get the correct numa_node too. 
-and in different driver we could use kmalloc_node instead of kmalloc for
-skbuff/net or urb/usb etc.  That could help improve performance with usb or
-net or sata for AMD K8 two sockets beyond system.
+line over 80 characters
+#149: FILE: arch/i386/pci/common.c:310:
++	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with (node %02lx)\n", busnum, node);
 
-For example:
+Use #include <linux/topology.h> instead of <asm/topology.h>
+#213: FILE: arch/x86_64/pci/k8-bus.c:6:
++#include <asm/topology.h>
 
-Two way opteron system and only one HT chain on node 0.  USB controller on
-SB will be on node0.  some dma accessing is used with
-kmalloc/dma_map_single.  and these address will be on node1 instead of
-node0.  and even worse, when node1 ram is above 4G, we may need to iommu
-mapping for usb operation.  two way system with one HT chain on different
-node, we will need to kmalloc/dma_map_single to use ram on corresonding
-node too.  esp for nvidia mcp55/io55 system.  the second io55 could have
-nic/sata/pcie devices.
+line over 80 characters
+#317: FILE: arch/x86_64/pci/k8-bus.c:100:
++					mp_bus_to_node[j] = (unsigned char) node;
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+need spaces around that '=' (ctx:VxV)
+#323: FILE: arch/x86_64/pci/k8-bus.c:106:
++	for (i=0; i<BUS_NR; i++) {
+              ^
+
+need spaces around that '<' (ctx:VxV)
+#323: FILE: arch/x86_64/pci/k8-bus.c:106:
++	for (i=0; i<BUS_NR; i++) {
+                   ^
+
+Use #include <linux/topology.h> instead of <asm/topology.h>
+#387: FILE: arch/i386/pci/mp_bus_to_node.c:3:
++#include <asm/topology.h>
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+
 Cc: Andi Kleen <ak@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/Makefile         |    1 
- arch/i386/pci/acpi.c           |   21 ++++----
- arch/i386/pci/common.c         |    9 +++
- arch/i386/pci/irq.c            |    4 +
- arch/i386/pci/legacy.c         |    4 +
- arch/i386/pci/mp_bus_to_node.c |   23 +++++++++
- arch/x86_64/pci/k8-bus.c       |   79 ++++++++++++++++++++++---------
- include/asm-i386/topology.h    |   10 +++
- include/asm-x86_64/topology.h  |   13 +++++
- 9 files changed, 130 insertions(+), 34 deletions(-)
+ arch/i386/pci/acpi.c           |    3 ++-
+ arch/i386/pci/common.c         |    3 ++-
+ arch/i386/pci/mp_bus_to_node.c |    2 +-
+ arch/x86_64/pci/k8-bus.c       |    6 +++---
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/pci/Makefile~x86_64-get-mp_bus_to_node-as-early arch/i386/pci/Makefile
---- a/arch/i386/pci/Makefile~x86_64-get-mp_bus_to_node-as-early
-+++ a/arch/i386/pci/Makefile
-@@ -10,5 +10,6 @@ pci-y				+= legacy.o irq.o
- 
- pci-$(CONFIG_X86_VISWS)		:= visws.o fixup.o
- pci-$(CONFIG_X86_NUMAQ)		:= numa.o irq.o
-+pci-$(CONFIG_NUMA)		+= mp_bus_to_node.o
- 
- obj-y				+= $(pci-y) common.o early.o
-diff -puN arch/i386/pci/acpi.c~x86_64-get-mp_bus_to_node-as-early arch/i386/pci/acpi.c
---- a/arch/i386/pci/acpi.c~x86_64-get-mp_bus_to_node-as-early
+diff -puN arch/i386/pci/acpi.c~x86_64-get-mp_bus_to_node-as-early-fix arch/i386/pci/acpi.c
+--- a/arch/i386/pci/acpi.c~x86_64-get-mp_bus_to_node-as-early-fix
 +++ a/arch/i386/pci/acpi.c
-@@ -8,24 +8,27 @@
- struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
- {
- 	struct pci_bus *bus;
-+#ifdef CONFIG_ACPI_NUMA
-+	int pxm;
-+	int node;
-+#endif
- 
- 	if (domain != 0) {
- 		printk(KERN_WARNING "PCI: Multiple domains not supported\n");
- 		return NULL;
- 	}
- 
--	bus = pcibios_scan_root(busnum);
- #ifdef CONFIG_ACPI_NUMA
--	if (bus != NULL) {
--		int pxm = acpi_get_pxm(device->handle);
--		if (pxm >= 0) {
--			bus->sysdata = (void *)(unsigned long)pxm_to_node(pxm);
--			printk("bus %d -> pxm %d -> node %ld\n",
--				busnum, pxm, (long)(bus->sysdata));
--		}
-+	pxm = acpi_get_pxm(device->handle);
-+	if (pxm >= 0) {
-+		node  = pxm_to_node(pxm);
-+		printk("bus %02x -> pxm %d -> node %02x\n", busnum, pxm, node);
-+		set_mp_bus_to_node(busnum, node);
+@@ -22,7 +22,8 @@ struct pci_bus * __devinit pci_acpi_scan
+ 	pxm = acpi_get_pxm(device->handle);
+ 	if (pxm >= 0) {
+ 		node  = pxm_to_node(pxm);
+-		printk("bus %02x -> pxm %d -> node %02x\n", busnum, pxm, node);
++		printk(KERN_INFO "bus %02x -> pxm %d -> node %02x\n",
++			busnum, pxm, node);
+ 		set_mp_bus_to_node(busnum, node);
  	}
  #endif
--	
-+
-+	bus = pcibios_scan_root(busnum);
-+
- 	return bus;
- }
- 
-diff -puN arch/i386/pci/common.c~x86_64-get-mp_bus_to_node-as-early arch/i386/pci/common.c
---- a/arch/i386/pci/common.c~x86_64-get-mp_bus_to_node-as-early
+diff -puN arch/i386/pci/common.c~x86_64-get-mp_bus_to_node-as-early-fix arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~x86_64-get-mp_bus_to_node-as-early-fix
 +++ a/arch/i386/pci/common.c
-@@ -293,6 +293,7 @@ static struct dmi_system_id __devinitdat
- struct pci_bus * __devinit pcibios_scan_root(int busnum)
- {
- 	struct pci_bus *bus = NULL;
-+	long node;
+@@ -307,7 +307,8 @@ struct pci_bus * __devinit pcibios_scan_
+ 	node = get_mp_bus_to_node(busnum);
  
- 	dmi_check_system(pciprobe_dmi_table);
- 
-@@ -303,9 +304,15 @@ struct pci_bus * __devinit pcibios_scan_
- 		}
- 	}
- 
-+	node = get_mp_bus_to_node(busnum);
-+
-+#ifdef CONFIG_NUMA
-+	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with (node %02lx)\n", busnum, node);
-+#else
+ #ifdef CONFIG_NUMA
+-	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with (node %02lx)\n", busnum, node);
++	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x) with "
++		"(node %02lx)\n", busnum, node);
+ #else
  	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
-+#endif
- 
--	return pci_scan_bus_parented(NULL, busnum, &pci_root_ops, NULL);
-+	return pci_scan_bus_parented(NULL, busnum, &pci_root_ops, (void *)node);
- }
- 
- extern u8 pci_cache_line_size;
-diff -puN arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early arch/i386/pci/irq.c
---- a/arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early
-+++ a/arch/i386/pci/irq.c
-@@ -136,9 +136,11 @@ static void __init pirq_peer_trick(void)
- 		busmap[e->bus] = 1;
- 	}
- 	for(i = 1; i < 256; i++) {
-+		long node;
- 		if (!busmap[i] || pci_find_bus(0, i))
- 			continue;
--		if (pci_scan_bus(i, &pci_root_ops, NULL))
-+		node = get_mp_bus_to_node(i);
-+		if (pci_scan_bus(i, &pci_root_ops, (void *)node))
- 			printk(KERN_INFO "PCI: Discovered primary peer bus %02x [IRQ]\n", i);
- 	}
- 	pcibios_last_bus = -1;
-diff -puN arch/i386/pci/legacy.c~x86_64-get-mp_bus_to_node-as-early arch/i386/pci/legacy.c
---- a/arch/i386/pci/legacy.c~x86_64-get-mp_bus_to_node-as-early
-+++ a/arch/i386/pci/legacy.c
-@@ -12,6 +12,7 @@
- static void __devinit pcibios_fixup_peer_bridges(void)
- {
- 	int n, devfn;
-+	long node;
- 
- 	if (pcibios_last_bus <= 0 || pcibios_last_bus >= 0xff)
- 		return;
-@@ -21,12 +22,13 @@ static void __devinit pcibios_fixup_peer
- 		u32 l;
- 		if (pci_find_bus(0, n))
- 			continue;
-+		node = get_mp_bus_to_node(n);
- 		for (devfn = 0; devfn < 256; devfn += 8) {
- 			if (!raw_pci_ops->read(0, n, devfn, PCI_VENDOR_ID, 2, &l) &&
- 			    l != 0x0000 && l != 0xffff) {
- 				DBG("Found device at %02x:%02x [%04x]\n", n, devfn, l);
- 				printk(KERN_INFO "PCI: Discovered peer bus %02x\n", n);
--				pci_scan_bus(n, &pci_root_ops, NULL);
-+				pci_scan_bus(n, &pci_root_ops, (void *)node);
- 				break;
- 			}
- 		}
-diff -puN /dev/null arch/i386/pci/mp_bus_to_node.c
---- /dev/null
+ #endif
+diff -puN arch/i386/pci/mp_bus_to_node.c~x86_64-get-mp_bus_to_node-as-early-fix arch/i386/pci/mp_bus_to_node.c
+--- a/arch/i386/pci/mp_bus_to_node.c~x86_64-get-mp_bus_to_node-as-early-fix
 +++ a/arch/i386/pci/mp_bus_to_node.c
-@@ -0,0 +1,23 @@
-+#include <linux/pci.h>
-+#include <linux/init.h>
-+#include <asm/topology.h>
-+
-+#define BUS_NR 256
-+
-+static unsigned char mp_bus_to_node[BUS_NR];
-+
-+void set_mp_bus_to_node(int busnum, int node)
-+{
-+	if (busnum >= 0 &&  busnum < BUS_NR)
-+	mp_bus_to_node[busnum] = (unsigned char) node;
-+}
-+
-+int get_mp_bus_to_node(int busnum)
-+{
-+	int node;
-+
-+	if (busnum < 0 || busnum > (BUS_NR - 1) )
-+		return 0;
-+	node = mp_bus_to_node[busnum];
-+	return node;
-+}
-diff -puN arch/x86_64/pci/k8-bus.c~x86_64-get-mp_bus_to_node-as-early arch/x86_64/pci/k8-bus.c
---- a/arch/x86_64/pci/k8-bus.c~x86_64-get-mp_bus_to_node-as-early
-+++ a/arch/x86_64/pci/k8-bus.c
-@@ -1,7 +1,9 @@
- #include <linux/init.h>
+@@ -1,6 +1,6 @@
  #include <linux/pci.h>
-+#include <asm/pci-direct.h>
+ #include <linux/init.h>
+-#include <asm/topology.h>
++#include <linux/topology.h>
+ 
+ #define BUS_NR 256
+ 
+diff -puN arch/x86_64/pci/k8-bus.c~x86_64-get-mp_bus_to_node-as-early-fix arch/x86_64/pci/k8-bus.c
+--- a/arch/x86_64/pci/k8-bus.c~x86_64-get-mp_bus_to_node-as-early-fix
++++ a/arch/x86_64/pci/k8-bus.c
+@@ -3,7 +3,7 @@
+ #include <asm/pci-direct.h>
  #include <asm/mpspec.h>
  #include <linux/cpumask.h>
-+#include <asm/topology.h>
+-#include <asm/topology.h>
++#include <linux/topology.h>
  
  /*
   * This discovers the pcibus <-> node mapping on AMD K8.
-@@ -20,60 +22,93 @@
- #define SUBORDINATE_LDT_BUS_NUMBER(dword) ((dword >> 16) & 0xFF)
- #define PCI_DEVICE_ID_K8HTCONFIG 0x1100
- 
-+#define BUS_NR 256
-+
-+static unsigned char mp_bus_to_node[BUS_NR];
-+
-+void set_mp_bus_to_node(int busnum, int node)
-+{
-+	if (busnum >= 0 &&  busnum < BUS_NR)
-+		mp_bus_to_node[busnum] = (unsigned char) node;
-+}
-+
-+int get_mp_bus_to_node(int busnum)
-+{
-+	int node;
-+
-+	if (busnum < 0 || busnum > (BUS_NR - 1) )
-+		return 0;
-+
-+	node = mp_bus_to_node[busnum];
-+
-+	/* Algorithm a bit dumb, but it shouldn't matter here.
-+	   even there is no ram installed for node0*/
-+	if (!node_online(node))
-+		node = 0;
-+
-+	return node;
-+}
-+
- /**
-- * fill_mp_bus_to_cpumask()
-+ * early_fill_mp_bus_to_node()
-+ * called before pcibios_scan_root and pci_scan_bus
-  * fills the mp_bus_to_cpumask array based according to the LDT Bus Number
-  * Registers found in the K8 northbridge
-  */
- __init static int
--fill_mp_bus_to_cpumask(void)
-+early_fill_mp_bus_to_node(void)
- {
--	struct pci_dev *nb_dev = NULL;
- 	int i, j;
-+	unsigned slot;
- 	u32 ldtbus, nid;
-+	u32 id;
- 	static int lbnr[3] = {
- 		LDT_BUS_NUMBER_REGISTER_0,
- 		LDT_BUS_NUMBER_REGISTER_1,
- 		LDT_BUS_NUMBER_REGISTER_2
- 	};
- 
--	while ((nb_dev = pci_get_device(PCI_VENDOR_ID_AMD,
--			PCI_DEVICE_ID_K8HTCONFIG, nb_dev))) {
--		pci_read_config_dword(nb_dev, NODE_ID_REGISTER, &nid);
-+	memset(mp_bus_to_node, 0, BUS_NR);
-+
-+	if (!early_pci_allowed())
-+		return -1;
-+
-+	for (slot = 0x18; slot < 0x20; slot++) {
-+		id = read_pci_config(0, slot, 0, PCI_VENDOR_ID);
-+		if (id != (PCI_VENDOR_ID_AMD | (PCI_DEVICE_ID_K8HTCONFIG<<16)))
-+			break;
-+		nid = read_pci_config(0, slot, 0, NODE_ID_REGISTER);
- 
- 		for (i = 0; i < NR_LDT_BUS_NUMBER_REGISTERS; i++) {
--			pci_read_config_dword(nb_dev, lbnr[i], &ldtbus);
-+			ldtbus = read_pci_config(0, slot, 0, lbnr[i]);
- 			/*
- 			 * if there are no busses hanging off of the current
- 			 * ldt link then both the secondary and subordinate
- 			 * bus number fields are set to 0.
--			 * 
-+			 *
- 			 * RED-PEN
- 			 * This is slightly broken because it assumes
-- 			 * HT node IDs == Linux node ids, which is not always
-+			 * HT node IDs == Linux node ids, which is not always
- 			 * true. However it is probably mostly true.
- 			 */
- 			if (!(SECONDARY_LDT_BUS_NUMBER(ldtbus) == 0
- 				&& SUBORDINATE_LDT_BUS_NUMBER(ldtbus) == 0)) {
- 				for (j = SECONDARY_LDT_BUS_NUMBER(ldtbus);
+@@ -97,13 +97,13 @@ early_fill_mp_bus_to_node(void)
  				     j <= SUBORDINATE_LDT_BUS_NUMBER(ldtbus);
--				     j++) { 
--					struct pci_bus *bus;
--					long node = NODE_ID(nid);
--					/* Algorithm a bit dumb, but
-- 					   it shouldn't matter here */
--					bus = pci_find_bus(0, j);
--					if (!bus)
--						continue;
--					if (!node_online(node))
--						node = 0;
--					bus->sysdata = (void *)node;
--				}		
-+				     j++) {
-+					int node = NODE_ID(nid);
-+					mp_bus_to_node[j] = (unsigned char) node;
-+				}
+ 				     j++) {
+ 					int node = NODE_ID(nid);
+-					mp_bus_to_node[j] = (unsigned char) node;
++					mp_bus_to_node[j] = node;
+ 				}
  			}
  		}
  	}
  
-+	for (i=0; i<BUS_NR; i++) {
-+		int node = mp_bus_to_node[i];
-+		if (node)
-+			printk(KERN_DEBUG "bus: %02x to node: %02x\n", i, node);
-+	}
- 	return 0;
- }
- 
--fs_initcall(fill_mp_bus_to_cpumask);
-+postcore_initcall(early_fill_mp_bus_to_node);
-diff -puN include/asm-i386/topology.h~x86_64-get-mp_bus_to_node-as-early include/asm-i386/topology.h
---- a/include/asm-i386/topology.h~x86_64-get-mp_bus_to_node-as-early
-+++ a/include/asm-i386/topology.h
-@@ -101,7 +101,17 @@ extern unsigned long node_remap_size[];
- 
- #define node_has_online_mem(nid) (node_start_pfn[nid] != node_end_pfn[nid])
- 
-+int get_mp_bus_to_node(int busnum);
-+void set_mp_bus_to_node(int busnum, int node);
-+
- #else /* !CONFIG_NUMA */
-+static inline int get_mp_bus_to_node(int busnum)
-+{
-+	return 0;
-+}
-+static inline void set_mp_bus_to_node(int busnum, int node)
-+{
-+}
- /*
-  * Other i386 platforms should define their own version of the 
-  * above macros here.
-diff -puN include/asm-x86_64/topology.h~x86_64-get-mp_bus_to_node-as-early include/asm-x86_64/topology.h
---- a/include/asm-x86_64/topology.h~x86_64-get-mp_bus_to_node-as-early
-+++ a/include/asm-x86_64/topology.h
-@@ -53,6 +53,19 @@ extern int __node_distance(int, int);
- 	.nr_balance_failed	= 0,			\
- }
- 
-+int get_mp_bus_to_node(int busnum);
-+void set_mp_bus_to_node(int busnum, int node);
-+
-+#else
-+
-+static inline int get_mp_bus_to_node(int busnum)
-+{
-+	return 0;
-+}
-+static inline void set_mp_bus_to_node(int busnum, int node)
-+{
-+}
-+
- #endif
- 
- #ifdef CONFIG_SMP
+-	for (i=0; i<BUS_NR; i++) {
++	for (i = 0; i < BUS_NR; i++) {
+ 		int node = mp_bus_to_node[i];
+ 		if (node)
+ 			printk(KERN_DEBUG "bus: %02x to node: %02x\n", i, node);
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-serial-assert-dtr-for-serial-console-devices.patch
-usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
-x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
-x86_64-get-mp_bus_to_node-as-early.patch
-console-more-buf-for-index-parsing.patch
-console-console-handover-to-preferred-console.patch
-serial-convert-early_uart-to-earlycon-for-8250.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
-serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-acpi-ia64-build-fix.patch
+git-acpi-tickh-needs-hrtimerh.patch
+git-acpi-add-exports.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+git-cpufreq-fix.patch
+bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
+8xx-mpc885ads-pcmcia-support.patch
+revert-gregkh-driver-block-device.patch
+driver-core-check-return-code-of-sysfs_create_link.patch
+revert-saa7134-fix-thread-shutdown-handling.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-input.patch
+serio_raw_read-warning-fix.patch
+tsdev-fix-broken-usecto-millisecs-conversion.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-leds.patch
+led_colour_show-warning-fix.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
+ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
+git-md-accel.patch
+git-mips-fixup.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
+git-net-fixup.patch
+wrong-timeout-value-in-sk_wait_data-v2-fix.patch
+git-battery.patch
+git-battery-vs-git-acpi.patch
+git-ioat-vs-git-md-accel.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+pci-x-pci-express-read-control-interfaces-fix.patch
+revert-acpi-change-for-scsi.patch
+git-scsi-misc.patch
+restore-acpi-change-for-scsi.patch
+git-scsi-misc-vs-greg-sysfs-stuff.patch
+aacraid-rename-check_reset.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-block-vs-git-unionfs.patch
+fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
+git-watchdog.patch
+x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+revert-x86_64-mm-verify-cpu-rename.patch
+fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-add-common-orderly_poweroff.patch
+i386-add-support-for-picopower-irq-router.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
+x86-64-calgary-introduce-chipset-specific-ops-fix.patch
+x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
+x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
+i386-show-unhandled-signals-fix.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+i386-add-cpu_relax-to-cmos_lock-fix.patch
+x86_64-flush_tlb_kernel_range-warning-fix.patch
+x86_64-add-ioapic-nmi-support-fix.patch
+x86_64-add-ioapic-nmi-support-fix-2.patch
+highres-improve-debug-output-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+git-cryptodev.patch
+git-cryptodev-fixup.patch
+git-kgdb-fixup.patch
+kgdb-warning-fix.patch
+kgdb-kconfig-fix.patch
+kgdb-use-new-style-interrupt-flags.patch
+kgdb-section-fix.patch
+kgdb_skipexception-warning-fix.patch
+kgdb-ia64-fixes.patch
+kgdb-bust-on-ia64.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+change-zonelist-order-v6-zonelist-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+mm-merge-nopfn-into-fault.patch
+invalidate_mapping_pages-add-cond_resched.patch
+slub-support-slub_debug-on-by-default-tidy.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
+fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+fix-alpha-isa-support-fix.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
+use-write_trylock_irqsave-in-ptrace_attach-fix.patch
+use-no_pci_devices-in-pci-searchc.patch
+introduce-boot-based-time-fix.patch
+use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
+add-argv_split-fix.patch
+add-common-orderly_poweroff-fix.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+fuse-warning-fix.patch
+vxfs-warning-fixes.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mpu401-warning-fixes.patch
+procfs-directory-entry-cleanup-fix.patch
+vdso-print-fatal-signals.patch
+reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
+o_cloexec-for-scm_rights-fix.patch
+o_cloexec-for-scm_rights-fix-2.patch
+atmel_serial-fix-break-handling.patch
+lib-add-idr_for_each-fix.patch
+ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
+taskstats-add-context-switch-counters-fix.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+binfmt_elf-warning-fix.patch
+dirty_writeback_centisecs_handler-cleanup.patch
+diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
+sys_time-speedup-build-fixes.patch
+add-documentation-sysctl-ctl_unnumberedtxt.patch
+sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+sprint_symbol-cleanup.patch
+replace-obscure-constructs-in-fs-block_devc-fix.patch
+bd_claim_by_disk-fix-warning.patch
+uninline-check_signature.patch
+uninline-check_signature-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+crc7-support-fix.patch
+spi-master-driver-for-xilinx-virtex-fix.patch
+isdn-capi-warning-fixes.patch
+i2o_cfg_passthru-cleanup-fix.patch
+knfsd-exportfs-add-exportfsh-header-fix.patch
+knfsd-exportfs-remove-iget-abuse-fix.patch
+nfsd-warning-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
+knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
+driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
+rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
+rtc-driver-for-ds1216-chips-fix.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+lguest-the-host-code.patch
+lguest-the-net-driver.patch
+fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
+fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+cfs-scheduler-vs-detach-schedh-from-mmh.patch
+cfs-scheduler-warning-fixes.patch
+cfs-warning-fixes.patch
+kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+drivers-edac-new-i82443bxgz-mc-driver-broken.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-basic-container-framework-fix-2.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+add-containerstats-v3-fix.patch
+lockstat-core-infrastructure-fix.patch
+lockstat-core-infrastructure-fix-fix.patch
+lockstat-core-infrastructure-fix-fix-fix.patch
+lockdep-various-fixes-checkpatch.patch
+lockstat-measure-lock-bouncing-checkpatch.patch
+reiser4.patch
+reiser4-fix.patch
+git-block-vs-reiser4.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+check_dirty_inode_list.patch
+alloc_pages-debug.patch
+w1-build-fix.patch
