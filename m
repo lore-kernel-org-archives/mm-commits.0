@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xen-fix-x86-config-dependencies.patch added to -mm tree
-Date: Tue, 03 Jul 2007 11:26:52 -0700
-Message-ID: <200707031826.l63IQqdi007788@imap1.linux-foundation.org>
+Subject: + usb-make-the-usb_device-numa_node-to-get-assigned-from.patch added to -mm tree
+Date: Tue, 03 Jul 2007 11:35:42 -0700
+Message-ID: <200707031835.l63IZg4w008194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755711AbXGCS1L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 14:27:11 -0400
+	by vger.kernel.org with ESMTP id S1755009AbXGCSg1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 14:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, bunk@stusta.de, jeremy@xensource.com
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, clameter@sgi.com, greg@kroah.com, rientjes@google.com, yinghai.lu@Sun.COM
 
 
 The patch titled
-     xen: fix x86 config dependencies
+     usb: make the usb_device numa_node get assigned from controller
 has been added to the -mm tree.  Its filename is
-     xen-fix-x86-config-dependencies.patch
+     usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen: fix x86 config dependencies
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: usb: make the usb_device numa_node get assigned from controller
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Make sure we set dependencies on CPU features.
+So we can use dev_to_node(&usb_dev->dev) later in kmalloc_node to dma buffer
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/usb.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/i386/xen/Kconfig~xen-fix-x86-config-dependencies arch/i386/xen/Kconfig
---- a/arch/i386/xen/Kconfig~xen-fix-x86-config-dependencies
-+++ a/arch/i386/xen/Kconfig
-@@ -4,7 +4,7 @@
+diff -puN drivers/usb/core/usb.c~usb-make-the-usb_device-numa_node-to-get-assigned-from drivers/usb/core/usb.c
+--- a/drivers/usb/core/usb.c~usb-make-the-usb_device-numa_node-to-get-assigned-from
++++ a/drivers/usb/core/usb.c
+@@ -253,6 +253,7 @@ usb_alloc_dev(struct usb_device *parent,
+ 	dev->dev.bus = &usb_bus_type;
+ 	dev->dev.type = &usb_device_type;
+ 	dev->dev.dma_mask = bus->controller->dma_mask;
++	set_dev_node(&dev->dev, dev_to_node(bus->controller));
+ 	dev->state = USB_STATE_ATTACHED;
  
- config XEN
- 	bool "Enable support for Xen hypervisor"
--	depends on PARAVIRT
-+	depends on PARAVIRT && X86_CMPXCHG && X86_TSC
- 	help
- 	  This is the Linux Xen port.  Enabling this will allow the
- 	  kernel to boot in a paravirtualized environment under the
+ 	INIT_LIST_HEAD(&dev->ep0.urb_list);
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-i386-fix-regression-endless-loop-in-ptrace-singlestep.patch
-git-kbuild.patch
-add-kstrndup-fix.patch
-xen-build-fix.patch
-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-more-fix-x86_64-mm-xen-xen-smp-guest-support.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-tidy-up-usermode-helper-waiting-a-bit-fix.patch
-update-x86_64-mm-xen-use-iret-directly-where-possible.patch
-x86-use-elfnoteh-to-generate-vsyscall-notes-fix.patch
-paravirt-helper-to-disable-all-io-space-fix-2.patch
-paravirt-helper-to-disable-all-io-space-fix-3.patch
-i386-minor-nx-handling-adjustment-fix.patch
-xen-fix-x86-config-dependencies.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-generic-bug-use-show_regs-instead-of-dump_stack.patch
-lguest-the-guest-code.patch
+serial-assert-dtr-for-serial-console-devices.patch
+usb-make-the-usb_device-numa_node-to-get-assigned-from.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_64-change-_map_single-to-static-in-pci_gartc-etc.patch
+x86_64-geode-hw-random-number-generator-depend-on-x86_3.patch
+x86_64-get-mp_bus_to_node-as-early.patch
+console-more-buf-for-index-parsing.patch
+console-console-handover-to-preferred-console.patch
+serial-convert-early_uart-to-earlycon-for-8250.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-ia64-fix.patch
+serial-convert-early_uart-to-earlycon-for-8250-fix-3-alias.patch
