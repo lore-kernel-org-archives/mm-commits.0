@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ftdi_sio-fix-something.patch added to -mm tree
-Date: Mon, 02 Jul 2007 21:04:05 -0700
-Message-ID: <200707030404.l63445vj030348@imap1.linux-foundation.org>
+Subject: + mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop.patch added to -mm tree
+Date: Mon, 02 Jul 2007 21:05:57 -0700
+Message-ID: <200707030405.l6345vJk030430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37062 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57601 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710AbXGCEEQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:04:16 -0400
+	by vger.kernel.org with ESMTP id S1750729AbXGCEGN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:06:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oliver@neukum.org
+Cc: loic@myri.com, ak@suse.de
 
 
 The patch titled
-     ftdi_sio: fix something
+     MTRR: Fix race causing set_mtrr to go into infinite loop
 has been added to the -mm tree.  Its filename is
-     ftdi_sio-fix-something.patch
+     mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,206 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ftdi_sio: fix something
-From: Oliver Neukum <oliver@neukum.org>
+Subject: MTRR: Fix race causing set_mtrr to go into infinite loop
+From: Loic Prylli <loic@myri.com>
 
-Unchangelogged patch from bug 8564
+Processors synchronization in set_mtrr requires the .gate field to be set
+after .count field is properly initialized.  Without an explicit barrier,
+the compiler was reordering those memory stores.  That was sometimes
+causing a processor (in ipi_handler) to see the .gate change and decrement
+.count before the latter is set by set_mtrr() (which then hangs in a
+infinite loop with irqs disabled).
 
+Signed-off-by: Loic Prylli <loic@myri.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |  104 +++++++++++++-------------------
- 1 file changed, 44 insertions(+), 60 deletions(-)
+ arch/i386/kernel/cpu/mtrr/main.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -271,26 +271,58 @@ static int debug;
- static __u16 vendor = FTDI_VID;
- static __u16 product;
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -229,6 +229,8 @@ static void set_mtrr(unsigned int reg, u
+ 	data.smp_size = size;
+ 	data.smp_type = type;
+ 	atomic_set(&data.count, num_booting_cpus() - 1);
++	/* make sure data.count is visible before unleashing other CPUs */
++	smp_wmb();
+ 	atomic_set(&data.gate,0);
  
-+struct ftdi_private {
-+	ftdi_chip_type_t chip_type;
-+				/* type of the device, either SIO or FT8U232AM */
-+	int baud_base;		/* baud base clock for divisor setting */
-+	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
-+	__u16 last_set_data_urb_value ;
-+				/* the last data state set - needed for doing a break */
-+        int write_offset;       /* This is the offset in the usb data block to write the serial data -
-+				 * it is different between devices
-+				 */
-+	int flags;		/* some ASYNC_xxxx flags are supported */
-+	unsigned long last_dtr_rts;	/* saved modem control outputs */
-+        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
-+	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
-+	__u8 rx_flags;		/* receive state flags (throttling) */
-+	spinlock_t rx_lock;	/* spinlock for receive state */
-+	struct delayed_work rx_work;
-+	struct usb_serial_port *port;
-+	int rx_processed;
-+	unsigned long rx_bytes;
-+
-+	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
-+
-+	int force_baud;		/* if non-zero, force the baud rate to this value */
-+	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
-+
-+	spinlock_t tx_lock;	/* spinlock for transmit state */
-+	unsigned long tx_bytes;
-+	unsigned long tx_outstanding_bytes;
-+	unsigned long tx_outstanding_urbs;
-+};
-+
- /* struct ftdi_sio_quirk is used by devices requiring special attention. */
- struct ftdi_sio_quirk {
- 	int (*probe)(struct usb_serial *);
--	void (*setup)(struct usb_serial *); /* Special settings during startup. */
-+	void (*port_probe)(struct ftdi_private *); /* Special settings for probed ports. */
- };
+ 	/*  Start the ball rolling on other CPUs  */
+@@ -242,6 +244,7 @@ static void set_mtrr(unsigned int reg, u
  
- static int   ftdi_olimex_probe		(struct usb_serial *serial);
--static void  ftdi_USB_UIRT_setup	(struct usb_serial *serial);
--static void  ftdi_HE_TIRA1_setup	(struct usb_serial *serial);
-+static void  ftdi_USB_UIRT_setup	(struct ftdi_private *priv);
-+static void  ftdi_HE_TIRA1_setup	(struct ftdi_private *priv);
+ 	/* ok, reset count and toggle gate */
+ 	atomic_set(&data.count, num_booting_cpus() - 1);
++	smp_wmb();
+ 	atomic_set(&data.gate,1);
  
- static struct ftdi_sio_quirk ftdi_olimex_quirk = {
- 	.probe	= ftdi_olimex_probe,
- };
+ 	/* do our MTRR business */
+@@ -260,6 +263,7 @@ static void set_mtrr(unsigned int reg, u
+ 		cpu_relax();
  
- static struct ftdi_sio_quirk ftdi_USB_UIRT_quirk = {
--	.setup = ftdi_USB_UIRT_setup,
-+	.port_probe = ftdi_USB_UIRT_setup,
- };
+ 	atomic_set(&data.count, num_booting_cpus() - 1);
++	smp_wmb();
+ 	atomic_set(&data.gate,0);
  
- static struct ftdi_sio_quirk ftdi_HE_TIRA1_quirk = {
--	.setup = ftdi_HE_TIRA1_setup,
-+	.port_probe = ftdi_HE_TIRA1_setup,
- };
- 
- /*
-@@ -567,38 +599,6 @@ static const char *ftdi_chip_name[] = {
- #define THROTTLED		0x01
- #define ACTUALLY_THROTTLED	0x02
- 
--struct ftdi_private {
--	ftdi_chip_type_t chip_type;
--				/* type of the device, either SIO or FT8U232AM */
--	int baud_base;		/* baud base clock for divisor setting */
--	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
--	__u16 last_set_data_urb_value ;
--				/* the last data state set - needed for doing a break */
--        int write_offset;       /* This is the offset in the usb data block to write the serial data -
--				 * it is different between devices
--				 */
--	int flags;		/* some ASYNC_xxxx flags are supported */
--	unsigned long last_dtr_rts;	/* saved modem control outputs */
--        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
--	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
--	__u8 rx_flags;		/* receive state flags (throttling) */
--	spinlock_t rx_lock;	/* spinlock for receive state */
--	struct delayed_work rx_work;
--	struct usb_serial_port *port;
--	int rx_processed;
--	unsigned long rx_bytes;
--
--	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
--
--	int force_baud;		/* if non-zero, force the baud rate to this value */
--	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
--
--	spinlock_t tx_lock;	/* spinlock for transmit state */
--	unsigned long tx_bytes;
--	unsigned long tx_outstanding_bytes;
--	unsigned long tx_outstanding_urbs;
--};
--
- /* Used for TIOCMIWAIT */
- #define FTDI_STATUS_B0_MASK	(FTDI_RS0_CTS | FTDI_RS0_DSR | FTDI_RS0_RI | FTDI_RS0_RLSD)
- #define FTDI_STATUS_B1_MASK	(FTDI_RS_BI)
-@@ -609,7 +609,6 @@ struct ftdi_private {
- 
- /* function prototypes for a FTDI serial converter */
- static int  ftdi_sio_probe	(struct usb_serial *serial, const struct usb_device_id *id);
--static int  ftdi_sio_attach		(struct usb_serial *serial);
- static void ftdi_shutdown		(struct usb_serial *serial);
- static int  ftdi_sio_port_probe	(struct usb_serial_port *port);
- static int  ftdi_sio_port_remove	(struct usb_serial_port *port);
-@@ -663,7 +662,6 @@ static struct usb_serial_driver ftdi_sio
- 	.ioctl =		ftdi_ioctl,
- 	.set_termios =		ftdi_set_termios,
- 	.break_ctl =		ftdi_break_ctl,
--	.attach =		ftdi_sio_attach,
- 	.shutdown =		ftdi_shutdown,
- };
- 
-@@ -1200,6 +1198,8 @@ static int ftdi_sio_probe (struct usb_se
- static int ftdi_sio_port_probe(struct usb_serial_port *port)
- {
- 	struct ftdi_private *priv;
-+	struct ftdi_sio_quirk *quirk = usb_get_serial_data(port->serial);
-+
- 
- 	dbg("%s",__FUNCTION__);
- 
-@@ -1216,6 +1216,9 @@ static int ftdi_sio_port_probe(struct us
- 	   than queue a task to deliver them */
- 	priv->flags = ASYNC_LOW_LATENCY;
- 
-+	if (quirk && quirk->port_probe)
-+		quirk->port_probe(priv);
-+
- 	/* Increase the size of read buffers */
- 	kfree(port->bulk_in_buffer);
- 	port->bulk_in_buffer = kmalloc (BUFSZ, GFP_KERNEL);
-@@ -1246,29 +1249,13 @@ static int ftdi_sio_port_probe(struct us
- 	return 0;
- }
- 
--/* attach subroutine */
--static int ftdi_sio_attach (struct usb_serial *serial)
--{
--	/* Check for device requiring special set up. */
--	struct ftdi_sio_quirk *quirk = usb_get_serial_data(serial);
--
--	if (quirk && quirk->setup)
--		quirk->setup(serial);
--
--	return 0;
--} /* ftdi_sio_attach */
--
--
- /* Setup for the USB-UIRT device, which requires hardwired
-  * baudrate (38400 gets mapped to 312500) */
- /* Called from usbserial:serial_probe */
--static void ftdi_USB_UIRT_setup (struct usb_serial *serial)
-+static void ftdi_USB_UIRT_setup (struct ftdi_private *priv)
- {
--	struct ftdi_private *priv;
--
- 	dbg("%s",__FUNCTION__);
- 
--	priv = usb_get_serial_port_data(serial->port[0]);
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 77;
- 	priv->force_baud = B38400;
-@@ -1276,13 +1263,10 @@ static void ftdi_USB_UIRT_setup (struct 
- 
- /* Setup for the HE-TIRA1 device, which requires hardwired
-  * baudrate (38400 gets mapped to 100000) and RTS-CTS enabled.  */
--static void ftdi_HE_TIRA1_setup (struct usb_serial *serial)
-+static void ftdi_HE_TIRA1_setup (struct ftdi_private *priv)
- {
--	struct ftdi_private *priv;
--
- 	dbg("%s",__FUNCTION__);
- 
--	priv = usb_get_serial_port_data(serial->port[0]);
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 240;
- 	priv->force_baud = B38400;
+ 	/*
 _
 
-Patches currently in -mm which might be from oliver@neukum.org are
+Patches currently in -mm which might be from loic@myri.com are
 
-ftdi_sio-fix-something.patch
+mtrr-fix-race-causing-set_mtrr-to-go-into-infinite-loop.patch
