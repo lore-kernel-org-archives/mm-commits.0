@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-virtual-video-driver.patch added to -mm tree
-Date: Tue, 03 Jul 2007 14:24:07 -0700
-Message-ID: <200707032124.l63LO7rQ016553@imap1.linux-foundation.org>
+Subject: + use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch added to -mm tree
+Date: Tue, 03 Jul 2007 14:24:03 -0700
+Message-ID: <200707032124.l63LO3FC016461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38971 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60332 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757734AbXGCVYS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:24:18 -0400
+	by vger.kernel.org with ESMTP id S1756821AbXGCVYP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, mchehab@infradead.org
+Cc: matthias.kaehlcke@gmail.com, Sumant.Patro@lsi.com
 
 
 The patch titled
-     use mutex instead of semaphore in Virtual Video driver
+     use mutex instead of semaphore in Megaraid Mailbox driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-virtual-video-driver.patch
+     use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in Virtual Video driver
+Subject: use mutex instead of semaphore in Megaraid Mailbox driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The Virtual Video driver uses a semaphore as mutex.  Use the mutex API instead
-of the (binary) semaphore.
+The Megaraid Mailbox driver uses a semaphore as mutex.  Use the mutex API
+instead of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Patro, Sumant" <Sumant.Patro@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/vivi.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/scsi/megaraid/mega_common.h   |    1 +
+ drivers/scsi/megaraid/megaraid_mbox.c |    6 +++---
+ drivers/scsi/megaraid/megaraid_mbox.h |    4 ++--
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/video/vivi.c~use-mutex-instead-of-semaphore-in-virtual-video-driver drivers/media/video/vivi.c
---- a/drivers/media/video/vivi.c~use-mutex-instead-of-semaphore-in-virtual-video-driver
-+++ a/drivers/media/video/vivi.c
-@@ -25,6 +25,7 @@
+diff -puN drivers/scsi/megaraid/mega_common.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/mega_common.h
+--- a/drivers/scsi/megaraid/mega_common.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
++++ a/drivers/scsi/megaraid/mega_common.h
+@@ -21,6 +21,7 @@
+ #include <linux/types.h>
  #include <linux/pci.h>
- #include <linux/random.h>
- #include <linux/version.h>
+ #include <linux/spinlock.h>
 +#include <linux/mutex.h>
- #include <linux/videodev2.h>
- #include <linux/dma-mapping.h>
- #ifdef CONFIG_VIDEO_V4L1_COMPAT
-@@ -165,7 +166,7 @@ static LIST_HEAD(vivi_devlist);
- struct vivi_dev {
- 	struct list_head           vivi_devlist;
- 
--	struct semaphore           lock;
-+	struct mutex               lock;
- 
- 	int                        users;
- 
-@@ -738,16 +739,16 @@ static struct videobuf_queue_ops vivi_vi
- static int res_get(struct vivi_dev *dev, struct vivi_fh *fh)
- {
- 	/* is it free? */
--	down(&dev->lock);
-+	mutex_lock(&dev->lock);
- 	if (dev->resources) {
- 		/* no, someone else uses it */
--		up(&dev->lock);
-+		mutex_unlock(&dev->lock);
- 		return 0;
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/blkdev.h>
+diff -puN drivers/scsi/megaraid/megaraid_mbox.c~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/megaraid_mbox.c
+--- a/drivers/scsi/megaraid/megaraid_mbox.c~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
++++ a/drivers/scsi/megaraid/megaraid_mbox.c
+@@ -3880,7 +3880,7 @@ megaraid_sysfs_alloc_resources(adapter_t
+ 		megaraid_sysfs_free_resources(adapter);
  	}
- 	/* it's free, grab it */
- 	dev->resources =1;
- 	dprintk(1,"res: get\n");
--	up(&dev->lock);
-+	mutex_unlock(&dev->lock);
- 	return 1;
+ 
+-	sema_init(&raid_dev->sysfs_sem, 1);
++	mutex_init(&raid_dev->sysfs_mtx);
+ 
+ 	init_waitqueue_head(&raid_dev->sysfs_wait_q);
+ 
+@@ -3981,7 +3981,7 @@ megaraid_sysfs_get_ldmap(adapter_t *adap
+ 	/*
+ 	 * Allow only one read at a time to go through the sysfs attributes
+ 	 */
+-	down(&raid_dev->sysfs_sem);
++	mutex_lock(&raid_dev->sysfs_mtx);
+ 
+ 	uioc	= raid_dev->sysfs_uioc;
+ 	mbox64	= raid_dev->sysfs_mbox64;
+@@ -4057,7 +4057,7 @@ megaraid_sysfs_get_ldmap(adapter_t *adap
+ 
+ 	del_timer_sync(timerp);
+ 
+-	up(&raid_dev->sysfs_sem);
++	mutex_unlock(&raid_dev->sysfs_mtx);
+ 
+ 	return rval;
  }
- 
-@@ -758,10 +759,10 @@ static int res_locked(struct vivi_dev *d
- 
- static void res_free(struct vivi_dev *dev, struct vivi_fh *fh)
- {
--	down(&dev->lock);
-+	mutex_lock(&dev->lock);
- 	dev->resources = 0;
- 	dprintk(1,"res: put\n");
--	up(&dev->lock);
-+	mutex_lock(&dev->lock);
- }
- 
- /* ------------------------------------------------------------------
-@@ -1260,7 +1261,7 @@ static int __init vivi_init(void)
- 	init_waitqueue_head(&dev->vidq.wq);
- 
- 	/* initialize locks */
--	init_MUTEX(&dev->lock);
-+	mutex_init(&dev->lock);
- 
- 	dev->vidq.timeout.function = vivi_vid_timeout;
- 	dev->vidq.timeout.data     = (unsigned long)dev;
+diff -puN drivers/scsi/megaraid/megaraid_mbox.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver drivers/scsi/megaraid/megaraid_mbox.h
+--- a/drivers/scsi/megaraid/megaraid_mbox.h~use-mutex-instead-of-semaphore-in-megaraid-mailbox-driver
++++ a/drivers/scsi/megaraid/megaraid_mbox.h
+@@ -168,7 +168,7 @@ typedef struct {
+  * @hw_error			: set if FW not responding
+  * @fast_load			: If set, skip physical device scanning
+  * @channel_class		: channel class, RAID or SCSI
+- * @sysfs_sem			: semaphore to serialize access to sysfs res.
++ * @sysfs_mtx			: mutex to serialize access to sysfs res.
+  * @sysfs_uioc			: management packet to issue FW calls from sysfs
+  * @sysfs_mbox64		: mailbox packet to issue FW calls from sysfs
+  * @sysfs_buffer		: data buffer for FW commands issued from sysfs
+@@ -208,7 +208,7 @@ typedef struct {
+ 	int				hw_error;
+ 	int				fast_load;
+ 	uint8_t				channel_class;
+-	struct semaphore		sysfs_sem;
++	struct mutex			sysfs_mtx;
+ 	uioc_t				*sysfs_uioc;
+ 	mbox64_t			*sysfs_mbox64;
+ 	caddr_t				sysfs_buffer;
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
