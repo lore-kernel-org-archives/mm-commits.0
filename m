@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch added to -mm tree
-Date: Tue, 03 Jul 2007 14:59:01 -0700
-Message-ID: <200707032159.l63Lx1RL018385@imap1.linux-foundation.org>
+Subject: + mm-variable-length-argument-support-fix-2.patch added to -mm tree
+Date: Tue, 03 Jul 2007 15:20:27 -0700
+Message-ID: <200707032220.l63MKRvT019488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51310 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969AbXGCV7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:59:17 -0400
+	by vger.kernel.org with ESMTP id S1753965AbXGCWUt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 18:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, venkatesh.pallipadi@intel.com
+Cc: bunk@stusta.de, a.p.zijlstra@chello.nl, aaw@google.com
 
 
 The patch titled
-     make cpuidle_replace_governor() static
+     unexport bprm_mm_init
 has been added to the -mm tree.  Its filename is
-     cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+     mm-variable-length-argument-support-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make cpuidle_replace_governor() static
+Subject: unexport bprm_mm_init
 From: Adrian Bunk <bunk@stusta.de>
 
+On Thu, Jun 28, 2007 at 03:43:21AM -0700, Andrew Morton wrote:
+>...
+> Changes since 2.6.22-rc4-mm2:
+>...
+> +mm-variable-length-argument-support.patch
+>...
+>  Remove the fixed command-line length limit
+>...
+
+bprm_mm_init doesn't have any modular users.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Ollie Wild <aaw@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governor.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix drivers/cpuidle/governor.c
---- a/drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix
-+++ a/drivers/cpuidle/governor.c
-@@ -147,7 +147,7 @@ EXPORT_SYMBOL_GPL(cpuidle_register_gover
-  * @exclude_rating: the rating that will be skipped while looking for
-  * new governor.
-  */
--struct cpuidle_governor *cpuidle_replace_governor(int exclude_rating)
-+static struct cpuidle_governor *cpuidle_replace_governor(int exclude_rating)
- {
- 	struct cpuidle_governor *gov;
- 	struct cpuidle_governor *ret_gov = NULL;
+diff -puN fs/exec.c~mm-variable-length-argument-support-fix-2 fs/exec.c
+--- a/fs/exec.c~mm-variable-length-argument-support-fix-2
++++ a/fs/exec.c
+@@ -379,7 +379,6 @@ err:
+ 
+ 	return err;
+ }
+-EXPORT_SYMBOL(bprm_mm_init);
+ 
+ /*
+  * count() counts the number of strings in array ARGV.
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -110,6 +121,7 @@ fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
 pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
 intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
+mm-variable-length-argument-support-fix-2.patch
 kernel-sched_fairc-make-code-static.patch
 fs-proc-basec-make-a-struct-static.patch
 mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
