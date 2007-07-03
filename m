@@ -1,236 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: + ftdi_sio-fix-something.patch added to -mm tree
-Date: Mon, 02 Jul 2007 23:40:26 -0700
-Message-ID: <200707030640.l636eRCW005309@imap1.linux-foundation.org>
+Subject: - file-caps-update-selinux-xattr-hooks.patch removed from -mm tree
+Date: Tue, 03 Jul 2007 08:36:15 -0700
+Message-ID: <200707031536.l63FaFYw031318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41294 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753461AbXGCGlQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 02:41:16 -0400
+	by vger.kernel.org with ESMTP id S1754358AbXGCPgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 11:36:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oliver@neukum.org, greg@kroah.com
+To: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ftdi_sio: fix oops due to processing workarounds too early
-has been added to the -mm tree.  Its filename is
-     ftdi_sio-fix-something.patch
+     file caps: update selinux xattr hooks
+has been removed from the -mm tree.  Its filename was
+     file-caps-update-selinux-xattr-hooks.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ftdi_sio: fix oops due to processing workarounds too early
-From: Oliver Neukum <oliver@neukum.org>
+Subject: file caps: update selinux xattr hooks
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Fix an oops that happens in relation with applying work arounds for buggy
-ftdi_sio devices.  The quirks were handled too early because due to changes in
-the initialisation of usb serial devices the device was not fully initialised
-when the old hook was called.
+SELinux does not call out to it's secondary module for setxattr or
+removexattr mediation, as the secondary module would incorrectly prevent
+writing of selinux xattrs.  This means that when selinux and capability are
+both loaded, admins will be able to write file capabilities with
+CAP_SYS_ADMIN as before, not with CAP_SETFCAP.
 
-Addresses bug 8564
+Update the selinux hooks to hardcode logic for the special consideration
+for file caps.
 
-Cc: Greg KH <greg@kroah.com>
+I changed the flow of the removexattr hook to reduce the amount of
+indentation I was getting.  It was probably written the way it was for a
+reason, and if it was, I apologize and will rewrite :) If it wasn't,
+hopefully this way is ok.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |  104 +++++++++++++-------------------
- 1 file changed, 44 insertions(+), 60 deletions(-)
+ security/selinux/hooks.c |   75 +++++++++++++++++++++++--------------
+ 1 file changed, 48 insertions(+), 27 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -271,26 +271,58 @@ static int debug;
- static __u16 vendor = FTDI_VID;
- static __u16 product;
- 
-+struct ftdi_private {
-+	ftdi_chip_type_t chip_type;
-+				/* type of the device, either SIO or FT8U232AM */
-+	int baud_base;		/* baud base clock for divisor setting */
-+	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
-+	__u16 last_set_data_urb_value ;
-+				/* the last data state set - needed for doing a break */
-+        int write_offset;       /* This is the offset in the usb data block to write the serial data -
-+				 * it is different between devices
-+				 */
-+	int flags;		/* some ASYNC_xxxx flags are supported */
-+	unsigned long last_dtr_rts;	/* saved modem control outputs */
-+        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
-+	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
-+	__u8 rx_flags;		/* receive state flags (throttling) */
-+	spinlock_t rx_lock;	/* spinlock for receive state */
-+	struct delayed_work rx_work;
-+	struct usb_serial_port *port;
-+	int rx_processed;
-+	unsigned long rx_bytes;
-+
-+	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
-+
-+	int force_baud;		/* if non-zero, force the baud rate to this value */
-+	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
-+
-+	spinlock_t tx_lock;	/* spinlock for transmit state */
-+	unsigned long tx_bytes;
-+	unsigned long tx_outstanding_bytes;
-+	unsigned long tx_outstanding_urbs;
-+};
-+
- /* struct ftdi_sio_quirk is used by devices requiring special attention. */
- struct ftdi_sio_quirk {
- 	int (*probe)(struct usb_serial *);
--	void (*setup)(struct usb_serial *); /* Special settings during startup. */
-+	void (*port_probe)(struct ftdi_private *); /* Special settings for probed ports. */
- };
- 
- static int   ftdi_olimex_probe		(struct usb_serial *serial);
--static void  ftdi_USB_UIRT_setup	(struct usb_serial *serial);
--static void  ftdi_HE_TIRA1_setup	(struct usb_serial *serial);
-+static void  ftdi_USB_UIRT_setup	(struct ftdi_private *priv);
-+static void  ftdi_HE_TIRA1_setup	(struct ftdi_private *priv);
- 
- static struct ftdi_sio_quirk ftdi_olimex_quirk = {
- 	.probe	= ftdi_olimex_probe,
- };
- 
- static struct ftdi_sio_quirk ftdi_USB_UIRT_quirk = {
--	.setup = ftdi_USB_UIRT_setup,
-+	.port_probe = ftdi_USB_UIRT_setup,
- };
- 
- static struct ftdi_sio_quirk ftdi_HE_TIRA1_quirk = {
--	.setup = ftdi_HE_TIRA1_setup,
-+	.port_probe = ftdi_HE_TIRA1_setup,
- };
- 
- /*
-@@ -567,38 +599,6 @@ static const char *ftdi_chip_name[] = {
- #define THROTTLED		0x01
- #define ACTUALLY_THROTTLED	0x02
- 
--struct ftdi_private {
--	ftdi_chip_type_t chip_type;
--				/* type of the device, either SIO or FT8U232AM */
--	int baud_base;		/* baud base clock for divisor setting */
--	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
--	__u16 last_set_data_urb_value ;
--				/* the last data state set - needed for doing a break */
--        int write_offset;       /* This is the offset in the usb data block to write the serial data -
--				 * it is different between devices
--				 */
--	int flags;		/* some ASYNC_xxxx flags are supported */
--	unsigned long last_dtr_rts;	/* saved modem control outputs */
--        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
--	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
--	__u8 rx_flags;		/* receive state flags (throttling) */
--	spinlock_t rx_lock;	/* spinlock for receive state */
--	struct delayed_work rx_work;
--	struct usb_serial_port *port;
--	int rx_processed;
--	unsigned long rx_bytes;
--
--	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
--
--	int force_baud;		/* if non-zero, force the baud rate to this value */
--	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
--
--	spinlock_t tx_lock;	/* spinlock for transmit state */
--	unsigned long tx_bytes;
--	unsigned long tx_outstanding_bytes;
--	unsigned long tx_outstanding_urbs;
--};
--
- /* Used for TIOCMIWAIT */
- #define FTDI_STATUS_B0_MASK	(FTDI_RS0_CTS | FTDI_RS0_DSR | FTDI_RS0_RI | FTDI_RS0_RLSD)
- #define FTDI_STATUS_B1_MASK	(FTDI_RS_BI)
-@@ -609,7 +609,6 @@ struct ftdi_private {
- 
- /* function prototypes for a FTDI serial converter */
- static int  ftdi_sio_probe	(struct usb_serial *serial, const struct usb_device_id *id);
--static int  ftdi_sio_attach		(struct usb_serial *serial);
- static void ftdi_shutdown		(struct usb_serial *serial);
- static int  ftdi_sio_port_probe	(struct usb_serial_port *port);
- static int  ftdi_sio_port_remove	(struct usb_serial_port *port);
-@@ -663,7 +662,6 @@ static struct usb_serial_driver ftdi_sio
- 	.ioctl =		ftdi_ioctl,
- 	.set_termios =		ftdi_set_termios,
- 	.break_ctl =		ftdi_break_ctl,
--	.attach =		ftdi_sio_attach,
- 	.shutdown =		ftdi_shutdown,
- };
- 
-@@ -1200,6 +1198,8 @@ static int ftdi_sio_probe (struct usb_se
- static int ftdi_sio_port_probe(struct usb_serial_port *port)
- {
- 	struct ftdi_private *priv;
-+	struct ftdi_sio_quirk *quirk = usb_get_serial_data(port->serial);
-+
- 
- 	dbg("%s",__FUNCTION__);
- 
-@@ -1216,6 +1216,9 @@ static int ftdi_sio_port_probe(struct us
- 	   than queue a task to deliver them */
- 	priv->flags = ASYNC_LOW_LATENCY;
- 
-+	if (quirk && quirk->port_probe)
-+		quirk->port_probe(priv);
-+
- 	/* Increase the size of read buffers */
- 	kfree(port->bulk_in_buffer);
- 	port->bulk_in_buffer = kmalloc (BUFSZ, GFP_KERNEL);
-@@ -1246,29 +1249,13 @@ static int ftdi_sio_port_probe(struct us
- 	return 0;
+diff -puN security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks security/selinux/hooks.c
+--- a/security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks
++++ a/security/selinux/hooks.c
+@@ -2290,6 +2290,30 @@ static int selinux_inode_getattr(struct 
+ 	return dentry_has_perm(current, mnt, dentry, FILE__GETATTR);
  }
  
--/* attach subroutine */
--static int ftdi_sio_attach (struct usb_serial *serial)
--{
--	/* Check for device requiring special set up. */
--	struct ftdi_sio_quirk *quirk = usb_get_serial_data(serial);
--
--	if (quirk && quirk->setup)
--		quirk->setup(serial);
--
--	return 0;
--} /* ftdi_sio_attach */
--
--
- /* Setup for the USB-UIRT device, which requires hardwired
-  * baudrate (38400 gets mapped to 312500) */
- /* Called from usbserial:serial_probe */
--static void ftdi_USB_UIRT_setup (struct usb_serial *serial)
-+static void ftdi_USB_UIRT_setup (struct ftdi_private *priv)
++/* called by selinux_inode_setxattr to mediate setting
++ * of non-selinux xattrs */
++static int selinux_inode_setotherxattr(struct dentry *dentry, char *name)
++{
++	if (strncmp(name, XATTR_SECURITY_PREFIX,
++		     sizeof XATTR_SECURITY_PREFIX - 1))
++		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
++
++	/* a file capability requires cap_setfcap */
++	if (!strcmp(name, XATTR_NAME_CAPS)) {
++		if (!capable(CAP_SETFCAP))
++			return -EPERM;
++		else
++			return 0;
++	}
++
++	/* A different attribute in the security namespace.
++	   Restrict to administrator. */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return 0;
++}
++
+ static int selinux_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags)
  {
--	struct ftdi_private *priv;
+ 	struct task_security_struct *tsec = current->security;
+@@ -2300,19 +2324,8 @@ static int selinux_inode_setxattr(struct
+ 	u32 newsid;
+ 	int rc = 0;
+ 
+-	if (strcmp(name, XATTR_NAME_SELINUX)) {
+-		if (!strncmp(name, XATTR_SECURITY_PREFIX,
+-			     sizeof XATTR_SECURITY_PREFIX - 1) &&
+-		    !capable(CAP_SYS_ADMIN)) {
+-			/* A different attribute in the security namespace.
+-			   Restrict to administrator. */
+-			return -EPERM;
+-		}
 -
- 	dbg("%s",__FUNCTION__);
+-		/* Not an attribute we recognize, so just check the
+-		   ordinary setattr permission. */
+-		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
+-	}
++	if (strcmp(name, XATTR_NAME_SELINUX))
++		return selinux_inode_setotherxattr(dentry, name);
  
--	priv = usb_get_serial_port_data(serial->port[0]);
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 77;
- 	priv->force_baud = B38400;
-@@ -1276,13 +1263,10 @@ static void ftdi_USB_UIRT_setup (struct 
+ 	sbsec = inode->i_sb->s_security;
+ 	if (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)
+@@ -2386,24 +2399,32 @@ static int selinux_inode_listxattr (stru
  
- /* Setup for the HE-TIRA1 device, which requires hardwired
-  * baudrate (38400 gets mapped to 100000) and RTS-CTS enabled.  */
--static void ftdi_HE_TIRA1_setup (struct usb_serial *serial)
-+static void ftdi_HE_TIRA1_setup (struct ftdi_private *priv)
+ static int selinux_inode_removexattr (struct dentry *dentry, char *name)
  {
--	struct ftdi_private *priv;
--
- 	dbg("%s",__FUNCTION__);
+-	if (strcmp(name, XATTR_NAME_SELINUX)) {
+-		if (!strncmp(name, XATTR_SECURITY_PREFIX,
+-			     sizeof XATTR_SECURITY_PREFIX - 1) &&
+-		    !capable(CAP_SYS_ADMIN)) {
+-			/* A different attribute in the security namespace.
+-			   Restrict to administrator. */
+-			return -EPERM;
+-		}
++	/* No one is allowed to remove a SELinux security label.
++	   You can change the label, but all data must be labeled. */
++	if (!strcmp(name, XATTR_NAME_SELINUX))
++		return -EACCES;
  
--	priv = usb_get_serial_port_data(serial->port[0]);
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 240;
- 	priv->force_baud = B38400;
+-		/* Not an attribute we recognize, so just check the
+-		   ordinary setattr permission. Might want a separate
+-		   permission for removexattr. */
++	/* Not an attribute we recognize, so just check the
++	   ordinary setattr permission. Might want a separate
++	   permission for removexattr. */
++	if (strncmp(name, XATTR_SECURITY_PREFIX,
++		     sizeof XATTR_SECURITY_PREFIX - 1))
+ 		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
++
++	/* a file capability requires cap_setfcap */
++	if (!strcmp(name, XATTR_NAME_CAPS)) {
++		if (!capable(CAP_SETFCAP))
++			return -EPERM;
++		else
++			return 0;
+ 	}
+ 
+-	/* No one is allowed to remove a SELinux security label.
+-	   You can change the label, but all data must be labeled. */
+-	return -EACCES;
++	/* A different attribute in the security namespace.
++	   Restrict to administrator. */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return 0;
+ }
+ 
+ static const char *selinux_inode_xattr_getsuffix(void)
 _
 
-Patches currently in -mm which might be from oliver@neukum.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-ftdi_sio-fix-something.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
