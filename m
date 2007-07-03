@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-documentation-filesystems-vfstxt-second-part.patch added to -mm tree
-Date: Tue, 03 Jul 2007 13:38:43 -0700
-Message-ID: <200707032038.l63KchLT014251@imap1.linux-foundation.org>
+Subject: + rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch added to -mm tree
+Date: Tue, 03 Jul 2007 13:49:04 -0700
+Message-ID: <200707032049.l63Kn4u8014713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50032 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43034 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757054AbXGCUjU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 16:39:20 -0400
+	by vger.kernel.org with ESMTP id S1751466AbXGCUtV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 16:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de
+Cc: marcel@holtmann.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     update Documentation/filesystems/vfs.txt
+     rfcomm: hangup ttys before releasing rfcomm_dev
 has been added to the -mm tree.  Its filename is
-     update-documentation-filesystems-vfstxt-second-part.patch
+     rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,155 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update Documentation/filesystems/vfs.txt
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: rfcomm: hangup ttys before releasing rfcomm_dev
 
-Update Documentation/filesystems/vfs.txt
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Addresses the oops at http://bugzilla.kernel.org/show_bug.cgi?id=7509
+
+The core problem is that rfcomm socket layer ioctl can release rfcomm_dev
+struct while rfcomm tty layer is still actively using it.  Calling tty_vhangup
+is needed for a synchronous hangup before rfcomm_dev is freed.
+
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfs.txt      |   29 ++++++++++++-----------
- Documentation/filesystems/vfs.txt.orig |    5 ---
- 2 files changed, 16 insertions(+), 18 deletions(-)
+ net/bluetooth/rfcomm/tty.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN Documentation/filesystems/vfs.txt~update-documentation-filesystems-vfstxt-second-part Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~update-documentation-filesystems-vfstxt-second-part
-+++ a/Documentation/filesystems/vfs.txt
-@@ -197,7 +197,7 @@ struct super_operations
- -----------------------
+diff -puN net/bluetooth/rfcomm/tty.c~rfcomm-hangup-ttys-before-releasing-rfcomm_dev net/bluetooth/rfcomm/tty.c
+--- a/net/bluetooth/rfcomm/tty.c~rfcomm-hangup-ttys-before-releasing-rfcomm_dev
++++ a/net/bluetooth/rfcomm/tty.c
+@@ -383,6 +383,12 @@ static int rfcomm_release_dev(void __use
+ 	if (req.flags & (1 << RFCOMM_HANGUP_NOW))
+ 		rfcomm_dlc_close(dev->dlc, 0);
  
- This describes how the VFS can manipulate the superblock of your
--filesystem. As of kernel 2.6.13, the following members are defined:
-+filesystem. As of kernel 2.6.22, the following members are defined:
- 
- struct super_operations {
-         struct inode *(*alloc_inode)(struct super_block *sb);
-@@ -220,8 +220,6 @@ struct super_operations {
-         void (*clear_inode) (struct inode *);
-         void (*umount_begin) (struct super_block *);
- 
--        void (*sync_inodes) (struct super_block *sb,
--                                struct writeback_control *wbc);
-         int (*show_options)(struct seq_file *, struct vfsmount *);
- 
-         ssize_t (*quota_read)(struct super_block *, int, char *, size_t, loff_t);
-@@ -304,9 +302,6 @@ or bottom half).
- 
-   umount_begin: called when the VFS is unmounting a filesystem.
- 
--  sync_inodes: called when the VFS is writing out dirty data associated with
--  	a superblock.
--
-   show_options: called by the VFS to show mount options for /proc/<pid>/mounts.
- 
-   quota_read: called by the VFS to read from filesystem quota file.
-@@ -328,7 +323,7 @@ struct inode_operations
- -----------------------
- 
- This describes how the VFS can manipulate an inode in your
--filesystem. As of kernel 2.6.13, the following members are defined:
-+filesystem. As of kernel 2.6.22, the following members are defined:
- 
- struct inode_operations {
- 	int (*create) (struct inode *,struct dentry *,int, struct nameidata *);
-@@ -352,6 +347,7 @@ struct inode_operations {
- 	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
- 	int (*removexattr) (struct dentry *, const char *);
-+	void (*truncate_range)(struct inode *, loff_t, loff_t);
- };
- 
- Again, all methods are called without any locks being held, unless
-@@ -448,6 +444,9 @@ otherwise noted.
-   removexattr: called by the VFS to remove an extended attribute from
-   	a file. This method is called by removexattr(2) system call.
- 
-+  truncate_range: a method provided by the underlying filesystem to truncate a
-+  	range of blocks , i.e. punch a hole somewhere in a file.
++	/*
++	 * Be nice and shut down tty(s) synchronously before freeing rfcomm_dev
++	 */
++	if (dev->tty)
++		tty_vhangup(dev->tty);
 +
- 
- The Address Space Object
- ========================
-@@ -526,7 +525,7 @@ struct address_space_operations
- -------------------------------
- 
- This describes how the VFS can manipulate mapping of a file to page cache in
--your filesystem. As of kernel 2.6.16, the following members are defined:
-+your filesystem. As of kernel 2.6.22, the following members are defined:
- 
- struct address_space_operations {
- 	int (*writepage)(struct page *page, struct writeback_control *wbc);
-@@ -553,6 +552,7 @@ struct address_space_operations {
- 			int);
- 	/* migrate the contents of a page to the specified target */
- 	int (*migratepage) (struct page *, struct page *);
-+	int (*launder_page) (struct page *);
- };
- 
-   writepage: called by the VM to write a dirty page to backing store.
-@@ -734,6 +734,10 @@ struct address_space_operations {
- 	transfer any private data across and update any references
-         that it has to the page.
- 
-+  launder_page: Called before freeing a page - it writes back the dirty page. To
-+  	prevent redirtying the page, it is kept locked during the whole
-+	operation.
-+
- The File Object
- ===============
- 
-@@ -744,9 +748,10 @@ struct file_operations
- ----------------------
- 
- This describes how the VFS can manipulate an open file. As of kernel
--2.6.17, the following members are defined:
-+2.6.22, the following members are defined:
- 
- struct file_operations {
-+	struct module *owner;
- 	loff_t (*llseek) (struct file *, loff_t, int);
- 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
- 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
-@@ -773,10 +778,8 @@ struct file_operations {
- 	int (*check_flags)(int);
- 	int (*dir_notify)(struct file *filp, unsigned long arg);
- 	int (*flock) (struct file *, int, struct file_lock *);
--	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, size_t, unsigned 
--int);
--	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned  
--int);
-+	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, size_t, unsigned int);
-+	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned int);
- };
- 
- Again, all methods are called without any locks being held, unless
-diff -puN Documentation/filesystems/vfs.txt.orig~update-documentation-filesystems-vfstxt-second-part Documentation/filesystems/vfs.txt.orig
---- a/Documentation/filesystems/vfs.txt.orig~update-documentation-filesystems-vfstxt-second-part
-+++ a/Documentation/filesystems/vfs.txt.orig
-@@ -777,7 +777,6 @@ struct file_operations {
- int);
- 	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned  
- int);
--	int (*revoke)(struct file *);
- };
- 
- Again, all methods are called without any locks being held, unless
-@@ -851,10 +850,6 @@ otherwise noted.
-   splice_read: called by the VFS to splice data from file to a pipe. This
- 	       method is used by the splice(2) system call
- 
--  revoke: called by revokeat(2) and frevoke(2) system calls to revoke access
--	  to an open file. This method must ensure that all currently blocked
--	  writes are flushed and reads will fail.
--
- Note that the file operations are implemented by the specific
- filesystem in which the inode resides. When opening a device node
- (character or block special) most filesystems will call special
+ 	rfcomm_dev_del(dev);
+ 	rfcomm_dev_put(dev);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from marcel@holtmann.org are
 
-update-description-in-documentation-filesystems-vfstxt-typo-fixed.patch
-update-documentation-filesystems-vfstxt-second-part.patch
+bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
+rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch
