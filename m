@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver.patch added to -mm tree
-Date: Tue, 03 Jul 2007 14:24:09 -0700
-Message-ID: <200707032124.l63LO9wV016556@imap1.linux-foundation.org>
+Subject: + use-mutex-instead-of-semaphore-in-virtual-video-driver.patch added to -mm tree
+Date: Tue, 03 Jul 2007 14:24:07 -0700
+Message-ID: <200707032124.l63LO7rQ016553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33440 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38971 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757840AbXGCVYT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:24:19 -0400
+	by vger.kernel.org with ESMTP id S1757734AbXGCVYS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, samuel@sortiz.org
+Cc: matthias.kaehlcke@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     use mutex instead of semaphore in VLSI 82C147 IrDA controller driver
+     use mutex instead of semaphore in Virtual Video driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver.patch
+     use-mutex-instead-of-semaphore-in-virtual-video-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,142 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in VLSI 82C147 IrDA controller driver
+Subject: use mutex instead of semaphore in Virtual Video driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The VLSI 82C147 IrDA controller driver uses a semaphore as mutex.  Use the
-mutex API instead of the (binary) semaphore.
+The Virtual Video driver uses a semaphore as mutex.  Use the mutex API instead
+of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/vlsi_ir.c |   27 ++++++++++++++-------------
- drivers/net/irda/vlsi_ir.h |    2 +-
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/media/video/vivi.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/irda/vlsi_ir.c~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver drivers/net/irda/vlsi_ir.c
---- a/drivers/net/irda/vlsi_ir.c~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver
-+++ a/drivers/net/irda/vlsi_ir.c
-@@ -44,6 +44,7 @@ MODULE_LICENSE("GPL");
- #include <linux/time.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
+diff -puN drivers/media/video/vivi.c~use-mutex-instead-of-semaphore-in-virtual-video-driver drivers/media/video/vivi.c
+--- a/drivers/media/video/vivi.c~use-mutex-instead-of-semaphore-in-virtual-video-driver
++++ a/drivers/media/video/vivi.c
+@@ -25,6 +25,7 @@
+ #include <linux/pci.h>
+ #include <linux/random.h>
+ #include <linux/version.h>
 +#include <linux/mutex.h>
- #include <asm/uaccess.h>
- #include <asm/byteorder.h>
+ #include <linux/videodev2.h>
+ #include <linux/dma-mapping.h>
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+@@ -165,7 +166,7 @@ static LIST_HEAD(vivi_devlist);
+ struct vivi_dev {
+ 	struct list_head           vivi_devlist;
  
-@@ -1660,8 +1661,8 @@ vlsi_irda_probe(struct pci_dev *pdev, co
- 	idev = ndev->priv;
+-	struct semaphore           lock;
++	struct mutex               lock;
  
- 	spin_lock_init(&idev->lock);
--	init_MUTEX(&idev->sem);
--	down(&idev->sem);
-+	mutex_init(&idev->mtx);
-+	mutex_lock(&idev->mtx);
- 	idev->pdev = pdev;
+ 	int                        users;
  
- 	if (vlsi_irda_init(ndev) < 0)
-@@ -1689,12 +1690,12 @@ vlsi_irda_probe(struct pci_dev *pdev, co
- 	IRDA_MESSAGE("%s: registered device %s\n", drivername, ndev->name);
- 
- 	pci_set_drvdata(pdev, ndev);
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 
- 	return 0;
- 
- out_freedev:
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 	free_netdev(ndev);
- out_disable:
- 	pci_disable_device(pdev);
-@@ -1716,12 +1717,12 @@ static void __devexit vlsi_irda_remove(s
- 	unregister_netdev(ndev);
- 
- 	idev = ndev->priv;
--	down(&idev->sem);
-+	mutex_lock(&idev->mtx);
- 	if (idev->proc_entry) {
- 		remove_proc_entry(ndev->name, vlsi_proc_root);
- 		idev->proc_entry = NULL;
- 	}
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 
- 	free_netdev(ndev);
- 
-@@ -1751,7 +1752,7 @@ static int vlsi_irda_suspend(struct pci_
+@@ -738,16 +739,16 @@ static struct videobuf_queue_ops vivi_vi
+ static int res_get(struct vivi_dev *dev, struct vivi_fh *fh)
+ {
+ 	/* is it free? */
+-	down(&dev->lock);
++	mutex_lock(&dev->lock);
+ 	if (dev->resources) {
+ 		/* no, someone else uses it */
+-		up(&dev->lock);
++		mutex_unlock(&dev->lock);
  		return 0;
  	}
- 	idev = ndev->priv;	
--	down(&idev->sem);
-+	mutex_lock(&idev->mtx);
- 	if (pdev->current_state != 0) {			/* already suspended */
- 		if (state.event > pdev->current_state) {	/* simply go deeper */
- 			pci_set_power_state(pdev, pci_choose_state(pdev, state));
-@@ -1759,7 +1760,7 @@ static int vlsi_irda_suspend(struct pci_
- 		}
- 		else
- 			IRDA_ERROR("%s - %s: invalid suspend request %u -> %u\n", __FUNCTION__, pci_name(pdev), pdev->current_state, state.event);
--		up(&idev->sem);
-+		mutex_unlock(&idev->mtx);
- 		return 0;
- 	}
- 
-@@ -1775,7 +1776,7 @@ static int vlsi_irda_suspend(struct pci_
- 	pci_set_power_state(pdev, pci_choose_state(pdev, state));
- 	pdev->current_state = state.event;
- 	idev->resume_ok = 1;
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 	return 0;
+ 	/* it's free, grab it */
+ 	dev->resources =1;
+ 	dprintk(1,"res: get\n");
+-	up(&dev->lock);
++	mutex_unlock(&dev->lock);
+ 	return 1;
  }
  
-@@ -1790,9 +1791,9 @@ static int vlsi_irda_resume(struct pci_d
- 		return 0;
- 	}
- 	idev = ndev->priv;	
--	down(&idev->sem);
-+	mutex_lock(&idev->mtx);
- 	if (pdev->current_state == 0) {
--		up(&idev->sem);
-+		mutex_unlock(&idev->mtx);
- 		IRDA_WARNING("%s - %s: already resumed\n",
- 			     __FUNCTION__, pci_name(pdev));
- 		return 0;
-@@ -1814,7 +1815,7 @@ static int vlsi_irda_resume(struct pci_d
- 		 * device and independently resume_ok should catch any garbage config.
- 		 */
- 		IRDA_WARNING("%s - hm, nothing to resume?\n", __FUNCTION__);
--		up(&idev->sem);
-+		mutex_unlock(&idev->mtx);
- 		return 0;
- 	}
+@@ -758,10 +759,10 @@ static int res_locked(struct vivi_dev *d
  
-@@ -1824,7 +1825,7 @@ static int vlsi_irda_resume(struct pci_d
- 		netif_device_attach(ndev);
- 	}
- 	idev->resume_ok = 0;
--	up(&idev->sem);
-+	mutex_unlock(&idev->mtx);
- 	return 0;
+ static void res_free(struct vivi_dev *dev, struct vivi_fh *fh)
+ {
+-	down(&dev->lock);
++	mutex_lock(&dev->lock);
+ 	dev->resources = 0;
+ 	dprintk(1,"res: put\n");
+-	up(&dev->lock);
++	mutex_lock(&dev->lock);
  }
  
-diff -puN drivers/net/irda/vlsi_ir.h~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver drivers/net/irda/vlsi_ir.h
---- a/drivers/net/irda/vlsi_ir.h~use-mutex-instead-of-semaphore-in-vlsi-82c147-irda-controller-driver
-+++ a/drivers/net/irda/vlsi_ir.h
-@@ -728,7 +728,7 @@ typedef struct vlsi_irda_dev {
- 	struct timeval		last_rx;
+ /* ------------------------------------------------------------------
+@@ -1260,7 +1261,7 @@ static int __init vivi_init(void)
+ 	init_waitqueue_head(&dev->vidq.wq);
  
- 	spinlock_t		lock;
--	struct semaphore	sem;
-+	struct mutex		mtx;
+ 	/* initialize locks */
+-	init_MUTEX(&dev->lock);
++	mutex_init(&dev->lock);
  
- 	u8			resume_ok;	
- 	struct proc_dir_entry	*proc_entry;
+ 	dev->vidq.timeout.function = vivi_vid_timeout;
+ 	dev->vidq.timeout.data     = (unsigned long)dev;
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
