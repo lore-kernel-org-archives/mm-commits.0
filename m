@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + generic-bug-use-show_regs-instead-of-dump_stack.patch added to -mm tree
-Date: Tue, 03 Jul 2007 10:50:38 -0700
-Message-ID: <200707031750.l63HocAO005997@imap1.linux-foundation.org>
+Subject: + kconfig-reset-generated-values-only-if-kconfig-and-config-agree.patch added to -mm tree
+Date: Tue, 03 Jul 2007 11:08:07 -0700
+Message-ID: <200707031808.l63I876O006838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37813 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754652AbXGCRwP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:52:15 -0400
+	by vger.kernel.org with ESMTP id S1752176AbXGCSI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 14:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, ak@suse.de, hskinnemoen@atmel.com, jeremy@goop.org, kyle@parisc-linux.org, lethal@linux-sh.org, paulus@samba.org, schwidefsky@de.ibm.com
+Cc: zippel@linux-m68k.org, sam@ravnborg.org
 
 
 The patch titled
-     generic bug: use show_regs() instead of dump_stack()
+     kconfig: reset generated values only if Kconfig and .config agree.
 has been added to the -mm tree.  Its filename is
-     generic-bug-use-show_regs-instead-of-dump_stack.patch
+     kconfig-reset-generated-values-only-if-kconfig-and-config-agree.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,218 +25,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: generic bug: use show_regs() instead of dump_stack()
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: kconfig: reset generated values only if Kconfig and .config agree.
+From: Roman Zippel <zippel@linux-m68k.org>
 
-The current generic bug implementation has a call to dump_stack() in case a
-WARN_ON(whatever) gets hit.  Since report_bug(), which calls dump_stack(),
-gets called from an exception handler we can do better: just pass the
-pt_regs structure to report_bug() and pass it to show_regs() in case of a
-warning.  This will give more debug informations like register contents,
-etc...  In addition this avoids some pointless lines that dump_stack()
-emits, since it includes a stack backtrace of the exception handler which
-is of no interest in case of a warning.  E.g.  on s390 the following lines
-are currently always present in a stack backtrace if dump_stack() gets
-called from report_bug():
+Normally generated values (Kconfig entries without a prompt) are cleared as
+they are regenerated anyway and so they appear as new should they become
+visible and defaults work as expected (once a value is set defaults aren't
+used anymore).
 
- [<000000000001517a>] show_trace+0x92/0xe8)
- [<0000000000015270>] show_stack+0xa0/0xd0
- [<00000000000152ce>] dump_stack+0x2e/0x3c
- [<0000000000195450>] report_bug+0x98/0xf8
- [<0000000000016cc8>] illegal_op+0x1fc/0x21c
- [<00000000000227d6>] sysc_return+0x0/0x10
+The detection whether a value is generated or not is only based on its
+visibility status, which can quickly change for a lot of symbols by just
+removing a single line from .config or adding a dependency to Kconfig as you
+noticed.
 
-Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+The patch now suppresses this logic when .config and Kconfig aren't in sync
+and .config needs to be updated, so that you can remove now a random value
+from .config and oldconfig won't reask for many other values.
+
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/traps.c   |    2 +-
- arch/i386/kernel/traps.c    |    2 +-
- arch/parisc/kernel/traps.c  |    2 +-
- arch/powerpc/kernel/traps.c |    2 +-
- arch/ppc/kernel/traps.c     |    2 +-
- arch/s390/kernel/traps.c    |    2 +-
- arch/sh/kernel/traps.c      |    2 +-
- arch/x86_64/kernel/traps.c  |    2 +-
- include/linux/bug.h         |    7 +++++--
- lib/bug.c                   |    5 +++--
- 10 files changed, 16 insertions(+), 12 deletions(-)
+ scripts/kconfig/confdata.c |   37 ++++++++++++++++++++++++-----------
+ 1 files changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN arch/avr32/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/avr32/kernel/traps.c
---- a/arch/avr32/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/avr32/kernel/traps.c
-@@ -185,7 +185,7 @@ asmlinkage void do_illegal_opcode(unsign
- 	if (!user_mode(regs) && (ecr == ECR_ILLEGAL_OPCODE)) {
- 		enum bug_trap_type type;
- 
--		type = report_bug(regs->pc);
-+		type = report_bug(regs->pc, regs);
- 		switch (type) {
- 		case BUG_TRAP_TYPE_NONE:
- 			break;
-diff -puN arch/i386/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/i386/kernel/traps.c
-@@ -458,7 +458,7 @@ void die(const char * str, struct pt_reg
- 		unsigned long esp;
- 		unsigned short ss;
- 
--		report_bug(regs->eip);
-+		report_bug(regs->eip, regs);
- 
- 		printk(KERN_EMERG "%s: %04lx [#%d]\n", str, err & 0xffff, ++die_counter);
- #ifdef CONFIG_PREEMPT
-diff -puN arch/parisc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/parisc/kernel/traps.c
---- a/arch/parisc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/parisc/kernel/traps.c
-@@ -302,7 +302,7 @@ static void handle_break(struct pt_regs 
- 	if (unlikely(iir == PARISC_BUG_BREAK_INSN && !user_mode(regs))) {
- 		/* check if a BUG() or WARN() trapped here.  */
- 		enum bug_trap_type tt;
--		tt = report_bug(regs->iaoq[0] & ~3);
-+		tt = report_bug(regs->iaoq[0] & ~3, regs);
- 		if (tt == BUG_TRAP_TYPE_WARN) {
- 			regs->iaoq[0] += 4;
- 			regs->iaoq[1] += 4;
-diff -puN arch/powerpc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/powerpc/kernel/traps.c
-@@ -778,7 +778,7 @@ void __kprobes program_check_exception(s
- 			return;
- 
- 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
--		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
-+		    report_bug(regs->nip, regs) == BUG_TRAP_TYPE_WARN) {
- 			regs->nip += 4;
- 			return;
- 		}
-diff -puN arch/ppc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/ppc/kernel/traps.c
---- a/arch/ppc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/ppc/kernel/traps.c
-@@ -620,7 +620,7 @@ void program_check_exception(struct pt_r
- 			return;
- 
- 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
--		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
-+		    report_bug(regs->nip, regs) == BUG_TRAP_TYPE_WARN) {
- 			regs->nip += 4;
- 			return;
- 		}
-diff -puN arch/s390/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/s390/kernel/traps.c
---- a/arch/s390/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/s390/kernel/traps.c
-@@ -320,7 +320,7 @@ static void __kprobes inline do_trap(lon
- 		else {
- 			enum bug_trap_type btt;
- 
--			btt = report_bug(regs->psw.addr & PSW_ADDR_INSN);
-+			btt = report_bug(regs->psw.addr & PSW_ADDR_INSN, regs);
- 			if (btt == BUG_TRAP_TYPE_WARN)
- 				return;
- 			die(str, regs, interruption_code);
-diff -puN arch/sh/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/sh/kernel/traps.c
---- a/arch/sh/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/sh/kernel/traps.c
-@@ -875,7 +875,7 @@ void __init trap_init(void)
- void handle_BUG(struct pt_regs *regs)
- {
- 	enum bug_trap_type tt;
--	tt = report_bug(regs->pc);
-+	tt = report_bug(regs->pc, regs);
- 	if (tt == BUG_TRAP_TYPE_WARN) {
- 		regs->pc += 2;
- 		return;
-diff -puN arch/x86_64/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/arch/x86_64/kernel/traps.c
-@@ -599,7 +599,7 @@ void die(const char * str, struct pt_reg
- 	unsigned long flags = oops_begin();
- 
- 	if (!user_mode(regs))
--		report_bug(regs->rip);
-+		report_bug(regs->rip, regs);
- 
- 	__die(str, regs, err);
- 	oops_end(flags);
-diff -puN include/linux/bug.h~generic-bug-use-show_regs-instead-of-dump_stack include/linux/bug.h
---- a/include/linux/bug.h~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/include/linux/bug.h
-@@ -10,6 +10,8 @@ enum bug_trap_type {
- 	BUG_TRAP_TYPE_BUG = 2,
- };
- 
-+struct pt_regs;
+diff -puN scripts/kconfig/confdata.c~kconfig-reset-generated-values-only-if-kconfig-and-config-agree scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kconfig-reset-generated-values-only-if-kconfig-and-config-agree
++++ a/scripts/kconfig/confdata.c
+@@ -341,27 +341,42 @@ int conf_read(const char *name)
+ 		conf_unsaved++;
+ 		/* maybe print value in verbose mode... */
+ 	sym_ok:
++		if (!sym_is_choice(sym))
++			continue;
++		/* The choice symbol only has a set value (and thus is not new)
++		 * if all its visible childs have values.
++		 */
++		prop = sym_get_choice_prop(sym);
++		flags = sym->flags;
++		for (e = prop->expr; e; e = e->left.expr)
++			if (e->right.sym->visible != no)
++				flags &= e->right.sym->flags;
++		sym->flags &= flags | ~SYMBOL_DEF_USER;
++	}
 +
- #ifdef CONFIG_GENERIC_BUG
- #include <asm-generic/bug.h>
- 
-@@ -20,7 +22,7 @@ static inline int is_warning_bug(const s
- 
- const struct bug_entry *find_bug(unsigned long bugaddr);
- 
--enum bug_trap_type report_bug(unsigned long bug_addr);
-+enum bug_trap_type report_bug(unsigned long bug_addr, struct pt_regs *regs);
- 
- int  module_bug_finalize(const Elf_Ehdr *, const Elf_Shdr *,
- 			 struct module *);
-@@ -31,7 +33,8 @@ int is_valid_bugaddr(unsigned long addr)
- 
- #else	/* !CONFIG_GENERIC_BUG */
- 
--static inline enum bug_trap_type report_bug(unsigned long bug_addr)
-+static inline enum bug_trap_type report_bug(unsigned long bug_addr,
-+					    struct pt_regs *regs)
- {
- 	return BUG_TRAP_TYPE_BUG;
- }
-diff -puN lib/bug.c~generic-bug-use-show_regs-instead-of-dump_stack lib/bug.c
---- a/lib/bug.c~generic-bug-use-show_regs-instead-of-dump_stack
-+++ a/lib/bug.c
-@@ -38,6 +38,7 @@
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/bug.h>
-+#include <linux/sched.h>
- 
- extern const struct bug_entry __start___bug_table[], __stop___bug_table[];
- 
-@@ -112,7 +113,7 @@ const struct bug_entry *find_bug(unsigne
- 	return module_find_bug(bugaddr);
- }
- 
--enum bug_trap_type report_bug(unsigned long bugaddr)
-+enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
- {
- 	const struct bug_entry *bug;
- 	const char *file;
-@@ -147,7 +148,7 @@ enum bug_trap_type report_bug(unsigned l
- 			       "[verbose debug info unavailable]\n",
- 			       (void *)bugaddr);
- 
--		dump_stack();
-+		show_regs(regs);
- 		return BUG_TRAP_TYPE_WARN;
++	for_all_symbols(i, sym) {
+ 		if (sym_has_value(sym) && !sym_is_choice_value(sym)) {
+-			if (sym->visible == no)
++			/* Reset values of generates values, so they'll appear
++			 * as new, if they should become visible, but that
++			 * doesn't quite work if the Kconfig and the saved
++			 * configuration disagree.
++			 */
++			if (sym->visible == no && !conf_unsaved)
+ 				sym->flags &= ~SYMBOL_DEF_USER;
+ 			switch (sym->type) {
+ 			case S_STRING:
+ 			case S_INT:
+ 			case S_HEX:
+-				if (!sym_string_within_range(sym, sym->def[S_DEF_USER].val))
+-					sym->flags &= ~(SYMBOL_VALID|SYMBOL_DEF_USER);
++				/* Reset a string value if it's out of range */
++				if (sym_string_within_range(sym, sym->def[S_DEF_USER].val))
++					break;
++				sym->flags &= ~(SYMBOL_VALID|SYMBOL_DEF_USER);
++				conf_unsaved++;
++				break;
+ 			default:
+ 				break;
+ 			}
+ 		}
+-		if (!sym_is_choice(sym))
+-			continue;
+-		prop = sym_get_choice_prop(sym);
+-		flags = sym->flags;
+-		for (e = prop->expr; e; e = e->left.expr)
+-			if (e->right.sym->visible != no)
+-				flags &= e->right.sym->flags;
+-		sym->flags &= flags | ~SYMBOL_DEF_USER;
  	}
  
+ 	sym_add_change_count(conf_warnings || conf_unsaved);
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 lots-of-architectures-enable-arbitary-speed-tty-support.patch
-git-acpi-s390-struct-bin_attribute-changes.patch
-git-s390.patch
-s390-rename-cpu_idle-to-s390_cpu_idle.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-x86_64-fix-smp_call_function_single-return-value.patch
+kconfig-reset-generated-values-only-if-kconfig-and-config-agree.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+char-genrtc-use-wait_event_interruptible.patch
 dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
-generic-bug-use-show_regs-instead-of-dump_stack.patch
-fallocate-implementation-on-i86-x86_64-and-powerpc.patch
-fallocate-on-s390.patch
+hfsplus-change-kmalloc-memset-to-kzalloc.patch
+sys_time-speedup.patch
+sys_time-speedup-build-fixes.patch
+hfs-refactor-ascii-to-unicode-conversion-routine.patch
+hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
+hfs-add-custom-dentry-hash-and-comparison-operations.patch
