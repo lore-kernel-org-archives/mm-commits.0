@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash.patch added to -mm tree
-Date: Tue, 03 Jul 2007 10:39:38 -0700
-Message-ID: <200707031739.l63Hdd9P005355@imap1.linux-foundation.org>
+Subject: + rtc-add-rtc-m41t80-driver-take-3.patch added to -mm tree
+Date: Tue, 03 Jul 2007 10:42:32 -0700
+Message-ID: <200707031742.l63HgXn6005556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49304 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755536AbXGCRjy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:39:54 -0400
+	by vger.kernel.org with ESMTP id S1755411AbXGCRms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au
+Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it
 
 
 The patch titled
-     lguest: fix TSC "divide error: 0000 [#1]" boot crash
+     rtc: add rtc-m41t80 driver (take 3)
 has been added to the -mm tree.  Its filename is
-     lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash.patch
+     rtc-add-rtc-m41t80-driver-take-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: fix TSC "divide error: 0000 [#1]" boot crash
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: rtc: add rtc-m41t80 driver (take 3)
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Configuring a guest with < CONFIG_M586TSC reveals an lguest bug: the TSC
-code expects to see the TSC capability bit, but we weren't setting up the
-capabilities until much later in check_bugs -> identify_boot_cpu ->
-identify_boot_cpu.
+* Move a Kconfig entry into "I2C RTC drivers" section
 
-Do the same thing as Xen and the head.S native code: populate the first
-capability word before start_kernel().
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/rtc/Kconfig |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash
-+++ a/drivers/lguest/lguest.c
-@@ -515,6 +515,9 @@ __init void lguest_init(void)
- 	paravirt_disable_iospace();
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-m41t80-driver-take-3 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-rtc-m41t80-driver-take-3
++++ a/drivers/rtc/Kconfig
+@@ -212,6 +212,18 @@ config RTC_DRV_PCF8583
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf8583.
  
- 	cpu_detect(&new_cpu_data);
-+	/* head.S usually sets up the first capability word, so do it here. */
-+	new_cpu_data.x86_capability[0] = cpuid_edx(1);
++config RTC_DRV_M41T80
++	tristate "ST M41T80 series RTC"
++	depends on RTC_CLASS && I2C
++	help
++	  If you say Y here you will get support for the
++	  ST M41T80 RTC chips series. Currently following chips are
++	  supported: M41T80, M41T81, M41T82, M41T83, M41ST84, M41ST85
++	  and M41ST87.
 +
- 	/* Math is always hard! */
- 	new_cpu_data.hard_math = 1;
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-m41t80.
++
+ comment "SPI RTC drivers"
+ 	depends on RTC_CLASS && SPI_MASTER
  
+@@ -281,18 +293,6 @@ config RTC_DRV_DS1742
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1742.
+ 
+-config RTC_DRV_M41T80
+-	tristate "ST M41T80 series RTC"
+-	depends on RTC_CLASS && I2C
+-	help
+-	  If you say Y here you will get support for the
+-	  ST M41T80 RTC chips series. Currently following chips are
+-	  supported: M41T80, M41T81, M41T82, M41T83, M41ST84, M41ST85
+-	  and M41ST87.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-m41t80.
+-
+ config RTC_DRV_M48T86
+ 	tristate "ST M48T86/Dallas DS12887"
+ 	depends on RTC_CLASS
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 git-kbuild.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-use-menuconfig-objects-ii-module-menu.patch
-fix-stop_machine_run-problem-with-naughty-real-time-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
-fix-lguest-w-lockdep.patch
-lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash.patch
-lguest-the-host-code.patch
-lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-readahead-introduce-pg_readahead.patch
-readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
-readahead-min_ra_pages-max_ra_pages-macros.patch
-readahead-data-structure-and-routines.patch
-readahead-on-demand-readahead-logic.patch
-readahead-convert-filemap-invocations.patch
-readahead-convert-splice-invocations.patch
-readahead-convert-ext3-ext4-invocations.patch
-readahead-remove-the-old-algorithm.patch
-readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
-readahead-pass-real-splice-size.patch
-mm-share-pg_readahead-and-pg_reclaim.patch
-readahead-split-ondemand-readahead-interface-into-two-functions.patch
-readahead-sanify-file_ra_state-names.patch
-define-new-percpu-interface-for-shared-data-version-4.patch
-use-the-new-percpu-interface-for-shared-data-version-4.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+git-mips.patch
+mips-make-resources-for-ds1742-static-__initdata.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial_txx9-cleanup-includes.patch
+rtc-add-rtc-m41t80-driver-take-2.patch
+rtc-add-rtc-m41t80-driver-take-2-fix.patch
+rtc-add-rtc-m41t80-driver-take-3.patch
+rtc-watchdog-support-for-rtc-m41t80-driver-take-2.patch
