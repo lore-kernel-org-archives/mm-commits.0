@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch added to -mm tree
-Date: Tue, 03 Jul 2007 14:56:49 -0700
-Message-ID: <200707032156.l63Lunpt018289@imap1.linux-foundation.org>
+Subject: + cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch added to -mm tree
+Date: Tue, 03 Jul 2007 14:59:01 -0700
+Message-ID: <200707032159.l63Lx1RL018385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49591 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32820 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757125AbXGCV5F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:57:05 -0400
+	by vger.kernel.org with ESMTP id S1752969AbXGCV7R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:59:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, anil.s.keshavamurthy@intel.com
+Cc: bunk@stusta.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     fix duplicate CONFIG_DMAR Makefile line
+     make cpuidle_replace_governor() static
 has been added to the -mm tree.  Its filename is
-     intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
+     cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix duplicate CONFIG_DMAR Makefile line
+Subject: make cpuidle_replace_governor() static
 From: Adrian Bunk <bunk@stusta.de>
 
-Contrary to popular belief, two identical Makefile lines don't bring any
-advantages.   ;-)
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/Makefile |    3 ---
- 1 files changed, 3 deletions(-)
+ drivers/cpuidle/governor.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/Makefile~intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line drivers/pci/Makefile
---- a/drivers/pci/Makefile~intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line
-+++ a/drivers/pci/Makefile
-@@ -23,9 +23,6 @@ obj-$(CONFIG_HT_IRQ) += htirq.o
- # Build Intel IOMMU support
- obj-$(CONFIG_DMAR) += dmar.o iova.o intel-iommu.o
- 
--#Build Intel-IOMMU support
--obj-$(CONFIG_DMAR) += iova.o dmar.o intel-iommu.o
--
- #
- # Some architectures use the generic PCI setup functions
- #
+diff -puN drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix drivers/cpuidle/governor.c
+--- a/drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix
++++ a/drivers/cpuidle/governor.c
+@@ -147,7 +147,7 @@ EXPORT_SYMBOL_GPL(cpuidle_register_gover
+  * @exclude_rating: the rating that will be skipped while looking for
+  * new governor.
+  */
+-struct cpuidle_governor *cpuidle_replace_governor(int exclude_rating)
++static struct cpuidle_governor *cpuidle_replace_governor(int exclude_rating)
+ {
+ 	struct cpuidle_governor *gov;
+ 	struct cpuidle_governor *ret_gov = NULL;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
 make-drivers-acpi-oslcosi_linux-static.patch
 drivers-acpi-processor_throttlingc-make-2-functions.patch
 drivers-cpuidle-governors-menuc-make-a-struct-static.patch
