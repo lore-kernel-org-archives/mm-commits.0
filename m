@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-variable-length-argument-support-fix-2.patch added to -mm tree
-Date: Tue, 03 Jul 2007 15:20:27 -0700
-Message-ID: <200707032220.l63MKRvT019488@imap1.linux-foundation.org>
+Subject: + mm-slubc-make-code-static.patch added to -mm tree
+Date: Tue, 03 Jul 2007 15:21:24 -0700
+Message-ID: <200707032221.l63MLOsf019507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51310 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39254 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753965AbXGCWUt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 18:20:49 -0400
+	by vger.kernel.org with ESMTP id S1753340AbXGCWVf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 18:21:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, a.p.zijlstra@chello.nl, aaw@google.com
+Cc: bunk@stusta.de, clameter@sgi.com
 
 
 The patch titled
-     unexport bprm_mm_init
+     mm/slub.c: make code static
 has been added to the -mm tree.  Its filename is
-     mm-variable-length-argument-support-fix-2.patch
+     mm-slubc-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unexport bprm_mm_init
+Subject: mm/slub.c: make code static
 From: Adrian Bunk <bunk@stusta.de>
 
-On Thu, Jun 28, 2007 at 03:43:21AM -0700, Andrew Morton wrote:
->...
-> Changes since 2.6.22-rc4-mm2:
->...
-> +mm-variable-length-argument-support.patch
->...
->  Remove the fixed command-line length limit
->...
-
-bprm_mm_init doesn't have any modular users.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Ollie Wild <aaw@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    1 -
- 1 files changed, 1 deletion(-)
+ mm/slub.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~mm-variable-length-argument-support-fix-2 fs/exec.c
---- a/fs/exec.c~mm-variable-length-argument-support-fix-2
-+++ a/fs/exec.c
-@@ -379,7 +379,6 @@ err:
+diff -puN mm/slub.c~mm-slubc-make-code-static mm/slub.c
+--- a/mm/slub.c~mm-slubc-make-code-static
++++ a/mm/slub.c
+@@ -240,7 +240,7 @@ static enum {
  
- 	return err;
- }
--EXPORT_SYMBOL(bprm_mm_init);
+ /* A list of all slab caches on the system */
+ static DECLARE_RWSEM(slub_lock);
+-LIST_HEAD(slab_caches);
++static LIST_HEAD(slab_caches);
  
  /*
-  * count() counts the number of strings in array ARGV.
+  * Tracking user of a slab.
+@@ -3658,7 +3658,7 @@ static struct kset_uevent_ops slab_ueven
+ 	.filter = uevent_filter,
+ };
+ 
+-decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
++static decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
+ 
+ #define ID_STR_LENGTH 64
+ 
+@@ -3756,7 +3756,7 @@ struct saved_alias {
+ 	struct saved_alias *next;
+ };
+ 
+-struct saved_alias *alias_list;
++static struct saved_alias *alias_list;
+ 
+ static int sysfs_slab_alias(struct kmem_cache *s, const char *name)
+ {
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -104,6 +111,7 @@ mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
 handle-kernelcore=-generic-fix.patch
 maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
 swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
 more-scheduled-oss-driver-removal.patch
 init-wait-for-asynchronously-scanned-block-devices-fix.patch
