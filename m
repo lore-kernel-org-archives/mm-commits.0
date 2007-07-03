@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64.patch added to -mm tree
-Date: Mon, 02 Jul 2007 21:56:23 -0700
-Message-ID: <200707030456.l634uNsD000301@imap1.linux-foundation.org>
+Subject: + ftdi_sio-fix-something.patch added to -mm tree
+Date: Mon, 02 Jul 2007 23:40:26 -0700
+Message-ID: <200707030640.l636eRCW005309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33943 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751553AbXGCE4a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:56:30 -0400
+	by vger.kernel.org with ESMTP id S1753461AbXGCGlQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 02:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anil.s.keshavamurthy@intel.com
+Cc: oliver@neukum.org, greg@kroah.com
 
 
 The patch titled
-     Fix Intel DMAR crash on AMD x86_64
+     ftdi_sio: fix oops due to processing workarounds too early
 has been added to the -mm tree.  Its filename is
-     intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64.patch
+     ftdi_sio-fix-something.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,212 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix Intel DMAR crash on AMD x86_64
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Subject: ftdi_sio: fix oops due to processing workarounds too early
+From: Oliver Neukum <oliver@neukum.org>
 
-Check for dmar_tbl pointer as this can be NULL on systems with no Intel
-VT-d support.
+Fix an oops that happens in relation with applying work arounds for buggy
+ftdi_sio devices.  The quirks were handled too early because due to changes in
+the initialisation of usb serial devices the device was not fully initialised
+when the old hook was called.
 
-Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Addresses bug 8564
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/usb/serial/ftdi_sio.c |  104 +++++++++++++-------------------
+ 1 file changed, 44 insertions(+), 60 deletions(-)
 
-diff -puN drivers/pci/dmar.c~intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64 drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64
-+++ a/drivers/pci/dmar.c
-@@ -260,6 +260,8 @@ parse_dmar_table(void)
- 	int ret = 0;
+diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-something
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -271,26 +271,58 @@ static int debug;
+ static __u16 vendor = FTDI_VID;
+ static __u16 product;
  
- 	dmar = (struct acpi_table_dmar *)dmar_tbl;
-+	if (!dmar)
-+		return -ENODEV;
++struct ftdi_private {
++	ftdi_chip_type_t chip_type;
++				/* type of the device, either SIO or FT8U232AM */
++	int baud_base;		/* baud base clock for divisor setting */
++	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
++	__u16 last_set_data_urb_value ;
++				/* the last data state set - needed for doing a break */
++        int write_offset;       /* This is the offset in the usb data block to write the serial data -
++				 * it is different between devices
++				 */
++	int flags;		/* some ASYNC_xxxx flags are supported */
++	unsigned long last_dtr_rts;	/* saved modem control outputs */
++        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
++	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
++	__u8 rx_flags;		/* receive state flags (throttling) */
++	spinlock_t rx_lock;	/* spinlock for receive state */
++	struct delayed_work rx_work;
++	struct usb_serial_port *port;
++	int rx_processed;
++	unsigned long rx_bytes;
++
++	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
++
++	int force_baud;		/* if non-zero, force the baud rate to this value */
++	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
++
++	spinlock_t tx_lock;	/* spinlock for transmit state */
++	unsigned long tx_bytes;
++	unsigned long tx_outstanding_bytes;
++	unsigned long tx_outstanding_urbs;
++};
++
+ /* struct ftdi_sio_quirk is used by devices requiring special attention. */
+ struct ftdi_sio_quirk {
+ 	int (*probe)(struct usb_serial *);
+-	void (*setup)(struct usb_serial *); /* Special settings during startup. */
++	void (*port_probe)(struct ftdi_private *); /* Special settings for probed ports. */
+ };
  
- 	if (!dmar->width) {
- 		printk (KERN_WARNING PREFIX "Zero: Invalid DMAR haw\n");
-@@ -301,7 +303,7 @@ int __init dmar_table_init(void)
+ static int   ftdi_olimex_probe		(struct usb_serial *serial);
+-static void  ftdi_USB_UIRT_setup	(struct usb_serial *serial);
+-static void  ftdi_HE_TIRA1_setup	(struct usb_serial *serial);
++static void  ftdi_USB_UIRT_setup	(struct ftdi_private *priv);
++static void  ftdi_HE_TIRA1_setup	(struct ftdi_private *priv);
  
- 	parse_dmar_table();
- 	if (list_empty(&dmar_drhd_units)) {
--		printk(KERN_ERR PREFIX "No DMAR devices found\n");
-+		printk(KERN_INFO PREFIX "No DMAR devices found\n");
- 		return -ENODEV;
- 	}
+ static struct ftdi_sio_quirk ftdi_olimex_quirk = {
+ 	.probe	= ftdi_olimex_probe,
+ };
+ 
+ static struct ftdi_sio_quirk ftdi_USB_UIRT_quirk = {
+-	.setup = ftdi_USB_UIRT_setup,
++	.port_probe = ftdi_USB_UIRT_setup,
+ };
+ 
+ static struct ftdi_sio_quirk ftdi_HE_TIRA1_quirk = {
+-	.setup = ftdi_HE_TIRA1_setup,
++	.port_probe = ftdi_HE_TIRA1_setup,
+ };
+ 
+ /*
+@@ -567,38 +599,6 @@ static const char *ftdi_chip_name[] = {
+ #define THROTTLED		0x01
+ #define ACTUALLY_THROTTLED	0x02
+ 
+-struct ftdi_private {
+-	ftdi_chip_type_t chip_type;
+-				/* type of the device, either SIO or FT8U232AM */
+-	int baud_base;		/* baud base clock for divisor setting */
+-	int custom_divisor;	/* custom_divisor kludge, this is for baud_base (different from what goes to the chip!) */
+-	__u16 last_set_data_urb_value ;
+-				/* the last data state set - needed for doing a break */
+-        int write_offset;       /* This is the offset in the usb data block to write the serial data -
+-				 * it is different between devices
+-				 */
+-	int flags;		/* some ASYNC_xxxx flags are supported */
+-	unsigned long last_dtr_rts;	/* saved modem control outputs */
+-        wait_queue_head_t delta_msr_wait; /* Used for TIOCMIWAIT */
+-	char prev_status, diff_status;        /* Used for TIOCMIWAIT */
+-	__u8 rx_flags;		/* receive state flags (throttling) */
+-	spinlock_t rx_lock;	/* spinlock for receive state */
+-	struct delayed_work rx_work;
+-	struct usb_serial_port *port;
+-	int rx_processed;
+-	unsigned long rx_bytes;
+-
+-	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
+-
+-	int force_baud;		/* if non-zero, force the baud rate to this value */
+-	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
+-
+-	spinlock_t tx_lock;	/* spinlock for transmit state */
+-	unsigned long tx_bytes;
+-	unsigned long tx_outstanding_bytes;
+-	unsigned long tx_outstanding_urbs;
+-};
+-
+ /* Used for TIOCMIWAIT */
+ #define FTDI_STATUS_B0_MASK	(FTDI_RS0_CTS | FTDI_RS0_DSR | FTDI_RS0_RI | FTDI_RS0_RLSD)
+ #define FTDI_STATUS_B1_MASK	(FTDI_RS_BI)
+@@ -609,7 +609,6 @@ struct ftdi_private {
+ 
+ /* function prototypes for a FTDI serial converter */
+ static int  ftdi_sio_probe	(struct usb_serial *serial, const struct usb_device_id *id);
+-static int  ftdi_sio_attach		(struct usb_serial *serial);
+ static void ftdi_shutdown		(struct usb_serial *serial);
+ static int  ftdi_sio_port_probe	(struct usb_serial_port *port);
+ static int  ftdi_sio_port_remove	(struct usb_serial_port *port);
+@@ -663,7 +662,6 @@ static struct usb_serial_driver ftdi_sio
+ 	.ioctl =		ftdi_ioctl,
+ 	.set_termios =		ftdi_set_termios,
+ 	.break_ctl =		ftdi_break_ctl,
+-	.attach =		ftdi_sio_attach,
+ 	.shutdown =		ftdi_shutdown,
+ };
+ 
+@@ -1200,6 +1198,8 @@ static int ftdi_sio_probe (struct usb_se
+ static int ftdi_sio_port_probe(struct usb_serial_port *port)
+ {
+ 	struct ftdi_private *priv;
++	struct ftdi_sio_quirk *quirk = usb_get_serial_data(port->serial);
++
+ 
+ 	dbg("%s",__FUNCTION__);
+ 
+@@ -1216,6 +1216,9 @@ static int ftdi_sio_port_probe(struct us
+ 	   than queue a task to deliver them */
+ 	priv->flags = ASYNC_LOW_LATENCY;
+ 
++	if (quirk && quirk->port_probe)
++		quirk->port_probe(priv);
++
+ 	/* Increase the size of read buffers */
+ 	kfree(port->bulk_in_buffer);
+ 	port->bulk_in_buffer = kmalloc (BUFSZ, GFP_KERNEL);
+@@ -1246,29 +1249,13 @@ static int ftdi_sio_port_probe(struct us
  	return 0;
+ }
+ 
+-/* attach subroutine */
+-static int ftdi_sio_attach (struct usb_serial *serial)
+-{
+-	/* Check for device requiring special set up. */
+-	struct ftdi_sio_quirk *quirk = usb_get_serial_data(serial);
+-
+-	if (quirk && quirk->setup)
+-		quirk->setup(serial);
+-
+-	return 0;
+-} /* ftdi_sio_attach */
+-
+-
+ /* Setup for the USB-UIRT device, which requires hardwired
+  * baudrate (38400 gets mapped to 312500) */
+ /* Called from usbserial:serial_probe */
+-static void ftdi_USB_UIRT_setup (struct usb_serial *serial)
++static void ftdi_USB_UIRT_setup (struct ftdi_private *priv)
+ {
+-	struct ftdi_private *priv;
+-
+ 	dbg("%s",__FUNCTION__);
+ 
+-	priv = usb_get_serial_port_data(serial->port[0]);
+ 	priv->flags |= ASYNC_SPD_CUST;
+ 	priv->custom_divisor = 77;
+ 	priv->force_baud = B38400;
+@@ -1276,13 +1263,10 @@ static void ftdi_USB_UIRT_setup (struct 
+ 
+ /* Setup for the HE-TIRA1 device, which requires hardwired
+  * baudrate (38400 gets mapped to 100000) and RTS-CTS enabled.  */
+-static void ftdi_HE_TIRA1_setup (struct usb_serial *serial)
++static void ftdi_HE_TIRA1_setup (struct ftdi_private *priv)
+ {
+-	struct ftdi_private *priv;
+-
+ 	dbg("%s",__FUNCTION__);
+ 
+-	priv = usb_get_serial_port_data(serial->port[0]);
+ 	priv->flags |= ASYNC_SPD_CUST;
+ 	priv->custom_divisor = 240;
+ 	priv->force_baud = B38400;
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from oliver@neukum.org are
 
-jprobes-make-struct-jprobeentry-a-void.patch
-jprobes-remove-jprobe_entry.patch
-jprobes-make-jprobes-a-little-safer-for-users.patch
-jprobes-make-jprobes-a-little-safer-for-users-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix-2.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-intel-iommu-driver-fix-2.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-intel-iommu-iommu-floppy-workaround-fix-fix.patch
+ftdi_sio-fix-something.patch
