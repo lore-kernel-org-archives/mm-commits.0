@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-arch_pick_mmap_layout-fixlet.patch added to -mm tree
-Date: Mon, 02 Jul 2007 21:49:24 -0700
-Message-ID: <200707030449.l634nOrI032408@imap1.linux-foundation.org>
+Subject: + file-caps-update-selinux-xattr-hooks.patch added to -mm tree
+Date: Mon, 02 Jul 2007 21:52:34 -0700
+Message-ID: <200707030452.l634qYJ9032567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37416 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751177AbXGCEup (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:50:45 -0400
+	by vger.kernel.org with ESMTP id S1751247AbXGCEx2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, ak@suse.de
+Cc: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     x86_64: arch_pick_mmap_layout() fixlet
+     file caps: update selinux xattr hooks
 has been added to the -mm tree.  Its filename is
-     x86_64-arch_pick_mmap_layout-fixlet.patch
+     file-caps-update-selinux-xattr-hooks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,172 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: arch_pick_mmap_layout() fixlet
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: file caps: update selinux xattr hooks
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-sparse now warns about
-arch/x86_64/mm/mmap.c:15:3: warning: returning void-valued expression
+SELinux does not call out to it's secondary module for setxattr or
+removexattr mediation, as the secondary module would incorrectly prevent
+writing of selinux xattrs.  This means that when selinux and capability are
+both loaded, admins will be able to write file capabilities with
+CAP_SYS_ADMIN as before, not with CAP_SETFCAP.
 
-Generated code looks correct: there is jump to the end of
-arch_pick_mmap_layout() after ia32_pick_mmap_layout(), but this should be
-fixed regardless.
+Update the selinux hooks to hardcode logic for the special consideration
+for file caps.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Andi Kleen <ak@suse.de>
+I changed the flow of the removexattr hook to reduce the amount of
+indentation I was getting.  It was probably written the way it was for a
+reason, and if it was, I apologize and will rewrite :) If it wasn't,
+hopefully this way is ok.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/mmap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ security/selinux/hooks.c |   75 +++++++++++++++++++++++--------------
+ 1 file changed, 48 insertions(+), 27 deletions(-)
 
-diff -puN arch/x86_64/mm/mmap.c~x86_64-arch_pick_mmap_layout-fixlet arch/x86_64/mm/mmap.c
---- a/arch/x86_64/mm/mmap.c~x86_64-arch_pick_mmap_layout-fixlet
-+++ a/arch/x86_64/mm/mmap.c
-@@ -11,8 +11,10 @@
- void arch_pick_mmap_layout(struct mm_struct *mm)
- {
- #ifdef CONFIG_IA32_EMULATION
--	if (current_thread_info()->flags & _TIF_IA32)
--		return ia32_pick_mmap_layout(mm);
-+	if (current_thread_info()->flags & _TIF_IA32) {
-+		ia32_pick_mmap_layout(mm);
-+		return;
+diff -puN security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks security/selinux/hooks.c
+--- a/security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks
++++ a/security/selinux/hooks.c
+@@ -2290,6 +2290,30 @@ static int selinux_inode_getattr(struct 
+ 	return dentry_has_perm(current, mnt, dentry, FILE__GETATTR);
+ }
+ 
++/* called by selinux_inode_setxattr to mediate setting
++ * of non-selinux xattrs */
++static int selinux_inode_setotherxattr(struct dentry *dentry, char *name)
++{
++	if (strncmp(name, XATTR_SECURITY_PREFIX,
++		     sizeof XATTR_SECURITY_PREFIX - 1))
++		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
++
++	/* a file capability requires cap_setfcap */
++	if (!strcmp(name, XATTR_NAME_CAPS)) {
++		if (!capable(CAP_SETFCAP))
++			return -EPERM;
++		else
++			return 0;
 +	}
- #endif
- 	mm->mmap_base = TASK_UNMAPPED_BASE;
- 	if (current->flags & PF_RANDOMIZE) {
++
++	/* A different attribute in the security namespace.
++	   Restrict to administrator. */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return 0;
++}
++
+ static int selinux_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags)
+ {
+ 	struct task_security_struct *tsec = current->security;
+@@ -2300,19 +2324,8 @@ static int selinux_inode_setxattr(struct
+ 	u32 newsid;
+ 	int rc = 0;
+ 
+-	if (strcmp(name, XATTR_NAME_SELINUX)) {
+-		if (!strncmp(name, XATTR_SECURITY_PREFIX,
+-			     sizeof XATTR_SECURITY_PREFIX - 1) &&
+-		    !capable(CAP_SYS_ADMIN)) {
+-			/* A different attribute in the security namespace.
+-			   Restrict to administrator. */
+-			return -EPERM;
+-		}
+-
+-		/* Not an attribute we recognize, so just check the
+-		   ordinary setattr permission. */
+-		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
+-	}
++	if (strcmp(name, XATTR_NAME_SELINUX))
++		return selinux_inode_setotherxattr(dentry, name);
+ 
+ 	sbsec = inode->i_sb->s_security;
+ 	if (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)
+@@ -2386,24 +2399,32 @@ static int selinux_inode_listxattr (stru
+ 
+ static int selinux_inode_removexattr (struct dentry *dentry, char *name)
+ {
+-	if (strcmp(name, XATTR_NAME_SELINUX)) {
+-		if (!strncmp(name, XATTR_SECURITY_PREFIX,
+-			     sizeof XATTR_SECURITY_PREFIX - 1) &&
+-		    !capable(CAP_SYS_ADMIN)) {
+-			/* A different attribute in the security namespace.
+-			   Restrict to administrator. */
+-			return -EPERM;
+-		}
++	/* No one is allowed to remove a SELinux security label.
++	   You can change the label, but all data must be labeled. */
++	if (!strcmp(name, XATTR_NAME_SELINUX))
++		return -EACCES;
+ 
+-		/* Not an attribute we recognize, so just check the
+-		   ordinary setattr permission. Might want a separate
+-		   permission for removexattr. */
++	/* Not an attribute we recognize, so just check the
++	   ordinary setattr permission. Might want a separate
++	   permission for removexattr. */
++	if (strncmp(name, XATTR_SECURITY_PREFIX,
++		     sizeof XATTR_SECURITY_PREFIX - 1))
+ 		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
++
++	/* a file capability requires cap_setfcap */
++	if (!strcmp(name, XATTR_NAME_CAPS)) {
++		if (!capable(CAP_SETFCAP))
++			return -EPERM;
++		else
++			return 0;
+ 	}
+ 
+-	/* No one is allowed to remove a SELinux security label.
+-	   You can change the label, but all data must be labeled. */
+-	return -EACCES;
++	/* A different attribute in the security namespace.
++	   Restrict to administrator. */
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return 0;
+ }
+ 
+ static const char *selinux_inode_xattr_getsuffix(void)
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-x86_64-arch_pick_mmap_layout-fixlet.patch
-make-proc-slabinfo-use-seq_list_xxx-helpers-fix.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-cleanup.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-proc-environ-wrong-placing-of-ptrace_may_attach-check.patch
-mutex_unlock-later-in-seq_lseek.patch
-seq_file-more-atomicity-in-traverse.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+remove-config_uts_ns-and-config_ipc_ns.patch
+user-namespace-add-the-framework.patch
+user-namespace-add-unshare.patch
+mm-fix-create_new_namespaces-return-value.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+containersv10-basic-container-framework.patch
+containersv10-basic-container-framework-fix.patch
+containersv10-example-cpu-accounting-subsystem.patch
+containersv10-example-cpu-accounting-subsystem-fix.patch
+containersv10-add-tasks-file-interface.patch
+containersv10-add-tasks-file-interface-fix.patch
+containersv10-add-fork-exit-hooks.patch
+containersv10-add-fork-exit-hooks-fix.patch
+containersv10-add-container_clone-interface.patch
+containersv10-add-container_clone-interface-fix.patch
+containersv10-add-procfs-interface.patch
+containersv10-add-procfs-interface-fix.patch
+containersv10-make-cpusets-a-client-of-containers.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
+containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
+containersv10-simple-debug-info-subsystem.patch
+containersv10-simple-debug-info-subsystem-fix.patch
+containersv10-simple-debug-info-subsystem-fix-2.patch
+containersv10-support-for-automatic-userspace-release-agents.patch
+containers-implement-subsys-post_clone.patch
+containers-implement-namespace-tracking-subsystem-v3.patch
