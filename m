@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + file-caps-update-selinux-xattr-hooks.patch added to -mm tree
-Date: Mon, 02 Jul 2007 21:52:34 -0700
-Message-ID: <200707030452.l634qYJ9032567@imap1.linux-foundation.org>
+Subject: + intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64.patch added to -mm tree
+Date: Mon, 02 Jul 2007 21:56:23 -0700
+Message-ID: <200707030456.l634uNsD000301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50796 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33943 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751247AbXGCEx2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:53:28 -0400
+	by vger.kernel.org with ESMTP id S1751553AbXGCE4a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 00:56:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov
+Cc: anil.s.keshavamurthy@intel.com
 
 
 The patch titled
-     file caps: update selinux xattr hooks
+     Fix Intel DMAR crash on AMD x86_64
 has been added to the -mm tree.  Its filename is
-     file-caps-update-selinux-xattr-hooks.patch
+     intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,172 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: file caps: update selinux xattr hooks
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: Fix Intel DMAR crash on AMD x86_64
+From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-SELinux does not call out to it's secondary module for setxattr or
-removexattr mediation, as the secondary module would incorrectly prevent
-writing of selinux xattrs.  This means that when selinux and capability are
-both loaded, admins will be able to write file capabilities with
-CAP_SYS_ADMIN as before, not with CAP_SETFCAP.
+Check for dmar_tbl pointer as this can be NULL on systems with no Intel
+VT-d support.
 
-Update the selinux hooks to hardcode logic for the special consideration
-for file caps.
-
-I changed the flow of the removexattr hook to reduce the amount of
-indentation I was getting.  It was probably written the way it was for a
-reason, and if it was, I apologize and will rewrite :) If it wasn't,
-hopefully this way is ok.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |   75 +++++++++++++++++++++++--------------
- 1 file changed, 48 insertions(+), 27 deletions(-)
+ drivers/pci/dmar.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks security/selinux/hooks.c
---- a/security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks
-+++ a/security/selinux/hooks.c
-@@ -2290,6 +2290,30 @@ static int selinux_inode_getattr(struct 
- 	return dentry_has_perm(current, mnt, dentry, FILE__GETATTR);
- }
+diff -puN drivers/pci/dmar.c~intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64 drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64
++++ a/drivers/pci/dmar.c
+@@ -260,6 +260,8 @@ parse_dmar_table(void)
+ 	int ret = 0;
  
-+/* called by selinux_inode_setxattr to mediate setting
-+ * of non-selinux xattrs */
-+static int selinux_inode_setotherxattr(struct dentry *dentry, char *name)
-+{
-+	if (strncmp(name, XATTR_SECURITY_PREFIX,
-+		     sizeof XATTR_SECURITY_PREFIX - 1))
-+		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
-+
-+	/* a file capability requires cap_setfcap */
-+	if (!strcmp(name, XATTR_NAME_CAPS)) {
-+		if (!capable(CAP_SETFCAP))
-+			return -EPERM;
-+		else
-+			return 0;
-+	}
-+
-+	/* A different attribute in the security namespace.
-+	   Restrict to administrator. */
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	return 0;
-+}
-+
- static int selinux_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags)
- {
- 	struct task_security_struct *tsec = current->security;
-@@ -2300,19 +2324,8 @@ static int selinux_inode_setxattr(struct
- 	u32 newsid;
- 	int rc = 0;
+ 	dmar = (struct acpi_table_dmar *)dmar_tbl;
++	if (!dmar)
++		return -ENODEV;
  
--	if (strcmp(name, XATTR_NAME_SELINUX)) {
--		if (!strncmp(name, XATTR_SECURITY_PREFIX,
--			     sizeof XATTR_SECURITY_PREFIX - 1) &&
--		    !capable(CAP_SYS_ADMIN)) {
--			/* A different attribute in the security namespace.
--			   Restrict to administrator. */
--			return -EPERM;
--		}
--
--		/* Not an attribute we recognize, so just check the
--		   ordinary setattr permission. */
--		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
--	}
-+	if (strcmp(name, XATTR_NAME_SELINUX))
-+		return selinux_inode_setotherxattr(dentry, name);
+ 	if (!dmar->width) {
+ 		printk (KERN_WARNING PREFIX "Zero: Invalid DMAR haw\n");
+@@ -301,7 +303,7 @@ int __init dmar_table_init(void)
  
- 	sbsec = inode->i_sb->s_security;
- 	if (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)
-@@ -2386,24 +2399,32 @@ static int selinux_inode_listxattr (stru
- 
- static int selinux_inode_removexattr (struct dentry *dentry, char *name)
- {
--	if (strcmp(name, XATTR_NAME_SELINUX)) {
--		if (!strncmp(name, XATTR_SECURITY_PREFIX,
--			     sizeof XATTR_SECURITY_PREFIX - 1) &&
--		    !capable(CAP_SYS_ADMIN)) {
--			/* A different attribute in the security namespace.
--			   Restrict to administrator. */
--			return -EPERM;
--		}
-+	/* No one is allowed to remove a SELinux security label.
-+	   You can change the label, but all data must be labeled. */
-+	if (!strcmp(name, XATTR_NAME_SELINUX))
-+		return -EACCES;
- 
--		/* Not an attribute we recognize, so just check the
--		   ordinary setattr permission. Might want a separate
--		   permission for removexattr. */
-+	/* Not an attribute we recognize, so just check the
-+	   ordinary setattr permission. Might want a separate
-+	   permission for removexattr. */
-+	if (strncmp(name, XATTR_SECURITY_PREFIX,
-+		     sizeof XATTR_SECURITY_PREFIX - 1))
- 		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
-+
-+	/* a file capability requires cap_setfcap */
-+	if (!strcmp(name, XATTR_NAME_CAPS)) {
-+		if (!capable(CAP_SETFCAP))
-+			return -EPERM;
-+		else
-+			return 0;
+ 	parse_dmar_table();
+ 	if (list_empty(&dmar_drhd_units)) {
+-		printk(KERN_ERR PREFIX "No DMAR devices found\n");
++		printk(KERN_INFO PREFIX "No DMAR devices found\n");
+ 		return -ENODEV;
  	}
- 
--	/* No one is allowed to remove a SELinux security label.
--	   You can change the label, but all data must be labeled. */
--	return -EACCES;
-+	/* A different attribute in the security namespace.
-+	   Restrict to administrator. */
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	return 0;
- }
- 
- static const char *selinux_inode_xattr_getsuffix(void)
+ 	return 0;
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
 
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
+jprobes-make-struct-jprobeentry-a-void.patch
+jprobes-remove-jprobe_entry.patch
+jprobes-make-jprobes-a-little-safer-for-users.patch
+jprobes-make-jprobes-a-little-safer-for-users-fix.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-dmar-detection-and-parsing-logic-fix-intel-dmar-crash-on-amd-x86_64.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-pci-generic-helper-function-fix.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-iova-allocation-and-management-routines-fix.patch
+intel-iommu-iova-allocation-and-management-routines-fix-2.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-intel-iommu-driver-fix.patch
+intel-iommu-intel-iommu-driver-fix-2.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+intel-iommu-iommu-floppy-workaround-fix.patch
+intel-iommu-iommu-floppy-workaround-fix-fix.patch
