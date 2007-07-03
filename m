@@ -1,82 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: + fix-the-graphic-corruption-issue-on-ia64-machines.patch added to -mm tree
-Date: Tue, 03 Jul 2007 10:46:20 -0700
-Message-ID: <200707031746.l63HkLNv005789@imap1.linux-foundation.org>
+Subject: + fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode-update.patch added to -mm tree
+Date: Tue, 03 Jul 2007 10:48:40 -0700
+Message-ID: <200707031748.l63Hme9E005886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755863AbXGCRqx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:46:53 -0400
+	by vger.kernel.org with ESMTP id S1753385AbXGCRtT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:49:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: izumi2005@soft.fujitsu.com, adaplas@pol.net, ntachino@redhat.com, tony.luck@intel.com, zaitcev@redhat.com
+Cc: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com
 
 
 The patch titled
-     Fix the graphic corruption issue on IA64 machines
+     Fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in compat =
+mode (fix)
 has been added to the -mm tree.  Its filename is
-     fix-the-graphic-corruption-issue-on-ia64-machines.patch
+     fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mod=
+e-update.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix the graphic corruption issue on IA64 machines
-From: izumi <izumi2005@soft.fujitsu.com>
+Subject: Fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in com=
+pat mode (fix)
+=46rom: Michal Marek <mmarek@suse.cz>
 
-VGA console driver can misunderstand the current mode(Text/Graphic) under
-"disable console blanking" setting.  When "disable console blank" is set
-(blankinterval=0), "do_unblank_screen()" function returns without changing
-"blank_state", and when "blank_state" is "blank_off", "do_blank_screen()
-function returns without invoking sw->con_blank() function.  That's why VGA
-console driver can misunderstand the current mode.
+On Thu, Jun 28, 2007 at 11:15:30AM -0700, Andrew Morton wrote:
+>   CC      fs/xfs/linux-2.6/xfs_ioctl32.o
+> fs/xfs/linux-2.6/xfs_ioctl32.c: In function =E2=80=98xfs_ioc_bulkstat=
+_compat=E2=80=99:
+> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: =E2=80=98xfs_inumbers_fmt_=
+compat=E2=80=99 undeclared (first use in this function)
+> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: (Each undeclared identifie=
+r is reported only once
+> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: for each function it appea=
+rs in.)
 
-Signed-off-by: Nobuhiro Tachino <ntachino@redhat.com>
-Signed-off-by: Taku Izumi <izumi2005@soft.fujitsu.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
+Sorry, the #define was wrong. This one should work better (at least
+build-tested on ppc64 this time):
+
+Signed-off-by: Michal Marek <mmarek@suse.cz>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl32.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~fix-the-graphic-corruption-issue-on-ia64-machines drivers/char/vt.c
---- a/drivers/char/vt.c~fix-the-graphic-corruption-issue-on-ia64-machines
-+++ a/drivers/char/vt.c
-@@ -3506,9 +3506,6 @@ void do_blank_screen(int entering_gfx)
- 		}
- 		return;
- 	}
--	if (blank_state != blank_normal_wait)
--		return;
--	blank_state = blank_off;
- 
- 	/* entering graphics mode? */
- 	if (entering_gfx) {
-@@ -3516,10 +3513,15 @@ void do_blank_screen(int entering_gfx)
- 		save_screen(vc);
- 		vc->vc_sw->con_blank(vc, -1, 1);
- 		console_blanked = fg_console + 1;
-+		blank_state = blank_off;
- 		set_origin(vc);
- 		return;
- 	}
- 
-+	if (blank_state != blank_normal_wait)
-+		return;
-+	blank_state = blank_off;
-+
- 	/* don't blank graphics */
- 	if (vc->vc_mode != KD_TEXT) {
- 		console_blanked = fg_console + 1;
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-=
+and-xfs_ioc_fsinumbers-in-compat-mode-update fs/xfs/linux-2.6/xfs_ioctl=
+32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-and-=
+xfs_ioc_fsinumbers-in-compat-mode-update
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -153,7 +153,7 @@ STATIC int xfs_inumbers_fmt_compat(
+=20
+ #else
+=20
+-#define xfs_inumbers_fmt_compat(a, b, c, d) xfs_inumbers_fmt(a, b, c, =
+d)
++#define xfs_inumbers_fmt_compat xfs_inumbers_fmt
+ #define _PACKED
+=20
+ #endif
 _
 
-Patches currently in -mm which might be from izumi2005@soft.fujitsu.com are
+Patches currently in -mm which might be from mmarek@suse.cz are
 
-fix-the-graphic-corruption-issue-on-ia64-machines.patch
+fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
+fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mod=
+e.patch
+fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.pat=
+ch
+fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode-upd=
+ate.patch
