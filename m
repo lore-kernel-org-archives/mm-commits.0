@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-the-last-few-umsdos-leftovers.patch added to -mm tree
-Date: Tue, 03 Jul 2007 13:01:13 -0700
-Message-ID: <200707032001.l63K1DeY012458@imap1.linux-foundation.org>
+Subject: + update-documentation-filesystems-vfstxt-second-part.patch added to -mm tree
+Date: Tue, 03 Jul 2007 13:38:43 -0700
+Message-ID: <200707032038.l63KchLT014251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756600AbXGCUBa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 16:01:30 -0400
+	by vger.kernel.org with ESMTP id S1757054AbXGCUjU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 16:39:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, hpa@zytor.com
+Cc: bbpetkov@yahoo.de
 
 
 The patch titled
-     Remove the last few UMSDOS leftovers
+     update Documentation/filesystems/vfs.txt
 has been added to the -mm tree.  Its filename is
-     remove-the-last-few-umsdos-leftovers.patch
+     update-documentation-filesystems-vfstxt-second-part.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove the last few UMSDOS leftovers
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: update Documentation/filesystems/vfs.txt
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-The UMSDOS filesystem was removed back in 2.6.11, but some tiny bits stuck
-around.  This patch removes the few remaining leftovers.  The only things
-left behind after this are the entries in the CREDITS file and the ioctl
-number in Documentation/ioctl-number.txt as documentation.
+Update Documentation/filesystems/vfs.txt
 
-This third (hopefully final) version of the patch doesn't edit the
-arch/um/config.release file, since Jeff Dike pointed out to me that it
-should die completely, and asked me to remove it from my patch as he'll
-send in a seperate patch removing the file completely.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl-number.txt |    2 +-
- arch/arm26/defconfig           |    1 -
- arch/cris/arch-v10/defconfig   |    1 -
- include/linux/ncp_fs.h         |    2 --
- 4 files changed, 1 insertion(+), 5 deletions(-)
+ Documentation/filesystems/vfs.txt      |   29 ++++++++++++-----------
+ Documentation/filesystems/vfs.txt.orig |    5 ---
+ 2 files changed, 16 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/ioctl-number.txt~remove-the-last-few-umsdos-leftovers Documentation/ioctl-number.txt
---- a/Documentation/ioctl-number.txt~remove-the-last-few-umsdos-leftovers
-+++ a/Documentation/ioctl-number.txt
-@@ -67,7 +67,7 @@ Code	Seq#	Include File		Comments
- 0x00	00-1F	linux/wavefront.h	conflict!
- 0x02	all	linux/fd.h
- 0x03	all	linux/hdreg.h
--0x04	all	linux/umsdos_fs.h
-+0x04	D2-DC	linux/umsdos_fs.h	Dead since 2.6.11, but don't reuse these.
- 0x06	all	linux/lp.h
- 0x09	all	linux/md.h
- 0x12	all	linux/fs.h
-diff -puN arch/arm26/defconfig~remove-the-last-few-umsdos-leftovers arch/arm26/defconfig
---- a/arch/arm26/defconfig~remove-the-last-few-umsdos-leftovers
-+++ a/arch/arm26/defconfig
-@@ -248,7 +248,6 @@ CONFIG_I2C_CHARDEV=y
- # CONFIG_JBD_DEBUG is not set
- # CONFIG_FAT_FS is not set
- # CONFIG_MSDOS_FS is not set
--# CONFIG_UMSDOS_FS is not set
- # CONFIG_VFAT_FS is not set
- # CONFIG_EFS_FS is not set
- # CONFIG_JFFS_FS is not set
-diff -puN arch/cris/arch-v10/defconfig~remove-the-last-few-umsdos-leftovers arch/cris/arch-v10/defconfig
---- a/arch/cris/arch-v10/defconfig~remove-the-last-few-umsdos-leftovers
-+++ a/arch/cris/arch-v10/defconfig
-@@ -429,7 +429,6 @@ CONFIG_NET_ETHERNET=y
- # CONFIG_BFS_FS is not set
- # CONFIG_FAT_FS is not set
- # CONFIG_MSDOS_FS is not set
--# CONFIG_UMSDOS_FS is not set
- # CONFIG_VFAT_FS is not set
- # CONFIG_EFS_FS is not set
- # CONFIG_JFFS_FS is not set
-diff -puN include/linux/ncp_fs.h~remove-the-last-few-umsdos-leftovers include/linux/ncp_fs.h
---- a/include/linux/ncp_fs.h~remove-the-last-few-umsdos-leftovers
-+++ a/include/linux/ncp_fs.h
-@@ -148,8 +148,6 @@ struct ncp_nls_ioctl
- #include <linux/ncp_fs_i.h>
- #include <linux/ncp_fs_sb.h>
+diff -puN Documentation/filesystems/vfs.txt~update-documentation-filesystems-vfstxt-second-part Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~update-documentation-filesystems-vfstxt-second-part
++++ a/Documentation/filesystems/vfs.txt
+@@ -197,7 +197,7 @@ struct super_operations
+ -----------------------
  
--/* undef because public define in umsdos_fs.h (ncp_fs.h isn't public) */
--#undef PRINTK
- /* define because it is easy to change PRINTK to {*}PRINTK */
- #define PRINTK(format, args...) printk(KERN_DEBUG format , ## args)
+ This describes how the VFS can manipulate the superblock of your
+-filesystem. As of kernel 2.6.13, the following members are defined:
++filesystem. As of kernel 2.6.22, the following members are defined:
  
+ struct super_operations {
+         struct inode *(*alloc_inode)(struct super_block *sb);
+@@ -220,8 +220,6 @@ struct super_operations {
+         void (*clear_inode) (struct inode *);
+         void (*umount_begin) (struct super_block *);
+ 
+-        void (*sync_inodes) (struct super_block *sb,
+-                                struct writeback_control *wbc);
+         int (*show_options)(struct seq_file *, struct vfsmount *);
+ 
+         ssize_t (*quota_read)(struct super_block *, int, char *, size_t, loff_t);
+@@ -304,9 +302,6 @@ or bottom half).
+ 
+   umount_begin: called when the VFS is unmounting a filesystem.
+ 
+-  sync_inodes: called when the VFS is writing out dirty data associated with
+-  	a superblock.
+-
+   show_options: called by the VFS to show mount options for /proc/<pid>/mounts.
+ 
+   quota_read: called by the VFS to read from filesystem quota file.
+@@ -328,7 +323,7 @@ struct inode_operations
+ -----------------------
+ 
+ This describes how the VFS can manipulate an inode in your
+-filesystem. As of kernel 2.6.13, the following members are defined:
++filesystem. As of kernel 2.6.22, the following members are defined:
+ 
+ struct inode_operations {
+ 	int (*create) (struct inode *,struct dentry *,int, struct nameidata *);
+@@ -352,6 +347,7 @@ struct inode_operations {
+ 	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
+ 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
+ 	int (*removexattr) (struct dentry *, const char *);
++	void (*truncate_range)(struct inode *, loff_t, loff_t);
+ };
+ 
+ Again, all methods are called without any locks being held, unless
+@@ -448,6 +444,9 @@ otherwise noted.
+   removexattr: called by the VFS to remove an extended attribute from
+   	a file. This method is called by removexattr(2) system call.
+ 
++  truncate_range: a method provided by the underlying filesystem to truncate a
++  	range of blocks , i.e. punch a hole somewhere in a file.
++
+ 
+ The Address Space Object
+ ========================
+@@ -526,7 +525,7 @@ struct address_space_operations
+ -------------------------------
+ 
+ This describes how the VFS can manipulate mapping of a file to page cache in
+-your filesystem. As of kernel 2.6.16, the following members are defined:
++your filesystem. As of kernel 2.6.22, the following members are defined:
+ 
+ struct address_space_operations {
+ 	int (*writepage)(struct page *page, struct writeback_control *wbc);
+@@ -553,6 +552,7 @@ struct address_space_operations {
+ 			int);
+ 	/* migrate the contents of a page to the specified target */
+ 	int (*migratepage) (struct page *, struct page *);
++	int (*launder_page) (struct page *);
+ };
+ 
+   writepage: called by the VM to write a dirty page to backing store.
+@@ -734,6 +734,10 @@ struct address_space_operations {
+ 	transfer any private data across and update any references
+         that it has to the page.
+ 
++  launder_page: Called before freeing a page - it writes back the dirty page. To
++  	prevent redirtying the page, it is kept locked during the whole
++	operation.
++
+ The File Object
+ ===============
+ 
+@@ -744,9 +748,10 @@ struct file_operations
+ ----------------------
+ 
+ This describes how the VFS can manipulate an open file. As of kernel
+-2.6.17, the following members are defined:
++2.6.22, the following members are defined:
+ 
+ struct file_operations {
++	struct module *owner;
+ 	loff_t (*llseek) (struct file *, loff_t, int);
+ 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+ 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+@@ -773,10 +778,8 @@ struct file_operations {
+ 	int (*check_flags)(int);
+ 	int (*dir_notify)(struct file *filp, unsigned long arg);
+ 	int (*flock) (struct file *, int, struct file_lock *);
+-	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, size_t, unsigned 
+-int);
+-	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned  
+-int);
++	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, size_t, unsigned int);
++	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned int);
+ };
+ 
+ Again, all methods are called without any locks being held, unless
+diff -puN Documentation/filesystems/vfs.txt.orig~update-documentation-filesystems-vfstxt-second-part Documentation/filesystems/vfs.txt.orig
+--- a/Documentation/filesystems/vfs.txt.orig~update-documentation-filesystems-vfstxt-second-part
++++ a/Documentation/filesystems/vfs.txt.orig
+@@ -777,7 +777,6 @@ struct file_operations {
+ int);
+ 	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned  
+ int);
+-	int (*revoke)(struct file *);
+ };
+ 
+ Again, all methods are called without any locks being held, unless
+@@ -851,10 +850,6 @@ otherwise noted.
+   splice_read: called by the VFS to splice data from file to a pipe. This
+ 	       method is used by the splice(2) system call
+ 
+-  revoke: called by revokeat(2) and frevoke(2) system calls to revoke access
+-	  to an open file. This method must ensure that all currently blocked
+-	  writes are flushed and reads will fail.
+-
+ Note that the file operations are implemented by the specific
+ filesystem in which the inode resides. When opening a device node
+ (character or block special) most filesystems will call special
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
-remove-unneeded-test-of-task-in-dump_trace.patch
-git-xfs.patch
-submitchecklist-update-fix-spelling-error.patch
-add-missing-files-and-dirs-to-00-index-in-documentation.patch
-remove-the-last-few-umsdos-leftovers.patch
+update-description-in-documentation-filesystems-vfstxt-typo-fixed.patch
+update-documentation-filesystems-vfstxt-second-part.patch
