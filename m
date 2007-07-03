@@ -1,192 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - file-caps-update-selinux-xattr-hooks.patch removed from -mm tree
-Date: Tue, 03 Jul 2007 08:36:15 -0700
-Message-ID: <200707031536.l63FaFYw031318@imap1.linux-foundation.org>
+Subject: + lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash.patch added to -mm tree
+Date: Tue, 03 Jul 2007 10:39:38 -0700
+Message-ID: <200707031739.l63Hdd9P005355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46320 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754358AbXGCPgi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 11:36:38 -0400
+	by vger.kernel.org with ESMTP id S1755536AbXGCRjy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:39:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     file caps: update selinux xattr hooks
-has been removed from the -mm tree.  Its filename was
-     file-caps-update-selinux-xattr-hooks.patch
+     lguest: fix TSC "divide error: 0000 [#1]" boot crash
+has been added to the -mm tree.  Its filename is
+     lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: file caps: update selinux xattr hooks
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: lguest: fix TSC "divide error: 0000 [#1]" boot crash
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-SELinux does not call out to it's secondary module for setxattr or
-removexattr mediation, as the secondary module would incorrectly prevent
-writing of selinux xattrs.  This means that when selinux and capability are
-both loaded, admins will be able to write file capabilities with
-CAP_SYS_ADMIN as before, not with CAP_SETFCAP.
+Configuring a guest with < CONFIG_M586TSC reveals an lguest bug: the TSC
+code expects to see the TSC capability bit, but we weren't setting up the
+capabilities until much later in check_bugs -> identify_boot_cpu ->
+identify_boot_cpu.
 
-Update the selinux hooks to hardcode logic for the special consideration
-for file caps.
+Do the same thing as Xen and the head.S native code: populate the first
+capability word before start_kernel().
 
-I changed the flow of the removexattr hook to reduce the amount of
-indentation I was getting.  It was probably written the way it was for a
-reason, and if it was, I apologize and will rewrite :) If it wasn't,
-hopefully this way is ok.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |   75 +++++++++++++++++++++++--------------
- 1 file changed, 48 insertions(+), 27 deletions(-)
+ drivers/lguest/lguest.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks security/selinux/hooks.c
---- a/security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks
-+++ a/security/selinux/hooks.c
-@@ -2290,6 +2290,30 @@ static int selinux_inode_getattr(struct 
- 	return dentry_has_perm(current, mnt, dentry, FILE__GETATTR);
- }
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash
++++ a/drivers/lguest/lguest.c
+@@ -515,6 +515,9 @@ __init void lguest_init(void)
+ 	paravirt_disable_iospace();
  
-+/* called by selinux_inode_setxattr to mediate setting
-+ * of non-selinux xattrs */
-+static int selinux_inode_setotherxattr(struct dentry *dentry, char *name)
-+{
-+	if (strncmp(name, XATTR_SECURITY_PREFIX,
-+		     sizeof XATTR_SECURITY_PREFIX - 1))
-+		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
+ 	cpu_detect(&new_cpu_data);
++	/* head.S usually sets up the first capability word, so do it here. */
++	new_cpu_data.x86_capability[0] = cpuid_edx(1);
 +
-+	/* a file capability requires cap_setfcap */
-+	if (!strcmp(name, XATTR_NAME_CAPS)) {
-+		if (!capable(CAP_SETFCAP))
-+			return -EPERM;
-+		else
-+			return 0;
-+	}
-+
-+	/* A different attribute in the security namespace.
-+	   Restrict to administrator. */
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	return 0;
-+}
-+
- static int selinux_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags)
- {
- 	struct task_security_struct *tsec = current->security;
-@@ -2300,19 +2324,8 @@ static int selinux_inode_setxattr(struct
- 	u32 newsid;
- 	int rc = 0;
+ 	/* Math is always hard! */
+ 	new_cpu_data.hard_math = 1;
  
--	if (strcmp(name, XATTR_NAME_SELINUX)) {
--		if (!strncmp(name, XATTR_SECURITY_PREFIX,
--			     sizeof XATTR_SECURITY_PREFIX - 1) &&
--		    !capable(CAP_SYS_ADMIN)) {
--			/* A different attribute in the security namespace.
--			   Restrict to administrator. */
--			return -EPERM;
--		}
--
--		/* Not an attribute we recognize, so just check the
--		   ordinary setattr permission. */
--		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
--	}
-+	if (strcmp(name, XATTR_NAME_SELINUX))
-+		return selinux_inode_setotherxattr(dentry, name);
- 
- 	sbsec = inode->i_sb->s_security;
- 	if (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)
-@@ -2386,24 +2399,32 @@ static int selinux_inode_listxattr (stru
- 
- static int selinux_inode_removexattr (struct dentry *dentry, char *name)
- {
--	if (strcmp(name, XATTR_NAME_SELINUX)) {
--		if (!strncmp(name, XATTR_SECURITY_PREFIX,
--			     sizeof XATTR_SECURITY_PREFIX - 1) &&
--		    !capable(CAP_SYS_ADMIN)) {
--			/* A different attribute in the security namespace.
--			   Restrict to administrator. */
--			return -EPERM;
--		}
-+	/* No one is allowed to remove a SELinux security label.
-+	   You can change the label, but all data must be labeled. */
-+	if (!strcmp(name, XATTR_NAME_SELINUX))
-+		return -EACCES;
- 
--		/* Not an attribute we recognize, so just check the
--		   ordinary setattr permission. Might want a separate
--		   permission for removexattr. */
-+	/* Not an attribute we recognize, so just check the
-+	   ordinary setattr permission. Might want a separate
-+	   permission for removexattr. */
-+	if (strncmp(name, XATTR_SECURITY_PREFIX,
-+		     sizeof XATTR_SECURITY_PREFIX - 1))
- 		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
-+
-+	/* a file capability requires cap_setfcap */
-+	if (!strcmp(name, XATTR_NAME_CAPS)) {
-+		if (!capable(CAP_SETFCAP))
-+			return -EPERM;
-+		else
-+			return 0;
- 	}
- 
--	/* No one is allowed to remove a SELinux security label.
--	   You can change the label, but all data must be labeled. */
--	return -EACCES;
-+	/* A different attribute in the security namespace.
-+	   Restrict to administrator. */
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	return 0;
- }
- 
- static const char *selinux_inode_xattr_getsuffix(void)
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
+git-kbuild.patch
+paravirt-helper-to-disable-all-io-space-fix.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
+use-menuconfig-objects-ii-module-menu.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
+fix-lguest-w-lockdep.patch
+lguest-the-guest-code-lguest-fix-tsc-divide-error-0000-boot-crash.patch
+lguest-the-host-code.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+readahead-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-min_ra_pages-max_ra_pages-macros.patch
+readahead-data-structure-and-routines.patch
+readahead-on-demand-readahead-logic.patch
+readahead-convert-filemap-invocations.patch
+readahead-convert-splice-invocations.patch
+readahead-convert-ext3-ext4-invocations.patch
+readahead-remove-the-old-algorithm.patch
+readahead-move-synchronous-readahead-call-out-of-splice-loop.patch
+readahead-pass-real-splice-size.patch
+mm-share-pg_readahead-and-pg_reclaim.patch
+readahead-split-ondemand-readahead-interface-into-two-functions.patch
+readahead-sanify-file_ra_state-names.patch
+define-new-percpu-interface-for-shared-data-version-4.patch
+use-the-new-percpu-interface-for-shared-data-version-4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
