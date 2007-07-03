@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slubc-make-code-static.patch added to -mm tree
-Date: Tue, 03 Jul 2007 15:21:24 -0700
-Message-ID: <200707032221.l63MLOsf019507@imap1.linux-foundation.org>
+Subject: + net-make-struct-dccp_li_cachep-static.patch added to -mm tree
+Date: Tue, 03 Jul 2007 15:22:09 -0700
+Message-ID: <200707032222.l63MM98M019577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39254 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753340AbXGCWVf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 18:21:35 -0400
+	by vger.kernel.org with ESMTP id S1755259AbXGCWWY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 18:22:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, clameter@sgi.com
+Cc: bunk@stusta.de
 
 
 The patch titled
-     mm/slub.c: make code static
+     net: make struct dccp_li_cachep static
 has been added to the -mm tree.  Its filename is
-     mm-slubc-make-code-static.patch
+     net-make-struct-dccp_li_cachep-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/slub.c: make code static
+Subject: net: make struct dccp_li_cachep static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ net/dccp/ccids/lib/loss_interval.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~mm-slubc-make-code-static mm/slub.c
---- a/mm/slub.c~mm-slubc-make-code-static
-+++ a/mm/slub.c
-@@ -240,7 +240,7 @@ static enum {
- 
- /* A list of all slab caches on the system */
- static DECLARE_RWSEM(slub_lock);
--LIST_HEAD(slab_caches);
-+static LIST_HEAD(slab_caches);
- 
- /*
-  * Tracking user of a slab.
-@@ -3658,7 +3658,7 @@ static struct kset_uevent_ops slab_ueven
- 	.filter = uevent_filter,
+diff -puN net/dccp/ccids/lib/loss_interval.c~net-make-struct-dccp_li_cachep-static net/dccp/ccids/lib/loss_interval.c
+--- a/net/dccp/ccids/lib/loss_interval.c~net-make-struct-dccp_li_cachep-static
++++ a/net/dccp/ccids/lib/loss_interval.c
+@@ -27,7 +27,7 @@ struct dccp_li_hist_entry {
+ 	u32		 dccplih_interval;
  };
  
--decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
-+static decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
+-struct kmem_cache *dccp_li_cachep __read_mostly;
++static struct kmem_cache *dccp_li_cachep __read_mostly;
  
- #define ID_STR_LENGTH 64
- 
-@@ -3756,7 +3756,7 @@ struct saved_alias {
- 	struct saved_alias *next;
- };
- 
--struct saved_alias *alias_list;
-+static struct saved_alias *alias_list;
- 
- static int sysfs_slab_alias(struct kmem_cache *s, const char *name)
+ static inline struct dccp_li_hist_entry *dccp_li_hist_entry_new(const gfp_t prio)
  {
 _
 
@@ -88,6 +69,7 @@ git-mtd.patch
 nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-netdev-all.patch
 bonding-bond_mainc-make-2-functions-static.patch
+net-make-struct-dccp_li_cachep-static.patch
 git-battery.patch
 git-selinux.patch
 git-scsi-misc.patch
