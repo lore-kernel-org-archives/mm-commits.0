@@ -1,88 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: + fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode-update.patch added to -mm tree
-Date: Tue, 03 Jul 2007 10:48:40 -0700
-Message-ID: <200707031748.l63Hme9E005886@imap1.linux-foundation.org>
+Subject: + generic-bug-use-show_regs-instead-of-dump_stack.patch added to -mm tree
+Date: Tue, 03 Jul 2007 10:50:38 -0700
+Message-ID: <200707031750.l63HocAO005997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37813 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753385AbXGCRtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:49:19 -0400
+	by vger.kernel.org with ESMTP id S1754652AbXGCRwP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 13:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mmarek@suse.cz, dgc@sgi.com, tes@sgi.com
+Cc: heiko.carstens@de.ibm.com, ak@suse.de, hskinnemoen@atmel.com, jeremy@goop.org, kyle@parisc-linux.org, lethal@linux-sh.org, paulus@samba.org, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in compat =
-mode (fix)
+     generic bug: use show_regs() instead of dump_stack()
 has been added to the -mm tree.  Its filename is
-     fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mod=
-e-update.patch
+     generic-bug-use-show_regs-instead-of-dump_stack.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix XFS_IOC_FSBULKSTAT{,_SINGLE} and XFS_IOC_FSINUMBERS in com=
-pat mode (fix)
-=46rom: Michal Marek <mmarek@suse.cz>
+Subject: generic bug: use show_regs() instead of dump_stack()
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-On Thu, Jun 28, 2007 at 11:15:30AM -0700, Andrew Morton wrote:
->   CC      fs/xfs/linux-2.6/xfs_ioctl32.o
-> fs/xfs/linux-2.6/xfs_ioctl32.c: In function =E2=80=98xfs_ioc_bulkstat=
-_compat=E2=80=99:
-> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: =E2=80=98xfs_inumbers_fmt_=
-compat=E2=80=99 undeclared (first use in this function)
-> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: (Each undeclared identifie=
-r is reported only once
-> fs/xfs/linux-2.6/xfs_ioctl32.c:334: error: for each function it appea=
-rs in.)
+The current generic bug implementation has a call to dump_stack() in case a
+WARN_ON(whatever) gets hit.  Since report_bug(), which calls dump_stack(),
+gets called from an exception handler we can do better: just pass the
+pt_regs structure to report_bug() and pass it to show_regs() in case of a
+warning.  This will give more debug informations like register contents,
+etc...  In addition this avoids some pointless lines that dump_stack()
+emits, since it includes a stack backtrace of the exception handler which
+is of no interest in case of a warning.  E.g.  on s390 the following lines
+are currently always present in a stack backtrace if dump_stack() gets
+called from report_bug():
 
-Sorry, the #define was wrong. This one should work better (at least
-build-tested on ppc64 this time):
+ [<000000000001517a>] show_trace+0x92/0xe8)
+ [<0000000000015270>] show_stack+0xa0/0xd0
+ [<00000000000152ce>] dump_stack+0x2e/0x3c
+ [<0000000000195450>] report_bug+0x98/0xf8
+ [<0000000000016cc8>] illegal_op+0x1fc/0x21c
+ [<00000000000227d6>] sysc_return+0x0/0x10
 
-Signed-off-by: Michal Marek <mmarek@suse.cz>
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_ioctl32.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/avr32/kernel/traps.c   |    2 +-
+ arch/i386/kernel/traps.c    |    2 +-
+ arch/parisc/kernel/traps.c  |    2 +-
+ arch/powerpc/kernel/traps.c |    2 +-
+ arch/ppc/kernel/traps.c     |    2 +-
+ arch/s390/kernel/traps.c    |    2 +-
+ arch/sh/kernel/traps.c      |    2 +-
+ arch/x86_64/kernel/traps.c  |    2 +-
+ include/linux/bug.h         |    7 +++++--
+ lib/bug.c                   |    5 +++--
+ 10 files changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-=
-and-xfs_ioc_fsinumbers-in-compat-mode-update fs/xfs/linux-2.6/xfs_ioctl=
-32.c
---- a/fs/xfs/linux-2.6/xfs_ioctl32.c~fix-xfs_ioc_fsbulkstat_single-and-=
-xfs_ioc_fsinumbers-in-compat-mode-update
-+++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
-@@ -153,7 +153,7 @@ STATIC int xfs_inumbers_fmt_compat(
-=20
- #else
-=20
--#define xfs_inumbers_fmt_compat(a, b, c, d) xfs_inumbers_fmt(a, b, c, =
-d)
-+#define xfs_inumbers_fmt_compat xfs_inumbers_fmt
- #define _PACKED
-=20
- #endif
+diff -puN arch/avr32/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/avr32/kernel/traps.c
+--- a/arch/avr32/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/avr32/kernel/traps.c
+@@ -185,7 +185,7 @@ asmlinkage void do_illegal_opcode(unsign
+ 	if (!user_mode(regs) && (ecr == ECR_ILLEGAL_OPCODE)) {
+ 		enum bug_trap_type type;
+ 
+-		type = report_bug(regs->pc);
++		type = report_bug(regs->pc, regs);
+ 		switch (type) {
+ 		case BUG_TRAP_TYPE_NONE:
+ 			break;
+diff -puN arch/i386/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/i386/kernel/traps.c
+@@ -458,7 +458,7 @@ void die(const char * str, struct pt_reg
+ 		unsigned long esp;
+ 		unsigned short ss;
+ 
+-		report_bug(regs->eip);
++		report_bug(regs->eip, regs);
+ 
+ 		printk(KERN_EMERG "%s: %04lx [#%d]\n", str, err & 0xffff, ++die_counter);
+ #ifdef CONFIG_PREEMPT
+diff -puN arch/parisc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/parisc/kernel/traps.c
+--- a/arch/parisc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/parisc/kernel/traps.c
+@@ -302,7 +302,7 @@ static void handle_break(struct pt_regs 
+ 	if (unlikely(iir == PARISC_BUG_BREAK_INSN && !user_mode(regs))) {
+ 		/* check if a BUG() or WARN() trapped here.  */
+ 		enum bug_trap_type tt;
+-		tt = report_bug(regs->iaoq[0] & ~3);
++		tt = report_bug(regs->iaoq[0] & ~3, regs);
+ 		if (tt == BUG_TRAP_TYPE_WARN) {
+ 			regs->iaoq[0] += 4;
+ 			regs->iaoq[1] += 4;
+diff -puN arch/powerpc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/powerpc/kernel/traps.c
+--- a/arch/powerpc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/powerpc/kernel/traps.c
+@@ -778,7 +778,7 @@ void __kprobes program_check_exception(s
+ 			return;
+ 
+ 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
+-		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
++		    report_bug(regs->nip, regs) == BUG_TRAP_TYPE_WARN) {
+ 			regs->nip += 4;
+ 			return;
+ 		}
+diff -puN arch/ppc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/ppc/kernel/traps.c
+--- a/arch/ppc/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/ppc/kernel/traps.c
+@@ -620,7 +620,7 @@ void program_check_exception(struct pt_r
+ 			return;
+ 
+ 		if (!(regs->msr & MSR_PR) &&  /* not user-mode */
+-		    report_bug(regs->nip) == BUG_TRAP_TYPE_WARN) {
++		    report_bug(regs->nip, regs) == BUG_TRAP_TYPE_WARN) {
+ 			regs->nip += 4;
+ 			return;
+ 		}
+diff -puN arch/s390/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/s390/kernel/traps.c
+--- a/arch/s390/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/s390/kernel/traps.c
+@@ -320,7 +320,7 @@ static void __kprobes inline do_trap(lon
+ 		else {
+ 			enum bug_trap_type btt;
+ 
+-			btt = report_bug(regs->psw.addr & PSW_ADDR_INSN);
++			btt = report_bug(regs->psw.addr & PSW_ADDR_INSN, regs);
+ 			if (btt == BUG_TRAP_TYPE_WARN)
+ 				return;
+ 			die(str, regs, interruption_code);
+diff -puN arch/sh/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/sh/kernel/traps.c
+--- a/arch/sh/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/sh/kernel/traps.c
+@@ -875,7 +875,7 @@ void __init trap_init(void)
+ void handle_BUG(struct pt_regs *regs)
+ {
+ 	enum bug_trap_type tt;
+-	tt = report_bug(regs->pc);
++	tt = report_bug(regs->pc, regs);
+ 	if (tt == BUG_TRAP_TYPE_WARN) {
+ 		regs->pc += 2;
+ 		return;
+diff -puN arch/x86_64/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/arch/x86_64/kernel/traps.c
+@@ -599,7 +599,7 @@ void die(const char * str, struct pt_reg
+ 	unsigned long flags = oops_begin();
+ 
+ 	if (!user_mode(regs))
+-		report_bug(regs->rip);
++		report_bug(regs->rip, regs);
+ 
+ 	__die(str, regs, err);
+ 	oops_end(flags);
+diff -puN include/linux/bug.h~generic-bug-use-show_regs-instead-of-dump_stack include/linux/bug.h
+--- a/include/linux/bug.h~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/include/linux/bug.h
+@@ -10,6 +10,8 @@ enum bug_trap_type {
+ 	BUG_TRAP_TYPE_BUG = 2,
+ };
+ 
++struct pt_regs;
++
+ #ifdef CONFIG_GENERIC_BUG
+ #include <asm-generic/bug.h>
+ 
+@@ -20,7 +22,7 @@ static inline int is_warning_bug(const s
+ 
+ const struct bug_entry *find_bug(unsigned long bugaddr);
+ 
+-enum bug_trap_type report_bug(unsigned long bug_addr);
++enum bug_trap_type report_bug(unsigned long bug_addr, struct pt_regs *regs);
+ 
+ int  module_bug_finalize(const Elf_Ehdr *, const Elf_Shdr *,
+ 			 struct module *);
+@@ -31,7 +33,8 @@ int is_valid_bugaddr(unsigned long addr)
+ 
+ #else	/* !CONFIG_GENERIC_BUG */
+ 
+-static inline enum bug_trap_type report_bug(unsigned long bug_addr)
++static inline enum bug_trap_type report_bug(unsigned long bug_addr,
++					    struct pt_regs *regs)
+ {
+ 	return BUG_TRAP_TYPE_BUG;
+ }
+diff -puN lib/bug.c~generic-bug-use-show_regs-instead-of-dump_stack lib/bug.c
+--- a/lib/bug.c~generic-bug-use-show_regs-instead-of-dump_stack
++++ a/lib/bug.c
+@@ -38,6 +38,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/bug.h>
++#include <linux/sched.h>
+ 
+ extern const struct bug_entry __start___bug_table[], __stop___bug_table[];
+ 
+@@ -112,7 +113,7 @@ const struct bug_entry *find_bug(unsigne
+ 	return module_find_bug(bugaddr);
+ }
+ 
+-enum bug_trap_type report_bug(unsigned long bugaddr)
++enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
+ {
+ 	const struct bug_entry *bug;
+ 	const char *file;
+@@ -147,7 +148,7 @@ enum bug_trap_type report_bug(unsigned l
+ 			       "[verbose debug info unavailable]\n",
+ 			       (void *)bugaddr);
+ 
+-		dump_stack();
++		show_regs(regs);
+ 		return BUG_TRAP_TYPE_WARN;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mmarek@suse.cz are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-fix-xfs_ioc_fsgeometry_v1-in-compat-mode.patch
-fix-xfs_ioc__to_handle-and-xfs_ioc_openreadlink_by_handle-in-compat-mod=
-e.patch
-fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode.pat=
-ch
-fix-xfs_ioc_fsbulkstat_single-and-xfs_ioc_fsinumbers-in-compat-mode-upd=
-ate.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+git-acpi-s390-struct-bin_attribute-changes.patch
+git-s390.patch
+s390-rename-cpu_idle-to-s390_cpu_idle.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma.patch
+scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
+x86_64-fix-smp_call_function_single-return-value.patch
+dma-mapping-prevent-dma-dependent-code-from-linking-on.patch
+generic-bug-use-show_regs-instead-of-dump_stack.patch
+fallocate-implementation-on-i86-x86_64-and-powerpc.patch
+fallocate-on-s390.patch
