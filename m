@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-relayc-make-functions-static.patch added to -mm tree
-Date: Tue, 03 Jul 2007 14:37:45 -0700
-Message-ID: <200707032137.l63Lbjdn017267@imap1.linux-foundation.org>
+Subject: + bonding-bond_mainc-make-2-functions-static.patch added to -mm tree
+Date: Tue, 03 Jul 2007 14:51:15 -0700
+Message-ID: <200707032151.l63LpFDY018001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49401 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47922 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751754AbXGCViW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:38:22 -0400
+	by vger.kernel.org with ESMTP id S1754001AbXGCVwK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 17:52:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, zanussi@us.ibm.com
+Cc: bunk@stusta.de, ctindel@users.sourceforge.net, fubar@us.ibm.com
 
 
 The patch titled
-     kernel/relay.c: make functions static
+     bonding/bond_main.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     kernel-relayc-make-functions-static.patch
+     bonding-bond_mainc-make-2-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/relay.c: make functions static
+Subject: bonding/bond_main.c: make 2 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Tom Zanussi <zanussi@us.ibm.com>
+Cc: Chad Tindel <ctindel@users.sourceforge.net>
+Cc: Jay Vosburgh <fubar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/net/bonding/bond_main.c |    5 +++--
+ drivers/net/bonding/bonding.h   |    2 --
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN kernel/relay.c~kernel-relayc-make-functions-static kernel/relay.c
---- a/kernel/relay.c~kernel-relayc-make-functions-static
-+++ a/kernel/relay.c
-@@ -80,7 +80,7 @@ static struct vm_operations_struct relay
-  *
-  *	Caller should already have grabbed mmap_sem.
-  */
--int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
-+static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
- {
- 	unsigned long length = vma->vm_end - vma->vm_start;
- 	struct file *filp = vma->vm_file;
-@@ -145,7 +145,7 @@ depopulate:
-  *
-  *	Returns channel buffer if successful, %NULL otherwise.
-  */
--struct rchan_buf *relay_create_buf(struct rchan *chan)
-+static struct rchan_buf *relay_create_buf(struct rchan *chan)
- {
- 	struct rchan_buf *buf = kzalloc(sizeof(struct rchan_buf), GFP_KERNEL);
- 	if (!buf)
-@@ -175,7 +175,7 @@ free_buf:
-  *
-  *	Should only be called from kref_put().
-  */
--void relay_destroy_channel(struct kref *kref)
-+static void relay_destroy_channel(struct kref *kref)
- {
- 	struct rchan *chan = container_of(kref, struct rchan, kref);
- 	kfree(chan);
-@@ -185,7 +185,7 @@ void relay_destroy_channel(struct kref *
-  *	relay_destroy_buf - destroy an rchan_buf struct and associated buffer
-  *	@buf: the buffer struct
-  */
--void relay_destroy_buf(struct rchan_buf *buf)
-+static void relay_destroy_buf(struct rchan_buf *buf)
- {
- 	struct rchan *chan = buf->chan;
- 	unsigned int i;
-@@ -210,7 +210,7 @@ void relay_destroy_buf(struct rchan_buf 
-  *	rchan_buf_struct and the channel buffer.  Should only be called from
-  *	kref_put().
-  */
--void relay_remove_buf(struct kref *kref)
-+static void relay_remove_buf(struct kref *kref)
- {
- 	struct rchan_buf *buf = container_of(kref, struct rchan_buf, kref);
- 	buf->chan->cb->remove_buf_file(buf->dentry);
-@@ -223,11 +223,10 @@ void relay_remove_buf(struct kref *kref)
-  *
-  *	Returns 1 if the buffer is empty, 0 otherwise.
-  */
--int relay_buf_empty(struct rchan_buf *buf)
-+static int relay_buf_empty(struct rchan_buf *buf)
- {
- 	return (buf->subbufs_produced - buf->subbufs_consumed) ? 0 : 1;
- }
--EXPORT_SYMBOL_GPL(relay_buf_empty);
+diff -puN drivers/net/bonding/bond_main.c~bonding-bond_mainc-make-2-functions-static drivers/net/bonding/bond_main.c
+--- a/drivers/net/bonding/bond_main.c~bonding-bond_mainc-make-2-functions-static
++++ a/drivers/net/bonding/bond_main.c
+@@ -187,7 +187,7 @@ static void bond_send_gratuitous_arp(str
  
- /**
-  *	relay_buf_full - boolean, is the channel buffer full?
+ /*---------------------------- General routines -----------------------------*/
+ 
+-const char *bond_mode_name(int mode)
++static const char *bond_mode_name(int mode)
+ {
+ 	switch (mode) {
+ 	case BOND_MODE_ROUNDROBIN :
+@@ -1224,7 +1224,8 @@ static void bond_detach_slave(struct bon
+ 
+ /*---------------------------------- IOCTL ----------------------------------*/
+ 
+-int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev)
++static int bond_sethwaddr(struct net_device *bond_dev,
++			  struct net_device *slave_dev)
+ {
+ 	dprintk("bond_dev=%p\n", bond_dev);
+ 	dprintk("slave_dev=%p\n", slave_dev);
+diff -puN drivers/net/bonding/bonding.h~bonding-bond_mainc-make-2-functions-static drivers/net/bonding/bonding.h
+--- a/drivers/net/bonding/bonding.h~bonding-bond_mainc-make-2-functions-static
++++ a/drivers/net/bonding/bonding.h
+@@ -301,13 +301,11 @@ int bond_create_slave_symlinks(struct ne
+ void bond_destroy_slave_symlinks(struct net_device *master, struct net_device *slave);
+ int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev);
+ int bond_release(struct net_device *bond_dev, struct net_device *slave_dev);
+-int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev);
+ void bond_mii_monitor(struct net_device *bond_dev);
+ void bond_loadbalance_arp_mon(struct net_device *bond_dev);
+ void bond_activebackup_arp_mon(struct net_device *bond_dev);
+ void bond_set_mode_ops(struct bonding *bond, int mode);
+ int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl);
+-const char *bond_mode_name(int mode);
+ void bond_select_active_slave(struct bonding *bond);
+ void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
+ void bond_register_arp(struct bonding *);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -117,6 +97,7 @@ git-mmc.patch
 git-mtd.patch
 nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-netdev-all.patch
+bonding-bond_mainc-make-2-functions-static.patch
 git-battery.patch
 git-selinux.patch
 git-scsi-misc.patch
