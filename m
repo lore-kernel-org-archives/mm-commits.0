@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch added to -mm tree
-Date: Tue, 03 Jul 2007 12:57:07 -0700
-Message-ID: <200707031957.l63Jv7ab012247@imap1.linux-foundation.org>
+Subject: + add-missing-files-and-dirs-to-00-index-in-documentation.patch added to -mm tree
+Date: Tue, 03 Jul 2007 12:59:07 -0700
+Message-ID: <200707031959.l63Jx7os012346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757697AbXGCT5c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 15:57:32 -0400
+	by vger.kernel.org with ESMTP id S1759254AbXGCT70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2007 15:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joakim.tjernlund@transmode.se, Joakim.Tjernlund@transmode.se, dbrownell@users.sourceforge.net
+Cc: jesper.juhl@gmail.com, rob@landley.net
 
 
 The patch titled
-     spi_mpc83xx.c: support QE enabled 83xx CPU's like mpc832x
+     Add missing files and dirs to 00-INDEX in Documentation/
 has been added to the -mm tree.  Its filename is
-     spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch
+     add-missing-files-and-dirs-to-00-index-in-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,136 +25,400 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi_mpc83xx.c: support QE enabled 83xx CPU's like mpc832x
-From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
+Subject: Add missing files and dirs to 00-INDEX in Documentation/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Quicc Engine enabled mpc83xx CPU's has a somewhat different HW interface to
-the SPI controller.  This patch adds a qe_mode knob that sees to that
-needed adaptions are performed.
+Add descriptions for a number of missing files and directories to the
+Documentation/00-INDEX file.
 
-Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c   |   32 +++++++++++++++++++++++++++++---
- include/linux/fsl_devices.h |    2 +-
- 2 files changed, 30 insertions(+), 4 deletions(-)
+ Documentation/00-INDEX |  142 ++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 133 insertions(+), 9 deletions(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -47,6 +47,7 @@ struct mpc83xx_spi_reg {
- #define	SPMODE_ENABLE		(1 << 24)
- #define	SPMODE_LEN(x)		((x) << 20)
- #define	SPMODE_PM(x)		((x) << 16)
-+#define	SPMODE_OP		(1 << 14)
+diff -puN Documentation/00-INDEX~add-missing-files-and-dirs-to-00-index-in-documentation Documentation/00-INDEX
+--- a/Documentation/00-INDEX~add-missing-files-and-dirs-to-00-index-in-documentation
++++ a/Documentation/00-INDEX
+@@ -12,6 +12,8 @@ Following translations are available on 
  
- /*
-  * Default for SPI Mode:
-@@ -85,6 +86,11 @@ struct mpc83xx_spi {
- 	unsigned nsecs;		/* (clock cycle time)/2 */
- 
- 	u32 sysclk;
-+	u32 rx_shift;		/* RX data reg shift when in qe mode */
-+	u32 tx_shift;		/* TX data reg shift when in qe mode */
-+
-+	bool qe_mode;
-+
- 	void (*activate_cs) (u8 cs, u8 polarity);
- 	void (*deactivate_cs) (u8 cs, u8 polarity);
- };
-@@ -103,7 +109,7 @@ static inline u32 mpc83xx_spi_read_reg(_
- void mpc83xx_spi_rx_buf_##type(u32 data, struct mpc83xx_spi *mpc83xx_spi) \
- {									  \
- 	type * rx = mpc83xx_spi->rx;					  \
--	*rx++ = (type)data;						  \
-+	*rx++ = (type)(data >> mpc83xx_spi->rx_shift);			  \
- 	mpc83xx_spi->rx = rx;						  \
- }
- 
-@@ -114,7 +120,7 @@ u32 mpc83xx_spi_tx_buf_##type(struct mpc
- 	const type * tx = mpc83xx_spi->tx;			\
- 	if (!tx)						\
- 		return 0;					\
--	data = *tx++;						\
-+	data = *tx++ << mpc83xx_spi->tx_shift;			\
- 	mpc83xx_spi->tx = tx;					\
- 	return data;						\
- }
-@@ -203,12 +209,22 @@ int mpc83xx_spi_setup_transfer(struct sp
- 	    || ((bits_per_word > 16) && (bits_per_word != 32)))
- 		return -EINVAL;
- 
-+	mpc83xx_spi->rx_shift = 0;
-+	mpc83xx_spi->tx_shift = 0;
- 	if (bits_per_word <= 8) {
- 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
- 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
-+		if (mpc83xx_spi->qe_mode) {
-+			mpc83xx_spi->rx_shift = 16;
-+			mpc83xx_spi->tx_shift = 24;
-+		}
- 	} else if (bits_per_word <= 16) {
- 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u16;
- 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u16;
-+		if (mpc83xx_spi->qe_mode) {
-+			mpc83xx_spi->rx_shift = 16;
-+			mpc83xx_spi->tx_shift = 16;
-+		}
- 	} else if (bits_per_word <= 32) {
- 		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u32;
- 		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u32;
-@@ -386,7 +402,6 @@ static int __init mpc83xx_spi_probe(stru
- 		ret = -ENODEV;
- 		goto free_master;
- 	}
--
- 	mpc83xx_spi = spi_master_get_devdata(master);
- 	mpc83xx_spi->bitbang.master = spi_master_get(master);
- 	mpc83xx_spi->bitbang.chipselect = mpc83xx_spi_chipselect;
-@@ -395,9 +410,17 @@ static int __init mpc83xx_spi_probe(stru
- 	mpc83xx_spi->sysclk = pdata->sysclk;
- 	mpc83xx_spi->activate_cs = pdata->activate_cs;
- 	mpc83xx_spi->deactivate_cs = pdata->deactivate_cs;
-+	mpc83xx_spi->qe_mode = pdata->qe_mode;
- 	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
- 	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
- 
-+	mpc83xx_spi->rx_shift = 0;
-+	mpc83xx_spi->tx_shift = 0;
-+	if (mpc83xx_spi->qe_mode) {
-+		mpc83xx_spi->rx_shift = 16;
-+		mpc83xx_spi->tx_shift = 24;
-+	}
-+
- 	mpc83xx_spi->bitbang.master->setup = mpc83xx_spi_setup;
- 	init_completion(&mpc83xx_spi->done);
- 
-@@ -432,6 +455,9 @@ static int __init mpc83xx_spi_probe(stru
- 
- 	/* Enable SPI interface */
- 	regval = pdata->initial_spmode | SPMODE_INIT_VAL | SPMODE_ENABLE;
-+	if (pdata->qe_mode)
-+		regval |= SPMODE_OP;
-+
- 	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
- 
- 	ret = spi_bitbang_start(&mpc83xx_spi->bitbang);
-diff -puN include/linux/fsl_devices.h~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x include/linux/fsl_devices.h
---- a/include/linux/fsl_devices.h~spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x
-+++ a/include/linux/fsl_devices.h
-@@ -112,7 +112,7 @@ struct fsl_usb2_platform_data {
- struct fsl_spi_platform_data {
- 	u32 	initial_spmode;	/* initial SPMODE value */
- 	u16	bus_num;
--
-+	bool	qe_mode;
- 	/* board specific information */
- 	u16	max_chipselect;
- 	void	(*activate_cs)(u8 cs, u8 polarity);
+ 00-INDEX
+ 	- this file.
++ABI/
++	- info on kernel <-> userspace ABI and relative interface stability.
+ BUG-HUNTING
+ 	- brute force method of doing binary search of patches to find bug.
+ Changes
+@@ -25,37 +27,57 @@ DMA-mapping.txt
+ DocBook/
+ 	- directory with DocBook templates etc. for kernel documentation.
+ HOWTO
+-	- The process and procedures of how to do Linux kernel development.
++	- the process and procedures of how to do Linux kernel development.
+ IO-mapping.txt
+ 	- how to access I/O mapped memory from within device drivers.
+ IPMI.txt
+ 	- info on Linux Intelligent Platform Management Interface (IPMI) Driver.
+ IRQ-affinity.txt
+ 	- how to select which CPU(s) handle which interrupt events on SMP.
++IRQ.txt
++	- description of what an IRQ is.
+ ManagementStyle
+ 	- how to (attempt to) manage kernel hackers.
+ MSI-HOWTO.txt
+ 	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
++PCIEBUS-HOWTO.txt
++	- a guide describing the PCI Express Port Bus driver.
+ RCU/
+ 	- directory with info on RCU (read-copy update).
+ README.DAC960
+ 	- info on Mylex DAC960/DAC1100 PCI RAID Controller Driver for Linux.
++README.cycladesZ
++	- info on Cyclades-Z firmware loading.
+ SAK.txt
+ 	- info on Secure Attention Keys.
++SecurityBugs
++	- procedure for reporting security bugs found in the kernel.
++SubmitChecklist
++	- Linux kernel patch submission checklist.
+ SubmittingDrivers
+ 	- procedure to get a new driver source included into the kernel tree.
+ SubmittingPatches
+ 	- procedure to get a source patch included into the kernel tree.
+ VGA-softcursor.txt
+ 	- how to change your VGA cursor from a blinking underscore.
++accounting/
++	- documentation on accounting and taskstats.
++aoe/
++	- description of AoE (ATA over Ethernet) along with config examples.
+ applying-patches.txt
+ 	- description of various trees and how to apply their patches.
+ arm/
+ 	- directory with info about Linux on the ARM architecture.
++atomic_ops.txt
++	- semantics and behavior of atomic and bitmask operations.
++auxdisplay/
++	- misc. LCD driver documentation (cfag12864b, ks0108).
+ basic_profiling.txt
+ 	- basic instructions for those who wants to profile Linux kernel.
+ binfmt_misc.txt
+ 	- info on the kernel support for extra binary formats.
++blackfin/
++	- directory with documentation for the Blackfin arch.
+ block/
+ 	- info on the Block I/O (BIO) layer.
+ cachetlb.txt
+@@ -68,16 +90,32 @@ cli-sti-removal.txt
+ 	- cli()/sti() removal guide.
+ computone.txt
+ 	- info on Computone Intelliport II/Plus Multiport Serial Driver.
++connector/
++	- docs on the netlink based userspace<->kernel space communication mod.
++console/
++	- documentation on Linux console drivers.
+ cpqarray.txt
+ 	- info on using Compaq's SMART2 Intelligent Disk Array Controllers.
+ cpu-freq/
+ 	- info on CPU frequency and voltage scaling.
++cpu-hotplug.txt
++	- document describing CPU hotplug support in the Linux kernel.
++cpu-load.txt
++	- document describing how CPU load statistics are collected.
++cpusets.txt
++	- documents the cpusets feature; assign CPUs and Mem to a set of tasks.
++cputopology.txt
++	- documentation on how CPU topology info is exported via sysfs.
+ cris/
+ 	- directory with info about Linux on CRIS architecture.
+ crypto/
+ 	- directory with info on the Crypto API.
++dcdbas.txt
++	- information on the Dell Systems Management Base Driver.
+ debugging-modules.txt
+ 	- some notes on debugging modules after Linux 2.6.3.
++dell_rbu.txt
++	- document demonstrating the use of the Dell Remote BIOS Update driver.
+ device-mapper/
+ 	- directory with info on Device Mapper.
+ devices.txt
+@@ -86,32 +124,52 @@ digiepca.txt
+ 	- info on Digi Intl. {PC,PCI,EISA}Xx and Xem series cards.
+ dnotify.txt
+ 	- info about directory notification in Linux.
++dontdiff
++	- file containing a list of files that should never be diff'ed.
+ driver-model/
+ 	- directory with info about Linux driver model.
++drivers/
++	- directory with driver documentation (currently only EDAC).
+ dvb/
+ 	- info on Linux Digital Video Broadcast (DVB) subsystem.
+ early-userspace/
+ 	- info about initramfs, klibc, and userspace early during boot.
++ecryptfs.txt
++	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
+ eisa.txt
+ 	- info on EISA bus support.
+ exception.txt
+ 	- how Linux v2.2 handles exceptions without verify_area etc.
++fault-injection/
++	- dir with docs about the fault injection capabilities infrastructure.
+ fb/
+ 	- directory with info on the frame buffer graphics abstraction layer.
++feature-removal-schedule.txt
++	- list of files and features that are going to be removed.
+ filesystems/
+ 	- directory with info on the various filesystems that Linux supports.
+ firmware_class/
+ 	- request_firmware() hotplug interface info.
+ floppy.txt
+ 	- notes and driver options for the floppy disk driver.
++fujitsu/
++	- Fujitsu FR-V Linux documentation.
++gpio.txt
++	- overview of GPIO (General Purpose Input/Output) access conventions.
+ hayes-esp.txt
+ 	- info on using the Hayes ESP serial driver.
+ highuid.txt
+ 	- notes on the change from 16 bit to 32 bit user/group IDs.
+ hpet.txt
+ 	- High Precision Event Timer Driver for Linux.
++hrtimer/
++	- info on the timer_stats debugging facility for timer (ab)use.
++hrtimers/
++	- info on the hrtimers subsystem for high-resolution kernel timers.
+ hw_random.txt
+ 	- info on Linux support for random number generator in i8xx chipsets.
++hwmon/
++	- directory with docs on various hardware monitoring drivers.
+ i2c/
+ 	- directory with info about the I2C bus/protocol (2 wire, kHz speed).
+ i2o/
+@@ -122,16 +180,22 @@ ia64/
+ 	- directory with info about Linux on Intel 64 bit architecture.
+ ide.txt
+ 	- important info for users of ATA devices (IDE/EIDE disks and CD-ROMS).
++infiniband/
++	- directory with documents concerning Linux InfiniBand support.
+ initrd.txt
+ 	- how to use the RAM disk as an initial/temporary root filesystem.
+ input/
+ 	- info on Linux input device support.
+ io_ordering.txt
+ 	- info on ordering I/O writes to memory-mapped addresses.
++ioctl/
++	- directory with documents describing various IOCTL calls.
+ ioctl-number.txt
+ 	- how to implement and register device/driver ioctl calls.
+ iostats.txt
+ 	- info on I/O statistics Linux kernel provides.
++irqflags-tracing.txt
++	- how to use the irq-flags tracing feature.
+ isapnp.txt
+ 	- info on Linux ISA Plug & Play support.
+ isdn/
+@@ -140,26 +204,40 @@ java.txt
+ 	- info on the in-kernel binary support for Java(tm).
+ kbuild/
+ 	- directory with info about the kernel build process.
+-kdumpt.txt
+-       - mini HowTo on getting the crash dump code to work.
++kdump/
++	- directory with mini HowTo on getting the crash dump code to work.
+ kernel-doc-nano-HOWTO.txt
+ 	- mini HowTo on generation and location of kernel documentation files.
+ kernel-docs.txt
+ 	- listing of various WWW + books that document kernel internals.
+ kernel-parameters.txt
+ 	- summary listing of command line / boot prompt args for the kernel.
++keys-request-key.txt
++	- description of the kernel key request service.
++keys.txt
++	- description of the kernel key retention service.
+ kobject.txt
+ 	- info of the kobject infrastructure of the Linux kernel.
++kprobes.txt
++	- documents the kernel probes debugging feature.
++kref.txt
++	- docs on adding reference counters (krefs) to kernel objects.
+ laptop-mode.txt
+-	- How to conserve battery power using laptop-mode.
++	- how to conserve battery power using laptop-mode.
+ ldm.txt
+ 	- a brief description of LDM (Windows Dynamic Disks).
++leds-class.txt
++	- documents LED handling under Linux.
++local_ops.txt
++	- semantics and behavior of local atomic operations.
++lockdep-design.txt
++	- documentation on the runtime locking correctness validator.
+ locks.txt
+ 	- info on file locking implementations, flock() vs. fcntl(), etc.
+ logo.gif
+-	- Full colour GIF image of Linux logo (penguin).
++	- full colour GIF image of Linux logo (penguin - Tux).
+ logo.txt
+-	- Info on creator of above logo & site to get additional images from.
++	- info on creator of above logo & site to get additional images from.
+ m68k/
+ 	- directory with info about Linux on Motorola 68k architecture.
+ magic-number.txt
+@@ -170,6 +248,8 @@ mca.txt
+ 	- info on supporting Micro Channel Architecture (e.g. PS/2) systems.
+ md.txt
+ 	- info on boot arguments for the multiple devices driver.
++memory-barriers.txt
++	- info on Linux kernel memory barriers.
+ memory.txt
+ 	- info on typical Linux memory problems.
+ mips/
+@@ -177,9 +257,11 @@ mips/
+ mono.txt
+ 	- how to execute Mono-based .NET binaries with the help of BINFMT_MISC.
+ moxa-smartio
+-	- info on installing/using Moxa multiport serial driver.
++	- file with info on installing/using Moxa multiport serial driver.
+ mtrr.txt
+ 	- how to use PPro Memory Type Range Registers to increase performance.
++mutex-design.txt
++	- info on the generic mutex subsystem.
+ nbd.txt
+ 	- info on a TCP implementation of a network block device.
+ netlabel/
+@@ -190,6 +272,8 @@ nfsroot.txt
+ 	- short guide on setting up a diskless box with NFS root filesystem.
+ nmi_watchdog.txt
+ 	- info on NMI watchdog for SMP systems.
++nommu-mmap.txt
++	- documentation about no-mmu memory mapping support.
+ numastat.txt
+ 	- info on how to read Numa policy hit/miss statistics in sysfs.
+ oops-tracing.txt
+@@ -202,8 +286,16 @@ parport.txt
+ 	- how to use the parallel-port driver.
+ parport-lowlevel.txt
+ 	- description and usage of the low level parallel port functions.
++pci-error-recovery.txt
++	- info on PCI error recovery.
+ pci.txt
+ 	- info on the PCI subsystem for device driver authors.
++pcieaer-howto.txt
++	- the PCI Express Advanced Error Reporting Driver Guide HOWTO.
++pcmcia/
++	- info on the Linux PCMCIA driver.
++pi-futex.txt
++	- documentation on lightweight PI-futexes.
+ pm.txt
+ 	- info on Linux power management support.
+ pnp.txt
+@@ -214,18 +306,32 @@ powerpc/
+ 	- directory with info on using Linux with the PowerPC.
+ preempt-locking.txt
+ 	- info on locking under a preemptive kernel.
++prio_tree.txt
++	- info on radix-priority-search-tree use for indexing vmas.
+ ramdisk.txt
+ 	- short guide on how to set up and use the RAM disk.
++rbtree.txt
++	- info on what red-black trees are and what they are for.
+ riscom8.txt
+ 	- notes on using the RISCom/8 multi-port serial driver.
++robust-futex-ABI.txt
++	- documentation of the robust futex ABI.
++robust-futexes.txt
++	- a description of what robust futexes are.
+ rocket.txt
+ 	- info on the Comtrol RocketPort multiport serial driver.
+ rpc-cache.txt
+ 	- introduction to the caching mechanisms in the sunrpc layer.
++rt-mutex-design.txt
++	- description of the RealTime mutex implementation design.
++rt-mutex.txt
++	- desc. of RT-mutex subsystem with PI (Priority Inheritance) support.
+ rtc.txt
+ 	- notes on how to use the Real Time Clock (aka CMOS clock) driver.
+ s390/
+ 	- directory with info on using Linux on the IBM S390.
++sched-arch.txt
++	- CPU Scheduler implementation hints for architecture specific code.
+ sched-coding.txt
+ 	- reference for various scheduler-related methods in the O(1) scheduler.
+ sched-design.txt
+@@ -240,22 +346,32 @@ serial/
+ 	- directory with info on the low level serial API.
+ serial-console.txt
+ 	- how to set up Linux with a serial line console as the default.
++sgi-ioc4.txt
++	- description of the SGI IOC4 PCI (multi function) device.
+ sgi-visws.txt
+ 	- short blurb on the SGI Visual Workstations.
+ sh/
+ 	- directory with info on porting Linux to a new architecture.
++sharedsubtree.txt
++	- a description of shared subtrees for namespaces.
+ smart-config.txt
+ 	- description of the Smart Config makefile feature.
+ smp.txt
+ 	- a few notes on symmetric multi-processing.
++sony-laptop.txt
++	- Sony Notebook Control Driver (SNC) Readme.
+ sonypi.txt
+ 	- info on Linux Sony Programmable I/O Device support.
+ sound/
+ 	- directory with info on sound card support.
+ sparc/
+ 	- directory with info on using Linux on Sparc architecture.
++sparse.txt
++	- info on how to obtain and use the sparse tool for typechecking.
+ specialix.txt
+ 	- info on hardware/driver for specialix IO8+ multiport serial card.
++spi/
++	- overview of Linux kernel Serial Peripheral Interface (SPI) support.
+ spinlocks.txt
+ 	- info on using spinlocks to provide exclusive access in kernel.
+ stable_api_nonsense.txt
+@@ -274,24 +390,32 @@ sysrq.txt
+ 	- info on the magic SysRq key.
+ telephony/
+ 	- directory with info on telephony (e.g. voice over IP) support.
++thinkpad-acpi.txt
++	- information on the (IBM and Lenovo) ThinkPad ACPI Extras driver.
+ time_interpolators.txt
+ 	- info on time interpolators.
+ tipar.txt
+ 	- information about Parallel link cable for Texas Instruments handhelds.
+ tty.txt
+ 	- guide to the locking policies of the tty layer.
+-unicode.txt
+-	- info on the Unicode character/font mapping used in Linux.
+ uml/
+ 	- directory with information about User Mode Linux.
++unicode.txt
++	- info on the Unicode character/font mapping used in Linux.
++unshare.txt
++	- description of the Linux unshare system call.
+ usb/
+ 	- directory with info regarding the Universal Serial Bus.
++video-output.txt
++	- sysfs class driver interface to enable/disable a video output device.
+ video4linux/
+ 	- directory with info regarding video/TV/radio cards and linux.
+ vm/
+ 	- directory with info on the Linux vm code.
+ voyager.txt
+ 	- guide to running Linux on the Voyager architecture.
++w1/
++	- directory with documents regarding the 1-wire (w1) subsystem.
+ watchdog/
+ 	- how to auto-reboot Linux if it has "fallen and can't get up". ;-)
+ x86_64/
 _
 
-Patches currently in -mm which might be from joakim.tjernlund@transmode.se are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-spi_mpc83xxc-support-qe-enabled-83xx-cpus-like-mpc832x.patch
+remove-unneeded-test-of-task-in-dump_trace.patch
+git-xfs.patch
+submitchecklist-update-fix-spelling-error.patch
+add-missing-files-and-dirs-to-00-index-in-documentation.patch
