@@ -1,423 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fixup.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 16:35:24 -0700
-Message-ID: <200707052335.l65NZOfh024664@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-fixup.patch added to -mm tree
+Date: Thu, 05 Jul 2007 16:56:12 -0700
+Message-ID: <200707052356.l65NuCb5025626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56830 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759842AbXGEXfc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 19:35:32 -0400
+	by vger.kernel.org with ESMTP id S1758598AbXGEX4p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 19:56:45 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l65NZUQO024144
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l65NuH7j024878
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 5 Jul 2007 16:35:31 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 5 Jul 2007 16:56:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-acpi-fixup
-has been removed from the -mm tree.  Its filename was
-     git-acpi-fixup.patch
+     git-scsi-misc-fixup
+has been added to the -mm tree.  Its filename is
+     git-scsi-misc-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
+Subject: git-scsi-misc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |  374 --------------------------------
- 1 file changed, 374 deletions(-)
+ include/scsi/scsi_host.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~git-acpi-fixup drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~git-acpi-fixup
-+++ a/drivers/acpi/processor_idle.c
-@@ -252,380 +252,6 @@ static void acpi_state_timer_broadcast(s
+diff -puN include/scsi/scsi_host.h~git-scsi-misc-fixup include/scsi/scsi_host.h
+--- a/include/scsi/scsi_host.h~git-scsi-misc-fixup
++++ a/include/scsi/scsi_host.h
+@@ -349,12 +349,6 @@ struct scsi_host_template {
+ 	enum scsi_eh_timer_return (* eh_timed_out)(struct scsi_cmnd *);
  
- #endif
- 
--<<<<<<< HEAD/drivers/acpi/processor_idle.c
--static void acpi_processor_idle(void)
--{
--	struct acpi_processor *pr = NULL;
--	struct acpi_processor_cx *cx = NULL;
--	struct acpi_processor_cx *next_state = NULL;
--	int sleep_ticks = 0;
--	u32 t1, t2 = 0;
+ 	/*
+-	 * suspend support
+-	 */
+-	int (*resume)(struct scsi_device *);
+-	int (*suspend)(struct scsi_device *, pm_message_t state);
 -
 -	/*
--	 * Interrupts must be disabled during bus mastering calculations and
--	 * for C2/C3 transitions.
--	 */
--	local_irq_disable();
--
--	pr = processors[smp_processor_id()];
--	if (!pr) {
--		local_irq_enable();
--		return;
--	}
--
--	/*
--	 * Check whether we truly need to go idle, or should
--	 * reschedule:
--	 */
--	if (unlikely(need_resched())) {
--		local_irq_enable();
--		return;
--	}
--
--	cx = pr->power.state;
--	if (!cx) {
--		if (pm_idle_save)
--			pm_idle_save();
--		else
--			acpi_safe_halt();
--		return;
--	}
--
--	/*
--	 * Check BM Activity
--	 * -----------------
--	 * Check for bus mastering activity (if required), record, and check
--	 * for demotion.
--	 */
--	if (pr->flags.bm_check) {
--		u32 bm_status = 0;
--		unsigned long diff = jiffies - pr->power.bm_check_timestamp;
--
--		if (diff > 31)
--			diff = 31;
--
--		pr->power.bm_activity <<= diff;
--
--		acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS, &bm_status);
--		if (bm_status) {
--			pr->power.bm_activity |= 0x1;
--			acpi_set_register(ACPI_BITREG_BUS_MASTER_STATUS, 1);
--		}
--		/*
--		 * PIIX4 Erratum #18: Note that BM_STS doesn't always reflect
--		 * the true state of bus mastering activity; forcing us to
--		 * manually check the BMIDEA bit of each IDE channel.
--		 */
--		else if (errata.piix4.bmisx) {
--			if ((inb_p(errata.piix4.bmisx + 0x02) & 0x01)
--			    || (inb_p(errata.piix4.bmisx + 0x0A) & 0x01))
--				pr->power.bm_activity |= 0x1;
--		}
--
--		pr->power.bm_check_timestamp = jiffies;
--
--		/*
--		 * If bus mastering is or was active this jiffy, demote
--		 * to avoid a faulty transition.  Note that the processor
--		 * won't enter a low-power state during this call (to this
--		 * function) but should upon the next.
--		 *
--		 * TBD: A better policy might be to fallback to the demotion
--		 *      state (use it for this quantum only) istead of
--		 *      demoting -- and rely on duration as our sole demotion
--		 *      qualification.  This may, however, introduce DMA
--		 *      issues (e.g. floppy DMA transfer overrun/underrun).
--		 */
--		if ((pr->power.bm_activity & 0x1) &&
--		    cx->demotion.threshold.bm) {
--			local_irq_enable();
--			next_state = cx->demotion.state;
--			goto end;
--		}
--	}
--
--#ifdef CONFIG_HOTPLUG_CPU
--	/*
--	 * Check for P_LVL2_UP flag before entering C2 and above on
--	 * an SMP system. We do it here instead of doing it at _CST/P_LVL
--	 * detection phase, to work cleanly with logical CPU hotplug.
--	 */
--	if ((cx->type != ACPI_STATE_C1) && (num_online_cpus() > 1) && 
--	    !pr->flags.has_cst && !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED))
--		cx = &pr->power.states[ACPI_STATE_C1];
--#endif
--
--	/*
--	 * Sleep:
--	 * ------
--	 * Invoke the current Cx state to put the processor to sleep.
--	 */
--	if (cx->type == ACPI_STATE_C2 || cx->type == ACPI_STATE_C3) {
--		current_thread_info()->status &= ~TS_POLLING;
--		/*
--		 * TS_POLLING-cleared state must be visible before we
--		 * test NEED_RESCHED:
--		 */
--		smp_mb();
--		if (need_resched()) {
--			current_thread_info()->status |= TS_POLLING;
--			local_irq_enable();
--			return;
--		}
--	}
--
--	switch (cx->type) {
--
--	case ACPI_STATE_C1:
--		/*
--		 * Invoke C1.
--		 * Use the appropriate idle routine, the one that would
--		 * be used without acpi C-states.
--		 */
--		if (pm_idle_save)
--			pm_idle_save();
--		else
--			acpi_safe_halt();
--
--		/*
--		 * TBD: Can't get time duration while in C1, as resumes
--		 *      go to an ISR rather than here.  Need to instrument
--		 *      base interrupt handler.
--		 */
--		sleep_ticks = 0xFFFFFFFF;
--		break;
--
--	case ACPI_STATE_C2:
--		/* Get start time (ticks) */
--		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--		/* Invoke C2 */
--		acpi_state_timer_broadcast(pr, cx, 1);
--		acpi_cstate_enter(cx);
--		/* Get end time (ticks) */
--		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--
--#ifdef CONFIG_GENERIC_TIME
--		/* TSC halts in C2, so notify users */
--		mark_tsc_unstable("possible TSC halt in C2");
--#endif
--		/* Re-enable interrupts */
--		local_irq_enable();
--		current_thread_info()->status |= TS_POLLING;
--		/* Compute time (ticks) that we were actually asleep */
--		sleep_ticks =
--		    ticks_elapsed(t1, t2) - cx->latency_ticks - C2_OVERHEAD;
--		acpi_state_timer_broadcast(pr, cx, 0);
--		break;
--
--	case ACPI_STATE_C3:
--
--		if (pr->flags.bm_check) {
--			if (atomic_inc_return(&c3_cpu_count) ==
--			    num_online_cpus()) {
--				/*
--				 * All CPUs are trying to go to C3
--				 * Disable bus master arbitration
--				 */
--				acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
--			}
--		} else {
--			/* SMP with no shared cache... Invalidate cache  */
--			ACPI_FLUSH_CPU_CACHE();
--		}
--
--		/* Get start time (ticks) */
--		t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--		/* Invoke C3 */
--		acpi_state_timer_broadcast(pr, cx, 1);
--		acpi_cstate_enter(cx);
--		/* Get end time (ticks) */
--		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--		if (pr->flags.bm_check) {
--			/* Enable bus master arbitration */
--			atomic_dec(&c3_cpu_count);
--			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
--		}
--
--#ifdef CONFIG_GENERIC_TIME
--		/* TSC halts in C3, so notify users */
--		mark_tsc_unstable("TSC halts in C3");
--#endif
--		/* Re-enable interrupts */
--		local_irq_enable();
--		current_thread_info()->status |= TS_POLLING;
--		/* Compute time (ticks) that we were actually asleep */
--		sleep_ticks =
--		    ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
--		acpi_state_timer_broadcast(pr, cx, 0);
--		break;
--
--	default:
--		local_irq_enable();
--		return;
--	}
--	cx->usage++;
--	if ((cx->type != ACPI_STATE_C1) && (sleep_ticks > 0))
--		cx->time += sleep_ticks;
--
--	next_state = pr->power.state;
--
--#ifdef CONFIG_HOTPLUG_CPU
--	/* Don't do promotion/demotion */
--	if ((cx->type == ACPI_STATE_C1) && (num_online_cpus() > 1) &&
--	    !pr->flags.has_cst && !(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED)) {
--		next_state = cx;
--		goto end;
--	}
--#endif
--
--	/*
--	 * Promotion?
--	 * ----------
--	 * Track the number of longs (time asleep is greater than threshold)
--	 * and promote when the count threshold is reached.  Note that bus
--	 * mastering activity may prevent promotions.
--	 * Do not promote above max_cstate.
--	 */
--	if (cx->promotion.state &&
--	    ((cx->promotion.state - pr->power.states) <= max_cstate)) {
--		if (sleep_ticks > cx->promotion.threshold.ticks &&
--		  cx->promotion.state->latency <= system_latency_constraint()) {
--			cx->promotion.count++;
--			cx->demotion.count = 0;
--			if (cx->promotion.count >=
--			    cx->promotion.threshold.count) {
--				if (pr->flags.bm_check) {
--					if (!
--					    (pr->power.bm_activity & cx->
--					     promotion.threshold.bm)) {
--						next_state =
--						    cx->promotion.state;
--						goto end;
--					}
--				} else {
--					next_state = cx->promotion.state;
--					goto end;
--				}
--			}
--		}
--	}
--
--	/*
--	 * Demotion?
--	 * ---------
--	 * Track the number of shorts (time asleep is less than time threshold)
--	 * and demote when the usage threshold is reached.
--	 */
--	if (cx->demotion.state) {
--		if (sleep_ticks < cx->demotion.threshold.ticks) {
--			cx->demotion.count++;
--			cx->promotion.count = 0;
--			if (cx->demotion.count >= cx->demotion.threshold.count) {
--				next_state = cx->demotion.state;
--				goto end;
--			}
--		}
--	}
--
--      end:
--	/*
--	 * Demote if current state exceeds max_cstate
--	 * or if the latency of the current state is unacceptable
--	 */
--	if ((pr->power.state - pr->power.states) > max_cstate ||
--		pr->power.state->latency > system_latency_constraint()) {
--		if (cx->demotion.state)
--			next_state = cx->demotion.state;
--	}
--
--	/*
--	 * New Cx State?
--	 * -------------
--	 * If we're going to start using a new Cx state we must clean up
--	 * from the previous and prepare to use the new.
--	 */
--	if (next_state != pr->power.state)
--		acpi_processor_power_activate(pr, next_state);
--}
--
--static int acpi_processor_set_power_policy(struct acpi_processor *pr)
--{
--	unsigned int i;
--	unsigned int state_is_set = 0;
--	struct acpi_processor_cx *lower = NULL;
--	struct acpi_processor_cx *higher = NULL;
--	struct acpi_processor_cx *cx;
--
--
--	if (!pr)
--		return -EINVAL;
--
--	/*
--	 * This function sets the default Cx state policy (OS idle handler).
--	 * Our scheme is to promote quickly to C2 but more conservatively
--	 * to C3.  We're favoring C2  for its characteristics of low latency
--	 * (quick response), good power savings, and ability to allow bus
--	 * mastering activity.  Note that the Cx state policy is completely
--	 * customizable and can be altered dynamically.
--	 */
--
--	/* startup state */
--	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
--		cx = &pr->power.states[i];
--		if (!cx->valid)
--			continue;
--
--		if (!state_is_set)
--			pr->power.state = cx;
--		state_is_set++;
--		break;
--	}
--
--	if (!state_is_set)
--		return -ENODEV;
--
--	/* demotion */
--	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
--		cx = &pr->power.states[i];
--		if (!cx->valid)
--			continue;
--
--		if (lower) {
--			cx->demotion.state = lower;
--			cx->demotion.threshold.ticks = cx->latency_ticks;
--			cx->demotion.threshold.count = 1;
--			if (cx->type == ACPI_STATE_C3)
--				cx->demotion.threshold.bm = bm_history;
--		}
--
--		lower = cx;
--	}
--
--	/* promotion */
--	for (i = (ACPI_PROCESSOR_MAX_POWER - 1); i > 0; i--) {
--		cx = &pr->power.states[i];
--		if (!cx->valid)
--			continue;
--
--		if (higher) {
--			cx->promotion.state = higher;
--			cx->promotion.threshold.ticks = cx->latency_ticks;
--			if (cx->type >= ACPI_STATE_C2)
--				cx->promotion.threshold.count = 4;
--			else
--				cx->promotion.threshold.count = 10;
--			if (higher->type == ACPI_STATE_C3)
--				cx->promotion.threshold.bm = bm_history;
--		}
--
--		higher = cx;
--	}
--
--	return 0;
--}
--
--=======
-->>>>>>> /drivers/acpi/processor_idle.c
- static int acpi_processor_get_power_info_fadt(struct acpi_processor *pr)
- {
- 
+  	 * link power management support
+  	 */
+ 	int (*set_link_pm_policy)(struct Scsi_Host *, enum scsi_host_link_pm);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -425,10 +61,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 potential-compiler-error-irqfunc-caller-sites-update.patch
 git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-ia64-build-fix.patch
-git-acpi-tickh-needs-hrtimerh.patch
-git-acpi-add-exports.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-avr32.patch
@@ -453,7 +85,6 @@ git-leds.patch
 led_colour_show-warning-fix.patch
 libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-ide_scan_pcibus-cehck-__pci_register_driver-return-value.patch
 git-md-accel.patch
 git-mips-fixup.patch
 git-mtd.patch
@@ -472,6 +103,7 @@ fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 pci-x-pci-express-read-control-interfaces-fix.patch
 revert-acpi-change-for-scsi.patch
 git-scsi-misc.patch
+git-scsi-misc-fixup.patch
 restore-acpi-change-for-scsi.patch
 git-scsi-misc-vs-greg-sysfs-stuff.patch
 aacraid-rename-check_reset.patch
