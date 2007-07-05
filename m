@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-es7000-build-breakage-fix.patch added to -mm tree
-Date: Thu, 05 Jul 2007 14:18:48 -0700
-Message-ID: <200707052118.l65LImXr020120@imap1.linux-foundation.org>
+Subject: + netpoll-fix-a-leak-n-bug-in-netpoll_cleanup.patch added to -mm tree
+Date: Thu, 05 Jul 2007 14:20:37 -0700
+Message-ID: <200707052120.l65LKbPC020258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757465AbXGEVU0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:20:26 -0400
+	by vger.kernel.org with ESMTP id S1758708AbXGEVVl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:21:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vgoyal@in.ibm.com, ak@suse.de, lenb@kernel.org, protasnb@gmail.com, rolandd@cisco.com
+Cc: ssatyam@cse.iitk.ac.in
 
 
 The patch titled
-     i386: es7000 build breakage fix
+     netpoll: fix a leak-n-bug in netpoll_cleanup()
 has been added to the -mm tree.  Its filename is
-     i386-es7000-build-breakage-fix.patch
+     netpoll-fix-a-leak-n-bug-in-netpoll_cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,138 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: es7000 build breakage fix
-From: Vivek Goyal <vgoyal@in.ibm.com>
+Subject: netpoll: fix a leak-n-bug in netpoll_cleanup()
+From: Satyam Sharma <ssatyam@cse.iitk.ac.in>
 
-o Commit 1833d6bc72893265f22addd79cf52e6987496e0f broke the build if
-  compiled with CONFIG_ES7000=y and CONFIG_X86_GENERICARCH=n
+93ec2c723e3f8a216dde2899aeb85c648672bc6b applied excessive duct tape to the
+netpoll beast's netpoll_cleanup(), thus substituting one leak with another,
+and opening up a little buglet :-)
 
-arch/i386/kernel/built-in.o(.init.text+0x4fa9): In function `acpi_parse_madt':
-: undefined reference to `acpi_madt_oem_check'
-arch/i386/kernel/built-in.o(.init.text+0x7406): In function `smp_read_mpc':
-: undefined reference to `mps_oem_check'
-arch/i386/kernel/built-in.o(.init.text+0x8990): In function
-`connect_bsp_APIC':
-: undefined reference to `enable_apic_mode'
-make: *** [.tmp_vmlinux1] Error 1
+net_device->npinfo (netpoll_info) is a shared and refcounted object and
+cannot simply be set NULL the first time netpoll_cleanup() is called. 
+Otherwise, further netpoll_cleanup()'s see np->dev->npinfo == NULL and
+become no-ops, thus leaking.  And it's a bug too: the first call to
+netpoll_cleanup() would thus (annoyingly) "disable" other (still alive)
+netpolls too.  Maybe nobody noticed this because netconsole (only user of
+netpoll) never supported multiple netpoll objects earlier.
 
-o Fix the build issue. Provided the definitions of missing functions.
+This is a trivial and obvious one-line fixlet.
 
-o Don't have ES7000 machine. Only compile tested.
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-es7000/es7000plat.c          |   48 ++++++++++++++++++
- include/asm-i386/mach-es7000/mach_apic.h    |    4 +
- include/asm-i386/mach-es7000/mach_mpparse.h |    6 ++
- 3 files changed, 58 insertions(+)
+ net/core/netpoll.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/mach-es7000/es7000plat.c~i386-es7000-build-breakage-fix arch/i386/mach-es7000/es7000plat.c
---- a/arch/i386/mach-es7000/es7000plat.c~i386-es7000-build-breakage-fix
-+++ a/arch/i386/mach-es7000/es7000plat.c
-@@ -40,6 +40,7 @@
- #include <asm/smp.h>
- #include <asm/apicdef.h>
- #include "es7000.h"
-+#include <mach_mpparse.h>
+diff -puN net/core/netpoll.c~netpoll-fix-a-leak-n-bug-in-netpoll_cleanup net/core/netpoll.c
+--- a/net/core/netpoll.c~netpoll-fix-a-leak-n-bug-in-netpoll_cleanup
++++ a/net/core/netpoll.c
+@@ -785,7 +785,6 @@ void netpoll_cleanup(struct netpoll *np)
+ 				spin_unlock_irqrestore(&npinfo->rx_lock, flags);
+ 			}
  
- /*
-  * ES7000 Globals
-@@ -174,6 +175,53 @@ find_unisys_acpi_oem_table(unsigned long
- }
- #endif
+-			np->dev->npinfo = NULL;
+ 			if (atomic_dec_and_test(&npinfo->refcnt)) {
+ 				skb_queue_purge(&npinfo->arp_tx);
+ 				skb_queue_purge(&npinfo->txq);
+@@ -799,6 +798,7 @@ void netpoll_cleanup(struct netpoll *np)
+ 					kfree_skb(skb);
+ 				}
+ 				kfree(npinfo);
++				np->dev->npinfo = NULL;
+ 			}
+ 		}
  
-+/*
-+ * This file also gets compiled if CONFIG_X86_GENERICARCH is set. Generic
-+ * arch already has got following function definitions (asm-generic/es7000.c)
-+ * hence no need to define these for that case.
-+ */
-+#ifndef CONFIG_X86_GENERICARCH
-+void es7000_sw_apic(void);
-+void __init enable_apic_mode(void)
-+{
-+	es7000_sw_apic();
-+	return;
-+}
-+
-+__init int mps_oem_check(struct mp_config_table *mpc, char *oem,
-+		char *productid)
-+{
-+	if (mpc->mpc_oemptr) {
-+		struct mp_config_oemtable *oem_table =
-+			(struct mp_config_oemtable *)mpc->mpc_oemptr;
-+		if (!strncmp(oem, "UNISYS", 6))
-+			return parse_unisys_oem((char *)oem_table);
-+	}
-+	return 0;
-+}
-+#ifdef CONFIG_ACPI
-+/* Hook from generic ACPI tables.c */
-+int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
-+{
-+	unsigned long oem_addr;
-+	if (!find_unisys_acpi_oem_table(&oem_addr)) {
-+		if (es7000_check_dsdt())
-+			return parse_unisys_oem((char *)oem_addr);
-+		else {
-+			setup_unisys();
-+			return 1;
-+		}
-+	}
-+	return 0;
-+}
-+#else
-+int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
-+{
-+	return 0;
-+}
-+#endif
-+#endif /* COFIG_X86_GENERICARCH */
-+
- static void
- es7000_spin(int n)
- {
-diff -puN include/asm-i386/mach-es7000/mach_apic.h~i386-es7000-build-breakage-fix include/asm-i386/mach-es7000/mach_apic.h
---- a/include/asm-i386/mach-es7000/mach_apic.h~i386-es7000-build-breakage-fix
-+++ a/include/asm-i386/mach-es7000/mach_apic.h
-@@ -73,6 +73,10 @@ static inline void init_apic_ldr(void)
- 	apic_write_around(APIC_LDR, val);
- }
- 
-+#ifndef CONFIG_X86_GENERICARCH
-+extern void enable_apic_mode(void);
-+#endif
-+
- extern int apic_version [MAX_APICS];
- static inline void setup_apic_routing(void)
- {
-diff -puN include/asm-i386/mach-es7000/mach_mpparse.h~i386-es7000-build-breakage-fix include/asm-i386/mach-es7000/mach_mpparse.h
---- a/include/asm-i386/mach-es7000/mach_mpparse.h~i386-es7000-build-breakage-fix
-+++ a/include/asm-i386/mach-es7000/mach_mpparse.h
-@@ -18,6 +18,12 @@ extern int parse_unisys_oem (char *oempt
- extern int find_unisys_acpi_oem_table(unsigned long *oem_addr);
- extern void setup_unisys(void);
- 
-+#ifndef CONFIG_X86_GENERICARCH
-+extern int acpi_madt_oem_check(char *oem_id, char *oem_table_id);
-+extern int mps_oem_check(struct mp_config_table *mpc, char *oem,
-+				char *productid);
-+#endif
-+
- #ifdef CONFIG_ACPI
- 
- static inline int es7000_check_dsdt(void)
 _
 
-Patches currently in -mm which might be from vgoyal@in.ibm.com are
+Patches currently in -mm which might be from ssatyam@cse.iitk.ac.in are
 
-i386-es7000-build-breakage-fix.patch
-fix-i-oat-for-kexec.patch
-x86-64-disable-the-gart-in-shutdown.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+git-gfs2-nmw.patch
+git-ocfs2.patch
+drivers-message-i2o-devicec-remove-redundant-gfp_atomic-from-kmalloc.patch
+drivers-scsi-aic7xxx_oldc-remove-redundant-gfp_atomic-from-kmalloc.patch
+netpoll-fix-a-leak-n-bug-in-netpoll_cleanup.patch
+introduce-write_trylock_irqsave.patch
