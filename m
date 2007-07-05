@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + geode-mfgpt-support-for-geode-class-machines.patch added to -mm tree
-Date: Thu, 05 Jul 2007 15:26:28 -0700
-Message-ID: <200707052226.l65MQSGj022099@imap1.linux-foundation.org>
+Subject: + geode-mfgpt-clock-event-device-support.patch added to -mm tree
+Date: Thu, 05 Jul 2007 15:26:30 -0700
+Message-ID: <200707052226.l65MQUPn022102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54005 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59805 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762764AbXGEW1O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:27:14 -0400
+	by vger.kernel.org with ESMTP id S1763171AbXGEW1y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:27:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com
+Cc: dilinger@queued.net, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, johnstul@us.ibm.com, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     GEODE: MFGPT support for Geode-class machines
+     GEODE: MFGPT clock event device support
 has been added to the -mm tree.  Its filename is
-     geode-mfgpt-support-for-geode-class-machines.patch
+     geode-mfgpt-clock-event-device-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,322 +25,225 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: GEODE: MFGPT support for Geode-class machines
+Subject: GEODE: MFGPT clock event device support
 From: Andres Salomon <dilinger@queued.net>
 
-This adds support for Multi-Function General Purpose Timers.  It detects the
-available timers during southbridge init, and provides an API for allocating
-and setting the timers.  They're higher resolution than the standard PIT, so
-the MFGPTs come in handy for quite a few things.
-
-Note that we never clobber the timers that the BIOS might have opted to use;
-we just check for unused timers.
+Add support for an MFGPT clock event device; this allows us to use MFGPTs as
+the basis for high-resolution timers.
 
 Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/Makefile |    2 
- arch/i386/kernel/geode.c  |    4 
- arch/i386/kernel/mfgpt.c  |  200 ++++++++++++++++++++++++++++++++++++
- include/asm-i386/geode.h  |   50 +++++++++
- 4 files changed, 255 insertions(+), 1 deletion(-)
+ arch/i386/Kconfig        |   10 ++
+ arch/i386/kernel/mfgpt.c |  158 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 168 insertions(+)
 
-diff -puN arch/i386/kernel/Makefile~geode-mfgpt-support-for-geode-class-machines arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~geode-mfgpt-support-for-geode-class-machines
-+++ a/arch/i386/kernel/Makefile
-@@ -41,7 +41,7 @@ obj-$(CONFIG_VM86)		+= vm86.o
- obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
- obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
- obj-$(CONFIG_K8_NB)		+= k8.o
--obj-$(CONFIG_MGEODE_LX)		+= geode.o
-+obj-$(CONFIG_MGEODE_LX)		+= geode.o mfgpt.o
- obj-$(CONFIG_STACK_UNWIND)	+= unwind.o
+diff -puN arch/i386/Kconfig~geode-mfgpt-clock-event-device-support arch/i386/Kconfig
+--- a/arch/i386/Kconfig~geode-mfgpt-clock-event-device-support
++++ a/arch/i386/Kconfig
+@@ -1209,6 +1209,16 @@ config SCx200HR_TIMER
+ 	  processor goes idle (as is done by the scheduler).  The
+ 	  other workaround is idle=poll boot option.
  
- obj-$(CONFIG_VMI)		+= vmi.o vmiclock.o
-diff -puN arch/i386/kernel/geode.c~geode-mfgpt-support-for-geode-class-machines arch/i386/kernel/geode.c
---- a/arch/i386/kernel/geode.c~geode-mfgpt-support-for-geode-class-machines
-+++ a/arch/i386/kernel/geode.c
-@@ -146,10 +146,14 @@ EXPORT_SYMBOL_GPL(geode_gpio_setup_event
- 
- static int __init geode_southbridge_init(void)
- {
-+	int timers;
++config GEODE_MFGPT_TIMER
++	bool "Geode Multi-Function General Purpose Timer (MFGPT) events"
++	depends on MGEODE_LX && GENERIC_TIME && GENERIC_CLOCKEVENTS
++	default y
++	help
++	  This driver provides a clock event source based on the MFGPT
++	  timer(s) in the CS5535 and CS5536 companion chip for the geode.
++	  MFGPTs have a better resolution and max interval than the
++	  generic PIT, and are suitable for use as high-res timers.
 +
- 	if (!is_geode())
- 		return -ENODEV;
+ config K8_NB
+ 	def_bool y
+ 	depends on AGP_AMD64
+diff -puN arch/i386/kernel/mfgpt.c~geode-mfgpt-clock-event-device-support arch/i386/kernel/mfgpt.c
+--- a/arch/i386/kernel/mfgpt.c~geode-mfgpt-clock-event-device-support
++++ a/arch/i386/kernel/mfgpt.c
+@@ -48,6 +48,12 @@ static struct mfgpt_timer_t {
+ #define MFGPT_HZ  (32000 / MFGPT_DIVISOR)
+ #define MFGPT_PERIODIC (MFGPT_HZ / HZ)
  
- 	init_lbars();
-+	timers = geode_mfgpt_detect();
-+	printk(KERN_INFO "geode:  %d MFGPT timers available.\n", timers);
- 	return 0;
++#ifdef CONFIG_GEODE_MFGPT_TIMER
++static int __init mfgpt_timer_setup(void);
++#else
++#define mfgpt_timer_setup() (0)
++#endif
++
+ /* Allow for disabling of MFGPTs */
+ static int disable = 0;
+ static int __init mfgpt_disable(char *s)
+@@ -82,6 +88,9 @@ int __init geode_mfgpt_detect(void)
+ 		}
+ 	}
+ 
++	/* set up clock event device, if desired */
++	i = mfgpt_timer_setup();
++
+ 	return count;
  }
  
-diff -puN /dev/null arch/i386/kernel/mfgpt.c
---- /dev/null
-+++ a/arch/i386/kernel/mfgpt.c
-@@ -0,0 +1,200 @@
-+/*
-+ * Driver/API for AMD Geode Multi-Function General Purpose Timers (MFGPT)
-+ *
-+ * Copyright (C) 2006, Advanced Micro Devices, Inc.
-+ * Copyright (C) 2007, Andres Salomon <dilinger@debian.org>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of version 2 of the GNU General Public License
-+ * as published by the Free Software Foundation.
-+ *
-+ * The MFGPTs are documented in AMD Geode CS5536 Companion Device Data Book.
-+ */
+@@ -198,3 +207,152 @@ int geode_mfgpt_alloc_timer(int timer, i
+ 	return -1;
+ }
+ EXPORT_SYMBOL(geode_mfgpt_alloc_timer);
++
++#ifdef CONFIG_GEODE_MFGPT_TIMER
 +
 +/*
-+ * We are using the 32Khz input clock - its the only one that has the
-+ * ranges we find desirable.  The following table lists the suitable
-+ * divisors and the associated hz, minimum interval
-+ * and the maximum interval:
-+ *
-+ *  Divisor   Hz      Min Delta (S) Max Delta (S)
-+ *   1        32000     .0005          2.048
-+ *   2        16000      .001          4.096
-+ *   4         8000      .002          8.192
-+ *   8         4000      .004         16.384
-+ *   16        2000      .008         32.768
-+ *   32        1000      .016         65.536
-+ *   64         500      .032        131.072
-+ *  128         250      .064        262.144
-+ *  256         125      .128        524.288
++ * The MFPGT timers on the CS5536 provide us with suitable timers to use
++ * as clock event sources - not as good as a HPET or APIC, but certainly
++ * better then the PIT.  This isn't a general purpose MFGPT driver, but
++ * a simplified one designed specifically to act as a clock event source.
++ * For full details about the MFGPT, please consult the CS5536 data sheet.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <asm/geode.h>
++#include <linux/clocksource.h>
++#include <linux/clockchips.h>
 +
-+#define F_AVAIL    0x01
++static unsigned int mfgpt_tick_mode = CLOCK_EVT_MODE_SHUTDOWN;
++static u16 mfgpt_event_clock;
 +
-+static struct mfgpt_timer_t {
-+	int flags;
-+	struct module *owner;
-+} mfgpt_timers[MFGPT_MAX_TIMERS];
-+
-+/* Selected from the table above */
-+
-+#define MFGPT_DIVISOR 16
-+#define MFGPT_SCALE  4     /* divisor = 2^(scale) */
-+#define MFGPT_HZ  (32000 / MFGPT_DIVISOR)
-+#define MFGPT_PERIODIC (MFGPT_HZ / HZ)
-+
-+/* Allow for disabling of MFGPTs */
-+static int disable = 0;
-+static int __init mfgpt_disable(char *s)
++static int irq = 7;
++static int __init mfgpt_setup(char *str)
 +{
-+	disable = 1;
++	get_option(&str, &irq);
 +	return 1;
 +}
-+__setup("nomfgpt", mfgpt_disable);
++__setup("mfgpt_irq=", mfgpt_setup);
 +
-+/*
-+ * Check whether any MFGPTs are available for the kernel to use.  In most
-+ * cases, firmware that uses AMD's VSA code will claim all timers during
-+ * bootup; we certainly don't want to take them if they're already in use.
-+ * In other cases (such as with VSAless OpenFirmware), the system firmware
-+ * leaves timers available for us to use.
-+ */
-+int __init geode_mfgpt_detect(void)
++static inline void mfgpt_disable_timer(u16 clock)
 +{
-+	int count = 0, i;
++	u16 val = geode_mfgpt_read(clock, MFGPT_REG_SETUP);
++	geode_mfgpt_write(clock, MFGPT_REG_SETUP, val & ~MFGPT_SETUP_CNTEN);
++}
++
++static int mfgpt_next_event(unsigned long, struct clock_event_device *);
++static void mfgpt_set_mode(enum clock_event_mode, struct clock_event_device *);
++
++static struct clock_event_device mfgpt_clockevent = {
++	.name = "mfgpt-timer",
++	.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
++	.set_mode = mfgpt_set_mode,
++	.set_next_event = mfgpt_next_event,
++	.rating = 250,
++	.cpumask = CPU_MASK_ALL,
++	.shift = 32
++};
++
++static inline void mfgpt_start_timer(u16 clock, u16 delta)
++{
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_CMP2, (u16) delta);
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_COUNTER, 0);
++
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_SETUP,
++			  MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
++}
++
++static void mfgpt_set_mode(enum clock_event_mode mode,
++			   struct clock_event_device *evt)
++{
++	mfgpt_disable_timer(mfgpt_event_clock);
++
++	if (mode == CLOCK_EVT_MODE_PERIODIC)
++		mfgpt_start_timer(mfgpt_event_clock, MFGPT_PERIODIC);
++
++	mfgpt_tick_mode = mode;
++}
++
++static int mfgpt_next_event(unsigned long delta, struct clock_event_device *evt)
++{
++	mfgpt_start_timer(mfgpt_event_clock, delta);
++	return 0;
++}
++
++/* Assume (foolishly?), that this interrupt was due to our tick */
++
++static irqreturn_t mfgpt_tick(int irq, void *dev_id)
++{
++	if (mfgpt_tick_mode == CLOCK_EVT_MODE_SHUTDOWN)
++		return IRQ_HANDLED;
++
++	/* Turn off the clock */
++	mfgpt_disable_timer(mfgpt_event_clock);
++
++	/* Clear the counter */
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_COUNTER, 0);
++
++	/* Restart the clock in periodic mode */
++
++	if (mfgpt_tick_mode == CLOCK_EVT_MODE_PERIODIC) {
++		geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_SETUP,
++				  MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
++	}
++
++	mfgpt_clockevent.event_handler(&mfgpt_clockevent);
++	return IRQ_HANDLED;
++}
++
++static struct irqaction mfgptirq  = {
++	.handler = mfgpt_tick,
++	.flags = IRQF_DISABLED | IRQF_NOBALANCING,
++	.mask = CPU_MASK_NONE,
++	.name = "mfgpt-timer"
++};
++
++static int __init mfgpt_timer_setup(void)
++{
++	int timer, ret;
 +	u16 val;
 +
-+	if (disable) {
-+		printk(KERN_INFO "geode-mfgpt:  Skipping MFGPT setup\n");
-+		return 0;
-+	}
-+
-+	for (i = 0; i < MFGPT_MAX_TIMERS; i++) {
-+		val = geode_mfgpt_read(i, MFGPT_REG_SETUP);
-+		if (!(val & MFGPT_SETUP_SETUP)) {
-+			mfgpt_timers[i].flags = F_AVAIL;
-+			count++;
-+		}
-+	}
-+
-+	return count;
-+}
-+
-+int geode_mfgpt_toggle_event(int timer, int cmp, int event, int enable)
-+{
-+	u32 msr, mask, value, dummy;
-+	int shift = (cmp == MFGPT_CMP1) ? 0 : 8;
-+
-+	if (timer < 0 || timer >= MFGPT_MAX_TIMERS)
-+		return -EIO;
-+
-+	/*
-+	 * The register maps for these are described in sections 6.17.1.x of
-+	 * the AMD Geode CS5536 Companion Device Data Book.
-+	 */
-+	switch (event) {
-+	case MFGPT_EVENT_RESET:
-+		/*
-+		 * XXX: According to the docs, we cannot reset timers above
-+		 * 6; that is, resets for 7 and 8 will be ignored.  Is this
-+		 * a problem?   -dilinger
-+		 */
-+		msr = MFGPT_NR_MSR;
-+		mask = 1 << (timer + 24);
-+		break;
-+
-+	case MFGPT_EVENT_NMI:
-+		msr = MFGPT_NR_MSR;
-+		mask = 1 << (timer + shift);
-+		break;
-+
-+	case MFGPT_EVENT_IRQ:
-+		msr = MFGPT_IRQ_MSR;
-+		mask = 1 << (timer + shift);
-+		break;
-+
-+	default:
-+		return -EIO;
-+	}
-+
-+	rdmsr(msr, value, dummy);
-+
-+	if (enable)
-+		value |= mask;
-+	else
-+		value &= ~mask;
-+
-+	wrmsr(msr, value, dummy);
-+	return 0;
-+}
-+EXPORT_SYMBOL(geode_mfgpt_toggle_event);
-+
-+int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable)
-+{
-+	u32 val, dummy;
-+	int offset;
-+
-+	if (timer < 0 || timer >= MFGPT_MAX_TIMERS)
-+		return -EIO;
-+
-+	if (geode_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
-+		return -EIO;
-+
-+	rdmsr(0x51400022, val, dummy);
-+
-+	offset = (timer % 4) * 4;
-+
-+	val &= ~((0xF << offset) | (0xF << (offset + 16)));
-+
-+	if (enable) {
-+		val |= (irq & 0x0F) << (offset);
-+		val |= (irq & 0x0F) << (offset + 16);
-+	}
-+
-+	wrmsr(0x51400022, val, dummy);
-+	return 0;
-+}
-+EXPORT_SYMBOL(geode_mfgpt_set_irq);
-+
-+static int mfgpt_get(int timer, struct module *owner)
-+{
-+	mfgpt_timers[timer].flags &= ~F_AVAIL;
-+	mfgpt_timers[timer].owner = owner;
-+	printk(KERN_INFO "geode-mfgpt:  Registered timer %d\n", timer);
-+	return timer;
-+}
-+
-+int geode_mfgpt_alloc_timer(int timer, int domain, struct module *owner)
-+{
-+	int i;
-+
-+	if (!geode_get_dev_base(GEODE_DEV_MFGPT))
-+		return -ENODEV;
-+	if (timer >= MFGPT_MAX_TIMERS)
-+		return -EIO;
-+
++	timer = geode_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING, THIS_MODULE);
 +	if (timer < 0) {
-+		/* Try to find an available timer */
-+		for (i = 0; i < MFGPT_MAX_TIMERS; i++) {
-+			if (mfgpt_timers[i].flags & F_AVAIL)
-+				return mfgpt_get(i, owner);
-+
-+			if (i == 5 && domain == MFGPT_DOMAIN_WORKING)
-+				break;
-+		}
-+	}
-+	else {
-+		/* If they requested a specific timer, try to honor that */
-+		if (mfgpt_timers[timer].flags & F_AVAIL)
-+			return mfgpt_get(timer, owner);
++		printk(KERN_ERR "mfgpt-timer:  Could not allocate a MFPGT timer\n");
++		return -ENODEV;
 +	}
 +
-+	/* No timers available - too bad */
-+	return -1;
-+}
-+EXPORT_SYMBOL(geode_mfgpt_alloc_timer);
-diff -puN include/asm-i386/geode.h~geode-mfgpt-support-for-geode-class-machines include/asm-i386/geode.h
---- a/include/asm-i386/geode.h~geode-mfgpt-support-for-geode-class-machines
-+++ a/include/asm-i386/geode.h
-@@ -156,4 +156,54 @@ static inline int is_geode(void)
- 	return (is_geode_gx() || is_geode_lx());
- }
- 
-+/* MFGPTs */
++	mfgpt_event_clock = timer;
++	/* Set the clock scale and enable the event mode for CMP2 */
++	val = MFGPT_SCALE | (3 << 8);
 +
-+#define MFGPT_MAX_TIMERS	8
-+#define MFGPT_TIMER_ANY		-1
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_SETUP, val);
 +
-+#define MFGPT_DOMAIN_WORKING	1
-+#define MFGPT_DOMAIN_STANDBY	2
-+#define MFGPT_DOMAIN_ANY	(MFGPT_DOMAIN_WORKING | MFGPT_DOMAIN_STANDBY)
++	/* Set up the IRQ on the MFGPT side */
++	if (geode_mfgpt_setup_irq(mfgpt_event_clock, MFGPT_CMP2, irq)) {
++		printk(KERN_ERR "mfgpt-timer:  Could not set up IRQ %d\n", irq);
++		return -EIO;
++	}
 +
-+#define MFGPT_CMP1		0
-+#define MFGPT_CMP2		1
++	/* And register it with the kernel */
++	ret = setup_irq(irq, &mfgptirq);
 +
-+#define MFGPT_EVENT_IRQ		0
-+#define MFGPT_EVENT_NMI		1
-+#define MFGPT_EVENT_RESET	3
++	if (ret) {
++		printk(KERN_ERR "mfgpt-timer:  Unable to set up the interrupt.\n");
++		goto err;
++	}
 +
-+#define MFGPT_REG_CMP1		0
-+#define MFGPT_REG_CMP2		2
-+#define MFGPT_REG_COUNTER	4
-+#define MFGPT_REG_SETUP		6
++	/* Set up the clock event */
++	mfgpt_clockevent.mult = div_sc(MFGPT_HZ, NSEC_PER_SEC, 32);
++	mfgpt_clockevent.min_delta_ns = clockevent_delta2ns(0xF, &mfgpt_clockevent);
++	mfgpt_clockevent.max_delta_ns = clockevent_delta2ns(0xFFFE, &mfgpt_clockevent);
 +
-+#define MFGPT_SETUP_CNTEN	(1 << 15)
-+#define MFGPT_SETUP_CMP2	(1 << 14)
-+#define MFGPT_SETUP_CMP1	(1 << 13)
-+#define MFGPT_SETUP_SETUP	(1 << 12)
-+#define MFGPT_SETUP_STOPEN	(1 << 11)
-+#define MFGPT_SETUP_EXTEN	(1 << 10)
-+#define MFGPT_SETUP_REVEN	(1 << 5)
-+#define MFGPT_SETUP_CLKSEL	(1 << 4)
++	printk("mfgpt-timer:  registering the MFGT timer as a clock event.\n");
++	clockevents_register_device(&mfgpt_clockevent);
 +
-+static inline void geode_mfgpt_write(int timer, u16 reg, u16 value)
-+{
-+	u32 base = geode_get_dev_base(GEODE_DEV_MFGPT);
-+	outw(value, base + reg + (timer * 8));
++	return 0;
++
++err:
++	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, irq);
++	printk(KERN_ERR "mfgpt-timer:  Unable to set up the MFGPT clock source\n");
++	return -EIO;
 +}
 +
-+static inline u16 geode_mfgpt_read(int timer, u16 reg)
-+{
-+	u32 base = geode_get_dev_base(GEODE_DEV_MFGPT);
-+	return inw(base + reg + (timer * 8));
-+}
-+
-+extern int __init geode_mfgpt_detect(void);
-+extern int geode_mfgpt_toggle_event(int timer, int cmp, int event, int enable);
-+extern int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable);
-+extern int geode_mfgpt_alloc_timer(int timer, int domain, struct module *owner);
-+
-+#define geode_mfgpt_setup_irq(t,c,i) geode_mfgpt_set_irq((t),(c),(i),1)
-+#define geode_mfgpt_release_irq(t,c,i) geode_mfgpt_set_irq((t),(c),(i),0)
-+
- #endif
++#endif
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
