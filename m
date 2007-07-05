@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-osst-remove-gendisk-from-private-data-struct.patch added to -mm tree
-Date: Thu, 05 Jul 2007 15:57:58 -0700
-Message-ID: <200707052257.l65Mvwq4022665@imap1.linux-foundation.org>
+Subject: + i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch added to -mm tree
+Date: Thu, 05 Jul 2007 16:02:10 -0700
+Message-ID: <200707052302.l65N2A98022932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34981 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751729AbXGEW6N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:58:13 -0400
+	by vger.kernel.org with ESMTP id S1761195AbXGEXDT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 19:03:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org
+Cc: adurbin@google.com, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     SCSI: osst: remove gendisk from private data struct
+     i386/x86_64: insert HPET firmware resource after PCI enumeration has completed
 has been added to the -mm tree.  Its filename is
-     scsi-osst-remove-gendisk-from-private-data-struct.patch
+     i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SCSI: osst: remove gendisk from private data struct
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: i386/x86_64: insert HPET firmware resource after PCI enumeration has completed
+From: Aaron Durbin <adurbin@google.com>
 
-Since gendisk is now part of scsi_device, don't store this struct in private
-data struct
+Insert HPET resources after pci probing has been completed in order to
+avoid resource conflicts with PCI resource reservation.  With this change
+the HPET firmware resources will be identified, but it should also not
+cause issues when the HPET address falls on a BAR in a PCI device, and the
+PCI enumeration cannot reserve the resources.
 
-Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    9 +++++----
- drivers/scsi/osst.h |    1 -
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/i386/kernel/acpi/boot.c |   36 +++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+)
 
-diff -puN drivers/scsi/osst.c~scsi-osst-remove-gendisk-from-private-data-struct drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~scsi-osst-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/osst.c
-@@ -191,7 +191,7 @@ static int osst_write_error_recovery(str
+diff -puN arch/i386/kernel/acpi/boot.c~i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -619,6 +619,8 @@ static int __init acpi_parse_sbf(struct 
+ #ifdef CONFIG_HPET_TIMER
+ #include <asm/hpet.h>
  
- static inline char *tape_name(struct osst_tape *tape)
++static struct __initdata resource *hpet_res;
++
+ static int __init acpi_parse_hpet(struct acpi_table_header *table)
  {
--	return tape->drive->disk_name;
-+	return tape->device->disk->disk_name;
- }
- 
- /* Routines that handle the interaction with mid-layer SCSI routines */
-@@ -5803,7 +5803,6 @@ static int osst_probe(struct device *dev
- 	drive->private_data = &tpnt->driver;
- 	sprintf(drive->disk_name, "osst%d", dev_num);
- 	tpnt->driver = &osst_template;
--	tpnt->drive = drive;
- 	tpnt->in_use = 0;
- 	tpnt->capacity = 0xfffff;
- 	tpnt->dirty = 0;
-@@ -5885,6 +5884,8 @@ static int osst_probe(struct device *dev
- 			goto out_free_sysfs1;
+ 	struct acpi_table_hpet *hpet_tbl;
+@@ -660,8 +662,42 @@ static int __init acpi_parse_hpet(struct
+ 		insert_resource(&iomem_resource, hpet_res);
  	}
  
-+	SDp->disk = drive;
++	/*
++	 * Allocate and initialize the HPET firmware resource for adding into
++	 * the resource tree during the lateinit timeframe.
++	 */
++#define HPET_RESOURCE_NAME_SIZE 9
++	hpet_res = alloc_bootmem(sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE);
 +
- 	sdev_printk(KERN_INFO, SDp,
- 		"osst :I: Attached OnStream %.5s tape as %s\n",
- 		SDp->model, tape_name(tpnt));
-@@ -5915,7 +5916,7 @@ static int osst_remove(struct device *de
- 			osst_sysfs_destroy(MKDEV(OSST_MAJOR, i));
- 			osst_sysfs_destroy(MKDEV(OSST_MAJOR, i+128));
- 			tpnt->device = NULL;
--			put_disk(tpnt->drive);
-+			put_disk(tpnt->device->disk);
- 			os_scsi_tapes[i] = NULL;
- 			osst_nr_dev--;
- 			write_unlock(&os_scsi_tapes_lock);
-@@ -5988,7 +5989,7 @@ static void __exit exit_osst (void)
- 				normalize_buffer(STp->buffer);
- 				kfree(STp->buffer);
- 			}
--			put_disk(STp->drive);
-+			put_disk(STp->device->disk);
- 			kfree(STp);
- 		}
- 		kfree(os_scsi_tapes);
-diff -puN drivers/scsi/osst.h~scsi-osst-remove-gendisk-from-private-data-struct drivers/scsi/osst.h
---- a/drivers/scsi/osst.h~scsi-osst-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/osst.h
-@@ -623,7 +623,6 @@ struct osst_tape {
-   unsigned char last_cmnd[6];
-   unsigned char last_sense[16];
++	if (!hpet_res)
++		return 0;
++
++	memset(hpet_res, 0, sizeof(*hpet_res));
++	hpet_res->name = (void *)&hpet_res[1];
++	hpet_res->flags = IORESOURCE_MEM;
++	snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE, "HPET %u",
++		 hpet_tbl->sequence);
++
++	hpet_res->start = hpet_address;
++	hpet_res->end = hpet_address + (1 * 1024) - 1;
++
+ 	return 0;
+ }
++
++/*
++ * hpet_insert_resource inserts the HPET resources used into the resource
++ * tree.
++ */
++static __init int hpet_insert_resource(void)
++{
++	if (!hpet_res)
++		return 1;
++
++	return insert_resource(&iomem_resource, hpet_res);
++}
++
++late_initcall(hpet_insert_resource);
++
+ #else
+ #define	acpi_parse_hpet	NULL
  #endif
--  struct gendisk *drive;
- } ;
- 
- /* scsi tape command */
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from adurbin@google.com are
 
-git-acpi.patch
-libata-check-for-an-support.patch
-scsi-expose-an-to-user-space.patch
-libata-expose-an-to-user-space.patch
-scsi-save-disk-in-scsi_device.patch
-libata-send-event-when-an-received.patch
-ata-ahci-alpm-store-interrupt-value.patch
-ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
-ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
-ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
-cpci_hotplug-convert-to-use-the-kthread-api.patch
-scsi-osst-remove-gendisk-from-private-data-struct.patch
-scsi-sr-remove-gendisk-from-private-data-struct.patch
-scsi-st-remove-gendisk-from-private-data-struct.patch
+mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
+i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
