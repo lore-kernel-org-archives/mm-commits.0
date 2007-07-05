@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pdc202xx_old-correct-cable-detect-logic.patch added to -mm tree
-Date: Thu, 05 Jul 2007 11:57:30 -0700
-Message-ID: <200707051857.l65IvU8A012943@imap1.linux-foundation.org>
+Subject: + amiserial-remove-incorrect-no-termios-change-check.patch added to -mm tree
+Date: Thu, 05 Jul 2007 11:58:52 -0700
+Message-ID: <200707051858.l65IwqYC012974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44142 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57161 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758812AbXGES5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 14:57:50 -0400
+	by vger.kernel.org with ESMTP id S1759896AbXGES73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 14:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_pdc202xx_old: correct cable detect logic
+     amiserial: remove incorrect 'no termios change' check
 has been added to the -mm tree.  Its filename is
-     pata_pdc202xx_old-correct-cable-detect-logic.patch
+     amiserial-remove-incorrect-no-termios-change-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_pdc202xx_old: correct cable detect logic
+Subject: amiserial: remove incorrect 'no termios change' check
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We got it backwards and now the other detects are fixed it shows up.
+Lots of serial drivers check and optimise for setting the termios values to
+the ones they were before.  This is pointless and the check is wrong
+anyway.  Remove the checks on the serial drivers.  If we ever do need such
+a check put it back in the tty layer instead _once_!
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pdc202xx_old.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/amiserial.c |    7 +------
+ 1 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic drivers/ata/pata_pdc202xx_old.c
---- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic
-+++ a/drivers/ata/pata_pdc202xx_old.c
-@@ -31,8 +31,8 @@ static int pdc2026x_cable_detect(struct 
+diff -puN drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check
++++ a/drivers/char/amiserial.c
+@@ -738,6 +738,7 @@ static void change_speed(struct async_st
+ 	}
+ 	/* If the quotient is zero refuse the change */
+ 	if (!quot && old_termios) {
++		/* FIXME: Will need updating for new tty in the end */
+ 		info->tty->termios->c_cflag &= ~CBAUD;
+ 		info->tty->termios->c_cflag |= (old_termios->c_cflag & CBAUD);
+ 		baud = tty_get_baud_rate(info->tty);
+@@ -783,7 +784,6 @@ static void change_speed(struct async_st
+ 	/*
+ 	 * Set up parity check flag
+ 	 */
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
  
- 	pci_read_config_word(pdev, 0x50, &cis);
- 	if (cis & (1 << (10 + ap->port_no)))
--		return ATA_CBL_PATA80;
--	return ATA_CBL_PATA40;
-+		return ATA_CBL_PATA40;
-+	return ATA_CBL_PATA80;
- }
+ 	info->read_status_mask = UART_LSR_OE | UART_LSR_DR;
+ 	if (I_INPCK(info->tty))
+@@ -1367,11 +1367,6 @@ static void rs_set_termios(struct tty_st
+ 	unsigned long flags;
+ 	unsigned int cflag = tty->termios->c_cflag;
  
- /**
+-	if (   (cflag == old_termios->c_cflag)
+-	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-	  return;
+-
+ 	change_speed(info, old_termios);
+ 
+ 	/* Handle transition to B0 status */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -95,6 +115,7 @@ audit-add-tty-input-auditing.patch
 audit-add-tty-input-auditing-fix.patch
 audit-add-tty-input-auditing-fix-2.patch
 revert-vanishing-ioctl-handler-debugging.patch
+amiserial-remove-incorrect-no-termios-change-check.patch
 i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
 wrong-memory-access-in-i2o_block_device_lock.patch
