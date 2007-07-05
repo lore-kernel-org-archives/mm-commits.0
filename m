@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + visor-and-whiteheat-remove-bogus-termios-change-checks.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:04:13 -0700
-Message-ID: <200707051904.l65J4DvM013306@imap1.linux-foundation.org>
+Subject: + mos7720-remove-bogus-no-termios-change-check.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:07:19 -0700
+Message-ID: <200707051907.l65J7JC4013488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42050 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760180AbXGETF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:05:59 -0400
+	by vger.kernel.org with ESMTP id S1758032AbXGETHk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:07:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     visor and whiteheat: remove bogus termios change checks
+     mos7720: remove bogus no termios change check
 has been added to the -mm tree.  Its filename is
-     visor-and-whiteheat-remove-bogus-termios-change-checks.patch
+     mos7720-remove-bogus-no-termios-change-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: visor and whiteheat: remove bogus termios change checks
+Subject: mos7720: remove bogus no termios change check
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -33,47 +33,29 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/visor.c     |    8 --------
- drivers/usb/serial/whiteheat.c |    9 ---------
- 2 files changed, 17 deletions(-)
+ drivers/usb/serial/mos7720.c |   10 ----------
+ 1 files changed, 10 deletions(-)
 
-diff -puN drivers/usb/serial/visor.c~visor-and-whiteheat-remove-bogus-termios-change-checks drivers/usb/serial/visor.c
---- a/drivers/usb/serial/visor.c~visor-and-whiteheat-remove-bogus-termios-change-checks
-+++ a/drivers/usb/serial/visor.c
-@@ -948,14 +948,6 @@ static void visor_set_termios (struct us
+diff -puN drivers/usb/serial/mos7720.c~mos7720-remove-bogus-no-termios-change-check drivers/usb/serial/mos7720.c
+--- a/drivers/usb/serial/mos7720.c~mos7720-remove-bogus-no-termios-change-check
++++ a/drivers/usb/serial/mos7720.c
+@@ -1238,16 +1238,6 @@ static void mos7720_set_termios(struct u
+ 		return;
  	}
  
- 	cflag = port->tty->termios->c_cflag;
 -	/* check that they really want us to change something */
 -	if (old_termios) {
 -		if ((cflag == old_termios->c_cflag) &&
--		    (RELEVANT_IFLAG(port->tty->termios->c_iflag) == RELEVANT_IFLAG(old_termios->c_iflag))) {
--			dbg("%s - nothing to change...", __FUNCTION__);
+-		    (RELEVANT_IFLAG(tty->termios->c_iflag) ==
+-		     RELEVANT_IFLAG(old_termios->c_iflag))) {
+-			dbg("Nothing to change");
 -			return;
 -		}
 -	}
- 
- 	/* get the byte size */
- 	switch (cflag & CSIZE) {
-diff -puN drivers/usb/serial/whiteheat.c~visor-and-whiteheat-remove-bogus-termios-change-checks drivers/usb/serial/whiteheat.c
---- a/drivers/usb/serial/whiteheat.c~visor-and-whiteheat-remove-bogus-termios-change-checks
-+++ a/drivers/usb/serial/whiteheat.c
-@@ -891,15 +891,6 @@ static void whiteheat_set_termios(struct
- 		goto exit;
- 	}
- 	
--	/* check that they really want us to change something */
--	if (old_termios) {
--		if ((port->tty->termios->c_cflag == old_termios->c_cflag) &&
--		    (port->tty->termios->c_iflag == old_termios->c_iflag)) {
--			dbg("%s - nothing to change...", __FUNCTION__);
--			goto exit;
--		}
--	}
 -
- 	firm_setup_port(port);
- 
- exit:
+ 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__,
+ 	    tty->termios->c_cflag,
+ 	    RELEVANT_IFLAG(tty->termios->c_iflag));
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -98,6 +80,7 @@ ppa-coding-police-and-printk-levels.patch
 mos7840c-turn-this-into-a-serial-driver.patch
 pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
 visor-and-whiteheat-remove-bogus-termios-change-checks.patch
+mos7720-remove-bogus-no-termios-change-check.patch
 x86-64-disable-the-gart-in-shutdown.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
