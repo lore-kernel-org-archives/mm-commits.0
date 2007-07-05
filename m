@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-needlessly-global-hugetlb_no_page-static.patch added to -mm tree
-Date: Thu, 05 Jul 2007 14:04:12 -0700
-Message-ID: <200707052104.l65L4CE2019311@imap1.linux-foundation.org>
+Subject: + i386-es7000-build-breakage-fix.patch added to -mm tree
+Date: Thu, 05 Jul 2007 14:18:48 -0700
+Message-ID: <200707052118.l65LImXr020120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33484 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760102AbXGEVEt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:04:49 -0400
+	by vger.kernel.org with ESMTP id S1757465AbXGEVU0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:20:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: vgoyal@in.ibm.com, ak@suse.de, lenb@kernel.org, protasnb@gmail.com, rolandd@cisco.com
 
 
 The patch titled
-     MM: Make needlessly global hugetlb_no_page() static.
+     i386: es7000 build breakage fix
 has been added to the -mm tree.  Its filename is
-     mm-make-needlessly-global-hugetlb_no_page-static.patch
+     i386-es7000-build-breakage-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MM: Make needlessly global hugetlb_no_page() static.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: i386: es7000 build breakage fix
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+o Commit 1833d6bc72893265f22addd79cf52e6987496e0f broke the build if
+  compiled with CONFIG_ES7000=y and CONFIG_X86_GENERICARCH=n
+
+arch/i386/kernel/built-in.o(.init.text+0x4fa9): In function `acpi_parse_madt':
+: undefined reference to `acpi_madt_oem_check'
+arch/i386/kernel/built-in.o(.init.text+0x7406): In function `smp_read_mpc':
+: undefined reference to `mps_oem_check'
+arch/i386/kernel/built-in.o(.init.text+0x8990): In function
+`connect_bsp_APIC':
+: undefined reference to `enable_apic_mode'
+make: *** [.tmp_vmlinux1] Error 1
+
+o Fix the build issue. Provided the definitions of missing functions.
+
+o Don't have ES7000 machine. Only compile tested.
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/mach-es7000/es7000plat.c          |   48 ++++++++++++++++++
+ include/asm-i386/mach-es7000/mach_apic.h    |    4 +
+ include/asm-i386/mach-es7000/mach_mpparse.h |    6 ++
+ 3 files changed, 58 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-make-needlessly-global-hugetlb_no_page-static mm/hugetlb.c
---- a/mm/hugetlb.c~mm-make-needlessly-global-hugetlb_no_page-static
-+++ a/mm/hugetlb.c
-@@ -490,7 +490,7 @@ static int hugetlb_cow(struct mm_struct 
- 	return VM_FAULT_MINOR;
+diff -puN arch/i386/mach-es7000/es7000plat.c~i386-es7000-build-breakage-fix arch/i386/mach-es7000/es7000plat.c
+--- a/arch/i386/mach-es7000/es7000plat.c~i386-es7000-build-breakage-fix
++++ a/arch/i386/mach-es7000/es7000plat.c
+@@ -40,6 +40,7 @@
+ #include <asm/smp.h>
+ #include <asm/apicdef.h>
+ #include "es7000.h"
++#include <mach_mpparse.h>
+ 
+ /*
+  * ES7000 Globals
+@@ -174,6 +175,53 @@ find_unisys_acpi_oem_table(unsigned long
+ }
+ #endif
+ 
++/*
++ * This file also gets compiled if CONFIG_X86_GENERICARCH is set. Generic
++ * arch already has got following function definitions (asm-generic/es7000.c)
++ * hence no need to define these for that case.
++ */
++#ifndef CONFIG_X86_GENERICARCH
++void es7000_sw_apic(void);
++void __init enable_apic_mode(void)
++{
++	es7000_sw_apic();
++	return;
++}
++
++__init int mps_oem_check(struct mp_config_table *mpc, char *oem,
++		char *productid)
++{
++	if (mpc->mpc_oemptr) {
++		struct mp_config_oemtable *oem_table =
++			(struct mp_config_oemtable *)mpc->mpc_oemptr;
++		if (!strncmp(oem, "UNISYS", 6))
++			return parse_unisys_oem((char *)oem_table);
++	}
++	return 0;
++}
++#ifdef CONFIG_ACPI
++/* Hook from generic ACPI tables.c */
++int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
++{
++	unsigned long oem_addr;
++	if (!find_unisys_acpi_oem_table(&oem_addr)) {
++		if (es7000_check_dsdt())
++			return parse_unisys_oem((char *)oem_addr);
++		else {
++			setup_unisys();
++			return 1;
++		}
++	}
++	return 0;
++}
++#else
++int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
++{
++	return 0;
++}
++#endif
++#endif /* COFIG_X86_GENERICARCH */
++
+ static void
+ es7000_spin(int n)
+ {
+diff -puN include/asm-i386/mach-es7000/mach_apic.h~i386-es7000-build-breakage-fix include/asm-i386/mach-es7000/mach_apic.h
+--- a/include/asm-i386/mach-es7000/mach_apic.h~i386-es7000-build-breakage-fix
++++ a/include/asm-i386/mach-es7000/mach_apic.h
+@@ -73,6 +73,10 @@ static inline void init_apic_ldr(void)
+ 	apic_write_around(APIC_LDR, val);
  }
  
--int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
-+static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, pte_t *ptep, int write_access)
++#ifndef CONFIG_X86_GENERICARCH
++extern void enable_apic_mode(void);
++#endif
++
+ extern int apic_version [MAX_APICS];
+ static inline void setup_apic_routing(void)
  {
- 	int ret = VM_FAULT_SIGBUS;
+diff -puN include/asm-i386/mach-es7000/mach_mpparse.h~i386-es7000-build-breakage-fix include/asm-i386/mach-es7000/mach_mpparse.h
+--- a/include/asm-i386/mach-es7000/mach_mpparse.h~i386-es7000-build-breakage-fix
++++ a/include/asm-i386/mach-es7000/mach_mpparse.h
+@@ -18,6 +18,12 @@ extern int parse_unisys_oem (char *oempt
+ extern int find_unisys_acpi_oem_table(unsigned long *oem_addr);
+ extern void setup_unisys(void);
+ 
++#ifndef CONFIG_X86_GENERICARCH
++extern int acpi_madt_oem_check(char *oem_id, char *oem_table_id);
++extern int mps_oem_check(struct mp_config_table *mpc, char *oem,
++				char *productid);
++#endif
++
+ #ifdef CONFIG_ACPI
+ 
+ static inline int es7000_check_dsdt(void)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
-git-kvm.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-remove-final-two-references-to-__obsolete_setup-macro.patch
-cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
+i386-es7000-build-breakage-fix.patch
+fix-i-oat-for-kexec.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
