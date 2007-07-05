@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:35:54 -0700
-Message-ID: <200707051935.l65JZs8T014800@imap1.linux-foundation.org>
+Subject: + ata-use-iomap_name.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:35:56 -0700
+Message-ID: <200707051935.l65JZuYb014805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp2.linux-foundation.org ([207.189.120.14]:56475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757576AbXGETlo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:41:44 -0400
+	by vger.kernel.org with ESMTP id S1757612AbXGETlp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:41:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     iomap: sort out the broken address reporting caused by the iomap layer
+     ata: use iomap_name()
 has been added to the -mm tree.  Its filename is
-     iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer.patch
+     ata-use-iomap_name.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,17 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iomap: sort out the broken address reporting caused by the iomap layer
+Subject: ata: use iomap_name()
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add an iomap_name() function which translates an I/O map into a string to
-print.
-
-Use it for the Libata layer
-
-For now we use 0xXXXX for I/O and 0xXXXXXXXX for MMIO.  I'm assuming that
-eventually some other platforms will want to use their own iomap_name() and
-we can add ARCH_HAVE_IOMAP_NAME later as such a platform needs it.
+Use iomap_name() in the libata layer
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -43,42 +36,61 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/iomap.h |    5 +++++
- lib/iomap.c                 |   12 ++++++++++++
- 2 files changed, 17 insertions(+)
+ drivers/ata/libata-core.c |   11 ++++++-----
+ include/linux/libata.h    |    9 ++++++---
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-generic/iomap.h~iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer include/asm-generic/iomap.h
---- a/include/asm-generic/iomap.h~iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer
-+++ a/include/asm-generic/iomap.h
-@@ -65,4 +65,9 @@ struct pci_dev;
- extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+diff -puN drivers/ata/libata-core.c~ata-use-iomap_name drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~ata-use-iomap_name
++++ a/drivers/ata/libata-core.c
+@@ -6354,6 +6354,7 @@ void ata_host_init(struct ata_host *host
+ int ata_host_register(struct ata_host *host, struct scsi_host_template *sht)
+ {
+ 	int i, rc;
++	char ctlbuf[IOMAP_NAMELEN], cmdbuf[IOMAP_NAMELEN], dmabuf[IOMAP_NAMELEN];
  
-+/* Convert an iomap to text for this platform */
-+extern char *iomap_name(void __iomem *addr, char *buf, size_t len);
-+#define IOMAP_NAMELEN	12
-+
-+
- #endif
-diff -puN lib/iomap.c~iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer lib/iomap.c
---- a/lib/iomap.c~iomap-sort-out-the-broken-address-reporting-caused-by-the-iomap-layer
-+++ a/lib/iomap.c
-@@ -268,3 +268,15 @@ void pci_iounmap(struct pci_dev *dev, vo
- }
- EXPORT_SYMBOL(pci_iomap);
- EXPORT_SYMBOL(pci_iounmap);
-+
-+char *iomap_name(void __iomem *port, char *buf, size_t len)
-+{
-+	if (port == NULL) {
-+		snprintf(buf, len, "None");
-+		return buf;
+ 	/* host must have been started */
+ 	if (!(host->flags & ATA_HOST_STARTED)) {
+@@ -6410,13 +6411,13 @@ int ata_host_register(struct ata_host *h
+ 
+ 		/* print per-port info to dmesg */
+ 		if (!ata_port_is_dummy(ap))
+-			ata_port_printk(ap, KERN_INFO, "%cATA max %s cmd 0x%p "
+-					"ctl 0x%p bmdma 0x%p irq %d\n",
++			ata_port_printk(ap, KERN_INFO, "%cATA max %s cmd %s "
++					"ctl %s bmdma %s irq %d\n",
+ 					(ap->flags & ATA_FLAG_SATA) ? 'S' : 'P',
+ 					ata_mode_string(xfer_mask),
+-					ap->ioaddr.cmd_addr,
+-					ap->ioaddr.ctl_addr,
+-					ap->ioaddr.bmdma_addr,
++					iomap_name(ap->ioaddr.cmd_addr, cmdbuf, sizeof(cmdbuf)),
++					iomap_name(ap->ioaddr.ctl_addr, ctlbuf, sizeof(ctlbuf)),
++					iomap_name(ap->ioaddr.bmdma_addr, dmabuf, sizeof(dmabuf)),
+ 					irq_line);
+ 		else
+ 			ata_port_printk(ap, KERN_INFO, "DUMMY\n");
+diff -puN include/linux/libata.h~ata-use-iomap_name include/linux/libata.h
+--- a/include/linux/libata.h~ata-use-iomap_name
++++ a/include/linux/libata.h
+@@ -1114,11 +1114,14 @@ static inline u8 ata_busy_wait(struct at
+ 
+ static inline u8 ata_wait_idle(struct ata_port *ap)
+ {
++	char buf[IOMAP_NAMELEN];
+ 	u8 status = ata_busy_wait(ap, ATA_BUSY | ATA_DRQ, 1000);
+ 
+-	if (status != 0xff && (status & (ATA_BUSY | ATA_DRQ)))
+-		DPRINTK("ATA: abnormal status 0x%X on port 0x%p\n",
+-			status, ap->ioaddr.status_addr);
++	if (status != 0xff && (status & (ATA_BUSY | ATA_DRQ))) {
++  		if (ata_msg_warn(ap))
++			printk(KERN_WARNING "ATA: abnormal status 0x%X on port %s\n",
++ 				status, iomap_name(ap->ioaddr.status_addr, buf, sizeof(buf)));
 +	}
-+	IO_COND(port, snprintf(buf, len, "0x%04lx", port),
-+		snprintf(buf, len, "%08lx", port));
-+	return buf;
-+}
-+EXPORT_SYMBOL(iomap_name);
+ 
+ 	return status;
+ }
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
