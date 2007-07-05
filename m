@@ -1,108 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: + i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch added to -mm tree
-Date: Thu, 05 Jul 2007 16:02:10 -0700
-Message-ID: <200707052302.l65N2A98022932@imap1.linux-foundation.org>
+Subject: - linux-hpet-issue-with-amd-southbridges.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 16:34:57 -0700
+Message-ID: <200707052334.l65NYvbk024661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761195AbXGEXDT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 19:03:19 -0400
+	by vger.kernel.org with ESMTP id S1752933AbXGEXfE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 19:35:04 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l65NZ26b024133
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 5 Jul 2007 16:35:03 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adurbin@google.com, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386/x86_64: insert HPET firmware resource after PCI enumeration has completed
-has been added to the -mm tree.  Its filename is
-     i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
+     Linux HPET issue with AMD southbridges
+has been removed from the -mm tree.  Its filename was
+     linux-hpet-issue-with-amd-southbridges.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: i386/x86_64: insert HPET firmware resource after PCI enumeration has completed
-From: Aaron Durbin <adurbin@google.com>
+Subject: Linux HPET issue with AMD southbridges
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-Insert HPET resources after pci probing has been completed in order to
-avoid resource conflicts with PCI resource reservation.  With this change
-the HPET firmware resources will be identified, but it should also not
-cause issues when the HPET address falls on a BAR in a PCI device, and the
-PCI enumeration cannot reserve the resources.
+On Wed, 27 Jun 2007, Matthias Lenk wrote:
+>
+> I attached the output of cat /proc/iomem when booting with hpet=disable. As
+> you can see the HPET address is still 0xfed00000 where it is supposed to be
+> while the new hardware base address for the HPET is 0x30000000 which is
+> allocated for device 0:14.0 (SMBus controller). For all ATI southbridges the
+> HPET base is at BAR1 of device 0:14.0.
 
-Signed-off-by: Aaron Durbin <adurbin@google.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Ok. The problem is, as I suspected, too early firmware resource
+allocation. In this case, it's "acpi_parse_hpet()" that reserves the
+resource too early.
+
+The bug was apparently introduced by commit f0f4c3432e5e: "i386: add
+HPET(s) into resource map" by Aaron Durbin.
+
+So the rule for these kinds of things really *must* be:
+
+ - read the firmware info early if you want to.
+
+ - but firmware *must*not* mark IO regions as being reserved until after
+   the PCI resource parsing has been done. In particular, they must not be
+   marked busy.
+
+I _think_ that the fix in this case may actually be as trivial as just
+removing the BUSY on the resource. In that case, the PCI layer will be
+able to insert the resource it knows about, and everything is fine. It
+just won't be allocating *new* resources over it (which is obviously what
+we want).
+
+So I *think* that this patch may "Just Work(tm)". But it's obviously
+totally untested, since I don't have the hardware that can trigger this.
+I'd really appreciate testing. And I won't guarantee it does, but I'd love
+to see the whole "dmesg" output regardless..
+
+I don't think it's the *best* patch. I think a better patch would
+literally be to do the whole firmware resource adding at a later stage,
+after we've done the PCI probing (but before we do any new allocation, of
+course!).
+
+As an example of what I think is marking resources *properly* you can see,
+acpi_reserve_resources() is a "device_initcall()", so it runs long after
+the PCI probing has happened, but I think it's set up so that ACPI gets
+linked before any normal drivers, so it should trigger before we actually
+enable the devices (and allocate missing resources for them).
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |   36 +++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+)
+ arch/i386/kernel/acpi/boot.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed arch/i386/kernel/acpi/boot.c
---- a/arch/i386/kernel/acpi/boot.c~i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed
+diff -puN arch/i386/kernel/acpi/boot.c~linux-hpet-issue-with-amd-southbridges arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~linux-hpet-issue-with-amd-southbridges
 +++ a/arch/i386/kernel/acpi/boot.c
-@@ -619,6 +619,8 @@ static int __init acpi_parse_sbf(struct 
- #ifdef CONFIG_HPET_TIMER
- #include <asm/hpet.h>
- 
-+static struct __initdata resource *hpet_res;
-+
- static int __init acpi_parse_hpet(struct acpi_table_header *table)
- {
- 	struct acpi_table_hpet *hpet_tbl;
-@@ -660,8 +662,42 @@ static int __init acpi_parse_hpet(struct
- 		insert_resource(&iomem_resource, hpet_res);
- 	}
- 
-+	/*
-+	 * Allocate and initialize the HPET firmware resource for adding into
-+	 * the resource tree during the lateinit timeframe.
-+	 */
-+#define HPET_RESOURCE_NAME_SIZE 9
-+	hpet_res = alloc_bootmem(sizeof(*hpet_res) + HPET_RESOURCE_NAME_SIZE);
-+
-+	if (!hpet_res)
-+		return 0;
-+
-+	memset(hpet_res, 0, sizeof(*hpet_res));
-+	hpet_res->name = (void *)&hpet_res[1];
-+	hpet_res->flags = IORESOURCE_MEM;
-+	snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE, "HPET %u",
-+		 hpet_tbl->sequence);
-+
-+	hpet_res->start = hpet_address;
-+	hpet_res->end = hpet_address + (1 * 1024) - 1;
-+
- 	return 0;
- }
-+
-+/*
-+ * hpet_insert_resource inserts the HPET resources used into the resource
-+ * tree.
-+ */
-+static __init int hpet_insert_resource(void)
-+{
-+	if (!hpet_res)
-+		return 1;
-+
-+	return insert_resource(&iomem_resource, hpet_res);
-+}
-+
-+late_initcall(hpet_insert_resource);
-+
- #else
- #define	acpi_parse_hpet	NULL
- #endif
+@@ -642,7 +642,7 @@ static int __init acpi_parse_hpet(struct
+ 	if (hpet_res) {
+ 		memset(hpet_res, 0, sizeof(*hpet_res));
+ 		hpet_res->name = (void *)&hpet_res[1];
+-		hpet_res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
++		hpet_res->flags = IORESOURCE_MEM;
+ 		snprintf((char *)hpet_res->name, HPET_RESOURCE_NAME_SIZE,
+ 			 "HPET %u", hpet_tbl->sequence);
+ 		hpet_res->end = (1 * 1024) - 1;
 _
 
-Patches currently in -mm which might be from adurbin@google.com are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
+origin.patch
+linux-hpet-issue-with-amd-southbridges.patch
+x86_64-pm_trace-support.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
+mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+prevent-an-o_ndelay-writer-from-blocking-when-a-tty-write-is-blocked-by.patch
+workaround-for-a-pci-restoring-bug.patch
