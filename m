@@ -1,214 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintfc-optimizing-part-1-easy-and-obvious-stuff.patch added to -mm tree
-Date: Thu, 05 Jul 2007 14:34:36 -0700
-Message-ID: <200707052134.l65LYa0a020961@imap1.linux-foundation.org>
+Subject: + arch-x86_64-kernel-e820c-lower-printk-severity.patch added to -mm tree
+Date: Thu, 05 Jul 2007 14:38:53 -0700
+Message-ID: <200707052138.l65Lcrfq021153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49494 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762702AbXGEVe4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:34:56 -0400
+	by vger.kernel.org with ESMTP id S1758906AbXGEVjF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:39:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com, jones@cs.uiowa.edu
+Cc: da-x@monatomic.org
 
 
 The patch titled
-     vsprintf.c: optimizing, part 1 (easy and obvious stuff)
+     arch/x86_64/kernel/e820.c: lower printk severity
 has been added to the -mm tree.  Its filename is
-     vsprintfc-optimizing-part-1-easy-and-obvious-stuff.patch
+     arch-x86_64-kernel-e820c-lower-printk-severity.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vsprintf.c: optimizing, part 1 (easy and obvious stuff)
-=46rom: Denis Vlasenko <vda.linux@googlemail.com>
+Subject: arch/x86_64/kernel/e820.c: lower printk severity
+From: Dan Aloni <da-x@monatomic.org>
 
-* There is no point in having full "0...9a...z" constant vector,
-  if we use only "0...9a...f" (and "x" for "0x").
-
-* Post-decrement usually needs a few more instructions, so use
-  pre decrement instead where makes sense:
-- =A0 =A0 =A0 while (i < precision--) {
-+ =A0 =A0 =A0 while (i <=3D --precision) {
-
-* if base !=3D 10 (=3D> base 8 or 16), we can avoid using division
-  in a loop and use mask/shift, obtaining much faster conversion.
-  (More complex optimization for base 10 case is in the second patch).
-
-Overall, size vsprintf.o shows ~80 bytes smaller text section
-with this patch applied.
-
-Cc: "Douglas W. Jones" <jones@cs.uiowa.edu>
+Signed-off-by: Dan Aloni <da-x@monatomic.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   73 ++++++++++++++++++++++++++++-------------------
- 1 files changed, 45 insertions(+), 28 deletions(-)
+ arch/x86_64/kernel/e820.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~vsprintfc-optimizing-part-1-easy-and-obvious-s=
-tuff lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintfc-optimizing-part-1-easy-and-obvious-stuff
-+++ a/lib/vsprintf.c
-@@ -143,12 +143,14 @@ static int skip_atoi(const char **s)
- #define SPECIAL	32		/* 0x */
- #define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
-=20
--static char * number(char * buf, char * end, unsigned long long num, i=
-nt base, int size, int precision, int type)
-+static char *number(char *buf, char *end, unsigned long long num, int =
-base, int size, int precision, int type)
- {
--	char c,sign,tmp[66];
-+	char sign,tmp[66];
- 	const char *digits;
--	static const char small_digits[] =3D "0123456789abcdefghijklmnopqrstu=
-vwxyz";
--	static const char large_digits[] =3D "0123456789ABCDEFGHIJKLMNOPQRSTU=
-VWXYZ";
-+	/* we are called with base 8, 10 or 16, only, thus don't need "g..." =
- */
-+	static const char small_digits[] =3D "0123456789abcdefx"; /* "ghijklm=
-nopqrstuvwxyz"; */
-+	static const char large_digits[] =3D "0123456789ABCDEFX"; /* "GHIJKLM=
-NOPQRSTUVWXYZ"; */
-+	int need_pfx =3D ((type & SPECIAL) && base !=3D 10);
+diff -puN arch/x86_64/kernel/e820.c~arch-x86_64-kernel-e820c-lower-printk-severity arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~arch-x86_64-kernel-e820c-lower-printk-severity
++++ a/arch/x86_64/kernel/e820.c
+@@ -361,7 +361,7 @@ void __init e820_print_map(char *who)
  	int i;
-=20
- 	digits =3D (type & LARGE) ? large_digits : small_digits;
-@@ -156,7 +158,6 @@ static char * number(char * buf, char *=20
- 		type &=3D ~ZEROPAD;
- 	if (base < 2 || base > 36)
- 		return NULL;
--	c =3D (type & ZEROPAD) ? '0' : ' ';
- 	sign =3D 0;
- 	if (type & SIGN) {
- 		if ((signed long long) num < 0) {
-@@ -171,64 +172,80 @@ static char * number(char * buf, char *=20
- 			size--;
- 		}
- 	}
--	if (type & SPECIAL) {
-+	if (need_pfx) {
-+		size--;
- 		if (base =3D=3D 16)
--			size -=3D 2;
--		else if (base =3D=3D 8)
- 			size--;
- 	}
-+
-+	/* generate full string in tmp[], in reverse order */
- 	i =3D 0;
- 	if (num =3D=3D 0)
--		tmp[i++]=3D'0';
--	else while (num !=3D 0)
--		tmp[i++] =3D digits[do_div(num,base)];
-+		tmp[i++] =3D '0';
-+	else if (base !=3D 10) { /* 8 or 16 */
-+		int mask =3D base - 1;
-+		int shift =3D 3;
-+		if (base =3D=3D 16) shift =3D 4;
-+		do {
-+			tmp[i++] =3D digits[((unsigned char)num) & mask];
-+			num >>=3D shift;
-+		} while (num);
-+	} else do { /* generic code, works for any base */
-+		tmp[i++] =3D digits[do_div(num,10 /*base*/)];
-+	} while (num);
-+
-+	/* printing 100 using %2d gives "100", not "00" */
- 	if (i > precision)
- 		precision =3D i;
-+	/* leading space padding */
- 	size -=3D precision;
--	if (!(type&(ZEROPAD+LEFT))) {
--		while(size-->0) {
-+	if (!(type & (ZEROPAD+LEFT))) {
-+		while(--size >=3D 0) {
- 			if (buf < end)
- 				*buf =3D ' ';
- 			++buf;
- 		}
- 	}
-+	/* sign */
- 	if (sign) {
- 		if (buf < end)
- 			*buf =3D sign;
- 		++buf;
- 	}
--	if (type & SPECIAL) {
--		if (base=3D=3D8) {
--			if (buf < end)
--				*buf =3D '0';
--			++buf;
--		} else if (base=3D=3D16) {
--			if (buf < end)
--				*buf =3D '0';
--			++buf;
-+	/* "0x" / "0" prefix */
-+	if (need_pfx) {
-+		if (buf < end)
-+			*buf =3D '0';
-+		++buf;
-+		if (base =3D=3D 16) {
- 			if (buf < end)
--				*buf =3D digits[33];
-+				*buf =3D digits[16]; /* for arbitrary base: digits[33]; */
- 			++buf;
- 		}
- 	}
-+	/* zero or space padding */
- 	if (!(type & LEFT)) {
--		while (size-- > 0) {
-+		char c =3D (type & ZEROPAD) ? '0' : ' ';
-+		while (--size >=3D 0) {
- 			if (buf < end)
- 				*buf =3D c;
- 			++buf;
- 		}
- 	}
--	while (i < precision--) {
-+	/* hmm even more zero padding? */
-+	while (i <=3D --precision) {
- 		if (buf < end)
- 			*buf =3D '0';
- 		++buf;
- 	}
--	while (i-- > 0) {
-+	/* actual digits of result */
-+	while (--i >=3D 0) {
- 		if (buf < end)
- 			*buf =3D tmp[i];
- 		++buf;
- 	}
--	while (size-- > 0) {
-+	/* trailing space padding */
-+	while (--size >=3D 0) {
- 		if (buf < end)
- 			*buf =3D ' ';
- 		++buf;
-@@ -276,7 +293,7 @@ int vsnprintf(char *buf, size_t size, co
- 	   used for unknown buffer sizes. */
- 	if (unlikely((int) size < 0)) {
- 		/* There can be only one.. */
--		static int warn =3D 1;
-+		static char warn =3D 1;
- 		WARN_ON(warn);
- 		warn =3D 0;
- 		return 0;
+ 
+ 	for (i = 0; i < e820.nr_map; i++) {
+-		printk(" %s: %016Lx - %016Lx ", who,
++		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
+ 			(unsigned long long) e820.map[i].addr,
+ 			(unsigned long long) (e820.map[i].addr + e820.map[i].size));
+ 		switch (e820.map[i].type) {
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com a=
-re
+Patches currently in -mm which might be from da-x@monatomic.org are
 
-vsprintfc-optimizing-part-1-easy-and-obvious-stuff.patch
-vsprintfc-optimizing-part-2-base-10-conversion-speedup-v2.patch
+fix-i-oat-for-kexec.patch
+arch-x86_64-kernel-aperturec-lower-printk-severity.patch
+arch-x86_64-kernel-e820c-lower-printk-severity.patch
+net-ipv4-netfilter-ip_tablesc-lower-printk-severity.patch
+drivers-char-ipmi-ipmi_poweroffc-lower-printk-severity.patch
+drivers-char-ipmi-ipmi_si_intfc-lower-printk-severity.patch
+mm-page_allocc-lower-printk-severity.patch
+drivers-acpi-pci_linkc-lower-printk-severity.patch
+arch-x86_64-kernel-processc-lower-printk-severity.patch
+drivers-block-rdc-lower-printk-severity.patch
