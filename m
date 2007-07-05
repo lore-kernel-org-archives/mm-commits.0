@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-st-remove-gendisk-from-private-data-struct.patch added to -mm tree
-Date: Thu, 05 Jul 2007 15:58:02 -0700
-Message-ID: <200707052258.l65Mw26K022671@imap1.linux-foundation.org>
+Subject: + scsi-sr-remove-gendisk-from-private-data-struct.patch added to -mm tree
+Date: Thu, 05 Jul 2007 15:58:00 -0700
+Message-ID: <200707052258.l65Mw0sG022668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34156 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759416AbXGEW6R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:58:17 -0400
+	by vger.kernel.org with ESMTP id S1759363AbXGEW6O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:58:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com,
 
 
 The patch titled
-     SCSI: st: remove gendisk from private data struct
+     SCSI: sr: remove gendisk from private data struct
 has been added to the -mm tree.  Its filename is
-     scsi-st-remove-gendisk-from-private-data-struct.patch
+     scsi-sr-remove-gendisk-from-private-data-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SCSI: st: remove gendisk from private data struct
+Subject: SCSI: sr: remove gendisk from private data struct
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
 Since gendisk is now part of scsi_device, don't store this struct in private
@@ -38,78 +38,86 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/st.c |   12 +++++++-----
- drivers/scsi/st.h |    1 -
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/scsi/sr.c |   14 ++++++--------
+ drivers/scsi/sr.h |    3 +--
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/st.c~scsi-st-remove-gendisk-from-private-data-struct drivers/scsi/st.c
---- a/drivers/scsi/st.c~scsi-st-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/st.c
-@@ -306,7 +306,7 @@ static char * st_incompatible(struct scs
- 
- static inline char *tape_name(struct scsi_tape *tape)
- {
--	return tape->disk->disk_name;
-+	return tape->device->disk->disk_name;
- }
- 
- 
-@@ -3549,7 +3549,8 @@ static int st_ioctl(struct inode *inode,
- 			    !capable(CAP_SYS_RAWIO))
- 				i = -EPERM;
- 			else
--				i = scsi_cmd_ioctl(file, STp->disk, cmd_in, p);
-+				i = scsi_cmd_ioctl(file, STp->device->disk,
-+						cmd_in, p);
- 			if (i != -ENOTTY)
- 				return i;
+diff -puN drivers/scsi/sr.c~scsi-sr-remove-gendisk-from-private-data-struct drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-sr-remove-gendisk-from-private-data-struct
++++ a/drivers/scsi/sr.c
+@@ -265,9 +265,9 @@ static void rw_intr(struct scsi_cmnd * S
+ 			 * last 75 2K sectors, we decrease the saved size
+ 			 * value.
+ 			 */
+-			if (error_sector < get_capacity(cd->disk) &&
++			if (error_sector < get_capacity(cd->device->disk) &&
+ 			    cd->capacity - error_sector < 4 * 75)
+-				set_capacity(cd->disk, error_sector);
++				set_capacity(cd->device->disk, error_sector);
  			break;
-@@ -3961,7 +3962,6 @@ static int st_probe(struct device *dev)
- 		goto out_put_disk;
- 	}
- 	kref_init(&tpnt->kref);
--	tpnt->disk = disk;
- 	sprintf(disk->disk_name, "st%d", i);
- 	disk->private_data = &tpnt->driver;
- 	disk->queue = SDp->request_queue;
-@@ -4063,6 +4063,8 @@ static int st_probe(struct device *dev)
- 			goto out_free_tape;
+ 
+ 		case RECOVERED_ERROR:
+@@ -302,7 +302,7 @@ static int sr_init_command(struct scsi_c
+ 	struct scsi_cd *cd = scsi_cd(SCpnt->request->rq_disk);
+ 
+ 	SCSI_LOG_HLQUEUE(1, printk("Doing sr request, dev = %s, block = %d\n",
+-				cd->disk->disk_name, block));
++				cd->device->disk->disk_name, block));
+ 
+ 	if (!cd->device || !scsi_device_online(cd->device)) {
+ 		SCSI_LOG_HLQUEUE(2, printk("Finishing %ld sectors\n",
+@@ -571,9 +571,7 @@ static int sr_probe(struct device *dev)
+ 	disk->flags = GENHD_FL_CD;
+ 
+ 	cd->device = sdev;
+-	cd->disk = disk;
+ 	cd->driver = &sr_template;
+-	cd->disk = disk;
+ 	cd->capacity = 0x1fffff;
+ 	cd->device->changed = 1;	/* force recheck CD type */
+ 	cd->use = 1;
+@@ -691,7 +689,7 @@ static void get_sectorsize(struct scsi_c
+ 		 * Add this so that we have the ability to correctly gauge
+ 		 * what the device is capable of.
+ 		 */
+-		set_capacity(cd->disk, cd->capacity);
++		set_capacity(cd->device->disk, cd->capacity);
  	}
  
-+	SDp->disk = disk;
-+
- 	sdev_printk(KERN_NOTICE, SDp,
- 		    "Attached scsi tape %s\n", tape_name(tpnt));
- 	sdev_printk(KERN_INFO, SDp, "%s: try direct i/o: %s (alignment %d B)\n",
-@@ -4151,7 +4153,7 @@ static int st_remove(struct device *dev)
- static void scsi_tape_release(struct kref *kref)
+ 	queue = cd->device->request_queue;
+@@ -853,7 +851,7 @@ static int sr_packet(struct cdrom_device
+ static void sr_kref_release(struct kref *kref)
  {
- 	struct scsi_tape *tpnt = to_scsi_tape(kref);
--	struct gendisk *disk = tpnt->disk;
-+	struct gendisk *disk = tpnt->device->disk;
+ 	struct scsi_cd *cd = container_of(kref, struct scsi_cd, kref);
+-	struct gendisk *disk = cd->disk;
++	struct gendisk *disk = cd->device->disk;
  
- 	tpnt->device = NULL;
+ 	spin_lock(&sr_index_lock);
+ 	clear_bit(disk->first_minor, sr_index_bits);
+@@ -872,7 +870,7 @@ static int sr_remove(struct device *dev)
+ {
+ 	struct scsi_cd *cd = dev_get_drvdata(dev);
  
-@@ -4348,7 +4350,7 @@ static int do_create_class_files(struct 
- 		   first modes always get the same names */
- 		i = mode << (4 - ST_NBR_MODE_BITS);
- 		snprintf(name, 10, "%s%s%s", rew ? "n" : "",
--			 STp->disk->disk_name, st_formats[i]);
-+			 STp->device->disk->disk_name, st_formats[i]);
- 		st_class_member =
- 			class_device_create(st_sysfs_class, NULL,
- 					    MKDEV(SCSI_TAPE_MAJOR,
-diff -puN drivers/scsi/st.h~scsi-st-remove-gendisk-from-private-data-struct drivers/scsi/st.h
---- a/drivers/scsi/st.h~scsi-st-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/st.h
-@@ -167,7 +167,6 @@ struct scsi_tape {
- 	unsigned char last_cmnd[6];
- 	unsigned char last_sense[16];
- #endif
+-	del_gendisk(cd->disk);
++	del_gendisk(cd->device->disk);
+ 
+ 	mutex_lock(&sr_ref_mutex);
+ 	kref_put(&cd->kref, sr_kref_release);
+diff -puN drivers/scsi/sr.h~scsi-sr-remove-gendisk-from-private-data-struct drivers/scsi/sr.h
+--- a/drivers/scsi/sr.h~scsi-sr-remove-gendisk-from-private-data-struct
++++ a/drivers/scsi/sr.h
+@@ -38,10 +38,9 @@ typedef struct scsi_cd {
+ 	unsigned readcd_known:1;	/* drive supports READ_CD (0xbe) */
+ 	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
+ 	struct cdrom_device_info cdi;
+-	/* We hold gendisk and scsi_device references on probe and use
++	/* We hold scsi_device references on probe and use
+ 	 * the refs on this kref to decide when to release them */
+ 	struct kref kref;
 -	struct gendisk *disk;
- 	struct kref     kref;
- };
+ } Scsi_CD;
  
+ int sr_do_ioctl(Scsi_CD *, struct packet_command *);
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
