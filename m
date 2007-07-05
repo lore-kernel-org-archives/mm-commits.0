@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + f00f-bug-fixup-for-i386-use-immediate-values.patch added to -mm tree
-Date: Thu, 05 Jul 2007 13:22:07 -0700
-Message-ID: <200707052022.l65KM780017128@imap1.linux-foundation.org>
+Subject: + immediate-value-documentation.patch added to -mm tree
+Date: Thu, 05 Jul 2007 13:22:05 -0700
+Message-ID: <200707052022.l65KM5Oj017123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42043 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759857AbXGEUWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 16:22:19 -0400
+	by vger.kernel.org with ESMTP id S1759800AbXGEUWR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 16:22:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     F00F bug fixup for i386: use immediate values
+     Immediate Value: Documentation
 has been added to the -mm tree.  Its filename is
-     f00f-bug-fixup-for-i386-use-immediate-values.patch
+     immediate-value-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,88 +25,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: F00F bug fixup for i386: use immediate values
+Subject: Immediate Value: Documentation
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-
-Use the faster immediate values for F00F bug handling in do_page_fault.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c     |    4 ++++
- arch/i386/mm/fault.c         |    3 ++-
- include/asm-i386/processor.h |    3 +++
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ Documentation/immediate.txt |  103 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 103 insertions(+)
 
-diff -puN arch/i386/kernel/traps.c~f00f-bug-fixup-for-i386-use-immediate-values arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~f00f-bug-fixup-for-i386-use-immediate-values
-+++ a/arch/i386/kernel/traps.c
-@@ -31,6 +31,7 @@
- #include <linux/uaccess.h>
- #include <linux/nmi.h>
- #include <linux/bug.h>
-+#include <linux/immediate.h>
- 
- #ifdef CONFIG_EISA
- #include <linux/ioport.h>
-@@ -1145,6 +1146,8 @@ asmlinkage void math_emulate(long arg)
- #endif /* CONFIG_MATH_EMULATION */
- 
- #ifdef CONFIG_X86_F00F_BUG
-+immediate_t __read_mostly f00f_bug_fix;
+diff -puN /dev/null Documentation/immediate.txt
+--- /dev/null
++++ a/Documentation/immediate.txt
+@@ -0,0 +1,103 @@
++		        Using the Immediate Values
 +
- void __init trap_init_f00f_bug(void)
- {
- 	__set_fixmap(FIX_F00F_IDT, __pa(&idt_table), PAGE_KERNEL_RO);
-@@ -1155,6 +1158,7 @@ void __init trap_init_f00f_bug(void)
- 	 */
- 	idt_descr.address = fix_to_virt(FIX_F00F_IDT);
- 	load_idt(&idt_descr);
-+	immediate_arm(&f00f_bug_fix);
- }
- #endif
- 
-diff -puN arch/i386/mm/fault.c~f00f-bug-fixup-for-i386-use-immediate-values arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~f00f-bug-fixup-for-i386-use-immediate-values
-+++ a/arch/i386/mm/fault.c
-@@ -25,6 +25,7 @@
- #include <linux/kprobes.h>
- #include <linux/uaccess.h>
- #include <linux/kdebug.h>
-+#include <linux/immediate.h>
- 
- #include <asm/system.h>
- #include <asm/desc.h>
-@@ -492,7 +493,7 @@ bad_area_nosemaphore:
- 	/*
- 	 * Pentium F0 0F C7 C8 bug workaround.
- 	 */
--	if (boot_cpu_data.f00f_bug) {
-+	if (unlikely(immediate(f00f_bug_fix))) {
- 		unsigned long nr;
- 		
- 		nr = (address - idt_descr.address) >> 3;
-diff -puN include/asm-i386/processor.h~f00f-bug-fixup-for-i386-use-immediate-values include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~f00f-bug-fixup-for-i386-use-immediate-values
-+++ a/include/asm-i386/processor.h
-@@ -21,6 +21,7 @@
- #include <asm/percpu.h>
- #include <linux/cpumask.h>
- #include <linux/init.h>
-+#include <linux/immediate.h>
- #include <asm/processor-flags.h>
- 
- /* flag for disabling the tsc */
-@@ -102,6 +103,8 @@ extern struct cpuinfo_x86 new_cpu_data;
- extern struct tss_struct doublefault_tss;
- DECLARE_PER_CPU(struct tss_struct, init_tss);
- 
-+extern immediate_t __read_mostly f00f_bug_fix;
++			    Mathieu Desnoyers
 +
- #ifdef CONFIG_SMP
- extern struct cpuinfo_x86 cpu_data[];
- #define current_cpu_data cpu_data[smp_processor_id()]
++
++This document introduces Immediate Values and their use.
++
++* Purpose of immediate values
++
++An immediate value is used to compile into the kernel a branch that is disabled
++at compile-time that has almost no measurable performance impact on the kernel.
++Then, at runtime, it can be enabled dynamically.
++
++It can be used to compile code in the kernel that is seldomly meant to be
++dynamically activated. It's the case of CPU specific workarounds, profiling,
++tracing, etc.
++
++This infrastructure is specialized in supporting dynamic patching of the values
++in the instruction stream when multiple CPUs are running without disturbing the
++normal system behavior.
++
++
++* Usage
++
++In order to use the macro immediate, you should include linux/immediate.h.
++
++#include <linux/immediate.h>
++
++immediate_t __read_mostly this_immediate;
++EXPORT_SYMBOL(this_immediate);
++
++
++Add, in your code :
++
++if (unlikely(immediate(this_immediate))) {
++	some code...
++}
++
++And then, use:
++
++Use immediate_arm(&this_immediate) to activate the immediate value.
++
++Use immediate_disarm(&this_immediate) to deactivate the immediate value.
++
++Use immediate_query(&this_immediate) to query the immediate value state.
++
++The immediate mechanism supports inserting multiple instances of the same
++immediate. Immediate values can be put in inline functions, inlined static
++functions, and unrolled loops.
++
++
++* Optimization for a given architecture
++
++One can implement optimized immediate values for a given architecture by
++replacing asm-$ARCH/immediate.h.
++
++The IF_* flags can be used to control the type of immediate value. See the
++include/linux/immediate.h header for the list of flags. They can be specified as
++the first parameter of the _immediate() macro, as in the following example,
++which uses flags to declare a immediate that always uses the generic version of
++the immediates. It can be useful to use this when immediates are placed in
++kernel code presenting particular reentrancy challenges.
++
++if (unlikely(_immediate(IF_DEFAULT & ~IF_OPTIMIZED, this_immediate))) {
++	some code...
++}
++
++
++* Performance improvement
++
++Result of a small test comparing:
++
++1 - Branch depending on a cache miss (has to fetch in memory, caused by a 128
++    bytes stride)). This is the test that is likely to look like what
++    side-effect the original profile_hit code was causing, under the
++    assumption that the kernel is already using L1 and L2 caches at
++    their full capacity and that a supplementary data load would cause
++    cache trashing.
++2 - Branch depending on L1 cache hit. Just for comparison.
++3 - Branch depending on a load immediate in the instruction stream.
++
++It has been compiled with gcc -O2. Tests done on a 3GHz P4.
++
++In the first test series, the branch is not taken:
++
++number of tests : 1000
++number of branches per test : 81920
++memory hit cycles per iteration (mean) : 48.252
++L1 cache hit cycles per iteration (mean) : 16.1693
++instruction stream based test, cycles per iteration (mean) : 16.0432
++
++
++In the second test series, the branch is taken and an integer is
++incremented within the block:
++
++number of tests : 1000
++number of branches per test : 81920
++memory hit cycles per iteration (mean) : 48.2691
++L1 cache hit cycles per iteration (mean) : 16.396
++instruction stream based test, cycles per iteration (mean) : 16.0441
++
++Therefore, the memory fetch based test seems to be 200% slower than the
++load immediate based test.
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
