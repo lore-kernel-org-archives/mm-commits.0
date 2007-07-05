@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-connect-up-new-syscalls.patch added to -mm tree
-Date: Thu, 05 Jul 2007 14:42:45 -0700
-Message-ID: <200707052142.l65Lgjt6021322@imap1.linux-foundation.org>
+Subject: + frv-remove-some-dead-code.patch added to -mm tree
+Date: Thu, 05 Jul 2007 14:42:49 -0700
+Message-ID: <200707052142.l65LgnrX021329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52951 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35879 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760809AbXGEVnc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:43:32 -0400
+	by vger.kernel.org with ESMTP id S1760837AbXGEVni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:43:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: dhowells@redhat.com, rpjday@mindspring.com
 
 
 The patch titled
-     FRV: Connect up new syscalls
+     FRV: Remove some dead code
 has been added to the -mm tree.  Its filename is
-     frv-connect-up-new-syscalls.patch
+     frv-remove-some-dead-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FRV: Connect up new syscalls
+Subject: FRV: Remove some dead code
 From: David Howells <dhowells@redhat.com>
 
-Connect up new system calls.
+Remove some dead chunks of code that are bounded by preprocessor conditionals
+controlled by apparently no-longer available config options.
+
+These are:
+
+	CONFIG_BLK_DEV_BLKMEM
+	CONFIG_CHR_DEV_FLASH
+	CONFIG_BLK_DEV_FLASH
+	CONFIG_CONSOLE
+
+[Found by Robert P. J. Day <rpjday@mindspring.com>]
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/entry.S  |    4 ++++
- include/asm-frv/unistd.h |    6 +++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ arch/frv/kernel/setup.c |   16 ----------------
+ 1 files changed, 16 deletions(-)
 
-diff -puN arch/frv/kernel/entry.S~frv-connect-up-new-syscalls arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~frv-connect-up-new-syscalls
-+++ a/arch/frv/kernel/entry.S
-@@ -1492,6 +1492,10 @@ sys_call_table:
- 	.long sys_move_pages
- 	.long sys_getcpu
- 	.long sys_epoll_pwait
-+	.long sys_utimensat		/* 320 */
-+	.long sys_signalfd
-+	.long sys_timerfd
-+	.long sys_eventfd
+diff -puN arch/frv/kernel/setup.c~frv-remove-some-dead-code arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~frv-remove-some-dead-code
++++ a/arch/frv/kernel/setup.c
+@@ -60,10 +60,6 @@ static void __init setup_linux_memory(vo
+ static void __init setup_uclinux_memory(void);
+ #endif
  
+-#ifdef CONFIG_CONSOLE
+-extern struct consw *conswitchp;
+-#endif
+-
+ #ifdef CONFIG_MB93090_MB00
+ static char __initdata mb93090_banner[] = "FJ/RH FR-V Linux";
+ static char __initdata mb93090_version[] = UTS_RELEASE;
+@@ -795,13 +791,6 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ #endif
  
- syscall_table_size = (. - sys_call_table)
-diff -puN include/asm-frv/unistd.h~frv-connect-up-new-syscalls include/asm-frv/unistd.h
---- a/include/asm-frv/unistd.h~frv-connect-up-new-syscalls
-+++ a/include/asm-frv/unistd.h
-@@ -326,10 +326,14 @@
- #define __NR_move_pages		317
- #define __NR_getcpu		318
- #define __NR_epoll_pwait	319
-+#define __NR_utimensat		320
-+#define __NR_signalfd		321
-+#define __NR_timerfd		322
-+#define __NR_eventfd		323
+-#if defined(CONFIG_CHR_DEV_FLASH) || defined(CONFIG_BLK_DEV_FLASH)
+-	/* we need to initialize the Flashrom device here since we might
+-	 * do things with flash early on in the boot
+-	 */
+-	flash_probe();
+-#endif
+-
+ 	/* deal with the command line - RedBoot may have passed one to the kernel */
+ 	memcpy(command_line, boot_command_line, sizeof(command_line));
+ 	*cmdline_p = &command_line[0];
+@@ -837,11 +826,6 @@ void __init setup_arch(char **cmdline_p)
+ #endif
+ #endif
  
- #ifdef __KERNEL__
- 
--#define NR_syscalls 320
-+#define NR_syscalls 324
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- /* #define __ARCH_WANT_OLD_READDIR */
+-#ifdef CONFIG_BLK_DEV_BLKMEM
+-	ROOT_DEV = MKDEV(BLKMEM_MAJOR,0);
+-#endif
+-	/*rom_length = (unsigned long)&_flashend - (unsigned long)&_romvec;*/
+-
+ #ifdef CONFIG_MMU
+ 	setup_linux_memory();
+ #else
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
