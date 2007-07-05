@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-statfs-speed-up.patch added to -mm tree
-Date: Thu, 05 Jul 2007 15:13:08 -0700
-Message-ID: <200707052213.l65MD8vQ021858@imap1.linux-foundation.org>
+Subject: + sound-remove-unreferenced-header-file-include-sound-wavefront_fxh.patch added to -mm tree
+Date: Thu, 05 Jul 2007 15:14:57 -0700
+Message-ID: <200707052214.l65MEvQJ021914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60394 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760698AbXGEWN1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:13:27 -0400
+	by vger.kernel.org with ESMTP id S1760001AbXGEWPF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pbadari@us.ibm.com, adilger@clusterfs.com
+Cc: rpjday@mindspring.com
 
 
 The patch titled
-     ext2: statfs speed up
+     SOUND: eemove unreferenced header file include/sound/wavefront_fx.h.
 has been added to the -mm tree.  Its filename is
-     ext2-statfs-speed-up.patch
+     sound-remove-unreferenced-header-file-include-sound-wavefront_fxh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,99 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2: statfs speed up
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: SOUND: eemove unreferenced header file include/sound/wavefront_fx.h.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-This is a patch that speeds up statfs.  It is very simple - the "overhead"
-calculation, which takes a huge amount of time for large filesystems, never
-changes unless the size of the filesystem itself changes.  That means we can
-store it in memory and only recalculate if the filesystem has been resized
-(almost never).
-
-It also fixes a minor problem that we never update the on-disk superblock free
-blocks/inodes counts until the filesystem is unmounted.  While not fatal, we
-may as well update that on disk when we have the information, and it makes
-things like debugfs and dumpe2fs report a bit more accurate info.
-
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Signed-off-by: Andreas Dilger <adilger@clusterfs.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c            |   20 ++++++++++++++------
- include/linux/ext2_fs_sb.h |    2 ++
- 2 files changed, 16 insertions(+), 6 deletions(-)
+ include/sound/wavefront_fx.h |    9 ---------
+ 1 files changed, 9 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-statfs-speed-up fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-statfs-speed-up
-+++ a/fs/ext2/super.c
-@@ -1099,15 +1099,18 @@ static int ext2_statfs (struct dentry * 
- 	struct super_block *sb = dentry->d_sb;
- 	struct ext2_sb_info *sbi = EXT2_SB(sb);
- 	struct ext2_super_block *es = sbi->s_es;
--	unsigned long overhead;
--	int i;
- 	u64 fsid;
- 
- 	if (test_opt (sb, MINIX_DF))
--		overhead = 0;
--	else {
-+		sbi->s_overhead_last = 0;
-+	else if (sbi->s_blocks_last != le32_to_cpu(es->s_blocks_count)) {
-+		unsigned long i, overhead = 0;
-+		smp_rmb();
-+
- 		/*
--		 * Compute the overhead (FS structures)
-+		 * Compute the overhead (FS structures). This is constant
-+		 * for a given filesystem unless the number of block groups
-+		 * changes so we cache the previous value until it does.
- 		 */
- 
- 		/*
-@@ -1131,17 +1134,22 @@ static int ext2_statfs (struct dentry * 
- 		 */
- 		overhead += (sbi->s_groups_count *
- 			     (2 + sbi->s_itb_per_group));
-+		sbi->s_overhead_last = overhead;
-+		smp_wmb();
-+		sbi->s_blocks_last = le32_to_cpu(es->s_blocks_count);
- 	}
- 
- 	buf->f_type = EXT2_SUPER_MAGIC;
- 	buf->f_bsize = sb->s_blocksize;
--	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - overhead;
-+	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - sbi->s_overhead_last;
- 	buf->f_bfree = ext2_count_free_blocks(sb);
-+	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
- 	buf->f_bavail = buf->f_bfree - le32_to_cpu(es->s_r_blocks_count);
- 	if (buf->f_bfree < le32_to_cpu(es->s_r_blocks_count))
- 		buf->f_bavail = 0;
- 	buf->f_files = le32_to_cpu(es->s_inodes_count);
- 	buf->f_ffree = ext2_count_free_inodes(sb);
-+	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
- 	buf->f_namelen = EXT2_NAME_LEN;
- 	fsid = le64_to_cpup((void *)es->s_uuid) ^
- 	       le64_to_cpup((void *)es->s_uuid + sizeof(u64));
-diff -puN include/linux/ext2_fs_sb.h~ext2-statfs-speed-up include/linux/ext2_fs_sb.h
---- a/include/linux/ext2_fs_sb.h~ext2-statfs-speed-up
-+++ a/include/linux/ext2_fs_sb.h
-@@ -33,6 +33,8 @@ struct ext2_sb_info {
- 	unsigned long s_gdb_count;	/* Number of group descriptor blocks */
- 	unsigned long s_desc_per_block;	/* Number of group descriptors per block */
- 	unsigned long s_groups_count;	/* Number of groups in the fs */
-+	unsigned long s_overhead_last;  /* Last calculated overhead */
-+	unsigned long s_blocks_last;    /* Last seen block count */
- 	struct buffer_head * s_sbh;	/* Buffer containing the super block */
- 	struct ext2_super_block * s_es;	/* Pointer to the super block in the buffer */
- 	struct buffer_head ** s_group_desc;
+diff -puN include/sound/wavefront_fx.h~sound-remove-unreferenced-header-file-include-sound-wavefront_fxh /dev/null
+--- a/include/sound/wavefront_fx.h
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#ifndef __SOUND_WAVEFRONT_FX_H
+-#define __SOUND_WAVEFRONT_FX_H
+-
+-extern int  snd_wavefront_fx_detect (snd_wavefront_t *);
+-extern void snd_wavefront_fx_ioctl  (snd_synth_t *sdev, 
+-				     unsigned int cmd, 
+-				     unsigned long arg);
+-
+-#endif  __SOUND_WAVEFRONT_FX_H
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-ext3-convert-to-new-aops.patch
-ext4-convert-to-new-aops.patch
-mm-fix-create_new_namespaces-return-value.patch
-ext2-statfs-speed-up.patch
-ext3-statfs-speed-up.patch
-ext4-statfs-speed-up.patch
+sound-remove-unreferenced-header-file-include-sound-wavefront_fxh.patch
+ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
+viotape-use-designated-initializers-for-fops-member.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+input-delete-useless-reference-to-dead-module_parm-macro.patch
+git-kbuild.patch
+git-kvm.patch
+bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-s390.patch
+git-scsi-misc.patch
+remove-dead-references-to-module_parm-macro.patch
+git-watchdog.patch
+i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
+remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
+mm-make-needlessly-global-hugetlb_no_page-static.patch
+frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
+frv-remove-some-dead-code.patch
+cris-replace-old-style-member-inits-with-designated-inits.patch
+remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
+drop-an-empty-isicomh-from-being-exported-to-user-space.patch
+remove-apparently-useless-commented-apm_get_battery_status.patch
+cobalt-remove-all-references-to-cobalt-nvram.patch
+remove-final-two-references-to-__obsolete_setup-macro.patch
+cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
