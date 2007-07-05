@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + stallion-remove-unneeded-lock_kernel.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:00:54 -0700
-Message-ID: <200707051900.l65J0sxN013113@imap1.linux-foundation.org>
+Subject: + synclink-remove-bogus-no-change-termios-optimisation.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:01:36 -0700
+Message-ID: <200707051901.l65J1aq0013192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44886 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753178AbXGETBf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:01:35 -0400
+	by vger.kernel.org with ESMTP id S1753829AbXGETCV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, paulkf@microgate.com
 
 
 The patch titled
-     stallion: remove unneeded lock_kernel
+     synclink: remove bogus 'no change' termios optimisation from synclink drivers
 has been added to the -mm tree.  Its filename is
-     stallion-remove-unneeded-lock_kernel.patch
+     synclink-remove-bogus-no-change-termios-optimisation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: stallion: remove unneeded lock_kernel
+Subject: synclink: remove bogus 'no change' termios optimisation from synclink drivers
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Again this check is wrong now, and un-needed
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/char/synclink.c    |    8 --------
+ drivers/char/synclink_gt.c |    8 --------
+ drivers/char/synclinkmp.c  |    8 --------
+ 3 files changed, 24 deletions(-)
 
-diff -puN drivers/char/stallion.c~stallion-remove-unneeded-lock_kernel drivers/char/stallion.c
---- a/drivers/char/stallion.c~stallion-remove-unneeded-lock_kernel
-+++ a/drivers/char/stallion.c
-@@ -1788,7 +1788,6 @@ static void stl_offintr(struct work_stru
- 	if (tty == NULL)
- 		return;
+diff -puN drivers/char/synclink.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclink.c
+--- a/drivers/char/synclink.c~synclink-remove-bogus-no-change-termios-optimisation
++++ a/drivers/char/synclink.c
+@@ -160,8 +160,6 @@ typedef struct _DMABUFFERENTRY
  
--	lock_kernel();
- 	if (test_bit(ASYI_TXLOW, &portp->istate))
- 		tty_wakeup(tty);
+ #define IO_PIN_SHUTDOWN_LIMIT 100
  
-@@ -1802,7 +1801,6 @@ static void stl_offintr(struct work_stru
- 			if (portp->flags & ASYNC_CHECK_CD)
- 				tty_hangup(tty);	/* FIXME: module removal race here - AKPM */
- 	}
--	unlock_kernel();
- }
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ struct	_input_signal_events {
+ 	int	ri_up;	
+ 	int	ri_down;
+@@ -3064,12 +3062,6 @@ static void mgsl_set_termios(struct tty_
+ 		printk("%s(%d):mgsl_set_termios %s\n", __FILE__,__LINE__,
+ 			tty->driver->name );
+ 	
+-	/* just return if nothing has changed */
+-	if ((tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (RELEVANT_IFLAG(tty->termios->c_iflag) 
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-	  return;
+-
+ 	mgsl_change_params(info);
  
- /*****************************************************************************/
+ 	/* Handle transition to B0 status */
+diff -puN drivers/char/synclink_gt.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink-remove-bogus-no-change-termios-optimisation
++++ a/drivers/char/synclink_gt.c
+@@ -144,8 +144,6 @@ MODULE_PARM_DESC(dosyncppp, "Enable sync
+ /*
+  * tty support and callbacks
+  */
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ static struct tty_driver *serial_driver;
+ 
+ static int  open(struct tty_struct *tty, struct file * filp);
+@@ -823,12 +821,6 @@ static void set_termios(struct tty_struc
+ 
+ 	DBGINFO(("%s set_termios\n", tty->driver->name));
+ 
+-	/* just return if nothing has changed */
+-	if ((tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (RELEVANT_IFLAG(tty->termios->c_iflag)
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-		return;
+-
+ 	change_params(info);
+ 
+ 	/* Handle transition to B0 status */
+diff -puN drivers/char/synclinkmp.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~synclink-remove-bogus-no-change-termios-optimisation
++++ a/drivers/char/synclinkmp.c
+@@ -135,8 +135,6 @@ typedef struct _SCADESC_EX
+ 
+ #define IO_PIN_SHUTDOWN_LIMIT 100
+ 
+-#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ struct	_input_signal_events {
+ 	int	ri_up;
+ 	int	ri_down;
+@@ -927,12 +925,6 @@ static void set_termios(struct tty_struc
+ 		printk("%s(%d):%s set_termios()\n", __FILE__,__LINE__,
+ 			tty->driver->name );
+ 
+-	/* just return if nothing has changed */
+-	if ((tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (RELEVANT_IFLAG(tty->termios->c_iflag)
+-		== RELEVANT_IFLAG(old_termios->c_iflag)))
+-	  return;
+-
+ 	change_params(info);
+ 
+ 	/* Handle transition to B0 status */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -101,6 +161,7 @@ audit-add-tty-input-auditing-fix-2.patch
 revert-vanishing-ioctl-handler-debugging.patch
 amiserial-remove-incorrect-no-termios-change-check.patch
 genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
+synclink-remove-bogus-no-change-termios-optimisation.patch
 i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
 wrong-memory-access-in-i2o_block_device_lock.patch
