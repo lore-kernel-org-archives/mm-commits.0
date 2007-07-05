@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sound-remove-unreferenced-header-file-include-sound-wavefront_fxh.patch added to -mm tree
-Date: Thu, 05 Jul 2007 15:14:57 -0700
-Message-ID: <200707052214.l65MEvQJ021914@imap1.linux-foundation.org>
+Subject: + pm-introduce-pm_power_off_prepare.patch added to -mm tree
+Date: Thu, 05 Jul 2007 15:16:24 -0700
+Message-ID: <200707052216.l65MGO9l021939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60394 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49633 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760001AbXGEWPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:15:05 -0400
+	by vger.kernel.org with ESMTP id S1755473AbXGEWQq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 18:16:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+Cc: rjw@sisk.pl, pavel@ucw.cz
 
 
 The patch titled
-     SOUND: eemove unreferenced header file include/sound/wavefront_fx.h.
+     PM: Introduce pm_power_off_prepare
 has been added to the -mm tree.  Its filename is
-     sound-remove-unreferenced-header-file-include-sound-wavefront_fxh.patch
+     pm-introduce-pm_power_off_prepare.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SOUND: eemove unreferenced header file include/sound/wavefront_fx.h.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: PM: Introduce pm_power_off_prepare
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Introduce the pm_power_off_prepare() callback that can be registered by the
+interested platforms in analogy with pm_idle() and pm_power_off(), used for
+preparing the system to power off (needed by ACPI).
+
+This allows us to drop acpi_sysclass and device_acpi that are only defined in
+order to register the ACPI power off preparation callback, which is needed by
+pm_power_off() registered in a much different way.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/sound/wavefront_fx.h |    9 ---------
- 1 files changed, 9 deletions(-)
+ drivers/acpi/sleep/poweroff.c |   38 +++++++-------------------------
+ include/linux/pm.h            |    1 
+ kernel/sys.c                  |    9 +++++++
+ 3 files changed, 19 insertions(+), 29 deletions(-)
 
-diff -puN include/sound/wavefront_fx.h~sound-remove-unreferenced-header-file-include-sound-wavefront_fxh /dev/null
---- a/include/sound/wavefront_fx.h
-+++ /dev/null
-@@ -1,9 +0,0 @@
--#ifndef __SOUND_WAVEFRONT_FX_H
--#define __SOUND_WAVEFRONT_FX_H
+diff -puN drivers/acpi/sleep/poweroff.c~pm-introduce-pm_power_off_prepare drivers/acpi/sleep/poweroff.c
+--- a/drivers/acpi/sleep/poweroff.c~pm-introduce-pm_power_off_prepare
++++ a/drivers/acpi/sleep/poweroff.c
+@@ -39,7 +39,13 @@ int acpi_sleep_prepare(u32 acpi_state)
+ 
+ #ifdef CONFIG_PM
+ 
+-void acpi_power_off(void)
++static void acpi_power_off_prepare(void)
++{
++	/* Prepare to power off the system */
++	acpi_sleep_prepare(ACPI_STATE_S5);
++}
++
++static void acpi_power_off(void)
+ {
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk("%s called\n", __FUNCTION__);
+@@ -48,27 +54,6 @@ void acpi_power_off(void)
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
+ }
+ 
+-static int acpi_shutdown(struct sys_device *x)
+-{
+-	switch (system_state) {
+-	case SYSTEM_POWER_OFF:
+-		/* Prepare to power off the system */
+-		return acpi_sleep_prepare(ACPI_STATE_S5);
+-	default:
+-		return 0;
+-	}
+-}
 -
--extern int  snd_wavefront_fx_detect (snd_wavefront_t *);
--extern void snd_wavefront_fx_ioctl  (snd_synth_t *sdev, 
--				     unsigned int cmd, 
--				     unsigned long arg);
+-static struct sysdev_class acpi_sysclass = {
+-	set_kset_name("acpi"),
+-	.shutdown = acpi_shutdown
+-};
 -
--#endif  __SOUND_WAVEFRONT_FX_H
+-static struct sys_device device_acpi = {
+-	.id = 0,
+-	.cls = &acpi_sysclass,
+-};
+-
+ static int acpi_poweroff_init(void)
+ {
+ 	if (!acpi_disabled) {
+@@ -78,13 +63,8 @@ static int acpi_poweroff_init(void)
+ 		status =
+ 		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
+ 		if (ACPI_SUCCESS(status)) {
+-			int error;
+-			error = sysdev_class_register(&acpi_sysclass);
+-			if (!error)
+-				error = sysdev_register(&device_acpi);
+-			if (!error)
+-				pm_power_off = acpi_power_off;
+-			return error;
++			pm_power_off_prepare = acpi_power_off_prepare;
++			pm_power_off = acpi_power_off;
+ 		}
+ 	}
+ 	return 0;
+diff -puN include/linux/pm.h~pm-introduce-pm_power_off_prepare include/linux/pm.h
+--- a/include/linux/pm.h~pm-introduce-pm_power_off_prepare
++++ a/include/linux/pm.h
+@@ -101,6 +101,7 @@ struct pm_dev
+  */
+ extern void (*pm_idle)(void);
+ extern void (*pm_power_off)(void);
++extern void (*pm_power_off_prepare)(void);
+ 
+ typedef int __bitwise suspend_state_t;
+ 
+diff -puN kernel/sys.c~pm-introduce-pm_power_off_prepare kernel/sys.c
+--- a/kernel/sys.c~pm-introduce-pm_power_off_prepare
++++ a/kernel/sys.c
+@@ -98,6 +98,13 @@ struct pid *cad_pid;
+ EXPORT_SYMBOL(cad_pid);
+ 
+ /*
++ * If set, this is used for preparing the system to power off.
++ */
++
++void (*pm_power_off_prepare)(void);
++EXPORT_SYMBOL(pm_power_off_prepare);
++
++/*
+  *	Notifier list for kernel code which wants to be called
+  *	at shutdown. This is used to stop any idling DMA operations
+  *	and the like. 
+@@ -865,6 +872,8 @@ EXPORT_SYMBOL_GPL(kernel_halt);
+ void kernel_power_off(void)
+ {
+ 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
++	if (pm_power_off_prepare)
++		pm_power_off_prepare();
+ 	printk(KERN_EMERG "Power down.\n");
+ 	machine_power_off();
+ }
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-sound-remove-unreferenced-header-file-include-sound-wavefront_fxh.patch
-ppc-remove-dead-code-for-preventing-pread-and-pwrite-calls.patch
-viotape-use-designated-initializers-for-fops-member.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-input-delete-useless-reference-to-dead-module_parm-macro.patch
-git-kbuild.patch
-git-kvm.patch
-bluetooth-remove-the-redundant-non-seekable-llseek-method.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-s390.patch
-git-scsi-misc.patch
-remove-dead-references-to-module_parm-macro.patch
-git-watchdog.patch
-i386-uaccessh-replace-hard-coded-constant-with-appropriate-macro-from-kernelh.patch
-remove-the-deprecated-kmem_cache_t-typedef-from-slabh.patch
-mm-make-needlessly-global-hugetlb_no_page-static.patch
-frv-be-self-consistent-and-use-config_gdb_console-everywhere.patch
-frv-remove-some-dead-code.patch
-cris-replace-old-style-member-inits-with-designated-inits.patch
-remove-unnecessary-includes-of-spinlockh-under-include-linux.patch
-drop-an-empty-isicomh-from-being-exported-to-user-space.patch
-remove-apparently-useless-commented-apm_get_battery_status.patch
-cobalt-remove-all-references-to-cobalt-nvram.patch
-remove-final-two-references-to-__obsolete_setup-macro.patch
-cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
+pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
+pm-introduce-pm_power_off_prepare.patch
+shrink_slab-handle-bad-shrinkers.patch
