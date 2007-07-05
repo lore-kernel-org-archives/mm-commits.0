@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + potential-compiler-error-irqfunc-caller-sites-update.patch added to -mm tree
-Date: Thu, 05 Jul 2007 14:55:33 -0700
-Message-ID: <200707052155.l65LtXwD021557@imap1.linux-foundation.org>
+Subject: + allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch added to -mm tree
+Date: Thu, 05 Jul 2007 14:57:59 -0700
+Message-ID: <200707052158.l65Lvx3l021602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40378 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57069 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759822AbXGEVzv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:55:51 -0400
+	by vger.kernel.org with ESMTP id S1760001AbXGEV6o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:58:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: padator@wanadoo.fr, akpm@linux-foundation.org, davem@davemloft.net, greg@kroah.com, jeff@garzik.org
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     potential compiler error, irqfunc caller sites update
+     allow-page_owner-to-be-set-on-any-architecture-fix fix
 has been added to the -mm tree.  Its filename is
-     potential-compiler-error-irqfunc-caller-sites-update.patch
+     allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,121 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: potential compiler error, irqfunc caller sites update
-From: Yoann Padioleau <padator@wanadoo.fr>
+Subject: allow-page_owner-to-be-set-on-any-architecture-fix fix
+From: mel@skynet.ie (Mel Gorman)
 
-In 7d12e780e003f93433d49ce78cfedf4b4c52adc5 David Howells performed
-this evolution:
- "IRQ: Maintain regs pointer globally rather than passing to IRQ handlers"
+Page-owner-tracking stores the a backtrace of an allocation in the struct
+page.  How the stack trace is generated depends on whether
+CONFIG_FRAME_POINTER is set or not.  If CONFIG_FRAME_POINTER is set, the
+frame pointer must be read using some inline assembler which is not
+available for all architectures.
 
-He correctly updated many of the function definitions that were using this
-extra regs pointer parameter but forgot to update some caller sites of
-those functions.  The reason the modifications was not properly done on all
-drivers is that some drivers were rarely compiled because they are for
-AMIGA, or that some code sites were inside #ifdefs where the option is not
-set or inside #if 0.
+This patch uses the frame pointer where it is available but has a fallback
+where it is not.
 
-Here is the semantic patch that found the occurences
-and fixed the problem.
-
-@ rule1 @
-identifier fn;
-identifier irq, dev_id;
-typedef irqreturn_t;
-@@
-
-static irqreturn_t fn(int irq, void *dev_id)
-{
-   ...
-}
-
-@@
-identifier rule1.fn;
-expression E1, E2, E3;
-@@
-
- fn(E1, E2
--   ,E3
-   )
-
-Signed-off-by: Yoann Padioleau <padator@wanadoo.fr>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/firestream.c     |    2 +-
- drivers/net/arm/am79c961a.c  |    2 +-
- drivers/net/ixp2000/ixpdev.c |    2 +-
- drivers/net/sb1250-mac.c     |    2 +-
- drivers/usb/misc/uss720.c    |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/atm/firestream.c~potential-compiler-error-irqfunc-caller-sites-update drivers/atm/firestream.c
---- a/drivers/atm/firestream.c~potential-compiler-error-irqfunc-caller-sites-update
-+++ a/drivers/atm/firestream.c
-@@ -1654,7 +1654,7 @@ static void fs_poll (unsigned long data)
- {
- 	struct fs_dev *dev = (struct fs_dev *) data;
-   
--	fs_irq (0, dev, NULL);
-+	fs_irq (0, dev);
- 	dev->timer.expires = jiffies + FS_POLL_FREQ;
- 	add_timer (&dev->timer);
- }
-diff -puN drivers/net/arm/am79c961a.c~potential-compiler-error-irqfunc-caller-sites-update drivers/net/arm/am79c961a.c
---- a/drivers/net/arm/am79c961a.c~potential-compiler-error-irqfunc-caller-sites-update
-+++ a/drivers/net/arm/am79c961a.c
-@@ -634,7 +634,7 @@ static void am79c961_poll_controller(str
- {
- 	unsigned long flags;
- 	local_irq_save(flags);
--	am79c961_interrupt(dev->irq, dev, NULL);
-+	am79c961_interrupt(dev->irq, dev);
- 	local_irq_restore(flags);
- }
- #endif
-diff -puN drivers/net/ixp2000/ixpdev.c~potential-compiler-error-irqfunc-caller-sites-update drivers/net/ixp2000/ixpdev.c
---- a/drivers/net/ixp2000/ixpdev.c~potential-compiler-error-irqfunc-caller-sites-update
-+++ a/drivers/net/ixp2000/ixpdev.c
-@@ -222,7 +222,7 @@ static irqreturn_t ixpdev_interrupt(int 
- static void ixpdev_poll_controller(struct net_device *dev)
- {
- 	disable_irq(IRQ_IXP2000_THDA0);
--	ixpdev_interrupt(IRQ_IXP2000_THDA0, dev, NULL);
-+	ixpdev_interrupt(IRQ_IXP2000_THDA0, dev);
- 	enable_irq(IRQ_IXP2000_THDA0);
- }
- #endif
-diff -puN drivers/net/sb1250-mac.c~potential-compiler-error-irqfunc-caller-sites-update drivers/net/sb1250-mac.c
---- a/drivers/net/sb1250-mac.c~potential-compiler-error-irqfunc-caller-sites-update
-+++ a/drivers/net/sb1250-mac.c
-@@ -1159,7 +1159,7 @@ static void sbmac_netpoll(struct net_dev
+diff -puN mm/page_alloc.c~allow-page_owner-to-be-set-on-any-architecture-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~allow-page_owner-to-be-set-on-any-architecture-fix-fix
++++ a/mm/page_alloc.c
+@@ -1479,14 +1479,17 @@ static inline void __stack_trace(struct 
+ 	memset(page->trace, 0, sizeof(long) * 8);
  
- 	__raw_writeq(0, sc->sbm_imr);
- 
--	sbmac_intr(irq, netdev, NULL);
-+	sbmac_intr(irq, netdev);
- 
- #ifdef CONFIG_SBMAC_COALESCE
- 	__raw_writeq(((M_MAC_INT_EOP_COUNT | M_MAC_INT_EOP_TIMER) << S_MAC_TX_CH0) |
-diff -puN drivers/usb/misc/uss720.c~potential-compiler-error-irqfunc-caller-sites-update drivers/usb/misc/uss720.c
---- a/drivers/usb/misc/uss720.c~potential-compiler-error-irqfunc-caller-sites-update
-+++ a/drivers/usb/misc/uss720.c
-@@ -336,7 +336,7 @@ static int uss720_irq(int usbstatus, voi
- 	memcpy(priv->reg, buffer, 4);
- 	/* if nAck interrupts are enabled and we have an interrupt, call the interrupt procedure */
- 	if (priv->reg[2] & priv->reg[1] & 0x10)
--		parport_generic_irq(0, pp, NULL);
-+		parport_generic_irq(0, pp);
- 	return 1;
+ #ifdef CONFIG_FRAME_POINTER
+-	while (valid_stack_ptr(tinfo, (void *)bp)) {
+-		addr = *(unsigned long *)(bp + sizeof(long));
+-		page->trace[i] = addr;
+-		if (++i >= 8)
+-			break;
+-		bp = *(unsigned long *)bp;
++	if (bp) {
++		while (valid_stack_ptr(tinfo, (void *)bp)) {
++			addr = *(unsigned long *)(bp + sizeof(long));
++			page->trace[i] = addr;
++			if (++i >= 8)
++				break;
++			bp = *(unsigned long *)bp;
++		}
++		return;
+ 	}
+-#else
++#endif /* CONFIG_FRAME_POINTER */
+ 	while (valid_stack_ptr(tinfo, stack)) {
+ 		addr = *stack++;
+ 		if (__kernel_text_address(addr)) {
+@@ -1495,7 +1498,6 @@ static inline void __stack_trace(struct 
+ 				break;
+ 		}
+ 	}
+-#endif
  }
- #endif
+ 
+ static void set_page_owner(struct page *page, unsigned int order,
 _
 
-Patches currently in -mm which might be from padator@wanadoo.fr are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-potential-compiler-error-irqfunc-caller-sites-update.patch
-atari_pamsnetc-old-declaration-ritchie-style-fix.patch
+x86_64-extract-helper-function-from-e820_register_active_regions.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+remove-alloc_zeroed_user_highpage.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-fix.patch
+create-the-zone_movable-zone-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
+allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
+handle-kernelcore=-generic.patch
+handle-kernelcore=-generic-fix.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0-fix.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+update-page-order-at-an-appropriate-time-when-tracking-page_owner.patch
+print-out-page_owner-statistics-in-relation-to-fragmentation-avoidance.patch
+allow-page_owner-to-be-set-on-any-architecture.patch
+allow-page_owner-to-be-set-on-any-architecture-fix.patch
+allow-page_owner-to-be-set-on-any-architecture-fix-fix.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
