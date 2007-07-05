@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + immediate-value-add-kconfig-menus.patch added to -mm tree
-Date: Thu, 05 Jul 2007 13:21:56 -0700
-Message-ID: <200707052021.l65KLuRV017108@imap1.linux-foundation.org>
+Subject: + f00f-bug-fixup-for-i386-use-immediate-values.patch added to -mm tree
+Date: Thu, 05 Jul 2007 13:22:07 -0700
+Message-ID: <200707052022.l65KM780017128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58717 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760205AbXGEUWX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 16:22:23 -0400
+	by vger.kernel.org with ESMTP id S1759857AbXGEUWT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 16:22:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, andi@firstfloor.org, bunk@stusta.de
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     Immediate Value: add kconfig menus
+     F00F bug fixup for i386: use immediate values
 has been added to the -mm tree.  Its filename is
-     immediate-value-add-kconfig-menus.patch
+     f00f-bug-fixup-for-i386-use-immediate-values.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,445 +25,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Immediate Value: add kconfig menus
+Subject: F00F bug fixup for i386: use immediate values
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Immediate values provide a way to compile in kernels features that can be
-enabled dynamically, with a very small footprint when disabled.
-
-This patch:
-
-Add Kconfig menus for the marker code.
+Use the faster immediate values for F00F bug handling in do_page_fault.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-CC: Adrian Bunk <bunk@stusta.de>
-CC: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig       |    6 ++++++
- arch/arm/Kconfig         |    6 ++++++
- arch/arm26/Kconfig       |    6 ++++++
- arch/avr32/Kconfig.debug |    7 +++++++
- arch/cris/Kconfig        |    6 ++++++
- arch/frv/Kconfig         |    6 ++++++
- arch/h8300/Kconfig       |    6 ++++++
- arch/i386/Kconfig        |    2 ++
- arch/ia64/Kconfig        |    3 +++
- arch/m32r/Kconfig        |    6 ++++++
- arch/m68k/Kconfig        |    6 ++++++
- arch/m68knommu/Kconfig   |    6 ++++++
- arch/mips/Kconfig        |    6 ++++++
- arch/parisc/Kconfig      |    6 ++++++
- arch/powerpc/Kconfig     |    3 +++
- arch/ppc/Kconfig         |    6 ++++++
- arch/s390/Kconfig        |    2 ++
- arch/sh/Kconfig          |    6 ++++++
- arch/sh64/Kconfig        |    6 ++++++
- arch/sparc/Kconfig       |    2 ++
- arch/sparc64/Kconfig     |    3 +++
- arch/um/Kconfig          |    6 ++++++
- arch/v850/Kconfig        |    6 ++++++
- arch/x86_64/Kconfig      |    3 +++
- arch/xtensa/Kconfig      |    6 ++++++
- kernel/Kconfig.immediate |    9 +++++++++
- 26 files changed, 136 insertions(+)
+ arch/i386/kernel/traps.c     |    4 ++++
+ arch/i386/mm/fault.c         |    3 ++-
+ include/asm-i386/processor.h |    3 +++
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/Kconfig~immediate-value-add-kconfig-menus arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/alpha/Kconfig
-@@ -653,6 +653,12 @@ source "fs/Kconfig"
+diff -puN arch/i386/kernel/traps.c~f00f-bug-fixup-for-i386-use-immediate-values arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~f00f-bug-fixup-for-i386-use-immediate-values
++++ a/arch/i386/kernel/traps.c
+@@ -31,6 +31,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/nmi.h>
+ #include <linux/bug.h>
++#include <linux/immediate.h>
  
- source "arch/alpha/oprofile/Kconfig"
+ #ifdef CONFIG_EISA
+ #include <linux/ioport.h>
+@@ -1145,6 +1146,8 @@ asmlinkage void math_emulate(long arg)
+ #endif /* CONFIG_MATH_EMULATION */
  
-+menu "Instrumentation Support"
+ #ifdef CONFIG_X86_F00F_BUG
++immediate_t __read_mostly f00f_bug_fix;
 +
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/alpha/Kconfig.debug"
+ void __init trap_init_f00f_bug(void)
+ {
+ 	__set_fixmap(FIX_F00F_IDT, __pa(&idt_table), PAGE_KERNEL_RO);
+@@ -1155,6 +1158,7 @@ void __init trap_init_f00f_bug(void)
+ 	 */
+ 	idt_descr.address = fix_to_virt(FIX_F00F_IDT);
+ 	load_idt(&idt_descr);
++	immediate_arm(&f00f_bug_fix);
+ }
+ #endif
  
- # DUMMY_CONSOLE may be defined in drivers/video/console/Kconfig
-diff -puN arch/arm/Kconfig~immediate-value-add-kconfig-menus arch/arm/Kconfig
---- a/arch/arm/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/arm/Kconfig
-@@ -1046,6 +1046,12 @@ source "fs/Kconfig"
+diff -puN arch/i386/mm/fault.c~f00f-bug-fixup-for-i386-use-immediate-values arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~f00f-bug-fixup-for-i386-use-immediate-values
++++ a/arch/i386/mm/fault.c
+@@ -25,6 +25,7 @@
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+ #include <linux/kdebug.h>
++#include <linux/immediate.h>
  
- source "arch/arm/oprofile/Kconfig"
+ #include <asm/system.h>
+ #include <asm/desc.h>
+@@ -492,7 +493,7 @@ bad_area_nosemaphore:
+ 	/*
+ 	 * Pentium F0 0F C7 C8 bug workaround.
+ 	 */
+-	if (boot_cpu_data.f00f_bug) {
++	if (unlikely(immediate(f00f_bug_fix))) {
+ 		unsigned long nr;
+ 		
+ 		nr = (address - idt_descr.address) >> 3;
+diff -puN include/asm-i386/processor.h~f00f-bug-fixup-for-i386-use-immediate-values include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~f00f-bug-fixup-for-i386-use-immediate-values
++++ a/include/asm-i386/processor.h
+@@ -21,6 +21,7 @@
+ #include <asm/percpu.h>
+ #include <linux/cpumask.h>
+ #include <linux/init.h>
++#include <linux/immediate.h>
+ #include <asm/processor-flags.h>
  
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/arm/Kconfig.debug"
+ /* flag for disabling the tsc */
+@@ -102,6 +103,8 @@ extern struct cpuinfo_x86 new_cpu_data;
+ extern struct tss_struct doublefault_tss;
+ DECLARE_PER_CPU(struct tss_struct, init_tss);
  
- source "security/Kconfig"
-diff -puN arch/arm26/Kconfig~immediate-value-add-kconfig-menus arch/arm26/Kconfig
---- a/arch/arm26/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/arm26/Kconfig
-@@ -244,6 +244,12 @@ source "drivers/misc/Kconfig"
- 
- source "drivers/usb/Kconfig"
- 
-+menu "Instrumentation Support"
++extern immediate_t __read_mostly f00f_bug_fix;
 +
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/arm26/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/avr32/Kconfig.debug~immediate-value-add-kconfig-menus arch/avr32/Kconfig.debug
---- a/arch/avr32/Kconfig.debug~immediate-value-add-kconfig-menus
-+++ a/arch/avr32/Kconfig.debug
-@@ -6,6 +6,9 @@ config TRACE_IRQFLAGS_SUPPORT
- 
- source "lib/Kconfig.debug"
- 
-+menu "Instrumentation Support"
-+	depends on EXPERIMENTAL
-+
- config KPROBES
- 	bool "Kprobes"
- 	depends on DEBUG_KERNEL
-@@ -16,4 +19,8 @@ config KPROBES
-           for kernel debugging, non-intrusive instrumentation and testing.
-           If in doubt, say "N".
- 
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- endmenu
-diff -puN arch/cris/Kconfig~immediate-value-add-kconfig-menus arch/cris/Kconfig
---- a/arch/cris/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/cris/Kconfig
-@@ -198,6 +198,12 @@ source "sound/Kconfig"
- 
- source "drivers/usb/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/cris/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/frv/Kconfig~immediate-value-add-kconfig-menus arch/frv/Kconfig
---- a/arch/frv/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/frv/Kconfig
-@@ -375,6 +375,12 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/frv/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/h8300/Kconfig~immediate-value-add-kconfig-menus arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/h8300/Kconfig
-@@ -223,6 +223,12 @@ endmenu
- 
- source "fs/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/h8300/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/i386/Kconfig~immediate-value-add-kconfig-menus arch/i386/Kconfig
---- a/arch/i386/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/i386/Kconfig
-@@ -1250,6 +1250,8 @@ config KPROBES
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
- 
-+source "kernel/Kconfig.immediate"
-+
- endif # INSTRUMENTATION
- 
- source "arch/i386/Kconfig.debug"
-diff -puN arch/ia64/Kconfig~immediate-value-add-kconfig-menus arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/ia64/Kconfig
-@@ -593,6 +593,9 @@ config KPROBES
- 	  a probepoint and specifies the callback.  Kprobes is useful
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
-+
-+source "kernel/Kconfig.immediate"
-+
- endmenu
- 
- source "arch/ia64/Kconfig.debug"
-diff -puN arch/m32r/Kconfig~immediate-value-add-kconfig-menus arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/m32r/Kconfig
-@@ -408,6 +408,12 @@ source "fs/Kconfig"
- 
- source "arch/m32r/oprofile/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/m32r/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/m68k/Kconfig~immediate-value-add-kconfig-menus arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/m68k/Kconfig
-@@ -676,6 +676,12 @@ endmenu
- 
- source "fs/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/m68k/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/m68knommu/Kconfig~immediate-value-add-kconfig-menus arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/m68knommu/Kconfig
-@@ -668,6 +668,12 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/m68knommu/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/mips/Kconfig~immediate-value-add-kconfig-menus arch/mips/Kconfig
---- a/arch/mips/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/mips/Kconfig
-@@ -1946,6 +1946,12 @@ source "fs/Kconfig"
- 
- source "arch/mips/oprofile/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/mips/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/parisc/Kconfig~immediate-value-add-kconfig-menus arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/parisc/Kconfig
-@@ -269,6 +269,12 @@ source "fs/Kconfig"
- 
- source "arch/parisc/oprofile/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/parisc/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/powerpc/Kconfig~immediate-value-add-kconfig-menus arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/powerpc/Kconfig
-@@ -650,6 +650,9 @@ config KPROBES
- 	  a probepoint and specifies the callback.  Kprobes is useful
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
-+
-+source "kernel/Kconfig.immediate"
-+
- endmenu
- 
- source "arch/powerpc/Kconfig.debug"
-diff -puN arch/ppc/Kconfig~immediate-value-add-kconfig-menus arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/ppc/Kconfig
-@@ -1451,8 +1451,14 @@ endmenu
- 
- source "lib/Kconfig"
- 
-+menu "Instrumentation Support"
-+
- source "arch/powerpc/oprofile/Kconfig"
- 
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/ppc/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/s390/Kconfig~immediate-value-add-kconfig-menus arch/s390/Kconfig
---- a/arch/s390/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/s390/Kconfig
-@@ -547,6 +547,8 @@ config KPROBES
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
- 
-+source "kernel/Kconfig.immediate"
-+
- endmenu
- 
- source "arch/s390/Kconfig.debug"
-diff -puN arch/sh/Kconfig~immediate-value-add-kconfig-menus arch/sh/Kconfig
---- a/arch/sh/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/sh/Kconfig
-@@ -721,6 +721,12 @@ source "fs/Kconfig"
- 
- source "arch/sh/oprofile/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/sh/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/sh64/Kconfig~immediate-value-add-kconfig-menus arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/sh64/Kconfig
-@@ -284,6 +284,12 @@ source "fs/Kconfig"
- 
- source "arch/sh64/oprofile/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/sh64/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/sparc/Kconfig~immediate-value-add-kconfig-menus arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/sparc/Kconfig
-@@ -313,6 +313,8 @@ menu "Instrumentation Support"
- 
- source "arch/sparc/oprofile/Kconfig"
- 
-+source "kernel/Kconfig.immediate"
-+
- endmenu
- 
- source "arch/sparc/Kconfig.debug"
-diff -puN arch/sparc64/Kconfig~immediate-value-add-kconfig-menus arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/sparc64/Kconfig
-@@ -451,6 +451,9 @@ config KPROBES
- 	  a probepoint and specifies the callback.  Kprobes is useful
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
-+
-+source "kernel/Kconfig.immediate"
-+
- endmenu
- 
- source "arch/sparc64/Kconfig.debug"
-diff -puN arch/um/Kconfig~immediate-value-add-kconfig-menus arch/um/Kconfig
---- a/arch/um/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/um/Kconfig
-@@ -335,4 +335,10 @@ config INPUT
- 	bool
- 	default n
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/um/Kconfig.debug"
-diff -puN arch/v850/Kconfig~immediate-value-add-kconfig-menus arch/v850/Kconfig
---- a/arch/v850/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/v850/Kconfig
-@@ -331,6 +331,12 @@ source "sound/Kconfig"
- 
- source "drivers/usb/Kconfig"
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/v850/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/x86_64/Kconfig~immediate-value-add-kconfig-menus arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/x86_64/Kconfig
-@@ -842,6 +842,9 @@ config KPROBES
- 	  a probepoint and specifies the callback.  Kprobes is useful
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
-+
-+source "kernel/Kconfig.immediate"
-+
- endmenu
- 
- source "arch/x86_64/Kconfig.debug"
-diff -puN arch/xtensa/Kconfig~immediate-value-add-kconfig-menus arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~immediate-value-add-kconfig-menus
-+++ a/arch/xtensa/Kconfig
-@@ -251,6 +251,12 @@ config EMBEDDED_RAMDISK_IMAGE
- 	  provide one yourself.
- endmenu
- 
-+menu "Instrumentation Support"
-+
-+source "kernel/Kconfig.immediate"
-+
-+endmenu
-+
- source "arch/xtensa/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN /dev/null kernel/Kconfig.immediate
---- /dev/null
-+++ a/kernel/Kconfig.immediate
-@@ -0,0 +1,9 @@
-+# Immediate values configuration
-+
-+config IMMEDIATE
-+	bool "Use self-modifying code to provide fast immediate values"
-+	help
-+	  Provides a way to use immediate values acting as global values to
-+	  dynamically enable kernel features while having a very small
-+	  footprint when disabled. You may want to disable this feature if you
-+	  run your kernel code on a read-only rom/flash.
+ #ifdef CONFIG_SMP
+ extern struct cpuinfo_x86 cpu_data[];
+ #define current_cpu_data cpu_data[smp_processor_id()]
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
