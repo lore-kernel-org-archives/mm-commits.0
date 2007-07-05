@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-slab-redzone-alignment.patch added to -mm tree
-Date: Thu, 05 Jul 2007 14:29:21 -0700
-Message-ID: <200707052129.l65LTLCH020717@imap1.linux-foundation.org>
+Subject: + vsprintfc-optimizing-part-2-base-10-conversion-speedup-v2.patch added to -mm tree
+Date: Thu, 05 Jul 2007 14:34:24 -0700
+Message-ID: <200707052134.l65LYONG020957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43807 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54468 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760008AbXGEV3j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:29:39 -0400
+	by vger.kernel.org with ESMTP id S1762297AbXGEVep (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, clameter@sgi.com, michal.k.k.piotrowski@gmail.com, penberg@cs.helsinki.fi
+Cc: vda.linux@googlemail.com, jones@cs.uiowa.edu
 
 
 The patch titled
-     Fix slab redzone alignment
+     vsprintf.c: optimizing, part 2: base 10 conversion speedup, v2
 has been added to the -mm tree.  Its filename is
-     fix-slab-redzone-alignment.patch
+     vsprintfc-optimizing-part-2-base-10-conversion-speedup-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,212 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix slab redzone alignment
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: vsprintf.c: optimizing, part 2: base 10 conversion speedup, v2
+From: Denis Vlasenko <vda.linux@googlemail.com>
 
-Commit b46b8f19c9cd435ecac4d9d12b39d78c137ecd66 fixed a couple of bugs by
-switching the redzone to 64 bits.  Unfortunately, it neglected to ensure
-that the _second_ redzone, after the slab object, is aligned correctly. 
-This caused illegal instruction faults on sparc32, which for some reason
-not entirely clear to me are not trapped and fixed up.
+Optimize integer-to-string conversion in vsprintf.c for base 10.  This is
+by far the most used conversion, and in some use cases it impacts
+performance.  For example, top reads /proc/$PID/stat for every process, and
+with 4000 processes decimal conversion alone takes noticeable time.
 
-Two things need to be done to fix this:
-  - increase the object size, rounding up to alignof(long long) so
-    that the second redzone can be aligned correctly.
-  - If SLAB_STORE_USER is set but alignof(long long)==8, allow a
-    full 64 bits of space for the user word at the end of the buffer,
-    even though we may not _use_ the whole 64 bits.
+Using code from
 
-This patch should be a no-op on any 64-bit architecture or any 32-bit
-architecture where alignof(long long) == 4. Of the others, it's tested
-on ppc32 by myself and a very similar patch was tested on sparc32 by
-Mark Fortescue, who reported the new problem.
+http://www.cs.uiowa.edu/~jones/bcd/decimal.html
+(with permission from the author, Douglas W. Jones)
 
-Also, fix the conditions for FORCED_DEBUG, which hadn't been adjusted to
-the new sizes. Again noticed by Mark.
+binary-to-decimal-string conversion is done in groups of five digits at
+once, using only additions/subtractions/shifts (with -O2; -Os throws in
+some multiply instructions).
 
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
+On i386 arch gcc 4.1.2 -O2 generates ~500 bytes of code.
+
+This patch is run tested. Userspace benchmark/test is also attached.
+I tested it on PIII and AMD64 and new code is generally ~2.5 times
+faster. On AMD64:
+
+# ./vsprintf_verify-O2
+Original decimal conv: .......... 151 ns per iteration
+Patched decimal conv:  .......... 62 ns per iteration
+Testing correctness
+12895992590592 ok...        [Ctrl-C]
+# ./vsprintf_verify-O2
+Original decimal conv: .......... 151 ns per iteration
+Patched decimal conv:  .......... 62 ns per iteration
+Testing correctness
+26025406464 ok...        [Ctrl-C]
+
+More realistic test: top from busybox project was modified to
+report how many us it took to scan /proc (this does not account
+any processing done after that, like sorting process list),
+and then I test it with 4000 processes:
+
+#!/bin/sh
+i=4000
+while test $i != 0; do
+    sleep 30 &
+    let i--
+done
+busybox top -b -n3 >/dev/null
+
+on unpatched kernel:
+
+top: 4120 processes took 102864 microseconds to scan
+top: 4120 processes took 91757 microseconds to scan
+top: 4120 processes took 92517 microseconds to scan
+top: 4120 processes took 92581 microseconds to scan
+
+on patched kernel:
+
+top: 4120 processes took 75460 microseconds to scan
+top: 4120 processes took 66451 microseconds to scan
+top: 4120 processes took 67267 microseconds to scan
+top: 4120 processes took 67618 microseconds to scan
+
+The speedup comes from much faster generation of /proc/PID/stat
+by sprintf() calls inside the kernel.
+
+Cc: "Douglas W. Jones" <jones@cs.uiowa.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   32 +++++++++++++++++++++++---------
- 1 files changed, 23 insertions(+), 9 deletions(-)
+ lib/vsprintf.c |  108 +++++++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 105 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~fix-slab-redzone-alignment mm/slab.c
---- a/mm/slab.c~fix-slab-redzone-alignment
-+++ a/mm/slab.c
-@@ -137,6 +137,7 @@
- 
- /* Shouldn't this be in a header file somewhere? */
- #define	BYTES_PER_WORD		sizeof(void *)
-+#define	REDZONE_ALIGN		max(BYTES_PER_WORD, __alignof__(unsigned long long))
- 
- #ifndef cache_line_size
- #define cache_line_size()	L1_CACHE_BYTES
-@@ -547,7 +548,7 @@ static unsigned long long *dbg_redzone2(
- 	if (cachep->flags & SLAB_STORE_USER)
- 		return (unsigned long long *)(objp + cachep->buffer_size -
- 					      sizeof(unsigned long long) -
--					      BYTES_PER_WORD);
-+					      REDZONE_ALIGN);
- 	return (unsigned long long *) (objp + cachep->buffer_size -
- 				       sizeof(unsigned long long));
+diff -puN lib/vsprintf.c~vsprintfc-optimizing-part-2-base-10-conversion-speedup-v2 lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintfc-optimizing-part-2-base-10-conversion-speedup-v2
++++ a/lib/vsprintf.c
+@@ -135,6 +135,103 @@ static int skip_atoi(const char **s)
+ 	return i;
  }
-@@ -2178,7 +2179,8 @@ kmem_cache_create (const char *name, siz
- 	 * above the next power of two: caches with object sizes just above a
- 	 * power of two have a significant amount of internal fragmentation.
- 	 */
--	if (size < 4096 || fls(size - 1) == fls(size-1 + 3 * BYTES_PER_WORD))
-+	if (size < 4096 || fls(size - 1) == fls(size-1 + REDZONE_ALIGN +
-+						2 * sizeof(unsigned long long)))
- 		flags |= SLAB_RED_ZONE | SLAB_STORE_USER;
- 	if (!(flags & SLAB_DESTROY_BY_RCU))
- 		flags |= SLAB_POISON;
-@@ -2219,12 +2221,20 @@ kmem_cache_create (const char *name, siz
- 	}
  
- 	/*
--	 * Redzoning and user store require word alignment. Note this will be
--	 * overridden by architecture or caller mandated alignment if either
--	 * is greater than BYTES_PER_WORD.
-+	 * Redzoning and user store require word alignment or possibly larger.
-+	 * Note this will be overridden by architecture or caller mandated
-+	 * alignment if either is greater than BYTES_PER_WORD.
- 	 */
--	if (flags & SLAB_RED_ZONE || flags & SLAB_STORE_USER)
--		ralign = __alignof__(unsigned long long);
-+	if (flags & SLAB_STORE_USER)
-+		ralign = BYTES_PER_WORD;
++/* Decimal conversion is by far the most typical, and is used
++ * for /proc and /sys data. This directly impacts e.g. top performance
++ * with many processes running. We optimize it for speed
++ * using code from
++ * http://www.cs.uiowa.edu/~jones/bcd/decimal.html
++ * (with permission from the author, Douglas W. Jones). */
 +
-+	if (flags & SLAB_RED_ZONE) {
-+		ralign = REDZONE_ALIGN;
-+		/* If redzoning, ensure that the second redzone is suitably
-+		 * aligned, by adjusting the object size accordingly. */
-+		size += REDZONE_ALIGN - 1;
-+		size &= ~(REDZONE_ALIGN - 1);
++/* Formats correctly any integer in [0,99999].
++ * Outputs from one to five digits depending on input.
++ * On i386 gcc 4.1.2 -O2: ~250 bytes of code. */
++static char* put_dec_trunc(char *buf, unsigned q)
++{
++	unsigned d3, d2, d1, d0;
++	d1 = (q>>4) & 0xf;
++	d2 = (q>>8) & 0xf;
++	d3 = (q>>12);
++
++	d0 = 6*(d3 + d2 + d1) + (q & 0xf);
++	q = (d0 * 0xcd) >> 11;
++	d0 = d0 - 10*q;
++	*buf++ = d0 + '0'; /* least significant digit */
++	d1 = q + 9*d3 + 5*d2 + d1;
++	if (d1 != 0) {
++		q = (d1 * 0xcd) >> 11;
++		d1 = d1 - 10*q;
++		*buf++ = d1 + '0'; /* next digit */
++
++		d2 = q + 2*d2;
++		if ((d2 != 0) || (d3 != 0)) {
++			q = (d2 * 0xd) >> 7;
++			d2 = d2 - 10*q;
++			*buf++ = d2 + '0'; /* next digit */
++
++			d3 = q + 4*d3;
++			if (d3 != 0) {
++				q = (d3 * 0xcd) >> 11;
++				d3 = d3 - 10*q;
++				*buf++ = d3 + '0';  /* next digit */
++				if (q != 0)
++					*buf++ = q + '0';  /* most sign. digit */
++			}
++		}
++	}
++	return buf;
++}
++/* Same with if's removed. Always emits five digits */
++static char* put_dec_full(char *buf, unsigned q)
++{
++	/* BTW, if q is in [0,9999], 8-bit ints will be enough, */
++	/* but anyway, gcc produces better code with full-sized ints */
++	unsigned d3, d2, d1, d0;
++	d1 = (q>>4) & 0xf;
++	d2 = (q>>8) & 0xf;
++	d3 = (q>>12);
++
++	/* Possible ways to approx. divide by 10 */
++	/* gcc -O2 replaces multiply with shifts and adds */
++	// (x * 0xcd) >> 11: 11001101 - shorter code than * 0x67 (on i386)
++	// (x * 0x67) >> 10:  1100111
++	// (x * 0x34) >> 9:    110100 - same
++	// (x * 0x1a) >> 8:     11010 - same
++	// (x * 0x0d) >> 7:      1101 - same, shortest code (on i386)
++
++	d0 = 6*(d3 + d2 + d1) + (q & 0xf);
++	q = (d0 * 0xcd) >> 11;
++	d0 = d0 - 10*q;
++	*buf++ = d0 + '0';
++	d1 = q + 9*d3 + 5*d2 + d1;
++		q = (d1 * 0xcd) >> 11;
++		d1 = d1 - 10*q;
++		*buf++ = d1 + '0';
++
++		d2 = q + 2*d2;
++			q = (d2 * 0xd) >> 7;
++			d2 = d2 - 10*q;
++			*buf++ = d2 + '0';
++
++			d3 = q + 4*d3;
++				q = (d3 * 0xcd) >> 11; /* - shorter code */
++				/* q = (d3 * 0x67) >> 10; - would also work */
++				d3 = d3 - 10*q;
++				*buf++ = d3 + '0';
++					*buf++ = q + '0';
++	return buf;
++}
++/* No inlining helps gcc to use registers better */
++static noinline char* put_dec(char *buf, unsigned long long num)
++{
++	while (1) {
++		unsigned rem;
++		if (num < 100000)
++			return put_dec_trunc(buf, num);
++		rem = do_div(num, 100000);
++		buf = put_dec_full(buf, rem);
++	}
++}
++
+ #define ZEROPAD	1		/* pad with zero */
+ #define SIGN	2		/* unsigned/signed long */
+ #define PLUS	4		/* show plus */
+@@ -182,6 +279,11 @@ static char *number(char *buf, char *end
+ 	i = 0;
+ 	if (num == 0)
+ 		tmp[i++] = '0';
++	/* Generic code, for any base:
++	else do {
++		tmp[i++] = digits[do_div(num,base)];
++	} while (num != 0);
++	*/
+ 	else if (base != 10) { /* 8 or 16 */
+ 		int mask = base - 1;
+ 		int shift = 3;
+@@ -190,9 +292,9 @@ static char *number(char *buf, char *end
+ 			tmp[i++] = digits[((unsigned char)num) & mask];
+ 			num >>= shift;
+ 		} while (num);
+-	} else do { /* generic code, works for any base */
+-		tmp[i++] = digits[do_div(num,10 /*base*/)];
+-	} while (num);
++	} else { /* base 10 */
++		i = put_dec(tmp, num) - tmp;
 +	}
  
- 	/* 2) arch mandated alignment */
- 	if (ralign < ARCH_SLAB_MINALIGN) {
-@@ -2261,9 +2271,13 @@ kmem_cache_create (const char *name, siz
- 	}
- 	if (flags & SLAB_STORE_USER) {
- 		/* user store requires one word storage behind the end of
--		 * the real object.
-+		 * the real object. But if the second red zone needs to be
-+		 * aligned to 64 bits, we must allow that much space.
- 		 */
--		size += BYTES_PER_WORD;
-+		if (flags & SLAB_RED_ZONE)
-+			size += REDZONE_ALIGN;
-+		else
-+			size += BYTES_PER_WORD;
- 	}
- #if FORCED_DEBUG && defined(CONFIG_DEBUG_PAGEALLOC)
- 	if (size >= malloc_sizes[INDEX_L3 + 1].cs_size
+ 	/* printing 100 using %2d gives "100", not "00" */
+ 	if (i > precision)
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-x86_64-fix-headers_install.patch
-fix-slab-redzone-alignment.patch
-git-powerpc.patch
-powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
-git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-ubi.patch
-git-battery.patch
-git-nfs.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used-fix.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
-jffs2-convert-to-new-aops.patch
-char-n_r3964-use-wait_event_interruptible.patch
-introduce-compat_u64-and-compat_s64-types.patch
-gitignore-update.patch
-mismatching-declarations-of-revision-strings-in-hisax.patch
+vsprintfc-optimizing-part-1-easy-and-obvious-stuff.patch
+vsprintfc-optimizing-part-2-base-10-conversion-speedup-v2.patch
