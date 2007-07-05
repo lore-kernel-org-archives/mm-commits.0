@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 68360serial-remove-broken-optimisation.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:02:39 -0700
-Message-ID: <200707051902.l65J2dQB013201@imap1.linux-foundation.org>
+Subject: + pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:03:46 -0700
+Message-ID: <200707051903.l65J3kvT013283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56828 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55396 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757005AbXGETDb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:03:31 -0400
+	by vger.kernel.org with ESMTP id S1759145AbXGETE3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:04:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     68360serial: remove broken optimisation
+     pl2303: remove bogus checks and fix speed support to use tty_get_baud_rate()
 has been added to the -mm tree.  Its filename is
-     68360serial-remove-broken-optimisation.patch
+     pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 68360serial: remove broken optimisation
+Subject: pl2303: remove bogus checks and fix speed support to use tty_get_baud_rate()
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Remove the broken 'no termios change' optimisation for this driver.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/68360serial.c |    7 -------
- 1 files changed, 7 deletions(-)
+ drivers/usb/serial/pl2303.c |   33 +--------------------------------
+ 1 files changed, 1 insertion(+), 32 deletions(-)
 
-diff -puN drivers/serial/68360serial.c~68360serial-remove-broken-optimisation drivers/serial/68360serial.c
---- a/drivers/serial/68360serial.c~68360serial-remove-broken-optimisation
-+++ a/drivers/serial/68360serial.c
-@@ -934,8 +934,6 @@ static void change_speed(ser_info_t *inf
- 	/*
- 	 * Set up parity check flag
- 	 */
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
--
- 	info->read_status_mask = (BD_SC_EMPTY | BD_SC_OV);
- 	if (I_INPCK(info->tty))
- 		info->read_status_mask |= BD_SC_FR | BD_SC_PR;
-@@ -1527,11 +1525,6 @@ static void rs_360_set_termios(struct tt
- {
- 	ser_info_t *info = (ser_info_t *)tty->driver_data;
+diff -puN drivers/usb/serial/pl2303.c~pl2303-remove-bogus-checks-and-fix-speed-support-to-use drivers/usb/serial/pl2303.c
+--- a/drivers/usb/serial/pl2303.c~pl2303-remove-bogus-checks-and-fix-speed-support-to-use
++++ a/drivers/usb/serial/pl2303.c
+@@ -484,15 +484,6 @@ static void pl2303_set_termios(struct us
+ 	spin_unlock_irqrestore(&priv->lock, flags);
  
--	if (   (tty->termios->c_cflag == old_termios->c_cflag)
--	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--	  return;
--
- 	change_speed(info);
+ 	cflag = port->tty->termios->c_cflag;
+-	/* check that they really want us to change something */
+-	if (old_termios) {
+-		if ((cflag == old_termios->c_cflag) &&
+-		    (RELEVANT_IFLAG(port->tty->termios->c_iflag) ==
+-		     RELEVANT_IFLAG(old_termios->c_iflag))) {
+-			dbg("%s - nothing to change...", __FUNCTION__);
+-			return;
+-		}
+-	}
  
- #ifdef modem_control
+ 	buf = kzalloc(7, GFP_KERNEL);
+ 	if (!buf) {
+@@ -517,29 +508,7 @@ static void pl2303_set_termios(struct us
+ 		dbg("%s - data bits = %d", __FUNCTION__, buf[6]);
+ 	}
+ 
+-	baud = 0;
+-	switch (cflag & CBAUD) {
+-		case B0:	baud = 0;	break;
+-		case B75:	baud = 75;	break;
+-		case B150:	baud = 150;	break;
+-		case B300:	baud = 300;	break;
+-		case B600:	baud = 600;	break;
+-		case B1200:	baud = 1200;	break;
+-		case B1800:	baud = 1800;	break;
+-		case B2400:	baud = 2400;	break;
+-		case B4800:	baud = 4800;	break;
+-		case B9600:	baud = 9600;	break;
+-		case B19200:	baud = 19200;	break;
+-		case B38400:	baud = 38400;	break;
+-		case B57600:	baud = 57600;	break;
+-		case B115200:	baud = 115200;	break;
+-		case B230400:	baud = 230400;	break;
+-		case B460800:	baud = 460800;	break;
+-		default:
+-			dev_err(&port->dev, "pl2303 driver does not support"
+-				" the baudrate requested (fix it)\n");
+-			break;
+-	}
++	baud = tty_get_baud_rate(port->tty);;
+ 	dbg("%s - baud = %d", __FUNCTION__, baud);
+ 	if (baud) {
+ 		buf[0] = baud & 0xff;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -84,6 +107,8 @@ fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 add-pci_try_set_mwi.patch
 git-scsi-misc.patch
 ppa-coding-police-and-printk-levels.patch
+mos7840c-turn-this-into-a-serial-driver.patch
+pl2303-remove-bogus-checks-and-fix-speed-support-to-use.patch
 x86-64-disable-the-gart-in-shutdown.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
 x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
