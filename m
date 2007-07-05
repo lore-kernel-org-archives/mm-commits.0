@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + io_-remove-bogus-termios-no-change-checks.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:12:30 -0700
-Message-ID: <200707051912.l65JCUth013681@imap1.linux-foundation.org>
+Subject: + nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:14:30 -0700
+Message-ID: <200707051914.l65JEUJc013804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43123 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759970AbXGETMy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:12:54 -0400
+	by vger.kernel.org with ESMTP id S1760322AbXGETO4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:14:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     io_*: remove bogus termios no change checks
+     nozomi: remove termios checks from various old char serial drivers
 has been added to the -mm tree.  Its filename is
-     io_-remove-bogus-termios-no-change-checks.patch
+     nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: io_*: remove bogus termios no change checks
+Subject: nozomi: remove termios checks from various old char serial drivers
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -33,53 +33,44 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_edgeport.c |    9 ---------
- drivers/usb/serial/io_ti.c       |    8 --------
- 2 files changed, 17 deletions(-)
+ drivers/char/nozomi.c |   11 -----------
+ 1 files changed, 11 deletions(-)
 
-diff -puN drivers/usb/serial/io_edgeport.c~io_-remove-bogus-termios-no-change-checks drivers/usb/serial/io_edgeport.c
---- a/drivers/usb/serial/io_edgeport.c~io_-remove-bogus-termios-no-change-checks
-+++ a/drivers/usb/serial/io_edgeport.c
-@@ -1513,15 +1513,6 @@ static void edge_set_termios (struct usb
- 	}
+diff -puN drivers/char/nozomi.c~nozomi-remove-termios-checks-from-various-old-char-serial-drivers drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~nozomi-remove-termios-checks-from-various-old-char-serial-drivers
++++ a/drivers/char/nozomi.c
+@@ -192,8 +192,6 @@ static int debug = 0;
+     }\
+ } while(0)
+ 
+-#define RELEVANT_IFLAG(iflag) ((iflag) & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
+-
+ /*    Defines */
+ #define NOZOMI_NAME     "nozomi"
+ #define NOZOMI_NAME_TTY "nozomi_tty"
+@@ -1869,15 +1867,6 @@ static void ntty_set_termios(struct tty_
  
  	cflag = tty->termios->c_cflag;
--	/* check that they really want us to change something */
+ 
 -	if (old_termios) {
--		if (cflag == old_termios->c_cflag &&
--		    tty->termios->c_iflag == old_termios->c_iflag) {
--			dbg("%s - nothing to change", __FUNCTION__);
--			return;
+-		if ((cflag == old_termios->c_cflag) &&
+-		    (RELEVANT_IFLAG(tty->termios->c_iflag) ==
+-		     RELEVANT_IFLAG(old_termios->c_iflag))) {
+-			D1(" - nothing to change...");
+-			goto exit_termios;
 -		}
 -	}
 -
- 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
- 	    tty->termios->c_cflag, tty->termios->c_iflag);
- 	if (old_termios) {
-diff -puN drivers/usb/serial/io_ti.c~io_-remove-bogus-termios-no-change-checks drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~io_-remove-bogus-termios-no-change-checks
-+++ a/drivers/usb/serial/io_ti.c
-@@ -2544,14 +2544,6 @@ static void edge_set_termios (struct usb
- 	}
- 
- 	cflag = tty->termios->c_cflag;
--	/* check that they really want us to change something */
--	if (old_termios) {
--		if (cflag == old_termios->c_cflag &&
--		    tty->termios->c_iflag == old_termios->c_iflag) {
--			dbg ("%s - nothing to change", __FUNCTION__);
--			return;
--		}
--	}
- 
- 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
- 	    tty->termios->c_cflag, tty->termios->c_iflag);
+ 	/* get the byte size */
+ 	switch (cflag & CSIZE) {
+ 	case CS5:
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 lots-of-architectures-enable-arbitary-speed-tty-support.patch
 powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
+nozomi-remove-termios-checks-from-various-old-char-serial-drivers.patch
 ia64-arbitary-speed-tty-ioctl-support.patch
 git-libata-all.patch
 libata-add-ich8m-pciids-to-ata_piix.patch
@@ -127,6 +118,7 @@ amiserial-remove-incorrect-no-termios-change-check.patch
 genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
 synclink-remove-bogus-no-change-termios-optimisation.patch
 68360serial-remove-broken-optimisation.patch
+serial-remove-termios-checks-from-various-old-char-serial.patch
 i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
 wrong-memory-access-in-i2o_block_device_lock.patch
