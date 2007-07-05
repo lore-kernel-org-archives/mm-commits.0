@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + libata-support-chips-with-64k-prd-quirk.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:22:05 -0700
-Message-ID: <200707051922.l65JM5FF014134@imap1.linux-foundation.org>
+Subject: + libata-support-chips-with-64k-prd-quirk-export.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:22:12 -0700
+Message-ID: <200707051922.l65JMCUw014137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43606 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52395 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754625AbXGETWc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:22:32 -0400
+	by vger.kernel.org with ESMTP id S1757167AbXGETWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     libata: support chips with 64K PRD quirk
+     libata: Allow modular builds of drivers using ata_dumb_qc_prep
 has been added to the -mm tree.  Its filename is
-     libata-support-chips-with-64k-prd-quirk.patch
+     libata-support-chips-with-64k-prd-quirk-export.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: support chips with 64K PRD quirk
+Subject: libata: Allow modular builds of drivers using ata_dumb_qc_prep
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Add ata_dumb_qc_prep and supporting logic so that a driver can just
-specify it needs to be helped in this area. 64K entries are split
-as with drivers/ide.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -38,191 +34,20 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   79 ++++++++++++++++++++++++++++++++++++
- drivers/ata/pata_cs5520.c |    4 -
- drivers/ata/pata_cs5530.c |    4 -
- drivers/ata/pata_sc1200.c |    4 -
- include/linux/libata.h    |    2 
- 5 files changed, 87 insertions(+), 6 deletions(-)
+ drivers/ata/libata-core.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/libata-core.c~libata-support-chips-with-64k-prd-quirk drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-support-chips-with-64k-prd-quirk
+diff -puN drivers/ata/libata-core.c~libata-support-chips-with-64k-prd-quirk-export drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-support-chips-with-64k-prd-quirk-export
 +++ a/drivers/ata/libata-core.c
-@@ -4113,6 +4113,68 @@ static void ata_fill_sg(struct ata_queue
- }
- 
- /**
-+ *	ata_fill_sg_dumb - Fill PCI IDE PRD table
-+ *	@qc: Metadata associated with taskfile to be transferred
-+ *
-+ *	Fill PCI IDE PRD (scatter-gather) table with segments
-+ *	associated with the current disk command. Perform the fill
-+ *	so that we avoid writing any length 64K records for
-+ *	controllers that don't follow the spec.
-+ *
-+ *	LOCKING:
-+ *	spin_lock_irqsave(host lock)
-+ *
-+ */
-+static void ata_fill_sg_dumb(struct ata_queued_cmd *qc)
-+{
-+	struct ata_port *ap = qc->ap;
-+	struct scatterlist *sg;
-+	unsigned int idx;
-+
-+	WARN_ON(qc->__sg == NULL);
-+	WARN_ON(qc->n_elem == 0 && qc->pad_len == 0);
-+
-+	idx = 0;
-+	ata_for_each_sg(sg, qc) {
-+		u32 addr, offset;
-+		u32 sg_len, len, blen;
-+
-+ 		/* determine if physical DMA addr spans 64K boundary.
-+		 * Note h/w doesn't support 64-bit, so we unconditionally
-+		 * truncate dma_addr_t to u32.
-+		 */
-+		addr = (u32) sg_dma_address(sg);
-+		sg_len = sg_dma_len(sg);
-+
-+		while (sg_len) {
-+			offset = addr & 0xffff;
-+			len = sg_len;
-+			if ((offset + sg_len) > 0x10000)
-+				len = 0x10000 - offset;
-+
-+			blen = len & 0xffff;
-+			ap->prd[idx].addr = cpu_to_le32(addr);
-+			if (blen == 0) {
-+				/* Some PATA chipsets like the CS5530 can't
-+				   cope with 0x0000 meaning 64K as the spec says */
-+				ap->prd[idx].flags_len = cpu_to_le32(0x8000);
-+				blen = 0x8000;
-+				ap->prd[++idx].addr = cpu_to_le32(addr + 0x8000);
-+			}
-+			ap->prd[idx].flags_len = cpu_to_le32(blen);
-+			VPRINTK("PRD[%u] = (0x%X, 0x%X)\n", idx, addr, len);
-+
-+			idx++;
-+			sg_len -= len;
-+			addr += len;
-+		}
-+	}
-+
-+	if (idx)
-+		ap->prd[idx - 1].flags_len |= cpu_to_le32(ATA_PRD_EOT);
-+}
-+
-+/**
-  *	ata_check_atapi_dma - Check whether ATAPI DMA can be supported
-  *	@qc: Metadata associated with taskfile to check
-  *
-@@ -4159,6 +4221,23 @@ void ata_qc_prep(struct ata_queued_cmd *
- 	ata_fill_sg(qc);
- }
- 
-+/**
-+ *	ata_dumb_qc_prep - Prepare taskfile for submission
-+ *	@qc: Metadata associated with taskfile to be prepared
-+ *
-+ *	Prepare ATA taskfile for submission.
-+ *
-+ *	LOCKING:
-+ *	spin_lock_irqsave(host lock)
-+ */
-+void ata_dumb_qc_prep(struct ata_queued_cmd *qc)
-+{
-+	if (!(qc->flags & ATA_QCFLAG_DMAMAP))
-+		return;
-+
-+	ata_fill_sg_dumb(qc);
-+}
-+
- void ata_noop_qc_prep(struct ata_queued_cmd *qc) { }
- 
- /**
-diff -puN drivers/ata/pata_cs5520.c~libata-support-chips-with-64k-prd-quirk drivers/ata/pata_cs5520.c
---- a/drivers/ata/pata_cs5520.c~libata-support-chips-with-64k-prd-quirk
-+++ a/drivers/ata/pata_cs5520.c
-@@ -146,7 +146,7 @@ static struct scsi_host_template cs5520_
- 	.queuecommand		= ata_scsi_queuecmd,
- 	.can_queue		= ATA_DEF_QUEUE,
- 	.this_id		= ATA_SHT_THIS_ID,
--	.sg_tablesize		= LIBATA_MAX_PRD,
-+	.sg_tablesize		= LIBATA_DUMB_MAX_PRD,
- 	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,
- 	.emulated		= ATA_SHT_EMULATED,
- 	.use_clustering		= ATA_SHT_USE_CLUSTERING,
-@@ -178,7 +178,7 @@ static struct ata_port_operations cs5520
- 	.bmdma_start		= ata_bmdma_start,
- 	.bmdma_stop		= ata_bmdma_stop,
- 	.bmdma_status		= ata_bmdma_status,
--	.qc_prep		= ata_qc_prep,
-+	.qc_prep		= ata_dumb_qc_prep,
- 	.qc_issue		= ata_qc_issue_prot,
- 	.data_xfer		= ata_data_xfer,
- 
-diff -puN drivers/ata/pata_cs5530.c~libata-support-chips-with-64k-prd-quirk drivers/ata/pata_cs5530.c
---- a/drivers/ata/pata_cs5530.c~libata-support-chips-with-64k-prd-quirk
-+++ a/drivers/ata/pata_cs5530.c
-@@ -167,7 +167,7 @@ static struct scsi_host_template cs5530_
- 	.queuecommand		= ata_scsi_queuecmd,
- 	.can_queue		= ATA_DEF_QUEUE,
- 	.this_id		= ATA_SHT_THIS_ID,
--	.sg_tablesize		= LIBATA_MAX_PRD,
-+	.sg_tablesize		= LIBATA_DUMB_MAX_PRD,
- 	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,
- 	.emulated		= ATA_SHT_EMULATED,
- 	.use_clustering		= ATA_SHT_USE_CLUSTERING,
-@@ -201,7 +201,7 @@ static struct ata_port_operations cs5530
- 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
- 	.cable_detect	= ata_cable_40wire,
- 
--	.qc_prep 	= ata_qc_prep,
-+	.qc_prep 	= ata_dumb_qc_prep,
- 	.qc_issue	= cs5530_qc_issue_prot,
- 
- 	.data_xfer	= ata_data_xfer,
-diff -puN drivers/ata/pata_sc1200.c~libata-support-chips-with-64k-prd-quirk drivers/ata/pata_sc1200.c
---- a/drivers/ata/pata_sc1200.c~libata-support-chips-with-64k-prd-quirk
-+++ a/drivers/ata/pata_sc1200.c
-@@ -185,7 +185,7 @@ static struct scsi_host_template sc1200_
- 	.queuecommand		= ata_scsi_queuecmd,
- 	.can_queue		= ATA_DEF_QUEUE,
- 	.this_id		= ATA_SHT_THIS_ID,
--	.sg_tablesize		= LIBATA_MAX_PRD,
-+	.sg_tablesize		= LIBATA_DUMB_MAX_PRD,
- 	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,
- 	.emulated		= ATA_SHT_EMULATED,
- 	.use_clustering		= ATA_SHT_USE_CLUSTERING,
-@@ -219,7 +219,7 @@ static struct ata_port_operations sc1200
- 	.bmdma_stop	= ata_bmdma_stop,
- 	.bmdma_status 	= ata_bmdma_status,
- 
--	.qc_prep 	= ata_qc_prep,
-+	.qc_prep 	= ata_dumb_qc_prep,
- 	.qc_issue	= sc1200_qc_issue_prot,
- 
- 	.data_xfer	= ata_data_xfer,
-diff -puN include/linux/libata.h~libata-support-chips-with-64k-prd-quirk include/linux/libata.h
---- a/include/linux/libata.h~libata-support-chips-with-64k-prd-quirk
-+++ a/include/linux/libata.h
-@@ -116,6 +116,7 @@ static inline struct device *pci_dev_to_
- enum {
- 	/* various global constants */
- 	LIBATA_MAX_PRD		= ATA_MAX_PRD / 2,
-+	LIBATA_DUMB_MAX_PRD	= ATA_MAX_PRD / 4,	/* Worst case */
- 	ATA_MAX_PORTS		= 8,
- 	ATA_DEF_QUEUE		= 1,
- 	/* tag ATA_MAX_QUEUE - 1 is reserved for internal commands */
-@@ -785,6 +786,7 @@ extern void ata_data_xfer(struct ata_dev
- 			  unsigned int buflen, int write_data);
- extern void ata_data_xfer_noirq(struct ata_device *adev, unsigned char *buf,
- 				unsigned int buflen, int write_data);
-+extern void ata_dumb_qc_prep(struct ata_queued_cmd *qc);
- extern void ata_qc_prep(struct ata_queued_cmd *qc);
- extern void ata_noop_qc_prep(struct ata_queued_cmd *qc);
- extern unsigned int ata_qc_issue_prot(struct ata_queued_cmd *qc);
+@@ -6904,6 +6904,7 @@ EXPORT_SYMBOL_GPL(ata_do_set_mode);
+ EXPORT_SYMBOL_GPL(ata_data_xfer);
+ EXPORT_SYMBOL_GPL(ata_data_xfer_noirq);
+ EXPORT_SYMBOL_GPL(ata_qc_prep);
++EXPORT_SYMBOL_GPL(ata_dumb_qc_prep);
+ EXPORT_SYMBOL_GPL(ata_noop_qc_prep);
+ EXPORT_SYMBOL_GPL(ata_bmdma_setup);
+ EXPORT_SYMBOL_GPL(ata_bmdma_start);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
