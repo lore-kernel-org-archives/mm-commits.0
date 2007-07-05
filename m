@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-omap2_mcspi-driver-cleanups.patch added to -mm tree
-Date: Thu, 05 Jul 2007 13:55:05 -0700
-Message-ID: <200707052055.l65Kt57U018851@imap1.linux-foundation.org>
+Subject: + remove-mm-backing-devccongestion_wait_interruptible.patch added to -mm tree
+Date: Thu, 05 Jul 2007 13:56:18 -0700
+Message-ID: <200707052056.l65KuIL7018873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57315 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755526AbXGEUz0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 16:55:26 -0400
+	by vger.kernel.org with ESMTP id S1759775AbXGEU4m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 16:56:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, juha.yrjola@solidboot.com, soni.trilok@gmail.com, tony@atomide.com
+Cc: bunk@stusta.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     SPI: omap2_mcspi driver cleanups
+     remove mm/backing-dev.c:congestion_wait_interruptible()
 has been added to the -mm tree.  Its filename is
-     spi-omap2_mcspi-driver-cleanups.patch
+     remove-mm-backing-devccongestion_wait_interruptible.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,131 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPI: omap2_mcspi driver cleanups
-From: David Brownell <david-b@pacbell.net>
+Subject: remove mm/backing-dev.c:congestion_wait_interruptible()
+From: Adrian Bunk <bunk@stusta.de>
 
-More minor cleanups to the omap2_mcspi driver.
+congestion_wait_interruptible() is no longer used.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Trilok Soni <soni.trilok@gmail.com>
-Cc: Juha Yrjl <juha.yrjola@solidboot.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap2_mcspi.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/backing-dev.h |    1 -
+ mm/backing-dev.c            |   16 ----------------
+ 2 files changed, 17 deletions(-)
 
-diff -puN drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-driver-cleanups drivers/spi/omap2_mcspi.c
---- a/drivers/spi/omap2_mcspi.c~spi-omap2_mcspi-driver-cleanups
-+++ a/drivers/spi/omap2_mcspi.c
-@@ -310,6 +310,7 @@ static int mcspi_wait_for_reg_bit(void _
- 	while (!(__raw_readl(reg) & bit)) {
- 		if (time_after(jiffies, timeout))
- 			return -1;
-+		cpu_relax();
- 	}
- 	return 0;
+diff -puN include/linux/backing-dev.h~remove-mm-backing-devccongestion_wait_interruptible include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~remove-mm-backing-devccongestion_wait_interruptible
++++ a/include/linux/backing-dev.h
+@@ -93,7 +93,6 @@ static inline int bdi_rw_congested(struc
+ void clear_bdi_congested(struct backing_dev_info *bdi, int rw);
+ void set_bdi_congested(struct backing_dev_info *bdi, int rw);
+ long congestion_wait(int rw, long timeout);
+-long congestion_wait_interruptible(int rw, long timeout);
+ void congestion_end(int rw);
+ 
+ #define bdi_cap_writeback_dirty(bdi) \
+diff -puN mm/backing-dev.c~remove-mm-backing-devccongestion_wait_interruptible mm/backing-dev.c
+--- a/mm/backing-dev.c~remove-mm-backing-devccongestion_wait_interruptible
++++ a/mm/backing-dev.c
+@@ -55,22 +55,6 @@ long congestion_wait(int rw, long timeou
  }
-@@ -659,8 +660,7 @@ static void omap2_mcspi_cleanup(struct s
- 	mcspi = spi_master_get_devdata(spi->master);
- 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ EXPORT_SYMBOL(congestion_wait);
  
--	if (spi->controller_state != NULL)
--		kfree(spi->controller_state);
-+	kfree(spi->controller_state);
- 
- 	if (mcspi_dma->dma_rx_channel != -1) {
- 		omap_free_dma(mcspi_dma->dma_rx_channel);
-@@ -1062,7 +1062,8 @@ static struct platform_driver omap2_mcsp
- 
- static int __init omap2_mcspi_init(void)
- {
--	omap2_mcspi_wq = create_workqueue(omap2_mcspi_driver.driver.name);
-+	omap2_mcspi_wq = create_singlethread_workqueue(
-+				omap2_mcspi_driver.driver.name);
- 	if (omap2_mcspi_wq == NULL)
- 		return -1;
- 	return platform_driver_probe(&omap2_mcspi_driver, omap2_mcspi_probe);
+-long congestion_wait_interruptible(int rw, long timeout)
+-{
+-	long ret;
+-	DEFINE_WAIT(wait);
+-	wait_queue_head_t *wqh = &congestion_wqh[rw];
+-
+-	prepare_to_wait(wqh, &wait, TASK_INTERRUPTIBLE);
+-	if (signal_pending(current))
+-		ret = -ERESTARTSYS;
+-	else
+-		ret = io_schedule_timeout(timeout);
+-	finish_wait(wqh, &wait);
+-	return ret;
+-}
+-EXPORT_SYMBOL(congestion_wait_interruptible);
+-
+ /**
+  * congestion_end - wake up sleepers on a congested backing_dev_info
+  * @rw: READ or WRITE
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-avr32.patch
-pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm.patch
-pm-do-not-use-saved_state-from-struct-dev_pm_info-on-arm-update.patch
-git-leds.patch
+git-acpi.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+make-drivers-acpi-oslcosi_linux-static.patch
+drivers-acpi-processor_throttlingc-make-2-functions.patch
+drivers-cpuidle-governors-menuc-make-a-struct-static.patch
+drivers-acpi-sbsc-remove-dead-code.patch
+git-alsa.patch
+make-drivers-char-hvc_consoleckhvcd-static.patch
+git-dvb.patch
+git-input.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-netdev-all.patch
-git-backlight.patch
-char-genrtc-use-wait_event_interruptible.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-spi-controller-drivers-check-for-unsupported-modes.patch
-spi-controller-drivers-check-for-unsupported-modes-update.patch
-spi-add-3wire-mode-flag.patch
-spi-add-3wire-mode-flag-fix.patch
-spidev-compiler-warning-gone.patch
-spi_lm70llp-parport-adapter-driver-correction.patch
-spi_mpc83xxc-underclocking-hotfix.patch
-atmel_spi-minor-updates.patch
-s3c24xx-spi-controllers-both-select-bitbang.patch
-spi-master-driver-for-xilinx-virtex-fix-2.patch
-spi-omap2_mcspi-driver-cleanups.patch
-rtc-ds1307-cleanups.patch
-rtc-rs5c372-becomes-a-new-style-i2c-driver.patch
-thecus-n2100-register-rtc-rs5c372-i2c-device.patch
-rtc-make-example-code-jump-to-done-instead-of-return-when-ioctl-not-supported.patch
-rtc-dev-return-enotty-in-ioctl-if-irq_set_freq-is-not-implemented-by-driver.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-2.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix-3.patch
-rtc-kconfig-tweax.patch
-rtc-add-rtc-m41t80-driver-take-2.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-watchdog-support-for-rtc-m41t80-driver-take-2.patch
+bonding-bond_mainc-make-2-functions-static.patch
+net-make-struct-dccp_li_cachep-static.patch
+git-battery.patch
+git-selinux.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+remove-the-dead-cyberstormiii_scsi-option.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+i386-remove-support-for-the-rise-cpu.patch
+i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
+xen-fix-x86-config-dependencies.patch
+xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
+mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
+handle-kernelcore=-generic-fix.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+mm-slubc-make-code-static.patch
+swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
+more-scheduled-oss-driver-removal.patch
+init-wait-for-asynchronously-scanned-block-devices-fix.patch
+kernel-utf-8-handling-fix.patch
+remove-sonypi_camera_command.patch
+fs-namespacec-should-include-internalh.patch
+proper-prototype-for-proc_nr_files.patch
+fs-reiserfs-cleanups.patch
+remove-mm-backing-devccongestion_wait_interruptible.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+revoke-core-code.patch
+oss-trident-fix-locking-around-write_voice_regs.patch
+remove-options-depending-on-oss_obsolete.patch
+fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
+pm3fb-possible-cleanups.patch
+vt8623fbc-make-code-static.patch
+intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
+mm-variable-length-argument-support-fix-2.patch
+kernel-sched_fairc-make-code-static.patch
+fs-proc-basec-make-a-struct-static.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
+kernel-relayc-make-functions-static.patch
+immediate-value-add-kconfig-menus.patch
+linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
+drivers-edac-core-make-functions-static.patch
+lockstat-human-readability-tweaks-fix.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
