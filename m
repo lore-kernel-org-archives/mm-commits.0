@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + amiserial-remove-incorrect-no-termios-change-check.patch added to -mm tree
-Date: Thu, 05 Jul 2007 11:58:52 -0700
-Message-ID: <200707051858.l65IwqYC012974@imap1.linux-foundation.org>
+Subject: + genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch added to -mm tree
+Date: Thu, 05 Jul 2007 11:59:59 -0700
+Message-ID: <200707051859.l65Ixxs6013081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36818 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759896AbXGES73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 14:59:29 -0400
+	by vger.kernel.org with ESMTP id S1760559AbXGETAn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:00:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, morten@sourcepoet.org
 
 
 The patch titled
-     amiserial: remove incorrect 'no termios change' check
+     genericserial: remove bogus optimisation check and dead code paths
 has been added to the -mm tree.  Its filename is
-     amiserial-remove-incorrect-no-termios-change-check.patch
+     genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,194 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: amiserial: remove incorrect 'no termios change' check
+Subject: genericserial: remove bogus optimisation check and dead code paths
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Lots of serial drivers check and optimise for setting the termios values to
-the ones they were before.  This is pointless and the check is wrong
-anyway.  Remove the checks on the serial drivers.  If we ever do need such
-a check put it back in the tty layer instead _once_!
+We've been using the 'new locking' for a long time now so it seems
+pointless keeping the old one around.  Remove it and undo the macros it
+uses back into real code for readability.  Remove the bogus 'no termios
+change' checks.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Morten Helgesen <morten@sourcepoet.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |    7 +------
- 1 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/char/generic_serial.c |  120 --------------------------------
+ 1 files changed, 3 insertions(+), 117 deletions(-)
 
-diff -puN drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~amiserial-remove-incorrect-no-termios-change-check
-+++ a/drivers/char/amiserial.c
-@@ -738,6 +738,7 @@ static void change_speed(struct async_st
+diff -puN drivers/char/generic_serial.c~genericserial-remove-bogus-optimisation-check-and-dead-code-paths drivers/char/generic_serial.c
+--- a/drivers/char/generic_serial.c~genericserial-remove-bogus-optimisation-check-and-dead-code-paths
++++ a/drivers/char/generic_serial.c
+@@ -43,16 +43,6 @@ static int gs_debug;
+ 
+ #define func_enter() gs_dprintk (GS_DEBUG_FLOW, "gs: enter %s\n", __FUNCTION__)
+ #define func_exit()  gs_dprintk (GS_DEBUG_FLOW, "gs: exit  %s\n", __FUNCTION__)
+-#define NEW_WRITE_LOCKING 1
+-#if NEW_WRITE_LOCKING
+-#define DECL      /* Nothing */
+-#define LOCKIT    mutex_lock(& port->port_write_mutex);
+-#define RELEASEIT mutex_unlock(&port->port_write_mutex);
+-#else
+-#define DECL      unsigned long flags;
+-#define LOCKIT    save_flags (flags);cli ()
+-#define RELEASEIT restore_flags (flags)
+-#endif
+ 
+ #define RS_EVENT_WRITE_WAKEUP	1
+ 
+@@ -62,7 +52,6 @@ module_param(gs_debug, int, 0644);
+ void gs_put_char(struct tty_struct * tty, unsigned char ch)
+ {
+ 	struct gs_port *port;
+-	DECL
+ 
+ 	func_enter (); 
+ 
+@@ -75,11 +64,11 @@ void gs_put_char(struct tty_struct * tty
+ 	if (! (port->flags & ASYNC_INITIALIZED)) return;
+ 
+ 	/* Take a lock on the serial tranmit buffer! */
+-	LOCKIT;
++	mutex_lock(& port->port_write_mutex);
+ 
+ 	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
+ 		/* Sorry, buffer is full, drop character. Update statistics???? -- REW */
+-		RELEASEIT;
++		mutex_unlock(&port->port_write_mutex);
+ 		return;
  	}
- 	/* If the quotient is zero refuse the change */
- 	if (!quot && old_termios) {
-+		/* FIXME: Will need updating for new tty in the end */
- 		info->tty->termios->c_cflag &= ~CBAUD;
- 		info->tty->termios->c_cflag |= (old_termios->c_cflag & CBAUD);
- 		baud = tty_get_baud_rate(info->tty);
-@@ -783,7 +784,6 @@ static void change_speed(struct async_st
- 	/*
- 	 * Set up parity check flag
- 	 */
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
  
- 	info->read_status_mask = UART_LSR_OE | UART_LSR_DR;
- 	if (I_INPCK(info->tty))
-@@ -1367,11 +1367,6 @@ static void rs_set_termios(struct tty_st
- 	unsigned long flags;
- 	unsigned int cflag = tty->termios->c_cflag;
+@@ -87,13 +76,11 @@ void gs_put_char(struct tty_struct * tty
+ 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
+ 	port->xmit_cnt++;  /* Characters in buffer */
  
--	if (   (cflag == old_termios->c_cflag)
--	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--	  return;
+-	RELEASEIT;
++	mutex_unlock(&port->port_write_mutex);
+ 	func_exit ();
+ }
+ 
+ 
+-#ifdef NEW_WRITE_LOCKING
 -
- 	change_speed(info, old_termios);
+ /*
+ > Problems to take into account are:
+ >       -1- Interrupts that empty part of the buffer.
+@@ -166,90 +153,6 @@ int gs_write(struct tty_struct * tty, 
+ 	func_exit ();
+ 	return total;
+ }
+-#else
+-/*
+-> Problems to take into account are:
+->       -1- Interrupts that empty part of the buffer.
+->       -2- page faults on the access to userspace. 
+->       -3- Other processes that are also trying to do a "write". 
+-*/
+-
+-int gs_write(struct tty_struct * tty,
+-                    const unsigned char *buf, int count)
+-{
+-	struct gs_port *port;
+-	int c, total = 0;
+-	int t;
+-	unsigned long flags;
+-
+-	func_enter ();
+-
+-	/* The standard serial driver returns 0 in this case. 
+-	   That sounds to me as "No error, I just didn't get to writing any
+-	   bytes. Feel free to try again." 
+-	   The "official" way to write n bytes from buf is:
+-
+-		 for (nwritten = 0;nwritten < n;nwritten += rv) {
+-			 rv = write (fd, buf+nwritten, n-nwritten);
+-			 if (rv < 0) break; // Error: bail out. //
+-		 } 
+-
+-	   which will loop endlessly in this case. The manual page for write
+-	   agrees with me. In practise almost everybody writes 
+-	   "write (fd, buf,n);" but some people might have had to deal with 
+-	   incomplete writes in the past and correctly implemented it by now... 
+-	 */
+-
+-	if (!tty) return -EIO;
+-
+-	port = tty->driver_data;
+-	if (!port || !port->xmit_buf)
+-		return -EIO;
+-
+-	local_save_flags(flags);
+-	while (1) {
+-		cli();
+-		c = count;
+-
+-		/* This is safe because we "OWN" the "head". Noone else can 
+-		   change the "head": we own the port_write_mutex. */
+-		/* Don't overrun the end of the buffer */
+-		t = SERIAL_XMIT_SIZE - port->xmit_head;
+-		if (t < c) c = t;
+-
+-		/* This is safe because the xmit_cnt can only decrease. This 
+-		   would increase "t", so we might copy too little chars. */
+-		/* Don't copy past the "head" of the buffer */
+-		t = SERIAL_XMIT_SIZE - 1 - port->xmit_cnt;
+-		if (t < c) c = t;
+-
+-		/* Can't copy more? break out! */
+-		if (c <= 0) {
+-			local_restore_flags(flags);
+-			break;
+-		}
+-		memcpy(port->xmit_buf + port->xmit_head, buf, c);
+-		port->xmit_head = ((port->xmit_head + c) &
+-		                   (SERIAL_XMIT_SIZE-1));
+-		port->xmit_cnt += c;
+-		local_restore_flags(flags);
+-		buf += c;
+-		count -= c;
+-		total += c;
+-	}
+-
+-	if (port->xmit_cnt && 
+-	    !tty->stopped && 
+-	    !tty->hw_stopped &&
+-	    !(port->flags & GS_TX_INTEN)) {
+-		port->flags |= GS_TX_INTEN;
+-		port->rd->enable_tx_interrupts (port);
+-	}
+-	func_exit ();
+-	return total;
+-}
+-
+-#endif
  
- 	/* Handle transition to B0 status */
+ 
+ 
+@@ -737,23 +640,6 @@ void gs_set_termios (struct tty_struct *
+ 		gs_dprintk (GS_DEBUG_TERMIOS, "termios structure (%p):\n", tiosp);
+ 	}
+ 
+-	/* This is an optimization that is only allowed for dumb cards */
+-	/* Smart cards require knowledge of iflags and oflags too: that 
+-	   might change hardware cooking mode.... */
+-	if (old_termios) {
+-		if(   (tiosp->c_iflag == old_termios->c_iflag)
+-		   && (tiosp->c_oflag == old_termios->c_oflag)
+-		   && (tiosp->c_cflag == old_termios->c_cflag)
+-		   && (tiosp->c_lflag == old_termios->c_lflag)
+-		   && (tiosp->c_line  == old_termios->c_line)
+-		   && (memcmp(tiosp->c_cc, old_termios->c_cc, NCC) == 0)) {
+-			gs_dprintk(GS_DEBUG_TERMIOS, "gs_set_termios: optimized away\n");
+-			return /* 0 */;
+-		}
+-	} else 
+-		gs_dprintk(GS_DEBUG_TERMIOS, "gs_set_termios: no old_termios: "
+-		           "no optimization\n");
+-
+ 	if(old_termios && (gs_debug & GS_DEBUG_TERMIOS)) {
+ 		if(tiosp->c_iflag != old_termios->c_iflag)  printk("c_iflag changed\n");
+ 		if(tiosp->c_oflag != old_termios->c_oflag)  printk("c_oflag changed\n");
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -116,6 +258,7 @@ audit-add-tty-input-auditing-fix.patch
 audit-add-tty-input-auditing-fix-2.patch
 revert-vanishing-ioctl-handler-debugging.patch
 amiserial-remove-incorrect-no-termios-change-check.patch
+genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
 i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
 wrong-memory-access-in-i2o_block_device_lock.patch
