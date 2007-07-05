@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + synclink-remove-bogus-no-change-termios-optimisation.patch added to -mm tree
-Date: Thu, 05 Jul 2007 12:01:36 -0700
-Message-ID: <200707051901.l65J1aq0013192@imap1.linux-foundation.org>
+Subject: + 68360serial-remove-broken-optimisation.patch added to -mm tree
+Date: Thu, 05 Jul 2007 12:02:39 -0700
+Message-ID: <200707051902.l65J2dQB013201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753829AbXGETCV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:02:21 -0400
+	by vger.kernel.org with ESMTP id S1757005AbXGETDb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 15:03:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, paulkf@microgate.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     synclink: remove bogus 'no change' termios optimisation from synclink drivers
+     68360serial: remove broken optimisation
 has been added to the -mm tree.  Its filename is
-     synclink-remove-bogus-no-change-termios-optimisation.patch
+     68360serial-remove-broken-optimisation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: synclink: remove bogus 'no change' termios optimisation from synclink drivers
+Subject: 68360serial: remove broken optimisation
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Again this check is wrong now, and un-needed
+Remove the broken 'no termios change' optimisation for this driver.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c    |    8 --------
- drivers/char/synclink_gt.c |    8 --------
- drivers/char/synclinkmp.c  |    8 --------
- 3 files changed, 24 deletions(-)
+ drivers/serial/68360serial.c |    7 -------
+ 1 files changed, 7 deletions(-)
 
-diff -puN drivers/char/synclink.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclink.c
---- a/drivers/char/synclink.c~synclink-remove-bogus-no-change-termios-optimisation
-+++ a/drivers/char/synclink.c
-@@ -160,8 +160,6 @@ typedef struct _DMABUFFERENTRY
- 
- #define IO_PIN_SHUTDOWN_LIMIT 100
- 
+diff -puN drivers/serial/68360serial.c~68360serial-remove-broken-optimisation drivers/serial/68360serial.c
+--- a/drivers/serial/68360serial.c~68360serial-remove-broken-optimisation
++++ a/drivers/serial/68360serial.c
+@@ -934,8 +934,6 @@ static void change_speed(ser_info_t *inf
+ 	/*
+ 	 * Set up parity check flag
+ 	 */
 -#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
 -
- struct	_input_signal_events {
- 	int	ri_up;	
- 	int	ri_down;
-@@ -3064,12 +3062,6 @@ static void mgsl_set_termios(struct tty_
- 		printk("%s(%d):mgsl_set_termios %s\n", __FILE__,__LINE__,
- 			tty->driver->name );
- 	
--	/* just return if nothing has changed */
--	if ((tty->termios->c_cflag == old_termios->c_cflag)
--	    && (RELEVANT_IFLAG(tty->termios->c_iflag) 
+ 	info->read_status_mask = (BD_SC_EMPTY | BD_SC_OV);
+ 	if (I_INPCK(info->tty))
+ 		info->read_status_mask |= BD_SC_FR | BD_SC_PR;
+@@ -1527,11 +1525,6 @@ static void rs_360_set_termios(struct tt
+ {
+ 	ser_info_t *info = (ser_info_t *)tty->driver_data;
+ 
+-	if (   (tty->termios->c_cflag == old_termios->c_cflag)
+-	    && (   RELEVANT_IFLAG(tty->termios->c_iflag) 
 -		== RELEVANT_IFLAG(old_termios->c_iflag)))
 -	  return;
 -
- 	mgsl_change_params(info);
+ 	change_speed(info);
  
- 	/* Handle transition to B0 status */
-diff -puN drivers/char/synclink_gt.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink-remove-bogus-no-change-termios-optimisation
-+++ a/drivers/char/synclink_gt.c
-@@ -144,8 +144,6 @@ MODULE_PARM_DESC(dosyncppp, "Enable sync
- /*
-  * tty support and callbacks
-  */
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
--
- static struct tty_driver *serial_driver;
- 
- static int  open(struct tty_struct *tty, struct file * filp);
-@@ -823,12 +821,6 @@ static void set_termios(struct tty_struc
- 
- 	DBGINFO(("%s set_termios\n", tty->driver->name));
- 
--	/* just return if nothing has changed */
--	if ((tty->termios->c_cflag == old_termios->c_cflag)
--	    && (RELEVANT_IFLAG(tty->termios->c_iflag)
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--		return;
--
- 	change_params(info);
- 
- 	/* Handle transition to B0 status */
-diff -puN drivers/char/synclinkmp.c~synclink-remove-bogus-no-change-termios-optimisation drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~synclink-remove-bogus-no-change-termios-optimisation
-+++ a/drivers/char/synclinkmp.c
-@@ -135,8 +135,6 @@ typedef struct _SCADESC_EX
- 
- #define IO_PIN_SHUTDOWN_LIMIT 100
- 
--#define RELEVANT_IFLAG(iflag) (iflag & (IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK))
--
- struct	_input_signal_events {
- 	int	ri_up;
- 	int	ri_down;
-@@ -927,12 +925,6 @@ static void set_termios(struct tty_struc
- 		printk("%s(%d):%s set_termios()\n", __FILE__,__LINE__,
- 			tty->driver->name );
- 
--	/* just return if nothing has changed */
--	if ((tty->termios->c_cflag == old_termios->c_cflag)
--	    && (RELEVANT_IFLAG(tty->termios->c_iflag)
--		== RELEVANT_IFLAG(old_termios->c_iflag)))
--	  return;
--
- 	change_params(info);
- 
- 	/* Handle transition to B0 status */
+ #ifdef modem_control
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -162,6 +110,7 @@ revert-vanishing-ioctl-handler-debugging.patch
 amiserial-remove-incorrect-no-termios-change-check.patch
 genericserial-remove-bogus-optimisation-check-and-dead-code-paths.patch
 synclink-remove-bogus-no-change-termios-optimisation.patch
+68360serial-remove-broken-optimisation.patch
 i2o_cfg_passthru-cleanup.patch
 i2o_cfg_passthru-cleanup-fix.patch
 wrong-memory-access-in-i2o_block_device_lock.patch
