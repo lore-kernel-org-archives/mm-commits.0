@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + file-caps-update-selinux-xattr-hooks.patch added to -mm tree
-Date: Thu, 05 Jul 2007 11:56:05 -0700
-Message-ID: <200707051856.l65Iu5N2012842@imap1.linux-foundation.org>
+Subject: + pata_pdc202xx_old-correct-cable-detect-logic.patch added to -mm tree
+Date: Thu, 05 Jul 2007 11:57:30 -0700
+Message-ID: <200707051857.l65IvU8A012943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57196 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760243AbXGES4r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 14:56:47 -0400
+	by vger.kernel.org with ESMTP id S1758812AbXGES5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 14:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     file caps: update selinux xattr hooks
+     pata_pdc202xx_old: correct cable detect logic
 has been added to the -mm tree.  Its filename is
-     file-caps-update-selinux-xattr-hooks.patch
+     pata_pdc202xx_old-correct-cable-detect-logic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,139 +25,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: file caps: update selinux xattr hooks
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: pata_pdc202xx_old: correct cable detect logic
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-SELinux does not call out to its secondary module for setxattr or
-removexattr mediation, as the secondary module would incorrectly prevent
-writing of selinux xattrs.  This means that when selinux and capability are
-both loaded, admins will be able to write file capabilities with
-CAP_SYS_ADMIN as before, not with CAP_SETFCAP.
+We got it backwards and now the other detects are fixed it shows up.
 
-Update the selinux hooks to hardcode logic for the special consideration
-for file caps.  Also consolidate the handling of non-selinux xattrs in
-removexattr and setxattr.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |   50 +++++++++++++++++--------------------
- 1 files changed, 23 insertions(+), 27 deletions(-)
+ drivers/ata/pata_pdc202xx_old.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks security/selinux/hooks.c
---- a/security/selinux/hooks.c~file-caps-update-selinux-xattr-hooks
-+++ a/security/selinux/hooks.c
-@@ -2290,6 +2290,25 @@ static int selinux_inode_getattr(struct 
- 	return dentry_has_perm(current, mnt, dentry, FILE__GETATTR);
+diff -puN drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic drivers/ata/pata_pdc202xx_old.c
+--- a/drivers/ata/pata_pdc202xx_old.c~pata_pdc202xx_old-correct-cable-detect-logic
++++ a/drivers/ata/pata_pdc202xx_old.c
+@@ -31,8 +31,8 @@ static int pdc2026x_cable_detect(struct 
+ 
+ 	pci_read_config_word(pdev, 0x50, &cis);
+ 	if (cis & (1 << (10 + ap->port_no)))
+-		return ATA_CBL_PATA80;
+-	return ATA_CBL_PATA40;
++		return ATA_CBL_PATA40;
++	return ATA_CBL_PATA80;
  }
  
-+static int selinux_inode_setotherxattr(struct dentry *dentry, char *name)
-+{
-+	if (!strncmp(name, XATTR_SECURITY_PREFIX,
-+		     sizeof XATTR_SECURITY_PREFIX - 1)) {
-+		if (!strcmp(name, XATTR_NAME_CAPS)) {
-+			if (!capable(CAP_SETFCAP))
-+				return -EPERM;
-+		} else if (!capable(CAP_SYS_ADMIN)) {
-+			/* A different attribute in the security namespace.
-+			   Restrict to administrator. */
-+			return -EPERM;
-+		}
-+	}
-+
-+	/* Not an attribute we recognize, so just check the
-+	   ordinary setattr permission. */
-+	return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
-+}
-+
- static int selinux_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags)
- {
- 	struct task_security_struct *tsec = current->security;
-@@ -2300,19 +2319,8 @@ static int selinux_inode_setxattr(struct
- 	u32 newsid;
- 	int rc = 0;
- 
--	if (strcmp(name, XATTR_NAME_SELINUX)) {
--		if (!strncmp(name, XATTR_SECURITY_PREFIX,
--			     sizeof XATTR_SECURITY_PREFIX - 1) &&
--		    !capable(CAP_SYS_ADMIN)) {
--			/* A different attribute in the security namespace.
--			   Restrict to administrator. */
--			return -EPERM;
--		}
--
--		/* Not an attribute we recognize, so just check the
--		   ordinary setattr permission. */
--		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
--	}
-+	if (strcmp(name, XATTR_NAME_SELINUX))
-+		return selinux_inode_setotherxattr(dentry, name);
- 
- 	sbsec = inode->i_sb->s_security;
- 	if (sbsec->behavior == SECURITY_FS_USE_MNTPOINT)
-@@ -2386,20 +2394,8 @@ static int selinux_inode_listxattr (stru
- 
- static int selinux_inode_removexattr (struct dentry *dentry, char *name)
- {
--	if (strcmp(name, XATTR_NAME_SELINUX)) {
--		if (!strncmp(name, XATTR_SECURITY_PREFIX,
--			     sizeof XATTR_SECURITY_PREFIX - 1) &&
--		    !capable(CAP_SYS_ADMIN)) {
--			/* A different attribute in the security namespace.
--			   Restrict to administrator. */
--			return -EPERM;
--		}
--
--		/* Not an attribute we recognize, so just check the
--		   ordinary setattr permission. Might want a separate
--		   permission for removexattr. */
--		return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
--	}
-+	if (strcmp(name, XATTR_NAME_SELINUX))
-+		return selinux_inode_setotherxattr(dentry, name);
- 
- 	/* No one is allowed to remove a SELinux security label.
- 	   You can change the label, but all data must be labeled. */
+ /**
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-remove-config_uts_ns-and-config_ipc_ns.patch
-user-namespace-add-the-framework.patch
-user-namespace-add-unshare.patch
-mm-fix-create_new_namespaces-return-value.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-containersv10-basic-container-framework.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-example-cpu-accounting-subsystem.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-make-cpusets-a-client-of-containers.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-cpuset-zero-malloc-fix-for-new-containers.patch
-containersv10-simple-debug-info-subsystem.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-containersv10-support-for-automatic-userspace-release-agents.patch
-containers-implement-subsys-post_clone.patch
-containers-implement-namespace-tracking-subsystem-v3.patch
+lots-of-architectures-enable-arbitary-speed-tty-support.patch
+powerpc-enable-arbitary-speed-tty-ioctls-and-split.patch
+ia64-arbitary-speed-tty-ioctl-support.patch
+git-libata-all.patch
+libata-add-ich8m-pciids-to-ata_piix.patch
+libata-add-irq_flags-to-struct-pata_platform_info.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+pata_pdc202xx_old-correct-cable-detect-logic.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+rfcomm-hangup-ttys-before-releasing-rfcomm_dev.patch
+fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
+add-pci_try_set_mwi.patch
+git-scsi-misc.patch
+ppa-coding-police-and-printk-levels.patch
+x86-64-disable-the-gart-in-shutdown.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh.patch
+x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+h8300-enable-arbitary-speed-tty-port-setup.patch
+arm26-enable-arbitary-speed-tty-ioctls-and-split.patch
+m32r-enable-arbitary-speed-tty-rate-setting.patch
+etrax-enable-arbitary-speed-setting-on-tty-ports.patch
+v850-enable-arbitary-speed-tty-ioctls.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+make-proc-tty-drivers-use-seq_list_xxx-helpers.patch
+update-zilog-timeout.patch
+edd-switch-to-pci_get-based-api.patch
+mpu401-warning-fixes.patch
+char-tty_ioctl-use-wait_event_interruptible_timeout.patch
+char-tty_ioctl-little-whitespace-cleanup.patch
+intel-rng-undo-mess-made-by-an-80-column-extremist.patch
+improve-behaviour-of-spurious-irq-detect.patch
+audit-add-tty-input-auditing.patch
+audit-add-tty-input-auditing-fix.patch
+audit-add-tty-input-auditing-fix-2.patch
+revert-vanishing-ioctl-handler-debugging.patch
+i2o_cfg_passthru-cleanup.patch
+i2o_cfg_passthru-cleanup-fix.patch
+wrong-memory-access-in-i2o_block_device_lock.patch
+i2o-message-leak-in-i2o_msg_post_wait_mem.patch
+i2o-proc-reading-oops.patch
+i2o-debug-output-cleanup.patch
+coredump-masking-bound-suid_dumpable-sysctl.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags.patch
+coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
+coredump-masking-add-an-interface-for-core-dump-filter.patch
+coredump-masking-elf-enable-core-dump-filtering.patch
+coredump-masking-elf-fdpic-remove-an-unused-argument.patch
+coredump-masking-elf-fdpic-enable-core-dump-filtering.patch
+coredump-masking-documentation-for-proc-pid-coredump_filter.patch
+driver-edac-add-mips-and-ppc-visibility.patch
+driver-edac-mod-race-fix-i82875p.patch
+driver-edac-fix-ignored-return-i82875p.patch
+include-linux-pci_id-h-add-amd-northbridge-defines.patch
