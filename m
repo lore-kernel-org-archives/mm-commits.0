@@ -1,42 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - reserve-the-right-performance-counter-for-the-intel-perfmon-nmi-watchdog.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:52:32 -0700
-Message-ID: <200707060052.l660qWUY028379@imap1.linux-foundation.org>
+Subject: - always-probe-the-nmi-watchdog.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:52:35 -0700
+Message-ID: <200707060052.l660qZPm028382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759685AbXGFA7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:59:17 -0400
+	by vger.kernel.org with ESMTP id S1761265AbXGFA7p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:59:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: B.Steinbrink@gmx.de, ak@suse.de, eranian@hpl.hp.com, levon@movementarian.org, phil.el@wanadoo.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: reserve the right performance counter for the Intel PerfMon N=
-MI watchdog
+     x86: Always probe the NMI watchdog
 has been removed from the -mm tree.  Its filename was
-     reserve-the-right-performance-counter-for-the-intel-perfmon-nmi-wa=
-tchdog.patch
+     always-probe-the-nmi-watchdog.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
 
 ------------------------------------------------------
-Subject: x86: reserve the right performance counter for the Intel PerfM=
-on NMI watchdog
+Subject: x86: Always probe the NMI watchdog
 =46rom: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
 
-The Intel PerfMon NMI watchdog was using the generic reservation functi=
-on
-which always reserves the first performance counter.  But the watchdog
-actually uses the second performance counter, thus we need a specialise=
-d
-function.
+The performance counter allocator relies on the nmi watchdog being prob=
+ed, so
+we have to do that even if the watchdog is not enabled.
 
 Signed-off-by: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
 Cc: Andi Kleen <ak@suse.de>
@@ -46,45 +40,103 @@ Cc: Philippe Elie <phil.el@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/perfctr-watchdog.c |   22 ++++++++++++++++++++--
- 1 files changed, 20 insertions(+), 2 deletions(-)
+ arch/i386/kernel/cpu/perfctr-watchdog.c |   11 +++++------
+ arch/i386/kernel/nmi.c                  |    3 +++
+ arch/x86_64/kernel/nmi.c                |    3 +++
+ include/asm-i386/nmi.h                  |    1 +
+ include/asm-x86_64/nmi.h                |    1 +
+ 5 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~reserve-the-right-per=
-formance-counter-for-the-intel-perfmon-nmi-watchdog arch/i386/kernel/cp=
-u/perfctr-watchdog.c
---- a/arch/i386/kernel/cpu/perfctr-watchdog.c~reserve-the-right-perform=
-ance-counter-for-the-intel-perfmon-nmi-watchdog
+diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~always-probe-the-nmi-=
+watchdog arch/i386/kernel/cpu/perfctr-watchdog.c
+--- a/arch/i386/kernel/cpu/perfctr-watchdog.c~always-probe-the-nmi-watc=
+hdog
 +++ a/arch/i386/kernel/cpu/perfctr-watchdog.c
-@@ -562,9 +562,27 @@ static int setup_intel_arch_watchdog(uns
- 	return 1;
- }
+@@ -572,7 +572,7 @@ static struct wd_ops intel_arch_wd_ops =3D
+ 	.evntsel =3D MSR_ARCH_PERFMON_EVENTSEL0,
+ };
 =20
-+static int intel_arch_reserve(void)
-+{
-+	if (!reserve_perfctr_nmi(MSR_ARCH_PERFMON_PERFCTR1))
-+		return 0;
+-static void probe_nmi_watchdog(void)
++void probe_nmi_watchdog(void)
+ {
+ 	switch (boot_cpu_data.x86_vendor) {
+ 	case X86_VENDOR_AMD:
+@@ -610,17 +610,16 @@ static void probe_nmi_watchdog(void)
+=20
+ int lapic_watchdog_init(unsigned nmi_hz)
+ {
+-	if (!wd_ops) {
+-		probe_nmi_watchdog();
+-		if (!wd_ops)
+-			return -1;
++	if (!wd_ops)
++		return -1;
+=20
++	/* hack to make sure that we only try to reserver the perfctrs once *=
+/
++	if (smp_processor_id() =3D=3D 0)
+ 		if (!wd_ops->reserve()) {
+ 			printk(KERN_ERR
+ 				"NMI watchdog: cannot reserve perfctrs\n");
+ 			return -1;
+ 		}
+-	}
+=20
+ 	if (!(wd_ops->setup(nmi_hz))) {
+ 		printk(KERN_ERR "Cannot setup NMI watchdog on CPU %d\n",
+diff -puN arch/i386/kernel/nmi.c~always-probe-the-nmi-watchdog arch/i38=
+6/kernel/nmi.c
+--- a/arch/i386/kernel/nmi.c~always-probe-the-nmi-watchdog
++++ a/arch/i386/kernel/nmi.c
+@@ -248,6 +248,9 @@ void setup_apic_nmi_watchdog (void *unus
+ 	if ((smp_processor_id() !=3D 0) && (atomic_read(&nmi_active) <=3D 0))
+ 		return;
+=20
++	/* always probe the watchdog, the perfctr allocator requires that */
++	probe_nmi_watchdog();
 +
-+	if (!reserve_evntsel_nmi(MSR_ARCH_PERFMON_EVENTSEL1)) {
-+		release_perfctr_nmi(MSR_ARCH_PERFMON_PERFCTR1);
-+		return 0;
-+	}
-+	return 1;
-+}
+ 	switch (nmi_watchdog) {
+ 	case NMI_LOCAL_APIC:
+ 		__get_cpu_var(wd_enabled) =3D 1; /* enable it before to avoid race w=
+ith handler */
+diff -puN arch/x86_64/kernel/nmi.c~always-probe-the-nmi-watchdog arch/x=
+86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~always-probe-the-nmi-watchdog
++++ a/arch/x86_64/kernel/nmi.c
+@@ -255,6 +255,9 @@ void setup_apic_nmi_watchdog(void *unuse
+ 	if ((smp_processor_id() !=3D 0) && (atomic_read(&nmi_active) <=3D 0))
+ 		return;
+=20
++	/* always probe the watchdog, the perfctr allocator requires that */
++	probe_nmi_watchdog();
 +
-+static void intel_arch_unreserve(void)
-+{
-+	release_evntsel_nmi(MSR_ARCH_PERFMON_EVENTSEL1);
-+	release_perfctr_nmi(MSR_ARCH_PERFMON_PERFCTR1);
-+}
-+
- static struct wd_ops intel_arch_wd_ops =3D {
--	.reserve =3D single_msr_reserve,
--	.unreserve =3D single_msr_unreserve,
-+	.reserve =3D intel_arch_reserve,
-+	.unreserve =3D intel_arch_unreserve,
- 	.setup =3D setup_intel_arch_watchdog,
- 	.rearm =3D p6_rearm,
- 	.stop =3D single_msr_stop_watchdog,
+ 	switch (nmi_watchdog) {
+ 	case NMI_LOCAL_APIC:
+ 		__get_cpu_var(wd_enabled) =3D 1;
+diff -puN include/asm-i386/nmi.h~always-probe-the-nmi-watchdog include/=
+asm-i386/nmi.h
+--- a/include/asm-i386/nmi.h~always-probe-the-nmi-watchdog
++++ a/include/asm-i386/nmi.h
+@@ -18,6 +18,7 @@
+ int do_nmi_callback(struct pt_regs *regs, int cpu);
+=20
+ extern int nmi_watchdog_enabled;
++extern void probe_nmi_watchdog(void);
+ extern int avail_to_resrv_perfctr_nmi_bit(unsigned int);
+ extern int avail_to_resrv_perfctr_nmi(unsigned int);
+ extern int reserve_perfctr_nmi(unsigned int);
+diff -puN include/asm-x86_64/nmi.h~always-probe-the-nmi-watchdog includ=
+e/asm-x86_64/nmi.h
+--- a/include/asm-x86_64/nmi.h~always-probe-the-nmi-watchdog
++++ a/include/asm-x86_64/nmi.h
+@@ -45,6 +45,7 @@ extern int panic_on_timeout;
+ extern int unknown_nmi_panic;
+ extern int nmi_watchdog_enabled;
+=20
++extern void probe_nmi_watchdog(void);
+ extern int check_nmi_watchdog(void);
+ extern int avail_to_resrv_perfctr_nmi_bit(unsigned int);
+ extern int avail_to_resrv_perfctr_nmi(unsigned int);
 _
 
 Patches currently in -mm which might be from B.Steinbrink@gmx.de are
