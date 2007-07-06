@@ -1,147 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: - always-probe-the-nmi-watchdog.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:52:35 -0700
-Message-ID: <200707060052.l660qZPm028382@imap1.linux-foundation.org>
+Subject: - dvb-cinergyt2-fix-flush_workqueue-vs-work-func-deadlock.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:52:00 -0700
+Message-ID: <200707060052.l660q0cg028343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58148 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37734 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761265AbXGFA7p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:59:45 -0400
+	by vger.kernel.org with ESMTP id S1761269AbXGFA7t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:59:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: B.Steinbrink@gmx.de, ak@suse.de, eranian@hpl.hp.com, levon@movementarian.org, phil.el@wanadoo.fr, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, daniel@qanu.de, dmitry.torokhov@gmail.com, holger@qanu.de, mchehab@infradead.org, mrechberger@gmail.com, tsattler@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: Always probe the NMI watchdog
+     dvb/cinergyT2: fix flush_workqueue() vs work->func() deadlock
 has been removed from the -mm tree.  Its filename was
-     always-probe-the-nmi-watchdog.patch
+     dvb-cinergyt2-fix-flush_workqueue-vs-work-func-deadlock.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: Always probe the NMI watchdog
-=46rom: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
+Subject: dvb/cinergyT2: fix flush_workqueue() vs work->func() deadlock
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The performance counter allocator relies on the nmi watchdog being prob=
-ed, so
-we have to do that even if the watchdog is not enabled.
+Spotted and tested by Thomas Sattler <tsattler@gmx.de>.
 
-Signed-off-by: Bj=F6rn Steinbrink <B.Steinbrink@gmx.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
-Cc: John Levon <levon@movementarian.org>
-Cc: Philippe Elie <phil.el@wanadoo.fr>
+cinergyT2.c does cancel_delayed_work() + flush_scheduled_work() while
+holding cinergyt2->sem.  This leads to deadlock because work->func() needs
+the same mutex to complete.  Another bug is that this code in fact can't
+reliably stop the re-arming delayed_work.
+
+Convert this code to use cancel_rearming_delayed_work() and move it out of
+->sem.  Another mutex, ->wq_sem, was added to protect against the
+concurrent open/resume.
+
+This patch is a horrible hack to fix the lockup which happens in practice. 
+As Dmitry Torokhov pointed out this driver has other problems and needs
+further changes.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Markus Rechberger <mrechberger@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Thomas Sattler <tsattler@gmx.de>
+Cc: Daniel Mack <daniel@qanu.de>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Holger Waechtler <holger@qanu.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/perfctr-watchdog.c |   11 +++++------
- arch/i386/kernel/nmi.c                  |    3 +++
- arch/x86_64/kernel/nmi.c                |    3 +++
- include/asm-i386/nmi.h                  |    1 +
- include/asm-x86_64/nmi.h                |    1 +
- 5 files changed, 13 insertions(+), 6 deletions(-)
+ drivers/media/dvb/cinergyT2/cinergyT2.c |   65 +++++++++++++---------
+ 1 files changed, 40 insertions(+), 25 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~always-probe-the-nmi-=
-watchdog arch/i386/kernel/cpu/perfctr-watchdog.c
---- a/arch/i386/kernel/cpu/perfctr-watchdog.c~always-probe-the-nmi-watc=
-hdog
-+++ a/arch/i386/kernel/cpu/perfctr-watchdog.c
-@@ -572,7 +572,7 @@ static struct wd_ops intel_arch_wd_ops =3D
- 	.evntsel =3D MSR_ARCH_PERFMON_EVENTSEL0,
- };
-=20
--static void probe_nmi_watchdog(void)
-+void probe_nmi_watchdog(void)
- {
- 	switch (boot_cpu_data.x86_vendor) {
- 	case X86_VENDOR_AMD:
-@@ -610,17 +610,16 @@ static void probe_nmi_watchdog(void)
-=20
- int lapic_watchdog_init(unsigned nmi_hz)
- {
--	if (!wd_ops) {
--		probe_nmi_watchdog();
--		if (!wd_ops)
--			return -1;
-+	if (!wd_ops)
-+		return -1;
-=20
-+	/* hack to make sure that we only try to reserver the perfctrs once *=
-/
-+	if (smp_processor_id() =3D=3D 0)
- 		if (!wd_ops->reserve()) {
- 			printk(KERN_ERR
- 				"NMI watchdog: cannot reserve perfctrs\n");
- 			return -1;
- 		}
+diff -puN drivers/media/dvb/cinergyT2/cinergyT2.c~dvb-cinergyt2-fix-flush_workqueue-vs-work-func-deadlock drivers/media/dvb/cinergyT2/cinergyT2.c
+--- a/drivers/media/dvb/cinergyT2/cinergyT2.c~dvb-cinergyt2-fix-flush_workqueue-vs-work-func-deadlock
++++ a/drivers/media/dvb/cinergyT2/cinergyT2.c
+@@ -118,6 +118,7 @@ struct cinergyt2 {
+ 	struct dvb_demux demux;
+ 	struct usb_device *udev;
+ 	struct mutex sem;
++	struct mutex wq_sem;
+ 	struct dvb_adapter adapter;
+ 	struct dvb_device *fedev;
+ 	struct dmxdev dmxdev;
+@@ -482,14 +483,14 @@ static int cinergyt2_open (struct inode 
+ 	struct cinergyt2 *cinergyt2 = dvbdev->priv;
+ 	int err = -ERESTARTSYS;
+ 
+-	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->sem))
+-		return -ERESTARTSYS;
++	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->wq_sem))
++		goto out;
+ 
+-	if ((err = dvb_generic_open(inode, file))) {
+-		mutex_unlock(&cinergyt2->sem);
+-		return err;
 -	}
-=20
- 	if (!(wd_ops->setup(nmi_hz))) {
- 		printk(KERN_ERR "Cannot setup NMI watchdog on CPU %d\n",
-diff -puN arch/i386/kernel/nmi.c~always-probe-the-nmi-watchdog arch/i38=
-6/kernel/nmi.c
---- a/arch/i386/kernel/nmi.c~always-probe-the-nmi-watchdog
-+++ a/arch/i386/kernel/nmi.c
-@@ -248,6 +248,9 @@ void setup_apic_nmi_watchdog (void *unus
- 	if ((smp_processor_id() !=3D 0) && (atomic_read(&nmi_active) <=3D 0))
- 		return;
-=20
-+	/* always probe the watchdog, the perfctr allocator requires that */
-+	probe_nmi_watchdog();
++	if (mutex_lock_interruptible(&cinergyt2->sem))
++		goto out_unlock1;
+ 
++	if ((err = dvb_generic_open(inode, file)))
++		goto out_unlock2;
+ 
+ 	if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
+ 		cinergyt2_sleep(cinergyt2, 0);
+@@ -498,8 +499,12 @@ static int cinergyt2_open (struct inode 
+ 
+ 	atomic_inc(&cinergyt2->inuse);
+ 
++out_unlock2:
+ 	mutex_unlock(&cinergyt2->sem);
+-	return 0;
++out_unlock1:
++	mutex_unlock(&cinergyt2->wq_sem);
++out:
++	return err;
+ }
+ 
+ static void cinergyt2_unregister(struct cinergyt2 *cinergyt2)
+@@ -519,15 +524,17 @@ static int cinergyt2_release (struct ino
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct cinergyt2 *cinergyt2 = dvbdev->priv;
+ 
+-	mutex_lock(&cinergyt2->sem);
++	mutex_lock(&cinergyt2->wq_sem);
+ 
+ 	if (!cinergyt2->disconnect_pending && (file->f_flags & O_ACCMODE) != O_RDONLY) {
+-		cancel_delayed_work(&cinergyt2->query_work);
+-		flush_scheduled_work();
++		cancel_rearming_delayed_work(&cinergyt2->query_work);
 +
- 	switch (nmi_watchdog) {
- 	case NMI_LOCAL_APIC:
- 		__get_cpu_var(wd_enabled) =3D 1; /* enable it before to avoid race w=
-ith handler */
-diff -puN arch/x86_64/kernel/nmi.c~always-probe-the-nmi-watchdog arch/x=
-86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~always-probe-the-nmi-watchdog
-+++ a/arch/x86_64/kernel/nmi.c
-@@ -255,6 +255,9 @@ void setup_apic_nmi_watchdog(void *unuse
- 	if ((smp_processor_id() !=3D 0) && (atomic_read(&nmi_active) <=3D 0))
- 		return;
-=20
-+	/* always probe the watchdog, the perfctr allocator requires that */
-+	probe_nmi_watchdog();
++		mutex_lock(&cinergyt2->sem);
+ 		cinergyt2_sleep(cinergyt2, 1);
++		mutex_unlock(&cinergyt2->sem);
+ 	}
+ 
+-	mutex_unlock(&cinergyt2->sem);
++	mutex_unlock(&cinergyt2->wq_sem);
+ 
+ 	if (atomic_dec_and_test(&cinergyt2->inuse) && cinergyt2->disconnect_pending) {
+ 		warn("delayed unregister in release");
+@@ -838,13 +845,13 @@ static int cinergyt2_register_rc(struct 
+ 
+ static void cinergyt2_unregister_rc(struct cinergyt2 *cinergyt2)
+ {
+-	cancel_delayed_work(&cinergyt2->rc_query_work);
++	cancel_rearming_delayed_work(&cinergyt2->rc_query_work);
+ 	input_unregister_device(cinergyt2->rc_input_dev);
+ }
+ 
+ static inline void cinergyt2_suspend_rc(struct cinergyt2 *cinergyt2)
+ {
+-	cancel_delayed_work(&cinergyt2->rc_query_work);
++	cancel_rearming_delayed_work(&cinergyt2->rc_query_work);
+ }
+ 
+ static inline void cinergyt2_resume_rc(struct cinergyt2 *cinergyt2)
+@@ -907,6 +914,7 @@ static int cinergyt2_probe (struct usb_i
+ 	usb_set_intfdata (intf, (void *) cinergyt2);
+ 
+ 	mutex_init(&cinergyt2->sem);
++	mutex_init(&cinergyt2->wq_sem);
+ 	init_waitqueue_head (&cinergyt2->poll_wq);
+ 	INIT_DELAYED_WORK(&cinergyt2->query_work, cinergyt2_query);
+ 
+@@ -974,11 +982,8 @@ static void cinergyt2_disconnect (struct
+ {
+ 	struct cinergyt2 *cinergyt2 = usb_get_intfdata (intf);
+ 
+-	flush_scheduled_work();
+-
+ 	cinergyt2_unregister_rc(cinergyt2);
+-
+-	cancel_delayed_work(&cinergyt2->query_work);
++	cancel_rearming_delayed_work(&cinergyt2->query_work);
+ 	wake_up_interruptible(&cinergyt2->poll_wq);
+ 
+ 	cinergyt2->demux.dmx.close(&cinergyt2->demux.dmx);
+@@ -992,21 +997,22 @@ static int cinergyt2_suspend (struct usb
+ {
+ 	struct cinergyt2 *cinergyt2 = usb_get_intfdata (intf);
+ 
+-	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->sem))
++	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->wq_sem))
+ 		return -ERESTARTSYS;
+ 
+ 	if (1) {
+-		struct cinergyt2 *cinergyt2 = usb_get_intfdata (intf);
+ 
+ 		cinergyt2_suspend_rc(cinergyt2);
+-		cancel_delayed_work(&cinergyt2->query_work);
++		cancel_rearming_delayed_work(&cinergyt2->query_work);
 +
- 	switch (nmi_watchdog) {
- 	case NMI_LOCAL_APIC:
- 		__get_cpu_var(wd_enabled) =3D 1;
-diff -puN include/asm-i386/nmi.h~always-probe-the-nmi-watchdog include/=
-asm-i386/nmi.h
---- a/include/asm-i386/nmi.h~always-probe-the-nmi-watchdog
-+++ a/include/asm-i386/nmi.h
-@@ -18,6 +18,7 @@
- int do_nmi_callback(struct pt_regs *regs, int cpu);
-=20
- extern int nmi_watchdog_enabled;
-+extern void probe_nmi_watchdog(void);
- extern int avail_to_resrv_perfctr_nmi_bit(unsigned int);
- extern int avail_to_resrv_perfctr_nmi(unsigned int);
- extern int reserve_perfctr_nmi(unsigned int);
-diff -puN include/asm-x86_64/nmi.h~always-probe-the-nmi-watchdog includ=
-e/asm-x86_64/nmi.h
---- a/include/asm-x86_64/nmi.h~always-probe-the-nmi-watchdog
-+++ a/include/asm-x86_64/nmi.h
-@@ -45,6 +45,7 @@ extern int panic_on_timeout;
- extern int unknown_nmi_panic;
- extern int nmi_watchdog_enabled;
-=20
-+extern void probe_nmi_watchdog(void);
- extern int check_nmi_watchdog(void);
- extern int avail_to_resrv_perfctr_nmi_bit(unsigned int);
- extern int avail_to_resrv_perfctr_nmi(unsigned int);
++		mutex_lock(&cinergyt2->sem);
+ 		if (cinergyt2->streaming)
+ 			cinergyt2_stop_stream_xfer(cinergyt2);
+-		flush_scheduled_work();
+ 		cinergyt2_sleep(cinergyt2, 1);
++		mutex_unlock(&cinergyt2->sem);
+ 	}
+ 
+-	mutex_unlock(&cinergyt2->sem);
++	mutex_unlock(&cinergyt2->wq_sem);
+ 	return 0;
+ }
+ 
+@@ -1014,9 +1020,15 @@ static int cinergyt2_resume (struct usb_
+ {
+ 	struct cinergyt2 *cinergyt2 = usb_get_intfdata (intf);
+ 	struct dvbt_set_parameters_msg *param = &cinergyt2->param;
++	int err = -ERESTARTSYS;
+ 
+-	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->sem))
+-		return -ERESTARTSYS;
++	if (cinergyt2->disconnect_pending || mutex_lock_interruptible(&cinergyt2->wq_sem))
++		goto out;
++
++	if (mutex_lock_interruptible(&cinergyt2->sem))
++		goto out_unlock1;
++
++	err = 0;
+ 
+ 	if (!cinergyt2->sleeping) {
+ 		cinergyt2_sleep(cinergyt2, 0);
+@@ -1029,7 +1041,10 @@ static int cinergyt2_resume (struct usb_
+ 	cinergyt2_resume_rc(cinergyt2);
+ 
+ 	mutex_unlock(&cinergyt2->sem);
+-	return 0;
++out_unlock1:
++	mutex_unlock(&cinergyt2->wq_sem);
++out:
++	return err;
+ }
+ 
+ static const struct usb_device_id cinergyt2_table [] __devinitdata = {
 _
 
-Patches currently in -mm which might be from B.Steinbrink@gmx.de are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-replace-obscure-constructs-in-fs-block_devc.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-bd_claim_by_disk-fix-warning.patch
+git-dvb.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+freezer-run-show_state-when-freezing-times-out.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+use-write_trylock_irqsave-in-ptrace_attach.patch
+fix-stop_machine_run-problem-with-naughty-real-time-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process.patch
+cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
+percpu_counters-use-cpu-notifiers.patch
+percpu_counters-use-for_each_online_cpu.patch
+mm-fix-create_new_namespaces-return-value.patch
+adb_probe_task-remove-unneeded-flush_signals-call.patch
+kcdrwd-remove-unneeded-flush_signals-call.patch
+nbdcsock_xmit-cleanup-signal-related-code.patch
+rename-cancel_rearming_delayed_work-to-cancel_delayed_work_sync.patch
+make-cancel_xxx_work_sync-return-a-boolean.patch
