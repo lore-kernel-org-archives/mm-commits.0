@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-do-not-use-length-parameter-in-slab_alloc.patch added to -mm tree
-Date: Fri, 06 Jul 2007 16:21:24 -0700
-Message-ID: <200707062321.l66NLOF4026537@imap1.linux-foundation.org>
+Subject: + slub-do-not-allocate-object-bit-array-on-stack.patch added to -mm tree
+Date: Fri, 06 Jul 2007 16:21:30 -0700
+Message-ID: <200707062321.l66NLUuA026550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36042 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46495 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751650AbXGFXVc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 19:21:32 -0400
+	by vger.kernel.org with ESMTP id S1751749AbXGFXVj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 19:21:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Do not use length parameter in slab_alloc()
+     SLUB: Do not allocate object bit array on stack
 has been added to the -mm tree.  Its filename is
-     slub-do-not-use-length-parameter-in-slab_alloc.patch
+     slub-do-not-allocate-object-bit-array-on-stack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,129 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Do not use length parameter in slab_alloc()
+Subject: SLUB: Do not allocate object bit array on stack
 From: Christoph Lameter <clameter@sgi.com>
 
-We can get to the length of the object through the kmem_cache_structure.  The
-additional parameter does no good and causes the compiler to generate bad
-code.
+The objects per slab increase with the current patches in mm since we allow up
+to order 3 allocs by default.  More patches in mm actually allow to use 2M or
+higher sized slabs.  For slab validation we need per object bitmaps in order
+to check a slab.  We end up with up to 64k objects per slab resulting in a
+potential requirement of 8K stack space.  That does not look good.
+
+Allocate the bit arrays via kmalloc.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ mm/slub.c |   39 +++++++++++++++++++++++++--------------
+ 1 files changed, 25 insertions(+), 14 deletions(-)
 
-diff -puN mm/slub.c~slub-do-not-use-length-parameter-in-slab_alloc mm/slub.c
---- a/mm/slub.c~slub-do-not-use-length-parameter-in-slab_alloc
+diff -puN mm/slub.c~slub-do-not-allocate-object-bit-array-on-stack mm/slub.c
+--- a/mm/slub.c~slub-do-not-allocate-object-bit-array-on-stack
 +++ a/mm/slub.c
-@@ -1551,7 +1551,7 @@ debug:
-  * Otherwise we can simply pick the next object from the lockless free list.
-  */
- static void __always_inline *slab_alloc(struct kmem_cache *s,
--		gfp_t gfpflags, int node, void *addr, int length)
-+		gfp_t gfpflags, int node, void *addr)
- {
- 	struct page *page;
- 	void **object;
-@@ -1571,23 +1571,21 @@ static void __always_inline *slab_alloc(
- 	local_irq_restore(flags);
- 
- 	if (unlikely((gfpflags & __GFP_ZERO) && object))
--		memset(object, 0, length);
-+		memset(object, 0, s->objsize);
- 
- 	return object;
- }
- 
- void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
- {
--	return slab_alloc(s, gfpflags, -1,
--			__builtin_return_address(0), s->objsize);
-+	return slab_alloc(s, gfpflags, -1, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(kmem_cache_alloc);
- 
- #ifdef CONFIG_NUMA
- void *kmem_cache_alloc_node(struct kmem_cache *s, gfp_t gfpflags, int node)
- {
--	return slab_alloc(s, gfpflags, node,
--		__builtin_return_address(0), s->objsize);
-+	return slab_alloc(s, gfpflags, node, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(kmem_cache_alloc_node);
- #endif
-@@ -2383,7 +2381,7 @@ void *__kmalloc(size_t size, gfp_t flags
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, flags, -1, __builtin_return_address(0), size);
-+	return slab_alloc(s, flags, -1, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(__kmalloc);
- 
-@@ -2395,7 +2393,7 @@ void *__kmalloc_node(size_t size, gfp_t 
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, flags, node, __builtin_return_address(0), size);
-+	return slab_alloc(s, flags, node, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(__kmalloc_node);
- #endif
-@@ -2736,7 +2734,7 @@ void *kmem_cache_zalloc(struct kmem_cach
- {
- 	void *x;
- 
--	x = slab_alloc(s, flags, -1, __builtin_return_address(0), 0);
-+	x = slab_alloc(s, flags, -1, __builtin_return_address(0));
- 	if (x)
- 		memset(x, 0, s->objsize);
- 	return x;
-@@ -2786,7 +2784,7 @@ void *__kmalloc_track_caller(size_t size
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, gfpflags, -1, caller, size);
-+	return slab_alloc(s, gfpflags, -1, caller);
- }
- 
- void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
-@@ -2797,7 +2795,7 @@ void *__kmalloc_node_track_caller(size_t
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
- 
--	return slab_alloc(s, gfpflags, node, caller, size);
-+	return slab_alloc(s, gfpflags, node, caller);
+@@ -2788,11 +2788,11 @@ void *__kmalloc_node_track_caller(size_t
  }
  
  #if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
+-static int validate_slab(struct kmem_cache *s, struct page *page)
++static int validate_slab(struct kmem_cache *s, struct page *page,
++						unsigned long *map)
+ {
+ 	void *p;
+ 	void *addr = page_address(page);
+-	DECLARE_BITMAP(map, s->objects);
+ 
+ 	if (!check_slab(s, page) ||
+ 			!on_freelist(s, page, NULL))
+@@ -2814,10 +2814,11 @@ static int validate_slab(struct kmem_cac
+ 	return 1;
+ }
+ 
+-static void validate_slab_slab(struct kmem_cache *s, struct page *page)
++static void validate_slab_slab(struct kmem_cache *s, struct page *page,
++						unsigned long *map)
+ {
+ 	if (slab_trylock(page)) {
+-		validate_slab(s, page);
++		validate_slab(s, page, map);
+ 		slab_unlock(page);
+ 	} else
+ 		printk(KERN_INFO "SLUB %s: Skipped busy slab 0x%p\n",
+@@ -2834,7 +2835,8 @@ static void validate_slab_slab(struct km
+ 	}
+ }
+ 
+-static int validate_slab_node(struct kmem_cache *s, struct kmem_cache_node *n)
++static int validate_slab_node(struct kmem_cache *s,
++		struct kmem_cache_node *n, unsigned long *map)
+ {
+ 	unsigned long count = 0;
+ 	struct page *page;
+@@ -2843,7 +2845,7 @@ static int validate_slab_node(struct kme
+ 	spin_lock_irqsave(&n->list_lock, flags);
+ 
+ 	list_for_each_entry(page, &n->partial, lru) {
+-		validate_slab_slab(s, page);
++		validate_slab_slab(s, page, map);
+ 		count++;
+ 	}
+ 	if (count != n->nr_partial)
+@@ -2854,7 +2856,7 @@ static int validate_slab_node(struct kme
+ 		goto out;
+ 
+ 	list_for_each_entry(page, &n->full, lru) {
+-		validate_slab_slab(s, page);
++		validate_slab_slab(s, page, map);
+ 		count++;
+ 	}
+ 	if (count != atomic_long_read(&n->nr_slabs))
+@@ -2867,17 +2869,23 @@ out:
+ 	return count;
+ }
+ 
+-static unsigned long validate_slab_cache(struct kmem_cache *s)
++static long validate_slab_cache(struct kmem_cache *s)
+ {
+ 	int node;
+ 	unsigned long count = 0;
++	unsigned long *map = kmalloc(BITS_TO_LONGS(s->objects) *
++				sizeof(unsigned long), GFP_KERNEL);
++
++	if (!map)
++		return -ENOMEM;
+ 
+ 	flush_all(s);
+ 	for_each_online_node(node) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 
+-		count += validate_slab_node(s, n);
++		count += validate_slab_node(s, n, map);
+ 	}
++	kfree(map);
+ 	return count;
+ }
+ 
+@@ -3491,11 +3499,14 @@ static ssize_t validate_show(struct kmem
+ static ssize_t validate_store(struct kmem_cache *s,
+ 			const char *buf, size_t length)
+ {
+-	if (buf[0] == '1')
+-		validate_slab_cache(s);
+-	else
+-		return -EINVAL;
+-	return length;
++	int ret = -EINVAL;
++
++	if (buf[0] == '1') {
++		ret = validate_slab_cache(s);
++		if (ret >= 0)
++			ret = length;
++	}
++	return ret;
+ }
+ SLAB_ATTR(validate);
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
