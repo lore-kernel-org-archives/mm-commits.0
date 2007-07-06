@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-ioapic-remove-old-irq-balancing-debug-cruft.patch added to -mm tree
-Date: Fri, 06 Jul 2007 13:32:35 -0700
-Message-ID: <200707062032.l66KWZcY018461@imap1.linux-foundation.org>
+Subject: + clean-up-e7520-7320-7525-quirk-printk.patch added to -mm tree
+Date: Fri, 06 Jul 2007 13:39:17 -0700
+Message-ID: <200707062039.l66KdHpB018754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48470 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754890AbXGFUdG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 16:33:06 -0400
+	by vger.kernel.org with ESMTP id S1754159AbXGFUjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 16:39:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefanr@s5r6.in-berlin.de, ak@suse.de, mingo@elte.hu, rpjday@mindspring.com
+Cc: davej@redhat.com, ak@suse.de
 
 
 The patch titled
-     i386 IOAPIC: remove old IRQ balancing debug cruft
+     Clean up E7520/7320/7525 quirk printk
 has been added to the -mm tree.  Its filename is
-     i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+     clean-up-e7520-7320-7525-quirk-printk.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 IOAPIC: remove old IRQ balancing debug cruft
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Clean up E7520/7320/7525 quirk printk
+From: Dave Jones <davej@redhat.com>
 
-Dead or misnamed CONFIG_BALANCED_IRQ_DEBUG found by Robert P. J. Day.
-It's not a Kconfig variable.
+The printk level in this printk is bogus, as the previous printk
+didn't have a terminating \n resulting in ..
 
-Since this debug code is ancient, I suggest to get rid of this
-misleading CONFIG_ macro by deleting all of this debug code.
+Intel E7520/7320/7525 detected.<6>Disabling irq balancing and affinity
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+It also never printed a \n at all in the case where we didn't do
+the quirk.
+
+Change it to only make noise if it actually does something useful.
+
+Signed-off-by: Dave Jones <davej@redhat.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Robert P. J. Day" <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/io_apic.c |   24 ++----------------------
- 1 files changed, 2 insertions(+), 22 deletions(-)
+ arch/i386/kernel/quirks.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/io_apic.c~i386-ioapic-remove-old-irq-balancing-debug-cruft arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~i386-ioapic-remove-old-irq-balancing-debug-cruft
-+++ a/arch/i386/kernel/io_apic.c
-@@ -353,14 +353,6 @@ static void set_ioapic_affinity_irq(unsi
- # include <linux/slab.h>		/* kmalloc() */
- # include <linux/timer.h>	/* time_after() */
-  
--#ifdef CONFIG_BALANCED_IRQ_DEBUG
--#  define TDprintk(x...) do { printk("<%ld:%s:%d>: ", jiffies, __FILE__, __LINE__); printk(x); } while (0)
--#  define Dprintk(x...) do { TDprintk(x); } while (0)
--# else
--#  define TDprintk(x...) 
--#  define Dprintk(x...) 
--# endif
+diff -puN arch/i386/kernel/quirks.c~clean-up-e7520-7320-7525-quirk-printk arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~clean-up-e7520-7320-7525-quirk-printk
++++ a/arch/i386/kernel/quirks.c
+@@ -22,8 +22,6 @@ static void __devinit quirk_intel_irqbal
+ 	if (rev > 0x9)
+ 		return;
+ 
+-	printk(KERN_INFO "Intel E7520/7320/7525 detected.");
 -
- #define IRQBALANCE_CHECK_ARCH -999
- #define MAX_BALANCED_IRQ_INTERVAL	(5*HZ)
- #define MIN_BALANCED_IRQ_INTERVAL	(HZ/2)
-@@ -443,7 +435,7 @@ static inline void balance_irq(int cpu, 
- static inline void rotate_irqs_among_cpus(unsigned long useful_load_threshold)
- {
- 	int i, j;
--	Dprintk("Rotating IRQs among CPUs.\n");
-+
- 	for_each_online_cpu(i) {
- 		for (j = 0; j < NR_IRQS; j++) {
- 			if (!irq_desc[j].action)
-@@ -560,19 +552,11 @@ tryanothercpu:
- 	max_loaded = tmp_loaded;	/* processor */
- 	imbalance = (max_cpu_irq - min_cpu_irq) / 2;
- 	
--	Dprintk("max_loaded cpu = %d\n", max_loaded);
--	Dprintk("min_loaded cpu = %d\n", min_loaded);
--	Dprintk("max_cpu_irq load = %ld\n", max_cpu_irq);
--	Dprintk("min_cpu_irq load = %ld\n", min_cpu_irq);
--	Dprintk("load imbalance = %lu\n", imbalance);
--
- 	/* if imbalance is less than approx 10% of max load, then
- 	 * observe diminishing returns action. - quit
- 	 */
--	if (imbalance < (max_cpu_irq >> 3)) {
--		Dprintk("Imbalance too trivial\n");
-+	if (imbalance < (max_cpu_irq >> 3))
- 		goto not_worth_the_effort;
--	}
+ 	/* enable access to config space*/
+ 	pci_read_config_byte(dev, 0xf4, &config);
+ 	pci_write_config_byte(dev, 0xf4, config|0x2);
+@@ -32,7 +30,8 @@ static void __devinit quirk_intel_irqbal
+ 	raw_pci_ops->read(0, 0, 0x40, 0x4c, 2, &word);
  
- tryanotherirq:
- 	/* if we select an IRQ to move that can't go where we want, then
-@@ -629,9 +613,6 @@ tryanotherirq:
- 	cpus_and(tmp, target_cpu_mask, allowed_mask);
- 
- 	if (!cpus_empty(tmp)) {
--
--		Dprintk("irq = %d moved to cpu = %d\n",
--				selected_irq, min_loaded);
- 		/* mark for change destination */
- 		set_pending_irq(selected_irq, cpumask_of_cpu(min_loaded));
- 
-@@ -651,7 +632,6 @@ not_worth_the_effort:
- 	 */
- 	balanced_irq_interval = min((long)MAX_BALANCED_IRQ_INTERVAL,
- 		balanced_irq_interval + BALANCED_IRQ_MORE_DELTA);	
--	Dprintk("IRQ worth rotating not found\n");
- 	return;
- }
- 
+ 	if (!(word & (1 << 13))) {
+-		printk(KERN_INFO "Disabling irq balancing and affinity\n");
++		printk(KERN_INFO "Intel E7520/7320/7525 detected. "
++			"Disabling irq balancing and affinity\n");
+ #ifdef CONFIG_IRQBALANCE
+ 		irqbalance_disable("");
+ #endif
 _
 
-Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
+Patches currently in -mm which might be from davej@redhat.com are
 
-origin.patch
-git-ieee1394.patch
-git-scsi-misc.patch
-i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
-fs-clarify-dummy-member-in-struct.patch
+clean-up-e7520-7320-7525-quirk-printk.patch
+fix-empty-macros-in-acpi.patch
+git-alsa.patch
+git-cpufreq.patch
+i386-remove-support-for-the-rise-cpu.patch
+fix-up-codingstyle-in-isofs.patch
+undeprecate-raw-driver.patch
+fix-typo-in-prefetchh.patch
+allow-softlockup-to-be-runtime-disabled.patch
+add-werror-implicit-function-declaration.patch
