@@ -1,107 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + arch-i386-xen-mmuc-must-include-linux-schedh.patch added to -mm tree
-Date: Fri, 06 Jul 2007 10:45:49 -0700
-Message-ID: <200707061745.l66HjnQp010532@imap1.linux-foundation.org>
+Subject: + cfs-kernel-schedc-make-2-functions-static.patch added to -mm tree
+Date: Fri, 06 Jul 2007 10:48:09 -0700
+Message-ID: <200707061748.l66Hm91i010624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36494 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755997AbXGFRqe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 13:46:34 -0400
+	by vger.kernel.org with ESMTP id S1754129AbXGFRs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 13:48:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, jeremy@goop.org
+Cc: bunk@stusta.de, mingo@elte.hu
 
 
 The patch titled
-     arch/i386/xen/mmu.c must #include <linux/sched.h>
+     kernel/sched.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     arch-i386-xen-mmuc-must-include-linux-schedh.patch
+     cfs-kernel-schedc-make-2-functions-static.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/i386/xen/mmu.c must #include <linux/sched.h>
-=46rom: Adrian Bunk <bunk@stusta.de>
+Subject: kernel/sched.c: make 2 functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-This patch fixes the following compile error:
-
-<--  snip  -->
-
-=2E..
-  CC      arch/i386/xen/mmu.o
-In file included from
-/home/bunk/linux/kernel-2.6/linux-2.6.22-rc6-mm1/arch/i386/xen/mmu.c:46=
-:
-include2/asm/mmu_context.h: In function =E2=80=98switch_mm=E2=80=99:
-include2/asm/mmu_context.h:45: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:50: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:53: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:58: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:58: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:59: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:66: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:70: error: dereferencing pointer to incomple=
-te type
-include2/asm/mmu_context.h:71: error: dereferencing pointer to incomple=
-te type
-=2E..
-make[2]: *** [arch/i386/xen/mmu.o] Error 1
-
-<--  snip  -->
+This patch makes the following needlessly global functions static:
+- load_balance_start()
+- load_balance_next()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/mmu.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/sched.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/xen/mmu.c~arch-i386-xen-mmuc-must-include-linux-sch=
-edh arch/i386/xen/mmu.c
---- a/arch/i386/xen/mmu.c~arch-i386-xen-mmuc-must-include-linux-schedh
-+++ a/arch/i386/xen/mmu.c
-@@ -39,6 +39,7 @@
-  * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
+diff -puN kernel/sched.c~cfs-kernel-schedc-make-2-functions-static kernel/sched.c
+--- a/kernel/sched.c~cfs-kernel-schedc-make-2-functions-static
++++ a/kernel/sched.c
+@@ -2010,7 +2010,7 @@ int can_migrate_task(struct task_struct 
+  * classes, starting with the highest-prio one:
   */
- #include <linux/highmem.h>
-+#include <linux/sched.h>
-=20
- #include <asm/bug.h>
- #include <asm/pgtable.h>
+ 
+-struct task_struct * load_balance_start(struct rq *rq)
++static struct task_struct * load_balance_start(struct rq *rq)
+ {
+ 	struct sched_class *class = sched_class_highest;
+ 	struct task_struct *p;
+@@ -2027,7 +2027,7 @@ struct task_struct * load_balance_start(
+ 	return NULL;
+ }
+ 
+-struct task_struct * load_balance_next(struct rq *rq)
++static struct task_struct * load_balance_next(struct rq *rq)
+ {
+ 	struct sched_class *class = rq->load_balance_class;
+ 	struct task_struct *p;
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-ratin=
-g-by-default-fix.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
 drivers-acpi-sbsc-remove-dead-code.patch
 git-alsa.patch
 make-drivers-char-hvc_consoleckhvcd-static.patch
 git-dvb.patch
 git-input.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-=
-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
@@ -131,7 +104,7 @@ xen-fix-x86-config-dependencies.patch
 xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
 xen-cant-support-numa-yet.patch
 mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=3D-generic-fix.patch
+handle-kernelcore=-generic-fix.patch
 maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
 mm-slubc-make-code-static.patch
@@ -149,17 +122,15 @@ ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
 remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-=
-fbh.patch
+fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
 pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.=
-patch
+intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
 mm-variable-length-argument-support-fix-2.patch
 kernel-sched_fairc-make-code-static.patch
 fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped=
-_list.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
+cfs-kernel-schedc-make-2-functions-static.patch
 kernel-relayc-make-functions-static.patch
 immediate-value-add-kconfig-menus.patch
 linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
