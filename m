@@ -1,51 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-cpuidle-governors-menuc-make-a-struct-static.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:54 -0700
-Message-ID: <200707060051.l660psvL028329@imap1.linux-foundation.org>
+Subject: - drivers-acpi-processor_throttlingc-make-2-functions.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:52 -0700
+Message-ID: <200707060051.l660pq4W028326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57121 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38968 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760951AbXGFAwR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:17 -0400
+	by vger.kernel.org with ESMTP id S1760951AbXGFAwP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/cpuidle/governors/menu.c: make a struct static
+     drivers/acpi/processor_throttling.c: make 2 functions static
 has been removed from the -mm tree.  Its filename was
-     drivers-cpuidle-governors-menuc-make-a-struct-static.patch
+     drivers-acpi-processor_throttlingc-make-2-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/cpuidle/governors/menu.c: make a struct static
+Subject: drivers/acpi/processor_throttling.c: make 2 functions static
 From: Adrian Bunk <bunk@stusta.de>
 
-This patch makes the needlessly global struct menu_governor static.
+This patch makes 2 needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/menu.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_throttling.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-make-a-struct-static drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-governors-menuc-make-a-struct-static
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -151,7 +151,7 @@ static void menu_scan_device(struct cpui
- 	data->deepest_bm_state = i - 1;
+diff -puN drivers/acpi/processor_throttling.c~drivers-acpi-processor_throttlingc-make-2-functions drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~drivers-acpi-processor_throttlingc-make-2-functions
++++ a/drivers/acpi/processor_throttling.c
+@@ -410,7 +410,8 @@ static int acpi_processor_get_throttling
+ 	return pr->throttling.acpi_processor_get_throttling(pr);
  }
  
--struct cpuidle_governor menu_governor = {
-+static struct cpuidle_governor menu_governor = {
- 	.name =		"menu",
- 	.rating =	20,
- 	.scan =		menu_scan_device,
+-int acpi_processor_set_throttling_fadt(struct acpi_processor *pr, int state)
++static int acpi_processor_set_throttling_fadt(struct acpi_processor *pr,
++					      int state)
+ {
+ 	u32 value = 0;
+ 	u32 duty_mask = 0;
+@@ -482,7 +483,8 @@ int acpi_processor_set_throttling_fadt(s
+ 	return 0;
+ }
+ 
+-int acpi_processor_set_throttling_ptc(struct acpi_processor *pr, int state)
++static int acpi_processor_set_throttling_ptc(struct acpi_processor *pr,
++					     int state)
+ {
+ 	u32 value = 0;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
