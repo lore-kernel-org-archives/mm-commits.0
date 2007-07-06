@@ -1,123 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - make-drivers-acpi-oslcosi_linux-static.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:50 -0700
-Message-ID: <200707060051.l660poxZ028323@imap1.linux-foundation.org>
+Subject: - acpi-do-not-attempt-to-run-s1-standby-workarounds-while-hibernating.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:48 -0700
+Message-ID: <200707060051.l660pmAY028320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37062 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57396 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760621AbXGFAwL (ORCPT
+	by vger.kernel.org with ESMTP id S1760888AbXGFAwL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, lenb@kernel.org, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/acpi/osl.c:osi_linux static
+     acpi: do not attempt to run S1 (standby) workarounds while hibernating
 has been removed from the -mm tree.  Its filename was
-     make-drivers-acpi-oslcosi_linux-static.patch
+     acpi-do-not-attempt-to-run-s1-standby-workarounds-while-hibernating.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make drivers/acpi/osl.c:osi_linux static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: acpi: do not attempt to run S1 (standby) workarounds while hibernating
+From: Pavel Machek <pavel@ucw.cz>
 
-This patch makes the needlessly global osi_linux static.
+If we have quirk "init...  after standby", we should not be calling it while
+resuming from hibernation.  And...  that quirk is only ever needed on toshiba
+4030cdt...  and...  noone should be using standby these days, anyway.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+That quirk was certainly _not_ meant to be ran after hibernation.
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/sleep/main.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~make-drivers-acpi-oslcosi_linux-static
-+++ a/drivers/acpi/osl.c
-@@ -77,7 +77,7 @@ static struct workqueue_struct *kacpi_no
- #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
- static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+diff -puN drivers/acpi/sleep/main.c~acpi-do-not-attempt-to-run-s1-standby-workarounds-while-hibernating drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-do-not-attempt-to-run-s1-standby-workarounds-while-hibernating
++++ a/drivers/acpi/sleep/main.c
+@@ -210,11 +210,6 @@ static void acpi_hibernation_finish(void
  
--int osi_linux;		/* disable _OSI(Linux) by default */
-+static int osi_linux;		/* disable _OSI(Linux) by default */
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+-
+-	if (init_8259A_after_S1) {
+-		printk("Broken toshiba laptop -> kicking interrupts\n");
+-		init_8259A(0);
+-	}
+ }
  
- #ifdef CONFIG_DMI
- static struct __initdata dmi_system_id acpi_osl_dmi_table[];
+ static struct hibernation_ops acpi_hibernation_ops = {
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-origin.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-bonding-bond_mainc-make-2-functions-static.patch
-net-make-struct-dccp_li_cachep-static.patch
-git-battery.patch
-git-selinux.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-remove-mm-backing-devccongestion_wait_interruptible.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
-mm-variable-length-argument-support-fix-2.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-kernel-relayc-make-functions-static.patch
-immediate-value-add-kconfig-menus.patch
-linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+x86_64-pm_trace-support.patch
+i386-do-not-restore-reserved-memory-after-hibernation.patch
+i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
+freezer-make-kernel-threads-nonfreezable-by-default-fix-2.patch
+pm-do-not-require-dev-spew-to-get-pm_debug.patch
+swsusp-remove-incorrect-code-from-userc.patch
+swsusp-remove-code-duplication-between-diskc-and-userc.patch
+swsusp-introduce-restore-platform-operations.patch
+swsusp-fix-hibernation-code-ordering.patch
+hibernation-prepare-to-enter-the-low-power-state.patch
+freezer-avoid-freezing-kernel-threads-prematurely.patch
+freezer-use-__set_current_state-in-refrigerator.patch
+freezer-return-int-from-freeze_processes.patch
+freezer-remove-redundant-check-in-try_to_freeze_tasks.patch
+pm-introduce-hibernation-and-suspend-notifiers.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix.patch
+pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
+pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend.patch
+pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
+pm-prevent-frozen-user-mode-helpers-from-failing-the-freezing-of-tasks-rev-2.patch
+pm-reduce-code-duplication-between-mainc-and-userc-updated.patch
+acpi-do-not-prepare-for-hibernation-in-acpi_shutdown.patch
+pm-introduce-pm_power_off_prepare.patch
