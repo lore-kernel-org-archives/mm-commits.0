@@ -1,125 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-acpi.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:46 -0700
-Message-ID: <200707060051.l660pk76028317@imap1.linux-foundation.org>
+Subject: - ntp-remove-clock_was_set-call-to-prevent-deadlock.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:17 -0700
+Message-ID: <200707060051.l660pHZ0028209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760955AbXGFAwR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:17 -0400
+	by vger.kernel.org with ESMTP id S1760967AbXGFAw0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:52:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, stable@kernel.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: ACPI
+     NTP: remove clock_was_set() call to prevent deadlock
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-acpi.patch
+     ntp-remove-clock_was_set-call-to-prevent-deadlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: ACPI
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: NTP: remove clock_was_set() call to prevent deadlock
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+The clock_was_set() call in seconds_overflow() which happens only when leap
+seconds are inserted / deleted is wrong in two aspects:
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Len Brown <lenb@kernel.org>
+1. it results in a call to on_each_cpu() with interrupts disabled
+2. it is potential deadlock source vs. call_lock in smp_call_function()
+
+The only possible side effect of the removal might be, that an absolute
+CLOCK_REALTIME timer fires 1 second too late, in the rare case of leap
+second deletion and an absolute CLOCK_REALTIME timer which expires in the
+affected time frame.  It will never fire too early.
+
+This was probably observed by the reporter of a June 30th -> July 1st hang:
+http://lkml.org/lkml/2007/7/3/
+
+A similar problem was observed by Dave Jones, who provided a screen shot
+with a lockdep back trace, which allowed to analyse the problem.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@kernel.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ kernel/time/ntp.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~use-menuconfig-objects-acpi drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~use-menuconfig-objects-acpi
-+++ a/drivers/acpi/Kconfig
-@@ -2,16 +2,12 @@
- # ACPI Configuration
- #
- 
--menu "ACPI (Advanced Configuration and Power Interface) Support"
-+menuconfig ACPI
-+	bool "ACPI Support (Advanced Configuration and Power Interface) Support"
- 	depends on !X86_NUMAQ
- 	depends on !X86_VISWS
- 	depends on !IA64_HP_SIM
- 	depends on IA64 || X86
--	depends on PM
--
--config ACPI
--	bool "ACPI Support"
--	depends on IA64 || X86
- 	depends on PCI
- 	depends on PM
- 	select PNP
-@@ -49,7 +45,6 @@ if ACPI
- config ACPI_SLEEP
- 	bool "Sleep States"
- 	depends on X86 && (!SMP || SUSPEND_SMP)
--	depends on PM
- 	default y
- 	---help---
- 	  This option adds support for ACPI suspend states. 
-@@ -82,7 +77,6 @@ config ACPI_SLEEP_PROC_SLEEP
- 
- config ACPI_PROCFS
- 	bool "Procfs interface (deprecated)"
--	depends on ACPI
- 	default y
- 	---help---
- 	  The Procfs interface for ACPI is made optional for backward compatibility.
-@@ -338,7 +332,6 @@ config ACPI_CONTAINER
- 
- config ACPI_HOTPLUG_MEMORY
- 	tristate "Memory Hotplug"
--	depends on ACPI
- 	depends on MEMORY_HOTPLUG
- 	default n
- 	help
-@@ -367,5 +360,3 @@ config ACPI_SBS
- 	  to today's ACPI "Control Method" battery.
- 
- endif	# ACPI
--
--endmenu
+diff -puN kernel/time/ntp.c~ntp-remove-clock_was_set-call-to-prevent-deadlock kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-remove-clock_was_set-call-to-prevent-deadlock
++++ a/kernel/time/ntp.c
+@@ -122,7 +122,6 @@ void second_overflow(void)
+ 			 */
+ 			time_interpolator_update(-NSEC_PER_SEC);
+ 			time_state = TIME_OOP;
+-			clock_was_set();
+ 			printk(KERN_NOTICE "Clock: inserting leap second "
+ 					"23:59:60 UTC\n");
+ 		}
+@@ -137,7 +136,6 @@ void second_overflow(void)
+ 			 */
+ 			time_interpolator_update(NSEC_PER_SEC);
+ 			time_state = TIME_WAIT;
+-			clock_was_set();
+ 			printk(KERN_NOTICE "Clock: deleting leap second "
+ 					"23:59:59 UTC\n");
+ 		}
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
+origin.patch
 git-acpi.patch
-git-hid.patch
-git-infiniband.patch
-git-kvm.patch
-git-netdev-all.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-ii-scsi.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-ib-block.patch
-use-menuconfig-objects-ii-block-devices.patch
-use-menuconfig-objects-ii-auxdisplay.patch
-use-menuconfig-objects-ii-edac.patch
-use-menuconfig-objects-ii-ipmi.patch
-use-menuconfig-objects-ii-misc-strange-dev.patch
-use-menuconfig-objects-ii-module-menu.patch
-use-menuconfig-objects-ii-oprofile.patch
-use-menuconfig-objects-ii-telephony.patch
-use-menuconfig-objects-ii-tpm.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
-kernel-utf-8-handling.patch
-use-menuconfig-objects-isdn-config_isdn.patch
-use-menuconfig-objects-isdn-config_isdn_i4l.patch
-use-menuconfig-objects-isdn-config_isdn_drv_gigaset.patch
-use-menuconfig-objects-isdn-config_isdn_capi.patch
-use-menuconfig-objects-isdn-config_capi_avm.patch
-use-menuconfig-objects-isdn-config_capi_eicon.patch
-use-menuconfig-objects-ii-md.patch
+git-arm.patch
+i386-hpet-check-if-the-counter-works.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+timekeeping-fixup-shadow-variable-argument.patch
+timerc-cleanup-recently-introduced-whitespace-damage.patch
+clockevents-remove-prototypes-of-removed-functions.patch
+clockevents-fix-resume-logic.patch
+clockevents-fix-device-replacement.patch
+tick-management-spread-timer-interrupt.patch
+highres-improve-debug-output.patch
+highres-improve-debug-output-fix.patch
+hrtimer-speedup-hrtimer_enqueue.patch
+pcspkr-use-the-global-pit-lock.patch
+ntp-move-the-cmos-update-code-into-ntpc.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix.patch
+ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
+i386-pit-stop-only-when-in-periodic-or-oneshot-mode.patch
+i386-remove-volatile-in-apicc.patch
+i386-hpet-assumes-boot-cpu-is-0.patch
+i386-move-pit-function-declarations-and-constants-to-correct-header-file.patch
+x86_64-untangle-asm-hpeth-from-asm-timexh.patch
+x86_64-use-generic-cmos-update.patch
+x86_64-remove-dead-code-and-other-janitor-work-in-tscc.patch
+x86_64-fix-apic-typo.patch
+x86_64-convert-to-cleckevents.patch
+acpi-remove-the-useless-ifdef-code.patch
+x86_64-hpet-restore-vread.patch
+x86_64-restore-restore-nohpet-cmdline.patch
+x86_64-block-irq-balancing-for-timer.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-enable-high-resolution-timers-and-dynticks.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-x86_64-insert-hpet-firmware-resource-after-pci-enumeration-has-completed.patch
+remove-clockevents_releaserequest_device.patch
+add-a-flag-to-indicate-deferrable-timers-in-proc-timer_stats.patch
+improve-behaviour-of-spurious-irq-detect.patch
+improve-behaviour-of-spurious-irq-detect-fix.patch
+sys_time-speedup.patch
+sys_time-speedup-build-fixes.patch
+futex-tidy-up-the-code-v2.patch
+lguest-the-host-code.patch
+lguest-the-host-code-lguest-vs-clockevents-fix-resume-logic.patch
