@@ -1,13 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-xen-xen-event-channels.patch added to -mm tree
-Date: Fri, 06 Jul 2007 10:44:48 -0700
-Message-ID: <200707061744.l66Him5J010519@imap1.linux-foundation.org>
+Subject: + arch-i386-xen-mmuc-must-include-linux-schedh.patch added to -mm tree
+Date: Fri, 06 Jul 2007 10:45:49 -0700
+Message-ID: <200707061745.l66HjnQp010532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36494 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760257AbXGFRpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 13:45:35 -0400
+	by vger.kernel.org with ESMTP id S1755997AbXGFRqe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 13:46:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,55 +18,90 @@ Cc: bunk@stusta.de, jeremy@goop.org
 
 
 The patch titled
-     arch/i386/xen/events.c should #include <asm/xen/hypervisor.h>
+     arch/i386/xen/mmu.c must #include <linux/sched.h>
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-xen-xen-event-channels.patch
+     arch-i386-xen-mmuc-must-include-linux-schedh.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/i386/xen/events.c should #include <asm/xen/hypervisor.h>
-From: Adrian Bunk <bunk@stusta.de>
+Subject: arch/i386/xen/mmu.c must #include <linux/sched.h>
+=46rom: Adrian Bunk <bunk@stusta.de>
 
-Every file should include the headers containing the prototypes for
-its global functions.
+This patch fixes the following compile error:
+
+<--  snip  -->
+
+=2E..
+  CC      arch/i386/xen/mmu.o
+In file included from
+/home/bunk/linux/kernel-2.6/linux-2.6.22-rc6-mm1/arch/i386/xen/mmu.c:46=
+:
+include2/asm/mmu_context.h: In function =E2=80=98switch_mm=E2=80=99:
+include2/asm/mmu_context.h:45: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:50: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:53: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:58: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:58: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:59: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:66: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:70: error: dereferencing pointer to incomple=
+te type
+include2/asm/mmu_context.h:71: error: dereferencing pointer to incomple=
+te type
+=2E..
+make[2]: *** [arch/i386/xen/mmu.o] Error 1
+
+<--  snip  -->
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/events.c |    1 +
+ arch/i386/xen/mmu.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/xen/events.c~fix-x86_64-mm-xen-xen-event-channels arch/i386/xen/events.c
---- a/arch/i386/xen/events.c~fix-x86_64-mm-xen-xen-event-channels
-+++ a/arch/i386/xen/events.c
-@@ -31,6 +31,7 @@
- #include <asm/irq.h>
- #include <asm/sync_bitops.h>
- #include <asm/xen/hypercall.h>
-+#include <asm/xen/hypervisor.h>
- 
- #include <xen/events.h>
- #include <xen/interface/xen.h>
+diff -puN arch/i386/xen/mmu.c~arch-i386-xen-mmuc-must-include-linux-sch=
+edh arch/i386/xen/mmu.c
+--- a/arch/i386/xen/mmu.c~arch-i386-xen-mmuc-must-include-linux-schedh
++++ a/arch/i386/xen/mmu.c
+@@ -39,6 +39,7 @@
+  * Jeremy Fitzhardinge <jeremy@xensource.com>, XenSource Inc, 2007
+  */
+ #include <linux/highmem.h>
++#include <linux/sched.h>
+=20
+ #include <asm/bug.h>
+ #include <asm/pgtable.h>
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
+cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-ratin=
+g-by-default-fix.patch
 drivers-acpi-sbsc-remove-dead-code.patch
 git-alsa.patch
 make-drivers-char-hvc_consoleckhvcd-static.patch
 git-dvb.patch
 git-input.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-=
+dma.patch
 git-md-accel.patch
 git-mmc.patch
 git-mtd.patch
@@ -83,6 +121,7 @@ git-unionfs.patch
 git-ipwireless_cs.patch
 fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
 fix-x86_64-mm-xen-xen-event-channels.patch
+arch-i386-xen-mmuc-must-include-linux-schedh.patch
 make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
 arch-i386-kernel-i8253c-should-include-asm-timerh.patch
 make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
@@ -92,7 +131,7 @@ xen-fix-x86-config-dependencies.patch
 xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
 xen-cant-support-numa-yet.patch
 mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
+handle-kernelcore=3D-generic-fix.patch
 maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
 mm-slubc-make-code-static.patch
@@ -110,14 +149,17 @@ ext2-reservations.patch
 revoke-core-code.patch
 oss-trident-fix-locking-around-write_voice_regs.patch
 remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
+fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-=
+fbh.patch
 pm3fb-possible-cleanups.patch
 vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
+intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.=
+patch
 mm-variable-length-argument-support-fix-2.patch
 kernel-sched_fairc-make-code-static.patch
 fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
+mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped=
+_list.patch
 kernel-relayc-make-functions-static.patch
 immediate-value-add-kconfig-menus.patch
 linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
