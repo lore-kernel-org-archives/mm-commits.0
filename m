@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rpc-remove-makefile-reference-to-obsolete-rxrpc-config.patch added to -mm tree
-Date: Fri, 06 Jul 2007 11:03:35 -0700
-Message-ID: <200707061803.l66I3ZAv011509@imap1.linux-foundation.org>
+Subject: + nls-remove-obsolete-makefile-entries.patch added to -mm tree
+Date: Fri, 06 Jul 2007 11:04:01 -0700
+Message-ID: <200707061804.l66I41hT011520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38293 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761735AbXGFSD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 14:03:58 -0400
+	by vger.kernel.org with ESMTP id S1763467AbXGFSEJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 14:04:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: rpjday@mindspring.com
 
 
 The patch titled
-     RPC: Remove Makefile reference to obsolete RXRPC config variable
+     NLS: Remove obsolete Makefile entries
 has been added to the -mm tree.  Its filename is
-     rpc-remove-makefile-reference-to-obsolete-rxrpc-config.patch
+     nls-remove-obsolete-makefile-entries.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RPC: Remove Makefile reference to obsolete RXRPC config variable
+Subject: NLS: Remove obsolete Makefile entries
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Since there is no Kconfig variable RXRPC anywhere in the tree, and the
-variable AF_RXRPC performs exactly the same function, remove the reference
-to CONFIG_RXRPC from net/Makefile.
+Since the corresponding source files no longer exist, remove the
+irrelevant Makefile entries for them.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ fs/nls/Makefile |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN net/Makefile~rpc-remove-makefile-reference-to-obsolete-rxrpc-config net/Makefile
---- a/net/Makefile~rpc-remove-makefile-reference-to-obsolete-rxrpc-config
-+++ a/net/Makefile
-@@ -37,7 +37,6 @@ obj-$(CONFIG_AX25)		+= ax25/
- obj-$(CONFIG_IRDA)		+= irda/
- obj-$(CONFIG_BT)		+= bluetooth/
- obj-$(CONFIG_SUNRPC)		+= sunrpc/
--obj-$(CONFIG_RXRPC)		+= rxrpc/
- obj-$(CONFIG_AF_RXRPC)		+= rxrpc/
- obj-$(CONFIG_ATM)		+= atm/
- obj-$(CONFIG_DECNET)		+= decnet/
+diff -puN fs/nls/Makefile~nls-remove-obsolete-makefile-entries fs/nls/Makefile
+--- a/fs/nls/Makefile~nls-remove-obsolete-makefile-entries
++++ a/fs/nls/Makefile
+@@ -36,11 +36,9 @@ obj-$(CONFIG_NLS_ISO8859_6)	+= nls_iso88
+ obj-$(CONFIG_NLS_ISO8859_7)	+= nls_iso8859-7.o
+ obj-$(CONFIG_NLS_ISO8859_8)	+= nls_cp1255.o
+ obj-$(CONFIG_NLS_ISO8859_9)	+= nls_iso8859-9.o
+-obj-$(CONFIG_NLS_ISO8859_10)	+= nls_iso8859-10.o
+ obj-$(CONFIG_NLS_ISO8859_13)	+= nls_iso8859-13.o
+ obj-$(CONFIG_NLS_ISO8859_14)	+= nls_iso8859-14.o
+ obj-$(CONFIG_NLS_ISO8859_15)	+= nls_iso8859-15.o
+ obj-$(CONFIG_NLS_KOI8_R)	+= nls_koi8-r.o
+ obj-$(CONFIG_NLS_KOI8_U)	+= nls_koi8-u.o nls_koi8-ru.o
+-obj-$(CONFIG_NLS_ABC)		+= nls_abc.o
+ obj-$(CONFIG_NLS_UTF8)		+= nls_utf8.o
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -86,3 +87,4 @@ remove-apparently-useless-commented-apm_get_battery_status.patch
 cobalt-remove-all-references-to-cobalt-nvram.patch
 remove-final-two-references-to-__obsolete_setup-macro.patch
 cdrom-replace-hard-coded-constants-by-kernelh-macro.patch
+nls-remove-obsolete-makefile-entries.patch
