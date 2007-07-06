@@ -1,131 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default.patch removed from -mm tree
-Date: Thu, 05 Jul 2007 17:51:35 -0700
-Message-ID: <200707060051.l660pZM1028300@imap1.linux-foundation.org>
+Subject: - cpuidle-menu-governor-change-the-early-break-condition.patch removed from -mm tree
+Date: Thu, 05 Jul 2007 17:51:31 -0700
+Message-ID: <200707060051.l660pVcb028293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53316 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760464AbXGFAvm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:51:42 -0400
+	by vger.kernel.org with ESMTP id S1760702AbXGFAvs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jul 2007 20:51:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuidle: add rating to the governors and pick the one with highest rating by default
+     cpuidle: menu governor change the early break condition
 has been removed from the -mm tree.  Its filename was
-     cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default.patch
+     cpuidle-menu-governor-change-the-early-break-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpuidle: add rating to the governors and pick the one with highest rating by default
+Subject: cpuidle: menu governor change the early break condition
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Introduce a governor rating scheme to pick the right governor by default.
+Change the C-state early break out algorithm in menu governor.
+
+We only look at early breakouts that result in wakeups shorter than idle
+state's target_residency.  If such a breakout is frequent enough, eliminate
+the particular idle state upto a timeout period.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governor.c         |   33 ++++++++++++++++++++++++---
- drivers/cpuidle/governors/ladder.c |    1 
- drivers/cpuidle/governors/menu.c   |    1 
- include/linux/cpuidle.h            |    1 
- 4 files changed, 33 insertions(+), 3 deletions(-)
+ drivers/cpuidle/governors/menu.c |   58 +++++++++++++++++++++--------
+ 1 files changed, 43 insertions(+), 15 deletions(-)
 
-diff -puN drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default drivers/cpuidle/governor.c
---- a/drivers/cpuidle/governor.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
-+++ a/drivers/cpuidle/governor.c
-@@ -131,7 +131,8 @@ int cpuidle_register_governor(struct cpu
- 	if (__cpuidle_find_governor(gov->name) == NULL) {
- 		ret = 0;
- 		list_add_tail(&gov->governor_list, &cpuidle_governors);
--		if (!cpuidle_curr_governor)
-+		if (!cpuidle_curr_governor ||
-+		    cpuidle_curr_governor->rating < gov->rating)
- 			cpuidle_switch_governor(gov);
- 	}
- 	mutex_unlock(&cpuidle_lock);
-@@ -142,6 +143,29 @@ int cpuidle_register_governor(struct cpu
- EXPORT_SYMBOL_GPL(cpuidle_register_governor);
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-change-the-early-break-condition drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-menu-governor-change-the-early-break-condition
++++ a/drivers/cpuidle/governors/menu.c
+@@ -14,19 +14,20 @@
+ #include <linux/hrtimer.h>
+ #include <linux/tick.h>
  
- /**
-+ * cpuidle_replace_governor - find a replacement governor
-+ * @exclude_rating: the rating that will be skipped while looking for
-+ * new governor.
-+ */
-+struct cpuidle_governor *cpuidle_replace_governor(int exclude_rating)
-+{
-+	struct cpuidle_governor *gov;
-+	struct cpuidle_governor *ret_gov = NULL;
-+	unsigned int max_rating = 0;
-+
-+	list_for_each_entry(gov, &cpuidle_governors, governor_list) {
-+		if (gov->rating == exclude_rating)
-+			continue;
-+		if (gov->rating > max_rating) {
-+			max_rating = gov->rating;
-+			ret_gov = gov;
+-#define BM_HOLDOFF	20000	/* 20 ms */
++#define BM_HOLDOFF			20000	/* 20 ms */
++#define DEMOTION_THRESHOLD		5
++#define DEMOTION_TIMEOUT_MULTIPLIER	1000
+ 
+ struct menu_device {
+ 	int		last_state_idx;
+-	int		deepest_bm_state;
+ 
+-	int		break_last_us;
+-	int		break_elapsed_us;
++	int		deepest_break_state;
++	struct timespec break_expire_time_ts;
++	int		break_last_cnt;
+ 
++	int		deepest_bm_state;
+ 	int		bm_elapsed_us;
+ 	int		bm_holdoff_us;
+-
+-	unsigned long	idle_jiffies;
+ };
+ 
+ static DEFINE_PER_CPU(struct menu_device, menu_devices);
+@@ -45,7 +46,6 @@ static int menu_select(struct cpuidle_de
+ 
+ 	/* determine the expected residency time */
+ 	expected_us = (s32) ktime_to_ns(tick_nohz_get_sleep_length()) / 1000;
+-	expected_us = min(expected_us, data->break_last_us);
+ 
+ 	/* determine the maximum state compatible with current BM status */
+ 	if (cpuidle_get_bm_activity())
+@@ -53,17 +53,33 @@ static int menu_select(struct cpuidle_de
+ 	if (data->bm_elapsed_us <= data->bm_holdoff_us)
+ 		max_state = data->deepest_bm_state + 1;
+ 
++	/* determine the maximum state compatible with recent idle breaks */
++	if (data->deepest_break_state >= 0) {
++		struct timespec now;
++		ktime_get_ts(&now);
++		if (timespec_compare(&data->break_expire_time_ts, &now) > 0) {
++			max_state = min(max_state,
++					data->deepest_break_state + 1);
++		} else {
++			data->deepest_break_state = -1;
 +		}
 +	}
 +
-+	return ret_gov;
-+}
+ 	/* find the deepest idle state that satisfies our constraints */
+ 	for (i = 1; i < max_state; i++) {
+ 		struct cpuidle_state *s = &dev->states[i];
 +
-+/**
-  * cpuidle_unregister_governor - unregisters a governor
-  * @gov: the governor
-  */
-@@ -151,8 +175,11 @@ void cpuidle_unregister_governor(struct 
- 		return;
+ 		if (s->target_residency > expected_us)
+ 			break;
++
+ 		if (s->exit_latency > system_latency_constraint())
+ 			break;
+ 	}
  
- 	mutex_lock(&cpuidle_lock);
--	if (gov == cpuidle_curr_governor)
--		cpuidle_switch_governor(NULL);
-+	if (gov == cpuidle_curr_governor) {
-+		struct cpuidle_governor *new_gov;
-+		new_gov = cpuidle_replace_governor(gov->rating);
-+		cpuidle_switch_governor(new_gov);
-+	}
- 	list_del(&gov->governor_list);
- 	mutex_unlock(&cpuidle_lock);
++	if (data->last_state_idx != i - 1)
++		data->break_last_cnt = 0;
++
+ 	data->last_state_idx = i - 1;
+-	data->idle_jiffies = tick_nohz_get_idle_jiffies();
+ 	return i - 1;
  }
-diff -puN drivers/cpuidle/governors/ladder.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -199,6 +199,7 @@ static void ladder_exit_device(struct cp
  
- static struct cpuidle_governor ladder_governor = {
- 	.name =		"ladder",
-+	.rating =	10,
- 	.init =		ladder_init_device,
- 	.exit =		ladder_exit_device,
- 	.scan =		ladder_scan_device,
-diff -puN drivers/cpuidle/governors/menu.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -153,6 +153,7 @@ static void menu_scan_device(struct cpui
+@@ -91,14 +107,27 @@ static void menu_reflect(struct cpuidle_
+ 		measured_us = USEC_PER_SEC / HZ;
  
- struct cpuidle_governor menu_governor = {
- 	.name =		"menu",
-+	.rating =	20,
- 	.scan =		menu_scan_device,
- 	.select =	menu_select,
- 	.reflect =	menu_reflect,
-diff -puN include/linux/cpuidle.h~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default include/linux/cpuidle.h
---- a/include/linux/cpuidle.h~cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default
-+++ a/include/linux/cpuidle.h
-@@ -159,6 +159,7 @@ static inline int cpuidle_force_redetect
- struct cpuidle_governor {
- 	char			name[CPUIDLE_NAME_LEN];
- 	struct list_head 	governor_list;
-+	unsigned int		rating;
+ 	data->bm_elapsed_us += measured_us;
+-	data->break_elapsed_us += measured_us;
++
++	if (data->last_state_idx == 0)
++		return;
  
- 	int  (*init)		(struct cpuidle_device *dev);
- 	void (*exit)		(struct cpuidle_device *dev);
+ 	/*
+-	 * Did something other than the timer interrupt cause the break event?
++	 * Did something other than the timer interrupt
++	 * cause an early break event?
+ 	 */
+-	if (tick_nohz_get_idle_jiffies() == data->idle_jiffies) {
+-		data->break_last_us = data->break_elapsed_us;
+-		data->break_elapsed_us = 0;
++	if (unlikely(measured_us < target->target_residency)) {
++		if (data->break_last_cnt > DEMOTION_THRESHOLD) {
++			data->deepest_break_state = data->last_state_idx - 1;
++			ktime_get_ts(&data->break_expire_time_ts);
++			timespec_add_ns(&data->break_expire_time_ts,
++						target->target_residency *
++						DEMOTION_TIMEOUT_MULTIPLIER);
++		} else {
++			data->break_last_cnt++;
++		}
++	} else {
++		if (data->break_last_cnt > 0)
++			data->break_last_cnt--;
+ 	}
+ }
+ 
+@@ -112,10 +141,9 @@ static void menu_scan_device(struct cpui
+ 	int i;
+ 
+ 	data->last_state_idx = 0;
+-	data->break_last_us = 0;
+-	data->break_elapsed_us = 0;
+ 	data->bm_elapsed_us = 0;
+ 	data->bm_holdoff_us = BM_HOLDOFF;
++	data->deepest_break_state = -1;
+ 
+ 	for (i = 1; i < dev->state_count; i++)
+ 		if (dev->states[i].flags & CPUIDLE_FLAG_CHECK_BM)
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
