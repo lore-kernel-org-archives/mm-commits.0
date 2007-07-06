@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-osst-remove-gendisk-from-private-data-struct.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 13:42:13 -0700
-Message-ID: <200707062042.l66KgD7b018949@imap1.linux-foundation.org>
+Subject: - scsi-sr-remove-gendisk-from-private-data-struct.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 13:42:16 -0700
+Message-ID: <200707062042.l66KgGi7018952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760058AbXGFUm3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 16:42:29 -0400
+	by vger.kernel.org with ESMTP id S1761125AbXGFUmb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 16:42:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI: osst: remove gendisk from private data struct
+     SCSI: sr: remove gendisk from private data struct
 has been removed from the -mm tree.  Its filename was
-     scsi-osst-remove-gendisk-from-private-data-struct.patch
+     scsi-sr-remove-gendisk-from-private-data-struct.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: SCSI: osst: remove gendisk from private data struct
+Subject: SCSI: sr: remove gendisk from private data struct
 From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
 Since gendisk is now part of scsi_device, don't store this struct in private
@@ -34,68 +34,86 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    9 +++++----
- drivers/scsi/osst.h |    1 -
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/scsi/sr.c |   14 ++++++--------
+ drivers/scsi/sr.h |    3 +--
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/osst.c~scsi-osst-remove-gendisk-from-private-data-struct drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~scsi-osst-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/osst.c
-@@ -191,7 +191,7 @@ static int osst_write_error_recovery(str
+diff -puN drivers/scsi/sr.c~scsi-sr-remove-gendisk-from-private-data-struct drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-sr-remove-gendisk-from-private-data-struct
++++ a/drivers/scsi/sr.c
+@@ -265,9 +265,9 @@ static void rw_intr(struct scsi_cmnd * S
+ 			 * last 75 2K sectors, we decrease the saved size
+ 			 * value.
+ 			 */
+-			if (error_sector < get_capacity(cd->disk) &&
++			if (error_sector < get_capacity(cd->device->disk) &&
+ 			    cd->capacity - error_sector < 4 * 75)
+-				set_capacity(cd->disk, error_sector);
++				set_capacity(cd->device->disk, error_sector);
+ 			break;
  
- static inline char *tape_name(struct osst_tape *tape)
- {
--	return tape->drive->disk_name;
-+	return tape->device->disk->disk_name;
- }
- 
- /* Routines that handle the interaction with mid-layer SCSI routines */
-@@ -5803,7 +5803,6 @@ static int osst_probe(struct device *dev
- 	drive->private_data = &tpnt->driver;
- 	sprintf(drive->disk_name, "osst%d", dev_num);
- 	tpnt->driver = &osst_template;
--	tpnt->drive = drive;
- 	tpnt->in_use = 0;
- 	tpnt->capacity = 0xfffff;
- 	tpnt->dirty = 0;
-@@ -5885,6 +5884,8 @@ static int osst_probe(struct device *dev
- 			goto out_free_sysfs1;
+ 		case RECOVERED_ERROR:
+@@ -302,7 +302,7 @@ static int sr_init_command(struct scsi_c
+ 	struct scsi_cd *cd = scsi_cd(SCpnt->request->rq_disk);
+ 
+ 	SCSI_LOG_HLQUEUE(1, printk("Doing sr request, dev = %s, block = %d\n",
+-				cd->disk->disk_name, block));
++				cd->device->disk->disk_name, block));
+ 
+ 	if (!cd->device || !scsi_device_online(cd->device)) {
+ 		SCSI_LOG_HLQUEUE(2, printk("Finishing %ld sectors\n",
+@@ -571,9 +571,7 @@ static int sr_probe(struct device *dev)
+ 	disk->flags = GENHD_FL_CD;
+ 
+ 	cd->device = sdev;
+-	cd->disk = disk;
+ 	cd->driver = &sr_template;
+-	cd->disk = disk;
+ 	cd->capacity = 0x1fffff;
+ 	cd->device->changed = 1;	/* force recheck CD type */
+ 	cd->use = 1;
+@@ -691,7 +689,7 @@ static void get_sectorsize(struct scsi_c
+ 		 * Add this so that we have the ability to correctly gauge
+ 		 * what the device is capable of.
+ 		 */
+-		set_capacity(cd->disk, cd->capacity);
++		set_capacity(cd->device->disk, cd->capacity);
  	}
  
-+	SDp->disk = drive;
-+
- 	sdev_printk(KERN_INFO, SDp,
- 		"osst :I: Attached OnStream %.5s tape as %s\n",
- 		SDp->model, tape_name(tpnt));
-@@ -5915,7 +5916,7 @@ static int osst_remove(struct device *de
- 			osst_sysfs_destroy(MKDEV(OSST_MAJOR, i));
- 			osst_sysfs_destroy(MKDEV(OSST_MAJOR, i+128));
- 			tpnt->device = NULL;
--			put_disk(tpnt->drive);
-+			put_disk(tpnt->device->disk);
- 			os_scsi_tapes[i] = NULL;
- 			osst_nr_dev--;
- 			write_unlock(&os_scsi_tapes_lock);
-@@ -5988,7 +5989,7 @@ static void __exit exit_osst (void)
- 				normalize_buffer(STp->buffer);
- 				kfree(STp->buffer);
- 			}
--			put_disk(STp->drive);
-+			put_disk(STp->device->disk);
- 			kfree(STp);
- 		}
- 		kfree(os_scsi_tapes);
-diff -puN drivers/scsi/osst.h~scsi-osst-remove-gendisk-from-private-data-struct drivers/scsi/osst.h
---- a/drivers/scsi/osst.h~scsi-osst-remove-gendisk-from-private-data-struct
-+++ a/drivers/scsi/osst.h
-@@ -623,7 +623,6 @@ struct osst_tape {
-   unsigned char last_cmnd[6];
-   unsigned char last_sense[16];
- #endif
--  struct gendisk *drive;
- } ;
+ 	queue = cd->device->request_queue;
+@@ -853,7 +851,7 @@ static int sr_packet(struct cdrom_device
+ static void sr_kref_release(struct kref *kref)
+ {
+ 	struct scsi_cd *cd = container_of(kref, struct scsi_cd, kref);
+-	struct gendisk *disk = cd->disk;
++	struct gendisk *disk = cd->device->disk;
  
- /* scsi tape command */
+ 	spin_lock(&sr_index_lock);
+ 	clear_bit(disk->first_minor, sr_index_bits);
+@@ -872,7 +870,7 @@ static int sr_remove(struct device *dev)
+ {
+ 	struct scsi_cd *cd = dev_get_drvdata(dev);
+ 
+-	del_gendisk(cd->disk);
++	del_gendisk(cd->device->disk);
+ 
+ 	mutex_lock(&sr_ref_mutex);
+ 	kref_put(&cd->kref, sr_kref_release);
+diff -puN drivers/scsi/sr.h~scsi-sr-remove-gendisk-from-private-data-struct drivers/scsi/sr.h
+--- a/drivers/scsi/sr.h~scsi-sr-remove-gendisk-from-private-data-struct
++++ a/drivers/scsi/sr.h
+@@ -38,10 +38,9 @@ typedef struct scsi_cd {
+ 	unsigned readcd_known:1;	/* drive supports READ_CD (0xbe) */
+ 	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
+ 	struct cdrom_device_info cdi;
+-	/* We hold gendisk and scsi_device references on probe and use
++	/* We hold scsi_device references on probe and use
+ 	 * the refs on this kref to decide when to release them */
+ 	struct kref kref;
+-	struct gendisk *disk;
+ } Scsi_CD;
+ 
+ int sr_do_ioctl(Scsi_CD *, struct packet_command *);
 _
 
 Patches currently in -mm which might be from kristen.c.accardi@intel.com are
@@ -111,6 +129,5 @@ ata-ahci-alpm-expose-power-management-policy-option-to-users.patch
 ata-ahci-alpm-enable-link-power-management-for-ata-drivers.patch
 ata-ahci-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
 cpci_hotplug-convert-to-use-the-kthread-api.patch
-scsi-osst-remove-gendisk-from-private-data-struct.patch
 scsi-sr-remove-gendisk-from-private-data-struct.patch
 scsi-st-remove-gendisk-from-private-data-struct.patch
