@@ -1,300 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - port-of-blktrace-to-the-linux-kernel-markers-fix.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 10:55:00 -0700
-Message-ID: <200707061755.l66Ht0BG011070@imap1.linux-foundation.org>
+Subject: + print-utsname-on-oops-on-all-architectures.patch added to -mm tree
+Date: Fri, 06 Jul 2007 10:54:33 -0700
+Message-ID: <200707061754.l66HsXfb010994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42707 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35523 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757809AbXGFRzW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 13:55:22 -0400
+	by vger.kernel.org with ESMTP id S1764341AbXGFRzb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 13:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jwise@google.com, ak@suse.de, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, linux-arch@vger.kernel.org, paulus@samba.org, rmk@arm.linux.org.uk, rth@twiddle.net
 
 
 The patch titled
-     port-of-blktrace-to-the-linux-kernel-markers-fix
-has been removed from the -mm tree.  Its filename was
-     port-of-blktrace-to-the-linux-kernel-markers-fix.patch
+     Print utsname on Oops on all architectures
+has been added to the -mm tree.  Its filename is
+     print-utsname-on-oops-on-all-architectures.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: port-of-blktrace-to-the-linux-kernel-markers-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Print utsname on Oops on all architectures
+From: Joshua Wise <jwise@google.com>
 
-doesn't build
+Background:
+ This patch is a follow-on to "Info dump on Oops or panic()" [1].
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+ On some architectures, the kernel printed some information on the running
+ kernel, but not on all architectures. The information printed was generally
+ the version and build number, but it was not located in a consistant place,
+ and some architectures did not print it at all.
+
+Description:
+ This patch uses the already-existing die_chain to print utsname information
+ on Oops. This patch also removes the architecture-specific utsname
+ printers. To avoid crashing the system further (and hence not printing the
+ Oops) in the case where the system is so hopelessly smashed that utsname
+ might be destroyed, we vsprintf the utsname data into a static buffer
+ first, and then just print that on crash.
+
+Testing:
+ I wrote a module that does a *(int*)0 = 0; and observed that I got my
+ utsname data printed.
+
+Potential impact:
+ This adds another line to the Oops output, causing the first few lines to
+ potentially scroll off the screen. This also adds a few more pointer
+ dereferences in the Oops path, because it adds to the die_chain notifier
+ chain, reducing the likelihood that the Oops will be printed if there is
+ very bad memory corruption.
+
+Signed-off-by: Joshua Wise <jwise@google.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blktrace.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/alpha/kernel/process.c   |    1 -
+ arch/arm/kernel/process.c     |    7 ++-----
+ arch/i386/kernel/process.c    |    7 ++-----
+ arch/powerpc/kernel/process.c |    5 ++---
+ arch/x86_64/kernel/process.c  |    8 ++------
+ kernel/sys.c                  |   31 +++++++++++++++++++++++++++++++
+ 6 files changed, 39 insertions(+), 20 deletions(-)
 
-diff -puN block/blktrace.c~port-of-blktrace-to-the-linux-kernel-markers-fix block/blktrace.c
---- a/block/blktrace.c~port-of-blktrace-to-the-linux-kernel-markers-fix
-+++ a/block/blktrace.c
-@@ -806,9 +806,9 @@ int blk_probe_arm(void)
- 	int i;
+diff -puN arch/alpha/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/alpha/kernel/process.c
+--- a/arch/alpha/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/alpha/kernel/process.c
+@@ -20,7 +20,6 @@
+ #include <linux/slab.h>
+ #include <linux/user.h>
+ #include <linux/a.out.h>
+-#include <linux/utsname.h>
+ #include <linux/time.h>
+ #include <linux/major.h>
+ #include <linux/stat.h>
+diff -puN arch/arm/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/arm/kernel/process.c
+@@ -28,7 +28,6 @@
+ #include <linux/elfcore.h>
+ #include <linux/pm.h>
+ #include <linux/tick.h>
+-#include <linux/utsname.h>
  
- 	for (i = 0; i < ARRAY_SIZE(probe_array); i++) {
--		result = marker_arm_probe(probe_array[i].name,
--				probe_array[i].format,
--				probe_array[i].callback, &probe_array[i]);
-+//		result = marker_arm_probe(probe_array[i].name,
-+//				probe_array[i].format,
-+/				probe_array[i].callback, &probe_array[i]);
- 		if (result)
- 			printk(KERN_INFO
- 				"blktrace unable to register probe %s\n",
-@@ -822,7 +822,7 @@ void blk_probe_disarm(void)
- 	int i;
+ #include <asm/leds.h>
+ #include <asm/processor.h>
+@@ -207,10 +206,8 @@ void __show_regs(struct pt_regs *regs)
+ 	unsigned long flags;
+ 	char buf[64];
  
- 	for (i = 0; i < ARRAY_SIZE(probe_array); i++) {
--		marker_disarm_probe(probe_array[i].name);
-+//		marker_disarm_probe(probe_array[i].name);
- 	}
- }
+-	printk("CPU: %d    %s  (%s %.*s)\n",
+-		smp_processor_id(), print_tainted(), init_utsname()->release,
+-		(int)strcspn(init_utsname()->version, " "),
+-		init_utsname()->version);
++	printk("CPU: %d    %s\n",
++		smp_processor_id(), print_tainted());
+ 	print_symbol("PC is at %s\n", instruction_pointer(regs));
+ 	print_symbol("LR is at %s\n", regs->ARM_lr);
+ 	printk("pc : [<%08lx>]    lr : [<%08lx>]    psr: %08lx\n"
+diff -puN arch/i386/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/i386/kernel/process.c
+@@ -27,7 +27,6 @@
+ #include <linux/user.h>
+ #include <linux/a.out.h>
+ #include <linux/interrupt.h>
+-#include <linux/utsname.h>
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+@@ -311,10 +310,8 @@ void show_regs(struct pt_regs * regs)
  
+ 	if (user_mode_vm(regs))
+ 		printk(" ESP: %04x:%08lx",0xffff & regs->xss,regs->esp);
+-	printk(" EFLAGS: %08lx    %s  (%s %.*s)\n",
+-	       regs->eflags, print_tainted(), init_utsname()->release,
+-	       (int)strcspn(init_utsname()->version, " "),
+-	       init_utsname()->version);
++	printk(" EFLAGS: %08lx    %s\n",
++	       regs->eflags, print_tainted());
+ 	printk("EAX: %08lx EBX: %08lx ECX: %08lx EDX: %08lx\n",
+ 		regs->eax,regs->ebx,regs->ecx,regs->edx);
+ 	printk("ESI: %08lx EDI: %08lx EBP: %08lx",
+diff -puN arch/powerpc/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/powerpc/kernel/process.c
+@@ -32,7 +32,6 @@
+ #include <linux/kallsyms.h>
+ #include <linux/mqueue.h>
+ #include <linux/hardirq.h>
+-#include <linux/utsname.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+@@ -416,8 +415,8 @@ void show_regs(struct pt_regs * regs)
+ 
+ 	printk("NIP: "REG" LR: "REG" CTR: "REG"\n",
+ 	       regs->nip, regs->link, regs->ctr);
+-	printk("REGS: %p TRAP: %04lx   %s  (%s)\n",
+-	       regs, regs->trap, print_tainted(), init_utsname()->release);
++	printk("REGS: %p TRAP: %04lx   %s\n",
++	       regs, regs->trap, print_tainted());
+ 	printk("MSR: "REG" ", regs->msr);
+ 	printbits(regs->msr, msr_bits);
+ 	printk("  CR: %08lx  XER: %08lx\n", regs->ccr, regs->xer);
+diff -puN arch/x86_64/kernel/process.c~print-utsname-on-oops-on-all-architectures arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~print-utsname-on-oops-on-all-architectures
++++ a/arch/x86_64/kernel/process.c
+@@ -32,7 +32,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/ptrace.h>
+-#include <linux/utsname.h>
+ #include <linux/random.h>
+ #include <linux/notifier.h>
+ #include <linux/kprobes.h>
+@@ -316,11 +315,8 @@ void __show_regs(struct pt_regs * regs)
+ 
+ 	printk("\n");
+ 	print_modules();
+-	printk("Pid: %d, comm: %.20s %s %s %.*s\n",
+-		current->pid, current->comm, print_tainted(),
+-		init_utsname()->release,
+-		(int)strcspn(init_utsname()->version, " "),
+-		init_utsname()->version);
++	printk("Pid: %d, comm: %.20s %s\n",
++		current->pid, current->comm, print_tainted());
+ 	printk("RIP: %04lx:[<%016lx>] ", regs->cs & 0xffff, regs->rip);
+ 	printk_address(regs->rip); 
+ 	printk("RSP: %04lx:%016lx  EFLAGS: %08lx\n", regs->ss, regs->rsp,
+diff -puN kernel/sys.c~print-utsname-on-oops-on-all-architectures kernel/sys.c
+--- a/kernel/sys.c~print-utsname-on-oops-on-all-architectures
++++ a/kernel/sys.c
+@@ -27,6 +27,7 @@
+ #include <linux/dcookies.h>
+ #include <linux/suspend.h>
+ #include <linux/tty.h>
++#include <linux/kdebug.h>
+ #include <linux/signal.h>
+ #include <linux/cn_proc.h>
+ #include <linux/getcpu.h>
+@@ -107,6 +108,36 @@ void (*pm_power_off_prepare)(void);
+ EXPORT_SYMBOL(pm_power_off_prepare);
+ 
+ /*
++ * Dump out UTS info on oops / panic.  We pregenerate utsname_info so that
++ * we don't access utsname() if the machine is in a potentially bad state.
++ */
++
++static char *utsname_info;
++
++static int dump_utsname(struct notifier_block *self, unsigned long diecode,
++		void *p)
++{
++	printk(KERN_EMERG "%s\n", utsname_info);
++	return 0;
++}
++
++static struct notifier_block utsname_notifier = {
++	.notifier_call = dump_utsname
++};
++
++static int __init register_utsname_dump(void)
++{
++	utsname_info = kasprintf(GFP_KERNEL, "%s %s %s %s",
++		utsname()->sysname,
++		utsname()->release,
++		utsname()->version,
++		utsname()->machine);
++	register_die_notifier(&utsname_notifier);
++	return 0;
++}
++module_init(register_utsname_dump);
++
++/*
+  *	Notifier list for kernel code which wants to be called
+  *	at shutdown. This is used to stop any idling DMA operations
+  *	and the like. 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jwise@google.com are
 
-origin.patch
-potential-compiler-error-irqfunc-caller-sites-update.patch
-git-acpi.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-avr32.patch
-git-cpufreq-fix.patch
-bugfix-cpufreq-in-combination-with-performance-governor-fix.patch
-8xx-mpc885ads-pcmcia-support.patch
-revert-gregkh-driver-block-device.patch
-driver-core-check-return-code-of-sysfs_create_link.patch
-revert-saa7134-fix-thread-shutdown-handling.patch
-git-dvb.patch
-git-dvb-fixup.patch
-applesmc-add-temperature-sensors-set-for-macbook-fix.patch
-git-gfs2-nmw.patch
-git-infiniband.patch
-git-input.patch
-serio_raw_read-warning-fix.patch
-tsdev-fix-broken-usecto-millisecs-conversion.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-leds.patch
-led_colour_show-warning-fix.patch
-git-libata-all-fix.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61-fix.patch
-git-md-accel.patch
-git-mips-fixup.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-git-netdev-all-fixup.patch
-sundance-phy-address-form-0-only-for-device-id-0x0200-fix.patch
-git-net-fixup.patch
-wrong-timeout-value-in-sk_wait_data-v2-fix.patch
-git-battery.patch
-git-battery-vs-git-acpi.patch
-git-ioat-vs-git-md-accel.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator-fix.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used-fix-fix.patch
-revert-gregkh-pci-pci_bridge-device.patch
-fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
-pci-x-pci-express-read-control-interfaces-fix.patch
-revert-acpi-change-for-scsi.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-restore-acpi-change-for-scsi.patch
-git-scsi-misc-vs-greg-sysfs-stuff.patch
-aacraid-rename-check_reset.patch
-scsi-dont-build-scsi_dma_mapunmap-for-has_dma-fix.patch
-splicec-revert-git-selinux-changes-so-that-git-block-will-apply.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-block-vs-git-unionfs.patch
-fix-gregkh-usb-usb-ehci-cpufreq-fix.patch
-git-watchdog.patch
-x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
-revert-x86_64-mm-verify-cpu-rename.patch
-fix-x86_64-numa-fake-apicid_to_node-mapping-for-fake-numa-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-add-common-orderly_poweroff.patch
-i386-add-support-for-picopower-irq-router.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
-mmconfig-x86_64-i386-insert-unclaimed-mmconfig-resources.patch
-x86_64-fix-smp_call_function_single-return-value.patch
-i386-flush_tlb_kernel_range-add-reference-to-the-arguments.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-3.patch
-mmconfig-validate-against-acpi-motherboard-resources-fix-2-3.patch
-x86_64-irq-check-remote-irr-bit-before-migrating-level-triggered-irq-v3.patch
-x86-64-calgary-introduce-chipset-specific-ops-fix.patch
-x86-64-calgary-add-chip_ops-and-a-quirk-function-for-calioc2-fix.patch
-x86-64-calgary-reserve-tces-with-the-same-address-as-mem-regions-fix.patch
-i386-do-not-restore-reserved-memory-after-hibernation-fix.patch
-paravirt-helper-to-disable-all-io-space-fix.patch
-i386-trim-memory-not-covered-by-wb-mtrrs-fix.patch
-i386-show-unhandled-signals-fix.patch
-x86_84-move-iommu-declaration-from-proto-to-iommuh-fix.patch
-i386-add-cpu_relax-to-cmos_lock-fix.patch
-x86_64-flush_tlb_kernel_range-warning-fix.patch
-x86_64-add-ioapic-nmi-support-fix.patch
-x86_64-add-ioapic-nmi-support-fix-2.patch
-highres-improve-debug-output-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix.patch
-ntp-move-the-cmos-update-code-into-ntpc-fix-fix.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-git-cryptodev.patch
-git-cryptodev-fixup.patch
-git-kgdb-fixup.patch
-kgdb-warning-fix.patch
-kgdb-kconfig-fix.patch
-kgdb-use-new-style-interrupt-flags.patch
-kgdb-section-fix.patch
-kgdb_skipexception-warning-fix.patch
-kgdb-ia64-fixes.patch
-kgdb-bust-on-ia64.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-change-zonelist-order-v6-zonelist-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-merge-nopfn-into-fault.patch
-invalidate_mapping_pages-add-cond_resched.patch
-slub-support-slub_debug-on-by-default-tidy.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-create-the-zone_movable-zone-fix.patch
-create-the-zone_movable-zone-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-2.patch
-allow-huge-page-allocations-to-use-gfp_high_movable-fix-3.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-clean-up-and-kernelify-shrinker-registration-vs-git-nfs.patch
-slub-change-error-reporting-format-to-follow-lockdep-loosely-fix.patch
-fs-introduce-some-page-buffer-invariants-obnoxiousness.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix.patch
-freezer-make-kernel-threads-nonfreezable-by-default-fix-fix.patch
-fix-alpha-isa-support-fix.patch
-freezer-run-show_state-when-freezing-times-out.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix.patch
-pm-introduce-hibernation-and-suspend-notifiers-tidy.patch
-pm-introduce-hibernation-and-suspend-notifiers-fix-fix.patch
-pm-disable-usermode-helper-before-hibernation-and-suspend-fix.patch
-add-generic-exit-time-stack-depth-checking-to-config_debug_stack_usage.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-use-write_trylock_irqsave-in-ptrace_attach-fix.patch
-use-no_pci_devices-in-pci-searchc.patch
-introduce-boot-based-time-fix.patch
-use-boot-based-time-for-process-start-time-and-boot-time-fix.patch
-add-argv_split-fix.patch
-add-common-orderly_poweroff-fix.patch
-cpu-hotplug-fix-ksoftirqd-termination-on-cpu-hotplug-with-naughty-realtime-process-fix.patch
-fuse-warning-fix.patch
-vxfs-warning-fixes.patch
-percpu_counters-use-cpu-notifiers.patch
-percpu_counters-use-for_each_online_cpu.patch
-mpu401-warning-fixes.patch
-procfs-directory-entry-cleanup-fix.patch
-vdso-print-fatal-signals.patch
-reduce-cpusetc-write_lock_irq-to-read_lock-fix.patch
-o_cloexec-for-scm_rights-fix.patch
-o_cloexec-for-scm_rights-fix-2.patch
-atmel_serial-fix-break-handling.patch
-lib-add-idr_for_each-fix.patch
-ext3-ext4-orphan-list-check-on-destroy_inode-fix.patch
-taskstats-add-context-switch-counters-fix.patch
-improve-behaviour-of-spurious-irq-detect-fix.patch
-audit-add-tty-input-auditing-fix-2.patch
-revert-vanishing-ioctl-handler-debugging.patch
-binfmt_elf-warning-fix.patch
-dirty_writeback_centisecs_handler-cleanup.patch
-diskquota-32bit-quota-tools-on-64bit-architectures-fix-fix.patch
-sys_time-speedup-build-fixes.patch
-add-documentation-sysctl-ctl_unnumberedtxt.patch
-sysctlc-add-text-telling-people-to-use-ctl_unnumbered.patch
-hfs-refactor-ascii-to-unicode-conversion-routine-fix.patch
-sprint_symbol-cleanup.patch
-replace-obscure-constructs-in-fs-block_devc-fix.patch
-bd_claim_by_disk-fix-warning.patch
-uninline-check_signature.patch
-uninline-check_signature-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-crc7-support-fix.patch
-spi-master-driver-for-xilinx-virtex-fix.patch
-isdn-capi-warning-fixes.patch
-i2o_cfg_passthru-cleanup-fix.patch
-knfsd-exportfs-add-exportfsh-header-fix.patch
-knfsd-exportfs-remove-iget-abuse-fix.patch
-nfsd-warning-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix.patch
-knfsd-nfsd4-vary-maximum-delegation-limit-based-on-ram-size-fix-fix-fix-fix.patch
-driver-for-the-atmel-on-chip-rtc-on-at32ap700x-devices-fix.patch
-rtc-add-rtc-m41t80-driver-take-2-fix.patch
-rtc-add-support-for-the-st-m48t59-rtc-vs-git-acpi.patch
-rtc-add-support-for-the-st-m48t59-rtc-fix-3.patch
-rtc-driver-for-ds1216-chips-fix.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-lguest-the-host-code.patch
-lguest-the-net-driver.patch
-fbcon-allow-fbcon-to-use-the-primary-display-driver-fix-2.patch
-fbdev-fbcon-console-unregistration-from-unregister_framebuffer-fix.patch
-intel-iommu-pci-generic-helper-function-fix.patch
-intel-iommu-iova-allocation-and-management-routines-fix.patch
-intel-iommu-intel-iommu-driver-fix.patch
-intel-iommu-intel-iommu-driver-fix-2.patch
-intel-iommu-iommu-floppy-workaround-fix.patch
-cfs-scheduler-vs-detach-schedh-from-mmh.patch
-cfs-scheduler-warning-fixes.patch
-cfs-warning-fixes.patch
-kernel-doc-fix-leading-dot-in-man-mode-output-fix.patch
-coredump-masking-reimplementation-of-dumpable-using-two-flags-fix.patch
-port-of-blktrace-to-the-linux-kernel-markers-fix.patch
-drivers-edac-new-i82443bxgz-mc-driver-broken.patch
-containersv10-basic-container-framework-fix.patch
-containersv10-basic-container-framework-fix-2.patch
-containersv10-example-cpu-accounting-subsystem-fix.patch
-containersv10-add-tasks-file-interface-fix.patch
-containersv10-add-fork-exit-hooks-fix.patch
-containersv10-add-container_clone-interface-fix.patch
-containersv10-add-procfs-interface-fix.patch
-containersv10-share-css_group-arrays-between-tasks-with-same-container-memberships-fix.patch
-containersv10-simple-debug-info-subsystem-fix.patch
-containersv10-simple-debug-info-subsystem-fix-2.patch
-add-containerstats-v3-fix.patch
-lockstat-core-infrastructure-fix.patch
-lockstat-core-infrastructure-fix-fix.patch
-lockstat-core-infrastructure-fix-fix-fix.patch
-lockdep-various-fixes-checkpatch.patch
-lockstat-measure-lock-bouncing-checkpatch.patch
-reiser4.patch
-reiser4-fix.patch
-git-block-vs-reiser4.patch
-allow-page_owner-to-be-set-on-any-architecture-fix.patch
-check_dirty_inode_list.patch
-alloc_pages-debug.patch
-w1-build-fix.patch
+print-utsname-on-oops-on-all-architectures.patch
