@@ -1,137 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - cfs-kernel-schedc-make-2-functions-static.patch removed from -mm tree
-Date: Fri, 06 Jul 2007 11:13:43 -0700
-Message-ID: <200707061813.l66IDhng011978@imap1.linux-foundation.org>
+Subject: + i386-ioapic-remove-old-irq-balancing-debug-cruft.patch added to -mm tree
+Date: Fri, 06 Jul 2007 13:32:35 -0700
+Message-ID: <200707062032.l66KWZcY018461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40481 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48470 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761238AbXGFSOf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 14:14:35 -0400
+	by vger.kernel.org with ESMTP id S1754890AbXGFUdG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 16:33:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: stefanr@s5r6.in-berlin.de, ak@suse.de, mingo@elte.hu, rpjday@mindspring.com
 
 
 The patch titled
-     kernel/sched.c: make 2 functions static
-has been removed from the -mm tree.  Its filename was
-     cfs-kernel-schedc-make-2-functions-static.patch
+     i386 IOAPIC: remove old IRQ balancing debug cruft
+has been added to the -mm tree.  Its filename is
+     i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/sched.c: make 2 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: i386 IOAPIC: remove old IRQ balancing debug cruft
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-This patch makes the following needlessly global functions static:
-- load_balance_start()
-- load_balance_next()
+Dead or misnamed CONFIG_BALANCED_IRQ_DEBUG found by Robert P. J. Day.
+It's not a Kconfig variable.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Since this debug code is ancient, I suggest to get rid of this
+misleading CONFIG_ macro by deleting all of this debug code.
+
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Robert P. J. Day" <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/io_apic.c |   24 ++----------------------
+ 1 files changed, 2 insertions(+), 22 deletions(-)
 
-diff -puN kernel/sched.c~cfs-kernel-schedc-make-2-functions-static kernel/sched.c
---- a/kernel/sched.c~cfs-kernel-schedc-make-2-functions-static
-+++ a/kernel/sched.c
-@@ -2010,7 +2010,7 @@ int can_migrate_task(struct task_struct 
-  * classes, starting with the highest-prio one:
-  */
- 
--struct task_struct * load_balance_start(struct rq *rq)
-+static struct task_struct * load_balance_start(struct rq *rq)
+diff -puN arch/i386/kernel/io_apic.c~i386-ioapic-remove-old-irq-balancing-debug-cruft arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~i386-ioapic-remove-old-irq-balancing-debug-cruft
++++ a/arch/i386/kernel/io_apic.c
+@@ -353,14 +353,6 @@ static void set_ioapic_affinity_irq(unsi
+ # include <linux/slab.h>		/* kmalloc() */
+ # include <linux/timer.h>	/* time_after() */
+  
+-#ifdef CONFIG_BALANCED_IRQ_DEBUG
+-#  define TDprintk(x...) do { printk("<%ld:%s:%d>: ", jiffies, __FILE__, __LINE__); printk(x); } while (0)
+-#  define Dprintk(x...) do { TDprintk(x); } while (0)
+-# else
+-#  define TDprintk(x...) 
+-#  define Dprintk(x...) 
+-# endif
+-
+ #define IRQBALANCE_CHECK_ARCH -999
+ #define MAX_BALANCED_IRQ_INTERVAL	(5*HZ)
+ #define MIN_BALANCED_IRQ_INTERVAL	(HZ/2)
+@@ -443,7 +435,7 @@ static inline void balance_irq(int cpu, 
+ static inline void rotate_irqs_among_cpus(unsigned long useful_load_threshold)
  {
- 	struct sched_class *class = sched_class_highest;
- 	struct task_struct *p;
-@@ -2027,7 +2027,7 @@ struct task_struct * load_balance_start(
- 	return NULL;
+ 	int i, j;
+-	Dprintk("Rotating IRQs among CPUs.\n");
++
+ 	for_each_online_cpu(i) {
+ 		for (j = 0; j < NR_IRQS; j++) {
+ 			if (!irq_desc[j].action)
+@@ -560,19 +552,11 @@ tryanothercpu:
+ 	max_loaded = tmp_loaded;	/* processor */
+ 	imbalance = (max_cpu_irq - min_cpu_irq) / 2;
+ 	
+-	Dprintk("max_loaded cpu = %d\n", max_loaded);
+-	Dprintk("min_loaded cpu = %d\n", min_loaded);
+-	Dprintk("max_cpu_irq load = %ld\n", max_cpu_irq);
+-	Dprintk("min_cpu_irq load = %ld\n", min_cpu_irq);
+-	Dprintk("load imbalance = %lu\n", imbalance);
+-
+ 	/* if imbalance is less than approx 10% of max load, then
+ 	 * observe diminishing returns action. - quit
+ 	 */
+-	if (imbalance < (max_cpu_irq >> 3)) {
+-		Dprintk("Imbalance too trivial\n");
++	if (imbalance < (max_cpu_irq >> 3))
+ 		goto not_worth_the_effort;
+-	}
+ 
+ tryanotherirq:
+ 	/* if we select an IRQ to move that can't go where we want, then
+@@ -629,9 +613,6 @@ tryanotherirq:
+ 	cpus_and(tmp, target_cpu_mask, allowed_mask);
+ 
+ 	if (!cpus_empty(tmp)) {
+-
+-		Dprintk("irq = %d moved to cpu = %d\n",
+-				selected_irq, min_loaded);
+ 		/* mark for change destination */
+ 		set_pending_irq(selected_irq, cpumask_of_cpu(min_loaded));
+ 
+@@ -651,7 +632,6 @@ not_worth_the_effort:
+ 	 */
+ 	balanced_irq_interval = min((long)MAX_BALANCED_IRQ_INTERVAL,
+ 		balanced_irq_interval + BALANCED_IRQ_MORE_DELTA);	
+-	Dprintk("IRQ worth rotating not found\n");
+ 	return;
  }
  
--struct task_struct * load_balance_next(struct rq *rq)
-+static struct task_struct * load_balance_next(struct rq *rq)
- {
- 	struct sched_class *class = rq->load_balance_class;
- 	struct task_struct *p;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
 
 origin.patch
-git-acpi.patch
-cpuidle-add-rating-to-the-governors-and-pick-the-one-with-highest-rating-by-default-fix.patch
-drivers-acpi-sbsc-remove-dead-code.patch
-git-alsa.patch
-make-drivers-char-hvc_consoleckhvcd-static.patch
-git-dvb.patch
-git-input.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-md-accel.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-bonding-bond_mainc-make-2-functions-static.patch
-net-make-struct-dccp_li_cachep-static.patch
-git-battery.patch
-git-selinux.patch
+git-ieee1394.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-remove-the-dead-cyberstormiii_scsi-option.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-x86_64-mm-xen-add-xen-virtual-block-device-driver.patch
-fix-x86_64-mm-xen-xen-event-channels.patch
-arch-i386-xen-mmuc-must-include-linux-schedh.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-i386-remove-support-for-the-rise-cpu.patch
-i386-make-arch-i386-mm-pgtablecpgd_cdtor-static.patch
-xen-fix-x86-config-dependencies.patch
-xen-suppress-abs-symbol-warnings-for-unused-reloc-pointers.patch
-xen-cant-support-numa-yet.patch
-mm-slabc-start_cpu_timer-should-be-__cpuinit.patch
-handle-kernelcore=-generic-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-mm-slubc-make-code-static.patch
-swsusp-remove-code-duplication-between-diskc-and-userc-fix.patch
-more-scheduled-oss-driver-removal.patch
-init-wait-for-asynchronously-scanned-block-devices-fix.patch
-kernel-utf-8-handling-fix.patch
-remove-sonypi_camera_command.patch
-fs-namespacec-should-include-internalh.patch
-proper-prototype-for-proc_nr_files.patch
-fs-reiserfs-cleanups.patch
-remove-mm-backing-devccongestion_wait_interruptible.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-revoke-core-code.patch
-oss-trident-fix-locking-around-write_voice_regs.patch
-remove-options-depending-on-oss_obsolete.patch
-fbdev-move-arch-specific-bits-to-their-respective-fix-include-asm-m68k-fbh.patch
-pm3fb-possible-cleanups.patch
-vt8623fbc-make-code-static.patch
-intel-iommu-intel-iommu-driver-fix-duplicate-config_dmar-makefile-line.patch
-mm-variable-length-argument-support-fix-2.patch
-kernel-sched_fairc-make-code-static.patch
-fs-proc-basec-make-a-struct-static.patch
-mm-implement-swap-prefetching-make-mm-swap_prefetchcremove_from_swapped_list.patch
-cfs-kernel-schedc-make-2-functions-static.patch
-kernel-relayc-make-functions-static.patch
-immediate-value-add-kconfig-menus.patch
-linux-kernel-markers-add-kconfig-menus-for-the-marker-code.patch
-drivers-edac-core-make-functions-static.patch
-lockstat-human-readability-tweaks-fix.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+i386-ioapic-remove-old-irq-balancing-debug-cruft.patch
+fs-clarify-dummy-member-in-struct.patch
