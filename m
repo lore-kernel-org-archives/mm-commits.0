@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-move-sysfs-operations-outside-of-slub_lock.patch added to -mm tree
-Date: Fri, 06 Jul 2007 16:21:32 -0700
-Message-ID: <200707062321.l66NLWwd026553@imap1.linux-foundation.org>
+Subject: + slab-allocators-cleanup-zeroing-allocations.patch added to -mm tree
+Date: Fri, 06 Jul 2007 16:21:26 -0700
+Message-ID: <200707062321.l66NLQ5F026541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39401 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751791AbXGFXVk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 19:21:40 -0400
+	by vger.kernel.org with ESMTP id S1751809AbXGFXVo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 19:21:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Move sysfs operations outside of slub_lock
+     Slab allocators: Cleanup zeroing allocations
 has been added to the -mm tree.  Its filename is
-     slub-move-sysfs-operations-outside-of-slub_lock.patch
+     slab-allocators-cleanup-zeroing-allocations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,295 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Move sysfs operations outside of slub_lock
+Subject: Slab allocators: Cleanup zeroing allocations
 From: Christoph Lameter <clameter@sgi.com>
 
-Sysfs can do a gazillion things when called.  Make sure that we do not call
-any sysfs functions while holding the slub_lock.
-
-Just protect the essentials:
-
-1. The list of all slab caches
-2. The kmalloc_dma array
-3. The ref counters of the slabs.
+It becomes now easy to support the zeroing allocs with generic inline
+functions in slab.h.  Provide inline definitions to allow the continued use of
+kzalloc, kmem_cache_zalloc etc but remove other definitions of zeroing
+functions from the slab allocators and util.c.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ include/linux/slab.h     |   77 ++++++++++++++++++++++---------------
+ include/linux/slab_def.h |   30 --------------
+ include/linux/slub_def.h |   13 ------
+ mm/slab.c                |   17 --------
+ mm/slob.c                |   10 ----
+ mm/slub.c                |   11 -----
+ mm/util.c                |   14 ------
+ 7 files changed, 46 insertions(+), 126 deletions(-)
 
-diff -puN mm/slub.c~slub-move-sysfs-operations-outside-of-slub_lock mm/slub.c
---- a/mm/slub.c~slub-move-sysfs-operations-outside-of-slub_lock
-+++ a/mm/slub.c
-@@ -2206,12 +2206,13 @@ void kmem_cache_destroy(struct kmem_cach
- 	s->refcount--;
- 	if (!s->refcount) {
- 		list_del(&s->list);
-+		up_write(&slub_lock);
- 		if (kmem_cache_close(s))
- 			WARN_ON(1);
- 		sysfs_slab_remove(s);
- 		kfree(s);
--	}
--	up_write(&slub_lock);
-+	} else
-+		up_write(&slub_lock);
+diff -puN include/linux/slab.h~slab-allocators-cleanup-zeroing-allocations include/linux/slab.h
+--- a/include/linux/slab.h~slab-allocators-cleanup-zeroing-allocations
++++ a/include/linux/slab.h
+@@ -57,7 +57,6 @@ struct kmem_cache *kmem_cache_create(con
+ 			void (*)(void *, struct kmem_cache *, unsigned long));
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+-void *kmem_cache_zalloc(struct kmem_cache *, gfp_t);
+ void kmem_cache_free(struct kmem_cache *, void *);
+ unsigned int kmem_cache_size(struct kmem_cache *);
+ const char *kmem_cache_name(struct kmem_cache *);
+@@ -93,11 +92,37 @@ int kmem_ptr_validate(struct kmem_cache 
+ /*
+  * Common kmalloc functions provided by all allocators
+  */
+-void *__kzalloc(size_t, gfp_t);
+ void * __must_check krealloc(const void *, size_t, gfp_t);
+ void kfree(const void *);
+ size_t ksize(const void *);
+ 
++/*
++ * Allocator specific definitions. These are mainly used to establish optimized
++ * ways to convert kmalloc() calls to kmem_cache_alloc() invocations by
++ * selecting the appropriate general cache at compile time.
++ *
++ * Allocators must define at least:
++ *
++ *	kmem_cache_alloc()
++ *	__kmalloc()
++ *	kmalloc()
++ *
++ * Those wishing to support NUMA must also define:
++ *
++ *	kmem_cache_alloc_node()
++ *	kmalloc_node()
++ *
++ * See each allocator definition file for additional comments and
++ * implementation notes.
++ */
++#ifdef CONFIG_SLUB
++#include <linux/slub_def.h>
++#elif defined(CONFIG_SLOB)
++#include <linux/slob_def.h>
++#else
++#include <linux/slab_def.h>
++#endif
++
+ /**
+  * kcalloc - allocate memory for an array. The memory is set to zero.
+  * @n: number of elements.
+@@ -153,37 +178,9 @@ static inline void *kcalloc(size_t n, si
+ {
+ 	if (n != 0 && size > ULONG_MAX / n)
+ 		return NULL;
+-	return __kzalloc(n * size, flags);
++	return __kmalloc(n * size, flags | __GFP_ZERO);
  }
- EXPORT_SYMBOL(kmem_cache_destroy);
  
-@@ -2702,26 +2703,31 @@ struct kmem_cache *kmem_cache_create(con
- 		 */
- 		s->objsize = max(s->objsize, (int)size);
- 		s->inuse = max_t(int, s->inuse, ALIGN(size, sizeof(void *)));
-+		up_write(&slub_lock);
-+
- 		if (sysfs_slab_alias(s, name))
- 			goto err;
--	} else {
--		s = kmalloc(kmem_size, GFP_KERNEL);
--		if (s && kmem_cache_open(s, GFP_KERNEL, name,
-+
-+		return s;
-+	}
-+
-+	s = kmalloc(kmem_size, GFP_KERNEL);
-+	if (s) {
-+		if (kmem_cache_open(s, GFP_KERNEL, name,
- 				size, align, flags, ctor)) {
--			if (sysfs_slab_add(s)) {
--				kfree(s);
--				goto err;
--			}
- 			list_add(&s->list, &slab_caches);
-+			up_write(&slub_lock);
- 			raise_kswapd_order(s->order);
--		} else
--			kfree(s);
-+
-+			if (sysfs_slab_add(s))
-+				goto err;
-+			return s;
-+		}
-+		kfree(s);
- 	}
- 	up_write(&slub_lock);
--	return s;
+-/*
+- * Allocator specific definitions. These are mainly used to establish optimized
+- * ways to convert kmalloc() calls to kmem_cache_alloc() invocations by
+- * selecting the appropriate general cache at compile time.
+- *
+- * Allocators must define at least:
+- *
+- *	kmem_cache_alloc()
+- *	__kmalloc()
+- *	kmalloc()
+- *	kzalloc()
+- *
+- * Those wishing to support NUMA must also define:
+- *
+- *	kmem_cache_alloc_node()
+- *	kmalloc_node()
+- *
+- * See each allocator definition file for additional comments and
+- * implementation notes.
+- */
+-#ifdef CONFIG_SLUB
+-#include <linux/slub_def.h>
+-#elif defined(CONFIG_SLOB)
+-#include <linux/slob_def.h>
+-#else
+-#include <linux/slab_def.h>
+-#endif
+-
+ #if !defined(CONFIG_NUMA) && !defined(CONFIG_SLOB)
+ /**
+  * kmalloc_node - allocate memory from a specific node
+@@ -257,5 +254,23 @@ extern void *__kmalloc_node_track_caller
  
- err:
--	up_write(&slub_lock);
- 	if (flags & SLAB_PANIC)
- 		panic("Cannot create slabcache %s\n", name);
- 	else
+ #endif /* DEBUG_SLAB */
+ 
++/*
++ * Shortcuts
++ */
++static inline void *kmem_cache_zalloc(struct kmem_cache *k, gfp_t flags)
++{
++	return kmem_cache_alloc(k, flags | __GFP_ZERO);
++}
++
++/**
++ * kzalloc - allocate memory. The memory is set to zero.
++ * @size: how many bytes of memory are required.
++ * @flags: the type of memory to allocate (see kmalloc).
++ */
++static inline void *kzalloc(size_t size, gfp_t flags)
++{
++	return kmalloc(size, flags | __GFP_ZERO);
++}
++
+ #endif	/* __KERNEL__ */
+ #endif	/* _LINUX_SLAB_H */
+diff -puN include/linux/slab_def.h~slab-allocators-cleanup-zeroing-allocations include/linux/slab_def.h
+--- a/include/linux/slab_def.h~slab-allocators-cleanup-zeroing-allocations
++++ a/include/linux/slab_def.h
+@@ -58,36 +58,6 @@ found:
+ 	return __kmalloc(size, flags);
+ }
+ 
+-static inline void *kzalloc(size_t size, gfp_t flags)
+-{
+-	if (__builtin_constant_p(size)) {
+-		int i = 0;
+-
+-		if (!size)
+-			return ZERO_SIZE_PTR;
+-
+-#define CACHE(x) \
+-		if (size <= x) \
+-			goto found; \
+-		else \
+-			i++;
+-#include "kmalloc_sizes.h"
+-#undef CACHE
+-		{
+-			extern void __you_cannot_kzalloc_that_much(void);
+-			__you_cannot_kzalloc_that_much();
+-		}
+-found:
+-#ifdef CONFIG_ZONE_DMA
+-		if (flags & GFP_DMA)
+-			return kmem_cache_zalloc(malloc_sizes[i].cs_dmacachep,
+-						flags);
+-#endif
+-		return kmem_cache_zalloc(malloc_sizes[i].cs_cachep, flags);
+-	}
+-	return __kzalloc(size, flags);
+-}
+-
+ #ifdef CONFIG_NUMA
+ extern void *__kmalloc_node(size_t size, gfp_t flags, int node);
+ extern void *kmem_cache_alloc_node(struct kmem_cache *, gfp_t flags, int node);
+diff -puN include/linux/slub_def.h~slab-allocators-cleanup-zeroing-allocations include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slab-allocators-cleanup-zeroing-allocations
++++ a/include/linux/slub_def.h
+@@ -179,19 +179,6 @@ static inline void *kmalloc(size_t size,
+ 		return __kmalloc(size, flags);
+ }
+ 
+-static inline void *kzalloc(size_t size, gfp_t flags)
+-{
+-	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
+-		struct kmem_cache *s = kmalloc_slab(size);
+-
+-		if (!s)
+-			return ZERO_SIZE_PTR;
+-
+-		return kmem_cache_zalloc(s, flags);
+-	} else
+-		return __kzalloc(size, flags);
+-}
+-
+ #ifdef CONFIG_NUMA
+ void *__kmalloc_node(size_t size, gfp_t flags, int node);
+ void *kmem_cache_alloc_node(struct kmem_cache *, gfp_t flags, int node);
+diff -puN mm/slab.c~slab-allocators-cleanup-zeroing-allocations mm/slab.c
+--- a/mm/slab.c~slab-allocators-cleanup-zeroing-allocations
++++ a/mm/slab.c
+@@ -3592,23 +3592,6 @@ void *kmem_cache_alloc(struct kmem_cache
+ EXPORT_SYMBOL(kmem_cache_alloc);
+ 
+ /**
+- * kmem_cache_zalloc - Allocate an object. The memory is set to zero.
+- * @cache: The cache to allocate from.
+- * @flags: See kmalloc().
+- *
+- * Allocate an object from this cache and set the allocated memory to zero.
+- * The flags are only relevant if the cache has no available objects.
+- */
+-void *kmem_cache_zalloc(struct kmem_cache *cache, gfp_t flags)
+-{
+-	void *ret = __cache_alloc(cache, flags, __builtin_return_address(0));
+-	if (ret)
+-		memset(ret, 0, obj_size(cache));
+-	return ret;
+-}
+-EXPORT_SYMBOL(kmem_cache_zalloc);
+-
+-/**
+  * kmem_ptr_validate - check if an untrusted pointer might
+  *	be a slab entry.
+  * @cachep: the cache we're checking against
+diff -puN mm/slob.c~slab-allocators-cleanup-zeroing-allocations mm/slob.c
+--- a/mm/slob.c~slab-allocators-cleanup-zeroing-allocations
++++ a/mm/slob.c
+@@ -543,16 +543,6 @@ void *kmem_cache_alloc_node(struct kmem_
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc_node);
+ 
+-void *kmem_cache_zalloc(struct kmem_cache *c, gfp_t flags)
+-{
+-	void *ret = kmem_cache_alloc(c, flags);
+-	if (ret)
+-		memset(ret, 0, c->size);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(kmem_cache_zalloc);
+-
+ static void __kmem_cache_free(void *b, int size)
+ {
+ 	if (size < PAGE_SIZE)
+diff -puN mm/slub.c~slab-allocators-cleanup-zeroing-allocations mm/slub.c
+--- a/mm/slub.c~slab-allocators-cleanup-zeroing-allocations
++++ a/mm/slub.c
+@@ -2730,17 +2730,6 @@ err:
+ }
+ EXPORT_SYMBOL(kmem_cache_create);
+ 
+-void *kmem_cache_zalloc(struct kmem_cache *s, gfp_t flags)
+-{
+-	void *x;
+-
+-	x = slab_alloc(s, flags, -1, __builtin_return_address(0));
+-	if (x)
+-		memset(x, 0, s->objsize);
+-	return x;
+-}
+-EXPORT_SYMBOL(kmem_cache_zalloc);
+-
+ #ifdef CONFIG_SMP
+ /*
+  * Use the cpu notifier to insure that the cpu slabs are flushed when
+diff -puN mm/util.c~slab-allocators-cleanup-zeroing-allocations mm/util.c
+--- a/mm/util.c~slab-allocators-cleanup-zeroing-allocations
++++ a/mm/util.c
+@@ -5,20 +5,6 @@
+ #include <asm/uaccess.h>
+ 
+ /**
+- * __kzalloc - allocate memory. The memory is set to zero.
+- * @size: how many bytes of memory are required.
+- * @flags: the type of memory to allocate.
+- */
+-void *__kzalloc(size_t size, gfp_t flags)
+-{
+-	void *ret = kmalloc_track_caller(size, flags);
+-	if (ret)
+-		memset(ret, 0, size);
+-	return ret;
+-}
+-EXPORT_SYMBOL(__kzalloc);
+-
+-/**
+  * kstrdup - allocate space for and copy an existing string
+  * @s: the string to duplicate
+  * @gfp: the GFP mask used in the kmalloc() call when allocating memory
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
