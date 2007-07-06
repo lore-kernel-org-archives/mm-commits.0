@@ -1,70 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: + compat32-ignore-the-loop_clr_fd-ioctl.patch added to -mm tree
-Date: Fri, 06 Jul 2007 15:44:48 -0700
-Message-ID: <200707062244.l66MimBV024834@imap1.linux-foundation.org>
+Subject: - restore-rogue-readahead-printk.patch removed from -mm tree
+Date: Fri, 06 Jul 2007 15:46:13 -0700
+Message-ID: <200707062246.l66MkD6U024932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40465 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751650AbXGFWqV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 18:46:21 -0400
+	by vger.kernel.org with ESMTP id S1751852AbXGFWr0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Jul 2007 18:47:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, arnd@arndb.de
+To: akpm@linux-foundation.org, ak@muc.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     compat32: ignore the LOOP_CLR_FD ioctl
-has been added to the -mm tree.  Its filename is
-     compat32-ignore-the-loop_clr_fd-ioctl.patch
+     restore rogue readahead printk
+has been removed from the -mm tree.  Its filename was
+     restore-rogue-readahead-printk.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: compat32: ignore the LOOP_CLR_FD ioctl
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: restore rogue readahead printk
+From: Andrew Morton <akpm@osdl.org>
 
-compat32: Ignore the LOOP_CLR_FD ioctl for the loop block device, to kill an
-annoying kernel message when e.g. busybox umount is used.
+We're getting unexplained EIOs out of NFS - restore this warning so it doesn't
+get forgotten about.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ mm/filemap.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/compat_ioctl.c~compat32-ignore-the-loop_clr_fd-ioctl fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~compat32-ignore-the-loop_clr_fd-ioctl
-+++ a/fs/compat_ioctl.c
-@@ -63,6 +63,7 @@
- #include <linux/wireless.h>
- #include <linux/atalk.h>
- #include <linux/blktrace_api.h>
-+#include <linux/loop.h>
- 
- #include <net/bluetooth/bluetooth.h>
- #include <net/bluetooth/hci.h>
-@@ -3489,6 +3490,9 @@ HANDLE_IOCTL(LPSETTIMEOUT, lp_timeout_tr
- 
- IGNORE_IOCTL(VFAT_IOCTL_READDIR_BOTH32)
- IGNORE_IOCTL(VFAT_IOCTL_READDIR_SHORT32)
+diff -puN mm/filemap.c~restore-rogue-readahead-printk mm/filemap.c
+--- a/mm/filemap.c~restore-rogue-readahead-printk
++++ a/mm/filemap.c
+@@ -831,10 +831,17 @@ EXPORT_SYMBOL(grab_cache_page_nowait);
+ static void shrink_readahead_size_eio(struct file *filp,
+ 					struct file_ra_state *ra)
+ {
++	static int count;
 +
-+/* loop */
-+IGNORE_IOCTL(LOOP_CLR_FD)
- };
+ 	if (!ra->ra_pages)
+ 		return;
  
- #define IOCTL_HASHSIZE 256
+ 	ra->ra_pages /= 4;
++	if (count > 5)
++		return;
++	count++;
++	printk(KERN_WARNING "Reducing readahead size to %luK\n",
++		ra->ra_pages << (PAGE_CACHE_SHIFT - 10));
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-git-powerpc.patch
-git-netdev-all.patch
-update-documentation-block-barriertxt.patch
-compat32-ignore-the-loop_clr_fd-ioctl.patch
+origin.patch
+git-md-accel.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+ioat-warning-fix.patch
+git-ipwireless_cs.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+lumpy-reclaim-v4.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+move-page-writeback-acounting-out-of-macros.patch
+ext2-reservations.patch
+mm-implement-swap-prefetching.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
